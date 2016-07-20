@@ -42,7 +42,7 @@ def basis_managed_array_property(name,dtype,shape=None):
         cb = self.manager.get_current_basis()
         # get object's current basis
         ob = self.get_current_basis()
-        
+                    
         if cb == ob:
             pass 
         else:

@@ -405,10 +405,9 @@ class Manager(metaclass=Singleton):
         
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
-        #print("from ", ob, " to ", cb, ": "+str(operator))
-        
+                
         if ob != cb:
-            
+                            
             SS = numpy.diag(numpy.ones(operator._data.shape[0]))
             # find out if current basis of the object is in the stack (i.e. it 
             # was used sometime in the past)
@@ -416,8 +415,10 @@ class Manager(metaclass=Singleton):
                 sl = len(self.basis_stack)
                 # scroll back over the bases
                 for k in range(1,sl):
+
                     # take the basis transformation to the earlier used basis
                     ZZ = self.basis_transformations[sl-k]
+
                     # included into the transformation matrix
                     SS = numpy.dot(ZZ,SS)                
                     # if the basis is found, break away from the loop
@@ -566,6 +567,7 @@ class eigenbasis_of(basis_context_manager):
         self.manager.register_with_basis(nb,self.op)
         self.op.set_current_basis(nb)
         
+        
     def __exit__(self,ext_ty,exc_val,tb):
 
         
@@ -579,16 +581,31 @@ class eigenbasis_of(basis_context_manager):
         nb = self.manager.basis_stack[bss-1]
         
         # inverse of the transformation matrix
-        S1 = numpy.linalg.inv(SS)
-
+        S1 = numpy.linalg.inv(SS)     
         
         # transform all registered objects
-
         operators = self.manager.basis_registered[bb]
+        
+        if nb != 0:
+            # operators registered with the context above this one
+            ops_above = self.manager.basis_registered[nb]
+
         for op in operators:
             op._data = numpy.dot(SS,numpy.dot(op._data,S1))
             op.set_current_basis(nb)
+            
+            # operators which appeared in this context and where not
+            # register in the one above are now registerd
+            if nb != 0:
+                if op not in ops_above:
+                    self.manager.register_with_basis(nb,op)
+            
+            
         del self.manager.basis_registered[bb]
+        
+        
+        
+        
             
         
         
