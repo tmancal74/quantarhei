@@ -405,9 +405,10 @@ class Manager(metaclass=Singleton):
         
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
+        #print("from ", ob, " to ", cb, ": "+str(operator))
         
         if ob != cb:
- 
+            
             SS = numpy.diag(numpy.ones(operator._data.shape[0]))
             # find out if current basis of the object is in the stack (i.e. it 
             # was used sometime in the past)
@@ -416,7 +417,6 @@ class Manager(metaclass=Singleton):
                 # scroll back over the bases
                 for k in range(1,sl):
                     # take the basis transformation to the earlier used basis
-                   
                     ZZ = self.basis_transformations[sl-k]
                     # included into the transformation matrix
                     SS = numpy.dot(ZZ,SS)                
@@ -556,14 +556,15 @@ class eigenbasis_of(basis_context_manager):
         cb = self.manager.get_current_basis()
         ob = self.op.get_current_basis()
         if cb != ob:
-            raise Exception()
             
-        else:
-            SS = self.op.diagonalize()
-            nb = self.manager.set_new_basis(SS)
+            self.manager.transform_to_current_basis(self.op)
+            
+        
+        SS = self.op.diagonalize()
+        nb = self.manager.set_new_basis(SS)
 
-            self.manager.register_with_basis(nb,self.op)
-            self.op.set_current_basis(nb)
+        self.manager.register_with_basis(nb,self.op)
+        self.op.set_current_basis(nb)
         
     def __exit__(self,ext_ty,exc_val,tb):
 
@@ -573,7 +574,9 @@ class eigenbasis_of(basis_context_manager):
         # this is the transformation we got here with
         SS = self.manager.basis_transformations.pop()
         # This is the new basis
-        nb = self.manager.basis_stack[len(self.manager.basis_stack)-1]
+        bss = len(self.manager.basis_stack)
+       
+        nb = self.manager.basis_stack[bss-1]
         
         # inverse of the transformation matrix
         S1 = numpy.linalg.inv(SS)
