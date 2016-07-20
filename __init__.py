@@ -24,9 +24,9 @@
 Rules:
 ------
 
-1) All imports must be done as relative.
-2) Each import imports only one entity.
-3) Wherever possible, each module has its test_module_name.py 
+1) All imports must be done as relative
+2) Each import imports only one entity
+3) Wherever meaningful, there is a test_module_name.py for every module
 
 
 
@@ -41,5 +41,26 @@ Imports of high level classes and functions
 
 
 """ 
+
+from .build.modes import Mode
+from .build.molecules import Molecule
+from .build.aggregates import Aggregate
+
+from .core.time import TimeAxis
+from .core.frequency import FrequencyAxis
+
+from .spectroscopy import AbsSpect
+
 from .core.managers import Manager
 from .core.managers import energy_units
+from .core.managers import eigenbasis_of
+
+from .qm.corfunctions import CorrelationFunction
+
+from .qm import Hamiltonian
+from .qm import TransitionDipoleMoment
+
+
+
+
+
