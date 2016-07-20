@@ -694,7 +694,7 @@ class Molecule(UnitsManaged):
         
         """
         
-        out  = "\nquantarhei.Molecule object " 
+        out  = "\nquantarhei.Molecule object" 
         out += "\n=========================="
         out += "\n   name = %s\n" % self.name
         try:
