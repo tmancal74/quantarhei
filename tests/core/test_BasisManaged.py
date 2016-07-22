@@ -28,8 +28,17 @@ class BasisManagedObject(BasisManaged):
     data = BasisManagedReal("data",shape=(2,2))
 
     def __init__(self,dat,name):
-        self.data = dat
-        self.name = name
+         # Name of the object
+         self.name = name
+         # Set the currently used basis
+         cb = self.manager.get_current_basis()
+         self.set_current_basis(cb)
+         # unless it is the basis outside any context
+         if cb != 0:
+             self.manager.register_with_basis(cb,self)
+         # set data
+         self.data = dat
+
         
     def __str__(self):
         return super().__str__()+" : "+self.name

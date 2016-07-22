@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..utils import derived_type
-from ..build import Molecule 
+from ..builders import Molecule 
 from ..core.time import TimeAxis
 
 class AbsSpect:

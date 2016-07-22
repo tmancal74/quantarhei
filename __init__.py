@@ -42,9 +42,9 @@ Imports of high level classes and functions
 
 """ 
 
-from .build.modes import Mode
-from .build.molecules import Molecule
-from .build.aggregates import Aggregate
+from .builders.modes import Mode
+from .builders.molecules import Molecule
+from .builders.aggregates import Aggregate
 
 from .core.time import TimeAxis
 from .core.frequency import FrequencyAxis

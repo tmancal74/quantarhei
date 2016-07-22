@@ -406,6 +406,8 @@ class Manager(metaclass=Singleton):
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
                 
+        if operator.name == "A":
+            print(cb,ob)
         if ob != cb:
                             
             SS = numpy.diag(numpy.ones(operator._data.shape[0]))

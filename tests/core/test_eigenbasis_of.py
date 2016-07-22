@@ -13,7 +13,6 @@ import unittest
 """        
         
 import numpy
-import itertools
 
 from quantarhei import eigenbasis_of
 from .test_BasisManaged import BasisManagedObject
@@ -159,7 +158,25 @@ class TestEigenbasisOf(unittest.TestCase):
         d_copy_tr4 = numpy.dot(Sd1,numpy.dot(d_copy_tr3,Sd))
 
 
+        A4 = numpy.zeros((2,2),dtype=numpy.float)
+        A4[0,0] = -1.0
+        A4[1,1] = 2.0
+        
+        A3 = numpy.dot(Sd,numpy.dot(A4,Sd1))
+        A2 = numpy.dot(Sp,numpy.dot(A3,Sp1))
+        A1 = numpy.dot(Sb,numpy.dot(A2,Sb1))
+        A0 = numpy.dot(Sh,numpy.dot(A1,Sh1))
 
+
+        B2 = numpy.zeros((2,2),dtype=numpy.float)
+        B2[0,0] = -1.0
+        B2[1,1] = 2.0
+        
+        B3 = numpy.dot(Sp1,numpy.dot(B2,Sp))
+        B4 = numpy.dot(Sd1,numpy.dot(B3,Sd))
+        B1 = numpy.dot(Sb,numpy.dot(B2,Sb1))
+        B0 = numpy.dot(Sh,numpy.dot(B1,Sh1))
+        
 #        knock_bunch = [[[True,True,True,True],
 #                        [True,True,True,True],
 #                        [True,True,True,True],
@@ -197,6 +214,8 @@ class TestEigenbasisOf(unittest.TestCase):
                         self.assertTrue(numpy.allclose(self.P.data,p_copy_tr2))
                     if knocks[1][3]:
                         self.assertTrue(numpy.allclose(self.D.data,d_copy_tr2))
+                        
+                    B = BasisManagedObject(B2,"B")
                
                     with eigenbasis_of(self.P):
                         if knocks[2][0]:
@@ -225,6 +244,12 @@ class TestEigenbasisOf(unittest.TestCase):
                             if knocks[3][3]:
                                 self.assertTrue(numpy.allclose(self.D.data,
                                                                d_copy_tr4))
+                                                               
+                            A = BasisManagedObject(A4,"A")
+                            
+                            self.assertTrue(numpy.allclose(B.data,B4))
+                            
+                        self.assertTrue(numpy.allclose(B.data,B3))
                     
                 
                 # in context 1
@@ -253,6 +278,9 @@ class TestEigenbasisOf(unittest.TestCase):
             self.assertTrue(numpy.allclose(self.B.data,self.b_copy))
             self.assertTrue(numpy.allclose(self.P.data,self.p_copy))
             self.assertTrue(numpy.allclose(self.D.data,self.d_copy))
+            
+            self.assertTrue(numpy.allclose(A.data,A0))
+            self.assertTrue(numpy.allclose(B.data,B0))
             
         
 
