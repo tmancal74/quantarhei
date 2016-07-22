@@ -84,3 +84,11 @@ class Hamiltonian(SelfAdjointOperator,BasisManaged):
             self.JR = numpy.dot(self.SS,numpy.dot(self.JR,self.SS.T))
         if with_remainder:                
             self.data += self.JR
+            
+            
+    def __str__(self):
+        out  = "\nquantarhei.Hamiltonian object"
+        out += "\n============================="
+        out += "\ndata = \n"
+        out += str(self.data)
+        return out

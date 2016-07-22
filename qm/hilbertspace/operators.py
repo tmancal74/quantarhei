@@ -162,6 +162,9 @@ class Operator(MatrixData):
         else:
             return False
  
+    def __str__(self):
+        return str(self.data)
+         
            
 class SelfAdjointOperator(Operator):
     """

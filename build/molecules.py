@@ -347,30 +347,37 @@ class Molecule(UnitsManaged):
         # loop over electronic states
         for i in range(self.nel):
         
-            # loop over modes
-            for j in range(self.nmod):
-                # FIXME: enable more than one mode
-                if j > 0: # limits the number of modes to 1
-                    raise Exception("Not yet implemented") 
+            if self.nmod > 0:
+                # loop over modes
+                for j in range(self.nmod):
+                    # FIXME: enable more than one mode
+                    if j > 0: # limits the number of modes to 1
+                        raise Exception("Not yet implemented") 
                     
-                # number of vibrational states in this electronic state
-                Nvib = self.modes[j].get_nmax(i)
+                    # number of vibrational states in this electronic state
+                    Nvib = self.modes[j].get_nmax(i)
                 
-                # shift of the PES
-                dd = self.modes[j].get_shift(i)
-                en = self.modes[j].get_energy(i)
+                    # shift of the PES
+                    dd = self.modes[j].get_shift(i)
+                    en = self.modes[j].get_energy(i)
 
-                # create the Hamiltonian
-                of = operator_factory(N=Nvib)
-                aa = of.anihilation_operator()
-                ad = of.creation_operator()
-                ones = of.unity_operator()    
+                    # create the Hamiltonian
+                    of = operator_factory(N=Nvib)
+                    aa = of.anihilation_operator()
+                    ad = of.creation_operator()
+                    ones = of.unity_operator()    
                 
-                hh = en*(numpy.dot(ad,aa) - (dd/numpy.sqrt(2.0))*(ad+aa)
-                + dd*dd*ones/2.0)
+                    hh = en*(numpy.dot(ad,aa) - (dd/numpy.sqrt(2.0))*(ad+aa)
+                    + dd*dd*ones/2.0)
                 
-            lham[i] = hh + self.elenergies[i]*ones
-            ldim[i] = hh.shape[0]
+                lham[i] = hh + self.elenergies[i]*ones
+                ldim[i] = hh.shape[0]
+                
+            else:
+                hh = numpy.zeros((1,1),dtype=numpy.float)
+                hh[0,0] = self.elenergies[i]
+                lham[i] = hh
+                ldim[i] = 1
             
         # dimension of the complete Hamiltonian
         totdim = numpy.sum(ldim)
