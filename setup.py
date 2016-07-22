@@ -51,8 +51,10 @@ setup(
         'Development Status :: 3 - Alpha',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Scientists',
-        'Topic :: Quantum Mechanics :: Open Quantum Systems',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Education'
+        'Topic :: Scientific/Engineering :: Physics',
+        'Topic :: Scientific/Engineering :: Chemistry',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
