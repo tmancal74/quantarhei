@@ -60,6 +60,8 @@ from .qm.corfunctions import CorrelationFunction
 from .qm import Hamiltonian
 from .qm import TransitionDipoleMoment
 
+from .qm.propagators.poppropagator import PopulationPropagator
+
 
 
 

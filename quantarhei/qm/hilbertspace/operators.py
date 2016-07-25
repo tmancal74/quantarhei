@@ -6,97 +6,24 @@ from ...core.managers import BasisManaged
 
 
 import numpy
-import scipy
+#import scipy
 
 
 class Operator(MatrixData,BasisManaged):
-    """
-    The class Operator represents an operator on quantum mechanical Hilbert space.
-    Together with StateVector they provide the basic functionality for quantum
-    mechanical calculations in Hilbert space.    
+    """Class representing quantum mechanical operators
     
-    The Operator provides two constants, values 0 and 1, to identify
-    the storage mode of the data. The following calls reveal their values.
     
-    >>> Operator.STORAGE_MODE_VECTOR
-    0
-    >>> Operator.STORAGE_MODE_MATRIX
-    1
+    The class Operator represents an operator on quantum mechanical Hilbert
+    space. Together with StateVector they provide the basic functionality 
+    for quantum mechanical calculations in Hilbert space.    
     
-    Storage mode is by default set to matrix
-    
-    >>> o = Operator(2)
-    >>> o.getStorageMode()
-    1
-    >>> o.data
-    array([[ 0.,  0.],
-           [ 0.,  0.]])
-
-    >>> o.data[0,0] = 0.0
-    >>> o.data[1,0] = 1.0
-    >>> o.data[0,1] = 0.1
-    >>> o.data[1,1] = 1.1
-    >>> o.setStorageMode(Operator.STORAGE_MODE_VECTOR)
-    >>> o.data
-    array([ 0. ,  0.1,  1. ,  1.1])
-        
-    >>> o.setStorageMode(Operator.STORAGE_MODE_MATRIX)
-    >>> o.data
-    array([[ 0. ,  0.1],
-           [ 1. ,  1.1]])
            
     """
     
     data = BasisManagedComplex("data")    
     
     def __init__(self,dim=None,data=None,real=False):
-        """
-        
-        Operator can be initiallized either by data or by setting the dimension.
-        In the latter case, its elements will be set zero. Alternatively,
-        storage mode can be specified.
-        
-        >>> o = Operator(dim=3)
-        >>> o.data.shape
-        (3, 3)
-        
-        or 
-        
-        >>> A = numpy.array([[1.0, 0.1],[0.1, 1.0]])
-        >>> o = Operator(data=A)
-        >>> o.data.shape
-        (2, 2)
 
-        Operator must be a square matrix of numpy.ndarray type. Setting
-        an non-square matrix or a list as imput data will lead to an Exception
-    
-        >>> A = [[1.0, 0.0]]
-        >>> o = Operator(data=A)
-        Traceback (most recent call last):
-            ...
-            raise HilbertSpaceException
-        cu.oqs.hilbertspace.HilbertSpaceException
-        
-        The problem is not elevated even if you make it square
-        
-        >>> A = [[1.0, 0.0],[0.0, 0.0]]
-        >>> o = Operator(data=A)
-        Traceback (most recent call last):
-            ...
-            raise HilbertSpaceException
-        cu.oqs.hilbertspace.HilbertSpaceException
-
-        Here is another failure:
-        
-        >>> A = numpy.array([[1.0, 0.0],[0.0, 0.0]])
-        >>> o = Operator(3,A)
-        Traceback (most recent call last):
-            ...
-            raise HilbertSpaceException
-        cu.oqs.hilbertspace.HilbertSpaceException
-
-        
-        """
         # Set the currently used basis
         cb = self.manager.get_current_basis()
         self.set_current_basis(cb)
@@ -109,6 +36,8 @@ class Operator(MatrixData,BasisManaged):
             raise Exception() #HilbertSpaceException
         
         if data is not None:
+            if isinstance(data,list):
+                data = numpy.array(data)
             if Operator.assert_square_matrix(data):
                 if dim is not None:
                     if data.shape[0] != dim:
@@ -140,7 +69,7 @@ class Operator(MatrixData,BasisManaged):
         self._data = numpy.dot(S1,numpy.dot(self._data,SS))
         
                 
-    def assert_square_matrix(A):
+    def assert_square_matrix(A):            
         if isinstance(A,numpy.ndarray):
             if A.ndim == 2:
                 if A.shape[0] == A.shape[1]:
@@ -161,26 +90,20 @@ class Operator(MatrixData,BasisManaged):
          
            
 class SelfAdjointOperator(Operator):
-    """
-    The class SelfAdjointOperator extends the Operaator class by automatically
+    """Class representing a self adjoint operator
+    
+    The class SelfAdjointOperator extends the Operator class by automatically
     checking the data for the self adjoint property. Physically measurable
     quantities are represented by self adjoint operators in quantum mechanics.
     
-    >>> dm = SelfAdjointOperator(dim=3)
-    >>> dm.data.shape
-    (3, 3)
-    
-    >>> A = numpy.array([[1.0, 0.1],[0.1, 1.0]])
-    >>> o = SelfAdjointOperator(data=A)
-    >>> o.data.shape
-    (2, 2)
         
     """
     
     def __init__(self,dim=None,data=None):
         Operator.__init__(self,dim=dim,data=data)
         if not self.check_selfadjoint():
-            raise Exception("The data of this operator have to be represented by a selfadjoint matrix") 
+            raise Exception("The data of this operator have"+
+            "to be represented by a selfadjoint matrix") 
         
         
     def check_selfadjoint(self):
@@ -201,6 +124,8 @@ class SelfAdjointOperator(Operator):
         out += str(self.data)
         return out        
         
+        
+        
 class ProjectionOperator(Operator):
     """
     Projection operator projecting from state m to state n.
@@ -220,34 +145,33 @@ class ProjectionOperator(Operator):
             
             
 class DensityMatrix(SelfAdjointOperator):
-    """
+    """Class representing a density matrix
+    
+    
     Density matrix is a good example of self adjoint operator. It extends
-    the class SelfAdjointOperator without adding any functionality.    
-    
-    >>> dm = DensityMatrix(dim=3)
-    >>> dm.data.shape
-    (3, 3)
-    
-    >>> A = numpy.array([[1.0, 0.1],[0.1, 1.0]])
-    >>> o = DensityMatrix(data=A)
-    >>> o.data.shape
-    (2, 2)
+    the class SelfAdjointOperator without adding much functionality.    
+
         
     """
     
     
     def normalize2(self,norm=1.0):
+        # using self.data to allow transformation
         tr = numpy.trace(self.data)
-        self.data = self.data*(norm/tr)
+        # using data because any transformation needed was already done
+        self._data = self._data*(norm/tr)
         
     def get_populations(self):
         """Returns a vector of diagonal elements of the density matrix
         
         """
-        
+        # using self.data to allow transformation of the basis
         pvec = numpy.zeros(self.data.shape[0],dtype=numpy.float)
-        for n in range(self.data.shape[0]):
-            pvec[n] = numpy.real(self.data[n,n])
+        # using self._data because transformations are irrelevant 
+        for n in range(self._data.shape[0]):
+            # using self._data because any transformation needed was already
+            # made above
+            pvec[n] = numpy.real(self._data[n,n])
             
         return pvec
         
@@ -255,8 +179,16 @@ class DensityMatrix(SelfAdjointOperator):
         """Returns a density matrix obtained by delta-pulse excitation
         
         """
-        #FIXME: finish implementation
-        return ReducedDensityMatrix(data=self._data)
+        # using .data to allow transformation 
+        dd = dmoment.data
+        etimesd = numpy.zeros((dd.shape[0],dd.shape[1]),dtype=numpy.float)
+        for i in range(3):
+            etimesd += dd[:,:,i]*epolarization[i]
+            
+        # using self.data to allow transformation to current basis
+        dat = numpy.dot(etimesd,numpy.dot(self.data,etimesd))
+        
+        return ReducedDensityMatrix(data=dat)
         
             
     def __str__(self):
@@ -269,9 +201,10 @@ class DensityMatrix(SelfAdjointOperator):
         
         
 class ReducedDensityMatrix(DensityMatrix):
-    """
-    Reduced density matrix is basically just a nickname for the Density Matrix
-    but this object lives in Liouville space
+    """Class representing a reduced density matrix
+    
+    This class is basically just a nickname for the Density Matrix
+    
     
     """
     

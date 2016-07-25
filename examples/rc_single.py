@@ -66,6 +66,7 @@ from quantarhei import eigenbasis_of
 # class representing Redfield relaxation rate matrix (and does its calculation)
 from quantarhei.qm import RedfieldRateMatrix
 
+from quantarhei import PopulationPropagator
 
 # Here we import a very useful library for dealing with matrices
 import numpy
@@ -129,7 +130,7 @@ with energy_units("1/cm"):
     # we create an array of 3 zeros
     N = numpy.zeros(3,dtype=numpy.int)
     # set all of them to the value of 10
-    N[0] = 1
+    N[0] = 10
     N[1] = 20
     N[2] = 20
     # loop from 0 to 2
@@ -153,7 +154,7 @@ with energy_units("1/cm"):
     # calculate excited state dynamics. Quantarhei has an object which defines
     # the time interval. It is called TimeAxis. Arguments are 
     # 1) starting time, 2) Number of steps and 3) time step
-    timeAxis = TimeAxis(0.0, 1000, 1.0)
+    timeAxis = TimeAxis(0.0, 2000, 1.0)
     
     # Now we create a correlation function object
     corfunc_ct = CorrelationFunction(timeAxis,corfunc_ct_params)
@@ -174,11 +175,11 @@ with energy_units("1/cm"):
     # the ground state is an isolated state, we can at least use it to
     # see how fast the relaxation is in a pure harmonic oscillator.
     corfunc_ct_q_params = {"ftype":"OverdampedBrownian",
-                         "T":300,"cortime":100,"reorg":1.0}
+                         "T":300,"cortime":100,"reorg":5.0}
     corfunc_ct_q = CorrelationFunction(timeAxis,corfunc_ct_q_params)
     
     corfunc_ex_q_params = {"ftype":"OverdampedBrownian",
-                         "T":300,"cortime":100,"reorg":1.0}
+                         "T":300,"cortime":100,"reorg":5.0}
     corfunc_ex_q = CorrelationFunction(timeAxis,corfunc_ex_q_params) 
 
 
@@ -225,7 +226,7 @@ with energy_units("1/cm"):
 
     # Now we will set adiabatic coupling between the CT state and the exciton
     # state 
-    m.set_adiabatic_coupling(1,2,0.0)
+    m.set_adiabatic_coupling(1,2,100.0)
     
     
 #
@@ -289,25 +290,25 @@ with eigenbasis_of(hh):
         
     # get the ground state thermal density matrix
     rho_eq = m.get_thermal_ReducedDensityMatrix()
-    # applying transition dipole moment operator from both sides sets initial
-    # condition
     
-    #rho_ini = numpy.dot(dd.data[:,:,0],numpy.dot(rho_eq,dd.data[:,:,0]))
-    rho_ini = rho_eq.excite_delta(dmoment=dd)
+    # we set initial condition by exciting the molecule with the polarization
+    # along its transition dipole moment
+    # 
+    # # rho_ini = numpy.dot(dd.data[:,:,0],numpy.dot(rho_eq,dd.data[:,:,0]))
+    rho_ini = rho_eq.excite_delta(dmoment=dd,epolarization=[1.0, 0.0, 0.0])
     
-"""
-    # we normalize the population of excited state to 1.0
-    rho_ini = util.normalize_trace2(rho_ini,norm=1.0)
-        
 
+    # we normalize the population of excited state to 1.0
+    rho_ini.normalize2(norm=1.0)
+        
     # we need only population dynamics, so let us convert density matrix to
     # a vector of populations
-    pop_ini = rho_ini.get_population_vector()
+    pop_ini = rho_ini.get_populations()
+
 
     # Now we set up a popagator for the population vector
     prop = PopulationPropagator(timeAxis,RRM)
-    
-    
+        
     #
     # Here starts the intersting part! 
     #
@@ -316,7 +317,10 @@ with eigenbasis_of(hh):
     # !!! This can take a while !!!
     pop_in_time = prop.propagate(pop_ini)
     
+    for n in range(pop_in_time.shape[1]):
+        plt.plot(timeAxis.time,pop_in_time[:,n])
     
+"""
     # We are after fluorescence. FluorescenceSpect class knows how to deal
     # with that. We submit the TimeAxis object and the Molecule object
     fl = FluorescenceSpect(timeAxis,m)
@@ -335,7 +339,9 @@ with eigenbasis_of(hh):
                                             time_resolution=50000)
     tcpc.save_to_file("tcpc.dat")
     
+"""
 
+"""
 # 
 # Production calculations are based on scanning the position of CT state
 # and then sampling the results randomly

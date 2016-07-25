@@ -509,6 +509,8 @@ class Molecule(UnitsManaged):
         # loop over electronic states
         for i in range(self.nel):
         
+            Nvib = 1
+            
             # loop over modes
             for j in range(self.nmod):
                 # FIXME: enable more than one mode

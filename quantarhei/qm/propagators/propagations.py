@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-#ßimport matplotlib.pylab as plt
+import matplotlib.pylab as plt
 
 from ...data.matrixdata import MatrixData
 from ...domains.time import TimeAxis
@@ -79,3 +79,5 @@ class DMPropagation(MatrixData): #,TimeDependent):
         
 
         return 1
+        
+        
