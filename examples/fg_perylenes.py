@@ -182,7 +182,7 @@ en1st = str(en1[1]/cm2int)
 plt.title('L12per_pbl --- en1 = ' + en1st)
 
 #plt.title('aggregate: 12 perylenes, linear dense zigzag ')
-plt.savefig('L12per_pbl_spec.pdf')
+#plt.savefig('L12per_pbl_spec.pdf')
 
 plt.show()
 
