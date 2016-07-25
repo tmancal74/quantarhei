@@ -6,6 +6,7 @@ from ..utils import Integer
 #from ..utils import check_numpy_array
 
 from ..core.managers import UnitsManaged
+from ..core.managers import eigenbasis_of
 
 from . import Mode
 
@@ -13,12 +14,16 @@ from ..core.triangle import triangle
 from ..core.unique import unique_list
 from ..core.unique import unique_array
 
+from ..core.units import kB_intK
+
 from ..qm import Hamiltonian
 from ..qm import TransitionDipoleMoment
 from ..qm.oscillators.ho import operator_factory
 
 from ..qm import SystemBathInteraction
 from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
+
+from ..qm import ReducedDensityMatrix
 
 
 
@@ -223,6 +228,8 @@ class Molecule(UnitsManaged):
         if self._is_mapped_on_egcf_matrix:
             n = self.egcf_mapping[0]
             return self.egcf_matrix.get_coft(n,n)
+            
+            
     
     def add_Mode(self,mod):
         """Adds a vibrational mode to the monomer"""
@@ -297,6 +304,66 @@ class Molecule(UnitsManaged):
                 
         return self._nat_lifetime[N]
         
+        
+    def get_thermal_ReducedDensityMatrix(self):
+        
+        H = self.get_Hamiltonian() 
+        T = self.get_temperature()
+        dat = numpy.zeros(H._data.shape,dtype=numpy.complex)
+        
+        with eigenbasis_of(H):
+            
+            if numpy.abs(T) < 1.0e-10:
+                dat[0,0] = 1.0
+            
+            else:
+            
+                dsum = 0.0
+                for n in range(H._data.shape[0]):
+                    dat[n,n] = numpy.exp(-H.data[n,n]/(kB_intK*T))
+                    dsum += dat[n,n]
+
+                dat *= 1.0/dsum
+            
+            rdm = ReducedDensityMatrix(data=dat)
+                
+        
+        return rdm
+        
+        
+        
+    def get_temperature(self):
+        """Returns temperature of the molecule
+        
+        Checks if the setting of environments is consistent and than
+        takes the temperature from one of the energy gaps. If no 
+        environment (correlation function) is assigned to this 
+        molecule, we assume zero temperature.
+        
+        
+        """
+        if self.check_temperature_consistent():
+        
+            egcf =  self.get_egcf([0,1])
+        
+            if egcf is None:
+                return 0.0
+            else:
+                return egcf.get_temperature()
+                
+        else:
+            
+            raise Exception("Molecular environment has"+
+            "an inconsisten temperature")
+
+        
+        
+    def check_temperature_consistent(self):
+        """Checks that the temperature is the same for all components
+        
+        """
+        #FIXME: implement the check
+        return True
         
     def set_adiabatic_coupling(self,state1,state2,coupl):
         """Sets adiabatic coupling between two states
@@ -411,7 +478,6 @@ class Molecule(UnitsManaged):
                 for j in range(i+1,self.nel):
                     if self._has_adiabatic[self.triangle.locate(i,j)]:
                         J = self.get_adiabatic_coupling(i,j)
-                        print(i,j," : ",J)
                         hj = numpy.zeros((ldim[i],ldim[j]),dtype=numpy.float)
                         # FIXME: this works only if the frequencies of the oscillators are the same
                         for k in range(min([ldim[i],ldim[j]])):
@@ -630,11 +696,6 @@ class Molecule(UnitsManaged):
         
         return SystemBathInteraction(sys_operators,cfm)
         
-        
-        
-    
-    def get_thermal_reduced_density_matrix(self):
-        return 0.0
     
     def set_mode_environment(self,mode=0,elstate=0,corfunc=None):
         """Sets mode environment 

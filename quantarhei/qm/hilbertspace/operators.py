@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from ...core.matrixdata import MatrixData
+from ...utils.types import BasisManagedComplex
+from ...core.managers import BasisManaged
+
+
 import numpy
 import scipy
 
 
-class Operator(MatrixData):
+class Operator(MatrixData,BasisManaged):
     """
     The class Operator represents an operator on quantum mechanical Hilbert space.
     Together with StateVector they provide the basic functionality for quantum
@@ -42,11 +46,10 @@ class Operator(MatrixData):
            [ 1. ,  1.1]])
            
     """
-    STORAGE_MODE_VECTOR = 0
-    STORAGE_MODE_MATRIX = 1
     
-    def __init__(self,dim=None,data=None,
-                 storage_mode=STORAGE_MODE_MATRIX,real=False):
+    data = BasisManagedComplex("data")    
+    
+    def __init__(self,dim=None,data=None,real=False):
         """
         
         Operator can be initiallized either by data or by setting the dimension.
@@ -94,7 +97,14 @@ class Operator(MatrixData):
 
         
         """
-
+        # Set the currently used basis
+        cb = self.manager.get_current_basis()
+        self.set_current_basis(cb)
+        # unless it is the basis outside any context
+        if cb != 0:
+            self.manager.register_with_basis(cb,self)
+             
+        # set data
         if (dim is None) and (data is None):
             raise Exception() #HilbertSpaceException
         
@@ -103,52 +113,32 @@ class Operator(MatrixData):
                 if dim is not None:
                     if data.shape[0] != dim:
                         raise Exception() #HilbertSpaceException
-                self.data = data
-                self.dim = self.data.shape[0]
+                self._data = data
+                self.dim = self._data.shape[0]
             else:
                 raise Exception #HilbertSpaceException
         else:
             if real:
-                self.data = numpy.zeros((dim,dim),dtype=numpy.float64)
+                self._data = numpy.zeros((dim,dim),dtype=numpy.float64)
             else:
-                self.data = numpy.zeros((dim,dim),dtype=numpy.complex128)
+                self._data = numpy.zeros((dim,dim),dtype=numpy.complex128)
             self.dim = dim
-            
-        self.storage_mode = Operator.STORAGE_MODE_MATRIX 
-        
-        self.setStorageMode(storage_mode)
-        
 
 
 
-    def transform(self,SS):
+    def transform(self,SS,inv=None):
         """
         This function transforms the Operator into a different basis, using
         a given transformation matrix.
-        """
-        self.setStorageMode(Operator.STORAGE_MODE_MATRIX)
-        S1 = scipy.linalg.inv(SS)
-        self.data = numpy.dot(S1,numpy.dot(self.data,SS))
-        
-    def getStorageMode(self):
-        return self.storage_mode
-        
+        """        
+        if inv is None:
+            S1 = numpy.linalg.inv(SS)
+        else:
+            S1 = inv
 
-    def setStorageMode(self,mode):
+        #S1 = scipy.linalg.inv(SS)
+        self._data = numpy.dot(S1,numpy.dot(self._data,SS))
         
-        if self.storage_mode != mode:
-            
-            if mode == self.STORAGE_MODE_VECTOR:
-
-                sz = self.data.shape[0]*self.data.shape[1]
-                self.data.shape = (sz)
-                self.storage_mode = mode
-                
-            if mode == self.STORAGE_MODE_MATRIX:
-                
-                sz = numpy.sqrt(self.data.shape[0])
-                self.data.shape = (sz,sz)
-                self.storage_mode = mode
                 
     def assert_square_matrix(A):
         if isinstance(A,numpy.ndarray):
@@ -163,7 +153,11 @@ class Operator(MatrixData):
             return False
  
     def __str__(self):
-        return str(self.data)
+        out  = "\nquantarhei.Operator object"
+        out += "\n=========================="
+        out += "\ndata = \n"
+        out += str(self.data)
+        return out
          
            
 class SelfAdjointOperator(Operator):
@@ -183,8 +177,8 @@ class SelfAdjointOperator(Operator):
         
     """
     
-    def __init__(self,dim=None,data=None,storage_mode=Operator.STORAGE_MODE_MATRIX):
-        Operator.__init__(self,dim=dim,data=data,storage_mode=storage_mode)
+    def __init__(self,dim=None,data=None):
+        Operator.__init__(self,dim=dim,data=data)
         if not self.check_selfadjoint():
             raise Exception("The data of this operator have to be represented by a selfadjoint matrix") 
         
@@ -200,6 +194,12 @@ class SelfAdjointOperator(Operator):
             self.data[ii,ii] = dd[ii]
         return SS
         
+    def __str__(self):
+        out  = "\nquantarhei.SelfAdjointOperator object"
+        out += "\n====================================="
+        out += "\ndata = \n"
+        out += str(self.data)
+        return out        
         
 class ProjectionOperator(Operator):
     """
@@ -209,12 +209,15 @@ class ProjectionOperator(Operator):
     |n\rangle \langle m|
 
     """    
-    def __init__(self,n,m,dim=0,storage_mode=Operator.STORAGE_MODE_MATRIX):
-        Operator.__init__(self,dim=dim,data="",storage_mode=storage_mode)
+    def __init__(self,n,m,dim=0):
+        Operator.__init__(self,dim=dim,data="")
         if (n < dim and m < dim):
             self.data[n,m] = 1
         else:
             raise Exception("Projection Operator indices exceed its dimension")
+            
+            
+            
             
 class DensityMatrix(SelfAdjointOperator):
     """
@@ -232,6 +235,49 @@ class DensityMatrix(SelfAdjointOperator):
         
     """
     
+    
     def normalize2(self,norm=1.0):
         tr = numpy.trace(self.data)
         self.data = self.data*(norm/tr)
+        
+    def get_populations(self):
+        """Returns a vector of diagonal elements of the density matrix
+        
+        """
+        
+        pvec = numpy.zeros(self.data.shape[0],dtype=numpy.float)
+        for n in range(self.data.shape[0]):
+            pvec[n] = numpy.real(self.data[n,n])
+            
+        return pvec
+        
+    def excite_delta(self,dmoment,epolarization=[1.0, 0.0, 0.0]):
+        """Returns a density matrix obtained by delta-pulse excitation
+        
+        """
+        #FIXME: finish implementation
+        return ReducedDensityMatrix(data=self._data)
+        
+            
+    def __str__(self):
+        out  = "\nquantarhei.DensityMatrix object"
+        out += "\n==============================="
+        out += "\ndata = \n"
+        out += str(self.data)
+        return out             
+        
+        
+        
+class ReducedDensityMatrix(DensityMatrix):
+    """
+    Reduced density matrix is basically just a nickname for the Density Matrix
+    but this object lives in Liouville space
+    
+    """
+    
+    def __str__(self):
+        out  = "\nquantarhei.ReducedDensityMatrix object"
+        out += "\n======================================"
+        out += "\ndata = \n"
+        out += str(self.data)
+        return out  

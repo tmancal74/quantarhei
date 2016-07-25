@@ -406,8 +406,6 @@ class Manager(metaclass=Singleton):
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
                 
-        if operator.name == "A":
-            print(cb,ob)
         if ob != cb:
                             
             SS = numpy.diag(numpy.ones(operator._data.shape[0]))
@@ -593,7 +591,7 @@ class eigenbasis_of(basis_context_manager):
             ops_above = self.manager.basis_registered[nb]
 
         for op in operators:
-            op._data = numpy.dot(SS,numpy.dot(op._data,S1))
+            op.transform(S1,inv=SS) #op._data = numpy.dot(SS,numpy.dot(op._data,S1))
             op.set_current_basis(nb)
             
             # operators which appeared in this context and where not

@@ -284,20 +284,22 @@ if verbose:
 # We set initial condition for the calculation. Sofar everything was
 # specified in the site-basis. We will switch to exciton basis 
 
-"""
 
 with eigenbasis_of(hh):
         
     # get the ground state thermal density matrix
-    rho_eq = m.get_thermal_ground_state()
+    rho_eq = m.get_thermal_ReducedDensityMatrix()
     # applying transition dipole moment operator from both sides sets initial
     # condition
-    rho_ini = numpy.dot(dd.data[:,:,0],numpy.dot(rho_eq,dd.data[:,:,0]))
+    
+    #rho_ini = numpy.dot(dd.data[:,:,0],numpy.dot(rho_eq,dd.data[:,:,0]))
+    rho_ini = rho_eq.excite_delta(dmoment=dd)
+    
+"""
     # we normalize the population of excited state to 1.0
     rho_ini = util.normalize_trace2(rho_ini,norm=1.0)
-    
-"""     
-"""
+        
+
     # we need only population dynamics, so let us convert density matrix to
     # a vector of populations
     pop_ini = rho_ini.get_population_vector()

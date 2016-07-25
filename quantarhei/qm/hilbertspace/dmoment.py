@@ -9,7 +9,15 @@ import scipy
 class TransitionDipoleMoment(SelfAdjointOperator):
     
     def __init__(self,dim=None,data=None):
-        self.data = data
+
+        # Set the currently used basis
+        cb = self.manager.get_current_basis()
+        self.set_current_basis(cb)
+        # unless it is the basis outside any context
+        if cb != 0:
+            self.manager.register_with_basis(cb,self) 
+
+        self._data = data
 
         if not self.check_selfadjoint():
             raise Exception("The data of this operator have"
@@ -17,22 +25,26 @@ class TransitionDipoleMoment(SelfAdjointOperator):
          
  
     def check_selfadjoint(self):
-        a = numpy.allclose(numpy.transpose(numpy.conj(self.data[:,:,0])), 
-         self.data[:,:,0])        
-        b = numpy.allclose(numpy.transpose(numpy.conj(self.data[:,:,1])), 
-         self.data[:,:,1])
-        c = numpy.allclose(numpy.transpose(numpy.conj(self.data[:,:,2])), 
-         self.data[:,:,2])
+        a = numpy.allclose(numpy.transpose(numpy.conj(self._data[:,:,0])), 
+         self._data[:,:,0])        
+        b = numpy.allclose(numpy.transpose(numpy.conj(self._data[:,:,1])), 
+         self._data[:,:,1])
+        c = numpy.allclose(numpy.transpose(numpy.conj(self._data[:,:,2])), 
+         self._data[:,:,2])
         return (a and b) and c   
         
-    def transform(self,SS):
+    def transform(self,SS,inv=None):
         """
         This function transforms the Operator into a different basis, using
         a given transformation matrix.
         """
-        S1 = scipy.linalg.inv(SS)
+        if inv is None:
+            S1 = numpy.linalg.inv(SS)
+        else:
+            S1 = inv
+        #S1 = scipy.linalg.inv(SS)
         for i in range(3):
-            self.data[:,:,i] = numpy.dot(S1,numpy.dot(self.data[:,:,i],SS))
+            self._data[:,:,i] = numpy.dot(S1,numpy.dot(self._data[:,:,i],SS))
         
           
     def dipole_strength(self,from_state=0, to_state=1):

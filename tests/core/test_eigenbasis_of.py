@@ -177,17 +177,17 @@ class TestEigenbasisOf(unittest.TestCase):
         B1 = numpy.dot(Sb,numpy.dot(B2,Sb1))
         B0 = numpy.dot(Sh,numpy.dot(B1,Sh1))
         
-#        knock_bunch = [[[True,True,True,True],
-#                        [True,True,True,True],
-#                        [True,True,True,True],
-#                        [True,True,True,True]],
-#                       [[True,False,True,True],
-#                        [True,True,False,True],
-#                        [True,False,True,True],
-#                        [True,True,False,True]]]
 
         count = 0
-        for k in generate(only=12):
+        
+        #
+        # Set ONLY to -1 to run a full test
+        # Set ONLY to  0 to run a no-test (minimum useless test)
+        # Set ONLY to 1-16 to run tests, standard value is 4 or 12
+        #
+        ONLY = 0
+        
+        for k in generate(only=ONLY):
             knocks = [k[0:4],k[4:8],k[8:12],k[12:16]]
             count += 1
             #print(count)

@@ -134,6 +134,13 @@ class CorrelationFunction(DFunction,UnitsManaged):
         
         return ms
         
+    def get_temperature(self):
+        """Returns the temperature of the correlation function
+        
+        """
+        return self.T
+        
+        
     def add(self,cf):
         """Adds another correlation function to the current one"""
         if ((self.timeAxis == cf.self.timeAxis) and (self.T == cf.T)):
