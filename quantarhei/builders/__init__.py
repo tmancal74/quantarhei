@@ -2,3 +2,4 @@
 
 from .modes import Mode
 from .molecules import Molecule
+from .aggregates import Aggregate

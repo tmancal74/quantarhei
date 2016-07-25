@@ -49,7 +49,7 @@ from .builders.aggregates import Aggregate
 from .core.time import TimeAxis
 from .core.frequency import FrequencyAxis
 
-from .spectroscopy import AbsSpect
+from .spectroscopy.abs import AbsSpect
 
 from .core.managers import Manager
 from .core.managers import energy_units

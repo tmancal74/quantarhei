@@ -10,6 +10,7 @@ ag = Aggregate("Homodimer",maxband=1)
 ag.add_Molecule(m1)
 ag.add_Molecule(m2)
 
+
 ag.set_resonance_coupling(0,1,0.1)
 
 ag.build()

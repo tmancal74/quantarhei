@@ -10,5 +10,3 @@
 
 
 """
-
-from .abs import AbsSpect
