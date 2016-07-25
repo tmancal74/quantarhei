@@ -165,7 +165,8 @@ class Molecule(UnitsManaged):
             to the monomer. 
         """
         
-        if not (self._has_egcf):
+        if not (self._has_egcf[self.triangle.locate(transition[0],
+                                                    transition[1])]):
             if not (self._is_mapped_on_egcf_matrix):            
                 self.egcf_matrix = correlation_matrix
                 self.egcf_transitions = []

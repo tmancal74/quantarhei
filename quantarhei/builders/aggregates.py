@@ -105,9 +105,10 @@ class Aggregate(UnitsManaged):
             raise Exception("Only coupling between different molecules \
             can be calculated")
         
-        d1 = self.monomers[kk].dmoments[1,:]
+        #FIXME: this works only for first excited states of two-level molecules
+        d1 = self.monomers[kk].dmoments[0,1,:]
         r1 = self.monomers[kk].position
-        d2 = self.monomers[ll].dmoments[1,:]
+        d2 = self.monomers[ll].dmoments[0,1,:]
         r2 = self.monomers[ll].position        
         
         R = r1 - r2
@@ -758,7 +759,8 @@ class Aggregate(UnitsManaged):
                   
             # standard case with only electronic states
             else:
-                for i in range(self.Nel): #range(0,self.nmono):
+                # we count only single excited 
+                for i in range(1,self.Nel): #range(0,self.nmono):
                     op1 = Operator(dim=self.HH.shape[0],real=True)
                     op1.data[i,i] = 1.0
                     #print("-----------", i)
