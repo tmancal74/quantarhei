@@ -14,7 +14,7 @@ from ..core.triangle import triangle
 from ..core.unique import unique_list
 from ..core.unique import unique_array
 
-from ..core.units import kB_intK
+from ..core.units import kB_intK, eps0_int, c_int
 
 from ..qm import Hamiltonian
 from ..qm import TransitionDipoleMoment
@@ -270,7 +270,7 @@ class Molecule(UnitsManaged):
             raise Exception()
             
             
-    def get_electronic_natural_lifetime(self,N):
+    def get_electronic_natural_lifetime(self,N,epsilon_r=1.0):
         """Returns natural lifetime of a given electronic state
         
         """
@@ -278,15 +278,16 @@ class Molecule(UnitsManaged):
         if not self._has_nat_lifetime[N]:
 
             rate = 0.0
+            eps = eps0_int*epsilon_r
             
             try: 
                 # loop over all states with lower energy
                 for n in range(N):
-                    dip = numpy.dot(self.dmoments[n,N],self.dmoments[n,N])
+                    dip2 = numpy.dot(self.dmoments[n,N,:],
+                                     self.dmoments[n,N,:])
                     ome = self.elenergies[N] - self.elenergies[n]                        
             
-                    # FIXME: fix the units 
-                    rate += dip*(ome*ome*ome)/(3.0*numpy.pi)
+                    rate += dip2*(ome**3)/(3.0*numpy.pi*eps*(c_int**3))
                     
             except:
                 raise Exception("Calculation of rate failed")
@@ -301,7 +302,9 @@ class Molecule(UnitsManaged):
                 
                 
             else:
-                raise Exception("Cannot calculate natural lifetime")
+                #raise Exception("Cannot calculate natural lifetime")
+                self._has_nat_lifetime[N] = True
+                self._nat_lifetime[N] = numpy.inf
                 
         return self._nat_lifetime[N]
         
@@ -491,8 +494,8 @@ class Molecule(UnitsManaged):
         
     def _sub_matrix_bounds(self,ldim):
         lbound = 0
-        ub = numpy.zeros(self.nel)
-        lb = numpy.zeros(self.nel)
+        ub = numpy.zeros(self.nel,dtype=numpy.int)
+        lb = numpy.zeros(self.nel,dtype=numpy.int)
         # loop over electronic states
         for i in range(self.nel):
             ubound = lbound + ldim[i]

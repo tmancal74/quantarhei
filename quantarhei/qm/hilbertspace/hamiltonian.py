@@ -2,12 +2,13 @@
 
 from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged
-from ...utils.types import BasisManagedReal
+from ...core.managers import EnergyUnitsManaged
+from ...utils.types import ManagedReal
 
 import numpy
 
 
-class Hamiltonian(SelfAdjointOperator,BasisManaged):
+class Hamiltonian(SelfAdjointOperator,BasisManaged,EnergyUnitsManaged):
     """Hamiltonian operator
     
     
@@ -16,7 +17,7 @@ class Hamiltonian(SelfAdjointOperator,BasisManaged):
     
     _has_remainder_coupling = False
     
-    data = BasisManagedReal("data")
+    data = ManagedReal("data")
     
     def diagonalize(self,coupling_cutoff=None):
         """Diagonalizes the Hamiltonian matrix 

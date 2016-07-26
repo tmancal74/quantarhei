@@ -56,9 +56,21 @@ class Operator(MatrixData,BasisManaged):
 
 
     def transform(self,SS,inv=None):
-        """
+        """Transformation of the operator by a given matrix
+        
+        
         This function transforms the Operator into a different basis, using
         a given transformation matrix.
+        
+        Parameters
+        ----------
+        
+        SS : matrix, numpy.ndarray
+            transformation matrix
+            
+        inv : matrix, numpy.ndarray
+            inverse of the transformation matrix
+            
         """        
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -111,10 +123,11 @@ class SelfAdjointOperator(Operator):
                               self.data)).all()
         
     def diagonalize(self):
+        # first use if of "data", the rest of "_data"
         dd,SS = numpy.linalg.eigh(self.data)
-        self.data = numpy.zeros(self.data.shape)
-        for ii in range(0,self.data.shape[0]):
-            self.data[ii,ii] = dd[ii]
+        self._data = numpy.zeros(self._data.shape)
+        for ii in range(0,self._data.shape[0]):
+            self._data[ii,ii] = dd[ii]
         return SS
         
     def __str__(self):
@@ -135,9 +148,11 @@ class ProjectionOperator(Operator):
 
     """    
     def __init__(self,n,m,dim=0):
-        Operator.__init__(self,dim=dim,data="")
+        # here the operator is create and it will know about basis
+        Operator.__init__(self,dim=dim,data=None)
         if (n < dim and m < dim):
-            self.data[n,m] = 1
+            # we can use "_data" here
+            self._data[n,m] = 1
         else:
             raise Exception("Projection Operator indices exceed its dimension")
             

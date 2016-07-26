@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .units import conversion_facs_frequency 
+from .units import conversion_facs_energy
+
 from .singleton import Singleton
 
 #from .wrappers import deprecated
@@ -212,8 +214,6 @@ class Manager(metaclass=Singleton):
             self.optimal_implementations = implementations["optimal"]
             self.current_implementations = implementations["current"]
             
-            
-        
         
     def save_units(self):
         units_file = self.main_conf["units"]
@@ -296,6 +296,7 @@ class Manager(metaclass=Singleton):
             i_val = x*val
             return i_val    
             
+            
     def convert_energy_2_internal_u(self,val):
         """Convert energy from currently used units to internal units
         
@@ -306,7 +307,7 @@ class Manager(metaclass=Singleton):
             values to convert            
         
         """
-        return val*conversion_facs_frequency[self.current_units["energy"]]
+        return val*conversion_facs_energy[self.current_units["energy"]]
         
             
     def convert_energy_2_current_u(self,val):
@@ -319,7 +320,7 @@ class Manager(metaclass=Singleton):
             values to convert            
         
         """
-        return val/conversion_facs_frequency[self.current_units["energy"]] 
+        return val/conversion_facs_energy[self.current_units["energy"]] 
         
 
     def convert_frequency_2_internal_u(self,val):
@@ -452,7 +453,7 @@ class UnitsManaged(Managed):
     """Base class for objects with management of units
     
     
-    """
+    """    
     
     def convert_energy_2_internal_u(self,val):
         return self.manager.convert_energy_2_internal_u(val)
@@ -463,6 +464,21 @@ class UnitsManaged(Managed):
     def unit_repr(self,utype="energy"):
         return self.manager.unit_repr(utype)
         
+        
+class EnergyUnitsManaged(Managed):
+    
+    utype = "energy"
+    units = "2pi/fs"    
+    
+    def convert_2_internal_u(self,val):
+        return self.manager.convert_energy_2_internal_u(val)
+        
+    def convert_2_current_u(self,val):
+        return self.manager.convert_energy_2_current_u(val)
+
+    def unit_repr(self):
+        return self.manager.unit_repr("energy")
+
         
 class BasisManaged(Managed):
     """Base class for objects with managed basis
@@ -577,7 +593,6 @@ class eigenbasis_of(basis_context_manager):
         SS = self.manager.basis_transformations.pop()
         # This is the new basis
         bss = len(self.manager.basis_stack)
-       
         nb = self.manager.basis_stack[bss-1]
         
         # inverse of the transformation matrix
@@ -591,7 +606,8 @@ class eigenbasis_of(basis_context_manager):
             ops_above = self.manager.basis_registered[nb]
 
         for op in operators:
-            op.transform(S1,inv=SS) #op._data = numpy.dot(SS,numpy.dot(op._data,S1))
+            #op._data = numpy.dot(SS,numpy.dot(op._data,S1))
+            op.transform(S1,inv=SS) 
             op.set_current_basis(nb)
             
             # operators which appeared in this context and where not

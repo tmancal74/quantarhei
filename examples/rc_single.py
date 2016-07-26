@@ -99,12 +99,13 @@ with energy_units("1/cm"):
     
     # Molecule named "RC-P" with three states (ground, CT and exciton state)
     # is created
-    en = [0.0, 11500, 12500]
+    en = [0.0, 14500, 15500]
     m = Molecule("RC-P",en)    
 
     # Transition dipole moment from 0 -> 2 (exciton state) is set to 
     # a unit vector in the direction of x-axis (this choice is arbitrary)
-    m.set_dipole(0,2,[1.0,0.0,0.0])
+    di = numpy.sqrt(23.0)*0.20819434
+    m.set_dipole(0,2,[di,0.0,0.0])
     
     #
     # To represent CT coordinate, we add an explicite harmonic mode 
@@ -319,6 +320,12 @@ with eigenbasis_of(hh):
     
     for n in range(pop_in_time.shape[1]):
         plt.plot(timeAxis.time,pop_in_time[:,n])
+        
+    lft_ct = m.get_electronic_natural_lifetime(1,epsilon_r=2.34)
+    lft_ex = m.get_electronic_natural_lifetime(2,epsilon_r=2.34)
+    
+    print(lft_ct/1000000.0," ns")
+    print(lft_ex/1000000.0," ns")
     
 """
     # We are after fluorescence. FluorescenceSpect class knows how to deal

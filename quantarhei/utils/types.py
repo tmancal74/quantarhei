@@ -79,8 +79,96 @@ def basis_managed_array_property(name,dtype,shape=None):
             '{} must be either a list or numpy.array'.format(name))
         
     return prop        
+    
         
+def units_managed_array_property(name,dtype,shape=None):
+    """Property with units managed
+    
+    Warning: The type of the property depends on the object; The object
+    has to be EnergyUnitsManaged or similar.
+    """
+    
+    storage_name = '_'+name
+    
+    @property
+    def prop(self): 
+        val = getattr(self,storage_name)
+        return self.convert_2_current_u(val) # This is a mathod defined in
+                                             # the class which handles units
 
+
+    @prop.setter
+    def prop(self,value):
+
+        try:
+            vl = check_numpy_array(value)
+            if not (shape == None):
+                if not (shape == vl.shape):
+                    raise TypeError(
+                    '{} must be of shape {}'.format(name,shape))  
+            setattr(self,storage_name,self.convert_2_internal_u(vl))
+        except:
+            raise TypeError(
+            '{} must be either a list or numpy.array'.format(name))
+        
+    return prop 
+    
+    
+    
+def managed_array_property(name,dtype,shape=None):
+    """Property with the units and basis management
+    
+    
+    """
+
+    storage_name = '_'+name
+
+    @property
+    def prop(self):
+
+        # check if basis id corresponds to the one known by Manager
+        cb = self.manager.get_current_basis()
+        # get object's current basis
+        ob = self.get_current_basis()
+
+                    
+        if cb == ob:
+            pass 
+        else:
+            # change basis
+            self.manager.transform_to_current_basis(self)
+        
+        val = getattr(self,storage_name)
+        return self.convert_2_current_u(val)     
+        
+    
+    @prop.setter
+    def prop(self,value):
+        
+        # check if basis id corresponds to the one known by Manager
+        cb = self.manager.get_current_basis()
+        # get object's current basis
+        ob = self.get_current_basis()
+            
+        if cb == ob:
+            pass
+        else:
+            # change basis
+            self.manager.transform_to_current_basis(self)
+
+        try:
+            vl = check_numpy_array(value)
+            if not (shape == None):
+                if not (shape == vl.shape):
+                    raise TypeError(
+                    '{} must be of shape {}'.format(name,shape))  
+            setattr(self,storage_name,self.convert_2_internal_u(vl))
+        except:
+            raise TypeError(
+            '{} must be either a list or numpy.array'.format(name))
+        
+    return prop     
+    
 
 def check_numpy_array(val):
     """ Checks if argument is a numpy array. 
@@ -99,6 +187,8 @@ def check_numpy_array(val):
         return numpy.array(vl)
     else:
         raise TypeError('List or numpy.ndarray required')
+        
+        
     
 def typed_property(name,dtype):
     storage_name = '_'+name
@@ -137,8 +227,6 @@ def list_of_typed_property(name,dtype):
     
 
 
-
-   
 def alt_type_property(name,dtype):
     storage_name = '_'+name
     
@@ -184,3 +272,11 @@ BasisManagedComplex = partial(basis_managed_array_property,
 BasisManagedReal = partial(basis_managed_array_property,
                               dtype=numbers.Real)
 
+UnitsManagedComplex = partial(units_managed_array_property,
+                              dtype=numbers.Complex)
+UnitsManagedReal = partial(units_managed_array_property,
+                              dtype=numbers.Real)
+                              
+ManagedComplex = partial(managed_array_property,dtype=numbers.Complex)
+ManagedReal = partial(managed_array_property,dtype=numbers.Real)
+                              

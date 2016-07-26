@@ -19,7 +19,8 @@ class SubMode:
         self.shift = shift
         self.nmax  = nmax
         
-        
+# Mode is UnitsManaged with components of different dimensions
+# Mode is not BasisManaged
 class Mode(UnitsManaged):
     """ Vibrational mode
     
