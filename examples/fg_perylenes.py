@@ -147,7 +147,7 @@ AG.add_Molecule(m12)
 # setting coupling by dipole-dipole formula
 AG.set_coupling_by_dipole_dipole(prefac=0.0147520827152)
 
-#print (AG.resonance_coupling)
+print (AG.resonance_coupling[1,2]/cm2int)
 
 # building aggregate
 print("Building aggregate... ")
@@ -203,12 +203,12 @@ RT = RedfieldRelaxationTensor(HH,sbi)
 RT.secularize()
 print("... done in ",tm.time()-start)
 
-for n in range(4):
-    print(numpy.real(RT.data[n,n,5,5]))
-
-RR = RedfieldRateMatrix(HH,sbi)
-for n in range(4):
-    print(numpy.real(RR.data[n,5]))    
+#for n in range(4):
+#    print(numpy.real(RT.data[n,n,5,5]))
+#
+#RR = RedfieldRateMatrix(HH,sbi)
+#for n in range(4):
+#    print(numpy.real(RR.data[n,5]))    
 
 """
 
@@ -284,4 +284,4 @@ plt.plot(time.data,pop[:,11],'--',color='firebrick')
 plt.plot(time.data,pop[:,12],'--',color='gold')
 plt.ylim((0.0,1.0)) 
 
-plt.savefig('L12per_pbl.pdf')
+#plt.savefig('L12per_pbl.pdf')
