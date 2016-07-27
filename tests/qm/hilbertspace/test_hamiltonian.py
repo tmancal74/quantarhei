@@ -49,5 +49,16 @@ class TestHamiltonian(unittest.TestCase):
             if self.verbose:
                 print("In 1/cm:")
                 print(self.H.data)
+                
+            H2 = Hamiltonian(data=[[1000.0, 0.0],[0.0, 2000.0]])
             
+            self.assertAlmostEqual(H2.data[0,0],1000.0)
+            self.assertAlmostEqual(H2.data[1,1],2000.0)
+            
+        self.assertAlmostEqual(H2.data[0,0],1000.0*cm2int)
+        self.assertAlmostEqual(H2.data[1,1],2000.0*cm2int)
+            
+        if self.verbose:
+            print("In internal:")
+            print(self.H.data)        
         

@@ -11,7 +11,6 @@ import unittest
 
 *******************************************************************************
 """  
-from quantarhei.core import UnitsManaged
 
 from quantarhei import energy_units
 from quantarhei.core.units import cm2int
@@ -32,9 +31,14 @@ class TestEnergyUnits(unittest.TestCase):
         # set value in 1/cm
         with energy_units("1/cm"):
             val = 100.0
+            val2 = 50.0
             self.u.set_value(val)
+            
+            w = UnitsManagedObject()
+            w.set_value(val2)
             
         # compare it in internal units
         self.assertEqual(self.u.value,val*cm2int)
+        self.assertEqual(w.value,val2*cm2int)
         
         

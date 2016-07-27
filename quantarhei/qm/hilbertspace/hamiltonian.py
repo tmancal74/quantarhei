@@ -4,6 +4,7 @@ from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged
 from ...core.managers import EnergyUnitsManaged
 from ...utils.types import ManagedReal
+from .operators import Operator
 
 import numpy
 
@@ -18,7 +19,16 @@ class Hamiltonian(SelfAdjointOperator,BasisManaged,EnergyUnitsManaged):
     _has_remainder_coupling = False
     
     data = ManagedReal("data")
-    
+ 
+    def __init__(self,dim=None,data=None):
+        #self.data = data
+#FIXME: how to avoid the Operator breaking the EnergyUnits management ????
+        Operator.__init__(self,dim=dim,data=data)
+        if not self.check_selfadjoint():
+            raise Exception("The data of this operator have"+
+            "to be represented by a selfadjoint matrix")
+            
+            
     def diagonalize(self,coupling_cutoff=None):
         """Diagonalizes the Hamiltonian matrix 
         
@@ -93,6 +103,7 @@ class Hamiltonian(SelfAdjointOperator,BasisManaged,EnergyUnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
+        out += "\nunits of energy %s" % self.unit_repr()
         out += "\ndata = \n"
         out += str(self.data)
         return out

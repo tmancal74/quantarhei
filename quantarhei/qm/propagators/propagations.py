@@ -3,8 +3,8 @@
 import numpy
 import matplotlib.pylab as plt
 
-from ...data.matrixdata import MatrixData
-from ...domains.time import TimeAxis
+from ...core.matrixdata import MatrixData
+from ...core.time import TimeAxis
 
 
 class DMPropagation(MatrixData): #,TimeDependent):
@@ -81,3 +81,5 @@ class DMPropagation(MatrixData): #,TimeDependent):
         return 1
         
         
+class RDMPropagation(DMPropagation):
+    pass

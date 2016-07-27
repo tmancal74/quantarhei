@@ -9,8 +9,13 @@ from ...core.units import kB_intK
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 
-        
-        
+"""
+*******************************************************************************
+
+      REDFIELD RATE MATRIX
+
+*******************************************************************************
+"""     
 class RedfieldRateMatrix:
     
     def __init__(self,ham,sbi,initialize=True,cutoff_time=None):
@@ -58,9 +63,10 @@ class RedfieldRateMatrix:
         # component operators
         KI = self.sbi.KK
         
+        #FIXME: This has to be made configurable
         # frequency cut-off
         freq_cutoff = 3000.0*cm2int
-        print("freq. cut-off",freq_cutoff)
+        #print("freq. cut-off",freq_cutoff)
         
         # temperature
         Temp = self.sbi.CC.get_correlation_function(0,0).T
@@ -115,9 +121,6 @@ class RedfieldRateMatrix:
                         RR
                         
         """
-        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        #print(KI[0,:,:])
-        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         
         warning = []
         error = []

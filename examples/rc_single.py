@@ -74,11 +74,15 @@ import numpy
 # To produce figures, we import the pyplot from the matplotlib library
 import matplotlib.pyplot as plt
 
+from  quantarhei.core.managers import Manager
+
 #
 # First we create a molecule object representing the P state of the RC 
 # and its charge transfer (CT) state. For the details of the mode, and its
 # justification, see the article text (!!!!!)
 #
+
+print("\nQuantarhei version ",Manager().version)
 
 # if "verbose" is set to True, the script prints some info on the screen
 verbose = True
@@ -336,8 +340,8 @@ with eigenbasis_of(hh):
     # calculate various spectra
     #
     
-    # steady state fluorescence calculated from equilibrium
-    fspect = fl.steady_state_fluorescence()
+    # accumulated fluorescence calculated from equilibrium
+    fspect = fl.accumulated_fluorescence()
     fspect.save_to_file("fluorecence.dat")
     
     # time correlated photon counting

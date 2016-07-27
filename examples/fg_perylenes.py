@@ -6,9 +6,9 @@ import time as tm
 
 from quantarhei import TimeAxis
 from quantarhei.qm import ReducedDensityMatrix
-##from cu.oqs.liouvillespace import RedfieldRelaxationTensor
+from quantarhei.qm import RedfieldRelaxationTensor, RedfieldRateMatrix
 ##from cu.oqs.liouvillespace import TDRedfieldRelaxationTensor                                 
-##from cu.oqs.propagators import RDMPropagator
+from quantarhei.qm import RDMPropagator
 
 from quantarhei import CorrelationFunction
 from quantarhei.qm.corfunctions import CorrelationFunctionMatrix
@@ -146,6 +146,7 @@ AG.add_Molecule(m12)
 
 # setting coupling by dipole-dipole formula
 AG.set_coupling_by_dipole_dipole(prefac=0.0147520827152)
+
 #print (AG.resonance_coupling)
 
 # building aggregate
@@ -187,20 +188,27 @@ plt.title('L12per_pbl --- en1 = ' + en1st)
 plt.show()
 
 
-raise SystemExit()
-
 # Redfield Tensor 
 print("Calculating relaxation tensor ...")
 start = tm.time()
 # System bath interaction
-sbi = AG.get_system_bath_coupling()
+#sbi = AG.get_system_bath_coupling()
+sbi = AG.get_SystemBathInteraction()
 # Hamiltonian 
 HH = AG.get_Hamiltonian()
+
 # Relaxation tensor
 RT = RedfieldRelaxationTensor(HH,sbi)
 #RT = TDRedfieldRelaxationTensor(HH,sbi)
 RT.secularize()
 print("... done in ",tm.time()-start)
+
+for n in range(4):
+    print(numpy.real(RT.data[n,n,5,5]))
+
+RR = RedfieldRateMatrix(HH,sbi)
+for n in range(4):
+    print(numpy.real(RR.data[n,5]))    
 
 """
 
@@ -216,7 +224,7 @@ rho.data[HH.dim-1,HH.dim-1] = 1.0
 #rho.data[1,0] = 0.5
 #rho.data[0,1] = 0.5
 rho.normalize2()
- 
+
 
 print("Propagating density matrix ...")
 start = tm.time()
@@ -235,7 +243,7 @@ Plotting the time evolution
 
 """
 print("\nEvolution of populations")
-pr2.plot(coherences=False,how='-g')
+pr2.plot(coherences=False,how='-')
 
 """
 

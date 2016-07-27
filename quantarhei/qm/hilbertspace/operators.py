@@ -42,15 +42,15 @@ class Operator(MatrixData,BasisManaged):
                 if dim is not None:
                     if data.shape[0] != dim:
                         raise Exception() #HilbertSpaceException
-                self._data = data
+                self.data = data
                 self.dim = self._data.shape[0]
             else:
                 raise Exception #HilbertSpaceException
         else:
             if real:
-                self._data = numpy.zeros((dim,dim),dtype=numpy.float64)
+                self.data = numpy.zeros((dim,dim),dtype=numpy.float64)
             else:
-                self._data = numpy.zeros((dim,dim),dtype=numpy.complex128)
+                self.data = numpy.zeros((dim,dim),dtype=numpy.complex128)
             self.dim = dim
 
 

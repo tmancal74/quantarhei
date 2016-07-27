@@ -892,7 +892,7 @@ class Aggregate(UnitsManaged):
         
         return (energy,trdipm)
         
-    def get_system_bath_coupling(self):
+    def get_SystemBathInteraction(self):
         return self.sbi
         
     def get_Hamiltonian(self):
