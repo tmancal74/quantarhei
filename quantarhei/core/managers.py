@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .units import conversion_facs_frequency 
+from .units import conversion_facs_frequency
 from .units import conversion_facs_energy
 
 from .singleton import Singleton
@@ -12,54 +12,54 @@ import json
 import numpy
 
 class Manager(metaclass=Singleton):
-    """ Main package Manager  
-    
-    
+    """ Main package Manager
+
+
     This class handles several important package wide tasks:
-    
+
     1) Usage of units across objects storing data
     2) Basis conversion of all registered objects
     3) Calls to proper optimized implementations of numerically heavy
        sections of the calculations
-       
-       
+
+
     Manager is a singleton class, only one instance exists at all times
-    and all managing objects have the instance of the Manager. 
-    
+    and all managing objects have the instance of the Manager.
+
     Units Management
     ----------------
-    Units management is performed for all classes derived from 
+    Units management is performed for all classes derived from
     quantarhei.managers.UnitsManaged class.
-    
-    
+
+
     Basis Conversion Management
     ---------------------------
-    Units management is performed for all classes derived from 
-    quantarhei.managers.BasisManaged class. 
+    Units management is performed for all classes derived from
+    quantarhei.managers.BasisManaged class.
 
     Basis management works like this: when an class is defined, and its
     property needs to be basis managed, one should use a predefined type
-    `basis_managed_array_property`    
-    
-    
-    
+    `basis_managed_array_property`
+
+
+
     """
-    
-    version="0.0.4"    
-    
+
+    version = "0.0.4"
+
     # hard wired unit options
     allowed_utypes = ["energy",
                       "frequency",
                       "dipolemoment",
                       "temperature",
                       "time"]
-                      
-    units = {"energy"       : ["1/cm","2pi/fs","eV","meV","THz"],
-             "frequency"    : ["1/cm","2pi/fs","THz"],
+
+    units = {"energy"       : ["1/cm", "2pi/fs", "eV", "meV", "THz"],
+             "frequency"    : ["1/cm", "2pi/fs", "THz"],
              "dipolemoment" : ["Debye"],
-             "temperature"  : ["Kelvin","Celsius","1/cm"],
-             "time"         : ["as","fs","ps","ns"]}
-             
+             "temperature"  : ["Kelvin", "Celsius", "1/cm"],
+             "time"         : ["as", "fs", "ps", "ns"]}
+
     units_repre = {"Kelvin":"K",
                    "Celsius":"C",
                    "Debye":"D",
@@ -67,77 +67,77 @@ class Manager(metaclass=Singleton):
                    "THz":"THz",
                    "2pi/fs":"2pi/fs",
                    "meV":"meV"}
-    
+
     def __init__(self):
-        
+
         self.current_units = {}
-        
+
         # main configuration file
-        cfile = "~/.quantarhei/quantarhei.json"        
-        
+        cfile = "~/.quantarhei/quantarhei.json"
+
         # test the presence of configuration directory
         conf_path = os.path.dirname(cfile)
         self.conf_path = os.path.expanduser(conf_path)
         self.cfile = os.path.expanduser(cfile)
-        
+
         exists = os.path.exists(self.conf_path)
-        isdir  = os.path.isdir(self.conf_path)
+        isdir = os.path.isdir(self.conf_path)
         if not exists:
             # create directory
             os.mkdir(self.conf_path)
-            
+
             # write default configuration
             self.main_conf = {"units":"units.json",
                               "implementations":"implementations.json"
-                              }
-            
+                             }
+
             # save it
-            with open(self.cfile,'w') as f:
-                json.dump(self.main_conf,f)
-            
-        elif (exists and (not isdir)):
+            with open(self.cfile, 'w') as f:
+                json.dump(self.main_conf, f)
+
+        elif exists and (not isdir):
             raise Exception("Cannot create configuration directory.")
-            
+
         else:
             # load the main configuration file
-            with open(self.cfile,'r') as f:
+            with open(self.cfile, 'r') as f:
                 self.main_conf = json.load(f)
-                
-                
-        
-            
+
+
+
+
         #
         #  Setting physical units
         #
-            
+
         # internal units are hardwired
         self.internal_units = {"energy":"2pi/fs", "frequency":"2pi/fs",
-                              "dipolemoment":"Debye",
-                              "temperature":"Kelvin"}
-        
+                               "dipolemoment":"Debye",
+                               "temperature":"Kelvin"}
+
         # current units are read from conf file
         if not exists:
             # set hard wired defaults and save them
             self.current_units = {"energy":"2pi/fs", "frequency":"2pi/fs",
-                              "dipolemoment":"Debye",
-                              "temperature":"Kelvin"}
-                              
+                                  "dipolemoment":"Debye",
+                                  "temperature":"Kelvin"}
+
 
             # save them
             self.save_units()
-            
+
         else:
             self.load_units()
-                
-                
+
+
         #
         #  Setting implementations
         #
-                
+
         self.implementation_points = {
-        
-           "secular-standard-Redfield-rates":"redfield.ssRedfieldRateMatrix"
-           
+
+            "secular-standard-Redfield-rates":"redfield.ssRedfieldRateMatrix"
+
            }
         self.all_implementations = {
             

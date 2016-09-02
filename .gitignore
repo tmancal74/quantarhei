@@ -3,6 +3,7 @@
 
 __pycache__
 
+pylint
 dist
 quantarhei.egg-info
 .DS_Store
