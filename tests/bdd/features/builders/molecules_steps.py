@@ -6,11 +6,11 @@ import aloe
 def when_Molecule_is_created(self):
     pass
 
-@aloe.step(r"Given transition energy and transition dipole moment")
-def trans_energy_and_dipole_moment(self):
-    pass
+@aloe.step(r"Given ground state energy is (\d+(?:\.\d+)? and excited state energy is (\d+(?:\.\d+)? 1/cm")
+def trans_energies_for_a_molecule(self,en0,en1):
+    print(en0, en1)
 
-@aloe.step(r"Then it has a correct Hamiltonian and Dipole Moment Operator")
-def has_correct_Ham_Dip(self):
+@aloe.step(r"Then it has a correct Hamiltonian")
+def molecule_has_correct_Hamiltonian(self):
     pass
 
