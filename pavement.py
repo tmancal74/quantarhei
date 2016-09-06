@@ -17,3 +17,9 @@ def default():
     pass
 
 
+@needs('unit_tests')
+@task
+def windows():
+    """ On windows, aloe tool does not work. We do only unit tests"""
+    pass
+
