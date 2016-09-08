@@ -2,6 +2,7 @@
 
 from quantarhei import CorrelationFunction
 from quantarhei import TimeAxis
+from quantarhei import energy_units
 
 from matplotlib import pyplot as plt
 import numpy
@@ -10,15 +11,17 @@ import numpy
 ta = TimeAxis(0.0,1000,1.0)
 
 params = {"ftype":    "OverdampedBrownian",
-          "reorg":    20.0,
+          "reorg":    10.0,
           "cortime":  100.0,
           "T":        300.0,
           "matsubara":20}
           
-cf = CorrelationFunction(ta,params)
+with energy_units("THz"):
+    cf = CorrelationFunction(ta,params)
 
-plt.plot(ta.data,numpy.real(cf.data),"-k")
-plt.plot(ta.time,numpy.imag(cf.data),"-b")
+with energy_units("THz"):
+    plt.plot(ta.data,numpy.real(cf.data),"-k")
+    plt.plot(ta.time,numpy.imag(cf.data),"-b")
 
 plt.show()
     

@@ -7,7 +7,7 @@ from nose.tools import assert_equal
 import numpy
 
 from quantarhei import Molecule
-
+from quantarhei import energy_units
 
 """ ********************************************************************* """
 
@@ -29,12 +29,13 @@ def trans_energies_for_a_molecule(self): #,en0,en1,units):
     world.e1 = e1
     world.units = units
 
-    print("units ",units)
+    print("\nunits ",units)
     
 """When"""
 @step(r'molecule is created')
 def when_Molecule_is_created(self):
-    world.m1 = Molecule("Mol1",[world.e0,world.e1]) 
+    with energy_units(world.units):
+        world.m1 = Molecule("Mol1",[world.e0,world.e1]) 
 
 """Then"""
 @step(r"molecule has a correct Hamiltonian with values (\d+(?:\.\d+)?) and (\d+(?:\.\d+)?) in internal units")

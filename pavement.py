@@ -8,7 +8,7 @@ def unit_tests():
 
 @task
 def aloe_tests():
-    sh("aloe -vs -a '!in_development' tests/bdd")
+    sh("aloe -vs -a !in_development tests/bdd")
 
 
 @needs('unit_tests','aloe_tests')

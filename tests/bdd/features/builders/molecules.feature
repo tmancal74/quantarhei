@@ -4,7 +4,7 @@ Feature: Molecule creation
     and asign transition dipole moments to them
     and asign position to them
 
-Scenario Outline: A user creates a Molecule using different units 
+Scenario Outline: A user creates a Molecule using various units 
     Given I define a two-level molecule:
         |  units  |  ground_state_energy  |  excited_state_energy  |
         | <units> | <ground_state_energy> | <excited_state_energy> |
@@ -12,9 +12,18 @@ Scenario Outline: A user creates a Molecule using different units
     Then molecule has a correct Hamiltonian with values <gse_internal> and <ese_internal> in internal units
 
     Examples:
-        |units | ground_state_energy | excited_state_energy | gse_internal | ese_internal |
-        | 1/cm |                 0.0 |              12000.0 |          0.0 |      12000.0 |
-        | Thz  |                 0.0 |                300.0 |          0.0 |        300.0 |
+        |units   | ground_state_energy | excited_state_energy | gse_internal |       ese_internal  |
+        | 1/cm   |                 0.0 |              12000.0 |          0.0 | 2.2603818807706237  |
+        | THz    |                 0.0 |                300.0 |          0.0 |  1.884955592153876  |
+        |  eV    |                 0.0 |                1.0   |          0.0 | 1.5192674605831966  |
+        | meV    |                 0.0 |               200.0  |          0.0 | 0.30385349211663937 |
+        |   J    |                 0.0 |              1.0e-19 |          0.0 | 0.9482521719887506  |
+        |  SI    |                 0.0 |              1.0e-19 |          0.0 | 0.9482521719887506  |
+        | 2pi/fs |                 0.0 |                2.0   |          0.0 |  2.0                |
+        | int    |                 0.0 |                2.0   |          0.0 |  2.0                |
+#       | Hartree|
+#       | a.u.   |
+#       | Kcal/mol |
 
 @in_development
 Scenario Outline: A user adds a transition dipole moment to a molecule
