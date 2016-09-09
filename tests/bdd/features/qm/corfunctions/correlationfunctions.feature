@@ -15,3 +15,4 @@ Scenario Outline: A user creates correlation function with various parameters
         | OverdampedBrownian | 20.0  | 1/cm    | 100   |   fs    | 300    | K       | ob_20cm_100fs_300K.dat |
         | OverdampedBrownian | 20.0  | 1/cm    | 100   |   fs    | 100    | K       | ob_20cm_100fs_100K.dat |
 
+
