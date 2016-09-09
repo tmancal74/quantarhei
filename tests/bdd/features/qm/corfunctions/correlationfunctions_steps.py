@@ -27,6 +27,12 @@ def temperature(self, temp, T_units):
     world.temp = float(temp)
     world.T_units = T_units
 
+@step(r'number of Matsubara frequencies (\d+(?:\.\d+)?)')
+def matsubara(self, Nm):
+    print("no. Matsubara frequencies ", Nm)
+    world.mats = int(Nm)
+
+
 @step(r'time interval')
 def time_axis(self):
     
@@ -47,7 +53,7 @@ def correlation_function_of_type(self, ctype):
               "reorg":    world.reorg,
               "cortime":  world.ctime,
               "T":        world.temp,
-              "matsubara":20}
+              "matsubara":world.mats}
               
     # FIXME: also time_units, temperature_units
     with energy_units(world.e_units):
@@ -68,7 +74,7 @@ def read_n_columns(file,n):
     return ret    
 
 
-@step(r'Then I get data from the file ([^"]*)')
+@step(r'Then I get data from the file ([^"]*) in internal units')
 def compare_data_with_file(self, file):
 
     print("comparing with file ", file)

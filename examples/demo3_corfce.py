@@ -11,15 +11,15 @@ import numpy
 ta = TimeAxis(0.0,1000,1.0)
 
 params = {"ftype":    "OverdampedBrownian",
-          "reorg":    10.0,
+          "reorg":    20.0,
           "cortime":  100.0,
           "T":        300.0,
           "matsubara":20}
           
-with energy_units("THz"):
+with energy_units("1/cm"):
     cf = CorrelationFunction(ta,params)
 
-with energy_units("THz"):
+with energy_units("1/cm"):
     plt.plot(ta.data,numpy.real(cf.data),"-k")
     plt.plot(ta.time,numpy.imag(cf.data),"-b")
 
