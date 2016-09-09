@@ -57,8 +57,17 @@ def correlation_function_of_type(self, ctype):
               
     # FIXME: also time_units, temperature_units
     with energy_units(world.e_units):
-        world.cf = CorrelationFunction(world.ta,params)    
+        cf = CorrelationFunction(world.ta,params) 
+        
+    i = 0
+    data = numpy.zeros((world.ta.time.shape[0],3))
+    for t in world.ta.time:
+        data[i,0] = t
+        data[i,1] = numpy.real(cf.data[i])
+        data[i,2] = numpy.imag(cf.data[i])
+        i += 1
     
+    world.cf = data
     
 def read_n_columns(file,n):
     """Reads n columns of data from a package file """
@@ -78,5 +87,5 @@ def read_n_columns(file,n):
 def compare_data_with_file(self, file):
 
     print("comparing with file ", file)
-    cf_data = read_n_columns(file,2)
-    print(cf_data)
+    cf_data = read_n_columns(file,3)
+    numpy.testing.assert_allclose(cf_data,world.cf,rtol=1.0e-7)
