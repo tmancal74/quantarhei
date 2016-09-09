@@ -2,10 +2,12 @@
 from aloe import step
 from aloe import world
 
+from ...stepslib import time_axis
+
 import pkg_resources
 import numpy
 
-from quantarhei import TimeAxis
+#from quantarhei import TimeAxis
 from quantarhei import CorrelationFunction
 from quantarhei import energy_units
 
@@ -33,16 +35,16 @@ def matsubara(self, Nm):
     world.mats = int(Nm)
 
 
-@step(r'time interval')
-def time_axis(self):
-    
-    for row in self.hashes:
-        start = float(row['start'])
-        Ns    = int(row['number_of_steps'])
-        dt    = float(row['step'])
-        
-    print("TimeAxis", start, Ns, dt)
-    world.ta = TimeAxis(start,Ns,dt)
+#@step(r'time interval')
+#def time_axis(self):
+#    
+#    for row in self.hashes:
+#        start = float(row['start'])
+#        Ns    = int(row['number_of_steps'])
+#        dt    = float(row['step'])
+#        
+#    print("TimeAxis", start, Ns, dt)
+#    world.ta = TimeAxis(start,Ns,dt)
 
 @step(r'When I calculate the ([^"]*) correlation function')
 def correlation_function_of_type(self, ctype):

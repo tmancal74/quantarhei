@@ -5,7 +5,7 @@ Scenario Outline: A user creates correlation function with various parameters
     And correlation time <ctime> "<t_units>" 
     And temperature <temp> "<T_units>"
     And number of Matsubara frequencies <mats>
-    And time interval:
+    And TimeAxis:
         | start | number_of_steps | step | units |
         | 0.0   |    100          |  10  | fs    |
     When I calculate the <ctype> correlation function
