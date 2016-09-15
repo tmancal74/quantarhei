@@ -46,7 +46,7 @@ def complete_frequency_axis(self):
         Ns    = int(row['number_of_steps'])
         dw    = float(row['step'])
         
-    print("FrequencyAxis", start, Ns, dw)
+    print("FrequencyAxis", start, Ns, dw,"atype='complete'")
     world.wa = FrequencyAxis(start,Ns,dw)
     
     tc = TestCase()

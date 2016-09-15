@@ -12,6 +12,7 @@ Examples:
         | start | number_of_steps | step | units |
         | 0.0   |    100          |  10  | fs    |
         | 0.0   |    101          |  1.0 | fs    |
+        | 100   |    100          | 0.1  | fs    |
 
 
 @time
@@ -26,6 +27,7 @@ Examples:
         | start | number_of_steps | step | units |
         | 0.0   |    100          |  10  | fs    |
         | 0.0   |    101          |  1.0 | fs    |
+        | 100.0 |    200          | 0.1  | fs    |
 
 @time
 Scenario Outline: Frequency axis creation from a complete time axis
@@ -39,6 +41,7 @@ Examples:
         | start | number_of_steps | step | units |
         | 0.0   |    100          |  10  | fs    |
         | 0.0   |    101          |  1.0 | fs    |
+        | 100.0 |    1000         | 0.1  | fs    |
 
 @time
 Scenario Outline: Comlete time axis self-creation through frequency axis
@@ -52,3 +55,4 @@ Examples:
         | start | number_of_steps | step | units |
         | 0.0   |    100          |  10  | fs    |
         | 0.0   |    101          |  1.0 | fs    |
+        | 100.0 |    299          |  0.1 | fs    |

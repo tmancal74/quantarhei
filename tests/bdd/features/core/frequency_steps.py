@@ -51,7 +51,6 @@ def ta_correct_through_fa(self):
                                         wa.domega)
 
     # minimum value
-    print(world.wa.atype,wa.atype)
     numpy.testing.assert_allclose(world.wa.omin,wa.omin,atol=1.0e-7)
     
     #maximum
