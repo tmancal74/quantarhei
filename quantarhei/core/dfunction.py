@@ -3,10 +3,13 @@
 import scipy.interpolate
 import numpy
 
-from .valueaxis import ValueAxis 
+from .valueaxis import ValueAxis
+from .time import TimeAxis
+from .frequency import FrequencyAxis 
 
 #FIXME Check the posibility to set a derivative of the spline at the edges
 #FIXME Enable vectorial arguments and values
+#FIXME Make sure we can interpolate complex functions
 class DFunction:
     """
     Discrete function with interpolation
@@ -42,11 +45,14 @@ class DFunction:
     Methods
     -------
     
-    at(x,approx="default")
+    at(x, approx="default")
         Returns the value of the function at a given value of argument `x`. The
         default interpolation is linear, until the spline interpolation is
         initialized by calling the method with approx = "spline". From then
         on, the default is spline.
+        
+    get_Fourier_transform()
+        Returns a Fourier transformed DFunction
        
        
     Examples
@@ -82,6 +88,38 @@ class DFunction:
     
     >>> "%.4f" % f.at(2.0,approx='spline')
     '0.9355'
+    
+    Fourier transform of a DFunction
+    
+    >>> from .time import TimeAxis
+    >>> dt = 0.1; Ns = 10000
+    >>> t = TimeAxis(-(Ns//2)*dt,Ns,dt,atype="complete")
+    >>> gg = 1.0/30.0
+    >>> y = numpy.exp(-numpy.abs(t.time)*gg)
+    >>> f = DFunction(t,y)
+    >>> F = f.get_Fourier_transform()
+    >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
+    True
+    >>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
+    True
+    >>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
+    True
+
+    >>> t = TimeAxis(0,Ns,dt)
+    >>> print(t.atype == "upper-half")
+    True
+    
+    >>> gg = 1.0/30.0
+    >>> y = numpy.exp(-numpy.abs(t.time)*gg)
+    >>> f = DFunction(t,y)
+    >>> F = f.get_Fourier_transform()
+    >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
+    True
+    >>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
+    True
+    >>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
+    True
+
     
     """
 
@@ -188,4 +226,48 @@ class DFunction:
         
         """
         return self._spline(x)
+        
+        
+    def get_Fourier_transform(self):
+        """Returns Fourier transform of the DFunction
+        
+        """
+        
+        t = self.axis
+        y = self.data
+        
+        if isinstance(t,TimeAxis):
+            
+            w = t.get_FrequencyAxis()
+            
+            if t.atype == "complete":
+                Y = t.length*numpy.fft.fftshift(numpy.fft.ifft(
+                numpy.fft.fftshift(y)))*t.dt
+            elif t.atype == "upper-half":
+                yy = numpy.zeros(w.length,dtype=y.dtype)
+                yy[0:w.length//2] = y
+                for k in range(0,t.length-1):
+                    yy[w.length-k-1] = y[k+1]
+                Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.dt
+                                
+                
+                
+            F = DFunction(w,Y)
+            
+            return F
+            
+        elif isinstance(t,FrequencyAxis):
+            pass
+        
+        else:
+            pass
+
+                
+        
+    
+    
+    def get_inverse_Fourier_transform(self):
+        pass
+    
+    
 

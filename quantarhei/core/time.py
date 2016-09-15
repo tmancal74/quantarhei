@@ -4,7 +4,7 @@ from .valueaxis import ValueAxis
 
 import numpy
 
-class TimeAxis:
+class TimeAxis(ValueAxis):
     """ Class representing time in time dependent calculations.
     
     The `TimeAxis` class stands in a close relation to `FrequencyAxis`

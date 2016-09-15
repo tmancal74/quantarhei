@@ -4,7 +4,7 @@ from .valueaxis import ValueAxis
 
 import numpy
 
-class FrequencyAxis:
+class FrequencyAxis(ValueAxis):
     """ Class representing frequency axis of calculations
     
 
