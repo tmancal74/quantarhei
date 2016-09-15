@@ -2,7 +2,8 @@
 from aloe import step
 from aloe import world
 
-from ...stepslib import time_axis
+from ...stepslib import upper_half_time_axis
+from ...stepslib import temperature
 
 import pkg_resources
 import numpy

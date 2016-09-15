@@ -2,7 +2,7 @@
 from aloe import step
 from aloe import world
 
-from ...stepslib import time_axis
+from ...stepslib import upper_half_time_axis
 
 @step(r'a homodimer with site transition energies (\d+(?:\.\d+)?) "([^"]*)"')
 def homodimer_site_energies(self, energy, units):

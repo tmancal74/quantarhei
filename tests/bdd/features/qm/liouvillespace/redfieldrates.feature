@@ -8,7 +8,7 @@ Scenario Outline: Refield rates for a homodimer
     And correlation function with parameters:
         | cf_type            | reorg_en | e_units| cor_time | t_units| temp   | T_units | matsubara |
         | OverdampedBrownian | <reorg>  | 1/cm   | <ctime>  |  fs    | <temp> | K       | 20        |
-    And TimeAxis 
+    And upper-half TimeAxis with parameters: 
         | start | number_of_steps | step | units |
         | 0.0   |   1000          | 1.0  | 1/cm  |
     When I calculate Redfield relaxation rates
