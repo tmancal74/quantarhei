@@ -249,25 +249,68 @@ class DFunction:
                 for k in range(0,t.length-1):
                     yy[w.length-k-1] = y[k+1]
                 Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.dt
-                                
-                
                 
             F = DFunction(w,Y)
             
-            return F
             
         elif isinstance(t,FrequencyAxis):
-            pass
-        
+            
+            w = t
+            t = w.get_TimeAxis()
+            
+            if w.atype == "complete":
+                Y = w.length*numpy.fft.fftshift(numpy.fft.ifft(
+                numpy.fft.fftshift(y)))*w.domega/(numpy.pi*2.0) 
+                
+            F = DFunction(t,Y)
+            
+            
         else:
             pass
 
                 
-        
+        return F
     
     
     def get_inverse_Fourier_transform(self):
-        pass
-    
-    
+        """Returns inverse Fourier transform of the DFunction
+        
+        """
+        
+        t = self.axis
+        y = self.data
+        
+        if isinstance(t,TimeAxis):
+            
+            w = t.get_FrequencyAxis()
+            
+            if t.atype == "complete":
+                Y = numpy.fft.fftshift(numpy.fft.fft(
+                numpy.fft.fftshift(y)))*t.dt
+            elif t.atype == "upper-half":
+                yy = numpy.zeros(w.length,dtype=y.dtype)
+                yy[0:w.length//2] = y
+                for k in range(0,t.length-1):
+                    yy[w.length-k-1] = y[k+1]
+                Y = numpy.fft.fftshift(numpy.fft.fft(yy))*t.dt
+                
+            F = DFunction(w,Y)
+            
+            
+        elif isinstance(t,FrequencyAxis):
+            
+            w = t
+            t = w.get_TimeAxis()
+            
+            if w.atype == "complete":
+                Y = numpy.fft.fftshift(numpy.fft.fft(
+                numpy.fft.fftshift(y)))*w.domega/(numpy.pi*2.0) 
+                
+            F = DFunction(t,Y)
+            
+            
+        else:
+            pass
 
+                
+        return F
