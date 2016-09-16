@@ -27,7 +27,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
                      "OverdampedBrownian","Value-defined")
 
     def __init__(self, timeAxis, params, values = None, domain = 'Time'):
+        
         self.valueAxis = timeAxis
+        self.axis = self.valueAxis
         self.timeAxis = self.valueAxis
         self.params = params
         if domain == 'Time':

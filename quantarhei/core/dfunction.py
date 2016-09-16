@@ -326,6 +326,7 @@ class DFunction:
         
         
     def plot(self, title=None, text=None, axis=None,
+             xlabel=None, ylabel=None,
              label_font=None,
              text_font=None,
              title_font=None,show=True,color=None):
@@ -360,12 +361,23 @@ class DFunction:
         else:
             font={'size':20}
             
+        if xlabel is not None:
+            xl = '$\omega$ [fs$^{-1}$]'
+            
         if isinstance(self.axis,FrequencyAxis):
-            plt.xlabel('$\omega$ [fs$^{-1}$]',**font)
-            plt.ylabel('$F(\omega)$',**font)   
+            xl = '$\omega$ [fs$^{-1}$]'
+            yl = '$F(\omega)$'
         if isinstance(self.axis,TimeAxis):
-            plt.xlabel('$t$ [fs]',**font)
-            plt.ylabel('$f(t)$',**font)
+            xl = '$t$ [fs]'
+            yl = '$f(t)$'
+        
+        if xlabel is not None:
+            xl = xlabel
+        if ylabel is not None:
+            yl = ylabel
+
+        plt.xlabel(xl,**font)
+        plt.ylabel(yl,**font)   
             
         if show:
             plt.show()
