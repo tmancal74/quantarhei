@@ -2,6 +2,9 @@
 
 import scipy.interpolate
 import numpy
+import numbers
+        
+import matplotlib.pyplot as plt
 
 from .valueaxis import ValueAxis
 from .time import TimeAxis
@@ -228,6 +231,12 @@ class DFunction:
         return self._spline(x)
         
         
+    """
+ 
+    Fast Fourier transform    
+
+    """        
+        
     def get_Fourier_transform(self):
         """Returns Fourier transform of the DFunction
         
@@ -314,3 +323,51 @@ class DFunction:
 
                 
         return F
+        
+        
+    def plot(self, title=None, text=None, axis=None,
+             label_font=None,
+             text_font=None,
+             title_font=None,show=True,color=None):
+
+        
+        if isinstance(self.data[0],numbers.Complex):
+            if color is not None:
+                plt.plot(self.axis.data,numpy.real(self.data),color)
+            else:
+                plt.plot(self.axis.data,numpy.real(self.data))
+        else:
+            if color is not None:
+                plt.plot(self.axis.data,self.data,color)
+            else:
+                plt.plot(self.axis.data,self.data)
+            
+        if axis is not None:
+            plt.axis(axis)
+            
+        if title is not None:
+            plt.title(title)
+            
+        if text is not None:
+            if text_font is not None:
+                plt.text(text[0],text[1],
+                     text[2], fontdict=text_font)
+            else:
+                plt.text(text[0],text[1],text[2])     
+        
+        if label_font is not None:
+            font = label_font
+        else:
+            font={'size':20}
+            
+        if isinstance(self.axis,FrequencyAxis):
+            plt.xlabel('$\omega$ [fs$^{-1}$]',**font)
+            plt.ylabel('$F(\omega)$',**font)   
+        if isinstance(self.axis,TimeAxis):
+            plt.xlabel('$t$ [fs]',**font)
+            plt.ylabel('$f(t)$',**font)
+            
+        if show:
+            plt.show()
+
+        

@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-
-import numpy
-import matplotlib.pyplot as plt
-
-from quantarhei import TimeAxis
-from quantarhei.core.dfunction import DFunction
-
 """
 *******************************************************************************
 
@@ -17,6 +10,13 @@ from quantarhei.core.dfunction import DFunction
 
 *******************************************************************************
 """
+
+import numpy
+import matplotlib.pyplot as plt
+
+from quantarhei import TimeAxis
+from quantarhei.core.dfunction import DFunction
+
 print("\n")
 print("*****************************************************************")
 print("*                                                               *")
@@ -46,7 +46,6 @@ om0 = 0.4
 dt = 5.0
 Ns = 1000
 
-
 print(
 """    
 
@@ -66,7 +65,12 @@ print(
 # symmetrically defined TimeAxis
 t = TimeAxis(-(Ns//2)*dt,Ns,dt,atype="complete")
 
-""" Function no. 1 """
+""" 
+
+    Function no. 1
+
+
+"""
 
 # Function values
 y = numpy.exp(-numpy.abs(t.time)*gg)
@@ -95,7 +99,8 @@ print(
 """)
 
 # plot of the numerical Fourier tranform
-plt.plot(F.axis.frequency,numpy.real(F.data),"-b")
+F.plot(show=False,color="-b")
+#plt.plot(F.axis.frequency,numpy.real(F.data),"-b")
 
 # calculate the function analytically
 k = 0
@@ -106,17 +111,28 @@ for x in F.axis.frequency:
     k += 1
     
 # plot of the analytical transform (in the same figure)
-plt.plot(F.axis.frequency,ff,"-g")
-plt.axis([-0.6,0.6,0.0,120])
-plt.title("Lorentzian as a result of the Fourier transform")
-plt.text(-0.5,80,r'$F(\omega) = \frac{2\gamma}{\gamma^2 + \omega^2}}}$',
-         fontdict={'size':20})
-font={'size':20}
-plt.xlabel('$\omega$ [fs$^{-1}$]',**font)
-plt.ylabel('$F(\omega)$',**font)
-plt.show()
+fd = DFunction(F.axis,ff)
+fd.plot(color="-g",axis=[-0.6,0.6,0.0,120],
+        title = "Lorentzian as a result of the Fourier transform",
+        text=[-0.5,80,r'$F(\omega) = \frac{2\gamma}{\gamma^2 + \omega^2}}}$'],
+        text_font={'size':20})
+# alternatively like below
+#plt.plot(F.axis.frequency,ff,"-g")
+#plt.axis([-0.6,0.6,0.0,120])
+#plt.title("Lorentzian as a result of the Fourier transform")
+#plt.text(-0.5,80,r'$F(\omega) = \frac{2\gamma}{\gamma^2 + \omega^2}}}$',
+#         fontdict={'size':20})
+#font={'size':20}
+#plt.xlabel('$\omega$ [fs$^{-1}$]',**font)
+#plt.ylabel('$F(\omega)$',**font)
+#plt.show()
 
-""" Function no. 2 """
+""" 
+    
+    Function no. 2 
+    
+    
+"""
 
 print(
 """    
@@ -145,8 +161,9 @@ print(
     was correctly identified by the Fourier transform to be 0.4.
 """)
 F = f.get_Fourier_transform()
+F.plot(show=False)
+#plt.plot(F.axis.frequency,numpy.real(F.data))
 
-plt.plot(F.axis.frequency,numpy.real(F.data))
 k = 0
 ff = numpy.zeros(F.axis.length)
 for x in F.axis.frequency:
@@ -184,11 +201,6 @@ plt.xlabel('$t$ [fs]',**font)
 plt.ylabel('$f(t)$',**font)
 plt.show()
 
-
-
-
-
-
 print(
 """    
 *** 
@@ -197,7 +209,7 @@ print(
 ***
 """)
 
-""" by default atype="upper-half" """
+# by default atype="upper-half"
 t = TimeAxis(0.0,Ns,dt) 
 
 # Function values
@@ -206,24 +218,31 @@ y = numpy.exp(-numpy.abs(t.time)*gg)
 # we define DFunction 
 f = DFunction(t,y)
 
+# plot of the original function to be transformed
+f.plot(title="Positive time part of the even exponential",
+       axis=[0,1000,0,1],
+       text=[400,0.6,r'$f(t)=e^{-\gamma |t|}$'],
+       text_font={"size":20})
+
 # DFunction can return its Fourier transform
 F = f.get_Fourier_transform()
 
-# plot of the original function to be transformed
-plt.plot(f.axis.time,f.data)
-plt.show()
-
 # plot of the numerical Fourier tranform
-plt.plot(F.axis.frequency,numpy.real(F.data))
+F.plot(show=False,
+       title="Lorentzian as a result of the Fourier transform",
+       axis=[-0.6,0.6,0,120])
 
 # calculate the function analytically
 k = 0
 ff = numpy.zeros(F.axis.length)
 for x in F.axis.frequency:
     ff[k] = 2.0*gg/(gg**2 + x**2)
-    #print(x,ff[k])
     k += 1
     
 # plot of the analytical transform (in the same figure)
-plt.plot(F.axis.frequency,ff)
-plt.show()
+df = DFunction(F.axis,ff)
+df.plot()
+
+# alternatively one can do it without creating a DFunction
+#plt.plot(F.axis.frequency,ff)
+#plt.show()

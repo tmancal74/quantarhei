@@ -241,6 +241,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return fa
         
         
+        
 def c2g(timeaxis,coft):
     """ Converts correlation function to lineshape function
         
