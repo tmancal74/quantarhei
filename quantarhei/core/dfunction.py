@@ -256,7 +256,7 @@ class DFunction:
                 yy = numpy.zeros(w.length,dtype=y.dtype)
                 yy[0:w.length//2] = y
                 for k in range(0,t.length-1):
-                    yy[w.length-k-1] = y[k+1]
+                    yy[w.length-k-1] = numpy.conj(y[k+1])
                 Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.dt
                 
             F = DFunction(w,Y)
@@ -300,7 +300,7 @@ class DFunction:
                 yy = numpy.zeros(w.length,dtype=y.dtype)
                 yy[0:w.length//2] = y
                 for k in range(0,t.length-1):
-                    yy[w.length-k-1] = y[k+1]
+                    yy[w.length-k-1] = numpy.conj(y[k+1])
                 Y = numpy.fft.fftshift(numpy.fft.fft(yy))*t.dt
                 
             F = DFunction(w,Y)
@@ -325,21 +325,37 @@ class DFunction:
         return F
         
         
-    def plot(self, title=None, text=None, axis=None,
-             xlabel=None, ylabel=None,
+    def plot(self, title=None,
+             title_font=None,
+             axis=None,
+             xlabel=None,
+             ylabel=None,
              label_font=None,
+             text=None,
              text_font=None,
-             title_font=None,show=True,color=None):
+             real_only=True,
+             show=True,
+             color=None):
 
-        
+
+        if color is not None:
+            if len(color) == 1:
+                clr = [color,color]
+            else:
+                clr = [color[0],color[1]]
+            
         if isinstance(self.data[0],numbers.Complex):
             if color is not None:
-                plt.plot(self.axis.data,numpy.real(self.data),color)
+                plt.plot(self.axis.data,numpy.real(self.data),clr[0])
+                if not real_only:
+                    plt.plot(self.axis.data,numpy.imag(self.data),clr[1])
             else:
                 plt.plot(self.axis.data,numpy.real(self.data))
+                if not real_only:
+                    plt.plot(self.axis.data,numpy.imag(self.data))
         else:
             if color is not None:
-                plt.plot(self.axis.data,self.data,color)
+                plt.plot(self.axis.data,self.data,clr[0])
             else:
                 plt.plot(self.axis.data,self.data)
             
