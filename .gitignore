@@ -11,5 +11,6 @@ quantarhei.egg-info
 
 
 *.lyx~
+*.lyx#
 
 

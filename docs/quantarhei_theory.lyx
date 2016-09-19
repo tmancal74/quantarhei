@@ -127,8 +127,51 @@ today
 \end_layout
 
 \begin_layout Abstract
-In this document, we summarize the theory of oopen quantum systems as it
+In this document, we summarize the theory of open quantum systems as it
  is implemented in the Quantarhei package.
+ Before it grows into a self-contained text, the following books should
+ be consulted to gat a full picture: Volkhard May and Oliver Kühn, 
+\emph on
+Charge and Energy Transfer in Molecular Systems
+\emph default
+, Wiley-VCH, Berlin, 2000 (and later editions), Shaul Mukamel, 
+\emph on
+Principles of Nonlinear Spectroscopy
+\emph default
+, Oxford University Press, Oxford, 1995 and Leonas Valkunas, Darius Abramavicius
+ and Tom
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+'{a}
+\backslash
+v{s}
+\end_layout
+
+\end_inset
+
+ Man
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+v{c}
+\end_layout
+
+\end_inset
+
+al, 
+\emph on
+Molecular Excitation Dynamics and Relaxation
+\emph default
+, Wiley-VCH, Weinheim, 2013.
  
 \end_layout
 
