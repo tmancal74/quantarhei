@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import scipy.interpolate
 import numpy
 import numbers
@@ -103,11 +102,13 @@ class DFunction:
     >>> F = f.get_Fourier_transform()
     >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
     True
+    
     >>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
     True
+    
     >>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
     True
-
+    
     >>> t = TimeAxis(0,Ns,dt)
     >>> print(t.atype == "upper-half")
     True
@@ -118,17 +119,28 @@ class DFunction:
     >>> F = f.get_Fourier_transform()
     >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
     True
+    
     >>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
     True
+    
     >>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
     True
 
+    DFunction can be complex valued    
+    
+    >>> y = numpy.sin(t.time/10.0) + 1j*numpy.cos(t.time/10.0)
+    >>> fi = DFunction(t,y)
+    >>> print(numpy.allclose(fi.at(13.2,approx="spline"),(numpy.sin(13.2/10.0) \
+        + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))    
+    True
     
     """
 
     allowed_interp_types = ("linear","spline","default")    
     
     def __init__(self,x,y):
+        
+        self._has_imag = False
 
         if isinstance(x,ValueAxis):
             self.axis = x
@@ -145,6 +157,11 @@ class DFunction:
                 Set values of the function
                 """
                 self.data = y
+                
+                if isinstance(self.data[0],numbers.Real):
+                    self._has_imag = False
+                else:
+                    self._has_imag = True    
 
             else:
                 raise Exception("Second argument has to be"
@@ -218,9 +235,14 @@ class DFunction:
         
         
         """
-        self._spline = \
-               scipy.interpolate.UnivariateSpline(\
-                  self.axis.data,self.data,s=0)
+        self._spline_r = \
+               scipy.interpolate.UnivariateSpline(
+                  self.axis.data,numpy.real(self.data),s=0)
+        if self._has_imag:
+            self._spline_i = \
+               scipy.interpolate.UnivariateSpline(
+                  self.axis.data,numpy.imag(self.data),s=0)
+                  
         self._splines_initialized = True
         #print("Calculating splines")
         
@@ -228,7 +250,11 @@ class DFunction:
         """Returns the splie interpolated value of the function
         
         """
-        return self._spline(x)
+        if self._has_imag:
+            ret = self._spline_r(x) + 1j*self._spline_i(x)
+        else:
+            ret = self._spline_r(x)
+        return ret
         
         
     """
@@ -336,6 +362,9 @@ class DFunction:
              real_only=True,
              show=True,
              color=None):
+        """Plotting of the DFunction's data against the ValueAxis 
+        
+        """
 
 
         if color is not None:
