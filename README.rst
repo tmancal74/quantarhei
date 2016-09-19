@@ -31,8 +31,8 @@ to quickly build essential components of a quantum mechanical simulation,
 such as Hamiltonian and other operators, relaxation tensors, various initial
 conditions for density matrix etc.
 
-Currently, Quantarhei is at its experimental stage. C
-urrent version is 0.0.1.dev0.
+Currently, Quantarhei is at its experimental stage. 
+Current version is 0.0.4.
 
-Quantarhei is available in source form on GitHub. Its distributions will be
-soon available from PyPI for install with the pip command.
+Quantarhei is available in source form on GitHub and from PyPI for installation
+with the pip command.

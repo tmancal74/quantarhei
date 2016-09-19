@@ -19,6 +19,7 @@ conversion_facs_energy = {
     "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
     "THz"    : 2.0*const.pi*1.0e-03,
     "eV"     : 1.0e-15*const.e/const.hbar,
+    "meV"    : 1.0e-18*const.e/const.hbar,
     "J"      : 1.0e-15/const.hbar,
     "SI"     : 1.0e-15/const.hbar     
     } 

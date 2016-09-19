@@ -54,11 +54,14 @@ class Manager(metaclass=Singleton):
                       "temperature",
                       "time"]
 
-    units = {"energy"       : ["1/cm", "2pi/fs", "eV", "meV", "THz"],
-             "frequency"    : ["1/cm", "2pi/fs", "THz"],
+    units = {"energy"       : ["2pi/fs", "int", "1/cm", "eV", "meV", "THz",
+                               "J", "SI"],
+             "frequency"    : ["2pi/fs", "int", "1/cm", "THz","Hz","SI"],
              "dipolemoment" : ["Debye"],
-             "temperature"  : ["Kelvin", "Celsius", "1/cm"],
-             "time"         : ["as", "fs", "ps", "ns"]}
+             "temperature"  : ["2pi/fs", "int", "Kelvin", "Celsius",
+                               "1/cm", "eV", "meV", "Thz", "SI"],
+             "time"         : ["fs", "int", "as", "ps", "ns", "Ms","ms",
+                               "s", "SI"]}
 
     units_repre = {"Kelvin":"K",
                    "Celsius":"C",
@@ -278,12 +281,12 @@ class Manager(metaclass=Singleton):
         
         """
         if units in self.units["energy"]:
-            x = conversion_facs_frequency[units]
+            x = conversion_facs_energy[units]
             i_val = x*val
             
             cu = self.current_units["energy"] 
             if cu != "2pi/fs":
-                y = conversion_facs_frequency[units] 
+                y = conversion_facs_energy[units] 
                 return i_val/y
                 
             return i_val
@@ -294,7 +297,7 @@ class Manager(metaclass=Singleton):
         
         """
         if units in self.units["energy"]:
-            x = conversion_facs_frequency[units]
+            x = conversion_facs_energy[units]
             i_val = x*val
             return i_val    
             

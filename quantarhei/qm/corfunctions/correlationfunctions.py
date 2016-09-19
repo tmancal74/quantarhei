@@ -7,6 +7,7 @@ from ...core.dfunction import DFunction
 from ...core.units import kB_intK
 
 from ...core.managers import UnitsManaged
+from ...core.frequency import FrequencyAxis 
 
 class CorrelationFunction(DFunction, UnitsManaged):
     """Provides typical Bath correlation functions
@@ -26,7 +27,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
                      "OverdampedBrownian","Value-defined")
 
     def __init__(self, timeAxis, params, values = None, domain = 'Time'):
+        
         self.valueAxis = timeAxis
+        self.axis = self.valueAxis
         self.timeAxis = self.valueAxis
         self.params = params
         if domain == 'Time':
@@ -228,6 +231,16 @@ class CorrelationFunction(DFunction, UnitsManaged):
         else:
             # nothing happens if the function is already in frequency domain
             pass
+        
+        
+    def get_SpectralDensity(self):
+        om = (2.0*numpy.pi)*numpy.fft.fftfreq(self.timeAxis.length,
+                                  self.timeAxis.dt)
+        start = om[0]
+        nosteps = len(om)
+        step = om[1]-om[0]
+        fa = FrequencyAxis(start,nosteps,step)
+        return fa
         
         
         
