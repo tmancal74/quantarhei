@@ -9,4 +9,7 @@ quantarhei.egg-info
 .DS_Store
 .coverage
 
-*.pdf
+
+*.lyx~
+
+
