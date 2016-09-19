@@ -205,8 +205,10 @@ class AbsSpect:
         ct = self._excitonic_goft(SS,self.system,0)
         tr.append(ct)
         self.data = numpy.real(self.one_transition_spectrum(tr))
+        
         for ii in range(2,HH.dim):
-            tr[1] = DD.dipole_strength(0,ii-1) # update transition dipole moment
+            tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
+            
             tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
             tr[3] = self._excitonic_goft(SS,self.system,ii-1) # update ct here
             self.data += numpy.real(self.one_transition_spectrum(tr))
