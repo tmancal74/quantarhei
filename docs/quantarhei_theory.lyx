@@ -70,7 +70,7 @@
 \begin_body
 
 \begin_layout Title
-Equations used in Quantarhei Documentation
+Open Quantum Systems Theory behind Quantarhei Package
 \end_layout
 
 \begin_layout Author
@@ -110,6 +110,28 @@ Faculty of Mathematics and Physics, Charles University, Ke Karlovu 5, 121
  16 Prague 2, Czech Republic
 \end_layout
 
+\begin_layout Date
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+today
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Abstract
+In this document, we summarize the theory of oopen quantum systems as it
+ is implemented in the Quantarhei package.
+ 
+\end_layout
+
 \begin_layout Section
 Bath Correlation Functions and Spectral Densities
 \end_layout
@@ -121,7 +143,7 @@ Bath correlation function
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-C(t)={\rm {\rm Tr}\{}U_{B}^{\dagger}(t)\Delta VU_{B}(t)\Delta Vw_{{\rm eq}}\}
+C(t)=\frac{1}{\hbar^{2}}{\rm {\rm Tr}\{}U_{B}^{\dagger}(t)\Delta VU_{B}(t)\Delta Vw_{{\rm eq}}\}
 \end{equation}
 
 \end_inset
