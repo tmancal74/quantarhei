@@ -45,7 +45,7 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.4"
+    version = "0.0.5"
 
     # hard wired unit options
     allowed_utypes = ["energy",

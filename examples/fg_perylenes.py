@@ -39,7 +39,7 @@ with energy_units("1/cm"):
     m4 = Molecule("M4",en1) #,[d0,d1])
     m4.set_dipole(0,1,d1)
     m5 = Molecule("M5",en1) #,[d0,d1])
-    m4.set_dipole(0,1,d1)
+    m5.set_dipole(0,1,d1)
     m6 = Molecule("M6",en1) #,[d0,d1])
     m6.set_dipole(0,1,d1)
     m7 = Molecule("M7",en1) #,[d0,d1])
