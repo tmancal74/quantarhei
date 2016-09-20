@@ -143,6 +143,9 @@ class Molecule(UnitsManaged):
         
         
         self._is_mapped_on_egcf_matrix = False
+        
+        self._has_system_bath_coupling = False
+        
     
     def set_egcf_mapping(self,transition,correlation_matrix,position):
         """ Sets a correlation function mapping for a selected transition.
@@ -174,6 +177,7 @@ class Molecule(UnitsManaged):
                 self.egcf_mapping = []
                 self.egcf_mapping.append(position)
                 self._is_mapped_on_egcf_matrix = True
+                self._has_system_bath_coupling = True
             else:
                 if self.egcf_matrix is correlation_matrix:
                     if self.egcf_transitions.count(transition) > 0:
@@ -212,6 +216,7 @@ class Molecule(UnitsManaged):
                                            
             self._has_egcf[self.triangle.locate(transition[0],
                                                 transition[1])] = True
+            self._has_system_bath_coupling = True
                                                 
                                                 
         else:

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+
 from aloe import step
 from aloe import world
 
-from ...stepslib import upper_half_time_axis
-from ...stepslib import temperature
+from ..stepslib import upper_half_time_axis
+from ..stepslib import temperature
 
 import pkg_resources
 import numpy
@@ -11,6 +12,9 @@ import numpy
 #from quantarhei import TimeAxis
 from quantarhei import CorrelationFunction
 from quantarhei import energy_units
+
+from quantarhei import Molecule
+from quantarhei import AbsSpect
 
 @step(r'reorganization energy (\d+(?:\.\d+)?) "([^"]*)"') 
 def reorganization_energy(self, reorg, e_units):
@@ -31,17 +35,6 @@ def matsubara(self, Nm):
     world.mats = int(Nm)
 
 
-#@step(r'time interval')
-#def time_axis(self):
-#    
-#    for row in self.hashes:
-#        start = float(row['start'])
-#        Ns    = int(row['number_of_steps'])
-#        dt    = float(row['step'])
-#        
-#    print("TimeAxis", start, Ns, dt)
-#    world.ta = TimeAxis(start,Ns,dt)
-
 @step(r'When I calculate the ([^"]*) correlation function')
 def correlation_function_of_type(self, ctype):
     print("correlation function type ", ctype)
@@ -56,8 +49,40 @@ def correlation_function_of_type(self, ctype):
     # FIXME: also time_units, temperature_units
     with energy_units(world.e_units):
         cf = CorrelationFunction(world.ta,params) 
+        
+    i = 0
+    data = numpy.zeros((world.ta.time.shape[0],3))
+    for t in world.ta.time:
+        data[i,0] = t
+        data[i,1] = numpy.real(cf.data[i])
+        data[i,2] = numpy.imag(cf.data[i])
+        i += 1
     
     world.cf = cf
+
+@step(r'I calculate absorption spectrum of a molecule')
+def absorption_spectrum_molecule(self):
+
+    dd = [0.0,0.0,1.0]
+    cf = world.cf
+ 
+    with energy_units("1/cm"):
+        m = Molecule("Mol",[0.0, 10000])
+    m.set_dipole(0,1,dd)
+    
+    m.set_egcf([0,1],cf)
+    
+    a1 = AbsSpect(world.ta,m)
+    a1.calculate(rwa=m.elenergies[1])
+    
+    world.abs = numpy.zeros((len(a1.data),2))
+    for kk in range(len(a1.data)):
+        world.abs[kk,0] = a1.frequency[kk]
+        world.abs[kk,1] = a1.data[kk]
+
+    
+    
+    
     
 def read_n_columns(file,n):
     """Reads n columns of data from a package file """
@@ -73,16 +98,9 @@ def read_n_columns(file,n):
     return ret    
 
 
-@step(r'Then I get data from the file ([^"]*) in internal units')
-def compare_data_with_file(self, file):
+@step(r'I get absorption spectrum from the file ([^"]*) in 1/cm')
+def compare_absorption_with_file(self, file):
 
-    print("comparing with file ", file)
-    cf_data = read_n_columns(file,3)
-    i = 0
-    data = numpy.zeros((world.ta.time.shape[0],3))
-    for t in world.ta.time:
-        data[i,0] = t
-        data[i,1] = numpy.real(world.cf.data[i])
-        data[i,2] = numpy.imag(world.cf.data[i])
-        i += 1
-    numpy.testing.assert_allclose(cf_data,data,rtol=1.0e-7)
+    print("comparing absorption with file ", file)
+    abs_data = read_n_columns(file,2)
+    numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-7)

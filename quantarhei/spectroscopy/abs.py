@@ -7,8 +7,10 @@ from ..utils import derived_type
 from ..builders import Molecule 
 from ..builders import Aggregate
 from ..core.time import TimeAxis
+from ..core.dfunction import DFunction
+from ..core.units import cm2int
 
-class AbsSpect:
+class AbsSpect(DFunction):
     """Linear absorption spectrum 
     
     Linear absorption spectrum of a molecule or an aggregate of molecules.
@@ -43,6 +45,8 @@ class AbsSpect:
         
         
         """
+        #rwa = rwa*cm2int
+        
         if self.system is not None:
             if isinstance(self.system,Molecule):
                 #self._calculate_Molecule(rwa)      
@@ -102,15 +106,21 @@ class AbsSpect:
         
         
         """
-        ta = tr[0] # TimeAxis
-        dd = tr[1] # transition dipole moment
-        om = tr[2] # frequency - rwa
-        ct = tr[3] # correlation function
+        ta = tr["ta"] # TimeAxis
+        dd = tr["dd"] # transition dipole moment
+        om = tr["om"] # frequency - rwa
+        gg = tr["gg"] # natural broadening
+        if self.system._has_system_bath_coupling:
+            ct = tr["ct"] # correlation function
         
-        # convert correlation function to lineshape function
-        gt = self._c2g(ta,ct.data)
-        # calculate time dependent response
-        at = numpy.exp(-gt -1j*om*ta.time) 
+            # convert correlation function to lineshape function
+            gt = self._c2g(ta,ct.data)
+            # calculate time dependent response
+            at = numpy.exp(-gt -1j*om*ta.time - gg*ta.time)
+        else:
+            # calculate time dependent response
+            at = numpy.exp(-1j*om*ta.time - gg*ta.time) 
+        
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.dt
         ft = numpy.fft.fftshift(ft)
@@ -157,25 +167,32 @@ class AbsSpect:
         
         """
         ta = self.TimeAxis
-        # correlation function
-        ct = self.system.get_egcf((0,1))
         # transition frequency
         om = self.system.elenergies[1]-self.system.elenergies[0]
         # transition dipole moment
         dm = self.system.dmoments[0,1,:]
         # dipole^2
         dd = numpy.dot(dm,dm)
+        # natural life-time from the dipole moment
+        gama = 1.0/self.system.get_electronic_natural_lifetime(1)
         
-        tr = list()
-        tr.append(ta)
-        tr.append(dd)
-        tr.append(om-rwa)
-        tr.append(ct)
+        if self.system._has_system_bath_coupling:
+            # correlation function
+            ct = self.system.get_egcf((0,1))            
+            tr = {"ta":ta,"dd":dd,"om":om-rwa,"ct":ct,"gg":gama}
+        else:
+            tr = {"ta":ta,"dd":dd,"om":om-rwa,"gg":gama}
 
         # calculates the one transition of the monomer        
         self.data = numpy.real(self.one_transition_spectrum(tr))
         # sets the frequency axis for plottig
+        self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
+        self.frequencyAxis.data += rwa
+        self.axis = self.frequencyAxis
+        
+        #self.frequency = self.frequencyAxis.data #self._frequency(ta.dt) + rwa
         self.frequency = self._frequency(ta.dt) + rwa
+        
         
     def _calculate_aggregate(self,rwa):
         """ Calculates the absorption spectrum of a molecular aggregate
@@ -195,22 +212,28 @@ class AbsSpect:
         # transformed into the basis of Hamiltonian eigenstates
         DD.transform(SS) 
         
-        tr = list()
-        tr.append(ta) 
+        tr = {"ta":ta}
+        tr["gg"] = 0.0
         # get square of transition dipole moment here
-        tr.append(DD.dipole_strength(0,1))  
+        #tr.append(DD.dipole_strength(0,1))
+        tr["dd"] = DD.dipole_strength(0,1)
         # first transition energy
-        tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
+        #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
+        tr["om"] = HH.data[1,1]-HH.data[0,0]-rwa
         # get a transformed ct here
         ct = self._excitonic_goft(SS,self.system,0)
-        tr.append(ct)
+        #tr.append(ct)
+        tr["ct"] = ct
+        self.system._has_system_bath_coupling = True
         self.data = numpy.real(self.one_transition_spectrum(tr))
         
         for ii in range(2,HH.dim):
-            tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
-            
-            tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
-            tr[3] = self._excitonic_goft(SS,self.system,ii-1) # update ct here
+            #tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
+            tr["dd"] = DD.dipole_strength(0,ii)
+            #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
+            tr["om"] = HH.data[ii,ii]-HH.data[0,0]-rwa
+            #tr[3] = self._excitonic_goft(SS,self.system,ii-1) # update ct here
+            tr["ct"] = self._excitonic_goft(SS,self.system,ii-1)
             self.data += numpy.real(self.one_transition_spectrum(tr))
         
         self.frequency = self._frequency(ta.dt) + rwa
