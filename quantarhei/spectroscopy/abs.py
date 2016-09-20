@@ -10,8 +10,10 @@ from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
 from ..core.units import cm2int
+from ..core.managers import energy_units
+from ..core.managers import EnergyUnitsManaged
 
-class AbsSpect(DFunction):
+class AbsSpect(DFunction,EnergyUnitsManaged):
     """Linear absorption spectrum 
     
     Linear absorption spectrum of a molecule or an aggregate of molecules.
@@ -48,14 +50,17 @@ class AbsSpect(DFunction):
         """
         #rwa = rwa*cm2int
         
-        if self.system is not None:
-            if isinstance(self.system,Molecule):
-                #self._calculate_Molecule(rwa)      
-                self._calculate_monomer(rwa)
-            elif isinstance(self.system,Aggregate):
-                self._calculate_aggregate(rwa)
-        else:
-            raise Exception("System to calculate spectrum for is not defined")
+        rwa = self.convert_2_internal_u(rwa)
+        
+        with energy_units("int"):
+            if self.system is not None:
+                if isinstance(self.system,Molecule):
+                    #self._calculate_Molecule(rwa)      
+                    self._calculate_monomer(rwa)
+                elif isinstance(self.system,Aggregate):
+                    self._calculate_aggregate(rwa)
+            else:
+                raise Exception("System to calculate spectrum for not defined")
         
 
 

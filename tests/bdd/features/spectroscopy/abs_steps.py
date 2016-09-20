@@ -75,10 +75,11 @@ def absorption_spectrum_molecule(self):
     a1 = AbsSpect(world.ta,m)
     a1.calculate(rwa=m.elenergies[1])
     
-    world.abs = numpy.zeros((len(a1.data),2))
-    for kk in range(len(a1.data)):
-        world.abs[kk,0] = a1.axis.data[kk] #frequency[kk]
-        world.abs[kk,1] = a1.data[kk]
+    with energy_units("1/cm"):
+        world.abs = numpy.zeros((len(a1.data),2))
+        for kk in range(len(a1.data)):
+            world.abs[kk,0] = a1.axis.data[kk] #frequency[kk]
+            world.abs[kk,1] = a1.data[kk]
 
     
     
