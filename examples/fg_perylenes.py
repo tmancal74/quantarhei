@@ -174,7 +174,7 @@ a2.normalize2()
 
 plt.plot(a1.frequency/cm2int,a1.data,'-r')
 plt.plot(a2.frequency/cm2int,a2.data,'-g')
-plt.plot(aAnth.frequency/cm2int,aAnth.data,'-c')
+plt.plot(aAnth.axis.frequency/cm2int,aAnth.data,'-c')
 
 p = plt.gca()
 p.set_autoscale_on(False)
@@ -186,6 +186,9 @@ plt.title('L12per_pbl --- en1 = ' + en1st)
 #plt.savefig('L12per_pbl_spec.pdf')
 
 plt.show()
+
+with energy_units("1/cm"):
+    aAnth.plot(axis=[10000,15000,0.0,1.1])
 
 
 # Redfield Tensor 

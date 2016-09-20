@@ -30,7 +30,13 @@ with qr.energy_units("1/cm"):
     a1.calculate(rwa=10000*qr.core.units.cm2int)
 
 #FIXME: Make AbsSpect plotable and savable (under units management)
-    plt.plot(a1.frequency/qr.core.units.cm2int,a1.data,'-r')
+    plt.plot(a1.frequency,a1.data,'-r')
+
+print(len(a1.frequency))
+print(a1.axis.length)
+
+a1.plot()
+
 
 save = False
 if save:

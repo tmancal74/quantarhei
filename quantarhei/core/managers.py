@@ -68,8 +68,18 @@ class Manager(metaclass=Singleton):
                    "Debye":"D",
                    "1/cm":"1/cm",
                    "THz":"THz",
+                   "eV":"eV",
                    "2pi/fs":"2pi/fs",
                    "meV":"meV"}
+                   
+    units_repre_latex = {"Kelvin":"K",
+                   "Celsius":"C",
+                   "Debye":"D",
+                   "1/cm":"cm$^-1$",
+                   "THz":"THz",
+                   "eV":"eV",
+                   "2pi/fs":"rad$\cdot$fs$^{-1}$",
+                   "meV":"meV"}                  
 
     def __init__(self):
 
@@ -251,6 +261,26 @@ class Manager(metaclass=Singleton):
             
         else:
             raise Exception("Unknown unit type")
+            
+    def unit_repr_latex(self,utype="energy",mode="current"):
+        """Returns a string representing the currently used units
+        
+        
+        """        
+    
+    
+        if utype in self.allowed_utypes:
+            if mode == "current":
+                return self.units_repre_latex[self.current_units[utype]]
+            elif mode == "internal":
+                return self.units_repre_latex[self.internal_units[utype]]
+            else:
+                raise Exception("Unknown representation mode")
+            
+        else:
+            raise Exception("Unknown unit type")            
+            
+            
             
     def set_current_units(self,utype,units):
         """Sets current units
@@ -469,6 +499,8 @@ class UnitsManaged(Managed):
     def unit_repr(self,utype="energy"):
         return self.manager.unit_repr(utype)
         
+    def unit_repr_latex(self,utype="energy"):
+        return self.manager.unit_repr_latex(utype)
         
 class EnergyUnitsManaged(Managed):
     
@@ -484,6 +516,8 @@ class EnergyUnitsManaged(Managed):
     def unit_repr(self):
         return self.manager.unit_repr("energy")
 
+    def unit_repr_latex(self,utype="energy"):
+        return self.manager.unit_repr_latex(utype)
         
 class BasisManaged(Managed):
     """Base class for objects with managed basis

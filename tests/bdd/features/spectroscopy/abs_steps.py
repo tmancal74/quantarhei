@@ -77,7 +77,7 @@ def absorption_spectrum_molecule(self):
     
     world.abs = numpy.zeros((len(a1.data),2))
     for kk in range(len(a1.data)):
-        world.abs[kk,0] = a1.frequency[kk]
+        world.abs[kk,0] = a1.axis.data[kk] #frequency[kk]
         world.abs[kk,1] = a1.data[kk]
 
     

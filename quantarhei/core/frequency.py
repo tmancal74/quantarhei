@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from .valueaxis import ValueAxis
+from .managers import EnergyUnitsManaged
+from ..utils.types import UnitsManagedReal
 
 import numpy
 
-class FrequencyAxis(ValueAxis):
+class FrequencyAxis(ValueAxis,EnergyUnitsManaged):
     """ Class representing frequency axis of calculations
     
 
@@ -147,6 +149,8 @@ class FrequencyAxis(ValueAxis):
     True
         
     """
+    
+    data = UnitsManagedReal("data")
     
     def __init__(self,startValue,noPoints,step,atype='complete',t0=0.0):
    

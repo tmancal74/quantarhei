@@ -410,7 +410,8 @@ class DFunction:
             xl = '$\omega$ [fs$^{-1}$]'
             
         if isinstance(self.axis,FrequencyAxis):
-            xl = '$\omega$ [fs$^{-1}$]'
+            units = self.axis.unit_repr_latex()
+            xl = '$\omega$ ['+units+']'  #[rad$\cdot$fs$^{-1}$]'
             yl = '$F(\omega)$'
         if isinstance(self.axis,TimeAxis):
             xl = '$t$ [fs]'

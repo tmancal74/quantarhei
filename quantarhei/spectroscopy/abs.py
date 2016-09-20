@@ -7,6 +7,7 @@ from ..utils import derived_type
 from ..builders import Molecule 
 from ..builders import Aggregate
 from ..core.time import TimeAxis
+from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
 from ..core.units import cm2int
 
@@ -185,10 +186,16 @@ class AbsSpect(DFunction):
 
         # calculates the one transition of the monomer        
         self.data = numpy.real(self.one_transition_spectrum(tr))
+        
         # sets the frequency axis for plottig
         self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
         self.frequencyAxis.data += rwa
-        self.axis = self.frequencyAxis
+        # we only want to retain the upper half of the spectrum
+        Nt = len(self.frequencyAxis.data)//2        
+        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
+        st = self.frequencyAxis.data[Nt//2]
+        # we represent the Frequency axis anew
+        self.axis = FrequencyAxis(st,Nt,do)
         
         #self.frequency = self.frequencyAxis.data #self._frequency(ta.dt) + rwa
         self.frequency = self._frequency(ta.dt) + rwa
@@ -242,5 +249,18 @@ class AbsSpect(DFunction):
     def normalize2(self,norm=1.0):
         mx = numpy.max(self.data)
         self.data = self.data/mx
+        
+        
+    def plot(self,**kwargs):
+        """ Plotting absorption spectrum using the DFunction plot method
+        
+        """
+        if "ylabel" not in kwargs:
+            ylabel = r'$\alpha(\omega)$ [a.u.]'
+            kwargs["ylabel"] = ylabel
+            
+        super(AbsSpect,self).plot(**kwargs)
+        
+        
                     
         
