@@ -104,4 +104,4 @@ def compare_absorption_with_file(self, file):
 
     print("comparing absorption with file ", file)
     abs_data = read_n_columns(file,2)
-    numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-7)
+    numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-6)
