@@ -11,7 +11,6 @@ from .frequency import FrequencyAxis
 
 #FIXME Check the posibility to set a derivative of the spline at the edges
 #FIXME Enable vectorial arguments and values
-#FIXME Make sure we can interpolate complex functions
 class DFunction:
     """
     Discrete function with interpolation
@@ -57,6 +56,21 @@ class DFunction:
         Returns a Fourier transformed DFunction
        
        
+    get_inverse_Fourier_transform()
+        Returns inverse Fourier transformed DFunction
+        
+    plot()
+        Plots the function
+        
+    save(filename, format="numpy")
+        Saves the function to a file. Allowed formats are "npy" and "dat". 
+        In the former case ("npy" format) the filename is appended
+        an extension ".npy" and saved as a 2xN array (where N is the number 
+        of points on the ValueAxis object of the DFunction. In the "dat"
+        mode, the 2xN array is saved as a textual file with 2 columns and
+        the length N. 
+        
+        
     Examples
     --------
     
@@ -130,15 +144,25 @@ class DFunction:
     
     >>> y = numpy.sin(t.time/10.0) + 1j*numpy.cos(t.time/10.0)
     >>> fi = DFunction(t,y)
-    >>> print(numpy.allclose(fi.at(13.2,approx="spline"),(numpy.sin(13.2/10.0) \
-        + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))    
+    >>> print(numpy.allclose(fi.at(13.2,approx="spline"),\
+    (numpy.sin(13.2/10.0) + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))    
     True
     
     """
 
     allowed_interp_types = ("linear","spline","default")    
     
-    def __init__(self,x,y):
+    def __init__(self,x=None,y=None):
+        
+        self._is_empty = False
+        
+        if not ((x is None) and (y is None)):
+            self._make_me(x,y)
+        else:
+            self._is_empty = True
+        
+        
+    def _make_me(self,x,y):
         
         self._has_imag = False
 
@@ -428,4 +452,72 @@ class DFunction:
         if show:
             plt.show()
 
+
+    def save(self,filename,ext="npy"):
+        """Saves the DFunction into a file
         
+        """
+        if ext in ["npy","dat"]:
+            fname = filename + "." + ext
+            ab = numpy.zeros((self.axis.length,2))
+            for kk in range(self.axis.length):
+                ab[kk,0] = self.axis.data[kk]
+                ab[kk,1] = self.data[kk]
+        else:
+            raise Exception("Unknown format") 
+            
+        if ext == "npy":
+            
+            numpy.save(fname,ab)
+        
+        elif ext == "dat":
+            
+            numpy.savetxt(fname,ab)
+            
+
+            
+    
+    def load(self,filename,axis="time",ext="npy",replace=False):
+        """Loads a DFunction from  a file
+        
+        """
+
+        if not (self._is_empty or replace):  
+            raise Exception("Data already exist in this object."
+            + " Use replace=True argument (default is replace=False")
+        
+        if ext in ["npy","dat"]:
+            fname = filename + "." + ext
+#            ab = numpy.zeros((self.axis.length,2))
+#            for kk in range(self.axis.length):
+#                ab[kk,0] = self.axis.data[kk]
+#                ab[kk,1] = self.data[kk]
+        else:
+            raise Exception("Unknown format")
+            
+        if ext == "npy":
+            
+            ab = numpy.load(fname)
+            
+        elif ext == "dat":
+            
+            ab = numpy.loadtxt(fname)
+            
+        dt = ab[1,0] - ab[0,0]
+        N = len(ab[:,0])
+        st = ab[0,0]
+        dat = ab[:,1] 
+           
+        if axis == "time":
+            
+            axs = TimeAxis(st,N,dt)
+
+        elif axis == "frequency":
+            
+            axs = FrequencyAxis(st,N,dt)
+            
+        else:
+            
+            axs = ValueAxis(st,N,dt)
+            
+        self._make_me(axs,dat)       

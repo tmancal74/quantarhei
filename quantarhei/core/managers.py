@@ -502,6 +502,7 @@ class UnitsManaged(Managed):
     def unit_repr_latex(self,utype="energy"):
         return self.manager.unit_repr_latex(utype)
         
+        
 class EnergyUnitsManaged(Managed):
     
     utype = "energy"
@@ -518,6 +519,7 @@ class EnergyUnitsManaged(Managed):
 
     def unit_repr_latex(self,utype="energy"):
         return self.manager.unit_repr_latex(utype)
+        
         
 class BasisManaged(Managed):
     """Base class for objects with managed basis
@@ -577,6 +579,15 @@ class energy_units(units_context_manager):
         
     def __exit__(self,ext_ty,exc_val,tb):
         self.manager.set_current_units("energy",self.units_backup)
+        
+        
+class frequency_units(energy_units):
+    """Context manager for units of frequency
+    
+    It behaves exactly the same as ``energy_units`` context manager.
+    
+    """
+    pass
         
         
 class basis_context_manager:

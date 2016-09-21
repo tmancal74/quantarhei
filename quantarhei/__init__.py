@@ -8,7 +8,7 @@
     
     (c) 2016 Tomáš Mančal
     
-    Charles University in Prague
+    Charles University
     Faculty of Mathematics and Physics
     Ke Karlovu 5
     CZ-121 16 Prague 2
@@ -26,7 +26,7 @@ Rules:
 
 1) All imports must be done as relative
 2) Each import imports only one entity
-3) Wherever meaningful, there is a test_module_name.py for every module
+3) Wherever meaningful, there is a module_name_test.py for every module
 
 
 
@@ -48,11 +48,13 @@ from .builders.aggregates import Aggregate
 
 from .core.time import TimeAxis
 from .core.frequency import FrequencyAxis
+from .core.dfunction import DFunction
 
 from .spectroscopy.abs import AbsSpect
 
 from .core.managers import Manager
 from .core.managers import energy_units
+from .core.managers import frequency_units
 from .core.managers import eigenbasis_of
 
 from .qm.corfunctions import CorrelationFunction
