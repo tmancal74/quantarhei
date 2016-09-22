@@ -259,23 +259,24 @@ class TimeAxis(ValueAxis):
             step = om[1]-om[0]
             start = om[0] + self.w0 
 
-                
             nosteps = len(om)
-            t0 = self.time[self.length//2] #+self.length%2]#(self.tmax + self.tmin)/2.0
+            t0 = self.time[self.length//2] 
             
         elif self.atype == 'upper-half':
+            
             om = numpy.fft.fftshift(
-                (2.0*numpy.pi)*numpy.fft.fftfreq(2*self.length,self.dt))             
+                (2.0*numpy.pi)*numpy.fft.fftfreq(2*self.length,self.dt)) 
+                
             start = om[0] + self.w0
             step = om[1]-om[0]
             nosteps = len(om)    
             t0 = self.tmin
+            
         else:
             raise Exception("Unknown time axis type")             
         
         return FrequencyAxis(start,nosteps,step,atype=self.atype,t0=t0)
-       
-       
+
        
 if __name__ == "__main__":
     import doctest

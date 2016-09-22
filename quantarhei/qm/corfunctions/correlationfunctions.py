@@ -32,11 +32,12 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self.axis = self.valueAxis
         self.timeAxis = self.valueAxis
         self.params = params
+        
         if domain == 'Time':
             self.time_domain = True
         else:
             self.time_domain = False
-
+            
         self.is_composed = False
 
 
@@ -69,7 +70,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             t = self.timeAxis.time
             
             cc = 2.0*lamb*kBT*numpy.exp(-t/tc) \
-                  + 1.0j*(lamb/tc)*numpy.exp(-t/tc)
+                  - 1.0j*(lamb/tc)*numpy.exp(-t/tc)
             
             self.data = cc
             self.lamb = lamb
@@ -77,7 +78,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             self.cutoff_time = 5.0*tc
             
-        elif ((self.ftype == "OverdampedBrownian") and self.time_domain):
+        elif (self.ftype == "OverdampedBrownian"):
             
             T    = params["T"]
             tc   = params["cortime"]
@@ -94,7 +95,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             t = self.timeAxis.time           
            
             cc = (lamb/(tc*numpy.tan(1.0/(2.0*kBT*tc))))*numpy.exp(-t/tc) \
-                  + 1.0j*(lamb/tc)*numpy.exp(-t/tc)
+                  - 1.0j*(lamb/tc)*numpy.exp(-t/tc)
                   
             cc += \
             (4.0*lamb*kBT/tc)*CorrelationFunction.__matsubara(kBT,tc,N,t)
@@ -105,7 +106,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
                  
             self.cutoff_time = 5.0*tc
             
-        # FIXME: here I should be able to set a frequency domain spectral dens
         elif ((self.ftype == "Value-defined") and self.time_domain):
             
             lamb = self.manager.iu_energy(params["reorg"],
@@ -195,51 +195,20 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.data = fo
             self.time_domain = False
             
-
-#            om = om/cm2int
-#            fo = fo
-#
-#            f,(ax1,ax2) = plt.subplots(2)
-#            ax1.plot(tt,numpy.real(ff),'-k')
-#            ax1.plot(tt,numpy.imag(ff),'-g')
-#            ax1.set_xlim([0.0,300.0])
-#            ax2.plot(om,numpy.real(fo),'-k')                        
-#            ax2.plot(om,numpy.imag(fo),'-g')
-#            ax2.set_xlim([-300,300])
-#                        
-#            fr = numpy.zeros(400)
-#            fr2 = numpy.zeros(400)
-#            points = numpy.zeros(400)
-#            for i in range(400):
-#                j = i - 200
-#                points[i] = j 
-#                if (j <= 0):
-#                    fr[i] = sr(j*cm2int)
-#                    fr2[i] = sr(j*cm2int)
-#                else:
-#                    pref = numpy.exp(numpy.real(j*cm2int)/(kB_intK*self.T))
-#                    print(i,j,pref,kB_intK*300.0/cm2int)
-#                    #pref = 1.0
-#                    fr[i] = pref*sr(-j*cm2int)
-#                    fr2[i] = sr(-j*cm2int)
-#            #fr2 = sr(points)
-#            ax2.plot(points,fr,'-r')
-#            ax2.plot(points,fr2,'-m')
-#            
-#            plt.show()
-#            
         else:
             # nothing happens if the function is already in frequency domain
             pass
         
         
     def get_SpectralDensity(self):
+        
         om = (2.0*numpy.pi)*numpy.fft.fftfreq(self.timeAxis.length,
-                                  self.timeAxis.dt)
+                                  self.timeAxis.dt)                                  
         start = om[0]
         nosteps = len(om)
         step = om[1]-om[0]
         fa = FrequencyAxis(start,nosteps,step)
+        
         return fa
         
         

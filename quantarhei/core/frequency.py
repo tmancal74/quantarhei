@@ -181,11 +181,9 @@ class FrequencyAxis(ValueAxis,EnergyUnitsManaged):
             
             step = tt[1]-tt[0]
             start = self.t0  + tt[0]
-            #if self.length % 2 == 0:
-            #    start += step/2.0
             nosteps = self.length
             
-            w0 = self.frequency[self.length//2] #(self.omax + self.omin)/2.0
+            w0 = self.frequency[self.length//2] 
             
             
         elif self.atype == 'upper-half':

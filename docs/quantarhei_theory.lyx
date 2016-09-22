@@ -180,22 +180,35 @@ Bath Correlation Functions and Spectral Densities
 \end_layout
 
 \begin_layout Standard
-Bath correlation function
+Bath correlation function is defined as a two point correlation function
+ of the bath part 
+\begin_inset Formula $\Delta V$
+\end_inset
+
+ of the system-bath interaction operator, i.e.
+ as
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-C(t)=\frac{1}{\hbar^{2}}{\rm {\rm Tr}\{}U_{B}^{\dagger}(t)\Delta VU_{B}(t)\Delta Vw_{{\rm eq}}\}
+C(t)=\frac{1}{\hbar^{2}}{\rm {\rm Tr}}_{B}\{U_{B}^{\dagger}(t)\Delta VU_{B}(t)\Delta Vw_{{\rm eq}}\}
 \end{equation}
 
 \end_inset
 
+where 
+\begin_inset Formula $w_{{\rm eq}}$
+\end_inset
 
-\end_layout
+ is the equilibrium bath density operator, 
+\begin_inset Formula $U_{B}(t)$
+\end_inset
 
-\begin_layout Standard
-Fourier transform of the bath correlation function
+ is the bath evolution operator and the trace is taken over the bath degrees
+ of freedom.
+ A very important quantity is the Fourier transform of the bath correlation
+ function
 \end_layout
 
 \begin_layout Standard
@@ -206,7 +219,21 @@ Fourier transform of the bath correlation function
 
 \end_inset
 
+It is sometimes referred to as 
+\begin_inset Index idx
+status open
 
+\begin_layout Plain Layout
+spectral density
+\end_layout
+
+\end_inset
+
+
+\emph on
+spectral density
+\emph default
+, but we will reserve this name for a different quantity.
 \end_layout
 
 \begin_layout Standard
