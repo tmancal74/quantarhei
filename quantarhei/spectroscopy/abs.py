@@ -247,6 +247,16 @@ class AbsSpect(DFunction,EnergyUnitsManaged):
             #tr[3] = self._excitonic_goft(SS,self.system,ii-1) # update ct here
             tr["ct"] = self._excitonic_goft(SS,self.system,ii-1)
             self.data += numpy.real(self.one_transition_spectrum(tr))
+
+        # sets the frequency axis for plottig
+        self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
+        self.frequencyAxis.data += rwa
+        # we only want to retain the upper half of the spectrum
+        Nt = len(self.frequencyAxis.data)//2        
+        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
+        st = self.frequencyAxis.data[Nt//2]
+        # we represent the Frequency axis anew
+        self.axis = FrequencyAxis(st,Nt,do)
         
         self.frequency = self._frequency(ta.dt) + rwa
         
