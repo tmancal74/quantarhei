@@ -6,8 +6,8 @@ Scenario Outline: A user creates correlation function with various parameters
     And temperature <temp> "<T_units>"
     And number of Matsubara frequencies <mats>
     And upper-half TimeAxis with parameters:
-        | start | number_of_steps | step | units |
-        | 0.0   |    100          |  10  | fs    |
+        | start | number_of_steps | step  | units |
+        | 0.0   |    1000         |  1.0  | fs    |
     When I calculate the <ctype> correlation function
     Then I get data from the file <file> in internal units
 

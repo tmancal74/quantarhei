@@ -33,17 +33,19 @@ print("*****************************************************************")
 # time interval om which functions will be defined
 ta = TimeAxis(0.0,1000,1.0)
 
+temperature = 100.0
 # parameters of the correlation function
 params = {"ftype":    "OverdampedBrownian",
           "reorg":    20.0,
           "cortime":  100.0,
-          "T":        100.0,
+          "T":        temperature,
           "matsubara":20}
   
 # here we create the correlation function assuming that the energy parameters
 # are given in 1/cm        
 with energy_units("1/cm"):
     cf = CorrelationFunction(ta,params)
+    cf.save("ob_20cm_100fs_100K_m20",ext="dat")
 
 #FIXME It should be normal Fourier transform (but it gives a strange result)!!!
 # plotting the correlation function
@@ -63,14 +65,14 @@ k = 1999
 vals = numpy.zeros(2000,dtype=numpy.complex)
 l = 1
 while k > 0:
-    vals[l] = cF.data[k]*numpy.exp(-wa.data[k]/(kB_int*100.0))
+    vals[l] = cF.data[k]*numpy.exp(-wa.data[k]/(kB_int*temperature))
     l += 1
     k -= 1
     
 tf = DFunction(wa,vals)
 
 tf.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$^2\cdot$fs$^{-1}$]'
-    ,axis=[-0.1,0.1,-0.005,0.025],real_only=False)
+    ,axis=[-0.1,0.1,-0.005,numpy.max(cF.data)*1.1],real_only=False)
     
 
         

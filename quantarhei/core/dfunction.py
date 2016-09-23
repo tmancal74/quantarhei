@@ -457,12 +457,27 @@ class DFunction:
         """Saves the DFunction into a file
         
         """
+        add_imag = False
+        
         if ext in ["npy","dat"]:
             fname = filename + "." + ext
-            ab = numpy.zeros((self.axis.length,2))
+            
+            if isinstance(self.data[0],numbers.Real):
+                ab = numpy.zeros((self.axis.length,2))
+            else:
+                add_imag = True
+                ab = numpy.zeros((self.axis.length,3))
+                
+            datr = numpy.real(self.data)
             for kk in range(self.axis.length):
                 ab[kk,0] = self.axis.data[kk]
-                ab[kk,1] = self.data[kk]
+                ab[kk,1] = datr[kk]
+                
+            if add_imag:
+                dati = numpy.imag(self.data)
+                for kk in range(self.axis.length):
+                    ab[kk,2] = dati[kk]
+            
         else:
             raise Exception("Unknown format") 
             
