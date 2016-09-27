@@ -6,9 +6,24 @@ from ..utils import Float
 from ..utils import Integer
 
 class ValueAxis:
-    """
-    Linear array of values which are used as variables of the numerical
-    functions and parameters dependent matrices
+    """ Linear array of values which are used as variables of numerical functions 
+    and parameter dependent matrices
+
+
+
+    Proposed properties:
+
+    step : float
+    length : int
+    start : float
+    data : numpy.array of float
+
+    Methods:
+    min = start
+    max = data[length-1]
+    locate 
+    nearest
+
     """
     
     step = Float("step")  
@@ -86,4 +101,5 @@ class ValueAxis:
                     return n0   
                     
         else:
-            raise Exception("Value out of bounds")     
+            raise Exception("Value out of bounds")    
+ 
