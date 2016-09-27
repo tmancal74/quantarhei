@@ -404,14 +404,16 @@ class DFunction:
                     plt.plot(self.axis.data,numpy.imag(self.data),clr[1])
             else:
                 plt.plot(self.axis.data,numpy.real(self.data))
+                
                 if not real_only:
                     plt.plot(self.axis.data,numpy.imag(self.data))
+                    
         else:
             if color is not None:
                 plt.plot(self.axis.data,self.data,clr[0])
             else:
                 plt.plot(self.axis.data,self.data)
-            
+                        
         if axis is not None:
             plt.axis(axis)
             
@@ -424,7 +426,7 @@ class DFunction:
                      text[2], fontdict=text_font)
             else:
                 plt.text(text[0],text[1],text[2])     
-        
+                    
         if label_font is not None:
             font = label_font
         else:

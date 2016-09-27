@@ -47,7 +47,6 @@ with energy_units("1/cm"):
     cf = CorrelationFunction(ta,params)
     cf.save("ob_20cm_100fs_100K_m20",ext="dat")
 
-#FIXME It should be normal Fourier transform (but it gives a strange result)!!!
 # plotting the correlation function
 cf.plot(ylabel=r'$C(t)$ [rad$^2\cdot$fs$^{-2}$]',real_only=False)
 
@@ -61,6 +60,7 @@ cF.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$^2\cdot$fs$^{-1}$]',
         
 wa = cF.axis
 
+# Check the symmetry of the correlation function
 k = 1999
 vals = numpy.zeros(2000,dtype=numpy.complex)
 l = 1
@@ -71,8 +71,14 @@ while k > 0:
     
 tf = DFunction(wa,vals)
 
-tf.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$^2\cdot$fs$^{-1}$]'
-    ,axis=[-0.1,0.1,-0.005,numpy.max(cF.data)*1.1],real_only=False)
+tf.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$\cdot$fs$^{-1}$]'
+    ,axis=[-0.1,0.1,-0.005,numpy.max(numpy.real(cF.data))*1.1],real_only=False)
     
 
+ # Get spectral density       
+sd = cf.get_SpectralDensity()
+
+# Plot spectral density
+with energy_units("1/cm"):
+    sd.plot(axis=[0.0,1000,0,25])        
         

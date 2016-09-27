@@ -202,15 +202,14 @@ class CorrelationFunction(DFunction, UnitsManaged):
         
     def get_SpectralDensity(self):
         
-        om = (2.0*numpy.pi)*numpy.fft.fftfreq(self.timeAxis.length,
-                                  self.timeAxis.dt)                                  
-        start = om[0]
-        nosteps = len(om)
-        step = om[1]-om[0]
-        fa = FrequencyAxis(start,nosteps,step)
+        from .spectraldensities import SpectralDensity
+        wa = self.timeAxis.get_FrequencyAxis()
         
-        return fa
+        return SpectralDensity(wa,self.params)
         
+        
+        
+
         
         
 def c2g(timeaxis,coft):
