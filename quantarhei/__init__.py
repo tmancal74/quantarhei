@@ -58,6 +58,7 @@ from .core.managers import frequency_units
 from .core.managers import eigenbasis_of
 
 from .qm.corfunctions import CorrelationFunction
+from .qm.corfunctions import SpectralDensity
 
 from .qm import Hamiltonian
 from .qm import TransitionDipoleMoment

@@ -21,6 +21,7 @@ from quantarhei.qm import RedfieldRelaxationTensor
 from quantarhei import Hamiltonian
 from quantarhei import CorrelationFunction
 from quantarhei.qm.corfunctions import CorrelationFunctionMatrix 
+from quantarhei.qm.corfunctions import SpectralDensity
 from quantarhei import TimeAxis, eigenbasis_of
 from quantarhei.qm import Operator
 from quantarhei.qm import SystemBathInteraction
@@ -44,7 +45,7 @@ class TestRedfield(unittest.TestCase):
                       
             cf1 = CorrelationFunction(time,params)
             cf2 = CorrelationFunction(time,params)
-            sd = CorrelationFunction(time,params)
+            sd = SpectralDensity(time,params)
                     
         cm1 = CorrelationFunctionMatrix(time,2,1)
         cm1.set_correlation_function(1,cf1,[(0,0),(1,1)])
@@ -70,11 +71,11 @@ class TestRedfield(unittest.TestCase):
             self.H1 = Hamiltonian(data=h1)
             self.H2 = Hamiltonian(data=h2)
             
-        sd.convert_2_spectral_density()
+        #sd.convert_2_spectral_density()
         with eigenbasis_of(self.H1):
             de = self.H1.data[1,1]-self.H1.data[0,0]
-        self.c_omega_p = sd.interp_data(de)
-        self.c_omega_m = sd.interp_data(-de)
+        self.c_omega_p = sd.at(de,approx="spline") #interp_data(de)
+        self.c_omega_m = sd.at(-de,approx="spline") #interp_data(-de)
         
 
     

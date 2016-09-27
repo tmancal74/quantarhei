@@ -300,8 +300,10 @@ class DFunction:
             w = t.get_FrequencyAxis()
             
             if t.atype == "complete":
+                
                 Y = t.length*numpy.fft.fftshift(numpy.fft.ifft(
                 numpy.fft.fftshift(y)))*t.dt
+                
             elif t.atype == "upper-half":
                 yy = numpy.zeros(w.length,dtype=y.dtype)
                 yy[0:w.length//2] = y
@@ -318,6 +320,7 @@ class DFunction:
             t = w.get_TimeAxis()
             
             if w.atype == "complete":
+                
                 Y = w.length*numpy.fft.fftshift(numpy.fft.ifft(
                 numpy.fft.fftshift(y)))*w.domega/(numpy.pi*2.0) 
                 

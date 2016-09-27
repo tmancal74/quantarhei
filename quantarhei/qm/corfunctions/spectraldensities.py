@@ -7,6 +7,7 @@ from ...core.dfunction import DFunction
 from ...core.units import kB_intK
 
 from ...core.managers import UnitsManaged
+from ...core.managers import energy_units
 from ...core.frequency import FrequencyAxis 
 from ...core.time import TimeAxis
 from .correlationfunctions import CorrelationFunction
@@ -23,10 +24,14 @@ class SpectralDensity(DFunction, UnitsManaged):
         else:
             self.valueAxis = axis
             
-        self.axis = self.valueAxis
         self.frequencyAxis = self.valueAxis
 
-        self.params = params        
+        self.params = params  
+        #self._is_empty = False
+        #self.axis = self.valueAxis
+        
+         
+        self._splines_initialized = False 
         
         try:
             ftype = params["ftype"]
@@ -58,12 +63,14 @@ class SpectralDensity(DFunction, UnitsManaged):
             
             # Temperature is also not needed here, but it is stored
             #kBT = kB_intK*T            
+
+            with energy_units(self.energy_units):     
+                w = self.frequencyAxis.frequency     
+                cc = (2.0*lamb/tc)*w/(w**2 + (1.0/tc)**2)
             
-            w = self.frequencyAxis.frequency     
+            #self.data = cc
+            self._make_me(self.frequencyAxis,cc)
             
-            cc = (2.0*lamb/tc)*w/(w**2 + (1.0/tc)**2)
-            
-            self.data = cc
             self.lamb = lamb
             self.T    = T
             
@@ -88,5 +95,5 @@ class SpectralDensity(DFunction, UnitsManaged):
     def get_CorrelationFunction(self):
         
         ta = self.frequencyAxis.get_TimeAxis()        
-        return SpectralDensity(ta,self.params)
+        return CorrelationFunction(ta,self.params)
         

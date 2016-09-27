@@ -2,6 +2,7 @@
 
 from .valueaxis import ValueAxis
 from .managers import EnergyUnitsManaged
+from .managers import energy_units
 from ..utils.types import UnitsManagedReal
 
 import numpy
@@ -156,11 +157,14 @@ class FrequencyAxis(ValueAxis,EnergyUnitsManaged):
    
         ValueAxis.__init__(self,startValue=startValue,
                            noPoints=noPoints,step=step)
+                           
         self.frequency = self.data
-        self.domega = self.step
+        
+        # these have to be converted manually into internal units
+        self.domega = self.convert_2_internal_u(self.step)
         self.length = self.noPoints
-        self.omin = self.startValue
-        self.omax = self.endValue    
+        self.omin = self.convert_2_internal_u(self.startValue)
+        self.omax = self.convert_2_internal_u(self.endValue)    
         self.t0 = t0
 
         self.allowed_atypes = ["upper-half","complete"]
@@ -175,34 +179,36 @@ class FrequencyAxis(ValueAxis,EnergyUnitsManaged):
         """
         from .time import TimeAxis
         
-        if self.atype == 'complete':
-            tt = numpy.fft.fftshift(
-            numpy.fft.fftfreq(self.length,self.domega/(2.0*numpy.pi)))
-            
-            step = tt[1]-tt[0]
-            start = self.t0  + tt[0]
-            nosteps = self.length
-            
-            w0 = self.frequency[self.length//2] 
-            
-            
-        elif self.atype == 'upper-half':
-            
-            if not self.length % 2 == 0:
-                raise Exception("Cannot create upper-half TimeAxis"
-                + " from an odd number of points")
-                
-            tt = numpy.fft.fftshift(
-            (2.0*numpy.pi)*numpy.fft.fftfreq(self.length,self.domega))
-            
-            start = tt[int(self.length/2)] + self.t0
-            nosteps = int(self.length/2)
-            step = tt[1]-tt[0]
-            
-            w0 = self.frequency[self.length//2]
+        with energy_units("int"):
         
-        else:
-            raise Exception("Unknown frequency axis type")
+            if self.atype == 'complete':
+                tt = numpy.fft.fftshift(
+                numpy.fft.fftfreq(self.length,self.domega/(2.0*numpy.pi)))
+            
+                step = tt[1]-tt[0]
+                start = self.t0  + tt[0]
+                nosteps = self.length
+            
+                w0 = self.frequency[self.length//2] 
+            
+            
+            elif self.atype == 'upper-half':
+            
+                if not self.length % 2 == 0:
+                    raise Exception("Cannot create upper-half TimeAxis"
+                    + " from an odd number of points")
+                
+                tt = numpy.fft.fftshift(
+                (2.0*numpy.pi)*numpy.fft.fftfreq(self.length,self.domega))
+            
+                start = tt[int(self.length/2)] + self.t0
+                nosteps = int(self.length/2)
+                step = tt[1]-tt[0]
+            
+                w0 = self.frequency[self.length//2]
+        
+            else:
+                raise Exception("Unknown frequency axis type")
 
         
         return TimeAxis(start,nosteps,step,atype=self.atype,w0=w0)        

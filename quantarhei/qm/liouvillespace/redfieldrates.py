@@ -94,7 +94,8 @@ class RedfieldRateMatrix:
 
             # spectral density
             cf = self.sbi.CC.get_correlation_function(k,k)
-            cf.convert_2_spectral_density()
+            cw = cf.get_Fourier_transform() #.convert_2_spectral_density()
+            
 
             # Spectral density at all frequencies
             for i in range(Na):
@@ -104,10 +105,11 @@ class RedfieldRateMatrix:
                             cc[k,i,j] = 0.0
                         else:
                             if Om[j,i] < 0.0:
-                                cc[k,i,j] = (cf.interp_data(Om[i,j])
+                                #cc[k,i,j] = (cf.interp_data(Om[i,j])
+                                cc[k,i,j] = (cw.at(Om[i,j],approx="spline")
                                 *numpy.exp(Om[j,i]/(kB_intK*Temp)))
                             else:
-                                cc[k,i,j] = cf.interp_data(Om[j,i])
+                                cc[k,i,j] = cw.at(Om[j,i],approx="spline") #.interp_data(Om[j,i])
                                 
 
         """ To submit: 

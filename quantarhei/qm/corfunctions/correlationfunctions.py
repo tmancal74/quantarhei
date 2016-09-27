@@ -7,7 +7,10 @@ from ...core.dfunction import DFunction
 from ...core.units import kB_intK
 
 from ...core.managers import UnitsManaged
+from ...core.managers import energy_units
+
 from ...core.frequency import FrequencyAxis 
+
 
 class CorrelationFunction(DFunction, UnitsManaged):
     """Provides typical Bath correlation functions
@@ -29,7 +32,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
     def __init__(self, timeAxis, params, values = None, domain = 'Time'):
         
         self.valueAxis = timeAxis
-        self.axis = self.valueAxis
         self.timeAxis = self.valueAxis
         self.params = params
         
@@ -39,8 +41,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.time_domain = False
             
         self.is_composed = False
-
-
+        
+        #self._is_empty = False
+        #self._splines_initialized = False 
+        #self.axis = self.valueAxis
+        
         try:
             ftype = params["ftype"]
             if ftype in CorrelationFunction.allowed_types:
@@ -72,7 +77,10 @@ class CorrelationFunction(DFunction, UnitsManaged):
             cc = 2.0*lamb*kBT*numpy.exp(-t/tc) \
                   - 1.0j*(lamb/tc)*numpy.exp(-t/tc)
             
-            self.data = cc
+            #self.data = cc
+            
+            self._make_me(self.timeAxis,cc)
+            
             self.lamb = lamb
             self.T = T
             
@@ -100,7 +108,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
             cc += \
             (4.0*lamb*kBT/tc)*CorrelationFunction.__matsubara(kBT,tc,N,t)
                   
-            self.data = cc
+            #self.data = cc
+            
+            self._make_me(self.timeAxis,cc)
             self.lamb = lamb
             self.T    = T
                  
@@ -159,57 +169,179 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Creates a copy of the current correlation function"""
         return CorrelationFunction(self.timeAxis,self.params)
         
-    def convert_2_spectral_density(self):
-        """Converts the data from time domain to frequency domain 
-        
-        
-        """
-        # if the correlation function is in the time domain, we can convert it
-        if self.time_domain:
-            
-            tt = self.timeAxis.time
-            ff = self.data
-            
-            # use the symetry of the correlation function
-            for i in range(len(tt)//2):
-                j = len(tt)-i-1
-                ff[j] = numpy.conj(self.data[i+1])
-
-            # frequencies            
-            om = (2.0*numpy.pi)*numpy.fft.fftfreq(self.timeAxis.length,
-                                   self.timeAxis.dt)
-            # values
-            fo = numpy.fft.fft(ff)
-
-            # rotate the values and frequencies to have them in 
-            # increasing order
-            om = numpy.fft.fftshift(om)
-            fo = numpy.fft.fftshift(fo)*self.timeAxis.dt
-
-            # interpolate the spectral density
-            sr = scipy.interpolate.UnivariateSpline(om,
-                        numpy.real(fo),s=0)
-
-            # save the data
-            self.interp_data = sr
-            self.data = fo
-            self.time_domain = False
-            
-        else:
-            # nothing happens if the function is already in frequency domain
-            pass
+#    def convert_2_spectral_density(self):
+#        """Converts the data from time domain to frequency domain 
+#        
+#        
+#        """
+#        # if the correlation function is in the time domain, we can convert it
+#        if self.time_domain:
+#            
+#            tt = self.timeAxis.time
+#            ff = self.data
+#            
+#            # use the symetry of the correlation function
+#            for i in range(len(tt)//2):
+#                j = len(tt)-i-1
+#                ff[j] = numpy.conj(self.data[i+1])
+#
+#            # frequencies            
+#            om = (2.0*numpy.pi)*numpy.fft.fftfreq(self.timeAxis.length,
+#                                   self.timeAxis.dt)
+#            # values
+#            fo = numpy.fft.fft(ff)
+#
+#            # rotate the values and frequencies to have them in 
+#            # increasing order
+#            om = numpy.fft.fftshift(om)
+#            fo = numpy.fft.fftshift(fo)*self.timeAxis.dt
+#
+#            # interpolate the spectral density
+#            sr = scipy.interpolate.UnivariateSpline(om,
+#                        numpy.real(fo),s=0)
+#
+#            # save the data
+#            self.interp_data = sr
+#            self.data = fo
+#            self.time_domain = False
+#            
+#        else:
+#            # nothing happens if the function is already in frequency domain
+#            pass
         
         
     def get_SpectralDensity(self):
         
         from .spectraldensities import SpectralDensity
-        wa = self.timeAxis.get_FrequencyAxis()
         
-        return SpectralDensity(wa,self.params)
+        with energy_units("int"):
+            wa = self.timeAxis.get_FrequencyAxis()
+        
+        with energy_units(self.energy_units):
+            sd = SpectralDensity(wa,self.params)
+        return sd
         
         
+    def get_FTCorrelationFunction(self):
         
+        with energy_units(self.energy_units):
+            ft = FTCorrelationFunction(self.axis,self.params)
+        return ft
+        
+    def get_OddFTCorrelationFunction(self):
+        
+        with energy_units(self.energy_units):
+            ft = OddFTCorrelationFunction(self.axis,self.params)
+        return ft        
 
+    def get_EvenFTCorrelationFunction(self):
+        
+        with energy_units(self.energy_units):
+            ft = EvenFTCorrelationFunction(self.axis,self.params)
+        return ft   
+
+class FTCorrelationFunction(DFunction,UnitsManaged):
+    
+    def __init__(self,axis,params):
+        
+        try:
+            ftype = params["ftype"]
+            if ftype in CorrelationFunction.allowed_types:
+                self.ftype = ftype
+            else:
+                raise Exception("Unknown Correlation Function Type")
+                 
+            # we need to save the defining energy units
+            self.energy_units = self.manager.get_current_units("energy")
+
+
+        except:
+            raise Exception
+        
+        # We create CorrelationFunction and FTT it
+        with energy_units(self.energy_units):
+            cf = CorrelationFunction(axis,params)
+        
+        self.params = params        
+
+        # data have to be protected from change of units
+        with energy_units("int"):
+            ftvals = cf.get_Fourier_transform()
+            self.data = ftvals.data
+            
+        self.axis = ftvals.axis
+        self.frequencyAxis = self.axis
+        
+    
+class OddFTCorrelationFunction(DFunction,UnitsManaged):
+    
+    def __init__(self,axis,params):
+        
+        try:
+            ftype = params["ftype"]
+            if ftype in CorrelationFunction.allowed_types:
+                self.ftype = ftype
+            else:
+                raise Exception("Unknown Correlation Function Type")
+                 
+            # we need to save the defining energy units
+            self.energy_units = self.manager.get_current_units("energy")
+
+
+        except:
+            raise Exception    
+
+        # We create CorrelationFunction and FTT it
+        with energy_units(self.energy_units):
+            cf = CorrelationFunction(axis,params)
+            
+        cf.data = 1j*numpy.imag(cf.data)
+        
+        self.params = params        
+
+        # data have to be protected from change of units
+        with energy_units("int"):
+            ftvals = cf.get_Fourier_transform()
+            self.data = ftvals.data
+            
+        self.axis = ftvals.axis
+        self.frequencyAxis = self.axis
+
+ 
+    
+class EvenFTCorrelationFunction(DFunction,UnitsManaged):
+    
+    def __init__(self,axis,params):
+        
+        try:
+            ftype = params["ftype"]
+            if ftype in CorrelationFunction.allowed_types:
+                self.ftype = ftype
+            else:
+                raise Exception("Unknown Correlation Function Type")
+                 
+            # we need to save the defining energy units
+            self.energy_units = self.manager.get_current_units("energy")
+
+
+        except:
+            raise Exception    
+
+        # We create CorrelationFunction and FTT it
+        with energy_units(self.energy_units):
+            cf = CorrelationFunction(axis,params)
+            
+        cf.data = numpy.real(cf.data)
+        
+        self.params = params        
+
+        # data have to be protected from change of units
+        with energy_units("int"):
+            ftvals = cf.get_Fourier_transform()
+            self.data = ftvals.data
+            
+        self.axis = ftvals.axis
+        self.frequencyAxis = self.axis       
         
         
 def c2g(timeaxis,coft):

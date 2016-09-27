@@ -15,7 +15,6 @@
 # About the code
 # --------------
 #
-# The simulation code is writen in Python using Quantarhei package, version ..
 # The code is explained in details in the comments throughout this file. 
 # If you are new to Quantarhei and/or Python and/or the simulated problem,
 # it is recommended that you read the code, including the comments, as 

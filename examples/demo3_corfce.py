@@ -11,6 +11,7 @@
 *******************************************************************************
 """
 from quantarhei import CorrelationFunction
+from quantarhei import SpectralDensity
 from quantarhei import TimeAxis
 from quantarhei import energy_units
 
@@ -53,10 +54,16 @@ cf.plot(ylabel=r'$C(t)$ [rad$^2\cdot$fs$^{-2}$]',real_only=False)
 # Fourier transform of the correlation function    
 cF = cf.get_Fourier_transform()
 
+# This is the same thing, just has the units management 
+cF1 = cf.get_FTCorrelationFunction()
+cF1o = cf.get_OddFTCorrelationFunction()
+cF1e = cf.get_EvenFTCorrelationFunction()
+
 # Plotting the Fourier transform
 cF.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$^2\cdot$fs$^{-1}$]',
         real_only=False,
         axis=[-0.4,0.4,-0.005,0.025],show=False)
+
         
 wa = cF.axis
 
@@ -75,10 +82,26 @@ tf.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$\cdot$fs$^{-1}$]'
     ,axis=[-0.1,0.1,-0.005,numpy.max(numpy.real(cF.data))*1.1],real_only=False)
     
 
+
  # Get spectral density       
 sd = cf.get_SpectralDensity()
 
+with energy_units("1/cm"):
+    sd1 = SpectralDensity(ta,params)
+
 # Plot spectral density
 with energy_units("1/cm"):
-    sd.plot(axis=[0.0,1000,0,25])        
-        
+    #cF1.plot(show=False)
+    #cF1e.plot(show=False)
+    #cF1o.plot(show=False)
+    sd1.plot(show=False)
+    sd.plot(axis=[-1000,1000,-0.03,0.03]) 
+           
+tm = TimeAxis(0.0,100,1.0)
+wm = tm.get_FrequencyAxis()
+
+with energy_units("int"):
+    print(wm.get_TimeAxis().step)
+    print(wm.data[1]-wm.data[0])
+    
+    
