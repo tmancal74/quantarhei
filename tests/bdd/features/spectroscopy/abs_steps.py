@@ -54,8 +54,8 @@ def correlation_function_of_type(self, ctype):
         cf = CorrelationFunction(world.ta,params) 
         
     i = 0
-    data = numpy.zeros((world.ta.time.shape[0],3))
-    for t in world.ta.time:
+    data = numpy.zeros((world.ta.data.shape[0],3))
+    for t in world.ta.data:
         data[i,0] = t
         data[i,1] = numpy.real(cf.data[i])
         data[i,2] = numpy.imag(cf.data[i])

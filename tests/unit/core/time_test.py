@@ -28,7 +28,7 @@ class TestTimeAxis(unittest.TestCase):
         
         ta = TimeAxis(0.0, 1000, 0.1)
         
-        self.assertEqual(ta.tmin,ta.time[0])
-        self.assertEqual(ta.tmax,ta.time[len(ta.data)-1])
+        self.assertEqual(ta.min,ta.data[0])
+        self.assertEqual(ta.max,ta.data[ta.length-1])
         
         

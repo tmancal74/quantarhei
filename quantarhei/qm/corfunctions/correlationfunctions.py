@@ -100,7 +100,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             kBT = kB_intK*T            
             
-            t = self.timeAxis.time           
+            t = self.timeAxis.data           
            
             cc = (lamb/(tc*numpy.tan(1.0/(2.0*kBT*tc))))*numpy.exp(-t/tc) \
                   - 1.0j*(lamb/tc)*numpy.exp(-t/tc)

@@ -22,17 +22,17 @@ def fa_correct(self):
     if wa.atype == "complete":
         # dw = 2*pi/(n*dt)
         numpy.testing.assert_allclose(wa.data[1]-wa.data[0],
-                                  2.0*numpy.pi/(world.ta.length*world.ta.dt))
+                                  2.0*numpy.pi/(world.ta.length*world.ta.step))
 
         # minimum value
         # -2*pi*n/(2*n*dt) if n is even
         if world.ta.length%2 == 0:
-            numpy.testing.assert_allclose(wa.omin,
-            -2.0*numpy.pi/(world.ta.dt*2))
+            numpy.testing.assert_allclose(wa.min,
+            -2.0*numpy.pi/(world.ta.step*2))
         # when odd 2*pi*(n-1)/(2*n*dt)
         else:
-            numpy.testing.assert_allclose(wa.omin,
-            -2.0*numpy.pi*(world.ta.length-1)/(world.ta.dt*world.ta.length*2))
+            numpy.testing.assert_allclose(wa.min,
+            -2.0*numpy.pi*(world.ta.length-1)/(world.ta.step*world.ta.length*2))
             
         # array length is the same as in time axis
         numpy.testing.assert_equal(wa.length,world.ta.length)        
@@ -41,20 +41,20 @@ def fa_correct(self):
         
         # dw = 2*pi/(2*n*dt)
         numpy.testing.assert_allclose(wa.data[1]-wa.data[0],
-                                  2.0*numpy.pi/(2*world.ta.length*world.ta.dt)) 
+                                  2.0*numpy.pi/(2*world.ta.length*world.ta.step)) 
                                   
  
         # minimum value
-        numpy.testing.assert_allclose(wa.omin,-2.0*numpy.pi/(2.0*world.ta.dt))
+        numpy.testing.assert_allclose(wa.min,-2.0*numpy.pi/(2.0*world.ta.step))
         # maximum value
-        numpy.testing.assert_allclose(wa.omax,
-            2.0*numpy.pi*(world.ta.length-1)/(2.0*world.ta.dt*world.ta.length))
+        numpy.testing.assert_allclose(wa.max,
+            2.0*numpy.pi*(world.ta.length-1)/(2.0*world.ta.step*world.ta.length))
        
             
         # array length is twice the one of the time axis
         numpy.testing.assert_equal(wa.length,2*world.ta.length)                                 
         
-    numpy.testing.assert_equal(wa.omin,wa.data[0])
+    numpy.testing.assert_equal(wa.min,wa.data[0])
    
 
 
@@ -65,14 +65,14 @@ def ta_correct_thought_fa(self):
     ta = world.wa.get_TimeAxis()
     
     # dw = 2*pi/(n*dt)
-    numpy.testing.assert_allclose(world.ta.dt,
-                                        ta.dt)
+    numpy.testing.assert_allclose(world.ta.step,
+                                        ta.step)
 
     # minimum value
-    numpy.testing.assert_allclose(world.ta.tmin,ta.tmin,atol=1.0e-7)
+    numpy.testing.assert_allclose(world.ta.min,ta.min,atol=1.0e-7)
     
     #maximum
-    numpy.testing.assert_allclose(world.ta.tmax,ta.tmax)
+    numpy.testing.assert_allclose(world.ta.max,ta.max)
    
 
     # array length is the same as in time axis

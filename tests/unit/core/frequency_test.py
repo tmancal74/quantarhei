@@ -27,6 +27,6 @@ class TestFrequencyAxis(unittest.TestCase):
         
         wa = FrequencyAxis(0.0, 1000, 0.1)
         
-        self.assertEqual(wa.omin,wa.frequency[0])
-        self.assertEqual(wa.omax,wa.frequency[len(wa.data)-1])
+        self.assertEqual(wa.min,wa.data[0])
+        self.assertEqual(wa.max,wa.data[len(wa.data)-1])
         

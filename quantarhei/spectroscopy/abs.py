@@ -96,14 +96,14 @@ class AbsSpect(DFunction,EnergyUnitsManaged):
         ta = timeaxis
         rr = numpy.real(coft)
         ri = numpy.imag(coft)
-        sr = scipy.interpolate.UnivariateSpline(ta.time,
-                            rr,s=0).antiderivative()(ta.time)
-        sr = scipy.interpolate.UnivariateSpline(ta.time,
-                            sr,s=0).antiderivative()(ta.time)
-        si = scipy.interpolate.UnivariateSpline(ta.time,
-                            ri,s=0).antiderivative()(ta.time)
-        si = scipy.interpolate.UnivariateSpline(ta.time,
-                            si,s=0).antiderivative()(ta.time)
+        sr = scipy.interpolate.UnivariateSpline(ta.data,
+                            rr,s=0).antiderivative()(ta.data)
+        sr = scipy.interpolate.UnivariateSpline(ta.data,
+                            sr,s=0).antiderivative()(ta.data)
+        si = scipy.interpolate.UnivariateSpline(ta.data,
+                            ri,s=0).antiderivative()(ta.data)
+        si = scipy.interpolate.UnivariateSpline(ta.data,
+                            si,s=0).antiderivative()(ta.data)
         gt = sr + 1j*si
         return gt
         
@@ -122,13 +122,13 @@ class AbsSpect(DFunction,EnergyUnitsManaged):
             # convert correlation function to lineshape function
             gt = self._c2g(ta,ct.data)
             # calculate time dependent response
-            at = numpy.exp(-gt -1j*om*ta.time - gg*ta.time)
+            at = numpy.exp(-gt -1j*om*ta.data - gg*ta.data)
         else:
             # calculate time dependent response
-            at = numpy.exp(-1j*om*ta.time - gg*ta.time) 
+            at = numpy.exp(-1j*om*ta.data - gg*ta.data) 
         
         # Fourier transform the result
-        ft = dd*numpy.fft.hfft(at)*ta.dt
+        ft = dd*numpy.fft.hfft(at)*ta.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
         ft = numpy.flipud(ft)   
@@ -203,7 +203,7 @@ class AbsSpect(DFunction,EnergyUnitsManaged):
         self.axis = FrequencyAxis(st,Nt,do)
         
         #self.frequency = self.frequencyAxis.data #self._frequency(ta.dt) + rwa
-        self.frequency = self._frequency(ta.dt) + rwa
+        self.frequency = self._frequency(ta.step) + rwa
         
         
     def _calculate_aggregate(self,rwa):
@@ -258,7 +258,7 @@ class AbsSpect(DFunction,EnergyUnitsManaged):
         # we represent the Frequency axis anew
         self.axis = FrequencyAxis(st,Nt,do)
         
-        self.frequency = self._frequency(ta.dt) + rwa
+        self.frequency = self._frequency(ta.step) + rwa
         
         
     def normalize2(self,norm=1.0):

@@ -3,7 +3,7 @@ from paver.tasks import needs
 from paver.easy import sh
 
 """ 
-Particular tasks
+    Particular tasks
 """
 
 @task
@@ -29,8 +29,18 @@ def aloe_tests_vs():
 def aloe_tests_v():
     sh('aloe -v -a !in_development tests/bdd')
     
+
 """
-Default 
+    Optional tasks
+"""    
+@task
+def pylint():
+    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/valueaxis.py')
+    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/time.py')
+    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/frequency.py')
+    
+"""
+    Default 
 """
 
 @needs('unit_tests_v','doc_tests_v','aloe_tests_v')

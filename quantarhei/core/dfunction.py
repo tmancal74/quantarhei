@@ -111,7 +111,7 @@ class DFunction:
     >>> dt = 0.1; Ns = 10000
     >>> t = TimeAxis(-(Ns//2)*dt,Ns,dt,atype="complete")
     >>> gg = 1.0/30.0
-    >>> y = numpy.exp(-numpy.abs(t.time)*gg)
+    >>> y = numpy.exp(-numpy.abs(t.data)*gg)
     >>> f = DFunction(t,y)
     >>> F = f.get_Fourier_transform()
     >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
@@ -128,7 +128,7 @@ class DFunction:
     True
     
     >>> gg = 1.0/30.0
-    >>> y = numpy.exp(-numpy.abs(t.time)*gg)
+    >>> y = numpy.exp(-numpy.abs(t.data)*gg)
     >>> f = DFunction(t,y)
     >>> F = f.get_Fourier_transform()
     >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
@@ -142,7 +142,7 @@ class DFunction:
 
     DFunction can be complex valued    
     
-    >>> y = numpy.sin(t.time/10.0) + 1j*numpy.cos(t.time/10.0)
+    >>> y = numpy.sin(t.data/10.0) + 1j*numpy.cos(t.data/10.0)
     >>> fi = DFunction(t,y)
     >>> print(numpy.allclose(fi.at(13.2,approx="spline"),\
     (numpy.sin(13.2/10.0) + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))    
@@ -174,7 +174,7 @@ class DFunction:
         if isinstance(y,numpy.ndarray):
             
             if len(y.shape) == 1:
-                if y.shape[0] != self.axis.noPoints:
+                if y.shape[0] != self.axis.length:
                     raise Exception("Wrong number of elements"
                     + " in 1D numpy.ndarray")
                 """
@@ -237,7 +237,7 @@ class DFunction:
         
         """
         n,dval = self.axis.locate(x)
-        if n+1 >= self.axis.noPoints:
+        if n+1 >= self.axis.length:
             val = self.data[n] \
             + dval/self.axis.step*(self.data[n]-self.data[n-1])
         else:
@@ -302,14 +302,14 @@ class DFunction:
             if t.atype == "complete":
                 
                 Y = t.length*numpy.fft.fftshift(numpy.fft.ifft(
-                numpy.fft.fftshift(y)))*t.dt
+                numpy.fft.fftshift(y)))*t.step
                 
             elif t.atype == "upper-half":
                 yy = numpy.zeros(w.length,dtype=y.dtype)
                 yy[0:w.length//2] = y
                 for k in range(0,t.length-1):
                     yy[w.length-k-1] = numpy.conj(y[k+1])
-                Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.dt
+                Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.step
                 
             F = DFunction(w,Y)
             
@@ -348,13 +348,13 @@ class DFunction:
             
             if t.atype == "complete":
                 Y = numpy.fft.fftshift(numpy.fft.fft(
-                numpy.fft.fftshift(y)))*t.dt
+                numpy.fft.fftshift(y)))*t.step
             elif t.atype == "upper-half":
                 yy = numpy.zeros(w.length,dtype=y.dtype)
                 yy[0:w.length//2] = y
                 for k in range(0,t.length-1):
                     yy[w.length-k-1] = numpy.conj(y[k+1])
-                Y = numpy.fft.fftshift(numpy.fft.fft(yy))*t.dt
+                Y = numpy.fft.fftshift(numpy.fft.fft(yy))*t.step
                 
             F = DFunction(w,Y)
             

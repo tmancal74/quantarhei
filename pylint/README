@@ -1,0 +1,24 @@
+We follow the coding style recommendation PEP 008 as implemented by pylint
+
+The following exeptions are followed consciously and corresponding
+settings are made in the pylintrc file 
+
+1) number of allowed arguments in function calls is increased to 10 in [DESIGN]
+   section of the rc file
+
+# Maximum number of arguments for function / method
+max-args=10
+
+2) names of methods are allowed to look like this:
+
+   get_FrequencyAxis()
+
+   Here we are asking an object to return an object of the FrequencyAxis type
+
+   The following is set in the [BASIC] section of the rc file
+
+# Regular expression matching correct method names
+method-rgx=[a-z_][A-Za-z0-9_]{2,30}$
+
+# Naming hint for method names
+method-name-hint=[a-z_][A-Za-z0-9_]{2,30}$

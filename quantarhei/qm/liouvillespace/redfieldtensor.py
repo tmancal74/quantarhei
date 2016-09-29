@@ -85,7 +85,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             tm = ta.time[0:tcut]
             length = tcut
         else:
-            tm = ta.time
+            tm = ta.data
             length = ta.length
 
         # Eigen problem

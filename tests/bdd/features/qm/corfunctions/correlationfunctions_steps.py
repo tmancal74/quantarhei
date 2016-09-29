@@ -79,8 +79,8 @@ def compare_data_with_file(self, file):
     print("comparing with file ", file)
     cf_data = read_n_columns(file,3)
     i = 0
-    data = numpy.zeros((world.ta.time.shape[0],3))
-    for t in world.ta.time:
+    data = numpy.zeros((world.ta.data.shape[0],3))
+    for t in world.ta.data:
         data[i,0] = t
         data[i,1] = numpy.real(world.cf.data[i])
         data[i,2] = numpy.imag(world.cf.data[i])

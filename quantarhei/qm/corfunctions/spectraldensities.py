@@ -65,7 +65,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             #kBT = kB_intK*T            
 
             with energy_units(self.energy_units):     
-                w = self.frequencyAxis.frequency     
+                w = self.frequencyAxis.data   
                 cc = (2.0*lamb/tc)*w/(w**2 + (1.0/tc)**2)
             
             #self.data = cc
