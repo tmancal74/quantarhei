@@ -103,11 +103,11 @@ class ValueAxis:
 
     """
 
-    def __init__(self, start=0.0, length=1, step=1.0):
+    step = Float("step")
+    start = Float("start")
+    length = Integer("length")
 
-        self.step = Float("step")
-        self.start = Float("start")
-        self.length = Integer("length")
+    def __init__(self, start=0.0, length=1, step=1.0):
 
         if step > 0:
             self.step = step

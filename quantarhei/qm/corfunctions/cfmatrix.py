@@ -288,9 +288,9 @@ class CorrelationFunctionMatrix: #(MatrixData,TimeDependent):
             raise Exception("Index out of bounds")
 
         try:
-            ic = fce.timeAxis.nearest(fce.cutoff_time)
+            ic = fce.axis.nearest(fce.cutoff_time)
         except:
-            ic = fce.timeAxis.time[fce.timeAxis.length-1]
+            ic = fce.axis.data[fce.axis.length-1]
             
         if (ic > self.max_cutoff_index):
             self.max_cutoff_index = ic

@@ -69,7 +69,7 @@ class RedfieldRateMatrix:
         #print("freq. cut-off",freq_cutoff)
         
         # temperature
-        Temp = self.sbi.CC.get_correlation_function(0,0).T
+        Temp = self.sbi.CC.get_correlation_function(0,0).temperature
         
 
 

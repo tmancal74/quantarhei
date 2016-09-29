@@ -275,7 +275,7 @@ class TimeAxis(ValueAxis):
         with energy_units("int"):
             faxis = FrequencyAxis(start, nosteps, step,
                                   atype=self.atype, time_start=time_start)
-                             
+
         return faxis
 
 

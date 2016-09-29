@@ -158,20 +158,9 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
     data = UnitsManagedRealArray("data")
     start = UnitsManagedReal("start")
     step = UnitsManagedReal("step")
-    
+
     def __init__(self, start, length, step, atype='complete', time_start=0.0):
 
-        # these have to be converted manually into internal units
-        #istep = self.convert_2_internal_u(step)
-        #istart = self.convert_2_internal_u(start)
-        #
-        #ValueAxis.__init__(self, start=istart,
-        #                   length=length, step=istep)
-
-        # instead of the call to a super constructor, we need to copy it here
-        # otherwise there is a conflict with access control to the attributes
-
-        
         if step > 0:
             self.step = step
         else:
@@ -179,10 +168,15 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         self.start = start
         self.length = length
 
-        self.data = numpy.linspace(start,
-                                   start+(length-1)*step, length,
-                                   dtype=numpy.float)
-                                   
+        super().__init__(start=start,
+                         length=length, step=step)
+
+        # This would be the alternative if calling super()__init__ would
+        # break the units management
+        #self.data = numpy.linspace(start,
+        #                           start+(length-1)*step, length,
+        #                           dtype=numpy.float)
+
         self.time_start = time_start
 
         self.allowed_atypes = ["upper-half", "complete"]
@@ -190,7 +184,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
             self.atype = atype
         else:
             raise Exception("Unknown frequency axis type")
-            
+
 
     def get_TimeAxis(self):
         """Returns the corresponding TimeAxis object
@@ -201,7 +195,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         with energy_units("int"):
 
             if self.atype == 'complete':
-                
+
                 times = numpy.fft.fftshift(
                     numpy.fft.fftfreq(self.length, self.step/(2.0*numpy.pi)))
 

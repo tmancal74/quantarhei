@@ -19,7 +19,7 @@ def unit_tests_v():
     
 @task
 def doc_tests_v():    
-    sh('nosetests --with-doctest -vs quantarhei/core')
+    sh('nosetests --with-doctest -vs quantarhei/core quantarhei/qm/corfunctions')
     
 @task
 def aloe_tests_vs():
@@ -35,9 +35,11 @@ def aloe_tests_v():
 """    
 @task
 def pylint():
-    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/valueaxis.py')
-    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/time.py')
+#    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/valueaxis.py')
+#    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/time.py')
     sh('pylint --rcfile=pylint/pylintrc quantarhei/core/frequency.py')
+    
+    sh('pylint --rcfile=pylint/pylintrc quantarhei/qm/corfunctions/correlationfunctions.py')
     
 """
     Default 

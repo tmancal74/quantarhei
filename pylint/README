@@ -22,3 +22,12 @@ method-rgx=[a-z_][A-Za-z0-9_]{2,30}$
 
 # Naming hint for method names
 method-name-hint=[a-z_][A-Za-z0-9_]{2,30}$
+
+3) We add variable names: n, kBT to the good allowed variable names
+
+# Good variable names which should always be accepted, separated by a comma
+good-names=i,j,k,n,ex,Run,_,kBT
+
+4) 
+# Maximum number of attributes for a class (see R0902).
+max-attributes=10
