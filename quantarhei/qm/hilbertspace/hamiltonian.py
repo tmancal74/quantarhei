@@ -3,7 +3,7 @@
 from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged
 from ...core.managers import EnergyUnitsManaged
-from ...utils.types import ManagedReal
+from ...utils.types import ManagedRealArray
 from .operators import Operator
 
 import numpy
@@ -18,7 +18,7 @@ class Hamiltonian(SelfAdjointOperator,BasisManaged,EnergyUnitsManaged):
     
     _has_remainder_coupling = False
     
-    data = ManagedReal("data")
+    data = ManagedRealArray("data")
  
     def __init__(self,dim=None,data=None):
         #self.data = data

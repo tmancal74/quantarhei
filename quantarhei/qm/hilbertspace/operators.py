@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ...core.matrixdata import MatrixData
-from ...utils.types import BasisManagedComplex
+from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 
 
@@ -20,7 +20,7 @@ class Operator(MatrixData,BasisManaged):
            
     """
     
-    data = BasisManagedComplex("data")    
+    data = BasisManagedComplexArray("data")    
     
     def __init__(self,dim=None,data=None,real=False):
 

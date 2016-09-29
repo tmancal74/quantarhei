@@ -12,7 +12,7 @@
 """
 from quantarhei import CorrelationFunction
 from quantarhei import SpectralDensity
-from quantarhei import TimeAxis
+from quantarhei import TimeAxis, FrequencyAxis
 from quantarhei import energy_units
 
 from quantarhei import DFunction
@@ -82,7 +82,6 @@ tf.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$\cdot$fs$^{-1}$]'
     ,axis=[-0.1,0.1,-0.005,numpy.max(numpy.real(cF.data))*1.1],real_only=False)
     
 
-
  # Get spectral density       
 sd = cf.get_SpectralDensity()
 
@@ -95,13 +94,14 @@ with energy_units("1/cm"):
     #cF1e.plot(show=False)
     #cF1o.plot(show=False)
     sd1.plot(show=False)
-    sd.plot(axis=[-1000,1000,-0.03,0.03]) 
+    sd.plot(axis=[-1000,1000,-0.005,0.005]) 
            
-tm = TimeAxis(0.0,100,1.0)
-wm = tm.get_FrequencyAxis()
+with energy_units("eV"):
+    tm = TimeAxis(0.0,100,1.0)
+    wm = tm.get_FrequencyAxis()
 
-with energy_units("int"):
-    print(wm.get_TimeAxis().step)
+with energy_units("eV"):
     print(wm.data[1]-wm.data[0])
-    
+    print(wm.step)
+
     

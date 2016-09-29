@@ -3,4 +3,4 @@
 from .managers import UnitsManaged
 from .managers import BasisManaged
 
-from ..utils.types import BasisManagedReal
+from ..utils.types import BasisManagedRealArray

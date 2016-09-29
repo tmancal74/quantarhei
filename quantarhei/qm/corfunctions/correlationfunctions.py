@@ -72,7 +72,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             kBT = kB_intK*T
             
-            t = self.timeAxis.time
+            t = self.timeAxis.data
             
             cc = 2.0*lamb*kBT*numpy.exp(-t/tc) \
                   - 1.0j*(lamb/tc)*numpy.exp(-t/tc)
@@ -366,14 +366,14 @@ def c2g(timeaxis,coft):
     ta = timeaxis
     rr = numpy.real(coft)
     ri = numpy.imag(coft)
-    sr = scipy.interpolate.UnivariateSpline(ta.time,
-                        rr,s=0).antiderivative()(ta.time)
-    sr = scipy.interpolate.UnivariateSpline(ta.time,
-                        sr,s=0).antiderivative()(ta.time)
-    si = scipy.interpolate.UnivariateSpline(ta.time,
-                        ri,s=0).antiderivative()(ta.time)
-    si = scipy.interpolate.UnivariateSpline(ta.time,
-                        si,s=0).antiderivative()(ta.time)
+    sr = scipy.interpolate.UnivariateSpline(ta.data,
+                        rr,s=0).antiderivative()(ta.data)
+    sr = scipy.interpolate.UnivariateSpline(ta.data,
+                        sr,s=0).antiderivative()(ta.data)
+    si = scipy.interpolate.UnivariateSpline(ta.data,
+                        ri,s=0).antiderivative()(ta.data)
+    si = scipy.interpolate.UnivariateSpline(ta.data,
+                        si,s=0).antiderivative()(ta.data)
     gt = sr + 1j*si
     return gt
     
@@ -383,10 +383,10 @@ def c2h(timeaxis,coft):
     ta = timeaxis
     rr = numpy.real(coft)
     ri = numpy.imag(coft)
-    sr = scipy.interpolate.UnivariateSpline(ta.time,
-                        rr,s=0).antiderivative()(ta.time)
-    si = scipy.interpolate.UnivariateSpline(ta.time,
-                        ri,s=0).antiderivative()(ta.time)
+    sr = scipy.interpolate.UnivariateSpline(ta.data,
+                        rr,s=0).antiderivative()(ta.data)
+    si = scipy.interpolate.UnivariateSpline(ta.data,
+                        ri,s=0).antiderivative()(ta.data)
     ht = sr + 1j*si
     
     return ht

@@ -15,7 +15,7 @@ import unittest
 import numpy
 
 from quantarhei.core import BasisManaged
-from quantarhei.core import BasisManagedReal
+from quantarhei.core import BasisManagedRealArray
     
     
 class BasisManagedObject(BasisManaged):
@@ -25,7 +25,7 @@ class BasisManagedObject(BasisManaged):
 
     """
     
-    data = BasisManagedReal("data",shape=(2,2))
+    data = BasisManagedRealArray("data",shape=(2,2))
 
     def __init__(self,dat,name):
          # Name of the object

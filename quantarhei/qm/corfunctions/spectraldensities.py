@@ -17,19 +17,17 @@ class SpectralDensity(DFunction, UnitsManaged):
     
     def __init__(self,axis, params):
         
-        
+        #FIXME: valueAxis attribute should be changed to axis
+        #FIXME: attribute frequencyAxis should be deleted
         if isinstance(axis,TimeAxis):
-            faxis = axis.get_FrequencyAxis()
+            # protect the frequency axis creation from units management
+            with energy_units("int"):
+                faxis = axis.get_FrequencyAxis()
             self.valueAxis = faxis
         else:
             self.valueAxis = axis
             
         self.frequencyAxis = self.valueAxis
-
-        self.params = params  
-        #self._is_empty = False
-        #self.axis = self.valueAxis
-        
          
         self._splines_initialized = False 
         
@@ -42,7 +40,8 @@ class SpectralDensity(DFunction, UnitsManaged):
                  
             # we need to save the defining energy units
             self.energy_units = self.manager.get_current_units("energy")
-
+            # because params are in the defining units
+            self.params = params
 
         except:
             raise Exception
@@ -64,13 +63,15 @@ class SpectralDensity(DFunction, UnitsManaged):
             # Temperature is also not needed here, but it is stored
             #kBT = kB_intK*T            
 
-            with energy_units(self.energy_units):     
+            # protect calculation from units management
+            with energy_units("int"):     
                 w = self.frequencyAxis.data   
                 cc = (2.0*lamb/tc)*w/(w**2 + (1.0/tc)**2)
             
             #self.data = cc
             self._make_me(self.frequencyAxis,cc)
             
+            # this is in internal units
             self.lamb = lamb
             self.T    = T
             

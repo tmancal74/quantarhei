@@ -9,6 +9,7 @@
 import numpy
 
 from .valueaxis import ValueAxis
+from .managers import energy_units
 
 class TimeAxis(ValueAxis):
     """ Class representing time in time dependent calculations.
@@ -270,8 +271,12 @@ class TimeAxis(ValueAxis):
         else:
             raise Exception("Unknown time axis type")
 
-        return FrequencyAxis(start, nosteps, step,
-                             atype=self.atype, time_start=time_start)
+        # this creation has to be protected from units management
+        with energy_units("int"):
+            faxis = FrequencyAxis(start, nosteps, step,
+                                  atype=self.atype, time_start=time_start)
+                             
+        return faxis
 
 
 if __name__ == "__main__":

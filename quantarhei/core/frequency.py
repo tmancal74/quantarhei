@@ -11,8 +11,8 @@ import numpy
 from .valueaxis import ValueAxis
 from .managers import EnergyUnitsManaged
 from .managers import energy_units
+from ..utils.types import UnitsManagedRealArray
 from ..utils.types import UnitsManagedReal
-
 
 
 class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
@@ -155,17 +155,34 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
 
     """
 
-    data = UnitsManagedReal("data")
-
+    data = UnitsManagedRealArray("data")
+    start = UnitsManagedReal("start")
+    step = UnitsManagedReal("step")
+    
     def __init__(self, start, length, step, atype='complete', time_start=0.0):
 
         # these have to be converted manually into internal units
-        istep = self.convert_2_internal_u(step)
-        istart = self.convert_2_internal_u(start)
+        #istep = self.convert_2_internal_u(step)
+        #istart = self.convert_2_internal_u(start)
+        #
+        #ValueAxis.__init__(self, start=istart,
+        #                   length=length, step=istep)
 
-        ValueAxis.__init__(self, start=istart,
-                           length=length, step=istep)
+        # instead of the call to a super constructor, we need to copy it here
+        # otherwise there is a conflict with access control to the attributes
 
+        
+        if step > 0:
+            self.step = step
+        else:
+            raise Exception("Parameter step has to be > 0")
+        self.start = start
+        self.length = length
+
+        self.data = numpy.linspace(start,
+                                   start+(length-1)*step, length,
+                                   dtype=numpy.float)
+                                   
         self.time_start = time_start
 
         self.allowed_atypes = ["upper-half", "complete"]
@@ -173,6 +190,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
             self.atype = atype
         else:
             raise Exception("Unknown frequency axis type")
+            
 
     def get_TimeAxis(self):
         """Returns the corresponding TimeAxis object
@@ -183,6 +201,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         with energy_units("int"):
 
             if self.atype == 'complete':
+                
                 times = numpy.fft.fftshift(
                     numpy.fft.fftfreq(self.length, self.step/(2.0*numpy.pi)))
 
