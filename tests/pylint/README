@@ -1,0 +1,52 @@
+We follow the coding style recommendation PEP 008 as implemented by pylint
+
+The following exeptions are followed consciously and corresponding
+settings are made in the pylintrc file 
+
+
+1) [BASIC]
+   names of methods are allowed to look like this:
+
+   get_FrequencyAxis()
+
+   Here we are asking an object to return an object of the FrequencyAxis type
+
+   The following is set in the [BASIC] section of the rc file
+
+# Regular expression matching correct method names
+method-rgx=[a-z_][A-Za-z0-9_]{2,30}$
+
+# Naming hint for method names
+method-name-hint=[a-z_][A-Za-z0-9_]{2,30}$
+
+2) [BASIC]
+   We add variable names: n, kBT to the good allowed variable names
+
+# Good variable names which should always be accepted, separated by a comma
+good-names=i,j,k,n,ex,Run,_,kBT
+
+3) [DESIGN]
+   number of allowed arguments in function calls is increased to 10 in [DESIGN]
+   section of the rc file. This is mainly because it is expected that 
+   calling some external libraries might need many arguments
+
+# Maximum number of arguments for function / method
+max-args=10
+
+4) [DESIGN]
+   We increase a maximum number of allowed attributes. This is something to
+   reflect on later. Maybe the rule of 7 can be followed afterall.
+
+# Maximum number of attributes for a class (see R0902).
+max-attributes=10
+
+5) [TYPECHECK]
+   Numpy module does something that pylint cannot follow and its functions
+   such as numpy.tan are not recognized. I better switch the checks off in
+   [TYPECHECK] section.
+
+# List of module names for which member attributes should not be checked
+# (useful for modules/projects where namespaces are manipulated during runtime
+# and thus existing member attributes cannot be deduced by static analysis. It
+# supports qualified module names, as well as Unix pattern matching.
+ignored-modules=numpy

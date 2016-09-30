@@ -32,14 +32,33 @@ def aloe_tests_v():
 
 """
     Optional tasks
-"""    
+"""  
+class Runner:  
+    
+    def __init__(self,path):
+        self.path = path
+        
+    def set_path(self,path):
+        self.path = path
+        
+    def un(self,file):
+        rcfile = 'tests/pylint/pylintrc'
+        sh('pylint --rcfile='+rcfile+' '+self.path+'/'+file)
+    
 @task
 def pylint():
-#    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/valueaxis.py')
-#    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/time.py')
-    sh('pylint --rcfile=pylint/pylintrc quantarhei/core/frequency.py')
+
+    path = 'quantarhei/core/'
+    r = Runner(path)
+#    r.un('valueaxis.py')
+#    r.un('time.py')
+#    r.un('frequency.py')
+
+    path = 'quantarhei/qm/corfunctions'
+    r.set_path(path)
+#    r.un('correlationfunctions.py')
+    r.un('spectraldensities.py')  
     
-    sh('pylint --rcfile=pylint/pylintrc quantarhei/qm/corfunctions/correlationfunctions.py')
     
 """
     Default 
