@@ -233,6 +233,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             eftcf = EvenFTCorrelationFunction(self.axis, self.params)
         return eftcf
 
+
 class FTCorrelationFunction(DFunction, UnitsManaged):
     """Fourier transform of the correlation function
 

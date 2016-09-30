@@ -38,6 +38,25 @@ Scenario Outline: Spectral density from correlation function compared to analyti
     | OverdampedBrownian |  300.   |  30.  | 200.  | 
     | OverdampedBrownian |  100.   |  100. | 100.  |
 
+@spectraldensity
+Scenario Outline: Odd FT of correlation function equals spectral density
+    Given correlation function parameters:
+        | cf_type   | temp   | T_units | reorg    | e_units | ctime   | t_units | mats |
+        | <cf_type> | <temp> | K       | <reorg>  | 1/cm    | <ctime> | fs      |   20 |
+    And upper-half TimeAxis with parameters:
+        | units | start | number_of_steps | step |
+        | fs    | 0.0   | 1000            | 1.0  | 
+    When I calculate the <cf_type> correlation function
+    And I calculate the <cf_type> spectral density
+    And I calculate odd FT of the correlation function
+    Then odd FT correlation function corresponds to spectral density
+
+    Examples:
+    | cf_type            | temp   | reorg | ctime |
+    | OverdampedBrownian |  300   |  20   | 100.  |
+#    | Lorenzian          |  300   |  30   | 300.  |
+
+
 @in_development
 Scenario Outline: Correlation function creation from spectral density
     Given spectral density parameters:
@@ -56,19 +75,35 @@ Scenario Outline: Correlation function creation from spectral density
 #    | Lorenzian          |  300   |  30   | 300.  | lr_300K_30cm_300fs.dat |       
 
 @in_development
-Scenario Outline: Odd FT of correlation function equals spectral density
+Scenario Outline: Correlation function creation from spectral density and back
+    Given spectral density parameters:
+        | cf_type   | temp   | T_units | reorg    | e_units | ctime   | t_units | mats |
+        | <cf_type> | <temp> | K       | <reorg>  | 1/cm    | <ctime> | fs      |   20 |
+    And TimeAxis:
+        | units | start | number_of_steps | step |
+        | fs    | 0.0   | 1000            | 1.0  | 
+    When I calculate the <cf_type> spectral density
+    And correlation function is created from spectral density
+    Then correlation function corresponds to file <file>
+
+    Examples:
+    | cf_type            | temp   | reorg | ctime | file                       |
+    | OverdampedBrownian |  300   |  20   | 100.  | ob_20cm_100fs_300K_m20.dat |
+#    | Lorenzian          |  300   |  30   | 300.  | lr_300K_30cm_300fs.dat |  
+
+@in_development
+Scenario Outline: Spectral density creation from correlation function and back
     Given correlation function parameters:
         | cf_type   | temp   | T_units | reorg    | e_units | ctime   | t_units | mats |
         | <cf_type> | <temp> | K       | <reorg>  | 1/cm    | <ctime> | fs      |   20 |
     And TimeAxis:
         | units | start | number_of_steps | step |
         | fs    | 0.0   | 1000            | 1.0  | 
-    When I calculate the <cf_type> correlation function
-    And I calculate the <cf_type> spectral density
-    And calculate odd FT of the correlation function
-    Then odd FT correlation function corresponds to spectral density
+    When I calculate the <cf_type> spectral density
+    And correlation function is created from spectral density
+    Then correlation function corresponds to file <file>
 
     Examples:
     | cf_type            | temp   | reorg | ctime | file                       |
     | OverdampedBrownian |  300   |  20   | 100.  | ob_20cm_100fs_300K_m20.dat |
-#    | Lorenzian          |  300   |  30   | 300.  | lr_300K_30cm_300fs.dat |
+#    | Lorenzian          |  300   |  30   | 300.  | lr_300K_30cm_300fs.dat |  

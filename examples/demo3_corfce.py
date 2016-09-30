@@ -94,9 +94,15 @@ with energy_units("int"):
 with energy_units("1/cm"):
     #cF1.plot(show=False)
     #cF1e.plot(show=False)
-    #cF1o.plot(show=False)
+    cF1o.plot(show=False)
     sd1.plot(show=False)
-    sd.plot(axis=[-1000,1000,-0.005,0.005]) 
+    sd.plot(axis=[-1000,1000,-0.008,0.008])
+    
+df = numpy.max(numpy.abs(cF1o.data-sd1.data))
+print(df)
+mx = numpy.max(numpy.abs(sd1.data))
+print(mx)
+print(df/mx)    
            
 with energy_units("eV"):
     tm = TimeAxis(0.0,100,1.0)

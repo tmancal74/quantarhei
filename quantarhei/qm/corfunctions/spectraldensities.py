@@ -31,7 +31,7 @@ class SpectralDensity(DFunction, UnitsManaged):
     Examples
     --------
 
-    `SpectralDensity` object can be ctreated with the same parameters as 
+    `SpectralDensity` object can be ctreated with the same parameters as
     `CorrelationFunction`. The temperature can be set, but it is not
     a compulsory parameter.
 
@@ -54,9 +54,9 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     everything is alright. `CorrelationFunction`, however, cannot be created
     as above, because temperature must be known. Attempt to create `CorrelationFunction`
-    as above would lead to an exception. We have to specify temperature as 
+    as above would lead to an exception. We have to specify temperature as
     a parameter to the `get_CorrelationFunction` method.
-    
+
     >>> cf = sdwoT.get_CorrelationFunction(temperature=300)
 
     """

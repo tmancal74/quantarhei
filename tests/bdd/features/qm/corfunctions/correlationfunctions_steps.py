@@ -42,7 +42,7 @@ def matsubara(self, Nm):
 #    print("TimeAxis", start, Ns, dt)
 #    world.ta = TimeAxis(start,Ns,dt)
 
-@step(r'When I calculate the ([^"]*) correlation function')
+@step(r'I calculate the ([^"]*) correlation function')
 def correlation_function_of_type(self, ctype):
     print("correlation function type ", ctype)
     world.ctype = ctype

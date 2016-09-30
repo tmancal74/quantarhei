@@ -8,6 +8,7 @@ import numpy
 from quantarhei import energy_units
 from quantarhei import Manager
 from quantarhei import CorrelationFunction
+from quantarhei import SpectralDensity
 from ...stepslib import read_n_columns
 
 
@@ -36,7 +37,22 @@ def correlation_function_parameters(self):
     world.temp = temp
     world.mats = mats
     
+@step(r'I calculate the ([^"]*) spectral density')
+def correlation_function_of_type(self, ctype):
+    print("spectral density type ", ctype)
+    world.ctype = ctype
+
+    params = {"ftype":    world.ctype,
+              "reorg":    world.reorg,
+              "cortime":  world.ctime,
+              "T":        world.temp,
+              "matsubara":world.mats}
+              
+    # FIXME: also time_units, temperature_units
+    with energy_units(world.e_units):
+        sd = SpectralDensity(world.ta,params) 
     
+    world.sd = sd   
     
 @step(r'spectral density is created from correlation function')
 def spectral_dens_from_corrfce(self):
@@ -94,3 +110,31 @@ def compare_spectral_dens_to_analytical(self, fctype):
         #data[i,2] = numpy.imag(world.cf.data[i])
         i += 1
     numpy.testing.assert_allclose(sd_data,data,rtol=1.0e-7)
+    
+    
+@step(r'I calculate odd FT of the correlation function')
+def calculate_oddFT_from_corfce(self):
+
+    cf = world.cf
+    oddft = cf.get_OddFTCorrelationFunction()
+    world.oddft = oddft
+    
+       
+@step(r'odd FT correlation function corresponds to spectral density')
+def compare_oddFT_with_spectral_density(self):
+
+    sd = world.sd
+    oddft = world.oddft
+    numpy.testing.assert_allclose(oddft.axis.data,sd.axis.data,rtol=1.0e-7)
+    mx = numpy.max(numpy.abs(sd.data))
+    print("Maximum of the spectral density: ", mx)
+    df = numpy.max(numpy.abs(sd.data-oddft.data))
+    print("Maximum of the differnece between spectral density and odd FT: ",df)
+    print("Ratio of the two: ", df/mx)
+    Ndiv = 50.0
+    atol = mx/Ndiv
+    print("Checking with absolute tolerance mx /",Ndiv,"= ", atol)
+    numpy.testing.assert_allclose(oddft.data,sd.data,atol=atol) #1.0e-4) #df)
+    
+    
+    

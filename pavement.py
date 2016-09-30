@@ -50,13 +50,13 @@ def pylint():
 
     path = 'quantarhei/core/'
     r = Runner(path)
-#    r.un('valueaxis.py')
-#    r.un('time.py')
-#    r.un('frequency.py')
+    r.un('valueaxis.py')
+    r.un('time.py')
+    r.un('frequency.py')
 
     path = 'quantarhei/qm/corfunctions'
     r.set_path(path)
-#    r.un('correlationfunctions.py')
+    r.un('correlationfunctions.py')
     r.un('spectraldensities.py')  
     
     
