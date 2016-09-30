@@ -4,8 +4,8 @@ from aloe import world
 
 from ...stepslib import upper_half_time_axis
 from ...stepslib import temperature
+from ...stepslib import read_n_columns
 
-import pkg_resources
 import numpy
 
 #from quantarhei import TimeAxis
@@ -59,25 +59,12 @@ def correlation_function_of_type(self, ctype):
     
     world.cf = cf
     
-def read_n_columns(file,n):
-    """Reads n columns of data from a package file """
-    data = pkg_resources.resource_string(__package__,file)    
-    A = numpy.fromstring(data.decode('utf-8'),dtype=numpy.float32,sep=' ')
-    N = A.shape[0]
-    Nh = int(N/n)
-    try:
-        ret = A.reshape(Nh,n)
-    except:
-        raise Exception()
-        
-    return ret    
-
 
 @step(r'Then I get data from the file ([^"]*) in internal units')
 def compare_data_with_file(self, file):
 
     print("comparing with file ", file)
-    cf_data = read_n_columns(file,3)
+    cf_data = read_n_columns(__package__,file,3)
     i = 0
     data = numpy.zeros((world.ta.data.shape[0],3))
     for t in world.ta.data:
