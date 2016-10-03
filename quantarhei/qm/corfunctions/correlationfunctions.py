@@ -14,6 +14,7 @@ from ...core.dfunction import DFunction
 from ...core.units import kB_intK
 from ...core.managers import UnitsManaged
 from ...core.managers import energy_units
+from ...core.time import TimeAxis
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
@@ -53,10 +54,15 @@ class CorrelationFunction(DFunction, UnitsManaged):
     allowed_types = ("OverdampedBrownian-HighTemperature",
                      "OverdampedBrownian", "Value-defined")
 
-    def __init__(self, timeAxis, params, values=None):
+    def __init__(self, axis, params, values=None):
         super().__init__()
 
-        self.axis = timeAxis
+        if not isinstance(axis, TimeAxis):
+            taxis = axis.get_TimeAxis()
+            self.axis = taxis
+        else:
+            self.axis = axis
+            
         self._is_composed = False
         self.lamb = -1.0
         self.temperature = -1.0
@@ -242,7 +248,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis, params):
+    def __init__(self, axis, params, values=None):
         super().__init__()
 
         try:
@@ -265,12 +271,19 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
 
         self.params = params
 
-        # data have to be protected from change of units
-        with energy_units("int"):
-            ftvals = cfce.get_Fourier_transform()
-            self.data = ftvals.data
-
-        self.axis = ftvals.axis
+        if values is None:
+            # data have to be protected from change of units
+            with energy_units("int"):
+                ftvals = cfce.get_Fourier_transform()
+                self.data = ftvals.data
+            self.axis = ftvals.axis
+        else:
+            # This is not protected from change of units!!!!
+            self.data = values
+            self.axis = cfce.axis.get_FrequencyAxis()
+            
+            
+        
 
 
 class OddFTCorrelationFunction(DFunction, UnitsManaged):

@@ -87,8 +87,8 @@ sd = cf.get_SpectralDensity()
 
 with energy_units("1/cm"):
     sd1 = SpectralDensity(ta,params)
-with energy_units("int"):
-    sd1.save("ob_sd_20cm_100fs_300K_m20",ext="dat")
+#with energy_units("int"):
+#    sd1.save("ob_sd_20cm_100fs_300K_m20",ext="dat")
 
 # Plot spectral density
 with energy_units("1/cm"):
@@ -111,5 +111,12 @@ with energy_units("eV"):
 with energy_units("eV"):
     print(wm.data[1]-wm.data[0])
     print(wm.step)
+ 
+ftc = sd1.get_FTCorrelationFunction()  
+cF1.plot(show=False)
+ftc.plot(axis=[-0.1,0.1,0,0.06])
+
+ 
+
 
     
