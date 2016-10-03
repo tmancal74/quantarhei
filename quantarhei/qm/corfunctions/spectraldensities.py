@@ -14,6 +14,7 @@ from ...core.managers import energy_units
 from ...core.time import TimeAxis
 from .correlationfunctions import CorrelationFunction
 from .correlationfunctions import FTCorrelationFunction
+from ...core.units import kB_int
 
 class SpectralDensity(DFunction, UnitsManaged):
     """This class represents the so-called spectral density
@@ -171,12 +172,16 @@ class SpectralDensity(DFunction, UnitsManaged):
         params = self.params.copy()
         if temperature is not None:
             params["T"] = temperature
+        
+        temp = params["T"]
             
         ind_of_zero, diff = self.axis.locate(0.0)
         atol = 1.0e-7
+        twokBT = 2.0*kB_int*temp
         with energy_units("int"): #self.energy_units):
             if numpy.abs(diff) < atol:
-                vals = (1.0 + (1.0/numpy.tanh(self.axis.data)))*self.data
+                vals = (1.0 + 
+                    (1.0/numpy.tanh(self.axis.data/twokBT)))*self.data
             else:
                 vals = self.data # (1.0 + (1.0/numpy.tanh(self.axis.data)))*self.data
                 
