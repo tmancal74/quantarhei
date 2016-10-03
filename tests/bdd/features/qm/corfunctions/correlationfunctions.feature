@@ -9,7 +9,7 @@ Scenario Outline: A user creates correlation function with various parameters
         | start | number_of_steps | step  | units |
         | 0.0   |    1000         |  1.0  | fs    |
     When I calculate the <ctype> correlation function
-    Then I get data from the file <file> in internal units
+    Then correlation function corresponds to file <file> in internal units
 
     Examples:
         | ctype              | reorg | e_units | ctime | t_units | temp   | T_units | mats | file                       |

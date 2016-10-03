@@ -60,7 +60,7 @@ def correlation_function_of_type(self, ctype):
     world.cf = cf
     
 
-@step(r'Then I get data from the file ([^"]*) in internal units')
+@step(r'correlation function corresponds to file ([^"]*) in internal units')
 def compare_data_with_file(self, file):
 
     print("comparing with file ", file)

@@ -58,6 +58,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         self.axis = timeAxis
         self._is_composed = False
+        self.lamb = -1.0
+        self.temperature = -1.0
+        self.cutoff_time = None
 
         try:
             ftype = params["ftype"]

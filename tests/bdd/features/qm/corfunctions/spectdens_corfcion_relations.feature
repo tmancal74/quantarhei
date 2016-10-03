@@ -44,8 +44,8 @@ Scenario Outline: Spectral density creation from correlation function
     Then spectral density corresponds to file <file> in internal units
 
     Examples:
-    | cf_type            | temp    | reorg | ctime | file                      |
-    | OverdampedBrownian |  300.   |  30.  | 200.  | ob_sd_30cm_200fs_300K.dat |
+    | cf_type            | temp    | reorg | ctime | file                          |
+    | OverdampedBrownian |  300.   |  30.  | 200.  | ob_sd_30cm_200fs_300K_m20.dat |
 #    | Lorenzian          |  300.   |  30.  | 300.  | lr_sd_30cm_300fs_300K.dat |
 
 #

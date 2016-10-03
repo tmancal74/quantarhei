@@ -37,8 +37,8 @@ ta = TimeAxis(0.0,1000,1.0)
 temperature = 300.0
 # parameters of the correlation function
 params = {"ftype":    "OverdampedBrownian",
-          "reorg":    30.0,
-          "cortime":  200.0,
+          "reorg":    20.0,
+          "cortime":  100.0,
           "T":        temperature,
           "matsubara":20}
   
@@ -88,7 +88,7 @@ sd = cf.get_SpectralDensity()
 with energy_units("1/cm"):
     sd1 = SpectralDensity(ta,params)
 with energy_units("int"):
-    sd1.save("ob_sd_30cm_200fs_300K_m20",ext="dat")
+    sd1.save("ob_sd_20cm_100fs_300K_m20",ext="dat")
 
 # Plot spectral density
 with energy_units("1/cm"):
