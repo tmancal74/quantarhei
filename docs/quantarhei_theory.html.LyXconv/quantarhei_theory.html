@@ -1,127 +1,201 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-<meta name="generator" content="http://www.nongnu.org/elyxer/"/>
-<meta name="create-date" content="2016-09-24"/>
-<link rel="stylesheet" href="http://elyxer.nongnu.org/lyx.css" type="text/css" media="all"/>
-<title>Open Quantum Systems Theory behind Quantarhei Package</title>
-</head>
-<body>
-<div id="globalWrapper">
-<h1 class="title">
-Open Quantum Systems Theory behind Quantarhei Package
-</h1>
-<h2 class="author">
-Tom<span class="unknown">\’</span>aš Mančal
-</h2>
-<div class="Affiliation">
-Faculty of Mathematics and Physics, Charles University, Ke Karlovu 5, 121 16 Prague 2, Czech Republic
-</div>
-<h2 class="Date">
-Sep 24, 2016
-</h2>
-<div class="abstract">
-<p class="abstract-message">
-Abstract
-</p>
-In this document, we summarize the theory of open quantum systems as it is implemented in the Quantarhei package. Before it grows into a self-contained text, the following books should be consulted to gat a full picture: Volkhard May and Oliver Kühn, <i>Charge and Energy Transfer in Molecular Systems</i>, Wiley-VCH, Berlin, 2000 (and later editions), Shaul Mukamel, <i>Principles of Nonlinear Spectroscopy</i>, Oxford University Press, Oxford, 1995 and Leonas Valkunas, Darius Abramavicius and Tom<span class="unknown">\’</span>aš Mančal, <i>Molecular Excitation Dynamics and Relaxation</i>, Wiley-VCH, Weinheim, 2013. 
-</div>
-<div class="fulltoc">
-<div class="tocheader">
-Table of Contents
-</div>
-<div class="tocindent">
-<div class="tocindent">
-<div class="toc">
-<a class="Link" href="#toc-Section-None.1">Section None.1: Bath Correlation Functions and Spectral Densities</a>
-</div>
-<div class="tocindent">
-<div class="toc">
-<a class="Link" href="#toc-Subsection-None.1.1">Subsection None.1.1: Bath Correlation Function</a>
-</div>
-<div class="toc">
-<a class="Link" href="#toc-Subsection-None.1.2">Subsection None.1.2: Spectral Density</a>
-</div>
-</div>
-<div class="toc">
-<a class="Link" href="#toc-Section-None.2">Section None.2: Microscopic Derivation of Spectral Density Symmetries</a>
-</div>
-</div>
-</div>
-
-</div>
-<h2 class="Section">
-<a class="toc" name="toc-Section-None.1">None.1</a> Bath Correlation Functions and Spectral Densities
-</h2>
-<h3 class="Subsection">
-<a class="toc" name="toc-Subsection-None.1.1">None.1.1</a> Bath Correlation Function
-</h3>
-<div class="Unindented">
-Bath correlation function is defined as a two point correlation function of the bath part <span class="formula">Δ<i>V</i></span> of the system-bath interaction operator, i.e. as
-</div>
-<div class="Indented">
-<div class="formula">
-<a class="eqnumber" name="eq-None.1">(None.1) </a><i>C</i>(<i>t</i>) = <span class="fraction"><span class="ignored">(</span><span class="numerator">1</span><span class="ignored">)/(</span><span class="denominator">ℏ<sup>2</sup></span><span class="ignored">)</span></span><span class="unknown">\rm</span><span class="unknown">\rm</span><i>Tr</i><sub><i>B</i></sub>{<i>U</i><span class="scripts"><sup class="script">†</sup><sub class="script"><i>B</i></sub></span>(<i>t</i>)Δ<i>VU</i><sub><i>B</i></sub>(<i>t</i>)Δ<i>Vw</i><sub><span class="unknown">\rm</span><i>eq</i></sub>}
-</div>
-where <span class="formula"><i>w</i><sub><span class="unknown">\rm</span><i>eq</i></sub></span> is the equilibrium bath density operator, <span class="formula"><i>U</i><sub><i>B</i></sub>(<i>t</i>)</span> is the bath evolution operator and the trace is taken over the bath degrees of freedom. The bath correlation function is a complex quantity and as such it has a real part
-</div>
-<div class="Indented">
-<div class="formula">
-<a class="eqnumber" name="eq-None.2">(None.2) </a><i>C</i><sup>′</sup>(<i>t</i>) = <span class="fraction"><span class="ignored">(</span><span class="numerator">1</span><span class="ignored">)/(</span><span class="denominator">2</span><span class="ignored">)</span></span><span class="symbol">[</span><i>C</i>(<i>t</i>) + <i>C</i><sup>*</sup>(<i>t</i>)<span class="symbol">]</span>
-</div>
-and an imaginary part<div class="formula">
-<a class="eqnumber" name="eq-None.3">(None.3) </a><i>C</i><sup>′′</sup>(<i>t</i>) =  − <span class="fraction"><span class="ignored">(</span><span class="numerator"><i>i</i></span><span class="ignored">)/(</span><span class="denominator">2</span><span class="ignored">)</span></span><span class="symbol">[</span><i>C</i>(<i>t</i>) − <i>C</i><sup>*</sup>(<i>t</i>)<span class="symbol">]</span>
-</div>
-so that<div class="formula">
-<a class="eqnumber" name="eq-None.4">(None.4) </a><i>C</i>(<i>t</i>) = <i>C</i><sup>′</sup>(<i>t</i>) + <i>iC</i><sup>′′</sup>(<i>t</i>)
-</div>
-
-</div>
-<h3 class="Subsection">
-<a class="toc" name="toc-Subsection-None.1.2">None.1.2</a> Spectral Density
-</h3>
-<div class="Unindented">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title></title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)"> 
+<!-- html --> 
+<meta name="src" content="quantarhei_theory.tex"> 
+<meta name="date" content="2016-10-03 10:59:00"> 
+<link rel="stylesheet" type="text/css" href="quantarhei_theory.css"> 
+</head><body 
+>
+<a 
+ id="x1-1doc"></a>
+<!--l. 36--><p class="noindent" ><span 
+class="ecbx-1200">Open Quantum Systems Theory behind Quantarhei Package</span><a 
+ id="Q1-1-0"></a>
+<!--l. 36--><p class="noindent" >Tom�&#353;  Man&#x010D;al
+<!--l. 36--><p class="noindent" ><span 
+class="ecti-0900">Faculty  of  Mathematics  and  Physics,  Charles  University,  Ke  Karlovu  5,</span>
+<span 
+class="ecti-0900">121  16  Prague  2,  Czech  Republic</span><span 
+class="ecti-0900">&#x00A0;</span>
+<span 
+class="ecrm-0900">(Dated: October 3, 2016)</span>
+          <!--l. 26--><p class="noindent" ><a 
+ id="Q1-1-0"></a><span 
+class="ecrm-0900">In this document, we summarize the theory of open quantum systems as it is implemented in</span>
+          <span 
+class="ecrm-0900">the  Quantarhei  package.  Before  it  grows  into  a  self-contained  text,  the  following  books  should</span>
+          <span 
+class="ecrm-0900">be consulted to gat a full picture: Volkhard May and Oliver K</span><span 
+class="ecrm-0900">�hn, </span><span 
+class="ecti-0900">Charge and Energy Transfer</span>
+          <span 
+class="ecti-0900">in Molecular Systems</span><span 
+class="ecrm-0900">, Wiley-VCH, Berlin, 2000 (and later editions), Shaul Mukamel, </span><span 
+class="ecti-0900">Principles</span>
+          <span 
+class="ecti-0900">of Nonlinear Spectroscopy</span><span 
+class="ecrm-0900">, Oxford University Press, Oxford, 1995 and Leonas Valkunas, Darius</span>
+          <span 
+class="ecrm-0900">Abramavicius and Tom</span><span 
+class="ecrm-0900">�</span><span 
+class="ecrm-0900">&#353; Man</span><span 
+class="ecrm-0900">&#x010D;al, </span><span 
+class="ecti-0900">Molecular Excitation Dynamics and Relaxation</span><span 
+class="ecrm-0900">, Wiley-VCH,</span>
+          <span 
+class="ecrm-0900">Weinheim, 2013.</span>
+<span 
+class="ecbx-0900">CONTENTS</span>
+<a 
+ id="Q1-1-0"></a>
+<!--l. 40--><p class="indent" >
+<!--l. 40--><p class="noindent" ><span 
+class="ecbx-0900">I.</span>  <span 
+class="ecbx-0900">BATH CORRELATION FUNCTIONS AND SPECTRAL DENSITIES</span>
+<a 
+ id="Q1-1-0"></a>
+<span 
+class="ecbx-0900">A.   Bath Correlation Function</span>
+<a 
+ id="Q1-1-0"></a>
+Bath correlation function is defined as a two point correlation function of the bath part <span 
+class="cmr-10">&#x0394;</span><span 
+class="cmmi-10">V </span>of the system-bath interaction
+operator, i.e. as
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory0x.png" alt="       1-     &#8224;
+C (t) = &#x210F;2TrB{UB (t)&#x0394;V UB(t)&#x0394;V weq}
+" class="math-display" ><a 
+ id="x1-2r1"></a></center></td><td class="equation-label">(1)</td></tr></table>
+where <span 
+class="cmmi-10">w</span><sub><span 
+class="cmmi-7">eq</span></sub> is the equilibrium bath density operator, <span 
+class="cmmi-10">U</span><sub><span 
+class="cmmi-7">B</span></sub><span 
+class="cmr-10">(</span><span 
+class="cmmi-10">t</span><span 
+class="cmr-10">) </span>is the bath evolution operator and the trace is taken over
+the bath degrees of freedom. The bath correlation function is a complex quantity and as such it has a real
+part
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory1x.png" alt="       1
+C &#x2032;(t) =- [C (t)+ C *(t)]
+       2
+" class="math-display" ><a 
+ id="x1-3r2"></a></center></td><td class="equation-label">(2)</td></tr></table>
+and an imaginary part
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory2x.png" alt="  &#x2032;&#x2032;      i         *
+C  (t) = -2 [C (t)- C  (t)]
+" class="math-display" ><a 
+ id="x1-4r3"></a></center></td><td class="equation-label">(3)</td></tr></table>
+so that
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory3x.png" alt="C (t) = C&#x2032;(t)+ iC&#x2032;&#x2032;(t)
+" class="math-display" ><a 
+ id="x1-5r4"></a></center></td><td class="equation-label">(4)</td></tr></table>
+<span 
+class="ecbx-0900">B.   Spectral Density</span>
+<a 
+ id="Q1-1-0"></a>
 A very important quantity is the Fourier transform of the bath correlation function
-</div>
-<div class="Indented">
-<div class="formula">
-<a class="eqnumber" name="eq-None.5">(None.5) </a><i>C̃</i>(<i>ω</i>) = <span class="limits"><sup class="limit">∞</sup><span class="limits"><span class="limit">⌠</span><span class="limit">⌡</span></span><sub class="limit">0</sub></span><span class="unknown">\rm</span><i>d</i><i>t</i> <i>C</i>(<i>t</i>)<i>e</i><sup><i>i</i><i>ω</i><i>t</i></sup> = 2<span class="unknown">\rm</span><i>Re</i><span class="limits"><sup class="limit">∞</sup><span class="limits"><span class="limit">⌠</span><span class="limit">⌡</span></span><sub class="limit">0</sub></span><span class="unknown">\rm</span><i>d</i><i>t</i> <i>C</i>(<i>t</i>)<i>e</i><sup><i>i</i><i>ω</i><i>t</i></sup>
-</div>
-It is sometimes referred to as <a class="IndexReference" name="entry-spectral-density-0" href="#index-spectral-density">↓</a><i>spectral density</i>, but we will reserve this name for a different quantity. We will follow Ref. [Mukamel1995]. The Fourier transform <span class="formula"><i>C̃</i>(<i>ω</i>)</span> can be split into even and odd parts defined as<div class="formula">
-<a class="eqnumber" name="eq-None.6">(None.6) </a><i>C̃</i><sup>′</sup>(<i>ω</i>) = <span class="limits"><sup class="limit">∞</sup><span class="limits"><span class="limit">⌠</span><span class="limit">⌡</span></span><sub class="limit"> − ∞</sub></span><span class="unknown">\rm</span><i>d</i><i>t</i> <i>C</i><sup>′</sup>(<i>t</i>)<i>e</i><sup><i>i</i><i>ω</i><i>t</i></sup>,  <i>C̃</i><sup>′′</sup>(<i>ω</i>) = <i>i</i><span class="limits"><sup class="limit">∞</sup><span class="limits"><span class="limit">⌠</span><span class="limit">⌡</span></span><sub class="limit"> − ∞</sub></span><span class="unknown">\rm</span><i>d</i><i>t</i> <i>C</i><sup>′′</sup>(<i>t</i>)<i>e</i><sup><i>i</i><i>ω</i><i>t</i></sup>
-</div>
-so that <div class="formula">
-<a class="eqnumber" name="eq-None.7">(None.7) </a><i>C̃</i>(<i>ω</i>) = <i>C̃</i><sup>′</sup>(<i>ω</i>) + <i>C̃</i><sup>′′</sup>(<i>ω</i>)
-</div>
-It can be shown (see [Mukamel1995]) that <div class="formula">
-<a class="eqnumber" name="eq:C_omega_symmetry">(None.8) </a><i>C̃</i>( − <i>ω</i>) = <i>e</i><sup> − <span class="fraction"><span class="ignored">(</span><span class="numerator">ℏ<i>ω</i></span><span class="ignored">)/(</span><span class="denominator"><i>k</i><sub><i>B</i></sub><i>T</i></span><span class="ignored">)</span></span></sup><i>C̃</i>(<i>ω</i>)
-</div>
- and<div class="formula">
-<a class="eqnumber" name="eq:C_omega_by_C_2primes">(None.9) </a><i>C̃</i>(<i>ω</i>) = <span class="symbol">[</span>1 + coth(ℏ<i>ω</i> ⁄ 2<i>k</i><sub><i>B</i></sub><i>T</i>)<span class="symbol">]</span><i>C̃</i><sup>′′</sup>(<i>ω</i>)
-</div>
-Due to the relation between positive and negative frequency values of the Fourier transform of the bath correlation function, we can define it completely through the odd function <span class="formula"><i>C̃</i><sup>′′</sup>(<i>ω</i>)</span> which is a Fourier transform of the imaginary part of the correlation function.
-</div>
-<div class="Indented">
-Spectral density
-</div>
-<div class="Indented">
-<div class="formula">
-<a class="eqnumber" name="eq-None.10">(None.10) </a><i>J</i>(<i>ω</i>) = <span class="limits"><sup class="limit"> </sup><span class="limit">⎲</span><span class="limit">⎳</span><sub class="limit"><i>ξ</i></sub></span>|<i>g</i><sub><i>ξ</i></sub>|<sup>2</sup><i>δ</i>(<i>ω</i> − <i>ω</i><sub><i>ξ</i></sub>)
-</div>
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory4x.png" alt="      &#x222B;&#x221E;                &#x221E;&#x222B;
+&#x02DC;C(&#x03C9;) =   dt C(t)ei&#x03C9;t = 2Re dt C (t)ei&#x03C9;t
 
-</div>
-<div class="Indented">
-<span class="unknown">\appendix</span>
-</div>
-<h2 class="Section">
-<a class="toc" name="toc-Section-None.2">None.2</a> Microscopic Derivation of Spectral Density Symmetries
-</h2>
-<div class="Unindented">
-Here we will derive the Eqs. (<a class="Reference" href="#eq:C_omega_symmetry">None.8↑</a>) and (<a class="Reference" href="#eq:C_omega_by_C_2primes">None.9↑</a>).
-</div>
+      0                 0
+" class="math-display" ><a 
+ id="x1-6r5"></a></center></td><td class="equation-label">(5)</td></tr></table>
+It is sometimes referred to as <span 
+class="ecti-1000">spectral density</span>, but we will reserve this name for a different quantity. We will follow Ref.
+[Mukamel1995]. The Fourier transform <img 
+src="quantarhei_theory5x.png" alt="C&#x02DC;"  class="tilde" ><span 
+class="cmr-10">(</span><span 
+class="cmmi-10">&#x03C9;</span><span 
+class="cmr-10">) </span>can be split into even and odd parts defined as
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory6x.png" alt="       &#x222B;&#x221E;                     &#x222B;&#x221E;
+&#x02DC;C&#x2032;(&#x03C9; ) =   dt C &#x2032;(t)ei&#x03C9;t,C&#x02DC;&#x2032;&#x2032;(&#x03C9; ) = i dt C &#x2032;&#x2032;(t)ei&#x03C9;t
+       -&#x221E;                    - &#x221E;
+" class="math-display" ><a 
+ id="x1-7r6"></a></center></td><td class="equation-label">(6)</td></tr></table>
+so that
+  <table 
+class="equation"><tr><td>
 
-</div>
-</body>
-</html>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory7x.png" alt="&#x02DC;      &#x02DC;&#x2032;     &#x02DC;&#x2032;&#x2032;
+C(&#x03C9;) = C (&#x03C9; )+ C (&#x03C9;)
+" class="math-display" ><a 
+ id="x1-8r7"></a></center></td><td class="equation-label">(7)</td></tr></table>
+It can be shown (see [Mukamel1995]) that
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory8x.png" alt="C&#x02DC;(- &#x03C9;) = e-k&#x210F;&#x03C9;BTC&#x02DC;(&#x03C9; )
+" class="math-display" ><a 
+ id="x1-9r8"></a></center></td><td class="equation-label">(8)</td></tr></table>
+and
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory9x.png" alt="&#x02DC;C(&#x03C9;) = [1+ coth(&#x210F; &#x03C9;&#x2215;2kBT)] &#x02DC;C&#x2032;&#x2032;(&#x03C9;)
+" class="math-display" ><a 
+ id="x1-10r9"></a></center></td><td class="equation-label">(9)</td></tr></table>
+Due to the relation between positive and negative frequency values of the Fourier transform of the bath correlation function,
+we can define it completely through the odd function <img 
+src="quantarhei_theory10x.png" alt="C&#x02DC;"  class="tilde" ><sup><span 
+class="cmsy-7">&#x2032;&#x2032;</span></sup><span 
+class="cmr-10">(</span><span 
+class="cmmi-10">&#x03C9;</span><span 
+class="cmr-10">) </span>which is a Fourier transform of the imaginary part of the
+correlation function.
+  Spectral density
+  <table 
+class="equation"><tr><td>
+  <center class="math-display" >
+<img 
+src="quantarhei_theory11x.png" alt="J(&#x03C9;) = &#x2211; |g&#x03BE;|2&#x03B4;(&#x03C9;- &#x03C9;&#x03BE;)
+       &#x03BE;
+" class="math-display" ><a 
+ id="x1-11r10"></a></center></td><td class="equation-label">(10)</td></tr></table>
+
+<span 
+class="ecbx-0900">Appendix</span><span 
+class="ecbx-0900">&#x00A0;A:</span><span 
+class="ecbx-0900">&#x00A0;Microscopic Derivation of Spectral Density Symmetries</span>
+<a 
+ id="Q1-1-0"></a>
+Here we will derive the Eqs. (<a 
+href="#x1-9r8">8<!--tex4ht:ref: eq:C_omega_symmetry --></a>) and (<a 
+href="#x1-10r9">9<!--tex4ht:ref: eq:C_omega_by_C_2primes --></a>).  
+</body></html> 
+
+
+
