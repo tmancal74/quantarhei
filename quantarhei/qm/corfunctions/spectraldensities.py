@@ -151,43 +151,42 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         time = self.axis.get_TimeAxis()
         return CorrelationFunction(time, params)
-        
-        
-    def get_FTCorrelationFunction(self,temperature=None):
+
+
+    def get_FTCorrelationFunction(self, temperature=None):
         """Returns Fourier transformed correlation function
-        
+
         Fourier transformed correlation function is calculated from the
         analytical formula connecting spectral density and FT correlation
         function.
-        
+
         Parameters
         ----------
-        
+
         temparature : optional
-            Temperature which can be missing among the spectral density 
+            Temperature which can be missing among the spectral density
             parameters
-            
-            
+
+
         """
         params = self.params.copy()
         if temperature is not None:
             params["T"] = temperature
-        
+
         temp = params["T"]
-            
+
         ind_of_zero, diff = self.axis.locate(0.0)
         atol = 1.0e-7
         twokBT = 2.0*kB_int*temp
         with energy_units("int"): #self.energy_units):
             if numpy.abs(diff) < atol:
-                vals = (1.0 + 
+                vals = (1.0 +
                     (1.0/numpy.tanh(self.axis.data/twokBT)))*self.data
             else:
                 vals = self.data # (1.0 + (1.0/numpy.tanh(self.axis.data)))*self.data
-                
+
         with energy_units(self.energy_units):
             ftc = FTCorrelationFunction(self.axis, params, values=vals)
- 
+
         return ftc
-        
-        
+
