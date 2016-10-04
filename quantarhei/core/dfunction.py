@@ -150,40 +150,39 @@ class DFunction:
 
     """
 
-    allowed_interp_types = ("linear","spline","default")
+    allowed_interp_types = ("linear", "spline", "default")
 
-    def __init__(self,x=None,y=None):
+    def __init__(self, x=None, y=None):
 
         self._is_empty = False
 
         if not ((x is None) and (y is None)):
-            self._make_me(x,y)
+            self._make_me(x, y)
         else:
             self._is_empty = True
 
         self._splines_initialized = False
 
-    def _make_me(self,x,y):
+    def _make_me(self, x, y):
 
         self._has_imag = False
 
-        if isinstance(x,ValueAxis):
+        if isinstance(x, ValueAxis):
             self.axis = x
         else:
             raise Exception("First argument has to be of a ValueAxis type")
 
-        if isinstance(y,numpy.ndarray):
+        if isinstance(y, numpy.ndarray):
 
             if len(y.shape) == 1:
                 if y.shape[0] != self.axis.length:
                     raise Exception("Wrong number of elements"
                     + " in 1D numpy.ndarray")
-                """
-                Set values of the function
-                """
+
+                #Set values of the function
                 self.data = y
 
-                if isinstance(self.data[0],numbers.Real):
+                if isinstance(self.data[0], numbers.Real):
                     self._has_imag = False
                 else:
                     self._has_imag = True
@@ -195,8 +194,6 @@ class DFunction:
         else:
             raise Exception("Second argument has to be"
             + " one-dimensional numpy.ndarray")
-
-
 
 
 
@@ -214,7 +211,7 @@ class DFunction:
 
         """
 
-        if not approx in self.allowed_interp_types:
+        if approx not in self.allowed_interp_types:
             raise Exception("Unknown interpolation type")
 
         if approx == "default":
@@ -228,12 +225,13 @@ class DFunction:
         elif approx == "spline":
             return self._get_spline_approx(x)
 
-    """
+    #
+    #
+    # Implementations of various interpolation types
+    #
+    #
 
-    Implementations of various interpolation types
-
-    """
-    def _get_linear_approx(self,x):
+    def _get_linear_approx(self, x):
         """Returns linear interpolation of the function
 
         """
@@ -247,7 +245,7 @@ class DFunction:
 
         return val
 
-    def _get_spline_approx(self,x):
+    def _get_spline_approx(self, x):
         """Returns spline interpolation of the function
 
         """
@@ -262,16 +260,16 @@ class DFunction:
         """
         self._spline_r = \
                scipy.interpolate.UnivariateSpline(
-                  self.axis.data,numpy.real(self.data),s=0)
+                  self.axis.data, numpy.real(self.data),s=0)
         if self._has_imag:
             self._spline_i = \
                scipy.interpolate.UnivariateSpline(
-                  self.axis.data,numpy.imag(self.data),s=0)
+                  self.axis.data, numpy.imag(self.data),s=0)
 
         self._splines_initialized = True
         #print("Calculating splines")
 
-    def _spline_value(self,x):
+    def _spline_value(self, x):
         """Returns the splie interpolated value of the function
 
         """
@@ -282,11 +280,11 @@ class DFunction:
         return ret
 
 
-    """
-
-    Fast Fourier transform
-
-    """
+    #
+    #
+    # Fast Fourier transform
+    #
+    #
 
     def get_Fourier_transform(self):
         """Returns Fourier transform of the DFunction
@@ -296,7 +294,7 @@ class DFunction:
         t = self.axis
         y = self.data
 
-        if isinstance(t,TimeAxis):
+        if isinstance(t, TimeAxis):
 
             w = t.get_FrequencyAxis()
 
@@ -306,26 +304,42 @@ class DFunction:
                 numpy.fft.fftshift(y)))*t.step
 
             elif t.atype == "upper-half":
-                yy = numpy.zeros(w.length,dtype=y.dtype)
+
+                yy = numpy.zeros(w.length, dtype=y.dtype)
                 yy[0:w.length//2] = y
-                for k in range(0,t.length-1):
+                # fill the negative side of the axis according to the symmetry
+                # FIXME: No choice of symmetry provided !!!!
+                for k in range(0, t.length-1):
                     yy[w.length-k-1] = numpy.conj(y[k+1])
                 Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.step
 
-            F = DFunction(w,Y)
+            else:
+                raise Exception("Unknown axis type"
+                                +" (must be complete or upper-half)")
+
+            F = DFunction(w, Y)
 
 
-        elif isinstance(t,FrequencyAxis):
+        elif isinstance(t, FrequencyAxis):
 
             w = t
             t = w.get_TimeAxis()
 
-            if w.atype == "complete":
-
-                Y = w.length*numpy.fft.fftshift(numpy.fft.ifft(
+            Y = w.length*numpy.fft.fftshift(numpy.fft.ifft(
                 numpy.fft.fftshift(y)))*w.domega/(numpy.pi*2.0)
 
-            F = DFunction(t,Y)
+            if w.atype == "complete":
+
+                F = DFunction(t, Y)
+
+            elif w.atype == "upper-half":
+
+                Y = Y[t.length:2*t.length]
+                F = DFunction(t, Y)
+
+            else:
+                raise Exception("Unknown axis type"
+                                +" (must be complete or upper-half)")
 
 
         else:
@@ -343,34 +357,55 @@ class DFunction:
         t = self.axis
         y = self.data
 
-        if isinstance(t,TimeAxis):
+        if isinstance(t, TimeAxis):
 
             w = t.get_FrequencyAxis()
 
             if t.atype == "complete":
+
+                #Y = t.length*numpy.fft.fftshift(numpy.fft.ifft(
+                #    numpy.fft.fftshift(y)))*t.step
                 Y = numpy.fft.fftshift(numpy.fft.fft(
-                numpy.fft.fftshift(y)))*t.step
+                    numpy.fft.fftshift(y)))*t.step
+
             elif t.atype == "upper-half":
-                yy = numpy.zeros(w.length,dtype=y.dtype)
+
+                yy = numpy.zeros(w.length, dtype=y.dtype)
                 yy[0:w.length//2] = y
-                for k in range(0,t.length-1):
+                # fill the negative side of the axis according to the symmetry
+                # FIXME: No choice of symmetry provided !!!!
+                for k in range(0, t.length-1):
                     yy[w.length-k-1] = numpy.conj(y[k+1])
-                Y = numpy.fft.fftshift(numpy.fft.fft(yy))*t.step
 
-            F = DFunction(w,Y)
+                Y = 2.0*numpy.fft.fftshift(numpy.fft.fft(yy))*t.step
+
+            else:
+                raise Exception("Unknown axis type"
+                                +" (must be complete or upper-half)")
+
+            F = DFunction(w, Y)
 
 
-        elif isinstance(t,FrequencyAxis):
+        elif isinstance(t, FrequencyAxis):
 
             w = t
             t = w.get_TimeAxis()
 
-            if w.atype == "complete":
-                Y = numpy.fft.fftshift(numpy.fft.fft(
-                numpy.fft.fftshift(y)))*w.domega/(numpy.pi*2.0)
+            Y = numpy.fft.fftshift(numpy.fft.fft(
+            numpy.fft.fftshift(y)))*w.step/(numpy.pi*2.0)
 
-            F = DFunction(t,Y)
+            if t.atype == "complete":
 
+                F = DFunction(t, Y)
+
+            elif t.atype == "upper-half":
+
+                Y = Y[t.length:2*t.length]
+                F = DFunction(t, Y)
+
+            else:
+                raise Exception("Unknown axis type"
+                                +" (must be complete or upper-half)")
 
         else:
             pass
@@ -397,26 +432,26 @@ class DFunction:
 
         if color is not None:
             if len(color) == 1:
-                clr = [color,color]
+                clr = [color, color]
             else:
-                clr = [color[0],color[1]]
+                clr = [color[0], color[1]]
 
-        if isinstance(self.data[0],numbers.Complex):
+        if isinstance(self.data[0], numbers.Complex):
             if color is not None:
-                plt.plot(self.axis.data,numpy.real(self.data),clr[0])
+                plt.plot(self.axis.data, numpy.real(self.data), clr[0])
                 if not real_only:
-                    plt.plot(self.axis.data,numpy.imag(self.data),clr[1])
+                    plt.plot(self.axis.data, numpy.imag(self.data), clr[1])
             else:
-                plt.plot(self.axis.data,numpy.real(self.data))
+                plt.plot(self.axis.data, numpy.real(self.data))
 
                 if not real_only:
-                    plt.plot(self.axis.data,numpy.imag(self.data))
+                    plt.plot(self.axis.data, numpy.imag(self.data))
 
         else:
             if color is not None:
-                plt.plot(self.axis.data,self.data,clr[0])
+                plt.plot(self.axis.data, self.data,clr[0])
             else:
-                plt.plot(self.axis.data,self.data)
+                plt.plot(self.axis.data, self.data)
 
         if axis is not None:
             plt.axis(axis)
@@ -429,7 +464,7 @@ class DFunction:
                 plt.text(text[0],text[1],
                      text[2], fontdict=text_font)
             else:
-                plt.text(text[0],text[1],text[2])
+                plt.text(text[0], text[1], text[2])
 
         if label_font is not None:
             font = label_font
@@ -437,42 +472,42 @@ class DFunction:
             font={'size':20}
 
         if xlabel is not None:
-            xl = '$\omega$ [fs$^{-1}$]'
+            xl = r'$\omega$ [fs$^{-1}$]'
 
-        if isinstance(self.axis,FrequencyAxis):
+        if isinstance(self.axis, FrequencyAxis):
             units = self.axis.unit_repr_latex()
-            xl = '$\omega$ ['+units+']'  #[rad$\cdot$fs$^{-1}$]'
-            yl = '$F(\omega)$'
-        if isinstance(self.axis,TimeAxis):
-            xl = '$t$ [fs]'
-            yl = '$f(t)$'
+            xl = r'$\omega$ ['+units+']'
+            yl = r'$F(\omega)$'
+        if isinstance(self.axis, TimeAxis):
+            xl = r'$t$ [fs]'
+            yl = r'$f(t)$'
 
         if xlabel is not None:
             xl = xlabel
         if ylabel is not None:
             yl = ylabel
 
-        plt.xlabel(xl,**font)
-        plt.ylabel(yl,**font)
+        plt.xlabel(xl, **font)
+        plt.ylabel(yl, **font)
 
         if show:
             plt.show()
 
 
-    def save(self,filename,ext="npy"):
+    def save(self, filename, ext="npy"):
         """Saves the DFunction into a file
 
         """
         add_imag = False
 
-        if ext in ["npy","dat"]:
+        if ext in ["npy", "dat"]:
             fname = filename + "." + ext
 
-            if isinstance(self.data[0],numbers.Real):
-                ab = numpy.zeros((self.axis.length,2))
+            if isinstance(self.data[0], numbers.Real):
+                ab = numpy.zeros((self.axis.length, 2))
             else:
                 add_imag = True
-                ab = numpy.zeros((self.axis.length,3))
+                ab = numpy.zeros((self.axis.length, 3))
 
             datr = numpy.real(self.data)
             for kk in range(self.axis.length):
@@ -489,16 +524,16 @@ class DFunction:
 
         if ext == "npy":
 
-            numpy.save(fname,ab)
+            numpy.save(fname, ab)
 
         elif ext == "dat":
 
-            numpy.savetxt(fname,ab)
+            numpy.savetxt(fname, ab)
 
 
 
 
-    def load(self,filename,axis="time",ext="npy",replace=False):
+    def load(self, filename, axis="time", ext="npy", replace=False):
         """Loads a DFunction from  a file
 
         """
@@ -508,11 +543,9 @@ class DFunction:
             + " Use replace=True argument (default is replace=False")
 
         if ext in ["npy","dat"]:
+
             fname = filename + "." + ext
-#            ab = numpy.zeros((self.axis.length,2))
-#            for kk in range(self.axis.length):
-#                ab[kk,0] = self.axis.data[kk]
-#                ab[kk,1] = self.data[kk]
+
         else:
             raise Exception("Unknown format")
 
@@ -531,14 +564,14 @@ class DFunction:
 
         if axis == "time":
 
-            axs = TimeAxis(st,N,dt)
+            axs = TimeAxis(st, N, dt)
 
         elif axis == "frequency":
 
-            axs = FrequencyAxis(st,N,dt)
+            axs = FrequencyAxis(st, N, dt)
 
         else:
 
-            axs = ValueAxis(st,N,dt)
+            axs = ValueAxis(st, N, dt)
 
-        self._make_me(axs,dat)
+        self._make_me(axs, dat)

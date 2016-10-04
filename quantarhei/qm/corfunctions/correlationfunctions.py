@@ -125,11 +125,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         if self.ftype == "OverdampedBrownian-HighTemperature":
 
-            self._make_overdumped_brownian_ht(params)
+            self._make_overdumped_brownian_ht(params, values=values)
 
         elif self.ftype == "OverdampedBrownian":
 
-            self._make_overdumped_brownian(params)
+            self._make_overdumped_brownian(params, values=values)
 
         elif self.ftype == "Value-defined":
 
@@ -148,7 +148,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             msf += nut*n*numpy.exp(-nut*n*time)/((nut*n)**2-(1.0/ctime)**2)
         return msf
 
-    def _make_overdumped_brownian(self, params):
+    def _make_overdumped_brownian(self, params, values=None):
 
         temperature = params["T"]
         ctime = params["cortime"]
@@ -163,12 +163,16 @@ class CorrelationFunction(DFunction, UnitsManaged):
         kBT = kB_intK*temperature
         time = self.axis.data
 
-        cfce = (lamb/(ctime*numpy.tan(1.0/(2.0*kBT*ctime))))\
-            *numpy.exp(-time/ctime) \
-            - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime)
+        if values is not None:
 
-        cfce += (4.0*lamb*kBT/ctime) \
-            *self._matsubara(kBT, ctime, nmatsu)
+            cfce = values
+        else:
+            cfce = (lamb/(ctime*numpy.tan(1.0/(2.0*kBT*ctime))))\
+                *numpy.exp(-time/ctime) \
+                - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime)
+
+            cfce += (4.0*lamb*kBT/ctime) \
+                *self._matsubara(kBT, ctime, nmatsu)
 
         self._make_me(self.axis, cfce)
         self.lamb = lamb
@@ -177,7 +181,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self.cutoff_time = 5.0*ctime
 
 
-    def _make_overdumped_brownian_ht(self, params):
+    def _make_overdumped_brownian_ht(self, params, values=None):
         temperature = params["T"]
         ctime = params["cortime"]
         # use the units in which params was defined
@@ -186,8 +190,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
         kBT = kB_intK*temperature
         time = self.axis.data
 
-        cfce = 2.0*lamb*kBT*(numpy.exp(-time/ctime)
-                             - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
+        if values is not None:
+            cfce = values
+        else:
+            cfce = 2.0*lamb*kBT*(numpy.exp(-time/ctime)
+                                 - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
 
         self._make_me(self.axis, cfce)
 
@@ -428,6 +435,16 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
     params: dictionary
         Dictionary of the correlation function parameter
 
+    Examples
+    --------
+
+    >>> ta = TimeAxis(0.0,1000,1.0)
+    >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
+    >>> with energy_units("1/cm"):
+    ...    ecf = EvenFTCorrelationFunction(ta,params)
+    ...    print(numpy.allclose(ecf.at(-100), ecf.at(100)))
+    True
+
     """
 
     def __init__(self, axis, params):
@@ -458,7 +475,7 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
         # data have to be protected from change of units
         with energy_units("int"):
             ftvals = cfce.get_Fourier_transform()
-            self.data = ftvals.data
+            self.data = numpy.real(ftvals.data)
 
         self.axis = ftvals.axis
 

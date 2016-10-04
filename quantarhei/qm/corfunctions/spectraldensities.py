@@ -187,8 +187,15 @@ class SpectralDensity(DFunction, UnitsManaged):
             params["T"] = temperature
 
         time = self.axis.get_TimeAxis()
-        # FIXME: Correlation function has to be created numerically
-        return CorrelationFunction(time, params)
+
+        # everything has to be protected from change of units
+        with energy_units("int"):
+
+            sd = self.get_FTCorrelationFunction(temperature=params["T"])
+            ft = sd.get_inverse_Fourier_transform()
+            cf2 = CorrelationFunction(time, params, values=ft.data)
+
+        return cf2
 
 
     def get_FTCorrelationFunction(self, temperature=None):

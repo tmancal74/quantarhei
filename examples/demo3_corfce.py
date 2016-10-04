@@ -87,8 +87,13 @@ sd = cf.get_SpectralDensity()
 
 with energy_units("1/cm"):
     sd1 = SpectralDensity(ta,params)
-#with energy_units("int"):
-#    sd1.save("ob_sd_20cm_100fs_300K_m20",ext="dat")
+    cf1 = CorrelationFunction(ta, params)
+    cf1n = sd1.get_CorrelationFunction()
+
+cf1.plot(real_only=False,show=False)
+cf1n.plot()
+
+
 
 # Plot spectral density
 with energy_units("1/cm"):
