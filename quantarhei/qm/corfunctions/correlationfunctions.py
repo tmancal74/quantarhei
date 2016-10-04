@@ -84,7 +84,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
     >>> with energy_units("1/cm"):
     ...     cf = CorrelationFunction(time,params)
 
-
+    >>> with energy_units("1/cm"):
+    ...     print(cf.get_reorganization_energy())
+    20.0
 
     """
 
@@ -233,6 +235,20 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         """
         return self.temperature
+
+    def get_reorganization_energy(self):
+        """Returns the reorganization energy of the correlation function
+
+        """
+        return self.convert_energy_2_current_u(self.lamb)
+
+    def measure_reorganization_energy(self):
+        """Calculates the reorganization energy of the correlation function
+
+        Calculates the reorganization energy of the correlation function by
+        integrating its imaginary part.
+        """
+        pass
 
 
     def copy(self):

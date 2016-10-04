@@ -84,6 +84,10 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     >>> cf = sdwoT.get_CorrelationFunction(temperature=300)
 
+    >>> with energy_units("1/cm"):
+    ...     print(sdwoT.get_reorganization_energy())
+    20.0
+
     """
 
     analytical_types = ("OverdampedBrownian")
@@ -169,7 +173,20 @@ class SpectralDensity(DFunction, UnitsManaged):
         else:
             raise Exception("SpectralDensity was not assigned temperature")
 
+    def get_reorganization_energy(self):
+        """Returns the reorganization energy of the cspectral density
 
+        """
+        return self.convert_energy_2_current_u(self.lamb)
+
+    def measure_reorganization_energy(self):
+        """Calculates the reorganization energy of the spectral density
+
+        Calculates the reorganization energy of the spectral density by
+        integrating over frequency.
+        """
+        pass
+    
     def copy(self):
         """Creates a copy of the current correlation function
 

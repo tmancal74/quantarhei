@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+    Quantarhei package (http://www.github.com/quantarhei)
+
+    dfucntion module
+
+
+"""
+
 import scipy.interpolate
 import numpy
 import numbers
@@ -311,6 +319,7 @@ class DFunction:
                 # FIXME: No choice of symmetry provided !!!!
                 for k in range(0, t.length-1):
                     yy[w.length-k-1] = numpy.conj(y[k+1])
+
                 Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.step
 
             else:
