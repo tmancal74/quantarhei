@@ -161,6 +161,7 @@ class DFunction:
         else:
             self._is_empty = True
 
+        self._splines_initialized = False
 
     def _make_me(self,x,y):
 
@@ -195,7 +196,7 @@ class DFunction:
             raise Exception("Second argument has to be"
             + " one-dimensional numpy.ndarray")
 
-        self._splines_initialized = False
+
 
 
 

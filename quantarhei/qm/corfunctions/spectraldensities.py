@@ -30,6 +30,28 @@ class SpectralDensity(DFunction, UnitsManaged):
         Parameters of the spectral density
 
 
+    Methods
+    -------
+
+....is_analytical()
+        Returns `True` if the spectral density is calculated from an analytical
+        formula, `False` otherwise.
+
+    copy()
+        Makes a copy of the SpectralDensity object
+
+    get_temperature()
+        Returns temperature assigned to the spectral density or raises an
+        exception if it was not set
+
+    get_CorrelationFunction()
+        Returns numerically calculated correlation function, based on the
+        spectral density
+
+    get_FTCorrelationFunction()
+        Returns a numerically calculated Fourier transform of the correlation
+        function
+
 
     Examples
     --------
@@ -64,6 +86,8 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     """
 
+    analytical_types = ("OverdampedBrownian")
+
     def __init__(self, axis, params):
         super().__init__()
 
@@ -97,33 +121,43 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         if self.ftype == "OverdampedBrownian":
 
-            ctime = params["cortime"]
-            lamb = self.manager.iu_energy(params["reorg"],
-                                          units=self.energy_units)
-
-            # Masubara frequencies are needed only in time domain
-            #try:
-            #    N = params["matsubara"]
-            #except:
-            #    N = 10
-
-            # Temperature is also not needed here, but it is stored
-            #kBT = kB_intK*T
-
-            # protect calculation from units management
-            with energy_units("int"):
-                omega = self.axis.data
-                cfce = (2.0*lamb/ctime)*omega/(omega**2 + (1.0/ctime)**2)
-
-            self._make_me(self.axis, cfce)
-
-            # this is in internal units
-            self.lamb = lamb
-
+            self._make_overdamped_brownian()
 
         else:
             raise Exception("Unknown correlation function type of"+
                             "type domain combination.")
+
+    def _make_overdamped_brownian(self):
+        """ Sets the Overdamped Brownian oscillator spectral density
+
+        """
+        ctime = self.params["cortime"]
+        lamb = self.manager.iu_energy(self.params["reorg"],
+                                      units=self.energy_units)
+
+        # protect calculation from units management
+        with energy_units("int"):
+            omega = self.axis.data
+            cfce = (2.0*lamb/ctime)*omega/(omega**2 + (1.0/ctime)**2)
+
+        self._make_me(self.axis, cfce)
+
+        # this is in internal units
+        self.lamb = lamb
+
+        self.lim_omega = numpy.zeros(2)
+        self.lim_omega[0] = 0.0
+        self.lim_omega[1] = ctime
+
+    def is_analytical(self):
+        """Returns `True` if analytical
+
+        Returns `True` if the CorrelationFunction object is constructed
+        by analytical formula. Returns `False` if the object was constructed
+        by numerical transformation from spectral density.
+        """
+
+        return bool(self.params["ftype"] in self.analytical_types)
 
 
     def get_temperature(self):
@@ -133,11 +167,13 @@ class SpectralDensity(DFunction, UnitsManaged):
         if "T" in self.params.keys():
             return self.temperature
         else:
-            raise Exception("SpectralDensity was not set with temperature")
+            raise Exception("SpectralDensity was not assigned temperature")
 
 
     def copy(self):
-        """Creates a copy of the current correlation function"""
+        """Creates a copy of the current correlation function
+
+        """
         return SpectralDensity(self.axis, self.params)
 
 
@@ -145,11 +181,13 @@ class SpectralDensity(DFunction, UnitsManaged):
         """Returns correlation function corresponding to the spectral density
 
         """
+
         params = self.params.copy()
         if temperature is not None:
             params["T"] = temperature
 
         time = self.axis.get_TimeAxis()
+        # FIXME: Correlation function has to be created numerically
         return CorrelationFunction(time, params)
 
 
@@ -163,7 +201,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         Parameters
         ----------
 
-        temparature : optional
+        temperature : optional
             Temperature which can be missing among the spectral density
             parameters
 
@@ -177,16 +215,33 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         ind_of_zero, diff = self.axis.locate(0.0)
         atol = 1.0e-7
-        twokBT = 2.0*kB_int*temp
-        with energy_units("int"): #self.energy_units):
-            if numpy.abs(diff) < atol:
+        twokbt = 2.0*kB_int*temp
+
+        with energy_units("int"):
+            # if zero is sufficiently away from any point that is evaluated
+            if numpy.abs(diff) > atol:
+                # do the evaluation directly
                 vals = (1.0 +
-                    (1.0/numpy.tanh(self.axis.data/twokBT)))*self.data
+                        (1.0/numpy.tanh(self.axis.data/twokbt)))*self.data
+            # otherwise
             else:
-                vals = self.data # (1.0 + (1.0/numpy.tanh(self.axis.data)))*self.data
+                data = self.data
+                vals = numpy.zeros(self.data.shape)
+                # evaluate everything before zero
+                omega = self.axis.data[0:ind_of_zero]
+                spect = data[0:ind_of_zero]
+                auxi = (1.0 + (1.0/numpy.tanh(omega/twokbt)))*spect
+                vals[0:ind_of_zero] = auxi
+                # then after zero
+                omega = self.axis.data[ind_of_zero+1:self.axis.length]
+                spect = data[ind_of_zero+1:self.axis.length]
+                auxi = (1.0 + (1.0/numpy.tanh(omega/twokbt)))*spect
+                vals[ind_of_zero+1:self.axis.length] = auxi
+                # and used the limit at zero devided by omega
+                vals[ind_of_zero] = 2.0*self.lamb*twokbt*self.lim_omega[1]
+
 
         with energy_units(self.energy_units):
             ftc = FTCorrelationFunction(self.axis, params, values=vals)
 
         return ftc
-

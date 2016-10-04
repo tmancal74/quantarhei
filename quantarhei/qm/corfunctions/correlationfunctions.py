@@ -18,14 +18,53 @@ from ...core.time import TimeAxis
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
-    """Provides typical Bath correlation functions
+    """Provides typical Bath correlation function types.
+
+    Most important types of bath or energy gap correlation functions are
+    provided. Where possible, the correlation function is calculated
+    from the parameters from analytical formulae. Where such formulae are
+    not available, correlation function is calculated by transformation
+    of the spectral density.
 
     Parameters
     ----------
 
-    timeAxis : TimeAxis
+    axis : TimeAxis
         TimeAxis object specifying the time interval on which the
         correlation function is defined.
+
+    params : dictionary
+        A dictionary of the correlation function parameters
+
+    values : optional
+        Correlation function can be set by specifying values at all times
+
+    Methods
+    -------
+
+    is_analytical()
+        Returns `True` if the correlation function is calculated from an
+        analytical formula, `False` otherwise.
+
+    copy()
+        Returns a copy of the CorrelationFunction object
+
+    get_temperature()
+        Returns the temperature of the spectral density
+
+    get_FTCorrelationFunction()
+        Returns the Fourier transform of the correlation function
+
+    get_EvenFTCorrelationFunction()
+        Returns the Fourier transform of the real part of the correlation
+        function
+
+    get_OddFTCorrelationFunction()
+        Returns the Fourier transform of the imaginary part of the correlation
+        function
+
+    get_SpectralDensity()
+        Returns numerically calculated spectral density
 
 
     Types of correlation function provided
@@ -40,19 +79,20 @@ class CorrelationFunction(DFunction, UnitsManaged):
     --------
 
     >>> from quantarhei import TimeAxis
-    >>> params = dict(ftype="OverdampedBrownian", cortime=100, reorg=20, \
-                      T=300)
+    >>> params = dict(ftype="OverdampedBrownian", cortime=100, reorg=20, T=300)
     >>> time = TimeAxis(0.0,1000,0.1)
-    >>> with energy_units("1/cm"): \
-            cf = CorrelationFunction(time,params)
+    >>> with energy_units("1/cm"):
+    ...     cf = CorrelationFunction(time,params)
 
 
 
     """
 
-
     allowed_types = ("OverdampedBrownian-HighTemperature",
                      "OverdampedBrownian", "Value-defined")
+
+    analytical_types = ("OverdampedBrownian-HighTemperature",
+                        "OverdampedBrownian")
 
     def __init__(self, axis, params, values=None):
         super().__init__()
@@ -62,7 +102,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.axis = taxis
         else:
             self.axis = axis
-            
+
         self._is_composed = False
         self.lamb = -1.0
         self.temperature = -1.0
@@ -170,6 +210,17 @@ class CorrelationFunction(DFunction, UnitsManaged):
         else:
             raise Exception("Incompatible values")
 
+    def is_analytical(self):
+        """Returns `True` if analytical
+
+        Returns `True` if the CorrelationFunction object is constructed
+        by analytical formula. Returns `False` if the object was constructed
+        by numerical transformation from spectral density.
+        """
+
+        return bool(self.params["ftype"] in self.analytical_types)
+
+
     def get_temperature(self):
         """Returns the temperature of the correlation function
 
@@ -202,6 +253,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         # params are saved in user defined units
         with energy_units(self.energy_units):
+            # FIXME: This has to be done numerically
             spectd = SpectralDensity(frequencies, self.params)
 
         return spectd
@@ -246,6 +298,17 @@ class CorrelationFunction(DFunction, UnitsManaged):
 class FTCorrelationFunction(DFunction, UnitsManaged):
     """Fourier transform of the correlation function
 
+    Numerically calculated Fourier transform of the correlation function
+
+    Parameters
+    ----------
+
+    axis: TimeAxis
+        Time interval from which the frequency interval is calculated
+
+    params: dictionary
+        Dictionary of the correlation function parameters
+
     """
 
     def __init__(self, axis, params, values=None):
@@ -281,13 +344,37 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
             # This is not protected from change of units!!!!
             self.data = values
             self.axis = cfce.axis.get_FrequencyAxis()
-            
-            
-        
+
+
+
 
 
 class OddFTCorrelationFunction(DFunction, UnitsManaged):
     """Odd part of the Fourier transform of the correlation function
+
+    Numerically calculated odd part Fourier transform of the correlation
+    function. Calculated as  Fourier transform of the imaginary part of the
+    correlation function.
+
+    Parameters
+    ----------
+
+    axis: TimeAxis
+        Time interval from which the frequency interval is calculated
+
+    params: dictionary
+        Dictionary of the correlation function parameter
+
+
+    Examples
+    --------
+
+    >>> ta = TimeAxis(0.0,1000,1.0)
+    >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
+    >>> with energy_units("1/cm"):
+    ...    ocf = OddFTCorrelationFunction(ta,params)
+    ...    print(numpy.allclose(ocf.at(-100), -ocf.at(100)))
+    True
 
     """
 
@@ -319,7 +406,7 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
         # data have to be protected from change of units
         with energy_units("int"):
             ftvals = cfce.get_Fourier_transform()
-            self.data = ftvals.data
+            self.data = numpy.real(ftvals.data)
 
         self.axis = ftvals.axis
 
@@ -327,6 +414,19 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
 
 class EvenFTCorrelationFunction(DFunction, UnitsManaged):
     """Even part of the Fourier transform of the correlation function
+
+    Numerically calculated even part Fourier transform of the correlation
+    function. Calculated as  Fourier transform of the real part of the
+    correlation function.
+
+    Parameters
+    ----------
+
+    axis: TimeAxis
+        Time interval from which the frequency interval is calculated
+
+    params: dictionary
+        Dictionary of the correlation function parameter
 
     """
 
@@ -363,6 +463,7 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
         self.axis = ftvals.axis
 
 
+#FIXME: these functions can go to DFunction
 def c2g(timeaxis, coft):
     """ Converts correlation function to lineshape function
 
