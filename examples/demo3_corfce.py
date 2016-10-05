@@ -93,6 +93,12 @@ with energy_units("1/cm"):
 cf1.plot(real_only=False,show=False)
 cf1n.plot()
 
+lamb_cfm = cf1.measure_reorganization_energy()
+lamb_def = cf1.get_reorganization_energy()
+lamb_sdm = sd1.measure_reorganization_energy()
+print(lamb_cfm, lamb_def, lamb_sdm)
+print(numpy.allclose(lamb_cfm,lamb_def,rtol=1.0e-3))
+print(numpy.allclose(lamb_sdm,lamb_def,rtol=1.0e-2))
 
 
 # Plot spectral density

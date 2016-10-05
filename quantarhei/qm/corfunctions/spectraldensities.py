@@ -12,9 +12,12 @@ from ...core.dfunction import DFunction
 from ...core.managers import UnitsManaged
 from ...core.managers import energy_units
 from ...core.time import TimeAxis
+from ...core.frequency import FrequencyAxis
 from .correlationfunctions import CorrelationFunction
 from .correlationfunctions import FTCorrelationFunction
 from ...core.units import kB_int
+
+from .correlationfunctions import c2h
 
 class SpectralDensity(DFunction, UnitsManaged):
     """This class represents the so-called spectral density
@@ -44,6 +47,14 @@ class SpectralDensity(DFunction, UnitsManaged):
         Returns temperature assigned to the spectral density or raises an
         exception if it was not set
 
+    get_reorganization_energy()
+        Returns the reorganization energy parameters of
+        the spectral density
+
+    measure_reorganization_energy()
+        Calculates reorganization energy from the shape of the spectral
+        density
+
     get_CorrelationFunction()
         Returns numerically calculated correlation function, based on the
         spectral density
@@ -62,7 +73,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     >>> from quantarhei import TimeAxis
     >>> params = dict(ftype="OverdampedBrownian", cortime=100, reorg=20, T=300)
-    >>> time = TimeAxis(0.0,1000,0.1)
+    >>> time = TimeAxis(0.0,1000,1.0)
     >>> with energy_units("1/cm"):\
            sd = SpectralDensity(time, params)
 
@@ -84,9 +95,22 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     >>> cf = sdwoT.get_CorrelationFunction(temperature=300)
 
+    Reorganization of the spectral density is an input parameter which
+    can be obtained by calling the corresponding method
+
     >>> with energy_units("1/cm"):
     ...     print(sdwoT.get_reorganization_energy())
     20.0
+
+    At the same time, reorganization energy can be calculated from the
+    shape of the spectral density by integrating over it. The accuracy
+    of such estimation depends on numerics, hence the relative tolerance of
+    only 1.0e-2 below
+
+    >>> lamb_definition = sd.get_reorganization_energy()
+    >>> lamb_measured = sd.measure_reorganization_energy()
+    >>> print(numpy.allclose(lamb_definition, lamb_measured, rtol=1.0e-2))
+    True
 
     """
 
@@ -185,8 +209,23 @@ class SpectralDensity(DFunction, UnitsManaged):
         Calculates the reorganization energy of the spectral density by
         integrating over frequency.
         """
-        pass
-    
+        import scipy.interpolate as interp
+
+        integr = self.data/self.axis.data
+        uvspl = interp.UnivariateSpline(self.axis.data,
+                                       integr, s=0)
+        integ = uvspl.integral(0.0, self.axis.max)/numpy.pi
+
+#        ind_of_zero = self.axis.nearest(0.0)
+#        cdouble = self.data[ind_of_zero:self.axis.length]
+#        omega = self.axis.data[ind_of_zero:self.axis.length]
+#        integrand = cdouble/omega
+#        length = len(integrand)
+#        faxis = FrequencyAxis(0.0,length,self.axis.step)
+#        integ = numpy.real(c2h(faxis,integrand)[length-1])/numpy.pi #numpy.sum(cdouble/omega)*self.axis.step/numpy.pi
+        return integ
+
+
     def copy(self):
         """Creates a copy of the current correlation function
 

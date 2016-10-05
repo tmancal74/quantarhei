@@ -50,7 +50,15 @@ class CorrelationFunction(DFunction, UnitsManaged):
         Returns a copy of the CorrelationFunction object
 
     get_temperature()
-        Returns the temperature of the spectral density
+        Returns the temperature of the correlation function
+
+    get_reorganization_energy()
+        Returns the reorganization energy parameters of
+        the correlation function
+
+    measure_reorganization_energy()
+        Calculates reorganization energy from the shape of the correlation
+        function
 
     get_FTCorrelationFunction()
         Returns the Fourier transform of the correlation function
@@ -80,13 +88,23 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
     >>> from quantarhei import TimeAxis
     >>> params = dict(ftype="OverdampedBrownian", cortime=100, reorg=20, T=300)
-    >>> time = TimeAxis(0.0,1000,0.1)
+    >>> time = TimeAxis(0.0,1000,1.0)
     >>> with energy_units("1/cm"):
     ...     cf = CorrelationFunction(time,params)
 
     >>> with energy_units("1/cm"):
     ...     print(cf.get_reorganization_energy())
     20.0
+
+    Reorganization energy of a correlation function can be calculated from the
+    shape of the spectral density by integrating over it. The accuracy
+    of such estimation depends on numerics, hence the relative tolerance of
+    only 1.0e-4 below
+
+    >>> lamb_definition = cf.get_reorganization_energy()
+    >>> lamb_measured = cf.measure_reorganization_energy()
+    >>> print(numpy.allclose(lamb_definition, lamb_measured, rtol=1.0e-4))
+    True
 
     """
 
@@ -247,8 +265,12 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         Calculates the reorganization energy of the correlation function by
         integrating its imaginary part.
+
         """
-        pass
+        #with energy_units("int"):
+        primitive = c2h(self.axis, self.data)
+        lamb = -numpy.imag(primitive[self.axis.length-1])
+        return lamb
 
 
     def copy(self):
