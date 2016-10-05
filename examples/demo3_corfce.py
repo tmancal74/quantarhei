@@ -89,6 +89,7 @@ with energy_units("1/cm"):
     sd1 = SpectralDensity(ta,params)
     cf1 = CorrelationFunction(ta, params)
     cf1n = sd1.get_CorrelationFunction()
+    sd1n = cf1.get_SpectralDensity()
 
 cf1.plot(real_only=False,show=False)
 cf1n.plot()
@@ -99,6 +100,11 @@ lamb_sdm = sd1.measure_reorganization_energy()
 print(lamb_cfm, lamb_def, lamb_sdm)
 print(numpy.allclose(lamb_cfm,lamb_def,rtol=1.0e-3))
 print(numpy.allclose(lamb_sdm,lamb_def,rtol=1.0e-2))
+
+
+sd1.plot(show=False)
+sd1n.plot(axis=[-0.1,0.1,-0.004,0.004])
+
 
 
 # Plot spectral density

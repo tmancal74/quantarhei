@@ -295,11 +295,12 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # protect this from external units
         with energy_units("int"):
             frequencies = self.axis.get_FrequencyAxis()
+            vals = self.get_OddFTCorrelationFunction().data
 
         # params are saved in user defined units
         with energy_units(self.energy_units):
             # FIXME: This has to be done numerically
-            spectd = SpectralDensity(frequencies, self.params)
+            spectd = SpectralDensity(frequencies, self.params, values=vals)
 
         return spectd
 

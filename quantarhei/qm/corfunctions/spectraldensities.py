@@ -116,7 +116,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     analytical_types = ("OverdampedBrownian")
 
-    def __init__(self, axis, params):
+    def __init__(self, axis, params, values=None):
         super().__init__()
 
         if isinstance(axis, TimeAxis):
@@ -155,7 +155,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             raise Exception("Unknown correlation function type of"+
                             "type domain combination.")
 
-    def _make_overdamped_brownian(self):
+    def _make_overdamped_brownian(self, values=None):
         """ Sets the Overdamped Brownian oscillator spectral density
 
         """
@@ -168,7 +168,10 @@ class SpectralDensity(DFunction, UnitsManaged):
             omega = self.axis.data
             cfce = (2.0*lamb/ctime)*omega/(omega**2 + (1.0/ctime)**2)
 
-        self._make_me(self.axis, cfce)
+        if values is not None:
+            self._make_me(self.axis, values)
+        else:
+            self._make_me(self.axis, cfce)
 
         # this is in internal units
         self.lamb = lamb
