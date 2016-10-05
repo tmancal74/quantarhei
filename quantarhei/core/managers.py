@@ -355,6 +355,7 @@ class Manager(metaclass=Singleton):
             values to convert            
         
         """
+        
         return val/conversion_facs_energy[self.current_units["energy"]] 
         
 

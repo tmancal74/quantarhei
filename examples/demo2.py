@@ -18,4 +18,5 @@ ag.build()
 
 H = ag.get_Hamiltonian()
 
-print(H)
+with energy_units("1/cm"):
+    print(H)
