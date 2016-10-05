@@ -92,51 +92,53 @@ Scenario Outline: Odd FT of correlation function equals spectral density
 #    | Lorenzian          |  300   |  30   | 300.  |
 
 
-@in_development
+@spectraldensity
 Scenario Outline: Correlation function creation from spectral density
     Given spectral density parameters:
         | cf_type   | temp   | T_units | reorg    | e_units | ctime   | t_units | mats |
         | <cf_type> | <temp> | K       | <reorg>  | 1/cm    | <ctime> | fs      |   20 |
-    And TimeAxis:
+    And upper-half TimeAxis with parameters:
         | units | start | number_of_steps | step |
         | fs    | 0.0   | 1000            | 1.0  | 
     When I calculate the <cf_type> spectral density
     And correlation function is created from spectral density
-    Then correlation function corresponds to file <file>
+    Then correlation function corresponds to file <file> in internal units with rtol 0.01 and atol 0.0001
 
     Examples:
     | cf_type            | temp   | reorg | ctime | file                       |
     | OverdampedBrownian |  300   |  20   | 100.  | ob_20cm_100fs_300K_m20.dat |
 #    | Lorenzian          |  300   |  30   | 300.  | lr_300K_30cm_300fs.dat |       
 
-@in_development
+@spectral density
 Scenario Outline: Correlation function creation from spectral density and back
     Given spectral density parameters:
         | cf_type   | temp   | T_units | reorg    | e_units | ctime   | t_units | mats |
         | <cf_type> | <temp> | K       | <reorg>  | 1/cm    | <ctime> | fs      |   20 |
-    And TimeAxis:
+    And upper-half TimeAxis with parameters:
         | units | start | number_of_steps | step |
         | fs    | 0.0   | 1000            | 1.0  | 
     When I calculate the <cf_type> spectral density
     And correlation function is created from spectral density
-    Then correlation function corresponds to file <file>
+    And spectral density is created from correlation function
+    Then spectral density corresponds to file <file> in internal units with rtol 0.001 and atol 0.0001
 
     Examples:
     | cf_type            | temp   | reorg | ctime | file                       |
-    | OverdampedBrownian |  300   |  20   | 100.  | ob_20cm_100fs_300K_m20.dat |
+    | OverdampedBrownian |  300   |  20   | 100.  | ob_sd_20cm_100fs_300K_m20.dat |
 #    | Lorenzian          |  300   |  30   | 300.  | lr_300K_30cm_300fs.dat |  
 
-@in_development
+@spectraldensity
 Scenario Outline: Spectral density creation from correlation function and back
     Given correlation function parameters:
         | cf_type   | temp   | T_units | reorg    | e_units | ctime   | t_units | mats |
         | <cf_type> | <temp> | K       | <reorg>  | 1/cm    | <ctime> | fs      |   20 |
-    And TimeAxis:
+    And upper-half TimeAxis with parameters:
         | units | start | number_of_steps | step |
         | fs    | 0.0   | 1000            | 1.0  | 
-    When I calculate the <cf_type> spectral density
+    When I calculate the <cf_type> correlation function
+    And spectral density is created from correlation function
     And correlation function is created from spectral density
-    Then correlation function corresponds to file <file>
+    Then correlation function corresponds to file <file> in internal units with rtol 0.001 and atol 0.0001
 
     Examples:
     | cf_type            | temp   | reorg | ctime | file                       |

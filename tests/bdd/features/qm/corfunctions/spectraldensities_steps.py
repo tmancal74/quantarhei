@@ -37,8 +37,31 @@ def correlation_function_parameters(self):
     world.temp = temp
     world.mats = mats
     
+    
+@step(r'spectral density parameters')
+def spectral_density_parameters(self):
+    
+    for row in self.hashes:
+        ftype = row['cf_type']
+        temp = float(row['temp'])
+        T_units = row['T_units']
+        reorg = float(row['reorg'])
+        e_units = row['e_units']
+        ctime = float(row['ctime'])
+        t_units = row['t_units']  
+        mats = int(row['mats'])
+    
+    world.e_units = e_units
+    world.temp_units = T_units
+    world.time_units = t_units
+    world.ctype = ftype
+    world.reorg = reorg
+    world.ctime = ctime
+    world.temp = temp
+    world.mats = mats
+    
 @step(r'I calculate the ([^"]*) spectral density')
-def correlation_function_of_type(self, ctype):
+def spectral_density_of_type(self, ctype):
     print("spectral density type ", ctype)
     world.ctype = ctype
 

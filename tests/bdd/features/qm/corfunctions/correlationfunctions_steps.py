@@ -30,17 +30,18 @@ def matsubara(self, Nm):
     print("no. Matsubara frequencies ", Nm)
     world.mats = int(Nm)
 
+@step(r'correlation function is created from spectral density')
+def corfce_from_spectdens(self):
 
-#@step(r'time interval')
-#def time_axis(self):
-#    
-#    for row in self.hashes:
-#        start = float(row['start'])
-#        Ns    = int(row['number_of_steps'])
-#        dt    = float(row['step'])
-#        
-#    print("TimeAxis", start, Ns, dt)
-#    world.ta = TimeAxis(start,Ns,dt)
+    sd = world.sd        
+    world.cf = sd.get_CorrelationFunction()
+
+
+#@step(r'spectral density is back-created from correlation function')
+#def spectral_dens_back_from_corrfce(self):
+#
+#    cf = world.cf        
+#    world.sd = cf.get_SpectralDensity()
 
 @step(r'I calculate the ([^"]*) correlation function')
 def correlation_function_of_type(self, ctype):
@@ -60,9 +61,11 @@ def correlation_function_of_type(self, ctype):
     world.cf = cf
     
 
-@step(r'correlation function corresponds to file ([^"]*) in internal units')
-def compare_data_with_file(self, file):
+@step(r'correlation function corresponds to file ([^"]*) in internal units with rtol (\d+(?:\.\d+)?) and atol (\d+(?:\.\d+)?)')
+def compare_data_with_file(self, file, rtols, atols):
 
+    rtol = float(rtols)
+    atol = float(atols)
     print("comparing with file ", file)
     cf_data = read_n_columns(__package__,file,3)
     i = 0
@@ -72,4 +75,4 @@ def compare_data_with_file(self, file):
         data[i,1] = numpy.real(world.cf.data[i])
         data[i,2] = numpy.imag(world.cf.data[i])
         i += 1
-    numpy.testing.assert_allclose(cf_data,data,rtol=1.0e-7)
+    numpy.testing.assert_allclose(cf_data,data,rtol=rtol,atol=atol)

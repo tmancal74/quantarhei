@@ -12,7 +12,7 @@
 """
 from quantarhei import CorrelationFunction
 from quantarhei import SpectralDensity
-from quantarhei import TimeAxis, FrequencyAxis
+from quantarhei import TimeAxis
 from quantarhei import energy_units
 
 from quantarhei import DFunction
