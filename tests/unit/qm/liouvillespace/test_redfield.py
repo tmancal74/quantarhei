@@ -2,7 +2,6 @@
 
 import unittest
 import numpy
-import scipy.constants as const
 
 """
 *******************************************************************************

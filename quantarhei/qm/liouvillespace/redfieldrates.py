@@ -101,15 +101,15 @@ class RedfieldRateMatrix:
             for i in range(Na):
                 for j in range(Na):
                     if i != j:
-                        if numpy.abs(Om[i,j]) > freq_cutoff:
+                        if numpy.abs(Om[j,i]) > freq_cutoff:
                             cc[k,i,j] = 0.0
                         else:
                             if Om[j,i] < 0.0:
                                 #cc[k,i,j] = (cf.interp_data(Om[i,j])
                                 cc[k,i,j] = (cw.at(Om[i,j],approx="spline")
-                                *numpy.exp(Om[j,i]/(kB_intK*Temp)))
+                                *numpy.exp(Om[i,j]/(kB_intK*Temp)))
                             else:
-                                cc[k,i,j] = cw.at(Om[j,i],approx="spline") #.interp_data(Om[j,i])
+                                cc[k,i,j] = cw.at(Om[j,i],approx="spline") 
                                 
 
         """ To submit: 
@@ -129,7 +129,8 @@ class RedfieldRateMatrix:
         rtol = 1.0e-6
         self.data = ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error)
         for w in error:
-            print(w)                                    
+            print(w)     
+                               
         self._is_initialized = True
         
         

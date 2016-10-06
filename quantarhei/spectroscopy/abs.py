@@ -9,7 +9,7 @@ from ..builders import Aggregate
 from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
-from ..core.units import cm2int
+
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 
@@ -157,11 +157,12 @@ class AbsSpect(DFunction,EnergyUnitsManaged):
         Nt = len(c0)
         
         ct = numpy.zeros((Nt),dtype=numpy.complex128)
-        Na = AG.nmono #monomers.shape[0]
+        Na = AG.nmono
         for kk in range(Na):
             nkk = AG.monomers[kk].egcf_mapping[0]
             for ll in range(Na):
                 nll = AG.monomers[ll].egcf_mapping[0]
+                # FIXME: This can be obtained directly from AG ???
                 ct += ((SS[kk+1,n+1]**2)*(SS[ll+1,n+1]**2)
                 *AG.egcf_matrix.get_coft(nkk,nll))
             

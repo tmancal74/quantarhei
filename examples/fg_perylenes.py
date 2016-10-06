@@ -105,7 +105,7 @@ with energy_units("1/cm"):
     cfce1 = CorrelationFunction(time,cfce_params1)
     cfce2 = CorrelationFunction(time,cfce_params2)
 
-explicit_mapping = True
+explicit_mapping = False
 
 if explicit_mapping:
     

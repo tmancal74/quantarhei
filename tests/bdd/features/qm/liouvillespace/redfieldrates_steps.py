@@ -10,7 +10,7 @@ from quantarhei.core.units import kB_int
 from quantarhei import CorrelationFunction
 from quantarhei import Molecule
 from quantarhei import Aggregate
-from quantarhei.qm import RedfieldRelaxationTensor
+from quantarhei.qm import RedfieldRateMatrix
 
 @step(r'a homodimer with site transition energies (\d+(?:\.\d+)?) "([^"]*)"')
 def homodimer_site_energies(self, energy, units):
@@ -27,8 +27,7 @@ def resonance_coupling(self, energy, units):
 @step(r'I calculate Redfield relaxation rates')
 def redfield_relaxation(self):
     print("Redfield rate calculation")
-    
-    m = Manager()
+
     
     #
     # Correlation function
@@ -60,10 +59,10 @@ def redfield_relaxation(self):
     agg.add_Molecule(m1)
     agg.add_Molecule(m2)
     
-    with energy_units("1/cm"):
-        Hm = m1.get_Hamiltonian()
-        print(Hm)
-        print(m.convert_energy_2_current_u(Hm._data)) 
+#    with energy_units("1/cm"):
+#        Hm = m1.get_Hamiltonian()
+#        print(Hm)
+#        print(m.convert_energy_2_current_u(Hm._data)) 
         
     with energy_units(world.r_units):
         agg.set_resonance_coupling(0,1,world.r_coupl)
@@ -72,28 +71,31 @@ def redfield_relaxation(self):
     
     H = agg.get_Hamiltonian()
 
-    with energy_units("1/cm"):
-        print(H)
-        print(m.convert_energy_2_current_u(H._data))    
+#    with energy_units("1/cm"):
+#        print(H)
+#        print(m.convert_energy_2_current_u(H._data))    
     
     sbi = agg.get_SystemBathInteraction()
     
-    RRT = RedfieldRelaxationTensor(H, sbi)
+    RRT = RedfieldRateMatrix(H, sbi)
     
-    world.K12 = RRT.data[0,0,1,1]
+    world.K12 = numpy.real(RRT.data[1,2])
     
     
     
 
-@step(r'I get Redfield relaxation rates from file ([^"]*)')
-def compare_rates(self,filename):
+@step(r'I get Redfield relaxation rates from file ([^"]*) with rtol (\d+(?:\.\d+)?)')
+def compare_rates(self, filename, rtols):
     pass
 
-@step(r'I get Redfield relaxation rates corresponding to analytical results for a homodimer')
-def compare_rates_analytical(self):
+
+@step(r'I get Redfield relaxation rates corresponding to analytical results for a homodimer with rtol (\d+(?:\.\d+)?)')
+def compare_rates_analytical(self, rtols):
     
     print("Comparison of redfield rates with analytical results")
     m = Manager()
+    
+    rtol = float(rtols)
 
     with energy_units(world.r_units):
         J = m.convert_energy_2_internal_u(world.r_coupl)
@@ -109,4 +111,4 @@ def compare_rates_analytical(self):
     print(K12, 1.0/K12)
     print(world.K12, 1.0/world.K12)
     
-    numpy.testing.assert_allclose(K12,world.K12) #,rtol=rtol,atol=atol)    
+    numpy.testing.assert_allclose(K12,world.K12 ,rtol=rtol) #,atol=atol)    
