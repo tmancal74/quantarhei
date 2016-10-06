@@ -63,7 +63,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self._is_initialized = True
 
         
-    def __reference_implementation(self,ham,sbi):
+    def __reference_implementation(self, ham, sbi):
         """ Reference implementation, completely in Python
         
         """
@@ -114,7 +114,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 
                 for a in range(0,Na):
                     for b in range(0,Na):
-                        eexp = numpy.exp(1.0j*Om[a,b]*tm) 
+                        eexp = numpy.exp(1.0j*Om[b,a]*tm) 
                         rc = rc1[0:length]*eexp
                         rr = numpy.real(rc)
                         ri = numpy.imag(rc)
@@ -141,7 +141,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                     for a in range(0,Na):
                         for b in range(0,Na):
 
-                            eexp = numpy.exp(1.0j*Om[a,b]*tm) 
+                            eexp = numpy.exp(1.0j*Om[b,a]*tm) 
                             rc = rc1[0:length]*eexp
                             rr = numpy.real(rc)
                             ri = numpy.imag(rc)
@@ -226,15 +226,15 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             for b in range(0,Na):
                 for c in range(0,Na):
                     for d in range(0,Na):
-                        RR[a,b,c,d] = -Hc[a,c,d,b]-Hh[d,b,a,c]
+                        RR[a,b,c,d] = (-Hc[a,c,d,b]-Hh[d,b,a,c])*4.0
 
 
         for a in range(0,Na):
             for b in range(0,Na):
                 for c in range(0,Na):
                     #for d in range(0,Na):   
-                    RR[a,b,c,b] += Hrh[a,c]
-                    RR[b,a,b,c] += Hrc[a,c]
+                    RR[a,b,c,b] += Hrh[a,c]*4.0
+                    RR[b,a,b,c] += Hrc[a,c]*4.0
 
         
         self.data = -RR

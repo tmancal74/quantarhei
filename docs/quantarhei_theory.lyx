@@ -292,7 +292,7 @@ spectral density
  can be split into even and odd parts defined as
 \begin_inset Formula 
 \begin{equation}
-\tilde{C}^{\prime}(\omega)=\int\limits_{-\infty}^{\infty}{\rm d}t\ C^{\prime}(t)e^{i\omega t},\;\tilde{C}^{\prime\prime}(\omega)=i\int\limits _{-\infty}^{\infty}{\rm d}t\ C^{\prime\prime}(t)e^{i\omega t}
+\tilde{C}^{\prime}(\omega)=\int\limits _{-\infty}^{\infty}{\rm d}t\ C^{\prime}(t)e^{i\omega t},\;\tilde{C}^{\prime\prime}(\omega)=i\int\limits _{-\infty}^{\infty}{\rm d}t\ C^{\prime\prime}(t)e^{i\omega t}
 \end{equation}
 
 \end_inset
@@ -343,6 +343,105 @@ J(\omega)=\sum_{\xi}|g_{\xi}|^{2}\delta(\omega-\omega_{\xi})
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Standard Redfield Theory
+\end_layout
+
+\begin_layout Standard
+In this section we will derive the standard Redfield relaxation tensor in
+ a form which is implemented in Quanta
+\begin_inset Formula $\rho\epsilon\iota$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+General Derivation
+\end_layout
+
+\begin_layout Subsection
+Analytical Results
+\end_layout
+
+\begin_layout Subsubsection
+Homo-dimer
+\end_layout
+
+\begin_layout Standard
+If both energy gap fluctuate with the same energy gap correlation function
+ 
+\begin_inset Formula $C(t)$
+\end_inset
+
+, the rate 
+\begin_inset Formula $K_{ab}$
+\end_inset
+
+ of the energy transfer from state 
+\begin_inset Formula $|b\rangle$
+\end_inset
+
+ to state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+ reads as
+\begin_inset Formula 
+\begin{equation}
+K_{ab}=2\sum_{n}|\langle a|n\rangle|^{2}|\langle b|n\rangle|^{2}{\rm Re}\tilde{C}(\omega_{ba}).
+\end{equation}
+
+\end_inset
+
+For a homodimer all coefficients 
+\begin_inset Formula $|\langle b|n\rangle|^{2}=\frac{1}{2}$
+\end_inset
+
+ and the sum over 
+\begin_inset Formula $n$
+\end_inset
+
+ gives two contributions which are exactly the same.
+ For an overdumped Brownian oscillator spectral density we have
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+K_{ab}=\tilde{C}(\omega_{ba})=2\left(1+\coth\left(\frac{\hbar\omega_{ba}}{2k_{B}T}\right)\right)\frac{\lambda\omega_{ba}\tau_{c}}{\omega_{ba}^{2}+\left(\frac{1}{\tau_{c}}\right)^{2}}.
+\end{equation}
+
+\end_inset
+
+Given that for a homodimer 
+\begin_inset Formula $\hbar\omega_{12}=2J$
+\end_inset
+
+ we have
+\begin_inset Formula 
+\begin{equation}
+K_{12}=\tilde{C}(\omega_{21})=\lambda J\frac{1+\coth\left(\frac{J}{k_{B}T}\right)}{J{}^{2}\tau_{c}+\frac{\hbar^{2}}{4\tau_{c}}}.
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This formula is used to test the calculations of Redfield rates and of the
+ Redfield tensor in Quanta
+\begin_inset Formula $\rho\epsilon\iota$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Hetero-dimer
 \end_layout
 
 \begin_layout Standard

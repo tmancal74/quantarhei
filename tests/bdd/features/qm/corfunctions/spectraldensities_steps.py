@@ -25,8 +25,6 @@ def correlation_function_parameters(self):
         t_units = row['t_units']  
         mats = int(row['mats'])
         
-    #params = dict(ftype=ftype,T=temp,reorg=reorg,cortime=ctime,matsubara=mats)
-    
     world.e_units = e_units
     world.temp_units = T_units
     world.time_units = t_units
@@ -73,8 +71,7 @@ def spectral_density_of_type(self, ctype):
               
     # FIXME: also time_units, temperature_units
     with energy_units(world.e_units):
-        sd = SpectralDensity(world.ta,params) 
-    
+        sd = SpectralDensity(world.ta, params) 
     world.sd = sd   
     
 @step(r'spectral density is created from correlation function')

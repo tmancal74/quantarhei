@@ -1,5 +1,6 @@
  
 /* start css.sty */
+.cmr-5{font-size:50%;}
 .cmr-7{font-size:70%;}
 .cmmi-5{font-size:50%;font-style: italic;}
 .cmmi-7{font-size:70%;font-style: italic;}
@@ -24,6 +25,7 @@
 .ecbx-0900{ font-weight: bold;}
 .ecbx-0900{ font-weight: bold;}
 .ecbx-0900{ font-weight: bold;}
+.msbm-7{font-size:70%;}
 .msbm-5{font-size:50%;}
 .ecti-1000{ font-style: italic;}
 .ecti-1000{ font-style: italic;}
