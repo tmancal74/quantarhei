@@ -93,7 +93,7 @@ def absorption_spectrum_dimer(self):
     
     cf = world.cf
     cm = CorrelationFunctionMatrix(world.ta,2,1)
-    cm.set_correlation_function(1,cf,[(1,1),(0,0)])
+    cm.set_correlation_function(cf,[(1,1),(0,0)])
 
     with energy_units("1/cm"):
         m1 = Molecule("Mol",[0.0, 12100])
@@ -138,7 +138,7 @@ def absorption_spectrum_trimer(self):
     
     cf = world.cf
     cm = CorrelationFunctionMatrix(world.ta,3,1)
-    cm.set_correlation_function(1,cf,[(1,1),(0,0),(2,2)])
+    cm.set_correlation_function(cf,[(1,1),(0,0),(2,2)])
 
     with energy_units("1/cm"):
         m1 = Molecule("Mol",[0.0, 12100])

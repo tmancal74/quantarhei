@@ -147,7 +147,7 @@ class Molecule(UnitsManaged):
         self._has_system_bath_coupling = False
         
     
-    def set_egcf_mapping(self,transition,correlation_matrix,position):
+    def set_egcf_mapping(self, transition, correlation_matrix, position):
         """ Sets a correlation function mapping for a selected transition.
         
         The monomer can either have a correlation function assigned to it,
@@ -170,7 +170,9 @@ class Molecule(UnitsManaged):
         
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
-            if not (self._is_mapped_on_egcf_matrix):            
+                                                        
+            if not (self._is_mapped_on_egcf_matrix):
+                
                 self.egcf_matrix = correlation_matrix
                 self.egcf_transitions = []
                 self.egcf_transitions.append(transition)
@@ -178,19 +180,24 @@ class Molecule(UnitsManaged):
                 self.egcf_mapping.append(position)
                 self._is_mapped_on_egcf_matrix = True
                 self._has_system_bath_coupling = True
+                
             else:
+                
                 if self.egcf_matrix is correlation_matrix:
+                    
                     if self.egcf_transitions.count(transition) > 0:
                         raise Exception("Correlation function already \
                          assigned to the transition")
                     else:
                         self.egcf_transitions.append(transition)
                         self.egcf_mapping.append(position)                        
+
         else:
+            
             raise Exception("Monomer has a correlation function already")            
         
     
-    def set_egcf(self,transition,egcf):
+    def set_transition_environment(self, transition, egcf):
         """Sets a correlation function for a transition on this monomer
         
         Parameters
@@ -199,7 +206,7 @@ class Molecule(UnitsManaged):
             A tuple describing a transition in the molecule, e.g. (0,1) is
             a transition from the ground state to the first excited state.
 
-        egcf : cu.oqs.correlationfunctions.CorrelationFunction
+        egcf : CorrelationFunction
             CorrelationFunction object 
             
             
@@ -220,21 +227,58 @@ class Molecule(UnitsManaged):
                                                 
                                                 
         else:
-            raise Exception("Correlation function already speficied \
-            for this monomer")
+            raise Exception("Correlation function already speficied" +
+                            " for this monomer")
+               
+    def unset_transition_environment(self, transition):
+        
+        if self._is_mapped_on_egcf_matrix:
+            raise Exception("This monomer is mapped \
+            on a CorrelationFunctionMatrix")  
+             
+        if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
             
-    def get_egcf(self,transition):
+            self.egcf[self.triangle.locate(transition[0],
+                                           transition[1])] = None
+                                           
+            self._has_egcf[self.triangle.locate(transition[0],
+                                                transition[1])] = False
+                                                
+
+        
+                                                
+    #@deprecated
+    def set_egcf(self, transition, egcf):
+        self.set_transition_environment(transition, egcf)
+        
+            
+    def get_transition_environment(self, transition):
         """Returns energy gap correlation function of the monomer
         
         
         """
-        if self._has_egcf[self.triangle.locate(transition[0],transition[1])]:
-            return self.egcf[self.triangle.locate(transition[0],transition[1])]
+        
+        if self._has_egcf[self.triangle.locate(transition[0] ,transition[1])]:
+            return self.egcf[self.triangle.locate(transition[0],
+                                                  transition[1])]
+ 
+        if self._is_mapped_on_egcf_matrix:
+            n = self.egcf_mapping[0]
+            iof = self.egcf_matrix.get_index_by_where((n,n))
             
+            if iof >= 0:
+                return self.egcf_matrix.cfunc[iof]
+            else:
+                raise Exception("No environment set for the transition")
+
+    
+    def get_egcf(self, transition): 
+        
         if self._is_mapped_on_egcf_matrix:
             n = self.egcf_mapping[0]
             return self.egcf_matrix.get_coft(n,n)
             
+        return self.get_transition_environment(transition).data         
             
     
     def add_Mode(self,mod):
@@ -353,7 +397,7 @@ class Molecule(UnitsManaged):
         """
         if self.check_temperature_consistent():
         
-            egcf =  self.get_egcf([0,1])
+            egcf =  self.get_transition_environment([0,1])
         
             if egcf is None:
                 return 0.0

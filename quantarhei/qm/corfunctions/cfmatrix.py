@@ -105,7 +105,7 @@ class CorrelationFunctionMatrix:
         #FIXME: reorganization energies should be defined through _A2 and _A4
         # reorganization energies
         self.lambdas = numpy.zeros(nof+1, dtype=numpy.float64)
-        self.where = [None]*(nof+1)
+        self.where = [[]]*(nof+1)
 
         # Actual storage of functions
         # here we store correlation functions
@@ -122,12 +122,13 @@ class CorrelationFunctionMatrix:
         updated and storage is realocated.
         
         """
+        nof = self.nof
 
         # save all values
         save_A2 = self._A2
         if self._is_transformed:
             save_A4 = self._A4
-        save_cfunc = self.cfunc
+        save_cfunc = self.cfuncs
         save_lambdas = self.lambdas
         save_where = self.where
         save_cofts = self._cofts
@@ -139,15 +140,14 @@ class CorrelationFunctionMatrix:
         self._initiate_storage()
 
         # refill
-        nof = self.nof
-        self._A2[:,:,0:nof] = save_A2
+        self._A2[:,:,0:nof+1] = save_A2
         if self._is_transformed:
             self._A4[:,:,:,:,0:nof] = save_A4
         for i in range(nof+1):
             self.cfuncs[i] = save_cfunc[i]
             self.lambdas[i] = save_lambdas[i]
             self.where[i] = save_where[i]
-        self._cofts[0:nof,:] = save_cofts
+        self._cofts[0:nof+1,:] = save_cofts
 
 
     def get_correlation_function(self,n,m):
@@ -340,7 +340,7 @@ class CorrelationFunctionMatrix:
             raise Exception()
 
 
-    def set_correlation_function(self,iof,fce,where):
+    def set_correlation_function(self, fce, where, iof=None):
         """Sets a correlation function to the matrix
 
         Parameters
@@ -354,28 +354,68 @@ class CorrelationFunctionMatrix:
             be essigned.
 
         """
-        if iof == 0:
-            raise Exception("Zeros correlation function is \
-            reserved for an emty function.")
-        if iof >= self.nof+1:
-            raise Exception("Index out of bounds")
 
-        try:
-            ic = fce.axis.nearest(fce.cutoff_time)
-        except:
-            ic = fce.axis.data[fce.axis.length-1]
+        if fce in self.cfuncs:
 
-        if (ic > self.max_cutoff_index):
-            self.max_cutoff_index = ic
+            # if the function is already in, iof parameter is ignored
+            i = self.cfuncs.index(fce)
+            iof = i
+            self._update_where(iof, fce, where)
 
-        self.data[iof,:] = fce.data
+        else:
 
-        self.lambdas[iof] = fce.lamb
-        self.cfuncs[iof]  = fce
+            # if iof is not specified explicitely, it is chosen as the next
+            # available index
+            if iof is None:
+                iof = self.nof + 1
+
+            while iof > self.nof:
+                self._update_nof_storage()
+            print(">>> ", self.nof, iof)
+
+            if iof == 0:
+                raise Exception("Zeros correlation function is \
+                                reserved for an emty function.")
+            if iof >= self.nof+1:
+                raise Exception("Index out of bounds")
+
+            try:
+                ic = fce.axis.nearest(fce.cutoff_time)
+            except:
+                ic = fce.axis.data[fce.axis.length-1]
+
+            if ic > self.max_cutoff_index:
+                self.max_cutoff_index = ic
+
+            self.data[iof,:] = fce.data
+
+            self.lambdas[iof] = fce.lamb
+            self.cfuncs[iof]  = fce
+
+            self._update_where(iof, fce, where)
+
+        return iof
+
+
+    def get_index_by_where(self, where):
+
+        ret = -1
+        for i in range(self.nof+1):
+            if where in self.where[i]:
+                ret = i
+
+        return ret
+
+    def _update_where(self, iof, fce, where):
+
+        for loc in where:
+            if loc in self.where[iof]:
+                raise Exception("Location in correlation matrix already taken")
+            else:
+                self.where[iof].append(loc)
 
         for wr in where:
             self._A2[wr[0],wr[1],iof] = fce.lamb
-        self.where[iof] = where
 
         for loc in where:
             ii = loc[0]

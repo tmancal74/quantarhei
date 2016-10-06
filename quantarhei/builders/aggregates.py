@@ -16,6 +16,8 @@ from ..qm.liouvillespace.systembathinteraction import SystemBathInteraction
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 
+from ..qm.corfunctions import CorrelationFunctionMatrix
+
 from ..spectroscopy import diagramatics as diag
 
 class aggregate_state():
@@ -144,6 +146,7 @@ class Aggregate(UnitsManaged):
         # Exception will be thrown if not all monomers have the same egcf
         if mono._has_egcf:
             self._has_system_bath_interaction = True
+            
         self.monomers.append(mono)
         self.mnames[mono.name] = len(self.monomers)-1
         self.nmono += 1
@@ -710,41 +713,70 @@ class Aggregate(UnitsManaged):
         # an aggregate with vibrations
  
         if self._has_egcf_matrix:
-            self._has_system_bath_interaction = True
             
-        # Check the consistency of the energy gap correlation matrix
-        if self._has_system_bath_interaction:
-            # check if there is egcf_matrix
-            if self._has_egcf_matrix:
-                if self.egcf_matrix.nob != self.nmono:
-                    raise Exception("Correlation matrix has a size different" + 
-                                    " from the number of monomers")
+            # Check the consistency of the energy gap correlation matrix
+            if self.egcf_matrix.nob != self.nmono:
+                raise Exception("Correlation matrix has a size different" + 
+                                " from the number of monomers")
+            for i in range(self.nmono):
+                if not (self.monomers[i].egcf_matrix is self.egcf_matrix):
+                    raise Exception("Correlation matrix in the monomer" +
+                                    " has to be the same as the one of" +
+                                    " the aggregate.")
+            # seems like everything is consistent -> we can calculate system-
+            # -bath interaction
+            self._has_system_bath_interaction = True   
+                     
+        # try to get one from monomers
+        else:
+            
+            nm = self.monomers[0]
+            if nm._has_egcf_matrix:
+                self.egcf_matrix = nm.egcf_matrix
                 for i in range(self.nmono):
                     if not (self.monomers[i].egcf_matrix is self.egcf_matrix):
-                        raise Exception("Correlation matrix in the monomer" +
-                                        " has to be the same as the one of" +
-                                        " the aggregate.")
-            # try to get one from monomers
+                        raise Exception("Correlation matrix in the" + 
+                                        " monomer has to be the same as" +
+                                        " the one of the aggregate.")
+                                                                                
+                # seems like everything is consistent -> we can calculate
+                # system--bath interaction
+                self._has_system_bath_interaction = True
+                self._has_egcf_matrix = True
+                
             else:
-                nm = self.monomers[0]
-                if nm._has_egcf_matrix:
-                    self.egcf_matrix = nm.egcf_matrix
-                    for i in range(self.nmono):
-                        if not (self.monomers[i].egcf_matrix
-                                is self.egcf_matrix):
-                            raise Exception("Correlation matrix in the" + 
-                                            " monomer has to be the same as" +
-                                            " the one of the aggregate.")
-
-                else:
-                    # probably we will not be dealing with an open system
-                    # do not set system-bath interaction
-                    #raise Exception("Monomer(s) have no egcf matrix")
-                    self._has_system_bath_interaction = False
+                # probably we will not be dealing with an open system
+                # do not set system-bath interaction
+                #raise Exception("Monomer(s) have no egcf matrix")
+                self._has_system_bath_interaction = False
             
         # try to set energy gap correlation matrix from monomers
-        else:   
-            pass
+        if not self._has_system_bath_interaction:   
+            
+            # if it has no correlation function we cannot calculate anything
+            egcf_ok = True
+            try:
+                egcf1 = self.monomers[0].get_transition_environment((0,1))
+            except:
+                egcf_ok = False 
+
+            if egcf_ok:
+                # time axis of the first monomer
+                time = egcf1.axis            
+                self.egcf_matrix = CorrelationFunctionMatrix(time, self.nmono)
+            
+                for i in range(self.nmono):
+                    mon = self.monomers[i]
+                    cfce = mon.get_transition_environment((0,1))
+                    mapi = self.egcf_matrix.set_correlation_function(cfce,
+                                                                     [(i,i)])
+                    mon.unset_transition_environment((0,1))
+
+                    mon.set_egcf_mapping((0,1), self.egcf_matrix, i)
+                
+                self._has_system_bath_interaction = True
+                self._has_egcf_matrix = True                
+                
             
         if self._has_system_bath_interaction:
             

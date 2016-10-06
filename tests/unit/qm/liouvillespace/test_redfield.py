@@ -48,9 +48,9 @@ class TestRedfield(unittest.TestCase):
             sd = SpectralDensity(time,params)
                     
         cm1 = CorrelationFunctionMatrix(time,2,1)
-        cm1.set_correlation_function(1,cf1,[(0,0),(1,1)])
+        cm1.set_correlation_function(cf1,[(0,0),(1,1)])
         cm2 = CorrelationFunctionMatrix(time,2,1)
-        cm2.set_correlation_function(1,cf2,[(0,0),(1,1)])  
+        cm2.set_correlation_function(cf2,[(0,0),(1,1)])  
           
         K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=numpy.float)
         K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=numpy.float)

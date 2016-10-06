@@ -152,8 +152,10 @@ class AbsSpect(DFunction,EnergyUnitsManaged):
         """
         
         # FIXME: works only for 2 level molecules
+        
         c0 = AG.monomers[0].get_egcf((0,1))
         Nt = len(c0)
+        
         ct = numpy.zeros((Nt),dtype=numpy.complex128)
         Na = AG.nmono #monomers.shape[0]
         for kk in range(Na):
