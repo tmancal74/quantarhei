@@ -107,11 +107,11 @@ class RDMPropagator: #(ReducedDensityMatrix):
             
             
         
-        self.Odt = self.TimeAxis.time[1]-self.TimeAxis.time[0]
+        self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
         self.dt = self.Odt
         self.Nref = 1
         
-        self.Nt = self.TimeAxis.time.shape[0]
+        self.Nt = self.TimeAxis.data.shape[0]
         
         N = self.Hamiltonian.data.shape[0]
         self.N = N

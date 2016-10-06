@@ -28,6 +28,8 @@ def resonance_coupling(self, energy, units):
 def redfield_relaxation(self):
     print("Redfield rate calculation")
     
+    m = Manager()
+    
     #
     # Correlation function
     #
@@ -58,12 +60,22 @@ def redfield_relaxation(self):
     agg.add_Molecule(m1)
     agg.add_Molecule(m2)
     
+    with energy_units("1/cm"):
+        Hm = m1.get_Hamiltonian()
+        print(Hm)
+        print(m.convert_energy_2_current_u(Hm._data)) 
+        
     with energy_units(world.r_units):
         agg.set_resonance_coupling(0,1,world.r_coupl)
         
     agg.build()
     
     H = agg.get_Hamiltonian()
+
+    with energy_units("1/cm"):
+        print(H)
+        print(m.convert_energy_2_current_u(H._data))    
+    
     sbi = agg.get_SystemBathInteraction()
     
     RRT = RedfieldRelaxationTensor(H, sbi)

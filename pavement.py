@@ -53,12 +53,13 @@ def pylint():
 #    r.un('valueaxis.py')
 #    r.un('time.py')
 #    r.un('frequency.py')
-    r.un('dfunction.py')
+#    r.un('dfunction.py')
 
     path = 'quantarhei/qm/corfunctions'
     r.set_path(path)
-    r.un('correlationfunctions.py')
+#    r.un('correlationfunctions.py')
     r.un('spectraldensities.py')  
+    r.un('cfmatrix.py')
     
     
 """

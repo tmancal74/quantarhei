@@ -29,7 +29,7 @@ class aggregate_state():
     el_energy = Float('el_energy')
     vib_energy = Float('vib_energy')
     
-    def __init__(self,aggregate,state_tuple):
+    def __init__(self, aggregate, state_tuple):
         
         desc = state_tuple[0]
         
@@ -72,13 +72,12 @@ class Aggregate(UnitsManaged):
         self._built = False
 
 
-    """
-    
-        BUILDING METHODS
-    
-    
-    
-    """
+    ########################################################################
+    #
+    #    BUILDING METHODS
+    #
+    ########################################################################
+
     def init_coupling_matrix(self):
         self.resonance_coupling = numpy.zeros((self.nmono,self.nmono),
                                               dtype=numpy.float64) 
@@ -195,8 +194,8 @@ class Aggregate(UnitsManaged):
         return omax
         
   
-    """ Electronic energy """
     def get_energy_by_name(self,name,N):
+        """ Electronic energy """
         try:
             im = self.mnames[name]
             mn = self.monomer[im]
@@ -468,9 +467,11 @@ class Aggregate(UnitsManaged):
     
     
     
-    
-
-    """ Generators """    
+    #######################################################################
+    #
+    # Generators
+    #
+    #######################################################################
 
     def elsignatures(self,mult=1,mode="LQ"):
         """ Generator of electronic signatures 
@@ -631,12 +632,11 @@ class Aggregate(UnitsManaged):
             
             
     
-    """
-    
-        BUILDING
-    
-    
-    """
+    #######################################################################
+    #
+    #    BUILDING
+    #
+    #######################################################################
         
     def build(self,mult=1):
         """Builds aggregate properties
@@ -663,29 +663,27 @@ class Aggregate(UnitsManaged):
         # number of states in the aggregate
         Ntot = self.total_number_of_states(mult=mult)
         self.Ntot = Ntot
-        self.which_band = numpy.zeros(self.Ntot,dtype=numpy.int)
+        self.which_band = numpy.zeros(self.Ntot, dtype=numpy.int)
         self.elsigs = [None]*self.Nel
 
         # Hamiltonian matrix        
-        HH = numpy.zeros((Ntot,Ntot),dtype=numpy.float64)
+        HH = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         
         # Transition dipole moment matrix
-        DD = numpy.zeros((Ntot,Ntot,3),dtype=numpy.float64)
+        DD = numpy.zeros((Ntot, Ntot, 3),dtype=numpy.float64)
         
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:    
             self.init_coupling_matrix()            
             
         # Set up Hamiltonian and Transition dipole moment matrices
-        for a,s1 in self.allstates(mult=self.mult,save_indices=True):
+        for a, s1 in self.allstates(mult=self.mult, save_indices=True):
             HH[a,a] = s1.energy()
             for b,s2 in self.allstates(mult=self.mult):       
                 DD[a,b,:] = self.transition_dipole(s1,s2)
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
     
-        #for a in range(self.Nel):
-        #    print(self.vibindices[a])
     
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
@@ -714,16 +712,19 @@ class Aggregate(UnitsManaged):
         if self._has_egcf_matrix:
             self._has_system_bath_interaction = True
             
+        # Check the consistency of the energy gap correlation matrix
         if self._has_system_bath_interaction:
             # check if there is egcf_matrix
             if self._has_egcf_matrix:
                 if self.egcf_matrix.nob != self.nmono:
-                    raise Exception("Correlation matrix has a size different \
-                    from the number of monomers")
+                    raise Exception("Correlation matrix has a size different" + 
+                                    " from the number of monomers")
                 for i in range(self.nmono):
                     if not (self.monomers[i].egcf_matrix is self.egcf_matrix):
-                        raise Exception("Correlation matrix in the monomer \
-                        has to be the same as the one of the aggregate.")
+                        raise Exception("Correlation matrix in the monomer" +
+                                        " has to be the same as the one of" +
+                                        " the aggregate.")
+            # try to get one from monomers
             else:
                 nm = self.monomers[0]
                 if nm._has_egcf_matrix:
@@ -731,15 +732,19 @@ class Aggregate(UnitsManaged):
                     for i in range(self.nmono):
                         if not (self.monomers[i].egcf_matrix
                                 is self.egcf_matrix):
-                            raise Exception("Correlation matrix in the \
-                            monomer has to be the same as the one of \
-                            the aggregate.")
+                            raise Exception("Correlation matrix in the" + 
+                                            " monomer has to be the same as" +
+                                            " the one of the aggregate.")
 
                 else:
                     # probably we will not be dealing with an open system
                     # do not set system-bath interaction
                     #raise Exception("Monomer(s) have no egcf matrix")
                     self._has_system_bath_interaction = False
+            
+        # try to set energy gap correlation matrix from monomers
+        else:   
+            pass
             
         if self._has_system_bath_interaction:
             
@@ -775,11 +780,12 @@ class Aggregate(UnitsManaged):
             
         self._built = True
     
-    """
-
-        POST BUILDING METHODS
-
-    """        
+    
+    #########################################################################
+    #
+    #    POST BUILDING METHODS
+    #
+    ########################################################################       
         
         
     def diagonalize(self):
@@ -906,6 +912,12 @@ class Aggregate(UnitsManaged):
             return TransitionDipoleMoment(data=self.DD)                     
         else:
             raise Exception("Aggregate object not built")
+            
+    ########################################################################
+    #
+    #   SPECTROSCOPY
+    #
+    ########################################################################
                        
     def liouville_pathways_3(self,ptype="R3g",dtol=-1.0,ptol=1.0e-3,lab=None):
         """ Generator of Liouville pathways """

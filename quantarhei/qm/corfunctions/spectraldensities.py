@@ -12,12 +12,12 @@ from ...core.dfunction import DFunction
 from ...core.managers import UnitsManaged
 from ...core.managers import energy_units
 from ...core.time import TimeAxis
-from ...core.frequency import FrequencyAxis
+#from ...core.frequency import FrequencyAxis
 from .correlationfunctions import CorrelationFunction
 from .correlationfunctions import FTCorrelationFunction
 from ...core.units import kB_int
 
-from .correlationfunctions import c2h
+#from .correlationfunctions import c2h
 
 class SpectralDensity(DFunction, UnitsManaged):
     """This class represents the so-called spectral density
@@ -151,6 +151,10 @@ class SpectralDensity(DFunction, UnitsManaged):
 
             self._make_overdamped_brownian()
 
+        elif self.ftype == "Value-defined":
+
+            self._make_value_defined(values=values)
+
         else:
             raise Exception("Unknown correlation function type of"+
                             "type domain combination.")
@@ -179,6 +183,13 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega = numpy.zeros(2)
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = ctime
+
+    def _make_value_defined(self, values=None):
+        """ Value defined spectral density
+
+        """
+        pass
+
 
     def is_analytical(self):
         """Returns `True` if analytical
@@ -215,8 +226,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         import scipy.interpolate as interp
 
         integr = self.data/self.axis.data
-        uvspl = interp.UnivariateSpline(self.axis.data,
-                                       integr, s=0)
+        uvspl = interp.UnivariateSpline(self.axis.data, integr, s=0)
         integ = uvspl.integral(0.0, self.axis.max)/numpy.pi
 
 #        ind_of_zero = self.axis.nearest(0.0)
@@ -225,7 +235,8 @@ class SpectralDensity(DFunction, UnitsManaged):
 #        integrand = cdouble/omega
 #        length = len(integrand)
 #        faxis = FrequencyAxis(0.0,length,self.axis.step)
-#        integ = numpy.real(c2h(faxis,integrand)[length-1])/numpy.pi #numpy.sum(cdouble/omega)*self.axis.step/numpy.pi
+#        integ = numpy.real(c2h(faxis,integrand)[length-1])/numpy.pi
+
         return integ
 
 
@@ -250,11 +261,11 @@ class SpectralDensity(DFunction, UnitsManaged):
         # everything has to be protected from change of units
         with energy_units("int"):
 
-            sd = self.get_FTCorrelationFunction(temperature=params["T"])
-            ft = sd.get_inverse_Fourier_transform()
-            cf2 = CorrelationFunction(time, params, values=ft.data)
+            ftcf = self.get_FTCorrelationFunction(temperature=params["T"])
+            cftd = ftcf.get_inverse_Fourier_transform()
+            cfce = CorrelationFunction(time, params, values=cftd.data)
 
-        return cf2
+        return cfce
 
 
     def get_FTCorrelationFunction(self, temperature=None):

@@ -90,7 +90,7 @@ m12.position = r12
 
 temperature = 300.0 # in Kelvins
 # Time axis on which everything is calculated
-time = TimeAxis(0.0,2000,1.0) # in fs
+time = TimeAxis(0.0, 2000, 1.0) # in fs
 
 cfce_params1 = dict(ftype="OverdampedBrownian",
                    reorg=30.0,
@@ -106,8 +106,7 @@ with energy_units("1/cm"):
     cfce2 = CorrelationFunction(time,cfce_params2)
 
 cm = CorrelationFunctionMatrix(time,12,2)
-#cm.set_correlation_function(1,cfce1.data,[(1,1),(2,2),(4,4),(6,6),(7,7),(11,11)])
-#cm.set_correlation_function(2,cfce2.data,[(0,0),(3,3),(5,5),(8,8),(9,9),(10,10)])
+
 cm.set_correlation_function(1,cfce1,[(1,1),(2,2),(4,4),(6,6),(7,7),(11,11)])
 cm.set_correlation_function(2,cfce2,[(0,0),(3,3),(5,5),(8,8),(9,9),(10,10)])
 
@@ -174,7 +173,7 @@ a2.normalize2()
 
 plt.plot(a1.frequency/cm2int,a1.data,'-r')
 plt.plot(a2.frequency/cm2int,a2.data,'-g')
-plt.plot(aAnth.axis.frequency/cm2int,aAnth.data,'-c')
+plt.plot(aAnth.axis.data/cm2int,aAnth.data,'-c')
 
 p = plt.gca()
 p.set_autoscale_on(False)

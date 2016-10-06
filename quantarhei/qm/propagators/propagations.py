@@ -52,7 +52,7 @@ class DMPropagation(MatrixData): #,TimeDependent):
                 kk = ii
                 while kk > 6:
                     kk = kk - 7
-                plt.plot(self.TimeAxis.time,
+                plt.plot(self.TimeAxis.data,
                          numpy.real(self.data[:,ii,ii]),howi[kk])
                 
         
