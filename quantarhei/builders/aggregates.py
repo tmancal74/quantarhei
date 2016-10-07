@@ -121,6 +121,7 @@ class Aggregate(UnitsManaged):
         return prefac*cc
             
     def set_coupling_by_dipole_dipole(self,prefac=1.0):
+        
         if not self.coupling_initiated:
             self.init_coupling_matrix() 
         for kk in range(self.nmono):
@@ -687,6 +688,7 @@ class Aggregate(UnitsManaged):
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
     
+        #print("which band: ", self.which_band)
     
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
@@ -796,7 +798,8 @@ class Aggregate(UnitsManaged):
                   
             # standard case with only electronic states
             else:
-                # we count only single excited 
+                # we count only single excited           
+            
                 for i in range(1,self.Nel): #range(0,self.nmono):
                     op1 = Operator(dim=self.HH.shape[0],real=True)
                     op1.data[i,i] = 1.0

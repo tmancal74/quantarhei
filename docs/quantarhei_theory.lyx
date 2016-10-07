@@ -359,7 +359,194 @@ In this section we will derive the standard Redfield relaxation tensor in
 \end_layout
 
 \begin_layout Subsection
-General Derivation
+General Formula
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+K_{n}^{(I)}(-\tau)=U_{S}(\tau)K_{n}U_{S}^{\dagger}(\tau)
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\Lambda_{m}=\sum_{n}\int\limits_{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)K_{n}^{(I)}(-\tau)
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial}{\partial t}\rho(t)=-\frac{i}{\hbar}\left[H_{S},\rho(t)\right]_{-}-{\cal R}\rho(t)
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+{\cal R}\rho(t)=-\frac{1}{\hbar^{2}}\sum_{m}\left(K_{m}\Lambda_{m}\rho(t)+\rho(t)\Lambda_{n}^{\dagger}K_{m}\right)
+\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
++\frac{1}{\hbar^{2}}\sum_{m}\left(K_{m}\rho(t)\Lambda_{m}^{\dagger}+\Lambda_{m}\rho(t)K_{m}\right)
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Relaxation rate
+\end_layout
+
+\begin_layout Standard
+In a representation of Hamiltonian eigenstates 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+ we can write e.g.
+\begin_inset Formula 
+\[
+\frac{\partial}{\partial t}\rho_{aa}(t)=\sum_{b}\left(\frac{1}{\hbar^{2}}\sum_{m}\langle a|K_{m}|b\rangle\rho_{bb}(t)\langle b|\Lambda_{m}^{\dagger}|a\rangle\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
++\sum_{b}\left(\frac{1}{\hbar^{2}}\sum_{m}\langle a|\Lambda_{m}|b\rangle\rho_{bb}(t)\langle b|K_{m}|a\rangle\right),
+\end{equation}
+
+\end_inset
+
+where we ignored the so-called non-secular terms which connect oscillating
+ coherence elements 
+\begin_inset Formula $\rho_{ab}$
+\end_inset
+
+ of the density matrix with the populations 
+\begin_inset Formula $\rho_{aa}$
+\end_inset
+
+.
+ From the definition of 
+\begin_inset Formula $\Lambda_{m}$
+\end_inset
+
+ we have
+\begin_inset Formula 
+\begin{equation}
+\langle a|\Lambda_{m}|b\rangle=\sum_{n}\int\limits_{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)e^{-i\omega_{ab}\tau}\langle a|K_{n}|b\rangle=\sum_{n}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle,
+\end{equation}
+
+\end_inset
+
+where we used that 
+\begin_inset Formula $U_{S}(t)=\sum_{a}e^{-\omega_{a}t}|a\rangle\langle a|$
+\end_inset
+
+ with 
+\begin_inset Formula $\omega_{a}=\epsilon_{a}/\hbar$
+\end_inset
+
+ and 
+\begin_inset Formula $\epsilon_{a}$
+\end_inset
+
+ the eigenergy of the system corresponding to state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+.
+ For the element 
+\begin_inset Formula $\langle a|\Lambda_{m}^{\dagger}|b\rangle$
+\end_inset
+
+ we have 
+\begin_inset Formula $\langle a|\Lambda_{m}^{\dagger}|b\rangle=\langle b|\Lambda_{m}|a\rangle$
+\end_inset
+
+ and correspondingly the rate of transfer from 
+\begin_inset Formula $|b\rangle$
+\end_inset
+
+ to 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+ is 
+\begin_inset Formula 
+\[
+\hbar^{2}K_{ab}=\sum_{mn}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle\langle b|K_{m}|a\rangle+\bar{C}_{mn}^{*}(\omega_{ba})\langle a|K_{m}|b\rangle\langle a|K_{m}|b\rangle
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\hbar^{2}K_{ab}=\sum_{mn}2{\rm Re}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle\langle b|K_{m}|a\rangle.
+\end{equation}
+
+\end_inset
+
+We can see that the integral above is a half of the Fourier transform and
+ that there is a relation between the 
+\begin_inset Formula $\bar{C}(\omega)=\int\limits _{0}^{\infty}{\rm d}\tau\ C(\tau)e^{i\omega\tau}$
+\end_inset
+
+ and the full Fourier transform 
+\begin_inset Formula $\tilde{C}(\omega)=\int\limits _{-\infty}^{\infty}{\rm d}\tau\ C(\tau)e^{i\omega\tau}$
+\end_inset
+
+ because the correlation function is symmetric
+\begin_inset Formula 
+\begin{equation}
+C(-t)=C^{*}(t).
+\end{equation}
+
+\end_inset
+
+We can show that
+\begin_inset Formula 
+\begin{equation}
+2{\rm Re}\bar{C}(\omega)=\tilde{C}(\omega),
+\end{equation}
+
+\end_inset
+
+and correspondingly
+\begin_inset Formula 
+\begin{equation}
+\hbar^{2}K_{ab}=\sum_{mn}\tilde{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle\langle b|K_{m}|a\rangle.
+\end{equation}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -371,9 +558,26 @@ Homo-dimer
 \end_layout
 
 \begin_layout Standard
+The system-bath interaction operators are
+\begin_inset Formula 
+\begin{equation}
+K_{m}=|m\rangle\langle m|
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 If both energy gap fluctuate with the same energy gap correlation function
  
 \begin_inset Formula $C(t)$
+\end_inset
+
+, and the fluctuations on individual sites are independent from each other
+ (
+\begin_inset Formula $C_{mn}(t)=\delta_{mn}C(t))$
 \end_inset
 
 , the rate 
@@ -388,10 +592,14 @@ If both energy gap fluctuate with the same energy gap correlation function
 \begin_inset Formula $|a\rangle$
 \end_inset
 
- reads as
+ reads as (we set 
+\begin_inset Formula $\hbar=1$
+\end_inset
+
+)
 \begin_inset Formula 
 \begin{equation}
-K_{ab}=2\sum_{n}|\langle a|n\rangle|^{2}|\langle b|n\rangle|^{2}{\rm Re}\tilde{C}(\omega_{ba}).
+K_{ab}=\sum_{n}|\langle a|n\rangle|^{2}|\langle b|n\rangle|^{2}\tilde{C}(\omega_{ba}).
 \end{equation}
 
 \end_inset
@@ -405,25 +613,41 @@ For a homodimer all coefficients
 \end_inset
 
  gives two contributions which are exactly the same.
- For an overdumped Brownian oscillator spectral density we have
+ This means
+\begin_inset Formula 
+\begin{equation}
+\sum_{n}|\langle a|n\rangle|^{2}|\langle b|n\rangle|^{2}=\sum_{n=1}^{2}\frac{1}{4}=\frac{1}{2}.
+\end{equation}
+
+\end_inset
+
+For an overdumped Brownian oscillator spectral density
+\begin_inset Formula 
+\begin{equation}
+\tilde{C}^{\prime\prime}(\omega)=\frac{2\lambda\omega\left(\frac{1}{\tau_{c}}\right)}{\omega^{2}+\left(\frac{1}{\tau_{c}}\right)^{2}}
+\end{equation}
+
+\end_inset
+
+ we have
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-K_{ab}=\tilde{C}(\omega_{ba})=2\left(1+\coth\left(\frac{\hbar\omega_{ba}}{2k_{B}T}\right)\right)\frac{\lambda\omega_{ba}\tau_{c}}{\omega_{ba}^{2}+\left(\frac{1}{\tau_{c}}\right)^{2}}.
+K_{ab}=\frac{1}{2}\tilde{C}(\omega_{ba})=\frac{1}{2}\left(1+\coth\left(\frac{\omega_{ba}}{2k_{B}T}\right)\right)\frac{2\lambda\omega_{ba}\left(\frac{1}{\tau_{c}}\right)}{\omega_{ba}^{2}+\left(\frac{1}{\tau_{c}}\right)^{2}}.
 \end{equation}
 
 \end_inset
 
 Given that for a homodimer 
-\begin_inset Formula $\hbar\omega_{12}=2J$
+\begin_inset Formula $\omega_{12}=2J$
 \end_inset
 
  we have
 \begin_inset Formula 
 \begin{equation}
-K_{12}=\tilde{C}(\omega_{21})=\lambda J\frac{1+\coth\left(\frac{J}{k_{B}T}\right)}{J{}^{2}\tau_{c}+\frac{\hbar^{2}}{4\tau_{c}}}.
+K_{12}=\frac{1}{2}\tilde{C}(\omega_{21})=\frac{\lambda J}{2}\frac{1+\coth\left(\frac{J}{k_{B}T}\right)}{J{}^{2}\tau_{c}+\frac{\hbar^{2}}{4\tau_{c}}}.
 \end{equation}
 
 \end_inset

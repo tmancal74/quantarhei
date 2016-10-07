@@ -92,9 +92,11 @@ class RedfieldRateMatrix:
         # loop over components
         for k in range(Nk):
 
-            # spectral density
+            # correlation function
             cf = self.sbi.CC.get_correlation_function(k,k)
-            cw = cf.get_Fourier_transform() #.convert_2_spectral_density()
+            
+            # Ft correlation function
+            cw = cf.get_Fourier_transform()
             
 
             # Spectral density at all frequencies
@@ -143,7 +145,10 @@ def ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error):
     
     # output relaxatio rate matrix
     RR = numpy.zeros((Na,Na),dtype=numpy.float)
-    cc = 2.0*numpy.real(cc)
+    
+    # real part of FT correlation function = 2Re of the half FT of 
+    # the correlation function - no factor of 2 here!
+    cc = numpy.real(cc)
     
     # loop over components
     for k in range(Nk):
@@ -153,6 +158,7 @@ def ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error):
 
         for i in range(Na):
             for j in range(Na):
+                
                 if i != j:                                
                             
                     RR[i,j] += (cc[k,i,j]*KK[i,j]*KK[j,i])

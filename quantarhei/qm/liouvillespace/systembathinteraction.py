@@ -47,13 +47,16 @@ class SystemBathInteraction:
             dim = KK.data.shape[0]
         
             # Test if it is really an Operator and if yes then save it
-            if True:#isinstance(KK,Operator):
-                self.KK = numpy.zeros((self.N,dim,dim),dtype=numpy.float64)
+            if True:
+                
+                self.KK = numpy.zeros((self.N, dim, dim), dtype=numpy.float64)
                 self.KK[0,:,:] = KK.data       
             
             # Save other operators and check their dimensions 
             for ii in range(1,self.N):
+                
                 KK = sys_operators[ii]
+                
                 if True: #isinstance(KK,Operator):
                     if dim == KK.data.shape[0]:
                         self.KK[ii,:,:] = KK.data
@@ -63,15 +66,13 @@ class SystemBathInteraction:
                 else:
                     raise Exception("sys_operators tuple (the first argument)"
                     + " has to contain cu.oqs.hilbertspace.Operator")
-                    
-                    
+                
             self.CC = bath_correlation_matrix
             
         else:
             self.KK = None
             self.CC = None
-                
-                
+                      
         
         
     def get_coft(self,n,m):
@@ -80,18 +81,26 @@ class SystemBathInteraction:
         
         """
         if self.aggregate is None:
+            
             return self.CC.get_coft(n,m)
+            
         else:
             
             bn = self.aggregate.which_band[n]
             bm = self.aggregate.which_band[m]
+            
             if ((bn == 0) and (bm == 0)):
+                
                 #print(bn,"::",n,m)
                 return self.CC._cofts[0,:]
+                
             elif ((bn == 1) and (bm == 1)):
                 #print(bn,"::",n-1,m-1)
+                
                 return self.CC.get_coft(n-1,m-1)
+                
             else:
+                
                 return self.CC._cofts[0,:]
                 
                 
