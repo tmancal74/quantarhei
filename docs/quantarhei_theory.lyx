@@ -350,12 +350,22 @@ Standard Redfield Theory
 \end_layout
 
 \begin_layout Standard
-In this section we will derive the standard Redfield relaxation tensor in
- a form which is implemented in Quanta
+In this section we define the 
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+standard Redfield relaxation tensor
+\end_layout
+
+\end_inset
+
+standard Redfield relaxation tensor in a form which is implemented in Quanta
 \begin_inset Formula $\rho\epsilon\iota$
 \end_inset
 
 .
+ Our formulation is based on the reference [MayKuehn]
 \end_layout
 
 \begin_layout Subsection
@@ -376,7 +386,7 @@ K_{n}^{(I)}(-\tau)=U_{S}(\tau)K_{n}U_{S}^{\dagger}(\tau)
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\Lambda_{m}=\sum_{n}\int\limits_{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)K_{n}^{(I)}(-\tau)
+\Lambda_{m}=\sum_{n}\int\limits _{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)K_{n}^{(I)}(-\tau)
 \end{equation}
 
 \end_inset
@@ -459,7 +469,7 @@ where we ignored the so-called non-secular terms which connect oscillating
  we have
 \begin_inset Formula 
 \begin{equation}
-\langle a|\Lambda_{m}|b\rangle=\sum_{n}\int\limits_{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)e^{-i\omega_{ab}\tau}\langle a|K_{n}|b\rangle=\sum_{n}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle,
+\langle a|\Lambda_{m}|b\rangle=\sum_{n}\int\limits _{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)e^{-i\omega_{ab}\tau}\langle a|K_{n}|b\rangle=\sum_{n}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle,
 \end{equation}
 
 \end_inset
