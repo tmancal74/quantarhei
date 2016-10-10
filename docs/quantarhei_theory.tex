@@ -113,10 +113,87 @@ then
 
 
 
-\chapter{Molecular Hamiltonian}
+\section{Molecular Hamiltonian}
+
+We assume that molecules can be to a certain extent treated within
+the Born-Oppenheimer approximation. This means that there are some
+distinguisheble electronic states in which we can find the molecule,
+and that are to some extent independent of the motional states of
+the nuclei which form the backbone of the molecule. We will assume
+that a given molecule has an electronic ground state $|g\rangle$
+and an excited state $|e\rangle$ with certain energies $\epsilon_{g}$
+and $\epsilon_{e}$, respectively. States $|g\rangle$ and $|e\rangle$
+are eigenstates of the molecule electronic Hamiltonian and correspondingly,
+one can write
+\begin{equation}
+\hat{H}_{{\rm mol}}=\epsilon_{g}|g\rangle\langle g|+\epsilon_{e}|e\rangle\langle e|.\label{eq:bare_2level}
+\end{equation}
+This is the simplest bare molecule of interest in Quanta$\rho\varepsilon\iota$. 
 
 
-\chapter{Systems of More than One Molecule}
+\subsection{Molecule with a Single Vibrational Mode}
+
+To add a single additional degree of freedom (DOF) to the system we
+have to extend the working \index{Hilbert space}Hilbert space. The
+Hamiltonian, eq. (\ref{eq:bare_2level}) describes a single DOF and
+the corresponding Hilbert space is a vector space defined by all possible
+linear combinations of vectors $|g\rangle$ and $|e\rangle.$ Let
+us imagine that we deal with a diatomic molecule which oscillates
+with a characteristic frequency $\omega$. Let us assume that the
+oscillations proceed irrespective of the electronic state in which
+the molecule finds itself, or in otherwords, let us assume that the
+oscillatory DOF of the molecule does not interact with the electronic
+DOF of the molecule. One can write the Hamiltonian as a sum of the
+vibrational and electronic parts
+\begin{equation}
+\hat{H}_{{\rm mol}}=\hat{H}_{{\rm vib}}+\hat{H}_{{\rm el}}=\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|+\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|.\label{eq:Ham_el_1vib}
+\end{equation}
+We disregarded the zero point energy of the oscillator as this is
+only an indignificant shift of the total energy. 
+
+The system is now described two sets of states. One is the set of
+electronic states $|k\rangle$, $k=g,e$ and one is the set of vibrational
+states $|n\rangle$, $n=1,2,\dots$. To precisely describe the set
+we have to specify states of both of the components. Possible states
+of the system are therefore e.g. $|g\rangle|1\rangle$ or $|e\rangle|20\rangle$
+or any of the linear combinations of such states. Correspondingly,
+the basis of the common Hilbertspace describing both components of
+the system has to be composed of the product states $|k\rangle|n\rangle$.
+The components of the Hamiltonian, Eq. (\ref{eq:Ham_el_1vib}) are
+not defined on a Hilbert space defined by the product states, but
+can be easily made so by just assuming that the empty space next to
+them holds a unity operator on the Hilbert space which we are missing.
+One can for instance write
+\begin{equation}
+\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|=\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|\otimes\hat{1}_{{\rm el}}=\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|\sum_{k=e,g}|k\rangle\langle k|,\label{eq:intro_1el}
+\end{equation}
+where $\hat{1}_{{\rm el}}$ is the unity operator on the electronic
+Hilbert space expressed in the later part of the Eq. (\ref{eq:intro_1el})
+using the completeness relation
+\begin{equation}
+\hat{1}_{{\rm el}}=\sum_{k=g,e}|k\rangle\langle k|.
+\end{equation}
+Similarly, we have 
+\begin{equation}
+\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|=\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|\otimes\hat{1}_{{\rm vib}}=\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|\sum_{n}|n\rangle\langle n|.
+\end{equation}
+The definitions we introduced here allow us for instance to rearange
+the Hamiltonian into a form
+\begin{equation}
+\hat{H}_{{\rm mol}}=\left(\epsilon_{g}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|g\rangle\langle g|+\left(\epsilon_{e}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|e\rangle\langle e|.
+\end{equation}
+
+
+If we do not insist on writing out the vibrational Hamiltonian using
+the vibrational eigenstates, we can as well write
+\begin{equation}
+\sum_{n}n\hbar\omega|n\rangle\langle n|=\frac{\hat{p}^{2}}{2m}+\frac{m\omega^{2}}{2}\hat{q}^{2}.
+\end{equation}
+This form of the vibrational Hamiltonian will enable us to introduce
+interaction between the two DOF is a very sensible manner.
+
+
+\section{Systems of More than One Molecule}
 \begin{verbatim}
 
 \end{verbatim}
