@@ -1,9 +1,10 @@
 %% LyX 2.1.4 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
-\documentclass[english]{revtex4-1}
+\documentclass[oneside,english]{book}
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
 \usepackage{amssymb}
 \usepackage{esint}
 \usepackage{babel}
@@ -15,12 +16,9 @@
 \author{Tom\'{a}\v{s} Man\v{c}al}
 
 
-\affiliation{Faculty of Mathematics and Physics, Charles University, Ke Karlovu
-5, 121 16 Prague 2, Czech Republic}
-
-
 \date{\today}
-\begin{abstract}
+
+\maketitle
 In this document, we summarize the theory of open quantum systems
 as it is implemented in the Quantarhei package. Before it grows into
 a self-contained text, the following books should be consulted to
@@ -30,15 +28,14 @@ later editions), Shaul Mukamel, \emph{Principles of Nonlinear Spectroscopy},
 Oxford University Press, Oxford, 1995 and Leonas Valkunas, Darius
 Abramavicius and Tom\'{a}\v{s} Man\v{c}al, \emph{Molecular Excitation
 Dynamics and Relaxation}, Wiley-VCH, Weinheim, 2013. 
-\end{abstract}
-\maketitle
+
 \tableofcontents{}
 
 
-\section{Bath Correlation Functions and Spectral Densities}
+\chapter{Bath Correlation Functions and Spectral Densities}
 
 
-\subsection{Bath Correlation Function}
+\section{Bath Correlation Function}
 
 Bath correlation function is defined as a two point correlation function
 of the bath part $\Delta V$ of the system-bath interaction operator,
@@ -66,7 +63,7 @@ C(t)=C^{\prime}(t)+iC^{\prime\prime}(t)
 
 
 
-\subsection{Spectral Density}
+\section{Spectral Density}
 
 A very important quantity is the Fourier transform of the bath correlation
 function
@@ -107,14 +104,14 @@ J(\omega)=\sum_{\xi}|g_{\xi}|^{2}\delta(\omega-\omega_{\xi})
 
 
 
-\section{Standard Redfield Theory}
+\chapter{Standard Redfield Theory}
 
 In this section we define the \index{standard Redfield relaxation tensor}standard
 Redfield relaxation tensor in a form which is implemented in Quanta$\rho\epsilon\iota$.
 Our formulation is based on the reference {[}MayKuehn{]}
 
 
-\subsection{General Formula}
+\section{General Formula}
 
 \begin{equation}
 K_{n}^{(I)}(-\tau)=U_{S}(\tau)K_{n}U_{S}^{\dagger}(\tau)
@@ -142,7 +139,7 @@ K_{n}^{(I)}(-\tau)=U_{S}(\tau)K_{n}U_{S}^{\dagger}(\tau)
 
 
 
-\subsubsection{Relaxation rate}
+\subsection{Relaxation rate}
 
 In a representation of Hamiltonian eigenstates $|a\rangle$ we can
 write e.g.
@@ -188,10 +185,10 @@ and correspondingly
 
 
 
-\subsection{Analytical Results}
+\section{Analytical Results}
 
 
-\subsubsection{Homo-dimer}
+\subsection{Homo-dimer}
 
 The system-bath interaction operators are
 \begin{equation}
@@ -232,12 +229,12 @@ This formula is used to test the calculations of Redfield rates and
 of the Redfield tensor in Quanta$\rho\epsilon\iota$.
 
 
-\subsubsection{Hetero-dimer}
+\subsection{Hetero-dimer}
 
 \appendix
 
 
-\section{Microscopic Derivation of Spectral Density Symmetries}
+\chapter{Microscopic Derivation of Spectral Density Symmetries}
 
 Here we will derive the Eqs. (\ref{eq:C_omega_symmetry}) and (\ref{eq:C_omega_by_C_2primes}).
 \end{document}

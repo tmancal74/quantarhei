@@ -2,7 +2,7 @@
 \lyxformat 474
 \begin_document
 \begin_header
-\textclass revtex4-1
+\textclass book
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -105,11 +105,6 @@ v{c}
 al
 \end_layout
 
-\begin_layout Affiliation
-Faculty of Mathematics and Physics, Charles University, Ke Karlovu 5, 121
- 16 Prague 2, Czech Republic
-\end_layout
-
 \begin_layout Date
 \begin_inset ERT
 status open
@@ -184,11 +179,11 @@ LatexCommand tableofcontents
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Chapter
 Bath Correlation Functions and Spectral Densities
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Bath Correlation Function
 \end_layout
 
@@ -251,7 +246,7 @@ C(t)=C^{\prime}(t)+iC^{\prime\prime}(t)
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Spectral Density
 \end_layout
 
@@ -345,7 +340,7 @@ J(\omega)=\sum_{\xi}|g_{\xi}|^{2}\delta(\omega-\omega_{\xi})
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Chapter
 Standard Redfield Theory
 \end_layout
 
@@ -368,7 +363,7 @@ standard Redfield relaxation tensor in a form which is implemented in Quanta
  Our formulation is based on the reference [MayKuehn]
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 General Formula
 \end_layout
 
@@ -427,7 +422,7 @@ K_{n}^{(I)}(-\tau)=U_{S}(\tau)K_{n}U_{S}^{\dagger}(\tau)
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Relaxation rate
 \end_layout
 
@@ -559,11 +554,11 @@ and correspondingly
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Analytical Results
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Homo-dimer
 \end_layout
 
@@ -674,7 +669,7 @@ This formula is used to test the calculations of Redfield rates and of the
 .
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Hetero-dimer
 \end_layout
 
@@ -694,7 +689,7 @@ appendix
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Chapter
 Microscopic Derivation of Spectral Density Symmetries
 \end_layout
 
