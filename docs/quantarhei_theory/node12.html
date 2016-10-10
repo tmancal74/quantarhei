@@ -7,8 +7,8 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Microscopic Derivation of Spectral Density Symmetries</TITLE>
-<META NAME="description" CONTENT="Microscopic Derivation of Spectral Density Symmetries">
+<TITLE>Relaxation rate</TITLE>
+<META NAME="description" CONTENT="Relaxation rate">
 <META NAME="keywords" CONTENT="quantarhei_theory">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -19,52 +19,319 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <LINK REL="STYLESHEET" HREF="quantarhei_theory.css">
 
-<LINK REL="next" HREF="node13.html">
-<LINK REL="previous" HREF="node6.html">
-<LINK REL="up" HREF="quantarhei_theory.html">
+<LINK REL="previous" HREF="node11.html">
+<LINK REL="up" HREF="node11.html">
 <LINK REL="next" HREF="node13.html">
 </HEAD>
 
 <BODY >
 <!--Navigation Panel-->
-<A NAME="tex2html170"
+<A NAME="tex2html206"
   HREF="node13.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
  SRC="file:/usr/share/latex2html/icons/next.png"></A> 
-<A NAME="tex2html166"
-  HREF="quantarhei_theory.html">
+<A NAME="tex2html200"
+  HREF="node11.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
  SRC="file:/usr/share/latex2html/icons/up.png"></A> 
-<A NAME="tex2html160"
+<A NAME="tex2html196"
   HREF="node11.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
  SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
-<A NAME="tex2html168"
+<A NAME="tex2html202"
   HREF="node2.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
- SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A> 
+<A NAME="tex2html204"
+  HREF="node17.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="file:/usr/share/latex2html/icons/index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html171"
-  HREF="node13.html">About this document ...</A>
-<B> Up:</B> <A NAME="tex2html167"
-  HREF="quantarhei_theory.html">Open Quantum Systems Theory</A>
-<B> Previous:</B> <A NAME="tex2html161"
-  HREF="node11.html">Hetero-dimer</A>
- &nbsp; <B>  <A NAME="tex2html169"
+<B> Next:</B> <A NAME="tex2html207"
+  HREF="node13.html">Analytical Results</A>
+<B> Up:</B> <A NAME="tex2html201"
+  HREF="node11.html">General Formula</A>
+<B> Previous:</B> <A NAME="tex2html197"
+  HREF="node11.html">General Formula</A>
+ &nbsp; <B>  <A NAME="tex2html203"
   HREF="node2.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html205"
+  HREF="node17.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00400000000000000000">
-Microscopic Derivation of Spectral Density Symmetries</A>
-</H1>
+<H2><A NAME="SECTION00711000000000000000">
+Relaxation rate</A>
+</H2>
 
 <P>
-Here we will derive the Eqs. (<A HREF="node5.html#eq:C_omega_symmetry"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]"
- SRC="file:/usr/share/latex2html/icons/crossref.png"></A>) and (<A HREF="node5.html#eq:C_omega_by_C_2primes"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]"
- SRC="file:/usr/share/latex2html/icons/crossref.png"></A>).
-<BR><HR>
+In a representation of Hamiltonian eigenstates <IMG
+ WIDTH="24" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img37.png"
+ ALT="$\vert a\rangle$"> we can
+write e.g.
+<BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+\frac{\partial}{\partial t}\rho_{aa}(t)=\sum_{b}\left(\frac{1}{\hbar^{2}}\sum_{m}\langle a|K_{m}|b\rangle\rho_{bb}(t)\langle b|\Lambda_{m}^{\dagger}|a\rangle\right)
+\end{displaymath}
+ -->
+
+<IMG
+ WIDTH="332" HEIGHT="55" BORDER="0"
+ SRC="img38.png"
+ ALT="\begin{displaymath}
+\frac{\partial}{\partial t}\rho_{aa}(t)=\sum_{b}\left(\frac{...
+...bb}(t)\langle b\vert\Lambda_{m}^{\dagger}\vert a\rangle\right)
+\end{displaymath}">
+</DIV>
+<BR CLEAR="ALL">
+<P></P>
+<BR>
+<DIV ALIGN="RIGHT">
+
+<!-- MATH
+ \begin{equation}
++\sum_{b}\left(\frac{1}{\hbar^{2}}\sum_{m}\langle a|\Lambda_{m}|b\rangle\rho_{bb}(t)\langle b|K_{m}|a\rangle\right),
+\end{equation}
+ -->
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="276" HEIGHT="55" BORDER="0"
+ SRC="img39.png"
+ ALT="\begin{displaymath}
++\sum_{b}\left(\frac{1}{\hbar^{2}}\sum_{m}\langle a\vert\Lam...
+...b\rangle\rho_{bb}(t)\langle b\vert K_{m}\vert a\rangle\right),
+\end{displaymath}"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(6.5)</TD></TR>
+</TABLE>
+<BR CLEAR="ALL"></DIV><P></P>
+where we ignored the so-called non-secular terms which connect oscillating
+coherence elements <IMG
+ WIDTH="26" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img40.png"
+ ALT="$\rho_{ab}$"> of the density matrix with the populations
+<IMG
+ WIDTH="27" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img41.png"
+ ALT="$\rho_{aa}$">. From the definition of <IMG
+ WIDTH="28" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img42.png"
+ ALT="$\Lambda_{m}$"> we have
+<BR>
+<DIV ALIGN="RIGHT">
+
+<!-- MATH
+ \begin{equation}
+\langle a|\Lambda_{m}|b\rangle=\sum_{n}\int\limits _{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)e^{-i\omega_{ab}\tau}\langle a|K_{n}|b\rangle=\sum_{n}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle,
+\end{equation}
+ -->
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="484" HEIGHT="63" BORDER="0"
+ SRC="img43.png"
+ ALT="\begin{displaymath}
+\langle a\vert\Lambda_{m}\vert b\rangle=\sum_{n}\int\limits ...
+...n}\bar{C}_{mn}(\omega_{ba})\langle a\vert K_{n}\vert b\rangle,
+\end{displaymath}"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(6.6)</TD></TR>
+</TABLE>
+<BR CLEAR="ALL"></DIV><P></P>
+where we used that <!-- MATH
+ $U_{S}(t)=\sum_{a}e^{-\omega_{a}t}|a\rangle\langle a|$
+ -->
+<IMG
+ WIDTH="167" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img44.png"
+ ALT="$U_{S}(t)=\sum_{a}e^{-\omega_{a}t}\vert a\rangle\langle a\vert$">
+with <!-- MATH
+ $\omega_{a}=\epsilon_{a}/\hbar$
+ -->
+<IMG
+ WIDTH="74" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img45.png"
+ ALT="$\omega_{a}=\epsilon_{a}/\hbar$"> and <IMG
+ WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="img46.png"
+ ALT="$\epsilon_{a}$"> the eigenergy
+of the system corresponding to state <IMG
+ WIDTH="24" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img37.png"
+ ALT="$\vert a\rangle$">. For the element
+<!-- MATH
+ $\langle a|\Lambda_{m}^{\dagger}|b\rangle$
+ -->
+<IMG
+ WIDTH="64" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img47.png"
+ ALT="$\langle a\vert\Lambda_{m}^{\dagger}\vert b\rangle$"> we have <!-- MATH
+ $\langle a|\Lambda_{m}^{\dagger}|b\rangle=\langle b|\Lambda_{m}|a\rangle$
+ -->
+<IMG
+ WIDTH="145" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img48.png"
+ ALT="$\langle a\vert\Lambda_{m}^{\dagger}\vert b\rangle=\langle b\vert\Lambda_{m}\vert a\rangle$">
+and correspondingly the rate of transfer from <IMG
+ WIDTH="22" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img49.png"
+ ALT="$\vert b\rangle$"> to <IMG
+ WIDTH="24" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img37.png"
+ ALT="$\vert a\rangle$">
+is 
+<BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+\hbar^{2}K_{ab}=\sum_{mn}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle\langle b|K_{m}|a\rangle+\bar{C}_{mn}^{*}(\omega_{ba})\langle a|K_{m}|b\rangle\langle a|K_{m}|b\rangle
+\end{displaymath}
+ -->
+
+<IMG
+ WIDTH="485" HEIGHT="44" BORDER="0"
+ SRC="img50.png"
+ ALT="\begin{displaymath}
+\hbar^{2}K_{ab}=\sum_{mn}\bar{C}_{mn}(\omega_{ba})\langle a\...
+...e a\vert K_{m}\vert b\rangle\langle a\vert K_{m}\vert b\rangle
+\end{displaymath}">
+</DIV>
+<BR CLEAR="ALL">
+<P></P>
+<BR>
+<DIV ALIGN="RIGHT">
+
+<!-- MATH
+ \begin{equation}
+\hbar^{2}K_{ab}=\sum_{mn}2{\rm Re}\bar{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle\langle b|K_{m}|a\rangle.
+\end{equation}
+ -->
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="305" HEIGHT="44" BORDER="0"
+ SRC="img51.png"
+ ALT="\begin{displaymath}
+\hbar^{2}K_{ab}=\sum_{mn}2{\rm Re}\bar{C}_{mn}(\omega_{ba})\...
+... a\vert K_{n}\vert b\rangle\langle b\vert K_{m}\vert a\rangle.
+\end{displaymath}"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(6.7)</TD></TR>
+</TABLE>
+<BR CLEAR="ALL"></DIV><P></P>
+We can see that the integral above is a half of the Fourier transform
+and that there is a relation between the <!-- MATH
+ $\bar{C}(\omega)=\int\limits _{0}^{\infty}{\rm d}\tau\ C(\tau)e^{i\omega\tau}$
+ -->
+<IMG
+ WIDTH="161" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img52.png"
+ ALT="$\bar{C}(\omega)=\int\limits _{0}^{\infty}{\rm d}\tau C(\tau)e^{i\omega\tau}$">
+and the full Fourier transform <!-- MATH
+ $\tilde{C}(\omega)=\int\limits _{-\infty}^{\infty}{\rm d}\tau\ C(\tau)e^{i\omega\tau}$
+ -->
+<IMG
+ WIDTH="171" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img53.png"
+ ALT="$\tilde{C}(\omega)=\int\limits _{-\infty}^{\infty}{\rm d}\tau C(\tau)e^{i\omega\tau}$">
+because the correlation function is symmetric
+<BR>
+<DIV ALIGN="RIGHT">
+
+<!-- MATH
+ \begin{equation}
+C(-t)=C^{*}(t).
+\end{equation}
+ -->
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="105" HEIGHT="28" BORDER="0"
+ SRC="img54.png"
+ ALT="\begin{displaymath}
+C(-t)=C^{*}(t).
+\end{displaymath}"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(6.8)</TD></TR>
+</TABLE>
+<BR CLEAR="ALL"></DIV><P></P>
+We can show that
+<BR>
+<DIV ALIGN="RIGHT">
+
+<!-- MATH
+ \begin{equation}
+2{\rm Re}\bar{C}(\omega)=\tilde{C}(\omega),
+\end{equation}
+ -->
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="123" HEIGHT="28" BORDER="0"
+ SRC="img55.png"
+ ALT="\begin{displaymath}
+2{\rm Re}\bar{C}(\omega)=\tilde{C}(\omega),
+\end{displaymath}"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(6.9)</TD></TR>
+</TABLE>
+<BR CLEAR="ALL"></DIV><P></P>
+and correspondingly
+<BR>
+<DIV ALIGN="RIGHT">
+
+<!-- MATH
+ \begin{equation}
+\hbar^{2}K_{ab}=\sum_{mn}\tilde{C}_{mn}(\omega_{ba})\langle a|K_{n}|b\rangle\langle b|K_{m}|a\rangle.
+\end{equation}
+ -->
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="279" HEIGHT="44" BORDER="0"
+ SRC="img56.png"
+ ALT="\begin{displaymath}
+\hbar^{2}K_{ab}=\sum_{mn}\tilde{C}_{mn}(\omega_{ba})\langle a\vert K_{n}\vert b\rangle\langle b\vert K_{m}\vert a\rangle.
+\end{displaymath}"></TD>
+<TD WIDTH=10 ALIGN="RIGHT">
+(6.10)</TD></TR>
+</TABLE>
+<BR CLEAR="ALL"></DIV><P></P>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html206"
+  HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html200"
+  HREF="node11.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html196"
+  HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html202"
+  HREF="node2.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A> 
+<A NAME="tex2html204"
+  HREF="node17.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="file:/usr/share/latex2html/icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html207"
+  HREF="node13.html">Analytical Results</A>
+<B> Up:</B> <A NAME="tex2html201"
+  HREF="node11.html">General Formula</A>
+<B> Previous:</B> <A NAME="tex2html197"
+  HREF="node11.html">General Formula</A>
+ &nbsp; <B>  <A NAME="tex2html203"
+  HREF="node2.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html205"
+  HREF="node17.html">Index</A></B> 
+<!--End of Navigation Panel-->
 <ADDRESS>
 Tomas Mancal
 2016-10-10
