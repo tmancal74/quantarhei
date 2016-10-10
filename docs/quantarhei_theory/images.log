@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/TeX Live for SUSE Linux) (format=latex 2014.11.20)  10 OCT 2016 15:16
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/TeX Live for SUSE Linux) (format=latex 2014.11.20)  10 OCT 2016 17:08
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -111,97 +111,127 @@ latex2htmlLength oddsidemargin=62.0pt
 
 latex2htmlLength evensidemargin=62.0pt
 
-LaTeX Font Info:    Try loading font information for U+msa on input line 148.
+LaTeX Font Info:    Try loading font information for U+msa on input line 150.
 (/usr/share/texmf/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 148.
+LaTeX Font Info:    Try loading font information for U+msb on input line 150.
 (/usr/share/texmf/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-l2hSize :tex2html_wrap_inline440:6.95831pt::6.95831pt::13.87273pt.
+l2hSize :tex2html_wrap_inline554:8.0pt::8.0pt::12.29518pt.
 [1
 
 
 
 ]
-l2hSize :tex2html_wrap_inline442:9.47221pt::0.0pt::9.625pt.
+l2hSize :tex2html_wrap_inline556:8.0pt::8.0pt::11.82298pt.
 [2
 
 
 ]
-l2hSize :tex2html_wrap_inline444:8.0pt::8.0pt::25.42833pt.
+l2hSize :tex2html_wrap_inline558:6.95831pt::6.95831pt::9.21152pt.
 [3
 
 
 ]
-l2hSize :displaymath29:14.5pt::0.0pt::349.0pt.
+l2hSize :tex2html_wrap_inline560:6.95831pt::6.95831pt::8.85318pt.
 [4
 
 
 ]
-l2hSize :tex2html_wrap_inline446:8.0pt::8.0pt::16.8172pt.
+l2hSize :displaymath73:14.86108pt::0.0pt::349.0pt.
 [5
 
 
 ]
-l2hSize :displaymath35:14.5pt::0.0pt::349.0pt.
+l2hSize :tex2html_wrap_inline570:8.0pt::8.0pt::14.60077pt.
 [6
 
 
 ]
-l2hSize :tex2html_wrap_inline450:8.0pt::8.0pt::14.03941pt.
+l2hSize :tex2html_wrap_inline572:6.45831pt::0.0pt::7.08334pt.
 [7
 
 
 ]
-l2hSize :tex2html_wrap_inline452:8.0pt::8.0pt::13.12506pt.
+l2hSize :displaymath83:31.90285pt::0.0pt::349.0pt.
 [8
 
 
 ]
-l2hSize :displaymath37:14.5pt::0.0pt::349.0pt.
+l2hSize :tex2html_wrap_inline574:8.0pt::8.0pt::12.68756pt.
 [9
 
 
 ]
-l2hSize :displaymath46:21.56903pt::0.0pt::349.0pt.
+l2hSize :tex2html_wrap_inline576:7.44444pt::7.44444pt::33.58324pt.
 [10
 
 
 ]
-l2hSize :tex2html_wrap_inline462:8.0pt::8.0pt::18.16676pt.
+l2hSize :tex2html_wrap_inline578:8.0pt::8.0pt::13.16907pt.
 [11
 
 
 ]
-l2hSize :displaymath56:25.00023pt::0.0pt::349.0pt.
+l2hSize :tex2html_wrap_inline580:6.95831pt::6.95831pt::50.39107pt.
 [12
 
 
 ]
-l2hSize :tex2html_wrap_inline464:6.95831pt::6.95831pt::25.54161pt.
+l2hSize :tex2html_wrap_inline582:8.0pt::8.0pt::23.96188pt.
 [13
 
 
 ]
-l2hSize :tex2html_wrap_inline466:8.0pt::8.0pt::60.91441pt.
+l2hSize :tex2html_wrap_inline584:8.0pt::8.0pt::28.4897pt.
 [14
 
 
 ]
-l2hSize :displaymath66:14.5pt::0.0pt::349.0pt.
+l2hSize :tex2html_wrap_inline586:8.0pt::8.0pt::25.3566pt.
 [15
+
+
+]
+l2hSize :displaymath97:31.90285pt::0.0pt::349.0pt.
+[16
+
+
+]
+l2hSize :tex2html_wrap_inline588:9.58334pt::9.58334pt::11.81952pt.
+[17
+
+
+]
+l2hSize :displaymath112:26.38892pt::0.0pt::349.0pt.
+[18
+
+
+]
+l2hSize :displaymath117:26.38892pt::0.0pt::349.0pt.
+[19
+
+
+]
+l2hSize :displaymath128:31.00029pt::0.0pt::349.0pt.
+[20
+
+
+]
+l2hSize :displaymath136:28.40517pt::0.0pt::349.0pt.
+[21
 
 
 ] (./images.aux) ) 
 Here is how much of TeX's memory you used:
- 1317 strings out of 493316
- 16066 string characters out of 6145918
+ 1323 strings out of 493316
+ 16171 string characters out of 6145918
  66988 words of memory out of 5000000
- 4798 multiletter control sequences out of 15000+600000
+ 4804 multiletter control sequences out of 15000+600000
  5339 words of font info for 22 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 25i,5n,26p,162b,147s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 25i,5n,26p,692b,147s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on images.dvi (15 pages, 4008 bytes).
+Output written on images.dvi (21 pages, 6356 bytes).
