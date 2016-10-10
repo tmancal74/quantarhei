@@ -3,15 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Quantarhei's documentation!
+Welcome to Quantarhei's Documentation!
 ======================================
+
+Here we provide a detailed description of the classes provided by Quantarhei.
+
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-
+   classes
 
 Indices and tables
 ==================

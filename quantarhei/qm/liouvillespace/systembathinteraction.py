@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+    Quantarhei package (http://www.github.com/quantarhei)
 
+    systembathinteraction module
+
+"""
 import numpy
 
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
@@ -7,10 +12,22 @@ from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
 class SystemBathInteraction:
     """Describes interaction of an open quantum system with its environment
     
+    Stores the system--bath interaction operator in form of a set of operators
+    on the Hilbert space of the system and correlation functions of 
+    the operator on the bath Hilbert space.
+    
+    Parameters
+    ----------
+    
+    sys_operators : list
+        List of the system part of the system-bath interaction Hamiltonian
+        components
+    
+    
     
     """
 
-    def __init__(self,sys_operators,bath_correlation_matrix,aggregate=None):
+    def __init__(self, sys_operators, bath_correlation_matrix, aggregate=None):
 
         # Find the length of the list of operators 
         if isinstance(sys_operators,list):
@@ -77,7 +94,7 @@ class SystemBathInteraction:
         
     def get_coft(self,n,m):
         """Returns bath correlation function corresponding to sites n and m
-        
+
         
         """
         if self.aggregate is None:
