@@ -60,11 +60,13 @@ from .core.managers import eigenbasis_of
 from .qm.corfunctions import CorrelationFunction
 from .qm.corfunctions import SpectralDensity
 
+from .qm import StateVector
 from .qm import Hamiltonian
 from .qm import TransitionDipoleMoment
 
 from .qm.propagators.poppropagator import PopulationPropagator
-
+from .qm.propagators.svpropagator import StateVectorPropagator
+from .qm.propagators.statevectorevolution import StateVectorEvolution
 
 
 

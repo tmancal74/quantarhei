@@ -9,7 +9,7 @@ from .operators import Operator
 import numpy
 
 
-class Hamiltonian(SelfAdjointOperator,BasisManaged,EnergyUnitsManaged):
+class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     """Hamiltonian operator
     
     
@@ -20,13 +20,13 @@ class Hamiltonian(SelfAdjointOperator,BasisManaged,EnergyUnitsManaged):
     
     data = ManagedRealArray("data")
  
-    def __init__(self,dim=None,data=None):
+    def __init__(self, dim=None, data=None):
         #self.data = data
 #FIXME: how to avoid the Operator breaking the EnergyUnits management ????
-        Operator.__init__(self,dim=dim,data=data)
+        Operator.__init__(self, dim=dim, data=data)
         if not self.check_selfadjoint():
             raise Exception("The data of this operator have"+
-            "to be represented by a selfadjoint matrix")
+                            "to be represented by a selfadjoint matrix")
             
             
     def diagonalize(self,coupling_cutoff=None):

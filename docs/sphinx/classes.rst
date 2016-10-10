@@ -16,5 +16,6 @@ Contents:
    classes/dfunction
    classes/time
    classes/frequency
+   classes/statevector
    classes/systembathinteraction
  

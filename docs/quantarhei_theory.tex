@@ -5,6 +5,8 @@
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
 \usepackage{amssymb}
+\usepackage{makeidx}
+\makeindex
 \usepackage{babel}
 \begin{document}
 
@@ -30,6 +32,94 @@ Dynamics and Relaxation}, Wiley-VCH, Weinheim, 2013. }
 
 \tableofcontents{}
 
+
+\chapter{Introduction}
+
+Quanta$\rho\varepsilon\iota$ deals with the dynamics and spectroscopy
+of molecular systems. This is said mainly to stress that we are far
+away from the part of physics usually know as solid state physics
+or solid state theory. There is no prejudice or personal liking behind
+this. It is to say that there are huge differences in theoretical
+approaches to a problem of regular solid and small molecular aggregates.
+Many concepts discussed here do apply in solid state problems and
+many do not. It is a huge mistake to think that concepts that bare
+the same name are automatically transferable across the theoretical
+domains such as chemical physics and solid state physics.
+
+We do not explain quantum mechanics itself here.
+
+
+\chapter{Closed Quantum Systems}
+
+Quantum theory is build upon a concept of a closed quantum system\index{closed quantum system}.
+This is a necessary idealization which we need for a start. It would
+be, however, better to completely forget it once the concepts of quantum
+theory become somewhat more familiar. Later in this text, we will
+try to explain why.
+
+We describe those physical properties of a molecular (or atomic) system
+that are important for its dynamics by the so-called Hamiltonian\index{Hamiltonian}
+(or energy) operator $\hat{H}$. The state of the system is described
+by a state vector\index{state vector} $|\psi(t)\rangle$ which can
+be time dependent. All operators, not just the Hamiltonian can act
+of the state vector and change it
+\begin{equation}
+|\phi\rangle=\hat{H}|\psi\rangle.\label{eq:H_on_psi}
+\end{equation}
+Eq. (\ref{eq:H_on_psi}) is not meant to descibe any physics. It is
+not like taking a tool and acting with it on a physical system. We
+mean acting in a matematical sense. We have a vector $|\psi\rangle,$
+and when we apply an operator $\hat{H}$ to it, we get a different
+vector. 
+
+The signature of the two vectors being different is the fact that
+their scalar product, once they are normalized, is not one. For all
+state vectors we assume
+\begin{equation}
+\langle\psi(t)|\psi(t)\rangle=1,
+\end{equation}
+i.e. we assume that they are normalized to one. In general, if $|\psi\rangle$
+and $|\phi\rangle$ are two normalized state vectors, then
+\begin{equation}
+\langle\psi|\phi\rangle\leq1.
+\end{equation}
+
+
+In Quanta$\rho\varepsilon\iota$ the state vector is represented by
+the \verb$StateVector$\index{quantarhei.StateVector class} class,
+and the Hamiltonian is correspondingly represented by the \verb$Hamiltonian$\index{quantarhei.Hamiltonian class}
+class (see Quanta$\rho\varepsilon\iota$ documentation). 
+
+The time evolution of a closed quantum mechanical system is governed
+by the \index{Schroedinger equation}Sch\inputencoding{latin1}{r}\inputencoding{latin9}\"{o}dinger
+equation which reads
+\begin{equation}
+\frac{\partial}{\partial t}|\psi(t)\rangle=-\frac{i}{\hbar}\hat{H}|\psi(t)\rangle.
+\end{equation}
+Quanta$\rho\varepsilon\iota$ has a class \verb$StateVectorEvolution$\index{quantarhei.StateVectorEvolution class}
+which represents $|\psi(t)\rangle$ on a given interval of time with
+a given initial state $|\psi_{0}\rangle$. 
+
+A very important quantity for formal manipulations in quantum mechanics
+is the so-called evolution operator\index{evolution operator}
+\begin{equation}
+U(t,t_{0})=\exp\left\{-\frac{i}{\hbar}\hat{H}(t-t_{0})\right\}.
+\end{equation}
+If at time $t=t_{0}$ we have $|\psi(t_{0})\rangle=|\psi_{0}\rangle$
+then 
+\begin{equation}
+|\psi(t)\rangle=U(t,t_{0})|\psi_{0}\rangle.
+\end{equation}
+
+
+
+\chapter{Molecular Hamiltonian}
+
+
+\chapter{Systems of More than One Molecule}
+\begin{verbatim}
+
+\end{verbatim}
 
 \chapter{Bath Correlation Functions and Spectral Densities}
 
@@ -236,4 +326,6 @@ of the Redfield tensor in Quanta$\rho\epsilon\iota$.
 \chapter{Microscopic Derivation of Spectral Density Symmetries}
 
 Here we will derive the Eqs. (\ref{eq:C_omega_symmetry}) and (\ref{eq:C_omega_by_C_2primes}).
+
+\printindex{}
 \end{document}

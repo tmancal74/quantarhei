@@ -58,8 +58,12 @@ def pylint():
     path = 'quantarhei/qm/corfunctions'
     r.set_path(path)
 #    r.un('correlationfunctions.py')
-    r.un('spectraldensities.py')  
-    r.un('cfmatrix.py')
+#    r.un('spectraldensities.py')  
+#    r.un('cfmatrix.py')
+
+    path = 'quantarhei/qm/hilbertspace'
+    r.set_path(path)
+    r.un('statevector.py')
     
     
 """

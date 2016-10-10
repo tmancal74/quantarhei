@@ -2,17 +2,17 @@
 """
 
 
-    DENSITY MATRIX PROPAGATOR
+    StateVector propagator
 
 
 """ 
 
 import numpy
 
-from .propagations import DMPropagation
+from .statevectorevolution import StateVectorEvolution
 
    
-class DMPropagator:
+class StateVectorPropagator:
     
     def __init__(self, timeaxis, ham):
         self.timeaxis = timeaxis
@@ -26,22 +26,23 @@ class DMPropagator:
         
         N = self.ham.data.shape[0]
         self.N = N
-        self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)        
+        self.data = numpy.zeros((self.Nt,N),dtype=numpy.complex64)        
 
 
-    def propagate(self,rhoi):
+    def propagate(self, psii):
         
-        return self._propagate_short_exp(rhoi,L=4)
+        return self._propagate_short_exp(psii,L=4)
         
         
-    def _propagate_short_exp(self,rhoi,L=4):
+    def _propagate_short_exp(self, psii, L=4):
         """
               Short exp integration
         """
         
-        pr = DMPropagation(self.timeaxis,rhoi)
-        rho1 = rhoi.data
-        rho2 = rhoi.data
+        pr = StateVectorEvolution(self.timeaxis, psii)
+        
+        psi1 = psii.data
+        psi2 = psii.data
         
         HH = self.ham.data        
         
@@ -52,16 +53,13 @@ class DMPropagator:
             for jj in range(0,self.Nref):
                 
                 for ll in range(1,L+1):
-                    
                     pref = (self.dt/ll) 
-                    
-                    rho1 = -1j*pref*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) )
-                             
-                    rho2 = rho2 + rho1
-                rho1 = rho2    
+                    psi1 = -1j*pref*numpy.dot(HH,psi1)
+                    psi2 = psi2 + psi1
+
+                psi1 = psi2    
                 
-            pr.data[indx,:,:] = rho2                        
+            pr.data[indx,:] = psi2                        
             indx += 1             
             
         return pr

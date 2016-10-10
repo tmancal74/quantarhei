@@ -3,13 +3,14 @@
 from ...core.matrixdata import MatrixData
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
+from .statevector import StateVector
 
 
 import numpy
 #import scipy
 
 
-class Operator(MatrixData,BasisManaged):
+class Operator(MatrixData, BasisManaged):
     """Class representing quantum mechanical operators
     
     
@@ -53,6 +54,24 @@ class Operator(MatrixData,BasisManaged):
                 self.data = numpy.zeros((dim,dim),dtype=numpy.complex128)
             self.dim = dim
 
+
+    def apply(self, obj):
+        """Apply the operator to vector or operator on the right
+        
+        """
+        
+        if isinstance(obj, Operator):
+            
+            return Operator(data=numpy.dot(self.data,obj.data))
+        
+        elif isinstance(obj, StateVector):
+        
+            return StateVector(data=numpy.dot(self.data,obj.data))
+            
+        else:
+            
+            raise Exception("Cannot apply operator to the object")
+            
 
 
     def transform(self,SS,inv=None):

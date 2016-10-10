@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from .hilbertspace.statevector import StateVector
+
 from .hilbertspace.operators import DensityMatrix
 from .hilbertspace.operators import ReducedDensityMatrix
 
@@ -13,4 +15,7 @@ from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
 from .hilbertspace.operators import Operator
 
 from .propagators.rdmpropagator import RDMPropagator
+from .propagators.svpropagator import StateVectorPropagator
+
+from .propagators.statevectorevolution import StateVectorEvolution
 

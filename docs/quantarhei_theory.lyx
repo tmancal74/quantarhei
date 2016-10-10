@@ -180,6 +180,335 @@ LatexCommand tableofcontents
 \end_layout
 
 \begin_layout Chapter
+Introduction
+\end_layout
+
+\begin_layout Standard
+Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+ deals with the dynamics and spectroscopy of molecular systems.
+ This is said mainly to stress that we are far away from the part of physics
+ usually know as solid state physics or solid state theory.
+ There is no prejudice or personal liking behind this.
+ It is to say that there are huge differences in theoretical approaches
+ to a problem of regular solid and small molecular aggregates.
+ Many concepts discussed here do apply in solid state problems and many
+ do not.
+ It is a huge mistake to think that concepts that bare the same name are
+ automatically transferable across the theoretical domains such as chemical
+ physics and solid state physics.
+\end_layout
+
+\begin_layout Standard
+We do not explain quantum mechanics itself here.
+\end_layout
+
+\begin_layout Chapter
+Closed Quantum Systems
+\end_layout
+
+\begin_layout Standard
+Quantum theory is build upon a concept of a closed quantum system
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+closed quantum system
+\end_layout
+
+\end_inset
+
+.
+ This is a necessary idealization which we need for a start.
+ It would be, however, better to completely forget it once the concepts
+ of quantum theory become somewhat more familiar.
+ Later in this text, we will try to explain why.
+\end_layout
+
+\begin_layout Standard
+We describe those physical properties of a molecular (or atomic) system
+ that are important for its dynamics by the so-called Hamiltonian
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+Hamiltonian
+\end_layout
+
+\end_inset
+
+ (or energy) operator 
+\begin_inset Formula $\hat{H}$
+\end_inset
+
+.
+ The state of the system is described by a state vector
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+state vector
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $|\psi(t)\rangle$
+\end_inset
+
+ which can be time dependent.
+ All operators, not just the Hamiltonian can act of the state vector and
+ change it
+\begin_inset Formula 
+\begin{equation}
+|\phi\rangle=\hat{H}|\psi\rangle.\label{eq:H_on_psi}
+\end{equation}
+
+\end_inset
+
+Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:H_on_psi"
+
+\end_inset
+
+) is not meant to descibe any physics.
+ It is not like taking a tool and acting with it on a physical system.
+ We mean acting in a matematical sense.
+ We have a vector 
+\begin_inset Formula $|\psi\rangle,$
+\end_inset
+
+ and when we apply an operator 
+\begin_inset Formula $\hat{H}$
+\end_inset
+
+ to it, we get a different vector.
+ 
+\end_layout
+
+\begin_layout Standard
+The signature of the two vectors being different is the fact that their
+ scalar product, once they are normalized, is not one.
+ For all state vectors we assume
+\begin_inset Formula 
+\begin{equation}
+\langle\psi(t)|\psi(t)\rangle=1,
+\end{equation}
+
+\end_inset
+
+i.e.
+ we assume that they are normalized to one.
+ In general, if 
+\begin_inset Formula $|\psi\rangle$
+\end_inset
+
+ and 
+\begin_inset Formula $|\phi\rangle$
+\end_inset
+
+ are two normalized state vectors, then
+\begin_inset Formula 
+\begin{equation}
+\langle\psi|\phi\rangle\leq1.
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+ the state vector is represented by the 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb$StateVector$
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+quantarhei.StateVector class
+\end_layout
+
+\end_inset
+
+ class, and the Hamiltonian is correspondingly represented by the 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb$Hamiltonian$
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+quantarhei.Hamiltonian class
+\end_layout
+
+\end_inset
+
+ class (see Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+ documentation).
+ 
+\end_layout
+
+\begin_layout Standard
+The time evolution of a closed quantum mechanical system is governed by
+ the 
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+Schroedinger equation 
+\end_layout
+
+\end_inset
+
+Sch
+r
+\lang english
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+"{o}
+\end_layout
+
+\end_inset
+
+dinger equation which reads
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial}{\partial t}|\psi(t)\rangle=-\frac{i}{\hbar}\hat{H}|\psi(t)\rangle.
+\end{equation}
+
+\end_inset
+
+Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+ has a class 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb$StateVectorEvolution$
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+quantarhei.StateVectorEvolution class
+\end_layout
+
+\end_inset
+
+ which represents 
+\begin_inset Formula $|\psi(t)\rangle$
+\end_inset
+
+ on a given interval of time with a given initial state 
+\begin_inset Formula $|\psi_{0}\rangle$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+A very important quantity for formal manipulations in quantum mechanics
+ is the so-called evolution operator
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+evolution operator
+\end_layout
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+U(t,t_{0})=\exp\left\{-\frac{i}{\hbar}\hat{H}(t-t_{0})\right\}.
+\end{equation}
+
+\end_inset
+
+If at time 
+\begin_inset Formula $t=t_{0}$
+\end_inset
+
+ we have 
+\begin_inset Formula $|\psi(t_{0})\rangle=|\psi_{0}\rangle$
+\end_inset
+
+ then 
+\begin_inset Formula 
+\begin{equation}
+|\psi(t)\rangle=U(t,t_{0})|\psi_{0}\rangle.
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+Molecular Hamiltonian
+\end_layout
+
+\begin_layout Chapter
+Systems of More than One Molecule
+\end_layout
+
+\begin_layout Verbatim
+
+\end_layout
+
+\begin_layout Chapter
 Bath Correlation Functions and Spectral Densities
 \end_layout
 
@@ -710,6 +1039,16 @@ reference "eq:C_omega_by_C_2primes"
 \end_inset
 
 ).
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset index_print
+LatexCommand printindex
+type "idx"
+
+\end_inset
+
+
 \end_layout
 
 \end_body
