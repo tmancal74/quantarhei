@@ -496,11 +496,228 @@ If at time
 
 \end_layout
 
-\begin_layout Chapter
+\begin_layout Section
 Molecular Hamiltonian
 \end_layout
 
-\begin_layout Chapter
+\begin_layout Standard
+We assume that molecules can be to a certain extent treated within the Born-Oppe
+nheimer approximation.
+ This means that there are some distinguisheble electronic states in which
+ we can find the molecule, and that are to some extent independent of the
+ motional states of the nuclei which form the backbone of the molecule.
+ We will assume that a given molecule has an electronic ground state 
+\begin_inset Formula $|g\rangle$
+\end_inset
+
+ and an excited state 
+\begin_inset Formula $|e\rangle$
+\end_inset
+
+ with certain energies 
+\begin_inset Formula $\epsilon_{g}$
+\end_inset
+
+ and 
+\begin_inset Formula $\epsilon_{e}$
+\end_inset
+
+, respectively.
+ States 
+\begin_inset Formula $|g\rangle$
+\end_inset
+
+ and 
+\begin_inset Formula $|e\rangle$
+\end_inset
+
+ are eigenstates of the molecule electronic Hamiltonian and correspondingly,
+ one can write
+\begin_inset Formula 
+\begin{equation}
+\hat{H}_{{\rm mol}}=\epsilon_{g}|g\rangle\langle g|+\epsilon_{e}|e\rangle\langle e|.\label{eq:bare_2level}
+\end{equation}
+
+\end_inset
+
+This is the simplest bare molecule of interest in Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Subsection
+Molecule with a Single Vibrational Mode
+\end_layout
+
+\begin_layout Standard
+To add a single additional degree of freedom (DOF) to the system we have
+ to extend the working 
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+Hilbert space
+\end_layout
+
+\end_inset
+
+Hilbert space.
+ The Hamiltonian, eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:bare_2level"
+
+\end_inset
+
+) describes a single DOF and the corresponding Hilbert space is a vector
+ space defined by all possible linear combinations of vectors 
+\begin_inset Formula $|g\rangle$
+\end_inset
+
+ and 
+\begin_inset Formula $|e\rangle.$
+\end_inset
+
+ Let us imagine that we deal with a diatomic molecule which oscillates with
+ a characteristic frequency 
+\begin_inset Formula $\omega$
+\end_inset
+
+.
+ Let us assume that the oscillations proceed irrespective of the electronic
+ state in which the molecule finds itself, or in otherwords, let us assume
+ that the oscillatory DOF of the molecule does not interact with the electronic
+ DOF of the molecule.
+ One can write the Hamiltonian as a sum of the vibrational and electronic
+ parts
+\begin_inset Formula 
+\begin{equation}
+\hat{H}_{{\rm mol}}=\hat{H}_{{\rm vib}}+\hat{H}_{{\rm el}}=\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|+\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|.\label{eq:Ham_el_1vib}
+\end{equation}
+
+\end_inset
+
+We disregarded the zero point energy of the oscillator as this is only an
+ indignificant shift of the total energy.
+ 
+\end_layout
+
+\begin_layout Standard
+The system is now described two sets of states.
+ One is the set of electronic states 
+\begin_inset Formula $|k\rangle$
+\end_inset
+
+, 
+\begin_inset Formula $k=g,e$
+\end_inset
+
+ and one is the set of vibrational states 
+\begin_inset Formula $|n\rangle$
+\end_inset
+
+, 
+\begin_inset Formula $n=1,2,\dots$
+\end_inset
+
+.
+ To precisely describe the set we have to specify states of both of the
+ components.
+ Possible states of the system are therefore e.g.
+ 
+\begin_inset Formula $|g\rangle|1\rangle$
+\end_inset
+
+ or 
+\begin_inset Formula $|e\rangle|20\rangle$
+\end_inset
+
+ or any of the linear combinations of such states.
+ Correspondingly, the basis of the common Hilbertspace describing both component
+s of the system has to be composed of the product states 
+\begin_inset Formula $|k\rangle|n\rangle$
+\end_inset
+
+.
+ The components of the Hamiltonian, Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:Ham_el_1vib"
+
+\end_inset
+
+) are not defined on a Hilbert space defined by the product states, but
+ can be easily made so by just assuming that the empty space next to them
+ holds a unity operator on the Hilbert space which we are missing.
+ One can for instance write
+\begin_inset Formula 
+\begin{equation}
+\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|=\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|\otimes\hat{1}_{{\rm el}}=\sum_{n=0}^{\infty}n\hbar\omega|n\rangle\langle n|\sum_{k=e,g}|k\rangle\langle k|,\label{eq:intro_1el}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\hat{1}_{{\rm el}}$
+\end_inset
+
+ is the unity operator on the electronic Hilbert space expressed in the
+ later part of the Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:intro_1el"
+
+\end_inset
+
+) using the completeness relation
+\begin_inset Formula 
+\begin{equation}
+\hat{1}_{{\rm el}}=\sum_{k=g,e}|k\rangle\langle k|.
+\end{equation}
+
+\end_inset
+
+Similarly, we have 
+\begin_inset Formula 
+\begin{equation}
+\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|=\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|\otimes\hat{1}_{{\rm vib}}=\sum_{k=g,e}\epsilon_{k}|k\rangle\langle k|\sum_{n}|n\rangle\langle n|.
+\end{equation}
+
+\end_inset
+
+The definitions we introduced here allow us for instance to rearange the
+ Hamiltonian into a form
+\begin_inset Formula 
+\begin{equation}
+\hat{H}_{{\rm mol}}=\left(\epsilon_{g}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|g\rangle\langle g|+\left(\epsilon_{e}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|e\rangle\langle e|.
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If we do not insist on writing out the vibrational Hamiltonian using the
+ vibrational eigenstates, we can as well write
+\begin_inset Formula 
+\begin{equation}
+\sum_{n}n\hbar\omega|n\rangle\langle n|=\frac{\hat{p}^{2}}{2m}+\frac{m\omega^{2}}{2}\hat{q}^{2}.
+\end{equation}
+
+\end_inset
+
+This form of the vibrational Hamiltonian will enable us to introduce interaction
+ between the two DOF is a very sensible manner.
+\end_layout
+
+\begin_layout Section
 Systems of More than One Molecule
 \end_layout
 

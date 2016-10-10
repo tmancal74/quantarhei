@@ -23,10 +23,13 @@ class StateVectorEvolution(MatrixData):
         self.data[0,:] = psii.data
 
 
-    def plot(self):
+    def plot(self, show=True):
         
         for i in range(self.data.shape[1]):
             plt.plot(self.TimeAxis.data, numpy.real(self.data[:,i]))
+            
+        if show:
+            plt.show()
             
             
             
