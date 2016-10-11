@@ -811,7 +811,7 @@ class Aggregate(UnitsManaged):
                                 self.egcf_matrix,aggregate=self)  
                                                  
         else:
-            print("System bath interaction not set")
+            pass #$print("System bath interaction not set")
             
         self._built = True
     

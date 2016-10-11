@@ -236,7 +236,7 @@ Closed Quantum Systems
 \end_layout
 
 \begin_layout Paragraph
-Concepts
+Concepts introduced in this chapter
 \end_layout
 
 \begin_layout Itemize
@@ -263,10 +263,6 @@ Hilbert space, representation in basis states
 Systems with many degrees of freedom
 \end_layout
 
-\begin_layout Section
-Time Evolution of a State Vector
-\end_layout
-
 \begin_layout Standard
 Quantum theory is build upon a concept of a closed quantum system
 \begin_inset Index idx
@@ -280,9 +276,15 @@ closed quantum system
 
 .
  This is a necessary idealization which we need to start with.
- It would be, however, better to completely forget about this idealization
- once the concepts of quantum theory become somewhat more familiar.
- Later in this text, we will try to explain why.
+ For the sake of the interpretation of quantum mechanics, it would be better
+ to completely forget about such an idealization once the concepts of quantum
+ theory become somewhat more familiar.
+ All quantum systems, at the latest at the moment they are measured, are
+ open quantum systems, and the only closed system is the whole universe.
+\end_layout
+
+\begin_layout Section
+Time Evolution of a State Vector
 \end_layout
 
 \begin_layout Standard
@@ -549,6 +551,51 @@ If at time
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+From the point of view of Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+, the state vector 
+\begin_inset Formula $|\psi\rangle$
+\end_inset
+
+ is a complex vector on a vector space with some limited number of dimensions.
+ Similarly, operators such as 
+\begin_inset Formula $\hat{H}$
+\end_inset
+
+ are represented by matrices.
+ The raw vectors corresponding to the 
+\begin_inset Formula $|\psi\rangle$
+\end_inset
+
+ and raw matrices corresponding to 
+\begin_inset Formula $\hat{H}$
+\end_inset
+
+ can be accessed trough an atribute 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb$data$
+\end_layout
+
+\end_inset
+
+ of the corresponding object in Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+.
+ Time dependent quantites have one additional index specifying time.
+ 
 \end_layout
 
 \begin_layout Section

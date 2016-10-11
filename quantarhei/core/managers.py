@@ -438,14 +438,14 @@ class Manager(metaclass=Singleton):
         self.basis_registered[nb] = []
         return nb
         
-    def transform_to_current_basis(self,operator):
+    def transform_to_current_basis(self, operator):
         
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
                 
         if ob != cb:
                             
-            SS = numpy.diag(numpy.ones(operator._data.shape[0]))
+            SS = numpy.diag(numpy.ones(operator.dim)) #_data.shape[1]))
             # find out if current basis of the object is in the stack (i.e. it 
             # was used sometime in the past)
             if ob in self.basis_stack:

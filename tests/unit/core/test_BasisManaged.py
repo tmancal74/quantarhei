@@ -42,6 +42,8 @@ class BasisManagedObject(BasisManaged):
              
          # set data
          self.data = dat
+         
+         self.dim = self.data.shape[0]
 
         
     def __str__(self):

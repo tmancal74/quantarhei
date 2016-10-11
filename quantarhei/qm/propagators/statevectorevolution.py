@@ -6,9 +6,12 @@ import matplotlib.pylab as plt
 from ...core.matrixdata import MatrixData
 from ...core.time import TimeAxis
 
+from ...utils.types import BasisManagedComplexArray
+from ...core.managers import BasisManaged
 
-class StateVectorEvolution(MatrixData): 
+class StateVectorEvolution(MatrixData, BasisManaged): 
     
+    data = BasisManagedComplexArray("data")
     
     def __init__(self, timeaxis, psii):
         
@@ -18,19 +21,57 @@ class StateVectorEvolution(MatrixData):
             
         self.TimeAxis = timeaxis
         self.psi_i = psii
-        self.data = numpy.zeros((timeaxis.length, psii.data.shape[0]),
+        self._data = numpy.zeros((timeaxis.length, psii.data.shape[0]),
                                  dtype=numpy.complex128)
+        self.dim = psii.data.shape[0]
         self.data[0,:] = psii.data
 
 
-    def plot(self, show=True):
+    def plot(self, show=True, ptype="real"):
         
-        for i in range(self.data.shape[1]):
-            plt.plot(self.TimeAxis.data, numpy.real(self.data[:,i]))
+        if ptype == "real":
+            for i in range(self.data.shape[1]):
+                plt.plot(self.TimeAxis.data, numpy.real(self.data[:,i]))
+        elif ptype == "imag":
+            for i in range(self.data.shape[1]):
+                plt.plot(self.TimeAxis.data, numpy.imag(self.data[:,i]))
+        elif ptype == "abs":
+            for i in range(self.data.shape[1]):
+                plt.plot(self.TimeAxis.data, numpy.abs(self.data[:,i]))
+        elif ptype == "square":
+            for i in range(self.data.shape[1]):
+                plt.plot(self.TimeAxis.data, numpy.abs(self.data[:,i])**2)
+            
             
         if show:
             plt.show()
             
+
+    def transform(self, SS, inv=None):
+        """Transformation of the operator by a given matrix
+        
+        
+        This function transforms the Operator into a different basis, using
+        a given transformation matrix.
+        
+        Parameters
+        ----------
+        
+        SS : matrix, numpy.ndarray
+            transformation matrix
+            
+        inv : matrix, numpy.ndarray
+            inverse of the transformation matrix
+            
+        """        
+        if inv is None:
+            S1 = numpy.linalg.inv(SS)
+        else:
+            S1 = inv
+
+        for nt in range(self.TimeAxis.length):
+            self._data[nt,:] = numpy.dot(S1,self._data[nt,:])
+        
             
             
     def __str__(self):

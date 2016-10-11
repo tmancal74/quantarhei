@@ -23,7 +23,7 @@ class Operator(MatrixData, BasisManaged):
     
     data = BasisManagedComplexArray("data")    
     
-    def __init__(self,dim=None,data=None,real=False):
+    def __init__(self, dim=None, data=None, real=False):
 
         # Set the currently used basis
         cb = self.manager.get_current_basis()
@@ -41,10 +41,12 @@ class Operator(MatrixData, BasisManaged):
                 data = numpy.array(data)
             if Operator.assert_square_matrix(data):
                 if dim is not None:
-                    if data.shape[0] != dim:
+                    # shape 1 is OK even for time dependent operators
+                    # and time dependent StateVector
+                    if data.shape[1] != dim:
                         raise Exception() #HilbertSpaceException
                 self.data = data
-                self.dim = self._data.shape[0]
+                self.dim = self._data.shape[1]
             else:
                 raise Exception #HilbertSpaceException
         else:
@@ -83,7 +85,7 @@ class Operator(MatrixData, BasisManaged):
         
         Parameters
         ----------
-        
+         
         SS : matrix, numpy.ndarray
             transformation matrix
             
