@@ -257,7 +257,7 @@ class Molecule(UnitsManaged):
         
         
         """
-        
+
         if self._has_egcf[self.triangle.locate(transition[0] ,transition[1])]:
             return self.egcf[self.triangle.locate(transition[0],
                                                   transition[1])]
@@ -268,9 +268,9 @@ class Molecule(UnitsManaged):
             
             if iof >= 0:
                 return self.egcf_matrix.cfunc[iof]
-            else:
-                raise Exception("No environment set for the transition")
 
+        raise Exception("No environment set for the transition")   
+        
     
     def get_egcf(self, transition): 
         
@@ -397,7 +397,10 @@ class Molecule(UnitsManaged):
         """
         if self.check_temperature_consistent():
         
-            egcf =  self.get_transition_environment([0,1])
+            try:
+                egcf =  self.get_transition_environment([0,1])
+            except:
+                egcf = None
         
             if egcf is None:
                 return 0.0

@@ -121,11 +121,72 @@ today
 
 \end_layout
 
-\begin_layout Paragraph
-In this document, we summarize the theory of open quantum systems as it
- is implemented in the Quantarhei package.
- Before it grows into a self-contained text, the following books should
- be consulted to gat a full picture: Volkhard May and Oliver Kühn, 
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+Introduction
+\end_layout
+
+\begin_layout Standard
+This text presents a theoretical backbround for a Python software package
+ Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+ (see 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb$http://github.com/tmancal74/quantarhei$
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+ deals with the dynamics and spectroscopy of molecular systems.
+ This is said mainly to stress that this package is not intended to treat
+ the part of physics usually know as solid state physics or solid state
+ theory.
+ There is no prejudice or personal (dis)liking behind this.
+ It is to say that there are huge differences in theoretical approaches
+ to a problem of regular solid and that of a small molecular aggregate.
+ Many concepts discussed here do apply in solid state problems and many
+ do not.
+ It is a huge mistake to think that concepts that bare the same name in
+ two different branches of physics are automatically transferable across
+ the theoretical domains such as chemical physics and solid state physics.
+\end_layout
+
+\begin_layout Standard
+In this text, we do not explain quantum mechanics itself.
+ It is expected that the reads has a knowledge of quantum mechanics on the
+ level of a completed undergraduate course.
+ Any standard textbook of quantum mechanics will suffice for a start.
+ The following books should be consulted to get a full picture, especially
+ if you want to use Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+ before this text grows into a self-contained informal textbook: Volkhard
+ May and Oliver Kühn, 
 \emph on
 Charge and Energy Transfer in Molecular Systems
 \emph default
@@ -170,43 +231,40 @@ Molecular Excitation Dynamics and Relaxation
  
 \end_layout
 
-\begin_layout Standard
-\begin_inset CommandInset toc
-LatexCommand tableofcontents
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Chapter
-Introduction
-\end_layout
-
-\begin_layout Standard
-Quanta
-\begin_inset Formula $\rho\varepsilon\iota$
-\end_inset
-
- deals with the dynamics and spectroscopy of molecular systems.
- This is said mainly to stress that we are far away from the part of physics
- usually know as solid state physics or solid state theory.
- There is no prejudice or personal liking behind this.
- It is to say that there are huge differences in theoretical approaches
- to a problem of regular solid and small molecular aggregates.
- Many concepts discussed here do apply in solid state problems and many
- do not.
- It is a huge mistake to think that concepts that bare the same name are
- automatically transferable across the theoretical domains such as chemical
- physics and solid state physics.
-\end_layout
-
-\begin_layout Standard
-We do not explain quantum mechanics itself here.
-\end_layout
-
 \begin_layout Chapter
 Closed Quantum Systems
+\end_layout
+
+\begin_layout Paragraph
+Concepts
+\end_layout
+
+\begin_layout Itemize
+Closed quantum system
+\end_layout
+
+\begin_layout Itemize
+State vector
+\end_layout
+
+\begin_layout Itemize
+Hamiltonian
+\end_layout
+
+\begin_layout Itemize
+Schroedinger equation, evolution operator
+\end_layout
+
+\begin_layout Itemize
+Hilbert space, representation in basis states
+\end_layout
+
+\begin_layout Itemize
+Systems with many degrees of freedom
+\end_layout
+
+\begin_layout Section
+Time Evolution of a State Vector
 \end_layout
 
 \begin_layout Standard
@@ -221,9 +279,9 @@ closed quantum system
 \end_inset
 
 .
- This is a necessary idealization which we need for a start.
- It would be, however, better to completely forget it once the concepts
- of quantum theory become somewhat more familiar.
+ This is a necessary idealization which we need to start with.
+ It would be, however, better to completely forget about this idealization
+ once the concepts of quantum theory become somewhat more familiar.
  Later in this text, we will try to explain why.
 \end_layout
 
@@ -394,10 +452,7 @@ Schroedinger equation
 
 \end_inset
 
-Sch
-r
-\lang english
-
+Schr
 \begin_inset ERT
 status open
 
@@ -472,7 +527,7 @@ evolution operator
 
 \begin_inset Formula 
 \begin{equation}
-U(t,t_{0})=\exp\left\{-\frac{i}{\hbar}\hat{H}(t-t_{0})\right\}.
+U(t,t_{0})=\exp\left\{ -\frac{i}{\hbar}\hat{H}(t-t_{0})\right\} .
 \end{equation}
 
 \end_inset
@@ -695,7 +750,7 @@ The definitions we introduced here allow us for instance to rearange the
  Hamiltonian into a form
 \begin_inset Formula 
 \begin{equation}
-\hat{H}_{{\rm mol}}=\left(\epsilon_{g}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|g\rangle\langle g|+\left(\epsilon_{e}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|e\rangle\langle e|.
+\hat{H}_{{\rm mol}}=\left(\epsilon_{g}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|g\rangle\langle g|+\left(\epsilon_{e}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|e\rangle\langle e|.\label{eq:Hem_el_1vib_equiv}
 \end{equation}
 
 \end_inset
@@ -715,6 +770,32 @@ If we do not insist on writing out the vibrational Hamiltonian using the
 
 This form of the vibrational Hamiltonian will enable us to introduce interaction
  between the two DOF is a very sensible manner.
+\end_layout
+
+\begin_layout Standard
+It is easy to see that if we prepare the molecular system described by the
+ Hamiltonian, Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:Ham_el_1vib"
+
+\end_inset
+
+) or equivalently Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:Hem_el_1vib_equiv"
+
+\end_inset
+
+), in its excited state, it will stay there indefinetly.
+ The state vector 
+\begin_inset Formula $|\psi\rangle$
+\end_inset
+
+ can be 
 \end_layout
 
 \begin_layout Section

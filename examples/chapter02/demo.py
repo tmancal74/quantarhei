@@ -60,3 +60,12 @@ psi_vib_t = prop_vib.propagate(psi_vib)
 print(psi_vib_t)
 
 psi_vib_t.plot()
+
+
+"""
+  Napsat evoluci systemu s 1. oscilatorem a vazbou
+  
+  .. potrebujeme napr. trace pres oscilator atd.
+
+
+"""

@@ -9,7 +9,10 @@
 
 import numpy
 
-class StateVector:
+from ...utils.types import BasisManagedComplexArray
+from ...core.managers import BasisManaged
+
+class StateVector(BasisManaged):
     """Represents a quantum mechanical state vector
 
 
@@ -34,6 +37,9 @@ class StateVector:
 
 
     """
+
+    data = BasisManagedComplexArray("data")   
+
     def __init__(self, dim=None, data=None):
 
         self._initialized = False
@@ -41,15 +47,14 @@ class StateVector:
         # check and save data
         if data is not None:
 
-            # list is accepted
-            if isinstance(data, list):
-                data = numpy.array(data)
+#            # list is accepted
+#            if isinstance(data, list):
+#                data = numpy.array(data)
+            self.data = data
 
-            shape = data.shape
-            if len(shape) != 1:
+            if len(self.data.shape) != 1:
                 raise Exception("Data has to be a vector")
             else:
-                self.data = data
                 if dim is not None:
                     if self.data.shape[0] != dim:
                         raise Exception("Incompatible dim and data paramters")
@@ -81,6 +86,30 @@ class StateVector:
         return numpy.sqrt(numpy.dot(self.data, self.data))
 
 
+    def transform(self, SS, inv=None):
+        """Transformation of the operator by a given matrix
+        
+        
+        This function transforms the Operator into a different basis, using
+        a given transformation matrix.
+        
+        Parameters
+        ----------
+        
+        SS : matrix, numpy.ndarray
+            transformation matrix
+            
+        inv : matrix, numpy.ndarray
+            inverse of the transformation matrix
+            
+        """        
+        if inv is None:
+            S1 = numpy.linalg.inv(SS)
+        else:
+            S1 = inv
+
+        self._data = numpy.dot(S1,self._data)
+        
     def __str__(self):
         out  = "\nquantarhei.StateVector object"
         out += "\n============================="
