@@ -1,35 +1,114 @@
 # -*- coding: utf-8 -*-
+print(
+"""
 
+    Quantarhei Demo for the Chapter 2 of the Quantarhei Theory Text
+
+""")
 import numpy
 
+#
+# Quantarhei objects needed below
+#
+from quantarhei import TimeAxis
 from quantarhei import Hamiltonian
 from quantarhei import StateVector
 from quantarhei import StateVectorPropagator
-from quantarhei import TimeAxis
-
+    
+#
+# Context manager for basis management in Quantarhei
+#
 from quantarhei import eigenbasis_of
 
+def pause(text=None):
+    if text is not None:
+        print(text)
+    input('Press <ENTER> to continue')
+    
+pause()
+print("""
+###############################################################################
+#
+#    EXAMPLE 2.1
+#
+###############################################################################
+""")
 #
 # Hamiltonian of a 2 level molecule with adiabatic coupling
+# Default energy units are radians per femtosecond (rad/fs)
 #
+print("""
+We define a simple 2x2 Hamiltonian and an initial state vector with the
+excited state completely populated.
+""")
+h = [[0.0, 0.4], 
+     [0.4, 1.0]] 
+H = Hamiltonian(data=h)
 
-H = Hamiltonian(data=[[0.0, 0.4], [0.4, 1.0]])
+#
+# Initial state vector to be propagated by the Hamiltonian above
+#
+psi_0 = StateVector(data=[0.0, 1.0])
 
-psi = StateVector(data=[0.0, 1.0])
-
+#
+# Check the Hamiltonian and state vector
+#
+print("Here are the two objects: ")
 print(H)
-print(psi)
+print(psi_0)
 
+
+pause("\nWe will proceed to calculate time evolution ...")
+
+
+print("""
+Now we calculate the evolution of the system from the initial state. Read the
+code to see how this is done.
+""")
+#
+# Time interval on which things will be calculated 
+#
+# TimeAxis(start, number of steps, stepsize)
+#
 time = TimeAxis(0.0, 1000, 0.1)
 
+#
+# Using time axis and the Hamiltonian we define a propagator
+# for the state vector
+#
 prop = StateVectorPropagator(time, H)
 
-psi_t = prop.propagate(psi)
+#
+# This is where time evolution of the state vector is calculated
+# It is stored in psi_t which is of StateVectorEvolution type
+#
+psi_t = prop.propagate(psi_0)
 
+
+print("""
+We plot the time dependence of the state vector elements on the plots below:
+
+First we plot the squares of the absolute values of the state vector elements
+in the eigenstate basis of the Hamiltonian. In other words, we plot
+the probabilites of finding the system in an eigenstates.
+
+In the same plot, we plot the real parts of the same elements.
+""")
 with eigenbasis_of(H):
-    psi_t.plot(ptype="square")
-psi_t.plot(ptype="square")
+    psi_t.plot(ptype="square", show=False)
+    psi_t.plot(ptype="real")
+    
+pause("\nNext we plot the same in the original basis...")
 
+print("""
+Then we plot the same thing but in the basis of states in which defined the
+values.
+""")
+psi_t.plot(ptype="square", show=False)
+psi_t.plot(ptype="real")
+
+
+pause("\nLet us add some vibrational states to the studied system ...")
 
 #
 # The same Hamiltonian using the Molecule class
@@ -50,7 +129,6 @@ vib1.set_shift(1, 0.5)
 
 Hm = m.get_Hamiltonian()
 print(Hm)
-
 print(m)
 
 psi_vib = StateVector(4)

@@ -17,8 +17,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         
         if not isinstance(timeaxis, TimeAxis):
             raise Exception
-            
-            
+                
         self.TimeAxis = timeaxis
         self.psi_i = psii
         self._data = numpy.zeros((timeaxis.length, psii.data.shape[0]),

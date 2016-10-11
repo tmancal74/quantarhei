@@ -10,6 +10,7 @@
 import numpy
 
 from .statevectorevolution import StateVectorEvolution
+from ..hilbertspace.evolutionoperator import EvolutionOperator
 
    
 class StateVectorPropagator:
@@ -32,6 +33,11 @@ class StateVectorPropagator:
     def propagate(self, psii):
         
         return self._propagate_short_exp(psii,L=4)
+        
+    def get_evolution_operator(self):
+        
+        eop = 0.0
+        return EvolutionOperator(self.timeaxis, data=eop)
         
         
     def _propagate_short_exp(self, psii, L=4):
