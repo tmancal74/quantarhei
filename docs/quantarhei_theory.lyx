@@ -172,34 +172,56 @@ Quanta
  There is no prejudice or personal (dis)liking behind this.
  It is to say that there are huge differences in theoretical approaches
  to a problem of regular solid and that of a small molecular aggregate.
- Many concepts discussed here do apply in solid state problems and many
+ Many concepts discussed here do apply in solid state problems, and many
  do not.
  It is a huge mistake to think that concepts that bare the same name in
- two different branches of physics are automatically transferable across
- the theoretical domains such as chemical physics and solid state physics.
+ two different branches of physics are automatically transferable between
+ the two theoretical domains.
+ This is definitely the case for fields such as chemical physics and solid
+ state physics.
 \end_layout
 
 \begin_layout Standard
 In this text, we do not explain quantum mechanics itself.
- It is expected that the reads has a knowledge of quantum mechanics on the
- level of a completed undergraduate course.
+ It is expected that the reader has a knowledge of quantum mechanics on
+ the level of a completed undergraduate course.
  Any standard textbook of quantum mechanics will suffice for a start.
- The following books should be consulted to get a full picture, especially
+ This assumpltion will allow us to skip elementary introduction into concepts
+ of quantum mechanics and we could concentrate on the question how these
+ concepts are represented in Quanta
+\begin_inset Formula $\rho\varepsilon\iota$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The following books should be consulted to get a fuller picture, especially
  if you want to use Quanta
 \begin_inset Formula $\rho\varepsilon\iota$
 \end_inset
 
- before this text grows into a self-contained informal textbook: Volkhard
- May and Oliver Kühn, 
+ before this text grows into a self-contained informal textbook: 
+\end_layout
+
+\begin_layout Itemize
+Volkhard May and Oliver Kühn, 
 \emph on
 Charge and Energy Transfer in Molecular Systems
 \emph default
-, Wiley-VCH, Berlin, 2000 (and later editions), Shaul Mukamel, 
+, Wiley-VCH, Berlin, 2000 (and later editions)
+\end_layout
+
+\begin_layout Itemize
+Shaul Mukamel, 
 \emph on
 Principles of Nonlinear Spectroscopy
 \emph default
-, Oxford University Press, Oxford, 1995 and Leonas Valkunas, Darius Abramavicius
- and Tom
+, Oxford University Press, Oxford, 1995
+\end_layout
+
+\begin_layout Itemize
+Leonas Valkunas, Darius Abramavicius and Tom
 \begin_inset ERT
 status open
 
@@ -280,7 +302,7 @@ closed quantum system
 
 .
  This is a necessary idealization which we need to start with.
- For the sake of the interpretation of quantum mechanics, it would be better
+ For the sake of interpretation of quantum mechanics, it would be better
  to completely forget about such an idealization once the concepts of quantum
  theory become somewhat more familiar.
  All quantum systems, at the latest at the moment they are measured, are
@@ -323,7 +345,7 @@ state vector
 \end_inset
 
  which can be time dependent.
- All operators, not just the Hamiltonian can act of the state vector and
+ All operators, not just the Hamiltonian, can act on the state vector and
  change it
 \begin_inset Formula 
 \begin{equation}
@@ -357,7 +379,7 @@ reference "eq:H_on_psi"
 
 \begin_layout Standard
 The signature of the two vectors being different is the fact that their
- scalar product, once they are normalized, is not one.
+ mutual scalar product, once they are normalized, is not one.
  For all state vectors we assume
 \begin_inset Formula 
 \begin{equation}
@@ -379,12 +401,12 @@ i.e.
  are two normalized state vectors, then
 \begin_inset Formula 
 \begin{equation}
-\langle\psi|\phi\rangle\leq1.
+\langle\psi|\phi\rangle\leq1,
 \end{equation}
 
 \end_inset
 
-
+and the equality applies when the vectors are the same.
 \end_layout
 
 \begin_layout Standard
@@ -580,7 +602,7 @@ From the point of view of Quanta
 \begin_inset Formula $\hat{H}$
 \end_inset
 
- can be accessed trough an atribute 
+ can be accessed trough the atribute 
 \begin_inset ERT
 status open
 

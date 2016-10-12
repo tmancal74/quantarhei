@@ -2,8 +2,7 @@
 print(
 """
 
-    Quantarhei Demo for the Chapter 2 of the Quantarhei Theory Text
-
+       Quantarhei Demo for the Chapter 2 of the Quantarhei Theory Text
 """)
 import numpy
 import matplotlib
@@ -32,9 +31,9 @@ def pause(text=None):
 pause()
 print("""
 ###############################################################################
-#
-#    EXAMPLE 2.1
-#
+#                                                                             #
+#    EXAMPLE 2.1                                                              #
+#                                                                             #
 ###############################################################################
 """)
 #
@@ -45,6 +44,7 @@ print("""
 We define a simple 2x2 Hamiltonian and an initial state vector with the
 excited state completely populated.
 """)
+
 h = [[0.0, 0.4], 
      [0.4, 1.0]] 
 H = Hamiltonian(data=h)
@@ -89,12 +89,12 @@ prop = StateVectorPropagator(time, H)
 psi_t = prop.propagate(psi_0)
 
 
-print("""
-We plot the time dependence of the state vector elements on the plots below:
+print(
+"""We plot the time dependence of the state vector elements on the plots below:
 
 First we plot the squares of the absolute values of the state vector elements
 in the eigenstate basis of the Hamiltonian. In other words, we plot
-the probabilites of finding the system in an eigenstates.
+the probabilites of finding the system in its eigenstates.
 
 In the same plot, we plot the real parts of the same elements.
 """)
@@ -102,7 +102,9 @@ with eigenbasis_of(H):
     psi_t.plot(ptype="square", show=False)
     psi_t.plot(ptype="real")
     
+    
 pause("\nNext we plot the same in the original basis...")
+
 
 print("""
 Then we plot the same thing but in the basis of states in which defined the
@@ -114,6 +116,13 @@ psi_t.plot(ptype="real")
 
 pause("\nLet us add some vibrational states to the studied system ...")
 
+print("""
+###############################################################################
+#                                                                             #
+#    EXAMPLE 2.2                                                              #
+#                                                                             #
+###############################################################################
+""")
 #
 # The same Hamiltonian using the Molecule class
 #
@@ -129,13 +138,15 @@ vib1 = Mode(frequency=0.01)
 m.add_Mode(vib1)
 
 vib1.set_shift(1, 0.5)
+vib1.set_nmax(0, 5)
+vib1.set_nmax(1, 5)
 
 
 Hm = m.get_Hamiltonian()
 print(Hm)
 print(m)
 
-psi_vib = StateVector(4)
+psi_vib = StateVector(10)
 psi_vib.data[3] = 1.0
 
 prop_vib = StateVectorPropagator(time, Hm)

@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+*******************************************************************************
 
+    REDUCED DENSITY MATRIX PROPAGATOR
+
+*******************************************************************************
+
+Propagator of the Reduced density matrix dynamics
+
+Created on Mon Apr 13 18:27:07 2015
+
+author: Tomas Mancal, Charles University
+
+"""
 
 import numpy
 
@@ -11,34 +24,13 @@ import numpy.linalg
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..hilbertspace.operators import Operator
 from ...core.time import TimeAxis
+from ...core.time import TimeDependent
 from ..liouvillespace.redfieldtensor import RelaxationTensor
 from ..hilbertspace.operators import ReducedDensityMatrix
-from .propagations import RDMPropagation
+from .dmevolution import ReducedDensityMatrixEvolution
 
 
-"""
-
-Propagator of the Reduced density matrix dynamics
-
-Created on Mon Apr 13 18:27:07 2015
-
-author: Tomas Mancal, Charles University in Prague
-
-"""
-
-class TimeDependent:
-    pass
-
-
-
-"""
-*******************************************************************************
-
-    REDUCED DENSITY MATRIX PROPAGATOR
-
-*******************************************************************************
-"""
-class RDMPropagator: #(ReducedDensityMatrix):
+class ReducedDensityMatrixPropagator: 
     """
     
     Reduced Density Matrix Propagator calculates the evolution of the
@@ -139,7 +131,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         self.dt = self.Odt/self.Nref
         
         
-    def propagate(self,rhoi,method="primitive",mdata=None):
+    def propagate(self,rhoi,method="short-exp",mdata=None):
         """
         
         >>> T0   = 0
@@ -302,7 +294,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         
     def __propagate_primitive(self,rhoi):
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
 
 
         """
@@ -331,7 +323,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         
     def __propagate_primitive_with_relaxation(self,rhoi):
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
 
 
         """
@@ -342,7 +334,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         RR = self.RelaxationTensor.data        
         
         indx = 0
-        for ii in self.TimeAxis.time: 
+        for ii in self.TimeAxis.data: 
 
             for jj in range(0,self.Nref):   
                 
@@ -376,7 +368,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         rho1 = rhoi.data
         rho2 = rhoi.data
         
@@ -408,7 +400,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -451,7 +443,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -500,7 +492,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -538,7 +530,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data

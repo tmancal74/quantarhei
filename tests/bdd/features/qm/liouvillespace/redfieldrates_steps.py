@@ -85,6 +85,8 @@ def redfield_relaxation(self):
     
     world.K12 = numpy.real(RRM.data[1,2])
     
+    world.RRM = RRM
+    
     
 #    #
 #    # Homodimer
@@ -160,7 +162,5 @@ def compare_rates_analytical(self, rtols):
     print(world.K12, 1.0/world.K12)
     
     print(K12/world.K12)
-    
-#    print(world.tK12/world.K12)
     
     numpy.testing.assert_allclose(K12, world.K12 ,rtol=rtol) #,atol=atol)    

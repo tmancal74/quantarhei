@@ -28,17 +28,20 @@ from .liouvillespace.systembathinteraction import SystemBathInteraction
 #   RELAXATION THEORY
 #
 from .liouvillespace.redfieldrates import RedfieldRateMatrix
+from .liouvillespace.tdredfieldrates import TDRedfieldRateMatrix
 from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
 
 
 #
 #  PROPAGATORS 
 #
-from .propagators.rdmpropagator import RDMPropagator
+from .propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from .propagators.svpropagator import StateVectorPropagator
 
 #
 #  TIME EVOLUTIONS
 #
 from .propagators.statevectorevolution import StateVectorEvolution
+from .propagators.dmevolution import DensityMatrixEvolution
+from .propagators.dmevolution import ReducedDensityMatrixEvolution
 

@@ -61,12 +61,19 @@ from .qm.corfunctions import CorrelationFunction
 from .qm.corfunctions import SpectralDensity
 
 from .qm import StateVector
+from .qm import DensityMatrix
+from .qm import ReducedDensityMatrix
+
 from .qm import Hamiltonian
 from .qm import TransitionDipoleMoment
 
 from .qm.propagators.poppropagator import PopulationPropagator
 from .qm.propagators.svpropagator import StateVectorPropagator
+from .qm import ReducedDensityMatrixPropagator
+
 from .qm.propagators.statevectorevolution import StateVectorEvolution
+from .qm import DensityMatrixEvolution
+from .qm import ReducedDensityMatrixEvolution
 
 
 

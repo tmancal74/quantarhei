@@ -11,6 +11,9 @@ import numpy
 from .valueaxis import ValueAxis
 from .managers import energy_units
 
+class TimeDependent:
+    pass
+
 class TimeAxis(ValueAxis):
     """ Class representing time in time dependent calculations.
 
