@@ -33,7 +33,7 @@ class PopulationPropagator:
         indx = 1
         for ii in self.timeAxis.data[1:self.Nt]:
                                    
-            for jj in range(0,self.Nref):
+            for jj in range(0, self.Nref):
                 
                 for ll in range(1,L+1):
                     

@@ -14,17 +14,19 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
     
     def __init__(self, timeaxis, rhoi):
         
-        if not isinstance(timeaxis,TimeAxis):
-            raise Exception
+        if not isinstance(timeaxis, TimeAxis):
+            raise Exception("First argument has to be a TimeAxis")
             
         #if not isinstance(rhoi,ReducedDensityMatrix):
         #    raise Exception
             
         self.TimeAxis = timeaxis
-        self.data = numpy.zeros((timeaxis.length, rhoi.data.shape[0], \
+        self.dim = rhoi.data.shape[1]        
+        
+        self._data = numpy.zeros((timeaxis.length, rhoi.data.shape[0], \
                     rhoi.data.shape[1]),dtype=numpy.complex128)
         self.data[0,:,:] = rhoi.data
-        self.dim = self.data.shape[1]
+
         
 
     def transform(self, SS, inv=None):

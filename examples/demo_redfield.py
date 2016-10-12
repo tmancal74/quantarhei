@@ -79,21 +79,24 @@ with eigenbasis_of(ham):
    
 print(rho_i)
 
-rho_t = prop.propagate(rho_i)
-
+print(1.0/RRT.data[1,1,2,2])
 with eigenbasis_of(ham):
+    print(1.0/RRT.data[1,1,2,2])
+    rho_t = prop.propagate(rho_i)
     rho_t.plot(coherences=False)
     
 #
 #  Evolution of populations
 #
 prop = PopulationPropagator(time, RRM)
-
 pop_t = prop.propagate([0.0, 0.0, 0.0, 1.0])
 
 import matplotlib.pyplot as plt
-plt.plot(time.data, pop_t[:,3],'--g')
+plt.plot(time.data, pop_t[:,3],'--r')
+plt.show()
 
 print(RRM.data[2,3])
 print(RRT.data[2,2,3,3])
+
+
 

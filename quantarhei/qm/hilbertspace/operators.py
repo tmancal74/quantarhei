@@ -159,7 +159,6 @@ class SelfAdjointOperator(Operator):
         return out        
         
         
-        
 class ProjectionOperator(Operator):
     """
     Projection operator projecting from state m to state n.

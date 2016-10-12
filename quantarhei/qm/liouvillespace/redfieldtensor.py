@@ -13,6 +13,7 @@ from .systembathinteraction import SystemBathInteraction
 from ..hilbertspace.hamiltonian import Hamiltonian
 
 from .relaxationtensor import RelaxationTensor
+from ...core.managers import eigenbasis_of
 
 
 class RedfieldRelaxationTensor(RelaxationTensor):
@@ -79,6 +80,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         self.Hamiltonian = ham
         self.SystemBathInteraction = sbi
+        self.dim = self.Hamiltonian.dim
+        
+        self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim))
+        
         self._is_initialized = False            
         self._has_cutoff_time = False
         self.as_operators = as_operators
@@ -90,7 +95,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
         # initialize the tensor right at creation
         if initialize:        
-            self._reference_implementation(ham,sbi)          
+            self._reference_implementation(ham,sbi)        
 
 
         
@@ -240,6 +245,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
+            
+            #with eigenbasis_of(ham):
             self.data = RR
 
         self._is_initialized = True

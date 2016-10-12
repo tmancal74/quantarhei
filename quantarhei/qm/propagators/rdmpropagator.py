@@ -399,8 +399,8 @@ class ReducedDensityMatrixPropagator:
         """
               Short exp integration
         """
-        
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -419,13 +419,14 @@ class ReducedDensityMatrixPropagator:
             return pr
             
         indx = 1
-        for ii in range(1,self.Nt): #self.TimeAxis.time[1:self.Nt]:
+        for ii in range(1, self.Nt): 
             
-            for jj in range(0,self.Nref):
-                for ll in range(1,L+1):
+            for jj in range(0, self.Nref):
+                
+                for ll in range(1, L+1):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
+                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                             - numpy.dot(rho1,HH)) \
                            + (self.dt/ll)*numpy.tensordot(RR,rho1)
                              
                              
