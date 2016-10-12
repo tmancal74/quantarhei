@@ -75,16 +75,14 @@ prop = ReducedDensityMatrixPropagator(time, ham, RRT)
 
 rho_i = ReducedDensityMatrix(dim=4)
 with eigenbasis_of(ham):
-    pass
-rho_i.data[3,3] = 1.0
+    rho_i.data[3,3] = 1.0
    
 print(rho_i)
 
 rho_t = prop.propagate(rho_i)
 
 with eigenbasis_of(ham):
-    pass
-rho_t.plot(coherences=False)
+    rho_t.plot(coherences=False)
     
 #
 #  Evolution of populations
@@ -95,4 +93,7 @@ pop_t = prop.propagate([0.0, 0.0, 0.0, 1.0])
 
 import matplotlib.pyplot as plt
 plt.plot(time.data, pop_t[:,3],'--g')
+
+print(RRM.data[2,3])
+print(RRT.data[2,2,3,3])
 
