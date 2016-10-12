@@ -8,16 +8,18 @@
 """  
 
 import numpy
+import scipy
 
 from ...core.implementations import implementation
 from ...core.units import cm2int
-from ...core.units import kB_intK
 
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 
+from ...core.time import TimeDependent
+
    
-class RedfieldRateMatrix:
+class TDRedfieldRateMatrix(TimeDependent):
     """Redfield relaxation rate matrix
     
     Redfield population relaxation rate matrix is calculated from the 
@@ -80,6 +82,11 @@ class RedfieldRateMatrix:
         # number of components
         Nk = self.sbi.N  
         
+        # number of steps in time
+        time = self.sbi.TimeAxis
+        tm = time.data
+        Nt = time.length
+        
         if Nk <= 0:
             raise Exception("No system bath intraction components present")
         
@@ -94,10 +101,7 @@ class RedfieldRateMatrix:
         # frequency cut-off
         freq_cutoff = 3000.0*cm2int
         #print("freq. cut-off",freq_cutoff)
-        
-        # temperature
-        Temp = self.sbi.CC.get_correlation_function(0,0).temperature
-        
+     
         
         # transform interaction operators
         for i in range(Nk):
@@ -110,7 +114,7 @@ class RedfieldRateMatrix:
                 Om[a,b] = hD[a] - hD[b]
                 
         # calculate values of the spectral density at frequencies
-        cc = numpy.zeros((Nk,Na,Na),dtype=numpy.complex)
+        cc = numpy.zeros((Nt,Nk,Na,Na),dtype=numpy.complex)
         
         # loop over components
         for k in range(Nk):
@@ -119,7 +123,7 @@ class RedfieldRateMatrix:
             cf = self.sbi.CC.get_correlation_function(k,k)
             
             # Ft correlation function
-            cw = cf.get_Fourier_transform()
+            # cw = cf.get_Fourier_transform()
             
 
             # Spectral density at all frequencies
@@ -127,14 +131,16 @@ class RedfieldRateMatrix:
                 for j in range(Na):
                     if i != j:
                         if numpy.abs(Om[j,i]) > freq_cutoff:
-                            cc[k,i,j] = 0.0
+                            cc[:,k,i,j] = 0.0
                         else:
-                            if Om[j,i] < 0.0:
-                                #cc[k,i,j] = (cf.interp_data(Om[i,j])
-                                cc[k,i,j] = (cw.at(Om[i,j],approx="spline")
-                                *numpy.exp(-Om[i,j]/(kB_intK*Temp)))
-                            else:
-                                cc[k,i,j] = cw.at(Om[j,i],approx="spline") 
+                            ff = cf.data*numpy.exp(1.0j*Om[j,i]*tm)
+                            rr = numpy.real(ff)
+                            ri = numpy.imag(ff)
+                            sr = scipy.interpolate.UnivariateSpline(tm,
+                                    rr, s=0).antiderivative()(tm)
+                            si = scipy.interpolate.UnivariateSpline(tm,
+                                    ri, s=0).antiderivative()(tm)
+                            cc[:,k,i,j] =  sr + 1.0j*si
                                 
 
         """ To submit: 
@@ -152,7 +158,8 @@ class RedfieldRateMatrix:
         warning = []
         error = []
         rtol = 1.0e-6
-        self.data = ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error)
+        self.data = ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol,
+                                           warning, error)
         for w in error:
             print(w)     
                                
@@ -160,18 +167,18 @@ class RedfieldRateMatrix:
         
         
 
-@implementation("redfield","ssRedfieldRateMatrix",
+@implementation("tdredfield","ssTDRedfieldRateMatrix",
                 at_runtime=True,
                 fallback_local=True,
                 always_local=True)
-def ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error):
+def ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol, warning, error):
     
     # output relaxatio rate matrix
-    RR = numpy.zeros((Na,Na),dtype=numpy.float)
+    RR = numpy.zeros((Nt,Na,Na),dtype=numpy.float)
     
     # real part of FT correlation function = 2Re of the half FT of 
     # the correlation function - no factor of 2 here!
-    cr = numpy.real(cc)
+    cc = numpy.real(cc)
     
     # loop over components
     for k in range(Nk):
@@ -185,21 +192,15 @@ def ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error):
                 # calculate rates, i.e. off diagonal elements
                 if i != j:                                
                             
-                    RR[i,j] += (cr[k,i,j]*KK[i,j]*KK[j,i])
+                    RR[:,i,j] += 2.0*numpy.real(cc[:,k,i,j]*KK[i,j]*KK[j,i])
                     
-                    if RR[i,j] < 0.0:
-                        warning.append("\n%i %i %r smaller than zero"
-                                    % (i,j,RR[i,j]))
-                        if numpy.abs(RR[i,j]) < rtol:
-                            RR[i,j] = 0.0
-                        else:
-                            error.append(" ... significantly")
     # calculate the diagonal elements (the depopulation rates)            
     for i in range(Na):
         for j in range(Na):
             if i != j:
-                RR[j,j] -= RR[i,j]
+                RR[:,j,j] -= RR[:,i,j]
                     
     return RR
                     
                     
+

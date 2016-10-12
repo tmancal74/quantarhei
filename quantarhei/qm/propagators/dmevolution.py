@@ -5,12 +5,14 @@ import matplotlib.pylab as plt
 
 from ...core.matrixdata import MatrixData
 from ...core.time import TimeAxis
+from ...utils.types import BasisManagedComplexArray
+from ...core.managers import BasisManaged
 
-
-class DMPropagation(MatrixData): #,TimeDependent):
+class DensityMatrixEvolution(MatrixData, BasisManaged):
     
+    data = BasisManagedComplexArray("data") 
     
-    def __init__(self,timeaxis,rhoi):
+    def __init__(self, timeaxis, rhoi):
         
         if not isinstance(timeaxis,TimeAxis):
             raise Exception
@@ -22,15 +24,37 @@ class DMPropagation(MatrixData): #,TimeDependent):
         self.data = numpy.zeros((timeaxis.length, rhoi.data.shape[0], \
                     rhoi.data.shape[1]),dtype=numpy.complex128)
         self.data[0,:,:] = rhoi.data
+        self.dim = self.data.shape[1]
+        
+
+    def transform(self, SS, inv=None):
+        """Transformation of the operator by a given matrix
         
         
-    def transform(self,SS):
-        S1 = SS.T
-        for ii in range(len(self.TimeAxis.data)):
-            self.data[ii,:,:] = numpy.dot(S1,
-                    numpy.dot(self.data[ii,:,:],SS))
+        This function transforms the Operator into a different basis, using
+        a given transformation matrix.
+        
+        Parameters
+        ----------
+         
+        SS : matrix, numpy.ndarray
+            transformation matrix
+            
+        inv : matrix, numpy.ndarray
+            inverse of the transformation matrix
+            
+        """        
+        if inv is None:
+            S1 = numpy.linalg.inv(SS)
+        else:
+            S1 = inv
+
+        #S1 = scipy.linalg.inv(SS)                 
+        for ii in range(self.TimeAxis.length):
+            self._data[ii,:,:] = numpy.dot(S1,
+                    numpy.dot(self._data[ii,:,:],SS))    
                     
-    
+                    
     def plot(self,populations=True,popselection="All",\
                   coherences=True, cohselection="All",how='-'):
         """
@@ -64,7 +88,7 @@ class DMPropagation(MatrixData): #,TimeDependent):
                         kk += 1
                         if kk > 6:
                             kk = kk - 7
-                        plt.plot(self.TimeAxis.time,numpy.real(
+                        plt.plot(self.TimeAxis.data,numpy.real(
                                     self.data[:,ii,jj]),howi[kk]) #how)
                 
         ii = 0
@@ -81,6 +105,6 @@ class DMPropagation(MatrixData): #,TimeDependent):
         return 1
         
         
-class RDMPropagation(DMPropagation):
+class ReducedDensityMatrixEvolution(DensityMatrixEvolution):
     pass
 

@@ -57,6 +57,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             SS = super().diagonalize()
             if self._has_remainder_coupling:
                 self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
+            self.SS = SS
             return SS
         else:
             JR = numpy.zeros((self.dim,self.dim),dtype=numpy.float64)
@@ -96,7 +97,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.data = numpy.dot(self.SS,numpy.dot(self.data,self.SS.T))
         if self._has_remainder_coupling:
             self.JR = numpy.dot(self.SS,numpy.dot(self.JR,self.SS.T))
-        if with_remainder:                
+        if with_remainder and self._has_remainder_coupling:                
             self.data += self.JR
             
             

@@ -4,19 +4,22 @@ import numpy
 
 class PopulationPropagator:
     
-    def __init__(self,timeaxis,RateMatrix=None):
+    def __init__(self, timeaxis, RateMatrix=None):
         """ Propagator for a population vector 
         
         """
         self.timeAxis = timeaxis
         self.Nref = 1
         self.Nt = self.timeAxis.length
-        self.dt = self.timeAxis.dt
+        self.dt = self.timeAxis.step
         
         if RateMatrix is not None:
             self.KK = RateMatrix
     
-    def propagate(self,pini):
+    def propagate(self, pini):
+        if not isinstance(pini, numpy.ndarray):
+            pini = numpy.array(pini)
+            
         return self._propagate_short_exp(pini)    
         
         
@@ -28,7 +31,7 @@ class PopulationPropagator:
         rho2 = pini
         
         indx = 1
-        for ii in self.timeAxis.time[1:self.Nt]:
+        for ii in self.timeAxis.data[1:self.Nt]:
                                    
             for jj in range(0,self.Nref):
                 

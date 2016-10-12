@@ -65,4 +65,6 @@ def redfield_tensor(self):
     
     RRT = RedfieldRelaxationTensor(H, sbi)
     
+    world.RRT = RRT
+    
     world.K12 = numpy.real(RRT.data[1,1,2,2])
