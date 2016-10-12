@@ -6,6 +6,10 @@ print(
 
 """)
 import numpy
+import matplotlib
+matplotlib.use("wx")
+import matplotlib.pyplot as plt
+plt.ion()
 
 #
 # Quantarhei objects needed below
