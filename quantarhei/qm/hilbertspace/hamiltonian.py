@@ -29,7 +29,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                             "to be represented by a selfadjoint matrix")
             
             
-    def diagonalize(self,coupling_cutoff=None):
+    def diagonalize(self, coupling_cutoff=None):
         """Diagonalizes the Hamiltonian matrix 
         
         Parameters

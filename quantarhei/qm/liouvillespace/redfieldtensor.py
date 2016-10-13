@@ -186,7 +186,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 #                hD, SS = numpy.linalg.eigh(ham.data) 
 #        else:
         if True:
-            hD, SS = numpy.linalg.eigh(ham._data)   
+            hD, SS = numpy.linalg.eigh(ham.data)   
                
         #
         #  Find all transition frequencies
@@ -266,8 +266,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
             
-            with eigenbasis_of(ham):
-#            if True:
+#            with eigenbasis_of(ham):
+            if True:
 #                self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
 #                                        dtype=numpy.complex128)
                 self.data = RR
@@ -318,7 +318,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                                 RR[a,b,c,d] -= LdKm[d,b]
         
         return RR
-        
 
 
     def initialize(self):

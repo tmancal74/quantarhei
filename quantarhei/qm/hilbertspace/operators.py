@@ -159,12 +159,16 @@ class SelfAdjointOperator(Operator):
                               self.data)).all()
         
     def diagonalize(self):
-        # first use if of "data", the rest of "_data"
+        # first use is of "data", the rest of "_data"
         dd,SS = numpy.linalg.eigh(self.data)
         self._data = numpy.zeros(self._data.shape)
-        for ii in range(0,self._data.shape[0]):
+        for ii in range(self._data.shape[0]):
             self._data[ii,ii] = dd[ii]
         return SS
+        
+    def get_diagonalization_matrix(self):
+        dd, SS = numpy.linalg.eigh(self._data)
+        return SS        
         
     def __str__(self):
         out  = "\nquantarhei.SelfAdjointOperator object"

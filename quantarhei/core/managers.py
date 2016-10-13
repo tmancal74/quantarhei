@@ -45,7 +45,7 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.5"
+    version = "0.0.6"
 
     # hard wired unit options
     allowed_utypes = ["energy",
@@ -426,6 +426,9 @@ class Manager(metaclass=Singleton):
         pass
     
     
+    
+    
+    
     def get_current_basis(self):
         """Returns the current basis id
         
@@ -441,7 +444,20 @@ class Manager(metaclass=Singleton):
         return nb
         
     def transform_to_current_basis(self, operator):
+        """Transforms an operator to the currently used basis
         
+        Parameters
+        ----------
+        
+        operator : operator
+            Any basis managed operator
+            
+            
+        """
+
+        if operator.is_basis_protected:
+            return
+
         if self.warn_about_basis_changing_objects:
             print("Object ", operator.__class__, " is changing basis")
             
@@ -450,7 +466,7 @@ class Manager(metaclass=Singleton):
                 
         if ob != cb:
                             
-            SS = numpy.diag(numpy.ones(operator.dim)) #_data.shape[1]))
+            SS = numpy.diag(numpy.ones(operator.dim))
             # find out if current basis of the object is in the stack (i.e. it 
             # was used sometime in the past)
             if ob in self.basis_stack:
@@ -461,7 +477,7 @@ class Manager(metaclass=Singleton):
                     # take the basis transformation to the earlier used basis
                     ZZ = self.basis_transformations[sl-k]
 
-                    # included into the transformation matrix
+                    # included it into the transformation matrix
                     SS = numpy.dot(ZZ,SS)                
                     # if the basis is found, break away from the loop
                     if self.basis_stack[sl-k-1] == ob:
@@ -533,7 +549,7 @@ class BasisManaged(Managed):
 
     """
     _current_basis = Manager().get_current_basis()
-    
+    is_basis_protected = False
     
     def get_current_basis(self):
         return self._current_basis
@@ -541,6 +557,11 @@ class BasisManaged(Managed):
     def set_current_basis(self,bb):
         self._current_basis = bb
             
+    def protect_basis(self):
+        self.is_basis_protected = True
+        
+    def unprotect_basis(self):
+        self.is_basis_protected = False
         
         
 
@@ -631,16 +652,18 @@ class eigenbasis_of(basis_context_manager):
             
         cb = self.manager.get_current_basis()
         ob = self.op.get_current_basis()
+        
         if cb != ob:
             
             self.manager.transform_to_current_basis(self.op)
             
         
-        SS = self.op.diagonalize()
+        #SS = self.op.diagonalize()
+        SS = self.op.get_diagonalization_matrix()
         nb = self.manager.set_new_basis(SS)
 
-        self.manager.register_with_basis(nb,self.op)
-        self.op.set_current_basis(nb)
+        #self.manager.register_with_basis(nb,self.op)
+        #self.op.set_current_basis(nb)
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>>  ... setting context done")        
@@ -671,8 +694,10 @@ class eigenbasis_of(basis_context_manager):
             ops_above = self.manager.basis_registered[nb]
 
         for op in operators:
-            #op._data = numpy.dot(SS,numpy.dot(op._data,S1))
-            op.transform(S1,inv=SS) 
+            # the operator might have been set to protected mode
+            # inside the context
+            if not op.is_basis_protected:
+                op.transform(S1,inv=SS) 
             op.set_current_basis(nb)
             
             # operators which appeared in this context and where not

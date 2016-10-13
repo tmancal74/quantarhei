@@ -64,12 +64,14 @@ def redfield_tensor(self):
     
     sbi = agg.get_SystemBathInteraction()
     
-    RRT = RedfieldRelaxationTensor(H, sbi)
+    H.protect_basis()
+    with eigenbasis_of(H):    
+        RRT = RedfieldRelaxationTensor(H, sbi)
     
-    dim = H.dim
-    rates_T = numpy.zeros(dim*dim)
-    k = 0
-    with eigenbasis_of(H):
+        dim = H.dim
+        rates_T = numpy.zeros(dim*dim)
+        k = 0
+
         world.K12 = numpy.real(RRT.data[1,1,2,2])
         for i in range(dim):
             for j in range(dim):

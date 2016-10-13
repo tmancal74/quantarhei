@@ -57,6 +57,10 @@ class BasisManagedObject(BasisManaged):
         
         return SS
         
+    def get_diagonalization_matrix(self):
+        dd, SS = numpy.linalg.eigh(self._data)
+        return SS
+        
     def transform(self,SS,inv=None):
         if inv is None:
             S1 = numpy.linalg.inv(SS)

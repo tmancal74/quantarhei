@@ -59,9 +59,11 @@ class RelaxationTensor(BasisManaged):
             
         """        
         
+
         if not self._data_initialized:
             return
- 
+        print("%%%%%%%%%%% TRANSFORMING %%%%%%%%%%")
+        
         if (self.manager.warn_about_basis_change):
                 print("\nQr >>> Relaxation tensor '%s' changes basis" %self.name)
            
