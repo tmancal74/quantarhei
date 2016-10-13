@@ -4,7 +4,7 @@ from aloe import world
 
 import numpy
 
-from quantarhei import energy_units
+from quantarhei import energy_units, eigenbasis_of
 from quantarhei import CorrelationFunction
 from quantarhei import Molecule
 from quantarhei import Aggregate
@@ -56,6 +56,7 @@ def redfield_tensor(self):
     agg.build()
     
     H = agg.get_Hamiltonian()
+    world.HH = H
 
 #    with energy_units("1/cm"):
 #        print(H)
@@ -65,6 +66,16 @@ def redfield_tensor(self):
     
     RRT = RedfieldRelaxationTensor(H, sbi)
     
-    world.RRT = RRT
+    dim = H.dim
+    rates_T = numpy.zeros(dim*dim)
+    k = 0
+    with eigenbasis_of(H):
+        world.K12 = numpy.real(RRT.data[1,1,2,2])
+        for i in range(dim):
+            for j in range(dim):
+                rates_T[k] = numpy.real(RRT.data[i,i,j,j])
+                k += 1
+                
+    world.rates_T = rates_T
     
-    world.K12 = numpy.real(RRT.data[1,1,2,2])
+    

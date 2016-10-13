@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+    Quantarhei package (http://www.github.com/quantarhei)
+
+    redfield tensor module
+    
 *******************************************************************************
 
     REDFIELD RELAXATION TENSOR
@@ -17,54 +21,57 @@ from ...core.managers import eigenbasis_of
 
 
 class RedfieldRelaxationTensor(RelaxationTensor):
+    """Redfield Relaxation Tensor
+        
+        
+    Parameters
+    ----------
+    
+    ham : Hamiltonian
+        Hamiltonian of the system.
+        
+    sbi : SystemBathInteraction
+        Object specifying the system-bath interaction
+        
+    initialize : bool
+        If True, the tensor will be imediately calculated
+        
+    cutoff_time : float
+        Time in femtoseconds after which the integral kernel in the 
+        definition of the relaxation tensor is assummed to be zero.
+            
+    as_operators : bool
+        If True the tensor will not be constructed. Instead a set of
+        operators whose application is equal to the application of the
+        tensor will be defined and stored
+            
+    Methods
+    -------
+        
+    secularize()
+        Deletes non-secular terms in the relaxation tensor. If the tensor
+        is represented by operators (i.e. the as_operators atribute is
+        True), the methods raises an Exception. Use `convert_2_tensor`
+        first.
+        
+    initialize()
+        Initializes the Redfield tensor if created with parameter
+        `initialize=False`
+            
+    convert_2_tensor()
+        When created with `as_operators=True` the tensor is internally
+        represented by a set of operators. This method converts this
+        representation to a tensor
+            
+            
+    """
+    
     
     def __init__(self, ham, sbi, initialize=True,
-                 cutoff_time=None, as_operators=False):
-        """Constructs the Redfield Relaxation Tensor
+                 cutoff_time=None, as_operators=False, name=""):
+                     
+        super().__init__()
         
-        
-        Parameters
-        ----------
-    
-        ham : Hamiltonian
-            Hamiltonian of the system.
-        
-        sbi : SystemBathInteraction
-            Object specifying the system-bath interaction
-        
-        initialize : bool
-            If True, the tensor will be imediately calculated
-        
-        cutoff_time : float
-            Time in femtoseconds after which the integral kernel in the 
-            definition of the relaxation tensor is assummed to be zero.
-            
-        as_operators : bool
-            If True the tensor will not be constructed. Instead a set of
-            operators whose application is equal to the application of the
-            tensor will be defined and stored
-            
-        Methods
-        -------
-        
-        secularize()
-            Deletes non-secular terms in the relaxation tensor. If the tensor
-            is represented by operators (i.e. the as_operators atribute is
-            True), the methods raises an Exception. Use `convert_2_tensor`
-            first.
-        
-        initialize()
-            Initializes the Redfield tensor if created with parameter
-            `initialize=False`
-            
-        convert_2_tensor()
-            When created with `as_operators=True` the tensor is internally
-            represented by a set of operators. This method converts this
-            representation to a tensor
-            
-            
-        """
-    
         #
         # Check the types of the arguments
         #
@@ -81,10 +88,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self.Hamiltonian = ham
         self.SystemBathInteraction = sbi
         self.dim = self.Hamiltonian.dim
+        self.name = name
         
-        self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim))
+        self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
+                                dtype=numpy.complex128)
         
-        self._is_initialized = False            
+        self._is_initialized = False   
         self._has_cutoff_time = False
         self.as_operators = as_operators
         
@@ -189,7 +198,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         Lm = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
         for ms in range(Nb):
             #for ns in range(Nb):
-            if True:
+            if not multi_ex:
                 ns = ms
                 
                 # correlation function of site ns (if ns == ms)
@@ -200,32 +209,23 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 
                 for a in range(Na):
                     for b in range(Na):
+                        
                         # argument of the integration
                         eexp = numpy.exp(-1.0j*Om[a,b]*tm) 
                         rc = rc1[0:length]*eexp
-                        # spline integration in stead of FFT
+                        
+                        # spline integration instead of FFT
                         rr = numpy.real(rc)
                         ri = numpy.imag(rc)
                         sr = scipy.interpolate.UnivariateSpline(tm,
                                     rr, s=0).antiderivative()(tm)
                         si = scipy.interpolate.UnivariateSpline(tm,
                                     ri, s=0).antiderivative()(tm)
-                                    
-#                        if (a == 2) and (b == 1):
-#                            print(Nb, Na, Km[ns, a, b])
-#                            print(ms, ns, a, b, 2.0*sr[length-1])
-#                            print(tm[0], tm[length-1])
-#                            if (ns == ms) and (ns == 1):
-#                                val = sbi.CC.get_correlation_function(ms,ns).get_Fourier_transform().at(-Om[a,b])
-#                                print(" vs ", val)
                                 
                         # we take the last value (integral to infinity)
-                        # FIXME: the factor of 2 here is artificial
                         cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
-#                        if ms == ns:
-#                            cc_mnab = 1.0
-#                        else:
-#                            cc_mnab = 0.0
+
+                        # \Lambda_m operators
                         Lm[ms,a,b] += cc_mnab*Km[ns,a,b] 
              
         
@@ -246,8 +246,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
             
-            #with eigenbasis_of(ham):
-            self.data = RR
+            with eigenbasis_of(ham):
+#                self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
+#                                        dtype=numpy.complex128)
+                self.data = RR
+                self._data_initialized = True
 
         self._is_initialized = True
 

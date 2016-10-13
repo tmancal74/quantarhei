@@ -108,6 +108,7 @@ class ReducedDensityMatrixPropagator:
         N = self.Hamiltonian.data.shape[0]
         self.N = N
         self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
+        self.propagation_name = ""
         
         
         
@@ -131,7 +132,7 @@ class ReducedDensityMatrixPropagator:
         self.dt = self.Odt/self.Nref
         
         
-    def propagate(self,rhoi,method="short-exp",mdata=None):
+    def propagate(self, rhoi, method="short-exp", mdata=None, name=""):
         """
         
         >>> T0   = 0
@@ -160,6 +161,7 @@ class ReducedDensityMatrixPropagator:
         
         
         """
+        self.propagation_name = name
         
         if not isinstance(rhoi,ReducedDensityMatrix):
             raise Exception("First argument has be of"+
@@ -400,7 +402,8 @@ class ReducedDensityMatrixPropagator:
               Short exp integration
         """
 
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
+                                           name=self.propagation_name)
         
         rho1 = rhoi.data
         rho2 = rhoi.data

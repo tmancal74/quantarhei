@@ -63,6 +63,7 @@ from .qm.corfunctions import SpectralDensity
 from .qm import StateVector
 from .qm import DensityMatrix
 from .qm import ReducedDensityMatrix
+from .qm import BasisReferenceOperator
 
 from .qm import Hamiltonian
 from .qm import TransitionDipoleMoment

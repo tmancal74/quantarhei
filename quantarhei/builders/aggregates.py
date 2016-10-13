@@ -709,7 +709,6 @@ class Aggregate(UnitsManaged):
         # Number of states in individual bands
         for ii in range(self.mult+1):
             self.Nb[ii] = self.number_of_states_in_band(band=ii)
-            
  
         #FIXME: What to do when correlation functions are used for
         # an aggregate with vibrations
@@ -761,24 +760,26 @@ class Aggregate(UnitsManaged):
                 egcf1 = self.monomers[0].get_transition_environment((0,1))
             except:
                 egcf_ok = False 
-
+            
             if egcf_ok:
                 # time axis of the first monomer
                 time = egcf1.axis            
                 self.egcf_matrix = CorrelationFunctionMatrix(time, self.nmono)
-            
+                
                 for i in range(self.nmono):
                     mon = self.monomers[i]
                     cfce = mon.get_transition_environment((0,1))
+
                     mapi = self.egcf_matrix.set_correlation_function(cfce,
                                                                      [(i,i)])
+                                                
                     mon.unset_transition_environment((0,1))
-
                     mon.set_egcf_mapping((0,1), self.egcf_matrix, i)
-                
+                    
                 self._has_system_bath_interaction = True
                 self._has_egcf_matrix = True                
                 
+
             
         if self._has_system_bath_interaction:
             

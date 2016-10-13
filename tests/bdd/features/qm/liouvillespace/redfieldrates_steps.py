@@ -85,8 +85,15 @@ def redfield_relaxation(self):
     
     world.K12 = numpy.real(RRM.data[1,2])
     
-    world.RRM = RRM
-    
+    dim = H.dim
+    rates_M = numpy.zeros(dim*dim)
+    k = 0
+    for i in range(dim):
+        for j in range(dim):
+            rates_M[k] = RRM.data[i,j]
+            k += 1
+            
+    world.rates_M = rates_M
     
 #    #
 #    # Homodimer

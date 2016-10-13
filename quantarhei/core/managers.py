@@ -190,6 +190,8 @@ class Manager(metaclass=Singleton):
         self.basis_transformations.append(1)
         self.basis_registered = {}
         
+        self.warn_about_basis_change = False
+        self.warn_about_basis_changing_objects = False
             
     def save_settings(self):
 
@@ -440,6 +442,9 @@ class Manager(metaclass=Singleton):
         
     def transform_to_current_basis(self, operator):
         
+        if self.warn_about_basis_changing_objects:
+            print("Object ", operator.__class__, " is changing basis")
+            
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
                 
@@ -614,13 +619,16 @@ class eigenbasis_of(basis_context_manager):
     
     """
     
-    def __init__(self,operator):
+    def __init__(self, operator):
         super().__init__()
         self.op = operator
         
         
     def __enter__(self):
 
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>> Entering basis context manager ...")
+            
         cb = self.manager.get_current_basis()
         ob = self.op.get_current_basis()
         if cb != ob:
@@ -633,11 +641,17 @@ class eigenbasis_of(basis_context_manager):
 
         self.manager.register_with_basis(nb,self.op)
         self.op.set_current_basis(nb)
-        
+
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>>  ... setting context done")        
+
+    
         
     def __exit__(self,ext_ty,exc_val,tb):
-
-        
+  
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>> Returning from basis context manager. Cleaning ...")  
+            
         # This is the basis we are leaving
         bb = self.manager.basis_stack.pop()
         # this is the transformation we got here with
@@ -669,10 +683,9 @@ class eigenbasis_of(basis_context_manager):
             
             
         del self.manager.basis_registered[bb]
-        
-        
-        
-        
+
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>> ... cleaning done")        
             
         
         

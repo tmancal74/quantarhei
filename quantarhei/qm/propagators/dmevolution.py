@@ -12,13 +12,14 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
     
     data = BasisManagedComplexArray("data") 
     
-    def __init__(self, timeaxis, rhoi):
+    def __init__(self, timeaxis, rhoi, name=""):
         
         if not isinstance(timeaxis, TimeAxis):
             raise Exception("First argument has to be a TimeAxis")
             
         #if not isinstance(rhoi,ReducedDensityMatrix):
         #    raise Exception
+        self.name = name
             
         self.TimeAxis = timeaxis
         self.dim = rhoi.data.shape[1]        
@@ -26,6 +27,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
         self._data = numpy.zeros((timeaxis.length, rhoi.data.shape[0], \
                     rhoi.data.shape[1]),dtype=numpy.complex128)
         self.data[0,:,:] = rhoi.data
+
 
         
 
@@ -46,6 +48,9 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
             inverse of the transformation matrix
             
         """        
+        if (self.manager.warn_about_basis_change):
+                print("\nQr >>> DensityMatrixEvolution '%s' changes basis" %self.name)
+        
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
@@ -105,6 +110,9 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
         
 
         return 1
+        
+    def set_name(self, name):
+        self.name = name
         
         
 class ReducedDensityMatrixEvolution(DensityMatrixEvolution):

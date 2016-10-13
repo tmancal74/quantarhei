@@ -23,7 +23,7 @@ class Operator(MatrixData, BasisManaged):
     
     data = BasisManagedComplexArray("data")    
     
-    def __init__(self, dim=None, data=None, real=False):
+    def __init__(self, dim=None, data=None, real=False, name=""):
 
         # Set the currently used basis
         cb = self.manager.get_current_basis()
@@ -31,6 +31,8 @@ class Operator(MatrixData, BasisManaged):
         # unless it is the basis outside any context
         if cb != 0:
             self.manager.register_with_basis(cb,self)
+            
+        self.name=name
              
         # set data
         if (dim is None) and (data is None):
@@ -75,6 +77,9 @@ class Operator(MatrixData, BasisManaged):
             raise Exception("Cannot apply operator to the object")
             
 
+    def set_name(self, name):
+        self.name = name
+        
 
     def transform(self,SS,inv=None):
         """Transformation of the operator by a given matrix
@@ -93,6 +98,9 @@ class Operator(MatrixData, BasisManaged):
             inverse of the transformation matrix
             
         """        
+        if (self.manager.warn_about_basis_change):
+                print("\nQr >>> Operator '%s' changes basis" %self.name)
+        
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
@@ -132,8 +140,8 @@ class SelfAdjointOperator(Operator):
         
     """
     
-    def __init__(self,dim=None,data=None):
-        Operator.__init__(self,dim=dim,data=data)
+    def __init__(self,dim=None,data=None,name=""):
+        Operator.__init__(self,dim=dim,data=data,name=name)
         if not self.check_selfadjoint():
             raise Exception("The data of this operator have"+
             "to be represented by a selfadjoint matrix") 
@@ -158,7 +166,17 @@ class SelfAdjointOperator(Operator):
         out += str(self.data)
         return out        
         
-        
+   
+class BasisReferenceOperator(SelfAdjointOperator):
+    
+    def __init__(self,dim=None, name=""):
+        if dim is None:
+            raise Exception("Dimension parameters 'dim' has to be specified")
+        series = numpy.array([i for i in range(dim)], dtype=numpy.float64)
+        data = numpy.diag(series)
+        super().__init__(dim=dim,data=data,name=name)
+    
+     
 class ProjectionOperator(Operator):
     """
     Projection operator projecting from state m to state n.

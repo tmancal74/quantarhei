@@ -371,7 +371,6 @@ class CorrelationFunctionMatrix:
 
             while iof > self.nof:
                 self._update_nof_storage()
-            print(">>> ", self.nof, iof)
 
             if iof == 0:
                 raise Exception("Zeros correlation function is \
