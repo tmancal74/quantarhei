@@ -68,7 +68,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
     
     
     def __init__(self, ham, sbi, initialize=True,
-                 cutoff_time=None, as_operators=False, name=""):
+                 cutoff_time=None, as_operators=False,
+                 name="", site_basis_reference=None):
                      
         super().__init__()
         
@@ -96,6 +97,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self._is_initialized = False   
         self._has_cutoff_time = False
         self.as_operators = as_operators
+        self._site_basis_reference = site_basis_reference 
+        
+        # FIXME: remove this if it is a dead end
+        if self._site_basis_reference is not None:
+            print(self._site_basis_reference.is_diagonal())
         
         # set cut-off time
         if cutoff_time is not None:
@@ -132,7 +138,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         #
-        Na = ham.data.shape[0]
+        Na = ham.dim #data.shape[0]
         
         # time axis
         ta = sbi.TimeAxis
@@ -167,8 +173,21 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
-        hD, SS = numpy.linalg.eigh(ham._data)   
-         
+#        if self._site_basis_reference is not None:
+#            if self._site_basis_reference.is_diagonal():
+#                switch_basis = False
+#            else:
+#                switch_basis = True
+#        else:
+#            switch_basis = False
+#            
+#        if switch_basis:
+#            with eigenbasis_of(self._site_basis_reference):
+#                hD, SS = numpy.linalg.eigh(ham.data) 
+#        else:
+        if True:
+            hD, SS = numpy.linalg.eigh(ham._data)   
+               
         #
         #  Find all transition frequencies
         # 
@@ -187,6 +206,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         Km = numpy.zeros((Nb, Na, Na), dtype=numpy.float64) 
         # Transform site operators       
         S1 = scipy.linalg.inv(SS)
+        #FIXME: SBI should also be basis controlled
         for ns in range(Nb): 
             Km[ns,:,:] = numpy.dot(S1, numpy.dot(sbi.KK[ns,:,:],SS))
         
@@ -247,6 +267,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
             
             with eigenbasis_of(ham):
+#            if True:
 #                self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
 #                                        dtype=numpy.complex128)
                 self.data = RR

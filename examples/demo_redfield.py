@@ -55,17 +55,20 @@ print("""
 """)
 
 m = Manager()
-m.warn_about_basis_change =False
+m.warn_about_basis_change = True 
 
 sb_reference = BasisReferenceOperator(ham.dim, name="site basis reference")
 
+RRT = qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1",
+                                      site_basis_reference=sb_reference)
 # if Redfield tensor is created like this, it is transformed into the
 # basis in which the Hamiltonian was defined
-RRT = qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
-
 with eigenbasis_of(ham):
-#if True:   
+    
 
+
+
+#if True:   
 
     print("\nRates from the full relaxation tensor")
     for i in range(1, ham.dim):

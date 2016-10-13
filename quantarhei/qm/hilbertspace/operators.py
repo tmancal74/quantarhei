@@ -122,6 +122,13 @@ class Operator(MatrixData, BasisManaged):
         else:
             return False
  
+    def is_diagonal(self):
+        dat = self._data.copy()
+        for i in range(self.dim):
+            dat[i,i] = 0.0
+        return numpy.allclose(dat, numpy.zeros(self.dim))
+        
+ 
     def __str__(self):
         out  = "\nquantarhei.Operator object"
         out += "\n=========================="

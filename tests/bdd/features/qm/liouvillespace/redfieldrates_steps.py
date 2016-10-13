@@ -95,47 +95,6 @@ def redfield_relaxation(self):
             
     world.rates_M = rates_M
     
-#    #
-#    # Homodimer
-#    #
-#    with energy_units(world.h_units):
-#        en = world.senergy
-#        m1 = Molecule("mol1", [0.0, en])
-#        m2 = Molecule("mol2", [0.0, en])
-##        m3 = Molecule("mol2", [0.0, en])
-#        
-#    m1.set_egcf((0,1), cf)
-#    m2.set_egcf((0,1), cf)
-##    m3.set_egcf((0,1), cf)
-#        
-#    agg = Aggregate("Homodimer",maxband=1)
-#    
-#    agg.add_Molecule(m1)
-#    agg.add_Molecule(m2)
-##    agg.add_Molecule(m3)
-#    
-##    with energy_units("1/cm"):
-##        Hm = m1.get_Hamiltonian()
-##        print(Hm)
-##        print(m.convert_energy_2_current_u(Hm._data)) 
-#        
-#    with energy_units(world.r_units):
-#        agg.set_resonance_coupling(0,1,world.r_coupl)
-##        agg.set_resonance_coupling(1,2,world.r_coupl)
-#        
-#    agg.build()
-#    
-#    H = agg.get_Hamiltonian()
-#
-##    with energy_units("1/cm"):
-##        print(H)
-##        print(m.convert_energy_2_current_u(H._data))    
-#    
-#    sbi = agg.get_SystemBathInteraction()
-#    
-#    RRT = RedfieldRelaxationTensor(H, sbi)  
-#    
-#    world.tK12 = numpy.real(RRT.data[1,1,2,2])
     
     
     
