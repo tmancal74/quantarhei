@@ -88,9 +88,7 @@ c_SI = const.c
 c_int = const.c*1.0e-5
 
 # Permeability of vacuum
-#_EJ = ((const.e**2)/(4.0*const.pi*const.epsilon_0*1.0e-10)) # E in J 
-#eps0_int = 1.0/(4.0*const.pi*J2int*_EJ)
-eps0_int = const.epsilon_0*(const.c**2)*const.hbar*1.0e27
 
+eps0_int = 1.0e19/(4.0*const.pi*J2int)
 
 

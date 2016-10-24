@@ -22,9 +22,9 @@ with energy_units("1/cm"):
     m1.position = [0.0, 0.0, 0.0]
     m2.position = [10.0, 0.0, 0.0]
     m3.position = [5.0, 5.0, 0.0]
-    m1.set_dipole(0,1,[12.0, 0.0, 0.0])
-    m2.set_dipole(0,1,[12.0, 0.0, 0.0])
-    m3.set_dipole(0,1,[12.0, 0.0, 0.0])
+    m1.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
+    m2.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
+    m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
 
     agg = Aggregate("Dimer")
     agg.add_Molecule(m1)
@@ -34,7 +34,7 @@ with energy_units("1/cm"):
     #agg.set_resonance_coupling(0,1,30.0)
     #agg.set_resonance_coupling(1,2,30.0)
     
-    agg.set_coupling_by_dipole_dipole(epsr=80.0)
+    agg.set_coupling_by_dipole_dipole(epsr=1.0)
 
     params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=100)
     cf = CorrelationFunction(time, params)
@@ -45,6 +45,7 @@ m3.set_transition_environment((0,1), cf)
 
 
 agg.build()
+
 
 #
 # Aggregate object can return a propagator
@@ -66,6 +67,8 @@ ham.set_name("Hamiltonian")
 print(">>> Hamiltonian ")
 with energy_units("1/cm"):
     print(ham)
+
+raise Exception()
 
 print("""
 *******************************************************************************

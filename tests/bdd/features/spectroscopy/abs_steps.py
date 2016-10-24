@@ -17,6 +17,9 @@ from quantarhei import Molecule
 from quantarhei import Aggregate
 from quantarhei import AbsSpect
 
+from quantarhei.core.units import eps0_int
+import scipy.constants as const
+
 from quantarhei.qm.corfunctions import CorrelationFunctionMatrix
 
 @step(r'reorganization energy (\d+(?:\.\d+)?) "([^"]*)"') 
@@ -114,7 +117,8 @@ def absorption_spectrum_dimer(self):
     AG.add_Molecule(m1)
     AG.add_Molecule(m2)
 
-    AG.set_coupling_by_dipole_dipole(prefac=0.0147520827152)
+    epsr = (4.0*const.pi*eps0_int)/0.0147520827152
+    AG.set_coupling_by_dipole_dipole(epsr=epsr)
 
     AG.build()
 
@@ -165,7 +169,10 @@ def absorption_spectrum_trimer(self):
     AG.add_Molecule(m2)
     AG.add_Molecule(m3)
 
-    AG.set_coupling_by_dipole_dipole(prefac=0.0147520827152)
+    epsr = (4.0*const.pi*eps0_int)/0.0147520827152
+    print("!!!! ", epsr)
+    
+    AG.set_coupling_by_dipole_dipole(epsr=epsr)
 
     AG.build()
 
