@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy
+import scipy.constants as const
 
 from ..core.managers import UnitsManaged
 from ..utils.types import Float
 from ..utils.types import Integer
-from ..core.units import cm2int
+from ..core.units import cm2int, eps0_int
 
 from ..qm.oscillators.ho import fcstorage
 from ..qm.oscillators.ho import operator_factory
@@ -101,7 +102,7 @@ class Aggregate(UnitsManaged):
         if not self.coupling_initiated:
             self.coupling_initiated = True
             
-    def dipole_dipole_coupling(self,kk,ll,prefac=1.0):
+    def dipole_dipole_coupling(self,kk,ll,epsr=1.0):
         if kk == ll:
             raise Exception("Only coupling between different molecules \
             can be calculated")
@@ -115,18 +116,20 @@ class Aggregate(UnitsManaged):
         R = r1 - r2
         RR = numpy.sqrt(numpy.dot(R,R))
         
+        prf = 1.0/(4.0*const.pi*eps0_int)
+        
         cc = (numpy.dot(d1,d2)/(RR**3)
             - 3.0*numpy.dot(d1,R)*numpy.dot(d2,R)/(RR**5))
         
-        return prefac*cc
+        return prf*cc/epsr
             
-    def set_coupling_by_dipole_dipole(self,prefac=1.0):
+    def set_coupling_by_dipole_dipole(self,epsr=1.0):
         
         if not self.coupling_initiated:
             self.init_coupling_matrix() 
         for kk in range(self.nmono):
             for ll in range(kk+1,self.nmono):
-                cc = self.dipole_dipole_coupling(kk,ll,prefac=prefac)
+                cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr)
                 self.resonance_coupling[kk,ll] = cc
                 self.resonance_coupling[ll,kk] = cc
                 
@@ -822,6 +825,44 @@ class Aggregate(UnitsManaged):
     #    POST BUILDING METHODS
     #
     ########################################################################       
+        
+    def get_ReducedDensityMatrixPropagator(self, timeaxis,
+                       relaxation_theory=None,
+                       time_dependent=False,
+                       secular_relaxation=False):
+        
+        from ..qm import RedfieldRelaxationTensor
+        from ..qm import ReducedDensityMatrixPropagator
+        from ..core.managers import eigenbasis_of
+        
+        if self._built:
+            ham = self.get_Hamiltonian()
+            sbi = self.get_SystemBathInteraction()
+        else:
+            raise Exception()
+        
+        if (relaxation_theory == "standard_Redfield") and (not time_dependent):
+            
+            # Time independent standard Refield
+            
+            ham.protect_basis()
+            with eigenbasis_of(ham):
+                relaxT = RedfieldRelaxationTensor(ham, sbi)
+                if secular_relaxation:
+                    relaxT.secularize()
+         
+        else:
+            
+            raise Exception("Theory not implemented")
+            
+        #
+        # create a corresponding propagator
+        #
+        ham.unprotect_basis()
+        with eigenbasis_of(ham):
+            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
+        
+        return prop
         
         
     def diagonalize(self):
