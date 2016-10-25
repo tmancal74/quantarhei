@@ -103,17 +103,17 @@ class RelaxationTensor(BasisManaged):
         
         """
         
-        """ depopulation rates """
-        for nn in range(self.data.shape[0]):
+        # depopulation rates 
+        for nn in range(self.dim):
             #for ii in range(0,self.data.shape[1]):
             #    if ii != nn:
             #        self.data[nn,nn,nn,nn] -= self.data[ii,ii,nn,nn]
-            self.data[nn,nn,nn,nn] -= (numpy.trace(self.data[:,:,nn,nn])
-                                        - self.data[nn,nn,nn,nn])
+            self._data[nn,nn,nn,nn] -= (numpy.trace(self._data[:,:,nn,nn])
+                                        - self._data[nn,nn,nn,nn])
             
-        """ dephasing rates """
-        for nn in range(self.data.shape[0]):    
-            for mm in range(nn+1,self.data.shape[1]):
-                self.data[nn,mm,nn,mm] = -(self.data[nn,nn,nn,nn]
-                                          +self.data[mm,mm,mm,mm])/2.0
-                self.data[mm,nn,mm,nn] = self.data[nn,mm,nn,mm]    
+        # dephasing rates 
+        for nn in range(self.dim):    
+            for mm in range(nn+1,self.dim):
+                self._data[nn,mm,nn,mm] = -(self._data[nn,nn,nn,nn]
+                                          +self._data[mm,mm,mm,mm])/2.0
+                self._data[mm,nn,mm,nn] = self._data[nn,mm,nn,mm]    

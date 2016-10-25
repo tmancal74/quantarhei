@@ -10,7 +10,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory
     
     """
-    def __init__(self, ham, sbi, initialize=True,cutoff_time=None):
+    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
         super().__init__()
         
@@ -18,8 +18,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             raise Exception("First argument must be a Hamiltonian")
             
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of type \
-            cu.oqs.liuouvillespace.SystemBathInteraction")
+            raise Exception("Second argument must be of type SystemBathInteraction")
             
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -131,9 +130,9 @@ class FoersterRelaxationTensor(RelaxationTensor):
                     KK[a,b] = (JR[a,b]**2)*self._fintegral(ta,
                                                            gt[a,:],gt[b,:],
                                                            ed,ea,ld)
-        """
-        Transfer rates
-        """                                                          
+        #
+        # Transfer rates
+        #                                                          
         for aa in range(Na):
             for bb in range(Na):
                 if aa != bb:
@@ -141,4 +140,4 @@ class FoersterRelaxationTensor(RelaxationTensor):
            
         # calculates dephasing rates and depopulation rates
         self.updateStructure()
-            
+        self._data_initialized = True    

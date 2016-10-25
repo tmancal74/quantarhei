@@ -898,7 +898,7 @@ class Aggregate(UnitsManaged):
                 relaxT = FoersterRelaxationTensor(ham, sbi)
                 dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
                 for i in range(ham.dim):
-                        dat[i,i] = ham._data[i,i]
+                    dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
                 prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
                         
@@ -915,13 +915,14 @@ class Aggregate(UnitsManaged):
             
                 # Time independent standard Refield
             
-                ham.protect_basis()
-                with eigenbasis_of(ham):
+                #ham.protect_basis()
+                #with eigenbasis_of(ham):
+                if True:
                     relaxT = RedfieldFoersterRelaxationTensor(ham, sbi,
                                             coupling_cutoff=coupling_cutoff)
                     if secular_relaxation:
                         relaxT.secularize()
-                ham.unprotect_basis()  
+                #ham.unprotect_basis()  
                 
                 #
                 # create a corresponding propagator
