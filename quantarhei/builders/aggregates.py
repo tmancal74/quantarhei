@@ -40,7 +40,7 @@ class aggregate_state():
         self.vib_descriptor = desc[1:]
         self.vibrations = state_tuple[1]
         
-        """ This is temporary - number have to be computed"""
+        """ This is temporary - numbers have to be computed"""
         self.energy = 0.0
         self.el_energy = 0.0
         self.vib_energy = 0.0
@@ -58,7 +58,7 @@ class Aggregate(UnitsManaged):
     
     """
     
-    def __init__(self,name, maxband = 1):
+    def __init__(self, name, maxband = 1, molecules=None):
         self.name = name
         self.mnames = {}
         self.monomers = []
@@ -73,6 +73,10 @@ class Aggregate(UnitsManaged):
         self._has_system_bath_interaction = False
         
         self._built = False
+        
+        if molecules is not None:
+            for m in molecules:
+                self.add_Molecule(m)
 
 
     ########################################################################
@@ -205,7 +209,7 @@ class Aggregate(UnitsManaged):
         """ Electronic energy """
         try:
             im = self.mnames[name]
-            mn = self.monomer[im]
+            mn = self.monomers[im]
             return mn.get_energy(N)
         except:
             raise Exception()
@@ -829,9 +833,13 @@ class Aggregate(UnitsManaged):
     def get_ReducedDensityMatrixPropagator(self, timeaxis,
                        relaxation_theory=None,
                        time_dependent=False,
-                       secular_relaxation=False):
+                       secular_relaxation=False, relaxation_cutoff_time=None,
+                       coupling_cutoff=None):
         
         from ..qm import RedfieldRelaxationTensor
+        from ..qm import TDRedfieldRelaxationTensor
+        from ..qm import FoersterRelaxationTensor
+        from ..qm import RedfieldFoersterRelaxationTensor
         from ..qm import ReducedDensityMatrixPropagator
         from ..core.managers import eigenbasis_of
         
@@ -841,26 +849,91 @@ class Aggregate(UnitsManaged):
         else:
             raise Exception()
         
-        if (relaxation_theory == "standard_Redfield") and (not time_dependent):
+        if (relaxation_theory == "standard_Redfield"):
             
-            # Time independent standard Refield
+            if time_dependent:
+                
+                # Time dependent standard Refield
             
-            ham.protect_basis()
-            with eigenbasis_of(ham):
-                relaxT = RedfieldRelaxationTensor(ham, sbi)
-                if secular_relaxation:
-                    relaxT.secularize()
-         
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = TDRedfieldRelaxationTensor(ham, sbi, 
+                                        cutoff_time=relaxation_cutoff_time)
+                    if secular_relaxation:
+                        relaxT.secularize() 
+                ham.unprotect_basis()                        
+                        
+                        
+            else:
+            
+                # Time independent standard Refield
+            
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = RedfieldRelaxationTensor(ham, sbi)
+                    if secular_relaxation:
+                        relaxT.secularize()
+                ham.unprotect_basis()  
+                
+                #
+                # create a corresponding propagator
+                #
+                ham.unprotect_basis()
+                with eigenbasis_of(ham):
+                    prop = ReducedDensityMatrixPropagator(timeaxis,
+                                                          ham, relaxT)  
+                      
+        elif (relaxation_theory == "standard_Foerster"):
+            
+            if time_dependent:
+                
+                # Time dependent standard Foerster
+                raise Exception("Theory not implemented")
+                        
+            else:
+            
+                # Time independent standard Refield
+            
+
+                relaxT = FoersterRelaxationTensor(ham, sbi)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                for i in range(ham.dim):
+                        dat[i,i] = ham._data[i,i]
+                ham_0 = Hamiltonian(data=dat)
+                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
+                        
+
+        elif (relaxation_theory == "combined_RedfieldFoerster"):
+            
+            if time_dependent:
+                
+                # Time dependent combined tensor
+                raise Exception("Theory not implemented")
+                        
+                        
+            else:
+            
+                # Time independent standard Refield
+            
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = RedfieldFoersterRelaxationTensor(ham, sbi,
+                                            coupling_cutoff=coupling_cutoff)
+                    if secular_relaxation:
+                        relaxT.secularize()
+                ham.unprotect_basis()  
+                
+                #
+                # create a corresponding propagator
+                #
+                ham.unprotect_basis()
+                with eigenbasis_of(ham):
+                    prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)            
         else:
             
             raise Exception("Theory not implemented")
             
-        #
-        # create a corresponding propagator
-        #
-        ham.unprotect_basis()
-        with eigenbasis_of(ham):
-            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
+
         
         return prop
         
@@ -1778,7 +1851,7 @@ class electronic_state:
     
     nmono = Integer('nmono')
     
-    def __init__(self,aggregate,elsignature,index=0):
+    def __init__(self, aggregate, elsignature,index=0):
         
         Nsig = len(elsignature)
         nmono = len(aggregate.monomers)
@@ -1808,7 +1881,9 @@ class electronic_state:
         self.index = index
         
     def energy(self, vsig=""):
-        """ Returns energy of the state (electronic + vibrational) """
+        """ Returns energy of the state (electronic + vibrational)
+        
+        """
         en = 0.0
         k = 0
         if not vsig=="":

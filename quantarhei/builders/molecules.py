@@ -146,7 +146,13 @@ class Molecule(UnitsManaged):
         
         self._has_system_bath_coupling = False
         
-    
+    def get_name(self):
+        return self.name
+        
+    def set_name(self, name):
+        self.name = name
+        
+        
     def set_egcf_mapping(self, transition, correlation_matrix, position):
         """ Sets a correlation function mapping for a selected transition.
         
@@ -312,11 +318,15 @@ class Molecule(UnitsManaged):
         except:
             raise Exception()        
 
-    def get_energy(self,N):
+    def get_energy(self, N):
         try:
-            return self.elenergies[N]
+            return self.convert_energy_2_current_u(self.elenergies[N])
         except:
             raise Exception()
+            
+    def set_energy(self, N, en):
+        self.elenergies[N] = self.convert_energy_2_internal_u(en)
+        
             
             
     def get_electronic_natural_lifetime(self,N,epsilon_r=1.0):

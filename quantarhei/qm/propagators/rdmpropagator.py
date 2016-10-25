@@ -40,7 +40,7 @@ class ReducedDensityMatrixPropagator:
     
     """
     
-    def __init__(self,timeaxis,Ham,RTensor="",Efield="",Trdip=""):
+    def __init__(self, timeaxis, Ham, RTensor="", Efield="", Trdip=""):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -462,7 +462,7 @@ class ReducedDensityMatrixPropagator:
             
         indx = 1
         indxR = 1
-        for ii in self.TimeAxis.time[1:self.Nt]:
+        for ii in self.TimeAxis.data[1:self.Nt]:
 
             RR = self.RelaxationTensor.data[indxR,:,:]        
             

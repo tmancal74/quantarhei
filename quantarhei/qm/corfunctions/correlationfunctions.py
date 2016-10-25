@@ -229,7 +229,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         if "cutoff-time" in params.keys():
             tcut = params["cutoff-time"]
         else:
-            tcut = self.axis.tmax
+            tcut = self.axis.max
         self.cutoff_time = tcut
 
         if len(values) == self.axis.length:

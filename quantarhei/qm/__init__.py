@@ -31,7 +31,9 @@ from .liouvillespace.systembathinteraction import SystemBathInteraction
 from .liouvillespace.redfieldrates import RedfieldRateMatrix
 from .liouvillespace.tdredfieldrates import TDRedfieldRateMatrix
 from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
-
+from .liouvillespace.tdredfieldtensor import TDRedfieldRelaxationTensor
+from .liouvillespace.foerstertensor import FoersterRelaxationTensor
+from .liouvillespace.redfieldfoerster import RedfieldFoersterRelaxationTensor
 
 #
 #  PROPAGATORS 

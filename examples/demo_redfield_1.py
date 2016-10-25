@@ -22,8 +22,8 @@ with energy_units("1/cm"):
     m1.position = [0.0, 0.0, 0.0]
     m2.position = [10.0, 0.0, 0.0]
     m3.position = [5.0, 5.0, 0.0]
-    m1.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
-    m2.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
+    m1.set_dipole(0,1,[5.8, 0.0, 0.0])
+    m2.set_dipole(0,1,[5.8, 0.0, 0.0])
     m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
 
     agg = Aggregate("Dimer")
@@ -34,7 +34,7 @@ with energy_units("1/cm"):
     #agg.set_resonance_coupling(0,1,30.0)
     #agg.set_resonance_coupling(1,2,30.0)
     
-    agg.set_coupling_by_dipole_dipole(epsr=1.0)
+    agg.set_coupling_by_dipole_dipole(epsr=1.92921)
 
     params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=100)
     cf = CorrelationFunction(time, params)
@@ -47,19 +47,6 @@ m3.set_transition_environment((0,1), cf)
 agg.build()
 
 
-#
-# Aggregate object can return a propagator
-#
-prop1 = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="standard_Redfield",
-                           time_dependent=False,
-                           secular_relaxation=True)
-
-prop_nonsec = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="standard_Redfield")
-
-
-
 sbi = agg.get_SystemBathInteraction()
 ham = agg.get_Hamiltonian()
 ham.set_name("Hamiltonian")
@@ -67,8 +54,6 @@ ham.set_name("Hamiltonian")
 print(">>> Hamiltonian ")
 with energy_units("1/cm"):
     print(ham)
-
-raise Exception()
 
 print("""
 *******************************************************************************
@@ -117,15 +102,6 @@ with eigenbasis_of(ham):
         for j in range(1, ham.dim):
             print(i, "<-", j, ":", 1.0/TDRRM.data[time.length-1,i,j])
 
-    RRT2 = qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 2")
-    print("\nRates from the full relaxation tensor")
-    for i in range(1, ham.dim):
-        for j in range(1, ham.dim):
-            print(i, "<-", j, ":", 1.0/numpy.real(RRT2.data[i,i,j,j]))
-
-    #RRT2.protect_basis()
-    #RRT.protect_basis()
-
 ham.unprotect_basis()
 with eigenbasis_of(ham):
     
@@ -133,7 +109,7 @@ with eigenbasis_of(ham):
     # Evolution of reduced density matrix
     #
 
-    prop = ReducedDensityMatrixPropagator(time, ham, RRT2)
+    prop = ReducedDensityMatrixPropagator(time, ham, RRT)
 
     rho_i = ReducedDensityMatrix(dim=4, name="Initial DM")
     rho_i.data[3,3] = 1.0
@@ -144,7 +120,7 @@ with eigenbasis_of(ham):
     with eigenbasis_of(sb_reference):
         print(" Rate site basis: ", 1.0/RRT.data[1,1,2,2])
 
-    RRT2.secularize()
+    RRT.secularize()
     print(" Rate exciton basis: ", 1.0/RRT.data[1,1,2,2])
     rho_t = prop.propagate(rho_i, name="Redfield evolution")
 
@@ -153,15 +129,6 @@ with eigenbasis_of(ham):
     rho_i1 = ReducedDensityMatrix(dim=4, name="Initial DM")
     rho_i1.data[3,3] = 1.0   
     
-    rho_t1 = prop1.propagate(rho_i1, name="Redfield evolution from aggregate")
-    rho_t1.plot(coherences=False)
-    
-    rho_i2 = ReducedDensityMatrix(dim=4, name="Initial DM")
-    rho_i2.data[3,3] = 1.0   
-    
-    rho_t2 = prop_nonsec.propagate(rho_i1,
-             name="Redfield evolution from aggregate, non-secular")
-    rho_t2.plot(coherences=False)    
  
 #rho_t.plot(coherences=False)
 

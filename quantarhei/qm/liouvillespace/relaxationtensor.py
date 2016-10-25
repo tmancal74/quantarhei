@@ -62,7 +62,6 @@ class RelaxationTensor(BasisManaged):
 
         if not self._data_initialized:
             return
-        print("%%%%%%%%%%% TRANSFORMING %%%%%%%%%%")
         
         if (self.manager.warn_about_basis_change):
                 print("\nQr >>> Relaxation tensor '%s' changes basis" %self.name)
@@ -98,3 +97,23 @@ class RelaxationTensor(BasisManaged):
 #                        RR[ag,bg,cg,dg] = rr
 #                        
 #        self._data = RR
+
+    def updateStructure(self):
+        """ Recalculates dephasing and depopulation rates
+        
+        """
+        
+        """ depopulation rates """
+        for nn in range(self.data.shape[0]):
+            #for ii in range(0,self.data.shape[1]):
+            #    if ii != nn:
+            #        self.data[nn,nn,nn,nn] -= self.data[ii,ii,nn,nn]
+            self.data[nn,nn,nn,nn] -= (numpy.trace(self.data[:,:,nn,nn])
+                                        - self.data[nn,nn,nn,nn])
+            
+        """ dephasing rates """
+        for nn in range(self.data.shape[0]):    
+            for mm in range(nn+1,self.data.shape[1]):
+                self.data[nn,mm,nn,mm] = -(self.data[nn,nn,nn,nn]
+                                          +self.data[mm,mm,mm,mm])/2.0
+                self.data[mm,nn,mm,nn] = self.data[nn,mm,nn,mm]    

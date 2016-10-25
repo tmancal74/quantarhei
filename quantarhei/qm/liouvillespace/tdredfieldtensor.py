@@ -1,119 +1,14 @@
 # -*- coding: utf-8 -*-
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
-
-    redfield tensor module
-    
-*******************************************************************************
-
-    REDFIELD RELAXATION TENSOR
-
-*******************************************************************************
-"""
 import numpy
 import scipy
 
-from .systembathinteraction import SystemBathInteraction
-from ..hilbertspace.hamiltonian import Hamiltonian
+from .redfieldtensor import RedfieldRelaxationTensor
+from ...core.time import TimeDependent
 
-from .relaxationtensor import RelaxationTensor
-from ...core.managers import eigenbasis_of
-
-
-class RedfieldRelaxationTensor(RelaxationTensor):
-    """Redfield Relaxation Tensor
-        
-        
-    Parameters
-    ----------
-    
-    ham : Hamiltonian
-        Hamiltonian of the system.
-        
-    sbi : SystemBathInteraction
-        Object specifying the system-bath interaction
-        
-    initialize : bool
-        If True, the tensor will be imediately calculated
-        
-    cutoff_time : float
-        Time in femtoseconds after which the integral kernel in the 
-        definition of the relaxation tensor is assummed to be zero.
-            
-    as_operators : bool
-        If True the tensor will not be constructed. Instead a set of
-        operators whose application is equal to the application of the
-        tensor will be defined and stored
-            
-    Methods
-    -------
-        
-    secularize()
-        Deletes non-secular terms in the relaxation tensor. If the tensor
-        is represented by operators (i.e. the as_operators atribute is
-        True), the methods raises an Exception. Use `convert_2_tensor`
-        first.
-        
-    initialize()
-        Initializes the Redfield tensor if created with parameter
-        `initialize=False`
-            
-    convert_2_tensor()
-        When created with `as_operators=True` the tensor is internally
-        represented by a set of operators. This method converts this
-        representation to a tensor
-            
-            
-    """
+class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
     
     
-    def __init__(self, ham, sbi, initialize=True,
-                 cutoff_time=None, as_operators=False,
-                 name="", site_basis_reference=None):
-                     
-        super().__init__()
-        
-        #
-        # Check the types of the arguments
-        #
     
-        # Hamiltonian
-        if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
-            
-        # SystemBathInteraction
-        if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of" +
-                            " the SystemBathInteraction type")
-
-        self.Hamiltonian = ham
-        self.SystemBathInteraction = sbi
-        self.dim = self.Hamiltonian.dim
-        self.name = name
-        
-        self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
-                                dtype=numpy.complex128)
-        
-        self._is_initialized = False   
-        self._has_cutoff_time = False
-        self.as_operators = as_operators
-        self._site_basis_reference = site_basis_reference 
-        
-        # FIXME: remove this if it is a dead end
-        if self._site_basis_reference is not None:
-            print(self._site_basis_reference.is_diagonal())
-        
-        # set cut-off time
-        if cutoff_time is not None:
-            self.cutoff_time = cutoff_time
-            self._has_cutoff_time = True            
-            
-        # initialize the tensor right at creation
-        if initialize:        
-            self._reference_implementation(ham,sbi)        
-
-
-        
     def _reference_implementation(self, ham, sbi):
         """ Reference implementation, completely in Python
         
@@ -187,6 +82,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # number of baths - one per monomer            
         Nb = sbi.N
 
+        self.Nt = length
+        Nt = self.Nt
+        
         #
         # Site K_m operators 
         #
@@ -203,7 +101,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #
         
         # Integrals of correlation functions from the set 
-        Lm = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
+        Lm = numpy.zeros((Nt, Nb, Na, Na), dtype=numpy.complex128)
         for ms in range(Nb):
             #for ns in range(Nb):
             if not multi_ex:
@@ -231,16 +129,18 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                                     ri, s=0).antiderivative()(tm)
                                 
                         # we take the last value (integral to infinity)
-                        cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
-
+                        # #### cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
+                        cc_mnab = (sr + 1.0j*si)
+                        
                         # \Lambda_m operators
-                        Lm[ms,a,b] += cc_mnab*Km[ns,a,b] 
+                        Lm[:,ms,a,b] += cc_mnab*Km[ns,a,b] 
              
         
         # create the Hermite conjuged version of \Lamnda_m
-        Ld = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
-        for ms in range(Nb):
-            Ld[ms, :, :] += numpy.conj(numpy.transpose(Lm[ms,:,:]))        
+        Ld = numpy.zeros((Nt, Nb, Na, Na), dtype=numpy.complex128)
+        for tt in range(Nt):
+            for ms in range(Nb):
+                Ld[tt, ms, :, :] += numpy.conj(numpy.transpose(Lm[tt,ms,:,:]))        
             
         if self.as_operators:
             
@@ -286,48 +186,86 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         Na = self.Hamiltonian.data.shape[0]
         Nb = self.SystemBathInteraction.N
+        Nt = self.Nt
         
-        RR = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
+        RR = numpy.zeros((Nt, Na, Na, Na, Na), dtype=numpy.complex128)
         
         for m in range(Nb):
-
-            KmLm = numpy.dot(Km[m,:,:],Lm[m,:,:])
-            LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
-            for a in range(Na):
-                for b in range(Na):
-                    for c in range(Na):
-                        for d in range(Na):
+            for tt in range(Nt):
+                KmLm = numpy.dot(Km[m,:,:],Lm[tt,m,:,:])
+                LdKm = numpy.dot(Ld[tt,m,:,:],Km[m,:,:])
+                for a in range(Na):
+                    for b in range(Na):
+                        for c in range(Na):
+                            for d in range(Na):
                             
-                            RR[a,b,c,d] += (Km[m,a,c]*Ld[m,d,b] 
-                                            + Lm[m,a,c]*Km[m,d,b])
-                            if b == d:
-                                RR[a,b,c,d] -= KmLm[a,c] 
-                            if a == c:
-                                RR[a,b,c,d] -= LdKm[d,b]
+                                RR[tt,a,b,c,d] += (Km[m,a,c]*Ld[tt,m,d,b] 
+                                                + Lm[tt,m,a,c]*Km[m,d,b])
+                                if b == d:
+                                    RR[tt,a,b,c,d] -= KmLm[a,c] 
+                                if a == c:
+                                    RR[tt,a,b,c,d] -= LdKm[d,b]
         
         return RR
-
-
-    def initialize(self):
-        """Initializes the Redfield tensor with values 
         
-        """
-        self._reference_implementation(self.Hamiltonian,
-                                       self.BilinearSystemBathInteraction)
-
-
-    def convert_2_tensor(self):
-        """Converts internally the operator representation to a tensor one
         
-        Converst the representation of the relaxation tensor through a set
-        of operators into a tensor representation.
+    def transform(self, SS, inv=None):
+        """Transformation of the tensor by a given matrix
         
-        """
         
-        if self.as_operators:
+        This function transforms the Operator into a different basis, using
+        a given transformation matrix.
+        
+        Parameters
+        ----------
+         
+        SS : matrix, numpy.ndarray
+            transformation matrix
             
-            self.data = self._convert_operators_2_tensor(self.Km,
-                                                         self.Lm, self.Ld)
-                                                         
-            self.as_operators = False
-                                
+        inv : matrix, numpy.ndarray
+            inverse of the transformation matrix
+            
+        """        
+        
+
+        if not self._data_initialized:
+            return
+        
+        if (self.manager.warn_about_basis_change):
+                print("\nQr >>> Relaxation tensor '%s' changes basis" %self.name)
+           
+        if inv is None:
+            S1 = numpy.linalg.inv(SS)
+        else:
+            S1 = inv
+        dim = SS.shape[0]
+        
+        for tt in range(self.Nt):
+            for c in range(dim):
+                for d in range(dim):
+                    self._data[tt,:,:,c,d] = \
+                        numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
+                
+            for a in range(dim):
+                for b in range(dim):
+                    self._data[tt,a,b,:,:] = \
+                        numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))
+
+            
+    def secularize(self):
+        """Secularizes the relaxation tensor
+
+
+        """
+        if self.as_operators:
+            raise Exception("Cannot be secularized in an opeator form")
+            
+        else:
+            N = self.data.shape[1]
+            for ii in range(N):
+                for jj in range(N):
+                    for kk in range(N):
+                        for ll in range(N):
+                            if not (((ii == jj) and (kk == ll)) 
+                                or ((ii == kk) and (jj == ll))) :
+                                    self.data[:,ii,jj,kk,ll] = 0

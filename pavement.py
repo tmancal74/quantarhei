@@ -63,8 +63,11 @@ def pylint():
 
     path = 'quantarhei/qm/hilbertspace'
     r.set_path(path)
-    r.un('statevector.py')
-    
+#    r.un('statevector.py')
+
+    path = 'quantarhei/builders'
+    r.set_path(path)
+    r.un('pdb.py')    
     
 """
     Default 
