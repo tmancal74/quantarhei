@@ -875,12 +875,12 @@ class Aggregate(UnitsManaged):
                         relaxT.secularize()
                 ham.unprotect_basis()  
                 
-                #
-                # create a corresponding propagator
-                #
-                ham.unprotect_basis()
-                with eigenbasis_of(ham):
-                    prop = ReducedDensityMatrixPropagator(timeaxis,
+            #
+            # create a corresponding propagator
+            #
+            ham.unprotect_basis()
+            with eigenbasis_of(ham):
+                prop = ReducedDensityMatrixPropagator(timeaxis,
                                                           ham, relaxT)  
                       
         elif (relaxation_theory == "standard_Foerster"):

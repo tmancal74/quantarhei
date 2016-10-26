@@ -63,7 +63,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
                     
                     
     def plot(self,populations=True,popselection="All",\
-                  coherences=True, cohselection="All",how='-'):
+                  coherences=True, cohselection="All",how='-', axis=None):
         """
             Plots selected data.
             Return figure so that it can be manipulated
@@ -108,6 +108,8 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
         
             plt.plot(self.TimeAxis.time,numpy.real(ss),'-k')
         
+        if axis is not None:
+            plt.axis(axis)
 
         return 1
         

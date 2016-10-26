@@ -101,6 +101,6 @@ if True:
 #with eigenbasis_of(H):
 if True:
     rho_t1.plot(coherences=False)    
-    rho_t2.plot(coherences=False)
+    rho_t2.plot(coherences=False, axis=[0,4000.0,0,1.0])
 #rho_t3.plot(coherences=False)
     
