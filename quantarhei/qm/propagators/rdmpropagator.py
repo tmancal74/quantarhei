@@ -28,9 +28,10 @@ from ...core.time import TimeDependent
 from ..liouvillespace.redfieldtensor import RelaxationTensor
 from ..hilbertspace.operators import ReducedDensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
+from ...core.matrixdata import MatrixData
 
 
-class ReducedDensityMatrixPropagator: 
+class ReducedDensityMatrixPropagator(MatrixData): 
     """
     
     Reduced Density Matrix Propagator calculates the evolution of the

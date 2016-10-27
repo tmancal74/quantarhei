@@ -59,11 +59,11 @@ agg.build()
 #
 prop = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="standard_Redfield",
-                           time_dependent=True,
+                           time_dependent=False,
                            secular_relaxation=True)
 
 prop_nonsec = agg.get_ReducedDensityMatrixPropagator(time,
-                           time_dependent=True,
+                           time_dependent=False,
                            relaxation_theory="standard_Redfield")
          
 ham = agg.get_Hamiltonian()                  
@@ -82,3 +82,6 @@ with eigenbasis_of(ham):
     rho_t2 = prop_nonsec.propagate(rho_i2,
              name="Redfield evolution from aggregate, non-secular")
     rho_t2.plot(coherences=False)    
+
+rho_i1.save_data("/Users/tomas/rho_i1.dat")
+rho_t1.save_data("/Users/tomas/rho_t1.dat")

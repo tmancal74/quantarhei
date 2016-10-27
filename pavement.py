@@ -67,7 +67,11 @@ def pylint():
 
     path = 'quantarhei/builders'
     r.set_path(path)
-    r.un('pdb.py')    
+#    r.un('pdb.py')    
+
+    path = 'quantarhei/core'
+    r.set_path(path)
+    r.un('matrixdata.py')    
     
 """
     Default 

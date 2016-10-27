@@ -1,241 +1,201 @@
 # -*- coding: utf-8 -*-
+"""
+    Basic data type of Quantarhei
 
-import tempfile
+
+"""
+import numpy
 import os
-import io
-import tarfile
-import shutil 
-
-import numpy 
-#import matplotlib.pyplot as plt
-import xml.dom.minidom
-#import scipy.interpolate
-#from ..utils.types import Integer
 
 class MatrixData:
-
-    version = "0.1"
-    date = "2015-04-09"
+    """MatrixData type
 
 
-    def __init__(self,dims=(0),name="",data=""):
-        
-        self.name = name
-        
-        if data == "":
-            self.data = numpy.zeros(dims)       
+    Parameters
+    ----------
+
+    dims : list or tuple
+        Dimensions of the data in form of a tuple or list
+
+    name : str
+        Name of the object
+
+    data : array like
+        Object data
+
+    """
+
+    def __init__(self, dims=(0), name=None, data=None):
+
+        if name is None:
+            self.name = ""
         else:
-            self.data = data
-        
+            self.name = name
 
-    def setName(self,name):
+        if data is None:
+            self.data = numpy.zeros(dims)
+        else:
+            if isinstance(data, list) or isinstance(data, tuple):
+                self.data = numpy.array(data)
+            else:
+                self.data = data
+
+
+    def set_name(self, name):
+        """Sets the object name
+
+        Parameters
+        ----------
+
+        name : str
+            Name of of the object
+
+        """
         self.name = name
 
-    # returns the name of the data set        
-    def getName(self):
+    def get_name(self):
+        """Returns the object name
+
+        """
         return self.name
-        
-    def getDim(self,n):
+
+    def get_dim(self, n):
+        """Returns dimension of the nth index of the matrix
+
+        Parameters
+        ----------
+
+        n : int
+            matrix index
+
+        """
         return self.data.shape[n]
-        
-    def getShape(self):
+
+    def get_shape(self):
+        """Returns the data shape
+
+        """
         return self.data.shape
-        
-    def getRank(self):
+
+    def get_rank(self):
+        """Returns the matrix rank, i.e. the number of its indices
+
+        """
         return self.data.ndim
-        
-    def setData(self,data):
+
+    def set_data(self, data):
+        """Sets the data of the object
+
+        Parameters
+        ----------
+
+        data : array like
+            Data to be set in the object
+
+        """
         self.data = data
+
+    def save_data(self, name):
+        """Saves the data into a format determined by the file name extension
+
+        Parameters
+        ----------
+
+        name : str
+            Name of the file to be saved into
+            
         
+        Notes
+        -----
         
+        This method knows the following file extensions
         
+        .dat 
+            text
+            
+        .txt
+            text, same as .dat
+            
+        .npy
+            binary numpy format, no compression
+            
+        .npz
+            compressed numpy format
+
+        """
+        filename, extension = os.path.splitext(name)
+
+        if extension not in [".dat",".txt",".npy",".npz"]:
+            raise Exception("Unknown data format")
+
+        if (extension == ".dat") or (extension == ".txt"):
+            self._exportDataToText(name)
+
+        elif extension == ".npy":
+            self._saveBinaryData(name)
+
+        elif extension == ".npz":
+            self._saveBinaryData_compressed(name)
+
+
+
+    def load_data(self, name):
+        """Loads the data in a format determined by the file name extension
+
+        Parameters
+        ----------
+
+        name : str
+            Name of the file to be loaded from
+
+        """
+        filename, extension = os.path.splitext(name)
         
-    def saveBinaryData(self,filename):
-        numpy.savez_compressed(filename,data=self.data)
-        
-    def loadBinaryData(self,filename):
+        if extension not in [".dat",".txt",".npy",".npz"]:
+            raise Exception("Unknown data format")        
+
+        if (extension == ".dat") or (extension == ".txt"):
+            self._importDataFromText(name)
+
+        elif extension == ".npy":
+            self._loadBinaryData(name)
+
+        elif extension == ".npz":
+            self._loadBinaryData_compressed(name)
+
+
+    def _saveBinaryData(self, file):
+        """Saves uncompressed binary data to an file
+
+        """
+        numpy.save(file, self.data)
+
+    def _saveBinaryData_compressed(self, file):
+        """Saves compressed binary data to an file
+
+        """
+        numpy.savez_compressed(file, data=self.data)
+
+    def _loadBinaryData(self, filename):
+        """Imports binary data from a file
+
+        """          
+        self.data = numpy.load(filename)
+
+    def _loadBinaryData_compressed(self, filename):
+        """Imports binary data from a file
+
+        """          
         self.data = numpy.load(filename)["data"]
         
-                
-    def exportDataToText(self,filename):
-        numpy.savetxt(filename,self.data)            
-        
-    def importDataFromText(self,filename):
+    def _exportDataToText(self, file):
+        """Saves textual data to a file
+
+        """
+        numpy.savetxt(file, self.data)
+
+    def _importDataFromText(self, filename):
+        """Imports textual data to a file
+
+        """        
         self.data = numpy.loadtxt(filename)
-        
-        
-    def saveNoseFormat(self,name):
-
-        filename = ("description.xml", "content.npz")
-
-        ndir,nfn = os.path.split(name)
-
-        with tempfile.TemporaryDirectory() as tdir:
-        
-            # description
-            find = os.path.join(tdir,filename[0])
-            fintd = open(find,"w")
-            self.__writeDescription(fintd)
-            fintd.close()
-
-            find = os.path.join(tdir,filename[1]) 
-            self.saveBinaryData(find)
-            
-            nfn = os.path.join(tdir,nfn)
-            tf = tarfile.open(nfn,"w|gz")
-            for fname in filename:
-                lfname = os.path.join(tdir,fname)
-                tf.add(lfname,arcname=fname)
-            tf.close()    
-        
-            if not ndir == '':
-                dest = os.path.join(os.getcwd(),ndir)
-                if not os.path.exists(dest):
-                    os.makedirs(dest)
-                if not os.path.isdir(dest):
-                    raise Exception
-            else:
-                dest = os.getcwd()
-                
-            shutil.move(tf.name,dest)    
-
-    
-    def loadNoseFormat(self,name):
-        
-        fd = open(name,"rb")
-
-        fbytes = fd.read()
-        file_like_object = io.BytesIO(fbytes)
-        
-        tar = tarfile.open(fileobj=file_like_object) 
-        
-        ii = 1
-        for member in tar.getmembers():
-            f = tar.extractfile(member)
-            if ii == 1:
-                cont = f.read().decode("utf-8")
-                self.__readDescription(cont)
-                ii += 1
-            else:
-                self.data = numpy.load(f)["data"]
-                self.__compare_with_description()                
-                
-        fd.close()
-    
-    def __readDescription(self,desc):
-        print(desc)
-        shp = self.data.shape
-        self.assert_shape(shp)
-        tp = self.noseType
-        self.assert_nose_type(tp)
-        
-        
-    def __compare_with_description(self):
-        pass
-    
-    
-    def __writeDescription(self,fd,type_specific_data=None):
-        
-        dom = xml.dom.minidom.getDOMImplementation()
-        tree = dom.createDocument(None,"description",None)
-        root = tree.documentElement
-        
-        element = tree.createElement("nose-matrix-data")
-        
-        element.setAttribute("format-version",self.version)
-        element.setAttribute("format-date",self.date)
-        
-        nameElement = tree.createElement("name")
-        text_element = tree.createTextNode(self.name)
-        nameElement.appendChild(text_element)
-        element.appendChild(nameElement)
-        
-        typeElement = tree.createElement("nose-type")
-        text_element = tree.createTextNode(self.noseType)
-        typeElement.appendChild(text_element)
-        element.appendChild(typeElement)
-
-        shapeElement = tree.createElement("data-shape")
-        text_element = tree.createTextNode(str(self.data.shape))
-        shapeElement.appendChild(text_element)
-        element.appendChild(shapeElement)
-        
-        fileElement = tree.createElement("data-file")
-        text_element = tree.createTextNode("content.npz")
-        fileElement.appendChild(text_element)
-        element.appendChild(fileElement)        
-
-        specElement = tree.createElement("type-specific-data")
-        if type_specific_data == None:
-            text_element = tree.createTextNode("None")
-            specElement.appendChild(text_element)
-        else:
-            specElement.appendChild(type_specific_data)
-            
-        element.appendChild(specElement)         
-        
-        root.appendChild(element)        
-        tree.writexml(fd, encoding="UTF-8",addindent="  ",newl="\n")
-        
-        
-    def save(self,name):
-        self.saveNoseFormat(name)
-        
-    def load(self,name):
-        self.loadNoseFormat(name)
-
-    def assert_shape(self,shp):
-        print("Shape: Base class")
-        
-    def assert_nose_type(self,ntype):
-        print("NType: Base class")
-        
-    def self_test(self):
-        """
-
-        Tests the functionality of the class
-        
-        """
- 
-        dd = MatrixData("data1")
-
-        # generate test data
-
-
-        dd.setData(numpy.ones((101,101)))
-       
-        print("Name: ",dd.getName())
-        print("Rank: ",dd.getRank())
-        print("First dim: ", dd.getDim(1))
-        
-
-        # test Txt export
-        
-        dd.exportDataToText("test.dat")
-        
-        cc = MatrixData("data2")
-        cc.importDataFromText("test.dat")
-        
-        # compare original and saved data
-        
-        print("New dim: ",cc.getDim(1))
-
-
-        # test saving with Nose Binary Data format
-
-        fname = "data.nbd"
-        try:
-            cc.save(fname)
-        except:
-            os.remove(fname)
-            cc.save(fname)
-    
-        aa = MatrixData("data3")
-        aa.load(fname)
-
-        print(aa.data)       
-
-
-
-
-
