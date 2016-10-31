@@ -68,6 +68,7 @@ prop_nonsec = agg.get_ReducedDensityMatrixPropagator(time,
          
 ham = agg.get_Hamiltonian()                  
 with eigenbasis_of(ham):
+#if True:
 
     rho_i1 = ReducedDensityMatrix(dim=4, name="Initial DM")
     rho_i1.data[3,3] = 1.0   
@@ -79,9 +80,15 @@ with eigenbasis_of(ham):
     rho_i2 = ReducedDensityMatrix(dim=4, name="Initial DM")
     rho_i2.data[3,3] = 1.0   
     
-    rho_t2 = prop_nonsec.propagate(rho_i2,
-             name="Redfield evolution from aggregate, non-secular")
-    rho_t2.plot(coherences=False)    
+#    rho_t2 = prop_nonsec.propagate(rho_i2,
+#             name="Redfield evolution from aggregate, non-secular")
+#    rho_t2.plot(coherences=False)    
 
-rho_i1.save_data("/Users/tomas/rho_i1.dat")
-rho_t1.save_data("/Users/tomas/rho_t1.dat")
+    rho_i1.save_data("/Users/tomas/rho_i1.dat")
+    rho_t1.save_data("/Users/tomas/rho_t1.dat")
+
+    rho = ReducedDensityMatrixEvolution(time)
+    rho.load_data("/Users/tomas/rho_t1.dat")
+
+
+    rho.plot(coherences=False, axis=[0,3000,0.0,1.0])

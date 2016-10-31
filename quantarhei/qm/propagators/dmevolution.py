@@ -12,23 +12,37 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
     
     data = BasisManagedComplexArray("data") 
     
-    def __init__(self, timeaxis, rhoi, name=""):
+    def __init__(self, timeaxis, rhoi=None, name=None):
         
         if not isinstance(timeaxis, TimeAxis):
             raise Exception("First argument has to be a TimeAxis")
             
         #if not isinstance(rhoi,ReducedDensityMatrix):
         #    raise Exception
-        self.name = name
+        if name is not None:
+            self.name = name
+        else:
+            self.name = ""
             
         self.TimeAxis = timeaxis
-        self.dim = rhoi.data.shape[1]        
         
-        self._data = numpy.zeros((timeaxis.length, rhoi.data.shape[0], \
-                    rhoi.data.shape[1]),dtype=numpy.complex128)
-        self.data[0,:,:] = rhoi.data
-
-
+        if rhoi is not None:
+            self.dim = rhoi.data.shape[1]        
+            
+            self.set_initial_condition(rhoi)
+        else:
+            self.dim = 0
+            
+            
+    def set_initial_condition(self, rhoi):
+        """
+        
+        
+        """
+        self.dim = rhoi.data.shape[1] 
+        self._data = numpy.zeros((self.TimeAxis.length, self.dim, \
+                    self.dim),dtype=numpy.complex128)
+        self.data[0,:,:] = rhoi.data        
         
 
     def transform(self, SS, inv=None):
@@ -113,8 +127,72 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
 
         return 1
         
-    def set_name(self, name):
-        self.name = name
+        
+    def _exportDataToText(self, file):
+        """Saves textual data to a file
+
+        """
+        Nt = self.data.shape[0]
+        N = self.data.shape[1]
+        # all elements [real] + (all elements - diagonal) [imaginary] + time
+        Na = N + 1 + N*(N-1) 
+
+        out = numpy.zeros((Nt, Na), dtype=numpy.float64)   
+        
+        for i in range(Nt):
+            #print("%%%%")
+            # time
+            out[i,0] = self.TimeAxis.data[i]
+            #print(0)
+            # populations
+            for j in range(N):
+               out[i,j+1] = numpy.real(self.data[i,j,j])
+               #print(j+1)
+            # coherences
+            l = 0
+            for j in range(N):
+                for k in range(j+1,N):
+                    out[i,N+1+l] = numpy.real(self.data[i,j,k])
+                    #print(N+1+l)
+                    l += 1
+                    out[i,N+1+l] = numpy.imag(self.data[i,j,k])
+                    #print(N+1+l)
+                    l += 1
+                    
+        numpy.savetxt(file, out)
+
+
+    def _importDataFromText(self, filename):
+        """Imports textual data to a file
+
+        """        
+
+        out = numpy.loadtxt(filename)
+        
+        N = int(numpy.sqrt(out.shape[1] - 1))
+
+        Nt = self.TimeAxis.length
+        if Nt != out.shape[0]:
+            raise Exception("Incompatibel number of time steps")
+        
+        din = numpy.zeros((N,N), dtype=numpy.float64)
+        for i in range(N):
+            din[i,i] = out[0,i+1]
+            
+        self.set_initial_condition(din)
+        
+        for i in range(Nt):
+            # populations
+            for j in range(N):
+               self.data[i,j,j] = out[i,j+1]
+            # coherences
+            l = 0
+            for j in range(N):
+                for k in range(j+1,N):
+                    self.data[i,j,k] = out[i,N+1+l] + 1.0j*out[i,N+2+l]
+                    self.data[i,k,j] = numpy.conj(self.data[i,j,k])
+                    l += 2
+              
         
         
 class ReducedDensityMatrixEvolution(DensityMatrixEvolution):
