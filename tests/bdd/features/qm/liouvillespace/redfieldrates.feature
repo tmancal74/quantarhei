@@ -15,7 +15,7 @@ Feature: Calculation of Redfield relaxation rates in a homodimer
 #  Comparison against results saved in a file
 #
 @redfield
-Scenario Outline: Refield rates for a homodimer against saved results
+Scenario Outline: Redfield rates for a homodimer against saved results
     Given a homodimer with site transition energies <tr_en> "<e_units>"
     And resonance coupling <coupl_en> "<e_units>"
     And correlation function parameters:

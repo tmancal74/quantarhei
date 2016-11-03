@@ -34,7 +34,9 @@ class TestRedfield(unittest.TestCase):
     """
     
     def setUp(self,verbose=False):
+        
         self.verbose = verbose
+        
         time = TimeAxis(0.0,1000,1.0)
         with energy_units("1/cm"):
             params = {"ftype":"OverdampedBrownian",
@@ -86,23 +88,32 @@ class TestRedfield(unittest.TestCase):
         tensor = True
         matrix = True
         
+        dim = self.H1.dim
+        KT = numpy.zeros((dim,dim), dtype=numpy.float64)
+        KM = numpy.zeros((dim,dim), dtype=numpy.float64)
+        
         if tensor:
-            print(self.H1)
+            #print(self.H1)
             RT = RedfieldRelaxationTensor(self.H1,self.sbi1)
             
             for n in range(2):
                 for m in range(2):
-                    print(n,m,numpy.real(RT.data[n,n,m,m]))
+                    #print(n,m,numpy.real(RT.data[n,n,m,m]))
+                    KT[n,m] = numpy.real(RT.data[n,n,m,m])
+                    
                     
         if matrix:
-            print(self.H2)
+            #print(self.H2)
             RR = RedfieldRateMatrix(self.H2,self.sbi2)
             
             for n in range(2):
                 for m in range(2):
-                    print(n,m,numpy.real(RR.data[n,m]))    
+                    #print(n,m,numpy.real(RR.data[n,m]))    
+                    KM[n,m] = numpy.real(RR.data[n,m])
                     
-        print(self.c_omega_p)
-        print(self.c_omega_m)
+        #print(self.c_omega_p)
+        #print(self.c_omega_m)
+        
+        numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
                 
             

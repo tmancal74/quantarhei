@@ -40,7 +40,7 @@ class aggregate_state():
         self.vib_descriptor = desc[1:]
         self.vibrations = state_tuple[1]
         
-        """ This is temporary - numbers have to be computed"""
+        # This is temporary - numbers have to be computed
         self.energy = 0.0
         self.el_energy = 0.0
         self.vib_energy = 0.0
@@ -142,7 +142,9 @@ class Aggregate(UnitsManaged):
         self.egcf_matrix = cm
         self._has_egcf_matrix = True
     
-    """ Monomer """
+    #
+    # Monomer
+    #
     def add_Molecule(self,mono):
         """Adds monomer to the aggregate
         
@@ -166,7 +168,9 @@ class Aggregate(UnitsManaged):
         except:
             raise Exception()        
         
-    """ Vibrational modes """
+    #
+    # Vibrational modes
+    #
     def add_Mode_by_name(self,name,mode):
         try:
             im = self.mnames[name]
@@ -941,7 +945,9 @@ class Aggregate(UnitsManaged):
         
     def diagonalize(self):
         """Transforms the Hamiltonian 
-           and transition dipole moment into diagonal basis """
+           and transition dipole moment into diagonal basis 
+           
+        """
            
         ee,SS = numpy.linalg.eigh(self.HH)
         
@@ -965,32 +971,80 @@ class Aggregate(UnitsManaged):
         self.D2_max = numpy.max(dd2)
         
 
-    def set_thermal_population(self,temp=0.0):
+    def _thermal_population(self,temp=0.0):
         
-        kBT = 1.0
+        from ..core.units import kB_intK
+        from ..core.managers import eigenbasis_of
         
-        self.rho0 = numpy.zeros(self.Ntot,dtype=numpy.complex128)
+        kBT = kB_intK*temp
+        
+        HH = self.get_Hamiltonian()
+        
+        rho0 = numpy.zeros((HH.dim,HH.dim),dtype=numpy.complex128)
         if temp == 0.0:
             print("Zero temperature")
-            self.rho0[0] = 1.0
-        else:                
-            ne = numpy.exp(-self.HD/kBT)
+            rho0[0,0] = 1.0
+        else:
+            # FIXME: we assume only single exciton band
+            ens = numpy.zeros(HH.dim-1, dtype=numpy.float64)
+            with eigenbasis_of(HH):
+                for i in range(HH.dim-1):
+                    ens[i] = HH.data[i+1,i+1]                
+            ne = numpy.exp(-ens/kBT)
             sne = numpy.sum(ne)
-            self.rho0 = ne/sne
+            rho0_diag = ne/sne
+            rho0[1:,1:] = numpy.diag(rho0_diag)
             
-    def set_impulsive_population(self):
+        return rho0
+            
+    def _impulsive_population(self):
         
-        self.rho0 = numpy.zeros((self.Ntot,self.Ntot),dtype=numpy.complex128)
-        self.rho0[0,0] = 1.0
+        rho0 = numpy.zeros((self.Ntot,self.Ntot),dtype=numpy.complex128)
+        rho0[0,0] = 1.0
         
         dabs = numpy.sqrt(self.DD[:,:,0]**2 + \
                           self.DD[:,:,1]**2 + self.DD[:,:,2]**2)
                           
-        self.rho0 = numpy.dot(dabs,numpy.dot(self.rho0,dabs))
+        rho0 = numpy.dot(dabs,numpy.dot(rho0,dabs))
         
         
-    def get_initial_DensityMatrix(self):
-        return DensityMatrix(data=self.rho0)
+    def get_initial_DensityMatrix(self, condition_type=None, temperature=0):
+        """Returns initial density matrix according to specified condition
+        
+        Parameters
+        ----------
+        
+        condition_type : str
+            Type of the initial condition. If None, the property rho0 is 
+            returned.
+            
+        Condition types
+        ---------------
+        
+        thermal_excited_state 
+            Thermally equilibriuated excited state
+            
+        impulsive_excitation
+            Excitation by ultrabroad laser pulse
+            
+        """
+        
+        if condition_type is None:
+            
+            return DensityMatrix(data=self.rho0)
+            
+        elif condition_type == "impulsive_excitation":
+            rho0 = self._impulsive_population()
+            self.rho0 = rho0
+            return DensityMatrix(data=self.rho0)
+            
+        elif condition_type == "thermal_excited_state":
+            rho0 = self._thermal_population(temperature)
+            self.rho0 = rho0
+            return DensityMatrix(data=self.rho0)
+            
+        else:
+            raise Exception("Unknown condition type")
         
         
     def get_electronic_groundstate(self):
@@ -1063,6 +1117,11 @@ class Aggregate(UnitsManaged):
             return TransitionDipoleMoment(data=self.DD)                     
         else:
             raise Exception("Aggregate object not built")
+            
+            
+            
+            
+            
             
     ########################################################################
     #
