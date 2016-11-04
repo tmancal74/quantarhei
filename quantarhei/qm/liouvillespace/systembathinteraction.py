@@ -35,7 +35,7 @@ class SystemBathInteraction:
         else:
             raise Exception("First argument has to a list")
         
-        # Second argument has to be a CorrelationSet ... 
+        # Second argument has to be a CorrelationFunctionMatrix 
         if not isinstance(bath_correlation_matrix,CorrelationFunctionMatrix):
             raise Exception
             

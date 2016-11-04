@@ -9,6 +9,8 @@ from ..corfunctions.correlationfunctions import c2g
 class FoersterRelaxationTensor(RelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory
     
+    
+    
     """
     def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
@@ -36,6 +38,9 @@ class FoersterRelaxationTensor(RelaxationTensor):
             self._is_initialized = True
 
     def set_system_bath_interaction(self,sbi):
+        """Sets the system bath interaction object
+        
+        """
         self.BilinearSystemBathInteraction = sbi
         
 
@@ -106,7 +111,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             
         for aa in range(Na):
             for bb in range(Na):
-                """ Here we assume no correlation between sites """
+                # Here we assume no correlation between sites
                 gt[aa,:] += (SS[bb,aa]**4)*Gt[bb,:]  
 
         # reorganization energies
@@ -116,7 +121,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
         for aa in range(Na):
             for bb in range(Na):
-                """ Here we assume no correlation between sites """
+                # Here we assume no correlation between sites 
                 lT[aa] += (SS[bb,aa]**4)*ll[bb]                 
             
                            
@@ -140,4 +145,5 @@ class FoersterRelaxationTensor(RelaxationTensor):
            
         # calculates dephasing rates and depopulation rates
         self.updateStructure()
+        
         self._data_initialized = True    

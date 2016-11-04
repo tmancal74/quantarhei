@@ -14,6 +14,8 @@ import numpy
 from quantarhei import *
 import quantarhei as qm
 
+import matplotlib.pyplot as plt
+
 print("""
 *******************************************************************************
 *                                                                             *
@@ -43,7 +45,7 @@ with energy_units("1/cm"):
     
     agg.set_coupling_by_dipole_dipole(epsr=1.92921)
 
-    params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=100)
+    params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=300)
     cf = CorrelationFunction(time, params)
 
 m1.set_transition_environment((0,1), cf)
@@ -100,7 +102,28 @@ if True:
 
 #with eigenbasis_of(H):
 if True:
-    rho_t1.plot(coherences=False)    
-    rho_t2.plot(coherences=False, axis=[0,4000.0,0,1.0])
+    rho_t1.plot(coherences=False, axis=[0,4000.0,0,1.0])    
+    #rho_t2.plot(coherences=False, axis=[0,4000.0,0,1.0])
 #rho_t3.plot(coherences=False)
     
+pop = numpy.zeros((time.length,4),dtype=numpy.float64)
+
+rho0 = agg.get_DensityMatrix(condition_type="thermal_excited_state",
+                             relaxation_theory_limit="strong_coupling",
+                             temperature=300)
+tpop = 0.0
+for i in range(1, H.dim):
+    pop[:,i] = rho0.data[i,i] #numpy.exp(-HH.data[i,i]/(temperature*kB_intK))
+    tpop += pop[1,i]
+
+prtot = 0.0
+for i in range(1,H.dim):
+    prtot += rho_t1.data[time.length-1,i,i]
+    
+pop[:,:] = numpy.real((pop[:,:]/tpop)*prtot)
+
+# plot the termal distrubution
+plt.plot(time.data,pop[:,1],'--r')
+plt.plot(time.data,pop[:,2],'--b')
+plt.plot(time.data,pop[:,3],'--g')
+#plt.plot(time.data,pop[:,4],'--m')   

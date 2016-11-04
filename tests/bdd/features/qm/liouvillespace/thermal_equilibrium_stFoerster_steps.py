@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-    Test of equilibriation by standard Redfield equations
+    Test of equilibriation by standard Foerster equations
     in secular approximation. This should lead to cannonical equilibrium
     
 
@@ -25,41 +25,32 @@ from quantarhei import eigenbasis_of
 
 feature = """
 #
-#  Secular Redfield relaxation theory results in canonical equilibrum
+#  Some types of relaxation theories result in canonical equilibrum
 #
 #
 #
 
-Feature: Secular Redfield thgeory results in cannonical equilibrium 
+Feature: Foerster relaxation theory result in cannonical equilibrium 
 
-    Theories such as Redfield relaxation tensor etc. should result in
+    Theories such as Foerster relaxation tensor etc. should result in
     cannonical equilibrium
 
-#@redfield
+#@foerster
 @in_development
-Scenario Outline: Redfield rates for a small chain of molecules
+Scenario Outline: Foerster rates for a small chain of molecules
 
 """
 
 example_1 = """
     Examples:
        | temp | time_step | nsteps | matsu  | atol   |
-       | 300  | 1.0       | 10000  | 100    |  0.01  |
-       | 200  | 1.0       | 10000  | 100    |  0.02  |
-       | 100  | 1.0       | 10000  | 100    |  0.02  |
-       | 50   | 1.0       | 10000  | 100    |  0.02  |
+       | 300  | 0.1       | 10000  | 100    |  0.01  |
+       | 200  | 0.1       | 10000  | 100    |  0.02  |
+       | 100  | 0.1       | 10000  | 100    |  0.02  |
+       | 50   | 0.1       | 10000  | 100    |  0.02  |
 
 """
 
-example_2 = """
-    Examples:
-       | temp | time_step | nsteps  | matsu  | atol   |
-       | 300  | 1.0       | 10000   | 100    |  0.01  |
-       | 200  | 1.0       | 10000   | 100    |  0.01  |
-       | 100  | 1.0       | 10000   | 100    |  0.01  |
-       | 50   | 1.0       | 10000   | 100    |  0.01  |
-       
-"""
 
 @step(r'time interval from zero with time step '+match_number+r' fs and '
       +match_number+r' steps')
@@ -73,31 +64,15 @@ def time_interval(self, time_step, nsteps):
     """
     world.time = TimeAxis(0.0, int(nsteps), float(time_step))
     
-    
 def homochain_aggregate_1(self):
     """Matching the following 
     
     #begin_feature
     And a small homochain of N molecules with parameters
        | tr_energy | neighbor_coupling | corfce | reorg | ctime | matsubara | temperature | e_units |
-       | 12000     |  100              | OB     | 20    | 100   |  <matsu>  |  <temp>     | 1/cm    | 
-       | 12200     |  50               | OB     | 20    | 80    |  <matsu>  |  <temp>     | 1/cm    |
-       | 12100     |  200              | OB     | 20    | 100   |  <matsu>  |  <temp>     | 1/cm    |
-    #end_feature       
-    """
-    pass
-
-def homochain_aggregate_2(self):
-    """Matching the following 
-    
-    #begin_feature
-    And a small homochain of N molecules with parameters
-       | tr_energy | neighbor_coupling | corfce | reorg | ctime | matsubara | temperature | e_units |
-       | 12000     |  100              | OB     | 20    | 100   |  <matsu>  |  <temp>     | 1/cm    | 
-       | 12200     |  50               | OB     | 20    | 80    |  <matsu>  |  <temp>     | 1/cm    |
-       | 12100     |  200              | OB     | 20    | 100   |  <matsu>  |  <temp>     | 1/cm    |
-       | 12400     |  50               | OB     | 30    | 100   |  <matsu>  |  <temp>     | 1/cm    |
-       | 12600     |  100              | OB     | 30    | 100   |  <matsu>  |  <temp>     | 1/cm    |
+       | 12000     |  100              | OB     | 40    | 100   |  <matsu>  |  <temp>     | 1/cm    | 
+       | 12200     |  50               | OB     | 40    | 80    |  <matsu>  |  <temp>     | 1/cm    |
+       | 12100     |  200              | OB     | 50    | 100   |  <matsu>  |  <temp>     | 1/cm    |
     #end_feature       
     """
     pass
@@ -153,14 +128,14 @@ def homochain_aggregate(self):
     world.aggregate = agg
     world.time = time
     world.N = k+1
-        
-        
-@step(r'I calculate aggregate Redfield relaxation tensor')
+    
+    
+@step(r'I calculate aggregate Foerster relaxation tensor')
 def redfield_tensor_agg(self):
     """Creates aggregate Redfield tensor
     
     #begin_feature
-    When I calculate aggregate Redfield relaxation tensor
+    When I calculate aggregate Foerster relaxation tensor
     #end_feature
     
     """
@@ -169,52 +144,53 @@ def redfield_tensor_agg(self):
     
     world.prop = \
     agg.get_ReducedDensityMatrixPropagator(time,
-                                           relaxation_theory="standard_Redfield",
+                                           relaxation_theory="standard_Foerster",
                                            secular_relaxation=True)
-    
 
-@step(r'long time Redfield populations will correspond to canonical equilibrium with temperature '
+
+@step(r'long time Foerster populations will correspond to canonical equilibrium with temperature '
       +match_number+r' K with atol '+match_number)
 def thermal_population_comparison(self, temp, atol):
     """Creates canonical populations and checks them against the results from relaxation tensor
     
     #begin_feature
-    Then long time Redfield populations will correspond to canonical equilibrium with temperature <temp> K with atol <atol>
+    Then long time Foerster populations will correspond to canonical equilibrium with temperature <temp> K with atol <atol>
     #end_feature
     
     """
-
-    print("Testing Redfield theory")
     
+    print("Testing Foerster theory")
+
     agg = world.aggregate
     rho0 = ReducedDensityMatrix(dim=world.N)
-    H = world.aggregate.get_Hamiltonian()
+    #H = world.aggregate.get_Hamiltonian()
     
-    with eigenbasis_of(H):
-        print("\nExpected thermal population at ", temp, "K")
-        rhoT = agg.get_DensityMatrix(condition_type="thermal_excited_state",
-                                     temperature=world.temperature)
-        pop_T = numpy.zeros(world.N, dtype=numpy.float64)
-        for i in range(world.N):
-            pop_T[i] = numpy.real(rhoT.data[i,i])
-            print(i, ":", pop_T[i])
+    print("\nExpected thermal population at ", temp, "K")
+    rhoT = agg.get_DensityMatrix(condition_type="thermal_excited_state",
+                                 relaxation_theory_limit="strong_coupling",
+                                 temperature=world.temperature)
+    pop_T = numpy.zeros(world.N, dtype=numpy.float64)
+    for i in range(world.N):
+        pop_T[i] = numpy.real(rhoT.data[i,i])
+        print(i, ":", pop_T[i])
             
-        print("Final calculated population")
-        rho0.data[world.N-1,world.N-1] = 1.0
-        rho_t = world.prop.propagate(rho0)
-        pop_C = numpy.zeros(world.N, dtype=numpy.float64)
-        for i in range(world.N):
-            pop_C[i] = numpy.real(rho_t.data[world.time.length-1,i,i])
-            print(i, ":", pop_C[i])
+    print("Final calculated population")
+    rho0.data[world.N-1,world.N-1] = 1.0
+    rho_t = world.prop.propagate(rho0)
+    pop_C = numpy.zeros(world.N, dtype=numpy.float64)
+    for i in range(world.N):
+        pop_C[i] = numpy.real(rho_t.data[world.time.length-1,i,i])
+        print(i, ":", pop_C[i])
     
     print("absolute tolerance atol=", float(atol))
     numpy.testing.assert_allclose(pop_C, pop_T, atol=float(atol))
 
 
+                                           
 if __name__ == '__main__':
     """
     
-    Feature file: thermal_equilibrium_stRedfield_1.feature
+    Feature file: thermal_equilibrium_stFoerster_1.feature
     
     """
     gen = FeatureFileGenerator(feature+example_1)
@@ -224,18 +200,5 @@ if __name__ == '__main__':
     gen.add_When(redfield_tensor_agg)
     gen.add_Then(thermal_population_comparison)
     
-    gen.generate_feature_file("thermal_equilibrium_stRedfield_1.feature")
-    
-    """
-    
-    Feature file: thermal_equilibrium_stRedfield_2.feature
-    
-    """
-    gen = FeatureFileGenerator(feature+example_2)
-    
-    gen.add_Given(time_interval)
-    gen.add_Given(homochain_aggregate_2)
-    gen.add_When(redfield_tensor_agg)
-    gen.add_Then(thermal_population_comparison)
-    
-    gen.generate_feature_file("thermal_equilibrium_stRedfield_2.feature")   
+    gen.generate_feature_file("thermal_equilibrium_stFoerster_1.feature")
+                                         

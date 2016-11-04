@@ -898,12 +898,19 @@ class Aggregate(UnitsManaged):
             
                 # Time independent standard Refield
             
-
+                #
+                # This is done strictly in site basis
+                #
                 relaxT = FoersterRelaxationTensor(ham, sbi)
                 dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
+                
+                print("\nrate : ", relaxT.data[1,1,2,2], 1.0/relaxT.data[1,1,2,2])
+                
+                # The Hamiltonian for propagation is the one without 
+                # resonance coupling
                 prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
                         
 
@@ -971,14 +978,23 @@ class Aggregate(UnitsManaged):
         self.D2_max = numpy.max(dd2)
         
 
-    def _thermal_population(self,temp=0.0):
+    def _thermal_population(self,temp=0.0, subtract=None):
+        """Thermal populations at temperature temp
+        
+        Thermal populations calculated from the diagonal elements
+        of the Hamiltonian 
+        
+        """
         
         from ..core.units import kB_intK
-        from ..core.managers import eigenbasis_of
+        #from ..core.managers import eigenbasis_of
         
         kBT = kB_intK*temp
         
         HH = self.get_Hamiltonian()
+        
+        if subtract is None:
+            subtract = numpy.zeros(HH.dim, dtype=numpy.float64)
         
         rho0 = numpy.zeros((HH.dim,HH.dim),dtype=numpy.complex128)
         if temp == 0.0:
@@ -987,16 +1003,21 @@ class Aggregate(UnitsManaged):
         else:
             # FIXME: we assume only single exciton band
             ens = numpy.zeros(HH.dim-1, dtype=numpy.float64)
-            with eigenbasis_of(HH):
-                for i in range(HH.dim-1):
-                    ens[i] = HH.data[i+1,i+1]                
+            #
+            #with eigenbasis_of(HH):
+            #
+            # we specify the basis from outside. This allows to choose 
+            # canonical equilibrium in arbitrary basis
+            for i in range(HH.dim-1):
+                ens[i] = HH.data[i+1,i+1] - subtract[i]               
             ne = numpy.exp(-ens/kBT)
             sne = numpy.sum(ne)
             rho0_diag = ne/sne
             rho0[1:,1:] = numpy.diag(rho0_diag)
             
         return rho0
-            
+    
+    
     def _impulsive_population(self):
         
         rho0 = numpy.zeros((self.Ntot,self.Ntot),dtype=numpy.complex128)
@@ -1008,8 +1029,13 @@ class Aggregate(UnitsManaged):
         rho0 = numpy.dot(dabs,numpy.dot(rho0,dabs))
         
         
-    def get_initial_DensityMatrix(self, condition_type=None, temperature=0):
-        """Returns initial density matrix according to specified condition
+    def get_DensityMatrix(self, condition_type=None,
+                                relaxation_theory_limit=None,
+                                temperature=0):
+        """Returns density matrix according to specified condition
+        
+        Returs density matrix to be used e.g. as initial condition for
+        propagation.
         
         Parameters
         ----------
@@ -1017,6 +1043,16 @@ class Aggregate(UnitsManaged):
         condition_type : str
             Type of the initial condition. If None, the property rho0 is 
             returned.
+            
+        relaxation_theory_limits : str
+            Type of the relaxation theory limits; applies to 
+            `thermal_excited_state` condition type. Possible values are
+            `weak_coupling` and `strong_coupling`. We mean the system bath
+            coupling. When `weak_coupling` is chose, the density matrix is
+            returned in form of a canonical equilibrium in terms of the
+            the exciton basis. For `strong_coupling`, the canonical equilibrium
+            is calculated in site basis with site energies striped of
+            reorganization energies.
             
         Condition types
         ---------------
@@ -1034,12 +1070,32 @@ class Aggregate(UnitsManaged):
             return DensityMatrix(data=self.rho0)
             
         elif condition_type == "impulsive_excitation":
+            
             rho0 = self._impulsive_population()
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
             
         elif condition_type == "thermal_excited_state":
-            rho0 = self._thermal_population(temperature)
+            
+            if relaxation_theory_limit is not None:
+                if relaxation_theory_limit == "strong_coupling":
+                    
+                    # we need to subtract reorganization energies
+                    Ndim = self.get_Hamiltonian().dim
+                    re = numpy.zeros(Ndim, dtype=numpy.float64)
+                    for i in range(1, Ndim):
+                        # FIXME: fix the access to reorganization energy in SBI
+                        re[i] = self.sbi.CC.get_reorganization_energy(i-1,i-1)
+                        print(i, re[i]/cm2int)
+                    rho0 = self._thermal_population(temperature, subtract=re)
+                    
+                elif relaxation_theory_limit == "weak_coupling":
+                    rho0 = self._thermal_population(temperature)
+                else:
+                    raise Exception("Unknown relaxation_theory_limit")
+            else:
+                rho0 = self._thermal_population(temperature)
+                
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
             

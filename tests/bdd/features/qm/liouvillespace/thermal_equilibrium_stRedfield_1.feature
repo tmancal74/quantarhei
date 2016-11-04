@@ -1,15 +1,17 @@
 
 #
-#  Some types of relaxation theories result in canonical equilibrum
+#  Secular Redfield relaxation theory results in canonical equilibrum
 #
 #
 #
 
-Feature: Some relaxation theories result in cannonical equilibrium 
+Feature: Secular Redfield thgeory results in cannonical equilibrium 
 
     Theories such as Redfield relaxation tensor etc. should result in
     cannonical equilibrium
 
+#@redfield
+@in_development
 Scenario Outline: Redfield rates for a small chain of molecules
 
 
@@ -20,7 +22,7 @@ Scenario Outline: Redfield rates for a small chain of molecules
        | 12200     |  50               | OB     | 20    | 80    |  <matsu>  |  <temp>     | 1/cm    |
        | 12100     |  200              | OB     | 20    | 100   |  <matsu>  |  <temp>     | 1/cm    |
     When I calculate aggregate Redfield relaxation tensor
-    Then long time populations will correspond to canonical equilibrium with temperature <temp> K with atol <atol>
+    Then long time Redfield populations will correspond to canonical equilibrium with temperature <temp> K with atol <atol>
     Examples:
        | temp | time_step | nsteps | matsu  | atol   |
        | 300  | 1.0       | 10000  | 100    |  0.01  |
