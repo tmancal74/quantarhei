@@ -10,8 +10,8 @@ Feature: Secular Redfield thgeory results in cannonical equilibrium
     Theories such as Redfield relaxation tensor etc. should result in
     cannonical equilibrium
 
-#@redfield
-@in_development
+@redfield
+#@in_development
 Scenario Outline: Redfield rates for a small chain of molecules
 
 

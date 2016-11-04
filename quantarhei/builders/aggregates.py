@@ -703,6 +703,8 @@ class Aggregate(UnitsManaged):
     
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
+        self.ham = Hamiltonian(data=HH)
+        
         #print("Original Hamiltonian\n",self.HH)
         self.DD = DD
         #print("Original DD^2")
@@ -1009,7 +1011,7 @@ class Aggregate(UnitsManaged):
             # we specify the basis from outside. This allows to choose 
             # canonical equilibrium in arbitrary basis
             for i in range(HH.dim-1):
-                ens[i] = HH.data[i+1,i+1] - subtract[i]               
+                ens[i] = HH.data[i+1,i+1] - subtract[i+1]               
             ne = numpy.exp(-ens/kBT)
             sne = numpy.sum(ne)
             rho0_diag = ne/sne
@@ -1164,7 +1166,7 @@ class Aggregate(UnitsManaged):
         
     def get_Hamiltonian(self):
         if self._built:
-            return Hamiltonian(data=self.HH)  
+            return self.ham #Hamiltonian(data=self.HH)  
         else:
             raise Exception("Aggregate object not built")
 
