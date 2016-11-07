@@ -703,7 +703,7 @@ class Aggregate(UnitsManaged):
     
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
-        self.ham = Hamiltonian(data=HH)
+        self.HamOp = Hamiltonian(data=HH)
         
         #print("Original Hamiltonian\n",self.HH)
         self.DD = DD
@@ -903,18 +903,17 @@ class Aggregate(UnitsManaged):
                 #
                 # This is done strictly in site basis
                 #
+            
                 relaxT = FoersterRelaxationTensor(ham, sbi)
                 dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
                 
-                print("\nrate : ", relaxT.data[1,1,2,2], 1.0/relaxT.data[1,1,2,2])
-                
                 # The Hamiltonian for propagation is the one without 
                 # resonance coupling
                 prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
-                        
+
 
         elif (relaxation_theory == "combined_RedfieldFoerster"):
             
@@ -980,7 +979,7 @@ class Aggregate(UnitsManaged):
         self.D2_max = numpy.max(dd2)
         
 
-    def _thermal_population(self,temp=0.0, subtract=None):
+    def _thermal_population(self, temp=0.0, subtract=None):
         """Thermal populations at temperature temp
         
         Thermal populations calculated from the diagonal elements
@@ -1066,7 +1065,9 @@ class Aggregate(UnitsManaged):
             Excitation by ultrabroad laser pulse
             
         """
-        
+        if not self._built:
+            raise Exception()
+            
         if condition_type is None:
             
             return DensityMatrix(data=self.rho0)
@@ -1080,6 +1081,7 @@ class Aggregate(UnitsManaged):
         elif condition_type == "thermal_excited_state":
             
             if relaxation_theory_limit is not None:
+                
                 if relaxation_theory_limit == "strong_coupling":
                     
                     # we need to subtract reorganization energies
@@ -1092,7 +1094,9 @@ class Aggregate(UnitsManaged):
                     rho0 = self._thermal_population(temperature, subtract=re)
                     
                 elif relaxation_theory_limit == "weak_coupling":
+                    
                     rho0 = self._thermal_population(temperature)
+                    
                 else:
                     raise Exception("Unknown relaxation_theory_limit")
             else:
@@ -1166,7 +1170,7 @@ class Aggregate(UnitsManaged):
         
     def get_Hamiltonian(self):
         if self._built:
-            return self.ham #Hamiltonian(data=self.HH)  
+            return self.HamOp #Hamiltonian(data=self.HH)  
         else:
             raise Exception("Aggregate object not built")
 

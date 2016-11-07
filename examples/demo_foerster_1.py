@@ -56,21 +56,23 @@ m3.set_transition_environment((0,1), cf)
 agg.build()
 
 H = agg.get_Hamiltonian()
-with energy_units("1/cm"):
-    print(H)
 
 #
 # Aggregate object can return a propagator
 #
 prop_Redfield = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="standard_Redfield")
+
+                           
 prop_Foerster = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="standard_Foerster") 
-with energy_units("1/cm"):
-    prop_RF = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="combined_RedfieldFoerster",
-                           coupling_cutoff=50*qm.core.units.cm2int)
+    
+#with energy_units("1/cm"):
+#    prop_RF = agg.get_ReducedDensityMatrixPropagator(time,
+#                           relaxation_theory="combined_RedfieldFoerster",
+#                           coupling_cutoff=50*qm.core.units.cm2int)
                            
+    
 RF = prop_Foerster.RelaxationTensor
 RT = prop_Redfield.RelaxationTensor
 #RF = prop_RF.RelaxationTensor
@@ -88,7 +90,7 @@ print(1.0/RF.data[3,3,3,3])
 
 rho_i1 = ReducedDensityMatrix(dim=4, name="Initial DM")
 rho_i1.data[1,1] = 1.0   
-
+    
 with eigenbasis_of(H): 
 #if True:   
     rho_t1 = prop_Foerster.propagate(rho_i1,
@@ -111,9 +113,13 @@ pop = numpy.zeros((time.length,4),dtype=numpy.float64)
 rho0 = agg.get_DensityMatrix(condition_type="thermal_excited_state",
                              relaxation_theory_limit="strong_coupling",
                              temperature=300)
+                             
+print(rho0)
+print(H)
+
 tpop = 0.0
 for i in range(1, H.dim):
-    pop[:,i] = rho0.data[i,i] #numpy.exp(-HH.data[i,i]/(temperature*kB_intK))
+    pop[:,i] = numpy.real(rho0.data[i,i]) #numpy.exp(-HH.data[i,i]/(temperature*kB_intK))
     tpop += pop[1,i]
 
 prtot = 0.0

@@ -1373,6 +1373,21 @@ This formula is used to test the calculations of Redfield rates and of the
 Hetero-dimer
 \end_layout
 
+\begin_layout Chapter
+Standard Förster Theory
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+K_{AD}=|J|^{2}2{\rm Re}\int\limits_{0}^{\infty}{\rm d}t\ \underbrace{e^{-g_{A}(t)+i(\omega-\omega_{A})t}}_{A(t)}\underbrace{e^{-g_{D}^{*}(t)+i(\omega-(\omega_{D}-2\lambda_{D}))t}}_{F(t)}.
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
 \begin_inset ERT
 status open

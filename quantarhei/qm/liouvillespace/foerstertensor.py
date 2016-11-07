@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
+import scipy.interpolate as interp
 
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
@@ -74,10 +75,22 @@ class FoersterRelaxationTensor(RelaxationTensor):
             The value of the Foerster integral            
         
         """
-        fl = numpy.exp(-numpy.conj(gtd) +1j*(ed-2.0*ld)*tm.data)
-        ab = numpy.exp(-numpy.conj(gta) -1j*ea*tm.data)
-        prod = ab*fl
-        ret = 2.0*numpy.real(numpy.sum(prod)*tm.step)
+        #fl = numpy.exp(-gtd +1j*(ed-2.0*ld)*tm.data)
+        #ab = numpy.exp(-gta -1j*ea*tm.data)
+        #prod = ab*fl
+
+        prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tm.data)
+        
+        preal = numpy.real(prod)
+        pimag = numpy.imag(prod)
+        splr = interp.UnivariateSpline(tm.data,
+                                   preal, s=0).antiderivative()(tm.data)
+        spli = interp.UnivariateSpline(tm.data,
+                                   pimag, s=0).antiderivative()(tm.data)
+        hoft = splr + 1j*spli
+
+
+        ret = 2.0*numpy.real(hoft[tm.length-1])
         return ret
 
     def __reference_implementation(self):

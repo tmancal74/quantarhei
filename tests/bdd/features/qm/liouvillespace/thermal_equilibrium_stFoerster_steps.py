@@ -35,8 +35,8 @@ Feature: Foerster relaxation theory result in cannonical equilibrium
     Theories such as Foerster relaxation tensor etc. should result in
     cannonical equilibrium
 
-#@foerster
-@in_development
+@foerster
+#@in_development
 Scenario Outline: Foerster rates for a small chain of molecules
 
 """
