@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+
+# -*- coding: utf-8 -*-
 """
 
-    Propagation with Foerster theory using Aggregate object
+    Propagation with Redfield-Foerster theory using Aggregate object
 
 
 
@@ -69,12 +71,15 @@ agg.build()
 H = agg.get_Hamiltonian()
 with energy_units("1/cm"):
     print(H)
-
+   
+cutoff = 20.0
 #
 # Aggregate object can return a propagator
 #
-prop_Foerster = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="standard_Foerster")   
+with energy_units("1/cm"):
+    prop_comb = agg.get_ReducedDensityMatrixPropagator(time,
+                           relaxation_theory="combined_RedfieldFoerster",
+                           coupling_cutoff=cutoff)   
 
 #
 # Initial density matrix
@@ -86,24 +91,15 @@ rho_i1.data[shp-2,shp-2] = 1.0
 #
 # Propagation of the density matrix
 #   
-rho_t1 = prop_Foerster.propagate(rho_i1,
-                                 name="Foerster evolution from aggregate")
-rho_t1.plot(coherences=False, axis=[0,4000.0,0,1.0])
-
-#
-# Thermal excited state to compare with
-#
-rho0 = agg.get_DensityMatrix(condition_type="thermal_excited_state",
-                             relaxation_theory_limit="strong_coupling",
-                             temperature=300)
- 
-#with eigenbasis_of(H):
-if True:       
-    pop = numpy.zeros((time.length,shp),dtype=numpy.float64)
-    for i in range(1, H.dim):
-        pop[:,i] = numpy.real(rho0.data[i,i]) 
-
-    # plot the termal distrubution
-    plt.plot(time.data,pop[:,1],'--r')
-    plt.plot(time.data,pop[:,2],'--b')
-    plt.plot(time.data,pop[:,3],'--g')  
+rho_t1 = prop_comb.propagate(rho_i1,
+                             name="Combined evolution from aggregate")
+    
+  
+with energy_units("1/cm"):
+    H.remove_cutoff_coupling(cutoff) 
+    print(H)  
+                   
+with eigenbasis_of(H):
+    #rho_eq = agg.get_DensityMatrix(condition_type="")
+    
+    rho_t1.plot(coherences=False, axis=[0,4000.0,0,1.0])

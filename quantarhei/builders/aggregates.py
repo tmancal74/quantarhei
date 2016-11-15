@@ -884,7 +884,7 @@ class Aggregate(UnitsManaged):
             #
             # create a corresponding propagator
             #
-            ham.unprotect_basis()
+            #ham.unprotect_basis()
             with eigenbasis_of(ham):
                 prop = ReducedDensityMatrixPropagator(timeaxis,
                                                           ham, relaxT)  
@@ -927,21 +927,25 @@ class Aggregate(UnitsManaged):
             
                 # Time independent standard Refield
             
-                #ham.protect_basis()
-                #with eigenbasis_of(ham):
-                if True:
+                ham.remove_cutoff_coupling(coupling_cutoff)
+                ham.protect_basis()
+                with eigenbasis_of(ham):
                     relaxT = RedfieldFoersterRelaxationTensor(ham, sbi,
-                                            coupling_cutoff=coupling_cutoff)
+                                            coupling_cutoff=coupling_cutoff,
+                                            cutoff_time=relaxation_cutoff_time)
                     if secular_relaxation:
                         relaxT.secularize()
-                #ham.unprotect_basis()  
-                
-                #
-                # create a corresponding propagator
-                #
                 ham.unprotect_basis()
-                with eigenbasis_of(ham):
-                    prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)            
+                ham.recover_cutoff_coupling()
+                
+            #
+            # create a corresponding propagator
+            #
+            ham1 = Hamiltonian(data=ham._data.copy())
+            with eigenbasis_of(ham1):
+                prop = ReducedDensityMatrixPropagator(timeaxis, ham1, relaxT)
+                
+                
         else:
             
             raise Exception("Theory not implemented")
@@ -1090,7 +1094,7 @@ class Aggregate(UnitsManaged):
                     for i in range(1, Ndim):
                         # FIXME: fix the access to reorganization energy in SBI
                         re[i] = self.sbi.CC.get_reorganization_energy(i-1,i-1)
-                        print(i, re[i]/cm2int)
+                        #print(i, re[i]/cm2int)
                     rho0 = self._thermal_population(temperature, subtract=re)
                     
                 elif relaxation_theory_limit == "weak_coupling":
@@ -1170,9 +1174,10 @@ class Aggregate(UnitsManaged):
         
     def get_Hamiltonian(self):
         if self._built:
-            return self.HamOp #Hamiltonian(data=self.HH)  
+            return self.HamOp #Hamiltonian(data=self.HH) 
         else:
             raise Exception("Aggregate object not built")
+            
 
     def get_TransitionDipoleMoment(self):
         if self._built:

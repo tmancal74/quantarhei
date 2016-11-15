@@ -1380,7 +1380,40 @@ Standard Förster Theory
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-K_{AD}=|J|^{2}2{\rm Re}\int\limits_{0}^{\infty}{\rm d}t\ \underbrace{e^{-g_{A}(t)+i(\omega-\omega_{A})t}}_{A(t)}\underbrace{e^{-g_{D}^{*}(t)+i(\omega-(\omega_{D}-2\lambda_{D}))t}}_{F(t)}.
+K_{AD}=|J|^{2}2{\rm Re}\int\limits_{0}^{\infty}{\rm d}t\ \underbrace{e^{-g_{A}(t)-i\omega_{A}t}}_{A(t)}e^{i\omega t}\underbrace{e^{-g_{D}^{*}(t)+i(\omega_{D}-2\lambda_{D})t}}_{F(t)}e^{i\omega t}.
+\end{equation}
+
+\end_inset
+
+Absorption spectrum
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\alpha(\omega)\approx\int\limits_{-\infty}^{\infty}{\rm d}t\ A(t)e^{i\omega t}=A(\omega)
+\end{equation}
+
+\end_inset
+
+Fluorescence spectrum
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+f(\omega)\approx\int\limits _{-\infty}^{\infty}{\rm d}t\ F(t)e^{i\omega t}=F(\omega)
+\end{equation}
+
+\end_inset
+
+Fourier transform
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+A(t)=\frac{1}{2\pi}\int\limits_{-\infty}^{\infty}{\rm d}\omega\ A(\omega)e^{-i\omega t}
 \end{equation}
 
 \end_inset

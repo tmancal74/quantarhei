@@ -17,7 +17,7 @@ from .systembathinteraction import SystemBathInteraction
 from ..hilbertspace.hamiltonian import Hamiltonian
 
 from .relaxationtensor import RelaxationTensor
-from ...core.managers import eigenbasis_of
+from ...core.managers import eigenbasis_of, energy_units
 
 
 class RedfieldRelaxationTensor(RelaxationTensor):
@@ -109,8 +109,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self._has_cutoff_time = True            
             
         # initialize the tensor right at creation
-        if initialize:        
-            self._reference_implementation(ham,sbi)        
+        if initialize:   
+            with energy_units("int"):
+                self._reference_implementation(ham, sbi)        
 
 
         
@@ -134,6 +135,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         
         """
+        
+        print("REDFIELD IMPLEMENTATION")
         #
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)

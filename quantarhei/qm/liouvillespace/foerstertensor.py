@@ -6,6 +6,7 @@ from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .relaxationtensor import RelaxationTensor
 from ..corfunctions.correlationfunctions import c2g
+from ...core.managers import energy_units
 
 class FoersterRelaxationTensor(RelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory
@@ -35,7 +36,8 @@ class FoersterRelaxationTensor(RelaxationTensor):
         self.BilinearSystemBathInteraction = sbi
         
         if initialize:
-            self.__reference_implementation()
+            with energy_units("int"):
+                self._reference_implementation()
             self._is_initialized = True
 
     def set_system_bath_interaction(self,sbi):
@@ -45,7 +47,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
         self.BilinearSystemBathInteraction = sbi
         
 
-    def _fintegral(self,tm,gtd,gta,ed,ea,ld):
+    def _fintegral(self, tm, gtd, gta, ed, ea, ld):
         """Foerster integral
         
         
@@ -93,10 +95,17 @@ class FoersterRelaxationTensor(RelaxationTensor):
         ret = 2.0*numpy.real(hoft[tm.length-1])
         return ret
 
-    def __reference_implementation(self):
+    def _reference_implementation(self):
         Na = self.Hamiltonian.dim
         ham = self.Hamiltonian
         HH = self.Hamiltonian.data
+        
+        #
+        # Two modes of calculate
+        #
+        #  - as a correction to the remainder coupling
+        #  - including all off diagonal elements
+        #
         if ham._has_remainder_coupling: 
             JR = self.Hamiltonian.JR
         else:
@@ -105,18 +114,24 @@ class FoersterRelaxationTensor(RelaxationTensor):
                 for j in range(i,Na):
                     JR[i,j] = HH[i,j]
                     JR[j,i] = HH[j,i]
-                    
+                                        
         sbi = self.BilinearSystemBathInteraction
         ta = sbi.TimeAxis
 
-        self.data = numpy.zeros((Na,Na,Na,Na))
+        #
+        # Tensor data
+        #
+        self.data = numpy.zeros((Na,Na,Na,Na),dtype=numpy.complex128)
 
         # line shape functions
         Gt = numpy.zeros((Na,ta.length),dtype=numpy.complex64)
         gt = numpy.zeros((Na,ta.length),dtype=numpy.complex64)
+        
+        # SBI is defined with "sites"
         for ii in range(1,Na):
             Gt[ii,:] = c2g(ta,
                            sbi.CC.get_coft(ii-1,ii-1))
+                           
         try:
             SS = ham.SS
         except:
@@ -137,7 +152,9 @@ class FoersterRelaxationTensor(RelaxationTensor):
                 # Here we assume no correlation between sites 
                 lT[aa] += (SS[bb,aa]**4)*ll[bb]                 
             
-                           
+        #
+        # Rates between states a and b
+        # 
         KK = numpy.zeros((Na,Na))
         for a in range(Na):
             for b in range(Na):
@@ -155,8 +172,10 @@ class FoersterRelaxationTensor(RelaxationTensor):
             for bb in range(Na):
                 if aa != bb:
                     self.data[aa,aa,bb,bb] = KK[aa,bb]
-           
-        # calculates dephasing rates and depopulation rates
+                    
+        #  
+        # calculate dephasing rates and depopulation rates
+        #
         self.updateStructure()
         
         self._data_initialized = True    
