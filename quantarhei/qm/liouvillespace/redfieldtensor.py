@@ -136,7 +136,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         """
         
-        print("REDFIELD IMPLEMENTATION")
         #
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
@@ -316,7 +315,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         """
         self._reference_implementation(self.Hamiltonian,
-                                       self.BilinearSystemBathInteraction)
+                                       self.SystemBathInteraction)
 
 
     def convert_2_tensor(self):

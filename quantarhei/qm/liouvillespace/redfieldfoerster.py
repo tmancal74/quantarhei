@@ -49,6 +49,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
             
         super().__init__(ham, sbi, initialize=False, 
                              cutoff_time=cutoff_time)
+                
         if initialize: 
             with energy_units("int"):
                 self._reference_implementation()
@@ -69,7 +70,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         else:
             JR = numpy.zeros((ham.dim,ham.dim), dtype=numpy.float64)
         
-        calcRT = False
+        calcRT = True
         calcFT = True
 
         # is the remainder coupling different from zero?
@@ -85,21 +86,21 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         if calcRT:
             
             if self._has_cutoff_time:
-                RT = RedfieldRelaxationTensor(ham, sbi)#,
-                                      #cutoff_time=self.cutoff_time)
+                RT = RedfieldRelaxationTensor(ham, sbi,
+                                      cutoff_time=self.cutoff_time)
             else:
                 RT = RedfieldRelaxationTensor(ham, sbi)
             
             self.data = RT.data
-        
-        
+
+
         #
         # Calculate Foerster for the remainder coupling
         #
         if calcFT:
 
             hD, SS = numpy.linalg.eigh(ham.data) 
-           
+                       
             #
             # identify correlation functions of excitonic states
             #
@@ -153,19 +154,15 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
                 hj[i,i] = 0.0
             hh = numpy.diag(hD) + hj
             nham = Hamiltonian(data=hh)
+            with energy_units("1/cm"):
+                print(nham.data)
             if self._has_cutoff_time:
                 FT = FoersterRelaxationTensor(nham, nsbi,
                                     cutoff_time=self.cutoff_time)
             else:
                 FT = FoersterRelaxationTensor(nham, nsbi)                        
 
-            print("99999")
-            print(self.data.dtype)
-            print(FT.data.dtype)
-            self.data[:,:,:,:] = 0.0
-            self._data += FT._data
-            print(self.data.dtype)
-            
+            self.data = FT.data            
 
             
         self._is_initialized = True

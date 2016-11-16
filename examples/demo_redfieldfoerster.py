@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 """
 
     Propagation with Redfield-Foerster theory using Aggregate object
-
-
-
 
 """
 
@@ -73,7 +68,7 @@ H = agg.get_Hamiltonian()
 with energy_units("1/cm"):
     print(H)
    
-cutoff = 30.0
+cutoff = 130.0
 #
 # Aggregate object can return a propagator
 #
