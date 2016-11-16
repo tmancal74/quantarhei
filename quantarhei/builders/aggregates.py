@@ -930,18 +930,26 @@ class Aggregate(UnitsManaged):
                 ham.remove_cutoff_coupling(coupling_cutoff)
                 ham.protect_basis()
                 with eigenbasis_of(ham):
-                    relaxT = RedfieldFoersterRelaxationTensor(ham, sbi,
+                    relaxT = \
+                             RedfieldFoersterRelaxationTensor(ham, sbi,
                                             coupling_cutoff=coupling_cutoff,
                                             cutoff_time=relaxation_cutoff_time)
                     if secular_relaxation:
                         relaxT.secularize()
                 ham.unprotect_basis()
                 ham.recover_cutoff_coupling()
-                
+
+#                ham.protect_basis()
+#                with eigenbasis_of(ham):
+#                    relaxT = RedfieldRelaxationTensor(ham, sbi)
+#                    if secular_relaxation:
+#                        relaxT.secularize()
+#                ham.unprotect_basis()                 
             #
             # create a corresponding propagator
             #
-            ham1 = Hamiltonian(data=ham._data.copy())
+            ham1 = Hamiltonian(data=ham.data.copy())
+            ham1.remove_cutoff_coupling(coupling_cutoff)
             with eigenbasis_of(ham1):
                 prop = ReducedDensityMatrixPropagator(timeaxis, ham1, relaxT)
                 

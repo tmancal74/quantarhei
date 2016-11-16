@@ -21,12 +21,13 @@ import matplotlib.pyplot as plt
 print("""
 *******************************************************************************
 *                                                                             *
-*                         Foerster Theory Demo                                *
+*                         Refield-Foerster Theory Demo                        *
 *                                                                             *                  
 *******************************************************************************
 """)
-
-time = TimeAxis(0.0, 5000, 1.0)
+Nt = 5000
+dt = 1.0
+time = TimeAxis(0.0, Nt, dt)
 with energy_units("1/cm"):
 
     m1 = Molecule("Mol 1", [0.0, 10100.0])
@@ -72,14 +73,15 @@ H = agg.get_Hamiltonian()
 with energy_units("1/cm"):
     print(H)
    
-cutoff = 20.0
+cutoff = 30.0
 #
 # Aggregate object can return a propagator
 #
 with energy_units("1/cm"):
     prop_comb = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="combined_RedfieldFoerster",
-                           coupling_cutoff=cutoff)   
+                           coupling_cutoff=cutoff,
+                           secular_relaxation=False)   
 
 #
 # Initial density matrix
@@ -94,12 +96,23 @@ rho_i1.data[shp-2,shp-2] = 1.0
 rho_t1 = prop_comb.propagate(rho_i1,
                              name="Combined evolution from aggregate")
     
-  
 with energy_units("1/cm"):
     H.remove_cutoff_coupling(cutoff) 
-    print(H)  
+    print(H) 
+    
+#with eigenbasis_of(H):
+if True:
+    RR = prop_comb.RelaxationTensor
+    for aa in range(RR.dim):
+        rsum = 0.0
+        for bb in range(RR.dim):
+            print(aa,bb,RR.data[aa,aa,bb,bb])
+            rsum += RR.data[bb,bb,aa,aa]
+        print(aa, " sum ", numpy.real(rsum))        
+         
                    
 with eigenbasis_of(H):
+#if True:
     #rho_eq = agg.get_DensityMatrix(condition_type="")
-    
-    rho_t1.plot(coherences=False, axis=[0,4000.0,0,1.0])
+    Nshow = Nt*dt
+    rho_t1.plot(coherences=False, axis=[0,Nshow,0,1.0])

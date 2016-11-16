@@ -69,16 +69,15 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         else:
             JR = numpy.zeros((ham.dim,ham.dim), dtype=numpy.float64)
         
-        calcRT = True
-        calcFT = False
+        calcRT = False
+        calcFT = True
 
         # is the remainder coupling different from zero?
         if numpy.allclose(JR,numpy.zeros(JR.shape)):
             calcFT = False
-
-        # create empty data
-        self.data = numpy.zeros((ham.dim,ham.dim,ham.dim,ham.dim),
-                                dtype=numpy.complex128)
+        ## create empty data
+        #self.data = numpy.zeros((ham.dim,ham.dim,ham.dim,ham.dim),
+        #                        dtype=numpy.complex128)
 
         #
         # calculate Redfield tensor for the strong coupling part
@@ -86,12 +85,12 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         if calcRT:
             
             if self._has_cutoff_time:
-                RT = RedfieldRelaxationTensor(ham, sbi,
-                                      cutoff_time=self.cutoff_time)
+                RT = RedfieldRelaxationTensor(ham, sbi)#,
+                                      #cutoff_time=self.cutoff_time)
             else:
                 RT = RedfieldRelaxationTensor(ham, sbi)
-        
-            self.data += RT.data
+            
+            self.data = RT.data
         
         
         #
@@ -101,7 +100,9 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
 
             hD, SS = numpy.linalg.eigh(ham.data) 
            
+            #
             # identify correlation functions of excitonic states
+            #
             cvals = numpy.zeros((Na,Nt),dtype=numpy.complex128)
             Gt = numpy.zeros((Na,ta.length),dtype=numpy.complex128)
             for ii in range(1,Na):
@@ -110,8 +111,10 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
                 for bb in range(Na):
                     # Here we assume no correlation between sites 
                     cvals[aa,:] += (SS[bb,aa]**4)*Gt[bb,:]  
-           
+                    
+            #
             # calculate reorganization energies of exciton states
+            #
             lamb = numpy.zeros(Na-1)
             lamb_sites = numpy.zeros(Na-1)
             for ii in range(Na-1):
@@ -121,10 +124,6 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
                     # Here we assume no correlation between sites 
                     lamb[aa] += (SS[bb,aa]**4)*lamb_sites[bb]
                     
-            #FIXME: Transformation of the reorganization energies
-            #       and correlation functions should be done here, not in
-            #       the FoersterRelaxationTensor
-
             #
             # create a new system-bath interaction object
             #
@@ -142,15 +141,30 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
                 params = dict(ftype="Value-defined",reorg=lamb[ii])
                 fc = CorrelationFunction(ta,params,values=cvals[ii,:])
                 cfm.set_correlation_function(fc,[(ii,ii)],ii+1)
+                
             nsbi = SystemBathInteraction(nsbi_op, cfm)
 
+            # FIXME: Instead of all the above, we should have transformation
+            # of SystemBathInteraction object
+
+
+            hj = numpy.dot(numpy.linalg.inv(SS), numpy.dot(ham.JR,SS))
+            for i in range(ham.dim):
+                hj[i,i] = 0.0
+            hh = numpy.diag(hD) + hj
+            nham = Hamiltonian(data=hh)
             if self._has_cutoff_time:
-                FT = FoersterRelaxationTensor(ham, nsbi,
-                                        cutoff_time=self.cutoff_time)
+                FT = FoersterRelaxationTensor(nham, nsbi,
+                                    cutoff_time=self.cutoff_time)
             else:
-                FT = FoersterRelaxationTensor(ham, sbi)                        
-                
-            self.data += FT.data
+                FT = FoersterRelaxationTensor(nham, nsbi)                        
+
+            print("99999")
+            print(self.data.dtype)
+            print(FT.data.dtype)
+            self.data[:,:,:,:] = 0.0
+            self._data += FT._data
+            print(self.data.dtype)
             
 
             

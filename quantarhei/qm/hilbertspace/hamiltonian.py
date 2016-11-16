@@ -111,7 +111,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 if (numpy.abs(self.data[ii,jj])
                         < numpy.abs(coupling_cutoff)):
                     JR[ii,jj] = self._data[ii,jj]
-                    JR[jj,ii] = JR[ii,jj]
+                    JR[jj,ii] = self._data[jj,ii]
                     self._data[ii,jj] = 0.0
                     self._data[jj,ii] = 0.0
         self.JR = JR

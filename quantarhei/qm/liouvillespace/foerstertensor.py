@@ -22,7 +22,8 @@ class FoersterRelaxationTensor(RelaxationTensor):
             raise Exception("First argument must be a Hamiltonian")
             
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of type SystemBathInteraction")
+            raise Exception("Second argument must be of"
+                           +" type SystemBathInteraction")
             
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -33,27 +34,63 @@ class FoersterRelaxationTensor(RelaxationTensor):
             
         self.Hamiltonian = ham
         self.dim = ham.dim
-        self.BilinearSystemBathInteraction = sbi
+        self.SystemBathInteraction = sbi
+        self.TimeAxis = sbi.TimeAxis
+        
+        #
+        # Tensor data
+        #
+        Na = self.dim
+        self.data = numpy.zeros((Na,Na,Na,Na),dtype=numpy.complex128)
         
         if initialize:
+            
             with energy_units("int"):
-                self._reference_implementation()
+
+                # Hamiltonian matrix
+                HH = self.Hamiltonian.data
+                tt = sbi.TimeAxis.data
+                
+                # line shape functions
+                gt = numpy.zeros((Na, sbi.TimeAxis.length),
+                                 dtype=numpy.complex64)
+        
+                # SBI is defined with "sites"
+                for ii in range(1, Na):
+                    gt[ii,:] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
+                
+                # reorganization energies
+                ll = numpy.zeros(Na)
+                for ii in range(1, Na):
+                    ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
+                            
+                KK = self._reference_implementation(Na, HH, tt, gt, ll)
+       
+                #
+                # Transfer rates
+                #                                                          
+                for aa in range(self.dim):
+                    for bb in range(self.dim):
+                        if aa != bb:
+                            self.data[aa,aa,bb,bb] = KK[aa,bb]
+                    
+                #  
+                # calculate dephasing rates and depopulation rates
+                #
+                self.updateStructure()
+                
+            self._data_initialized = True 
             self._is_initialized = True
 
-    def set_system_bath_interaction(self,sbi):
-        """Sets the system bath interaction object
-        
-        """
-        self.BilinearSystemBathInteraction = sbi
         
 
-    def _fintegral(self, tm, gtd, gta, ed, ea, ld):
+    def _fintegral(self, tt, gtd, gta, ed, ea, ld):
         """Foerster integral
         
         
         Parameters
         ----------
-        tm : cu.oqs.time.TimeAxis
+        tt : numpy array
             Time 
             
         gtd : numpy array
@@ -81,101 +118,34 @@ class FoersterRelaxationTensor(RelaxationTensor):
         #ab = numpy.exp(-gta -1j*ea*tm.data)
         #prod = ab*fl
 
-        prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tm.data)
+        prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tt)
         
         preal = numpy.real(prod)
         pimag = numpy.imag(prod)
-        splr = interp.UnivariateSpline(tm.data,
-                                   preal, s=0).antiderivative()(tm.data)
-        spli = interp.UnivariateSpline(tm.data,
-                                   pimag, s=0).antiderivative()(tm.data)
+        splr = interp.UnivariateSpline(tt,
+                                   preal, s=0).antiderivative()(tt)
+        spli = interp.UnivariateSpline(tt,
+                                   pimag, s=0).antiderivative()(tt)
         hoft = splr + 1j*spli
 
 
-        ret = 2.0*numpy.real(hoft[tm.length-1])
+        ret = 2.0*numpy.real(hoft[len(tt)-1])
+        
         return ret
 
-    def _reference_implementation(self):
-        Na = self.Hamiltonian.dim
-        ham = self.Hamiltonian
-        HH = self.Hamiltonian.data
-        
-        #
-        # Two modes of calculate
-        #
-        #  - as a correction to the remainder coupling
-        #  - including all off diagonal elements
-        #
-        if ham._has_remainder_coupling: 
-            JR = self.Hamiltonian.JR
-        else:
-            JR = numpy.zeros((Na,Na), dtype=numpy.float64)
-            for i in range(Na):
-                for j in range(i,Na):
-                    JR[i,j] = HH[i,j]
-                    JR[j,i] = HH[j,i]
-                                        
-        sbi = self.BilinearSystemBathInteraction
-        ta = sbi.TimeAxis
-
-        #
-        # Tensor data
-        #
-        self.data = numpy.zeros((Na,Na,Na,Na),dtype=numpy.complex128)
-
-        # line shape functions
-        Gt = numpy.zeros((Na,ta.length),dtype=numpy.complex64)
-        gt = numpy.zeros((Na,ta.length),dtype=numpy.complex64)
-        
-        # SBI is defined with "sites"
-        for ii in range(1,Na):
-            Gt[ii,:] = c2g(ta,
-                           sbi.CC.get_coft(ii-1,ii-1))
-                           
-        try:
-            SS = ham.SS
-        except:
-            SS = numpy.diag(numpy.ones(Na,dtype=numpy.float64))
-            
-        for aa in range(Na):
-            for bb in range(Na):
-                # Here we assume no correlation between sites
-                gt[aa,:] += (SS[bb,aa]**4)*Gt[bb,:]  
-
-        # reorganization energies
-        ll = numpy.zeros(Na)
-        lT = numpy.zeros(Na)
-        for ii in range(1,Na):
-            ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
-        for aa in range(Na):
-            for bb in range(Na):
-                # Here we assume no correlation between sites 
-                lT[aa] += (SS[bb,aa]**4)*ll[bb]                 
-            
+    def _reference_implementation(self, Na, HH, tt, gt, ll):
+                                         
         #
         # Rates between states a and b
         # 
-        KK = numpy.zeros((Na,Na))
+        KK = numpy.zeros((Na,Na), dtype=numpy.float64)
         for a in range(Na):
             for b in range(Na):
                 if a != b:
                     ed = HH[b,b] # donor
                     ea = HH[a,a] # acceptor
-                    ld = lT[b] # donor reorganization energy
-                    KK[a,b] = (JR[a,b]**2)*self._fintegral(ta,
-                                                           gt[a,:],gt[b,:],
-                                                           ed,ea,ld)
-        #
-        # Transfer rates
-        #                                                          
-        for aa in range(Na):
-            for bb in range(Na):
-                if aa != bb:
-                    self.data[aa,aa,bb,bb] = KK[aa,bb]
-                    
-        #  
-        # calculate dephasing rates and depopulation rates
-        #
-        self.updateStructure()
-        
-        self._data_initialized = True    
+                    KK[a,b] = (HH[a,b]**2)*self._fintegral(tt,
+                                                           gt[a,:], gt[b,:],
+                                                           ed, ea, ll[b])
+   
+        return KK
