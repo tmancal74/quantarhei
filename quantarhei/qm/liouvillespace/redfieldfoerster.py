@@ -2,15 +2,18 @@
 import numpy
 
 from .redfieldtensor import RedfieldRelaxationTensor
-from ..corfunctions.correlationfunctions import CorrelationFunction
-from ..corfunctions.cfmatrix import CorrelationFunctionMatrix
-from .foerstertensor import FoersterRelaxationTensor
+#from ..corfunctions.correlationfunctions import CorrelationFunction
+#from ..corfunctions.cfmatrix import CorrelationFunctionMatrix
+#from .foerstertensor import FoersterRelaxationTensor
+from .foerstertensor import _reference_implementation as foerster_rates
 from ..corfunctions.correlationfunctions import c2g
-from ...core.managers import Manager, eigenbasis_of, energy_units
-from ..hilbertspace.hamiltonian import Hamiltonian
-from ..hilbertspace.operators import Operator
-from ..liouvillespace.systembathinteraction import SystemBathInteraction
-from ...core.units import cm2int
+from ...core.managers import Manager
+#from ...core.managers import eigenbasis_of
+from ...core.managers import energy_units
+#from ..hilbertspace.hamiltonian import Hamiltonian
+#from ..hilbertspace.operators import Operator
+#from ..liouvillespace.systembathinteraction import SystemBathInteraction
+#from ...core.units import cm2int
 
 class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
     """Combination of Redfield and Foerster relaxation tensors
@@ -61,24 +64,21 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         ham = self.Hamiltonian 
         sbi = self.SystemBathInteraction
         
-        ta = sbi.TimeAxis
-        Nt = ta.length
+        tt = sbi.TimeAxis.data
+        Nt = sbi.TimeAxis.length
         Na = ham.dim
 
         if ham._has_remainder_coupling:
             JR = ham.JR
         else:
-            JR = numpy.zeros((ham.dim,ham.dim), dtype=numpy.float64)
+            JR = numpy.zeros((ham.dim, ham.dim), dtype=numpy.float64)
         
         calcRT = True
         calcFT = True
 
         # is the remainder coupling different from zero?
-        if numpy.allclose(JR,numpy.zeros(JR.shape)):
+        if numpy.allclose(JR, numpy.zeros(JR.shape)):
             calcFT = False
-        ## create empty data
-        #self.data = numpy.zeros((ham.dim,ham.dim,ham.dim,ham.dim),
-        #                        dtype=numpy.complex128)
 
         #
         # calculate Redfield tensor for the strong coupling part
@@ -87,7 +87,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
             
             if self._has_cutoff_time:
                 RT = RedfieldRelaxationTensor(ham, sbi,
-                                      cutoff_time=self.cutoff_time)
+                                              cutoff_time=self.cutoff_time)
             else:
                 RT = RedfieldRelaxationTensor(ham, sbi)
             
@@ -100,33 +100,33 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         if calcFT:
 
             hD, SS = numpy.linalg.eigh(ham.data) 
+
                        
             #
-            # identify correlation functions of excitonic states
+            # identify lineshape functions of excitonic states
             #
-            cvals = numpy.zeros((Na,Nt),dtype=numpy.complex128)
-            Gt = numpy.zeros((Na,ta.length),dtype=numpy.complex128)
+            gvals = numpy.zeros((Na,Nt),dtype=numpy.complex128)
+            Gt = numpy.zeros((Na,Nt),dtype=numpy.complex128)
             for ii in range(1,Na):
-                Gt[ii,:] = c2g(ta, sbi.CC.get_coft(ii-1,ii-1))
+                Gt[ii,:] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
             for aa in range(Na):
                 for bb in range(Na):
                     # Here we assume no correlation between sites 
-                    cvals[aa,:] += (SS[bb,aa]**4)*Gt[bb,:]  
+                    gvals[aa,:] += (SS[bb,aa]**4)*Gt[bb,:]  
                     
             #
             # calculate reorganization energies of exciton states
             #
-            lamb = numpy.zeros(Na-1)
-            lamb_sites = numpy.zeros(Na-1)
-            for ii in range(Na-1):
-                lamb_sites[ii] = sbi.CC.get_reorganization_energy(ii,ii)
-            for aa in range(Na-1):
-                for bb in range(Na-1):
+            lamb = numpy.zeros(Na)
+            lamb_sites = numpy.zeros(Na)
+            for ii in range(1,Na):
+                lamb_sites[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
+            for aa in range(1,Na):
+                for bb in range(1,Na):
                     # Here we assume no correlation between sites 
                     lamb[aa] += (SS[bb,aa]**4)*lamb_sites[bb]
                     
             #
-            # create a new system-bath interaction object
             #
 
             # operators
@@ -153,16 +153,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
             for i in range(ham.dim):
                 hj[i,i] = 0.0
             hh = numpy.diag(hD) + hj
-            nham = Hamiltonian(data=hh)
-            with energy_units("1/cm"):
-                print(nham.data)
-            if self._has_cutoff_time:
-                FT = FoersterRelaxationTensor(nham, nsbi,
-                                    cutoff_time=self.cutoff_time)
-            else:
-                FT = FoersterRelaxationTensor(nham, nsbi)                        
 
-            self.data = FT.data            
 
             
         self._is_initialized = True

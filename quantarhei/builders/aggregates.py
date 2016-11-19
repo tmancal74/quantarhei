@@ -939,12 +939,6 @@ class Aggregate(UnitsManaged):
                 ham.unprotect_basis()
                 ham.recover_cutoff_coupling()
 
-#                ham.protect_basis()
-#                with eigenbasis_of(ham):
-#                    relaxT = RedfieldRelaxationTensor(ham, sbi)
-#                    if secular_relaxation:
-#                        relaxT.secularize()
-#                ham.unprotect_basis()                 
             #
             # create a corresponding propagator
             #

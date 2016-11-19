@@ -64,7 +64,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
                 for ii in range(1, Na):
                     ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
                             
-                KK = self._reference_implementation(Na, HH, tt, gt, ll)
+                KK = _reference_implementation(Na, HH, tt, gt, ll)
        
                 #
                 # Transfer rates
@@ -84,7 +84,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
 
         
 
-    def _fintegral(self, tt, gtd, gta, ed, ea, ld):
+def _fintegral(tt, gtd, gta, ed, ea, ld):
         """Foerster integral
         
         
@@ -133,7 +133,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
         
         return ret
 
-    def _reference_implementation(self, Na, HH, tt, gt, ll):
+def _reference_implementation(Na, HH, tt, gt, ll):
                                          
         #
         # Rates between states a and b
@@ -144,8 +144,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
                 if a != b:
                     ed = HH[b,b] # donor
                     ea = HH[a,a] # acceptor
-                    KK[a,b] = (HH[a,b]**2)*self._fintegral(tt,
-                                                           gt[a,:], gt[b,:],
-                                                           ed, ea, ll[b])
+                    KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
+                                                      ed, ea, ll[b])
    
         return KK

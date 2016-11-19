@@ -20,7 +20,7 @@ print("""
 *                                                                             *                  
 *******************************************************************************
 """)
-Nt = 5000
+Nt = 4000
 dt = 1.0
 time = TimeAxis(0.0, Nt, dt)
 with energy_units("1/cm"):
@@ -68,7 +68,7 @@ H = agg.get_Hamiltonian()
 with energy_units("1/cm"):
     print(H)
    
-cutoff = 130.0
+cutoff = 0.0
 #
 # Aggregate object can return a propagator
 #
@@ -106,8 +106,8 @@ if True:
         print(aa, " sum ", numpy.real(rsum))        
          
                    
-with eigenbasis_of(H):
-#if True:
+#with eigenbasis_of(H):
+if True:
     #rho_eq = agg.get_DensityMatrix(condition_type="")
     Nshow = Nt*dt
     rho_t1.plot(coherences=False, axis=[0,Nshow,0,1.0])
