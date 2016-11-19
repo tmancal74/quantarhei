@@ -125,35 +125,61 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
                 for bb in range(1,Na):
                     # Here we assume no correlation between sites 
                     lamb[aa] += (SS[bb,aa]**4)*lamb_sites[bb]
-                    
-            #
-            #
 
-            # operators
-            nsbi_op = []
-            for aa in range(1,Na):
-                op = Operator(dim=ham.dim, real=True)
-                op.data[aa,aa] = 1.0
-                nsbi_op.append(op)
-            
-            # correlation function matrix
-            cfm = CorrelationFunctionMatrix(ta, Na-1,Na-1)
-            for ii in range(Na-1):
-                params = dict(ftype="Value-defined",reorg=lamb[ii])
-                fc = CorrelationFunction(ta,params,values=cvals[ii,:])
-                cfm.set_correlation_function(fc,[(ii,ii)],ii+1)
-                
-            nsbi = SystemBathInteraction(nsbi_op, cfm)
+
+#            # operators
+#            nsbi_op = []
+#            for aa in range(1,Na):
+#                op = Operator(dim=ham.dim, real=True)
+#                op.data[aa,aa] = 1.0
+#                nsbi_op.append(op)
+#            
+#            # correlation function matrix
+#            cfm = CorrelationFunctionMatrix(ta, Na-1,Na-1)
+#            for ii in range(Na-1):
+#                params = dict(ftype="Value-defined",reorg=lamb[ii])
+#                fc = CorrelationFunction(ta,params,values=cvals[ii,:])
+#                cfm.set_correlation_function(fc,[(ii,ii)],ii+1)
+#                
+#            nsbi = SystemBathInteraction(nsbi_op, cfm)
 
             # FIXME: Instead of all the above, we should have transformation
             # of SystemBathInteraction object
 
 
+                    
+            #
+            # Hamiltonian matrix
+            #
             hj = numpy.dot(numpy.linalg.inv(SS), numpy.dot(ham.JR,SS))
             for i in range(ham.dim):
                 hj[i,i] = 0.0
             hh = numpy.diag(hD) + hj
 
+            #
+            # Foerster rates
+            #
+            KF = foerster_rates(Na, hh, tt, gvals, lamb)
+
+#            nham = Hamiltonian(data=hh)
+#            with energy_units("1/cm"):
+#                print(nham.data)
+#            if self._has_cutoff_time:
+#                FT = FoersterRelaxationTensor(nham, nsbi,
+#                                    cutoff_time=self.cutoff_time)
+#            else:
+#                FT = FoersterRelaxationTensor(nham, nsbi)                        
+            
+            
+            # 
+            # Add the rates to the Redfield
+            #
+            for b in range(Na):
+                gg = 0.0
+                for a in range(Na):
+                    self.data[a,a,b,b] += KF[a,b]
+                    gg += KF[a,b]
+                self.data[b,b,b,b] += -gg
 
             
         self._is_initialized = True
