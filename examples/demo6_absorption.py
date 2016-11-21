@@ -183,18 +183,18 @@ HH = AG.get_Hamiltonian()
                                    time_dependent=False)
 
 
-a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RRt)
-a3 = qr.AbsSpect(ta, AG)
-a1 = qr.AbsSpect(ta, AG, relaxation_tensor=RR)
+a1 = qr.AbsSpect(ta, AG)
+a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RR)
+a3 = qr.AbsSpect(ta, AG, relaxation_tensor=RRt)
 
 with e_units:
     print(HH)
     a2.calculate(rwa=12000)
     a3.calculate(rwa=12000)
     a1.calculate(rwa=12000)
-    a2.plot(show=False)
-    a3.plot(show=False,axis=[11500,12500,0,numpy.max(a2.data)*1.1])
-    a1.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
+    a1.plot(show=False)
+    a2.plot(show=False,axis=[11500,12500,0,numpy.max(a2.data)*1.1])
+    a3.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
     
 
 save_load = False    

@@ -142,11 +142,11 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
             gam = gg[0]
             rt = numpy.exp(gam*ta.data)
             at *= rt
-            print("Constant: ", gam*ta.data[20], len(at))
+            print("Constant: ", rt[20], len(at))
         else:
             rt = numpy.exp(gg*ta.data)          
             at *= rt
-            print("Time dependent: len = ", gg[20]*ta.data[20], len(gg*ta.data), len(at))
+            print("Time dependent: len = ", rt[20], len(rt))
             
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.step
@@ -257,10 +257,10 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
             gg = []            
             if isinstance(RR, TimeDependent):
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:,1,1,1,1])
+                    gg.append(RR.data[:,ii,ii,ii,ii])
             else:
                 for ii in range(HH.dim):
-                    gg.append([RR.data[1,1,1,1]])
+                    gg.append([RR.data[ii,ii,ii,ii]])
             tr["gg"] = gg[1]
         else:
             tr["gg"] = [0.0]
@@ -303,6 +303,13 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         
         self.frequency = self._frequency(ta.step) + rwa
         
+        # transform all quantities back
+        S1 = numpy.linalg.inv(SS)
+        HH.transform(S1)
+        DD.transform(S1)
+        
+        if relaxation_tensor is not None:
+            RR.transform(S1)
         
     def normalize2(self,norm=1.0):
         mx = numpy.max(self.data)
