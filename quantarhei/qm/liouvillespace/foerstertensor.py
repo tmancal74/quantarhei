@@ -91,66 +91,66 @@ class FoersterRelaxationTensor(RelaxationTensor):
         
 
 def _fintegral(tt, gtd, gta, ed, ea, ld):
-        """Foerster integral
+    """Foerster integral
+    
+    
+    Parameters
+    ----------
+    tt : numpy array
+        Time 
         
+    gtd : numpy array
+        lineshape function of the donor transition
+
+    gta : numpy array
+        lineshape function of the acceptor transition 
         
-        Parameters
-        ----------
-        tt : numpy array
-            Time 
-            
-        gtd : numpy array
-            lineshape function of the donor transition
-
-        gta : numpy array
-            lineshape function of the acceptor transition 
-            
-        ed : float
-            Energy of the donor transition
-            
-        ea : float
-            Energy of the acceptor transition
-
-        ld : float
-            Reorganization energy of the donor             
-
-        Returns
-        -------
-        ret : float
-            The value of the Foerster integral            
+    ed : float
+        Energy of the donor transition
         
-        """
-        #fl = numpy.exp(-gtd +1j*(ed-2.0*ld)*tm.data)
-        #ab = numpy.exp(-gta -1j*ea*tm.data)
-        #prod = ab*fl
+    ea : float
+        Energy of the acceptor transition
 
-        prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tt)
-        
-        preal = numpy.real(prod)
-        pimag = numpy.imag(prod)
-        splr = interp.UnivariateSpline(tt,
-                                   preal, s=0).antiderivative()(tt)
-        spli = interp.UnivariateSpline(tt,
-                                   pimag, s=0).antiderivative()(tt)
-        hoft = splr + 1j*spli
+    ld : float
+        Reorganization energy of the donor             
+
+    Returns
+    -------
+    ret : float
+        The value of the Foerster integral            
+    
+    """
+    #fl = numpy.exp(-gtd +1j*(ed-2.0*ld)*tm.data)
+    #ab = numpy.exp(-gta -1j*ea*tm.data)
+    #prod = ab*fl
+
+    prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tt)
+    
+    preal = numpy.real(prod)
+    pimag = numpy.imag(prod)
+    splr = interp.UnivariateSpline(tt,
+                               preal, s=0).antiderivative()(tt)
+    spli = interp.UnivariateSpline(tt,
+                               pimag, s=0).antiderivative()(tt)
+    hoft = splr + 1j*spli
 
 
-        ret = 2.0*numpy.real(hoft[len(tt)-1])
-        
-        return ret
+    ret = 2.0*numpy.real(hoft[len(tt)-1])
+    
+    return ret
 
 def _reference_implementation(Na, HH, tt, gt, ll):
-                                         
-        #
-        # Rates between states a and b
-        # 
-        KK = numpy.zeros((Na,Na), dtype=numpy.float64)
-        for a in range(Na):
-            for b in range(Na):
-                if a != b:
-                    ed = HH[b,b] # donor
-                    ea = HH[a,a] # acceptor
-                    KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
-                                                      ed, ea, ll[b])
+                                     
+    #
+    # Rates between states a and b
+    # 
+    KK = numpy.zeros((Na,Na), dtype=numpy.float64)
+    for a in range(Na):
+        for b in range(Na):
+            if a != b:
+                ed = HH[b,b] # donor
+                ea = HH[a,a] # acceptor
+                KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
+                                                  ed, ea, ll[b])
    
-        return KK
+    return KK
