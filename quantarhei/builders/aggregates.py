@@ -835,8 +835,8 @@ class Aggregate(UnitsManaged):
     #    POST BUILDING METHODS
     #
     ########################################################################       
-        
-    def get_ReducedDensityMatrixPropagator(self, timeaxis,
+  
+    def get_RelaxationTensor(self, timeaxis,
                        relaxation_theory=None,
                        time_dependent=False,
                        secular_relaxation=False, relaxation_cutoff_time=None,
@@ -848,10 +848,8 @@ class Aggregate(UnitsManaged):
         from ..qm import TDFoersterRelaxationTensor
         from ..qm import RedfieldFoersterRelaxationTensor
         from ..qm import TDRedfieldFoersterRelaxationTensor
-        
-        from ..qm import ReducedDensityMatrixPropagator
         from ..core.managers import eigenbasis_of
-        
+
         if self._built:
             ham = self.get_Hamiltonian()
             sbi = self.get_SystemBathInteraction()
@@ -888,10 +886,11 @@ class Aggregate(UnitsManaged):
             # create a corresponding propagator
             #
             #ham.unprotect_basis()
-            with eigenbasis_of(ham):
-                prop = ReducedDensityMatrixPropagator(timeaxis,
-                                                          ham, relaxT)  
-                      
+#            with eigenbasis_of(ham):
+#                prop = ReducedDensityMatrixPropagator(timeaxis,
+#                                                          ham, relaxT)  
+            return relaxT, ham
+            
         elif (relaxation_theory == "standard_Foerster"):
             
             if time_dependent:
@@ -905,8 +904,9 @@ class Aggregate(UnitsManaged):
                 
                 # The Hamiltonian for propagation is the one without 
                 # resonance coupling
-                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)
-                        
+#                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)
+                return relaxT, ham_0              
+          
             else:
             
                 # Time independent standard Foerster
@@ -923,7 +923,8 @@ class Aggregate(UnitsManaged):
                 
                 # The Hamiltonian for propagation is the one without 
                 # resonance coupling
-                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
+#                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
+                return relaxT, ham_0              
 
 
         elif (relaxation_theory == "combined_RedfieldFoerster"):
@@ -964,15 +965,154 @@ class Aggregate(UnitsManaged):
             #
             ham1 = Hamiltonian(data=ham.data.copy())
             ham1.remove_cutoff_coupling(coupling_cutoff)
-            with eigenbasis_of(ham1):
-                prop = ReducedDensityMatrixPropagator(timeaxis, ham1, relaxT)
-                
+#            with eigenbasis_of(ham1):
+#                prop = ReducedDensityMatrixPropagator(timeaxis, ham1, relaxT)
+            return relaxT, ham1                
                 
         else:
             
             raise Exception("Theory not implemented")
+        
+      
+    def get_ReducedDensityMatrixPropagator(self, timeaxis,
+                       relaxation_theory=None,
+                       time_dependent=False,
+                       secular_relaxation=False, relaxation_cutoff_time=None,
+                       coupling_cutoff=None):
+        
+        
+        from ..qm import ReducedDensityMatrixPropagator
+        from ..core.managers import eigenbasis_of
+        
+#        if self._built:
+#            ham = self.get_Hamiltonian()
+#            sbi = self.get_SystemBathInteraction()
+#        else:
+#            raise Exception()
+#        
+#        if (relaxation_theory == "standard_Redfield"):
+#            
+#            if time_dependent:
+#                
+#                # Time dependent standard Refield
+#            
+#                ham.protect_basis()
+#                with eigenbasis_of(ham):
+#                    relaxT = TDRedfieldRelaxationTensor(ham, sbi, 
+#                                        cutoff_time=relaxation_cutoff_time)
+#                    if secular_relaxation:
+#                        relaxT.secularize() 
+#                ham.unprotect_basis()                        
+#                        
+#                        
+#            else:
+#            
+#                # Time independent standard Refield
+#            
+#                ham.protect_basis()
+#                with eigenbasis_of(ham):
+#                    relaxT = RedfieldRelaxationTensor(ham, sbi)
+#                    if secular_relaxation:
+#                        relaxT.secularize()
+#                ham.unprotect_basis()  
+#                
+#            #
+#            # create a corresponding propagator
+#            #
+#            #ham.unprotect_basis()
+#            with eigenbasis_of(ham):
+#                prop = ReducedDensityMatrixPropagator(timeaxis,
+#                                                          ham, relaxT)  
+#                      
+#        elif (relaxation_theory == "standard_Foerster"):
+#            
+#            if time_dependent:
+#                
+#                # Time dependent standard Foerster               
+#                relaxT = TDFoersterRelaxationTensor(ham, sbi)
+#                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+#                for i in range(ham.dim):
+#                    dat[i,i] = ham._data[i,i]
+#                ham_0 = Hamiltonian(data=dat)
+#                
+#                # The Hamiltonian for propagation is the one without 
+#                # resonance coupling
+#                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)
+#                        
+#            else:
+#            
+#                # Time independent standard Foerster
+#            
+#                #
+#                # This is done strictly in site basis
+#                #
+#            
+#                relaxT = FoersterRelaxationTensor(ham, sbi)
+#                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+#                for i in range(ham.dim):
+#                    dat[i,i] = ham._data[i,i]
+#                ham_0 = Hamiltonian(data=dat)
+#                
+#                # The Hamiltonian for propagation is the one without 
+#                # resonance coupling
+#                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
+#
+#
+#        elif (relaxation_theory == "combined_RedfieldFoerster"):
+#            
+#            if time_dependent:
+#                
+#                # Time dependent combined tensor
+#                ham.remove_cutoff_coupling(coupling_cutoff)
+#                ham.protect_basis()
+#                with eigenbasis_of(ham):
+#                    relaxT = \
+#                             TDRedfieldFoersterRelaxationTensor(ham, sbi,
+#                                            coupling_cutoff=coupling_cutoff,
+#                                            cutoff_time=relaxation_cutoff_time)
+#                    if secular_relaxation:
+#                        relaxT.secularize()
+#                ham.unprotect_basis()
+#                ham.recover_cutoff_coupling()                        
+#                        
+#            else:
+#            
+#                # Time independent standard Refield
+#            
+#                ham.remove_cutoff_coupling(coupling_cutoff)
+#                ham.protect_basis()
+#                with eigenbasis_of(ham):
+#                    relaxT = \
+#                             RedfieldFoersterRelaxationTensor(ham, sbi,
+#                                            coupling_cutoff=coupling_cutoff,
+#                                            cutoff_time=relaxation_cutoff_time)
+#                    if secular_relaxation:
+#                        relaxT.secularize()
+#                ham.unprotect_basis()
+#                ham.recover_cutoff_coupling()
+#
+#            #
+#            # create a corresponding propagator
+#            #
+#            ham1 = Hamiltonian(data=ham.data.copy())
+#            ham1.remove_cutoff_coupling(coupling_cutoff)
+#            with eigenbasis_of(ham1):
+#                prop = ReducedDensityMatrixPropagator(timeaxis, ham1, relaxT)
+#                
+#                
+#        else:
+#            
+#            raise Exception("Theory not implemented")
             
-
+        relaxT, ham = self.get_RelaxationTensor(timeaxis,
+                       relaxation_theory,
+                       time_dependent,
+                       secular_relaxation, relaxation_cutoff_time,
+                       coupling_cutoff)
+        
+        with eigenbasis_of(ham):
+            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
+            
         
         return prop
         

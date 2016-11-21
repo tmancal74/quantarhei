@@ -85,7 +85,8 @@ with qr.energy_units("1/cm"):
     m2.set_dipole(0,1,[0.0,1.0,1.0])
     m2.position = [5.0,0.0,0.0]
     m2.set_transition_environment((0,1),cfce2)    
-
+    
+    
 # create an aggregate
 AG = qr.Aggregate("TestAggregate")
 #AG.set_egcf_matrix(cm)
@@ -100,12 +101,17 @@ AG.set_coupling_by_dipole_dipole()
 AG.build()
 
 HH = AG.get_Hamiltonian()
+(RR,ham) = AG.get_RelaxationTensor(ta,
+                                   relaxation_theory="standard_Redfield")
 
-a2 = qr.AbsSpect(ta, AG)
+a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RR)
+a3 = qr.AbsSpect(ta, AG)
 
 with e_units:
     print(HH)
     a2.calculate(rwa=12000)
+    a3.calculate(rwa=12000)
+    a3.plot(show=False)
     a2.plot(axis=[11500,12500,0,numpy.max(a2.data)*1.1])
 
 save_load = False    
@@ -169,12 +175,19 @@ AG.set_coupling_by_dipole_dipole()
 AG.build()
 
 HH = AG.get_Hamiltonian()
-a2 = qr.AbsSpect(ta,AG)
+(RR,ham) = AG.get_RelaxationTensor(ta,
+                                   relaxation_theory="standard_Redfield")
+
+a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RR)
+a3 = qr.AbsSpect(ta, AG)
 
 with e_units:
     print(HH)
     a2.calculate(rwa=12000)
+    a3.calculate(rwa=12000)
+    a3.plot(show=False)
     a2.plot(axis=[11500,12500,0,numpy.max(a2.data)*1.1])
+    
 
 save_load = False    
 if save_load:

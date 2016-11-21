@@ -12,6 +12,7 @@ from ..core.dfunction import DFunction
 
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
+from ..core.time import TimeDependent
 
 class AbsSpect(DFunction, EnergyUnitsManaged):
     """Linear absorption spectrum 
@@ -125,18 +126,26 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         ta = tr["ta"] # TimeAxis
         dd = tr["dd"] # transition dipole moment
         om = tr["om"] # frequency - rwa
-        gg = tr["gg"] # natural broadening
+        gg = tr["gg"] # natural broadening (constant or time dependent)
         if self.system._has_system_bath_coupling:
             ct = tr["ct"] # correlation function
         
             # convert correlation function to lineshape function
             gt = self._c2g(ta,ct.data)
             # calculate time dependent response
-            at = numpy.exp(-gt -1j*om*ta.data - gg*ta.data)
+            at = numpy.exp(-gt -1j*om*ta.data)
         else:
             # calculate time dependent response
-            at = numpy.exp(-1j*om*ta.data - gg*ta.data) 
+            at = numpy.exp(-1j*om*ta.data) 
         
+        if len(gg) == 1:
+            gam = gg[0]
+            rt = numpy.exp(gam*ta.data)
+            at *= rt
+        else:
+            rt = numpy.exp(gg*ta.data)          
+            at *= rt
+            
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.step
         ft = numpy.fft.fftshift(ft)
@@ -193,7 +202,7 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         # dipole^2
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
-        gama = 1.0/self.system.get_electronic_natural_lifetime(1)
+        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
         
         if self.system._has_system_bath_coupling:
             # correlation function
@@ -235,10 +244,25 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         # Transition dipole moment operator
         DD = self.system.get_TransitionDipoleMoment()
         # transformed into the basis of Hamiltonian eigenstates
-        DD.transform(SS) 
-        
+        DD.transform(SS)         
+
+        # TimeAxis
         tr = {"ta":ta}
-        tr["gg"] = 0.0
+        
+        if relaxation_tensor is not None:
+            RR = relaxation_tensor
+            RR.transform(SS)
+            gg = []            
+            if isinstance(RR, TimeDependent):
+                for ii in range(HH.dim):
+                    gg.append(RR.data[:,1,1,1,1])
+            else:
+                for ii in range(HH.dim):
+                    gg.append([RR.data[1,1,1,1]])
+            tr["gg"] = gg[1]
+        else:
+            tr["gg"] = [0.0]
+
         # get square of transition dipole moment here
         #tr.append(DD.dipole_strength(0,1))
         tr["dd"] = DD.dipole_strength(0,1)
@@ -253,6 +277,10 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         self.data = numpy.real(self.one_transition_spectrum(tr))
         
         for ii in range(2,HH.dim):
+            if relaxation_tensor is not None:
+                tr["gg"] = gg[ii]
+            else:
+                tr["gg"] = [0.0]
             #tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
             tr["dd"] = DD.dipole_strength(0,ii)
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
