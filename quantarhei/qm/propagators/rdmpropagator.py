@@ -170,16 +170,16 @@ class ReducedDensityMatrixPropagator(MatrixData):
                     
         if self.has_relaxation:
             
-            if isinstance(self.RelaxationTensor,TimeDependent):
-                """
-                Time dependent relaxation tensor
-                """
-
+            if isinstance(self.RelaxationTensor, TimeDependent):
+                #
+                # Time-dependent relaxation tensor
+                #
 
                 if (self.has_Efield and self.has_Trdip):
                     
-                    """ ...with external field """
-                    
+                    #
+                    #  Propagation with external field 
+                    #
                     if method == "short-exp":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
@@ -202,8 +202,9 @@ class ReducedDensityMatrixPropagator(MatrixData):
                     
                 else:
 
-                    """ ... without external field """
-                
+                    #
+                    #  Without external field
+                    #
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_TD_relaxation(\
                         rhoi,L=4)
@@ -221,11 +222,14 @@ class ReducedDensityMatrixPropagator(MatrixData):
 
                 
             else: 
-                
+                #
+                # Constant relaxation tensor
+                #                
                 if (self.has_Efield and self.has_Trdip):
                     
-                    """ ...with external field """
-                    
+                    #
+                    # External field
+                    #
                     if method == "short-exp":
                         return \
                         self.__propagate_short_exp_with_relaxation_field(
@@ -247,9 +251,9 @@ class ReducedDensityMatrixPropagator(MatrixData):
                 
                 else:
             
-                    """
-                    Relaxation tensor and Hamiltonian are time independent
-                    """
+                    #
+                    # No external field
+                    #
                     if method == "primitive":
                         return self.__propagate_primitive_with_relaxation(rhoi)
                     elif method == "Runge-Kutta":
@@ -272,7 +276,9 @@ class ReducedDensityMatrixPropagator(MatrixData):
                         raise Exception("Unknown propagation method: "+method)   
             
         else:
-
+            #
+            # No relaxation
+            #
                 
             if method == "primitive":
                 return self.__propagate_primitive(rhoi)
@@ -411,16 +417,16 @@ class ReducedDensityMatrixPropagator(MatrixData):
         
         HH = self.Hamiltonian.data        
         RR = self.RelaxationTensor.data
-        dim = self.Hamiltonian.dim        
+#        dim = self.Hamiltonian.dim        
 
-        #print("CYTHON")
-        cython = False
-        if cython:
-            
-            pr.data = prop.propagate(self.TimeAxis.time,self.dt,
-                                    self.Nt,self.Nref,HH,RR,rho1,dim,L)
-        
-            return pr
+#        #print("CYTHON")
+#        cython = False
+#        if cython:
+#            
+#            pr.data = prop.propagate(self.TimeAxis.time,self.dt,
+#                                    self.Nt,self.Nref,HH,RR,rho1,dim,L)
+#        
+#            return pr
             
         indx = 1
         for ii in range(1, self.Nt): 

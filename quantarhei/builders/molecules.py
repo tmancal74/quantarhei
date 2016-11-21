@@ -259,7 +259,7 @@ class Molecule(UnitsManaged):
         
             
     def get_transition_environment(self, transition):
-        """Returns energy gap correlation function of the monomer
+        """Returns energy gap correlation function of a monomer
         
         
         """

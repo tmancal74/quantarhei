@@ -36,27 +36,40 @@ H = agg.get_Hamiltonian()
 with energy_units("1/cm"):
     print(H)
    
-cutoff = 30.0
+cutoff = 500.0
 #
 # Aggregate object can return a propagator
 #
 with energy_units("1/cm"):
+    print("Calculating 1")
     prop_comb = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="combined_RedfieldFoerster",
                            coupling_cutoff=cutoff,
-                           secular_relaxation=False)   
+                           secular_relaxation=False,
+                           time_dependent=True)
+
+    print("Calculating 2")    
+    prop_comb2 = agg.get_ReducedDensityMatrixPropagator(time,
+                           relaxation_theory="combined_RedfieldFoerster",
+                           coupling_cutoff=cutoff,
+                           secular_relaxation=False,
+                           time_dependent=False)
 
 #
 # Initial density matrix
 #
 shp = H.dim
 rho_i1 = ReducedDensityMatrix(dim=shp, name="Initial DM")
-rho_i1.data[shp-1,shp-1] = 1.0   
+with eigenbasis_of(H):
+    rho_i1.data[shp-1,shp-1] = 1.0   
    
 #
 # Propagation of the density matrix
 #   
 rho_t1 = prop_comb.propagate(rho_i1,
+                             name="Combined evolution from aggregate")
+
+rho_t2 = prop_comb2.propagate(rho_i1,
                              name="Combined evolution from aggregate")
     
 #with energy_units("1/cm"):
@@ -79,3 +92,4 @@ if True:
     #rho_eq = agg.get_DensityMatrix(condition_type="")
     Nshow = Nt*dt
     rho_t1.plot(coherences=False, axis=[0,Nshow,0,1.0])
+    rho_t2.plot(coherences=False, axis=[0,Nshow,0,1.0])

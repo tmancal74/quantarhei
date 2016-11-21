@@ -845,7 +845,10 @@ class Aggregate(UnitsManaged):
         from ..qm import RedfieldRelaxationTensor
         from ..qm import TDRedfieldRelaxationTensor
         from ..qm import FoersterRelaxationTensor
+        from ..qm import TDFoersterRelaxationTensor
         from ..qm import RedfieldFoersterRelaxationTensor
+        from ..qm import TDRedfieldFoersterRelaxationTensor
+        
         from ..qm import ReducedDensityMatrixPropagator
         from ..core.managers import eigenbasis_of
         
@@ -893,12 +896,20 @@ class Aggregate(UnitsManaged):
             
             if time_dependent:
                 
-                # Time dependent standard Foerster
-                raise Exception("Theory not implemented")
+                # Time dependent standard Foerster               
+                relaxT = TDFoersterRelaxationTensor(ham, sbi)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                for i in range(ham.dim):
+                    dat[i,i] = ham._data[i,i]
+                ham_0 = Hamiltonian(data=dat)
+                
+                # The Hamiltonian for propagation is the one without 
+                # resonance coupling
+                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)
                         
             else:
             
-                # Time independent standard Refield
+                # Time independent standard Foerster
             
                 #
                 # This is done strictly in site basis
@@ -920,8 +931,17 @@ class Aggregate(UnitsManaged):
             if time_dependent:
                 
                 # Time dependent combined tensor
-                raise Exception("Theory not implemented")
-                        
+                ham.remove_cutoff_coupling(coupling_cutoff)
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = \
+                             TDRedfieldFoersterRelaxationTensor(ham, sbi,
+                                            coupling_cutoff=coupling_cutoff,
+                                            cutoff_time=relaxation_cutoff_time)
+                    if secular_relaxation:
+                        relaxT.secularize()
+                ham.unprotect_basis()
+                ham.recover_cutoff_coupling()                        
                         
             else:
             

@@ -33,7 +33,9 @@ from .liouvillespace.tdredfieldrates import TDRedfieldRateMatrix
 from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
 from .liouvillespace.tdredfieldtensor import TDRedfieldRelaxationTensor
 from .liouvillespace.foerstertensor import FoersterRelaxationTensor
+from .liouvillespace.tdfoerstertensor import TDFoersterRelaxationTensor
 from .liouvillespace.redfieldfoerster import RedfieldFoersterRelaxationTensor
+from .liouvillespace.tdredfieldfoerster import TDRedfieldFoersterRelaxationTensor
 
 #
 #  PROPAGATORS 

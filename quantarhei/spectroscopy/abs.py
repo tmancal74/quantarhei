@@ -13,7 +13,7 @@ from ..core.dfunction import DFunction
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 
-class AbsSpect(DFunction,EnergyUnitsManaged):
+class AbsSpect(DFunction, EnergyUnitsManaged):
     """Linear absorption spectrum 
     
     Linear absorption spectrum of a molecule or an aggregate of molecules.

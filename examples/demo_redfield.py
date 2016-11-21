@@ -22,7 +22,7 @@ from modelgenerator import ModelGenerator
 print("""
 *******************************************************************************
 *                                                                             *
-*                         Foerster Theory Demo                                *
+*                         Redfield Theory Demo                                *
 *                                                                             *                  
 *******************************************************************************
 """)
@@ -47,7 +47,8 @@ H = agg.get_Hamiltonian()
 # Aggregate object can return a propagator
 #
 prop_Redfield = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="standard_Redfield")   
+                           relaxation_theory="standard_Redfield",
+                           time_dependent=True)   
 
 #
 # Initial density matrix

@@ -4,11 +4,13 @@ import scipy.interpolate as interp
 
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
-from .relaxationtensor import RelaxationTensor
+from .foerstertensor import FoersterRelaxationTensor
 from ..corfunctions.correlationfunctions import c2g
 from ...core.managers import energy_units
 
-class FoersterRelaxationTensor(RelaxationTensor):
+from ...core.time import TimeDependent
+
+class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
     """Weak resonance coupling relaxation tensor by Foerster theory
     
     
@@ -16,49 +18,26 @@ class FoersterRelaxationTensor(RelaxationTensor):
     """
     def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
-        super().__init__()
-        
-        if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
-            
-        if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of"
-                           +" type SystemBathInteraction")
-            
-        self._is_initialized = False
-        self._has_cutoff_time = False
-        
-        if cutoff_time is not None:
-            self.cutoff_time = cutoff_time
-            self._has_cutoff_time = True            
-            
-        self.Hamiltonian = ham
-        self.dim = ham.dim
-        self.SystemBathInteraction = sbi
-        self.TimeAxis = sbi.TimeAxis
-    
-        
-        if initialize:
-            
-            self.initialize()
-            self._data_initialized = True 
-            self._is_initialized = True
+        super().__init__(ham, sbi, initialize, cutoff_time)
 
+        
     def initialize(self):
         
+        tt = self.SystemBathInteraction.TimeAxis.data
+        Nt = len(tt)
         #
         # Tensor data
         #
         Na = self.dim
-        self.data = numpy.zeros((Na,Na,Na,Na),dtype=numpy.complex128)
-      
+        self.data = numpy.zeros((Nt,Na,Na,Na,Na),dtype=numpy.complex128)
         
         with energy_units("int"):
-            
+
             # Hamiltonian matrix
             HH = self.Hamiltonian.data
-            tt = self.SystemBathInteraction.TimeAxis.data
-            sbi = self.SystemBathInteraction 
+
+            sbi = self.SystemBathInteraction
+            Na = self.dim
             
             # line shape functions
             gt = numpy.zeros((Na, sbi.TimeAxis.length),
@@ -73,7 +52,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             for ii in range(1, Na):
                 ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
                         
-            KK = _reference_implementation(Na, HH, tt, gt, ll)
+            KK = _td_reference_implementation(Na, Nt, HH, tt, gt, ll)
    
             #
             # Transfer rates
@@ -81,17 +60,15 @@ class FoersterRelaxationTensor(RelaxationTensor):
             for aa in range(self.dim):
                 for bb in range(self.dim):
                     if aa != bb:
-                        self.data[aa,aa,bb,bb] = KK[aa,bb]
+                        self.data[:,aa,aa,bb,bb] = KK[:,aa,bb]
                 
             #  
             # calculate dephasing rates and depopulation rates
             #
-            self.updateStructure()
+            self.updateStructure()        
         
-        
-
-def _fintegral(tt, gtd, gta, ed, ea, ld):
-        """Foerster integral
+def _td_fintegral(tt, gtd, gta, ed, ea, ld):
+        """Time dependent Foerster integral
         
         
         Parameters
@@ -135,22 +112,23 @@ def _fintegral(tt, gtd, gta, ed, ea, ld):
         hoft = splr + 1j*spli
 
 
-        ret = 2.0*numpy.real(hoft[len(tt)-1])
+        ret = 2.0*numpy.real(hoft)
         
         return ret
 
-def _reference_implementation(Na, HH, tt, gt, ll):
+def _td_reference_implementation(Na, Nt, HH, tt, gt, ll):
                                          
         #
         # Rates between states a and b
         # 
-        KK = numpy.zeros((Na,Na), dtype=numpy.float64)
+        KK = numpy.zeros((Nt,Na,Na), dtype=numpy.float64)
         for a in range(Na):
             for b in range(Na):
                 if a != b:
                     ed = HH[b,b] # donor
                     ea = HH[a,a] # acceptor
-                    KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
-                                                      ed, ea, ll[b])
+                    KK[:,a,b] = (HH[a,b]**2)*_td_fintegral(tt, gt[a,:],
+                                                           gt[b,:],
+                                                           ed, ea, ll[b])
    
-        return KK
+        return KK        

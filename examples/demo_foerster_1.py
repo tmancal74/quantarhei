@@ -46,7 +46,8 @@ H = agg.get_Hamiltonian()
 # Aggregate object can return a propagator
 #
 prop_Foerster = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="standard_Foerster")   
+                           relaxation_theory="standard_Foerster",
+                           time_dependent=True)   
 
 #
 # Initial density matrix
@@ -80,3 +81,6 @@ if True:
 #    plt.plot(time.data,pop[:,1],'--r')
 #    plt.plot(time.data,pop[:,2],'--b')
 #    plt.plot(time.data,pop[:,3],'--g')  
+
+RR = prop_Foerster.RelaxationTensor
+print(RR.data.shape)
