@@ -142,11 +142,11 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
             gam = gg[0]
             rt = numpy.exp(gam*ta.data)
             at *= rt
-            print("Constant: ", rt[20], len(at))
+            #print("Constant: ", rt[20], len(at))
         else:
             rt = numpy.exp(gg*ta.data)          
             at *= rt
-            print("Time dependent: len = ", rt[20], len(rt))
+            #print("Time dependent: len = ", rt[20], len(rt))
             
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.step
