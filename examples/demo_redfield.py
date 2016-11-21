@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+
 """
 
-    Propagation with Foerster theory using Aggregate object
+    Propagation with Redfield theory using Aggregate object
 
 
 
@@ -45,8 +46,8 @@ H = agg.get_Hamiltonian()
 #
 # Aggregate object can return a propagator
 #
-prop_Foerster = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="standard_Foerster")   
+prop_Redfield = agg.get_ReducedDensityMatrixPropagator(time,
+                           relaxation_theory="standard_Redfield")   
 
 #
 # Initial density matrix
@@ -58,8 +59,8 @@ rho_i1.data[shp-1,shp-1] = 1.0
 #
 # Propagation of the density matrix
 #   
-rho_t1 = prop_Foerster.propagate(rho_i1,
-                                 name="Foerster evolution from aggregate")
+rho_t1 = prop_Redfield.propagate(rho_i1,
+                                 name="Redfield evolution from aggregate")
 rho_t1.plot(coherences=False, axis=[0,Nt*dt,0,1.0])
 
 #
