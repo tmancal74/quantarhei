@@ -47,7 +47,7 @@ H = agg.get_Hamiltonian()
 #
 prop_Foerster = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="standard_Foerster",
-                           time_dependent=True)   
+                           time_dependent=False)   
 
 #
 # Initial density matrix
@@ -59,8 +59,10 @@ rho_i1.data[shp-1,shp-1] = 1.0
 #
 # Propagation of the density matrix
 #   
-rho_t1 = prop_Foerster.propagate(rho_i1,
+with eigenbasis_of(H):
+    rho_t1 = prop_Foerster.propagate(rho_i1,
                                  name="Foerster evolution from aggregate")
+    
 rho_t1.plot(coherences=False, axis=[0,Nt*dt,0,1.0])
 
 #
@@ -70,8 +72,8 @@ rho0 = agg.get_DensityMatrix(condition_type="thermal_excited_state",
                              relaxation_theory_limit="strong_coupling",
                              temperature=300)
  
-#with eigenbasis_of(H):
-if True:       
+with eigenbasis_of(H):
+#if True:       
     pop = numpy.zeros((time.length,shp),dtype=numpy.float64)
     for i in range(1, H.dim):
         pop[:,i] = numpy.real(rho0.data[i,i]) 
@@ -83,4 +85,6 @@ if True:
 #    plt.plot(time.data,pop[:,3],'--g')  
 
 RR = prop_Foerster.RelaxationTensor
-print(RR.data.shape)
+with eigenbasis_of(H):
+    if isinstance(RR, qm.core.time.TimeDependent):
+        print(RR.data[:,1,1,2,2])

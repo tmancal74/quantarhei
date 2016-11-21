@@ -72,7 +72,8 @@ class RelaxationTensor(BasisManaged):
             return
         
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Relaxation tensor '%s' changes basis" %self.name)
+                print("\nQr >>> Relaxation tensor '%s' changes basis"
+                      %self.name)
            
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -80,16 +81,31 @@ class RelaxationTensor(BasisManaged):
             S1 = inv
         dim = SS.shape[0]
         
-        for c in range(dim):
-            for d in range(dim):
-                self._data[:,:,c,d] = \
-                numpy.dot(S1,numpy.dot(self._data[:,:,c,d],SS))
-                
-        for a in range(dim):
-            for b in range(dim):
-                self._data[a,b,:,:] = \
-                numpy.dot(S1,numpy.dot(self._data[a,b,:,:],SS))
-        
+        if self._data.ndim == 4:
+            for c in range(dim):
+                for d in range(dim):
+                    self._data[:,:,c,d] = \
+                    numpy.dot(S1,numpy.dot(self._data[:,:,c,d],SS))
+                    
+            for a in range(dim):
+                for b in range(dim):
+                    self._data[a,b,:,:] = \
+                    numpy.dot(S1,numpy.dot(self._data[a,b,:,:],SS))
+        else:
+            for c in range(dim):
+                for d in range(dim):
+                    self._data[:,:,:,c,d] = \
+                    numpy.tensordot(numpy.tensordot(self._data[:,:,:,c,d],
+                                                    SS,axes=([2],[0])),
+                                    S1,axes=([1],[1]))
+                    
+            for a in range(dim):
+                for b in range(dim):
+                    self._data[:,a,b,:,:] = \
+                    numpy.tensordot(numpy.tensordot(self._data[:,a,b,:,:],
+                                                    SS,axes=([2],[0])),
+                                    S1,axes=([1],[1]))
+                    
 #        RR = numpy.zeros((dim,dim,dim,dim), dtype=numpy.complex128)
 #        rr = 0.0 + 0.0j
 #        for ag in range(dim):
@@ -111,7 +127,7 @@ class RelaxationTensor(BasisManaged):
         
         """
         
-        if self.data.ndim == 4:
+        if self._data.ndim == 4:
             # depopulation rates 
             for nn in range(self.dim):
                 #for ii in range(0,self.data.shape[1]):
