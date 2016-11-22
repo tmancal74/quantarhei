@@ -104,6 +104,9 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         """
         if coupling_cutoff is None:
             coupling_cutoff = 0.0
+        if coupling_cutoff < 0.0:
+            raise Exception("Coupling cutoff value must be positive")
+            
         JR = numpy.zeros((self.dim,self.dim),dtype=numpy.float64)
         # go through all couplings and remove small ones
         for ii in range(self.dim):
@@ -116,6 +119,70 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                     self._data[jj,ii] = 0.0
         self.JR = JR
         self._has_remainder_coupling = True
+        
+    def subtract_cutoff_coupling(self, coupling_cutoff):
+        """Subtracts the cut-off coupling from all coupling elements
+        
+        We supress the couplings by a given amount. If the coupling is
+        smaller than the cutoff it is removed, if it is larger than 
+        cutoff, the cutoff values is subtracted from the absolute value,
+        and the cutoff values is stored in the object for subsequent
+        restoration.
+        
+        Parameters
+        ----------
+        
+        coupling_cutoff : float, optional
+            Specifies the smallest (absolute) value of coupling 
+            which is taken into account. Smaller couplings are removed
+            and a remainder coupling matrix is returned together with
+            the diagonalization matrix (see Returns section).
+            
+        """        
+        if coupling_cutoff is None:
+            coupling_cutoff = 0.0
+            
+        if type(coupling_cutoff) in (list, tuple, numpy.ndarray):
+            
+            raise Exception("Variable coupling cutoff not implemented yet")
+        
+        else:
+            
+            if coupling_cutoff < 0.0:
+                raise Exception("Coupling cutoff value must be positive")
+                
+            coupcut = self.convert_2_internal_u(coupling_cutoff)
+                
+            JR = numpy.zeros((self.dim,self.dim),dtype=numpy.float64)
+            # go through all couplings and remove small ones
+            for ii in range(self.dim):
+                for jj in range(ii+1,self.dim):
+                    #
+                    # if the coupling <= coupling_cutoff -> remove it
+                    #
+                    if (numpy.abs(self._data[ii,jj])
+                            <= numpy.abs(coupcut)):
+                        JR[ii,jj] = self._data[ii,jj]
+                        JR[jj,ii] = self._data[jj,ii]
+                        self._data[ii,jj] = 0.0
+                        self._data[jj,ii] = 0.0
+                    #
+                    # if the coupling > coupling_cutoff -> suppress it
+                    #
+                    else:
+                        absv = numpy.abs(self._data[ii,jj]) 
+                        sign = self._data[ii,jj]/absv
+                        val = absv - coupcut
+                        if val < 0.0:
+                            val = 0.0
+                        JR[ii,jj] = sign*coupcut
+                        self._data[ii,jj] = sign*val
+                        JR[jj,ii] = JR[ii,jj]
+                        self._data[jj,ii] = self._data[ii,jj]
+
+        self.JR = JR
+        self._has_remainder_coupling = True
+        
         
     def recover_cutoff_coupling(self):
         """

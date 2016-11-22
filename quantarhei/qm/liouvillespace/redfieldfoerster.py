@@ -176,4 +176,5 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
 
             
         self._is_initialized = True
+        self._data_initialized = False
         

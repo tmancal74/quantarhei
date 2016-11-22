@@ -17,6 +17,7 @@ class RelaxationTensor(BasisManaged):
         # unless it is the basis outside any context
         if cb != 0:
             self.manager.register_with_basis(cb,self)
+            print("Registering ", id(self), cb)
             
         self._data_initialized = False
         self.name = ""
@@ -92,6 +93,18 @@ class RelaxationTensor(BasisManaged):
                     self._data[a,b,:,:] = \
                     numpy.dot(S1,numpy.dot(self._data[a,b,:,:],SS))
         else:
+
+#            for tt in range(self.Nt):
+#                for c in range(dim):
+#                    for d in range(dim):
+#                        self._data[tt,:,:,c,d] = \
+#                            numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
+#                    
+#                for a in range(dim):
+#                    for b in range(dim):
+#                        self._data[tt,a,b,:,:] = \
+#                            numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))            
+
             for c in range(dim):
                 for d in range(dim):
                     self._data[:,:,:,c,d] = \
@@ -105,6 +118,9 @@ class RelaxationTensor(BasisManaged):
                     numpy.tensordot(numpy.tensordot(self._data[:,a,b,:,:],
                                                     SS,axes=([2],[0])),
                                     S1,axes=([1],[1]))
+       
+                    
+                    
                     
 #        RR = numpy.zeros((dim,dim,dim,dim), dtype=numpy.complex128)
 #        rr = 0.0 + 0.0j

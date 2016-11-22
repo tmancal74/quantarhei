@@ -148,10 +148,10 @@ with qr.energy_units("1/cm"):
     m1 = qr.Molecule("M1",[0.0, 12100])
     m1.set_dipole(0,1,[0.0,3.0,0.0])
     m1.set_transition_environment((0,1), cfce2)
-    m2 = qr.Molecule("M1",[0.0, 12000])
+    m2 = qr.Molecule("M1",[0.0, 11800])
     m2.set_dipole(0,1,[0.0,1.0,2.0])
     m2.set_transition_environment((0,1), cfce1)
-    m3 = qr.Molecule("M1",[0.0, 12000])
+    m3 = qr.Molecule("M1",[0.0, 12500])
     m3.set_dipole(0,1,[0.0,1.0,1.0])    
     m3.set_transition_environment((0,1), cfce2)    
 
@@ -170,31 +170,39 @@ AG.add_Molecule(m2)
 AG.add_Molecule(m3)
 
 # setting coupling by dipole-dipole formula
-AG.set_coupling_by_dipole_dipole()
+AG.set_coupling_by_dipole_dipole(epsr=2.0)
 
 AG.build()
 
 HH = AG.get_Hamiltonian()
-(RRt,ham) = AG.get_RelaxationTensor(ta,
-                                   relaxation_theory="standard_Redfield",
-                                   time_dependent=True)
 (RR,ham) = AG.get_RelaxationTensor(ta,
                                    relaxation_theory="standard_Redfield",
                                    time_dependent=False)
 
+with qr.energy_units("1/cm"):
+    (RRt,hamt) = AG.get_RelaxationTensor(ta,
+                                   relaxation_theory="combined_RedfieldFoerster",
+                                   time_dependent=False,
+                                   coupling_cutoff=0.0)
+    
+#with qr.eigenbasis_of(hamt):
+if True:
+    print(RR.data-RRt.data)
+    print(ham.data-hamt.data)
 
-a1 = qr.AbsSpect(ta, AG)
-a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RR)
-a3 = qr.AbsSpect(ta, AG, relaxation_tensor=RRt)
+#a1 = qr.AbsSpect(ta, AG)
+a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RR, relaxation_hamiltonian=ham)
+a3 = qr.AbsSpect(ta, AG, relaxation_tensor=RRt, relaxation_hamiltonian=hamt)
 
 with e_units:
-    print(HH)
+    print(hamt)
     a2.calculate(rwa=12000)
     a3.calculate(rwa=12000)
-    a1.calculate(rwa=12000)
-    a1.plot(show=False)
-    a2.plot(show=False,axis=[11500,12500,0,numpy.max(a2.data)*1.1])
-    a3.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
+#    a1.calculate(rwa=12000)
+    #a1.plot(show=False)
+    a3.plot(show=False,axis=[11500,13000,0,numpy.max(a3.data)*1.1])
+    a2.plot(axis=[11500,13000,0,numpy.max(a2.data)*1.1])
+
     
 
 save_load = False    

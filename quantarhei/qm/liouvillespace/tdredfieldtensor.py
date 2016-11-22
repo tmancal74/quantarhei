@@ -154,10 +154,8 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
             
-#            with eigenbasis_of(ham):
+
             if True:
-#                self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
-#                                        dtype=numpy.complex128)
                 self.data = RR
                 self._data_initialized = True
 

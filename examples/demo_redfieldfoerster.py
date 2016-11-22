@@ -36,18 +36,19 @@ H = agg.get_Hamiltonian()
 with energy_units("1/cm"):
     print(H)
    
-cutoff = 500.0
+cutoff = 70.0
 #
 # Aggregate object can return a propagator
 #
+#Manager().warn_about_basis_change = True
 with energy_units("1/cm"):
     print("Calculating 1")
     prop_comb = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="combined_RedfieldFoerster",
+                           relaxation_theory="standard_Redfield",
                            coupling_cutoff=cutoff,
                            secular_relaxation=False,
-                           time_dependent=True)
-
+                           time_dependent=False)
+    
     print("Calculating 2")    
     prop_comb2 = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="combined_RedfieldFoerster",
@@ -55,6 +56,7 @@ with energy_units("1/cm"):
                            secular_relaxation=False,
                            time_dependent=False)
 
+print("-----")
 #
 # Initial density matrix
 #
@@ -63,7 +65,7 @@ rho_i1 = ReducedDensityMatrix(dim=shp, name="Initial DM")
 with eigenbasis_of(H):
     rho_i1.data[shp-1,shp-1] = 1.0   
    
-#
+
 # Propagation of the density matrix
 #   
 rho_t1 = prop_comb.propagate(rho_i1,
@@ -75,10 +77,16 @@ rho_t2 = prop_comb2.propagate(rho_i1,
 #with energy_units("1/cm"):
 #    H.remove_cutoff_coupling(cutoff) 
 #    print(H) 
-    
+
 #with eigenbasis_of(H):
-#if True:
-#    RR = prop_comb.RelaxationTensor
+if True:
+    RR = prop_comb.RelaxationTensor
+    RR.name = "stR"
+    print(RR.data[1,1,2,2], id(RR))
+    RT = prop_comb2.RelaxationTensor
+    RT.name = "cRF"
+    print(RT.data[1,1,2,2], id(RT))
+
 #    for aa in range(RR.dim):
 #        rsum = 0.0
 #        for bb in range(RR.dim):
@@ -86,7 +94,8 @@ rho_t2 = prop_comb2.propagate(rho_i1,
 #            rsum += RR.data[bb,bb,aa,aa]
 #        print(aa, " sum ", numpy.real(rsum))        
          
-                   
+Manager().warn_about_basis_change = False
+                 
 #with eigenbasis_of(H):
 if True:
     #rho_eq = agg.get_DensityMatrix(condition_type="")

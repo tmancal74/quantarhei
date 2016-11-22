@@ -34,7 +34,7 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
     system = derived_type("system",[Molecule,Aggregate])
     
     def __init__(self, timeaxis, system=None, dynamics="secular",
-                 relaxation_tensor=None):
+                 relaxation_tensor=None, relaxation_hamiltonian=None):
         
         # protected properties
         self.TimeAxis = timeaxis
@@ -47,11 +47,15 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         self.data = None
         
         self._relaxation_tensor = None
+        self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
-        
+        if relaxation_hamiltonian is not None:
+            self._relaxation_hamiltonian = relaxation_hamiltonian
+
+            
     def calculate(self,rwa=0.0):
         """ Calculates the absorption spectrum 
         
@@ -69,7 +73,9 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
                 elif isinstance(self.system,Aggregate):
                     self._calculate_aggregate(rwa, 
                                               relaxation_tensor=
-                                              self._relaxation_tensor)
+                                              self._relaxation_tensor,
+                                              relaxation_hamiltonian=
+                                              self._relaxation_hamiltonian)
             else:
                 raise Exception("System to calculate spectrum for not defined")
         
@@ -230,7 +236,8 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         self.frequency = self._frequency(ta.step) + rwa
         
         
-    def _calculate_aggregate(self, rwa, relaxation_tensor=None):
+    def _calculate_aggregate(self, rwa, relaxation_tensor=None,
+                             relaxation_hamiltonian=None):
         """ Calculates the absorption spectrum of a molecular aggregate
         
         
@@ -239,7 +246,12 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         ta = self.TimeAxis
         
         # Hamiltonian of the system
-        HH = self.system.get_Hamiltonian()
+        if relaxation_hamiltonian is None:
+            HH = self.system.RelaxationHamiltonian
+        else:
+            HH = relaxation_hamiltonian
+            
+
         SS = HH.diagonalize() # transformed into eigenbasis
 
         
