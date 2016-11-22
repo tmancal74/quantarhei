@@ -33,30 +33,30 @@ agg = mg.get_Aggregate_with_environment(name="pentamer-1_env", timeaxis=time)
 agg.build()
 
 H = agg.get_Hamiltonian()
-with energy_units("1/cm"):
-    print(H)
+#with energy_units("1/cm"):
+#    print(H)
    
-cutoff = 70.0
+cutoff = 0.0
 #
 # Aggregate object can return a propagator
 #
-#Manager().warn_about_basis_change = True
+#Manager().warn_about_basis_changing_objects = True
 with energy_units("1/cm"):
     print("Calculating 1")
     prop_comb = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="standard_Redfield",
                            coupling_cutoff=cutoff,
                            secular_relaxation=False,
-                           time_dependent=False)
+                           time_dependent=True)
     
     print("Calculating 2")    
     prop_comb2 = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="combined_RedfieldFoerster",
                            coupling_cutoff=cutoff,
                            secular_relaxation=False,
-                           time_dependent=False)
+                           time_dependent=True)
+    
 
-print("-----")
 #
 # Initial density matrix
 #
@@ -68,24 +68,25 @@ with eigenbasis_of(H):
 
 # Propagation of the density matrix
 #   
-rho_t1 = prop_comb.propagate(rho_i1,
+    rho_t1 = prop_comb.propagate(rho_i1,
                              name="Combined evolution from aggregate")
 
-rho_t2 = prop_comb2.propagate(rho_i1,
+    rho_t2 = prop_comb2.propagate(rho_i1,
                              name="Combined evolution from aggregate")
     
 #with energy_units("1/cm"):
 #    H.remove_cutoff_coupling(cutoff) 
 #    print(H) 
 
-#with eigenbasis_of(H):
-if True:
+with eigenbasis_of(H):
+#if True:
     RR = prop_comb.RelaxationTensor
     RR.name = "stR"
-    print(RR.data[1,1,2,2], id(RR))
+    print(RR.data[10,1,1,2,2], id(RR))
+#if True:
     RT = prop_comb2.RelaxationTensor
     RT.name = "cRF"
-    print(RT.data[1,1,2,2], id(RT))
+    print(RT.data[10,1,1,2,2], id(RT))
 
 #    for aa in range(RR.dim):
 #        rsum = 0.0
@@ -94,7 +95,6 @@ if True:
 #            rsum += RR.data[bb,bb,aa,aa]
 #        print(aa, " sum ", numpy.real(rsum))        
          
-Manager().warn_about_basis_change = False
                  
 #with eigenbasis_of(H):
 if True:

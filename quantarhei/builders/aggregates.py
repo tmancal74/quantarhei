@@ -3,7 +3,7 @@
 import numpy
 import scipy.constants as const
 
-from ..core.managers import UnitsManaged
+from ..core.managers import UnitsManaged, Manager
 from ..utils.types import Float
 from ..utils.types import Integer
 from ..core.units import cm2int, eps0_int
@@ -996,6 +996,9 @@ class Aggregate(UnitsManaged):
                                             cutoff_time=relaxation_cutoff_time)
                     if secular_relaxation:
                         relaxT.secularize()
+
+                    #print("Last line of the context", Manager().get_current_basis())
+                #print("Left context", Manager().get_current_basis())
                 ham.unprotect_basis()
                 ham.recover_cutoff_coupling()
 
@@ -1005,9 +1008,9 @@ class Aggregate(UnitsManaged):
             ham1 = Hamiltonian(data=ham.data.copy())
             ham1.subtract_cutoff_coupling(coupling_cutoff)
 
-            self.RelaxationTensor = relaxT
+            #self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham1
-            self._has_relaxation_tensor = True
+            #self._has_relaxation_tensor = True
             self._relaxation_theory = "combined_RedfieldFoerster"
             
             return relaxT, ham1       

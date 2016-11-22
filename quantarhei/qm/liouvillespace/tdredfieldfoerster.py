@@ -6,7 +6,7 @@ from .tdredfieldtensor import TDRedfieldRelaxationTensor
 from .tdfoerstertensor import _td_reference_implementation as td_foerster_rates
 from ..corfunctions.correlationfunctions import c2g
 #from ...core.managers import Manager
-#from ...core.managers import energy_units
+from ...core.managers import energy_units
 
 from ...core.time import TimeDependent
 
@@ -38,9 +38,15 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
     def __init__(self, ham, sbi, initialize=True,
                  cutoff_time=None, coupling_cutoff=None):
             
-        super().__init__(ham, sbi, initialize=initialize, 
+        super().__init__(ham, sbi, initialize=False, 
                              cutoff_time=cutoff_time, 
                              coupling_cutoff=coupling_cutoff)
+        Nt = sbi.TimeAxis.length
+        self.data = numpy.zeros((Nt,self.dim,self.dim,self.dim,self.dim),
+                                dtype=numpy.complex128)
+        if initialize: 
+            with energy_units("int"):
+                self._reference_implementation()
                 
     def _reference_implementation(self):
         """ Reference all Python implementation
@@ -78,7 +84,7 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
             else:
                 RT = TDRedfieldRelaxationTensor(ham, sbi)
             
-            self.data = RT.data
+            self.data += RT.data
          
 
         #

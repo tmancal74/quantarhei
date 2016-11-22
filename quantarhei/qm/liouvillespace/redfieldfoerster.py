@@ -39,7 +39,8 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         # and Foerster contributions
         if coupling_cutoff is not None:
             m = Manager()
-            self.coupling_cutoff = m.convert_energy_2_internal_u(coupling_cutoff)
+            self.coupling_cutoff = \
+                m.convert_energy_2_internal_u(coupling_cutoff)
         else:
             self.coupling_cutoff = 0.0
             
@@ -84,7 +85,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
             else:
                 RT = RedfieldRelaxationTensor(ham, sbi)
             
-            self.data = RT.data
+            self.data += RT.data
 
 
         #
@@ -176,5 +177,17 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
 
             
         self._is_initialized = True
-        self._data_initialized = False
+        self._data_initialized = True
+        
+        
+#    def transform(self, SS, inv=None):
+#        """Quick fix before I find what is the problem
+#        
+#        My expectation was that RedfieldFoerster is calculated in 
+#        the excitonic basis and needs to undergo a transformation
+#        when it is entering code with no basis management context.
+#        
+#        """
+#        super().transform(SS, inv)
+#        self._data_initialized = True
         

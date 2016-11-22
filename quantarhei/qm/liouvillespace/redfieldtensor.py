@@ -332,4 +332,5 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                                                          self.Lm, self.Ld)
                                                          
             self.as_operators = False
-                                
+         
+                      

@@ -17,7 +17,6 @@ class RelaxationTensor(BasisManaged):
         # unless it is the basis outside any context
         if cb != 0:
             self.manager.register_with_basis(cb,self)
-            print("Registering ", id(self), cb)
             
         self._data_initialized = False
         self.name = ""
@@ -70,6 +69,7 @@ class RelaxationTensor(BasisManaged):
         
 
         if not self._data_initialized:
+            print("NOT INITIALIZED")
             return
         
         if (self.manager.warn_about_basis_change):
@@ -94,30 +94,30 @@ class RelaxationTensor(BasisManaged):
                     numpy.dot(S1,numpy.dot(self._data[a,b,:,:],SS))
         else:
 
-#            for tt in range(self.Nt):
-#                for c in range(dim):
-#                    for d in range(dim):
-#                        self._data[tt,:,:,c,d] = \
-#                            numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
-#                    
-#                for a in range(dim):
-#                    for b in range(dim):
-#                        self._data[tt,a,b,:,:] = \
-#                            numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))            
-
-            for c in range(dim):
-                for d in range(dim):
-                    self._data[:,:,:,c,d] = \
-                    numpy.tensordot(numpy.tensordot(self._data[:,:,:,c,d],
-                                                    SS,axes=([2],[0])),
-                                    S1,axes=([1],[1]))
+            for tt in range(self._data.shape[0]):
+                for c in range(dim):
+                    for d in range(dim):
+                        self._data[tt,:,:,c,d] = \
+                            numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
                     
-            for a in range(dim):
-                for b in range(dim):
-                    self._data[:,a,b,:,:] = \
-                    numpy.tensordot(numpy.tensordot(self._data[:,a,b,:,:],
-                                                    SS,axes=([2],[0])),
-                                    S1,axes=([1],[1]))
+                for a in range(dim):
+                    for b in range(dim):
+                        self._data[tt,a,b,:,:] = \
+                            numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))            
+
+#            for c in range(dim):
+#                for d in range(dim):
+#                    self._data[:,:,:,c,d] = \
+#                    numpy.tensordot(numpy.tensordot(self._data[:,:,:,c,d],
+#                                                    SS,axes=([2],[0])),
+#                                    S1,axes=([1],[1]))
+#                    
+#            for a in range(dim):
+#                for b in range(dim):
+#                    self._data[:,a,b,:,:] = \
+#                    numpy.tensordot(numpy.tensordot(self._data[:,a,b,:,:],
+#                                                    SS,axes=([2],[0])),
+#                                    S1,axes=([1],[1]))
        
                     
                     
