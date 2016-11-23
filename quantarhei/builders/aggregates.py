@@ -104,6 +104,9 @@ class Aggregate(UnitsManaged):
     
     def set_coupling_matrix(self,coupmat): 
 
+        if type(coupmat) in (list, tuple):
+            coupmat = numpy.array(coupmat)
+            
         coup = self.convert_energy_2_internal_u(coupmat)           
         self.resonance_coupling = coup 
         if not self.coupling_initiated:

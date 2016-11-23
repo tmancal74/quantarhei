@@ -34,7 +34,7 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
     system = derived_type("system",[Molecule,Aggregate])
     
     def __init__(self, timeaxis, system=None, dynamics="secular",
-                 relaxation_tensor=None, relaxation_hamiltonian=None):
+                 relaxation_tensor=None, effective_hamiltonian=None):
         
         # protected properties
         self.TimeAxis = timeaxis
@@ -52,8 +52,8 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
-        if relaxation_hamiltonian is not None:
-            self._relaxation_hamiltonian = relaxation_hamiltonian
+        if effective_hamiltonian is not None:
+            self._relaxation_hamiltonian = effective_hamiltonian
 
             
     def calculate(self,rwa=0.0):
