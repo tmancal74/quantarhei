@@ -45,7 +45,7 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.7"
+    version = "0.0.9"
 
     # hard wired unit options
     allowed_utypes = ["energy",
@@ -457,12 +457,13 @@ class Manager(metaclass=Singleton):
 
         if operator.is_basis_protected:
             return
-
-        if self.warn_about_basis_changing_objects:
-            print("Object ", operator.__class__, " is changing basis")
             
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
+
+        if self.warn_about_basis_changing_objects:
+            print("Object ", operator.__class__,
+                  id(operator), " is changing basis from ", ob, " to: ", cb)
                 
         if ob != cb:
                             

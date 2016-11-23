@@ -3,7 +3,7 @@
 import numpy
 import scipy.constants as const
 
-from ..core.managers import UnitsManaged
+from ..core.managers import UnitsManaged, Manager
 from ..utils.types import Float
 from ..utils.types import Integer
 from ..core.units import cm2int, eps0_int
@@ -40,7 +40,7 @@ class aggregate_state():
         self.vib_descriptor = desc[1:]
         self.vibrations = state_tuple[1]
         
-        """ This is temporary - numbers have to be computed"""
+        # This is temporary - numbers have to be computed
         self.energy = 0.0
         self.el_energy = 0.0
         self.vib_energy = 0.0
@@ -71,6 +71,9 @@ class Aggregate(UnitsManaged):
         self.coupling_initiated = False
         self._has_egcf_matrix = False
         self._has_system_bath_interaction = False
+        self._has_relaxation_tensor = False
+        
+        self._relaxation_theory = ""
         
         self._built = False
         
@@ -101,6 +104,9 @@ class Aggregate(UnitsManaged):
     
     def set_coupling_matrix(self,coupmat): 
 
+        if type(coupmat) in (list, tuple):
+            coupmat = numpy.array(coupmat)
+            
         coup = self.convert_energy_2_internal_u(coupmat)           
         self.resonance_coupling = coup 
         if not self.coupling_initiated:
@@ -142,7 +148,9 @@ class Aggregate(UnitsManaged):
         self.egcf_matrix = cm
         self._has_egcf_matrix = True
     
-    """ Monomer """
+    #
+    # Monomer
+    #
     def add_Molecule(self,mono):
         """Adds monomer to the aggregate
         
@@ -166,7 +174,9 @@ class Aggregate(UnitsManaged):
         except:
             raise Exception()        
         
-    """ Vibrational modes """
+    #
+    # Vibrational modes
+    #
     def add_Mode_by_name(self,name,mode):
         try:
             im = self.mnames[name]
@@ -699,6 +709,8 @@ class Aggregate(UnitsManaged):
     
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
+        self.HamOp = Hamiltonian(data=HH)
+        
         #print("Original Hamiltonian\n",self.HH)
         self.DD = DD
         #print("Original DD^2")
@@ -829,27 +841,70 @@ class Aggregate(UnitsManaged):
     #    POST BUILDING METHODS
     #
     ########################################################################       
-        
-    def get_ReducedDensityMatrixPropagator(self, timeaxis,
+  
+    def get_RelaxationTensor(self, timeaxis,
                        relaxation_theory=None,
                        time_dependent=False,
-                       secular_relaxation=False, relaxation_cutoff_time=None,
-                       coupling_cutoff=None):
+                       secular_relaxation=False,
+                       relaxation_cutoff_time=None,
+                       coupling_cutoff=None,
+                       recalculate=False):
+        """Returns a relaxation tensor corresponding to the aggregate
+        
+        
+        Returns
+        -------
+        
+        RR : RelaxationTensor
+            Relaxation tensor of the aggregate
+            
+        ham : Hamiltonian
+            Hamiltonian corresponding to the aggregate, renormalized by
+            the system-bath interaction
+            
+        """
         
         from ..qm import RedfieldRelaxationTensor
         from ..qm import TDRedfieldRelaxationTensor
         from ..qm import FoersterRelaxationTensor
+        from ..qm import TDFoersterRelaxationTensor
         from ..qm import RedfieldFoersterRelaxationTensor
-        from ..qm import ReducedDensityMatrixPropagator
+        from ..qm import TDRedfieldFoersterRelaxationTensor
         from ..core.managers import eigenbasis_of
-        
+
         if self._built:
             ham = self.get_Hamiltonian()
             sbi = self.get_SystemBathInteraction()
         else:
             raise Exception()
         
-        if (relaxation_theory == "standard_Redfield"):
+        #
+        # Dictionary of available theories
+        #
+        theories = dict()
+        theories[""] = [""]
+        theories["standard_Redfield"] = ["standard_Redfield","stR","Redfield",
+                                         "CLME2","QME"]
+        theories["standard_Foerster"] = ["standard_Foerster","stF","Foerster"]
+        theories["combined_RedfieldFoerster"] = ["combined_RedfieldFoerster",
+                                                 "cRF","Redfield-Foerster"]
+        #
+        # Future
+        #
+        theories["modified_Redfield"] = ["modifield_Redfield", "mR"]
+        theories["noneq_modified_Redfield"] = ["noneq_modified_Redfield", 
+                                               "nemR"]
+        theories["generalized_Foerster"] = ["generalized_Foerster", "gF", 
+                                            "multichromophoric_Foerster"]
+        theories["noneq_Foerster"] = ["noneq_Foerster", "neF"]
+        theories["combined_WeakStrong"] = ["combined_WeakStrong", "cWS"]
+
+        if ((not recalculate) and 
+            (relaxation_theory in theories[self._relaxation_theory])):
+            return self.RelaxationTensor, self.RelaxationHamiltonian
+            
+        
+        if relaxation_theory in  theories["standard_Redfield"]:
             
             if time_dependent:
                 
@@ -862,8 +917,7 @@ class Aggregate(UnitsManaged):
                     if secular_relaxation:
                         relaxT.secularize() 
                 ham.unprotect_basis()                        
-                        
-                        
+                                                
             else:
             
                 # Time independent standard Refield
@@ -875,73 +929,141 @@ class Aggregate(UnitsManaged):
                         relaxT.secularize()
                 ham.unprotect_basis()  
                 
-            #
-            # create a corresponding propagator
-            #
-            ham.unprotect_basis()
-            with eigenbasis_of(ham):
-                prop = ReducedDensityMatrixPropagator(timeaxis,
-                                                          ham, relaxT)  
-                      
-        elif (relaxation_theory == "standard_Foerster"):
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "standard_Redfield"
+                
+            return relaxT, ham
+            
+        elif relaxation_theory in theories["standard_Foerster"]:
             
             if time_dependent:
                 
-                # Time dependent standard Foerster
-                raise Exception("Theory not implemented")
-                        
+                # Time dependent standard Foerster               
+                relaxT = TDFoersterRelaxationTensor(ham, sbi)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                for i in range(ham.dim):
+                    dat[i,i] = ham._data[i,i]
+                ham_0 = Hamiltonian(data=dat)
+          
             else:
             
-                # Time independent standard Refield
+                # Time independent standard Foerster
             
-
+                #
+                # This is done strictly in site basis
+                #
+            
                 relaxT = FoersterRelaxationTensor(ham, sbi)
                 dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
-                prop = ReducedDensityMatrixPropagator(timeaxis, ham_0, relaxT)  
-                        
-
-        elif (relaxation_theory == "combined_RedfieldFoerster"):
+                
+            # The Hamiltonian for propagation is the one without 
+            # resonance coupling         
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham_0
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "standard_Foerster"
+            
+            return relaxT, ham_0
+                
+        elif relaxation_theory in theories["combined_RedfieldFoerster"]:
             
             if time_dependent:
                 
                 # Time dependent combined tensor
-                raise Exception("Theory not implemented")
-                        
+                ham.subtract_cutoff_coupling(coupling_cutoff)
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = \
+                             TDRedfieldFoersterRelaxationTensor(ham, sbi,
+                                            coupling_cutoff=coupling_cutoff,
+                                            cutoff_time=relaxation_cutoff_time)
+                    if secular_relaxation:
+                        relaxT.secularize()
+                ham.unprotect_basis()
+                ham.recover_cutoff_coupling()                        
                         
             else:
             
-                # Time independent standard Refield
-            
-                #ham.protect_basis()
-                #with eigenbasis_of(ham):
-                if True:
-                    relaxT = RedfieldFoersterRelaxationTensor(ham, sbi,
-                                            coupling_cutoff=coupling_cutoff)
+                # Time independent combined tensor           
+                ham.subtract_cutoff_coupling(coupling_cutoff)
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = \
+                             RedfieldFoersterRelaxationTensor(ham, sbi,
+                                            coupling_cutoff=coupling_cutoff,
+                                            cutoff_time=relaxation_cutoff_time)
                     if secular_relaxation:
                         relaxT.secularize()
-                #ham.unprotect_basis()  
-                
-                #
-                # create a corresponding propagator
-                #
+
+                    #print("Last line of the context", Manager().get_current_basis())
+                #print("Left context", Manager().get_current_basis())
                 ham.unprotect_basis()
-                with eigenbasis_of(ham):
-                    prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)            
+                ham.recover_cutoff_coupling()
+
+            #
+            # create a corresponding propagator
+            #
+            ham1 = Hamiltonian(data=ham.data.copy())
+            ham1.subtract_cutoff_coupling(coupling_cutoff)
+
+            #self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham1
+            #self._has_relaxation_tensor = True
+            self._relaxation_theory = "combined_RedfieldFoerster"
+            
+            return relaxT, ham1       
+            
+        elif relaxation_theory in theories["combined_WeakStrong"]: 
+            
+            pass
+               
         else:
             
             raise Exception("Theory not implemented")
+        
+      
+    def get_ReducedDensityMatrixPropagator(self, timeaxis,
+                       relaxation_theory=None,
+                       time_dependent=False,
+                       secular_relaxation=False, 
+                       relaxation_cutoff_time=None,
+                       coupling_cutoff=None,
+                       recalculate=False):
+        """Returns propagator of the density matrix
+        
+        
+        
+        """
+        
+        
+        from ..qm import ReducedDensityMatrixPropagator
+        from ..core.managers import eigenbasis_of
+        
             
-
+        relaxT, ham = self.get_RelaxationTensor(timeaxis,
+                       relaxation_theory,
+                       time_dependent,
+                       secular_relaxation, 
+                       relaxation_cutoff_time,
+                       coupling_cutoff)
+        
+        with eigenbasis_of(ham):
+            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
+            
         
         return prop
         
         
     def diagonalize(self):
         """Transforms the Hamiltonian 
-           and transition dipole moment into diagonal basis """
+           and transition dipole moment into diagonal basis 
+           
+        """
            
         ee,SS = numpy.linalg.eigh(self.HH)
         
@@ -965,32 +1087,134 @@ class Aggregate(UnitsManaged):
         self.D2_max = numpy.max(dd2)
         
 
-    def set_thermal_population(self,temp=0.0):
+    def _thermal_population(self, temp=0.0, subtract=None):
+        """Thermal populations at temperature temp
         
-        kBT = 1.0
+        Thermal populations calculated from the diagonal elements
+        of the Hamiltonian 
         
-        self.rho0 = numpy.zeros(self.Ntot,dtype=numpy.complex128)
+        """
+        
+        from ..core.units import kB_intK
+        #from ..core.managers import eigenbasis_of
+        
+        kBT = kB_intK*temp
+        
+        HH = self.get_Hamiltonian()
+        
+        if subtract is None:
+            subtract = numpy.zeros(HH.dim, dtype=numpy.float64)
+        
+        rho0 = numpy.zeros((HH.dim,HH.dim),dtype=numpy.complex128)
         if temp == 0.0:
             print("Zero temperature")
-            self.rho0[0] = 1.0
-        else:                
-            ne = numpy.exp(-self.HD/kBT)
+            rho0[0,0] = 1.0
+        else:
+            # FIXME: we assume only single exciton band
+            ens = numpy.zeros(HH.dim-1, dtype=numpy.float64)
+            #
+            #with eigenbasis_of(HH):
+            #
+            # we specify the basis from outside. This allows to choose 
+            # canonical equilibrium in arbitrary basis
+            for i in range(HH.dim-1):
+                ens[i] = HH.data[i+1,i+1] - subtract[i+1]               
+            ne = numpy.exp(-ens/kBT)
             sne = numpy.sum(ne)
-            self.rho0 = ne/sne
+            rho0_diag = ne/sne
+            rho0[1:,1:] = numpy.diag(rho0_diag)
             
-    def set_impulsive_population(self):
+        return rho0
+    
+    
+    def _impulsive_population(self):
         
-        self.rho0 = numpy.zeros((self.Ntot,self.Ntot),dtype=numpy.complex128)
-        self.rho0[0,0] = 1.0
+        rho0 = numpy.zeros((self.Ntot,self.Ntot),dtype=numpy.complex128)
+        rho0[0,0] = 1.0
         
         dabs = numpy.sqrt(self.DD[:,:,0]**2 + \
                           self.DD[:,:,1]**2 + self.DD[:,:,2]**2)
                           
-        self.rho0 = numpy.dot(dabs,numpy.dot(self.rho0,dabs))
+        rho0 = numpy.dot(dabs,numpy.dot(rho0,dabs))
         
         
-    def get_initial_DensityMatrix(self):
-        return DensityMatrix(data=self.rho0)
+    def get_DensityMatrix(self, condition_type=None,
+                                relaxation_theory_limit=None,
+                                temperature=0):
+        """Returns density matrix according to specified condition
+        
+        Returs density matrix to be used e.g. as initial condition for
+        propagation.
+        
+        Parameters
+        ----------
+        
+        condition_type : str
+            Type of the initial condition. If None, the property rho0 is 
+            returned.
+            
+        relaxation_theory_limits : str
+            Type of the relaxation theory limits; applies to 
+            `thermal_excited_state` condition type. Possible values are
+            `weak_coupling` and `strong_coupling`. We mean the system bath
+            coupling. When `weak_coupling` is chose, the density matrix is
+            returned in form of a canonical equilibrium in terms of the
+            the exciton basis. For `strong_coupling`, the canonical equilibrium
+            is calculated in site basis with site energies striped of
+            reorganization energies.
+            
+        Condition types
+        ---------------
+        
+        thermal_excited_state 
+            Thermally equilibriuated excited state
+            
+        impulsive_excitation
+            Excitation by ultrabroad laser pulse
+            
+        """
+        if not self._built:
+            raise Exception()
+            
+        if condition_type is None:
+            
+            return DensityMatrix(data=self.rho0)
+            
+        elif condition_type == "impulsive_excitation":
+            
+            rho0 = self._impulsive_population()
+            self.rho0 = rho0
+            return DensityMatrix(data=self.rho0)
+            
+        elif condition_type == "thermal_excited_state":
+            
+            if relaxation_theory_limit is not None:
+                
+                if relaxation_theory_limit == "strong_coupling":
+                    
+                    # we need to subtract reorganization energies
+                    Ndim = self.get_Hamiltonian().dim
+                    re = numpy.zeros(Ndim, dtype=numpy.float64)
+                    for i in range(1, Ndim):
+                        # FIXME: fix the access to reorganization energy in SBI
+                        re[i] = self.sbi.CC.get_reorganization_energy(i-1,i-1)
+                        #print(i, re[i]/cm2int)
+                    rho0 = self._thermal_population(temperature, subtract=re)
+                    
+                elif relaxation_theory_limit == "weak_coupling":
+                    
+                    rho0 = self._thermal_population(temperature)
+                    
+                else:
+                    raise Exception("Unknown relaxation_theory_limit")
+            else:
+                rho0 = self._thermal_population(temperature)
+                
+            self.rho0 = rho0
+            return DensityMatrix(data=self.rho0)
+            
+        else:
+            raise Exception("Unknown condition type")
         
         
     def get_electronic_groundstate(self):
@@ -1054,15 +1278,18 @@ class Aggregate(UnitsManaged):
         
     def get_Hamiltonian(self):
         if self._built:
-            return Hamiltonian(data=self.HH)  
+            return self.HamOp #Hamiltonian(data=self.HH) 
         else:
             raise Exception("Aggregate object not built")
+            
 
     def get_TransitionDipoleMoment(self):
         if self._built:
             return TransitionDipoleMoment(data=self.DD)                     
         else:
             raise Exception("Aggregate object not built")
+            
+            
             
     ########################################################################
     #

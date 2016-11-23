@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 import numpy
 
-from .redfieldtensor import RedfieldRelaxationTensor
-from .foerstertensor import _reference_implementation as foerster_rates
+from .redfieldfoerster import RedfieldFoersterRelaxationTensor
+from .tdredfieldtensor import TDRedfieldRelaxationTensor
+from .tdfoerstertensor import _td_reference_implementation as td_foerster_rates
 from ..corfunctions.correlationfunctions import c2g
-from ...core.managers import Manager
+#from ...core.managers import Manager
 from ...core.managers import energy_units
 
+from ...core.time import TimeDependent
 
-class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
+class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor, 
+                                         TimeDependent):
     """Combination of Redfield and Foerster relaxation tensors
     
     Paramaters
@@ -34,19 +37,13 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
     """
     def __init__(self, ham, sbi, initialize=True,
                  cutoff_time=None, coupling_cutoff=None):
-                     
-        # non-zero coupling cut-off requires a calculation of both Redfield
-        # and Foerster contributions
-        if coupling_cutoff is not None:
-            m = Manager()
-            self.coupling_cutoff = \
-                m.convert_energy_2_internal_u(coupling_cutoff)
-        else:
-            self.coupling_cutoff = 0.0
             
         super().__init__(ham, sbi, initialize=False, 
-                             cutoff_time=cutoff_time)
-                
+                             cutoff_time=cutoff_time, 
+                             coupling_cutoff=coupling_cutoff)
+        Nt = sbi.TimeAxis.length
+        self.data = numpy.zeros((Nt,self.dim,self.dim,self.dim,self.dim),
+                                dtype=numpy.complex128)
         if initialize: 
             with energy_units("int"):
                 self._reference_implementation()
@@ -55,6 +52,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         """ Reference all Python implementation
         
         """
+        
         ham = self.Hamiltonian 
         sbi = self.SystemBathInteraction
         
@@ -74,19 +72,20 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         if numpy.allclose(JR, numpy.zeros(JR.shape)):
             calcFT = False
 
+                    
         #
         # calculate Redfield tensor for the strong coupling part
         #
         if calcRT:
             
             if self._has_cutoff_time:
-                RT = RedfieldRelaxationTensor(ham, sbi,
+                RT = TDRedfieldRelaxationTensor(ham, sbi,
                                               cutoff_time=self.cutoff_time)
             else:
-                RT = RedfieldRelaxationTensor(ham, sbi)
+                RT = TDRedfieldRelaxationTensor(ham, sbi)
             
             self.data += RT.data
-
+         
 
         #
         # Calculate Foerster for the remainder coupling
@@ -153,7 +152,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
             #
             # Foerster rates
             #
-            KF = foerster_rates(Na, hh, tt, gvals, lamb)
+            KF = td_foerster_rates(Na, Nt, hh, tt, gvals, lamb)
 
 #            nham = Hamiltonian(data=hh)
 #            with energy_units("1/cm"):
@@ -171,23 +170,12 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
             for b in range(Na):
                 gg = 0.0
                 for a in range(Na):
-                    self.data[a,a,b,b] += KF[a,b]
-                    gg += KF[a,b]
-                self.data[b,b,b,b] += -gg
+                    self.data[:,a,a,b,b] += KF[:,a,b]
+                    gg += KF[:,a,b]
+                self.data[:,b,b,b,b] += -gg
 
             
         self._is_initialized = True
         self._data_initialized = True
         
-        
-#    def transform(self, SS, inv=None):
-#        """Quick fix before I find what is the problem
-#        
-#        My expectation was that RedfieldFoerster is calculated in 
-#        the excitonic basis and needs to undergo a transformation
-#        when it is entering code with no basis management context.
-#        
-#        """
-#        super().transform(SS, inv)
-#        self._data_initialized = True
         

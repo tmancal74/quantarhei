@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+
 """
 
-    Propagation with Foerster theory using Aggregate object
+    Propagation with Redfield theory using Aggregate object
 
 
 
@@ -21,7 +22,7 @@ from modelgenerator import ModelGenerator
 print("""
 *******************************************************************************
 *                                                                             *
-*                         Foerster Theory Demo                                *
+*                         Redfield Theory Demo                                *
 *                                                                             *                  
 *******************************************************************************
 """)
@@ -45,9 +46,9 @@ H = agg.get_Hamiltonian()
 #
 # Aggregate object can return a propagator
 #
-prop_Foerster = agg.get_ReducedDensityMatrixPropagator(time,
-                           relaxation_theory="standard_Foerster",
-                           time_dependent=False)   
+prop_Redfield = agg.get_ReducedDensityMatrixPropagator(time,
+                           relaxation_theory="standard_Redfield",
+                           time_dependent=True)   
 
 #
 # Initial density matrix
@@ -59,10 +60,8 @@ rho_i1.data[shp-1,shp-1] = 1.0
 #
 # Propagation of the density matrix
 #   
-with eigenbasis_of(H):
-    rho_t1 = prop_Foerster.propagate(rho_i1,
-                                 name="Foerster evolution from aggregate")
-    
+rho_t1 = prop_Redfield.propagate(rho_i1,
+                                 name="Redfield evolution from aggregate")
 rho_t1.plot(coherences=False, axis=[0,Nt*dt,0,1.0])
 
 #
@@ -72,8 +71,8 @@ rho0 = agg.get_DensityMatrix(condition_type="thermal_excited_state",
                              relaxation_theory_limit="strong_coupling",
                              temperature=300)
  
-with eigenbasis_of(H):
-#if True:       
+#with eigenbasis_of(H):
+if True:       
     pop = numpy.zeros((time.length,shp),dtype=numpy.float64)
     for i in range(1, H.dim):
         pop[:,i] = numpy.real(rho0.data[i,i]) 
@@ -83,8 +82,3 @@ with eigenbasis_of(H):
 #    plt.plot(time.data,pop[:,1],'--r')
 #    plt.plot(time.data,pop[:,2],'--b')
 #    plt.plot(time.data,pop[:,3],'--g')  
-
-RR = prop_Foerster.RelaxationTensor
-with eigenbasis_of(H):
-    if isinstance(RR, qm.core.time.TimeDependent):
-        print(RR.data[:,1,1,2,2])

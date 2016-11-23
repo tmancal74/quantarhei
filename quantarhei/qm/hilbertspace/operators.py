@@ -75,10 +75,6 @@ class Operator(MatrixData, BasisManaged):
         else:
             
             raise Exception("Cannot apply operator to the object")
-            
-
-    def set_name(self, name):
-        self.name = name
         
 
     def transform(self,SS,inv=None):

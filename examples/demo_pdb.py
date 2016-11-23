@@ -10,8 +10,8 @@ from quantarhei import energy_units
 #
 # Read a PDB file
 #
-file = PDBFile("3eoj.pdb")
-#file = PDBFile("3eni.pdb")
+#file = PDBFile("3eoj.pdb")
+file = PDBFile("3eni.pdb")
 print("Loaded", file.linecount, "lines")
 
 #

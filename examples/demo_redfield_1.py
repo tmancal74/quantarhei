@@ -2,6 +2,7 @@
 import numpy
 
 from quantarhei import *
+from modelgenerator import ModelGenerator
 
 print("""
 *******************************************************************************
@@ -11,37 +12,14 @@ print("""
 *******************************************************************************
 """)
 
-time = TimeAxis(0.0, 100000, 0.1)
+Nt = 1000
+dt = 1.0
+time = TimeAxis(0.0, Nt, dt)
 
-with energy_units("1/cm"):
 
-    m1 = Molecule("Mol 1", [0.0, 10100.0])
-    m2 = Molecule("Mol 2", [0.0, 10050.0])
-    m3 = Molecule("Mol 3", [0.0, 10000.0])
-    
-    m1.position = [0.0, 0.0, 0.0]
-    m2.position = [10.0, 0.0, 0.0]
-    m3.position = [5.0, 5.0, 0.0]
-    m1.set_dipole(0,1,[5.8, 0.0, 0.0])
-    m2.set_dipole(0,1,[5.8, 0.0, 0.0])
-    m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
-
-    agg = Aggregate("Dimer")
-    agg.add_Molecule(m1)
-    agg.add_Molecule(m2)
-    agg.add_Molecule(m3)
-    
-    #agg.set_resonance_coupling(0,1,30.0)
-    #agg.set_resonance_coupling(1,2,30.0)
-    
-    agg.set_coupling_by_dipole_dipole(epsr=1.92921)
-
-    params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=100)
-    cf = CorrelationFunction(time, params)
-
-m1.set_transition_environment((0,1), cf)
-m2.set_transition_environment((0,1), cf)
-m3.set_transition_environment((0,1), cf)
+mg = ModelGenerator()
+agg = mg.get_Aggregate_with_environment(name="pentamer-1_env",
+                                        timeaxis=time)
 
 
 agg.build()
@@ -111,7 +89,7 @@ with eigenbasis_of(ham):
 
     prop = ReducedDensityMatrixPropagator(time, ham, RRT)
 
-    rho_i = ReducedDensityMatrix(dim=4, name="Initial DM")
+    rho_i = ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
     rho_i.data[3,3] = 1.0
    
     # FIXME: unprotecting does not work correctly
@@ -126,7 +104,7 @@ with eigenbasis_of(ham):
 
     rho_t.plot(coherences=False)
     
-    rho_i1 = ReducedDensityMatrix(dim=4, name="Initial DM")
+    rho_i1 = ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
     rho_i1.data[3,3] = 1.0   
     
  
@@ -139,7 +117,9 @@ with eigenbasis_of(ham):
 #
 
 prop = PopulationPropagator(time, RRM)
-pop_t = prop.propagate([0.0, 0.0, 0.0, 1.0])
+p0 = [i for i in range(ham.dim)]
+p0[3] = 1.0
+pop_t = prop.propagate(p0)
 
 import matplotlib.pyplot as plt
 plt.plot(time.data, pop_t[:,3],'--r')
