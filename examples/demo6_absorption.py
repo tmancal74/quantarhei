@@ -61,18 +61,18 @@ if save_load:
 
 """
 
-ta = qr.TimeAxis(0.0, 2000, 1.0)
+ta = qr.TimeAxis(0.0, 2000, 5.0)
 
 cfce_params1 = dict(ftype="OverdampedBrownian",
-                   reorg=30.0,
+                   reorg=10.0,
                    cortime=60.0,
-                   T=300,
-                   matsubara=10)
+                   T=100,
+                   matsubara=20)
 cfce_params2 = dict(ftype="OverdampedBrownian",
-                   reorg=30.0,
+                   reorg=10.0,
                    cortime=60.0,
-                   T=300,
-                   matsubara=10)
+                   T=100,
+                   matsubara=20)
 
 with qr.energy_units("1/cm"):
     cfce1 = qr.CorrelationFunction(ta,cfce_params1)
@@ -117,10 +117,10 @@ with e_units:
 save_load = False    
 if save_load:
     with e_units:
-        a2.save("abs_2mol_30cm_60fs_300K_m10",ext="dat")
+        a3.save("abs_2mol_10cm_60fs_100K_m20",ext="dat")
     
         f = qr.DFunction()
-        f.load("abs_2mol_30cm_60fs_300K_m10",ext="dat",axis="frequency")
+        f.load("abs_2mol_10cm_60fs_100K_m20",ext="dat",axis="frequency")
         f.plot()
   
 
@@ -134,12 +134,12 @@ if save_load:
 cfce_params1 = dict(ftype="OverdampedBrownian",
                    reorg=20.0,
                    cortime=60.0,
-                   T=300,
+                   T=100,
                    matsubara=20)
 cfce_params2 = dict(ftype="OverdampedBrownian",
                    reorg=20.0,
                    cortime=60.0,
-                   T=300,
+                   T=100,
                    matsubara=20)
 
 with qr.energy_units("1/cm"):
@@ -206,12 +206,12 @@ with e_units:
 
     
 
-save_load = False    
+save_load = True    
 if save_load:
     with e_units:
-        a2.save("abs_3mol_20cm_60fs_300K_m20",ext="dat")
+        a2.save("abs_3mol_20cm_60fs_100K_m20",ext="dat")
     
         f = qr.DFunction()
-        f.load("abs_3mol_20cm_60fs_300K_m20",ext="dat",axis="frequency")
+        f.load("abs_3mol_20cm_60fs_100K_m20",ext="dat",axis="frequency")
         f.plot()
         

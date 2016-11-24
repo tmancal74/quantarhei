@@ -247,7 +247,7 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         
         # Hamiltonian of the system
         if relaxation_hamiltonian is None:
-            HH = self.system.RelaxationHamiltonian
+            HH = self.system.get_Hamiltonian()
         else:
             HH = relaxation_hamiltonian
             
