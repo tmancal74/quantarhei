@@ -69,11 +69,11 @@ def correlation_function_of_type(self, ctype):
 @step(r'I calculate absorption spectrum of a molecule')
 def absorption_spectrum_molecule(self):
 
-    dd = [0.0,0.0,1.0]
+    dd = [0.0,1.0,0.0]
     cf = world.cf
  
     with energy_units("1/cm"):
-        m = Molecule("Mol",[0.0, 10000])
+        m = Molecule("Mol",[0.0, 12000])
     m.set_dipole(0,1,dd)
     
     m.set_egcf([0,1],cf)
@@ -95,30 +95,32 @@ def absorption_spectrum_dimer(self):
     dd2 = [0.0,10.0,10.0]
     
     cf = world.cf
-    cm = CorrelationFunctionMatrix(world.ta,2,1)
-    cm.set_correlation_function(cf,[(1,1),(0,0)])
+    #cm = CorrelationFunctionMatrix(world.ta,2,1)
+    #cm.set_correlation_function(cf,[(1,1),(0,0)])
 
     with energy_units("1/cm"):
         m1 = Molecule("Mol",[0.0, 12100])
         m1.set_dipole(0,1,dd1)
+        m1.set_transition_environment((0,1), cf)
         m2 = Molecule("Mol",[0.0, 12000])
         m2.set_dipole(0,1,dd2)
+        m2.set_transition_environment((0,1), cf)
         
-    #m1.set_egcf([0,1],cf)
+   #m1.set_egcf([0,1],cf)
     #m2.set_egcf([0,1],cf)
-    m1.set_egcf_mapping((0,1),cm,0)
-    m2.set_egcf_mapping((0,1),cm,1)
+    #m1.set_egcf_mapping((0,1),cm,0)
+    #m2.set_egcf_mapping((0,1),cm,1)
     m1.position = [0.0,0.0,0.0]
     m2.position = [5.0,0.0,0.0] 
     
     AG = Aggregate("TestAggregate")
-    AG.set_egcf_matrix(cm)
+    #AG.set_egcf_matrix(cm)
 
     AG.add_Molecule(m1)
     AG.add_Molecule(m2)
 
-    epsr = (4.0*const.pi*eps0_int)/0.0147520827152
-    AG.set_coupling_by_dipole_dipole(epsr=epsr)
+
+    AG.set_coupling_by_dipole_dipole()
 
     AG.build()
 

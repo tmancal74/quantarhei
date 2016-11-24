@@ -1011,9 +1011,9 @@ class Aggregate(UnitsManaged):
             ham1 = Hamiltonian(data=ham.data.copy())
             ham1.subtract_cutoff_coupling(coupling_cutoff)
 
-            #self.RelaxationTensor = relaxT
+            self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham1
-            #self._has_relaxation_tensor = True
+            self._has_relaxation_tensor = True
             self._relaxation_theory = "combined_RedfieldFoerster"
             
             return relaxT, ham1       

@@ -15,7 +15,7 @@ ta = qr.TimeAxis(0.0, 1000, 1.0)
 cfce_params1 = dict(ftype="OverdampedBrownian",
                    reorg=20.0,
                    cortime=100.0,
-                   T=300,matsubara=20)
+                   T=100,matsubara=20)
 
 en = 12000.0
 
@@ -42,7 +42,7 @@ with qr.frequency_units("1/cm"):
 save_load = False
 if save_load:
 
-    filename = "abs_1mol_20cm_100fs_300K_m20"
+    filename = "abs_1mol_20cm_100fs_100K_m20"
     with qr.frequency_units("1/cm"):
         a1.save(filename,ext="dat")
     

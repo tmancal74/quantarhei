@@ -45,7 +45,7 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.9"
+    version = "0.0.10"
 
     # hard wired unit options
     allowed_utypes = ["energy",
@@ -70,6 +70,7 @@ class Manager(metaclass=Singleton):
                    "THz":"THz",
                    "eV":"eV",
                    "2pi/fs":"2pi/fs",
+                   "int":"2pi/fs",
                    "meV":"meV"}
                    
     units_repre_latex = {"Kelvin":"K",
