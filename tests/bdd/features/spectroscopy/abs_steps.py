@@ -87,7 +87,7 @@ def absorption_spectrum_molecule(self):
             world.abs[kk,0] = a1.axis.data[kk] #frequency[kk]
             world.abs[kk,1] = a1.data[kk]
 
-    
+
 @step(r'I calculate absorption spectrum of a dimer aggregate')
 def absorption_spectrum_dimer(self):
     
@@ -209,4 +209,4 @@ def compare_absorption_with_file(self, file):
 
     print("comparing absorption with file ", file)
     abs_data = read_n_columns(file,2)
-    numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-6)
+    numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-5)
