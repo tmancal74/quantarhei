@@ -10,6 +10,8 @@ from quantarhei import Molecule
 from quantarhei import Aggregate
 from quantarhei.qm import RedfieldRelaxationTensor
 
+from quantarhei import Manager
+
 @step(r'I calculate Redfield relaxation tensor')
 def redfield_tensor(self):
     print("Redfield tensor calculation")
@@ -45,6 +47,8 @@ def redfield_tensor(self):
     agg.add_Molecule(m1)
     agg.add_Molecule(m2)
     
+#    m = Manager()
+##
 #    with energy_units("1/cm"):
 #        Hm = m1.get_Hamiltonian()
 #        print(Hm)
@@ -58,6 +62,7 @@ def redfield_tensor(self):
     H = agg.get_Hamiltonian()
     world.HH = H
 
+##
 #    with energy_units("1/cm"):
 #        print(H)
 #        print(m.convert_energy_2_current_u(H._data))    

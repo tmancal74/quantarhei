@@ -713,9 +713,10 @@ class eigenbasis_of(basis_context_manager):
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")        
-  
+            
+
 def set_current_units(units=None):
-    """Sets units globaly
+    """Sets units globaly without the need for a context manager
     
     """
     manager = Manager()    
