@@ -7,6 +7,7 @@ from ..core.managers import UnitsManaged, Manager
 from ..utils.types import Float
 from ..utils.types import Integer
 from ..core.units import cm2int, eps0_int
+from .interactions import dipole_dipole_interaction
 
 from ..qm.oscillators.ho import fcstorage
 from ..qm.oscillators.ho import operator_factory
@@ -94,6 +95,9 @@ class Aggregate(UnitsManaged):
         self.coupling_initiated = True           
         
     def set_resonance_coupling(self,i,j,coupling):
+        """ Sets resonance coupling value 
+        
+        """
         if not self.coupling_initiated:
             self.init_coupling_matrix() 
             
@@ -102,7 +106,10 @@ class Aggregate(UnitsManaged):
         self.resonance_coupling[i,j] = coup
         self.resonance_coupling[j,i] = coup
     
-    def set_coupling_matrix(self,coupmat): 
+    def set_resonance_coupling_matrix(self,coupmat): 
+        """ Sets resonance coupling values from a matrix
+        
+        """
 
         if type(coupmat) in (list, tuple):
             coupmat = numpy.array(coupmat)
@@ -113,6 +120,9 @@ class Aggregate(UnitsManaged):
             self.coupling_initiated = True
             
     def dipole_dipole_coupling(self,kk,ll,epsr=1.0):
+        """ Calculates dipole-dipole coupling 
+        
+        """
         if kk == ll:
             raise Exception("Only coupling between different molecules \
             can be calculated")
@@ -122,18 +132,13 @@ class Aggregate(UnitsManaged):
         r1 = self.monomers[kk].position
         d2 = self.monomers[ll].dmoments[0,1,:]
         r2 = self.monomers[ll].position        
-        
-        R = r1 - r2
-        RR = numpy.sqrt(numpy.dot(R,R))
-        
-        prf = 1.0/(4.0*const.pi*eps0_int)
-        
-        cc = (numpy.dot(d1,d2)/(RR**3)
-            - 3.0*numpy.dot(d1,R)*numpy.dot(d2,R)/(RR**5))
-        
-        return prf*cc/epsr
-            
+
+        return dipole_dipole_interaction(r1, r2, d1, d2, epsr)            
+
     def set_coupling_by_dipole_dipole(self,epsr=1.0):
+        """ Sets resonance coupling by dipole-dipole interaction
+        
+        """
         
         if not self.coupling_initiated:
             self.init_coupling_matrix() 
@@ -143,6 +148,18 @@ class Aggregate(UnitsManaged):
                 self.resonance_coupling[kk,ll] = cc
                 self.resonance_coupling[ll,kk] = cc
                 
+    def calculate_resonance_coupling(self, method="dipole-dipole",
+                               params=dict(epsr=1.0)):
+        """ Sets resonance coupling calculated by a given method 
+        
+        Parameters
+        ----------
+        
+        method: string
+            Method to be used for calculation of resonance coupling
+            
+        """
+        
                 
     def set_egcf_matrix(self,cm):
         self.egcf_matrix = cm
@@ -1157,7 +1174,7 @@ class Aggregate(UnitsManaged):
             Type of the relaxation theory limits; applies to 
             `thermal_excited_state` condition type. Possible values are
             `weak_coupling` and `strong_coupling`. We mean the system bath
-            coupling. When `weak_coupling` is chose, the density matrix is
+            coupling. When `weak_coupling` is chosen, the density matrix is
             returned in form of a canonical equilibrium in terms of the
             the exciton basis. For `strong_coupling`, the canonical equilibrium
             is calculated in site basis with site energies striped of

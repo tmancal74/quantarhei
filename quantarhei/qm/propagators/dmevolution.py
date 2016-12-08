@@ -77,7 +77,8 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
                     
                     
     def plot(self,populations=True,popselection="All",\
-                  coherences=True, cohselection="All",how='-', axis=None):
+                  coherences=True, cohselection="All",how='-',
+                  axis=None, show=True):
         """
             Plots selected data.
             Return figure so that it can be manipulated
@@ -125,7 +126,8 @@ class DensityMatrixEvolution(MatrixData, BasisManaged):
         if axis is not None:
             plt.axis(axis)
 
-        return 1
+        if show:
+            plt.show()
         
         
     def _exportDataToText(self, file):
