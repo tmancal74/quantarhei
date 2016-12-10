@@ -54,6 +54,7 @@ class PDBFile:
         else:
 
             res_name = model.pdbname
+            
             #
             # Get BCHLs
             #

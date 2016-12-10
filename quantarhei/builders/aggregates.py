@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-import scipy.constants as const
 
-from ..core.managers import UnitsManaged, Manager
+from ..core.managers import UnitsManaged
 from ..utils.types import Float
 from ..utils.types import Integer
-from ..core.units import cm2int, eps0_int
+from ..core.units import cm2int
 from .interactions import dipole_dipole_interaction
 
 from ..qm.oscillators.ho import fcstorage
@@ -210,7 +209,9 @@ class Aggregate(UnitsManaged):
         except:
             raise Exception("Mode not found")   
             
-    """ Transition dipole """
+    #
+    # Transition dipole
+    #
     def get_dipole_by_name(self,name,N,M):
         try:
             im = self.mnames[name]
@@ -225,7 +226,9 @@ class Aggregate(UnitsManaged):
     
     
     def get_max_excitations(self):
-        """Returns a list of maximum number of excitations on each monomer"""
+        """Returns a list of maximum number of excitations on each monomer
+        
+        """
         omax = []
         for nm in self.monomers:
             omax.append(nm.nel-1)
@@ -428,11 +431,11 @@ class Aggregate(UnitsManaged):
         return nret
     
     
-    def get_electronic_state(self,sig,index=0):
-        return electronic_state(self,sig,index)
+    def get_electronic_state(self, sig, index=0):
+        return electronic_state(self, sig, index)
     
     
-    def coupling(self,state1,state2):
+    def coupling(self, state1, state2):
         """Coupling between two aggregate states 
         
         
@@ -690,9 +693,14 @@ class Aggregate(UnitsManaged):
         
         """
         
+        # FIXME: Rethink this. What happens when I call this method twice???
+        
         # maximum multiplicity of excitons handled by this aggregate
         self.mult = mult 
         
+        #
+        # Electronic and vibrational states
+        #
         self.Nel = self.total_number_of_electronic_states(mult=mult)
         self.vibindices = []
         for i in range(self.Nel):
@@ -722,27 +730,23 @@ class Aggregate(UnitsManaged):
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
     
-        #print("which band: ", self.which_band)
-    
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
         self.HamOp = Hamiltonian(data=HH)
-        
-        #print("Original Hamiltonian\n",self.HH)
+
         self.DD = DD
-        #print("Original DD^2")
+        
+        # squares of transition dipoles
         dd2 = numpy.zeros((Ntot,Ntot),dtype=numpy.float64)
         for a in range(Ntot):
             for b in range(Ntot):
                 dd2[a,b] = numpy.dot(self.DD[a,b,:],self.DD[a,b,:])
-        #print(dd2)
+        #
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
     
-        # Number of states in individual bands (initialization)      
+        # Number of states in individual bands      
         self.Nb = numpy.zeros(self.mult+1,dtype=numpy.int)
-        
-        # Number of states in individual bands
         for ii in range(self.mult+1):
             self.Nb[ii] = self.number_of_states_in_band(band=ii)
  
@@ -804,10 +808,10 @@ class Aggregate(UnitsManaged):
                 
                 for i in range(self.nmono):
                     mon = self.monomers[i]
-                    cfce = mon.get_transition_environment((0,1))
+                    #cfce = mon.get_transition_environment((0,1))
 
-                    mapi = self.egcf_matrix.set_correlation_function(cfce,
-                                                                     [(i,i)])
+                    #mapi = self.egcf_matrix.set_correlation_function(cfce,
+                    #                                                 [(i,i)])
                                                 
                     mon.unset_transition_environment((0,1))
                     mon.set_egcf_mapping((0,1), self.egcf_matrix, i)

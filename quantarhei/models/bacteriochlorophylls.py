@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import numpy
-
 from ..core.units import cm2int
 from .molecularmodel import MolecularModel
 from ..builders import pdb
@@ -20,6 +18,9 @@ class BacterioChlorophyll(MolecularModel):
         
         
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
+        """ Returns transition dipole moment vector
+        
+        """
         
         data_type = self._check_data_type(data_type)
         
@@ -38,7 +39,7 @@ class BacterioChlorophyll(MolecularModel):
                 d = xyz1 - xyz2
                 d = normalize2(d, norm=self.default_dipole_lengths[0,1])
             else:
-                print(k1,k2)
+                #print(k1,k2)
                 raise Exception("No unique direction of"
                                 +" a molecule's dipole found")
         else:
@@ -46,11 +47,11 @@ class BacterioChlorophyll(MolecularModel):
 
         return d   
                                 
-                                
-        
-        return normalize2(numpy.array([1.0, 1.0, 1.0]), 5.8)
         
     def position_of_center(self, data_type=None, data=None):
+        """ Returns the position of the molecular center 
+        
+        """
         
         data_type = self._check_data_type(data_type)
         
@@ -75,12 +76,38 @@ class BacterioChlorophyll(MolecularModel):
             if (k1 >= 1) and (k2 >= 1) and (k3 >= 1) and (k4 >= 1):
                 pos = (xyz1 + xyz2 + xyz3 + xyz4)/4.0
             else:
-                print(k1, k2, k3, k4)
+                #print(k1, k2, k3, k4)
                 raise Exception("No unique possition of a molecule found")
         else:
             raise Exception("Unknown data type")
 
         return pos   
+        
+        
+    def pi_conjugated_system(self, data_type=None, data=None):
+        """Returns the atoms and atom types in the pi-conjugated system
+        
+        Calculates and returns positions of all atoms in the pi-conjugated
+        system of the molecule and the types of the atoms. 
+        
+        Parameters
+        ----------
+        
+        data_type : string
+            Type of the data; can be e.g. PDB
+            
+        data : 
+            Data corresponding to the data type
+        
+        """
+        data_type = self._check_data_type(data_type)
+        
+        if data_type == "PDB":
+            
+            pass
+
+        else:
+            raise Exception("Unknown data type")
         
         
     def _check_data_type(self, data_type):
