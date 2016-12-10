@@ -808,10 +808,10 @@ class Aggregate(UnitsManaged):
                 
                 for i in range(self.nmono):
                     mon = self.monomers[i]
-                    #cfce = mon.get_transition_environment((0,1))
+                    cfce = mon.get_transition_environment((0,1))
 
-                    #mapi = self.egcf_matrix.set_correlation_function(cfce,
-                    #                                                 [(i,i)])
+                    mapi = self.egcf_matrix.set_correlation_function(cfce,
+                                                                     [(i,i)])
                                                 
                     mon.unset_transition_environment((0,1))
                     mon.set_egcf_mapping((0,1), self.egcf_matrix, i)
