@@ -1071,7 +1071,7 @@ class Aggregate(UnitsManaged):
                        time_dependent,
                        secular_relaxation, 
                        relaxation_cutoff_time,
-                       coupling_cutoff)
+                       coupling_cutoff, recalculate=True)
         
         with eigenbasis_of(ham):
             prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
