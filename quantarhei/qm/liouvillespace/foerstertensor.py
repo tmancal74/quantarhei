@@ -90,6 +90,60 @@ class FoersterRelaxationTensor(RelaxationTensor):
         
         
 
+
+def _reference_implementation(Na, HH, tt, gt, ll):
+    """Reference implementation of Foerster rates 
+    
+    Calculate the rates between specified sites using standard Foerster
+    theory. 
+    
+    Reference:  
+    L. Valkunas, D. Abramavicius, and T. Mančal, Molecular Excitation
+    Dynamics and Relaxation, Wiley-VCH, Berlin (2013), page: 
+
+    Parameters
+    ----------
+    
+    Na : integer
+        Number of sites in the problem (rank of the rate matrix)
+        
+    HH : float array
+        Hamiltonian matrix
+        
+    tt : float array
+        Time points in which the line shape functions are given
+        
+    gt : complex array
+        Line shape functions values at give time points.
+        First index corresponds to the site, the second to the time point
+        
+    ll : array
+        Reorganization energies on sites
+        
+    Returns
+    -------
+    
+    KK : float array
+        Rate matrix with zeros on the diagonal
+
+    """
+                                     
+    #
+    # Rates between states a and b
+    # 
+    KK = numpy.zeros((Na,Na), dtype=numpy.float64)
+    for a in range(Na):
+        for b in range(Na):
+            if a != b:
+                ed = HH[b,b] # donor
+                ea = HH[a,a] # acceptor
+                KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
+                                                  ed, ea, ll[b])
+   
+    return KK
+
+    
+    
 def _fintegral(tt, gtd, gta, ed, ea, ld):
     """Foerster integral
     
@@ -138,19 +192,4 @@ def _fintegral(tt, gtd, gta, ed, ea, ld):
     ret = 2.0*numpy.real(hoft[len(tt)-1])
     
     return ret
-
-def _reference_implementation(Na, HH, tt, gt, ll):
-                                     
-    #
-    # Rates between states a and b
-    # 
-    KK = numpy.zeros((Na,Na), dtype=numpy.float64)
-    for a in range(Na):
-        for b in range(Na):
-            if a != b:
-                ed = HH[b,b] # donor
-                ea = HH[a,a] # acceptor
-                KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
-                                                  ed, ea, ll[b])
-   
-    return KK
+    
