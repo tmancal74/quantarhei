@@ -9,12 +9,12 @@
 
 import numpy
 
-from ...core.implementations import implementation
-from ...core.units import cm2int
-from ...core.units import kB_intK
+from ....core.implementations import implementation
+from ....core.units import cm2int
+from ....core.units import kB_intK
 
-from ..hilbertspace.hamiltonian import Hamiltonian
-from ..liouvillespace.systembathinteraction import SystemBathInteraction
+from ...hilbertspace.hamiltonian import Hamiltonian
+from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
    
 class RedfieldRateMatrix:
@@ -47,11 +47,11 @@ class RedfieldRateMatrix:
     
     def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
-        if not isinstance(ham,Hamiltonian):
+        if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
             
-        if not isinstance(sbi,SystemBathInteraction):
-            raise Exception
+        if not isinstance(sbi, SystemBathInteraction):
+            raise Exception("Second argument must be a SystemBathInteraction")
             
         self._is_initialized = False            
         self._has_cutoff_time = False
@@ -60,22 +60,22 @@ class RedfieldRateMatrix:
             self.cutoff_time = cutoff_time
             self._has_cutoff_time = True            
             
-        self.Hamiltonian = ham
+        self.ham = ham
         self.sbi = sbi
         
         if initialize: 
-            self._set_rates(ham,sbi)          
+            self._set_rates()          
             self._is_initialized = True
                 
                 
-    def _set_rates(self,ham,sbi):
+    def _set_rates(self):
         """ Reference implementation, completely in Python
         
         """
         
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
-        Na = ham.data.shape[0]
+        Na = self.ham._data.shape[0]
      
         # number of components
         Nk = self.sbi.N  
@@ -84,7 +84,7 @@ class RedfieldRateMatrix:
             raise Exception("No system bath intraction components present")
         
         # Eigen problem
-        hD,SS = numpy.linalg.eigh(ham.data) 
+        hD,SS = numpy.linalg.eigh(self.ham._data) 
         S1 = numpy.linalg.inv(SS)
         
         # component operators
@@ -110,7 +110,7 @@ class RedfieldRateMatrix:
                 Om[a,b] = hD[a] - hD[b]
                 
         # calculate values of the spectral density at frequencies
-        cc = numpy.zeros((Nk,Na,Na),dtype=numpy.complex)
+        cc = numpy.zeros((Nk,Na,Na),dtype=numpy.float64)
         
         # loop over components
         for k in range(Nk):
@@ -131,30 +131,37 @@ class RedfieldRateMatrix:
                         else:
                             if Om[j,i] < 0.0:
                                 #cc[k,i,j] = (cf.interp_data(Om[i,j])
-                                cc[k,i,j] = (cw.at(Om[i,j],approx="spline")
-                                *numpy.exp(-Om[i,j]/(kB_intK*Temp)))
+                                cc[k,i,j] = numpy.real((cw.at(Om[i,j],
+                                approx="spline")
+                                *numpy.exp(-Om[i,j]/(kB_intK*Temp))))
                             else:
-                                cc[k,i,j] = cw.at(Om[j,i],approx="spline") 
+                                cc[k,i,j] = numpy.real(cw.at(Om[j,i],
+                                approx="spline"))
                                 
 
-        """ To submit: 
-                        Na
-                        Nk
-                        KI[Nk,Na,Na]
-                        cc[Nk,Na,Na]
-                        
-             
-            To return:
-                        RR
-                        
-        """
         
-        warning = []
-        error = []
-        rtol = 1.0e-6
-        self.data = ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error)
-        for w in error:
-            print(w)     
+        # create storage for the rates
+        self.data = numpy.zeros((Na,Na), dtype=numpy.float)
+
+        # calculate rate matrix
+        #
+        # To submit: 
+        #                Na
+        #                Nk
+        #                KI[Nk,Na,Na]
+        #                cc[Nk,Na,Na]
+        #                
+        #     
+        #    To return:
+        #                RR
+        #                
+        werror = numpy.zeros(2,dtype=numpy.int8)
+        rtol = 1.0e-6        
+        self.data = ssRedfieldRateMatrix(Na, Nk, KI,
+                                         cc, rtol, werror, self.data)
+        
+        if werror[1] == -1:
+            print("Warning: Redfield rates signicantly smaller than 0")     
                                
         self._is_initialized = True
         
@@ -164,14 +171,30 @@ class RedfieldRateMatrix:
                 at_runtime=True,
                 fallback_local=True,
                 always_local=True)
-def ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error):
+def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
+    """Standard redfield rates
     
-    # output relaxatio rate matrix
-    RR = numpy.zeros((Na,Na),dtype=numpy.float)
     
-    # real part of FT correlation function = 2Re of the half FT of 
-    # the correlation function - no factor of 2 here!
-    cr = numpy.real(cc)
+    Parameters
+    ----------
+    
+    Na : integer
+        Rank of the rate matrix, number of excitons
+        
+    Nk : integer
+        Number of components of the interaction Hamiltonian
+    
+    KI : float array
+        System parts of the interaction Hamiltonian components
+        
+    cc : float array
+        Half of the Fourier transform of the correlation functions 
+        at all transition frequencies
+        
+    RR : real array
+        Relaxation rate matrix (to be calculated and returned)
+    
+    """
     
     # loop over components
     for k in range(Nk):
@@ -185,15 +208,15 @@ def ssRedfieldRateMatrix(Na,Nk,KI,cc,rtol,warning,error):
                 # calculate rates, i.e. off diagonal elements
                 if i != j:                                
                             
-                    RR[i,j] += (cr[k,i,j]*KK[i,j]*KK[j,i])
-                    
+                    RR[i,j] += (cc[k,i,j]*KK[i,j]*KK[j,i])
+
                     if RR[i,j] < 0.0:
-                        warning.append("\n%i %i %r smaller than zero"
-                                    % (i,j,RR[i,j]))
+                        werror[0] = -1
                         if numpy.abs(RR[i,j]) < rtol:
                             RR[i,j] = 0.0
                         else:
-                            error.append(" ... significantly")
+                            werror[1] = -1
+                            
     # calculate the diagonal elements (the depopulation rates)            
     for i in range(Na):
         for j in range(Na):

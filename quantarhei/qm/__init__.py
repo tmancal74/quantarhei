@@ -28,12 +28,21 @@ from .liouvillespace.systembathinteraction import SystemBathInteraction
 #
 #   RELAXATION THEORY
 #
-from .liouvillespace.redfieldrates import RedfieldRateMatrix
-from .liouvillespace.tdredfieldrates import TDRedfieldRateMatrix
+
+# Rate matrices
+from .liouvillespace.rates.redfieldrates import RedfieldRateMatrix
+from .liouvillespace.rates.tdredfieldrates import TDRedfieldRateMatrix
+from .liouvillespace.rates.modifiedredfieldrates import ModifiedRedfieldRateMatrix
+
+# Relaxation tensors (weak SB theory)
 from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
 from .liouvillespace.tdredfieldtensor import TDRedfieldRelaxationTensor
+
+# Relaxation tensors (strong SB theory)
 from .liouvillespace.foerstertensor import FoersterRelaxationTensor
 from .liouvillespace.tdfoerstertensor import TDFoersterRelaxationTensor
+
+# Combined theories
 from .liouvillespace.redfieldfoerster import RedfieldFoersterRelaxationTensor
 from .liouvillespace.tdredfieldfoerster import TDRedfieldFoersterRelaxationTensor
 
