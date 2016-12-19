@@ -157,8 +157,8 @@ class RedfieldRateMatrix:
         #                
         werror = numpy.zeros(2,dtype=numpy.int8)
         rtol = 1.0e-6        
-        self.data = ssRedfieldRateMatrix(Na, Nk, KI,
-                                         cc, rtol, werror, self.data)
+        ssRedfieldRateMatrix(Na, Nk, KI,
+                             cc, rtol, werror, self.data)
         
         if werror[1] == -1:
             print("Warning: Redfield rates signicantly smaller than 0")     
@@ -223,6 +223,5 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
             if i != j:
                 RR[j,j] -= RR[i,j]
                     
-    return RR
                     
                     

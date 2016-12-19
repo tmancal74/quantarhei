@@ -69,3 +69,57 @@ class ModifiedRedfieldRateMatrix:
             
     def _set_rates(self):
         pass
+
+
+def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, Ee, SS, prt, gg, hh, cc, ls,
+                                 rtol, werror, RR):
+    """Standard redfield rates
+    
+    
+    Parameters
+    ----------
+    
+    Na : integer
+        Rank of the rate matrix, number of excitons
+        
+    Nc : integer
+        Number of components of the interaction Hamiltonian (number of sites
+        or number of distinct correlation functions)
+    
+    Ee : float array
+        Eigen energies of the Hamiltonian
+        
+    SS : float array
+        Transformation matrix 
+        (components of the interaction operator in the exciton basis)
+        
+    prt : integer array
+        Pointer between site index and correlation function index
+    
+    gg : float array
+        Line shape functions
+        
+    hh : float array
+        derivative of the line shape function
+    
+    cc : float array
+        second derivatives of the line shape functions (correlation functions)
+        
+    ls : float array
+        reorganization energies of the sites
+        
+    RR : real array
+        Relaxation rate matrix (to be calculated and returned)
+    
+    rtol : float array
+        tolerances
+        
+    werror : integer array
+        warnings and errors
+        
+    """
+    
+
+    pass
+                    
+                    

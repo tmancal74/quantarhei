@@ -33,8 +33,11 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
     TimeAxis = derived_type("TimeAxis",TimeAxis)
     system = derived_type("system",[Molecule,Aggregate])
     
-    def __init__(self, timeaxis, system=None, dynamics="secular",
-                 relaxation_tensor=None, effective_hamiltonian=None):
+    def __init__(self, timeaxis,
+                 system=None,
+                 dynamics="secular",
+                 relaxation_tensor=None,
+                 effective_hamiltonian=None):
         
         # protected properties
         self.TimeAxis = timeaxis
