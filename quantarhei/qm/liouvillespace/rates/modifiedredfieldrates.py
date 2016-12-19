@@ -71,7 +71,7 @@ class ModifiedRedfieldRateMatrix:
         pass
 
 
-def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, Ee, SS, prt, gg, hh, cc, ls,
+def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, Ee, SS, prt, gg, hh, cc, tt, ls,
                                  rtol, werror, RR):
     """Standard redfield rates
     
@@ -104,6 +104,9 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, Ee, SS, prt, gg, hh, cc, ls,
     
     cc : float array
         second derivatives of the line shape functions (correlation functions)
+        
+    tt : float array
+        values of time
         
     ls : float array
         reorganization energies of the sites
