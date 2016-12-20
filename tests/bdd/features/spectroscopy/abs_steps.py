@@ -69,11 +69,11 @@ def correlation_function_of_type(self, ctype):
 @step(r'I calculate absorption spectrum of a molecule')
 def absorption_spectrum_molecule(self):
 
-    dd = [0.0,0.0,1.0]
+    dd = [0.0,1.0,0.0]
     cf = world.cf
  
     with energy_units("1/cm"):
-        m = Molecule("Mol",[0.0, 10000])
+        m = Molecule("Mol",[0.0, 12000])
     m.set_dipole(0,1,dd)
     
     m.set_egcf([0,1],cf)
@@ -87,38 +87,40 @@ def absorption_spectrum_molecule(self):
             world.abs[kk,0] = a1.axis.data[kk] #frequency[kk]
             world.abs[kk,1] = a1.data[kk]
 
-    
+
 @step(r'I calculate absorption spectrum of a dimer aggregate')
 def absorption_spectrum_dimer(self):
     
-    dd1 = [0.0,10.0,0.0]
-    dd2 = [0.0,10.0,10.0]
+    dd1 = [0.0,3.0,0.0]
+    dd2 = [0.0,1.0,1.0]
     
     cf = world.cf
-    cm = CorrelationFunctionMatrix(world.ta,2,1)
-    cm.set_correlation_function(cf,[(1,1),(0,0)])
+    #cm = CorrelationFunctionMatrix(world.ta,2,1)
+    #cm.set_correlation_function(cf,[(1,1),(0,0)])
 
     with energy_units("1/cm"):
         m1 = Molecule("Mol",[0.0, 12100])
         m1.set_dipole(0,1,dd1)
+        m1.set_transition_environment((0,1), cf)
         m2 = Molecule("Mol",[0.0, 12000])
         m2.set_dipole(0,1,dd2)
+        m2.set_transition_environment((0,1), cf)
         
-    #m1.set_egcf([0,1],cf)
+   #m1.set_egcf([0,1],cf)
     #m2.set_egcf([0,1],cf)
-    m1.set_egcf_mapping((0,1),cm,0)
-    m2.set_egcf_mapping((0,1),cm,1)
+    #m1.set_egcf_mapping((0,1),cm,0)
+    #m2.set_egcf_mapping((0,1),cm,1)
     m1.position = [0.0,0.0,0.0]
     m2.position = [5.0,0.0,0.0] 
     
     AG = Aggregate("TestAggregate")
-    AG.set_egcf_matrix(cm)
+    #AG.set_egcf_matrix(cm)
 
     AG.add_Molecule(m1)
     AG.add_Molecule(m2)
 
-    epsr = (4.0*const.pi*eps0_int)/0.0147520827152
-    AG.set_coupling_by_dipole_dipole(epsr=epsr)
+
+    AG.set_coupling_by_dipole_dipole()
 
     AG.build()
 
@@ -137,46 +139,46 @@ def absorption_spectrum_dimer(self):
 @step(r'I calculate absorption spectrum of a trimer aggregate')
 def absorption_spectrum_trimer(self):
     
-    dd1 = [0.0,10.0,0.0]
-    dd2 = [0.0,10.0,10.0]
+    dd1 = [0.0,3.0,0.0]
+    dd2 = [0.0,1.0,2.0]
+    dd3 = [0.0,1.0,1.0]
     
     cf = world.cf
-    cm = CorrelationFunctionMatrix(world.ta,3,1)
-    cm.set_correlation_function(cf,[(1,1),(0,0),(2,2)])
 
     with energy_units("1/cm"):
         m1 = Molecule("Mol",[0.0, 12100])
         m1.set_dipole(0,1,dd1)
-        m2 = Molecule("Mol",[0.0, 12000])
+        m1.set_transition_environment((0,1), cf)
+        m2 = Molecule("Mol",[0.0, 11800])
         m2.set_dipole(0,1,dd2)
-        m3 = Molecule("Mol",[0.0, 12000])
-        m3.set_dipole(0,1,dd2)  
+        m2.set_transition_environment((0,1), cf)
+        m3 = Molecule("Mol",[0.0, 12500])
+        m3.set_dipole(0,1,dd3)  
+        m3.set_transition_environment((0,1), cf)
         
-    #m1.set_egcf([0,1],cf)
-    #m2.set_egcf([0,1],cf)
-    m1.set_egcf_mapping((0,1),cm,0)
-    m2.set_egcf_mapping((0,1),cm,1)
-    m3.set_egcf_mapping((0,1),cm,2)
+
     m1.position = [0.0,0.0,0.0]
     m2.position = [5.0,0.0,0.0] 
     m3.position = [0.0,5.0,0.0] 
     
     
     AG = Aggregate("TestAggregate")
-    AG.set_egcf_matrix(cm)
 
     AG.add_Molecule(m1)
     AG.add_Molecule(m2)
     AG.add_Molecule(m3)
-
-    epsr = (4.0*const.pi*eps0_int)/0.0147520827152
-    print("!!!! ", epsr)
     
-    AG.set_coupling_by_dipole_dipole(epsr=epsr)
+    AG.set_coupling_by_dipole_dipole(epsr=3.0)
 
     AG.build()
 
-    a1 = AbsSpect(world.ta,AG)
+    (RRr,hamr) = AG.get_RelaxationTensor(world.ta,
+                                   relaxation_theory="standard_Redfield",
+                                   time_dependent=True)    
+    a1 = AbsSpect(world.ta,AG, 
+                  relaxation_tensor=RRr,
+                  effective_hamiltonian=hamr)
+    
     with energy_units("1/cm"):
         a1.calculate(rwa=12000)
     
@@ -207,4 +209,4 @@ def compare_absorption_with_file(self, file):
 
     print("comparing absorption with file ", file)
     abs_data = read_n_columns(file,2)
-    numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-6)
+    numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-5)

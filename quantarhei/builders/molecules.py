@@ -67,7 +67,7 @@ class Molecule(UnitsManaged):
     nmod     = Integer('nmod')
     
     
-    def __init__(self,name=None,elenergies=[0.0,1.0]): #,dmoments):
+    def __init__(self, name=None, elenergies=[0.0,1.0]): #,dmoments):
     
         #self.manager = Manager()
         
@@ -145,6 +145,10 @@ class Molecule(UnitsManaged):
         self._is_mapped_on_egcf_matrix = False
         
         self._has_system_bath_coupling = False
+        
+        # data attribute can hold PDB coordinates or something else
+        self.data = None
+        self._data_type = None
         
     def get_name(self):
         return self.name
@@ -277,7 +281,7 @@ class Molecule(UnitsManaged):
 
         raise Exception("No environment set for the transition")   
         
-    
+    #@deprecated
     def get_egcf(self, transition): 
         
         if self._is_mapped_on_egcf_matrix:
@@ -296,7 +300,9 @@ class Molecule(UnitsManaged):
         else:
             raise TypeError()
             
-    """ Some getters and setters """
+    #
+    # Some getters and setters 
+    #
     def get_Mode(self,N):
         try:
             return self.modes[N]
@@ -877,4 +883,11 @@ class Molecule(UnitsManaged):
                            self.modes[m1].get_nmax(n))
             
         return out
+        
+
+def PiMolecule(Molecule):
+    
+    def __init__(self, name=None, elenergies=[0.0,1.0], data=None):
+        super().__init__(name=None, elenergies=[0.0,1.0], data=None)
+        self.data = data
         

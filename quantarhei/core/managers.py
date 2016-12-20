@@ -45,7 +45,7 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.9"
+    version = "0.0.11"
 
     # hard wired unit options
     allowed_utypes = ["energy",
@@ -70,6 +70,7 @@ class Manager(metaclass=Singleton):
                    "THz":"THz",
                    "eV":"eV",
                    "2pi/fs":"2pi/fs",
+                   "int":"2pi/fs",
                    "meV":"meV"}
                    
     units_repre_latex = {"Kelvin":"K",
@@ -713,5 +714,33 @@ class eigenbasis_of(basis_context_manager):
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")        
             
+
+def set_current_units(units=None):
+    """Sets units globaly without the need for a context manager
+    
+    """
+    manager = Manager()    
+    if units is not None:
+        # set units using a supplied dictionary
+        for utype in units:
+            if utype in manager.allowed_utypes:
+                un = units[utype]
+                # handle the identity of "frequency" and "energy"
+                if utype=="frequency":
+                    utype="energy"
+                    un = units["frequency"]
+                    
+                manager.set_current_units(utype,un)
+            else:
+                raise Exception("Unknown units type %s" % utype)
+
+    else:
+        # reset units to the default
+        for utype in manager.internal_units:
+            if utype in manager.allowed_utypes:
+                manager.set_current_units(utype,manager.internal_units[utype])
+            else:
+                raise Exception("Unknown units type %s" % utype)
+        
         
         

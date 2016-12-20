@@ -56,6 +56,7 @@ from .core.managers import Manager
 from .core.managers import energy_units
 from .core.managers import frequency_units
 from .core.managers import eigenbasis_of
+from .core.managers import set_current_units
 
 from .qm.corfunctions import CorrelationFunction
 from .qm.corfunctions import SpectralDensity

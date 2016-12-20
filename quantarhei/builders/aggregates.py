@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-import scipy.constants as const
 
-from ..core.managers import UnitsManaged, Manager
+from ..core.managers import UnitsManaged
 from ..utils.types import Float
 from ..utils.types import Integer
-from ..core.units import cm2int, eps0_int
+from ..core.units import cm2int
+from .interactions import dipole_dipole_interaction
 
 from ..qm.oscillators.ho import fcstorage
 from ..qm.oscillators.ho import operator_factory
@@ -94,6 +94,9 @@ class Aggregate(UnitsManaged):
         self.coupling_initiated = True           
         
     def set_resonance_coupling(self,i,j,coupling):
+        """ Sets resonance coupling value 
+        
+        """
         if not self.coupling_initiated:
             self.init_coupling_matrix() 
             
@@ -102,7 +105,10 @@ class Aggregate(UnitsManaged):
         self.resonance_coupling[i,j] = coup
         self.resonance_coupling[j,i] = coup
     
-    def set_coupling_matrix(self,coupmat): 
+    def set_resonance_coupling_matrix(self,coupmat): 
+        """ Sets resonance coupling values from a matrix
+        
+        """
 
         if type(coupmat) in (list, tuple):
             coupmat = numpy.array(coupmat)
@@ -113,6 +119,9 @@ class Aggregate(UnitsManaged):
             self.coupling_initiated = True
             
     def dipole_dipole_coupling(self,kk,ll,epsr=1.0):
+        """ Calculates dipole-dipole coupling 
+        
+        """
         if kk == ll:
             raise Exception("Only coupling between different molecules \
             can be calculated")
@@ -122,18 +131,13 @@ class Aggregate(UnitsManaged):
         r1 = self.monomers[kk].position
         d2 = self.monomers[ll].dmoments[0,1,:]
         r2 = self.monomers[ll].position        
-        
-        R = r1 - r2
-        RR = numpy.sqrt(numpy.dot(R,R))
-        
-        prf = 1.0/(4.0*const.pi*eps0_int)
-        
-        cc = (numpy.dot(d1,d2)/(RR**3)
-            - 3.0*numpy.dot(d1,R)*numpy.dot(d2,R)/(RR**5))
-        
-        return prf*cc/epsr
-            
+
+        return dipole_dipole_interaction(r1, r2, d1, d2, epsr)            
+
     def set_coupling_by_dipole_dipole(self,epsr=1.0):
+        """ Sets resonance coupling by dipole-dipole interaction
+        
+        """
         
         if not self.coupling_initiated:
             self.init_coupling_matrix() 
@@ -143,6 +147,18 @@ class Aggregate(UnitsManaged):
                 self.resonance_coupling[kk,ll] = cc
                 self.resonance_coupling[ll,kk] = cc
                 
+    def calculate_resonance_coupling(self, method="dipole-dipole",
+                               params=dict(epsr=1.0)):
+        """ Sets resonance coupling calculated by a given method 
+        
+        Parameters
+        ----------
+        
+        method: string
+            Method to be used for calculation of resonance coupling
+            
+        """
+        
                 
     def set_egcf_matrix(self,cm):
         self.egcf_matrix = cm
@@ -193,7 +209,9 @@ class Aggregate(UnitsManaged):
         except:
             raise Exception("Mode not found")   
             
-    """ Transition dipole """
+    #
+    # Transition dipole
+    #
     def get_dipole_by_name(self,name,N,M):
         try:
             im = self.mnames[name]
@@ -208,7 +226,9 @@ class Aggregate(UnitsManaged):
     
     
     def get_max_excitations(self):
-        """Returns a list of maximum number of excitations on each monomer"""
+        """Returns a list of maximum number of excitations on each monomer
+        
+        """
         omax = []
         for nm in self.monomers:
             omax.append(nm.nel-1)
@@ -411,11 +431,11 @@ class Aggregate(UnitsManaged):
         return nret
     
     
-    def get_electronic_state(self,sig,index=0):
-        return electronic_state(self,sig,index)
+    def get_electronic_state(self, sig, index=0):
+        return electronic_state(self, sig, index)
     
     
-    def coupling(self,state1,state2):
+    def coupling(self, state1, state2):
         """Coupling between two aggregate states 
         
         
@@ -673,9 +693,14 @@ class Aggregate(UnitsManaged):
         
         """
         
+        # FIXME: Rethink this. What happens when I call this method twice???
+        
         # maximum multiplicity of excitons handled by this aggregate
         self.mult = mult 
         
+        #
+        # Electronic and vibrational states
+        #
         self.Nel = self.total_number_of_electronic_states(mult=mult)
         self.vibindices = []
         for i in range(self.Nel):
@@ -705,27 +730,23 @@ class Aggregate(UnitsManaged):
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
     
-        #print("which band: ", self.which_band)
-    
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
         self.HamOp = Hamiltonian(data=HH)
-        
-        #print("Original Hamiltonian\n",self.HH)
+
         self.DD = DD
-        #print("Original DD^2")
+        
+        # squares of transition dipoles
         dd2 = numpy.zeros((Ntot,Ntot),dtype=numpy.float64)
         for a in range(Ntot):
             for b in range(Ntot):
                 dd2[a,b] = numpy.dot(self.DD[a,b,:],self.DD[a,b,:])
-        #print(dd2)
+        #
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
     
-        # Number of states in individual bands (initialization)      
+        # Number of states in individual bands      
         self.Nb = numpy.zeros(self.mult+1,dtype=numpy.int)
-        
-        # Number of states in individual bands
         for ii in range(self.mult+1):
             self.Nb[ii] = self.number_of_states_in_band(band=ii)
  
@@ -1011,9 +1032,9 @@ class Aggregate(UnitsManaged):
             ham1 = Hamiltonian(data=ham.data.copy())
             ham1.subtract_cutoff_coupling(coupling_cutoff)
 
-            #self.RelaxationTensor = relaxT
+            self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham1
-            #self._has_relaxation_tensor = True
+            self._has_relaxation_tensor = True
             self._relaxation_theory = "combined_RedfieldFoerster"
             
             return relaxT, ham1       
@@ -1050,7 +1071,7 @@ class Aggregate(UnitsManaged):
                        time_dependent,
                        secular_relaxation, 
                        relaxation_cutoff_time,
-                       coupling_cutoff)
+                       coupling_cutoff, recalculate=True)
         
         with eigenbasis_of(ham):
             prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
@@ -1157,7 +1178,7 @@ class Aggregate(UnitsManaged):
             Type of the relaxation theory limits; applies to 
             `thermal_excited_state` condition type. Possible values are
             `weak_coupling` and `strong_coupling`. We mean the system bath
-            coupling. When `weak_coupling` is chose, the density matrix is
+            coupling. When `weak_coupling` is chosen, the density matrix is
             returned in form of a canonical equilibrium in terms of the
             the exciton basis. For `strong_coupling`, the canonical equilibrium
             is calculated in site basis with site energies striped of

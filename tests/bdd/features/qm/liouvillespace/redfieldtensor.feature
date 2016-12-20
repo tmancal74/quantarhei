@@ -15,7 +15,7 @@ Feature: Calculation of Redfield relaxation tensor in a homodimer
 #
 #  Comparison against analytical results
 #
-@redfield
+@redfield_homo
 Scenario Outline: Refield tensor for a homodimer against analytical result with step dt = 1.0
     Given a homodimer with site transition energies <tr_en> "<e_units>"
     And resonance coupling <coupl_en> "<e_units>"

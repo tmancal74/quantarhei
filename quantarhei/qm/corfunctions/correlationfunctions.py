@@ -270,7 +270,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         #with energy_units("int"):
         primitive = c2h(self.axis, self.data)
         lamb = -numpy.imag(primitive[self.axis.length-1])
-        return lamb
+        return self.convert_energy_2_current_u(lamb)
 
 
     def copy(self):
