@@ -67,6 +67,8 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             #
             self.updateStructure()        
         
+            
+            
 def _td_fintegral(tt, gtd, gta, ed, ea, ld):
         """Time dependent Foerster integral
         

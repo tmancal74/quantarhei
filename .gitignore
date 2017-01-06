@@ -3,6 +3,7 @@
 .spyproject
 __pycache__
 
+build
 dist
 quantarhei.egg-info
 .DS_Store
