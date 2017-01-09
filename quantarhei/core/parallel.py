@@ -5,7 +5,7 @@
 """
 class distributed_configuration:
 
-    def __init__(self):
+    def __init__(self, schedule=None):
         self.have_mpi = False
         try:
             from mpi4py import MPI
@@ -13,7 +13,8 @@ class distributed_configuration:
         except:
             self.have_mpi = False
             print("WARNING: MPI import failed - switching to serial.")
-            print("WARNING: If you run this with mpiexec, you get independent copies of the serial program")
+            print("WARNING: If you run this with mpiexec," 
+            + " you get independent copies of the serial program")
 
         if self.have_mpi:
             comm = MPI.COMM_WORLD
