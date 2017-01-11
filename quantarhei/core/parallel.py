@@ -3,6 +3,8 @@
 
 
 """
+from .managers import Manager
+
 class DistributedConfiguration:
 
     def __init__(self, schedule=None):
@@ -26,6 +28,13 @@ class DistributedConfiguration:
             self.rank = 0
             self.size = 1
             
+        self.mp_enabled = True # Massage Passing
+        self.host_acc_enabled = True # OpenMP
+        self.device_acc_enabled = True # OpenACC, CUDA, or similar
+        
+        self.manager = Manager()
+        
+        
     def print_info(self):
         if self.rank == 0:
             if self.have_mpi:
@@ -100,31 +109,39 @@ def block_distributed_range(config, start, stop):
             end of the range
 
     """
-
-    whole_range = stop-start
-    per_worker = whole_range // config.size
-    remainder = whole_range % config.size
-
-    N1_local = config.rank*per_worker
-    N2_local = N1_local+per_worker
+    host_acceleration_enabled = True
     
-    if config.rank <= remainder:
-        if config.rank != 0:
-            N1_local += config.rank-1
-            N2_local += config.rank
+    if host_acceleration_enabled:
+    
+        whole_range = stop-start
+        per_worker = whole_range // config.size
+        remainder = whole_range % config.size
+    
+        N1_local = config.rank*per_worker
+        N2_local = N1_local+per_worker
+        
+        if config.rank <= remainder:
+            if config.rank != 0:
+                N1_local += config.rank-1
+                N2_local += config.rank
+        else:
+            N1_local += remainder
+            N2_local += remainder
+        
+    
+        rng = list()
+        rng.append(N1_local)
+        rng.append(N2_local)
+    
+        config.range = rng
+
+        return range(rng[0],rng[1])
+        
     else:
-        N1_local += remainder
-        N2_local += remainder
-    
-
-    rng = list()
-    rng.append(N1_local)
-    rng.append(N2_local)
-
-    config.range = rng
-
-    return range(rng[0],rng[1])
-    
+        
+        return range(start, stop)
+        
+        
 if __name__ == "__main__":
  
     import numpy

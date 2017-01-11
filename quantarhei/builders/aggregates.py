@@ -903,7 +903,7 @@ class Aggregate(UnitsManaged):
                        secular_relaxation=False,
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
-                       recalculate=False):
+                       recalculate=True):
         """Returns a relaxation tensor corresponding to the aggregate
         
         
@@ -954,9 +954,9 @@ class Aggregate(UnitsManaged):
         theories["noneq_Foerster"] = ["noneq_Foerster", "neF"]
         theories["combined_WeakStrong"] = ["combined_WeakStrong", "cWS"]
 
-        if ((not recalculate) and 
-            (relaxation_theory in theories[self._relaxation_theory])):
-            return self.RelaxationTensor, self.RelaxationHamiltonian
+        #if ((not recalculate) and 
+        #    (relaxation_theory in theories[self._relaxation_theory])):
+        #    return self.RelaxationTensor, self.RelaxationHamiltonian
             
         
         if relaxation_theory in  theories["standard_Redfield"]:
@@ -1088,7 +1088,7 @@ class Aggregate(UnitsManaged):
                        secular_relaxation=False, 
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
-                       recalculate=False):
+                       recalculate=True):
         """Returns propagator of the density matrix
         
         
@@ -1105,7 +1105,7 @@ class Aggregate(UnitsManaged):
                        time_dependent,
                        secular_relaxation, 
                        relaxation_cutoff_time,
-                       coupling_cutoff, recalculate=True)
+                       coupling_cutoff, recalculate=recalculate)
         
         with eigenbasis_of(ham):
             prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
