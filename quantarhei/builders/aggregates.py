@@ -190,6 +190,36 @@ class Aggregate(UnitsManaged):
         except:
             raise Exception()        
         
+    def remove_Molecule(self, mono):
+        self.monomers.remove(mono)
+        self.nmono -= 1
+
+        
+            
+    def get_nearest_Molecule(self,molecule):
+        """Returns a molecule nearest in the aggregate to a given molecule
+        
+        Parameters
+        ----------
+        
+        molecule : Molecule
+            Molecule whose neighbor we look for
+        
+        """
+        tol = 1.0e-3
+        rmin = 1.0e20
+        r1 = molecule.position
+        mmin = None
+        for m in self.monomers:
+            r2 = m.position
+            r = r1 - r2
+            dist = numpy.sqrt(numpy.dot(r,r))
+            if (dist > tol) and (dist < rmin):
+                mmin = m
+                rmin = dist
+                
+        return mmin, rmin        
+            
     #
     # Vibrational modes
     #

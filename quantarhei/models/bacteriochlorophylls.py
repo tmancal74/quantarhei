@@ -16,6 +16,9 @@ class BacterioChlorophyll(MolecularModel):
         self.default_dipole_lengths[0,1] = 5.8
         self.default_dipole_lengths[1,0] = 5.8
         
+    def set_default_energies(self, elenergies=[0.0, 12500.0*cm2int]):
+        self.default_energies = elenergies
+        
         
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
         """ Returns transition dipole moment vector

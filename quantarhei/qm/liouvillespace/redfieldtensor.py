@@ -18,7 +18,7 @@ from ..hilbertspace.hamiltonian import Hamiltonian
 
 from .relaxationtensor import RelaxationTensor
 from ...core.managers import eigenbasis_of, energy_units
-
+from ...core.parallel import DistributedConfiguration, block_distributed_range
 
 class RedfieldRelaxationTensor(RelaxationTensor):
     """Redfield Relaxation Tensor
@@ -135,7 +135,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         
         """
-        
+        #print("Reference Redfield implementation ...")
         #
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
@@ -204,9 +204,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # \Lambda_m operator
         #
         
-        # Integrals of correlation functions from the set 
+        # Integrals of correlation functions from the set      
         Lm = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
-        for ms in range(Nb):
+        Lmr = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
+        dc = DistributedConfiguration()
+        #print("  Distributed calculation ...")
+        for ms in block_distributed_range(dc,0,Nb): #range(Nb):
             #for ns in range(Nb):
             if not multi_ex:
                 ns = ms
@@ -238,7 +241,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                         # \Lambda_m operators
                         Lm[ms,a,b] += cc_mnab*Km[ns,a,b] 
              
-        
+        # perform reduction of Lm
+        dc.allreduce(Lm, Lmr, operation="sum")
+        Lm = Lmr
+        #print("  ... finished")
+                        
         # create the Hermite conjuged version of \Lamnda_m
         Ld = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
         for ms in range(Nb):
@@ -265,6 +272,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         self._is_initialized = True
 
+        #print("... finished")
     
     def _convert_operators_2_tensor(self, Km, Lm, Ld):
         """Converts operator representation to the tensor one
@@ -290,8 +298,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         Nb = self.SystemBathInteraction.N
         
         RR = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
+        RRr = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
         
-        for m in range(Nb):
+        dc = DistributedConfiguration()
+        #print("  Distributed calculation ...")
+        for m in block_distributed_range(dc,0,Nb): #range(Nb):
 
             KmLm = numpy.dot(Km[m,:,:],Lm[m,:,:])
             LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
@@ -306,7 +317,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                                 RR[a,b,c,d] -= KmLm[a,c] 
                             if a == c:
                                 RR[a,b,c,d] -= LdKm[d,b]
-        
+                                
+        # perform reduction of the RR
+        dc.allreduce(RR, RRr, operation="sum")
+        #print("  ... finished")
+        RR = RRr
         return RR
 
 

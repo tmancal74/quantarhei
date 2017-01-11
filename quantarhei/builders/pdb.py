@@ -10,6 +10,8 @@ from .molecules import Molecule
 
 _resSeq_min = 22
 _resSeq_max = 26
+_chainId_min = 21
+_chainId_max = 22
 
 class PDBFile:
     """Represents a PDB file with a protein-pigment complex structure
@@ -20,10 +22,13 @@ class PDBFile:
 
         self.lines = []
         self.linecount = 0
+        
         self.molecules = []
 
         self._resSeqs = []
+        self._uniqueIds = []
         self._res_lines = dict()
+        self._unique_lines = dict()
 
         if fname is not None:
             #load file
@@ -31,6 +36,12 @@ class PDBFile:
         else:
             return
 
+    def _reset_helpers(self):
+        self._resSeqs = []
+        self._uniqueIds = []
+        self._res_lines = dict()
+        self._unique_lines = dict()       
+            
     def load_file(self, fname):
         """Loads a PDB file
 
@@ -43,7 +54,7 @@ class PDBFile:
         return k
 
 
-    def get_Molecules(self, model=None):
+    def get_Molecules(self, model=None):    
         """Returns all molecules corresponding to a given model
 
         """
@@ -53,42 +64,76 @@ class PDBFile:
 
         else:
 
+            #
+            #  residue name identifying the molecule in pdb file
+            #
             res_name = model.pdbname
+            #print("ResName = ", res_name)
             
             #
-            # Get BCHLs
+            # Get all lines with molecules matching residue name
             #
             mollines = self._match_lines(by_recName="HETATM",
                                          by_resName=res_name)
                                       #by_resSeq=378, by_atmName="ND")
 
-            #
-            # Get resSed
-            #
+            #    return line[_resSeq_min:_resSeq_max]
+            # Get resSeq - residue sequence number 
+            # (sometimes enough to identify uniquely the molechaincule)
+            #)
             for mols in mollines:
                 rseq = int(line_resSeq(mols))
                 if rseq not in self._resSeqs:
-                    self._resSeqs.append(rseq)
-                    self._res_lines[rseq] = []
-                #altloc = mols[16]
-                #if altloc.strip() != "":
-                #    print(mols)
-                self._res_lines[rseq].append(mols)
+                    # if the sequence numeber not in a list of number
+                    self._resSeqs.append(rseq) # append it
+                    self._res_lines[rseq] = [] # make a new list of lines 
+                self._res_lines[rseq].append(mols) # append line to a list
+                                                   # according to a sequence nr
+                                                   
+            # check if there is one molecule in the list of lines
 
-            # Create a molecule from given lines
-            for rseq in self._resSeqs:
+                
+            count = -1
+            for mols in mollines:
+                rseq = int(line_resSeq(mols))
+                chainId = line_chainId(mols)
+                comb = chainId+str(rseq)
+                if comb not in self._uniqueIds:
+                    count += 1
+                    self._uniqueIds.append(comb)
+                    self._unique_lines[comb] = []
+                self._unique_lines[comb].append(mols)
+
+#            # Create a molecule from given lines
+#            for rseq in self._resSeqs:
+#                m = Molecule(name=str(rseq), elenergies=model.default_energies)
+#                r = model.position_of_center(data_type="PDB",
+#                                             data=self._res_lines[rseq])
+#                m.position = r
+#                d = model.transition_dipole(data_type="PDB",
+#                                            data=self._res_lines[rseq])
+#                m.set_dipole(0,1,d)
+#                self.molecules.append(m)
+
+            # Create a molecule from given unique lines
+            for rseq in self._uniqueIds:
                 m = Molecule(name=str(rseq), elenergies=model.default_energies)
                 r = model.position_of_center(data_type="PDB",
-                                             data=self._res_lines[rseq])
+                                             data=self._unique_lines[rseq])
                 m.position = r
                 d = model.transition_dipole(data_type="PDB",
-                                            data=self._res_lines[rseq])
+                                            data=self._unique_lines[rseq])
                 m.set_dipole(0,1,d)
                 self.molecules.append(m)
-
+                
+        self._reset_helpers()
+                
         return self.molecules
 
 
+    def clear_Molecules(self):
+        self.molecules = []
+        
     def _match_lines(self, by_recName=None,
                      by_resName=None,
                      by_resSeq=None,
@@ -105,7 +150,7 @@ class PDBFile:
                             by_atmName=by_atmName):
                 matched_lines.append(line)
                 k += 1
-        print("matched", k, "lines")
+        #print("matched", k, "lines")
         return matched_lines
 
 
@@ -114,7 +159,13 @@ def line_resSeq(line):
 
     """
     return line[_resSeq_min:_resSeq_max]
-
+    
+def line_chainId(line):
+    """Returns chainId of a given line
+    
+    """
+    return line[_chainId_min:_chainId_max]
+    
 def line_xyz(line):
     """Returns coordinates of the line
 
@@ -128,6 +179,7 @@ def line_xyz(line):
 def line_matches(line, 
                  by_recName=None,
                  by_resName=None,
+                 by_chainId=None,
                  by_resSeq=None,
                  by_atmName=None):
         """Matches a line for several possible patters
@@ -150,6 +202,12 @@ def line_matches(line,
         if by_resName is not None:
             resname = line[17:20]
             if resname == by_resName:
+                ret = ret and True
+            else:
+                return False
+        if by_chainId is not None:
+            chainid = line[21:22]
+            if chainid == by_chainId:
                 ret = ret and True
             else:
                 return False

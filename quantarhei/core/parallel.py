@@ -3,7 +3,7 @@
 
 
 """
-class distributed_configuration:
+class DistributedConfiguration:
 
     def __init__(self, schedule=None):
         self.have_mpi = False
@@ -37,7 +37,46 @@ class distributed_configuration:
             else:
                 print("No Distributed Environemt")
                 
+    def print(self, txt, who=0):
+        if self.rank == who:
+            print(txt)
+            
                 
+    def reduce(self, A, B, operation="sum"):
+        """ Performs a reduction operation on an array
+        
+        Performs a reduction on an array according to a specification by
+        the `operation` argument using MPI. The result is available
+        on the process with rank = 0
+
+        """ 
+                       
+        if not self.have_mpi:
+            B = A
+            return
+        from mpi4py import MPI
+        if operation == "sum":
+            self.comm.Reduce(A, B, op=MPI.SUM)
+        else:
+            raise Exception("Unknow reduction operation")
+    def allreduce(self, A, B, operation="sum"):
+        """ Performs a reduction operation on an array
+        
+        Performs a reduction on an array according to a specification by
+        the `operation` argument using MPI. Result is available to all
+        processes.
+
+        """ 
+                       
+        if not self.have_mpi:
+            B = A
+            return
+        from mpi4py import MPI
+        if operation == "sum":
+            self.comm.Allreduce(A, B, op=MPI.SUM)
+        else:
+            raise Exception("Unknow reduction operation")            
+            
 def block_distributed_range(config, start, stop):
     """ Creates an iterator which returns a block of indices
         
@@ -81,12 +120,19 @@ def block_distributed_range(config, start, stop):
     
 if __name__ == "__main__":
  
+    import numpy
+    
     N1 = 0
     N2 = 16
-
-    p = distributed_configuration()
-
-    p.print_info()
-    for i in block_distributed_range(p, N1, N2):
-        print(i, "on rank", p.rank)    
     
+    A = numpy.zeros((N2,N2), dtype=numpy.float64)
+    B = numpy.zeros((N2,N2), dtype=numpy.float64)
+    dc = DistributedConfiguration()
+    dc.print_info()
+    for i in block_distributed_range(dc, N1, N2):
+        print(i, "on rank", dc.rank)    
+        for k in range(N2):
+            A[k,k] += i
+    dc.reduce(A, B, operation="sum")
+    if dc.rank == 0:        
+        print(B, ((N2-1)/2)*(N2))

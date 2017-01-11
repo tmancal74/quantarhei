@@ -206,7 +206,7 @@ class Molecule(UnitsManaged):
             
             raise Exception("Monomer has a correlation function already")            
         
-    
+
     def set_transition_environment(self, transition, egcf):
         """Sets a correlation function for a transition on this monomer
         
@@ -224,7 +224,7 @@ class Molecule(UnitsManaged):
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped \
             on a CorrelationFunctionMatrix")
-            
+
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
                                                         
@@ -247,7 +247,7 @@ class Molecule(UnitsManaged):
             on a CorrelationFunctionMatrix")  
              
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
-            
+
             self.egcf[self.triangle.locate(transition[0],
                                            transition[1])] = None
                                            
@@ -479,7 +479,7 @@ class Molecule(UnitsManaged):
         
         """
         # list of vibrational Hamiltonians
-        lham = [None]*self.nel
+        lham = [None]*self.nel  
         # list of Hamiltonian dimensions
         ldim = [None]*self.nel
     
@@ -499,7 +499,7 @@ class Molecule(UnitsManaged):
                     # shift of the PES
                     dd = self.modes[j].get_shift(i)
                     en = self.modes[j].get_energy(i)
-
+ 
                     # create the Hamiltonian
                     of = operator_factory(N=Nvib)
                     aa = of.anihilation_operator()
@@ -568,7 +568,7 @@ class Molecule(UnitsManaged):
         for i in range(self.nel):
             ubound = lbound + ldim[i]
             #ham[lbound:ubound,lbound:ubound] = lham[i]
-            ub[i] = ubound
+            ub[i] = uboundprint(mols_c2)  
             lb[i] = lbound
             lbound = ubound   
         return lb,ub
@@ -618,7 +618,7 @@ class Molecule(UnitsManaged):
             
             # get dipome moment vector
             dp = self.dmoments[0,k,:]
-
+ 
             dd = numpy.zeros((ldim[0],ldim[k]),dtype=numpy.float)        
         
             # now we run through the vibrational states of the groundstate
@@ -665,7 +665,7 @@ class Molecule(UnitsManaged):
                                               # the baths
                     else:
                         where[eg] = [(nob,nob)]
-                    # for each bath, save the state of the transition g -> j
+                    # for each bath, save the state of the traprint(mols_c2)  nsition g -> j
                     d[nob] = j
                         
                     nob += 1
@@ -838,7 +838,7 @@ class Molecule(UnitsManaged):
         
         out  = "\nquantarhei.Molecule object" 
         out += "\n=========================="
-        out += "\n   name = %s\n" % self.name
+        out += "\n   name = %s  \n" % self.name
         try:
             out += "   position = [%r, %r, %r] \n" % (self.position[0],
                                                   self.position[1],
@@ -869,8 +869,9 @@ class Molecule(UnitsManaged):
                self.dmoments[n,j][0], 
                self.dmoments[n,j][1], self.dmoments[n,j][2])
             out += "\n      number of vibrational modes = %i" % self.nmod
+            out += "\n"
             if self.nmod > 0:
-                out += "\n      # Mode properties"
+                out += "      # Mode properties"
                 #out += "\n      ----------------"
                 for m1 in range(self.nmod):
                     out += "\n      mode no. = %i " % m1
