@@ -58,7 +58,22 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         if effective_hamiltonian is not None:
             self._relaxation_hamiltonian = effective_hamiltonian
 
+    def add_spectrum(self, spect):
+
+        if not numpy.allclose(spect.TimeAxis.data, self.TimeAxis.data):
+            raise Exception("Incompatible TimeAxis")
+        
+        if self.data is None:
+            self._copy_internals(spect)
+        else:
+            self.data += spect.data
             
+    def _copy_internals(self, spect):
+        self.data = numpy.zeros(self.TimeAxis.length, dtype=numpy.float64)
+        self.data += spect.data
+        self.axis = spect.axis
+        
+        
     def calculate(self,rwa=0.0):
         """ Calculates the absorption spectrum 
         
@@ -280,7 +295,7 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         else:
             tr["gg"] = [0.0]
 
-        # get square of transition dipole moment here
+        # get square of transition dipole moment here    #print(H_RC)
         #tr.append(DD.dipole_strength(0,1))
         tr["dd"] = DD.dipole_strength(0,1)
         # first transition energy

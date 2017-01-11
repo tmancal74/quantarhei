@@ -147,6 +147,7 @@ class Molecule(UnitsManaged):
         self._has_system_bath_coupling = False
         
         # data attribute can hold PDB coordinates or something else
+        self.model = None
         self.data = None
         self._data_type = None
         

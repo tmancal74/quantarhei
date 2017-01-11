@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from ..core.units import cm2int
+from ..core.managers import EnergyUnitsManaged
 from .molecularmodel import MolecularModel
 from ..builders import pdb
 from ..utils.vectors import normalize2
 
-class BacterioChlorophyll(MolecularModel):
+class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
     
     def __init__(self, model_type=None):
         super().__init__(model_type=model_type)
@@ -16,10 +17,19 @@ class BacterioChlorophyll(MolecularModel):
         self.default_dipole_lengths[0,1] = 5.8
         self.default_dipole_lengths[1,0] = 5.8
         
-    def set_default_energies(self, elenergies=[0.0, 12500.0*cm2int]):
-        self.default_energies = elenergies
+    def set_default_energies(self, elenergies):
+        k = 0
+        for en in elenergies:
+            self.default_energies[k] = self.convert_2_internal_u(en)
+            k += 1
+            
         
+    def set_default_dipole_length(self,transition, val):
+        self.default_dipole_lengths[transition[0],transition[1]] = val
+        self.default_dipole_lengths[transition[1],transition[0]] = val
         
+       
+    
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
         """ Returns transition dipole moment vector
         

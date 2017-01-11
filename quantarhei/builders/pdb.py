@@ -124,13 +124,26 @@ class PDBFile:
                 d = model.transition_dipole(data_type="PDB",
                                             data=self._unique_lines[rseq])
                 m.set_dipole(0,1,d)
+                m.model = self
+                m.data = self._unique_lines[rseq]
                 self.molecules.append(m)
                 
         self._reset_helpers()
                 
         return self.molecules
 
-
+    def get_chainId(self,molecule):
+        lines = molecule.data
+        save = None
+        for l in lines:
+            cid = line_chainId(l)
+            if save is not None:
+                if save != cid:
+                    raise Exception("No unique chainId")
+            else:
+                save = cid
+        return save
+                
     def clear_Molecules(self):
         self.molecules = []
         

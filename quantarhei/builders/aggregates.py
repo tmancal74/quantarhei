@@ -104,6 +104,10 @@ class Aggregate(UnitsManaged):
         
         self.resonance_coupling[i,j] = coup
         self.resonance_coupling[j,i] = coup
+        
+    def get_resonance_coupling(self, i, j):
+        coupling = self.resonance_coupling[i,j]
+        return self.convert_energy_2_current_u(coupling)
     
     def set_resonance_coupling_matrix(self,coupmat): 
         """ Sets resonance coupling values from a matrix
