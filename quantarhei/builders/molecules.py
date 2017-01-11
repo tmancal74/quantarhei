@@ -569,7 +569,7 @@ class Molecule(UnitsManaged):
         for i in range(self.nel):
             ubound = lbound + ldim[i]
             #ham[lbound:ubound,lbound:ubound] = lham[i]
-            ub[i] = uboundprint(mols_c2)  
+            ub[i] = ubound  
             lb[i] = lbound
             lbound = ubound   
         return lb,ub

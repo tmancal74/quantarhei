@@ -12,9 +12,9 @@ class DistributedConfiguration:
             self.have_mpi = True
         except:
             self.have_mpi = False
-            print("WARNING: MPI import failed - switching to serial.")
-            print("WARNING: If you run this with mpiexec," 
-            + " you get independent copies of the serial program")
+            #print("WARNING: MPI import failed - switching to serial.")
+            #print("WARNING: If you run this with mpiexec," 
+            #+ " you get independent copies of the serial program")
 
         if self.have_mpi:
             comm = MPI.COMM_WORLD
@@ -54,11 +54,14 @@ class DistributedConfiguration:
         if not self.have_mpi:
             B = A
             return
+            
         from mpi4py import MPI
         if operation == "sum":
             self.comm.Reduce(A, B, op=MPI.SUM)
         else:
             raise Exception("Unknow reduction operation")
+            
+            
     def allreduce(self, A, B, operation="sum"):
         """ Performs a reduction operation on an array
         
@@ -71,6 +74,7 @@ class DistributedConfiguration:
         if not self.have_mpi:
             B = A
             return
+            
         from mpi4py import MPI
         if operation == "sum":
             self.comm.Allreduce(A, B, op=MPI.SUM)
