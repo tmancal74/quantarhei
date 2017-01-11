@@ -50,14 +50,15 @@ class DistributedConfiguration:
         on the process with rank = 0
 
         """ 
-                       
-        if not self.have_mpi:
-            B = A
-            return
-            
-        from mpi4py import MPI
         if operation == "sum":
-            self.comm.Reduce(A, B, op=MPI.SUM)
+        
+            if not self.have_mpi:
+                B += A
+                return
+            else:
+                from mpi4py import MPI
+                self.comm.Reduce(A, B, op=MPI.SUM)
+                
         else:
             raise Exception("Unknow reduction operation")
             
@@ -70,14 +71,16 @@ class DistributedConfiguration:
         processes.
 
         """ 
-                       
-        if not self.have_mpi:
-            B = A
-            return
-            
-        from mpi4py import MPI
+
         if operation == "sum":
-            self.comm.Allreduce(A, B, op=MPI.SUM)
+                       
+            if not self.have_mpi:
+                B += A
+                return
+            else:
+                from mpi4py import MPI
+                self.comm.Allreduce(A, B, op=MPI.SUM)
+                
         else:
             raise Exception("Unknow reduction operation")            
             

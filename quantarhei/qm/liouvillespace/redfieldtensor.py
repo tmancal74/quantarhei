@@ -303,7 +303,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         dc = DistributedConfiguration()
         #print("  Distributed calculation ...")
         for m in block_distributed_range(dc,0,Nb): #range(Nb):
-
             KmLm = numpy.dot(Km[m,:,:],Lm[m,:,:])
             LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
             for a in range(Na):
