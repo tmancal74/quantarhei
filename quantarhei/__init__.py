@@ -52,6 +52,7 @@ from .core.frequency import FrequencyAxis
 from .core.dfunction import DFunction
 
 from .spectroscopy.abs import AbsSpect
+from .spectroscopy.abs import AbsSpectContainer
 
 from .core.managers import Manager
 from .core.managers import energy_units

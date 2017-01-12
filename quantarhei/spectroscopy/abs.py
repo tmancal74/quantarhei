@@ -14,7 +14,64 @@ from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
 
-class AbsSpect(DFunction, EnergyUnitsManaged):
+class AbsSpectContainer(DFunction, EnergyUnitsManaged):
+ 
+    TimeAxis = derived_type("TimeAxis",TimeAxis)
+    
+    def __init__(self, timeaxis):
+        self.TimeAxis = timeaxis
+        self.data = None
+        self.axis = None
+ 
+    def add_to_data(self, spect):
+
+        if not numpy.allclose(spect.TimeAxis.data, self.TimeAxis.data):
+            raise Exception("Incompatible TimeAxis")
+        
+        if self.data is None:
+            self._copy_internals(spect)
+        else:
+            self.data += spect.data
+            
+    def set_data(self, data):
+        self.data = data
+
+    def clear_data(self):
+        shp = self.data.shape
+        self.data = numpy.zeros(shp, dtype=numpy.float64)
+            
+    def _copy_internals(self, spect):
+        self.data = numpy.zeros(self.TimeAxis.length, dtype=numpy.float64)
+        self.data = spect.data.copy()
+        self.axis = spect.axis
+
+    def _frequency(self,dt):
+        """ Calculates the frequency axis corresponding to TimeAxis
+        
+        
+        """
+        Nt = self.TimeAxis.length
+        return numpy.pi*numpy.fft.fftshift(
+              numpy.fft.fftfreq(Nt,d=dt))       
+        
+    def normalize2(self,norm=1.0):
+        mx = numpy.max(self.data)
+        self.data = self.data/mx
+        
+        
+    def plot(self,**kwargs):
+        """ Plotting absorption spectrum using the DFunction plot method
+        
+        """
+        if "ylabel" not in kwargs:
+            ylabel = r'$\alpha(\omega)$ [a.u.]'
+            kwargs["ylabel"] = ylabel
+            
+        super(AbsSpectContainer,self).plot(**kwargs)
+        
+
+        
+class AbsSpect(AbsSpectContainer):
     """Linear absorption spectrum 
     
     Linear absorption spectrum of a molecule or an aggregate of molecules.
@@ -57,21 +114,6 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
             self._has_relaxation_tensor = True
         if effective_hamiltonian is not None:
             self._relaxation_hamiltonian = effective_hamiltonian
-
-    def add_spectrum(self, spect):
-
-        if not numpy.allclose(spect.TimeAxis.data, self.TimeAxis.data):
-            raise Exception("Incompatible TimeAxis")
-        
-        if self.data is None:
-            self._copy_internals(spect)
-        else:
-            self.data += spect.data
-            
-    def _copy_internals(self, spect):
-        self.data = numpy.zeros(self.TimeAxis.length, dtype=numpy.float64)
-        self.data += spect.data
-        self.axis = spect.axis
         
         
     def calculate(self,rwa=0.0):
@@ -180,15 +222,6 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         # cut the center of the spectrum
         Nt = ta.length #len(ta.data)        
         return ft[Nt//2:Nt+Nt//2]
-        
-    def _frequency(self,dt):
-        """ Calculates the frequency axis corresponding to TimeAxis
-        
-        
-        """
-        Nt = self.TimeAxis.length
-        return numpy.pi*numpy.fft.fftshift(
-              numpy.fft.fftfreq(Nt,d=dt))
 
         
     def _excitonic_goft(self,SS,AG,n):
@@ -341,21 +374,7 @@ class AbsSpect(DFunction, EnergyUnitsManaged):
         if relaxation_tensor is not None:
             RR.transform(S1)
         
-    def normalize2(self,norm=1.0):
-        mx = numpy.max(self.data)
-        self.data = self.data/mx
-        
-        
-    def plot(self,**kwargs):
-        """ Plotting absorption spectrum using the DFunction plot method
-        
-        """
-        if "ylabel" not in kwargs:
-            ylabel = r'$\alpha(\omega)$ [a.u.]'
-            kwargs["ylabel"] = ylabel
-            
-        super(AbsSpect,self).plot(**kwargs)
-        
+
         
                     
         
