@@ -3,11 +3,13 @@
 
 
 """
-from .managers import Manager
+
+import numpy
 
 class DistributedConfiguration:
 
     def __init__(self, schedule=None):
+
         self.have_mpi = False
         try:
             from mpi4py import MPI
@@ -18,6 +20,7 @@ class DistributedConfiguration:
             #print("WARNING: If you run this with mpiexec," 
             #+ " you get independent copies of the serial program")
 
+            
         if self.have_mpi:
             comm = MPI.COMM_WORLD
             self.comm = comm
@@ -27,13 +30,42 @@ class DistributedConfiguration:
             self.comm = None
             self.rank = 0
             self.size = 1
+                    
+        self.parallel_level = 0
+        self.inparallel = False
+        
+        
+    def start_parallel_region(self):
+        """Starts a parallel region
+        
+        This function raises parallel_level if MPI is present and it sets
+        inparallel atribute to True. The distributed ranges provided for 
+        parallel for loops are evaluated in parallel only if in parallel_level
+        equal 1. This means that tasks are parallelized only from the toppest
+        most level. if parallel region is encountered again, no redistribution
+        of the tasks is done.
+        
+        """
+        if self.have_mpi:
+            if self.size > 1:
+                self.parallel_level += 1
             
-        self.mp_enabled = True # Massage Passing
-        self.host_acc_enabled = True # OpenMP
-        self.device_acc_enabled = True # OpenACC, CUDA, or similar
+        if self.parallel_level > 0:
+            self.inparallel = True
+
+    def finish_parallel_region(self):
+        """Closes a parallel region
         
-        self.manager = Manager()
+        Lowers parallel_level by 1
         
+        """
+        if self.have_mpi:
+            if self.size > 1:        
+                self.parallel_level -= 1
+                
+        if self.parallel_level < 0:
+            raise Exception()
+            
         
     def print_info(self):
         if self.rank == 0:
@@ -51,7 +83,7 @@ class DistributedConfiguration:
             print(txt)
             
                 
-    def reduce(self, A, B, operation="sum"):
+    def reduce(self, A, operation="sum"):
         """ Performs a reduction operation on an array
         
         Performs a reduction on an array according to a specification by
@@ -59,20 +91,22 @@ class DistributedConfiguration:
         on the process with rank = 0
 
         """ 
+        # only in parallel_level == 1 we share the work
+        if self.parallel_level != 1:
+            return A
+
         if operation == "sum":
         
-            if not self.have_mpi:
-                B += A
-                return
-            else:
-                from mpi4py import MPI
-                self.comm.Reduce(A, B, op=MPI.SUM)
+            from mpi4py import MPI
+            B = numpy.zeros(A.shape, dtype=A.dtype)
+            self.comm.Reduce(A, B, op=MPI.SUM)
+            return B    
                 
         else:
-            raise Exception("Unknow reduction operation")
+            raise Exception("Unknown reduction operation")
             
             
-    def allreduce(self, A, B, operation="sum"):
+    def allreduce(self, A, operation="sum"):
         """ Performs a reduction operation on an array
         
         Performs a reduction on an array according to a specification by
@@ -81,17 +115,19 @@ class DistributedConfiguration:
 
         """ 
 
+        # only in parallel_level == 1 we share the work
+        if self.parallel_level != 1:
+            return 
+        
         if operation == "sum":
                        
-            if not self.have_mpi:
-                B += A
-                return
-            else:
-                from mpi4py import MPI
-                self.comm.Allreduce(A, B, op=MPI.SUM)
-                
+            from mpi4py import MPI
+            B = numpy.zeros(A.shape, dtype=A.dtype)
+            self.comm.Allreduce(A, B, op=MPI.SUM)
+            A[:,:] = B
+            
         else:
-            raise Exception("Unknow reduction operation")            
+            raise Exception("Unknown reduction operation")            
             
 def block_distributed_range(config, start, stop):
     """ Creates an iterator which returns a block of indices
@@ -109,10 +145,12 @@ def block_distributed_range(config, start, stop):
             end of the range
 
     """
-    host_acceleration_enabled = True
-    
-    if host_acceleration_enabled:
-    
+
+    # we share the work only in parallel_level == 1  
+
+    if config.parallel_level==1:
+
+        config.inparallel_entered = True
         whole_range = stop-start
         per_worker = whole_range // config.size
         remainder = whole_range % config.size
@@ -128,7 +166,6 @@ def block_distributed_range(config, start, stop):
             N1_local += remainder
             N2_local += remainder
         
-    
         rng = list()
         rng.append(N1_local)
         rng.append(N2_local)
@@ -138,25 +175,7 @@ def block_distributed_range(config, start, stop):
         return range(rng[0],rng[1])
         
     else:
-        
+
         return range(start, stop)
         
         
-if __name__ == "__main__":
- 
-    import numpy
-    
-    N1 = 0
-    N2 = 16
-    
-    A = numpy.zeros((N2,N2), dtype=numpy.float64)
-    B = numpy.zeros((N2,N2), dtype=numpy.float64)
-    dc = DistributedConfiguration()
-    dc.print_info()
-    for i in block_distributed_range(dc, N1, N2):
-        print(i, "on rank", dc.rank)    
-        for k in range(N2):
-            A[k,k] += i
-    dc.reduce(A, B, operation="sum")
-    if dc.rank == 0:        
-        print(B, ((N2-1)/2)*(N2))

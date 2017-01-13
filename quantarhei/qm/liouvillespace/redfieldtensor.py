@@ -17,8 +17,8 @@ from .systembathinteraction import SystemBathInteraction
 from ..hilbertspace.hamiltonian import Hamiltonian
 
 from .relaxationtensor import RelaxationTensor
-from ...core.managers import eigenbasis_of, energy_units
-from ...core.parallel import DistributedConfiguration, block_distributed_range
+from ...core.managers import Manager, eigenbasis_of, energy_units
+from ...core.parallel import  block_distributed_range
 
 class RedfieldRelaxationTensor(RelaxationTensor):
     """Redfield Relaxation Tensor
@@ -206,9 +206,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         # Integrals of correlation functions from the set      
         Lm = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
-        Lmr = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
-        dc = DistributedConfiguration()
-        #print("  Distributed calculation ...")
+        
+        #
+        # PARALLELIZATION
+        #
+        dc = Manager().get_DistributedConfiguration()
+        dc.start_parallel_region()
         for ms in block_distributed_range(dc,0,Nb): #range(Nb):
             #for ns in range(Nb):
             if not multi_ex:
@@ -242,9 +245,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                         Lm[ms,a,b] += cc_mnab*Km[ns,a,b] 
              
         # perform reduction of Lm
-        dc.allreduce(Lm, Lmr, operation="sum")
-        Lm = Lmr
-        #print("  ... finished")
+        dc.allreduce(Lm, operation="sum")
+        dc.finish_parallel_region()
+        #
+        #  END PARALLELIZATION
+        #
                         
         # create the Hermite conjuged version of \Lamnda_m
         Ld = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
@@ -298,10 +303,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         Nb = self.SystemBathInteraction.N
         
         RR = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
-        RRr = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
         
-        dc = DistributedConfiguration()
-        #print("  Distributed calculation ...")
+        #
+        # PARALLELIZATION
+        #
+        dc = Manager().get_DistributedConfiguration()
+        dc.start_parallel_region()
         for m in block_distributed_range(dc,0,Nb): #range(Nb):
             KmLm = numpy.dot(Km[m,:,:],Lm[m,:,:])
             LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
@@ -318,9 +325,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                                 RR[a,b,c,d] -= LdKm[d,b]
                                 
         # perform reduction of the RR
-        dc.allreduce(RR, RRr, operation="sum")
-        #print("  ... finished")
-        RR = RRr
+        dc.allreduce(RR, operation="sum")
+        dc.finish_parallel_region()
+        #
+        # END PARALLELIZATION
+        #
+        
         return RR
 
 

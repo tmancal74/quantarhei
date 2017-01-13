@@ -4,6 +4,7 @@ from .units import conversion_facs_frequency
 from .units import conversion_facs_energy
 
 from .singleton import Singleton
+from .parallel import DistributedConfiguration
 
 #from .wrappers import deprecated
 
@@ -193,6 +194,9 @@ class Manager(metaclass=Singleton):
         
         self.warn_about_basis_change = False
         self.warn_about_basis_changing_objects = False
+        
+        self.parallel_conf = None
+        
             
     def save_settings(self):
 
@@ -495,8 +499,12 @@ class Manager(metaclass=Singleton):
     def register_with_basis(self,nb,operator):
         self.basis_registered[nb].append(operator)
         
-                
-
+        
+    def get_DistributedConfiguration(self):
+        if self.parallel_conf is None:
+            self.parallel_conf = DistributedConfiguration()
+        return self.parallel_conf
+            
 class Managed:
     """Base class for managed objects 
     

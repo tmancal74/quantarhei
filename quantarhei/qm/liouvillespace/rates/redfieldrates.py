@@ -10,11 +10,15 @@
 import numpy
 
 from ....core.implementations import implementation
+from ....core.parallel import block_distributed_range
 from ....core.units import cm2int
 from ....core.units import kB_intK
+from ....core.managers import Manager
 
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
+
+
 
    
 class RedfieldRateMatrix:
@@ -197,7 +201,15 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
     """
     
     # loop over components
-    for k in range(Nk):
+
+    dc = Manager().get_DistributedConfiguration()
+    
+    #
+    #  PARALLELIZED
+    #
+    dc.start_parallel_region()
+    for k in block_distributed_range(dc, 0, Nk):
+    #for k in range(Nk):
         
         # interaction operator
         KK = KI[k,:,:]
@@ -209,17 +221,27 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
                 if i != j:                                
                             
                     RR[i,j] += (cc[k,i,j]*KK[i,j]*KK[j,i])
-
-                    if RR[i,j] < 0.0:
-                        werror[0] = -1
-                        if numpy.abs(RR[i,j]) < rtol:
-                            RR[i,j] = 0.0
-                        else:
-                            werror[1] = -1
-                            
+    
+    # FIXME: parallelization ignores werror
+    dc.allreduce(RR, operation="sum")        
+    dc.finish_parallel_region()
+    
+    #
+    #  END PARALLELIZED
+    #                   
+     
     # calculate the diagonal elements (the depopulation rates)            
     for i in range(Na):
         for j in range(Na):
+            
+            if i != j:
+                if RR[i,j] < 0.0:
+                    werror[0] = -1
+                    if numpy.abs(RR[i,j]) < rtol:
+                        RR[i,j] = 0.0
+                    else:
+                        werror[1] = -1
+                    
             if i != j:
                 RR[j,j] -= RR[i,j]
                     

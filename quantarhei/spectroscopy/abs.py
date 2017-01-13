@@ -94,6 +94,7 @@ class AbsSpect(AbsSpectContainer):
                  system=None,
                  dynamics="secular",
                  relaxation_tensor=None,
+                 rate_matrix=None,
                  effective_hamiltonian=None):
         
         # protected properties
@@ -107,6 +108,7 @@ class AbsSpect(AbsSpectContainer):
         self.data = None
         
         self._relaxation_tensor = None
+        self._rate_matrix = None
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
         if relaxation_tensor is not None:
@@ -114,7 +116,9 @@ class AbsSpect(AbsSpectContainer):
             self._has_relaxation_tensor = True
         if effective_hamiltonian is not None:
             self._relaxation_hamiltonian = effective_hamiltonian
-        
+        if rate_matrix is not None:
+            self._rate_matrix = rate_matrix
+            self._has_rate_matrix = True
         
     def calculate(self,rwa=0.0):
         """ Calculates the absorption spectrum 
@@ -134,6 +138,8 @@ class AbsSpect(AbsSpectContainer):
                     self._calculate_aggregate(rwa, 
                                               relaxation_tensor=
                                               self._relaxation_tensor,
+                                              rate_matrix=
+                                              self._rate_matrix,
                                               relaxation_hamiltonian=
                                               self._relaxation_hamiltonian)
             else:
@@ -193,6 +199,7 @@ class AbsSpect(AbsSpectContainer):
         dd = tr["dd"] # transition dipole moment
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        
         if self.system._has_system_bath_coupling:
             ct = tr["ct"] # correlation function
         
@@ -288,7 +295,7 @@ class AbsSpect(AbsSpectContainer):
         
         
     def _calculate_aggregate(self, rwa, relaxation_tensor=None,
-                             relaxation_hamiltonian=None):
+                             relaxation_hamiltonian=None, rate_matrix=None):
         """ Calculates the absorption spectrum of a molecular aggregate
         
         
@@ -325,9 +332,19 @@ class AbsSpect(AbsSpectContainer):
                 for ii in range(HH.dim):
                     gg.append([RR.data[ii,ii,ii,ii]])
             tr["gg"] = gg[1]
+        elif rate_matrix is not None:
+            RR = rate_matrix  # rate matrix is in excitonic basis
+            gg = []
+            if isinstance(RR, TimeDependent):
+                for ii in range(HH.dim):
+                    gg.append(RR.data[:,ii,ii])
+            else:
+                for ii in range(HH.dim):
+                    gg.append([RR.data[ii,ii]])
+            tr["gg"] = gg[1]
         else:
             tr["gg"] = [0.0]
-
+        
         # get square of transition dipole moment here    #print(H_RC)
         #tr.append(DD.dipole_strength(0,1))
         tr["dd"] = DD.dipole_strength(0,1)

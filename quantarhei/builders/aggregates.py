@@ -1113,7 +1113,25 @@ class Aggregate(UnitsManaged):
         
         return prop
         
+    #FIXME: There must be a general theory here
+    def get_RedfieldRateMatrix(self):
         
+        from ..qm import RedfieldRateMatrix
+        from ..core.managers import eigenbasis_of
+        
+        if self._built:
+            ham = self.get_Hamiltonian()
+            sbi = self.get_SystemBathInteraction()
+        else:
+            raise Exception()        
+
+        ham.protect_basis()
+        with eigenbasis_of(ham):
+            RR = RedfieldRateMatrix(ham, sbi)
+        ham.unprotect_basis()
+        
+        return RR
+            
     def diagonalize(self):
         """Transforms the Hamiltonian 
            and transition dipole moment into diagonal basis 
