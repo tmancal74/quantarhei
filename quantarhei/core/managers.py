@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+import os
+import json
+import pkg_resources
+
+import numpy
 
 from .units import conversion_facs_frequency
 from .units import conversion_facs_energy
@@ -6,11 +11,6 @@ from .units import conversion_facs_energy
 from .singleton import Singleton
 from .parallel import DistributedConfiguration
 
-#from .wrappers import deprecated
-
-import os
-import json
-import numpy
 
 class Manager(metaclass=Singleton):
     """ Main package Manager
@@ -46,7 +46,8 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.11"
+    #version = "0.0.11"
+    version = pkg_resources.require("quantarhei")[0].version
 
     # hard wired unit options
     allowed_utypes = ["energy",

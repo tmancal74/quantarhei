@@ -27,7 +27,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.11',
+    version='0.0.11.dev1',
 
     description='Quantarhei: Open Quantum System Theory for Molecular Systems',
     long_description=long_description,
@@ -81,7 +81,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy','scipy','matplotlib']
+    install_requires=['numpy','scipy','matplotlib'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -109,9 +109,9 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    ###entry_points={
-    ###    'console_scripts': [
-    ###        'sample=sample:main',
-    ###    ],
-    ###},
+    entry_points={
+        'console_scripts': ['qrhei=quantarhei.qrhei:main',
+                            'lams=quantarhei.lams:main'],
+    }
+    
 )

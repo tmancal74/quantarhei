@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
 
+
+"""
 import numpy
 import scipy
 
@@ -14,15 +17,139 @@ from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
 
+class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
+    """Provides basic container for absorption spectrum
+    
+    
+    """
+    
+    def __init__(self, axis=None, data=None):
+        super().__init__()
+        self.axis = axis
+        self.data = data
+        
+    def set_axis(self, axis):
+        """Sets axis atribute
+        
+        Parameters
+        ----------
+        
+        axis : FrequencyAxis object
+            Frequency axis object. This object has managed energy units
+            
+        """
+        self.axis = axis
+        
+    def set_data(self, data):
+        self.data = data
+    
+    def clear_data(self):
+        """Sets spectrum data to zero
+        
+        """
+        shp = self.data.shape
+        self.data = numpy.zeros(shp, dtype=numpy.float64)
+
+    def normalize2(self,norm=1.0):
+        """Normalizes spectrum to a given value
+        
+        """
+        mx = numpy.max(self.data)
+        self.data = self.data/mx
+
+    def normalize(self):
+        """Normalization to one
+        
+        """
+        self.normalize2(norm=1.0)
+
+    def add_to_data(self, spect):
+        """Performs addition on the data.
+        
+        Expects a compatible object holding absorption spectrum
+        and adds its data to the present absorption spectrum.
+        
+        Parameters
+        ----------
+        
+        spect : spectrum containing object
+            This object should have a compatible axis and some data
+        
+        """
+        if not numpy.allclose(spect.axis.data, self.axis.data):
+            raise Exception("Incompatible axis")
+        
+        if self.axis is None:
+            self.axis = spect.axis.copy()
+            
+        if self.data is None:
+            self.data = numpy.zeros(spect.data.length,
+                                    dtype=spect.axis.data.dtype)
+        
+        self.data += spect.data
+        
+        
+    def load(self, filename, ext=None, replace=False):
+        """Load the spectrum from a file
+        
+        Uses the load method of the DFunction class to load the absorption
+        spectrum from a file. It sets the axis type to 'frequency', otherwise
+        no changes to the inherited method are applied.
+        
+        Parameters
+        ----------
+        
+        """
+        super().load(filename, ext=ext, axis='frequency', replace=replace)
+
+    #save method is inherited from DFunction    
+        
+    def plot(self,**kwargs):
+        """ Plotting absorption spectrum using the DFunction plot method
+        
+        """
+        if "ylabel" not in kwargs:
+            ylabel = r'$\alpha(\omega)$ [a.u.]'
+            kwargs["ylabel"] = ylabel
+            
+        super(AbsSpectContainer,self).plot(**kwargs)
+
+
+    #
+    # Temporary methods for compatibility and testing
+    #        
+    def get_AbsSpectContainer(self, timeaxis):
+        
+        asc = AbsSpectContainer(timeaxis)
+        asc.set_data(self.data)
+        asc.axis = self.axis
+        
+        
+        
 class AbsSpectContainer(DFunction, EnergyUnitsManaged):
- 
+    """This class contains a single absorption spectrum
+    
+    Contains absorptio spectrum and enables some manipulations on it.
+    
+    """
     TimeAxis = derived_type("TimeAxis",TimeAxis)
     
     def __init__(self, timeaxis):
         self.TimeAxis = timeaxis
         self.data = None
         self.axis = None
- 
+             
+    def set_data(self, data):
+        self.data = data
+
+    def clear_data(self):
+        shp = self.data.shape
+        self.data = numpy.zeros(shp, dtype=numpy.float64)
+
+    def normalize2(self,norm=1.0):
+        mx = numpy.max(self.data)
+        self.data = self.data/mx
+
     def add_to_data(self, spect):
 
         if not numpy.allclose(spect.TimeAxis.data, self.TimeAxis.data):
@@ -32,13 +159,7 @@ class AbsSpectContainer(DFunction, EnergyUnitsManaged):
             self._copy_internals(spect)
         else:
             self.data += spect.data
-            
-    def set_data(self, data):
-        self.data = data
 
-    def clear_data(self):
-        shp = self.data.shape
-        self.data = numpy.zeros(shp, dtype=numpy.float64)
             
     def _copy_internals(self, spect):
         self.data = numpy.zeros(self.TimeAxis.length, dtype=numpy.float64)
@@ -53,11 +174,7 @@ class AbsSpectContainer(DFunction, EnergyUnitsManaged):
         Nt = self.TimeAxis.length
         return numpy.pi*numpy.fft.fftshift(
               numpy.fft.fftfreq(Nt,d=dt))       
-        
-    def normalize2(self,norm=1.0):
-        mx = numpy.max(self.data)
-        self.data = self.data/mx
-        
+                
         
     def plot(self,**kwargs):
         """ Plotting absorption spectrum using the DFunction plot method
@@ -70,6 +187,12 @@ class AbsSpectContainer(DFunction, EnergyUnitsManaged):
         super(AbsSpectContainer,self).plot(**kwargs)
         
 
+    #
+    # Temporary methods for compatibility and testing
+    #
+    def get_AbsSpectrumBase(self):
+        return AbsSpectrumBase(axis=self.axis, data=self.data)
+        
         
 class AbsSpect(AbsSpectContainer):
     """Linear absorption spectrum 

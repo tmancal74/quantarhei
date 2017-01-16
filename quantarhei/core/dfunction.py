@@ -6,6 +6,7 @@
 
 
 """
+import os
 
 import scipy.interpolate
 import numpy
@@ -502,16 +503,37 @@ class DFunction:
         if show:
             plt.show()
 
+    def _fname_ext(self, filename, ext):
+        """
+        
+        """
+        # find out if filename has an extension
+        fname, ex = os.path.splitext(filename)
+        ex = ex[1:]
+        has_ext = not (ex[1:] == '')
 
-    def save(self, filename, ext="npy"):
+        if has_ext and (ext is None):
+            fname = filename
+            ext = ex
+        elif (not has_ext) and (ext is None):
+            ext = 'npy'
+        elif ext is not None:
+            fname = filename + "." + ext
+            
+        return fname, ext
+            
+    def save(self, filename, ext=None):
         """Saves the DFunction into a file
 
         """
         add_imag = False
-
+            
+        fname, ext = self._fname_ext(filename, ext)
+        
+        # now ext is there only to specify format
+        
         if ext in ["npy", "dat"]:
-            fname = filename + "." + ext
-
+            
             if isinstance(self.data[0], numbers.Real):
                 ab = numpy.zeros((self.axis.length, 2))
             else:
@@ -542,7 +564,7 @@ class DFunction:
 
 
 
-    def load(self, filename, axis="time", ext="npy", replace=False):
+    def load(self, filename, axis="time", ext=None, replace=False):
         """Loads a DFunction from  a file
 
         """
@@ -550,14 +572,9 @@ class DFunction:
         if not (self._is_empty or replace):
             raise Exception("Data already exist in this object."
             + " Use replace=True argument (default is replace=False")
-
-        if ext in ["npy","dat"]:
-
-            fname = filename + "." + ext
-
-        else:
-            raise Exception("Unknown format")
-
+        
+        fname, ext = self._fname_ext(filename, ext)
+        
         if ext == "npy":
 
             ab = numpy.load(fname)
@@ -565,7 +582,11 @@ class DFunction:
         elif ext == "dat":
 
             ab = numpy.loadtxt(fname)
-
+            
+        else:
+            
+            raise Exception("Unknown format")
+            
         dt = ab[1,0] - ab[0,0]
         N = len(ab[:,0])
         st = ab[0,0]
