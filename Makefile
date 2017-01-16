@@ -1,12 +1,14 @@
-all: install 
+all: reinst
 
 VERSION = 0.0.11.dev2
 
-uninst:
-	pip uninstall quantarhei 
+uninst: 
+	pip uninstall -y quantarhei 
 
-install:
+sdist:
 	python setup.py sdist
+ 
+install: sdist 
 	pip install dist/quantarhei-${VERSION}.tar.gz
 
 reinst: uninst install
