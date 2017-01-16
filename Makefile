@@ -1,6 +1,6 @@
 all: install 
 
-VERSION = 0.0.11.dev1
+VERSION = 0.0.11.dev2
 
 uninst:
 	pip uninstall quantarhei
