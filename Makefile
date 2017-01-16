@@ -3,7 +3,7 @@ all: install
 VERSION = 0.0.11.dev2
 
 uninst:
-	pip uninstall quantarhei
+	pip uninstall quantarhei 
 
 install:
 	python setup.py sdist

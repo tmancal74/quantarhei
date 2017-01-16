@@ -21,9 +21,13 @@ def main():
                         help="no output from qrhei script itself")
     parser.add_argument("-p", "--parallel", action='store_true', 
                         help="executes the code in parallel")
+    parser.add_argument("-n", "--nprocesses", type=int, default=0,
+                        help="number of processes to start")
     
     args = parser.parse_args() 
     
+    
+    nprocesses = args.nprocesses
     flag_parallel = args.parallel
     flag_silent = args.silent
 
@@ -44,32 +48,96 @@ def main():
     if args.version:
         print("Quantarhei package version: ", Manager().version)
 
-        
+    ###########################################################################    
     #
     # Running a script
     #
-    scr = args.script
+    ###########################################################################
     
+    #
+    # Script name
+    # 
+    scr = args.script
+
+    #
+    # Greeting 
+    #
     if not flag_silent:
         print("Running Quantarhei (python) script file: ", scr)
-        print(" --- output below ---")
+
     
-    if not flag_parallel:
-        # running the script within the same interpreter
-        exec(open(scr).read(), globals())
-    else:
+    #
+    # Run serial or parallel 
+    #
+        
+    if flag_parallel:
+        
+        #
+        # get parallel configuration
+        #
+        cpu_count = 0
+        try:
+            import multiprocessing
+            cpu_count = multiprocessing.cpu_count()
+        except (ImportError, NotImplementedError):
+            pass        
+        
+        prl_exec = "mpirun"
+        prl_n = "-n"
+        
+        if cpu_count != 0:
+            prl_np = cpu_count
+        else:
+            prl_np = 4
+            
+        if nprocesses != 0:
+            prl_np = nprocesses
+        
+        engine = "qrhei -s "
+        
         # running MPI with proper parallel configuration
-        # FIXME: I want "qrhei" as the running process instead of "python"
-        p = subprocess.Popen('mpirun -n 4 python '+scr,
+        prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "
+        cmd = prl_cmd+engine+scr
+        if not flag_silent:
+            print("System reports", cpu_count,"processors")
+            print("Starting parallel execution with",prl_np,
+            "processes (executing command below)")
+            print(cmd)
+            print("")
+        p = subprocess.Popen(cmd,
                              shell=True, stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
-        for line in iter(p.stdout.readline, ''):
+
+        if not flag_silent:
+            print(" --- output below ---")
+        
+        # read and print output
+        for line in iter(p.stdout.readline, b''):
         #for line in p.stdout.readlines():
             ln = line.decode()
             # line is returned with a \n character at the end 
-            #ln = ln[0:len(ln)-2]
+            # ln = ln[0:len(ln)-2]
             print(ln, end="", flush=True)
+            
         retval = p.wait()    
         
-        print(retval)
+    else:
+        
+        if not flag_silent:
+            print(" --- output below ---")
+        # running the script within the same interpreter
+        exec(open(scr).read(), globals())
+        
+        retval = 0        
+        
+    #
+    # Saying good bye
+    #
+    if retval == 0:
+        if not flag_silent:
+            print(" --- output above --- ")
+            print("Finshed sucessfully; exit code: ", retval)
+    else:
+        print("Warning, exit code: ", retval)
+        
     
