@@ -42,7 +42,8 @@ class TestAbs(unittest.TestCase):
         
     def _opt_spectral_shape(self, par):
         f = self.axis
-        return self._spectral_shape(f, par)
+        a = AbsSpectrumBase(axis=f,data=self._spectral_shape(f, par))
+        return a
         
             
     def test_abs_spectrum_base(self):
@@ -64,11 +65,14 @@ class TestAbs(unittest.TestCase):
         with energy_units("1/cm"):
             f2 = self._spectral_shape(self.abss.axis, par) 
         
-        abss2 = AbsSpectrumBase(axis=self.abss.axis, data=f2)
-        ad = AbsSpectrumDifference(target=self.abss, optfce=abss2)
-        d = ad.difference()
+            abss2 = AbsSpectrumBase(axis=self.abss.axis, data=f2)
+            ad = AbsSpectrumDifference(target=self.abss, optfce=abss2, 
+                                   bounds=(10100.0, 11900.0))
+            d = ad.difference()
         
         self.assertAlmostEqual(d, 0.0)
+        
+        
         
     def test_abs_difference_formula(self):
         """Testing formula for calculation of difference between abs spectra
@@ -79,17 +83,18 @@ class TestAbs(unittest.TestCase):
         #  Test difference formula
         #
         par = [1.0, 10900.0, 100.0]
-        #with energy_units("1/cm"):
-        f2 = self._spectral_shape(self.abss.axis, par) 
+        with energy_units("1/cm"):
+            f2 = self._spectral_shape(self.abss.axis, par) 
         
-        abss2 = AbsSpectrumBase(axis=self.abss.axis, data=f2)
-        ad = AbsSpectrumDifference(target=self.abss, optfce=abss2)
-        d = ad.difference()            
+            abss2 = AbsSpectrumBase(axis=self.abss.axis, data=f2)
+            ad = AbsSpectrumDifference(target=self.abss, optfce=abss2, 
+                                   bounds=(10100.0, 11900.0))
+            d = ad.difference()            
         
-        target = self.abss.data
-        secabs = abss2.data
-        x = self.abss.axis.data
-        d2 = numpy.sum(numpy.abs((target-secabs)/
+            target = self.abss.data[ad.nl:ad.nu]
+            secabs = abss2.data[ad.nl:ad.nu]
+            x = self.abss.axis.data[ad.nl:ad.nu]
+            d2 = 1000.0*numpy.sum(numpy.abs((target-secabs)**2/
                                    (x[len(x)-1]-x[0])))
         
         self.assertAlmostEqual(d, d2)        
@@ -98,12 +103,14 @@ class TestAbs(unittest.TestCase):
         """Testing difference minimization using scipy.optimize package
         
         """
-        ad = AbsSpectrumDifference(target=self.abss, 
-                                   optfce=self._opt_spectral_shape)
+        with energy_units("1/cm"):
+            ad = AbsSpectrumDifference(target=self.abss, 
+                                   optfce=self._opt_spectral_shape, 
+                                   bounds=(10100.0, 11900.0))
         
-        method = "Nelder-Mead"
-        ini = [0.5, 10900, 80.0]
-        p = ad.minimize(ini, method=method)
+            method = "Nelder-Mead"
+            ini = [0.5, 10900, 80.0]
+            p = ad.minimize(ini, method=method)
         
         numpy.testing.assert_array_almost_equal(p, [1.0, 11000.0, 100.0])
 
