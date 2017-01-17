@@ -6,6 +6,8 @@
 import numpy
 import scipy
 
+from scipy.optimize import minimize
+
 from ..utils import derived_type
 from ..builders import Molecule 
 from ..builders import Aggregate
@@ -124,6 +126,96 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         asc.set_data(self.data)
         asc.axis = self.axis
         
+        
+     
+class AbsSpectrumDifference:
+    """Difference between two absorption spectra and its minimuzation
+    
+    Describes and handles difference between two absorption spectra. Provides
+    minimization facility provided that the second spectrum is specified
+    by a function.
+    
+    Parameters
+    ----------
+    
+    target : AbsSpectrum
+        Absorption spectrum to be compared to
+        
+    optfce : function or AbsSpectrum
+        If a function is specified it is expected that one will try to optimize
+        its parameters to fit the target spectrum. If an absorption spectrum 
+        is submitted, one can calculate the difference between the target and
+        submitted spectra. Attempted to call `minimize` method will fail.
+    
+    Methods
+    -------
+
+    difference
+
+    minimize
+     
+        
+    """
+    def __init__(self, target=None, optfce=None, tol=1.0e-6 ):
+        if target is None:
+            raise Exception("Target spectrum has to be specified")
+        if optfce is None:
+            raise Exception("Second spectrum or a function to be optimized"
+                            + " must be specified")
+            
+        self.x = target.axis.data
+        self.target = target
+        if callable(optfce):
+            self.optfce = optfce
+            self.secabs = None
+            self._can_minimize = True
+        else:
+            self.optfce = None
+            self.secabs = optfce
+            self._can_minimize = False
+            
+        self.tol = tol
+        self.opt_result = None
+        
+    def difference(self, par=None):
+        """Calculates difference between spectra
+        
+        Calculates difference between the target spectrum and the spectrum
+        calculated from submitted parameters
+        
+        Parameters
+        ----------
+        
+        par : list or array (optional)
+            parameters of the function 
+        
+        """
+        target = self.target.data
+        if self._can_minimize:
+            if par is None:
+                raise Exception("Function parameters must be specified "+
+                                "to calculate difference")
+            secabs = self.optfce(par)
+        else:
+            secabs = self.secabs.data
+            
+        diff = numpy.sum(numpy.abs((target-secabs)/
+                                   (self.x[len(self.x)-1]-self.x[0])))
+        
+        return diff
+        
+    def minimize(self, init_params, method):
+        """Minimizes the submitted function and returns optimal parameters
+        
+        """
+        if self._can_minimize:
+            self.opt_result = minimize(self.difference, init_params,
+                                       method=method, tol=self.tol,
+                                       options=dict(disp=True))
+            return self.opt_result.x
+        else:
+            raise Exception("Cannot perform minimization, "+
+                            "no function suplied")
         
         
 class AbsSpectContainer(DFunction, EnergyUnitsManaged):
