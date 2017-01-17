@@ -54,6 +54,7 @@ from .core.dfunction import DFunction
 from .spectroscopy.abs import AbsSpect
 from .spectroscopy.abs import AbsSpectContainer
 from .spectroscopy.abs import AbsSpectrumBase
+from .spectroscopy.abs import AbsSpectrumDifference
 
 from .core.managers import Manager
 from .core.managers import energy_units

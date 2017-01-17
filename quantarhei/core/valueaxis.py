@@ -109,10 +109,11 @@ class ValueAxis:
 
     def __init__(self, start=0.0, length=1, step=1.0):
 
-        if step > 0:
+        #if step > 0:
+        if True:
             self.step = step
-        else:
-            raise Exception("Parameter step has to be > 0")
+        #else:
+        #    raise Exception("Parameter step has to be > 0")
         self.start = start
         self.length = length
 

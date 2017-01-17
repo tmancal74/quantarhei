@@ -18,6 +18,7 @@ from ..core.dfunction import DFunction
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
+from ..core.units import cm2int
 
 class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
     """Provides basic container for absorption spectrum
@@ -79,6 +80,8 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         """
         if not numpy.allclose(spect.axis.data, self.axis.data):
+            spect.axis.data.savetxt("spect_data_wrong.dat")
+            self.axis.data.savetxt("self_data_wrong.dat")
             raise Exception("Incompatible axis")
         
         if self.axis is None:
@@ -114,7 +117,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
             ylabel = r'$\alpha(\omega)$ [a.u.]'
             kwargs["ylabel"] = ylabel
             
-        super(AbsSpectContainer,self).plot(**kwargs)
+        super().plot(**kwargs)
 
 
     #
@@ -126,7 +129,34 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         asc.set_data(self.data)
         asc.axis = self.axis
         
+    def convert_to_energy(self, eaxis, units):
+        """
         
+        """
+        
+        if units == "nm":
+            x = self.axis.data
+            y = self.data
+            
+            # to cm
+            x = 1.0e-7*x
+            # to 1/cm
+            x = 1.0/x
+            # to rad/fs
+            x = x*cm2int
+            
+            xn = numpy.zeros(x.shape, dtype=x.dtype)
+            yn = numpy.zeros(y.shape, dtype=y.dtype) 
+            
+            for i in range(len(x)):
+                xn[i] = x[len(x)-i-1]
+                yn[i] = y[len(x)-i-1]
+                
+            # spline it
+            
+            # evaluate at points if eaxis
+            
+            
      
 class AbsSpectrumDifference:
     """Difference between two absorption spectra and its minimuzation
@@ -156,14 +186,13 @@ class AbsSpectrumDifference:
      
         
     """
-    def __init__(self, target=None, optfce=None, tol=1.0e-6 ):
+    def __init__(self, target=None, optfce=None, bounds=(0.0,1.0), tol=1.0e-6 ):
         if target is None:
             raise Exception("Target spectrum has to be specified")
         if optfce is None:
             raise Exception("Second spectrum or a function to be optimized"
                             + " must be specified")
             
-        self.x = target.axis.data
         self.target = target
         if callable(optfce):
             self.optfce = optfce
@@ -174,6 +203,13 @@ class AbsSpectrumDifference:
             self.secabs = optfce
             self._can_minimize = False
             
+        self.bounds = bounds
+
+        nl, val = target.axis.locate(self.bounds[0])
+        nu, val = target.axis.locate(self.bounds[1])
+        self.nl = nl
+        self.nu = nu
+        self.x = target.axis.data[nl:nu]
         self.tol = tol
         self.opt_result = None
         
@@ -190,17 +226,25 @@ class AbsSpectrumDifference:
             parameters of the function 
         
         """
-        target = self.target.data
+        target = self.target.data[self.nl:self.nu]
         if self._can_minimize:
             if par is None:
                 raise Exception("Function parameters must be specified "+
                                 "to calculate difference")
             secabs = self.optfce(par)
+            sdat = numpy.zeros(len(self.x), dtype=numpy.float64)
+            i = 0
+            for xi in self.x:
+                sdat[i] = secabs.at(xi)
+                i += 1
+            secabs = sdat    
         else:
             secabs = self.secabs.data
             
-        diff = numpy.sum(numpy.abs((target-secabs)/
+        diff = 1000.0*numpy.sum(numpy.abs((target-secabs)**2/
                                    (self.x[len(self.x)-1]-self.x[0])))
+        
+        print("DIFF: ", diff)
         
         return diff
         

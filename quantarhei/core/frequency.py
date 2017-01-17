@@ -161,10 +161,11 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
 
     def __init__(self, start, length, step, atype='complete', time_start=0.0):
 
-        if step > 0:
+        #if step > 0:
+        if True:
             self.step = step
-        else:
-            raise Exception("Parameter step has to be > 0")
+        #else:
+        #    raise Exception("Parameter step has to be > 0")
         self.start = start
         self.length = length
 

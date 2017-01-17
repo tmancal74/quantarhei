@@ -34,6 +34,7 @@ class DistributedConfiguration:
         self.parallel_level = 0
         self.inparallel = False
         
+        self.silent = True
         
     def start_parallel_region(self):
         """Starts a parallel region
@@ -60,7 +61,9 @@ class DistributedConfiguration:
         
         """
         if self.have_mpi:
-            if self.size > 1:        
+            if self.size > 1:
+                if self.parallel_level == 1:
+                    self.comm.Barrier()
                 self.parallel_level -= 1
                 
         if self.parallel_level < 0:
@@ -80,7 +83,8 @@ class DistributedConfiguration:
                 
     def print(self, txt, who=0):
         if self.rank == who:
-            print(txt)
+            if not self.silent:
+                print(txt)
             
                 
     def reduce(self, A, operation="sum"):

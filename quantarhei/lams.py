@@ -168,7 +168,7 @@ def main():
         quit()
         
     with term.location(indent, term.height-1):
-        print("Task summary:")    
+        print("Lams task summary:")    
     with term.location(indent, term.height-1):
         print(oper, stype, ": convert =", args.convert, 
         ": outfile =", args.outfile)
@@ -219,7 +219,7 @@ def main():
     
             k += 1
     
-    
+            
         spect.save(fname, ext=ext)
     
         with term.location(indent, term.height-1):

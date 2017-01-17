@@ -591,6 +591,10 @@ class DFunction:
         N = len(ab[:,0])
         st = ab[0,0]
         dat = ab[:,1]
+        
+        #if dt < 0:
+        #    ab[:,0] = 1.0/ab[:,0]
+            
 
         if axis == "time":
 
