@@ -213,6 +213,8 @@ class AbsSpectrumDifference:
         self.tol = tol
         self.opt_result = None
         
+        self.difftype = "square"
+        
     def difference(self, par=None):
         """Calculates difference between spectra
         
@@ -233,6 +235,10 @@ class AbsSpectrumDifference:
                                 "to calculate difference")
             secabs = self.optfce(par)
             sdat = numpy.zeros(len(self.x), dtype=numpy.float64)
+            #
+            # get values at the correct points by fitting (using the fact that
+            # absorption spectrum is a DFunction )
+            #
             i = 0
             for xi in self.x:
                 sdat[i] = secabs.at(xi)
@@ -241,9 +247,18 @@ class AbsSpectrumDifference:
         else:
             secabs = self.secabs.data
             
-        diff = 1000.0*numpy.sum(numpy.abs((target-secabs)**2/
+        #
+        # FIXME: Add some more types of differences
+        #
+            
+        if self.difftype == "square":
+            diff = 1000.0*numpy.sum(numpy.abs((target-secabs)**2/
                                    (self.x[len(self.x)-1]-self.x[0])))
-        
+        elif self.difftype == "measure":
+            diff = 0.0
+        else:
+            raise Exception("Unknown differene type")
+            
         print("DIFF: ", diff)
         
         return diff
