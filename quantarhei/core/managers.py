@@ -502,6 +502,9 @@ class Manager(metaclass=Singleton):
         
         
     def get_DistributedConfiguration(self):
+        """
+        
+        """
         if self.parallel_conf is None:
             self.parallel_conf = DistributedConfiguration()
         return self.parallel_conf
