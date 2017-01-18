@@ -6,7 +6,9 @@
 import numpy
 import scipy
 
-from scipy.optimize import minimize
+from scipy.optimize import minimize, leastsq
+
+import matplotlib.pyplot as plt
 
 from ..utils import derived_type
 from ..builders import Molecule 
@@ -122,6 +124,23 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         super().plot(**kwargs)
 
 
+        
+    def gaussian_fit(self, params=0):
+        """Performs a Gaussian fit of the spectrum based on an initial guess
+        
+        """
+        guess = [1.0, 11000.0, 300.0, 0.2, 11800, 400, 0.2, 12500, 300, 0.0]
+        x = self.axis.data
+        y = self.data
+        errfunc3 = lambda p, x, y: (_n_gaussians(3, x, p) - y)**2
+        optim3, success = leastsq(errfunc3, guess[:], args=(x, y))
+        
+        print(success)
+        print(optim3)
+        
+        plt.plot(x,y)
+        plt.plot(x,_n_gaussians(3, x, optim3))
+        
     #
     # Temporary methods for compatibility and testing
     #        
@@ -157,7 +176,33 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
             # spline it
             
             # evaluate at points if eaxis
+
             
+def _gaussian(x, parameters):
+    height = parameters[0]
+    center = parameters[1]
+    fwhm   = parameters[2]
+    offset = parameters[3]
+    return height*numpy.exp(-(x - center)**2/(fwhm**2)) + offset   
+
+def _n_gaussians(N, x, params):
+
+    n = len(params)
+    k = (n-1)//3
+    if (k*3 == n - 1) and (k == N):
+        res = 0.0
+        pp = numpy.zeros(4)
+        for i in range(k):
+            pp[0:3] = params[3*i:3*i+3]
+            pp[3] = 0.0
+            res += _gaussian(x, pp)
+        res += params[n-1] # last parameter is an offset
+        return res
+            
+    else:
+        raise Exception("Inconsistend number of parameters")        
+         
+    
             
      
 class AbsSpectrumDifference(EnergyUnitsManaged):
