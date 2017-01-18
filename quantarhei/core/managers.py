@@ -9,7 +9,6 @@ from .units import conversion_facs_frequency
 from .units import conversion_facs_energy
 
 from .singleton import Singleton
-from .parallel import DistributedConfiguration
 
 
 class Manager(metaclass=Singleton):
@@ -505,6 +504,8 @@ class Manager(metaclass=Singleton):
         """
         
         """
+        from .parallel import DistributedConfiguration
+        
         if self.parallel_conf is None:
             self.parallel_conf = DistributedConfiguration()
         return self.parallel_conf

@@ -6,7 +6,7 @@
 
 import numpy
 
-from ..managers import Manager
+from .managers import Manager
 
 class DistributedConfiguration:
 
@@ -201,6 +201,8 @@ class parallel_bypass:
         rank of the process which handles all the inteligent work
     
     """    
+
+    
     def __init__(self, bypass_to=None, leader_rank=0):
         
         # FIXME: do we have to be parallel_level aware????
