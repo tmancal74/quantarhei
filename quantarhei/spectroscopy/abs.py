@@ -80,8 +80,8 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         """
         if not numpy.allclose(spect.axis.data, self.axis.data):
-            spect.axis.data.savetxt("spect_data_wrong.dat")
-            self.axis.data.savetxt("self_data_wrong.dat")
+            numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
+            numpy.savetxt("self_data_wrong.dat", self.axis.data)
             raise Exception("Incompatible axis")
         
         if self.axis is None:
