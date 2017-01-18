@@ -135,6 +135,35 @@ class DistributedConfiguration:
         else:
             raise Exception("Unknown reduction operation")            
             
+def start_parallel_region():
+    """Starts a parallel region
+    
+    This is a clean solution without having to explicitely invoke Manager
+    and DistributedConfiguration class
+    
+    """
+    dc = Manager().get_DistributedConfiguration()
+    dc.start_parallel_region()
+
+
+def close_parallel_region():
+    """Closes a parallel region
+    
+    This is a clean solution without having to explicitely invoke Manager
+    and DistributedConfiguration class
+    
+    """    
+    dc = Manager().get_DistributedConfiguration()
+    dc.finish_parallel_region()
+    
+    
+def distributed_configuration():
+    """Returns the DistributedConfiguration object from the Manager
+    
+    """
+    return Manager().get_DistributedConfiguration()
+
+    
 def block_distributed_range(config, start, stop):
     """ Creates an iterator which returns a block of indices
         
@@ -185,28 +214,80 @@ def block_distributed_range(config, start, stop):
         return range(start, stop)
 
         
-class parallel_bypass:
+class parallel_function:
     """Context manager handling division of work on parallel tasks 
     
     
+    This context manager is motivated by the wish to have a code as
+    clean of explicit handling of parallelism as possible. 
     
     
     Parameters
     ----------
     
-    bypass_to : callable 
+    function : callable 
         function which will be repeatedly called within the context
     
     leader_rank : int
         rank of the process which handles all the inteligent work
     
+        
+    Examples
+    --------
+
+#    These examples, when tested, will be run serial mode and the test will
+#    only confirm that the serial version works
+#    
+#    
+#    Here is some function that uses parallel execution to obtain
+#    a single value
+#    
+#    >>> def pfunction(parameters):
+#    ...    val = get_some_value_using_all_processes(parameters)
+#    ...    return val
+#    
+#    
+#    And this is a function which takes a function and runs it
+#    repetitively examining its return value and deciding when to exit
+#    based on the returned value (or some other criterion)
+#        
+#    >>> def some_inteligence_at_work(func):
+#    ...    
+#    ...    cont = True
+#    ...    val = initial_val
+#    ...    while cont:
+#    ...        par = select_new_parameters(val)
+#    ...        val = func(par)
+#    ...        cont = shall_we_continue(val)
+#    ...    last_val = val    
+#    ...        
+#    ...    return last_val
+#            
+#    
+#    Only the leader process will execute the inteligent function and
+#    get its return value (this might or might not be a problem)
+#           
+#    >>> val = 0
+#    ...
+#    ... with parallel_function(pfunction, leader_rank=0) as f, execute_block:
+#    ...     if execute_block:
+#    ...         val = some_inteligence_at_work(f)
+#
+#    
+#    If it is a problem that the value val is assigned a final value 
+#    on the leader process only, we have to explicitely broadcast it
+#    AFTER the context is left
+#    
+#    >>> dc = Manager().get_DistributedConfiguration()            
+#    >>> val = dc.bcast(val, from=0)
+        
     """    
 
     
-    def __init__(self, bypass_to=None, leader_rank=0):
+    def __init__(self, function, leader_rank=0, parallel_level=0):
         
         # FIXME: do we have to be parallel_level aware????
-        self.fce = bypass_to
+        self.fce = function
         self.leader = leader_rank
         
         manager = Manager()
@@ -221,7 +302,7 @@ class parallel_bypass:
         
         """
         
-        # the leader process goes straight through
+        # helper processes will wait here and should not execute the block
         if self.dc.rank != self.leader:
             
             wait_for_work = True
@@ -238,9 +319,17 @@ class parallel_bypass:
                     res = self.fce(params)
                     # returned results are irrelevant, everything is handled
                     # by the leader process
-                    
+
+            execute_block = False
+
+        # the leader process goes straight through and will execute the block            
+        else:
+            
+            execute_block = True
+            
         # FIXME: return a wrapped function with parameter broadcasting
-                    
+
+        return self.fce, execute_block  
     
     def __exit__(self,ext_ty,exc_val,tb):
         """On exit the leader process signals to stop waiting for more work

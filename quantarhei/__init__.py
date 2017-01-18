@@ -62,6 +62,13 @@ from .core.managers import frequency_units
 from .core.managers import eigenbasis_of
 from .core.managers import set_current_units
 
+from .core.parallel import distributed_configuration
+from .core.parallel import start_parallel_region
+from .core.parallel import close_parallel_region
+from .core.parallel import parallel_function
+from .core.parallel import block_distributed_range
+
+
 from .qm.corfunctions import CorrelationFunction
 from .qm.corfunctions import SpectralDensity
 
