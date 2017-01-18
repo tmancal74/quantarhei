@@ -245,7 +245,18 @@ class AbsSpectrumDifference:
                 i += 1
             secabs = sdat    
         else:
-            secabs = self.secabs.data
+            secabs = self.secabs #.data[self.nl:self.nu]
+            sdat = numpy.zeros(len(self.x), dtype=numpy.float64)
+            #
+            # get values at the correct points by fitting (using the fact that
+            # absorption spectrum is a DFunction )
+            #
+            i = 0
+            for xi in self.x:
+                sdat[i] = secabs.at(xi)
+                i += 1
+            secabs = sdat    
+
             
         #
         # FIXME: Add some more types of differences

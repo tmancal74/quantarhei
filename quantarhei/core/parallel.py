@@ -6,6 +6,8 @@
 
 import numpy
 
+from .managers import Manager
+
 class DistributedConfiguration:
 
     def __init__(self, schedule=None):
@@ -181,5 +183,74 @@ def block_distributed_range(config, start, stop):
     else:
 
         return range(start, stop)
+
         
+class parallel_bypass:
+    """Context manager handling division of work on parallel tasks 
+    
+    
+    
+    
+    Parameters
+    ----------
+    
+    bypass_to : callable 
+        function which will be repeatedly called within the context
+    
+    leader_rank : int
+        rank of the process which handles all the inteligent work
+    
+    """    
+
+    
+    def __init__(self, bypass_to=None, leader_rank=0):
+        
+        # FIXME: do we have to be parallel_level aware????
+        self.fce = bypass_to
+        self.leader = leader_rank
+        
+        manager = Manager()
+        self.dc = manager.get_DistributedConfiguration()
+
+    
+    def __enter__(self):
+        """All except of the leader are put on hold
+        
+        All processes will wait for the leader (rank=0 by default) 
+        to broadcast a list of function arguments.
+        
+        """
+        
+        # the leader process goes straight through
+        if self.dc.rank != self.leader:
+            
+            wait_for_work = True
+            # keep waiting for the work in a loop
+            while wait_for_work:
+                params = None
+                # first we communicate if work will come at all
+                wait_for_work = self.dc.comm.bcast(wait_for_work,
+                                                   root=self.leader)
+                if wait_for_work:
+                    # now we get parameters for the function to which we bypass
+                    params = self.dc.comm.bcast(params, root=self.leader)
+                    # call the function with the broadcasted parameters
+                    res = self.fce(params)
+                    # returned results are irrelevant, everything is handled
+                    # by the leader process
+                    
+        # FIXME: return a wrapped function with parameter broadcasting
+                    
+    
+    def __exit__(self,ext_ty,exc_val,tb):
+        """On exit the leader process signals to stop waiting for more work
+        
+        """
+        
+        # all processes except of the leader go straight through
+        if self.dc.rank == self.leader:
+            wait_for_work = False
+            wait_for_work = self.dc.comm.bcast(wait_for_work,
+                                               root=self.leader)
+            
         
