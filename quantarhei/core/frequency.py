@@ -186,7 +186,12 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         else:
             raise Exception("Unknown frequency axis type")
 
-
+    def copy(self):
+        axis = FrequencyAxis(self.start, self.length, self.step,
+                             atype=self.atype, time_start=self.time_start)
+        return axis
+        
+        
     def get_TimeAxis(self):
         """Returns the corresponding TimeAxis object
 

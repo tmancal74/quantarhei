@@ -79,16 +79,18 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
             This object should have a compatible axis and some data
         
         """
-        if not numpy.allclose(spect.axis.data, self.axis.data):
-            numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
-            numpy.savetxt("self_data_wrong.dat", self.axis.data)
-            raise Exception("Incompatible axis")
+
         
         if self.axis is None:
             self.axis = spect.axis.copy()
             
+        if not numpy.allclose(spect.axis.data, self.axis.data):
+            numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
+            numpy.savetxt("self_data_wrong.dat", self.axis.data)
+            raise Exception("Incompatible axis")
+            
         if self.data is None:
-            self.data = numpy.zeros(spect.data.length,
+            self.data = numpy.zeros(len(spect.data),
                                     dtype=spect.axis.data.dtype)
         
         self.data += spect.data
@@ -158,7 +160,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
             
             
      
-class AbsSpectrumDifference:
+class AbsSpectrumDifference(EnergyUnitsManaged):
     """Difference between two absorption spectra and its minimuzation
     
     Describes and handles difference between two absorption spectra. Provides
@@ -203,13 +205,17 @@ class AbsSpectrumDifference:
             self.secabs = optfce
             self._can_minimize = False
             
-        self.bounds = bounds
+        self.bounds = []
+        self.bounds.append(self.convert_2_internal_u(bounds[0]))
+        self.bounds.append(self.convert_2_internal_u(bounds[1]))
 
-        nl, val = target.axis.locate(self.bounds[0])
-        nu, val = target.axis.locate(self.bounds[1])
+        with energy_units("int"):
+            nl, val = target.axis.locate(self.bounds[0])
+            nu, val = target.axis.locate(self.bounds[1])
+        
         self.nl = nl
         self.nu = nu
-        self.x = target.axis.data[nl:nu]
+        self.x = target.axis._data[nl:nu]
         self.tol = tol
         self.opt_result = None
         
@@ -240,6 +246,7 @@ class AbsSpectrumDifference:
             # absorption spectrum is a DFunction )
             #
             i = 0
+
             for xi in self.x:
                 sdat[i] = secabs.at(xi)
                 i += 1

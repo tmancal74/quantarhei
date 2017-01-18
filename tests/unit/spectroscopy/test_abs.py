@@ -108,9 +108,9 @@ class TestAbs(unittest.TestCase):
                                    optfce=self._opt_spectral_shape, 
                                    bounds=(10100.0, 11900.0))
         
-            method = "Nelder-Mead"
-            ini = [0.5, 10900, 80.0]
-            p = ad.minimize(ini, method=method)
+        method = "Nelder-Mead"
+        ini = [0.5, 10900, 80.0]
+        p = ad.minimize(ini, method=method)
         
         numpy.testing.assert_array_almost_equal(p, [1.0, 11000.0, 100.0])
 

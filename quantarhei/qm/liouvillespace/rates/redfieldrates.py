@@ -11,6 +11,9 @@ import numpy
 
 from ....core.implementations import implementation
 from ....core.parallel import block_distributed_range
+from ....core.parallel import start_parallel_region
+from ....core.parallel import close_parallel_region
+from ....core.parallel import distributed_configuration
 from ....core.units import cm2int
 from ....core.units import kB_intK
 from ....core.managers import Manager
@@ -202,13 +205,13 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
     
     # loop over components
 
-    dc = Manager().get_DistributedConfiguration()
+    dc = distributed_configuration() # Manager().get_DistributedConfiguration()
     
     #
     #  PARALLELIZED
     #
-    dc.start_parallel_region()
-    for k in block_distributed_range(dc, 0, Nk):
+    start_parallel_region()
+    for k in block_distributed_range(0, Nk):
     #for k in range(Nk):
         
         # interaction operator
@@ -224,7 +227,7 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
     
     # FIXME: parallelization ignores werror
     dc.allreduce(RR, operation="sum")        
-    dc.finish_parallel_region()
+    close_parallel_region()
     
     #
     #  END PARALLELIZED

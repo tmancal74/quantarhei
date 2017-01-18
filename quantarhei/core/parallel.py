@@ -133,7 +133,14 @@ class DistributedConfiguration:
             A[:,:] = B
             
         else:
-            raise Exception("Unknown reduction operation")            
+            raise Exception("Unknown reduction operation")      
+            
+    def bcast(self, value, root=0):
+        #if self.parallel_level != 1:
+        #    return value
+            
+        return self.comm.bcast(value, root=root)
+
             
 def start_parallel_region():
     """Starts a parallel region
@@ -164,7 +171,7 @@ def distributed_configuration():
     return Manager().get_DistributedConfiguration()
 
     
-def block_distributed_range(config, start, stop):
+def block_distributed_range(start, stop):
     """ Creates an iterator which returns a block of indices
         
         Returns an iterator over a block of indices for each parallel process.
@@ -182,7 +189,7 @@ def block_distributed_range(config, start, stop):
     """
 
     # we share the work only in parallel_level == 1  
-
+    config = Manager().get_DistributedConfiguration()
     if config.parallel_level==1:
 
         config.inparallel_entered = True
@@ -213,6 +220,19 @@ def block_distributed_range(config, start, stop):
 
         return range(start, stop)
 
+def _parallel_function_wrapper(func, root):
+    # FIXME: return a wrapped function with parameter broadcasting
+    
+    def retfce(params):
+
+        wait_for_work = True
+        dc = distributed_configuration()
+        wait_for_work = dc.bcast(wait_for_work, root=root)
+        params = dc.bcast(params, root=root)
+        return func(params)
+        
+    return retfce
+    
         
 class parallel_function:
     """Context manager handling division of work on parallel tasks 
@@ -301,7 +321,6 @@ class parallel_function:
         to broadcast a list of function arguments.
         
         """
-        
         # helper processes will wait here and should not execute the block
         if self.dc.rank != self.leader:
             
@@ -321,15 +340,16 @@ class parallel_function:
                     # by the leader process
 
             execute_block = False
-
+            ftoret = None
+            
         # the leader process goes straight through and will execute the block            
         else:
             
             execute_block = True
             
-        # FIXME: return a wrapped function with parameter broadcasting
+            ftoret = _parallel_function_wrapper(self.fce, root=self.leader)
 
-        return self.fce, execute_block  
+        return (ftoret, execute_block)  
     
     def __exit__(self,ext_ty,exc_val,tb):
         """On exit the leader process signals to stop waiting for more work
@@ -339,7 +359,7 @@ class parallel_function:
         # all processes except of the leader go straight through
         if self.dc.rank == self.leader:
             wait_for_work = False
-            wait_for_work = self.dc.comm.bcast(wait_for_work,
-                                               root=self.leader)
+            wait_for_work = self.dc.bcast(wait_for_work,
+                                          root=self.leader)
             
         
