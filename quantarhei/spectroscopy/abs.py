@@ -58,7 +58,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         """
         mx = numpy.max(self.data)
-        self.data = self.data/mx
+        self.data = norm*self.data/mx
 
     def normalize(self):
         """Normalization to one

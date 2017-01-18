@@ -68,7 +68,7 @@ class TestAbs(unittest.TestCase):
             abss2 = AbsSpectrumBase(axis=self.abss.axis, data=f2)
             ad = AbsSpectrumDifference(target=self.abss, optfce=abss2, 
                                    bounds=(10100.0, 11900.0))
-            d = ad.difference()
+        d = ad.difference()
         
         self.assertAlmostEqual(d, 0.0)
         
@@ -89,8 +89,10 @@ class TestAbs(unittest.TestCase):
             abss2 = AbsSpectrumBase(axis=self.abss.axis, data=f2)
             ad = AbsSpectrumDifference(target=self.abss, optfce=abss2, 
                                    bounds=(10100.0, 11900.0))
-            d = ad.difference()            
-        
+        d = ad.difference()  
+          
+        #with energy_units("1/cm"):   
+        if True:
             target = self.abss.data[ad.nl:ad.nu]
             secabs = abss2.data[ad.nl:ad.nu]
             x = self.abss.axis.data[ad.nl:ad.nu]

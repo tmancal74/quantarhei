@@ -47,6 +47,7 @@ except:
 #
 ###############################################################################
 import numpy
+import scipy
 from quantarhei import AbsSpectContainer, AbsSpectrumBase
 from quantarhei import TimeAxis, FrequencyAxis, energy_units
 
@@ -69,10 +70,8 @@ def main():
     #                    const=sum, default=max,
     #                    help='sum the integers (default: find the max)')
     parser.add_argument("-op", "--operation", default="sum", 
-                        choices=["sum", "norm", "max"], 
+                        choices=["sum", "norm", "max", "convert"], 
                         help="operation to be performed on the spectra")
-    parser.add_argument("-c", "--convert",  
-                        help="convert from 1/cm to nm", action="store_true")
     parser.add_argument("-t", "--type", default="abs", 
                         help="type of spectra", choices=["abs", "2d"])
     parser.add_argument("-n", "--nosplash", action="store_true",
@@ -170,8 +169,7 @@ def main():
     with term.location(indent, term.height-1):
         print("Lams task summary:")    
     with term.location(indent, term.height-1):
-        print(oper, stype, ": convert =", args.convert, 
-        ": outfile =", args.outfile)
+        print(oper, stype, ": outfile =", args.outfile)
         print("")
         
     fname, ext = os.path.splitext(args.outfile)
@@ -192,8 +190,7 @@ def main():
     abs_sum = (stype == "abs") and (oper == "sum")
     abs_norm = (stype == "abs") and (oper == "norm")
     abs_max = (stype == "abs") and (oper == "max")
-    
-    abs_to_wavelength = args.convert
+    abs_conv = (stype == "abs") and (oper == "convert")
     
     
     if abs_sum:
@@ -277,4 +274,28 @@ def main():
         
         with term.location(indent, term.height-1):    
             print("... finished with ", k, " files\n")    
+        
+    if abs_conv:
+ 
+        with term.location(indent, term.height-1):    
+            print("Converting from nm to 1/cm")
+            
+        fl = files_abs[0]
+        data = numpy.genfromtxt(fl, converters={0: lambda s: 1.0e7/float(s)})
+        
+        x = data[:,0]
+        ab = data[:,1]
+        
+        _spline_r = scipy.interpolate.UnivariateSpline(x,ab,s=0)
+        
+        wa = FrequencyAxis(10000.0, 5000, 1.0)
+        data = numpy.zeros(wa.data.shape)
+        i = 0
+        for w in wa.data:
+            data[i] = _spline_r(w)
+            i += 1
+            
+        spect = AbsSpectrumBase(axis = wa, data = data)
+            
+        spect.save(fname, ext=ext)            
         

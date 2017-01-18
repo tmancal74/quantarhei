@@ -229,6 +229,7 @@ def _parallel_function_wrapper(func, root):
         dc = distributed_configuration()
         wait_for_work = dc.bcast(wait_for_work, root=root)
         params = dc.bcast(params, root=root)
+        
         return func(params)
         
     return retfce
