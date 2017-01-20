@@ -874,7 +874,8 @@ class Aggregate(UnitsManaged):
         # Number of states in individual bands      
         self.Nb = numpy.zeros(self.mult+1,dtype=numpy.int)
         for ii in range(self.mult+1):
-            self.Nb[ii] = self.number_of_states_in_band(band=ii)
+            self.Nb[ii] = self.number_of_states_in_band(band=ii,
+            vibgen_approx=vibgen_approx)
  
             
             
