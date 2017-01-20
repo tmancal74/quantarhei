@@ -57,6 +57,7 @@ def dipole_dipole(center1,dipole1,center2,dipole2,*args):
     dr2=np.dot(dipole2,r12)/R    
     
     Edip_dip_Ha=(d12 - 3*dr1*dr2)/(R**3)   # interaction energy in hartree
+    nma = 1.0
     Edip_dip_cm1=Edip_dip_Ha*nma.HaToInvcm
 
     if args:
@@ -181,21 +182,22 @@ def Oscilator3D(rr1, bond1, AtType1, NMN1, TotDip1, rr2, bond2, AtType2,
     # different than dipole in center of C-C and also in centrer N-N). So far all dipoles are the 
     # same for all atom types. This should be changed and be dependent on AtType
     if scale_by_overlap:
-        factor1=np.zeros(Ndip1,dtype='f8')
-        factor2=np.zeros(Ndip2,dtype='f8')
-        coef=np.array([0.06899907,0.31642396,0.74430829])   # only for C-C bonds and for pz orbitals 6-31G basis
-        exp=np.array([7.86827235,1.88128854,0.54424926])    # only for C-C bonds and for pz orbitals 6-31G basis
-        r1=np.array([0.0,0.0,0.0])
-        for ii in range(Ndip1):
-            R=np.sqrt(np.dot(rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:],rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:]))
-            r2=np.array([R,0.0,0.0])            
-            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation
-            factor1[ii]=np.sqrt(np.dot(Dip,Dip)) 
-        for ii in range(Ndip2):
-            R=np.sqrt(np.dot(rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:],rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:]))
-            r2=np.array([R,0.0,0.0])            
-            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation            
-            factor2[ii]=np.sqrt(np.dot(Dip,Dip)) 
+        pass
+#        factor1=np.zeros(Ndip1,dtype='f8')
+#        factor2=np.zeros(Ndip2,dtype='f8')
+#        coef=np.array([0.06899907,0.31642396,0.74430829])   # only for C-C bonds and for pz orbitals 6-31G basis
+#        exp=np.array([7.86827235,1.88128854,0.54424926])    # only for C-C bonds and for pz orbitals 6-31G basis
+#        r1=np.array([0.0,0.0,0.0])
+#        for ii in range(Ndip1):
+#            R=np.sqrt(np.dot(rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:],rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:]))
+#            r2=np.array([R,0.0,0.0])            
+#            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation
+#            factor1[ii]=np.sqrt(np.dot(Dip,Dip)) 
+#        for ii in range(Ndip2):
+#            R=np.sqrt(np.dot(rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:],rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:]))
+#            r2=np.array([R,0.0,0.0])            
+#            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation            
+#            factor2[ii]=np.sqrt(np.dot(Dip,Dip)) 
     else:
         # Possible scaling according to atom types (here everything is 1)
         factor1=np.ones(Ndip1,dtype='f8')
