@@ -151,13 +151,17 @@ class SpectralDensity(DFunction, UnitsManaged):
 
             self._make_overdamped_brownian()
 
+        elif self.ftype == "UnderdampedBrownian":
+
+            self._make_underdamped_brownian(params)
+            
         elif self.ftype == "Value-defined":
 
             self._make_value_defined(values=values)
 
         else:
-            raise Exception("Unknown correlation function type of"+
-                            "type domain combination.")
+            raise Exception("Unknown correlation function type or"+
+                            " type domain combination.")
 
     def _make_overdamped_brownian(self, values=None):
         """ Sets the Overdamped Brownian oscillator spectral density
@@ -184,6 +188,33 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = ctime
 
+    def _make_underdamped_brownian(self, params, values=None):
+         
+        #temperature = params["T"]
+        ctime = params["gamma"]
+        # use the units in which params was defined
+        omega0 = self.manager.iu_energy(params["freq"],
+                                      units=self.energy_units)
+        lamb = self.manager.iu_energy(params["reorg"],
+                                      units=self.energy_units)
+        #kBT = kB_intK*temperature
+        #time = self.axis.data 
+        
+        # protect calculation from units management
+        with energy_units("int"):
+            omega = self.axis.data
+            print(omega)
+            print(lamb)
+            print(omega0)
+            print(ctime)
+            cfce = (2.0*lamb*ctime)*omega/((omega-omega0)**2 + (ctime)**2)
+
+        if values is not None:
+            self._make_me(self.axis, values)
+        else:
+            self._make_me(self.axis, cfce)
+            
+        
     def _make_value_defined(self, values=None):
         """ Value defined spectral density
 

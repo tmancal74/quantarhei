@@ -17,6 +17,7 @@ from ...core.managers import energy_units
 from ...core.time import TimeAxis
 
 
+
 class CorrelationFunction(DFunction, UnitsManaged):
     """Provides typical Bath correlation function types.
 
@@ -109,7 +110,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
     """
 
     allowed_types = ("OverdampedBrownian-HighTemperature",
-                     "OverdampedBrownian", "Value-defined")
+                     "OverdampedBrownian", "UnderdampedBrownian",
+                     "Value-defined")
 
     analytical_types = ("OverdampedBrownian-HighTemperature",
                         "OverdampedBrownian")
@@ -145,11 +147,15 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         if self.ftype == "OverdampedBrownian-HighTemperature":
 
-            self._make_overdumped_brownian_ht(params, values=values)
+            self._make_overdamped_brownian_ht(params, values=values)
 
         elif self.ftype == "OverdampedBrownian":
 
-            self._make_overdumped_brownian(params, values=values)
+            self._make_overdamped_brownian(params, values=values)
+            
+        elif self.ftype == "UnderdampedBrownian":
+            
+            self._make_underdamped_brownian(params, values=values)
 
         elif self.ftype == "Value-defined":
 
@@ -168,7 +174,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             msf += nut*n*numpy.exp(-nut*n*time)/((nut*n)**2-(1.0/ctime)**2)
         return msf
 
-    def _make_overdumped_brownian(self, params, values=None):
+    def _make_overdamped_brownian(self, params, values=None):
 
         temperature = params["T"]
         ctime = params["cortime"]
@@ -201,7 +207,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self.cutoff_time = 5.0*ctime
 
 
-    def _make_overdumped_brownian_ht(self, params, values=None):
+    def _make_overdamped_brownian_ht(self, params, values=None):
         temperature = params["T"]
         ctime = params["cortime"]
         # use the units in which params was defined
@@ -222,6 +228,38 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self.temperature = temperature
         self.cutoff_time = 5.0*ctime
 
+    def _make_underdamped_brownian(self, params, values=None):
+        from .spectraldensities import SpectralDensity
+        
+        temperature = params["T"]
+        ctime = params["gamma"]
+        omega = params["freq"]
+        
+        # use the units in which params was defined
+        lamb = self.manager.iu_energy(params["reorg"],
+                                      units=self.energy_units)
+        kBT = kB_intK*temperature
+        time = self.axis.data
+
+        if values is not None:
+            cfce = values
+        else:
+            # Make if via SpectralDensity
+            fa = SpectralDensity(time, params)
+            
+            cf = fa.get_CorrelationFunction()
+            
+            cfce = cf.data
+                   #2.0*lamb*kBT*(numpy.exp(-time/ctime)
+                   #              - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
+
+        self._make_me(self.axis, cfce)
+
+        self.lamb = lamb
+        self.temperature = temperature
+        self.cutoff_time = 5.0*ctime  
+        
+        
     def _make_value_defined(self, params, values):
         lamb = self.manager.iu_energy(params["reorg"],
                                       units=self.energy_units)
