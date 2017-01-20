@@ -14,11 +14,11 @@ from Cython.Build import cythonize
 def process_packages(packages):
     packg = list()
     for pckg in packages:
-        p = pckg.replace(".", "/")+"/*.c"
+        p = pckg.replace(".", "/")+"/*.py"
         packg.append(p)
     
-    #for p in packg:
-    #    print(p)
+    for p in packg:
+        print(p)
         
     return packg
 

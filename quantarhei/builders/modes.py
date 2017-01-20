@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import numpy
+
 from ..utils import Float
 from ..utils import Integer
 from ..utils import Bool
@@ -105,6 +107,18 @@ class Mode(UnitsManaged):
         sbm = self.submodes[N]
         sbm.nmax = nmax
         
+    def set_HR(self, N, hr):
+        """Sets Huang-Rhys factor
+        
+        """
+        if N==0:
+            raise Exception("Makes no sense to set HR in the ground state")
+            
+        sh = numpy.sqrt(2.0*hr)
+        self.set_shift(N, sh)
+        
+        
+        
     """ Getters """
     @deprecated
     def get_frequency(self,N):
@@ -123,6 +137,9 @@ class Mode(UnitsManaged):
     
     def get_nmax(self,N):
         return self.submodes[N].nmax
+        
+    def get_HR(self, N):
+        return (self.submodes[N].shift**2)/2.0
     
     def set_all(self,N,param):
         sbm = self.submodes[N]

@@ -3,8 +3,6 @@
 import numpy
 
 from ..core.managers import UnitsManaged
-from ..utils.types import Float
-from ..utils.types import Integer
 from ..core.units import cm2int
 from .interactions import dipole_dipole_interaction
 
@@ -21,36 +19,10 @@ from ..qm.corfunctions import CorrelationFunctionMatrix
 
 from ..spectroscopy import diagramatics as diag
 
-class aggregate_state():
-    """ State of an aggregate
-    
-    
-    
-    """
-    
-    energy = Float('energy')
-    el_energy = Float('el_energy')
-    vib_energy = Float('vib_energy')
-    
-    def __init__(self, aggregate, state_tuple):
-        
-        desc = state_tuple[0]
-        
-        self.el_descriptor = desc[0]
-        self.vib_descriptor = desc[1:]
-        self.vibrations = state_tuple[1]
-        
-        # This is temporary - numbers have to be computed
-        self.energy = 0.0
-        self.el_energy = 0.0
-        self.vib_energy = 0.0
-        
-        self.aggregate = aggregate
-        
-    def aslist(self):
-        return [self.el_descriptor,self.vib_descriptor]
-        
-           
+#from .aggregate_states import aggregate_state
+from .aggregate_states import electronic_state
+from .aggregate_states import vibronic_state
+          
 class Aggregate(UnitsManaged):
     """ Molecular aggregate 
     
@@ -58,29 +30,126 @@ class Aggregate(UnitsManaged):
     
     """
     
-    def __init__(self, name, maxband = 1, molecules=None):
-        self.name = name
+    def __init__(self, name="", maxband=1, molecules=None):
+
         self.mnames = {}
         self.monomers = []
         self.nmono = 0
-        self.maxband = maxband        
+        self.name = name
+        self.maxband = maxband
+
+        self._has_egcf_matrix = False
+        self.egcf_matrix = None
         
-        self.FC = fcstorage()
-        self.ops = operator_factory()
+        self._has_system_bath_interaction = False
         
         self.coupling_initiated = False
-        self._has_egcf_matrix = False
-        self._has_system_bath_interaction = False
-        self._has_relaxation_tensor = False
-        
-        self._relaxation_theory = ""
-        
-        self._built = False
+        self.resonance_couplin = None
         
         if molecules is not None:
             for m in molecules:
                 self.add_Molecule(m)
+                
+        self._init_me()  
+        
+        
+        
+#        self.mnames = {}
+#        self.monomers = []
+#        self.nmono = 0
+#        
+#        
+#        self.FC = fcstorage()
+#        self.ops = operator_factory() 
+#        
+#        self.coupling_initiated = False
+#        self.resonance_coupling = None
+#        
+#        self._has_egcf_matrix = False
+#        self.egcf_matrix = None
+#        
+#        self._has_system_bath_interaction = False
+#        self._has_relaxation_tensor = False
+#        
+#        self._relaxation_theory = ""
+#        
+#        self._built = False
 
+
+
+    def _init_me(self):
+        """Initializes all built attributes of the aggregate
+        
+        This should put the object into a pre-build state
+        
+        
+        """
+
+        
+        
+        self.FC = fcstorage()
+        self.ops = operator_factory()
+        
+        self._has_relaxation_tensor = False
+        
+        self._relaxation_theory = ""
+        
+        self._built = False    
+        
+        self.mult = 0
+        self.Nel = 0
+        self.Ntot = 0
+        self.Nb = 0
+        
+        self.vibindices = []
+        self.which_band = None
+        self.elsigs = None
+        
+        self.HH = None
+        self.HamOp = None
+        self.DD = None
+        self.D2 = None
+        self.D2_max = 0
+        self.sbi = None
+        
+        
+    def clean(self):
+        """Cleans the aggregate object of anything built
+        
+        This operation leaves the molecules of the aggregate intact and keeps
+        few more pieces of information it it. Coupling matrix is not deletes.
+        You call build again after this.
+        
+        
+        """
+        self._init_me()
+        
+    
+    def wipe_out(self):
+        """Removes everything except of name attribute
+        
+        You have to set molecules and recalculate interactions before you can
+        build
+        
+        
+        """
+        self.mnames = {}
+        self.monomers = []
+        self.nmono = 0
+        #self.name = name
+        self.maxband = 0
+
+        self._has_egcf_matrix = False
+        self.egcf_matrix = None
+        
+        self._has_system_bath_interaction = False
+       
+        self.coupling_initiated = False
+        self.resonance_couplin = None
+        
+        self._init_me()        
+        
+        
 
     ########################################################################
     #
@@ -89,12 +158,16 @@ class Aggregate(UnitsManaged):
     ########################################################################
 
     def init_coupling_matrix(self):
+        """Nullifies coupling matrix
+        
+        
+        """
         self.resonance_coupling = numpy.zeros((self.nmono,self.nmono),
                                               dtype=numpy.float64) 
         self.coupling_initiated = True           
         
-    def set_resonance_coupling(self,i,j,coupling):
-        """ Sets resonance coupling value 
+    def set_resonance_coupling(self, i, j, coupling):
+        """Sets resonance coupling value between two sites
         
         """
         if not self.coupling_initiated:
@@ -106,11 +179,14 @@ class Aggregate(UnitsManaged):
         self.resonance_coupling[j,i] = coup
         
     def get_resonance_coupling(self, i, j):
+        """Returns resonance coupling value between two sites
+        
+        """
         coupling = self.resonance_coupling[i,j]
         return self.convert_energy_2_current_u(coupling)
     
     def set_resonance_coupling_matrix(self,coupmat): 
-        """ Sets resonance coupling values from a matrix
+        """Sets resonance coupling values from a matrix
         
         """
 
@@ -122,8 +198,8 @@ class Aggregate(UnitsManaged):
         if not self.coupling_initiated:
             self.coupling_initiated = True
             
-    def dipole_dipole_coupling(self,kk,ll,epsr=1.0):
-        """ Calculates dipole-dipole coupling 
+    def dipole_dipole_coupling(self, kk, ll, epsr=1.0):
+        """Calculates dipole-dipole coupling 
         
         """
         if kk == ll:
@@ -138,8 +214,8 @@ class Aggregate(UnitsManaged):
 
         return dipole_dipole_interaction(r1, r2, d1, d2, epsr)            
 
-    def set_coupling_by_dipole_dipole(self,epsr=1.0):
-        """ Sets resonance coupling by dipole-dipole interaction
+    def set_coupling_by_dipole_dipole(self, epsr=1.0):
+        """Sets resonance coupling by dipole-dipole interaction
         
         """
         
@@ -162,9 +238,13 @@ class Aggregate(UnitsManaged):
             Method to be used for calculation of resonance coupling
             
         """
+        pass
         
                 
     def set_egcf_matrix(self,cm):
+        """Sets a matrix describing system bath interaction
+        
+        """
         self.egcf_matrix = cm
         self._has_egcf_matrix = True
     
@@ -269,7 +349,7 @@ class Aggregate(UnitsManaged):
         return omax
         
   
-    def get_energy_by_name(self,name,N):
+    def get_energy_by_name(self, name, N):
         """ Electronic energy """
         try:
             im = self.mnames[name]
@@ -366,37 +446,7 @@ class Aggregate(UnitsManaged):
         if exstate is None:
             raise Exception()
         
-#        # which state is the ground state
-#        nrg    = 0
-#        
-#        ecount = 0
-#        for ii in els1:
-#            if ii > 0:
-#                ecount += 1
-#                
-#        if ecount == 0:
-#            nrg += 1
-#            #grstate = els1
-#            exstate = els2
-#            
-#        ecount = 0
-#        for ii in els2:
-#            if ii > 0:
-#                ecount += 1  
-#                
-#        if ecount == 0:
-#            nrg += 1
-#            if (nrg == 2):
-#                #raise Exception('Only one of the states can be a groundstate')
-#                return 0.0
-#            #grstate = els2
-#            exstate = els1
-#
-#        if (nrg == 0):
-#            #raise Exception('One of the states has to be a groundstate')
-#            return 0.0
-#        
-#
+
         eldip = self.get_dipole(exindx,0,1)
         
 #        eldip = 0.0
@@ -411,18 +461,30 @@ class Aggregate(UnitsManaged):
         return eldip*fcfac
     
         
-    def total_number_of_states(self,mult=1):
+    def total_number_of_states(self, mult=1, vibgen_approx=None):
         """ Total number of states in the aggregate"""
         
         nret = 0
         
         for elsig in self.elsignatures(mult=mult):
-            cs = electronic_state(self,elsig)
-            nv = 1
-            for mn in cs.vibmodes:
-                nv *= mn.nmax
-            nret += nv
             
+            cs = electronic_state(self, elsig)
+            
+            if vibgen_approx is None:
+                nv = 1
+                # here we assume all available states
+                for mn in cs.vibmodes:
+                    nv *= mn.nmax
+
+            elif vibgen_approx == "SPA":
+                nv = 1
+                # here only on state per mode in adition to the ground state is
+                # allowed
+                for mn in cs.vibmodes: 
+                    nv += 1
+                    
+            nret += nv
+                
         return nret
 
     def total_number_of_electronic_states(self,mult=1):
@@ -436,16 +498,26 @@ class Aggregate(UnitsManaged):
         return nret
 
  
-    def number_of_states_in_band(self,band=1):
+    def number_of_states_in_band(self, band=1, vibgen_approx=None):
         """ Number of states in a given excitonic band """
         
         nret = 0
         
-        for elsig in self.elsignatures(mult=band,mode="EQ"):
+        for elsig in self.elsignatures(mult=band, mode="EQ"):
             cs = electronic_state(self,elsig)
-            nv = 1
-            for mn in cs.vibmodes:
-                nv *= mn.nmax
+            if vibgen_approx is None:
+                nv = 1
+                # here we assume all available states
+                for mn in cs.vibmodes:
+                    nv *= mn.nmax
+
+            elif vibgen_approx == "SPA":
+                nv = 1
+                # here only on state per mode in adition to the ground state is
+                # allowed
+                for mn in cs.vibmodes: 
+                    nv += 1
+                    
             nret += nv
             
         return nret
@@ -548,7 +620,7 @@ class Aggregate(UnitsManaged):
     #
     #######################################################################
 
-    def elsignatures(self,mult=1,mode="LQ"):
+    def elsignatures(self, mult=1, mode="LQ"):
         """ Generator of electronic signatures 
         
         Here we create signature tuples of electronic states. The signature
@@ -643,20 +715,33 @@ class Aggregate(UnitsManaged):
             k += 1
 
     
-    def vibsignatures(self,elsignature):
-        """ Generator of vibrational signatures """
+    def vibsignatures(self, elsignature, approx=None):
+        """ Generator of vibrational signatures 
+        
+        Parameters
+        ----------
+        
+        approx : None or str
+            Approximation used in generation of vibrational states
+            Allowed values are None or "SPA"
+            
+        """
         cs = electronic_state(self,elsignature)
-        return cs.vsignatures()
+        return cs.vsignatures(approx=approx)
     
     
-    def allstates(self,mult=1,all_vibronic=True,save_indices=False):
-        """ Generator of all states """
+    def allstates(self, mult=1, all_vibronic=True, 
+                  save_indices=False, vibgen_approx=None):
+        """ Generator of all states aggregate states
+        
+        
+        """
         a = 0
         i = 0
         # run over all electronic signatures
         for ess1 in self.elsignatures(mult=mult):
             es1 = self.get_electronic_state(ess1,i)
-            for vsig1 in es1.vsignatures():
+            for vsig1 in es1.vsignatures(approx=vibgen_approx):
                 if all_vibronic:
                     s1 = vibronic_state(es1,vsig1)
                 else:
@@ -670,6 +755,7 @@ class Aggregate(UnitsManaged):
     
                 yield a,s1
                 a += 1
+                
             if save_indices:
                 self.elsigs[i] = ess1
                 self.which_band[i] = numpy.sum(ess1)
@@ -677,7 +763,9 @@ class Aggregate(UnitsManaged):
             
 
     def elstates(self):
-        """ Generator of electronic states """
+        """ Generator of electronic states 
+        
+        """
         a = 0
         for ess1 in self.elsignatures():
             es1 = self.get_electronic_state(ess1)
@@ -713,7 +801,7 @@ class Aggregate(UnitsManaged):
     #
     #######################################################################
         
-    def build(self,mult=1):
+    def build(self, mult=1, vibgen_approx=None):
         """Builds aggregate properties
         
         Calculates Hamiltonian and transition dipole moment matrices and
@@ -740,8 +828,10 @@ class Aggregate(UnitsManaged):
         for i in range(self.Nel):
             self.vibindices.append([])
         
-        # number of states in the aggregate
-        Ntot = self.total_number_of_states(mult=mult)
+        # number of states in the aggregate (taking into account approximations
+        # in generation of vibrational states)
+        Ntot = self.total_number_of_states(mult=mult, 
+                                           vibgen_approx=vibgen_approx)
         self.Ntot = Ntot
         self.which_band = numpy.zeros(self.Ntot, dtype=numpy.int)
         self.elsigs = [None]*self.Nel
@@ -757,9 +847,11 @@ class Aggregate(UnitsManaged):
             self.init_coupling_matrix()            
             
         # Set up Hamiltonian and Transition dipole moment matrices
-        for a, s1 in self.allstates(mult=self.mult, save_indices=True):
+        for a, s1 in self.allstates(mult=self.mult, save_indices=True,
+                                    vibgen_approx=vibgen_approx):
             HH[a,a] = s1.energy()
-            for b,s2 in self.allstates(mult=self.mult):       
+            for b,s2 in self.allstates(mult=self.mult,
+                                    vibgen_approx=vibgen_approx):       
                 DD[a,b,:] = self.transition_dipole(s1,s2)
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
@@ -784,6 +876,9 @@ class Aggregate(UnitsManaged):
         for ii in range(self.mult+1):
             self.Nb[ii] = self.number_of_states_in_band(band=ii)
  
+            
+            
+            
         #FIXME: What to do when correlation functions are used for
         # an aggregate with vibrations
  
@@ -890,6 +985,15 @@ class Aggregate(UnitsManaged):
             
         self._built = True
     
+        
+    def rebuild(self, mult=1, vibgen_approx=None):
+        """Cleans the object and rebuilds
+        
+        """
+        self.clean()
+        self.build(mult=mult, vibgen_approx=vibgen_approx)
+        
+        
     
     #########################################################################
     #
@@ -1305,7 +1409,7 @@ class Aggregate(UnitsManaged):
         return tuple(lst)
         
     
-    def get_excitonic_band(self,band=1):
+    def get_excitonic_band(self, band=1):
         """Indices of states in a given excitonic band.
         
         
@@ -2118,112 +2222,6 @@ class Aggregate(UnitsManaged):
         
         
 
-class electronic_state:
-    """ Represents electronic state of an aggregate 
-   
-    Parameters
-    ----------
-    
-    aggregate :
-        Parent aggregate of the electronic state
-        
-    elsignature : tuple of int
-        Electronic signature of the state
-        
-    index : int
-        Index of the state in the aggregate 
-        
-    Properties
-    ----------
-    
-    nmono : int
-        Number of monomers in the aggregate
-        
-    elsignature : tuple of int
-        Signature of the electronic state
-        
-    vibmodes :
-        Vibrational (sub)modes of the state
-        
-    vsiglength : int
-        Length of the vibrational signatures (= total number of submodes)
-    
-    """
-    
-    nmono = Integer('nmono')
-    
-    def __init__(self, aggregate, elsignature,index=0):
-        
-        Nsig = len(elsignature)
-        nmono = len(aggregate.monomers)
-        if Nsig == nmono:
-            self.nmono = nmono
-        else:
-            raise Exception("Incompatible length of elsignature")
-        
-        self.elsignature = elsignature
-        self.aggregate = aggregate
-        
-        self.band = 0
-        for k in self.elsignature:
-            self.band += k 
-        
-        elst = elsignature
-        vb_ls = [] #tuple()
-        n = 0
-        for mn in aggregate.monomers:
-            for a in range(mn.nmod):
-                vb_ls.append(mn.get_Mode(a).get_SubMode(elst[n]))
-            n += 1
-            
-        self.vibmodes = vb_ls
-        self.vsiglength = len(vb_ls)
-        
-        self.index = index
-        
-    def energy(self, vsig=""):
-        """ Returns energy of the state (electronic + vibrational)
-        
-        """
-        en = 0.0
-        k = 0
-        if not vsig=="":
-            if not (len(vsig) == self.vsiglength):
-                raise Exception()  
-            k = 0
-            for nn in self.vibmodes:
-                en += vsig[k]*nn.omega
-                k += 1
-            k = 0
-        for nn in self.elsignature:
-            en += self.aggregate.monomers[k].elenergies[nn]
-            k += 1
-            
-        return en
-    
-    def vsignatures(self):
-        """ Generator of the vibrational signatures"""
-        vibmax = []
-        for sm in self.vibmodes:
-            vibmax.append(sm.nmax)
-        return numpy.ndindex(tuple(vibmax))
-    
-    def number_of_states(self):
-        n = 1
-        for a in self.vibmodes:
-            n *= a.nmax
-        return n
-            
-
-    
-class vibronic_state:
-    
-    def __init__(self,elstate,vsig):
-        self.elstate = elstate
-        self.vsig = vsig
-        
-    def energy(self):
-        return self.elstate.energy(self.vsig)
         
         
         
