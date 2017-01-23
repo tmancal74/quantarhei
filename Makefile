@@ -7,10 +7,9 @@ uninst:
 
 sdist:
 	python setup.py sdist
- 
+
 install: sdist 
 	pip install dist/quantarhei-${VERSION}.tar.gz
 
 reinst: uninst install
-	@echo "Reinstallation"
-    
+	@echo "Reinstallation completed."

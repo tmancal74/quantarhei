@@ -9,7 +9,7 @@ quantarhei.egg-info
 .DS_Store
 .coverage
 
-
+*~
 *.lyx~
 *.lyx#
 *.pyc

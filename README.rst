@@ -32,7 +32,7 @@ such as Hamiltonian and other operators, relaxation tensors, various initial
 conditions for density matrix etc.
 
 Currently, Quantarhei is at its experimental stage. 
-Current version is 0.0.5.
+Current version is 0.0.12.
 
 Quantarhei is available in source form on GitHub and from PyPI for installation
 with the pip command.
