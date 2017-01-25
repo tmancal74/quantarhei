@@ -206,7 +206,7 @@ class DFunction:
 
 
 
-    def at(self,x,approx="default"):
+    def at(self, x, approx="default"):
         """Returns the function value at the argument `x`
 
         Parameters
@@ -288,6 +288,24 @@ class DFunction:
             ret = self._spline_r(x)
         return ret
 
+    def __add__(self, other):
+        """Adding two DFunctions together
+        
+        """
+        f = DFunction(self.axis, self.data.copy())
+        
+        if other.axis == self.axis:
+            f.data += other.data
+        else:
+            raise Exception("axis attribute of both"
+                            + " functions has to be identical")
+            
+        return f
+    
+    def add_to_data(self, other):
+        pass
+    
+    
 
     #
     #
