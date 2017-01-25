@@ -110,7 +110,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
     """
 
     allowed_types = ("OverdampedBrownian-HighTemperature",
-                     "OverdampedBrownian", "UnderdampedBrownian",
+                     "OverdampedBrownian", 
+                     "UnderdampedBrownian",
                      "Value-defined")
 
     analytical_types = ("OverdampedBrownian-HighTemperature",
@@ -126,6 +127,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.axis = axis
 
         self._is_composed = False
+        
         self.lamb = -1.0
         self.temperature = -1.0
         self.cutoff_time = None
@@ -201,9 +203,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 *self._matsubara(kBT, ctime, nmatsu)
 
         self._make_me(self.axis, cfce)
+        
         self.lamb = lamb
         self.temperature = temperature
-
         self.cutoff_time = 5.0*ctime
 
 
@@ -233,18 +235,18 @@ class CorrelationFunction(DFunction, UnitsManaged):
         
         temperature = params["T"]
         ctime = params["gamma"]
-        omega = params["freq"]
+        #omega = params["freq"]
         
         # use the units in which params was defined
         lamb = self.manager.iu_energy(params["reorg"],
                                       units=self.energy_units)
-        kBT = kB_intK*temperature
+        #kBT = kB_intK*temperature
         time = self.axis.data
 
         if values is not None:
             cfce = values
         else:
-            # Make if via SpectralDensity
+            # Make it via SpectralDensity
             fa = SpectralDensity(time, params)
             
             cf = fa.get_CorrelationFunction()
@@ -261,19 +263,82 @@ class CorrelationFunction(DFunction, UnitsManaged):
         
         
     def _make_value_defined(self, params, values):
-        lamb = self.manager.iu_energy(params["reorg"],
-                                      units=self.energy_units)
-        self.lamb = lamb
+        
+        lamb = self.convert_energy_2_internal_u(params["reorg"])
+        temp = params["T"]
+        
         if "cutoff-time" in params.keys():
             tcut = params["cutoff-time"]
         else:
             tcut = self.axis.max
-        self.cutoff_time = tcut
 
         if len(values) == self.axis.length:
-            self.data = values
+            self.data = self.convert_energy_2_internal_u(values)
         else:
             raise Exception("Incompatible values")
+ 
+        self.lamb = lamb
+        self.temperature = temp
+        self.cutoff_time = tcut
+           
+    #
+    # Aritmetic operations
+    #
+    
+    def __add__(self, other):
+        """Addition of two correlation functions
+        
+        """
+        t1 = self.axis
+        t2 = other.axis
+        if t1 == t2:
+            
+            params = {}
+            params["ftype"] = "Value-defined"
+            params["reorg"] = self.lamb
+            params["T"] = self.temperature
+            params["cutoff-time"] = self.cutoff_time
+                      
+            f = CorrelationFunction(t1, params=params, values=self.data)
+            f.add_to_data(other)
+            
+        else:
+            raise Exception("In addition, functions have to share"
+                            +" the same TimeAxis object")
+            
+        return f
+    
+    def __iadd__(self, other):
+        """Inplace addition of two correlation functions
+        
+        """  
+        self.add_to_data(other)
+        return self
+    
+            
+    def add_to_data(self, other):
+        """Addition of data from a specified CorrelationFunction to this object
+        
+        """
+        t1 = self.axis
+        t2 = other.axis
+        if t1 == t2:
+            
+            self.data += other.data
+            self.lamb += other.lamb  # reorganization energy is additive
+            # cutoff time is take as the longer one of the two
+            self.cutoff_time = max(self.cutoff_time, other.cutoff_time)
+            
+            # FIXME: storage of the component params etc. has to be handled
+            self.params = dict(ftype="Value-defined")
+            self._is_composed = True
+            self._is_empty = False
+            
+
+        else:
+            raise Exception("In addition, functions have to share"
+                            +" the same TimeAxis object")
+        
 
     def is_analytical(self):
         """Returns `True` if analytical

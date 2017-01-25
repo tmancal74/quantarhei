@@ -9,7 +9,7 @@ import unittest
 *******************************************************************************
 
 
-    Tests of the quantarhei.qm.helbertspace.statevector package
+    Tests of the quantarhei.qm.hilbertspace.statevector package
 
 
 *******************************************************************************
