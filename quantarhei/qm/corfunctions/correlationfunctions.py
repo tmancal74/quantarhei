@@ -15,7 +15,7 @@ from ...core.units import kB_intK
 from ...core.managers import UnitsManaged
 from ...core.managers import energy_units
 from ...core.time import TimeAxis
-
+from ...core.frequency import FrequencyAxis
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
@@ -249,7 +249,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             # Make it via SpectralDensity
             fa = SpectralDensity(time, params)
             
-            cf = fa.get_CorrelationFunction()
+            cf = fa.get_CorrelationFunction(temperature=temperature)
             
             cfce = cf.data
                    #2.0*lamb*kBT*(numpy.exp(-time/ctime)
@@ -259,7 +259,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         self.lamb = lamb
         self.temperature = temperature
-        self.cutoff_time = 5.0*ctime  
+        self.cutoff_time = 5.0/ctime  
         
         
     def _make_value_defined(self, params, values):
@@ -272,10 +272,13 @@ class CorrelationFunction(DFunction, UnitsManaged):
         else:
             tcut = self.axis.max
 
-        if len(values) == self.axis.length:
-            self.data = self.convert_energy_2_internal_u(values)
+        if values is not None:
+            if len(values) == self.axis.length:
+                self.data = self.convert_energy_2_internal_u(values)
+            else:
+                raise Exception("Incompatible values")
         else:
-            raise Exception("Incompatible values")
+            raise Exception("Valued-defined correlation function without values")
  
         self.lamb = lamb
         self.temperature = temp
@@ -331,6 +334,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             # FIXME: storage of the component params etc. has to be handled
             self.params = dict(ftype="Value-defined")
+            self.params["reorg"] = self.lamb
+            self.params["cutoff-time"] = self.cutoff_time
+            self.params["T"] = self.temperature
             self._is_composed = True
             self._is_empty = False
             
@@ -339,6 +345,19 @@ class CorrelationFunction(DFunction, UnitsManaged):
             raise Exception("In addition, functions have to share"
                             +" the same TimeAxis object")
         
+    def reorganization_energy_consistent(self, rtol=1.0e-3):
+        """Checks if the reorganization energy is consistent with the data
+        
+        Calculates reorganization energy from the data and checks if it
+        is within specified tolerance from the expected value
+        """
+        
+        lamb1 = self.measure_reorganization_energy()
+        lamb2 = self.convert_energy_2_current_u(self.lamb)
+        if (abs(lamb1 - lamb2)/(lamb1+lamb2)) < rtol:
+            return True
+        else:
+            return False
 
     def is_analytical(self):
         """Returns `True` if analytical
@@ -428,7 +447,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         """
         with energy_units(self.energy_units):
-            oftcf = OddFTCorrelationFunction(self.axis, self.params)
+            if self.params["ftype"] == "Value-defined":
+                oftcf = OddFTCorrelationFunction(self.axis, self.params, 
+                                                 values=self.data)
+            else:
+                oftcf = OddFTCorrelationFunction(self.axis, self.params)
         return oftcf
 
     def get_EvenFTCorrelationFunction(self):
@@ -463,36 +486,40 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
     def __init__(self, axis, params, values=None):
         super().__init__()
 
-        try:
-            ftype = params["ftype"]
-            if ftype in CorrelationFunction.allowed_types:
-                self.ftype = ftype
-            else:
-                raise Exception("Unknown Correlation Function Type")
+        if not isinstance(axis, FrequencyAxis):
+            faxis = axis.get_FrequencyAxis()
+            self.axis = faxis
+        else:
+            self.axis = axis
+            
 
-            # we need to save the defining energy units
-            self.energy_units = self.manager.get_current_units("energy")
+        ftype = params["ftype"]
+        if ftype in CorrelationFunction.allowed_types:
+            self.ftype = ftype
+        else:
+            raise Exception("Unknown Correlation Function Type")
 
+        #if (values is not None) and (ftype != "Value-defined"):
+        #    raise Exception("Only value defined ftype can have values argument")
 
-        except:
-            raise Exception
-
-        # We create CorrelationFunction and FTT it
-        with energy_units(self.energy_units):
-            cfce = CorrelationFunction(axis, params)
+        # we need to save the defining energy units
+        self.energy_units = self.manager.get_current_units("energy")
 
         self.params = params
 
         if values is None:
+            # We create CorrelationFunction and FTT it
+            with energy_units(self.energy_units):
+                cfce = CorrelationFunction(axis, params)
             # data have to be protected from change of units
             with energy_units("int"):
                 ftvals = cfce.get_Fourier_transform()
                 self.data = ftvals.data
-            self.axis = ftvals.axis
+            #self.axis = ftvals.axis
         else:
             # This is not protected from change of units!!!!
             self.data = values
-            self.axis = cfce.axis.get_FrequencyAxis()
+            #self.axis = cfce.axis.get_FrequencyAxis()
 
 
 
@@ -527,30 +554,36 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis, params):
+    def __init__(self, axis, params, values=None):
         super().__init__()
 
-        try:
-            ftype = params["ftype"]
-            if ftype in CorrelationFunction.allowed_types:
-                self.ftype = ftype
-            else:
-                raise Exception("Unknown Correlation Function Type")
+        if not isinstance(axis, FrequencyAxis):
+            faxis = axis.get_FrequencyAxis()
+            self.axis = faxis
+        else:
+            self.axis = axis     
 
-            # we need to save the defining energy units
-            self.energy_units = self.manager.get_current_units("energy")
+        ftype = params["ftype"]
+        if ftype in CorrelationFunction.allowed_types:
+            self.ftype = ftype
+        else:
+            raise Exception("Unknown Correlation Function Type")
 
-
-        except:
-            raise Exception
-
+        # we need to save the defining energy units
+        self.energy_units = self.manager.get_current_units("energy")
+        self.params = params
+            
         # We create CorrelationFunction and FTT it
         with energy_units(self.energy_units):
-            cfce = CorrelationFunction(axis, params)
+            if params["ftype"] == "Value-defined":
+                if values is None:
+                    raise Exception()
+                else:
+                    cfce = CorrelationFunction(axis, params, values=values)
+            else:
+                cfce = CorrelationFunction(axis, params)
 
         cfce.data = 1j*numpy.imag(cfce.data)
-
-        self.params = params
 
         # data have to be protected from change of units
         with energy_units("int"):

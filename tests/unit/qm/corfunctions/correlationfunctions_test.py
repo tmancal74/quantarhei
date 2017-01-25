@@ -21,7 +21,7 @@ from quantarhei import CorrelationFunction
 from quantarhei import TimeAxis
 
 class TestCorrelationFunction(unittest.TestCase):
-    """Tests for the statevector package
+    """Tests corelation functions module
     
     
     """
@@ -226,3 +226,54 @@ class TestCorrelationFunction(unittest.TestCase):
         self.assertEqual(f1.params["ftype"],"Value-defined")           
         
         
+    def test_reorganization_energy_consistence(self):
+        """Checking that reorganization energy is represented consistently
+        
+        """
+        
+        t = TimeAxis(0.0, 2000, 1.0)
+        
+        params1 = dict(ftype="OverdampedBrownian",
+                       reorg = 30.0,
+                       cortime = 100.0,
+                       T = 300.0)
+        params2 = dict(ftype="OverdampedBrownian",
+                       reorg = 40.0,
+                       cortime = 100.0,
+                       T = 300.0)
+        params3 = dict(ftype="OverdampedBrownian",
+                       reorg = 15.0,
+                       cortime = 200.0,
+                       T = 300.0)
+        params4 = dict(ftype="OverdampedBrownian",
+                       reorg = 10.0,
+                       cortime = 50.0,
+                       T = 300.0)     
+        
+        f1 = CorrelationFunction(t, params1)
+        f2 = CorrelationFunction(t, params2)
+        f3 = CorrelationFunction(t, params3)
+        f4 = CorrelationFunction(t, params4)     
+        
+#        l1 = f1.measure_reorganization_energy()
+#        l2 = f1.lamb
+#        print(l1, l2, abs(l1-l2)/(l1+l2))
+#        
+#        l1 = f3.measure_reorganization_energy()
+#        l2 = f3.lamb
+#        print(l1, l2, abs(l1-l2)/(l1+l2))
+        
+        self.assertTrue(f1.reorganization_energy_consistent())
+        self.assertTrue(f2.reorganization_energy_consistent())
+        self.assertTrue(f3.reorganization_energy_consistent())
+        self.assertTrue(f4.reorganization_energy_consistent())        
+        
+        for i in range(5):
+            f1 += f1        
+        
+        self.assertTrue(f1.reorganization_energy_consistent())
+
+        for i in range(5):
+            f3 += f2
+            
+        self.assertTrue(f3.reorganization_energy_consistent())

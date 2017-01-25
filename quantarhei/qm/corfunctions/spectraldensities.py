@@ -203,23 +203,97 @@ class SpectralDensity(DFunction, UnitsManaged):
         # protect calculation from units management
         with energy_units("int"):
             omega = self.axis.data
-            print(omega)
-            print(lamb)
-            print(omega0)
-            print(ctime)
-            cfce = (2.0*lamb*ctime)*omega/((omega-omega0)**2 + (ctime)**2)
+            cfce = (lamb*ctime)*omega/((omega-omega0)**2 + (ctime)**2) \
+                  +(lamb*ctime)*omega/((omega+omega0)**2 + (ctime)**2)
 
         if values is not None:
             self._make_me(self.axis, values)
         else:
             self._make_me(self.axis, cfce)
-            
+
+        # this is in internal units
+        self.lamb = lamb            
+        self.lim_omega = numpy.zeros(2)
+        self.lim_omega[0] = 0.0
+        self.lim_omega[1] = 0.0
         
     def _make_value_defined(self, values=None):
         """ Value defined spectral density
 
         """
-        pass
+        if values is None:
+            raise Exception()
+            
+        self._make_me(self.axis, values)
+        self.lamb = self.manager.iu_energy(self.params["reorg"],
+                                      units=self.energy_units)
+
+        self.lim_omega = numpy.zeros(2)
+        self.lim_omega[0] = 0.0
+        self.lim_omega[1] = 0.0
+
+    #
+    # Aritmetic operations
+    #
+    
+    def __add__(self, other):
+        """Addition of two correlation functions
+        
+        """
+        t1 = self.axis
+        t2 = other.axis
+        if t1 == t2:
+            
+            params = {}
+            params["ftype"] = "Value-defined"
+            params["reorg"] = self.lamb
+            #params["T"] = self.temperature
+            #params["cutoff-time"] = self.cutoff_time
+                      
+            f = SpectralDensity(t1, params=params, values=self.data)
+            f.add_to_data(other)
+            for i in range(2):
+                self.lim_omega[i] += other.lim_omega[i]
+            
+        else:
+            raise Exception("In addition, functions have to share"
+                            +" the same FrequencyAxis object")
+            
+        return f
+    
+    def __iadd__(self, other):
+        """Inplace addition of two correlation functions
+        
+        """  
+        self.add_to_data(other)
+        return self
+    
+            
+    def add_to_data(self, other):
+        """Addition of data from a specified CorrelationFunction to this object
+        
+        """
+        t1 = self.axis
+        t2 = other.axis
+        if t1 == t2:
+            
+            self.data += other.data
+            self.lamb += other.lamb  # reorganization energy is additive
+            # cutoff time is take as the longer one of the two
+            #self.cutoff_time = max(self.cutoff_time, other.cutoff_time)
+            
+            # FIXME: storage of the component params etc. has to be handled
+            self.params = dict(ftype="Value-defined")
+            self.params["reorg"] = self.lamb
+            #self.params["cutoff-time"] = self.cutoff_time
+            #self.params["T"] = self.temperature
+            self._is_composed = True
+            self._is_empty = False
+            
+
+        else:
+            raise Exception("In addition, functions have to share"
+                            +" the same TimeAxis object")
 
 
     def is_analytical(self):
@@ -320,6 +394,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             params["T"] = temperature
 
         temp = params["T"]
+        #params["ftype"] = "Value-defined"
 
         ind_of_zero, diff = self.axis.locate(0.0)
         atol = 1.0e-7
