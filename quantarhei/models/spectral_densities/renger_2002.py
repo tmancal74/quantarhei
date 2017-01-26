@@ -6,7 +6,7 @@ from quantarhei import SpectralDensity
 from quantarhei import energy_units
 
 
-class renger(SpectralDensityDatabaseEntry):
+class renger_2002a(SpectralDensityDatabaseEntry):
     """Spectral density of bacteriochlorophyll in FMO complex 
     
     Spectral density derived in 

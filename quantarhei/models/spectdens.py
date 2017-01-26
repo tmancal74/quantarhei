@@ -100,6 +100,9 @@ class SpectralDensityDB:
                 
                     base_classes = cls.__bases__
 
+                    #
+                    # The classes below have to be subclassed
+                    #
                     if ((DatabaseEntry in base_classes) 
                         or (SpectralDensityDatabaseEntry in base_classes)
                         or (CorrelationFunctionDatabaseEntry in base_classes)):
