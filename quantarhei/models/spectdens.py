@@ -1,61 +1,149 @@
 # -*- coding: utf-8 -*-
-import numpy
+
 from ..qm.corfunctions import SpectralDensity, CorrelationFunction
 from ..core.managers import energy_units
 
-class SpectralDensityDB:
+class DatabaseEntry:
+    """Database entry in the database of spectral densities and correlation functions
+    
+    """
+    SPECTRAL_DENSITY     = 0
+    CORRELATION_FUNCTION = 1
     
     def __init__(self):
+        
+        self.identificator = None
+        self.att_ident = []
+        self.direct_implementation = None
+            
+        
+    def get_CorrelationFunction(self, temperature):
         pass
     
+    def get_SpectralDensity(self):
+        pass
+    
+    def direct_implementation(self):
+        return self.direct_implementation
     
     
-    def get_SpectralDensity(self, axis, ident=None):
-        """
+class SpectralDensityDatabaseEntry(DatabaseEntry):
+    """Database entry for spectral density
+    
+    This class defines a method to obtain correlation function from spectral
+    density. Spectral density calculation has to be implemented.
+    
+    """
 
-       
-        """
+    direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
+    
+    def get_CorrelationFunction(self, temperature):
+        """Returns CorrelationFunction based on SpectralDensity
         
-        if ident is not None:
-            
-            if ident == "Wendling_JPCB_104_2000_5825":
-                
-                data = []
-                omegas = [36,   70,   117, 173, 185, 195, 237, 260, 284, 327,
-                          365, 381, 479, 541, 565, 580, 635, 714, 723, 730,
-                          747, 759, 768, 777, 819, 859, 896, 1158, 1176, 1216]
-                fcs    = [0.01, 0.01, 0.0055, 0.008, 0.008, 0.011, 0.005, 
-                          0.0025, 0.005, 0.0015,
-                          0.002, 0.002, 0.001, 0.001, 0.002, 0.001, 0.003,
-                          0.002, 0.003, 0.001, 0.002, 0.002, 0.004, 0.0015,
-                          0.002, 0.0025, 0.002, 0.004, 0.003, 0.002]
-                for i in range(len(omegas)):
-                    data.append((omegas[i],fcs[i]))
+        """
+        return self.get_SpectralDensity().get_CorrelationFunction(temperature)
+    
+
+class CorrelationFunctionDatabaseEntry(DatabaseEntry):
+    """Database entry for correlation function
+    
+    This class defines a method to obtain spectral density from correlation
+    function. Spectral density calculation has to be implemented.
+    
+    """
+    direct_implementation = DatabaseEntry.CORRELATION_FUNCTION
+    
+    def get_SpectralDensity(self):
+        """Returns SpectralDensity on CorrelationFunction based
+        
+        """
+        temperature = self.temperature
+        return self.get_CorrelationFunction(temperature).get_SpectralDensity()    
+
+
+class SpectralDensityDB:
+    """Database of spectral densities and correlation functions
+    
+    This is only a temporary solution which holds all correlation
+    functions in memory once it is instantiates. In future, only a list of
+    identificators should be held and instantiation of database entries 
+    will occure only when required.
+    
+    """
+    
+    def __init__(self):
+        
+        from . import spectral_densities as SD
+        import pkgutil
+        import importlib 
+        import inspect
+        
+        self.entries = {}
+        
+        count = 0
+        
+        # walk trough the spectral_densities directory, importing all modules
+        package = SD
+        for importer, modname, ispkg in pkgutil.walk_packages(
+                    path=package.__path__, prefix=package.__name__+".",
+                    onerror=lambda x: None):
+
+            # import a found module
+            wen = importlib.import_module(modname)
+
+            # find all present classes
+            for name, obj in inspect.getmembers(wen):
+                if inspect.isclass(obj):
                     
-                params = dict(ftype="UnderdampedBrownian",
-                              gamma=1.0/3000.0)
+                    # get the class
+                    cls = getattr(wen, name)
                 
-                k = 0
-                for d in data:
-                    params["freq"] = d[0]
-                    params["reorg"] = d[0]*d[1]
-                    with energy_units("1/cm"):
-                        sd = SpectralDensity(axis, params)
-                    if k == 0:
-                        ret = sd
-                        ax = sd.axis
-                    else:
-                        sd.axis = ax
-                        ret += sd
-                    k += 1
+                    base_classes = cls.__bases__
+
+                    if ((DatabaseEntry in base_classes) 
+                        or (SpectralDensityDatabaseEntry in base_classes)
+                        or (CorrelationFunctionDatabaseEntry in base_classes)):
+                        
+                        # instantiate the class
+                        inst = cls()
                     
-            else:
-                
-                Exception("Unknown spectral density")
+                        if isinstance(inst, DatabaseEntry):    
+                            # print identificator
+                            if inst.identificator is not None:
+                                print("Registering: ", inst.identificator)
+                                count += 1
+                                self.entries[inst.identificator] = inst
+                                            
+                        else:
+                            raise Exception("This cannot be!")
+
+        if count != len(self.entries):
+            raise Exception()
             
+        
+    def get_SpectralDensity(self, axis, ident=None):
+        """Returns spectral density based on an identificator
+
+        """
+       
+        if ident in self.entries.keys():
+            inst = self.entries[ident]
         else:
-            Exception("Spectral density identificator not specified")
+            raise Exception("Identificator: "+ident+" not found")
+        
+        try:
+            sd = inst.get_SpectralDensity(axis)
+        except:
+            raise Exception("Could not obtain spectral density from "+
+                            "definition class for : "+ident)
+            
+        return sd
 
-        return ret
 
+
+class CorrelationFunctionDB(SpectralDensityDB):
+    """This class is identical to SectralDensityDB
+    
+    """
+    pass
     
