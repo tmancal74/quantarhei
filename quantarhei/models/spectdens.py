@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from ..qm.corfunctions import SpectralDensity, CorrelationFunction
-from ..core.managers import energy_units
-
 class DatabaseEntry:
     """Database entry in the database of spectral densities and correlation functions
     
     """
     SPECTRAL_DENSITY     = 0
     CORRELATION_FUNCTION = 1
+    direct_implementation = None    
+    identificator = None   
+    alt_ident = []
+    units = "int"
+    
+    
     
     def __init__(self):
-        
-        self.identificator = None
-        self.att_ident = []
-        self.direct_implementation = None
-            
-        
+        pass
+
     def get_CorrelationFunction(self, temperature):
         pass
     
@@ -59,29 +58,68 @@ class CorrelationFunctionDatabaseEntry(DatabaseEntry):
         return self.get_CorrelationFunction(temperature).get_SpectralDensity()    
 
 
-class DataDefinedEntry:
+class DataDefinedEntry(DatabaseEntry):
+    
+    direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
     
     def __init__(self):
         
+        self._have_data = False
+        
+        #
+        # try to get data defined in get_data method
+        #
         data = self.get_data()
         if data is not None:
             self._rawdata = self.get_data()
             length = len(self._rawdata)
             self._rawdata.shape = (length//2, 2)
-            
-
-        if self.direct_implementation == DatabaseEntry.SPECTRAL_DENSITY:
-            pass
-        elif self.direct_implementation == DatabaseEntry.CORRELATION_FUNCTION:
-            pass
+            self._have_data = True
         else:
-            raise Exception("Don't know if this is spectral density or "+
-                            "correlation function")
+            #
+            # try to get data from a string defined in get_data_string method
+            #
+            dstr = self.get_data_string()
+            if dstr is not None:
+                pass
+            else:
+                # 
+                # try to get data from the comment
+                #
+                pass
+            
+        if self._have_data:
+
+            if self.direct_implementation == DatabaseEntry.SPECTRAL_DENSITY:
+                pass
+            elif (self.direct_implementation 
+                  == DatabaseEntry.CORRELATION_FUNCTION):
+                pass
+            else:
+                raise Exception("Don't know if this is spectral density or "+
+                                "correlation function")
+                
+        else:
+            
+            raise Exception("Data not defined in any expected way")
+            
           
     def get_data(self):
+        """Returns spectral density data
+        
+        Should return a numpy array with two columns of data to construct the
+        spectral density
+        
+        """
         return None
     
     def get_data_string(self):
+        """Returns spectral density data as a string 
+        
+        Should return a string containing two columns of data to construct the
+        spectral density
+        
+        """
         return None
     
             
@@ -130,11 +168,12 @@ class SpectralDensityDB:
                     base_classes = cls.__bases__
 
                     #
-                    # Take only subclasses of the following three
+                    # Take only subclasses of the following four
                     #
                     allowed_base_classes = [DatabaseEntry,
                                     SpectralDensityDatabaseEntry,
-                                    CorrelationFunctionDatabaseEntry]
+                                    CorrelationFunctionDatabaseEntry,
+                                    DataDefinedEntry]
                     
                     can_instantiate = False
                     for bcl in allowed_base_classes:
@@ -151,7 +190,8 @@ class SpectralDensityDB:
                             if inst.identificator is not None:
                                 # print identificator
                                 if verbose:
-                                    print("... registering: ", inst.identificator)
+                                    print("... registering: ",
+                                          inst.identificator)
                                 count += 1
                                 
                                 #
@@ -176,14 +216,17 @@ class SpectralDensityDB:
 
 
     def get_status_string(self):
+        """Returns a status report of the database
+        
+        """
 
         # count loaded modules and print a report
         kount = 0
-        for ld in self.loaded:
-            if ld:
+        for ld in self.loaded.keys():
+            if self.loaded[ld]:
                 kount += 1
 
-        out = "Spectral Density Database Initiated"
+        out = "Spectral Density Database Status"
         out += "\n - "+str(self.entry_count)+" spectral densities registered"
         out += "\n - "+str(kount)+" loaded"
             

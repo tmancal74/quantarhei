@@ -6,11 +6,6 @@ from quantarhei.models.spectdens import SpectralDensityDB
 from quantarhei import SpectralDensity
 from quantarhei import TimeAxis, energy_units
 
-class someclass:
-    """Here is something
-    
-    
-    """
 
 axis = TimeAxis(0.0, 10000, 1.0)
 
@@ -29,10 +24,9 @@ sd_tot = sdob + sdw
 
 with energy_units("1/cm"):
     sd_tot.plot(axis=[0, 1300, 0.0, numpy.max(sd_tot.data)])
-    
-    #fc = sd_tot.get_CorrelationFunction(temperature=300)
-    #fc.plot()
-    
-    #fc.save("corfce.dat")
+
+    cf = sd_tot.get_CorrelationFunction(300.0)
     
 print(db.get_status_string())
+
+cf.plot()

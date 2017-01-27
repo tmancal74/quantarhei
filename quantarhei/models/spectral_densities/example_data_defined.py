@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 from quantarhei.models.spectdens import DatabaseEntry 
 from quantarhei.models.spectdens import DataDefinedEntry
 
-from quantarhei import SpectralDensity
-from quantarhei import energy_units
 
 class example_data_defined_array(DataDefinedEntry):
     
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
-        
+    identificator = "Example 1"
+    units = "1/cm"    
+    
     def get_data(self):
         
         data = numpy.array([
@@ -35,7 +35,8 @@ class example_data_defined_array(DataDefinedEntry):
 class example_data_defined_string(DataDefinedEntry):
     
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
-        
+    identificator = "Example 2"    
+    
     def get_data_string(self):
         
         return """
@@ -71,7 +72,7 @@ class example_data_defined_comment(DataDefinedEntry):
                   
     """
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
-    
+    identificator = "Example 3"
     
     
     
