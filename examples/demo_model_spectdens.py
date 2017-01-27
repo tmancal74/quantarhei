@@ -2,13 +2,19 @@
 
 import numpy
 from quantarhei.models.spectdens import SpectralDensityDB 
-from quantarhei.models.spectdens import CorrelationFunctionDB
+#from quantarhei.models.spectdens import CorrelationFunctionDB
 from quantarhei import SpectralDensity
 from quantarhei import TimeAxis, energy_units
 
+class someclass:
+    """Here is something
+    
+    
+    """
+
 axis = TimeAxis(0.0, 10000, 1.0)
 
-db = CorrelationFunctionDB()
+db = SpectralDensityDB(verbose=True)
 #sdw = db.get_SpectralDensity(axis, "Wendling_JPCB_104_2000_5825")
 sdw = db.get_SpectralDensity(axis, "Renger_JCP_2002")
 
@@ -28,3 +34,5 @@ with energy_units("1/cm"):
     #fc.plot()
     
     #fc.save("corfce.dat")
+    
+print(db.get_status_string())
