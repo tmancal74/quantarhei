@@ -241,7 +241,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         lamb = self.manager.iu_energy(params["reorg"],
                                       units=self.energy_units)
         #kBT = kB_intK*temperature
-        time = self.axis.data
+        time = self.axis #.data
 
         if values is not None:
             cfce = values

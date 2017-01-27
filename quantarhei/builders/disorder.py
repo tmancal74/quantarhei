@@ -6,7 +6,8 @@ class Disorder:
     
 
         
-    def __init__(self, data=None, distribution="Gaussian", dtype="diagonal"):
+    def __init__(self, data=None, distribution="Gaussian", dtype="diagonal",
+                 seed=None):
         
         if data is None:
             raise Exception("Data not specified")
@@ -16,7 +17,9 @@ class Disorder:
         self.seed_pool = []
         self.data = data.copy()
         self.shape = self.data.shape
-        
+
+        if seed is not None:
+            numpy.random.seed(seed)        
         
     def disorder_update(self, i_dis, H, ignore_first=False):
         """Adds disorder to an excitonic Hamiltonian 
@@ -32,6 +35,7 @@ class Disorder:
             if self.distribution == "Gaussian":
             
                 sigma = self.width/numpy.sqrt(2.0*numpy.log(2))
+
                 de = numpy.random.normal(0.0, sigma, N)
     
             else:
