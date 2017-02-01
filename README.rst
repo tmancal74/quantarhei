@@ -36,14 +36,14 @@ with the pip command.
 
 The work on Quantarhei is supported by:
 
-** Neuron Fund for Support of Science  **
-
+Neuron Fund for Support of Science
+----------------------------------
 Through the Impuls grant in physics 2014 (2015-2017)
 
 and
 
-** Czech Science Foundation (GACR) **
-
+Czech Science Foundation (GACR)
+-------------------------------
 Through grants: 14-... (2014-2016)
 and ... (2017)
 
