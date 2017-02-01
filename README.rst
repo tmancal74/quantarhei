@@ -34,10 +34,14 @@ Current version is 0.0.12.
 Quantarhei is available in source form on GitHub and from PyPI for installation
 with the pip command.
 
-The work on Quantarhei is supported by:
+Acknowledgements
+================
 
-Neuron Fund for Support of Science
-----------------------------------
+The work on Quantarhei is supported by
+
+.. _`Neuron Fund for Support of Science`:
+http://www.nfneuron.cz
+
 Through the Impuls grant in physics 2014 (2015-2017)
 
 and
