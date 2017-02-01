@@ -34,6 +34,7 @@ Current version is 0.0.12.
 Quantarhei is available in source form on GitHub and from PyPI for installation
 with the pip command.
 
+
 Acknowledgements
 ================
 
@@ -48,10 +49,13 @@ through the Impuls grant in physics 2014 (2015-2017)
 
 and
 
-Czech Science Foundation (GACR)
--------------------------------
-Through grants: 14-... (2014-2016)
-and ... (2017)
+|GACR|_
+
+.. |GACR| replace:: **Czech Science Foundation (GACR)**
+.. _GACR: http://www.gacr.cz
+                                               
+
+through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
 
 
 
