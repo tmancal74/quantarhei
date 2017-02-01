@@ -39,10 +39,12 @@ Acknowledgements
 
 The work on Quantarhei is supported by
 
-.. _`Neuron Fund for Support of Science`:
-http://www.nfneuron.cz
+**|NFN|_**
 
-Through the Impuls grant in physics 2014 (2015-2017)
+.. |NFN| replace:: Neuron Fund for Support of Science
+.. _NFN: http://www.nfneuron.cz
+
+through the Impuls grant in physics 2014 (2015-2017)
 
 and
 
