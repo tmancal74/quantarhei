@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from .operators import SelfAdjointOperator
+from .operators import Operator
 
 import numpy
-import scipy
+#import scipy
 
 
 class TransitionDipoleMoment(SelfAdjointOperator):
     
     def __init__(self,dim=None,data=None):
-
+        
+        Operator.__init__(self, dim=dim, data=data)
+        
         # Set the currently used basis
         cb = self.manager.get_current_basis()
         self.set_current_basis(cb)
