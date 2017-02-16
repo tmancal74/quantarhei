@@ -53,7 +53,7 @@ def R3g():
     """
     
     """
-    A = Uedg(a,t1)*Ugde(b,t1+t2+t3)*Uedg(b,t2+t3)
+    A = Uedg(a,t1)*Ugde(b,t1+t2+t3)*Uedg(b,t1+t2)
 
     return evaluate_cumulant(A)
 
