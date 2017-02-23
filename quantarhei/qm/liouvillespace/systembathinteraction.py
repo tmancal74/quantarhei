@@ -23,6 +23,9 @@ class SystemBathInteraction:
         List of the system part of the system-bath interaction Hamiltonian
         components
     
+    bath_correlation_matrix: CorrelationFunctionMatrix 
+        Object of the CorrelationFunctionMatrix type holding all correlation
+        functions needed for the description of system bath interaction
     
     
     """
@@ -39,7 +42,7 @@ class SystemBathInteraction:
         if not isinstance(bath_correlation_matrix,CorrelationFunctionMatrix):
             raise Exception
             
-        # Check that sys_operators and bath_correlation:matrix has 
+        # Check that sys_operators and bath_correlation matrix has 
         # a compatible number of components
         if bath_correlation_matrix.nob != self.N:
             raise Exception("Incompatile number of bath compoments: " +

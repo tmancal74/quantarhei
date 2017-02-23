@@ -56,7 +56,7 @@ def redfield_relaxation(self):
     m2.set_egcf((0,1), cf)
 #    m3.set_egcf((0,1), cf) 
     
-    agg = Aggregate("Homodimer",maxband=1)
+    agg = Aggregate("Homodimer")
     
     agg.add_Molecule(m1)
     agg.add_Molecule(m2)

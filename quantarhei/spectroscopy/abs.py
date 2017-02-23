@@ -669,8 +669,8 @@ class AbsSpect(AbsSpectContainer):
         return ft[Nt//2:Nt+Nt//2]
 
         
-    def _excitonic_goft(self,SS,AG,n):
-        """ Returns energy gap correlation function of an exciton state 
+    def _excitonic_coft(self,SS,AG,n):
+        """ Returns energy gap correlation function data of an exciton state 
         
         """
         
@@ -679,15 +679,23 @@ class AbsSpect(AbsSpectContainer):
         c0 = AG.monomers[0].get_egcf((0,1))
         Nt = len(c0)
         
+        # SystemBathInteraction
+        sbi = AG.get_SystemBathInteraction()
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+        
         ct = numpy.zeros((Nt),dtype=numpy.complex128)
         Na = AG.nmono
         for kk in range(Na):
-            nkk = AG.monomers[kk].egcf_mapping[0]
+            
+            #nkk = AG.monomers[kk].egcf_mapping[0]
+            
             for ll in range(Na):
-                nll = AG.monomers[ll].egcf_mapping[0]
-                # FIXME: This can be obtained directly from AG ???
-                ct += ((SS[kk+1,n+1]**2)*(SS[ll+1,n+1]**2)
-                *AG.egcf_matrix.get_coft(nkk,nll))
+            
+                #nll = AG.monomers[ll].egcf_mapping[0]
+                
+                ct += ((SS[kk+1,n+1]**2)*(SS[ll+1,n+1]**2)*cfm.get_coft(kk,ll))
+                #*AG.egcf_matrix.get_coft(nkk,nll))
             
         return ct
 
@@ -790,7 +798,7 @@ class AbsSpect(AbsSpectContainer):
         #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
         tr["om"] = HH.data[1,1]-HH.data[0,0]-rwa
         # get a transformed ct here
-        ct = self._excitonic_goft(SS,self.system,0)
+        ct = self._excitonic_coft(SS,self.system,0)
         #tr.append(ct)
         tr["ct"] = ct
         self.system._has_system_bath_coupling = True
@@ -805,8 +813,8 @@ class AbsSpect(AbsSpectContainer):
             tr["dd"] = DD.dipole_strength(0,ii)
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
             tr["om"] = HH.data[ii,ii]-HH.data[0,0]-rwa
-            #tr[3] = self._excitonic_goft(SS,self.system,ii-1) # update ct here
-            tr["ct"] = self._excitonic_goft(SS,self.system,ii-1)
+            #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
+            tr["ct"] = self._excitonic_coft(SS,self.system,ii-1)
             self.data += numpy.real(self.one_transition_spectrum(tr))
 
         # sets the frequency axis for plottig

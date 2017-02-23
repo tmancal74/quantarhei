@@ -30,13 +30,13 @@ class Aggregate(UnitsManaged):
     
     """
     
-    def __init__(self, name="", maxband=1, molecules=None):
+    def __init__(self, name="", molecules=None):
 
         self.mnames = {}
         self.monomers = []
         self.nmono = 0
         self.name = name
-        self.maxband = maxband
+        self.mult = 0
 
         self._has_egcf_matrix = False
         self.egcf_matrix = None
@@ -136,8 +136,7 @@ class Aggregate(UnitsManaged):
         self.mnames = {}
         self.monomers = []
         self.nmono = 0
-        #self.name = name
-        self.maxband = 0
+        self.mult = 0
 
         self._has_egcf_matrix = False
         self.egcf_matrix = None
@@ -791,6 +790,13 @@ class Aggregate(UnitsManaged):
             
         out += "\n\nAggregate built = "+str(self._built)
         
+        out +="\n\nSelected attributes"
+        out +="\n--------------------"
+        out +="\nmult = "+str(self.mult)
+        out +="\nNel  = "+str(self.Nel)
+        out +="\nNtot = "+str(self.Ntot)
+        
+        
         return out
             
             
@@ -814,8 +820,6 @@ class Aggregate(UnitsManaged):
             exciton multiplicity
         
         """
-        
-        # FIXME: Rethink this. What happens when I call this method twice???
         
         # maximum multiplicity of excitons handled by this aggregate
         self.mult = mult 
@@ -876,9 +880,7 @@ class Aggregate(UnitsManaged):
         for ii in range(self.mult+1):
             self.Nb[ii] = self.number_of_states_in_band(band=ii,
             vibgen_approx=vibgen_approx)
- 
-            
-            
+       
             
         #FIXME: What to do when correlation functions are used for
         # an aggregate with vibrations
@@ -901,25 +903,26 @@ class Aggregate(UnitsManaged):
         # try to get one from monomers
         else:
             
-            nm = self.monomers[0]
-            if nm._has_egcf_matrix:
-                self.egcf_matrix = nm.egcf_matrix
-                for i in range(self.nmono):
-                    if not (self.monomers[i].egcf_matrix is self.egcf_matrix):
-                        raise Exception("Correlation matrix in the" + 
-                                        " monomer has to be the same as" +
-                                        " the one of the aggregate.")
-                                                                                
-                # seems like everything is consistent -> we can calculate
-                # system--bath interaction
-                self._has_system_bath_interaction = True
-                self._has_egcf_matrix = True
-                
-            else:
+#            nm = self.monomers[0]
+#            # FIXME: This is depricated - monomers do not need egcf_matrix
+#            if nm._has_egcf_matrix:
+#                self.egcf_matrix = nm.egcf_matrix
+#                for i in range(self.nmono):
+#                    if not (self.monomers[i].egcf_matrix is self.egcf_matrix):
+#                        raise Exception("Correlation matrix in the" + 
+#                                        " monomer has to be the same as" +
+#                                        " the one of the aggregate.")
+#                                                                                
+#                # seems like everything is consistent -> we can calculate
+#                # system--bath interaction
+#                self._has_system_bath_interaction = True
+#                self._has_egcf_matrix = True
+#                
+#            else:
                 # probably we will not be dealing with an open system
                 # do not set system-bath interaction
                 #raise Exception("Monomer(s) have no egcf matrix")
-                self._has_system_bath_interaction = False
+            self._has_system_bath_interaction = False
             
         # try to set energy gap correlation matrix from monomers
         if not self._has_system_bath_interaction:   
@@ -933,23 +936,61 @@ class Aggregate(UnitsManaged):
             
             if egcf_ok:
                 # time axis of the first monomer
-                time = egcf1.axis            
-                self.egcf_matrix = CorrelationFunctionMatrix(time, self.nmono)
+                time = egcf1.axis  
+                # Number of correlation functions is the number of electronic
+                # states minus ground state (this assumes that only electronic
+                # states are coupled to the bath)
+                Nelg = 1
+                Ncf = self.Nel - Nelg
+                self.egcf_matrix = CorrelationFunctionMatrix(time, Ncf)
                 
-                for i in range(self.nmono):
-                    mon = self.monomers[i]
-                    cfce = mon.get_transition_environment((0,1))
+                for i in range(self.Nel):
+                    
+                    if self.which_band[i] == 1:
+                        j = i - Nelg
+                        mon = self.monomers[j]
+                        cfce = mon.get_transition_environment((0,1))
 
-                    mapi = self.egcf_matrix.set_correlation_function(cfce,
-                                                                     [(i,i)])
+                        mapi = self.egcf_matrix.set_correlation_function(cfce,
+                                                                     [(j,j)])
+                    
+                        if mapi <= 0:
+                            raise Exception("Something's wrong")
                                                 
-                    mon.unset_transition_environment((0,1))
-                    mon.set_egcf_mapping((0,1), self.egcf_matrix, i)
+                        # FIXME: is this needed???
+#                        mon.unset_transition_environment((0,1))
+#                        mon.set_egcf_mapping((0,1), self.egcf_matrix, j)
+                        
+                    elif self.which_band[i] == 2:
+                        l = i - Nelg
+                        j = self.elsigs[i][0]
+                        k = self.elsigs[i][1]
+                        mon1 = self.monomers[j]
+                        mon2 = self.monomers[k]
+                        cfce1 = mon1.get_transition_environment((0,1)) 
+                        cfce2 = mon2.get_transition_environment((0,1))
+                        
+                        cfce = cfce1 + cfce2
+
+                        mapi = self.egcf_matrix.set_correlation_function(cfce,
+                                                                     [(l,l)])
+                        
+                        # FIXME: cross-correlation between double excitons
+                        # needs to be handled.
+                        
+                        # FIXME: maybe this should rather be handled by
+                        # a map between double excitons and site cor. functions
+                    
+                        if mapi <= 0:
+                            raise Exception("Something's wrong")
+
+                        
+                    elif self.which_band[i] > 2:
+                        pass
                     
                 self._has_system_bath_interaction = True
-                self._has_egcf_matrix = True                
+                self._has_egcf_matrix = True   
                 
-
             
         if self._has_system_bath_interaction:
             
