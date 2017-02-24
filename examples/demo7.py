@@ -30,7 +30,7 @@ ag.set_resonance_coupling(0,1,0.1)
 
 mult = 2
 
-ag.build(mult=mult)
+ag.build(mult=mult,sbi_for_higher_ex=False)
 
 
 

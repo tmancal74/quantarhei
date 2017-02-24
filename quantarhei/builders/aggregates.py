@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Class representing aggregates of molecules.
+
+The class enables building of complicated objects from objects of the Molecule
+type, their mutual interactions and system-bath interactions. It also provides
+an interface to various methods of open quantum systems theory.
+
+
+"""
 
 import numpy
 
@@ -27,6 +36,14 @@ class Aggregate(UnitsManaged):
     """ Molecular aggregate 
     
     
+    Parameters
+    ----------
+    
+    name : str
+        Specifies the name of the aggregate
+        
+    molecules : list or tuple
+        List of molecules out of which the aggregate is built
     
     """
     
@@ -51,30 +68,6 @@ class Aggregate(UnitsManaged):
                 self.add_Molecule(m)
                 
         self._init_me()  
-        
-        
-        
-#        self.mnames = {}
-#        self.monomers = []
-#        self.nmono = 0
-#        
-#        
-#        self.FC = fcstorage()
-#        self.ops = operator_factory() 
-#        
-#        self.coupling_initiated = False
-#        self.resonance_coupling = None
-#        
-#        self._has_egcf_matrix = False
-#        self.egcf_matrix = None
-#        
-#        self._has_system_bath_interaction = False
-#        self._has_relaxation_tensor = False
-#        
-#        self._relaxation_theory = ""
-#        
-#        self._built = False
-
 
 
     def _init_me(self):
@@ -85,8 +78,6 @@ class Aggregate(UnitsManaged):
         
         """
 
-        
-        
         self.FC = fcstorage()
         self.ops = operator_factory()
         
@@ -97,6 +88,7 @@ class Aggregate(UnitsManaged):
         self._built = False    
         
         self.mult = 0
+        self.sbi_mult = 0
         self.Nel = 0
         self.Ntot = 0
         self.Nb = 0
@@ -117,8 +109,8 @@ class Aggregate(UnitsManaged):
         """Cleans the aggregate object of anything built
         
         This operation leaves the molecules of the aggregate intact and keeps
-        few more pieces of information it it. Coupling matrix is not deletes.
-        You call build again after this.
+        few more pieces of information it it. E. g. coupling matrix is not 
+        deleted. You call build again after this.
         
         
         """
@@ -137,6 +129,7 @@ class Aggregate(UnitsManaged):
         self.monomers = []
         self.nmono = 0
         self.mult = 0
+        self.sbi_mult = 0
 
         self._has_egcf_matrix = False
         self.egcf_matrix = None
@@ -807,7 +800,7 @@ class Aggregate(UnitsManaged):
     #
     #######################################################################
         
-    def build(self, mult=1, vibgen_approx=None):
+    def build(self, mult=1, sbi_for_higher_ex=False, vibgen_approx=None):
         """Builds aggregate properties
         
         Calculates Hamiltonian and transition dipole moment matrices and
@@ -818,11 +811,25 @@ class Aggregate(UnitsManaged):
         
         mult : int
             exciton multiplicity
+            
+        sbi_for_higher_ex: bool
+            If set True, system-bath information is explicitely created for
+            higher exciton states (consistent with the specified parameters
+            `mult`). If set False, it is expected that if system-bath
+            interaction for higher excitons is needed, it will be reconstructed
+            from the single exciton part of this object
+            
+        vibge_approx: 
+            Approximation used in the generation of vibrational state.
         
         """
         
         # maximum multiplicity of excitons handled by this aggregate
         self.mult = mult 
+        if sbi_for_higher_ex:
+            self.sbi_mult = mult
+        else:
+            self.sbi_mult = 1
         
         #
         # Electronic and vibrational states
@@ -881,6 +888,12 @@ class Aggregate(UnitsManaged):
             self.Nb[ii] = self.number_of_states_in_band(band=ii,
             vibgen_approx=vibgen_approx)
        
+        
+        #######################################################################
+        #
+        # System-bath coupling
+        #
+        #######################################################################
             
         #FIXME: What to do when correlation functions are used for
         # an aggregate with vibrations
@@ -940,8 +953,12 @@ class Aggregate(UnitsManaged):
                 # Number of correlation functions is the number of electronic
                 # states minus ground state (this assumes that only electronic
                 # states are coupled to the bath)
-                Nelg = 1
-                Ncf = self.Nel - Nelg
+                Nelg = 1                
+                if sbi_for_higher_ex:
+                    Ncf = self.Nel - Nelg
+                else:
+                    Ncf = self.nmono
+                    
                 self.egcf_matrix = CorrelationFunctionMatrix(time, Ncf)
                 
                 for i in range(self.Nel):
@@ -961,7 +978,7 @@ class Aggregate(UnitsManaged):
 #                        mon.unset_transition_environment((0,1))
 #                        mon.set_egcf_mapping((0,1), self.egcf_matrix, j)
                         
-                    elif self.which_band[i] == 2:
+                    elif (self.which_band[i] == 2) and sbi_for_higher_ex:
                         l = i - Nelg
                         j = self.elsigs[i][0]
                         k = self.elsigs[i][1]
@@ -977,15 +994,16 @@ class Aggregate(UnitsManaged):
                         
                         # FIXME: cross-correlation between double excitons
                         # needs to be handled.
-                        
-                        # FIXME: maybe this should rather be handled by
-                        # a map between double excitons and site cor. functions
                     
                         if mapi <= 0:
                             raise Exception("Something's wrong")
 
+                    elif (self.which_band[i] == 2) and (not sbi_for_higher_ex):
+                        # this should be handled by
+                        # a map between double excitons and site cor. functions
+                        pass
                         
-                    elif self.which_band[i] > 2:
+                    elif (self.which_band[i] > 2) and sbi_for_higher_ex:
                         pass
                     
                 self._has_system_bath_interaction = True
@@ -997,26 +1015,30 @@ class Aggregate(UnitsManaged):
             # interaction operators
             iops = []
 
+            # How many operators should be created
+            if sbi_for_higher_ex:
+                Nop = self.Nel-1 # all electronic states
+            else:
+                Nop = self.Nb[1] # we count only single excited states
+
             # if there are more states in the single exciton block
             # than the number of sites, it means we have vibrational states
             if self.nmono != self.Nb[1]:
-                for i in range(self.Nel): #range(0,self.nmono):
+                
+                for i in range(self.Nop): #range(0,self.nmono):
                     op1 = Operator(dim=self.HH.shape[0],real=True)
                     # here we make a projector on the subspace defined
-                    # by a given electronic states |i>
+                    # by a given electronic state |i>
                     for j in self.vibindices[i]:
                         op1.data[j,j] = 1.0
                     iops.append(op1)      
                   
             # standard case with only electronic states
             else:
-                # we count only single excited           
-            
-                for i in range(1,self.Nel): #range(0,self.nmono):
+
+                for i in range(1,Nop+1): 
                     op1 = Operator(dim=self.HH.shape[0],real=True)
                     op1.data[i,i] = 1.0
-                    #print("-----------", i)
-                    #print(op1.data)
                     iops.append(op1)
                 
             self.sbi = SystemBathInteraction(iops,

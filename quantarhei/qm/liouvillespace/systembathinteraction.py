@@ -39,8 +39,9 @@ class SystemBathInteraction:
             raise Exception("First argument has to a list")
         
         # Second argument has to be a CorrelationFunctionMatrix 
-        if not isinstance(bath_correlation_matrix,CorrelationFunctionMatrix):
-            raise Exception
+        if not isinstance(bath_correlation_matrix, CorrelationFunctionMatrix):
+            raise Exception("Second argument has to a"+
+                            " CorrelationFunctionMatrix")
             
         # Check that sys_operators and bath_correlation matrix has 
         # a compatible number of components
@@ -90,6 +91,7 @@ class SystemBathInteraction:
             self.CC = bath_correlation_matrix
             
         else:
+            
             self.KK = None
             self.CC = None
                       
