@@ -101,6 +101,28 @@ class ValueAxis:
     >>> print(i)
     17
 
+    Mutual compatibility of the two ValueAxis objects can be tested as follows
+    
+    >>> va1 = ValueAxis(0.0, 2000, 1.0)
+    >>> va2 = ValueAxis(0.0, 1000, 1.0)
+    >>> va2.is_subsection_of(va1)
+    True
+    >>> va1.is_subsection_of(va2)
+    False
+    >>> va1.is_extension_of(va2)
+    True
+    >>> va2.is_subsection_of(va1)
+    True
+    >>> va2.is_extension_of(va1)
+    False
+    >>> va1.is_equal_to(va2)
+    False
+    >>> va1.is_equal_to(va1)
+    True
+    >>> va3 = ValueAxis(0.0, 2000, 1.0)
+    >>> va3.is_equal_to(va1)
+    True
+    
     """
 
     step = Float("step")
@@ -211,3 +233,34 @@ class ValueAxis:
 
         else:
             raise Exception("Value out of bounds")
+
+
+    def is_equal_to(self, axis):
+        """Returns True if the axis is equal to this ValueAxis
+        
+        """
+        return ((self.start == axis.start) and (self.step == axis.step)
+                and (self.length == axis.length))
+
+    def is_extension_of(self, axis):
+        """Returns True if the axis is contained in this ValueAxis
+        
+        """
+        ret = True
+        ret = ret and (self.start == axis.start)
+        ret = ret and (self.step == axis.step)
+        ret = ret and (self.length >= axis.length)
+        
+        return ret
+    
+    def is_subsection_of(self, axis):
+        """Returns True if the axis contains this ValueAxis
+        
+        """
+        ret = True
+        ret = ret and (self.start == axis.start)
+        ret = ret and (self.step == axis.step)
+        ret = ret and (self.length <= axis.length)
+        
+        return ret
+    
