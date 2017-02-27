@@ -586,10 +586,12 @@ class Aggregate(UnitsManaged):
                         # count differences
                         for i in range(Ns):
                             if els1[i] != els2[i]:
-                                sites[k] = i
+                                if (k == 0) or (k == 1):
+                                    sites[k] = i
                                 k += 1
                         # if there are exactly 2 differences, the differing
-                        # two molecules are those coupled
+                        # two molecules are those coupled; sites[k] contains
+                        # indiced those coupled molecules
                         if k == 2:
                             kk = sites[0]
                             ll = sites[1]
@@ -860,6 +862,7 @@ class Aggregate(UnitsManaged):
         # Set up Hamiltonian and Transition dipole moment matrices
         for a, s1 in self.allstates(mult=self.mult, save_indices=True,
                                     vibgen_approx=vibgen_approx):
+            print("state = ", a)
             HH[a,a] = s1.energy()
             for b,s2 in self.allstates(mult=self.mult,
                                     vibgen_approx=vibgen_approx):       
