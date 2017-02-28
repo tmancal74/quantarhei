@@ -862,11 +862,14 @@ class Aggregate(UnitsManaged):
         # Set up Hamiltonian and Transition dipole moment matrices
         for a, s1 in self.allstates(mult=self.mult, save_indices=True,
                                     vibgen_approx=vibgen_approx):
-            print("state = ", a)
+            #print("state = ", a)
             HH[a,a] = s1.energy()
             for b,s2 in self.allstates(mult=self.mult,
                                     vibgen_approx=vibgen_approx):       
                 DD[a,b,:] = self.transition_dipole(s1,s2)
+                
+                #print(" - ", a,b,s1.signature(),s2.signature())
+                
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
     
