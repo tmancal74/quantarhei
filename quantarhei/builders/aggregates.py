@@ -421,6 +421,18 @@ class Aggregate(UnitsManaged):
         if (abs(b1-b2) != 1):
             return 0.0
         
+        # count the number of differences
+        l = 0
+        count = 0
+        for kk in els1:
+            if kk != els2[l]:
+                count += 1
+            l += 1
+                
+                
+        if count != 1:
+            return 0.0
+        
         # now that we know that the states differ by one excitation, let
         # us find on which molecule it is
         exstate = None
@@ -434,6 +446,8 @@ class Aggregate(UnitsManaged):
                 else:
                     exstate = els2
                 exindx = l
+
+            
             
         if exstate is None:
             raise Exception()
@@ -869,10 +883,14 @@ class Aggregate(UnitsManaged):
                 DD[a,b,:] = self.transition_dipole(s1,s2)
                 
                 #print(" - ", a,b,s1.signature(),s2.signature())
+                #print("  :", DD[a,b,:] )
                 
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
     
+        #raise Exception()
+        
+        
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
         self.HamOp = Hamiltonian(data=HH)
