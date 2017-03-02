@@ -264,3 +264,104 @@ class ValueAxis:
         
         return ret
     
+    def is_subset_of(self, axis):
+        """Returns True if the ValueAxis is a subset of axis
+        
+        We check if all values of this axis are also values of the submitted 
+        axis object.
+        
+        Examples
+        --------
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(0.0, 490, 2.0)
+        >>> ta2.is_subset_of(ta1)
+        True
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(3.0, 900, 1.0)
+        >>> ta2.is_subset_of(ta1)
+        True
+
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(3.0, 400, 2.0)
+        >>> ta2.is_subset_of(ta1)
+        True
+
+        >>> ta1 = ValueAxis(0.0, 1000, 1.12345)
+        >>> ta2 = ValueAxis(3*1.12345, 400, 2*1.12345)
+        >>> ta2.is_subset_of(ta1)
+        True
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.12345)
+        >>> ta2 = ValueAxis(3.0, 400, 2*1.12345)
+        >>> ta2.is_subset_of(ta1)
+        False
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(3.0, 500, 2.0)
+        >>> ta2.is_subset_of(ta1)
+        False
+
+        """
+        ret = True
+        
+        Nst = round(self.step/axis.step)
+        ret = ret and (Nst*axis.step == self.step)
+        ret = ret and ((self.start in axis.data) and (self.start < axis.max))
+        ret = ret and ((self.max in axis.data))
+        
+        return ret
+    
+    
+    
+    def is_superset_of(self, axis):
+        """Returns True if the ValueAxis is a subset of axis
+        
+        We check if all values of this axis are also values of the submitted 
+        axis object.
+        
+        Examples
+        --------
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(0.0, 490, 2.0)
+        >>> ta1.is_superset_of(ta2)
+        True
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(3.0, 900, 1.0)
+        >>> ta1.is_superset_of(ta2)
+        True
+
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(3.0, 400, 2.0)
+        >>> ta1.is_superset_of(ta2)
+        True
+
+        >>> ta1 = ValueAxis(0.0, 1000, 1.12345)
+        >>> ta2 = ValueAxis(3*1.12345, 400, 2*1.12345)
+        >>> ta1.is_superset_of(ta2)
+        True
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.12345)
+        >>> ta2 = ValueAxis(3.0, 400, 2*1.12345)
+        >>> ta1.is_superset_of(ta2)
+        False
+        
+        >>> ta1 = ValueAxis(0.0, 1000, 1.0)
+        >>> ta2 = ValueAxis(3.0, 500, 2.0)
+        >>> ta1.is_superset_of(ta2)
+        False
+        
+        """
+        ret = True
+        
+        Nst = round(axis.step/self.step)
+        ret = ret and (Nst*self.step == axis.step)
+        ret = ret and ((axis.start in self.data) and (axis.start < self.max))
+        ret = ret and ((axis.max in self.data))        
+        
+        return ret
+    
+    

@@ -96,6 +96,7 @@ class FeatureFileGenerator:
         
     def generate_feature_file(self, filename):
         self._set_examples(self.examples)
+        #print(self._out)
         with open(filename,"w") as file:
-            print(self._out, file)
+            file.write(self._out)
 

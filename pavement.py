@@ -20,6 +20,7 @@ def unit_tests_v():
 @task
 def doc_tests_v():    
     sh('nosetests --with-doctest -vs quantarhei/core quantarhei/qm/corfunctions')
+    sh('nosetests --with-doctest -vs quantarhei/qm/propagators/poppropagator.py')
     
 @task
 def aloe_tests_vs():
