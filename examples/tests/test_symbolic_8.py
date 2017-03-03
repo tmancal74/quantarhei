@@ -84,7 +84,49 @@ def R2fs():
 
     return evaluate_cumulant(A)
 
-               
+
+def print_R1gt():
+    """
+    
+    """    
+    A = Ugde(b,t3)
+    print(evaluate_cumulant(A))
+    
+    B = Ugde(a,t1)
+    print(evaluate_cumulant(B))
+    
+def print_R2gt():
+    """
+    
+    """    
+    A = Ugde(b,t3)
+    print(evaluate_cumulant(A))
+    
+    B = Uedg(a,t1)
+    print(evaluate_cumulant(B))    
+
+def print_R1fst():
+    """
+    
+    """    
+    A = Uedg(b,t3)*Ugde(f,t3)
+    print(evaluate_cumulant(A))
+    
+    B = Uedg(a,t1)
+    print(evaluate_cumulant(B))    
+    
+ 
+def print_R2fst():
+    """
+    
+    """    
+    A = Uedg(b,t3)*Ugde(f,t3)
+    print(evaluate_cumulant(A))
+    
+    B = Ugde(a,t1)
+    print(evaluate_cumulant(B)) 
+           
+    
 print("R1g:")
 print(R1g())
 
@@ -107,3 +149,19 @@ print(R1fs())
 print("")
 print("R2fs:")
 print(R2fs())
+
+print("")
+print("R1gt")
+print_R1gt()
+
+print("")
+print("R2gt")
+print_R2gt()
+
+print("")
+print("R1fst")
+print_R1fst()
+
+print("")
+print("R2fst")
+print_R2fst()
