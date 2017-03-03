@@ -79,6 +79,9 @@ class DFunction:
         mode, the 2xN array is saved as a textual file with 2 columns and
         the length N.
 
+    load(filename, axis="time", ext=None, replace=False)
+        Loads the function from a file
+
 
     Examples
     --------
