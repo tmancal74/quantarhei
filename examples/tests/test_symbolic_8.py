@@ -9,7 +9,7 @@ of the third order for a multilevel three band system.
 from quantarhei.symbolic.cumulant import  Ugde, Uedg #, Uegd, Uged, ExpdV
 from quantarhei.symbolic.cumulant import gg #, g1, g2
 from quantarhei.symbolic.cumulant import CumulantExpr
-from quantarhei.symbolic.abc import a, b, f #, c, d, e, t, T, tau, x, y
+from quantarhei.symbolic.abc import a, b, f, tau #, c, d, e, t, T, tau, x, y
 from quantarhei.symbolic.abc import t1, t2, t3
 #from quantarhei.symbolic.lang import python_code
 from quantarhei.symbolic.lang import fortran_code
@@ -125,7 +125,17 @@ def print_R2fst():
     
     B = Ugde(a,t1)
     print(evaluate_cumulant(B)) 
-           
+    
+def print_trans_R2g():
+    """
+
+    """
+    A = (Uedg(a,t1+tau)*Ugde(b,t1+tau)*Uedg(b,t1+t2)*Ugde(b,t1+t2+t3)
+        *Uedg(b,t1+tau)*Ugde(a,t1+tau)*Uedg(a,t1))
+
+    print(evaluate_cumulant(A))
+
+       
     
 print("R1g:")
 print(R1g())
@@ -165,3 +175,7 @@ print_R1fst()
 print("")
 print("R2fst")
 print_R2fst()
+
+print("")
+print("Trans_R2g")
+print_trans_R2g()
