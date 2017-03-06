@@ -79,7 +79,7 @@ class PopulationPropagator:
         return pops
         
     
-    def get_PropagationMatrix(self, timeaxis):
+    def get_PropagationMatrix(self, timeaxis, corrections=False):
         """Returns propagation matrix corresponding to the present propagator
         
         
@@ -100,11 +100,11 @@ class PopulationPropagator:
         
         """
         if timeaxis.is_subset_of(self.timeAxis):
-            U = numpy.zeros((self.KK.shape[0],self.KK.shape[1],
-                             timeaxis.length), dtype=numpy.float64)
+            N = self.KK.shape[0]
+            U = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
             
             # initial condition
-            U0 = numpy.eye(self.KK.shape[0])
+            U0 = numpy.eye(N)
             
             # diagonalization of the rate matrix
             Kd, SS = numpy.linalg.eig(self.KK)
@@ -146,7 +146,17 @@ class PopulationPropagator:
                 U[:,:,i] = numpy.dot(expKd_step,U[:,:,i-1])
                 
                 
-            return U
+            if corrections:
+            
+                # zero's order correction to the evolution matrix
+                Uc0 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
+                for i in range(N):
+                    Uc0[i,i,:] = numpy.exp(self.KK[i,i]*timeaxis.data) 
+                    
+                return U, Uc0
+            
+            else:
+                return U
             
         else:
             raise Exception("TimeAxis is not a subset of the internal"
