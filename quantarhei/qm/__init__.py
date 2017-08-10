@@ -33,6 +33,7 @@ from .liouvillespace.systembathinteraction import SystemBathInteraction
 from .liouvillespace.rates.redfieldrates import RedfieldRateMatrix
 from .liouvillespace.rates.tdredfieldrates import TDRedfieldRateMatrix
 from .liouvillespace.rates.modifiedredfieldrates import ModifiedRedfieldRateMatrix
+from .liouvillespace.rates.ratematrix import RateMatrix
 
 # Relaxation tensors (weak SB theory)
 from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
