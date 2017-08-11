@@ -24,15 +24,15 @@ class PopulationPropagator:
     
     """   
     
-    def __init__(self, timeaxis, RateMatrix=None):
+    def __init__(self, timeaxis, rate_matrix=None):
 
         self.timeAxis = timeaxis
         self.Nref = 1
         self.Nt = self.timeAxis.length
         self.dt = self.timeAxis.step
         
-        if RateMatrix is not None:
-            self.KK = RateMatrix
+        if rate_matrix is not None:
+            self.KK = rate_matrix
     
     def propagate(self, pini):
         """Propagates a given initional population vector
@@ -79,7 +79,7 @@ class PopulationPropagator:
         return pops
         
     
-    def get_PropagationMatrix(self, timeaxis, corrections=False):
+    def get_PropagationMatrix(self, timeaxis, corrections=-1):
         """Returns propagation matrix corresponding to the present propagator
         
         
@@ -146,14 +146,78 @@ class PopulationPropagator:
                 U[:,:,i] = numpy.dot(expKd_step,U[:,:,i-1])
                 
                 
-            if corrections:
+            if corrections > -1:
             
+                KKD = numpy.zeros(N, dtype=numpy.float64)
+                KKT = numpy.zeros((N,N), dtype=numpy.float64)
+                for i in range(N):
+                    KKD[i] = -self.KK[i,i]
+                KKT = self.KK+numpy.diag(KKD)
+
+                
                 # zero's order correction to the evolution matrix
                 Uc0 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
                 for i in range(N):
-                    Uc0[i,i,:] = numpy.exp(self.KK[i,i]*timeaxis.data) 
+                    Uc0[i,i,:] = numpy.exp(-KKD[i]*timeaxis.data) 
                     
-                return U, Uc0
+                if corrections == 0:
+                    return U, Uc0
+                
+                
+                # first order correction
+                Uc1 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
+                for i in range(N):
+                    for j in range(N):
+                        if i != j:
+                            if KKD[i] == KKD[j]:
+                                Uc1[i,j,:] = KKT[i,j]*timeaxis.data
+                            else:
+                                Uc1[i,j,:] = (
+                                (KKT[i,j]/(KKD[i]-KKD[j]))
+                                *(numpy.exp(-KKD[j]*timeaxis.data) 
+                                - numpy.exp(-KKD[i]*timeaxis.data)))
+                                
+                if corrections == 1:
+                    return U, Uc0, Uc1
+                                
+                # second order correction
+                Uc2 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
+                for i in range(N):
+                    for j in range(N):
+
+                        for k in range(N):
+                            
+                            if (k != j):
+                                if (i != j):
+                                    # two parts of an expressions for i != i
+                                    Uc2[i,j,:] += (
+                                    (KKT[i,k]*KKT[k,j]/(KKD[k]-KKD[j]))
+                                    *((numpy.exp(-KKD[j]*timeaxis.data) - 
+                                       numpy.exp(-KKD[i]*timeaxis.data))
+                                      /(KKD[i]-KKD[j]))
+                                    )
+                                    if (k != i):
+                                        Uc2[i,j,:] -= (
+                                        (KKT[i,k]*KKT[k,j]/(KKD[k]-KKD[j]))
+                                        *((numpy.exp(-KKD[k]*timeaxis.data) -
+                                           numpy.exp(-KKD[i]*timeaxis.data))
+                                          /(KKD[i]-KKD[k]))
+                                        )
+                                else: 
+                                    # whole expression for i = j
+                                    Uc2[i,j,:] += (
+                                    (KKT[i,k]*KKT[k,j]/(KKD[k]-KKD[j]))
+                                    *(numpy.exp(-KKD[i]*timeaxis.data)
+                                      *timeaxis.data
+                                    -(numpy.exp(-KKD[k]*timeaxis.data)
+                                     -numpy.exp(-KKD[i]*timeaxis.data))
+                                     /(KKD[i]-KKD[k]))
+                                    ) 
+                                    pass
+                                    
+                if corrections >= 2:
+                    return U, Uc0, Uc1, Uc2
+                
             
             else:
                 return U

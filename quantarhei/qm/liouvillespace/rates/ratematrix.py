@@ -23,6 +23,7 @@ class RateMatrix(MatrixData):
                 
             if self.N == 0:
                 self.N = data.shape[0]
+                self.data = data
             elif self.N != dim:
                 raise Exception("Inconsistent data dimensions")
                    
@@ -31,7 +32,7 @@ class RateMatrix(MatrixData):
                 raise Exception("One of the arguments has to be specified")
                 
             else:
-                self._data = numpy.zeros((self.N,self.N), dtype=numpy.float64)
+                self.data = numpy.zeros((self.N,self.N), dtype=numpy.float64)
             
            
         
@@ -44,10 +45,10 @@ class RateMatrix(MatrixData):
         """
         N = pos[0]
         M = pos[1]
-        orig_val = self._data[N,M]
-        self._data[N,M] = value
+        orig_val = self.data[N,M]
+        self.data[N,M] = value
         
-        self._data[M,M] += orig_val
-        self._data[M,M] -= value
+        self.data[M,M] += orig_val
+        self.data[M,M] -= value
         
         
