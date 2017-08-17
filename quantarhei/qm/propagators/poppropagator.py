@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
-#from ...core.time import TimeAxis
+from ..liouvillespace.rates.ratematrix import RateMatrix
 
 class PopulationPropagator:
     """ Propagator for a population vector 
@@ -32,7 +32,10 @@ class PopulationPropagator:
         self.dt = self.timeAxis.step
         
         if rate_matrix is not None:
-            self.KK = rate_matrix
+            if isinstance(rate_matrix,RateMatrix):
+                self.KK = rate_matrix.data
+            else:
+                self.KK = rate_matrix
     
     def propagate(self, pini):
         """Propagates a given initional population vector
@@ -78,9 +81,45 @@ class PopulationPropagator:
             
         return pops
         
+    def _split_relaxation_matrix(self):
+        """Splits the relaxation matrix into diagonal and transfer parts
+        
+        """
+        N = self.KK.shape[0]
+        KKD = numpy.zeros(N, dtype=numpy.float64)
+        KKT = numpy.zeros((N,N), dtype=numpy.float64)
+        for i in range(N):
+            KKD[i] = -self.KK[i,i]
+        KKT = self.KK+numpy.diag(KKD)
+        return KKD, KKT
     
-    def get_PropagationMatrix(self, timeaxis, corrections=-1):
+    def _integrateK0(self,timeaxis,Kab,Ka,Kb):
+        """Returns an integral of transfer matrix element
+        
+        """
+        expK = numpy.exp((Ka-Kb)*timeaxis.data)
+        integ = numpy.zeros(timeaxis.length,dtype=numpy.float64)
+        for i in range(timeaxis.length):
+            integ[i] = numpy.sum(expK[0:i])
+        return Kab*integ*timeaxis.step
+    
+    def _integrateKn(self,timeaxis,Kab,Ka,Kb,Kbc):
+        """Returns an integral of transfer matrix element multiplied by 
+        a result of previous order of expansion
+        
+        
+        """
+        expK = numpy.exp((Ka-Kb)*timeaxis.data)
+        integ = numpy.zeros(timeaxis.length,dtype=numpy.float64)
+        for i in range(timeaxis.length):
+            integ[i] = numpy.sum(expK[0:i]*Kbc[0:i])
+        return Kab*integ*timeaxis.step
+        
+    def get_PropagationMatrix(self, timeaxis, corrections=-1, exact=False):
         """Returns propagation matrix corresponding to the present propagator
+        
+        This function also returns perturbative expansion of the propagation
+        in the orders of transfer rates.
         
         
         Examples
@@ -145,26 +184,35 @@ class PopulationPropagator:
             for i in range(1,timeaxis.length):
                 U[:,:,i] = numpy.dot(expKd_step,U[:,:,i-1])
                 
-                
+            
+            #
+            # Calculate exact orders in transfer matrix
+            #
             if corrections > -1:
             
-                KKD = numpy.zeros(N, dtype=numpy.float64)
-                KKT = numpy.zeros((N,N), dtype=numpy.float64)
-                for i in range(N):
-                    KKD[i] = -self.KK[i,i]
-                KKT = self.KK+numpy.diag(KKD)
-
+                #
+                # Split relaxation matrix into diagonal and transfer parts
+                #
+                KKD, KKT = self._split_relaxation_matrix()
                 
+                #
                 # zero's order correction to the evolution matrix
+                # (exact version)
+                #
                 Uc0 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
                 for i in range(N):
                     Uc0[i,i,:] = numpy.exp(-KKD[i]*timeaxis.data) 
                     
                 if corrections == 0:
-                    return U, Uc0
+                    return U, (Uc0)
                 
                 
+            if (corrections > 0) and exact:
+                
+                #
                 # first order correction
+                # (exact version)
+                #
                 Uc1 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
                 for i in range(N):
                     for j in range(N):
@@ -178,9 +226,12 @@ class PopulationPropagator:
                                 - numpy.exp(-KKD[i]*timeaxis.data)))
                                 
                 if corrections == 1:
-                    return U, Uc0, Uc1
-                                
+                    return U, (Uc0, Uc1)
+                
+                #
                 # second order correction
+                # (exact version)
+                #
                 Uc2 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
                 for i in range(N):
                     for j in range(N):
@@ -216,9 +267,50 @@ class PopulationPropagator:
                                     pass
                                     
                 if corrections >= 2:
-                    return U, Uc0, Uc1, Uc2
+                    return U, (Uc0, Uc1, Uc2)
                 
-            
+            elif (corrections > 0) and not exact:
+
+                
+                #
+                # first order correction
+                # (numerical)
+                #
+                Uc1 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
+                KKI = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
+                for i in range(N):
+                    for j in range(N):
+                        KKI[i,j,:] = self._integrateK0(timeaxis, 
+                                      KKT[i,j], KKD[i], KKD[j])
+                        Uc1[i,j,:] = (numpy.exp(-KKD[i]*timeaxis.data)
+                                      *KKI[i,j,:])
+                if corrections == 1:
+                    return U, (Uc0, Uc1)
+
+                #
+                # second and higher order corrections
+                # (numerical)
+                #
+                higher_c = [Uc0, Uc1]
+                for c in range(1,corrections):
+                    Uc2 = numpy.zeros((N,N,timeaxis.length), dtype=numpy.float64)
+                    for i in range(N):
+                        for j in range(N):
+
+                            for k in range(N):
+                                Uc2[i,j,:] += (
+                                      self._integrateKn(timeaxis, 
+                                      KKT[i,k], KKD[i], KKD[k], KKI[k,j,:]))
+                            
+                    KKI[:,:,:] = Uc2[:,:,:] # ! we do not want to assign a pointer !!!
+                    for i in range(N):
+                        for j in range(N):
+                            Uc2[i,j,:] = numpy.exp(-KKD[i]*timeaxis.data)*KKI[i,j,:]
+                    higher_c.append(Uc2)
+                    
+                if corrections >= 2:
+                    return U, tuple(higher_c)                       
+                        
             else:
                 return U
             
@@ -226,3 +318,5 @@ class PopulationPropagator:
             raise Exception("TimeAxis is not a subset of the internal"
                             +" TimeAxis of this propagator.")
             
+            
+    
