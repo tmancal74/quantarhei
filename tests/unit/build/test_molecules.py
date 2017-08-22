@@ -222,6 +222,9 @@ class TestMoleculeVibrations(unittest.TestCase):
         self.assertTrue(numpy.allclose(pop,rpop))
         
         
-        
+if __name__ == '__main__':
+    unittest.main()
+
+       
                 
         

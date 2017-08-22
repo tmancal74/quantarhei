@@ -345,10 +345,10 @@ with eigenbasis_of(hh):
     fspect.save_to_file("fluorecence.dat")
     
     # time correlated photon counting
-    tcpc = fl.get_time_correlated_photon_counting(pop_in_time,
+    tcpc = fl.get_time_correlated_single_photon_counting(pop_in_time,
                                             spectral_range=(10000,18000),
                                             time_resolution=50000)
-    tcpc.save_to_file("tcpc.dat")
+    tcpc.save_to_file("tcspc.dat")
     
 """
 

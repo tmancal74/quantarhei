@@ -8,24 +8,24 @@ from ...core.units import kB_intK
 
 from ...core.managers import UnitsManaged
 
-class CorrelationFunction(DFunction,UnitsManaged):
+class CorrelationFunction(DFunction, UnitsManaged):
     """Provides typical Bath correlation functions
-        
-    Types of correlation function are provided:
-    -----------------------------
+
+    Types of correlation function provided
+    --------------------------------------
     OverdampedBrownian-HighTemperature : 
         OverdampedBrownian oscillator in high temperature limit
-            
+
     OverdampedBrownian :
         General overdampedBrownian oscillator
-       
+
     """       
 
     
-    allowed_types = ("OverdampedBrownian-HighTemperature",\
-                     "OverdampedBrownian","Value-defined")    
-    
-    def __init__(self,timeAxis,params,values=None,domain='Time'):
+    allowed_types = ("OverdampedBrownian-HighTemperature",
+                     "OverdampedBrownian","Value-defined")
+
+    def __init__(self, timeAxis, params, values = None, domain = 'Time'):
         self.valueAxis = timeAxis
         self.timeAxis = self.valueAxis
         self.params = params
@@ -33,10 +33,10 @@ class CorrelationFunction(DFunction,UnitsManaged):
             self.time_domain = True
         else:
             self.time_domain = False
-        
+
         self.is_composed = False
-        
-        
+
+
         try:
             ftype = params["ftype"]
             if ftype in CorrelationFunction.allowed_types:
@@ -46,15 +46,14 @@ class CorrelationFunction(DFunction,UnitsManaged):
                  
             # we need to save the defining energy units
             self.energy_units = self.manager.get_current_units("energy")
-                 
-             
+
+
         except:
             raise Exception
-            
-        if ((self.ftype == "OverdampedBrownian-HighTemperature") 
+
+        if ((self.ftype == "OverdampedBrownian-HighTemperature")
              and self.time_domain):
 
-            
             T    = params["T"]
             tc   = params["cortime"]
             # use the units in which params was defined
