@@ -15,7 +15,7 @@ import unittest
 import numpy
 
 from quantarhei.core import BasisManaged
-from quantarhei.core import BasisManagedReal
+from quantarhei.core import BasisManagedRealArray
     
     
 class BasisManagedObject(BasisManaged):
@@ -25,7 +25,7 @@ class BasisManagedObject(BasisManaged):
 
     """
     
-    data = BasisManagedReal("data",shape=(2,2))
+    data = BasisManagedRealArray("data",shape=(2,2))
 
     def __init__(self,dat,name):
          # Name of the object
@@ -42,6 +42,8 @@ class BasisManagedObject(BasisManaged):
              
          # set data
          self.data = dat
+         
+         self.dim = self.data.shape[0]
 
         
     def __str__(self):
@@ -53,6 +55,10 @@ class BasisManagedObject(BasisManaged):
         
         self._data = numpy.diag(dd)
         
+        return SS
+        
+    def get_diagonalization_matrix(self):
+        dd, SS = numpy.linalg.eigh(self._data)
         return SS
         
     def transform(self,SS,inv=None):

@@ -39,7 +39,7 @@ with energy_units("1/cm"):
     m4 = Molecule("M4",en1) #,[d0,d1])
     m4.set_dipole(0,1,d1)
     m5 = Molecule("M5",en1) #,[d0,d1])
-    m4.set_dipole(0,1,d1)
+    m5.set_dipole(0,1,d1)
     m6 = Molecule("M6",en1) #,[d0,d1])
     m6.set_dipole(0,1,d1)
     m7 = Molecule("M7",en1) #,[d0,d1])
@@ -90,7 +90,7 @@ m12.position = r12
 
 temperature = 300.0 # in Kelvins
 # Time axis on which everything is calculated
-time = TimeAxis(0.0,2000,1.0) # in fs
+time = TimeAxis(0.0, 2000, 1.0) # in fs
 
 cfce_params1 = dict(ftype="OverdampedBrownian",
                    reorg=30.0,
@@ -105,29 +105,51 @@ with energy_units("1/cm"):
     cfce1 = CorrelationFunction(time,cfce_params1)
     cfce2 = CorrelationFunction(time,cfce_params2)
 
-cm = CorrelationFunctionMatrix(time,12,2)
-#cm.set_correlation_function(1,cfce1.data,[(1,1),(2,2),(4,4),(6,6),(7,7),(11,11)])
-#cm.set_correlation_function(2,cfce2.data,[(0,0),(3,3),(5,5),(8,8),(9,9),(10,10)])
-cm.set_correlation_function(1,cfce1,[(1,1),(2,2),(4,4),(6,6),(7,7),(11,11)])
-cm.set_correlation_function(2,cfce2,[(0,0),(3,3),(5,5),(8,8),(9,9),(10,10)])
+explicit_mapping = False
 
-# Mapping of the correlation functions on the transitions in monomers 
-m1.set_egcf_mapping((0,1),cm,0)
-m2.set_egcf_mapping((0,1),cm,1)
-m3.set_egcf_mapping((0,1),cm,2)
-m4.set_egcf_mapping((0,1),cm,3)
-m5.set_egcf_mapping((0,1),cm,4)
-m6.set_egcf_mapping((0,1),cm,5)
-m7.set_egcf_mapping((0,1),cm,6)
-m8.set_egcf_mapping((0,1),cm,7)
-m9.set_egcf_mapping((0,1),cm,8)
-m10.set_egcf_mapping((0,1),cm,9)
-m11.set_egcf_mapping((0,1),cm,10)
-m12.set_egcf_mapping((0,1),cm,11)
+if explicit_mapping:
+    
+    cm = CorrelationFunctionMatrix(time,12)
+    i = cm.set_correlation_function(cfce1, [(1,1),(2,2)]) #,
+                            #iof=1)
+    cm.set_correlation_function(cfce1, [(4,4),(6,6),(7,7),(11,11)]) 
+    cm.set_correlation_function(cfce2, [(0,0),(3,3),(5,5),(8,8),(9,9),(10,10)]) #,
+                            #iof=2)
+    # Mapping of the correlation functions on the transitions in monomers 
+    m1.set_egcf_mapping((0,1),cm,0)
+    m2.set_egcf_mapping((0,1),cm,1)
+    m3.set_egcf_mapping((0,1),cm,2)
+    m4.set_egcf_mapping((0,1),cm,3)
+    m5.set_egcf_mapping((0,1),cm,4)
+    m6.set_egcf_mapping((0,1),cm,5)
+    m7.set_egcf_mapping((0,1),cm,6)
+    m8.set_egcf_mapping((0,1),cm,7)
+    m9.set_egcf_mapping((0,1),cm,8)
+    m10.set_egcf_mapping((0,1),cm,9)
+    m11.set_egcf_mapping((0,1),cm,10)
+    m12.set_egcf_mapping((0,1),cm,11)
+    
+else:
+    
+    m1.set_transition_environment((0,1),cfce2)
+    m2.set_transition_environment((0,1),cfce1)
+    m3.set_transition_environment((0,1),cfce1)
+    m4.set_transition_environment((0,1),cfce2)
+    m5.set_transition_environment((0,1),cfce1)
+    m6.set_transition_environment((0,1),cfce2)
+    m7.set_transition_environment((0,1),cfce1)
+    m8.set_transition_environment((0,1),cfce1)
+    m9.set_transition_environment((0,1),cfce2)
+    m10.set_transition_environment((0,1),cfce2)
+    m11.set_transition_environment((0,1),cfce2)
+    m12.set_transition_environment((0,1),cfce1)    
+    
 
 # create an aggregate
 AG = Aggregate("TestAggregate")
-AG.set_egcf_matrix(cm)
+
+if explicit_mapping:
+    AG.set_egcf_matrix(cm)
 
 # fill the cluster with monomers
 AG.add_Molecule(m1)
@@ -142,6 +164,10 @@ AG.add_Molecule(m9)
 AG.add_Molecule(m10)
 AG.add_Molecule(m11)
 AG.add_Molecule(m12)
+
+
+print(AG._has_egcf_matrix)
+print(AG._has_system_bath_interaction)
 
 
 # setting coupling by dipole-dipole formula
@@ -174,7 +200,7 @@ a2.normalize2()
 
 plt.plot(a1.frequency/cm2int,a1.data,'-r')
 plt.plot(a2.frequency/cm2int,a2.data,'-g')
-plt.plot(aAnth.frequency/cm2int,aAnth.data,'-c')
+plt.plot(aAnth.axis.data/cm2int,aAnth.data,'-c')
 
 p = plt.gca()
 p.set_autoscale_on(False)
@@ -186,6 +212,9 @@ plt.title('L12per_pbl --- en1 = ' + en1st)
 #plt.savefig('L12per_pbl_spec.pdf')
 
 plt.show()
+
+with energy_units("1/cm"):
+    aAnth.plot(axis=[10000,15000,0.0,1.1])
 
 
 # Redfield Tensor 

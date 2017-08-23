@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
+import json
+import pkg_resources
+
+import numpy
 
 from .units import conversion_facs_frequency
 from .units import conversion_facs_energy
 
 from .singleton import Singleton
 
-#from .wrappers import deprecated
-
-import os
-import json
-import numpy
 
 class Manager(metaclass=Singleton):
     """ Main package Manager
@@ -45,7 +45,8 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.4"
+    #version = "0.0.11"
+    version = pkg_resources.require("quantarhei")[0].version
 
     # hard wired unit options
     allowed_utypes = ["energy",
@@ -54,19 +55,33 @@ class Manager(metaclass=Singleton):
                       "temperature",
                       "time"]
 
-    units = {"energy"       : ["1/cm", "2pi/fs", "eV", "meV", "THz"],
-             "frequency"    : ["1/cm", "2pi/fs", "THz"],
+    units = {"energy"       : ["2pi/fs", "int", "1/cm", "eV", "meV", "THz",
+                               "J", "SI"],
+             "frequency"    : ["2pi/fs", "int", "1/cm", "THz","Hz","SI"],
              "dipolemoment" : ["Debye"],
-             "temperature"  : ["Kelvin", "Celsius", "1/cm"],
-             "time"         : ["as", "fs", "ps", "ns"]}
+             "temperature"  : ["2pi/fs", "int", "Kelvin", "Celsius",
+                               "1/cm", "eV", "meV", "Thz", "SI"],
+             "time"         : ["fs", "int", "as", "ps", "ns", "Ms","ms",
+                               "s", "SI"]}
 
     units_repre = {"Kelvin":"K",
                    "Celsius":"C",
                    "Debye":"D",
                    "1/cm":"1/cm",
                    "THz":"THz",
+                   "eV":"eV",
                    "2pi/fs":"2pi/fs",
+                   "int":"2pi/fs",
                    "meV":"meV"}
+                   
+    units_repre_latex = {"Kelvin":"K",
+                   "Celsius":"C",
+                   "Debye":"D",
+                   "1/cm":"cm$^-1$",
+                   "THz":"THz",
+                   "eV":"eV",
+                   "2pi/fs":"rad$\cdot$fs$^{-1}$",
+                   "meV":"meV"}                  
 
     def __init__(self):
 
@@ -177,6 +192,11 @@ class Manager(metaclass=Singleton):
         self.basis_transformations.append(1)
         self.basis_registered = {}
         
+        self.warn_about_basis_change = False
+        self.warn_about_basis_changing_objects = False
+        
+        self.parallel_conf = None
+        
             
     def save_settings(self):
 
@@ -249,6 +269,26 @@ class Manager(metaclass=Singleton):
         else:
             raise Exception("Unknown unit type")
             
+    def unit_repr_latex(self,utype="energy",mode="current"):
+        """Returns a string representing the currently used units
+        
+        
+        """        
+    
+    
+        if utype in self.allowed_utypes:
+            if mode == "current":
+                return self.units_repre_latex[self.current_units[utype]]
+            elif mode == "internal":
+                return self.units_repre_latex[self.internal_units[utype]]
+            else:
+                raise Exception("Unknown representation mode")
+            
+        else:
+            raise Exception("Unknown unit type")            
+            
+            
+            
     def set_current_units(self,utype,units):
         """Sets current units
         
@@ -278,12 +318,12 @@ class Manager(metaclass=Singleton):
         
         """
         if units in self.units["energy"]:
-            x = conversion_facs_frequency[units]
+            x = conversion_facs_energy[units]
             i_val = x*val
             
             cu = self.current_units["energy"] 
             if cu != "2pi/fs":
-                y = conversion_facs_frequency[units] 
+                y = conversion_facs_energy[units] 
                 return i_val/y
                 
             return i_val
@@ -294,7 +334,7 @@ class Manager(metaclass=Singleton):
         
         """
         if units in self.units["energy"]:
-            x = conversion_facs_frequency[units]
+            x = conversion_facs_energy[units]
             i_val = x*val
             return i_val    
             
@@ -322,6 +362,7 @@ class Manager(metaclass=Singleton):
             values to convert            
         
         """
+        
         return val/conversion_facs_energy[self.current_units["energy"]] 
         
 
@@ -390,6 +431,9 @@ class Manager(metaclass=Singleton):
         pass
     
     
+    
+    
+    
     def get_current_basis(self):
         """Returns the current basis id
         
@@ -404,14 +448,31 @@ class Manager(metaclass=Singleton):
         self.basis_registered[nb] = []
         return nb
         
-    def transform_to_current_basis(self,operator):
+    def transform_to_current_basis(self, operator):
+        """Transforms an operator to the currently used basis
         
+        Parameters
+        ----------
+        
+        operator : operator
+            Any basis managed operator
+            
+            
+        """
+
+        if operator.is_basis_protected:
+            return
+            
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
+
+        if self.warn_about_basis_changing_objects:
+            print("Object ", operator.__class__,
+                  id(operator), " is changing basis from ", ob, " to: ", cb)
                 
         if ob != cb:
                             
-            SS = numpy.diag(numpy.ones(operator._data.shape[0]))
+            SS = numpy.diag(numpy.ones(operator.dim))
             # find out if current basis of the object is in the stack (i.e. it 
             # was used sometime in the past)
             if ob in self.basis_stack:
@@ -422,7 +483,7 @@ class Manager(metaclass=Singleton):
                     # take the basis transformation to the earlier used basis
                     ZZ = self.basis_transformations[sl-k]
 
-                    # included into the transformation matrix
+                    # included it into the transformation matrix
                     SS = numpy.dot(ZZ,SS)                
                     # if the basis is found, break away from the loop
                     if self.basis_stack[sl-k-1] == ob:
@@ -438,8 +499,17 @@ class Manager(metaclass=Singleton):
     def register_with_basis(self,nb,operator):
         self.basis_registered[nb].append(operator)
         
-                
-
+        
+    def get_DistributedConfiguration(self):
+        """
+        
+        """
+        from .parallel import DistributedConfiguration
+        
+        if self.parallel_conf is None:
+            self.parallel_conf = DistributedConfiguration()
+        return self.parallel_conf
+            
 class Managed:
     """Base class for managed objects 
     
@@ -466,6 +536,9 @@ class UnitsManaged(Managed):
     def unit_repr(self,utype="energy"):
         return self.manager.unit_repr(utype)
         
+    def unit_repr_latex(self,utype="energy"):
+        return self.manager.unit_repr_latex(utype)
+        
         
 class EnergyUnitsManaged(Managed):
     
@@ -481,6 +554,9 @@ class EnergyUnitsManaged(Managed):
     def unit_repr(self):
         return self.manager.unit_repr("energy")
 
+    def unit_repr_latex(self,utype="energy"):
+        return self.manager.unit_repr_latex(utype)
+        
         
 class BasisManaged(Managed):
     """Base class for objects with managed basis
@@ -488,7 +564,7 @@ class BasisManaged(Managed):
 
     """
     _current_basis = Manager().get_current_basis()
-    
+    is_basis_protected = False
     
     def get_current_basis(self):
         return self._current_basis
@@ -496,6 +572,11 @@ class BasisManaged(Managed):
     def set_current_basis(self,bb):
         self._current_basis = bb
             
+    def protect_basis(self):
+        self.is_basis_protected = True
+        
+    def unprotect_basis(self):
+        self.is_basis_protected = False
         
         
 
@@ -542,6 +623,15 @@ class energy_units(units_context_manager):
         self.manager.set_current_units("energy",self.units_backup)
         
         
+class frequency_units(energy_units):
+    """Context manager for units of frequency
+    
+    It behaves exactly the same as ``energy_units`` context manager.
+    
+    """
+    pass
+        
+        
 class basis_context_manager:
     """General context manager to manage basis 
     
@@ -565,30 +655,41 @@ class eigenbasis_of(basis_context_manager):
     
     """
     
-    def __init__(self,operator):
+    def __init__(self, operator):
         super().__init__()
         self.op = operator
         
         
     def __enter__(self):
 
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>> Entering basis context manager ...")
+            
         cb = self.manager.get_current_basis()
         ob = self.op.get_current_basis()
+        
         if cb != ob:
             
             self.manager.transform_to_current_basis(self.op)
             
         
-        SS = self.op.diagonalize()
+        #SS = self.op.diagonalize()
+        SS = self.op.get_diagonalization_matrix()
         nb = self.manager.set_new_basis(SS)
 
-        self.manager.register_with_basis(nb,self.op)
-        self.op.set_current_basis(nb)
-        
+        #self.manager.register_with_basis(nb,self.op)
+        #self.op.set_current_basis(nb)
+
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>>  ... setting context done")        
+
+    
         
     def __exit__(self,ext_ty,exc_val,tb):
-
-        
+  
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>> Returning from basis context manager. Cleaning ...")  
+            
         # This is the basis we are leaving
         bb = self.manager.basis_stack.pop()
         # this is the transformation we got here with
@@ -608,8 +709,10 @@ class eigenbasis_of(basis_context_manager):
             ops_above = self.manager.basis_registered[nb]
 
         for op in operators:
-            #op._data = numpy.dot(SS,numpy.dot(op._data,S1))
-            op.transform(S1,inv=SS) 
+            # the operator might have been set to protected mode
+            # inside the context
+            if not op.is_basis_protected:
+                op.transform(S1,inv=SS) 
             op.set_current_basis(nb)
             
             # operators which appeared in this context and where not
@@ -620,10 +723,37 @@ class eigenbasis_of(basis_context_manager):
             
             
         del self.manager.basis_registered[bb]
-        
-        
-        
-        
+
+        if self.manager.warn_about_basis_change:
+            print("\nQr >>> ... cleaning done")        
             
+
+def set_current_units(units=None):
+    """Sets units globaly without the need for a context manager
+    
+    """
+    manager = Manager()    
+    if units is not None:
+        # set units using a supplied dictionary
+        for utype in units:
+            if utype in manager.allowed_utypes:
+                un = units[utype]
+                # handle the identity of "frequency" and "energy"
+                if utype=="frequency":
+                    utype="energy"
+                    un = units["frequency"]
+                    
+                manager.set_current_units(utype,un)
+            else:
+                raise Exception("Unknown units type %s" % utype)
+
+    else:
+        # reset units to the default
+        for utype in manager.internal_units:
+            if utype in manager.allowed_utypes:
+                manager.set_current_units(utype,manager.internal_units[utype])
+            else:
+                raise Exception("Unknown units type %s" % utype)
+        
         
         

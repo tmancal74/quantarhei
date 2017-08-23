@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from .operators import SelfAdjointOperator
+from .operators import Operator
+from ...core.managers import BasisManaged
 
 import numpy
-import scipy
+#import scipy
 
 
-class TransitionDipoleMoment(SelfAdjointOperator):
+class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
     
     def __init__(self,dim=None,data=None):
-
+        
+        #Operator.__init__(self, dim=dim, data=data)
+        
         # Set the currently used basis
         cb = self.manager.get_current_basis()
         self.set_current_basis(cb)
@@ -18,7 +22,8 @@ class TransitionDipoleMoment(SelfAdjointOperator):
             self.manager.register_with_basis(cb,self) 
 
         self._data = data
-
+        self.dim = self._data.shape[0] 
+        
         if not self.check_selfadjoint():
             raise Exception("The data of this operator have"
             +" to be represented by 3 selfadjoint matrices") 

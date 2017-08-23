@@ -67,7 +67,7 @@ class Molecule(UnitsManaged):
     nmod     = Integer('nmod')
     
     
-    def __init__(self,name=None,elenergies=[0.0,1.0]): #,dmoments):
+    def __init__(self, name=None, elenergies=[0.0,1.0]): #,dmoments):
     
         #self.manager = Manager()
         
@@ -143,8 +143,22 @@ class Molecule(UnitsManaged):
         
         
         self._is_mapped_on_egcf_matrix = False
-    
-    def set_egcf_mapping(self,transition,correlation_matrix,position):
+        
+        self._has_system_bath_coupling = False
+        
+        # data attribute can hold PDB coordinates or something else
+        self.model = None
+        self.data = None
+        self._data_type = None
+        
+    def get_name(self):
+        return self.name
+        
+    def set_name(self, name):
+        self.name = name
+        
+        
+    def set_egcf_mapping(self, transition, correlation_matrix, position):
         """ Sets a correlation function mapping for a selected transition.
         
         The monomer can either have a correlation function assigned to it,
@@ -167,26 +181,34 @@ class Molecule(UnitsManaged):
         
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
-            if not (self._is_mapped_on_egcf_matrix):            
+                                                        
+            if not (self._is_mapped_on_egcf_matrix):
+                
                 self.egcf_matrix = correlation_matrix
                 self.egcf_transitions = []
                 self.egcf_transitions.append(transition)
                 self.egcf_mapping = []
                 self.egcf_mapping.append(position)
                 self._is_mapped_on_egcf_matrix = True
+                self._has_system_bath_coupling = True
+                
             else:
+                
                 if self.egcf_matrix is correlation_matrix:
+                    
                     if self.egcf_transitions.count(transition) > 0:
                         raise Exception("Correlation function already \
                          assigned to the transition")
                     else:
                         self.egcf_transitions.append(transition)
                         self.egcf_mapping.append(position)                        
+
         else:
+            
             raise Exception("Monomer has a correlation function already")            
         
-    
-    def set_egcf(self,transition,egcf):
+
+    def set_transition_environment(self, transition, egcf):
         """Sets a correlation function for a transition on this monomer
         
         Parameters
@@ -195,7 +217,7 @@ class Molecule(UnitsManaged):
             A tuple describing a transition in the molecule, e.g. (0,1) is
             a transition from the ground state to the first excited state.
 
-        egcf : cu.oqs.correlationfunctions.CorrelationFunction
+        egcf : CorrelationFunction
             CorrelationFunction object 
             
             
@@ -203,7 +225,7 @@ class Molecule(UnitsManaged):
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped \
             on a CorrelationFunctionMatrix")
-            
+
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
                                                         
@@ -212,24 +234,62 @@ class Molecule(UnitsManaged):
                                            
             self._has_egcf[self.triangle.locate(transition[0],
                                                 transition[1])] = True
+            self._has_system_bath_coupling = True
                                                 
                                                 
         else:
-            raise Exception("Correlation function already speficied \
-            for this monomer")
+            raise Exception("Correlation function already speficied" +
+                            " for this monomer")
+               
+    def unset_transition_environment(self, transition):
+        
+        if self._is_mapped_on_egcf_matrix:
+            raise Exception("This monomer is mapped \
+            on a CorrelationFunctionMatrix")  
+             
+        if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
+
+            self.egcf[self.triangle.locate(transition[0],
+                                           transition[1])] = None
+                                           
+            self._has_egcf[self.triangle.locate(transition[0],
+                                                transition[1])] = False
+                                                
+
+        
+                                                
+    #@deprecated
+    def set_egcf(self, transition, egcf):
+        self.set_transition_environment(transition, egcf)
+        
             
-    def get_egcf(self,transition):
-        """Returns energy gap correlation function of the monomer
+    def get_transition_environment(self, transition):
+        """Returns energy gap correlation function of a monomer
         
         
         """
-        if self._has_egcf[self.triangle.locate(transition[0],transition[1])]:
-            return self.egcf[self.triangle.locate(transition[0],transition[1])]
+
+        if self._has_egcf[self.triangle.locate(transition[0] ,transition[1])]:
+            return self.egcf[self.triangle.locate(transition[0],
+                                                  transition[1])]
+ 
+        if self._is_mapped_on_egcf_matrix:
+            n = self.egcf_mapping[0]
+            iof = self.egcf_matrix.get_index_by_where((n,n))
             
+            if iof >= 0:
+                return self.egcf_matrix.cfunc[iof]
+
+        raise Exception("No environment set for the transition")   
+        
+    #@deprecated
+    def get_egcf(self, transition): 
+        
         if self._is_mapped_on_egcf_matrix:
             n = self.egcf_mapping[0]
             return self.egcf_matrix.get_coft(n,n)
             
+        return self.get_transition_environment(transition).data         
             
     
     def add_Mode(self,mod):
@@ -241,7 +301,9 @@ class Molecule(UnitsManaged):
         else:
             raise TypeError()
             
-    """ Some getters and setters """
+    #
+    # Some getters and setters 
+    #
     def get_Mode(self,N):
         try:
             return self.modes[N]
@@ -263,11 +325,15 @@ class Molecule(UnitsManaged):
         except:
             raise Exception()        
 
-    def get_energy(self,N):
+    def get_energy(self, N):
         try:
-            return self.elenergies[N]
+            return self.convert_energy_2_current_u(self.elenergies[N])
         except:
             raise Exception()
+            
+    def set_energy(self, N, en):
+        self.elenergies[N] = self.convert_energy_2_internal_u(en)
+        
             
             
     def get_electronic_natural_lifetime(self,N,epsilon_r=1.0):
@@ -348,7 +414,10 @@ class Molecule(UnitsManaged):
         """
         if self.check_temperature_consistent():
         
-            egcf =  self.get_egcf([0,1])
+            try:
+                egcf =  self.get_transition_environment([0,1])
+            except:
+                egcf = None
         
             if egcf is None:
                 return 0.0
@@ -411,7 +480,7 @@ class Molecule(UnitsManaged):
         
         """
         # list of vibrational Hamiltonians
-        lham = [None]*self.nel
+        lham = [None]*self.nel  
         # list of Hamiltonian dimensions
         ldim = [None]*self.nel
     
@@ -431,7 +500,7 @@ class Molecule(UnitsManaged):
                     # shift of the PES
                     dd = self.modes[j].get_shift(i)
                     en = self.modes[j].get_energy(i)
-
+ 
                     # create the Hamiltonian
                     of = operator_factory(N=Nvib)
                     aa = of.anihilation_operator()
@@ -500,7 +569,7 @@ class Molecule(UnitsManaged):
         for i in range(self.nel):
             ubound = lbound + ldim[i]
             #ham[lbound:ubound,lbound:ubound] = lham[i]
-            ub[i] = ubound
+            ub[i] = ubound  
             lb[i] = lbound
             lbound = ubound   
         return lb,ub
@@ -550,7 +619,7 @@ class Molecule(UnitsManaged):
             
             # get dipome moment vector
             dp = self.dmoments[0,k,:]
-
+ 
             dd = numpy.zeros((ldim[0],ldim[k]),dtype=numpy.float)        
         
             # now we run through the vibrational states of the groundstate
@@ -597,7 +666,7 @@ class Molecule(UnitsManaged):
                                               # the baths
                     else:
                         where[eg] = [(nob,nob)]
-                    # for each bath, save the state of the transition g -> j
+                    # for each bath, save the state of the traprint(mols_c2)  nsition g -> j
                     d[nob] = j
                         
                     nob += 1
@@ -770,7 +839,7 @@ class Molecule(UnitsManaged):
         
         out  = "\nquantarhei.Molecule object" 
         out += "\n=========================="
-        out += "\n   name = %s\n" % self.name
+        out += "\n   name = %s  \n" % self.name
         try:
             out += "   position = [%r, %r, %r] \n" % (self.position[0],
                                                   self.position[1],
@@ -801,8 +870,9 @@ class Molecule(UnitsManaged):
                self.dmoments[n,j][0], 
                self.dmoments[n,j][1], self.dmoments[n,j][2])
             out += "\n      number of vibrational modes = %i" % self.nmod
+            out += "\n"
             if self.nmod > 0:
-                out += "\n      # Mode properties"
+                out += "      # Mode properties"
                 #out += "\n      ----------------"
                 for m1 in range(self.nmod):
                     out += "\n      mode no. = %i " % m1
@@ -815,4 +885,11 @@ class Molecule(UnitsManaged):
                            self.modes[m1].get_nmax(n))
             
         return out
+        
+
+def PiMolecule(Molecule):
+    
+    def __init__(self, name=None, elenergies=[0.0,1.0], data=None):
+        super().__init__(name=None, elenergies=[0.0,1.0], data=None)
+        self.data = data
         

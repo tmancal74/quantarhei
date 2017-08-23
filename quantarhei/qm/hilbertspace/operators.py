@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from ...core.matrixdata import MatrixData
-from ...utils.types import BasisManagedComplex
+from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
+from .statevector import StateVector
 
 
 import numpy
 #import scipy
 
 
-class Operator(MatrixData,BasisManaged):
+class Operator(MatrixData, BasisManaged):
     """Class representing quantum mechanical operators
     
     
@@ -20,9 +21,9 @@ class Operator(MatrixData,BasisManaged):
            
     """
     
-    data = BasisManagedComplex("data")    
+    data = BasisManagedComplexArray("data")    
     
-    def __init__(self,dim=None,data=None,real=False):
+    def __init__(self, dim=None, data=None, real=False, name=""):
 
         # Set the currently used basis
         cb = self.manager.get_current_basis()
@@ -30,6 +31,8 @@ class Operator(MatrixData,BasisManaged):
         # unless it is the basis outside any context
         if cb != 0:
             self.manager.register_with_basis(cb,self)
+            
+        self.name=name
              
         # set data
         if (dim is None) and (data is None):
@@ -40,10 +43,12 @@ class Operator(MatrixData,BasisManaged):
                 data = numpy.array(data)
             if Operator.assert_square_matrix(data):
                 if dim is not None:
-                    if data.shape[0] != dim:
+                    # shape 1 is OK even for time dependent operators
+                    # and time dependent StateVector
+                    if data.shape[1] != dim:
                         raise Exception() #HilbertSpaceException
                 self.data = data
-                self.dim = self._data.shape[0]
+                self.dim = self._data.shape[1]
             else:
                 raise Exception #HilbertSpaceException
         else:
@@ -54,6 +59,23 @@ class Operator(MatrixData,BasisManaged):
             self.dim = dim
 
 
+    def apply(self, obj):
+        """Apply the operator to vector or operator on the right
+        
+        """
+        
+        if isinstance(obj, Operator):
+            
+            return Operator(data=numpy.dot(self.data,obj.data))
+        
+        elif isinstance(obj, StateVector):
+        
+            return StateVector(data=numpy.dot(self.data,obj.data))
+            
+        else:
+            
+            raise Exception("Cannot apply operator to the object")
+        
 
     def transform(self,SS,inv=None):
         """Transformation of the operator by a given matrix
@@ -64,7 +86,7 @@ class Operator(MatrixData,BasisManaged):
         
         Parameters
         ----------
-        
+         
         SS : matrix, numpy.ndarray
             transformation matrix
             
@@ -72,6 +94,9 @@ class Operator(MatrixData,BasisManaged):
             inverse of the transformation matrix
             
         """        
+        if (self.manager.warn_about_basis_change):
+                print("\nQr >>> Operator '%s' changes basis" %self.name)
+        
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
@@ -93,6 +118,13 @@ class Operator(MatrixData,BasisManaged):
         else:
             return False
  
+    def is_diagonal(self):
+        dat = self._data.copy()
+        for i in range(self.dim):
+            dat[i,i] = 0.0
+        return numpy.allclose(dat, numpy.zeros(self.dim))
+        
+ 
     def __str__(self):
         out  = "\nquantarhei.Operator object"
         out += "\n=========================="
@@ -111,8 +143,8 @@ class SelfAdjointOperator(Operator):
         
     """
     
-    def __init__(self,dim=None,data=None):
-        Operator.__init__(self,dim=dim,data=data)
+    def __init__(self,dim=None,data=None,name=""):
+        Operator.__init__(self,dim=dim,data=data,name=name)
         if not self.check_selfadjoint():
             raise Exception("The data of this operator have"+
             "to be represented by a selfadjoint matrix") 
@@ -123,12 +155,16 @@ class SelfAdjointOperator(Operator):
                               self.data)).all()
         
     def diagonalize(self):
-        # first use if of "data", the rest of "_data"
+        # first use is of "data", the rest of "_data"
         dd,SS = numpy.linalg.eigh(self.data)
         self._data = numpy.zeros(self._data.shape)
-        for ii in range(0,self._data.shape[0]):
+        for ii in range(self._data.shape[0]):
             self._data[ii,ii] = dd[ii]
         return SS
+        
+    def get_diagonalization_matrix(self):
+        dd, SS = numpy.linalg.eigh(self._data)
+        return SS        
         
     def __str__(self):
         out  = "\nquantarhei.SelfAdjointOperator object"
@@ -137,8 +173,17 @@ class SelfAdjointOperator(Operator):
         out += str(self.data)
         return out        
         
-        
-        
+   
+class BasisReferenceOperator(SelfAdjointOperator):
+    
+    def __init__(self,dim=None, name=""):
+        if dim is None:
+            raise Exception("Dimension parameters 'dim' has to be specified")
+        series = numpy.array([i for i in range(dim)], dtype=numpy.float64)
+        data = numpy.diag(series)
+        super().__init__(dim=dim,data=data,name=name)
+    
+     
 class ProjectionOperator(Operator):
     """
     Projection operator projecting from state m to state n.

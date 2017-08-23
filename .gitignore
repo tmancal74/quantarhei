@@ -1,11 +1,18 @@
 
 .spyderproject
-
+.spyproject
 __pycache__
 
-pylint
+build
 dist
 quantarhei.egg-info
 .DS_Store
+.coverage
 
-*.pdf
+*~
+*.lyx~
+*.lyx#
+*.pyc
+
+
+

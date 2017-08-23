@@ -1,29 +1,28 @@
 # -*- coding: utf-8 -*-
-
-import numpy
-
-from .propagations import DMPropagation
-
 """
 
 
     DENSITY MATRIX PROPAGATOR
 
 
-"""    
+""" 
+
+import numpy
+
+from .propagations import DMPropagation
+
+   
 class DMPropagator:
     
-    def __init__(self,timeaxis,ham):
+    def __init__(self, timeaxis, ham):
         self.timeaxis = timeaxis
         self.ham = ham
         
-        
-        
-        self.Odt = self.timeaxis.time[1]-self.timeaxis.time[0]
+        self.Odt = self.timeaxis.data[1]-self.timeaxis.data[0]
         self.dt = self.Odt
         self.Nref = 1
         
-        self.Nt = self.timeaxis.time.shape[0]
+        self.Nt = self.timeaxis.length
         
         N = self.ham.data.shape[0]
         self.N = N
@@ -32,10 +31,10 @@ class DMPropagator:
 
     def propagate(self,rhoi):
         
-        return self.__propagate_short_exp(rhoi,L=4)
+        return self._propagate_short_exp(rhoi,L=4)
         
         
-    def __propagate_short_exp(self,rhoi,L=4):
+    def _propagate_short_exp(self,rhoi,L=4):
         """
               Short exp integration
         """
@@ -47,7 +46,7 @@ class DMPropagator:
         HH = self.ham.data        
         
         indx = 1
-        for ii in self.timeaxis.time[1:self.Nt]:
+        for ii in self.timeaxis.data[1:self.Nt]:
             
                     
             for jj in range(0,self.Nref):

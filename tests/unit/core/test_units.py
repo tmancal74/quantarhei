@@ -79,7 +79,11 @@ class TestUnits(unittest.TestCase):
             
         E_int = (1.0/(4.0*const.pi*eps0_int))
         E_eV = E_int/eV2int
-        E_J = (1.0/(4.0*const.pi*const.epsilon_0))*(const.e**2)/1.0e-10
+        
+        oneDebye = 1.0e-21/const.c
+        R3 = (1.0e-10)**3
+        E_J = (1.0/(4.0*const.pi*const.epsilon_0))*(oneDebye**2)/R3
+        
         if self.verbose:
             print("epsilon_0 [int] = ", eps0_int)
             

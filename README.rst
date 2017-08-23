@@ -3,17 +3,14 @@ QUANTArhei: Open Quantum System Theory for Molecular Systems
 
 Quantarhei is a Molecular Open Quantum Systems Simulator written predominantly
 in Python. Its name is derived from the famous aphorism "Panta rhei" of the
-Greek philosopher Heraclitus of Ephesus. "Pantarhei" means "Everything flows"
+Greek philosopher Heraclitus of Ephesus. "Panta rhei" means "Everything flows"
 or "Everything is in flux" which is quite fitting when you change Panta into
 Quanta.
 
 In "Quantarhei" the last four letter ("rhei") should be written in Greek,
-i.e. (using LateX convention) "\rho \epsilon \iota". Unfortunately, I don't
-know how to render it here.
+i.e. (using LateX convention) "\\rho \\epsilon \\iota". 
 
 ----
-
-This is the README file for the project.
 
 Quantarhei is in flux, but it already provides helper classes to define
 molecules, their aggregates and their interaction with external environment.
@@ -26,13 +23,39 @@ methods and theories, and allows extensions and replacements of the reference
 Python code with optimised routines written in C, Fortran or other lower level
 languages.
 
-In the first developmental stage, we concentrate on bringing to you tools
+In the first development stage, we concentrate on bringing to you tools
 to quickly build essential components of a quantum mechanical simulation,
-such as Hamiltonian and other operators, relaxation tensors, various initial
+such as Hamiltonian, relaxation tensors, various initial
 conditions for density matrix etc.
 
-Currently, Quantarhei is at its experimental stage. C
-urrent version is 0.0.1.dev0.
+Quantarhei is at its experimental stage. 
+Current version is 0.0.12.
 
-Quantarhei is available in source form on GitHub. Its distributions will be
-soon available from PyPI for install with the pip command.
+Quantarhei is available in source form on GitHub and from PyPI for installation
+with the pip command.
+
+
+Acknowledgements
+================
+
+The work on Quantarhei is supported by
+
+|NFN|_
+
+.. |NFN| replace:: **Neuron Fund for Support of Science**
+.. _NFN: http://www.nfneuron.cz
+
+through the Impuls grant in physics 2014 (2015-2017)
+
+and
+
+|GACR|_
+
+.. |GACR| replace:: **Czech Science Foundation (GACR)**
+.. _GACR: http://www.gacr.cz
+                                               
+
+through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
+
+
+

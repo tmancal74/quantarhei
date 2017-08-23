@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from quantarhei import Molecule, Aggregate
+from quantarhei import energy_units
     
 en = [0.0, 1.0]
 m1 = Molecule("Mol1",en)
@@ -17,4 +18,5 @@ ag.build()
 
 H = ag.get_Hamiltonian()
 
-print(H)
+with energy_units("1/cm"):
+    print(H)

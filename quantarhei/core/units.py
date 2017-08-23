@@ -19,6 +19,7 @@ conversion_facs_energy = {
     "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
     "THz"    : 2.0*const.pi*1.0e-03,
     "eV"     : 1.0e-15*const.e/const.hbar,
+    "meV"    : 1.0e-18*const.e/const.hbar,
     "J"      : 1.0e-15/const.hbar,
     "SI"     : 1.0e-15/const.hbar     
     } 
@@ -87,8 +88,7 @@ c_SI = const.c
 c_int = const.c*1.0e-5
 
 # Permeability of vacuum
-_EJ = ((const.e**2)/(4.0*const.pi*const.epsilon_0*1.0e-10)) # E in J 
-eps0_int = 1.0/(4.0*const.pi*J2int*_EJ)
 
+eps0_int = 1.0e19/(4.0*const.pi*J2int)
 
 

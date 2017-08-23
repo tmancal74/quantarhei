@@ -4,6 +4,8 @@ from functools import partial
 import numpy
 import numbers
 
+
+
 def array_property(name,shape=None):
     """ Controls the access to an array property of package classes 
     
@@ -29,6 +31,64 @@ def array_property(name,shape=None):
             '{} must be either a list or numpy.array'.format(name))
         
     return prop
+    
+    
+def units_managed_property(name, dtype):
+    """Scalar property with units managed
+    
+    Warning: The type of the property depends on the object; The object
+    has to be EnergyUnitsManaged or similar.
+    """    
+    storage_name = '_'+name
+    
+    @property
+    def prop(self): 
+        val = getattr(self,storage_name)
+        return self.convert_2_current_u(val) # This is a method defined in
+                                             # the class which handles units
+    @prop.setter
+    def prop(self,value):
+        if isinstance(value,dtype):
+            setattr(self,storage_name,self.convert_2_internal_u(value))
+        else:
+            raise TypeError(
+            '{} must be either a real or complex number')
+        
+    return prop         
+        
+
+        
+def units_managed_array_property(name,dtype,shape=None):
+    """Array property with units managed
+    
+    Warning: The type of the property depends on the object; The object
+    has to be EnergyUnitsManaged or similar.
+    """
+    
+    storage_name = '_'+name
+    
+    @property
+    def prop(self): 
+        val = getattr(self,storage_name)
+        return self.convert_2_current_u(val) # This is a method defined in
+                                             # the class which handles units
+
+
+    @prop.setter
+    def prop(self,value):
+
+        try:
+            vl = check_numpy_array(value)
+            if not (shape == None):
+                if not (shape == vl.shape):
+                    raise TypeError(
+                    '{} must be of shape {}'.format(name,shape))  
+            setattr(self,storage_name,self.convert_2_internal_u(vl))
+        except:
+            raise TypeError(
+            '{} must be either a list or numpy.array'.format(name))
+        
+    return prop 
     
     
 def basis_managed_array_property(name,dtype,shape=None):
@@ -80,39 +140,7 @@ def basis_managed_array_property(name,dtype,shape=None):
         
     return prop        
     
-        
-def units_managed_array_property(name,dtype,shape=None):
-    """Property with units managed
-    
-    Warning: The type of the property depends on the object; The object
-    has to be EnergyUnitsManaged or similar.
-    """
-    
-    storage_name = '_'+name
-    
-    @property
-    def prop(self): 
-        val = getattr(self,storage_name)
-        return self.convert_2_current_u(val) # This is a mathod defined in
-                                             # the class which handles units
 
-
-    @prop.setter
-    def prop(self,value):
-
-        try:
-            vl = check_numpy_array(value)
-            if not (shape == None):
-                if not (shape == vl.shape):
-                    raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
-            setattr(self,storage_name,self.convert_2_internal_u(vl))
-        except:
-            raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
-        
-    return prop 
-    
     
     
 def managed_array_property(name,dtype,shape=None):
@@ -263,21 +291,32 @@ def derived_type(name,dtype_in):
     return tp(name)                    
             
 
-      
+
 Float   = partial(typed_property,dtype=numbers.Real)
+
 Integer = partial(typed_property,dtype=numbers.Integral)
+
 Bool    = partial(typed_property,dtype=bool)
 
-BasisManagedComplex = partial(basis_managed_array_property,
-                              dtype=numbers.Complex)
-BasisManagedReal = partial(basis_managed_array_property,
-                              dtype=numbers.Real)
-
-UnitsManagedComplex = partial(units_managed_array_property,
-                              dtype=numbers.Complex)
-UnitsManagedReal = partial(units_managed_array_property,
-                              dtype=numbers.Real)
+BasisManagedComplexArray = partial(basis_managed_array_property,
+                                   dtype=numbers.Complex)
                               
-ManagedComplex = partial(managed_array_property,dtype=numbers.Complex)
-ManagedReal = partial(managed_array_property,dtype=numbers.Real)
+BasisManagedRealArray = partial(basis_managed_array_property,
+                                dtype=numbers.Real)
+
+UnitsManagedComplexArray = partial(units_managed_array_property,
+                                   dtype=numbers.Complex)
+UnitsManagedRealArray = partial(units_managed_array_property,
+                                dtype=numbers.Real)
+
+UnitsManagedComplex = partial(units_managed_property,
+                              dtype=numbers.Complex)
+                              
+UnitsManagedReal = partial(units_managed_property,
+                           dtype=numbers.Real)
+                              
+ManagedComplexArray = partial(managed_array_property,dtype=numbers.Complex)
+
+ManagedRealArray = partial(managed_array_property,dtype=numbers.Real)      
+
                               

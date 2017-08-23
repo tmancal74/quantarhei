@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+*******************************************************************************
 
+    REDUCED DENSITY MATRIX PROPAGATOR
+
+*******************************************************************************
+
+Propagator of the Reduced density matrix dynamics
+
+Created on Mon Apr 13 18:27:07 2015
+
+author: Tomas Mancal, Charles University
+
+"""
 
 import numpy
 
@@ -11,34 +24,14 @@ import numpy.linalg
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..hilbertspace.operators import Operator
 from ...core.time import TimeAxis
+from ...core.time import TimeDependent
 from ..liouvillespace.redfieldtensor import RelaxationTensor
 from ..hilbertspace.operators import ReducedDensityMatrix
-from .propagations import RDMPropagation
+from .dmevolution import ReducedDensityMatrixEvolution
+from ...core.matrixdata import MatrixData
 
 
-"""
-
-Propagator of the Reduced density matrix dynamics
-
-Created on Mon Apr 13 18:27:07 2015
-
-author: Tomas Mancal, Charles University in Prague
-
-"""
-
-class TimeDependent:
-    pass
-
-
-
-"""
-*******************************************************************************
-
-    REDUCED DENSITY MATRIX PROPAGATOR
-
-*******************************************************************************
-"""
-class RDMPropagator: #(ReducedDensityMatrix):
+class ReducedDensityMatrixPropagator(MatrixData): 
     """
     
     Reduced Density Matrix Propagator calculates the evolution of the
@@ -48,7 +41,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
     
     """
     
-    def __init__(self,timeaxis,Ham,RTensor="",Efield="",Trdip=""):
+    def __init__(self, timeaxis, Ham, RTensor="", Efield="", Trdip=""):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -107,15 +100,16 @@ class RDMPropagator: #(ReducedDensityMatrix):
             
             
         
-        self.Odt = self.TimeAxis.time[1]-self.TimeAxis.time[0]
+        self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
         self.dt = self.Odt
         self.Nref = 1
         
-        self.Nt = self.TimeAxis.time.shape[0]
+        self.Nt = self.TimeAxis.data.shape[0]
         
         N = self.Hamiltonian.data.shape[0]
         self.N = N
         self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
+        self.propagation_name = ""
         
         
         
@@ -139,7 +133,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         self.dt = self.Odt/self.Nref
         
         
-    def propagate(self,rhoi,method="primitive",mdata=None):
+    def propagate(self, rhoi, method="short-exp", mdata=None, name=""):
         """
         
         >>> T0   = 0
@@ -168,6 +162,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         
         
         """
+        self.propagation_name = name
         
         if not isinstance(rhoi,ReducedDensityMatrix):
             raise Exception("First argument has be of"+
@@ -175,16 +170,16 @@ class RDMPropagator: #(ReducedDensityMatrix):
                     
         if self.has_relaxation:
             
-            if isinstance(self.RelaxationTensor,TimeDependent):
-                """
-                Time dependent relaxation tensor
-                """
-
+            if isinstance(self.RelaxationTensor, TimeDependent):
+                #
+                # Time-dependent relaxation tensor
+                #
 
                 if (self.has_Efield and self.has_Trdip):
                     
-                    """ ...with external field """
-                    
+                    #
+                    #  Propagation with external field 
+                    #
                     if method == "short-exp":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
@@ -207,8 +202,9 @@ class RDMPropagator: #(ReducedDensityMatrix):
                     
                 else:
 
-                    """ ... without external field """
-                
+                    #
+                    #  Without external field
+                    #
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_TD_relaxation(\
                         rhoi,L=4)
@@ -226,11 +222,14 @@ class RDMPropagator: #(ReducedDensityMatrix):
 
                 
             else: 
-                
+                #
+                # Constant relaxation tensor
+                #                
                 if (self.has_Efield and self.has_Trdip):
                     
-                    """ ...with external field """
-                    
+                    #
+                    # External field
+                    #
                     if method == "short-exp":
                         return \
                         self.__propagate_short_exp_with_relaxation_field(
@@ -252,9 +251,9 @@ class RDMPropagator: #(ReducedDensityMatrix):
                 
                 else:
             
-                    """
-                    Relaxation tensor and Hamiltonian are time independent
-                    """
+                    #
+                    # No external field
+                    #
                     if method == "primitive":
                         return self.__propagate_primitive_with_relaxation(rhoi)
                     elif method == "Runge-Kutta":
@@ -277,7 +276,9 @@ class RDMPropagator: #(ReducedDensityMatrix):
                         raise Exception("Unknown propagation method: "+method)   
             
         else:
-
+            #
+            # No relaxation
+            #
                 
             if method == "primitive":
                 return self.__propagate_primitive(rhoi)
@@ -302,7 +303,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         
     def __propagate_primitive(self,rhoi):
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
 
 
         """
@@ -331,7 +332,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         
     def __propagate_primitive_with_relaxation(self,rhoi):
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
 
 
         """
@@ -342,7 +343,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
         RR = self.RelaxationTensor.data        
         
         indx = 0
-        for ii in self.TimeAxis.time: 
+        for ii in self.TimeAxis.data: 
 
             for jj in range(0,self.Nref):   
                 
@@ -376,7 +377,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         rho1 = rhoi.data
         rho2 = rhoi.data
         
@@ -407,33 +408,35 @@ class RDMPropagator: #(ReducedDensityMatrix):
         """
               Short exp integration
         """
-        
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
+                                           name=self.propagation_name)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
         
         HH = self.Hamiltonian.data        
         RR = self.RelaxationTensor.data
-        dim = self.Hamiltonian.dim        
+#        dim = self.Hamiltonian.dim        
 
-        #print("CYTHON")
-        cython = False
-        if cython:
-            
-            pr.data = prop.propagate(self.TimeAxis.time,self.dt,
-                                    self.Nt,self.Nref,HH,RR,rho1,dim,L)
-        
-            return pr
+#        #print("CYTHON")
+#        cython = False
+#        if cython:
+#            
+#            pr.data = prop.propagate(self.TimeAxis.time,self.dt,
+#                                    self.Nt,self.Nref,HH,RR,rho1,dim,L)
+#        
+#            return pr
             
         indx = 1
-        for ii in range(1,self.Nt): #self.TimeAxis.time[1:self.Nt]:
+        for ii in range(1, self.Nt): 
             
-            for jj in range(0,self.Nref):
-                for ll in range(1,L+1):
+            for jj in range(0, self.Nref):
+                
+                for ll in range(1, L+1):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
+                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                             - numpy.dot(rho1,HH)) \
                            + (self.dt/ll)*numpy.tensordot(RR,rho1)
                              
                              
@@ -451,7 +454,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -466,7 +469,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
             
         indx = 1
         indxR = 1
-        for ii in self.TimeAxis.time[1:self.Nt]:
+        for ii in self.TimeAxis.data[1:self.Nt]:
 
             RR = self.RelaxationTensor.data[indxR,:,:]        
             
@@ -500,7 +503,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -538,7 +541,7 @@ class RDMPropagator: #(ReducedDensityMatrix):
               Short exp integration
         """
         
-        pr = RDMPropagation(self.TimeAxis,rhoi)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data

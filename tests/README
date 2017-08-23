@@ -1,0 +1,79 @@
+Unit and Acceptace Tests for Quantarhei
+=======================================
+
+This package contains unit and acceptance tests for the quantarhei package.
+To run the tests you require "nose" and "aloe" packages (test runners).
+The whole suit of tests can be run by "paver". If you have "paver" package 
+and the two runners installed, just type
+ 
+> paver
+
+This is equivalent to running nose
+
+> nosetests -vs tests/unit
+
+and aloe
+
+> aloe -vs -a !in_debelopment tests/bdd
+
+On windows, aloe does not work normally, because some of the packages it 
+requires are not shipped with Python on Windows. Simple (but annoying) 
+solution is to run just unit tests by typing
+
+> paver windows
+
+which automatically runs just the unit tests with nose
+
+
+
+WORKAROUND for ALOE on WINDOWS
+==============================
+There is a workaround to make aloe running by simulating or switching off 
+some of the packages which it uses. The problem is in 
+the absences of curses package and terminal tools on Windows. Below is 
+a fix, which enables you to run aloe on your Windows machine. 
+
+Problems:
+
+1) curses package is not shipped with Python on Windows
+   a) There are unofficial binaries for 32 bit Python 3.5 available from: ... 
+   b) After installing them by
+   
+   > pip install ....
+   
+   you run into a next problem
+
+2) fcntl package does not exist on Windows.
+   You should have the following file named fcntl.py in your PYTHONPATH 
+
+def fcntl(fd, op, arg=0):
+    return 0
+        
+def ioctl(fd, op, arg=0, mutable_flag=True):
+    if mutable_flag:
+        return 0
+    else:
+        return ""
+    
+def flock(fd, op):
+    return
+        
+def lockf(fd, operation, length=0, start=0, whence=0):
+    return
+
+   The file provides no functionality but simulates the fcntl package, which 
+   is supposed to ... When you don't do any concurent access to the file
+   you should be fine. 
+
+   Now you run aloe, and you run into a problem again
+
+3) package termios is not shipped with Python on Windows either
+
+   Blessings package which is called by aloe cannot find the termios package.
+   Luckily, blessings actually tests if it has the functionality from termios
+   and uses something else if it does not find it. Commenting away the 
+   import termios line in __init__.py of blessings does the job of getting rid
+   of the unfulfilled dependency on Windows.
+
+   Now you are ready to use aloe on Windows. 
+   
