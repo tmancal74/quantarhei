@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+"""Two-dimensional Fourier Transform Spectrum
 
+
+"""
 import matplotlib.pyplot as plt
 import numpy
 
@@ -81,7 +84,7 @@ class TwoDSpectrumContainer(TwoDSpectrumBase):
         pass
     
     
-    def plot(self, axis=None, part="ReTot"):
+    def plot(self, axis=None, part="ReTot", vmax=None, cbmax = None):
         
         if part == "ReTot":
             # Real part of the total spectrum
@@ -117,9 +120,17 @@ class TwoDSpectrumContainer(TwoDSpectrumBase):
         realout = spect2D[i1_min:i1_max,i3_min:i3_max]
     
         Ncontour = 100
-        plt.contourf(self.xaxis.data[i1_min:i1_max],
+        fig, ax = plt.subplots(1,1)
+        cm = ax.contourf(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, Ncontour)        
+                     realout, Ncontour, vmax=vmax)  
+        if cbmax is None:
+            fig.colorbar(cm)
+        else:
+            fig.colorbar(cbmax)
+            
+        return cm
+        
         
     
     def devide_by(self, val):
@@ -324,9 +335,19 @@ class TwoDSpectrumCalculator:
             # Finding population evolution matrix
             #
             prop = PopulationPropagator(self.t1axis, Kr)
-            Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
-                                                  corrections=True)
+      #      Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
+      #                                            corrections=True)
+            Uee, cor = prop.get_PropagationMatrix(self.t2axis,
+                                                  corrections=3)
 
+            # FIXME: Order of transfer is set by hand here - needs to be moved
+            # to some reasonable place
+            No = 0
+            
+            Ucor = Uee
+            for ko in range(No+1):
+                print("Subtracting ", ko)
+                Ucor -= cor[ko]
 
             #
             # define lab settings
@@ -338,7 +359,6 @@ class TwoDSpectrumCalculator:
             #
             # Other parameters
             #
-            
             #dt = self.t1axis.step
             t1s = self.t1axis.data 
             t3s = self.t3axis.data 
@@ -374,7 +394,7 @@ class TwoDSpectrumCalculator:
                 resp_n = numpy.zeros((Nr1, Nr3), 
                                      dtype=numpy.complex128, order='F')
 
-                # FIXME: which on axis we should be looking for it2 ??? 
+                # FIXME: on which axis we should be looking for it2 ??? 
                 (it2, err) = self.t1axis.locate(tt2) 
                 self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
             
@@ -401,12 +421,20 @@ class TwoDSpectrumCalculator:
                 nr3td.nr3_r2fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp_n)
                 
                 # Transfer
-                sys.set_population_propagation_matrix(Uee[:,:,tc]-Uc0[:,:,tc])
+                    
+                sys.set_population_propagation_matrix(Ucor[:,:,tc]) 
+                    
+     #           sys.set_population_propagation_matrix(Uee[:,:,tc]-Uc0[:,:,tc]) #-Uc1[:,:,tc]-Uc2[:,:,tc])
+     #           sys.set_population_propagation_matrix(Uee[:,:,tc])
                 
                 self._vprint(" - stimulated emission with transfer")    
                 # SE
                 nr3td.nr3_r1g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp_n)
                 nr3td.nr3_r2g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp_r)
+                
+#                # This contributes only when No > 0
+#                nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
+#                
             
                 self._vprint(" - excited state absorption with transfer") 
                 # ESA
