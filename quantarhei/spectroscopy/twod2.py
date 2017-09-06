@@ -344,10 +344,12 @@ class TwoDSpectrumCalculator:
             # to some reasonable place
             No = 0
             
-            Ucor = Uee
-            for ko in range(No+1):
-                print("Subtracting ", ko)
-                Ucor -= cor[ko]
+            #Ucor = Uee
+            Uc0 = cor[0]
+            
+            #for ko in range(No+1):
+            #    print("Subtracting ", ko)
+            #    Ucor[:,:,tc] -= cor[ko]
 
             #
             # define lab settings
@@ -422,10 +424,10 @@ class TwoDSpectrumCalculator:
                 
                 # Transfer
                     
-                sys.set_population_propagation_matrix(Ucor[:,:,tc]) 
+                #sys.set_population_propagation_matrix(Ucor[:,:,tc]) 
                     
-     #           sys.set_population_propagation_matrix(Uee[:,:,tc]-Uc0[:,:,tc]) #-Uc1[:,:,tc]-Uc2[:,:,tc])
-     #           sys.set_population_propagation_matrix(Uee[:,:,tc])
+                sys.set_population_propagation_matrix(Uee[:,:,tc]-Uc0[:,:,tc]) #-Uc1[:,:,tc]-Uc2[:,:,tc])
+                #sys.set_population_propagation_matrix(Uee[:,:,tc])
                 
                 self._vprint(" - stimulated emission with transfer")    
                 # SE
