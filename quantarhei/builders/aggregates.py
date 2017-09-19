@@ -1089,6 +1089,24 @@ class Aggregate(UnitsManaged):
     #
     ########################################################################       
   
+    def get_RWA_suggestion(self):
+        """Returns average transition energy 
+        
+        Average transition energy of the monomer as a suggestion for 
+        RWA frequency
+        
+        """
+        
+        Nn = self.Nb[1]  # number of monomers
+        esum = 0.0
+        for i in range(Nn):
+            mn = self.monomers[i] 
+            omeg = mn.get_energy(1) - mn.get_energy(0)
+            esum += omeg
+
+        return esum/Nn
+        
+    
     def get_RelaxationTensor(self, timeaxis,
                        relaxation_theory=None,
                        time_dependent=False,

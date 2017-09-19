@@ -204,7 +204,7 @@ class TwoDSpectrumCalculator:
         if self.verbose:
             print(string)
         
-    def calculate(self, rwa=0.0, verbose=False):
+    def calculate(self, rwa=0.0, lab=None, verbose=False):
         """Returns 2D spectrum
         
         Calculates and returns TwoDSpectrumContainer containing 2D spectrum
@@ -303,7 +303,7 @@ class TwoDSpectrumCalculator:
             KK = agg.get_RedfieldRateMatrix()
             
             # relaxation rate in single exciton band
-            Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]]*10.0
+            Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
             #print(1.0/Kr)
             
             sys.init_dephasing_rates()
@@ -354,9 +354,10 @@ class TwoDSpectrumCalculator:
             #
             # define lab settings
             #
-            lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
-            X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
-            lab.set_laser_polarizations(X, X, X, X)
+            if lab is None:
+                lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
+                X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
+                lab.set_laser_polarizations(X,X,X,X)
             
             #
             # Other parameters
