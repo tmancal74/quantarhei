@@ -130,7 +130,7 @@ class PopulationPropagator:
         >>> ts = TimeAxis(0.0, 10, 10.0)
         >>> KK = [[-1.0/100.0,  1.0/100.0],
         ...       [ 1.0/100.0, -1.0/100.0]]
-        >>> prop = PopulationPropagator(ta, RateMatrix=numpy.array(KK))
+        >>> prop = PopulationPropagator(ta, rate_matrix=numpy.array(KK))
         >>> U = prop.get_PropagationMatrix(ts)
         >>> print(U[:,:,0])
         [[ 1.  0.]

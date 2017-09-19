@@ -30,7 +30,7 @@ feature = """
 #
 #
 
-Feature: Secular Redfield thgeory results in cannonical equilibrium 
+Feature: Secular Redfield theory results in cannonical equilibrium 
 
     Theories such as Redfield relaxation tensor etc. should result in
     cannonical equilibrium

@@ -60,14 +60,13 @@ def time_interval_prop(self, time_step, nsteps):
     """
     world.time = TimeAxis(0.0, int(nsteps), float(time_step))
 
-
 @step(r' a subset time interval from zero with time step '+match_number+r' fs and '
       +match_number+r' steps')
 def time_interval_sub(self, time_step, nsteps):
     """Matching the following
     
     #begin_feature    
-    And a subset time interval from zero with time step <time_step_2> fs and <nsteps_2> steps
+    And a subset time interval from zero with time step <time_step_2> fs and <nsteps_2> steps 
     #end_feature
     
     """
@@ -103,7 +102,7 @@ def calculation_of_propagation(self):
     
     """ 
     
-    prop = PopulationPropagator(world.time, RateMatrix=world.KK)
+    prop = PopulationPropagator(world.time, rate_matrix=world.KK)
     
     pop_ini = numpy.array([1.0, 0.0])
     
@@ -112,6 +111,7 @@ def calculation_of_propagation(self):
     U = prop.get_PropagationMatrix(world.time_sub)
     
     pop_sub = numpy.zeros((2,world.time_sub.length))
+    
     for i in range(world.time_sub.length):
         pop_sub[:,i] = numpy.dot(U[:,:,i],pop_ini)  
         

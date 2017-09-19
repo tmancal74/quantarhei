@@ -34,7 +34,7 @@ class TestPopulationPropagator(unittest.TestCase):
         Ntd = 10
         
         t = TimeAxis(0.0, 1000, 1.0)
-        prop = PopulationPropagator(t, RateMatrix=KK)
+        prop = PopulationPropagator(t, rate_matrix=KK)
         
         
         td = TimeAxis(0.0, Ntd, 10.0)
@@ -63,7 +63,7 @@ class TestPopulationPropagator(unittest.TestCase):
         Ntd = 10
         
         t = TimeAxis(0.0, 1000, 1.0)
-        prop = PopulationPropagator(t, RateMatrix=KK)
+        prop = PopulationPropagator(t, rate_matrix=KK)
 
 
         td = TimeAxis(2.0, Ntd, 10.0)

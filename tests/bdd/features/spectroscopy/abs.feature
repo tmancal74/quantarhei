@@ -19,7 +19,7 @@ Scenario Outline: A user calculates absorption spectrum of a two-level molecule
         | OverdampedBrownian | 20.0  | 1/cm    | 100   |   fs    | 100    | K       | 20   | abs_1mol_20cm_100fs_100K_m20.dat |
 
 @absorption
-Scenario Outline: A user calculates absorption spectrum of an aggregate of two two-level molecule
+Scenario Outline: A user calculates absorption spectrum of an aggregate of two two-level molecules
     Given reorganization energy <reorg> "<e_units>"
     And correlation time <ctime> "<t_units>" 
     And temperature <temp> "<T_units>"
@@ -37,7 +37,7 @@ Scenario Outline: A user calculates absorption spectrum of an aggregate of two t
         | OverdampedBrownian | 10.0  | 1/cm    | 60   |   fs     | 100    | K       | 20   | abs_2mol_10cm_60fs_100K_m20.dat |
 
 @absorption
-Scenario Outline: A user calculates absorption spectrum of an aggregate of three two-level molecule
+Scenario Outline: A user calculates absorption spectrum of an aggregate of three two-level molecules
     Given reorganization energy <reorg> "<e_units>"
     And correlation time <ctime> "<t_units>" 
     And temperature <temp> "<T_units>"

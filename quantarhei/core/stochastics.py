@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Entirely experimental - if I delete it, I would forget about. That's why it is here
+
+"""
 import numpy as np
 import time
 import matplotlib.pyplot as plt
@@ -102,24 +106,24 @@ def run():
 
     return zi, tt, rhoav
 
-zi, tt, rhoeg = run()
+#zi, tt, rhoeg = run()
 
 
 
-#import pyximport
-#pyximport.install()
-#
-#import cy_stochastics as cs
-#
-#cs.run()
-print(zi.shape)
-print(tt.shape)
-plt.plot(tt, np.real(zi[:,0]))
-plt.plot(tt, np.imag(zi[:,0]))
-plt.show()
-#plt.plot(tt, np.real(zi[:,1]))
-#plt.plot(tt, np.imag(zi[:,1]))
+##import pyximport
+##pyximport.install()
+##
+##import cy_stochastics as cs
+##
+##cs.run()
+#print(zi.shape)
+#print(tt.shape)
+#plt.plot(tt, np.real(zi[:,0]))
+#plt.plot(tt, np.imag(zi[:,0]))
 #plt.show()
-plt.plot(tt, np.real(rhoeg))
-plt.plot(tt, np.imag(rhoeg))
-plt.show()
+##plt.plot(tt, np.real(zi[:,1]))
+##plt.plot(tt, np.imag(zi[:,1]))
+##plt.show()
+#plt.plot(tt, np.real(rhoeg))
+#plt.plot(tt, np.imag(rhoeg))
+#plt.show()

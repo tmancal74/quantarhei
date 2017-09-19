@@ -101,20 +101,20 @@ class TestAbs(unittest.TestCase):
         
         self.assertAlmostEqual(d, d2)        
         
-    def test_minimize(self):
-        """Testing difference minimization using scipy.optimize package
-        
-        """
-        with energy_units("1/cm"):
-            ad = AbsSpectrumDifference(target=self.abss, 
-                                   optfce=self._opt_spectral_shape, 
-                                   bounds=(10100.0, 11900.0))
-        
-        method = "Nelder-Mead"
-        ini = [0.5, 10900, 80.0]
-        p = ad.minimize(ini, method=method)
-        
-        numpy.testing.assert_array_almost_equal(p, [1.0, 11000.0, 100.0])
+#    def test_minimize(self):
+#        """Testing difference minimization using scipy.optimize package
+#        
+#        """
+#        with energy_units("1/cm"):
+#            ad = AbsSpectrumDifference(target=self.abss, 
+#                                   optfce=self._opt_spectral_shape, 
+#                                   bounds=(10100.0, 11900.0))
+#        
+#        method = "Nelder-Mead"
+#        ini = [0.5, 10900, 80.0]
+#        p = ad.minimize(ini, method=method)
+#        
+#        numpy.testing.assert_array_almost_equal(p, [1.0, 11000.0, 100.0])
 
         
         

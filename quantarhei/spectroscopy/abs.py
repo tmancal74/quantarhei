@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 """
+    Quantarhei package (http://www.github.com/quantarhei)
 
+    abs module
+    
+    This module contains classes to support calculation of linear absorption
+    spectra.
 
 """
 import numpy
 import scipy
-
-from scipy.optimize import minimize, leastsq, curve_fit
-
 import matplotlib.pyplot as plt
+
+#from scipy.optimize import minimize, leastsq, curve_fit
+
+
 
 from ..utils import derived_type
 from ..builders import Molecule 
@@ -46,6 +52,15 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         self.axis = axis
         
     def set_data(self, data):
+        """Sets data atribute
+        
+        Parameters
+        ----------
+        
+        data : array like object (numpy array)
+            Sets the data of the absorption spectrum
+            
+        """
         self.data = data
     
     def clear_data(self):
@@ -182,7 +197,9 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         def funcf(x, *p):
             return _n_gaussians(x, N, *p)
-            
+        
+        # minimize, leastsq,
+        from scipy.optimize import curve_fit            
         popt, pcov = curve_fit(funcf, x, y, p0=guess)
         
         if plot:
@@ -432,6 +449,7 @@ class AbsSpectrumDifference(EnergyUnitsManaged):
         
         """
         if self._can_minimize:
+            from scipy.optimize import minimize
             self.opt_result = minimize(self.difference, init_params,
                                        method=method, tol=self.tol,
                                        options=dict(disp=True))
@@ -444,7 +462,7 @@ class AbsSpectrumDifference(EnergyUnitsManaged):
 class AbsSpectContainer(DFunction, EnergyUnitsManaged):
     """This class contains a single absorption spectrum
     
-    Contains absorptio spectrum and enables some manipulations on it.
+    Contains absorption spectrum and enables some manipulations on it.
     
     """
     TimeAxis = derived_type("TimeAxis",TimeAxis)
@@ -802,6 +820,10 @@ class AbsSpect(AbsSpectContainer):
         #tr.append(ct)
         tr["ct"] = ct
         self.system._has_system_bath_coupling = True
+        
+        #
+        # Calculates spectrum of a single transition
+        #
         self.data = numpy.real(self.one_transition_spectrum(tr))
         
         for ii in range(2,HH.dim):
@@ -815,6 +837,10 @@ class AbsSpect(AbsSpectContainer):
             tr["om"] = HH.data[ii,ii]-HH.data[0,0]-rwa
             #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
             tr["ct"] = self._excitonic_coft(SS,self.system,ii-1)
+            
+            #
+            # Calculates spectrum of a single transition
+            #
             self.data += numpy.real(self.one_transition_spectrum(tr))
 
         # sets the frequency axis for plottig
