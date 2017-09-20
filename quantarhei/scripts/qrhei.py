@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import argparse
 import subprocess
+from pathlib import Path
+import os
 
 from quantarhei import Manager
 
@@ -65,6 +67,41 @@ def main():
     if not flag_silent:
         print("Running Quantarhei (python) script file: ", scr)
 
+    #
+    # Setting environment to see shared libraries
+    #
+    if True:
+        home = str(Path.home())
+        slib_path = os.path.join(home,"lib")
+        
+        from sys import platform as _platform
+    
+        if _platform == "linux" or _platform == "linux2":
+            # linux
+            if not flag_silent:
+                print("Running on platform " +_platform+" (macOS)")
+                print("Setting shared libraty path to: "+slib_path)
+            os.environ["LD_LIBRARY_PATH"]=slib_path
+            
+        elif _platform == "darwin":
+            # MAC OS X
+            if not flag_silent:
+                print("Running on platform " +_platform+" (macOS)")
+                print("Setting shared libraty path to: "+slib_path)
+            os.environ["DYLD_LIBRARY_PATH"]=slib_path
+            
+        elif _platform == "win32":
+            # Windows
+            print(_platform+" win32")
+            
+        elif _platform == "win64":
+            # Windows 64-bit
+            print(_platform+"  win64")
+            
+        else:
+            print(_platform+" unrecognized")
+            raise Exception("Unrecognized platform")
+    
     
     #
     # Run serial or parallel 
