@@ -79,7 +79,7 @@ def main():
         if _platform == "linux" or _platform == "linux2":
             # linux
             if not flag_silent:
-                print("Running on platform " +_platform+" (macOS)")
+                print("Running on platform " +_platform+" (linux)")
                 print("Setting shared libraty path to: "+slib_path)
             os.environ["LD_LIBRARY_PATH"]=slib_path
             
