@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+    Driver script for Quantarhei package
+    
+    
+    Author: Tomas Mancal, Charles University, Prague, Czech Republic
+    email: mancal@karlov.mff.cuni.cz
+
+
+"""
 import argparse
 import subprocess
 from pathlib import Path
-import os
+import os, sys
 
 from quantarhei import Manager
 
@@ -71,7 +80,15 @@ def main():
     # Setting environment to see shared libraries
     #
     if True:
-        home = str(Path.home())
+        
+        # fix to get it work on Python 3.4 and earlier
+        if sys.version_info[1] > 4:
+            # home
+            home = str(Path.home())
+        else:
+            from os.path import expanduser
+            home = expanduser("~")
+        #home = str(Path.home())
         slib_path = os.path.join(home,"lib")
         
         from sys import platform as _platform
