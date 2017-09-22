@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+Calculation of 2D spectra 
 
+
+
+"""
 import matplotlib.pyplot as plt
 import numpy
 import time
@@ -11,6 +16,8 @@ from quantarhei import TimeAxis
 from quantarhei import CorrelationFunction
 
 from quantarhei.spectroscopy.twod2 import TwoDSpectrumCalculator
+from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
+
 from aceto.lab_settings import lab_settings
 
 from quantarhei import Manager
@@ -36,10 +43,10 @@ with energy_units("1/cm"):
     mol1 = Molecule(elenergies=[0.0, 12300.0])
     mol2 = Molecule(elenergies=[0.0, 12000.0])
 mol1.position = [0.0, 0.0, 0.0]
-## dimer 1
-#mol2.position = [0.0, 6.0, 0.0]
-# dimer 2
-mol2.position = [0.0, 0.0, 6.0]
+# dimer 1
+mol2.position = [0.0, 6.0, 0.0]
+## dimer 2
+#mol2.position = [0.0, 0.0, 6.0]
 mol1.set_dipole(0,1,[4.0, 2.0, 0.0])
 mol2.set_dipole(0,1,[1.0, 2.0, 0.0])
 
@@ -58,6 +65,13 @@ params = dict(ftype="OverdampedBrownian", T=300, reorg=70.0, cortime=100.0)
 with energy_units('1/cm'):
     cf = CorrelationFunction(tsbi, params)
     
+params2 = dict(ftype="UnderdampedBrownian", T=300, reorg=10.0, freq=150.0,
+               gamma=1.0/10000.0)
+with energy_units('1/cm'):
+    cf2 = CorrelationFunction(tsbi, params2)
+    
+cf.add_to_data(cf2)
+
 #
 # Set system-bath interaction
 #
@@ -78,27 +92,24 @@ with energy_units("1/cm"):
 rwa = agg.get_RWA_suggestion()
 
 #
-# Calculate 2D spectra
+# Prepare for calculation of 2D spectra
 #
 
 # TimeAxis for t2 waiting time
 
-t2s = TimeAxis(0.0, 2, 100.0)
+t2s = TimeAxis(0.0, 25, 20.0)
 
+#
+# Set up calculator
+#
 tcalc = TwoDSpectrumCalculator(t1axis=ta, t2axis=t2s, t3axis=ta,
                                system=agg)
 
-t_start = time.time()
-print("Bootstrapping")
 tcalc.bootstrap(rwa, verbose=True, lab=lab)
-print("...done")
-print("Calculating")
-twods = tcalc.calculate()
-print("...done")
-t_end = time.time()
+
 
 #
-# Show 2D spectra (save them)
+# Calculate 2D spectra, display and save them
 #    
 
 w1_min = rwa_cm - 700.0
@@ -107,25 +118,64 @@ w3_min = rwa_cm - 700.0
 w3_max = rwa_cm + 700.0
 
 window_2D = [w1_min, w1_max, w3_min, w3_max]
-print(window_2D)
+t_start = time.time()
 
+#
+# Plotting with given units on axes
+#
 with energy_units("1/cm"):
     
     k = 0
+    twods = TwoDSpectrumContainer(t2s)
+    
     for tt2 in t2s.data:
-            
-        #
-        # Plotting with given units on axes
-        #
-        twods[k].plot(axis=[w1_min, w1_max, w3_min, w3_max]) #,vmax=1.0, cbmax=cbmax)
-
+        
+        # calculate spectra iteratively
+        spect = tcalc.calculate_next()
+        # save it to a container
+        twods.set_spectrum(spect)
+        # plot it
+        spect.plot(axis=window_2D) #,vmax=1.0, cbmax=cbmax)
+        # save figure
         figname = "fig"+str(round(tt2))+".png"
         print("saving file: ", figname, " with 2D spectrum at ", tt2, "fs")
-        plt.savefig(figname)
-        plt.show()
+        spect.savefig(figname)
+        spect.show()
         
         k += 1
-
+        
+t_end = time.time()
 t_fend = time.time()
 print("Finished at ", t_fend-t_fstart, " secs")
 print("Calculation took ", t_end-t_start, " sec")
+
+#pp1 = numpy.zeros(t2s.length)
+#pp2 = numpy.zeros(t2s.length)
+#k = 0
+with energy_units("1/cm"):
+    
+#    #for tt2 in t2s.data:
+#    for sp in twods.get_spectra():
+#        #sp = twods.get_spectrum(tt2)
+#        pp1[k] = sp.get_value_at(12400,12400)
+#        pp2[k] = sp.get_value_at(11800,12400)
+#        print(sp.get_value_at(12400,12400), sp.get_max_value())
+#        #sp.plot(axis=window_2D)
+#        #plt.show()
+#        k += 1
+        
+    pp1 = twods.get_point_evolution(12400,12400,t2s)
+    pp2 = twods.get_point_evolution(11800,12400,t2s)    
+    pp3 = twods.get_point_evolution(11800,11800,t2s)
+    pp4 = twods.get_point_evolution(12200,12400,t2s)
+    
+    
+plt.plot(t2s.data,pp1)
+plt.plot(t2s.data,pp2)
+plt.plot(t2s.data,pp3)
+plt.plot(t2s.data,pp4)
+plt.show()
+
+
+        
+    

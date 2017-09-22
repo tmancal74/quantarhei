@@ -16,6 +16,23 @@ from ..utils import derived_type
 
 import time
 
+try:
+
+    import aceto.nr3td as nr3td            
+    from aceto.lab_settings import lab_settings
+    from aceto.band_system import band_system            
+    _have_aceto = True
+    
+except:
+    #
+    # FIXME: There should be an optional warning and a fall back onto
+    # quantarhei.implementations.aceto module
+    #
+    raise Exception("Aceto not available")
+    from ..implementations.aceto import nr3td            
+    _have_aceto = False 
+
+
 class DFunction2:
     """Descrete two-dimensional function 
     
@@ -98,13 +115,49 @@ class TwoDSpectrumBase(DFunction2):
     
     def load(self, filename):
         super().load(filename)
+        
     
     
-class TwoDSpectrumContainer(TwoDSpectrumBase):
+class TwoDSpectrum(TwoDSpectrumBase):
+    """This class represents a single 2D spectrum
     
-    def __init__(self):
-        pass
     
+    """
+    
+    def __init__(self, keep_pathways=False, keep_stypes=True):
+        self.keep_pathways = keep_pathways
+        self.keep_stypes = keep_stypes
+        self.t2 = -1.0
+    
+    def set_t2(self, t2):
+        """Sets the t2 (waiting time) of the spectrum
+        
+        
+        """
+        self.t2 = t2
+        
+    def get_t2(self):
+        """Returns the t2 (waiting time) of the spectrum
+        
+        """
+        return self.t2
+    
+    
+    def get_value_at(self, x, y):
+        """Returns value of the spectrum at a given coordinate
+        
+        """
+        (ix, dist) = self.xaxis.locate(x)
+        (iy, dist) = self.yaxis.locate(y)    
+        
+        return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
+    
+    def get_max_value(self):
+        
+        return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
+            
+            
+        
     
     def plot(self, axis=None, part="ReTot", vmax=None, cbmax = None):
         
@@ -154,6 +207,14 @@ class TwoDSpectrumContainer(TwoDSpectrumBase):
         return cm
         
         
+    def show(self):
+        
+        plt.show()
+        
+    def savefig(self, filename):
+        
+        plt.savefig(filename)
+        
     
     def devide_by(self, val):
         """Devides the total spectrum by a value
@@ -161,6 +222,91 @@ class TwoDSpectrumContainer(TwoDSpectrumBase):
         """
         self.reph2D = self.reph2D/val
         self.nonr2D = self.nonr2D/val
+        
+        
+class TwoDSpectrumContainer:
+    """Class holding a set of TwoDSpectra
+    
+    Parameters
+    ----------
+    
+    t2axis: TimeAxis
+       object holding waiting times at which spectra are calculated
+       
+    keep_pathways: bool
+       if set True, the container will keep all types of Liouville pathways
+       stored separately
+       
+    keep_stypes: bool
+       if se t True, the container will keep rephasing and non-rephasing 
+       spectra stored separately
+       
+       
+    """
+    
+    def __init__(self, t2axis, keep_pathways=False, keep_stypes=True):
+        
+        self.t2axis = t2axis
+        self.keep_pathways = keep_pathways
+        self.keep_stypes = keep_stypes
+        
+        
+        if self.keep_pathways:
+            raise Exception("Container keeping pathways not available yet")
+            
+        self.spectra = {}
+        
+        
+    def set_spectrum(self, spect):
+        """Stores spectrum for time t2
+        
+        Checks if the time t2 is present in the t2axis
+        
+        """
+        t2 = spect.get_t2()
+        if t2 in self.t2axis.data:
+            self.spectra[t2] = spect
+        else:
+            raise Exception("Waiting time not compatible with the t2 axis")
+            
+            
+    def get_spectrum(self, t2):
+        """Returns spectrum corresponing to time t2
+        
+        Checks if the time t2 is present in the t2axis
+        
+        """        
+        if t2 in self.t2axis.data:
+            return self.spectra[t2]     
+        else:
+            raise Exception("Waiting time not compatible with the t2 axis")
+
+        
+    def get_spectra(self):
+        """Returns a list or tuple of the calculated spectra
+        
+        """
+        
+        ven = [value for (key, value) in sorted(self.spectra.items())]
+        return ven
+    
+    def get_point_evolution(self, x, y, times):
+        """Tracks an evolution of a single point on the 2D spectrum
+        
+        """
+        
+        vals = numpy.zeros(times.length)
+        k = 0
+        for t2 in times.data:
+            
+            sp = self.get_spectrum(t2)
+            vals[k] = sp.get_value_at(x,y)
+            k +=1
+            
+        return vals
+            
+            
+            
         
     
 class TwoDSpectrumCalculator:
@@ -189,6 +335,8 @@ class TwoDSpectrumCalculator:
                  relaxation_tensor=None,
                  rate_matrix=None,
                  effective_hamiltonian=None):
+            
+            
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
@@ -217,7 +365,7 @@ class TwoDSpectrumCalculator:
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
             
-        self._have_aceto = False
+        #self._have_aceto = False
         
         # after bootstrap information
         self.sys = None
@@ -231,6 +379,8 @@ class TwoDSpectrumCalculator:
         self.Uee = None
         self.Uc0 = None
         
+        self.tc = 0
+        
        
     def _vprint(self, string):
         """Prints a string if the self.verbose attribute is True
@@ -243,21 +393,6 @@ class TwoDSpectrumCalculator:
         """Sets up the environment for 2D calculation
         
         """
-        
-        try:
-            
-            from aceto.lab_settings import lab_settings
-            from aceto.band_system import band_system            
-            self._have_aceto = True
-            
-        except:
-            #
-            # FIXME: There should be an optional warning and a fall back onto
-            # quantarhei.implementations.aceto module
-            #
-            raise Exception("Aceto not available")
-            
-            self._have_aceto = False        
 
 
         self.verbose = verbose
@@ -372,7 +507,6 @@ class TwoDSpectrumCalculator:
 
             # FIXME: Order of transfer is set by hand here - needs to be moved
             # to some reasonable place
-#            No = 0
             
             #Ucor = Uee
             self.Uc0 = cor[0]
@@ -420,6 +554,104 @@ class TwoDSpectrumCalculator:
             
             raise Exception("So far, no 2D outside aceto")
             
+        self.tc = 0
+            
+    def calculate_next(self):
+
+        sone = self.calculate_one(self.tc)
+        self.tc += 1
+        return sone
+    
+        
+    def calculate_one(self, tc):
+
+        tt2 = self.t2axis.data[tc]        
+        Nr1 = self.t1axis.length
+        Nr3 = self.t3axis.length        
+        #
+        # Initialize response storage
+        #
+        resp_r = numpy.zeros((Nr1, Nr3), 
+                             dtype=numpy.complex128, order='F')
+        resp_n = numpy.zeros((Nr1, Nr3), 
+                             dtype=numpy.complex128, order='F')
+
+        # FIXME: on which axis we should be looking for it2 ??? 
+        (it2, err) = self.t1axis.locate(tt2) 
+        self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
+        #tc = it2
+    
+        #
+        # calcute response
+        #
+        self._vprint("calculating response: ")
+
+        t1 = time.time()
+        
+        self._vprint(" - ground state bleach")
+        # GSB
+        nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r) 
+        nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+    
+        self._vprint(" - stimulated emission")
+        # SE
+        nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+        nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+        
+        self._vprint(" - excited state absorption")
+        # ESA
+        nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+        nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+        
+        # Transfer
+        
+        Utr = self.Uee[:,:,self.tc]-self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
+        self.sys.set_population_propagation_matrix(Utr) 
+        
+        self._vprint(" - stimulated emission with transfer")    
+        # SE
+        nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+        nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+        
+#                # This contributes only when No > 0
+#                nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
+#                
+    
+        self._vprint(" - excited state absorption with transfer") 
+        # ESA
+        nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+        nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+        
+        
+        t2 = time.time()
+        self._vprint("... calculated in "+str(t2-t1)+" sec")
+
+
+        #
+        # Calculate corresponding 2D spectrum
+        #
+        
+        ftresp = numpy.fft.fft(resp_r,axis=1)
+        ftresp = numpy.fft.ifft(ftresp,axis=0)
+        reph2D = numpy.fft.fftshift(ftresp)
+        
+        ftresp = numpy.fft.ifft(resp_n,axis=1)
+        ftresp = numpy.fft.ifft(ftresp,axis=0)*ftresp.shape[1]
+        nonr2D = numpy.fft.fftshift(ftresp)
+
+
+        onetwod = TwoDSpectrum()
+        onetwod.set_axis_1(self.oa1)
+        onetwod.set_axis_3(self.oa3)
+        onetwod.set_data(reph2D, dtype="Reph")
+        onetwod.set_data(nonr2D, dtype="Nonr")
+        
+        onetwod.set_t2(self.t2axis.data[tc])
+        
+        
+        return onetwod
+                
+                
             
     def calculate(self):
         """Returns 2D spectrum
@@ -429,113 +661,16 @@ class TwoDSpectrumCalculator:
         
         
         """            
-        try:
-            
-            import aceto.nr3td as nr3td            
-            self._have_aceto = True
-            
-        except:
-            #
-            # FIXME: There should be an optional warning and a fall back onto
-            # quantarhei.implementations.aceto module
-            #
-            raise Exception("Aceto not available")
-            
-            from ..implementations.aceto import nr3td
-            
-            self._have_aceto = False
-            
-            
-        if self._have_aceto:
+                       
+        if _have_aceto:
 
-            Nr1 = self.t1axis.length
-            Nr3 = self.t3axis.length
-            tc = 0
-            twods = []
+            twods = TwoDSpectrumContainer(self.t2axis)
             
             teetoos = self.t2axis.data
             for tt2 in teetoos:
 
-                #
-                # Initialize response storage
-                #
-                resp_r = numpy.zeros((Nr1, Nr3), 
-                                     dtype=numpy.complex128, order='F')
-                resp_n = numpy.zeros((Nr1, Nr3), 
-                                     dtype=numpy.complex128, order='F')
-
-                # FIXME: on which axis we should be looking for it2 ??? 
-                (it2, err) = self.t1axis.locate(tt2) 
-                self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
-            
-                #
-                # calcute response
-                #
-                self._vprint("calculating response: ")
-
-                t1 = time.time()
-                
-                self._vprint(" - ground state bleach")
-                # GSB
-                nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r) 
-                nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-            
-                self._vprint(" - stimulated emission")
-                # SE
-                nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-                nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-                
-                self._vprint(" - excited state absorption")
-                # ESA
-                nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-                nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-                
-                # Transfer
-                #sys.set_population_propagation_matrix(Ucor[:,:,tc]) 
-                    
-                self.sys.set_population_propagation_matrix(self.Uee[:,:,tc]-self.Uc0[:,:,tc]) #-Uc1[:,:,tc]-Uc2[:,:,tc])
-                #sys.set_population_propagation_matrix(Uee[:,:,tc])                
-                
-                self._vprint(" - stimulated emission with transfer")    
-                # SE
-                nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-                nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-                
-#                # This contributes only when No > 0
-#                nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
-#                
-            
-                self._vprint(" - excited state absorption with transfer") 
-                # ESA
-                nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-                nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-                
-                
-                t2 = time.time()
-                self._vprint("... calculated in "+str(t2-t1)+" sec")
-    
-    
-                #
-                # Calculate corresponding 2D spectrum
-                #
-                
-                ftresp = numpy.fft.fft(resp_r,axis=1)
-                ftresp = numpy.fft.ifft(ftresp,axis=0)
-                reph2D = numpy.fft.fftshift(ftresp)
-                
-                ftresp = numpy.fft.ifft(resp_n,axis=1)
-                ftresp = numpy.fft.ifft(ftresp,axis=0)*ftresp.shape[1]
-                nonr2D = numpy.fft.fftshift(ftresp)
-        
-        
-                onetwod = TwoDSpectrumContainer()
-                onetwod.set_axis_1(self.oa1)
-                onetwod.set_axis_3(self.oa3)
-                onetwod.set_data(reph2D, dtype="Reph")
-                onetwod.set_data(nonr2D, dtype="Nonr")
-                
-                twods.append(onetwod)
-                tc += 1    
+                onetwod = self.calculate_next()
+                twods.set_spectrum(tt2, onetwod)   
             
             return twods
         
