@@ -164,10 +164,10 @@ with energy_units("1/cm"):
 #        #plt.show()
 #        k += 1
         
-    pp1 = twods.get_point_evolution(12400,12400,t2s)
-    pp2 = twods.get_point_evolution(11800,12400,t2s)    
-    pp3 = twods.get_point_evolution(11800,11800,t2s)
-    pp4 = twods.get_point_evolution(12200,12400,t2s)
+    pp1 = twods.get_point_evolution(12250,12250,t2s)
+    pp2 = twods.get_point_evolution(11900,12250,t2s)    
+    pp3 = twods.get_point_evolution(11900,11900,t2s)
+    pp4 = twods.get_point_evolution(12000,12500,t2s)
     
     
 plt.plot(t2s.data,pp1)
