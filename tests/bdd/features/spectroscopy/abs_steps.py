@@ -15,7 +15,7 @@ from quantarhei import energy_units
 
 from quantarhei import Molecule
 from quantarhei import Aggregate
-from quantarhei import AbsSpect
+from quantarhei import AbsSpectrumCalculator
 
 from quantarhei.core.units import eps0_int
 import scipy.constants as const
@@ -78,8 +78,9 @@ def absorption_spectrum_molecule(self):
     
     m.set_egcf([0,1],cf)
     
-    a1 = AbsSpect(world.ta,m)
-    a1.calculate(rwa=m.elenergies[1])
+    ac = AbsSpectrumCalculator(world.ta,m)
+    ac.bootstrap(rwa=m.elenergies[1])
+    a1 = ac.calculate()
     
     with energy_units("1/cm"):
         world.abs = numpy.zeros((len(a1.data),2))
@@ -124,9 +125,10 @@ def absorption_spectrum_dimer(self):
 
     AG.build()
 
-    a1 = AbsSpect(world.ta,AG)
+    ac = AbsSpectrumCalculator(world.ta,AG)
     with energy_units("1/cm"):
-        a1.calculate(rwa=12000)
+        ac.bootstrap(rwa=12000)
+        a1 = ac.calculate()
     
     with energy_units("1/cm"):
         world.abs = numpy.zeros((len(a1.data),2))
@@ -175,12 +177,13 @@ def absorption_spectrum_trimer(self):
     (RRr,hamr) = AG.get_RelaxationTensor(world.ta,
                                    relaxation_theory="standard_Redfield",
                                    time_dependent=True)    
-    a1 = AbsSpect(world.ta,AG, 
+    ac = AbsSpectrumCalculator(world.ta,AG, 
                   relaxation_tensor=RRr,
                   effective_hamiltonian=hamr)
     
     with energy_units("1/cm"):
-        a1.calculate(rwa=12000)
+        ac.bootstrap(rwa=12000)
+        a1 = ac.calculate()
     
     with energy_units("1/cm"):
         world.abs = numpy.zeros((len(a1.data),2))

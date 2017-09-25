@@ -52,10 +52,11 @@ from .core.time import TimeAxis
 from .core.frequency import FrequencyAxis
 from .core.dfunction import DFunction
 
-from .spectroscopy.abs import AbsSpect
-from .spectroscopy.abs import AbsSpectContainer
-from .spectroscopy.abs import AbsSpectrumBase
-from .spectroscopy.abs import AbsSpectrumDifference
+from .spectroscopy.abs2 import AbsSpectrum
+from .spectroscopy.abs2 import AbsSpectrumContainer
+#from .spectroscopy.abs2 import AbsSpectrumBase
+from .spectroscopy.abs2 import AbsSpectrumCalculator
+#from .spectroscopy.abs2 import AbsSpectrumDifference
 
 from .core.managers import Manager
 from .core.managers import energy_units

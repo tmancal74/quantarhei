@@ -29,10 +29,11 @@ with e_units:
 m.set_egcf((0,1),cfce1)   
 m.set_dipole(0,1,[0.0, 1.0, 0.0])
 
-a1 = qr.AbsSpect(ta,m) 
+ac = qr.AbsSpectrumCalculator(ta,m) 
 
-with qr.energy_units("1/cm"):    
-    a1.calculate(rwa=en)
+with qr.energy_units("1/cm"): 
+    ac.bootstrap(rwa=en)
+    a1 = ac.calculate()
 
 HH = m.get_Hamiltonian()
 with qr.frequency_units("1/cm"):
@@ -104,13 +105,15 @@ HH = AG.get_Hamiltonian()
 (RR,ham) = AG.get_RelaxationTensor(ta,
                                    relaxation_theory="standard_Redfield")
 
-a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RR)
-a3 = qr.AbsSpect(ta, AG)
+ac2 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RR)
+ac3 = qr.AbsSpectrumCalculator(ta, AG)
 
 with e_units:
     print(HH)
-    a2.calculate(rwa=12000)
-    a3.calculate(rwa=12000)
+    ac2.bootstrap(rwa=12000)
+    ac3.bootstrap(rwa=12000)
+    a2 = ac2.calculate()
+    a3 = ac3.calculate()
     a3.plot(show=False)
     a2.plot(axis=[11500,12500,0,numpy.max(a2.data)*1.1])
 
@@ -192,26 +195,47 @@ with qr.energy_units("1/cm"):
                                    coupling_cutoff=50.0)
     
 
-a1 = qr.AbsSpect(ta, AG, relaxation_tensor=RRf, effective_hamiltonian=hamf)
-a2 = qr.AbsSpect(ta, AG, relaxation_tensor=RRr, effective_hamiltonian=hamr)
-a3 = qr.AbsSpect(ta, AG, relaxation_tensor=RRc, effective_hamiltonian=hamc)
+ac1 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRf,
+                               effective_hamiltonian=hamf)
+
+ac2 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRr,
+                               effective_hamiltonian=hamr)
+ac3 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRc,
+                               effective_hamiltonian=hamc)
 
 with e_units:
-    a2.calculate(rwa=12000)
-    a3.calculate(rwa=12000)
-    a1.calculate(rwa=12000)
+    ac2.bootstrap(rwa=12000)
+    ac3.bootstrap(rwa=12000)
+    ac1.bootstrap(rwa=12000)
+    
+    
+a2 = ac2.calculate()
+fa = a2.axis
+ACont = qr.AbsSpectrumContainer(fa)
+ACont.set_spectrum(a2,tag=1)
+
+a3 = ac3.calculate()
+ACont.set_spectrum(a3,tag=2)
+
+a1 = ac1.calculate()
+ACont.set_spectrum(a1,tag=0)
+
+with e_units:
+    a1 = ACont.get_spectrum(tag=0)
     a1.plot(show=False)
+    a3 = ACont.get_spectrum(tag=2)
     a3.plot(show=False)
+    a1 = ACont.get_spectrum(tag=1)
     a2.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 
     
 
-save_load = False    
+save_load = True   
 if save_load:
     with e_units:
         a2.save("abs_3mol_20cm_60fs_100K_m20",ext="dat")
     
         f = qr.DFunction()
         f.load("abs_3mol_20cm_60fs_100K_m20",ext="dat",axis="frequency")
-        f.plot()
+        f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
         
