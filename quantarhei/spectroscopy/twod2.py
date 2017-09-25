@@ -156,7 +156,13 @@ class TwoDSpectrum(TwoDSpectrumBase):
         
         return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
             
-            
+    
+    def devide_by(self, val):
+        """Devides the total spectrum by a value
+        
+        """
+        self.reph2D = self.reph2D/val
+        self.nonr2D = self.nonr2D/val               
         
     
     def plot(self, axis=None, part="ReTot", vmax=None, cbmax = None):
@@ -205,8 +211,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
             fig.colorbar(cbmax)
             
         return cm
-        
-        
+
+     
     def show(self):
         
         plt.show()
@@ -216,12 +222,19 @@ class TwoDSpectrum(TwoDSpectrumBase):
         plt.savefig(filename)
         
     
-    def devide_by(self, val):
-        """Devides the total spectrum by a value
+    def save(self, filename):
+        """Saves the whole object into file
+        
         
         """
-        self.reph2D = self.reph2D/val
-        self.nonr2D = self.nonr2D/val
+        pass
+    
+    def load(self, filename):
+        """Loads the whole object from a file
+        
+        
+        """
+        pass
         
         
 class TwoDSpectrumContainer:
@@ -244,7 +257,7 @@ class TwoDSpectrumContainer:
        
     """
     
-    def __init__(self, t2axis, keep_pathways=False, keep_stypes=True):
+    def __init__(self, t2axis=None, keep_pathways=False, keep_stypes=True):
         
         self.t2axis = t2axis
         self.keep_pathways = keep_pathways
@@ -305,7 +318,19 @@ class TwoDSpectrumContainer:
             
         return vals
             
-            
+    def save(self, filename):
+        """Saves the whole object into file
+        
+        
+        """
+        pass
+    
+    def load(self, filename):
+        """Loads the whole object from a file
+        
+        
+        """
+        pass            
             
         
     

@@ -114,18 +114,26 @@ with e_units:
     ac3.bootstrap(rwa=12000)
     a2 = ac2.calculate()
     a3 = ac3.calculate()
-    a3.plot(show=False)
-    a2.plot(axis=[11500,12500,0,numpy.max(a2.data)*1.1])
 
-save_load = False    
+if True:   
+#with e_units:
+    a3.save("spectrum_a3")  
+    a4 = qr.AbsSpectrum()
+    a4.load("spectrum_a3.npz")
+
+with e_units:
+    #a3.plot(show=False)
+    a4.plot(show=False)
+    a2.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
+
+save_load = True    
 if save_load:
     with e_units:
-        a3.save("abs_2mol_10cm_60fs_100K_m20",ext="dat")
+        a3.save_data("abs_2mol_10cm_60fs_100K_m20",ext="dat")
     
         f = qr.DFunction()
-        f.load("abs_2mol_10cm_60fs_100K_m20",ext="dat",axis="frequency")
-        f.plot()
-  
+        f.load_data("abs_2mol_10cm_60fs_100K_m20",ext="dat",axis="frequency")
+        f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 
 """
 
@@ -233,9 +241,20 @@ with e_units:
 save_load = True   
 if save_load:
     with e_units:
-        a2.save("abs_3mol_20cm_60fs_100K_m20",ext="dat")
+        a2.save_data("abs_3mol_20cm_60fs_100K_m20",ext="dat")
     
         f = qr.DFunction()
-        f.load("abs_3mol_20cm_60fs_100K_m20",ext="dat",axis="frequency")
+        f.load_data("abs_3mol_20cm_60fs_100K_m20",ext="dat",axis="frequency")
         f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
         
+        ACont.save("container.hdf5")
+        
+        Cont2 = qr.AbsSpectrumContainer()
+        Cont2.load("container.hdf5")
+        
+        a6 = Cont2.get_spectrum(1)
+        a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+        
+#        a5 = qr.AbsSpectrum()
+#        a5.load("container_2.npz")
+#        a5.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])

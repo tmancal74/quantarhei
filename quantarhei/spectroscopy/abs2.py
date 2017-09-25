@@ -8,6 +8,7 @@
     spectra.
 
 """
+import h5py
 import numpy
 import scipy
 import matplotlib.pyplot as plt
@@ -111,7 +112,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         self.data += spect.data
         
         
-    def load(self, filename, ext=None, replace=False):
+    def load_data(self, filename, ext=None, replace=False):
         """Load the spectrum from a file
         
         Uses the load method of the DFunction class to load the absorption
@@ -122,9 +123,11 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         ----------
         
         """
-        super().load(filename, ext=ext, axis='frequency', replace=replace)
+        super().load_data(filename, ext=ext, axis='frequency', replace=replace)
 
-    #save method is inherited from DFunction    
+    #save method is inherited from DFunction 
+    
+        
         
     def plot(self,**kwargs):
         """ Plotting absorption spectrum using the DFunction plot method
@@ -311,18 +314,74 @@ def _n_gaussians(x, N, *params):
 
 
 class AbsSpectrum(AbsSpectrumBase):
-    pass
-
+    """Class representing absorption spectrum
+    
+    
+    """
+    
+    def _non_data_attributes(self):
+        
+        return {"object_tag":str(self),
+                "axis_real":[self.axis.start, 
+                             self.axis.step,
+                             self.axis.time_start],
+                "axis_int":[self.axis.length],
+                "axis_str":[self.axis.atype]}
+    
+    def save(self, filename):
+        """Save the whole AbsSpectrum object
+        
+        Attributes saved:
+            axis
+            data
+            
+        """
+        # FIXME: convert into hdf5
+        with energy_units("int"):
+            att = self._non_data_attributes()
+            numpy.savez(filename,
+                    axis_real=att["axis_real"],
+                    axis_int=att["axis_int"],
+                    axis_str=att["axis_str"],
+                    axis_data=self.axis.data,
+                    data=self.data)    
+    
+    def load(self, filename):
+        """Loads the AbsSpectrum object from file 
+        
+        """
+        # FIXME: convert into hdf5        
+        infile = numpy.load(filename)
+        
+        start = infile['axis_real'][0]
+        step = infile['axis_real'][1]
+        time_start = infile['axis_real'][2]
+        atype = infile['axis_str'][0]
+        length = infile['axis_int'][0]
+        
+        with energy_units('int'):
+            faxis = FrequencyAxis(start, length, step, atype=atype,
+                              time_start=time_start)
+        
+        data = infile['data']
+        
+        self.set_axis(faxis)
+        self.set_data(data)
 
   
+    
+    
 class AbsSpectrumContainer():
     
-    def __init__(self, axis):
+    def __init__(self, axis=None):
         
-        self.axis = axis
+        if axis is not None:
+            self.axis = axis
         self.count = 0
         self.spectra = {}
         
+    def set_axis(self, axis):
+        self.axis = axis
         
     def set_spectrum(self, spect, tag=None):
         """Stores absorption spectrum 
@@ -362,8 +421,69 @@ class AbsSpectrumContainer():
         ven = [value for (key, value) in sorted(self.spectra.items())]
         return ven        
     
+    def save(self, filename):
+        """Save the whole set of spectra into an hdf5 file
 
-
+            
+        """
+        
+        with h5py.File(filename,"w") as f:
+            sps = f.create_group("spectra")
+            sps.attrs.create("count",self.count)
+            dt = h5py.special_dtype(vlen=str)
+            with energy_units("int"):
+                for ks in self.spectra.keys():
+                    # spectrum object to be saved
+                    sp = self.spectra[ks]
+                    # directory name
+                    dtname = "spectrum_"+str(ks)
+                    # creating directory to save this object
+                    spsub = sps.create_group(dtname)
+                    spsub.attrs.create("tag",ks)
+                    # absorption data to be saved
+                    data2save = spsub.create_dataset("data",data=sp.data)
+                    # axis data get some more attributes
+                    atr = sp._non_data_attributes()
+                    data2save.attrs.create("axis_real",atr["axis_real"])
+                    data2save.attrs.create("axis_int",atr["axis_int"])
+                    data2save.attrs.create("axis_str",atr["axis_str"],dtype=dt)
+    
+    
+    
+    def load(self, filename):
+        """Loads the whole set of spectra from an hdf5 file
+        
+        
+        """
+        with h5py.File(filename,"r") as f:
+            sps = f["spectra"]
+            expected_count = sps.attrs["count"]
+            with energy_units("int"):
+                for grp in sps.keys():
+                    spectrum = sps[grp]
+                    tag = spectrum.attrs["tag"]
+                    data = numpy.array(spectrum["data"])
+                    a_real = spectrum["data"].attrs["axis_real"]
+                    a_int = spectrum["data"].attrs["axis_int"]
+                    a_str = spectrum["data"].attrs["axis_str"]
+    
+                    start = a_real[0]
+                    step = a_real[1]
+                    time_start = a_real[2]
+                    atype = a_str[0]
+                    length = a_int[0]
+                    
+                    with energy_units('int'):
+                        faxis = FrequencyAxis(start, length, step, atype=atype,
+                                          time_start=time_start)
+                    aaa = AbsSpectrum(axis=faxis, data=data)
+                    if self.count == 0:
+                        self.set_axis(aaa.axis)
+                    self.set_spectrum(aaa,tag=tag)
+                
+            if self.count != expected_count:
+                raise Exception("Incorrect number of spectra read")
+    
     
 class AbsSpectrumCalculator(EnergyUnitsManaged):
     """Linear absorption spectrum 

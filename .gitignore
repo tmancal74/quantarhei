@@ -14,6 +14,9 @@ quantarhei.egg-info
 *.lyx#
 *.pyc
 *.png
+*.hdf5
+*.npz
+*.npy
 
 
 

@@ -1,6 +1,6 @@
 all: reinst
 
-VERSION = 0.0.16
+VERSION = 0.0.17
 
 uninst: 
 	pip uninstall -y quantarhei 

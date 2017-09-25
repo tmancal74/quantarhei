@@ -543,7 +543,7 @@ class DFunction:
             
         return fname, ext
             
-    def save(self, filename, ext=None):
+    def save_data(self, filename, ext=None):
         """Saves the DFunction into a file
 
         """
@@ -585,7 +585,7 @@ class DFunction:
 
 
 
-    def load(self, filename, axis="time", ext=None, replace=False):
+    def load_data(self, filename, axis="time", ext=None, replace=False):
         """Loads a DFunction from  a file
 
         """
