@@ -3,13 +3,16 @@
 
 
 """
+import h5py
 import matplotlib.pyplot as plt
 import numpy
 
 from ..core.time import TimeAxis
+from ..core.frequency import FrequencyAxis
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..core.managers import eigenbasis_of
+from ..core.managers import energy_units
 from ..qm.propagators.poppropagator import PopulationPropagator 
 
 from ..utils import derived_type
@@ -221,21 +224,87 @@ class TwoDSpectrum(TwoDSpectrumBase):
         
         plt.savefig(filename)
         
+        
+        
+    def _create_root_group(self, start, name):
+        return start.create_group(name)
     
-    def save(self, filename):
+    def _save_attributes(self,rt):
+        rt.attrs.create("t2", self.t2)
+        keeps = []
+        if self.keep_pathways:
+            keeps.append(1)
+        else:
+            keeps.append(0)
+        if self.keep_stypes:
+            keeps.append(1)
+        else:
+            keeps.append(0)
+            
+        rt.attrs.create("keeps",keeps)
+
+    def _load_attributes(self,rt):
+        self.t2 = rt.attrs["t2"]
+        keeps = rt.attrs["keeps"]
+        self.keep_pathways = (keeps[0] == 1)
+        self.keep_stypes = (keeps[1] == 1)
+                    
+    def _save_data(self,rt):
+        if self.keep_stypes:
+            rt.create_dataset("reph2D",data=self.reph2D)
+            rt.create_dataset("nonr2D",data=self.nonr2D)
+        else:
+            rt.create_dataset("data",data=self.data)
+
+    def _load_data(self,rt):
+        if self.keep_stypes:
+            self.reph2D = numpy.array(rt["reph2D"])
+            self.nonr2D = numpy.array(rt["nonr2D"])
+        else:
+            self.data = numpy.array(rt["data"]) 
+            
+    def _save_axis(self, rt, name, ax):
+        axdir = rt.create_group(name)
+        axdir.attrs.create("start",ax.start)
+        axdir.attrs.create("length",ax.length)
+        axdir.attrs.create("step",ax.step)
+        #FIXME: atype and time_start
+
+    def _load_axis(self, rt, name):
+        axdir = rt[name]
+        start = axdir.attrs["start"]
+        length = axdir.attrs["length"]
+        step = axdir.attrs["step"]
+        return FrequencyAxis(start, length, step)   
+    
+    def save(self, filename, units="int"):
         """Saves the whole object into file
         
         
         """
-        pass
-    
-    def load(self, filename):
+        with h5py.File(filename,"w") as f:
+            rt = self._create_root_group(f,"spectrum")
+            self._save_attributes(rt)
+            self._save_data(rt)
+            with energy_units(units):
+                self._save_axis(rt, "xaxis", self.xaxis)
+                self._save_axis(rt, "yaxis", self.yaxis)
+            
+            
+            
+    def load(self, filename, units="int"):
         """Loads the whole object from a file
         
         
         """
-        pass
-        
+        with h5py.File(filename,"r") as f:
+            rt = f["spectrum"]
+            self._load_attributes(rt)
+            self._load_data(rt)
+            with energy_units(units):
+                self.xaxis = self._load_axis(rt, "xaxis")
+                self.yaxis = self._load_axis(rt, "yaxis")    
+                
         
 class TwoDSpectrumContainer:
     """Class holding a set of TwoDSpectra
@@ -318,21 +387,62 @@ class TwoDSpectrumContainer:
             
         return vals
             
+    def _create_root_group(self, start, name):
+        return start.create_group(name)
+
+    def _save_axis(self, rt, name, ax):
+        axdir = rt.create_group(name)
+        axdir.attrs.create("start",ax.start)
+        axdir.attrs.create("length",ax.length)
+        axdir.attrs.create("step",ax.step)
+
+    def _load_axis(self, rt, name):
+        axdir = rt[name]
+        start = axdir.attrs["start"]
+        length = axdir.attrs["length"]
+        step = axdir.attrs["step"]
+        return TimeAxis(start, length, step) 
+        
     def save(self, filename):
         """Saves the whole object into file
         
         
         """
-        pass
+        with h5py.File(filename,"w") as f:
+            self._save_axis(f,"t2axis",self.t2axis)
+            rt = self._create_root_group(f, "spectra")            
+            for sp in self.get_spectra():
+                t2 = sp.get_t2
+                rgname = "spectrum_"+str(t2)
+                srt = sp._create_root_group(rt,rgname)
+                sp._save_attributes(srt)
+                sp._save_data(srt)
+                sp._save_axis(srt,"xaxis",sp.xaxis,)
+                sp._save_axis(srt,"yaxis",sp.yaxis)
+            
+                
+            
+            
+            
     
     def load(self, filename):
         """Loads the whole object from a file
         
         
         """
-        pass            
-            
-        
+        with h5py.File(filename,"r") as f:
+            self.t2axis = self._load_axis(f, "t2axis")
+            rt = f["spectra"]
+            for key in rt.keys():
+                sp = TwoDSpectrum()
+                srt = rt[key]
+                sp._load_attributes(srt)
+                sp._load_data(srt)
+                sp.xaxis = sp._load_axis(srt,"xaxis")
+                sp.yaxis = sp._load_axis(srt,"yaxis")
+                
+                self.set_spectrum(sp)
+                
     
 class TwoDSpectrumCalculator:
     """Calculator of the 2D spectrum

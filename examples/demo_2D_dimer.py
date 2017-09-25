@@ -17,6 +17,7 @@ from quantarhei import CorrelationFunction
 
 from quantarhei.spectroscopy.twod2 import TwoDSpectrumCalculator
 from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
+from quantarhei.spectroscopy.twod2 import TwoDSpectrum
 
 from aceto.lab_settings import lab_settings
 
@@ -97,7 +98,7 @@ rwa = agg.get_RWA_suggestion()
 
 # TimeAxis for t2 waiting time
 
-t2s = TimeAxis(0.0, 25, 20.0)
+t2s = TimeAxis(0.0, 5, 20.0)
 
 #
 # Set up calculator
@@ -176,6 +177,26 @@ plt.plot(t2s.data,pp3)
 plt.plot(t2s.data,pp4)
 plt.show()
 
+sp = twods.get_spectrum(t2s.data[-1])
+with energy_units("1/cm"):
+    sp.plot(axis=window_2D)
+    
+sp.save("spectrum.hdf5")
+
+rsp = TwoDSpectrum()
+rsp.load("spectrum.hdf5")
+
+with energy_units("1/cm"):
+    rsp.plot(axis=window_2D) 
+
+twods.save("allspectra.hdf5")
+
+newtw = TwoDSpectrumContainer()
+newtw.load("allspectra.hdf5")
+
+sp = newtw.get_spectrum(t2s.data[-2])
+with energy_units("1/cm"):
+    sp.plot(axis=window_2D)
 
         
     
