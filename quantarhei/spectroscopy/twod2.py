@@ -168,7 +168,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
         self.nonr2D = self.nonr2D/val               
         
     
-    def plot(self, axis=None, part="ReTot", vmax=None, cbmax = None):
+    def plot(self, window=None, part="ReTot", vmax=None, cbmax = None):
         
         if part == "ReTot":
             # Real part of the total spectrum
@@ -178,7 +178,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
             raise Exception("Undefined part of the spectrum: "+part)
          
             
-        if axis is not None:    
+        if window is not None: 
+            axis = window
             w1_min = axis[0]
             w1_max = axis[1]
             w3_min = axis[2]
@@ -215,7 +216,63 @@ class TwoDSpectrum(TwoDSpectrumBase):
             
         return cm
 
-     
+    def trim_to(self, window=None):
+        """Trims the 2D spectrum to a specified region
+        
+        """
+        if window is not None:
+            axis = window
+            w1_min = axis[0]
+            w1_max = axis[1]
+            w3_min = axis[2]
+            w3_max = axis[3]
+
+            (i1_min, dist) = self.xaxis.locate(w1_min)
+            (i1_max, dist) = self.xaxis.locate(w1_max)
+
+            (i3_min, dist) = self.yaxis.locate(w3_min)
+            (i3_max, dist) = self.yaxis.locate(w3_max)    
+            
+            # create minimal off-set
+            i1_min -=1
+            i1_max +=1
+            i3_min -=1
+            i3_max +=1
+            
+            # reconstruct xaxis
+            start_1 = self.xaxis.data[i1_min]
+            length_1 = i1_max - i1_min
+            step_1 = self.xaxis.step
+            xaxis = FrequencyAxis(start_1,length_1,step_1, 
+                                  atype=self.xaxis.atype,
+                                  time_start=self.xaxis.time_start)
+            self.xaxis = xaxis
+            
+            # reconstruct yaxis
+            start_3 = self.yaxis.data[i3_min]
+            length_3 = i3_max - i3_min
+            step_3 = self.yaxis.step
+            yaxis = FrequencyAxis(start_3,length_3,step_3, 
+                                  atype=self.yaxis.atype,
+                                  time_start=self.yaxis.time_start)                
+            self.yaxis = yaxis            
+            
+
+            # reconstruct data
+            if self.keep_stypes:
+                reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
+                self.reph2D = reph2D   
+                nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
+                self.nonr2D = nonr2D 
+                
+            else:
+                data = self.data[i1_min:i1_max,i3_min:i3_max]
+                self.data = data
+                
+        else:
+            # some automatic trimming in the future
+            pass
+                
     def show(self):
         
         plt.show()
@@ -408,17 +465,18 @@ class TwoDSpectrumContainer:
         
         
         """
-        with h5py.File(filename,"w") as f:
-            self._save_axis(f,"t2axis",self.t2axis)
-            rt = self._create_root_group(f, "spectra")            
-            for sp in self.get_spectra():
-                t2 = sp.get_t2
-                rgname = "spectrum_"+str(t2)
-                srt = sp._create_root_group(rt,rgname)
-                sp._save_attributes(srt)
-                sp._save_data(srt)
-                sp._save_axis(srt,"xaxis",sp.xaxis,)
-                sp._save_axis(srt,"yaxis",sp.yaxis)
+        with energy_units("int"):
+            with h5py.File(filename,"w") as f:
+                self._save_axis(f,"t2axis",self.t2axis)
+                rt = self._create_root_group(f, "spectra")            
+                for sp in self.get_spectra():
+                    t2 = sp.get_t2
+                    rgname = "spectrum_"+str(t2)
+                    srt = sp._create_root_group(rt,rgname)
+                    sp._save_attributes(srt)
+                    sp._save_data(srt)
+                    sp._save_axis(srt,"xaxis",sp.xaxis,)
+                    sp._save_axis(srt,"yaxis",sp.yaxis)
             
                 
             
@@ -430,19 +488,31 @@ class TwoDSpectrumContainer:
         
         
         """
-        with h5py.File(filename,"r") as f:
-            self.t2axis = self._load_axis(f, "t2axis")
-            rt = f["spectra"]
-            for key in rt.keys():
-                sp = TwoDSpectrum()
-                srt = rt[key]
-                sp._load_attributes(srt)
-                sp._load_data(srt)
-                sp.xaxis = sp._load_axis(srt,"xaxis")
-                sp.yaxis = sp._load_axis(srt,"yaxis")
+        with energy_units("int"):
+            with h5py.File(filename,"r") as f:
+                self.t2axis = self._load_axis(f, "t2axis")
+                rt = f["spectra"]
+                for key in rt.keys():
+                    sp = TwoDSpectrum()
+                    srt = rt[key]
+                    sp._load_attributes(srt)
+                    sp._load_data(srt)
+                    sp.xaxis = sp._load_axis(srt,"xaxis")
+                    sp.yaxis = sp._load_axis(srt,"yaxis")
+                    
+                    self.set_spectrum(sp)
                 
-                self.set_spectrum(sp)
+    def trimall_to(self,window=None):
+        """Trims all spectra in the container
+        
+        """
+        if window is not None:
+            axes = window
+            for s in self.get_spectra():
+                s.trim_to(window=axes)
                 
+                
+        
     
 class TwoDSpectrumCalculator:
     """Calculator of the 2D spectrum
