@@ -136,7 +136,7 @@ with energy_units("1/cm"):
         # save it to a container
         twods.set_spectrum(spect)
         # plot it
-        spect.plot(axis=window_2D) #,vmax=1.0, cbmax=cbmax)
+        spect.plot(window=window_2D) #,vmax=1.0, cbmax=cbmax)
         # save figure
         figname = "fig"+str(round(tt2))+".png"
         print("saving file: ", figname, " with 2D spectrum at ", tt2, "fs")
@@ -161,7 +161,7 @@ with energy_units("1/cm"):
 #        pp1[k] = sp.get_value_at(12400,12400)
 #        pp2[k] = sp.get_value_at(11800,12400)
 #        print(sp.get_value_at(12400,12400), sp.get_max_value())
-#        #sp.plot(axis=window_2D)
+#        #sp.plot(window=window_2D)
 #        #plt.show()
 #        k += 1
         
@@ -179,7 +179,7 @@ plt.show()
 
 sp = twods.get_spectrum(t2s.data[-1])
 with energy_units("1/cm"):
-    sp.plot(axis=window_2D)
+    sp.plot(window=window_2D)
     
 sp.save("spectrum.hdf5")
 
@@ -187,7 +187,7 @@ rsp = TwoDSpectrum()
 rsp.load("spectrum.hdf5")
 
 with energy_units("1/cm"):
-    rsp.plot(axis=window_2D) 
+    rsp.plot(window=window_2D) 
 
 twods.save("allspectra.hdf5")
 
@@ -196,7 +196,7 @@ newtw.load("allspectra.hdf5")
 
 sp = newtw.get_spectrum(t2s.data[-2])
 with energy_units("1/cm"):
-    sp.plot(axis=window_2D)
+    sp.plot(window=window_2D)
 
         
     
