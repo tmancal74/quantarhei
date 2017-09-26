@@ -280,8 +280,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
             fig.colorbar(cm)
             
         if show_states:
-            plt.plot(12200,[dole,hore],'--k')
-            plt.plot([levo,prvo],11900,'--k')
+            plt.plot([12200,12200],[dole,hore],'--k')
+            plt.plot([levo,prvo],[11900,11900],'--k')
             
 #        if cbmax is None:
 #            fig.colorbar(cm,ax=ax,extend="max")
