@@ -168,8 +168,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
         self.nonr2D = self.nonr2D/val               
         
     
-    def plot(self, window=None, part="ReTot", vmax=None, cbmax = None,
-             fig=None):
+    def plot(self, window=None, part="ReTot", vmax=None, cbmax=None,
+             fig=None, cmap=None):
         
         if part == "ReTot":
             # Real part of the total spectrum
@@ -212,9 +212,18 @@ class TwoDSpectrum(TwoDSpectrumBase):
             fig.clear()
             fig.add_subplot(1,1,1)
             ax = fig.axes[0]
+            
+        if cmap is None:
+            cmap = plt.cm.rainbow
+            
+        if vmax is None:
+            vmax = numpy.amax(realout)            
+        vmin = -vmax/0.5
+            
         cm = ax.contourf(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, Ncontour, vmax=vmax, cmap=plt.cm.gist_rainbow)  
+                     realout, Ncontour, vmax=vmax, vmin=vmin,
+                     cmap=cmap)  
             
         if cbmax is None:
             fig.colorbar(cm)
@@ -519,7 +528,7 @@ class TwoDSpectrumContainer:
                 s.trim_to(window=axes)
                 
                 
-    def make_movie(self, filename, frate=20):
+    def make_movie(self, filename, frate=20, cmap=None):
         
         import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
@@ -534,7 +543,7 @@ class TwoDSpectrumContainer:
                 
         with writer.saving(fig, filename, dpi):        
             for sp in self.get_spectra():
-                sp.plot(fig=fig)
+                sp.plot(fig=fig, cmap=cmap)
                 writer.grab_frame()
             
             

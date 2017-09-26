@@ -167,7 +167,7 @@ plt.plot(t2s.data,pp1)
 plt.plot(t2s.data,pp2)
 plt.plot(t2s.data,pp3)
 plt.plot(t2s.data,pp4)
-plt.show()
+plt.savefig("points.png")
 
 #sp = twods.get_spectrum(t2s.data[-1])
 #with energy_units("1/cm"):
