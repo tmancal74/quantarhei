@@ -165,13 +165,29 @@ class TwoDSpectrum(TwoDSpectrumBase):
         
         """
         self.reph2D = self.reph2D/val
-        self.nonr2D = self.nonr2D/val               
+        self.nonr2D = self.nonr2D/val  
+
+
+    def get_PumpProbeSpectrum(self):
+        """Returns a PumpProbeSpectrum corresponding to the 2D spectrum
+        
+        """
+        from .pumpprobe import PumpProbeSpectrumCalculator
+        ppc = PumpProbeSpectrumCalculator()
+        return ppc.calculate_from_2D(self)
+    
+    
         
     
-    def plot(self, window=None, stype="total", spart="real",
-             vmax=None, colorbar=True, colorbar_loc="right",
-             fig=None, cmap=None, Npos_contours=10,
-             show_states=False):
+    def plot(self, fig=None, window=None, stype="total", spart="real",
+             vmax=None, vmin_ratio=0.5, 
+             colorbar=True, colorbar_loc="right",
+             cmap=None, Npos_contours=10,
+             show_states=False,
+             text_loc=[0.05,0.9], fontsize="20", label=None):
+        """Plots the 2D spectrum
+        
+        """
         
         if stype == "total":
             spect2D = self.reph2D + self.nonr2D 
@@ -228,18 +244,16 @@ class TwoDSpectrum(TwoDSpectrumBase):
             
         if vmax is None:
             vmax = numpy.amax(realout)            
-        vmin = -vmax/2.0
+        vmin = -vmax*vmin_ratio
         
         Npos = Npos_contours
         poslevels = [i*vmax/Npos for i in range(1, Npos)]
         neglevels = [-i*vmax/Npos for i in range(Npos,1,-1)]
-#        alllevels = [i*vmax/Npos for i in range(-Npos,Npos)]
         
         levo = self.xaxis.data[i1_min]
         prvo = self.xaxis.data[i1_max-1]
         dole = self.yaxis.data[i3_min]
         hore = self.yaxis.data[i3_max-1]
-        
         
         cm = plt.imshow(realout, extent=[self.xaxis.data[i1_min],
                                     self.xaxis.data[i1_max-1],
@@ -248,13 +262,15 @@ class TwoDSpectrum(TwoDSpectrumBase):
                    origin='lower', vmax=vmax, vmin=vmin,
                    interpolation='bilinear', cmap=cmap)  
         
-        pos = [0.1, 0.8]
+        pos = text_loc
         
-        # test
-        ax.text((prvo-levo)*pos[0]+levo,
+        # text
+        if label is not None:
+            label = label    
+            ax.text((prvo-levo)*pos[0]+levo,
                 (hore-dole)*pos[1]+dole,
-                "T="+str(self.get_t2())+"fs",
-                fontsize="15")
+                label,
+                fontsize=str(fontsize))
         
         # positive contours
         plt.contour(self.xaxis.data[i1_min:i1_max],
@@ -279,16 +295,11 @@ class TwoDSpectrum(TwoDSpectrumBase):
             plt.clim(vmin=vmin,vmax=vmax)
             fig.colorbar(cm)
             
-        if show_states:
-            plt.plot([12200,12200],[dole,hore],'--k')
-            plt.plot([levo,prvo],[11900,11900],'--k')
+        if show_states is not None:
+            for en in show_states:  
+                plt.plot([en,en],[dole,hore],'--k',linewidth=1.0)
+                plt.plot([levo,prvo],[en,en],'--k',linewidth=1.0)
             
-#        if cbmax is None:
-#            fig.colorbar(cm,ax=ax,extend="max")
-#        else:
-#            fig.colorbar(cbmax,ax=ax)
-            
-#        return cm
 
     def trim_to(self, window=None):
         """Trims the 2D spectrum to a specified region
@@ -494,14 +505,54 @@ class TwoDSpectrumContainer:
         else:
             raise Exception("Waiting time not compatible with the t2 axis")
 
+    def length(self):
+        return len(self.spectra.keys())
         
-    def get_spectra(self):
+    def get_spectra(self, start=None, end=None):
         """Returns a list or tuple of the calculated spectra
         
         """
         
         ven = [value for (key, value) in sorted(self.spectra.items())]
-        return ven
+        
+        if (start is None) and (end is None): 
+            return ven
+        else:
+            ven2 = []
+            vkeys = [key for (key, value) in sorted(self.spectra.items())]
+            for k in vkeys:
+                if k >= start and k <= end:
+                    ven2.append(self.spectra[k])
+            return ven2
+        
+    def get_PumpProbeSpectrumContainer(self, skip=0):
+        """Converts this container into PumpProbeSpectrumContainer
+        
+        """
+        
+        from .pumpprobe import PumpProbeSpectrumContainer
+        
+        k = 0
+        ppc = []
+        for sp in self.get_spectra():
+            if k == 0:
+                pp = sp.get_PumpProbeSpectrum()
+                ppc.append(pp)
+            k += 1
+            if k > skip:
+                k = 0
+            
+        length = len(ppc)
+        start = ppc[0].get_t2()
+        step = ppc[1].get_t2()-start
+
+        naxis = TimeAxis(start,length,step)        
+        ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
+
+        for sp in ppc:
+            ppcont.set_spectrum(sp)
+            
+        return ppcont
     
     def get_point_evolution(self, x, y, times):
         """Tracks an evolution of a single point on the 2D spectrum
@@ -595,12 +646,41 @@ class TwoDSpectrumContainer:
             mx = numpy.amax(spect2D)
             mxs.append(mx)
         return numpy.amax(numpy.array(mxs))
+
+    # Print iterations progress
+    def _printProgressBar(self, iteration, total, 
+                          prefix = '', suffix = '', 
+                          decimals = 1, length = 100,
+                          fill='*'):
+        """
+        Call in a loop to create terminal progress bar
+        @params:
+            iteration   - Required  : current iteration (Int)
+            total       - Required  : total iterations (Int)
+            prefix      - Optional  : prefix string (Str)
+            suffix      - Optional  : suffix string (Str)
+            decimals    - Optional  : positive number of decimals in percent complete (Int)
+            length      - Optional  : character length of bar (Int)
+            fill        - Optional  : bar fill character (Str)
+            
+        Based on: 
+        https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+        """
+#                          fill = '█'):
+        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+        filledLength = int(length * iteration // total)
+        bar = fill * filledLength + '-' * (length - filledLength)
+        print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+        # Print New Line on Complete
+        if iteration == total: 
+            print()
     
              
     def make_movie(self, filename, window=None,
                    stype="total", spart="real", 
                    cmap=None, Npos_contours=10,
-                   frate=20, dpi=100):
+                   frate=20, dpi=100, start=None, end=None,
+                   show_states=None, progressbar=False):
         
         import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
@@ -612,25 +692,41 @@ class TwoDSpectrumContainer:
         
         fig = plt.figure() 
         
+        spctr = self.get_spectra()
+        l = len(spctr)
+        last_t2 = spctr[l-1].get_t2()
+        first_t2 = spctr[0].get_t2()
+        
         mx = self.amax()
+        
+        if start is None:
+            start = first_t2
+        if end is None:
+            end = last_t2
+        
                 
         with writer.saving(fig, filename, dpi):  
             k = 0
-            for sp in self.get_spectra():
-#                if k == 0:
-#                    cbmax = sp.plot(fig=fig, cmap=cmap, vmax=mx)
-#                else:
-#                    sp.plot(fig=fig, cmap=cmap, vmax=mx, cbmax=cbmax)
+            # Initial call to print 0% progress
+            sp2write = self.get_spectra(start=start, end=end)
+            l = len(sp2write)
+            if progressbar:
+                self._printProgressBar(0, l, prefix = 'Progress:',
+                                       suffix = 'Complete', length = 50)
+            for sp in self.get_spectra(start=start, end=end):
                 sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx, 
-                        Npos_contours=Npos_contours,stype=stype,spart=spart,
-                        show_states=True)
-                #print(cm.get_clim())
-                #cm.set_clim(vmin=-mx/2.0,vmax=mx)
-                #fig.colorbar(cm, extend="max")
+                        Npos_contours=Npos_contours,
+                        stype=stype,spart=spart,
+                        show_states=show_states,
+                        label="T="+str(sp.get_t2())+"fs")
                 writer.grab_frame()
+                if progressbar:
+                    self._printProgressBar(k + 1, l, prefix = 'Progress:',
+                                           suffix = 'Complete', length = 50)
+                
                 k += 1
-                if k == 20:
-                    return
+#                if k == 20:
+#                    return
             
             
 class TwoDSpectrumCalculator:
