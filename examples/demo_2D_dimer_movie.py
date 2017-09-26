@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import matplotlib
+matplotlib.use("Agg")
+
 from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
 from quantarhei import energy_units
 
@@ -15,26 +18,12 @@ window_trim = [w1_min-off, w1_max+off, w3_min-off, w3_max+off]
 newtw = TwoDSpectrumContainer()
 newtw.load("allspectra.hdf5")
 
-sp = newtw.get_spectrum(40)
-
-sp.save("sp_orig.hdf5")
-
 with energy_units("1/cm"):
-    sp.plot(window=window_2D)
-
-    sp.trim_to(window=window_trim)
-    sp.save("sp_trimmed.hdf5")
-
-    sp.plot(window=window_2D)
-
     newtw.trimall_to(window=window_trim)
-    newtw.save("allspectra_trimmed.hdf5")
 
-
-testtw = TwoDSpectrumContainer()
-testtw.load("allspectra_trimmed.hdf5")
-
-#with energy_units("1/cm"):
-print("Plotting all trimmed spectra:\n")
-for s in testtw.get_spectra():
-    s.plot()
+print("Making movie:\n")  
+newtw.make_movie("test_movie.mp4")
+#for sp in newtw.get_spectra():
+#    print(sp.get_t2())
+#    sp.plot()
+    

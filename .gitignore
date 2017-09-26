@@ -17,6 +17,7 @@ quantarhei.egg-info
 *.hdf5
 *.npz
 *.npy
+*.mp4
 
 
 

@@ -98,7 +98,7 @@ rwa = agg.get_RWA_suggestion()
 
 # TimeAxis for t2 waiting time
 
-t2s = TimeAxis(0.0, 5, 20.0)
+t2s = TimeAxis(0.0, 500, 2.0)
 
 #
 # Set up calculator
@@ -133,15 +133,17 @@ with energy_units("1/cm"):
         
         # calculate spectra iteratively
         spect = tcalc.calculate_next()
+        # save memory by trimming the spectrum
+        spect.trim_to(window=window_2D)
         # save it to a container
         twods.set_spectrum(spect)
         # plot it
-        spect.plot(window=window_2D) #,vmax=1.0, cbmax=cbmax)
+        #spect.plot(window=window_2D) #,vmax=1.0, cbmax=cbmax)
         # save figure
-        figname = "fig"+str(round(tt2))+".png"
-        print("saving file: ", figname, " with 2D spectrum at ", tt2, "fs")
-        spect.savefig(figname)
-        spect.show()
+        #figname = "fig"+str(round(tt2))+".png"
+        #print("saving file: ", figname, " with 2D spectrum at ", tt2, "fs")
+        #spect.savefig(figname)
+        #spect.show()
         
         k += 1
         
@@ -154,16 +156,6 @@ print("Calculation took ", t_end-t_start, " sec")
 #pp2 = numpy.zeros(t2s.length)
 #k = 0
 with energy_units("1/cm"):
-    
-#    #for tt2 in t2s.data:
-#    for sp in twods.get_spectra():
-#        #sp = twods.get_spectrum(tt2)
-#        pp1[k] = sp.get_value_at(12400,12400)
-#        pp2[k] = sp.get_value_at(11800,12400)
-#        print(sp.get_value_at(12400,12400), sp.get_max_value())
-#        #sp.plot(window=window_2D)
-#        #plt.show()
-#        k += 1
         
     pp1 = twods.get_point_evolution(12250,12250,t2s)
     pp2 = twods.get_point_evolution(11900,12250,t2s)    
@@ -177,26 +169,28 @@ plt.plot(t2s.data,pp3)
 plt.plot(t2s.data,pp4)
 plt.show()
 
-sp = twods.get_spectrum(t2s.data[-1])
+#sp = twods.get_spectrum(t2s.data[-1])
+#with energy_units("1/cm"):
+#    sp.plot(window=window_2D)
+#    
+#sp.save("spectrum.hdf5")
+#
+#rsp = TwoDSpectrum()
+#rsp.load("spectrum.hdf5")
+#
+#with energy_units("1/cm"):
+#    rsp.plot(window=window_2D) 
+
 with energy_units("1/cm"):
-    sp.plot(window=window_2D)
-    
-sp.save("spectrum.hdf5")
-
-rsp = TwoDSpectrum()
-rsp.load("spectrum.hdf5")
-
-with energy_units("1/cm"):
-    rsp.plot(window=window_2D) 
-
+    twods.trimall_to(window=window_2D)
 twods.save("allspectra.hdf5")
 
-newtw = TwoDSpectrumContainer()
-newtw.load("allspectra.hdf5")
-
-sp = newtw.get_spectrum(t2s.data[-2])
-with energy_units("1/cm"):
-    sp.plot(window=window_2D)
+#newtw = TwoDSpectrumContainer()
+#newtw.load("allspectra.hdf5")
+#
+#sp = newtw.get_spectrum(t2s.data[-2])
+#with energy_units("1/cm"):
+#    sp.plot(window=window_2D)
 
         
     

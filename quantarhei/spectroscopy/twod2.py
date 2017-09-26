@@ -4,7 +4,7 @@
 
 """
 import h5py
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  
 import numpy
 
 from ..core.time import TimeAxis
@@ -168,7 +168,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
         self.nonr2D = self.nonr2D/val               
         
     
-    def plot(self, window=None, part="ReTot", vmax=None, cbmax = None):
+    def plot(self, window=None, part="ReTot", vmax=None, cbmax = None,
+             fig=None):
         
         if part == "ReTot":
             # Real part of the total spectrum
@@ -205,10 +206,16 @@ class TwoDSpectrum(TwoDSpectrumBase):
         realout = spect2D[i1_min:i1_max,i3_min:i3_max]
     
         Ncontour = 100
-        fig, ax = plt.subplots(1,1)
+        if fig is None:
+            fig, ax = plt.subplots(1,1)
+        else:
+            fig.clear()
+            fig.add_subplot(1,1,1)
+            ax = fig.axes[0]
         cm = ax.contourf(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, Ncontour, vmax=vmax)  
+                     realout, Ncontour, vmax=vmax, cmap=plt.cm.gist_rainbow)  
+            
         if cbmax is None:
             fig.colorbar(cm)
         else:
@@ -512,8 +519,25 @@ class TwoDSpectrumContainer:
                 s.trim_to(window=axes)
                 
                 
+    def make_movie(self, filename, frate=20):
         
-    
+        import matplotlib.pyplot as plt
+        import matplotlib.animation as manimation
+        
+        FFMpegWriter = manimation.writers["ffmpeg"]
+        metadata = dict(title="Test Movie", artist='Matplotlib',
+                comment='Movie support!')
+        writer = FFMpegWriter(fps=frate, metadata=metadata)
+        
+        fig = plt.figure() 
+        dpi = 200
+                
+        with writer.saving(fig, filename, dpi):        
+            for sp in self.get_spectra():
+                sp.plot(fig=fig)
+                writer.grab_frame()
+            
+            
 class TwoDSpectrumCalculator:
     """Calculator of the 2D spectrum
     
