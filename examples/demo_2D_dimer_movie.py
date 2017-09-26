@@ -19,15 +19,14 @@ window_trim = [w1_min-off, w1_max+off, w3_min-off, w3_max+off]
 newtw = TwoDSpectrumContainer()
 newtw.load("allspectra.hdf5")
 
-#with energy_units("1/cm"):
-#    #newtw.trimall_to(window=window_trim)
-#    sp = newtw.get_spectrum(50)
-#    sp.plot(cmap=plt.cm.jet)
-#    sp.show()
+with energy_units("1/cm"):
 
-print("Making movie:\n")  
-newtw.make_movie("test_movie.mp4", cmap=plt.cm.jet)
-#for sp in newtw.get_spectra():
-#    print(sp.get_t2())
-#    sp.plot()
+    print("Making movie:\n")  
+    newtw.make_movie("test_movie.mp4", 
+                     cmap=plt.cm.jet, 
+                     dpi=200,
+                     Npos_contours=10,
+                     stype="total",
+                     spart="imaginary")
+
     

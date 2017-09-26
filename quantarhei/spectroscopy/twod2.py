@@ -168,15 +168,26 @@ class TwoDSpectrum(TwoDSpectrumBase):
         self.nonr2D = self.nonr2D/val               
         
     
-    def plot(self, window=None, part="ReTot", vmax=None, cbmax=None,
-             fig=None, cmap=None):
+    def plot(self, window=None, stype="total", spart="real",
+             vmax=None, colorbar=True, colorbar_loc="right",
+             fig=None, cmap=None, Npos_contours=10,
+             show_states=False):
         
-        if part == "ReTot":
-            # Real part of the total spectrum
-            spect2D = numpy.real(self.reph2D) + numpy.real(self.nonr2D)
-         
+        if stype == "total":
+            spect2D = self.reph2D + self.nonr2D 
+        elif stype == "rephasing":
+            spect2D = self.reph2D
+        elif stype == "non-rephasing":
+            spect2D = self.nonr2D            
         else:
-            raise Exception("Undefined part of the spectrum: "+part)
+            raise Exception("Undefined spectrum type"+stype)
+        
+        if spart == "real":
+            spect2D = numpy.real(spect2D)
+        elif spart == "imaginary":
+            spect2D = numpy.imag(spect2D)
+        else:
+            raise Exception("Undefined part of the spectrum: "+spart)
          
             
         if window is not None: 
@@ -205,7 +216,6 @@ class TwoDSpectrum(TwoDSpectrumBase):
   
         realout = spect2D[i1_min:i1_max,i3_min:i3_max]
     
-        Ncontour = 100
         if fig is None:
             fig, ax = plt.subplots(1,1)
         else:
@@ -218,19 +228,67 @@ class TwoDSpectrum(TwoDSpectrumBase):
             
         if vmax is None:
             vmax = numpy.amax(realout)            
-        vmin = -vmax/0.5
-            
-        cm = ax.contourf(self.xaxis.data[i1_min:i1_max],
+        vmin = -vmax/2.0
+        
+        Npos = Npos_contours
+        poslevels = [i*vmax/Npos for i in range(1, Npos)]
+        neglevels = [-i*vmax/Npos for i in range(Npos,1,-1)]
+#        alllevels = [i*vmax/Npos for i in range(-Npos,Npos)]
+        
+        levo = self.xaxis.data[i1_min]
+        prvo = self.xaxis.data[i1_max-1]
+        dole = self.yaxis.data[i3_min]
+        hore = self.yaxis.data[i3_max-1]
+        
+        
+        cm = plt.imshow(realout, extent=[self.xaxis.data[i1_min],
+                                    self.xaxis.data[i1_max-1],
+                                    self.yaxis.data[i3_min],
+                                    self.yaxis.data[i3_max-1]],
+                   origin='lower', vmax=vmax, vmin=vmin,
+                   interpolation='bilinear', cmap=cmap)  
+        
+        pos = [0.1, 0.8]
+        
+        # test
+        ax.text((prvo-levo)*pos[0]+levo,
+                (hore-dole)*pos[1]+dole,
+                "T="+str(self.get_t2())+"fs",
+                fontsize="15")
+        
+        # positive contours
+        plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, Ncontour, vmax=vmax, vmin=vmin,
-                     cmap=cmap)  
-            
-        if cbmax is None:
+                     realout, levels=poslevels,colors="k",
+                     linewidth=1)
+        
+        # zero contour
+        plt.contour(self.xaxis.data[i1_min:i1_max],
+                     self.yaxis.data[i3_min:i3_max],
+                     realout, levels=[0],colors="b",
+                     linewidth=1)
+        
+        # negatove contours
+        plt.contour(self.xaxis.data[i1_min:i1_max],
+                     self.yaxis.data[i3_min:i3_max],
+                     realout, levels=neglevels,colors="k",
+                     linewidth=1)  
+        
+        
+        if colorbar:
+            plt.clim(vmin=vmin,vmax=vmax)
             fig.colorbar(cm)
-        else:
-            fig.colorbar(cbmax)
             
-        return cm
+        if show_states:
+            plt.plot(12200,[dole,hore],'--k')
+            plt.plot([levo,prvo],11900,'--k')
+            
+#        if cbmax is None:
+#            fig.colorbar(cm,ax=ax,extend="max")
+#        else:
+#            fig.colorbar(cbmax,ax=ax)
+            
+#        return cm
 
     def trim_to(self, window=None):
         """Trims the 2D spectrum to a specified region
@@ -526,9 +584,23 @@ class TwoDSpectrumContainer:
             axes = window
             for s in self.get_spectra():
                 s.trim_to(window=axes)
-                
-                
-    def make_movie(self, filename, frate=20, cmap=None):
+           
+    def amax(self, spart="real"):
+        """Returns maximum amplitude of the spectra in the container
+        
+        """
+        mxs = []
+        for s in self.get_spectra():       
+            spect2D = numpy.real(s.reph2D) + numpy.real(s.nonr2D)   
+            mx = numpy.amax(spect2D)
+            mxs.append(mx)
+        return numpy.amax(numpy.array(mxs))
+    
+             
+    def make_movie(self, filename, window=None,
+                   stype="total", spart="real", 
+                   cmap=None, Npos_contours=10,
+                   frate=20, dpi=100):
         
         import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
@@ -539,12 +611,26 @@ class TwoDSpectrumContainer:
         writer = FFMpegWriter(fps=frate, metadata=metadata)
         
         fig = plt.figure() 
-        dpi = 200
+        
+        mx = self.amax()
                 
-        with writer.saving(fig, filename, dpi):        
+        with writer.saving(fig, filename, dpi):  
+            k = 0
             for sp in self.get_spectra():
-                sp.plot(fig=fig, cmap=cmap)
+#                if k == 0:
+#                    cbmax = sp.plot(fig=fig, cmap=cmap, vmax=mx)
+#                else:
+#                    sp.plot(fig=fig, cmap=cmap, vmax=mx, cbmax=cbmax)
+                sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx, 
+                        Npos_contours=Npos_contours,stype=stype,spart=spart,
+                        show_states=True)
+                #print(cm.get_clim())
+                #cm.set_clim(vmin=-mx/2.0,vmax=mx)
+                #fig.colorbar(cm, extend="max")
                 writer.grab_frame()
+                k += 1
+                if k == 20:
+                    return
             
             
 class TwoDSpectrumCalculator:
