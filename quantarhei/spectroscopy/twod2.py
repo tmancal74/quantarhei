@@ -124,6 +124,16 @@ class TwoDSpectrumBase(DFunction2):
 class TwoDSpectrum(TwoDSpectrumBase):
     """This class represents a single 2D spectrum
     
+    Methods
+    -------
+    
+    plot(fig=None, window=None, stype="total", spart="real",
+         vmax=None, vmin_ratio=0.5, 
+         colorbar=True, colorbar_loc="right",
+         cmap=None, Npos_contours=10,
+         show_states=None,
+         text_loc=[0.05,0.9], fontsize="20", label=None)
+    
     
     """
     
@@ -183,10 +193,25 @@ class TwoDSpectrum(TwoDSpectrumBase):
              vmax=None, vmin_ratio=0.5, 
              colorbar=True, colorbar_loc="right",
              cmap=None, Npos_contours=10,
-             show_states=False,
+             show_states=None,
              text_loc=[0.05,0.9], fontsize="20", label=None):
         """Plots the 2D spectrum
         
+        Parameters
+        ----------
+        
+        fig : matplotlib.figure
+            Figure into which plotting will be done. This is used e.g. when
+            making a movie using moview writter (may be obsolete)
+            
+        window : list
+            Specifies the plotted window in current energy units. When axes
+            are x and y, the window is specified as window=[x_min,x_max,y_min,y_max]
+            
+        stype : {"total", "rephasing", "non-rephasing"}
+            type of the spectrum 
+            
+            
         """
         
         if stype == "total":
@@ -365,8 +390,6 @@ class TwoDSpectrum(TwoDSpectrumBase):
     def savefig(self, filename):
         
         plt.savefig(filename)
-        
-        
         
     def _create_root_group(self, start, name):
         return start.create_group(name)
