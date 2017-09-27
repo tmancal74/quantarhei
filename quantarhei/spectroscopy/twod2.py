@@ -31,7 +31,7 @@ except:
     # FIXME: There should be an optional warning and a fall back onto
     # quantarhei.implementations.aceto module
     #
-    raise Exception("Aceto not available")
+    #raise Exception("Aceto not available")
     from ..implementations.aceto import nr3td            
     _have_aceto = False 
 
