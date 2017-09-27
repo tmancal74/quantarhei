@@ -32,7 +32,7 @@ except:
     # quantarhei.implementations.aceto module
     #
     #raise Exception("Aceto not available")
-    from ..implementations.aceto import nr3td            
+    #from ..implementations.aceto import nr3td            
     _have_aceto = False 
 
 
