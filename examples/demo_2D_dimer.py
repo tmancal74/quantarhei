@@ -101,7 +101,7 @@ rwa = agg.get_RWA_suggestion()
 
 # TimeAxis for t2 waiting time
 
-t2s = TimeAxis(0.0, 500, 2.0)
+t2s = TimeAxis(0.0, 5, 20.0)
 
 #
 # Set up calculator
