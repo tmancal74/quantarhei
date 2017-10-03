@@ -43,12 +43,24 @@ class Molecule(UnitsManaged):
     elenergies : list of real numbers
         List of electronic energies, one per state. It includes ground state
         energy. It wise to chose the ground state energy as zero. 
-    dmoments : list real vectors
-        List of transition dipolemoments (currently only from the ground state)
+
+    Properties
+    ----------
+    
+    position : real array
+       3D vector holding a position of the molecule in space
+       
+    elenergies : real array
+       vector of electronic energies
+       
+    dmoments : real array
+       matrix of transition dipole moments. One vector of the transition
+       dipole moment for each pair of electronic states
+
         
     Methods
     -------
-    
+    ... to be continued
     
     """
     
@@ -67,7 +79,7 @@ class Molecule(UnitsManaged):
     nmod     = Integer('nmod')
     
     
-    def __init__(self, name=None, elenergies=[0.0,1.0]): #,dmoments):
+    def __init__(self, elenergies=[0.0,1.0], name=None): #,dmoments):
     
         #self.manager = Manager()
         
