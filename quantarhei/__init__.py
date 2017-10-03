@@ -17,19 +17,49 @@
 
 
     For support contact the author at : mancal@karlov.mff.cuni.cz
-
+    
+    
 *******************************************************************************
 
+    Classes available from quantarhei are devided into several functional
+    groups. They are all loaded similarly to the Manager class as
+    
+    from quantarhei import Manager
+    
+    Builders
+    --------
+    
+    Mode .......... represents a harmonic vibrational mode of a molecule
+    Molecule ...... represents a molecule
+    Aggregate ..... represents an aggregate of molecules
+    PDBFile ....... reader and writter of structures from PDB format
+    Disorder ...... class managing static disorder of molecular transition
+                    energies
+    
+    
+    Core classes
+    ------------
+    
+    TimeAxis ......... linear axis of real values representing discrete time
+    FrequencyAxis .... linear axis of real values representing discrete
+                       frequency axis
+    DFunction ........ discrete function
+    
+    
+    Various managers
+    ----------------
+    
+    Manager ............ the main behind-the-scenes manager of the package
+    energy_units ....... energy units manager for use with the "with" construct
+    frequency_units .... frequency units manager for use with 
+                         the "with" construct
+    eigenbasis_of ...... manager of the basis transformations to be used with 
+                         the "with" construct
+    set_current_units .. function to set current units globally
+    
+    ... to be continued
 
-Rules:
-------
-
-1) All imports must be done as relative
-2) Each import imports only one entity
-3) Wherever meaningful, there is a module_name_test.py for every module
-
-
-
+*******************************************************************************
 
 """
 

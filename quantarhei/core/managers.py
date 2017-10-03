@@ -25,25 +25,29 @@ class Manager(metaclass=Singleton):
 
     Manager is a singleton class, only one instance exists at all times
     and all managing objects have the instance of the Manager.
-
-    Units Management
-    ----------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.UnitsManaged class.
-
-
-    Basis Conversion Management
-    ---------------------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.BasisManaged class.
-
-    Basis management works like this: when an class is defined, and its
-    property needs to be basis managed, one should use a predefined type
-    `basis_managed_array_property`
-
-
-
+    
+    Properies
+    ---------
+    
+    version : string
+        contains the package version number
+ 
+    
+    allower_utypes : list
+        contains a list of unit types which can be controlled by the Manager
+        
+    units : dictionary
+        dictionary of available units for each units type
+        
+    units_repre : dictionary
+        dictionary of abreviations used to represent various units
+        
+    units_repre_latex : dictionary
+        dictionary of latex prepresentations of available units
+    
     """
+    
+
 
     #version = "0.0.11"
     version = pkg_resources.require("quantarhei")[0].version
@@ -509,6 +513,31 @@ class Manager(metaclass=Singleton):
         if self.parallel_conf is None:
             self.parallel_conf = DistributedConfiguration()
         return self.parallel_conf
+
+
+"""
+
+    Units Management
+    ----------------
+    Units management is performed for all classes derived from
+    quantarhei.managers.UnitsManaged class.
+
+
+    Basis Conversion Management
+    ---------------------------
+    Units management is performed for all classes derived from
+    quantarhei.managers.BasisManaged class.
+
+    Basis management works like this: when an class is defined, and its
+    property needs to be basis managed, one should use a predefined type
+    `basis_managed_array_property`
+
+
+
+"""
+
+
+
             
 class Managed:
     """Base class for managed objects 
