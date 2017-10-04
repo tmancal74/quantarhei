@@ -53,7 +53,25 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
         
           
     def dipole_strength(self,from_state=0, to_state=1):
+        """Calculates transition dipole strength between two states
+        
+        """
+        # FIXME: we should specify transition rather then from_ and to_state
         d = numpy.zeros(3,dtype=numpy.float64)        
         for i in range(3):        
             d[i] = self.data[from_state,to_state,i]
         return numpy.dot(d,d)
+    
+    def get_compoment_data(self, n):
+        """Returns a component data of the transition dipole moment operator
+        
+        """
+        return self.data[:,:,n]
+    
+    def get_component(self, n):
+        """Returns a component of the transition dipole moment operator
+        
+        """
+        return Operator(dim=self.dim, data=self.data[:,:,n])
+    
+    
