@@ -72,6 +72,6 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
         """Returns a component of the transition dipole moment operator
         
         """
-        return Operator(dim=self.dim, data=self.data[:,:,n])
+        return SelfAdjointOperator(dim=self.dim, data=self.data[:,:,n])
     
     
