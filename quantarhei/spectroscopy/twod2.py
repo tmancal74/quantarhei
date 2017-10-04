@@ -1113,7 +1113,7 @@ class TwoDSpectrumCalculator:
             for tt2 in teetoos:
 
                 onetwod = self.calculate_next()
-                twods.set_spectrum(tt2, onetwod)   
+                twods.set_spectrum(onetwod)   
             
             return twods
         
