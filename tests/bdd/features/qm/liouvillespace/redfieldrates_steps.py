@@ -48,8 +48,8 @@ def redfield_relaxation(self):
     #
     with energy_units(world.h_units):
         en = world.senergy
-        m1 = Molecule("mol1", [0.0, en])
-        m2 = Molecule("mol2", [0.0, en])
+        m1 = Molecule([0.0, en],"mol1")
+        m2 = Molecule([0.0, en], "mol2")
 #        m3 = Molecule("mol2", [0.0, en])
         
     m1.set_egcf((0,1), cf)
