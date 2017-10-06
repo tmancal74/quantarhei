@@ -8,6 +8,7 @@ from ..stepslib import temperature
 
 import pkg_resources
 import numpy
+import scipy.constants as const
 
 #from quantarhei import TimeAxis
 from quantarhei import CorrelationFunction
@@ -18,8 +19,6 @@ from quantarhei import Aggregate
 from quantarhei import AbsSpectrumCalculator
 
 from quantarhei.core.units import eps0_int
-import scipy.constants as const
-
 from quantarhei.qm.corfunctions import CorrelationFunctionMatrix
 
 @step(r'reorganization energy (\d+(?:\.\d+)?) "([^"]*)"') 
@@ -114,7 +113,7 @@ def absorption_spectrum_dimer(self):
     m1.position = [0.0,0.0,0.0]
     m2.position = [5.0,0.0,0.0] 
     
-    AG = Aggregate("TestAggregate")
+    AG = Aggregate(name="TestAggregate")
     #AG.set_egcf_matrix(cm)
 
     AG.add_Molecule(m1)
@@ -164,7 +163,7 @@ def absorption_spectrum_trimer(self):
     m3.position = [0.0,5.0,0.0] 
     
     
-    AG = Aggregate("TestAggregate")
+    AG = Aggregate(name="TestAggregate")
 
     AG.add_Molecule(m1)
     AG.add_Molecule(m2)

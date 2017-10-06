@@ -29,7 +29,7 @@ def hamiltonian_is_created(self):
         m1 = Molecule([0.0, en], "mol1")
         m2 = Molecule([0.0, en], "mol2")
         
-    agg = Aggregate("Homodimer")
+    agg = Aggregate(name="Homodimer")
     
     agg.add_Molecule(m1)
     agg.add_Molecule(m2)

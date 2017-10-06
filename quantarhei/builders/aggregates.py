@@ -47,7 +47,7 @@ class Aggregate(UnitsManaged):
     
     """
     
-    def __init__(self, name="", molecules=None):
+    def __init__(self, molecules=None, name=""):
 
         self.mnames = {}
         self.monomers = []

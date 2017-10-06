@@ -42,7 +42,7 @@ def redfield_tensor(self):
     m1.set_egcf((0,1), cf)
     m2.set_egcf((0,1), cf)
         
-    agg = Aggregate("Homodimer")
+    agg = Aggregate(name="Homodimer")
     
     agg.add_Molecule(m1)
     agg.add_Molecule(m2)
