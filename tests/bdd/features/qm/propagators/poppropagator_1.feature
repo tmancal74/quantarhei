@@ -16,7 +16,7 @@ Scenario Outline: Propagator for a simple relaxation matrix
 
 
     Given a propagation time interval from zero with time step <time_step> fs and <nsteps> steps
-    And a subset time interval from zero with time step <time_step_2> fs and <nsteps_2> steps 
+    And a subset time with time step <time_step_2> fs and <nsteps_2> steps
     And a relaxation matrix with uphill time <t_up> fs and downhill time <t_down> fs
     When I calculate density matrix propagation and propagation matrix
     Then density matrix propagation and propagation matrix aggree

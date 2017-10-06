@@ -48,7 +48,7 @@ example_1 = """
 """
 
 
-@step(r' a propagation time interval from zero with time step '+match_number+r' fs and '
+@step(r'a propagation time interval from zero with time step '+match_number+r' fs and '
       +match_number+r' steps')
 def time_interval_prop(self, time_step, nsteps):
     """Matching the following
@@ -59,21 +59,23 @@ def time_interval_prop(self, time_step, nsteps):
     
     """
     world.time = TimeAxis(0.0, int(nsteps), float(time_step))
+    print("Setting time")
 
-@step(r' a subset time interval from zero with time step '+match_number+r' fs and '
+@step(r'a subset time with time step '+match_number+r' fs and '
       +match_number+r' steps')
 def time_interval_sub(self, time_step, nsteps):
     """Matching the following
     
     #begin_feature    
-    And a subset time interval from zero with time step <time_step_2> fs and <nsteps_2> steps 
+    And a subset time with time step <time_step_2> fs and <nsteps_2> steps
     #end_feature
     
     """
-    world.time_sub = TimeAxis(0.0, int(nsteps), float(time_step))
+    world.subtime = TimeAxis(0.0, int(nsteps), float(time_step))
+    print("Setting subtime")
 
 
-@step(r' a relaxation matrix with uphill time '+match_number+r' fs and downhill time '
+@step(r'a relaxation matrix with uphill time '+match_number+r' fs and downhill time '
       +match_number+r' fs')
 def relaxation_matrix(self, uphill, downhill):
     """Matching the following
@@ -108,11 +110,13 @@ def calculation_of_propagation(self):
     
     pop_t = prop.propagate(pop_ini)
     
-    U = prop.get_PropagationMatrix(world.time_sub)
+    sta = world.subtime
     
-    pop_sub = numpy.zeros((2,world.time_sub.length))
+    U = prop.get_PropagationMatrix(sta)
     
-    for i in range(world.time_sub.length):
+    pop_sub = numpy.zeros((2,sta.length))
+    
+    for i in range(sta.length):
         pop_sub[:,i] = numpy.dot(U[:,:,i],pop_ini)  
         
     world.pop_t = pop_t
@@ -131,11 +135,11 @@ def test_of_agreement(self):
     pop_t = world.pop_t 
     pop_sub = world.pop_sub   
     
-    #Nt = world.time.length
-    Ns = world.time_sub.length
+    
+    Ns = world.subtime.length
     
     dt = world.time.step
-    ds = world.time_sub.step
+    ds = world.subtime.step
     N = round(ds/dt)
     for i in range(Ns):
         numpy.testing.assert_allclose(pop_sub[:,i],pop_t[i*N,:])

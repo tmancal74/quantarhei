@@ -73,7 +73,7 @@ def absorption_spectrum_molecule(self):
     cf = world.cf
  
     with energy_units("1/cm"):
-        m = Molecule("Mol",[0.0, 12000])
+        m = Molecule([0.0, 12000])
     m.set_dipole(0,1,dd)
     
     m.set_egcf([0,1],cf)
@@ -100,10 +100,10 @@ def absorption_spectrum_dimer(self):
     #cm.set_correlation_function(cf,[(1,1),(0,0)])
 
     with energy_units("1/cm"):
-        m1 = Molecule("Mol",[0.0, 12100])
+        m1 = Molecule([0.0, 12100])
         m1.set_dipole(0,1,dd1)
         m1.set_transition_environment((0,1), cf)
-        m2 = Molecule("Mol",[0.0, 12000])
+        m2 = Molecule([0.0, 12000])
         m2.set_dipole(0,1,dd2)
         m2.set_transition_environment((0,1), cf)
         
@@ -148,13 +148,13 @@ def absorption_spectrum_trimer(self):
     cf = world.cf
 
     with energy_units("1/cm"):
-        m1 = Molecule("Mol",[0.0, 12100])
+        m1 = Molecule([0.0, 12100])
         m1.set_dipole(0,1,dd1)
         m1.set_transition_environment((0,1), cf)
-        m2 = Molecule("Mol",[0.0, 11800])
+        m2 = Molecule([0.0, 11800])
         m2.set_dipole(0,1,dd2)
         m2.set_transition_environment((0,1), cf)
-        m3 = Molecule("Mol",[0.0, 12500])
+        m3 = Molecule([0.0, 12500])
         m3.set_dipole(0,1,dd3)  
         m3.set_transition_environment((0,1), cf)
         

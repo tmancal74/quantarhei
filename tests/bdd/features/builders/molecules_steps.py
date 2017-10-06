@@ -35,7 +35,7 @@ def trans_energies_for_a_molecule(self): #,en0,en1,units):
 @step(r'molecule is created')
 def when_Molecule_is_created(self):
     with energy_units(world.units):
-        world.m1 = Molecule("Mol1",[world.e0,world.e1]) 
+        world.m1 = Molecule([world.e0,world.e1], "Mol1") 
 
 """Then"""
 @step(r"molecule has a correct Hamiltonian with values (\d+(?:\.\d+)?) and (\d+(?:\.\d+)?) in internal units")

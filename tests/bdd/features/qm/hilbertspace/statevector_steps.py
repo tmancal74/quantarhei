@@ -26,8 +26,8 @@ def hamiltonian_is_created(self):
     #
     with energy_units(world.h_units):
         en = world.senergy
-        m1 = Molecule("mol1", [0.0, en])
-        m2 = Molecule("mol2", [0.0, en])
+        m1 = Molecule([0.0, en], "mol1")
+        m2 = Molecule([0.0, en], "mol2")
         
     agg = Aggregate("Homodimer")
     

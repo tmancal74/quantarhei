@@ -79,7 +79,7 @@ class Molecule(UnitsManaged):
     nmod     = Integer('nmod')
     
     
-    def __init__(self, elenergies=[0.0,1.0], name=None): #,dmoments):
+    def __init__(self,  elenergies=[0.0,1.0], name=None): #,dmoments):
     
         #self.manager = Manager()
         
