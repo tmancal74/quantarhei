@@ -6,7 +6,7 @@ from ..core.units import cm2int
 #from ..utils.vectors import normalize2
 from .bacteriochlorophylls import BacterioChlorophyll
 
-class BacterioPheophitin(BacterioChlorophyll):
+class BacterioPheophytin(BacterioChlorophyll):
     
     def __init__(self, model_type=None):
         super().__init__(model_type=model_type)
