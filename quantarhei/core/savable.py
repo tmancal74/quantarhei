@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy
+import h5py
 
-class SavableObject:
+class Savable:
     """
     
     
@@ -9,37 +10,60 @@ class SavableObject:
     
     """
     
-    def save_object(self):
+    def save(self, filename):
         """This method should be implemented in classes that inherit from here
         
         """
-        raise Exception("'save_object' method is not implemented")
+        raise Exception("'save' method is not implemented")
     
+    def save_in(self, loc, name):
+        pass
     
-    def load_object(self):
+    def load(self, filename):
         """This method should be implemented in classes that inherit from here
         
         """        
-        raise Exception("'save_object' method is not implemented")
+        raise Exception("'save' method is not implemented")
         
+    def load_from(self, loc, name):
+        pass
     
-    def save_string_properties(self, file, properties):
-        """Creates a numpy array of strings and saves it
-        
+    
+    
+    def save_string_attributes(self, loc, dictionary):
         """
         
-        for key in properties.keys():
-            print(key, properties[key])
-
-    def save_integer_properties(self, file, properties):
-        """Creates a numpy array of integers and saves it
+        """
+        pass
+    
+    
+    def save_numeric_attributes(self, loc, dictionary):
+        """
         
         """        
-        for key in properties.keys():
-            print(key, properties[key])          
+        pass
+    
+    def save_bool_attributes(self, loc, dictionary):
+        pass
+    
+    def save_array(self, loc, name, data):
+        pass
+    
         
+    def load_string_attributes(self, loc, attrlist):
+        pass
+    
+    def load_numeric_attributes(self, loc, attrlist):
+        pass
+    
+    def load_bool_attributes(self, loc, attrlist):
+        pass
+    
+    def load_array(self, loc, name):
+        pass
+    
         
-class TestObject(SavableObject):
+class TestObject(Savable):
     """
     
     
@@ -53,7 +77,7 @@ class TestObject(SavableObject):
         self.N = 23
         
         
-    def save_object(self, file):
+    def save(self, filename):
         
         # strings
         strs = dict(name=self.name,
@@ -61,23 +85,25 @@ class TestObject(SavableObject):
         # integers
         ints = dict(N=self.N)
         
-        #
-        # Saving all types
-        #
-        self.save_string_properties(file, strs)
-        self.save_integer_properties(file, ints)
+        with h5py.File(filename,"w") as file:
+
+            #
+            # Saving all types
+            #
+            self.save_string_attributes(file, strs)
+            self.save_numeric_attributes(file, ints)
         
         
-    def load_object(self, file):
-        pass
-    
-        #
-        # Load all types
-        #
-    
-        # strings
-    
-        # integers
-    
-        # ...
         
+    def load(self, file):
+        
+        string_attr_names = ["name", "class_name"]
+        string_attrs = self.load_string_attributes(file, string_attr_names)
+        self.name = string_attrs["name"]
+        self.class_name = string_attrs["class_name"]
+        
+        numeric_attr_names = ["N"]
+        numeric_attrs = self.load_numeric_attributes(file, numeric_attr_names)
+        self.N = numeric_attrs["N"]
+        
+                
