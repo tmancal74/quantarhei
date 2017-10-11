@@ -83,5 +83,11 @@ class TestAggregate(unittest.TestCase):
             self.assertEqual(self.agg.mnames[key],agg.mnames[key])
         numpy.testing.assert_array_equal(self.agg.resonance_coupling, 
                                          agg.resonance_coupling) 
+        mnames = ["Molecule 1", "Molecule 2"]
+        for k in range(agg.nmono):
+            m = agg.monomers[k]
+            self.assertIn(m.name, mnames)
+            mnames.remove(m.name)
+            
 
         

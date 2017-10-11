@@ -34,6 +34,7 @@ from .aggregate_states import electronic_state
 from .aggregate_states import vibronic_state
 
 from ..core.managers import energy_units
+from .molecules import Molecule
 
           
 class Aggregate(UnitsManaged):
@@ -210,7 +211,15 @@ class Aggregate(UnitsManaged):
                                    data=numpy.array([]))
         
     def _save_monomers(self, rootgrp):
-        pass
+        """Saves molecules of the aggregate
+        
+        """
+        k = 0
+        molecules_root = self._create_root_group(rootgrp, "molecules")
+        for m in self.monomers:
+            m.save_as(molecules_root,"Molecule"+str(k))
+            k += 1
+            
                     
     def load(self, filename):
         """Loads the whole object from a file
@@ -262,9 +271,18 @@ class Aggregate(UnitsManaged):
         if self.resonance_coupling.size == 0:
             self.resonance_coupling = None
             
-    def _load_monomers(self,rootgrp):
-        pass
-            
+    def _load_monomers(self, rootgrp):
+        """Loads molecules of the aggregate
+        
+        """
+        k = 0
+        self.monomers = []
+        molecules_root = rootgrp["molecules"]
+        for k in range(self.nmono):
+            m = Molecule()
+            m.load_as(molecules_root,"Molecule"+str(k))
+            self.monomers.append(m)
+            k += 1            
 
     ########################################################################
     #

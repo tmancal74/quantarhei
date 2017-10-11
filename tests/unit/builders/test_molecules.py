@@ -2,6 +2,7 @@
 
 import unittest
 import numpy
+import h5py
 
 """
 *******************************************************************************
@@ -55,6 +56,42 @@ class TestMolecule(unittest.TestCase):
         h[2,2] = 2.0
         
         self.assertTrue(numpy.allclose(H.data,h))
+
+    def test_saving_of_molecule(self):
+        """Testing the saving capability of the Molecule class
+        
+        
+        """
+        use_temporary_file = True
+        
+        if use_temporary_file: 
+            
+            drv = "core"
+            bcs = False
+        
+            with h5py.File('tempfile.hdf5', 
+                           driver=drv, 
+                           backing_store=bcs) as f:
+                                             
+                self.m.save_as(f,"Molecule")
+                
+                # reread it
+                m = Molecule()
+                m.load_as(f,"Molecule")
+
+        else:
+
+            with h5py.File('tempfile.hdf5') as f:                                           
+                self.m.save_as(f,"Molecules")
+            
+            with h5py.File('tempfile.hdf5') as f:
+                m = Molecule()
+                m.load_as(f,"Molecules")
+            
+
+        self.assertEqual(self.m.name, m.name)
+        
+
         
         
 class TestMoleculeVibrations(unittest.TestCase):
