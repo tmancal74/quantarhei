@@ -2,6 +2,7 @@
 
 import unittest
 import h5py
+import numpy
 
 """
 *******************************************************************************
@@ -14,6 +15,7 @@ import h5py
 """
 
 from quantarhei import Aggregate
+from quantarhei import Molecule
 
 
 class TestAggregate(unittest.TestCase):
@@ -23,7 +25,11 @@ class TestAggregate(unittest.TestCase):
     """
     
     def setUp(self):
-        self.agg = Aggregate(name="TestAgg")     
+        m1 = Molecule(name="Molecule 1", elenergies=[0.0, 1.0])
+        m2 = Molecule(name="Molecule 2", elenergies=[0.0, 1.0])
+        self.agg = Aggregate(name="TestAgg", molecules=[m1,m2])
+        
+        self.agg.init_coupling_matrix()
     
     def test_saving_of_aggregate(self):
         """Testing the saving capability of the Aggregate class
@@ -70,4 +76,12 @@ class TestAggregate(unittest.TestCase):
                          agg._has_relaxation_tensor)
         self.assertEqual(self.agg._relaxation_theory, agg._relaxation_theory)
         self.assertEqual(self.agg._built, agg._built)
+        self.assertEqual(self.agg.Nel,agg.Nel)
+        self.assertEqual(self.agg.Ntot,agg.Ntot)
+        self.assertEqual(self.agg.Nb,agg.Nb)
+        for key in agg.mnames.keys():
+            self.assertEqual(self.agg.mnames[key],agg.mnames[key])
+        numpy.testing.assert_array_equal(self.agg.resonance_coupling, 
+                                         agg.resonance_coupling) 
+
         

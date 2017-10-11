@@ -53,7 +53,7 @@ class Aggregate(UnitsManaged):
     
     def __init__(self, molecules=None, name=""):
 
-        self.mnames = {}    
+        self.mnames = {}    #
         self.monomers = []   
         self.nmono = 0         #
         self.name = name       #
@@ -93,9 +93,9 @@ class Aggregate(UnitsManaged):
         
         self.mult = 0                #
         self.sbi_mult = 0            #
-        self.Nel = 0
-        self.Ntot = 0
-        self.Nb = 0
+        self.Nel = 0                 #
+        self.Ntot = 0                #
+        self.Nb = 0                  #
         
         self.vibindices = []
         self.which_band = None
@@ -129,19 +129,19 @@ class Aggregate(UnitsManaged):
         
         
         """
-        self.mnames = {}
+        self.mnames = {}   #
         self.monomers = []
-        self.nmono = 0
-        self.mult = 0
-        self.sbi_mult = 0
+        self.nmono = 0      #
+        self.mult = 0       #
+        self.sbi_mult = 0    #
 
-        self._has_egcf_matrix = False
+        self._has_egcf_matrix = False   #
         self.egcf_matrix = None
         
-        self._has_system_bath_interaction = False
+        self._has_system_bath_interaction = False  #
        
-        self.coupling_initiated = False
-        self.resonance_coupling = None
+        self.coupling_initiated = False     #
+        self.resonance_coupling = None    #
         
         self._init_me()        
         
@@ -163,6 +163,8 @@ class Aggregate(UnitsManaged):
         """        
         root = self._create_root_group(loc, name)
         self._save_attributes(root)
+        self._save_resonance_coupling(root)
+        self._save_monomers(root)
                 
             
     def _create_root_group(self, start, name):
@@ -190,6 +192,25 @@ class Aggregate(UnitsManaged):
         rootgrp.attrs.create("_relaxation_theory",
                              numpy.string_(self._relaxation_theory))
         rootgrp.attrs.create("_built",self._built)  
+        rootgrp.attrs.create("Nel", self.Nel)
+        rootgrp.attrs.create("Ntot",self.Ntot)
+        rootgrp.attrs.create("Nb", self.Nb)
+        
+        mnames_root = self._create_root_group(rootgrp, "mnames")
+        for key in self.mnames.keys():
+            val = self.mnames[key]
+            mnames_root.attrs.create(key, val)
+            
+    def _save_resonance_coupling(self, rootgrp):
+        if self.resonance_coupling is not None:
+            rootgrp.create_dataset("resonance_coupling",
+                                   data=self.resonance_coupling)
+        else:
+            rootgrp.create_dataset("resonance_coupling",
+                                   data=numpy.array([]))
+        
+    def _save_monomers(self, rootgrp):
+        pass
                     
     def load(self, filename):
         """Loads the whole object from a file
@@ -207,6 +228,8 @@ class Aggregate(UnitsManaged):
         """
         root = loc[name]
         self._load_attributes(root)
+        self._load_resonance_coupling(root)
+        self._load_monomers(root)
         
         
     def _load_attributes(self, rootgrp):
@@ -226,7 +249,22 @@ class Aggregate(UnitsManaged):
         self._relaxation_theory = \
             rootgrp.attrs["_relaxation_theory"].decode("utf-8")
         self._built = rootgrp.attrs["_built"]
+        self.Nel = rootgrp.attrs["Nel"]
+        self.Ntot = rootgrp.attrs["Ntot"]
+        self.Nb = rootgrp.attrs["Nb"]
+        mnames_root = rootgrp["mnames"]
+        for key in mnames_root.attrs.keys():
+            val = mnames_root.attrs[key]
+            self.mnames[key] = val
 
+    def _load_resonance_coupling(self, rootgrp):
+        self.resonance_coupling = numpy.array(rootgrp["resonance_coupling"])
+        if self.resonance_coupling.size == 0:
+            self.resonance_coupling = None
+            
+    def _load_monomers(self,rootgrp):
+        pass
+            
 
     ########################################################################
     #
