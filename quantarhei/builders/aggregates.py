@@ -53,18 +53,18 @@ class Aggregate(UnitsManaged):
     
     def __init__(self, molecules=None, name=""):
 
-        self.mnames = {}
-        self.monomers = []
-        self.nmono = 0
-        self.name = name
-        self.mult = 0
+        self.mnames = {}    
+        self.monomers = []   
+        self.nmono = 0         #
+        self.name = name       #
+        self.mult = 0          #
 
-        self._has_egcf_matrix = False
+        self._has_egcf_matrix = False #
         self.egcf_matrix = None
         
-        self._has_system_bath_interaction = False
+        self._has_system_bath_interaction = False #
         
-        self.coupling_initiated = False
+        self.coupling_initiated = False #
         self.resonance_coupling = None
         
         if molecules is not None:
@@ -85,14 +85,14 @@ class Aggregate(UnitsManaged):
         self.FC = fcstorage()
         self.ops = operator_factory()
         
-        self._has_relaxation_tensor = False
+        self._has_relaxation_tensor = False #
         
-        self._relaxation_theory = ""
+        self._relaxation_theory = "" #
         
-        self._built = False    
+        self._built = False     #
         
-        self.mult = 0
-        self.sbi_mult = 0
+        self.mult = 0                #
+        self.sbi_mult = 0            #
         self.Nel = 0
         self.Ntot = 0
         self.Nb = 0
@@ -180,7 +180,16 @@ class Aggregate(UnitsManaged):
         rootgrp.attrs.create("nmono",self.nmono)
         rootgrp.attrs.create("mult",self.mult)
         rootgrp.attrs.create("sbi_mult",self.mult)
-        
+        rootgrp.attrs.create("name", numpy.string_(self.name))
+        rootgrp.attrs.create("_has_egcf_matrix", self._has_egcf_matrix)
+        rootgrp.attrs.create("_has_system_bath_interaction", 
+                             self._has_system_bath_interaction)
+        rootgrp.attrs.create("coupling_initiated", self.coupling_initiated) 
+        rootgrp.attrs.create("_has_relaxation_tensor", 
+                             self._has_relaxation_tensor)
+        rootgrp.attrs.create("_relaxation_theory",
+                             numpy.string_(self._relaxation_theory))
+        rootgrp.attrs.create("_built",self._built)  
                     
     def load(self, filename):
         """Loads the whole object from a file
@@ -207,9 +216,16 @@ class Aggregate(UnitsManaged):
         """
         self.nmono = rootgrp.attrs["nmono"]
         self.mult = rootgrp.attrs["mult"]
-        self.mult = rootgrp.attrs["sbi_mult"]   
-
-
+        self.mult = rootgrp.attrs["sbi_mult"] 
+        self.name = rootgrp.attrs["name"].decode("utf-8")
+        self._has_egcf_matrix = rootgrp.attrs["_has_egcf_matrix"]
+        self._has_system_bath_interaction = \
+            rootgrp.attrs["_has_system_bath_interaction"]
+        self.coupling_initiated = rootgrp.attrs["coupling_initiated"]
+        self._has_relaxation_tensor = rootgrp.attrs["_has_relaxation_tensor"]
+        self._relaxation_theory = \
+            rootgrp.attrs["_relaxation_theory"].decode("utf-8")
+        self._built = rootgrp.attrs["_built"]
 
 
     ########################################################################
