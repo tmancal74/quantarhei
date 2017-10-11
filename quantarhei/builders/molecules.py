@@ -847,8 +847,26 @@ class Molecule(UnitsManaged):
         else:
             return None
 
+    def _create_root_group(self, start, name):
+        """Creates the root "directory" of the tree to save
+        
+        """
+        return start.create_group(name)
+    
+    def save(self, filename):
+        pass
 
+    def load(self, filename):
+        pass
+    
+    def save_as(self, root, name):
+        rtg = self._create_root_group(root, name)
+        rtg.attrs.create("name", numpy.string_(self.name))
 
+    def load_as(self, root, name):
+        rtg = root[name]
+        self.name = rtg.attrs["name"].decode("utf-8")
+    
 
 
     def __str__(self):
