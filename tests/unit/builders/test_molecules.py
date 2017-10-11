@@ -90,6 +90,8 @@ class TestMolecule(unittest.TestCase):
             
 
         self.assertEqual(self.m.name, m.name)
+        self.assertEqual(self.m.nel, m.nel)
+        numpy.testing.assert_array_equal(self.m.elenergies, m.elenergies)
         
 
         
