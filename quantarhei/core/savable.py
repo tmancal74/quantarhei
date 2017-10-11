@@ -3,7 +3,7 @@ import numpy
 import h5py
 
 class Savable:
-    """
+    """Class implementing object persistence through saving to hdf5 files
     
     
     
@@ -29,40 +29,46 @@ class Savable:
         pass
     
     
-    
-    def save_string_attributes(self, loc, dictionary):
+    #
+    # saving methods
+    #
+    def _save_string_attributes(self, loc, dictionary):
         """
         
         """
         pass
     
     
-    def save_numeric_attributes(self, loc, dictionary):
+    def _save_numeric_attributes(self, loc, dictionary):
         """
         
         """        
         pass
     
-    def save_bool_attributes(self, loc, dictionary):
+    def _save_bool_attributes(self, loc, dictionary):
         pass
     
-    def save_array(self, loc, name, data):
+    def _save_array(self, loc, name, data):
         pass
     
+    #
+    # loading methods
+    #   
+    def _load_string_attributes(self, loc, attrlist):
+        pass
+    
+    def _load_numeric_attributes(self, loc, attrlist):
+        pass
+    
+    def _load_bool_attributes(self, loc, attrlist):
+        pass
+    
+    def _load_array(self, loc, name):
+        pass
+    
+     
         
-    def load_string_attributes(self, loc, attrlist):
-        pass
     
-    def load_numeric_attributes(self, loc, attrlist):
-        pass
-    
-    def load_bool_attributes(self, loc, attrlist):
-        pass
-    
-    def load_array(self, loc, name):
-        pass
-    
-        
 class TestObject(Savable):
     """
     
