@@ -10,6 +10,7 @@ an interface to various methods of open quantum systems theory.
 """
 
 import numpy
+import h5py
 
 from ..core.managers import UnitsManaged
 from ..core.units import cm2int
@@ -31,6 +32,9 @@ from ..spectroscopy import diagramatics as diag
 #from .aggregate_states import aggregate_state
 from .aggregate_states import electronic_state
 from .aggregate_states import vibronic_state
+
+from ..core.managers import energy_units
+
           
 class Aggregate(UnitsManaged):
     """ Molecular aggregate 
@@ -61,7 +65,7 @@ class Aggregate(UnitsManaged):
         self._has_system_bath_interaction = False
         
         self.coupling_initiated = False
-        self.resonance_couplin = None
+        self.resonance_coupling = None
         
         if molecules is not None:
             for m in molecules:
@@ -137,11 +141,76 @@ class Aggregate(UnitsManaged):
         self._has_system_bath_interaction = False
        
         self.coupling_initiated = False
-        self.resonance_couplin = None
+        self.resonance_coupling = None
         
         self._init_me()        
         
         
+    def save(self, filename):
+        """Saves the whole object into file
+        
+        
+        """
+        with energy_units("int"):
+            with h5py.File(filename,"w") as f:
+                self.save_as(f, "Aggregate")
+
+                 
+    def save_as(self, loc, name):
+        """Saves the whole object into a location in hdf5 file
+        
+        
+        """        
+        root = self._create_root_group(loc, name)
+        self._save_attributes(root)
+                
+            
+    def _create_root_group(self, start, name):
+        """Creates the root "directory" of the tree to save
+        
+        """
+        return start.create_group(name)
+ 
+    
+    def _save_attributes(self, rootgrp):
+        """Saves the simple attributes of the Aggregate objects
+        
+        
+        """
+        rootgrp.attrs.create("nmono",self.nmono)
+        rootgrp.attrs.create("mult",self.mult)
+        rootgrp.attrs.create("sbi_mult",self.mult)
+        
+                    
+    def load(self, filename):
+        """Loads the whole object from a file
+        
+        
+        """
+        with energy_units("int"):
+            with h5py.File(filename,"r") as f:
+                self.load_as(f, "Aggregate")
+
+                
+    def load_as(self, loc, name):
+        """Loads the whole object from the location in a hdf5 file 
+        
+        """
+        root = loc[name]
+        self._load_attributes(root)
+        
+        
+    def _load_attributes(self, rootgrp):
+        """Loads the simple attributes of the Aggregate object
+        
+        
+        """
+        self.nmono = rootgrp.attrs["nmono"]
+        self.mult = rootgrp.attrs["mult"]
+        self.mult = rootgrp.attrs["sbi_mult"]   
+
+
+
 
     ########################################################################
     #
