@@ -347,45 +347,52 @@ class Molecule(UnitsManaged):
         self.elenergies[N] = self.convert_energy_2_internal_u(en)
         
             
+    def set_electronic_natural_lifetime(self,N,epsilon_r=1.0):
+        
+        rate = 0.0
+        eps = eps0_int*epsilon_r
+        
+        try: 
+            # loop over all states with lower energy
+            for n in range(N):
+                dip2 = numpy.dot(self.dmoments[n,N,:],
+                                 self.dmoments[n,N,:])
+                ome = self.elenergies[N] - self.elenergies[n]                        
+        
+                rate += dip2*(ome**3)/(3.0*numpy.pi*eps*(c_int**3))
+                
+        except:
+            raise Exception("Calculation of rate failed")
+            
+        if rate > 0.0:
+            
+            lftm = 1.0/rate
+            self._has_nat_lifetime[N] = True
+            self._nat_lifetime[N] = lftm
+            # FIXME: calculate the linewidth
+            self._nat_linewidth[N] = 1.0/lftm
+            self._saved_epsilon_r = epsilon_r
+            
+            
+        else:
+            #raise Exception("Cannot calculate natural lifetime")
+            self._has_nat_lifetime[N] = True
+            self._nat_lifetime[N] = numpy.inf   
+            
             
     def get_electronic_natural_lifetime(self,N,epsilon_r=1.0):
         """Returns natural lifetime of a given electronic state
         
-        """
-            
+        """            
         if not self._has_nat_lifetime[N]:
+            self.set_electronic_natural_lifetime(N,epsilon_r=epsilon_r)
+            
 
-            rate = 0.0
-            eps = eps0_int*epsilon_r
-            
-            try: 
-                # loop over all states with lower energy
-                for n in range(N):
-                    dip2 = numpy.dot(self.dmoments[n,N,:],
-                                     self.dmoments[n,N,:])
-                    ome = self.elenergies[N] - self.elenergies[n]                        
-            
-                    rate += dip2*(ome**3)/(3.0*numpy.pi*eps*(c_int**3))
-                    
-            except:
-                raise Exception("Calculation of rate failed")
-                
-            if rate > 0.0:
-                
-                lftm = 1.0/rate
-                self._has_nat_lifetime[N] = True
-                self._nat_lifetime[N] = lftm
-                # FIXME: calculate the linewidth
-                self._nat_linewidth[N] = 1.0/lftm
-                
-                
-            else:
-                #raise Exception("Cannot calculate natural lifetime")
-                self._has_nat_lifetime[N] = True
-                self._nat_lifetime[N] = numpy.inf
-                
+        if self._saved_epsilon_r != epsilon_r:
+            self.set_electronic_natural_lifetime(N,epsilon_r=epsilon_r)
+
         return self._nat_lifetime[N]
-        
+    
         
     def get_thermal_ReducedDensityMatrix(self):
         
@@ -840,8 +847,26 @@ class Molecule(UnitsManaged):
         else:
             return None
 
+    def _create_root_group(self, start, name):
+        """Creates the root "directory" of the tree to save
+        
+        """
+        return start.create_group(name)
+    
+    def save(self, filename):
+        pass
 
+    def load(self, filename):
+        pass
+    
+    def save_as(self, root, name):
+        rtg = self._create_root_group(root, name)
+        rtg.attrs.create("name", numpy.string_(self.name))
 
+    def load_as(self, root, name):
+        rtg = root[name]
+        self.name = rtg.attrs["name"].decode("utf-8")
+    
 
 
     def __str__(self):

@@ -39,6 +39,21 @@ class Mode(UnitsManaged):
     the Molecule, and therefore there is an issue of consistency of the class. 
     Currently, the consistency is completely in the hands of the user.
     
+            
+    Parameters
+    ----------
+    
+    omega : float
+        vibrational frequency
+        
+        
+    Methods
+    -------
+    
+    set_energy :
+        
+        
+    
     """
     
     # number of electronic states (same as the monomer)
@@ -47,15 +62,6 @@ class Mode(UnitsManaged):
     monomer_set = Bool('monomer_set')
     
     def __init__(self, frequency=1.0):
-        """
-        
-        Parameters
-        ----------
-        
-        omega : float
-            vibrational frequency
-            
-        """
             
         # this holds a list of submods
         self.submodes = []

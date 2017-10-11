@@ -10,6 +10,7 @@ an interface to various methods of open quantum systems theory.
 """
 
 import numpy
+import h5py
 
 from ..core.managers import UnitsManaged
 from ..core.units import cm2int
@@ -31,6 +32,10 @@ from ..spectroscopy import diagramatics as diag
 #from .aggregate_states import aggregate_state
 from .aggregate_states import electronic_state
 from .aggregate_states import vibronic_state
+
+from ..core.managers import energy_units
+from .molecules import Molecule
+
           
 class Aggregate(UnitsManaged):
     """ Molecular aggregate 
@@ -47,21 +52,21 @@ class Aggregate(UnitsManaged):
     
     """
     
-    def __init__(self, name="", molecules=None):
+    def __init__(self, molecules=None, name=""):
 
-        self.mnames = {}
-        self.monomers = []
-        self.nmono = 0
-        self.name = name
-        self.mult = 0
+        self.mnames = {}    #
+        self.monomers = []   
+        self.nmono = 0         #
+        self.name = name       #
+        self.mult = 0          #
 
-        self._has_egcf_matrix = False
+        self._has_egcf_matrix = False #
         self.egcf_matrix = None
         
-        self._has_system_bath_interaction = False
+        self._has_system_bath_interaction = False #
         
-        self.coupling_initiated = False
-        self.resonance_couplin = None
+        self.coupling_initiated = False #
+        self.resonance_coupling = None
         
         if molecules is not None:
             for m in molecules:
@@ -81,17 +86,17 @@ class Aggregate(UnitsManaged):
         self.FC = fcstorage()
         self.ops = operator_factory()
         
-        self._has_relaxation_tensor = False
+        self._has_relaxation_tensor = False #
         
-        self._relaxation_theory = ""
+        self._relaxation_theory = "" #
         
-        self._built = False    
+        self._built = False     #
         
-        self.mult = 0
-        self.sbi_mult = 0
-        self.Nel = 0
-        self.Ntot = 0
-        self.Nb = 0
+        self.mult = 0                #
+        self.sbi_mult = 0            #
+        self.Nel = 0                 #
+        self.Ntot = 0                #
+        self.Nb = 0                  #
         
         self.vibindices = []
         self.which_band = None
@@ -125,23 +130,159 @@ class Aggregate(UnitsManaged):
         
         
         """
-        self.mnames = {}
+        self.mnames = {}   #
         self.monomers = []
-        self.nmono = 0
-        self.mult = 0
-        self.sbi_mult = 0
+        self.nmono = 0      #
+        self.mult = 0       #
+        self.sbi_mult = 0    #
 
-        self._has_egcf_matrix = False
+        self._has_egcf_matrix = False   #
         self.egcf_matrix = None
         
-        self._has_system_bath_interaction = False
+        self._has_system_bath_interaction = False  #
        
-        self.coupling_initiated = False
-        self.resonance_couplin = None
+        self.coupling_initiated = False     #
+        self.resonance_coupling = None    #
         
         self._init_me()        
         
         
+    def save(self, filename):
+        """Saves the whole object into file
+        
+        
+        """
+        with energy_units("int"):
+            with h5py.File(filename,"w") as f:
+                self.save_as(f, "Aggregate")
+
+                 
+    def save_as(self, loc, name):
+        """Saves the whole object into a location in hdf5 file
+        
+        
+        """        
+        root = self._create_root_group(loc, name)
+        self._save_attributes(root)
+        self._save_resonance_coupling(root)
+        self._save_monomers(root)
+                
+            
+    def _create_root_group(self, start, name):
+        """Creates the root "directory" of the tree to save
+        
+        """
+        return start.create_group(name)
+ 
+    
+    def _save_attributes(self, rootgrp):
+        """Saves the simple attributes of the Aggregate objects
+        
+        
+        """
+        rootgrp.attrs.create("nmono",self.nmono)
+        rootgrp.attrs.create("mult",self.mult)
+        rootgrp.attrs.create("sbi_mult",self.mult)
+        rootgrp.attrs.create("name", numpy.string_(self.name))
+        rootgrp.attrs.create("_has_egcf_matrix", self._has_egcf_matrix)
+        rootgrp.attrs.create("_has_system_bath_interaction", 
+                             self._has_system_bath_interaction)
+        rootgrp.attrs.create("coupling_initiated", self.coupling_initiated) 
+        rootgrp.attrs.create("_has_relaxation_tensor", 
+                             self._has_relaxation_tensor)
+        rootgrp.attrs.create("_relaxation_theory",
+                             numpy.string_(self._relaxation_theory))
+        rootgrp.attrs.create("_built",self._built)  
+        rootgrp.attrs.create("Nel", self.Nel)
+        rootgrp.attrs.create("Ntot",self.Ntot)
+        rootgrp.attrs.create("Nb", self.Nb)
+        
+        mnames_root = self._create_root_group(rootgrp, "mnames")
+        for key in self.mnames.keys():
+            val = self.mnames[key]
+            mnames_root.attrs.create(key, val)
+            
+    def _save_resonance_coupling(self, rootgrp):
+        if self.resonance_coupling is not None:
+            rootgrp.create_dataset("resonance_coupling",
+                                   data=self.resonance_coupling)
+        else:
+            rootgrp.create_dataset("resonance_coupling",
+                                   data=numpy.array([]))
+        
+    def _save_monomers(self, rootgrp):
+        """Saves molecules of the aggregate
+        
+        """
+        k = 0
+        molecules_root = self._create_root_group(rootgrp, "molecules")
+        for m in self.monomers:
+            m.save_as(molecules_root,"Molecule"+str(k))
+            k += 1
+            
+                    
+    def load(self, filename):
+        """Loads the whole object from a file
+        
+        
+        """
+        with energy_units("int"):
+            with h5py.File(filename,"r") as f:
+                self.load_as(f, "Aggregate")
+
+                
+    def load_as(self, loc, name):
+        """Loads the whole object from the location in a hdf5 file 
+        
+        """
+        root = loc[name]
+        self._load_attributes(root)
+        self._load_resonance_coupling(root)
+        self._load_monomers(root)
+        
+        
+    def _load_attributes(self, rootgrp):
+        """Loads the simple attributes of the Aggregate object
+        
+        
+        """
+        self.nmono = rootgrp.attrs["nmono"]
+        self.mult = rootgrp.attrs["mult"]
+        self.mult = rootgrp.attrs["sbi_mult"] 
+        self.name = rootgrp.attrs["name"].decode("utf-8")
+        self._has_egcf_matrix = rootgrp.attrs["_has_egcf_matrix"]
+        self._has_system_bath_interaction = \
+            rootgrp.attrs["_has_system_bath_interaction"]
+        self.coupling_initiated = rootgrp.attrs["coupling_initiated"]
+        self._has_relaxation_tensor = rootgrp.attrs["_has_relaxation_tensor"]
+        self._relaxation_theory = \
+            rootgrp.attrs["_relaxation_theory"].decode("utf-8")
+        self._built = rootgrp.attrs["_built"]
+        self.Nel = rootgrp.attrs["Nel"]
+        self.Ntot = rootgrp.attrs["Ntot"]
+        self.Nb = rootgrp.attrs["Nb"]
+        mnames_root = rootgrp["mnames"]
+        for key in mnames_root.attrs.keys():
+            val = mnames_root.attrs[key]
+            self.mnames[key] = val
+
+    def _load_resonance_coupling(self, rootgrp):
+        self.resonance_coupling = numpy.array(rootgrp["resonance_coupling"])
+        if self.resonance_coupling.size == 0:
+            self.resonance_coupling = None
+            
+    def _load_monomers(self, rootgrp):
+        """Loads molecules of the aggregate
+        
+        """
+        k = 0
+        self.monomers = []
+        molecules_root = rootgrp["molecules"]
+        for k in range(self.nmono):
+            m = Molecule()
+            m.load_as(molecules_root,"Molecule"+str(k))
+            self.monomers.append(m)
+            k += 1            
 
     ########################################################################
     #
