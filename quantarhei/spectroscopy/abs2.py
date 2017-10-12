@@ -61,6 +61,49 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
             
         """
         self.data = data
+        
+    def set_by_interpolation(self, x, y, xaxis="frequency"):
+        
+        from scipy import interpolate
+        
+        if xaxis == "frequency":
+            
+            om = self.convert_2_internal_u(x)
+            
+        elif xaxis == "wavelength":
+            # convert to internal (nano meters) units of wavelength
+            
+            
+            # convert to energy (internal units)
+            # to cm
+            om = 1.0e-7*x
+            # to 1/cm
+            om = 1.0/om
+            # to 1/fs
+            om = om*cm2int
+          
+        if om[1] > om[2]:
+            # reverse order
+            om = numpy.flip(om,0)
+            y = numpy.flip(y,0)
+            
+        # equidistant points on the x-axis
+        omin = numpy.amin(om)
+        omax = numpy.amax(om)
+        length = om.shape[0]
+        step = (omax-omin)/length
+        
+        # new frequency axis
+        waxis = FrequencyAxis(omin, length, step)
+        
+        # spline interpolation 
+        tck = interpolate.splrep(om, y, s=0)
+        ynew = interpolate.splev(waxis.data, tck, der=0)
+        
+        # setting the axis and data
+        self.axis = waxis
+        self.data = ynew
+        
     
     def clear_data(self):
         """Sets spectrum data to zero
@@ -220,33 +263,33 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         return popt, pcov
         
-    def convert_to_energy(self, eaxis, units):
-        """
-        
-        """
-        
-        if units == "nm":
-            x = self.axis.data
-            y = self.data
-            
-            # to cm
-            x = 1.0e-7*x
-            # to 1/cm
-            x = 1.0/x
-            # to rad/fs
-            x = x*cm2int
-            
-            xn = numpy.zeros(x.shape, dtype=x.dtype)
-            yn = numpy.zeros(y.shape, dtype=y.dtype) 
-            
-            for i in range(len(x)):
-                xn[i] = x[len(x)-i-1]
-                yn[i] = y[len(x)-i-1]
-                
-            # spline it
-            
-            # evaluate at points if eaxis
-
+#    def convert_to_energy(self, eaxis, units):
+#        """
+#        
+#        """
+#        
+#        if units == "nm":
+#            x = self.axis.data
+#            y = self.data
+#            
+#            # to cm
+#            x = 1.0e-7*x
+#            # to 1/cm
+#            x = 1.0/x
+#            # to rad/fs
+#            x = x*cm2int
+#            
+#            xn = numpy.zeros(x.shape, dtype=x.dtype)
+#            yn = numpy.zeros(y.shape, dtype=y.dtype) 
+#            
+#            for i in range(len(x)):
+#                xn[i] = x[len(x)-i-1]
+#                yn[i] = y[len(x)-i-1]
+#                
+#            # spline it
+#            
+#            # evaluate at points if eaxis
+#
             
 def _gaussian(x, height, center, fwhm, offset=0.0):
     """Gaussian function with a possible offset
