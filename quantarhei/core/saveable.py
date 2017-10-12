@@ -359,7 +359,7 @@ class Saveable:
      
         
     
-class TestObject(Savable):
+class TestObject(Saveable):
     """
     
     
