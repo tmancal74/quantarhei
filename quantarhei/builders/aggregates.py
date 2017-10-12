@@ -1207,7 +1207,7 @@ class Aggregate(UnitsManaged):
                     iops.append(op1)
                 
             self.sbi = SystemBathInteraction(iops,
-                                self.egcf_matrix,aggregate=self)  
+                                self.egcf_matrix,system=self)  
                                                  
         else:
             pass #$print("System bath interaction not set")
