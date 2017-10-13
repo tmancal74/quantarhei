@@ -88,7 +88,7 @@ class Molecule(UnitsManaged):
             # FIXME: generate unique name
             self.name = "xxx"
         else:
-            self.name = name
+            self.name = name  #
             
         #
         # set energies
@@ -97,8 +97,8 @@ class Molecule(UnitsManaged):
         # convert to internal_units
         #self.elenergies = self.manager.convert_energy_2_internal_u(elenergies)
         self.elenergies = elenergies
-        self.elenergies = self.convert_energy_2_internal_u(self.elenergies)
-        self.nel = len(elenergies)
+        self.elenergies = self.convert_energy_2_internal_u(self.elenergies) #
+        self.nel = len(elenergies)    #
         
         
         
@@ -111,24 +111,6 @@ class Molecule(UnitsManaged):
         # the rest of the excited states
         self.allowed_transitions = []
          
-
-        
-#        # set transition dipole moments
-#        ldmoments = check_numpy_array(dmoments)                
-#        #if isinstance(dmoments,list):
-#        #    ldmoments = numpy.array(dmoments)
-#        #elif isinstance(dmoments,numpy.ndarray):
-#        #    ldmoments = dmoments
-#        #else:
-#        #    raise Exception("dmoments: Object is not a numpy array") 
-#            
-#        if (self.nel == ldmoments.shape[0]) and (ldmoments.shape[1]==3):
-#            self.dmoments = ldmoments
-#            for kk in range(self.dmoments.size):
-#                self.allowed_transitions.append([0,kk])
-#            self.nal = kk
-#        else:
-#            raise Exception("Wrong dimensions of the dipole matrix")
         
         self.dmoments = numpy.zeros((self.nel,self.nel,3)) 
         
@@ -162,7 +144,32 @@ class Molecule(UnitsManaged):
         self.model = None
         self.data = None
         self._data_type = None
+   
+    def _create_root_group(self, start, name):
+        """Creates the root "directory" of the tree to save
         
+        """
+        return start.create_group(name)
+    
+    def save(self, filename):
+        pass
+
+    def load(self, filename):
+        pass
+    
+    def save_as(self, root, name):
+        rtg = self._create_root_group(root, name)
+        rtg.attrs.create("name", numpy.string_(self.name))
+        rtg.attrs.create("nel",self.nel)
+        rtg.create_dataset("elenergies", data=self.elenergies)
+
+    def load_as(self, root, name):
+        rtg = root[name]
+        self.name = rtg.attrs["name"].decode("utf-8")
+        self.nel = rtg.attrs["nel"]   
+        self.elenergies = numpy.array(rtg["elenergies"])
+
+     
     def get_name(self):
         return self.name
         
@@ -847,26 +854,6 @@ class Molecule(UnitsManaged):
         else:
             return None
 
-    def _create_root_group(self, start, name):
-        """Creates the root "directory" of the tree to save
-        
-        """
-        return start.create_group(name)
-    
-    def save(self, filename):
-        pass
-
-    def load(self, filename):
-        pass
-    
-    def save_as(self, root, name):
-        rtg = self._create_root_group(root, name)
-        rtg.attrs.create("name", numpy.string_(self.name))
-
-    def load_as(self, root, name):
-        rtg = root[name]
-        self.name = rtg.attrs["name"].decode("utf-8")
-    
 
 
     def __str__(self):
