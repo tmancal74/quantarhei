@@ -30,7 +30,7 @@ class SystemBathInteraction:
     
     """
 
-    def __init__(self, sys_operators, bath_correlation_matrix, aggregate=None):
+    def __init__(self, sys_operators, bath_correlation_matrix, system=None):
 
         # Find the length of the list of operators 
         if isinstance(sys_operators,list):
@@ -54,10 +54,24 @@ class SystemBathInteraction:
         
         # information about aggregate is needed when dealing with 
         # multiple excitons
-        if aggregate is not None:
-            self.aggregate = aggregate
-        else:
-            self.aggregate = None
+        self.aggregate = None
+        self.molecule = None
+        self.system = None
+
+        from ...builders.aggregates import Aggregate
+        from ...builders.molecules import Molecule    
+        
+        if system is not None:
+            if isinstance(system, Aggregate):
+                self.aggregate = system
+                self.molecule = None
+                self.system = self.aggregate
+
+            if isinstance(system, Molecule):
+                self.aggregate = None
+                self.molecule = system
+                self.system = self.molecule
+
             
         if self.N > 0:
             
@@ -102,14 +116,14 @@ class SystemBathInteraction:
 
         
         """
-        if self.aggregate is None:
+        if self.system is None:
             
             return self.CC.get_coft(n,m)
             
         else:
             
-            bn = self.aggregate.which_band[n]
-            bm = self.aggregate.which_band[m]
+            bn = self.system.which_band[n]
+            bm = self.system.which_band[m]
             
             if ((bn == 0) and (bm == 0)):
                 

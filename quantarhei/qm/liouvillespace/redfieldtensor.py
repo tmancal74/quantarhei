@@ -17,7 +17,7 @@ from .systembathinteraction import SystemBathInteraction
 from ..hilbertspace.hamiltonian import Hamiltonian
 
 from .relaxationtensor import RelaxationTensor
-from ...core.managers import Manager, eigenbasis_of, energy_units
+from ...core.managers import  energy_units
 from ...core.parallel import block_distributed_range
 from ...core.parallel import start_parallel_region, close_parallel_region
 from ...core.parallel import distributed_configuration
@@ -178,6 +178,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
         if True:
+            # FIXME: here we need to access ham._data (we want to protect basis)
+            #
+            # THIS ASSUMES WE ARE IN SITE BASIS
+            # FIXME: devise a mechanism to ensure this!!!!
+            #
             hD, SS = numpy.linalg.eigh(ham.data)   
                
         #
@@ -209,11 +214,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # Integrals of correlation functions from the set      
         Lm = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
         
-        #
+        #######################################################################
         # PARALLELIZATION
-        #
-        #dc = Manager().get_DistributedConfiguration()
-        #dc.start_parallel_region()
+        #######################################################################
+
         start_parallel_region()
         for ms in block_distributed_range(0,Nb): #range(Nb):
             #for ns in range(Nb):
@@ -250,10 +254,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # perform reduction of Lm
         distributed_configuration().allreduce(Lm, operation="sum")
         close_parallel_region()
-        #dc.finish_parallel_region()
-        #
+
+        #######################################################################
         #  END PARALLELIZATION
-        #
+        #######################################################################
                         
         # create the Hermite conjuged version of \Lamnda_m
         Ld = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
@@ -272,16 +276,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
             
-#            with eigenbasis_of(ham):
             if True:
-#                self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
-#                                        dtype=numpy.complex128)
                 self.data = RR
                 self._data_initialized = True
 
         self._is_initialized = True
 
-        #print("... finished")
     
     def _convert_operators_2_tensor(self, Km, Lm, Ld):
         """Converts operator representation to the tensor one
@@ -308,11 +308,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         RR = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
         
-        #
+        #######################################################################
         # PARALLELIZATION
-        #
-        #dc = Manager().get_DistributedConfiguration()
-        #dc.start_parallel_region()
+        #######################################################################
+
         start_parallel_region()
         for m in block_distributed_range(0,Nb): #range(Nb):
             KmLm = numpy.dot(Km[m,:,:],Lm[m,:,:])
@@ -331,11 +330,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                                 
         # perform reduction of the RR
         distributed_configuration().allreduce(RR, operation="sum")
-        #dc.finish_parallel_region()
+
         close_parallel_region()
-        #
+        #######################################################################
         # END PARALLELIZATION
-        #
+        #######################################################################
         
         return RR
 
