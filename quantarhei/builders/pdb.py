@@ -63,12 +63,13 @@ class PDBFile:
             return self.molecules
 
         else:
-
+            
+            molecules = []
+            
             #
             #  residue name identifying the molecule in pdb file
             #
             res_name = model.pdbname
-            #print("ResName = ", res_name)
             
             #
             # Get all lines with molecules matching residue name
@@ -126,11 +127,12 @@ class PDBFile:
                 m.set_dipole(0,1,d)
                 m.model = self
                 m.data = self._unique_lines[rseq]
-                self.molecules.append(m)
+                molecules.append(m)
                 
         self._reset_helpers()
+        self.molecules = molecules
                 
-        return self.molecules
+        return molecules
 
     def get_chainId(self,molecule):
         lines = molecule.data
