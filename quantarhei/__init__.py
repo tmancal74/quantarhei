@@ -87,6 +87,7 @@ from .builders.disorder import Disorder
 from .core.time import TimeAxis
 from .core.frequency import FrequencyAxis
 from .core.dfunction import DFunction
+from .core.saveable import Saveable
 
 #
 # Various managers
