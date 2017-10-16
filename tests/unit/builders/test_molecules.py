@@ -18,7 +18,7 @@ from quantarhei import Molecule
 from quantarhei import Mode
 from quantarhei import CorrelationFunction
 from quantarhei import TimeAxis
-from quantarhei import eigenbasis_of
+from quantarhei import eigenbasis_of, energy_units
 
 from quantarhei.core.units import kB_intK
 
@@ -177,10 +177,11 @@ class TestMoleculeVibrations(unittest.TestCase):
                   "T":300,
                   "reorg":30,
                   "cortime":100}
-        cfcion = CorrelationFunction(timeAxis,params)
-        self.m.set_egcf((0,1),cfcion)
+        with energy_units("1/cm"):
+            cfcion = CorrelationFunction(timeAxis,params)
+            self.m.set_egcf((0,1),cfcion)
         
-        rho_eq = self.m.get_thermal_ReducedDensityMatrix()
+            rho_eq = self.m.get_thermal_ReducedDensityMatrix()
 
         # Check if the matrix is diagonal        
         dat = rho_eq.data.copy()
