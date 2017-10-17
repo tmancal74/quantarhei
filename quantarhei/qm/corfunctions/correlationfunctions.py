@@ -601,23 +601,15 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
             self.axis = axis
             
 
-        ftype = params["ftype"]
-        if ftype in CorrelationFunction.allowed_types:
-            self.ftype = ftype
-        else:
-            raise Exception("Unknown Correlation Function Type")
-
-        #if (values is not None) and (ftype != "Value-defined"):
-        #    raise Exception("Only value defined ftype can have values argument")
-
-        # we need to save the defining energy units
-        self.energy_units = self.manager.get_current_units("energy")
+        #ftype = params["ftype"]
+        #if ftype in CorrelationFunction.allowed_types:
+        #    raise Exception("Unknown Correlation Function Type")
 
         self.params = params
 
         if values is None:
             # We create CorrelationFunction and FTT it
-            with energy_units(self.energy_units):
+            with energy_units("int"):
                 cfce = CorrelationFunction(axis, params)
             # data have to be protected from change of units
             with energy_units("int"):

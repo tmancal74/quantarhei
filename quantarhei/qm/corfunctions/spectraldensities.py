@@ -412,13 +412,17 @@ class SpectralDensity(DFunction, UnitsManaged):
 
 
         """
-        params = self.params.copy()
-        if temperature is not None:
-            params["T"] = temperature
-
-        temp = params["T"]
-        #params["ftype"] = "Value-defined"
-
+        
+        for params in self.params:
+            
+            #params = self.params.copy()
+            if temperature is not None:
+                params["T"] = temperature
+    
+            # FIXME: check that all temperatures are the same
+            temp = params["T"]
+            #params["ftype"] = "Value-defined"
+    
         ind_of_zero, diff = self.axis.locate(0.0)
         atol = 1.0e-7
         twokbt = 2.0*kB_int*temp
@@ -447,7 +451,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                 vals[ind_of_zero] = 2.0*self.lamb*twokbt*self.lim_omega[1]
 
 
-        with energy_units(self.energy_units):
-            ftc = FTCorrelationFunction(self.axis, params, values=vals)
+        with energy_units("int"):
+            ftc = FTCorrelationFunction(self.axis, self.params, values=vals)
 
         return ftc
