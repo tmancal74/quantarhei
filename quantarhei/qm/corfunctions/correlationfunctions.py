@@ -316,12 +316,13 @@ class CorrelationFunction(DFunction, UnitsManaged):
             cfce = values
             
         else:
-            # Make it via SpectralDensity
-            fa = SpectralDensity(time, params)
+            with energy_units("int"):
+                # Make it via SpectralDensity
+                fa = SpectralDensity(time, params)
             
-            cf = fa.get_CorrelationFunction(temperature=temperature)
+                cf = fa.get_CorrelationFunction(temperature=temperature)
             
-            cfce = cf.data
+                cfce = cf.data
                    #2.0*lamb*kBT*(numpy.exp(-time/ctime)
                    #              - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
 
@@ -526,9 +527,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
             frequencies = self.axis.get_FrequencyAxis()
             vals = self.get_OddFTCorrelationFunction().data
 
-        # params are saved in user defined units
-
-        # FIXME: This has to be done numerically
             spectd = SpectralDensity(frequencies, self.params, values=vals)
 
         return spectd
@@ -555,10 +553,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """
 
         with energy_units("int"):
-            #if self.params["ftype"] == "Value-defined":
-            #    oftcf = OddFTCorrelationFunction(self.axis, self.params, 
-            #                                     values=self.data)
-            #else:
             oftcf = OddFTCorrelationFunction(self.axis, self.params)
         return oftcf
 
@@ -590,7 +584,8 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
         Dictionary of the correlation function parameters
 
     """
-
+    energy_params = ("reorg", "omega", "freq")
+    
     def __init__(self, axis, params, values=None):
         super().__init__()
 
@@ -600,19 +595,46 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
         else:
             self.axis = axis
             
-
-        #ftype = params["ftype"]
-        #if ftype in CorrelationFunction.allowed_types:
-        #    raise Exception("Unknown Correlation Function Type")
-
-        self.params = params
+        # handle params
+        self.params = []  # this will always be a list of components
+        p2calc = []
+        try:
+            # if this passes, we assume params is a dictionary
+            params.keys()
+            self._is_composed = False
+            p2calc.append(params)
+            
+        except:
+            # othewise we assume it is a list of dictionaries 
+            self._is_composed = True
+            for p in params:
+                p2calc.append(p)
+                
+        for params in p2calc:
+            
+            try:
+                ftype = params["ftype"]
+                
+                if ftype not in CorrelationFunction.allowed_types:
+                    raise Exception("Unknown CorrelationFunction type")
+    
+                # we mutate the parameters into internal units
+                prms = {}
+                for key in params.keys():
+                    if key in self.energy_params:
+                        prms[key] = self.convert_energy_2_internal_u(params[key])
+                    else:
+                        prms[key] = params[key]
+                    
+            except:
+                raise Exception("Dictionary of parameters does not contain "
+                                +" `ftype` key")
+        self.params = prms
 
         if values is None:
-            # We create CorrelationFunction and FTT it
-            with energy_units("int"):
-                cfce = CorrelationFunction(axis, params)
             # data have to be protected from change of units
             with energy_units("int"):
+                cfce = CorrelationFunction(axis, self.params)
                 ftvals = cfce.get_Fourier_transform()
                 self.data = ftvals.data
             #self.axis = ftvals.axis
@@ -620,7 +642,6 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
             # This is not protected from change of units!!!!
             self.data = values
             #self.axis = cfce.axis.get_FrequencyAxis()
-
 
 
 
@@ -687,7 +708,6 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
             self.params.append(params)
                 
             # We create CorrelationFunction and FTT it
-
             if params["ftype"] == "Value-defined":
                 if values is None:
                     raise Exception()
@@ -702,8 +722,6 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
             with energy_units("int"):
                 ftvals = cfce.get_Fourier_transform()
                 ndata = numpy.real(ftvals.data)
-    
-            #naxis = ftvals.axis
 
             self._add_me(self.axis,ndata)
 
