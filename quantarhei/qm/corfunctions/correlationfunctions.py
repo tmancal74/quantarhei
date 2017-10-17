@@ -527,6 +527,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             frequencies = self.axis.get_FrequencyAxis()
             vals = self.get_OddFTCorrelationFunction().data
 
+            # FIXME: how to set the limit of SpectralDensity at w->0
             spectd = SpectralDensity(frequencies, self.params, values=vals)
 
         return spectd
