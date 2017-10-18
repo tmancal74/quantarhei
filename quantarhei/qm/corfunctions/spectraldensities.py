@@ -467,8 +467,10 @@ class SpectralDensity(DFunction, UnitsManaged):
                 spect = data[ind_of_zero+1:self.axis.length]
                 auxi = (1.0 + (1.0/numpy.tanh(omega/twokbt)))*spect
                 vals[ind_of_zero+1:self.axis.length] = auxi
-                # and used the limit at zero devided by omega
-                vals[ind_of_zero] = 2.0*self.lamb*twokbt*self.lim_omega[1]
+                
+                # and used L'Hospital ruĺe to calculate the limit at zero 
+                vals[ind_of_zero] = twokbt*(data[ind_of_zero+1]
+                    -data[ind_of_zero-1])/(2.0*self.axis.step)
 
 
             ftc = FTCorrelationFunction(self.axis, newpars, values=vals)
