@@ -755,37 +755,56 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis, params):
+    def __init__(self, axis, params, values=None):
         super().__init__()
 
+        if not isinstance(axis, FrequencyAxis):
+            faxis = axis.get_FrequencyAxis()
+            self.axis = faxis
+        else:
+            self.axis = axis 
+            
+        # handle params
+        self.params = []  # this will always be a list of components
+        p2calc = []
         try:
-            ftype = params["ftype"]
-            if ftype in CorrelationFunction.allowed_types:
-                self.ftype = ftype
-            else:
-                raise Exception("Unknown Correlation Function Type")
-
-            # we need to save the defining energy units
-            self.energy_units = self.manager.get_current_units("energy")
-
-
+            # if this passes, we assume params is a dictionary
+            params.keys()
+            self._is_composed = False
+            p2calc.append(params)
+            
         except:
-            raise Exception
+            # othewise we assume it is a list of dictionaries 
+            self._is_composed = True
+            for p in params:
+                p2calc.append(p)
+        
+        for params in p2calc:
+            
+            ftype = params["ftype"]
+            if ftype not in CorrelationFunction.allowed_types:
+                raise Exception("Unknown Correlation Function Type: "+ftype)
 
-        # We create CorrelationFunction and FTT it
-        with energy_units(self.energy_units):
-            cfce = CorrelationFunction(axis, params)
 
-        cfce.data = numpy.real(cfce.data)
+            self.params.append(params)
+            
+            # We create CorrelationFunction and FTT it
+            if params["ftype"] == "Value-defined":
+                if values is None:
+                    raise Exception()
+                else:
+                    cfce = CorrelationFunction(axis, params, values=values)
+            else:
+                cfce = CorrelationFunction(axis, params)
+                
+            cfce.data = numpy.real(cfce.data)
+    
+            # data have to be protected from change of units
+            with energy_units("int"):
+                ftvals = cfce.get_Fourier_transform()
+                ndata = numpy.real(ftvals.data)
 
-        self.params = params
-
-        # data have to be protected from change of units
-        with energy_units("int"):
-            ftvals = cfce.get_Fourier_transform()
-            self.data = numpy.real(ftvals.data)
-
-        self.axis = ftvals.axis
+            self._add_me(self.axis,ndata)
 
 
 #FIXME: these functions can go to DFunction
