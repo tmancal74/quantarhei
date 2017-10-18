@@ -24,6 +24,9 @@ export PYTHONPATH=`pwd`
 #
 # Run tests
 #
-paver
+nosetests -vs tests/unit/core/test_saveable.py
+nosetests -vs tests/unit/core/test_dfunction.py
+
+#paver
 
 

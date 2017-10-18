@@ -17,10 +17,11 @@ import matplotlib.pyplot as plt
 from .valueaxis import ValueAxis
 from .time import TimeAxis
 from .frequency import FrequencyAxis
+from .saveable import Saveable
 
 #FIXME Check the posibility to set a derivative of the spline at the edges
 #FIXME Enable vectorial arguments and values
-class DFunction:
+class DFunction(Saveable):
     """
     Discrete function with interpolation
 
