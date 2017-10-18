@@ -10,7 +10,9 @@ from numbers import Number
 from .managers import energy_units
 
 def _isattr(obj):
-    return not inspect.ismethod(obj)
+    ismethod = inspect.ismethod(obj)
+    return not ismethod 
+     
         
 class Saveable:
     """Class implementing object persistence through saving to hdf5 files
@@ -61,14 +63,22 @@ class Saveable:
         rg = fnmatch.translate("__*__")
         prog = re.compile(rg)
         
+        # members that are attributes
         info = inspect.getmembers(self, _isattr)
-        print(inspect.getmembers(self, lambda o: isinstance(o, property)))
+        
+        # members that are properties
+        propts = inspect.getmembers(self.__class__, 
+                                    lambda o: isinstance(o, property))
+        prop_names = []
+        for p in propts:
+            prop_names.append(p[0])
+            
         attr = []
         for fo in info:
             fo_name = fo[0]
             mch = prog.match(fo_name)
-            if mch is None:
-                print(fo_name)
+            if (mch is None) and (fo_name not in prop_names):
+                #print(fo_name)
                 attr.append(fo_name)
 
         for at_name in attr:
@@ -212,12 +222,12 @@ class Saveable:
         self._load_dictionaries(root, dictionaries)     
         
         for key in strings.keys():
-            print("Setting a strings")
-            print(key)
+            #print("Setting a strings")
+            #print(key)
             setattr(self,key,strings[key])
         for key in numeric.keys():
-            print("Setting a numeric")
-            print(key)
+            #print("Setting a numeric")
+            #print(key)
             setattr(self,key,numeric[key])
         for key in numdata.keys():
             setattr(self,key,numdata[key])

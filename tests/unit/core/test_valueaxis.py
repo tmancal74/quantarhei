@@ -3,6 +3,7 @@
 
 import unittest
 import numpy
+import h5py
 
 
 """
@@ -37,12 +38,17 @@ class TestValueAxis(unittest.TestCase):
         
         """
         
-        ta = ValueAxis(0.0, 1000, 0.1)
+        with h5py.File("test_file_ValueAxes",driver="core", 
+                           backing_store=False) as f:
+            
+            ta = ValueAxis(0.0, 1000, 0.1)
         
-        ta.save("value.hdf5")
+            ta.save(f)
         
-        tb = ValueAxis()
-        tb.load("value.hdf5")
+            tb = ValueAxis()
+            tb.load(f)
         
-        numpy.testing.assert_arrays_equal(ta.data,tb.data)
-
+        numpy.testing.assert_array_equal(ta.data,tb.data)
+        self.assertEqual(ta.length,tb.length)
+        self.assertEqual(ta.start,tb.start)
+        self.assertEqual(ta.step,tb.step)
