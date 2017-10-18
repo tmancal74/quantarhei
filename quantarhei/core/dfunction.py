@@ -166,6 +166,7 @@ class DFunction:
 
     def __init__(self, x=None, y=None):
 
+        self._has_imag = None
         self._is_empty = False
 
         if not ((x is None) and (y is None)):
@@ -176,6 +177,10 @@ class DFunction:
         self._splines_initialized = False
 
     def _make_me(self, x, y):
+        """Creates the DFunction internals
+        
+        
+        """
 
         self._has_imag = False
 
@@ -208,6 +213,51 @@ class DFunction:
             + " one-dimensional numpy.ndarray")
 
 
+    def _add_me(self, x, y):
+        """Adds data to the DFunction
+        
+        """
+        # if the DFunction is not initialized, call _make_me
+        if self._has_imag is None:
+            self._make_me(x,y)
+            
+        # otherwise do the job of adding
+        else:
+            
+            if isinstance(x, ValueAxis):
+                xaxis = x
+            else:
+                raise Exception("First argument has to be of a ValueAxis type")
+    
+            if isinstance(y, numpy.ndarray):
+    
+                if len(y.shape) == 1:
+                    if y.shape[0] != xaxis.length:
+                        raise Exception("Wrong number of elements"
+                        + " in 1D numpy.ndarray")
+    
+                    #Set values of the function
+                    data = y
+    
+                    if not isinstance(data[0], numbers.Real):
+                        self._has_imag = True
+    
+                else:
+                    raise Exception("Second argument has to be"
+                    + " one-dimensional numpy.ndarray")
+    
+            else:
+                raise Exception("Second argument has to be"
+                + " one-dimensional numpy.ndarray")
+
+            # check axis
+            if self.axis == xaxis:
+                # add data
+                self.data += data
+            else: 
+                raise Exception("On addition, axis objects have to be"
+                                +" identical")
+            
 
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`
@@ -431,8 +481,12 @@ class DFunction:
 
             elif t.atype == "upper-half":
 
-                Y = Y[t.length:2*t.length]
-                F = DFunction(t, Y)
+                # FIXME: this is a temporary fix - whole this part needs
+                # rethinking
+                y = numpy.zeros(t.length,dtype=numpy.complex128)
+                y[0:t.length-1] = Y[t.length+1:2*t.length]
+                y[t.length-1] = 0.0
+                F = DFunction(t, y)
 
             else:
                 raise Exception("Unknown axis type"

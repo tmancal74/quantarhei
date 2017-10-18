@@ -80,7 +80,7 @@ def pylint():
     Default 
 """
 
-@needs('unit_tests_v','doc_tests_v','aloe_tests_v')
+@needs('unit_tests_v','doc_tests_v','aloe_tests_v') #, 'pylint')
 @task
 def default():
     pass

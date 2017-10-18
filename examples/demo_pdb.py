@@ -10,8 +10,8 @@ from quantarhei import energy_units
 #
 # Read a PDB file
 #
-#file = PDBFile("3eoj.pdb")
-file = PDBFile("3eni.pdb")
+file = PDBFile("3eoj.pdb")
+#file = PDBFile("3eni.pdb")
 print("Loaded", file.linecount, "lines")
 
 #
@@ -35,9 +35,9 @@ print(names)
 # and exclude the BChl8
 #
 for_aggregate = []
-naming_map = {"371":"BChl1", "372":"BChl2",
-              "373":"BChl3", "374":"BChl4", "375":"BChl5", 
-              "376":"BChl6", "377":"BChl7", "378":"BChl8"}
+naming_map = {"A371":"BChl1", "A372":"BChl2",
+              "A373":"BChl3", "A374":"BChl4", "A375":"BChl5", 
+              "A376":"BChl6", "A377":"BChl7", "A378":"BChl8"}
 
 for name in names:
     for m in molecules:
@@ -98,5 +98,6 @@ with energy_units("1/cm"):
     numpy.set_printoptions(precision=2, linewidth=100,
                            formatter={'all':lambda x: "%8.1f" % x})
     print(H.data[1:,1:])
+
 
 

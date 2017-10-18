@@ -46,7 +46,11 @@ params = {"ftype":    "OverdampedBrownian",
 # are given in 1/cm        
 with energy_units("1/cm"):
     cf = CorrelationFunction(ta,params)
-    #cf.save("ob_20cm_100fs_100K_m20",ext="dat")
+    #cf.save_data("ob_20cm_100fs_300K_m20",ext="dat")
+
+    sd = SpectralDensity(ta,params)
+#sd.save_data("ob_sd_20cm_100fs_300K_m20", ext="dat")
+    
 
 # plotting the correlation function
 cf.plot(ylabel=r'$C(t)$ [rad$^2\cdot$fs$^{-2}$]',real_only=False)

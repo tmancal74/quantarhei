@@ -116,58 +116,91 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
     analytical_types = ("OverdampedBrownian-HighTemperature",
                         "OverdampedBrownian")
+    
+    energy_params = ("reorg", "omega", "freq")
 
     def __init__(self, axis, params, values=None):
         super().__init__()
+        
+        # FIXME: values might also need handling according to specified 
+        # energy units
 
+        # handle axis (it can be TimeAxis or FrequencyAxis)
         if not isinstance(axis, TimeAxis):
             taxis = axis.get_TimeAxis()
             self.axis = taxis
         else:
             self.axis = axis
 
-        self._is_composed = False
-        
-        self.lamb = -1.0
-        self.temperature = -1.0
-        self.cutoff_time = None
-
+        # handle params
+        self.params = []  # this will always be a list of components
+        p2calc = []
         try:
-            ftype = params["ftype"]
-            if ftype in CorrelationFunction.allowed_types:
-                self.ftype = ftype
-            else:
-                raise Exception("Unknown Correlation Function Type")
-
-            # we need to save the defining energy units
-            self.energy_units = self.manager.get_current_units("energy")
-            # because params are set in these units
-            self.params = params
-
+            # if this passes, we assume params is a dictionary
+            params.keys()
+            self._is_composed = False
+            p2calc.append(params)
+            
         except:
-            raise Exception()
-
-        if self.ftype == "OverdampedBrownian-HighTemperature":
-
-            self._make_overdamped_brownian_ht(params, values=values)
-
-        elif self.ftype == "OverdampedBrownian":
-
-            self._make_overdamped_brownian(params, values=values)
+            # othewise we assume it is a list of dictionaries 
+            self._is_composed = True
+            for p in params:
+                p2calc.append(p)
             
-        elif self.ftype == "UnderdampedBrownian":
             
-            self._make_underdamped_brownian(params, values=values)
+        self.lamb = 0.0
+        self.temperature = -1.0
+        self.cutoff_time = 0.0
 
-        elif self.ftype == "Value-defined":
+        #
+        # loop over parameter sets
+        #
+        for params in p2calc:
+            
+            try:
+                ftype = params["ftype"]
+                
+                if ftype not in CorrelationFunction.allowed_types:
+                    raise Exception("Unknown CorrelationFunction type")
+    
+                # we mutate the parameters into internal units
+                prms = {}
+                for key in params.keys():
+                    if key in self.energy_params:
+                        prms[key] = self.convert_energy_2_internal_u(params[key])
+                    else:
+                        prms[key] = params[key]
+                        
+            except:
+                raise Exception("Dictionary of parameters does not contain "
+                                +" `ftype` key")
 
-            self._make_value_defined(params, values)
-
-        else:
-            raise Exception("Unknown correlation function type of"+
-                            "type domain combination.")
+            if ftype == "OverdampedBrownian-HighTemperature":
+    
+                self._make_overdamped_brownian_ht(prms, values=values)
+    
+            elif ftype == "OverdampedBrownian":
+    
+                self._make_overdamped_brownian(prms, values=values)
+                
+            elif ftype == "UnderdampedBrownian":
+                
+                self._make_underdamped_brownian(prms, values=values)
+    
+            elif ftype == "Value-defined":
+    
+                self._make_value_defined(prms, values)
+    
+            else:
+                raise Exception("Unknown correlation function type or"+
+                                "type domain combination.")
+                
+            self.params.append(prms)
 
     def _matsubara(self, kBT, ctime, nof):
+        """Matsubara frequency part of the Brownian correlation function
+        
+        """
         msf = 0.0
         nut = 2.0*numpy.pi*kBT
         time = self.axis.data
@@ -176,12 +209,34 @@ class CorrelationFunction(DFunction, UnitsManaged):
             msf += nut*n*numpy.exp(-nut*n*time)/((nut*n)**2-(1.0/ctime)**2)
         return msf
 
+    def _set_temperature_and_cutoff_time(self, temperature, ctime):
+        """Sets the temperature and cutoff time of for the component
+        
+        """
+        
+        # Temperatures of all components have to be the same
+        # is this the first time that temperature is assigned?
+        if self.temperature == -1.0: 
+            self.temperature = temperature
+        elif self.temperature != temperature:
+            raise Exception("Inconsistent temperature! Temperatures of all "
+                            +"components have to be the same")
+            
+        # longest cortime has to be preserved
+        new_cutoff_time = 5.0*ctime
+        if new_cutoff_time > self.cutoff_time: 
+            self.cutoff_time = new_cutoff_time
+            
+            
     def _make_overdamped_brownian(self, params, values=None):
-
+        """Creates the overdamped Brownian oscillator component
+        of the correlation function
+        
+        """
+        
         temperature = params["T"]
         ctime = params["cortime"]
-        lamb = self.manager.iu_energy(params["reorg"],
-                                      units=self.energy_units)
+        lamb = params["reorg"]
 
         if "matsubara" in params.keys():
             nmatsu = params["matsubara"]
@@ -192,8 +247,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
         time = self.axis.data
 
         if values is not None:
-
             cfce = values
+            
         else:
             cfce = (lamb/(ctime*numpy.tan(1.0/(2.0*kBT*ctime))))\
                 *numpy.exp(-time/ctime) \
@@ -201,88 +256,112 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
             cfce += (4.0*lamb*kBT/ctime) \
                 *self._matsubara(kBT, ctime, nmatsu)
-
-        self._make_me(self.axis, cfce)
         
-        self.lamb = lamb
-        self.temperature = temperature
-        self.cutoff_time = 5.0*ctime
+        # this is a call to the function inherited from DFunction class 
+        self._add_me(self.axis, cfce)
+        
+        # update reorganization energy
+        self.lamb += lamb
+        # check temperature and update cutoff time
+        self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)      
+
 
 
     def _make_overdamped_brownian_ht(self, params, values=None):
+        """Creates the high temperature overdamped Brownian oscillator 
+        component of the correlation function
+        
+        """
         temperature = params["T"]
         ctime = params["cortime"]
-        # use the units in which params was defined
-        lamb = self.manager.iu_energy(params["reorg"],
-                                      units=self.energy_units)
+        lamb = params["reorg"]
+        
         kBT = kB_intK*temperature
         time = self.axis.data
 
         if values is not None:
             cfce = values
+            
         else:
             cfce = 2.0*lamb*kBT*(numpy.exp(-time/ctime)
                                  - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
 
-        self._make_me(self.axis, cfce)
+        # this is a call to the function inherited from DFunction class 
+        self._add_me(self.axis, cfce)
 
-        self.lamb = lamb
-        self.temperature = temperature
-        self.cutoff_time = 5.0*ctime
+        # update reorganization energy
+        self.lamb += lamb
+        
+        # check temperature and update cutoff time
+        self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)  
+        
 
     def _make_underdamped_brownian(self, params, values=None):
+        """Creates underdamped Brownian oscillator component of the correlation
+        function
+        
+        
+        """
         from .spectraldensities import SpectralDensity
         
         temperature = params["T"]
         ctime = params["gamma"]
         #omega = params["freq"]
+        lamb = params["reorg"]
         
-        # use the units in which params was defined
-        lamb = self.manager.iu_energy(params["reorg"],
-                                      units=self.energy_units)
         #kBT = kB_intK*temperature
         time = self.axis #.data
 
         if values is not None:
             cfce = values
+            
         else:
-            # Make it via SpectralDensity
-            fa = SpectralDensity(time, params)
+            with energy_units("int"):
+                # Make it via SpectralDensity
+                fa = SpectralDensity(time, params)
             
-            cf = fa.get_CorrelationFunction(temperature=temperature)
+                cf = fa.get_CorrelationFunction(temperature=temperature)
             
-            cfce = cf.data
+                cfce = cf.data
                    #2.0*lamb*kBT*(numpy.exp(-time/ctime)
                    #              - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
 
-        self._make_me(self.axis, cfce)
+        # this is a call to the function inherited from DFunction class 
+        self._add_me(self.axis, cfce)
 
-        self.lamb = lamb
-        self.temperature = temperature
-        self.cutoff_time = 5.0/ctime  
+        # update reorganization energy
+        self.lamb += lamb
+        
+        # check temperature and update cutoff time
+        self._set_temperature_and_cutoff_time(temperature, 5.0/ctime)  
         
         
     def _make_value_defined(self, params, values):
         
-        lamb = self.convert_energy_2_internal_u(params["reorg"])
-        temp = params["T"]
+        lamb = params["reorg"]
+        temperature = params["T"]
         
         if "cutoff-time" in params.keys():
-            tcut = params["cutoff-time"]
+            ctime = params["cutoff-time"]
         else:
-            tcut = self.axis.max
+            ctime = self.axis.max
 
         if values is not None:
             if len(values) == self.axis.length:
-                self.data = self.convert_energy_2_internal_u(values)
+                cfce = values
             else:
                 raise Exception("Incompatible values")
         else:
             raise Exception("Valued-defined correlation function without values")
  
-        self.lamb = lamb
-        self.temperature = temp
-        self.cutoff_time = tcut
+        # this is a call to the function inherited from DFunction class 
+        self._add_me(self.axis, cfce)
+
+        # update reorganization energy
+        self.lamb += lamb
+        
+        # check temperature and update cutoff time
+        self._set_temperature_and_cutoff_time(temperature, ctime)  
            
     #
     # Aritmetic operations
@@ -295,14 +374,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
         t1 = self.axis
         t2 = other.axis
         if t1 == t2:
-            
-            params = {}
-            params["ftype"] = "Value-defined"
-            params["reorg"] = self.lamb
-            params["T"] = self.temperature
-            params["cutoff-time"] = self.cutoff_time
                       
-            f = CorrelationFunction(t1, params=params, values=self.data)
+            f = CorrelationFunction(t1, params=self.params)
             f.add_to_data(other)
             
         else:
@@ -315,7 +388,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Inplace addition of two correlation functions
         
         """  
-        self.add_to_data(other)
+        self.add_to_data2(other)
         return self
     
             
@@ -329,14 +402,15 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             self.data += other.data
             self.lamb += other.lamb  # reorganization energy is additive
-            # cutoff time is take as the longer one of the two
-            self.cutoff_time = max(self.cutoff_time, other.cutoff_time)
-            
-            # FIXME: storage of the component params etc. has to be handled
-            self.params = dict(ftype="Value-defined")
-            self.params["reorg"] = self.lamb
-            self.params["cutoff-time"] = self.cutoff_time
-            self.params["T"] = self.temperature
+            if other.cutoff_time > self.cutoff_time: 
+                self.cutoff_time = other.cutoff_time  
+                
+            if self.temperature != other.temperature:
+                raise Exception("Cannot add two correlation functions on different temperatures")
+    
+            for p in other.params:
+                self.params.append(p)
+                
             self._is_composed = True
             self._is_empty = False
             
@@ -344,7 +418,41 @@ class CorrelationFunction(DFunction, UnitsManaged):
         else:
             raise Exception("In addition, functions have to share"
                             +" the same TimeAxis object")
+ 
+    def add_to_data2(self, other):
+        """Addition of data from a specified CorrelationFunction to this object
         
+        """
+        if self == other:
+            ocor = CorrelationFunction(other.axis,other.params)
+        else:
+            ocor = other
+            
+        t1 = self.axis
+        t2 = ocor.axis
+        if t1 == t2:
+            
+            self.data += ocor.data
+            self.lamb += ocor.lamb  # reorganization energy is additive
+            if ocor.cutoff_time > self.cutoff_time: 
+                self.cutoff_time = ocor.cutoff_time  
+                
+            if self.temperature != ocor.temperature:
+                raise Exception("Cannot add two correlation functions on different temperatures")
+    
+
+            for p in ocor.params:
+                self.params.append(p)
+            
+            self._is_composed = True
+            self._is_empty = False
+            
+
+        else:
+            raise Exception("In addition, functions have to share"
+                            +" the same TimeAxis object")
+            
+       
     def reorganization_energy_consistent(self, rtol=1.0e-3):
         """Checks if the reorganization energy is consistent with the data
         
@@ -399,8 +507,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Creates a copy of the current correlation function
 
         """
-        with energy_units(self.energy_units):
-            cfce = CorrelationFunction(self.axis, self.params)
+        #with energy_units(self.energy_units):
+        cfce = CorrelationFunction(self.axis, self.params)
         return cfce
 
 
@@ -419,9 +527,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             frequencies = self.axis.get_FrequencyAxis()
             vals = self.get_OddFTCorrelationFunction().data
 
-        # params are saved in user defined units
-        with energy_units(self.energy_units):
-            # FIXME: This has to be done numerically
+            # FIXME: how to set the limit of SpectralDensity at w->0
             spectd = SpectralDensity(frequencies, self.params, values=vals)
 
         return spectd
@@ -434,7 +540,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         of an instance of a special class ``FTCorrelationFunction``
 
         """
-        with energy_units(self.energy_units):
+        with energy_units("int"):
             ftcf = FTCorrelationFunction(self.axis, self.params)
         return ftcf
 
@@ -446,12 +552,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
         ``OddFTCorrelationFunction``
 
         """
-        with energy_units(self.energy_units):
-            if self.params["ftype"] == "Value-defined":
-                oftcf = OddFTCorrelationFunction(self.axis, self.params, 
-                                                 values=self.data)
-            else:
-                oftcf = OddFTCorrelationFunction(self.axis, self.params)
+
+        with energy_units("int"):
+            oftcf = OddFTCorrelationFunction(self.axis, self.params)
         return oftcf
 
     def get_EvenFTCorrelationFunction(self):
@@ -462,7 +565,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         ``EvenFTCorrelationFunction``
 
         """
-        with energy_units(self.energy_units):
+        with energy_units("int"):
             eftcf = EvenFTCorrelationFunction(self.axis, self.params)
         return eftcf
 
@@ -482,7 +585,8 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
         Dictionary of the correlation function parameters
 
     """
-
+    energy_params = ("reorg", "omega", "freq")
+    
     def __init__(self, axis, params, values=None):
         super().__init__()
 
@@ -492,27 +596,46 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
         else:
             self.axis = axis
             
-
-        ftype = params["ftype"]
-        if ftype in CorrelationFunction.allowed_types:
-            self.ftype = ftype
-        else:
-            raise Exception("Unknown Correlation Function Type")
-
-        #if (values is not None) and (ftype != "Value-defined"):
-        #    raise Exception("Only value defined ftype can have values argument")
-
-        # we need to save the defining energy units
-        self.energy_units = self.manager.get_current_units("energy")
-
-        self.params = params
+        # handle params
+        self.params = []  # this will always be a list of components
+        p2calc = []
+        try:
+            # if this passes, we assume params is a dictionary
+            params.keys()
+            self._is_composed = False
+            p2calc.append(params)
+            
+        except:
+            # othewise we assume it is a list of dictionaries 
+            self._is_composed = True
+            for p in params:
+                p2calc.append(p)
+                
+        for params in p2calc:
+            
+            try:
+                ftype = params["ftype"]
+                
+                if ftype not in CorrelationFunction.allowed_types:
+                    raise Exception("Unknown CorrelationFunction type")
+    
+                # we mutate the parameters into internal units
+                prms = {}
+                for key in params.keys():
+                    if key in self.energy_params:
+                        prms[key] = self.convert_energy_2_internal_u(params[key])
+                    else:
+                        prms[key] = params[key]
+                    
+            except:
+                raise Exception("Dictionary of parameters does not contain "
+                                +" `ftype` key")
+        self.params = prms
 
         if values is None:
-            # We create CorrelationFunction and FTT it
-            with energy_units(self.energy_units):
-                cfce = CorrelationFunction(axis, params)
             # data have to be protected from change of units
             with energy_units("int"):
+                cfce = CorrelationFunction(axis, self.params)
                 ftvals = cfce.get_Fourier_transform()
                 self.data = ftvals.data
             #self.axis = ftvals.axis
@@ -520,7 +643,6 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
             # This is not protected from change of units!!!!
             self.data = values
             #self.axis = cfce.axis.get_FrequencyAxis()
-
 
 
 
@@ -556,25 +678,37 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
 
     def __init__(self, axis, params, values=None):
         super().__init__()
-
+        
         if not isinstance(axis, FrequencyAxis):
             faxis = axis.get_FrequencyAxis()
             self.axis = faxis
         else:
             self.axis = axis     
 
-        ftype = params["ftype"]
-        if ftype in CorrelationFunction.allowed_types:
-            self.ftype = ftype
-        else:
-            raise Exception("Unknown Correlation Function Type")
-
-        # we need to save the defining energy units
-        self.energy_units = self.manager.get_current_units("energy")
-        self.params = params
+        # handle params
+        self.params = []  # this will always be a list of components
+        p2calc = []
+        try:
+            # if this passes, we assume params is a dictionary
+            params.keys()
+            self._is_composed = False
+            p2calc.append(params)
             
-        # We create CorrelationFunction and FTT it
-        with energy_units(self.energy_units):
+        except:
+            # othewise we assume it is a list of dictionaries 
+            self._is_composed = True
+            for p in params:
+                p2calc.append(p)
+        
+        for params in p2calc:
+        
+            ftype = params["ftype"]
+            if ftype not in CorrelationFunction.allowed_types:
+                raise Exception("Unknown Correlation Function Type")
+    
+            self.params.append(params)
+                
+            # We create CorrelationFunction and FTT it
             if params["ftype"] == "Value-defined":
                 if values is None:
                     raise Exception()
@@ -582,16 +716,15 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
                     cfce = CorrelationFunction(axis, params, values=values)
             else:
                 cfce = CorrelationFunction(axis, params)
+    
+            cfce.data = 1j*numpy.imag(cfce.data)
+    
+            # data have to be protected from change of units
+            with energy_units("int"):
+                ftvals = cfce.get_Fourier_transform()
+                ndata = numpy.real(ftvals.data)
 
-        cfce.data = 1j*numpy.imag(cfce.data)
-
-        # data have to be protected from change of units
-        with energy_units("int"):
-            ftvals = cfce.get_Fourier_transform()
-            self.data = numpy.real(ftvals.data)
-
-        self.axis = ftvals.axis
-
+            self._add_me(self.axis,ndata)
 
 
 class EvenFTCorrelationFunction(DFunction, UnitsManaged):
@@ -622,37 +755,56 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis, params):
+    def __init__(self, axis, params, values=None):
         super().__init__()
 
+        if not isinstance(axis, FrequencyAxis):
+            faxis = axis.get_FrequencyAxis()
+            self.axis = faxis
+        else:
+            self.axis = axis 
+            
+        # handle params
+        self.params = []  # this will always be a list of components
+        p2calc = []
         try:
-            ftype = params["ftype"]
-            if ftype in CorrelationFunction.allowed_types:
-                self.ftype = ftype
-            else:
-                raise Exception("Unknown Correlation Function Type")
-
-            # we need to save the defining energy units
-            self.energy_units = self.manager.get_current_units("energy")
-
-
+            # if this passes, we assume params is a dictionary
+            params.keys()
+            self._is_composed = False
+            p2calc.append(params)
+            
         except:
-            raise Exception
+            # othewise we assume it is a list of dictionaries 
+            self._is_composed = True
+            for p in params:
+                p2calc.append(p)
+        
+        for params in p2calc:
+            
+            ftype = params["ftype"]
+            if ftype not in CorrelationFunction.allowed_types:
+                raise Exception("Unknown Correlation Function Type: "+ftype)
 
-        # We create CorrelationFunction and FTT it
-        with energy_units(self.energy_units):
-            cfce = CorrelationFunction(axis, params)
 
-        cfce.data = numpy.real(cfce.data)
+            self.params.append(params)
+            
+            # We create CorrelationFunction and FTT it
+            if params["ftype"] == "Value-defined":
+                if values is None:
+                    raise Exception()
+                else:
+                    cfce = CorrelationFunction(axis, params, values=values)
+            else:
+                cfce = CorrelationFunction(axis, params)
+                
+            cfce.data = numpy.real(cfce.data)
+    
+            # data have to be protected from change of units
+            with energy_units("int"):
+                ftvals = cfce.get_Fourier_transform()
+                ndata = numpy.real(ftvals.data)
 
-        self.params = params
-
-        # data have to be protected from change of units
-        with energy_units("int"):
-            ftvals = cfce.get_Fourier_transform()
-            self.data = numpy.real(ftvals.data)
-
-        self.axis = ftvals.axis
+            self._add_me(self.axis,ndata)
 
 
 #FIXME: these functions can go to DFunction
