@@ -4,7 +4,7 @@
 import unittest
 import numpy
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 """
 *******************************************************************************
@@ -26,6 +26,7 @@ class TestSpectralDensity(unittest.TestCase):
     
     
     """
+    pass
     
     def test_underdamped_brownian_oscillator(self):
         """Testing Underdamped Brownian oscillator spectral density
@@ -45,22 +46,21 @@ class TestSpectralDensity(unittest.TestCase):
         par["T"] = 300.0
         
         params = []
-        for i in range(5):
+        for i in range(4):
             p = par.copy()
             p["freq"] = par["freq"] + (i+1)*200.0
             params.append(p)
         
-        time = TimeAxis(0.0, 100000, 1.0)
+        time = TimeAxis(0.0, 100000, 0.05)
         
         #
         # Adding through correlation functions
         #
         with energy_units("1/cm"):
             
-            sd = SpectralDensity(time, par)            
-            cf = sd.get_CorrelationFunction(temperature=300)
+            sd = SpectralDensity(time, par)  
             
-            #cf.plot()
+            cf = sd.get_CorrelationFunction(temperature=300)
             
             tot_cf = cf
             tot_cf.axis = time
@@ -101,18 +101,26 @@ class TestSpectralDensity(unittest.TestCase):
             
             tot_sd2 += ov
                 
+            #tot_sd2.data = tot_sd2.data*2.0*3.14159*10.2
             #tot_sd2.plot(color="-r")
-            
+
+#        # elemental version of the tests (without testing addition)
+#        #pp = parO
+#        pp = params[4]
+#        with energy_units("1/cm"):
+#            tot_sd1 = SpectralDensity(time, pp)
+#            cf = CorrelationFunction(time, pp)
+#            tot_sd2 = cf.get_SpectralDensity()
+#            
+#            cf2 = tot_sd1.get_CorrelationFunction() 
+#            
+#        numpy.testing.assert_allclose(cf.data, cf2.data, atol=1.0e-3)       
+        
         numpy.testing.assert_allclose(tot_sd1.data, tot_sd2.data, atol=1.0e-3)
         
         cf1 = tot_sd1.get_CorrelationFunction(temperature=300)
         cf2 = tot_sd2.get_CorrelationFunction(temperature=300)
         
-        #cf1.plot(show=False)
-        #cf2.plot(color="-r", axis=[0.0, 2000, 
-        #                           numpy.min(cf1.data)-numpy.max(cf1.data)*0.1,
-        #                            numpy.max(cf1.data)*1.1])
-    
-        numpy.testing.assert_allclose(cf1.data, cf2.data, atol=1.0e-3)
+        numpy.testing.assert_allclose(cf1.data, cf2.data, atol=1.0e-2)
         
     
