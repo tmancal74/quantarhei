@@ -62,11 +62,13 @@ class Saveable:
         prog = re.compile(rg)
         
         info = inspect.getmembers(self, _isattr)
+        print(inspect.getmembers(self, lambda o: isinstance(o, property)))
         attr = []
         for fo in info:
             fo_name = fo[0]
             mch = prog.match(fo_name)
             if mch is None:
+                print(fo_name)
                 attr.append(fo_name)
 
         for at_name in attr:
@@ -210,8 +212,12 @@ class Saveable:
         self._load_dictionaries(root, dictionaries)     
         
         for key in strings.keys():
+            print("Setting a strings")
+            print(key)
             setattr(self,key,strings[key])
         for key in numeric.keys():
+            print("Setting a numeric")
+            print(key)
             setattr(self,key,numeric[key])
         for key in numdata.keys():
             setattr(self,key,numdata[key])
@@ -242,7 +248,7 @@ class Saveable:
         
         """
         loc.attrs.create("classid",numpy.string_(str(classid)))
-        print(classid)
+        #print(classid)
     
     
     def _save_strings(self, loc, dictionary):
@@ -253,7 +259,7 @@ class Saveable:
         strs = self._create_root_group(loc,"strings")
         for key in dictionary.keys(): 
             strs.attrs.create(key, numpy.string_(dictionary[key]))
-        print(dictionary.keys())
+        #print(dictionary.keys())
     
     def _save_numeric(self, loc, dictionary):
         """Saves a dictionary of numeric values under the group "numeric"
@@ -263,7 +269,7 @@ class Saveable:
         strs = self._create_root_group(loc,"numeric")
         for key in dictionary.keys(): 
             strs.attrs.create(key, dictionary[key])
-        print(dictionary.keys())
+        #print(dictionary.keys())
     
     def _save_boolean(self, loc, dictionary):
         """Saves a dictionary of boolean values under the group "boolean"
@@ -273,7 +279,7 @@ class Saveable:
         strs = self._create_root_group(loc,"boolean")
         for key in dictionary.keys(): 
             strs.attrs.create(key, dictionary[key])
-        print(dictionary.keys())
+        #print(dictionary.keys())
             
             
     def _save_numdata(self, loc, dictionary):
@@ -284,7 +290,7 @@ class Saveable:
         strs = self._create_root_group(loc,"numdata")
         for key in dictionary.keys(): 
             strs.create_dataset(key, data=dictionary[key])
-        print(dictionary.keys())
+        #print(dictionary.keys())
     
     def _save_objects(self, loc, dictionary):
         """Saves a dictionary of objects under the group "objects"
@@ -295,7 +301,7 @@ class Saveable:
         for key in dictionary.keys(): 
             obj = dictionary[key]
             obj.save(strs)
-        print(dictionary.keys())
+        #print(dictionary.keys())
     
     def _save_lists(self, loc, dictionary):
         """Saves a dictionary of lists under the group "lists"
@@ -306,7 +312,7 @@ class Saveable:
         for key in dictionary.keys(): 
             clist = dictionary[key]
             self._save_a_list(strs, clist)
-        print(dictionary.keys())
+        #print(dictionary.keys())
 
     def _save_tuples(self, loc, dictionary):
         """Saves a dictionary of lists under the group "lists"
@@ -317,7 +323,7 @@ class Saveable:
         for key in dictionary.keys(): 
             clist = dictionary[key]
             self._save_a_tuple(strs, clist)
-        print(dictionary.keys())
+        #print(dictionary.keys())
         
     def _save_dictionaries(self, loc, dictionary):
         """Saves a dictionary of dictionaries under the group "dicts"
@@ -328,7 +334,7 @@ class Saveable:
         for key in dictionary.keys(): 
             cdict = dictionary[key]
             self._save_a_dictionary(strs, cdict)           
-        print(dictionary.keys())
+        #print(dictionary.keys())
 
 
 

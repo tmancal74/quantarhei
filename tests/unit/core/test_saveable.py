@@ -74,7 +74,7 @@ class TestSaveable(unittest.TestCase):
         self.obj1.set_saveable(obj2)
         
     def test_saving_and_loading_1(self):
-        """Testing saving an loading Saveable objects
+        """Testing saving and loading Saveable objects
         
         
         """
