@@ -481,8 +481,12 @@ class DFunction:
 
             elif t.atype == "upper-half":
 
-                Y = Y[t.length:2*t.length]
-                F = DFunction(t, Y)
+                # FIXME: this is a temporary fix - whole this part needs
+                # rethinking
+                y = numpy.zeros(t.length,dtype=numpy.complex128)
+                y[0:t.length-1] = Y[t.length+1:2*t.length]
+                y[t.length-1] = 0.0
+                F = DFunction(t, y)
 
             else:
                 raise Exception("Unknown axis type"
