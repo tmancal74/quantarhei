@@ -170,5 +170,45 @@ class TestSaveable(unittest.TestCase):
         for i in range(n):
             #print(obj3.liple[i],obj2.liple[i])
             self.assertEqual(obj3.liple[i],obj2.liple[i])
+
+        # -------------------------------------------------
+        obj3.set_liple(dict(ab="ahoj", cd=2.0))
+        
+        with h5py.File("test_file_2",driver="core", 
+                           backing_store=False) as f:
+            
+            obj3.save(f)
+            
+            
+            obj2 = TSaveable()
+            obj2.load(f)        
+            
+        liple = obj3.liple
+        for i in liple.keys():
+            #print(obj3.liple[i],obj2.liple[i])
+            self.assertEqual(obj3.liple[i],obj2.liple[i])
+
+
+
+        # -------------------------------------------------
+        obj3.set_liple([[1,2,3],("bca",2,("a",234.0)), 
+                        dict(ab="ahoj", cd=2.0)])
+        
+        with h5py.File("test_file_2",driver="core", 
+                           backing_store=False) as f:
+            
+            obj3.save(f)
+            
+            
+            obj2 = TSaveable()
+            obj2.load(f)        
+            
+        liple = obj3.liple
+        n = len(liple)
+        for i in range(n):
+            #print(obj3.liple[i],obj2.liple[i])
+            self.assertEqual(obj3.liple[i],obj2.liple[i])
+
+
         
         #self.assertEqual(1,2)
