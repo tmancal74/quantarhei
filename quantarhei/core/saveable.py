@@ -10,8 +10,11 @@ from numbers import Number
 from .managers import energy_units
 
 def _isattr(obj):
-    return not inspect.ismethod(obj)
-        
+    ismethod = inspect.ismethod(obj)
+    return not ismethod 
+     
+simple_types = ("numeric", "strings", "boolean")        
+
 class Saveable:
     """Class implementing object persistence through saving to hdf5 files
     
@@ -61,12 +64,22 @@ class Saveable:
         rg = fnmatch.translate("__*__")
         prog = re.compile(rg)
         
+        # members that are attributes
         info = inspect.getmembers(self, _isattr)
+        
+        # members that are properties
+        propts = inspect.getmembers(self.__class__, 
+                                    lambda o: isinstance(o, property))
+        prop_names = []
+        for p in propts:
+            prop_names.append(p[0])
+            
         attr = []
         for fo in info:
             fo_name = fo[0]
             mch = prog.match(fo_name)
-            if mch is None:
+            if (mch is None) and (fo_name not in prop_names):
+                #print(fo_name)
                 attr.append(fo_name)
 
         for at_name in attr:
@@ -148,14 +161,16 @@ class Saveable:
             
         file_openned = False
     
+        fullclassid = self._get_full_class_name(self)
+    
         # check if we should open a file
         if isinstance(file, str):
             file_openned = True
             f = h5py.File(file,"w")
-            root = self._create_root_group(f,str(self.__class__))
+            root = self._create_root_group(f,fullclassid)
                 
         else:
-            root = self._create_root_group(file,str(self.__class__))
+            root = self._create_root_group(file,fullclassid)
 
         # do the save of all dictionaries
         with energy_units("int"):            
@@ -173,7 +188,9 @@ class Saveable:
         # if file openned here, close it
         if file_openned:
             f.close()
-                
+          
+    def _get_full_class_name(self, obj):
+        return obj.__class__.__module__+"."+obj.__class__.__name__
         
     def _do_load(self, file="", strings={}, numeric={},
                  boolean={}, numdata={}, objects={},
@@ -186,18 +203,21 @@ class Saveable:
             raise Exception("No file specified")
             
         file_openned = False
-    
+        thisclass = self._get_full_class_name(self)
+        
         # check if we should open a file
         if isinstance(file, str):
             file_openned = True
             f = h5py.File(file,"r")
-            root = f[str(self.__class__)]
+            root = f[thisclass]
                 
         else:
-            root = file[str(self.__class__)]
+            root = file[thisclass]
             
         cid = self._load_classid(root)
-        if cid != str(self.__class__):
+        
+        
+        if cid != thisclass:
             raise Exception("File contains an object of unexpected type")
         
         self._load_strings(root, strings)
@@ -216,8 +236,13 @@ class Saveable:
         for key in numdata.keys():
             setattr(self,key,numdata[key])
         for key in boolean.keys():
-            setattr(self,key,boolean[key])            
-            
+            setattr(self,key,boolean[key])
+        for key in lists.keys():
+            setattr(self,key,lists[key]) 
+        for key in objects.keys():
+            setattr(self,key,objects[key])
+        for key in dictionaries.keys():
+            setattr(self,key,dictionaries[key])            
         
         # if file openned here, close it
         if file_openned:
@@ -241,8 +266,9 @@ class Saveable:
         """Saves a string as "classid" attribute
         
         """
-        loc.attrs.create("classid",numpy.string_(str(classid)))
-        print(classid)
+        fullclassid = classid.__module__+"."+classid.__name__
+        loc.attrs.create("classid",numpy.string_(fullclassid))
+        #print(classid)
     
     
     def _save_strings(self, loc, dictionary):
@@ -253,7 +279,7 @@ class Saveable:
         strs = self._create_root_group(loc,"strings")
         for key in dictionary.keys(): 
             strs.attrs.create(key, numpy.string_(dictionary[key]))
-        print(dictionary.keys())
+        #print(dictionary.keys())
     
     def _save_numeric(self, loc, dictionary):
         """Saves a dictionary of numeric values under the group "numeric"
@@ -263,7 +289,7 @@ class Saveable:
         strs = self._create_root_group(loc,"numeric")
         for key in dictionary.keys(): 
             strs.attrs.create(key, dictionary[key])
-        print(dictionary.keys())
+        #print(dictionary.keys())
     
     def _save_boolean(self, loc, dictionary):
         """Saves a dictionary of boolean values under the group "boolean"
@@ -273,7 +299,7 @@ class Saveable:
         strs = self._create_root_group(loc,"boolean")
         for key in dictionary.keys(): 
             strs.attrs.create(key, dictionary[key])
-        print(dictionary.keys())
+        #print(dictionary.keys())
             
             
     def _save_numdata(self, loc, dictionary):
@@ -284,7 +310,7 @@ class Saveable:
         strs = self._create_root_group(loc,"numdata")
         for key in dictionary.keys(): 
             strs.create_dataset(key, data=dictionary[key])
-        print(dictionary.keys())
+        #print(dictionary.keys())
     
     def _save_objects(self, loc, dictionary):
         """Saves a dictionary of objects under the group "objects"
@@ -294,8 +320,9 @@ class Saveable:
         strs = self._create_root_group(loc,"objects")
         for key in dictionary.keys(): 
             obj = dictionary[key]
-            obj.save(strs)
-        print(dictionary.keys())
+            nroot = self._create_root_group(strs,key)
+            obj.save(nroot)
+        #print(dictionary.keys())
     
     def _save_lists(self, loc, dictionary):
         """Saves a dictionary of lists under the group "lists"
@@ -305,8 +332,8 @@ class Saveable:
         strs = self._create_root_group(loc,"lists")
         for key in dictionary.keys(): 
             clist = dictionary[key]
-            self._save_a_list(strs, clist)
-        print(dictionary.keys())
+            self._save_a_listuple(strs, key, "list", clist)
+        #print(dictionary.keys())
 
     def _save_tuples(self, loc, dictionary):
         """Saves a dictionary of lists under the group "lists"
@@ -316,8 +343,8 @@ class Saveable:
         strs = self._create_root_group(loc,"tuples")
         for key in dictionary.keys(): 
             clist = dictionary[key]
-            self._save_a_tuple(strs, clist)
-        print(dictionary.keys())
+            self._save_a_listuple(strs, key, "tuple", clist)
+        #print(dictionary.keys())
         
     def _save_dictionaries(self, loc, dictionary):
         """Saves a dictionary of dictionaries under the group "dicts"
@@ -327,29 +354,166 @@ class Saveable:
         strs = self._create_root_group(loc,"dicts")
         for key in dictionary.keys(): 
             cdict = dictionary[key]
-            self._save_a_dictionary(strs, cdict)           
-        print(dictionary.keys())
+            self._save_a_dictionary(strs, key, cdict)           
+        #print(dictionary.keys())
 
 
-
-            
-    def _save_a_list(self, loc, clist):
-        """Saves a list of values
-        
-        All simple values (strings, numeric, boolean), numpy arrays, Savable
-        objects, and also lists and dictionaries should be acceptable
+    def _get_type(self, obj):
+        """Returns a simple type or None
         
         """
-        pass
+        htyp = None
+        if isinstance(obj, Number):
+            htyp = "numeric"
+        elif isinstance(obj, str):
+            htyp = "strings"
+        elif isinstance(obj, bool):
+            htyp = "boolean"
+            
+        return htyp
+        
+
+    def _is_homogeneous_simple(self, liple):
+        """Returns True and type of the content of the list if the list
+        contains objects of the same type and the type is one of the simple
+        types: numeric, boolean or strings
+        
+        """
+        
+        obj = liple[0]
+        htyp = self._get_type(obj)
+        homo = True
+        
+        if htyp is None:
+            homo = False
+            return (homo, htyp)
+        
+        for obj in liple:
+            if htyp != self._get_type(obj): 
+                htyp = None
+                homo = False
+                break
+            
+        return (homo, htyp)
+
+
+    def _save_a_listuple(self, loc, key, typ, ctuple):
+        """ Saves a list or tuple of items
+        
+        All simple values (strings, numeric, boolean), numpy arrays, Savable
+        objects, and also lists, tuples and dictionaries should be acceptable
+        
+        """
+        
+        root = self._create_root_group(loc, key)
+        root.attrs.create("type", numpy.string_(typ))
+        
+        (homo, htyp) = self._is_homogeneous_simple(ctuple)
+        
+        root.attrs.create("homogeneous_simple", homo)
+        
+        if homo:
+            if (htyp == "numeric") or (htyp == "boolean"):
+                root.create_dataset(htyp, data=numpy.array(ctuple))
+                
+            elif htyp == "strings":
+                # get the maximum length of the string
+                slen = 0
+                for item in ctuple:
+                    nlen = len(item)
+                    if nlen > slen:
+                        slen = nlen
+
+                dtp = "a"+str(slen)
+                dset = root.create_dataset(htyp, (len(ctuple),), dtype=dtp)
+                dset[:] = numpy.array(numpy.string_(ctuple))
+            else:
+                raise Exception("Attempt to save an empty list")
+        
+        else:
+            root.attrs.create("length",len(ctuple))
+            k = 0
+            for item in ctuple:
+                tupkey = str(k)
+                if self._in_simple_types(item):
+                    self._save_a_simple_type(root, tupkey, item)
+                elif isinstance(item, Saveable):
+                    objroot = self._create_root_group(root,tupkey)
+                    item.save(objroot)
+                elif isinstance(item, list):
+                    self._save_a_listuple(root, tupkey, "list", item)
+                elif isinstance(item, tuple):
+                    self._save_a_listuple(root, tupkey, "tuple", item)
+                elif isinstance(item, dict):
+                    self._save_a_dictionary(root, tupkey, item)
+                else:
+                    # possibly warn that something was not saved
+                    pass
+                k += 1
     
-    def _save_a_dictionary(self, loc, cdict):
+    def _in_simple_types(self, item):
+        if isinstance(item, Number):
+            return True
+        if isinstance(item, str):
+            return True
+        return False
+    
+    def _save_a_simple_type(self, loc, key, item):
+        
+        if isinstance(item,Number):
+            grp = self._create_root_group(loc,key)
+            grp.attrs.create("item",item)
+            grp.attrs.create("type",numpy.string_("numeric"))
+        elif isinstance(item,bool):
+            grp = self._create_root_group(loc,key)
+            grp.attrs.create("item",item)
+            grp.attrs.create("type",numpy.string_("boolean"))
+        elif isinstance(item,str):
+            grp = self._create_root_group(loc,key)
+            grp.attrs.create("item",numpy.string_(item))
+            grp.attrs.create("type",numpy.string_("strings"))
+
+
+    def _load_a_simple_type(self, loc):
+        
+        typ = loc.attrs["type"]
+        typ = typ.decode("utf-8")
+        if typ == "numeric":
+            return loc.attrs["item"]
+        if typ == "strings":
+            ss = loc.attrs["item"]
+            return ss.decode("utf-8")
+        if typ == "boolean":
+            return loc.attrs["item"]
+        
+        
+    
+    def _save_a_dictionary(self, loc, key, cdict):
         """Saves a dictionary of values
         
         All simple values (strings, numeric, boolean), numpy arrays, Savable
         objects, and also lists and dictionaries should be acceptable
         
         """
-        pass
+        root = self._create_root_group(loc, key)
+        root.attrs.create("type", numpy.string_("dict"))
+        
+        for dkey in cdict.keys():
+            item  = cdict[dkey]
+            if self._in_simple_types(item):
+                self._save_a_simple_type(root, dkey, item)
+            elif isinstance(item, Saveable):
+                objroot = self._create_root_group(root,dkey)
+                item.save(objroot)
+            elif isinstance(item, list):
+                self._save_a_listuple(root, dkey, "list", item)
+            elif isinstance(item, tuple):
+                self._save_a_listuple(root, dkey, "tuple", item)
+            elif isinstance(item, dict):
+                self._save_a_dictionary(root, dkey, item)
+            else:
+                # possibly warn that something was not saved
+                pass
     
     
     
@@ -361,7 +525,8 @@ class Saveable:
         """Loads a string as "classid" attribute
         
         """
-        return loc.attrs["classid"].decode("utf-8")
+        fullclassid = loc.attrs["classid"].decode("utf-8")
+        return fullclassid
     
     
     def _load_strings(self, loc, dictionary):
@@ -412,7 +577,18 @@ class Saveable:
         
         for key in strs.keys(): 
             dictionary[key] = numpy.array(strs[key])
-            
+          
+    def _get_class(self, kls):
+        
+        parts = kls.split('.')
+
+        module = ".".join(parts[:-1])
+        m = __import__( module )
+        parts = parts[1:]
+
+        for comp in parts:
+            m = getattr(m, comp)            
+        return m
     
     def _load_objects(self, loc, dictionary):
         """Saves a dictionary of objects under the group "objects"
@@ -423,9 +599,16 @@ class Saveable:
         except:
             return
         
-        #for key in dictionary.keys(): 
-        #    obj = dictionary[key]
-        #    obj.save(strs)
+        for key in strs.keys():
+            
+            objloc = strs[key]
+            k = 0
+            for kex in objloc.keys():
+                objcls = self._get_class(kex)
+                k += 1
+            obj = objcls()
+            obj.load(objloc)
+            dictionary[key] = obj
     
     def _load_lists(self, loc, dictionary):
         """Saves a dictionary of lists under the group "lists"
@@ -436,9 +619,11 @@ class Saveable:
         except:
             return
         
-        for key in dictionary.keys(): 
-            clist = dictionary[key]
-            #self._save_a_list(strs, clist)
+        for key in  strs.keys():
+            loc = strs[key]
+            clist = self._load_a_listuple(loc)
+            dictionary[key] = clist
+            
  
     def _load_dictionaries(self, loc, dictionary):
         """Saves a dictionary of dictionaries under the group "dicts"
@@ -449,9 +634,10 @@ class Saveable:
         except:
             return
         
-        for key in dictionary.keys(): 
-            cdict = dictionary[key]
-            #self._save_a_dictionary(strs, cdict)           
+        for key in strs.keys(): 
+            loc = strs[key]
+            cdict = self._load_a_dictionary(loc)
+            dictionary[key] = cdict          
 
     def _load_tuples(self, loc, dictionary):
         """Saves a dictionary of dictionaries under the group "dicts"
@@ -462,71 +648,153 @@ class Saveable:
         except:
             return
         
-        for key in dictionary.keys(): 
-            cdict = dictionary[key]
-            #self._save_a_dictionary(strs, cdict)
+        for key in  strs.keys():
+            loc = strs[key]
+            clist = self._load_a_listuple(loc)
+            dictionary[key] = clist
+            
 
-    def _load_a_list(self, loc, clist):
-        """Saves a list of values
+    def _load_a_listuple(self, loc):
+        """Loads a list or tuple of values
         
         All simple values (strings, numeric, boolean), numpy arrays, Savable
         objects, and also lists and dictionaries should be acceptable
         
         """
-        pass
+        
+        typ = loc.attrs["type"].decode("utf-8")
+        clist = []
+        homo = loc.attrs["homogeneous_simple"]
+        
+        if homo:
+
+            if ("numeric" in loc.keys()):
+                data = loc["numeric"]
+            elif ("boolean" in loc.keys()):
+                data = loc["boolean"]
+            elif ("strings" in loc.keys()):
+                data = []
+                for dt in loc["strings"]:
+                    data.append(dt.decode("utf-8"))
+                    
+            else:
+                for key in loc.keys():
+                    print(key)
+                print("length: ", len(loc.keys()))
+                raise Exception()
+            
+            
+            for dt in data:
+                clist.append(dt)
+                
+        else:
+            
+            N = loc.attrs["length"]
+            for k in range(N):
+                tupkey = str(k)
+                itemloc = loc[tupkey]
+                ltyp = itemloc.attrs["type"].decode("utf-8")
+                if ltyp in simple_types:
+                    item = self._load_a_simple_type(itemloc)
+                    clist.append(item)
+                elif ltyp ==  "Saveable":
+                    #objroot = self._create_root_group(root,tupkey)
+                    #item.save(objroot)
+                    pass
+                elif ltyp == "list":
+                    item = self._load_a_listuple(itemloc)
+                    clist.append(item)
+                elif ltyp == "tuple":
+                    item = self._load_a_listuple(itemloc)
+                    clist.append(item)
+                elif ltyp == "dict":
+                    item = self._load_a_dictionary(itemloc)
+                    clist.append(item)
+                else:
+                    # possibly warn that something was not saved
+                    pass
+                
+                
+                k += 1 
+                
+        # if the type is tuple, we convert list to tuple
+        if typ == "tuple":
+            #print("convering to tuple")
+            clist = tuple(clist)
+            
+        return clist
+            
     
-    def _load_a_dictionary(self, loc, cdict):
-        """Saves a dictionary of values
+    def _load_a_dictionary(self, loc):
+        """Loads a dictionary of values
         
         All simple values (strings, numeric, boolean), numpy arrays, Savable
         objects, and also lists and dictionaries should be acceptable
         
         """
-        pass    
-     
-        
-    
-class TestObject(Saveable):
-    """
-    
-    
+        #typ = loc.attrs["type"].decode("utf-8")
+        cdict = {}
 
+        for dkey in loc.keys():
+            itemloc = loc[dkey]
+            ltyp = itemloc.attrs["type"].decode("utf-8")
+
+            if ltyp in simple_types:
+                item = self._load_a_simple_type(itemloc)
+                cdict[dkey] = item
+            elif ltyp ==  "Saveable":
+                #objroot = self._create_root_group(root,tupkey)
+                #item.save(objroot)
+                pass
+            elif ltyp == "list":
+                item = self._load_a_listuple(itemloc)
+                cdict[dkey] = item
+            elif ltyp == "tuple":
+                item = self._load_a_listuple(itemloc)
+                cdict[dkey] = item
+            elif ltyp == "dict":
+                item = self._load_a_dictionary(itemloc)
+                cdict[dkey] = item
+            else:
+                # possibly warn that something was not saved
+                pass
     
-    """
+        return cdict
+    
+    
+class TSaveable(Saveable):
+    
     def __init__(self):
         
-        self.name = "Ahoj"
-        self.class_name = "TestObject"
-        self.N = 23
+        self.a = 1.0
+        self.text = None
+        self._txt = None
+        self.b1 = False
+        self.b2 = False
+        self.b3 = False
+        
+        self.dat = None
+        
+    def set_a(self, a):
+        self.a = a
+        
+    def set_str(self, text1, text2):
+        self.text = text1
+        self._txt = text2
+        
+    def set_bool(self, b1, b2, b3):
+        self.b1 = b1
+        self.b2 = b2
+        self.b3 = b3
+        
+    def set_data(self, dat):
+        self.dat = numpy.array(dat)
+        
+    def set_saveable(self, obj):
+        self.obj = obj
         
         
-    def save(self, filename):
-        
-        # strings
-        strs = dict(name=self.name,
-                    class_name=self.class_name) 
-        # integers
-        ints = dict(N=self.N)
-        
-        with h5py.File(filename,"w") as file:
-
-            #
-            # Saving all types
-            #
-            self.save_string_attributes(file, strs)
-            self.save_numeric_attributes(file, ints)
-        
-        
-        
-    def load(self, file):
-        
-        string_attr_names = ["name", "class_name"]
-        string_attrs = self.load_string_attributes(file, string_attr_names)
-        self.name = string_attrs["name"]
-        self.class_name = string_attrs["class_name"]
-        
-        numeric_attr_names = ["N"]
-        numeric_attrs = self.load_numeric_attributes(file, numeric_attr_names)
-        self.N = numeric_attrs["N"]
-        
-           
+    def set_liple(self, liple):
+        """Sets a list or tuple 
+        """
+        self.liple = liple           
