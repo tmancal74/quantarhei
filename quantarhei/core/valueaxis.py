@@ -11,8 +11,9 @@ import numpy
 
 from ..utils import Float
 from ..utils import Integer
+from .saveable import Saveable
 
-class ValueAxis:
+class ValueAxis(Saveable):
     """ Linear array of values which are used as variables of numerical
     functions and parameter dependent matrices
 

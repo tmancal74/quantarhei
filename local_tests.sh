@@ -24,6 +24,10 @@ export PYTHONPATH=`pwd`
 #
 # Run tests
 #
+nosetests -vs tests/unit/core/test_valueaxis.py
+nosetests -vs tests/unit/core/test_saveable.py
+#nosetests -vs tests/unit/core/test_dfunction.py
+
 paver
 
 

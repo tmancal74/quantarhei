@@ -32,3 +32,13 @@ class TestTimeAxis(unittest.TestCase):
         self.assertEqual(ta.max,ta.data[ta.length-1])
         
         
+    def test_if_time_axis_is_saveable(self):
+        """Testing the Saveability of TimAxis
+        
+        """
+        
+        ta = TimeAxis(0.0, 1000, 0.1)
+        
+        ta.save("time.hdf5")
+        
+        
