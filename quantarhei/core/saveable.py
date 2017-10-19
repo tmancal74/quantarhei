@@ -161,14 +161,16 @@ class Saveable:
             
         file_openned = False
     
+        fullclassid = self._get_full_class_name(self)
+    
         # check if we should open a file
         if isinstance(file, str):
             file_openned = True
             f = h5py.File(file,"w")
-            root = self._create_root_group(f,str(self.__class__))
+            root = self._create_root_group(f,fullclassid)
                 
         else:
-            root = self._create_root_group(file,str(self.__class__))
+            root = self._create_root_group(file,fullclassid)
 
         # do the save of all dictionaries
         with energy_units("int"):            
@@ -186,7 +188,9 @@ class Saveable:
         # if file openned here, close it
         if file_openned:
             f.close()
-                
+          
+    def _get_full_class_name(self, obj):
+        return obj.__class__.__module__+"."+obj.__class__.__name__
         
     def _do_load(self, file="", strings={}, numeric={},
                  boolean={}, numdata={}, objects={},
@@ -199,18 +203,21 @@ class Saveable:
             raise Exception("No file specified")
             
         file_openned = False
-    
+        thisclass = self._get_full_class_name(self)
+        
         # check if we should open a file
         if isinstance(file, str):
             file_openned = True
             f = h5py.File(file,"r")
-            root = f[str(self.__class__)]
+            root = f[thisclass]
                 
         else:
-            root = file[str(self.__class__)]
+            root = file[thisclass]
             
         cid = self._load_classid(root)
-        if cid != str(self.__class__):
+        
+        
+        if cid != thisclass:
             raise Exception("File contains an object of unexpected type")
         
         self._load_strings(root, strings)
@@ -231,7 +238,9 @@ class Saveable:
         for key in boolean.keys():
             setattr(self,key,boolean[key])
         for key in lists.keys():
-            setattr(self,key,lists[key])            
+            setattr(self,key,lists[key]) 
+        for key in objects.keys():
+            setattr(self,key,objects[key])
             
         
         # if file openned here, close it
@@ -256,7 +265,8 @@ class Saveable:
         """Saves a string as "classid" attribute
         
         """
-        loc.attrs.create("classid",numpy.string_(str(classid)))
+        fullclassid = classid.__module__+"."+classid.__name__
+        loc.attrs.create("classid",numpy.string_(fullclassid))
         #print(classid)
     
     
@@ -309,7 +319,8 @@ class Saveable:
         strs = self._create_root_group(loc,"objects")
         for key in dictionary.keys(): 
             obj = dictionary[key]
-            obj.save(strs)
+            nroot = self._create_root_group(strs,key)
+            obj.save(nroot)
         #print(dictionary.keys())
     
     def _save_lists(self, loc, dictionary):
@@ -482,7 +493,8 @@ class Saveable:
         """Loads a string as "classid" attribute
         
         """
-        return loc.attrs["classid"].decode("utf-8")
+        fullclassid = loc.attrs["classid"].decode("utf-8")
+        return fullclassid
     
     
     def _load_strings(self, loc, dictionary):
@@ -533,7 +545,18 @@ class Saveable:
         
         for key in strs.keys(): 
             dictionary[key] = numpy.array(strs[key])
-            
+          
+    def _get_class(self, kls):
+        
+        parts = kls.split('.')
+
+        module = ".".join(parts[:-1])
+        m = __import__( module )
+        parts = parts[1:]
+
+        for comp in parts:
+            m = getattr(m, comp)            
+        return m
     
     def _load_objects(self, loc, dictionary):
         """Saves a dictionary of objects under the group "objects"
@@ -544,9 +567,16 @@ class Saveable:
         except:
             return
         
-        #for key in dictionary.keys(): 
-        #    obj = dictionary[key]
-        #    obj.save(strs)
+        for key in strs.keys():
+            
+            objloc = strs[key]
+            k = 0
+            for kex in objloc.keys():
+                objcls = self._get_class(kex)
+                k += 1
+            obj = objcls()
+            obj.load(objloc)
+            dictionary[key] = obj
     
     def _load_lists(self, loc, dictionary):
         """Saves a dictionary of lists under the group "lists"
@@ -667,47 +697,39 @@ class Saveable:
      
         
     
-class TestObject(Saveable):
-    """
+class TSaveable(Saveable):
     
-    
-
-    
-    """
     def __init__(self):
         
-        self.name = "Ahoj"
-        self.class_name = "TestObject"
-        self.N = 23
+        self.a = 1.0
+        self.text = None
+        self._txt = None
+        self.b1 = False
+        self.b2 = False
+        self.b3 = False
+        
+        self.dat = None
+        
+    def set_a(self, a):
+        self.a = a
+        
+    def set_str(self, text1, text2):
+        self.text = text1
+        self._txt = text2
+        
+    def set_bool(self, b1, b2, b3):
+        self.b1 = b1
+        self.b2 = b2
+        self.b3 = b3
+        
+    def set_data(self, dat):
+        self.dat = numpy.array(dat)
+        
+    def set_saveable(self, obj):
+        self.obj = obj
         
         
-    def save(self, filename):
-        
-        # strings
-        strs = dict(name=self.name,
-                    class_name=self.class_name) 
-        # integers
-        ints = dict(N=self.N)
-        
-        with h5py.File(filename,"w") as file:
-
-            #
-            # Saving all types
-            #
-            self.save_string_attributes(file, strs)
-            self.save_numeric_attributes(file, ints)
-        
-        
-        
-    def load(self, file):
-        
-        string_attr_names = ["name", "class_name"]
-        string_attrs = self.load_string_attributes(file, string_attr_names)
-        self.name = string_attrs["name"]
-        self.class_name = string_attrs["class_name"]
-        
-        numeric_attr_names = ["N"]
-        numeric_attrs = self.load_numeric_attributes(file, numeric_attr_names)
-        self.N = numeric_attrs["N"]
-        
-           
+    def set_liple(self, liple):
+        """Sets a list or tuple 
+        """
+        self.liple = liple           
