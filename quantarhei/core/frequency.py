@@ -159,7 +159,8 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
     start = UnitsManagedReal("start")
     step = UnitsManagedReal("step")
 
-    def __init__(self, start, length, step, atype='complete', time_start=0.0):
+    def __init__(self, start=0.0, length=1, step=1.0,
+                 atype='complete', time_start=0.0):
 
         #if step > 0:
         if True:
