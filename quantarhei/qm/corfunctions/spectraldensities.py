@@ -117,91 +117,93 @@ class SpectralDensity(DFunction, UnitsManaged):
     energy_params = ("reorg", "omega", "freq")
     analytical_types = ("OverdampedBrownian")
 
-    def __init__(self, axis, params, values=None):
+    def __init__(self, axis=None, params=None, values=None):
         super().__init__()
 
-        if isinstance(axis, TimeAxis):
-            # protect the frequency axis creation from units management
-            with energy_units("int"):
-                faxis = axis.get_FrequencyAxis()
-            self.axis = faxis
-        else:
-            self.axis = axis
-
-        self.lim_omega = numpy.zeros(2)
-        
-        if values is not None:
-            self.params = params
-            self.data = values
-            self.lamb = 0.0
-            for p in self.params:
-                self.lamb += p["reorg"]
-            return
-
-
-        self._splines_initialized = False
-
-        # handle params
-        self.params = []  # this will always be a list of components
-        p2calc = []
-        try:
-            # if this passes, we assume params is a dictionary
-            params.keys()
-            self._is_composed = False
-            p2calc.append(params)
+        if (axis is not None) and (params is not None):
             
-        except:
-            # othewise we assume it is a list of dictionaries 
-            self._is_composed = True
-            for p in params:
-                p2calc.append(p)
-                
-
-        self.lamb = 0.0
-        self.temperature = -1.0
-        #self.cutoff_time = 0.0
-        
-        #
-        # loop over parameter sets
-        #
-        for params in p2calc:
-
-            try:
-                ftype = params["ftype"]
-                if ftype not in CorrelationFunction.allowed_types:
-                    raise Exception("Unknown Correlation Function Type")
-
-                # we mutate the parameters into internal units
-                prms = {}
-                for key in params.keys():
-                    if key in self.energy_params:
-                        prms[key] = self.convert_energy_2_internal_u(params[key])
-                    else:
-                        prms[key] = params[key]
-    
-            except:
-                raise Exception
-    
-            if "T" in params.keys():
-                self.temperature = params["T"]
-    
-            if ftype == "OverdampedBrownian":
-    
-                self._make_overdamped_brownian(prms, values)
-    
-            elif ftype == "UnderdampedBrownian":
-    
-                self._make_underdamped_brownian(prms, values)
-                
-            elif ftype == "Value-defined":
-    
-                self._make_value_defined(prms, values=values)
-    
+            if isinstance(axis, TimeAxis):
+                # protect the frequency axis creation from units management
+                with energy_units("int"):
+                    faxis = axis.get_FrequencyAxis()
+                self.axis = faxis
             else:
-                raise Exception("Unknown correlation function type or"+
-                                " type domain combination.")
-
-            self.params.append(prms)
+                self.axis = axis
+    
+            self.lim_omega = numpy.zeros(2)
+            
+            if values is not None:
+                self.params = params
+                self.data = values
+                self.lamb = 0.0
+                for p in self.params:
+                    self.lamb += p["reorg"]
+                return
+    
+    
+            self._splines_initialized = False
+    
+            # handle params
+            self.params = []  # this will always be a list of components
+            p2calc = []
+            try:
+                # if this passes, we assume params is a dictionary
+                params.keys()
+                self._is_composed = False
+                p2calc.append(params)
+                
+            except:
+                # othewise we assume it is a list of dictionaries 
+                self._is_composed = True
+                for p in params:
+                    p2calc.append(p)
+                    
+    
+            self.lamb = 0.0
+            self.temperature = -1.0
+            #self.cutoff_time = 0.0
+            
+            #
+            # loop over parameter sets
+            #
+            for params in p2calc:
+    
+                try:
+                    ftype = params["ftype"]
+                    if ftype not in CorrelationFunction.allowed_types:
+                        raise Exception("Unknown Correlation Function Type")
+    
+                    # we mutate the parameters into internal units
+                    prms = {}
+                    for key in params.keys():
+                        if key in self.energy_params:
+                            prms[key] = self.convert_energy_2_internal_u(params[key])
+                        else:
+                            prms[key] = params[key]
+        
+                except:
+                    raise Exception
+        
+                if "T" in params.keys():
+                    self.temperature = params["T"]
+        
+                if ftype == "OverdampedBrownian":
+        
+                    self._make_overdamped_brownian(prms, values)
+        
+                elif ftype == "UnderdampedBrownian":
+        
+                    self._make_underdamped_brownian(prms, values)
+                    
+                elif ftype == "Value-defined":
+        
+                    self._make_value_defined(prms, values=values)
+        
+                else:
+                    raise Exception("Unknown correlation function type or"+
+                                    " type domain combination.")
+    
+                self.params.append(prms)
 
     def _make_overdamped_brownian(self, params, values=None):
         """ Sets the Overdamped Brownian oscillator spectral density

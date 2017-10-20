@@ -3,6 +3,7 @@
 
 import unittest
 import numpy
+import h5py
 
 
 """
@@ -190,7 +191,7 @@ class TestCorrelationFunction(unittest.TestCase):
         
         self.assertEqual(f.lamb, sum_lamb)
         numpy.testing.assert_allclose(f.data, sum_data)
-        print(f.cutoff_time, sum_cutoff)
+        #print(f.cutoff_time, sum_cutoff)
         self.assertEqual(f.cutoff_time, sum_cutoff)
         self.assertEqual(f.temperature, sum_temp)
         
@@ -271,11 +272,11 @@ class TestCorrelationFunction(unittest.TestCase):
         
         l1 = f1.measure_reorganization_energy()
         l2 = f1.lamb
-        print(l1, l2, abs(l1-l2)/(l1+l2))
+        #print(l1, l2, abs(l1-l2)/(l1+l2))
         
         l1 = f3.measure_reorganization_energy()
         l2 = f3.lamb
-        print(l1, l2, abs(l1-l2)/(l1+l2))
+        #print(l1, l2, abs(l1-l2)/(l1+l2))
         
         self.assertTrue(f1.reorganization_energy_consistent())
         self.assertTrue(f2.reorganization_energy_consistent())
@@ -291,3 +292,47 @@ class TestCorrelationFunction(unittest.TestCase):
             f3 += f2
             
         self.assertTrue(f3.reorganization_energy_consistent())
+        
+    def test_of_correlation_function_as_Saveable(self):
+        """Testing saving of CorrelationFunction objects """
+        
+        t = TimeAxis(0.0, 1000, 1.0)
+        params1 = dict(ftype="OverdampedBrownian",
+                       reorg = 30.0,
+                       cortime = 100.0,
+                       T = 300.0)
+        params2 = dict(ftype="OverdampedBrownian",
+                       reorg = 40.0,
+                       cortime = 100.0,
+                       T = 300.0)
+        
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params2)
+
+        with h5py.File("test_file_1",driver="core", 
+                           backing_store=False) as f:
+            
+            f1.save(f)
+            
+            f1_loaded = CorrelationFunction()
+            f1_loaded.load(f)
+            
+
+        with h5py.File("test_file_2",driver="core", 
+                           backing_store=False) as f:
+            
+            f2.save(f)
+            
+            f2_loaded = CorrelationFunction()
+            f2_loaded.load(f)
+            
+            
+        numpy.testing.assert_array_equal(f1.data, f1_loaded.data)
+        numpy.testing.assert_array_equal(f1.axis.data, f1_loaded.axis.data)        
+ 
+        numpy.testing.assert_array_equal(f2.data, f2_loaded.data)
+        numpy.testing.assert_array_equal(f2.axis.data, f2_loaded.axis.data)        
+       
+            
+            

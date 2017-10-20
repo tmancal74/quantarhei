@@ -2,10 +2,12 @@
 
 import unittest
 import numpy
+import h5py
 
 from quantarhei import energy_units
 
 from quantarhei import TimeAxis
+
 
 """
 *******************************************************************************
@@ -64,6 +66,17 @@ class TestFrequencyAxis(unittest.TestCase):
             i1 = wa.locate(10000.0)
             self.assertEqual(nsni, i1[0])
             
+        with h5py.File("test_file_ValueAxes",driver="core", 
+                           backing_store=False) as f:        
+        
+            wa.save(f)
+            
+            tb = FrequencyAxis()
+            tb.load(f)
+            
+            
+        
+        numpy.testing.assert_array_equal(wa.data,tb.data)
             #
             
             
