@@ -13,7 +13,6 @@ import numpy
 
 *******************************************************************************
 """
-from quantarhei import Saveable
 
 
 from quantarhei.core.saveable import TSaveable
@@ -49,7 +48,7 @@ class TestSaveable(unittest.TestCase):
         
         
     def test_saving_and_loading_1(self):
-        """Testing saving and loading Saveable objects
+        """Testing saving and loading Saveable objects with lists of Saveables
         
         
         """
@@ -59,6 +58,14 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_1",driver="core", 
                            backing_store=False) as f:
             
+            t1 = TSaveable()
+            t2 = TSaveable()
+            t3 = TSaveable()
+            t3.set_str("ahoj","cau")
+            
+            t1.set_saveable(t3)
+            
+            obj1.set_liple([t1,t2])
             obj1.save(f)
             
             
@@ -76,9 +83,51 @@ class TestSaveable(unittest.TestCase):
         numpy.testing.assert_array_equal(obj1.dat,obj2.dat)
         
         self.assertEqual(obj1.obj.text,obj2.obj.text)
-            
+        self.assertEqual(obj1.liple[0].obj.text, t3.text)
+
+        
+
 
     def test_saving_and_loading_2(self):
+        """Testing saving and loading Saveable objects with dictionaries of Saveables
+        
+        
+        """
+        
+        obj1 = self.obj1
+        
+        with h5py.File("test_file_1",driver="core", 
+                           backing_store=False) as f:
+            
+            t1 = TSaveable()
+            t2 = TSaveable()
+            t3 = TSaveable()
+            t3.set_str("ahoj","cau")
+            
+            t1.set_saveable(t3)
+            
+            obj1.set_liple(dict(jedna=t1,dve=t2))
+            obj1.save(f)
+            
+            
+            obj2 = TSaveable()
+            obj2.load(f)
+            
+            
+        self.assertEqual(obj1.a,obj2.a)
+        self.assertEqual(obj1.text,obj2.text)
+        self.assertEqual(obj1._txt,obj2._txt)
+        self.assertEqual(obj1.b1,obj2.b1)
+        self.assertEqual(obj1.b2,obj2.b2)
+        self.assertEqual(obj1.b3,obj2.b3)
+        
+        numpy.testing.assert_array_equal(obj1.dat,obj2.dat)
+        
+        self.assertEqual(obj1.obj.text,obj2.obj.text)
+        self.assertEqual(obj1.liple["jedna"].obj.text, t3.text)
+            
+
+    def test_saving_and_loading_3(self):
         """Testing saving and loading Saveable objects with lists and tuples
         
         
