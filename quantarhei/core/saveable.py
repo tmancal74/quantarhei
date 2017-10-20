@@ -12,6 +12,7 @@ from .managers import energy_units
 def _isattr(obj):
     ismethod = inspect.ismethod(obj)
     return not ismethod 
+
      
 simple_types = ("numeric", "strings", "boolean")        
 
@@ -22,6 +23,12 @@ class Saveable:
     
     
     """
+    
+    def _before_save(self):
+        pass
+    
+    def _after_save(self):
+        pass
     
     def save(self, file):
         """Saves the object to a file
@@ -49,7 +56,13 @@ class Saveable:
  
        
         """
+        
+        #
+        # Before save start-up
+        #
+        self._before_save()
          
+        
         strings = {}
         numeric = {}
         boolean = {}
@@ -70,6 +83,8 @@ class Saveable:
         # members that are properties
         propts = inspect.getmembers(self.__class__, 
                                     lambda o: isinstance(o, property))
+        
+        
         prop_names = []
         for p in propts:
             prop_names.append(p[0])
@@ -79,8 +94,9 @@ class Saveable:
             fo_name = fo[0]
             mch = prog.match(fo_name)
             if (mch is None) and (fo_name not in prop_names):
-                #print(fo_name)
-                attr.append(fo_name)
+                # attributes starting with _S__ are protected and will not be saved
+                if not fo_name.startswith("_S__"):
+                    attr.append(fo_name)
 
         for at_name in attr:
             at = self.__getattribute__(at_name)
@@ -122,6 +138,10 @@ class Saveable:
                       tuples=tuples,
                       dictionaries=dictionaries)
 
+        # 
+        # After save clean-up
+        #
+        self._after_save()
 
 
     def load(self, file):

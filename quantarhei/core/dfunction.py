@@ -259,6 +259,23 @@ class DFunction(Saveable):
                 raise Exception("On addition, axis objects have to be"
                                 +" identical")
             
+    def _before_save(self):
+        """Performs some clean-up before saving to file
+        
+        The clean-up consists of setting spline initialization to False,
+        because Saveable cannot save functions associated with spline
+        approximation of the DFunction.
+        
+        Reimplements the same method from Saveable
+        
+        """
+        
+        self._S__state = self._splines_initialized
+        self._splines_initialized = False
+        
+    def _after_save(self):
+        
+        self._splines_initialized = self._S__state
 
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`
