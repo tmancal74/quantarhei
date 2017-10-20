@@ -439,7 +439,12 @@ class Saveable:
                     self._save_a_simple_type(root, tupkey, item)
                 elif isinstance(item, Saveable):
                     objroot = self._create_root_group(root,tupkey)
+                    objroot.attrs.create("type", numpy.string_("Saveable"))
                     item.save(objroot)
+                    #print("Object saved at:",objroot)
+                    #for key in objroot.keys():
+                    #    print("                ",key)
+                    
                 elif isinstance(item, list):
                     self._save_a_listuple(root, tupkey, "list", item)
                 elif isinstance(item, tuple):
@@ -504,7 +509,9 @@ class Saveable:
                 self._save_a_simple_type(root, dkey, item)
             elif isinstance(item, Saveable):
                 objroot = self._create_root_group(root,dkey)
+                objroot.attrs.create("type", numpy.string_("Saveable"))
                 item.save(objroot)
+
             elif isinstance(item, list):
                 self._save_a_listuple(root, dkey, "list", item)
             elif isinstance(item, tuple):
@@ -698,9 +705,15 @@ class Saveable:
                     item = self._load_a_simple_type(itemloc)
                     clist.append(item)
                 elif ltyp ==  "Saveable":
-                    #objroot = self._create_root_group(root,tupkey)
-                    #item.save(objroot)
-                    pass
+
+                    for key in itemloc.keys():
+                        classname = key
+
+                    cls = self._get_class(classname)
+                    obj = cls()
+                    obj.load(itemloc)
+                    clist.append(obj)
+
                 elif ltyp == "list":
                     item = self._load_a_listuple(itemloc)
                     clist.append(item)
@@ -743,9 +756,15 @@ class Saveable:
                 item = self._load_a_simple_type(itemloc)
                 cdict[dkey] = item
             elif ltyp ==  "Saveable":
-                #objroot = self._create_root_group(root,tupkey)
-                #item.save(objroot)
-                pass
+
+                for key in itemloc.keys():
+                    classname = key
+
+                cls = self._get_class(classname)
+                obj = cls()
+                obj.load(itemloc)
+                cdict[dkey] = obj
+
             elif ltyp == "list":
                 item = self._load_a_listuple(itemloc)
                 cdict[dkey] = item

@@ -30,6 +30,6 @@ nosetests -vs tests/unit/core/time_test.py
 nosetests -vs tests/unit/core/frequency_test.py
 #nosetests -vs tests/unit/core/test_dfunction.py
 
-#paver
+paver
 
 
