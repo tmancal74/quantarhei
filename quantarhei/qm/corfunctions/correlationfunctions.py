@@ -119,83 +119,85 @@ class CorrelationFunction(DFunction, UnitsManaged):
     
     energy_params = ("reorg", "omega", "freq")
 
-    def __init__(self, axis, params, values=None):
+    def __init__(self, axis=None, params=None , values=None):
         super().__init__()
         
-        # FIXME: values might also need handling according to specified 
-        # energy units
-
-        # handle axis (it can be TimeAxis or FrequencyAxis)
-        if not isinstance(axis, TimeAxis):
-            taxis = axis.get_TimeAxis()
-            self.axis = taxis
-        else:
-            self.axis = axis
-
-        # handle params
-        self.params = []  # this will always be a list of components
-        p2calc = []
-        try:
-            # if this passes, we assume params is a dictionary
-            params.keys()
-            self._is_composed = False
-            p2calc.append(params)
+        if (axis is not None) and (params is not None):
             
-        except:
-            # othewise we assume it is a list of dictionaries 
-            self._is_composed = True
-            for p in params:
-                p2calc.append(p)
-            
-            
-        self.lamb = 0.0
-        self.temperature = -1.0
-        self.cutoff_time = 0.0
-
-        #
-        # loop over parameter sets
-        #
-        for params in p2calc:
-            
-            try:
-                ftype = params["ftype"]
-                
-                if ftype not in CorrelationFunction.allowed_types:
-                    raise Exception("Unknown CorrelationFunction type")
+            # FIXME: values might also need handling according to specified 
+            # energy units
     
-                # we mutate the parameters into internal units
-                prms = {}
-                for key in params.keys():
-                    if key in self.energy_params:
-                        prms[key] = self.convert_energy_2_internal_u(params[key])
-                    else:
-                        prms[key] = params[key]
-                        
-            except:
-                raise Exception("Dictionary of parameters does not contain "
-                                +" `ftype` key")
-
-            if ftype == "OverdampedBrownian-HighTemperature":
-    
-                self._make_overdamped_brownian_ht(prms, values=values)
-    
-            elif ftype == "OverdampedBrownian":
-    
-                self._make_overdamped_brownian(prms, values=values)
-                
-            elif ftype == "UnderdampedBrownian":
-                
-                self._make_underdamped_brownian(prms, values=values)
-    
-            elif ftype == "Value-defined":
-    
-                self._make_value_defined(prms, values)
-    
+            # handle axis (it can be TimeAxis or FrequencyAxis)
+            if not isinstance(axis, TimeAxis):
+                taxis = axis.get_TimeAxis()
+                self.axis = taxis
             else:
-                raise Exception("Unknown correlation function type or"+
-                                "type domain combination.")
+                self.axis = axis
+    
+            # handle params
+            self.params = []  # this will always be a list of components
+            p2calc = []
+            try:
+                # if this passes, we assume params is a dictionary
+                params.keys()
+                self._is_composed = False
+                p2calc.append(params)
                 
-            self.params.append(prms)
+            except:
+                # othewise we assume it is a list of dictionaries 
+                self._is_composed = True
+                for p in params:
+                    p2calc.append(p)
+                
+                
+            self.lamb = 0.0
+            self.temperature = -1.0
+            self.cutoff_time = 0.0
+    
+            #
+            # loop over parameter sets
+            #
+            for params in p2calc:
+                
+                try:
+                    ftype = params["ftype"]
+                    
+                    if ftype not in CorrelationFunction.allowed_types:
+                        raise Exception("Unknown CorrelationFunction type")
+        
+                    # we mutate the parameters into internal units
+                    prms = {}
+                    for key in params.keys():
+                        if key in self.energy_params:
+                            prms[key] = self.convert_energy_2_internal_u(params[key])
+                        else:
+                            prms[key] = params[key]
+                            
+                except:
+                    raise Exception("Dictionary of parameters does not contain "
+                                    +" `ftype` key")
+    
+                if ftype == "OverdampedBrownian-HighTemperature":
+        
+                    self._make_overdamped_brownian_ht(prms, values=values)
+        
+                elif ftype == "OverdampedBrownian":
+        
+                    self._make_overdamped_brownian(prms, values=values)
+                    
+                elif ftype == "UnderdampedBrownian":
+                    
+                    self._make_underdamped_brownian(prms, values=values)
+        
+                elif ftype == "Value-defined":
+        
+                    self._make_value_defined(prms, values)
+        
+                else:
+                    raise Exception("Unknown correlation function type or"+
+                                    "type domain combination.")
+                    
+                self.params.append(prms)
 
     def _matsubara(self, kBT, ctime, nof):
         """Matsubara frequency part of the Brownian correlation function
