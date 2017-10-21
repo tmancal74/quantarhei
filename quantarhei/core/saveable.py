@@ -23,7 +23,7 @@ class Saveable:
     
     """
     
-    def save(self, file):
+    def save(self, file, report_unsaved=False):
         """Saves the object to a file
         
         
@@ -84,7 +84,9 @@ class Saveable:
 
         for at_name in attr:
             at = self.__getattribute__(at_name)
-            if isinstance(at,str):
+            if at is None:
+                pass # ignoring Nones
+            elif isinstance(at,str):
                 #print(at_name, at, "string")
                 strings[at_name] = at
             elif isinstance(at, Number):
@@ -109,8 +111,10 @@ class Saveable:
                 #print(at_name, at, "Saveable object")
                 objects[at_name] = at
             else:
-                #print(at_name, at, "unknown") 
-                pass
+                if report_unsaved:
+                    print("Attribute: ", at_name, " of ", 
+                          self.__class__.__name__, "not saved")
+                    print("           ", at)
         
         self._do_save(file=file,
                       strings=strings, 
@@ -120,7 +124,7 @@ class Saveable:
                       objects=objects,
                       lists=lists,
                       tuples=tuples,
-                      dictionaries=dictionaries)
+                      dictionaries=dictionaries, report_unsaved=report_unsaved)
 
 
 
@@ -151,7 +155,7 @@ class Saveable:
             
     def _do_save(self, file="", strings={}, numeric={},
                  boolean={}, numdata={}, objects={},
-                 lists={}, dictionaries={}, tuples={}):
+                 lists={}, dictionaries={}, tuples={}, report_unsaved=False):
         """Performs the save to hdf5 file
         
         
@@ -180,9 +184,9 @@ class Saveable:
             self._save_boolean(root, boolean)
             self._save_numdata(root, numdata)
             self._save_objects(root, objects)
-            self._save_lists(root, lists)
-            self._save_tuples(root, tuples)
-            self._save_dictionaries(root, dictionaries)
+            self._save_lists(root, lists, report_unsaved)
+            self._save_tuples(root, tuples, report_unsaved)
+            self._save_dictionaries(root, dictionaries, report_unsaved)
     
     
         # if file openned here, close it
@@ -324,7 +328,7 @@ class Saveable:
             obj.save(nroot)
         #print(dictionary.keys())
     
-    def _save_lists(self, loc, dictionary):
+    def _save_lists(self, loc, dictionary, report_unsaved=False):
         """Saves a dictionary of lists under the group "lists"
         
         """
@@ -335,7 +339,7 @@ class Saveable:
             self._save_a_listuple(strs, key, "list", clist)
         #print(dictionary.keys())
 
-    def _save_tuples(self, loc, dictionary):
+    def _save_tuples(self, loc, dictionary, report_unsaved=False):
         """Saves a dictionary of lists under the group "lists"
         
         """
@@ -346,7 +350,7 @@ class Saveable:
             self._save_a_listuple(strs, key, "tuple", clist)
         #print(dictionary.keys())
         
-    def _save_dictionaries(self, loc, dictionary):
+    def _save_dictionaries(self, loc, dictionary, report_unsaved=False):
         """Saves a dictionary of dictionaries under the group "dicts"
         
         """
@@ -397,7 +401,7 @@ class Saveable:
         return (homo, htyp)
 
 
-    def _save_a_listuple(self, loc, key, typ, ctuple):
+    def _save_a_listuple(self, loc, key, typ, ctuple, report_unsaved=False):
         """ Saves a list or tuple of items
         
         All simple values (strings, numeric, boolean), numpy arrays, Savable
@@ -432,28 +436,32 @@ class Saveable:
         
         else:
             root.attrs.create("length",len(ctuple))
+            
             k = 0
             for item in ctuple:
                 tupkey = str(k)
+                
                 if self._in_simple_types(item):
                     self._save_a_simple_type(root, tupkey, item)
                 elif isinstance(item, Saveable):
                     objroot = self._create_root_group(root,tupkey)
                     objroot.attrs.create("type", numpy.string_("Saveable"))
-                    item.save(objroot)
-                    #print("Object saved at:",objroot)
-                    #for key in objroot.keys():
-                    #    print("                ",key)
+                    item.save(objroot, report_unsaved)
                     
                 elif isinstance(item, list):
-                    self._save_a_listuple(root, tupkey, "list", item)
+                    self._save_a_listuple(root, tupkey, "list", item,
+                                          report_unsaved)
                 elif isinstance(item, tuple):
-                    self._save_a_listuple(root, tupkey, "tuple", item)
+                    self._save_a_listuple(root, tupkey, "tuple", item,
+                                          report_unsaved)
                 elif isinstance(item, dict):
-                    self._save_a_dictionary(root, tupkey, item)
+                    self._save_a_dictionary(root, tupkey, item, report_unsaved)
+                elif item is None:
+                    pass # Ignoring Nones
                 else:
                     # possibly warn that something was not saved
-                    pass
+                    if report_unsaved:
+                        print("Unsaved: ", item)
                 k += 1
     
     def _in_simple_types(self, item):
@@ -493,7 +501,7 @@ class Saveable:
         
         
     
-    def _save_a_dictionary(self, loc, key, cdict):
+    def _save_a_dictionary(self, loc, key, cdict, report_unsaved=False):
         """Saves a dictionary of values
         
         All simple values (strings, numeric, boolean), numpy arrays, Savable
@@ -518,9 +526,12 @@ class Saveable:
                 self._save_a_listuple(root, dkey, "tuple", item)
             elif isinstance(item, dict):
                 self._save_a_dictionary(root, dkey, item)
+            elif item is None:
+                pass # ignoring Nones
             else:
                 # possibly warn that something was not saved
-                pass
+                    if report_unsaved:
+                        print("Unsaved: ", item)
     
     
     
@@ -699,33 +710,49 @@ class Saveable:
             N = loc.attrs["length"]
             for k in range(N):
                 tupkey = str(k)
-                itemloc = loc[tupkey]
-                ltyp = itemloc.attrs["type"].decode("utf-8")
-                if ltyp in simple_types:
-                    item = self._load_a_simple_type(itemloc)
-                    clist.append(item)
-                elif ltyp ==  "Saveable":
-
-                    for key in itemloc.keys():
-                        classname = key
-
-                    cls = self._get_class(classname)
-                    obj = cls()
-                    obj.load(itemloc)
-                    clist.append(obj)
-
-                elif ltyp == "list":
-                    item = self._load_a_listuple(itemloc)
-                    clist.append(item)
-                elif ltyp == "tuple":
-                    item = self._load_a_listuple(itemloc)
-                    clist.append(item)
-                elif ltyp == "dict":
-                    item = self._load_a_dictionary(itemloc)
-                    clist.append(item)
-                else:
-                    # possibly warn that something was not saved
+                
+                read_item = False
+                try:
+                    itemloc = loc[tupkey]
+                    read_item = True
+                except:
+                    #print(tupkey, "does not exist")
                     pass
+                    
+                if read_item:
+                    
+                    ltyp = itemloc.attrs["type"].decode("utf-8")
+                    if ltyp in simple_types:
+                        item = self._load_a_simple_type(itemloc)
+                        clist.append(item)
+                    elif ltyp ==  "Saveable":
+    
+                        for key in itemloc.keys():
+                            classname = key
+    
+                        cls = self._get_class(classname)
+                        obj = cls()
+                        obj.load(itemloc)
+                        clist.append(obj)
+    
+                    elif ltyp == "list":
+                        item = self._load_a_listuple(itemloc)
+                        clist.append(item)
+                    elif ltyp == "tuple":
+                        item = self._load_a_listuple(itemloc)
+                        clist.append(item)
+                    elif ltyp == "dict":
+                        item = self._load_a_dictionary(itemloc)
+                        clist.append(item)
+                    else:
+                        # possibly warn that something was not saved
+                        pass
+                
+                else:
+                    
+                    # if the object in the list does not exist, it is replaced
+                    # by None
+                    clist.append(None)
                 
                 
                 k += 1 
@@ -749,34 +776,48 @@ class Saveable:
         cdict = {}
 
         for dkey in loc.keys():
-            itemloc = loc[dkey]
-            ltyp = itemloc.attrs["type"].decode("utf-8")
 
-            if ltyp in simple_types:
-                item = self._load_a_simple_type(itemloc)
-                cdict[dkey] = item
-            elif ltyp ==  "Saveable":
-
-                for key in itemloc.keys():
-                    classname = key
-
-                cls = self._get_class(classname)
-                obj = cls()
-                obj.load(itemloc)
-                cdict[dkey] = obj
-
-            elif ltyp == "list":
-                item = self._load_a_listuple(itemloc)
-                cdict[dkey] = item
-            elif ltyp == "tuple":
-                item = self._load_a_listuple(itemloc)
-                cdict[dkey] = item
-            elif ltyp == "dict":
-                item = self._load_a_dictionary(itemloc)
-                cdict[dkey] = item
-            else:
-                # possibly warn that something was not saved
+            read_item = False
+            try:
+                itemloc = loc[dkey]
+                read_item = True
+            except:
+                print(dkey, "does not exist")
                 pass
+
+            if read_item:
+
+                ltyp = itemloc.attrs["type"].decode("utf-8")
+    
+                if ltyp in simple_types:
+                    item = self._load_a_simple_type(itemloc)
+                    cdict[dkey] = item
+                elif ltyp ==  "Saveable":
+    
+                    for key in itemloc.keys():
+                        classname = key
+    
+                    cls = self._get_class(classname)
+                    obj = cls()
+                    obj.load(itemloc)
+                    cdict[dkey] = obj
+    
+                elif ltyp == "list":
+                    item = self._load_a_listuple(itemloc)
+                    cdict[dkey] = item
+                elif ltyp == "tuple":
+                    item = self._load_a_listuple(itemloc)
+                    cdict[dkey] = item
+                elif ltyp == "dict":
+                    item = self._load_a_dictionary(itemloc)
+                    cdict[dkey] = item
+                else:
+                    # possibly warn that something was not saved
+                    pass
+                
+            else:
+                
+                cdict[dkey] = None
     
         return cdict
     

@@ -85,7 +85,23 @@ class TestSaveable(unittest.TestCase):
         self.assertEqual(obj1.obj.text,obj2.obj.text)
         self.assertEqual(obj1.liple[0].obj.text, t3.text)
 
-        
+        class TClass:
+            
+            def __init__(self):
+                self.x = "Neco"
+                
+                
+        with h5py.File("test_file_1",driver="core", 
+                           backing_store=False) as f:
+            
+            t1 = TSaveable()
+            a = TClass()
+
+            t1.set_liple([a, "Hello World!"])
+            t1.save(f)
+            
+            obj2 = TSaveable()
+            obj2.load(f)       
 
 
     def test_saving_and_loading_2(self):
