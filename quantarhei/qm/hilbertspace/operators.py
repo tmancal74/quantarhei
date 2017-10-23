@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import numpy
+
 from ...core.matrixdata import MatrixData
+from ...core.saveable import Saveable
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 from .statevector import StateVector
 
 
-import numpy
-#import scipy
-
-
-class Operator(MatrixData, BasisManaged):
+class Operator(MatrixData, BasisManaged, Saveable):
     """Class representing quantum mechanical operators
     
     
@@ -25,38 +24,39 @@ class Operator(MatrixData, BasisManaged):
     
     def __init__(self, dim=None, data=None, real=False, name=""):
 
-        # Set the currently used basis
-        cb = self.manager.get_current_basis()
-        self.set_current_basis(cb)
-        # unless it is the basis outside any context
-        if cb != 0:
-            self.manager.register_with_basis(cb,self)
+        if not ((dim is None) and (data is None)):
+            # Set the currently used basis
+            cb = self.manager.get_current_basis()
+            self.set_current_basis(cb)
+            # unless it is the basis outside any context
+            if cb != 0:
+                self.manager.register_with_basis(cb,self)
+                
+            self.name=name
+                 
+            # set data
+            if (dim is None) and (data is None):
+                raise Exception() #HilbertSpaceException
             
-        self.name=name
-             
-        # set data
-        if (dim is None) and (data is None):
-            raise Exception() #HilbertSpaceException
-        
-        if data is not None:
-            if isinstance(data,list):
-                data = numpy.array(data)
-            if Operator.assert_square_matrix(data):
-                if dim is not None:
-                    # shape 1 is OK even for time dependent operators
-                    # and time dependent StateVector
-                    if data.shape[1] != dim:
-                        raise Exception() #HilbertSpaceException
-                self.data = data
-                self.dim = self._data.shape[1]
+            if data is not None:
+                if isinstance(data,list):
+                    data = numpy.array(data)
+                if Operator.assert_square_matrix(data):
+                    if dim is not None:
+                        # shape 1 is OK even for time dependent operators
+                        # and time dependent StateVector
+                        if data.shape[1] != dim:
+                            raise Exception() #HilbertSpaceException
+                    self.data = data
+                    self.dim = self._data.shape[1]
+                else:
+                    raise Exception #HilbertSpaceException
             else:
-                raise Exception #HilbertSpaceException
-        else:
-            if real:
-                self.data = numpy.zeros((dim,dim),dtype=numpy.float64)
-            else:
-                self.data = numpy.zeros((dim,dim),dtype=numpy.complex128)
-            self.dim = dim
+                if real:
+                    self.data = numpy.zeros((dim,dim),dtype=numpy.float64)
+                else:
+                    self.data = numpy.zeros((dim,dim),dtype=numpy.complex128)
+                self.dim = dim
 
 
     def apply(self, obj):
@@ -144,10 +144,12 @@ class SelfAdjointOperator(Operator):
     """
     
     def __init__(self,dim=None,data=None,name=""):
-        Operator.__init__(self,dim=dim,data=data,name=name)
-        if not self.check_selfadjoint():
-            raise Exception("The data of this operator have"+
-            "to be represented by a selfadjoint matrix") 
+        
+        if not ((dim is None) and (data is None)):
+            Operator.__init__(self,dim=dim,data=data,name=name)
+            if not self.check_selfadjoint():
+                raise Exception("The data of this operator have"+
+                "to be represented by a selfadjoint matrix") 
         
         
     def check_selfadjoint(self):

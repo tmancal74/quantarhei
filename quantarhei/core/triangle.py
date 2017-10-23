@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
+from .saveable import Saveable
 
-class triangle:
-    
-    def __init__(self,N):
+class triangle(Saveable):
+    """Class representing a symmetric matrix by a linear list
+
+    """
+    def __init__(self,N=0):
         self.N = N
-        
     
     def get_empty_list(self):
         return self.get_list(init=None)
         
     def get_list(self,init=None):
         return [init]*(((self.N**2)-self.N)//2+self.N)
-        
-        
+
     
     def locate(self,i,j,transpose=True,report_transpose=False):
         
