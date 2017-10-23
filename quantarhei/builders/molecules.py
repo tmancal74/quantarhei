@@ -146,17 +146,27 @@ class Molecule(UnitsManaged, Saveable):
         self._data_type = None
    
     
-    def save_as(self, root, name):
-        rtg = self._create_root_group(root, name)
-        rtg.attrs.create("name", numpy.string_(self.name))
-        rtg.attrs.create("nel",self.nel)
-        rtg.create_dataset("elenergies", data=self.elenergies)
+#    def save_as(self, root, name):
+#        rtg = self._create_root_group(root, name)
+#        rtg.attrs.create("name", numpy.string_(self.name))
+#        rtg.attrs.create("nel",self.nel)
+#        rtg.create_dataset("elenergies", data=self.elenergies)
+#
+#    def load_as(self, root, name):
+#        rtg = root[name]
+#        self.name = rtg.attrs["name"].decode("utf-8")
+#        self.nel = rtg.attrs["nel"]   
+#        self.elenergies = numpy.array(rtg["elenergies"])
 
-    def load_as(self, root, name):
-        rtg = root[name]
-        self.name = rtg.attrs["name"].decode("utf-8")
-        self.nel = rtg.attrs["nel"]   
-        self.elenergies = numpy.array(rtg["elenergies"])
+    # FIXME: attribute manager in UnitsManager class complicates saving
+    def _before_save(self):
+        
+        self.manager = None
+        
+    def _after_save(self):
+        
+        self.manager = Manager()
+        
 
     def _after_load(self):
         """Set the manager as in UnitsManaged constructor

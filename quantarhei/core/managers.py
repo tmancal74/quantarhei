@@ -201,6 +201,8 @@ class Manager(metaclass=Singleton):
         
         self.parallel_conf = None
         
+        self.save_dict = {}
+        
             
     def save_settings(self):
 

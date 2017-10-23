@@ -16,6 +16,7 @@ import h5py
 import numpy
 
 from .managers import energy_units
+from .managers import Manager
 
 def _isattr(obj):
     """Returns True if the object is an attribute of the class, i.e. it is
@@ -35,6 +36,7 @@ class Saveable:
 
 
     """
+    _S__stack = []
 
     def _before_save(self):
         """Operations to be done before saving the object
@@ -48,7 +50,7 @@ class Saveable:
         """
         pass
 
-    def save(self, file, report_unsaved=False):
+    def save(self, file, report_unsaved=False, stack=None):
         """Saves the object to a file
 
 
@@ -79,7 +81,30 @@ class Saveable:
         # Before save start-up
         #
         self._before_save()
+        sid = id(self)  
+        m = Manager()
+        
+        if stack is not None:
+            
 
+            if sid in stack:
+                ln = len(stack)
+                id_before = stack[ln-1]
+                print(id_before)
+                print(m.save_dict[id_before])
+
+                print(m.save_dict[sid])
+                raise Exception("cyclic reference to ", self)
+
+            self._S__stack = stack
+
+        else:
+            
+            self._S__stack = []
+            
+        self._S__stack.append(sid)  
+        m.save_dict[sid] = str(file)
+        
         strings = {}
         numeric = {}
         boolean = {}
@@ -132,6 +157,8 @@ class Saveable:
                  attributes=attributes,
                  report_unsaved=report_unsaved)
 
+        self._S__stack.pop()
+        
         #
         # After save clean-up
         #
@@ -351,7 +378,7 @@ def _save_numdata(loc, dictionary):
         strs.create_dataset(key, data=dictionary[key])
 
 
-def _save_objects(loc, dictionary):
+def _save_objects(loc, dictionary, stack=None):
     """Saves a dictionary of objects under the group "objects"
 
     """
@@ -362,7 +389,7 @@ def _save_objects(loc, dictionary):
     for key in dictionary.keys():
         obj = dictionary[key]
         nroot = _create_root_group(strs, key)
-        obj.save(nroot)
+        obj.save(nroot, stack=stack)
 
 
 def _save_strings(loc, dictionary):
@@ -401,7 +428,7 @@ def _save_boolean(loc, dictionary):
         strs.attrs.create(key, dictionary[key])
 
 
-def _save_lists(loc, dictionary, report_unsaved=False):
+def _save_lists(loc, dictionary, report_unsaved=False, stack=None):
     """Saves a dictionary of lists under the group "lists"
 
     """
@@ -411,10 +438,10 @@ def _save_lists(loc, dictionary, report_unsaved=False):
     strs = _create_root_group(loc, "lists")
     for key in dictionary.keys():
         clist = dictionary[key]
-        _save_a_listuple(strs, key, "list", clist, report_unsaved)
+        _save_a_listuple(strs, key, "list", clist, report_unsaved, stack=stack)
 
 
-def _save_tuples(loc, dictionary, report_unsaved=False):
+def _save_tuples(loc, dictionary, report_unsaved=False, stack=None):
     """Saves a dictionary of lists under the group "lists"
 
     """
@@ -424,10 +451,11 @@ def _save_tuples(loc, dictionary, report_unsaved=False):
     strs = _create_root_group(loc, "tuples")
     for key in dictionary.keys():
         clist = dictionary[key]
-        _save_a_listuple(strs, key, "tuple", clist, report_unsaved)
+        _save_a_listuple(strs, key, "tuple", clist, report_unsaved,
+                         stack=stack)
 
 
-def _save_dictionaries(loc, dictionary, report_unsaved=False):
+def _save_dictionaries(loc, dictionary, report_unsaved=False, stack=None):
     """Saves a dictionary of dictionaries under the group "dicts"
 
     """
@@ -437,10 +465,10 @@ def _save_dictionaries(loc, dictionary, report_unsaved=False):
     strs = _create_root_group(loc, "dicts")
     for key in dictionary.keys():
         cdict = dictionary[key]
-        _save_a_dictionary(strs, key, cdict, report_unsaved)
+        _save_a_dictionary(strs, key, cdict, report_unsaved, stack=stack)
 
 
-def _save_a_listuple(loc, key, typ, ctuple, report_unsaved=False):
+def _save_a_listuple(loc, key, typ, ctuple, report_unsaved=False, stack=None):
     """ Saves a list or tuple of items
 
     All simple values (strings, numeric, boolean), numpy arrays, Savable
@@ -448,6 +476,10 @@ def _save_a_listuple(loc, key, typ, ctuple, report_unsaved=False):
 
     """
 
+    if stack is not None:
+        stack.append(id(ctuple))
+        Manager().save_dict[id(ctuple)] = loc   
+        
     root = _create_root_group(loc, key)
     root.attrs.create("type", numpy.string_(typ))
 
@@ -471,15 +503,15 @@ def _save_a_listuple(loc, key, typ, ctuple, report_unsaved=False):
             elif isinstance(item, Saveable):
                 objroot = _create_root_group(root, tupkey)
                 objroot.attrs.create("type", numpy.string_("Saveable"))
-                item.save(objroot, report_unsaved)
+                item.save(objroot, report_unsaved, stack=stack)
             elif isinstance(item, list):
                 _save_a_listuple(root, tupkey, "list", item,
-                                 report_unsaved)
+                                 report_unsaved, stack=stack)
             elif isinstance(item, tuple):
                 _save_a_listuple(root, tupkey, "tuple", item,
-                                 report_unsaved)
+                                 report_unsaved, stack=stack)
             elif isinstance(item, dict):
-                _save_a_dictionary(root, tupkey, item, report_unsaved)
+                _save_a_dictionary(root, tupkey, item, report_unsaved, stack=stack)
             elif item is None:
                 pass # Ignoring Nones
             else:
@@ -488,6 +520,8 @@ def _save_a_listuple(loc, key, typ, ctuple, report_unsaved=False):
                     print("Unsaved: ", item)
             k += 1
 
+    if stack is not None:
+        stack.pop()
 
 def _save_homo_listuple(root, htyp, ctuple):
     """Saves homogenous list into numpy array
@@ -511,13 +545,18 @@ def _save_homo_listuple(root, htyp, ctuple):
         raise Exception("Attempt to save an empty list")
 
 
-def _save_a_dictionary(loc, key, cdict, report_unsaved=False):
+def _save_a_dictionary(loc, key, cdict, report_unsaved=False, stack=None):
     """Saves a dictionary of values
 
     All simple values (strings, numeric, boolean), numpy arrays, Savable
     objects, and also lists and dictionaries should be acceptable
 
     """
+
+    if stack is not None:
+        stack.append(id(cdict))
+        Manager().save_dict[id(cdict)] = loc
+
     root = _create_root_group(loc, key)
     root.attrs.create("type", numpy.string_("dict"))
 
@@ -528,20 +567,23 @@ def _save_a_dictionary(loc, key, cdict, report_unsaved=False):
         elif isinstance(item, Saveable):
             objroot = _create_root_group(root, dkey)
             objroot.attrs.create("type", numpy.string_("Saveable"))
-            item.save(objroot)
+            item.save(objroot, stack=stack)
 
         elif isinstance(item, list):
-            _save_a_listuple(root, dkey, "list", item)
+            _save_a_listuple(root, dkey, "list", item, stack=stack)
         elif isinstance(item, tuple):
-            _save_a_listuple(root, dkey, "tuple", item)
+            _save_a_listuple(root, dkey, "tuple", item, stack=stack)
         elif isinstance(item, dict):
-            _save_a_dictionary(root, dkey, item)
+            _save_a_dictionary(root, dkey, item, stack=stack)
         elif item is None:
             pass # ignoring Nones
         else:
             # possibly warn that something was not saved
             if report_unsaved:
                 print("Unsaved: ", item)
+                
+    if stack is not None:
+        stack.pop()
 
 
 def _do_save(cls, file="", attributes=None, report_unsaved=False):
@@ -579,14 +621,15 @@ def _do_save(cls, file="", attributes=None, report_unsaved=False):
         _save_numeric(root, numeric)
         _save_boolean(root, boolean)
         _save_numdata(root, numdata)
-        _save_objects(root, objects)
-        _save_lists(root, lists, report_unsaved)
-        _save_tuples(root, tuples, report_unsaved)
-        _save_dictionaries(root, dictionaries, report_unsaved)
+        _save_objects(root, objects, stack=cls._S__stack)
+        _save_lists(root, lists, report_unsaved, stack=cls._S__stack)
+        _save_tuples(root, tuples, report_unsaved, stack=cls._S__stack)
+        _save_dictionaries(root, dictionaries, report_unsaved, stack=cls._S__stack)
 
     # if file openned here, close it
     if file_openned:
         fid.close()
+        
 
 
 #
