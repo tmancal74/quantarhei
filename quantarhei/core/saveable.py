@@ -33,10 +33,51 @@ class Saveable:
     """Class implementing object persistence through saving to hdf5 files
 
 
-
+    FIXME: 
+    New Quantarhei issues
+    
+    1. Multiple saves of the same object should be a avoided
+    If the same object is found twice, only a path to it should be saved
+       
+    2. Block cyclic references of the objects to themselves
+    In the first stage, simply through an Exception if cyclic reference is
+    encountered. Later, check how such references can be reconstructed
+    from the saved information
+       
+    3. Save version of Quantarhei on the top level of the file
+    Something like
+    
+        def save(self, loc, report_unsaved=False, parent=None):
+    
+        version = Manager().version
+        if parent is None:
+            self._save_version(version)
+            
+        pass
+        
 
     """
+    _S__saved_in_this_session_as = None
     _S__stack = []
+
+
+    def _mark_as_saved(self, loc):
+        self._S__saved_in_this_session_as=loc
+        
+        
+    def _saved_in_this_session(self):
+        return (self._S__saved_in_this_session_as is not None)
+
+        
+    def _save_pointer_instead(self, loc, key):
+        """Saves a pointer to the location of this object 
+        elsewhere in this file, rather than the object itself
+        
+        """
+        root = self._create_root_group(loc, key)
+        root.attrs.create("type",
+            numpy.string_("_quantarhei_Saveable_pointer"))
+        root.attrs.create("location", self._S__saved_in_this_session_as)
 
     def _before_save(self):
         """Operations to be done before saving the object
@@ -86,7 +127,6 @@ class Saveable:
         
         if stack is not None:
             
-
             if sid in stack:
                 ln = len(stack)
                 id_before = stack[ln-1]
@@ -101,7 +141,8 @@ class Saveable:
         else:
             
             self._S__stack = []
-            
+          
+        
         self._S__stack.append(sid)  
         m.save_dict[sid] = str(file)
         
@@ -224,6 +265,7 @@ class Saveable:
 #
 # helper functions
 #
+
 
 
 def _create_root_group(start, name):
