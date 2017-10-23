@@ -18,6 +18,8 @@ quantarhei.egg-info
 *.npz
 *.npy
 *.mp4
+.*.swp
 
 
 
+*.swp

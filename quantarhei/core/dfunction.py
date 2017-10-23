@@ -18,6 +18,7 @@ from .valueaxis import ValueAxis
 from .time import TimeAxis
 from .frequency import FrequencyAxis
 from .saveable import Saveable
+from .managers import Manager
 
 #FIXME Check the posibility to set a derivative of the spline at the edges
 #FIXME Enable vectorial arguments and values
@@ -272,10 +273,15 @@ class DFunction(Saveable):
         
         self._S__state = self._splines_initialized
         self._splines_initialized = False
+        self.manager = None
         
     def _after_save(self):
         
         self._splines_initialized = self._S__state
+        self.manager = Manager()
+        
+    def _after_load(self):
+        self.manager = Manager()
 
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`

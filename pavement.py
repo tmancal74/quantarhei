@@ -74,7 +74,8 @@ def pylint():
 
     path = 'quantarhei/core'
     r.set_path(path)
-    r.un('matrixdata.py')    
+    #r.un('matrixdata.py')
+    r.un('saveable.py')    
     
 """
     Default 

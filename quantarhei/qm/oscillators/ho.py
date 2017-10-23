@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy
 
+from ...core.saveable import Saveable
 
-class fcstorage():
+
+class fcstorage(Saveable):
     """FC factor look-up class
     
     Once Frank-Condon factors for some value of the shift are calculated
@@ -37,7 +39,7 @@ class fcstorage():
     
 
 
-class operator_factory():
+class operator_factory(Saveable):
     """Class providing useful operators
     
     

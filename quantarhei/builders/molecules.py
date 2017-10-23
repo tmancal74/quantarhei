@@ -5,7 +5,7 @@ from ..utils import array_property
 from ..utils import Integer
 #from ..utils import check_numpy_array
 
-from ..core.managers import UnitsManaged
+from ..core.managers import UnitsManaged, Manager
 from ..core.managers import eigenbasis_of
 
 from . import Mode
@@ -25,11 +25,11 @@ from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
 
 from ..qm import ReducedDensityMatrix
 
-
+from ..core.saveable import Saveable
 
  
     
-class Molecule(UnitsManaged):
+class Molecule(UnitsManaged, Saveable):
     """Multi-level molecule (monomer)
 
     The molecule is defined by the vector of energies of its states
@@ -145,31 +145,35 @@ class Molecule(UnitsManaged):
         self.data = None
         self._data_type = None
    
-    def _create_root_group(self, start, name):
-        """Creates the root "directory" of the tree to save
+    
+#    def save_as(self, root, name):
+#        rtg = self._create_root_group(root, name)
+#        rtg.attrs.create("name", numpy.string_(self.name))
+#        rtg.attrs.create("nel",self.nel)
+#        rtg.create_dataset("elenergies", data=self.elenergies)
+#
+#    def load_as(self, root, name):
+#        rtg = root[name]
+#        self.name = rtg.attrs["name"].decode("utf-8")
+#        self.nel = rtg.attrs["nel"]   
+#        self.elenergies = numpy.array(rtg["elenergies"])
+
+    # FIXME: attribute manager in UnitsManager class complicates saving
+    def _before_save(self):
+        
+        self.manager = None
+        
+    def _after_save(self):
+        
+        self.manager = Manager()
+        
+
+    def _after_load(self):
+        """Set the manager as in UnitsManaged constructor
         
         """
-        return start.create_group(name)
-    
-    def save(self, filename):
-        pass
-
-    def load(self, filename):
-        pass
-    
-    def save_as(self, root, name):
-        rtg = self._create_root_group(root, name)
-        rtg.attrs.create("name", numpy.string_(self.name))
-        rtg.attrs.create("nel",self.nel)
-        rtg.create_dataset("elenergies", data=self.elenergies)
-
-    def load_as(self, root, name):
-        rtg = root[name]
-        self.name = rtg.attrs["name"].decode("utf-8")
-        self.nel = rtg.attrs["nel"]   
-        self.elenergies = numpy.array(rtg["elenergies"])
-
-     
+        self.manager = Manager()
+        
     def get_name(self):
         return self.name
         

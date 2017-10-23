@@ -20,6 +20,7 @@ from quantarhei import CorrelationFunction
 from quantarhei import TimeAxis
 from quantarhei import eigenbasis_of, energy_units
 
+
 from quantarhei.core.units import kB_intK
 
 class TestMolecule(unittest.TestCase):
@@ -30,7 +31,15 @@ class TestMolecule(unittest.TestCase):
     
     def setUp(self):
         self.en = [0.0, 1.0, 2.0]
-        self.m = Molecule(name="Molecule",elenergies=self.en)     
+        self.m = Molecule(name="Molecule",elenergies=self.en)   
+        time = TimeAxis(0,1000,1.0)
+        params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100,
+                      T=300)
+        with energy_units("1/cm"):
+            fc = CorrelationFunction(time,params)
+        self.m.set_transition_environment((0,1),fc)  
+        self.fc = fc
+            
     
     def test_Molecule_instantiation(self):
         """Testing Molecule instantiation
@@ -73,27 +82,33 @@ class TestMolecule(unittest.TestCase):
                            driver=drv, 
                            backing_store=bcs) as f:
                                              
-                self.m.save_as(f,"Molecule")
+                #self.m.save_as(f,"Molecule")
+                self.m.save(f)
                 
                 # reread it
                 m = Molecule()
-                m.load_as(f,"Molecule")
+                #m.load_as(f,"Molecule")
+                m.load(f)
 
         else:
 
             with h5py.File('tempfile.hdf5') as f:                                           
-                self.m.save_as(f,"Molecules")
+                #self.m.save_as(f,"Molecules")
+                self.m.save(f)
             
             with h5py.File('tempfile.hdf5') as f:
                 m = Molecule()
-                m.load_as(f,"Molecules")
+                #m.load_as(f,"Molecules")
+                m.load(f)
             
 
         self.assertEqual(self.m.name, m.name)
         self.assertEqual(self.m.nel, m.nel)
         numpy.testing.assert_array_equal(self.m.elenergies, m.elenergies)
         
-
+        numpy.testing.assert_array_equal(
+                self.m.get_transition_environment((0,1)).data, self.fc.data)
+        
         
         
 class TestMoleculeVibrations(unittest.TestCase):

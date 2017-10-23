@@ -23,10 +23,11 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     def __init__(self, dim=None, data=None):
         #self.data = data
 #FIXME: how to avoid the Operator breaking the EnergyUnits management ????
-        Operator.__init__(self, dim=dim, data=data)
-        if not self.check_selfadjoint():
-            raise Exception("The data of this operator have"+
-                            "to be represented by a selfadjoint matrix")
+        if not ((dim is None) and (data is None)):
+            Operator.__init__(self, dim=dim, data=data)
+            if not self.check_selfadjoint():
+                raise Exception("The data of this operator have"+
+                                "to be represented by a selfadjoint matrix")
             
             
     def diagonalize(self, coupling_cutoff=None):

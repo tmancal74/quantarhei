@@ -7,12 +7,14 @@
 """
 import numpy
 
+from ...core.saveable import Saveable
+from ...core.time import TimeAxis
 
 from .correlationfunctions import c2h
 from .correlationfunctions import c2g
 
 
-class CorrelationFunctionMatrix:
+class CorrelationFunctionMatrix(Saveable):
     """Matrix of correlation functions specifying cross-correlations
 
     Parameters
@@ -36,7 +38,7 @@ class CorrelationFunctionMatrix:
 
     """
 
-    def __init__(self, timeaxis, nob, nof=0):
+    def __init__(self, timeaxis=TimeAxis(0.0,1,1.0), nob=0, nof=0):
         # Number of baths
         self.nob = nob
 
