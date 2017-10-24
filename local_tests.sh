@@ -30,7 +30,7 @@ nosetests -vs tests/unit/core/test_saveable.py
 #nosetests -vs tests/unit/core/frequency_test.py
 #nosetests -vs tests/unit/core/test_dfunction.py
 #nosetests -vs tests/unit/qm/corfunctions/correlationfunctions_test.py
-#nosetests -vs tests/unit/builders/test_molecules.py
+nosetests -vs tests/unit/builders/test_molecules.py
 #nosetests -vs tests/unit/builders/test_aggregates.py
 nosetests -vs tests/unit/spectroscopy/abs_test.py
 
