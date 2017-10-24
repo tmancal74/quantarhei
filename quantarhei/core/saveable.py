@@ -10,6 +10,8 @@
 import inspect
 import fnmatch
 import re
+import path
+import datetime
 from numbers import Number
 
 import h5py
@@ -91,7 +93,7 @@ class Saveable:
         """
         pass
 
-    def save(self, file, report_unsaved=False, stack=None):
+    def save(self, file, report_unsaved=False, stack=None, comment=None):
         """Saves the object to a file
 
 
@@ -122,6 +124,10 @@ class Saveable:
         # Before save start-up
         #
         self._before_save()
+        
+        #
+        # Check the stack
+        #
         sid = id(self)  
         m = Manager()
         
@@ -146,6 +152,9 @@ class Saveable:
         self._S__stack.append(sid)  
         m.save_dict[sid] = str(file)
         
+        #
+        # Analyze the class and save it
+        #
         strings = {}
         numeric = {}
         boolean = {}
@@ -196,7 +205,8 @@ class Saveable:
 
         _do_save(self, file=file,
                  attributes=attributes,
-                 report_unsaved=report_unsaved)
+                 report_unsaved=report_unsaved,
+                 comment=comment)
 
         self._S__stack.pop()
         
@@ -261,11 +271,165 @@ class Saveable:
 
         self._after_load()
 
+###############################################################################
+#
+# Utility functions
+#
+###############################################################################
 
+""" Usage
+
+
+from quantarhei.saveable import load
+
+m = Molecule()
+print(m)
+m.save("molecule.hdf5")
+
+m1 = load("molecule.hdf5")
+print(m1)
+
+from quantarhei.core.dump import dump_object, load_object
+
+dump_object(m, "molecule.pkl")
+m2 = load_object("molecule.pkl")
+
+
+
+Loader function
+
+"""
+
+def get_class(fid):
+    """Returns class of the saved object
+    
+    fid is assumed to be the location in the hdf5 file
+    
+    """
+
+    try:
+        k = 0
+        for key in fid:
+            typ = key
+            k += 1
+        if k != 1:
+            raise Exception("Incorrect format of record")
+
+    except KeyError:
+        raise Exception("Object record not recognized")
+        
+    # get class from string
+    cls = _get_class(typ)
+    
+    return cls
+    
+    
+def load(file):
+    """Loads a Saveable object from a file
+    
+    
+    """
+    
+    file_opened = False
+    if isinstance(file, str):
+        # open the file
+        fid = h5py.File(file, "r")
+        file_opened = True
+    else: 
+        fid = file
+        
+    cls = get_class(fid)
+    
+    # get object from class and load it
+    obj = cls()
+    obj.load(fid)
+        
+    if file_opened:
+        fid.close()
+        
+    # return the loaded object
+    return obj
+
+    
+def print_info(file):
+    """Prints the info of a file
+    
+    """
+    info = read_info(file)
+    print("File info on:", file)
+    for key in info:
+        if key is not "creating_file":
+            print(key,": ", info[key])
+            
+
+def extract_source_file(file, filename=None):
+    """Extracts creating file
+    
+    """
+    info = read_info(file)
+    
+    fname = info["source_file_name"]
+    ftext = info["source_file"]
+    
+    if filename is not None:
+        fname = fname
+    if fname is None:
+        raise Exception("No file name specified")
+        
+    if ftext is None:
+        print("Source file not recorded: no file created")
+        return
+        
+    with open(fname,"w") as fid:
+        print(fid, ftext)
+        print("Source file saved as: ", fname)
+    
+
+def read_info(file):
+    """Reads the information about the file and returns it as a dictionary
+    
+    """
+    
+    opened_file = False
+    if isinstance(file,str):
+        fid = h5py.File(file, "r")
+        opened_file = True
+    else:
+        fid = file
+        
+    info = {}
+    
+    k = 0
+    for key in fid:
+        loc = fid[key]
+        #print(key, loc)
+        k += 1
+    if k != 1:
+        raise Exception("Incorrect record format")
+        
+    info["class"] = loc.attrs["classid"].decode("utf-8")
+    info["version"] = loc.attrs["version"].decode("utf-8")
+    info["timestamp"] = loc.attrs["timestamp"].decode("utf-8") # includes date
+    info["format"] = loc.attrs["format"].decode("utf-8")
+    info["filename"] = loc.attrs["filename"].decode("utf-8") # original file name
+    info["comment"] = loc.attrs["comment"].decode("utf-8")
+#    info["source_file"] = ... # here the whole python file which created this result can be stored
+#    info["source_file_name"] = ...
+    
+    if opened_file:
+        fid.close()
+    
+    return info
+        
+
+
+
+
+###############################################################################
 #
 # helper functions
 #
-
+###############################################################################
 
 
 def _create_root_group(start, name):
@@ -273,6 +437,19 @@ def _create_root_group(start, name):
 
     """
     return start.create_group(name)
+
+
+def _save_info(loc, info):
+    """Saves a dictionary with info
+
+    """    
+    for rec in info:
+        if rec != "source_file":
+            loc.attrs.create(rec, numpy.string_(info[rec]))
+        else:
+            grp = _create_root_group(loc, "source_file")
+            grp.create_dataset("file_content", data=numpy.string_(info[rec]))
+            
 
 
 def _in_simple_types(item):
@@ -628,7 +805,7 @@ def _save_a_dictionary(loc, key, cdict, report_unsaved=False, stack=None):
         stack.pop()
 
 
-def _do_save(cls, file="", attributes=None, report_unsaved=False):
+def _do_save(cls, file="", attributes=None, report_unsaved=False, comment=None):
     """Performs the save to hdf5 file
 
 
@@ -655,6 +832,25 @@ def _do_save(cls, file="", attributes=None, report_unsaved=False):
 
     else:
         root = _create_root_group(file, _get_full_class_name(cls))
+
+    if comment is not None:
+        cmt = comment
+    else:
+        cmt = ""
+        
+    try:
+        fname = path.basename(fid.name)
+    except:
+        fname = ""
+        
+    info = {"version":Manager().version,
+            "comment":cmt,
+            "filename":fname,
+            "timestamp":'{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now()),
+            "format":"Quantarhei_hdf5.ver0.0.1"}
+
+    
+    _save_info(root, info)
 
     # do the save of all dictionaries
     with energy_units("int"):

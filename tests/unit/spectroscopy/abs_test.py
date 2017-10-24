@@ -38,6 +38,8 @@ class TestAbs(unittest.TestCase):
         self.axis = abss.axis
         
         
+        
+        
         time = TimeAxis(0.0,1000,1.0)
         with energy_units("1/cm"):
             mol1 = Molecule(elenergies=[0.0, 12000.0])

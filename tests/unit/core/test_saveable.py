@@ -315,3 +315,31 @@ class TestSaveable(unittest.TestCase):
 
         
         #self.assertEqual(1,2)
+
+    def test_saving_and_loading_with_loader(self):
+        """Testing loading Saveable objects with load(filename) function
+        
+        
+        """ 
+           
+        from quantarhei.core.saveable import load, read_info
+        from quantarhei import Manager
+        
+        obj3 = self.obj3
+        
+        with h5py.File("test_file_2",driver="core", 
+                           backing_store=False) as f:
+            
+            obj3.save(f)
+            
+            obj = load(f)
+            
+            info = read_info(f)
+            
+        liple = obj3.liple
+        n = len(liple)
+        for i in range(n):
+            self.assertEqual(obj3.liple[i],obj.liple[i])
+        self.assertEqual(info["version"],Manager().version)
+            
+            
