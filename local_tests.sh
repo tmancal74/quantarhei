@@ -34,6 +34,9 @@ nosetests -vs tests/unit/core/test_saveable.py
 #nosetests -vs tests/unit/builders/test_aggregates.py
 nosetests -vs tests/unit/spectroscopy/abs_test.py
 
+#python examples/demo_load.py
+
+
 #paver
 
 

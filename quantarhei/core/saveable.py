@@ -93,7 +93,8 @@ class Saveable:
         """
         pass
 
-    def save(self, file, report_unsaved=False, stack=None, comment=None):
+    def save(self, file, report_unsaved=False, stack=None, comment=None, 
+             test=False):
         """Saves the object to a file
 
 
@@ -206,7 +207,7 @@ class Saveable:
         _do_save(self, file=file,
                  attributes=attributes,
                  report_unsaved=report_unsaved,
-                 comment=comment)
+                 comment=comment, test=test)
 
         self._S__stack.pop()
         
@@ -805,7 +806,8 @@ def _save_a_dictionary(loc, key, cdict, report_unsaved=False, stack=None):
         stack.pop()
 
 
-def _do_save(cls, file="", attributes=None, report_unsaved=False, comment=None):
+def _do_save(cls, file="", attributes=None, report_unsaved=False, comment=None,
+             test=False):
     """Performs the save to hdf5 file
 
 
@@ -824,12 +826,14 @@ def _do_save(cls, file="", attributes=None, report_unsaved=False, comment=None):
     dictionaries = attributes["dictionaries"]
     tuples = attributes["tuples"]
 
+    
     # check if we should open a file
+    fname = ""
     if isinstance(file, str):
         file_openned = True
         fid = h5py.File(file, "w")
         root = _create_root_group(fid, _get_full_class_name(cls))
-
+        fname = file
     else:
         root = _create_root_group(file, _get_full_class_name(cls))
 
@@ -838,19 +842,16 @@ def _do_save(cls, file="", attributes=None, report_unsaved=False, comment=None):
     else:
         cmt = ""
         
-    try:
-        fname = path.basename(fid.name)
-    except:
-        fname = ""
-        
-    info = {"version":Manager().version,
-            "comment":cmt,
-            "filename":fname,
-            "timestamp":'{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now()),
-            "format":"Quantarhei_hdf5.ver0.0.1"}
+    if file_openned or test:
 
+        info = {"version":Manager().version,
+                "comment":cmt,
+                "filename":fname,
+                "timestamp":'{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now()),
+                "format":"Quantarhei_hdf5.ver0.0.1"}
     
-    _save_info(root, info)
+        
+        _save_info(root, info)
 
     # do the save of all dictionaries
     with energy_units("int"):

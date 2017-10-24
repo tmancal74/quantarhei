@@ -330,7 +330,7 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             obj = load(f)
             
