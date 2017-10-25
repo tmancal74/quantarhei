@@ -8,6 +8,7 @@
 
 """
 
+import os.path
 
 import numpy
 
@@ -23,35 +24,48 @@ print("""
 
 time = TimeAxis(0.0, 5000, 1.0)
 
-with energy_units("1/cm"):
-
-    m1 = Molecule("Mol 1", [0.0, 10100.0])
-    m2 = Molecule("Mol 2", [0.0, 10050.0])
-    m3 = Molecule("Mol 3", [0.0, 10000.0])
+if not os.path.exists("aggregate.hdf5"):
     
-    m1.position = [0.0, 0.0, 0.0]
-    m2.position = [10.0, 0.0, 0.0]
-    m3.position = [5.0, 5.0, 0.0]
-    m1.set_dipole(0,1,[5.8, 0.0, 0.0])
-    m2.set_dipole(0,1,[5.8, 0.0, 0.0])
-    m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
-
-    agg = Aggregate("Trimer")
-    agg.add_Molecule(m1)
-    agg.add_Molecule(m2)
-    agg.add_Molecule(m3)
+    with energy_units("1/cm"):
     
-    agg.set_coupling_by_dipole_dipole(epsr=1.92921)
+        m1 = Molecule(name="Mol 1", elenergies=[0.0, 10100.0])
+        m2 = Molecule(name="Mol 2", elenergies=[0.0, 10050.0])
+        m3 = Molecule(name="Mol 3", elenergies=[0.0, 10000.0])
+        
+        m1.position = [0.0, 0.0, 0.0]
+        m2.position = [10.0, 0.0, 0.0]
+        m3.position = [5.0, 5.0, 0.0]
+        m1.set_dipole(0,1,[5.8, 0.0, 0.0])
+        m2.set_dipole(0,1,[5.8, 0.0, 0.0])
+        m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
+    
+        agg = Aggregate(name="Trimer")
+        agg.add_Molecule(m1)
+        agg.add_Molecule(m2)
+        agg.add_Molecule(m3)
+        
+        agg.set_coupling_by_dipole_dipole(epsr=1.92921)
+    
+        params = dict(ftype="OverdampedBrownian", reorg=20, cortime=300, T=100)
+        cf = CorrelationFunction(time, params)
+    
+    m1.set_transition_environment((0,1), cf)
+    m2.set_transition_environment((0,1), cf)
+    m3.set_transition_environment((0,1), cf)
+    
+    
+    agg.build()
+    
+    print("Number: ", isinstance(agg._built,bool))
+    print("bool  : ", isinstance(agg._built,bool))
+    print(agg._built)
+    
 
-    params = dict(ftype="OverdampedBrownian", reorg=20, cortime=300, T=100)
-    cf = CorrelationFunction(time, params)
-
-m1.set_transition_environment((0,1), cf)
-m2.set_transition_environment((0,1), cf)
-m3.set_transition_environment((0,1), cf)
-
-
-agg.build()
+else:
+    
+    agg = Aggregate()
+    agg.load("aggregate.hdf5")
+    
 
 
 #
@@ -92,3 +106,6 @@ with eigenbasis_of(ham):
 
 
     rho.plot(coherences=False, axis=[0,3000,0.0,1.0])
+  
+agg.save("aggregate.hdf5")
+

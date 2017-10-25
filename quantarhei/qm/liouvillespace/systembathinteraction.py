@@ -116,14 +116,16 @@ class SystemBathInteraction(Saveable):
     # FIXME: Better get rid of the dependence on the upstream operator 
     def _before_save(self):
         
-        self._S__aggregate = self.aggregate
-        self._S__system = self.system
-        self.aggregate = None
-        self.system = None
+        #self._S__aggregate = self.aggregate
+        #self._S__system = self.system
+        #self.aggregate = None
+        #self.system = None
+        pass
         
     def _after_save(self):
-        self.aggregate = self._S__aggregate
-        self.system = self._S__system
+        #self.aggregate = self._S__aggregate
+        #self.system = self._S__system
+        pass
         
     def _after_load(self):
         
