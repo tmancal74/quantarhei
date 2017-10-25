@@ -135,23 +135,26 @@ class Saveable:
         if stack is not None:
             
             if sid in stack:
-                ln = len(stack)
-                id_before = stack[ln-1]
-                print(id_before)
-                print(m.save_dict[id_before])
-
-                print(m.save_dict[sid])
-                raise Exception("cyclic reference to ", self)
-
-            self._S__stack = stack
+                #ln = len(stack)
+                #id_before = stack[ln-1]
+                #print(id_before)
+                #print(m.save_dict[id_before])
+                #print(m.save_dict[sid])
+                
+                _save_cyclic(self, file, stack, sid)
+                self._after_save()
+                return
+            
+            else:
+                
+                self._S__stack = stack
 
         else:
             
             self._S__stack = []
-          
         
         self._S__stack.append(sid)  
-        m.save_dict[sid] = str(file)
+        m.save_dict[sid] = file
         
         #
         # Analyze the class and save it
@@ -439,6 +442,34 @@ def _create_root_group(start, name):
     """
     return start.create_group(name)
 
+
+def _save_cyclic(current_ref, loc, stack, sid):
+    """Saves cyclic reference as a symbolic link
+    
+    """
+    # previous location to which we will make a soft link
+    ploc = Manager().save_dict[sid]
+    
+    # name of the location
+#    try:
+#        name = ploc.name
+#    except AttributeError:
+#        name = ploc
+    name = ploc.name
+#    print(name)
+    
+    # create soft link a save it in stead of saving the object
+    sftl = h5py.SoftLink(name)
+    clsname = _get_full_class_name(current_ref)
+    loc[clsname] = sftl
+    
+    print("SOFT LINK CREATED")
+    print("class name: ", clsname, name)
+    print(loc)
+    print(loc[clsname])
+    
+    #raise Exception()
+    
 
 def _save_info(loc, info):
     """Saves a dictionary with info
@@ -880,7 +911,11 @@ def _load_classid(loc):
     """Loads a string as "classid" attribute
 
     """
-    fullclassid = loc.attrs["classid"].decode("utf-8")
+    try:
+        fullclassid = loc.attrs["classid"].decode("utf-8")
+    except KeyError:
+        fullclassid = ""
+        
     return fullclassid
 
 
@@ -1199,9 +1234,28 @@ def _do_load(cls, file="", strings=None, numeric=None,
         root = fid[thisclass]
 
     else:
+           
         root = file[thisclass]
 
+    # is this a soft link?
+#    if isinstance(root, h5py.SoftLink):
+#        raise Exception()
+#        
+#    for key in root:
+#        if isinstance(key, h5py.SoftLink):
+#            print(key)
+#            raise Exception()
+            
     cid = _load_classid(root)
+
+#    if cid == "":
+#        print("Soft link")
+#        print("loc name: ", root.name)
+#        for key in root:
+#            print(key)
+#            print(root[key])
+#        
+#        raise Exception()
 
     if cid != thisclass:
         raise Exception("File contains an object of unexpected type")
