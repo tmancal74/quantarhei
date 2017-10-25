@@ -472,11 +472,11 @@ def _save_cyclic(loc, sid):
     ploc = Manager().save_dict[sid]
     
     # name of the location
-#    try:
-#        name = ploc.name
-#    except AttributeError:
-#        name = ploc
-    name = ploc.name
+    try:
+        name = ploc.name
+    except AttributeError:
+        name = "/"
+    #name = ploc.name
 #    print(name)
     
     # create soft link a save it in stead of saving the object
@@ -1006,13 +1006,15 @@ def _load_objects(loc, dictionary, test=False):
                 sftl = objloc.attrs["soft_link"].decode("utf-8")
             except KeyError:
                 raise Exception("Empty object")
-                
-            #print("Soft link from: ", objloc, "to: ", sftl)
-            
+
             obj = Manager().save_dict[sftl]
             
         else:
             obj = objcls()
+            # we save the location of a newly created object
+            # and save it under the current location
+
+            Manager().save_dict[objloc.name] = obj
             obj.load(objloc, test=test)
             
         dictionary[key] = obj
