@@ -32,9 +32,9 @@ export PYTHONPATH=`pwd`
 #nosetests -vs tests/unit/qm/corfunctions/correlationfunctions_test.py
 #nosetests -vs tests/unit/builders/test_molecules.py
 #nosetests -vs tests/unit/builders/test_aggregates.py
-nosetests -vs tests/unit/spectroscopy/abs_test.py
+#nosetests -vs tests/unit/spectroscopy/abs_test.py
 
-#python examples/demo_load.py
+#python examples/demo_redfield_3.py
 
 
 paver
