@@ -27,10 +27,10 @@ class TestDFunction(unittest.TestCase):
         with h5py.File("test_file_1",driver="core", 
                            backing_store=False) as f:
         
-            fce.save(f)
+            fce.save(f, test=True)
         
             fce2 = DFunction()
-            fce2.load(f)
+            fce2.load(f, test=True)
         
         #fce2.plot()
         
@@ -60,10 +60,10 @@ class TestDFunction(unittest.TestCase):
         with h5py.File("test_file_1",driver="core", 
                            backing_store=False) as f:
         
-            fce.save(f)
+            fce.save(f, test=True)
         
             fce2 = DFunction()
-            fce2.load(f)
+            fce2.load(f, test=True)
 
         self.assertEqual(fce._splines_initialized, True)
         self.assertEqual(fce2._splines_initialized, False)

@@ -43,10 +43,10 @@ class TestValueAxis(unittest.TestCase):
             
             ta = ValueAxis(0.0, 1000, 0.1)
         
-            ta.save(f)
+            ta.save(f, test=True)
         
             tb = ValueAxis()
-            tb.load(f)
+            tb.load(f, test=True)
         
         numpy.testing.assert_array_equal(ta.data,tb.data)
         self.assertEqual(ta.length,tb.length)

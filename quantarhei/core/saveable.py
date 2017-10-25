@@ -135,13 +135,8 @@ class Saveable:
         if stack is not None:
             
             if sid in stack:
-                #ln = len(stack)
-                #id_before = stack[ln-1]
-                #print(id_before)
-                #print(m.save_dict[id_before])
-                #print(m.save_dict[sid])
-                
-                _save_cyclic(self, file, stack, sid)
+
+                _save_cyclic(file, sid)
                 self._after_save()
                 return
             
@@ -153,7 +148,14 @@ class Saveable:
             
             self._S__stack = []
         
-        self._S__stack.append(sid)  
+        self._S__stack.append(sid) 
+        delete_save_dict = False
+        
+        # if we test or save to a file, the dictionary must be reinitialized
+        if isinstance(file, str) or test:
+            m.save_dict = {}
+            delete_save_dict = True
+        
         m.save_dict[sid] = file
         
         #
@@ -219,6 +221,8 @@ class Saveable:
         #
         self._after_save()
 
+        if delete_save_dict:
+            m.save_dict = None
 
     def _before_load(self):
         """Operations to be done before loading the object
@@ -233,7 +237,7 @@ class Saveable:
         pass
 
 
-    def load(self, file):
+    def load(self, file, test=False):
         """This method should be implemented in classes that inherit from here
 
         """
@@ -247,7 +251,19 @@ class Saveable:
         dictionaries = {}
 
         self._before_load()
-
+        
+        m = Manager()
+        delete_save_dict = False
+        
+        if isinstance(file, str) or test:
+            m.save_dict = {}
+            loc = "/"
+            delete_save_dict = True
+        else:
+            loc = file.name
+            
+        m.save_dict[loc] = self
+        
         _do_load(self, file=file,
                  strings=strings,
                  numeric=numeric,
@@ -274,6 +290,9 @@ class Saveable:
             setattr(self, key, dictionaries[key])
 
         self._after_load()
+        
+        if delete_save_dict:
+            m.save_dict = None
 
 ###############################################################################
 #
@@ -328,7 +347,7 @@ def get_class(fid):
     return cls
     
     
-def load(file):
+def load(file, test=False):
     """Loads a Saveable object from a file
     
     
@@ -344,9 +363,12 @@ def load(file):
         
     cls = get_class(fid)
     
+    if file_opened or test:
+        test = True
+        
     # get object from class and load it
     obj = cls()
-    obj.load(fid)
+    obj.load(fid, test=test)
         
     if file_opened:
         fid.close()
@@ -443,7 +465,7 @@ def _create_root_group(start, name):
     return start.create_group(name)
 
 
-def _save_cyclic(current_ref, loc, stack, sid):
+def _save_cyclic(loc, sid):
     """Saves cyclic reference as a symbolic link
     
     """
@@ -459,14 +481,7 @@ def _save_cyclic(current_ref, loc, stack, sid):
 #    print(name)
     
     # create soft link a save it in stead of saving the object
-    sftl = h5py.SoftLink(name)
-    clsname = _get_full_class_name(current_ref)
-    loc[clsname] = sftl
-    
-    print("SOFT LINK CREATED")
-    print("class name: ", clsname, name)
-    print(loc)
-    print(loc[clsname])
+    loc.attrs.create("soft_link", numpy.string_(name))    
     
     #raise Exception()
     
@@ -971,7 +986,7 @@ def _load_numdata(loc, dictionary):
         dictionary[key] = numpy.array(strs[key])
 
 
-def _load_objects(loc, dictionary):
+def _load_objects(loc, dictionary, test=False):
     """Saves a dictionary of objects under the group "objects"
 
     """
@@ -987,12 +1002,24 @@ def _load_objects(loc, dictionary):
         for kex in objloc.keys():
             objcls = _get_class(kex)
             k += 1
-        obj = objcls()
-        obj.load(objloc)
+        if k != 1:
+            try:
+                sftl = objloc.attrs["soft_link"].decode("utf-8")
+            except KeyError:
+                raise Exception("Empty object")
+                
+            #print("Soft link from: ", objloc, "to: ", sftl)
+            
+            obj = Manager().save_dict[sftl]
+            
+        else:
+            obj = objcls()
+            obj.load(objloc, test=test)
+            
         dictionary[key] = obj
 
 
-def _load_lists(loc, dictionary):
+def _load_lists(loc, dictionary, test=False):
     """Saves a dictionary of lists under the group "lists"
 
     """
@@ -1003,11 +1030,11 @@ def _load_lists(loc, dictionary):
 
     for key in  strs.keys():
         loc = strs[key]
-        clist = _load_a_listuple(loc)
+        clist = _load_a_listuple(loc, test=test)
         dictionary[key] = clist
 
 
-def _load_dictionaries(loc, dictionary):
+def _load_dictionaries(loc, dictionary, test=False):
     """Saves a dictionary of dictionaries under the group "dicts"
 
     """
@@ -1018,11 +1045,11 @@ def _load_dictionaries(loc, dictionary):
 
     for key in strs.keys():
         loc = strs[key]
-        cdict = _load_a_dictionary(loc)
+        cdict = _load_a_dictionary(loc, test=test)
         dictionary[key] = cdict
 
 
-def _load_tuples(loc, dictionary):
+def _load_tuples(loc, dictionary, test=False):
     """Saves a dictionary of dictionaries under the group "dicts"
 
     """
@@ -1033,7 +1060,7 @@ def _load_tuples(loc, dictionary):
 
     for key in  strs.keys():
         loc = strs[key]
-        clist = _load_a_listuple(loc)
+        clist = _load_a_listuple(loc, test=test)
         dictionary[key] = clist
 
 
@@ -1053,7 +1080,7 @@ def _load_a_simple_type(loc):
         return loc.attrs["item"]
 
 
-def _load_a_listuple(loc):
+def _load_a_listuple(loc, test=False):
     """Loads a list or tuple of values
 
     All simple values (strings, numeric, boolean), numpy arrays, Savable
@@ -1086,7 +1113,7 @@ def _load_a_listuple(loc):
 
             if read_item:
 
-                _read_item(itemloc, clist)
+                _read_item(itemloc, clist, test=test)
 
             else:
 
@@ -1126,7 +1153,7 @@ def _load_homo_listuple(loc, clist):
         clist.append(dt)
 
 
-def _read_item(itemloc, clist):
+def _read_item(itemloc, clist, test=False):
     """Reads one item from a location
 
     """
@@ -1141,24 +1168,24 @@ def _read_item(itemloc, clist):
 
         cls = _get_class(classname)
         obj = cls()
-        obj.load(itemloc)
+        obj.load(itemloc, test=test)
         clist.append(obj)
 
     elif ltyp == "list":
-        item = _load_a_listuple(itemloc)
+        item = _load_a_listuple(itemloc, test=test)
         clist.append(item)
     elif ltyp == "tuple":
-        item = _load_a_listuple(itemloc)
+        item = _load_a_listuple(itemloc, test=test)
         clist.append(item)
     elif ltyp == "dict":
-        item = _load_a_dictionary(itemloc)
+        item = _load_a_dictionary(itemloc, test=test)
         clist.append(item)
     else:
         # possibly warn that something was not saved
         pass
 
 
-def _load_a_dictionary(loc):
+def _load_a_dictionary(loc, test=False):
     """Loads a dictionary of values
 
     All simple values (strings, numeric, boolean), numpy arrays, Savable
@@ -1191,17 +1218,17 @@ def _load_a_dictionary(loc):
 
                 cls = _get_class(classname)
                 obj = cls()
-                obj.load(itemloc)
+                obj.load(itemloc, test=test)
                 cdict[dkey] = obj
 
             elif ltyp == "list":
-                item = _load_a_listuple(itemloc)
+                item = _load_a_listuple(itemloc, test=test)
                 cdict[dkey] = item
             elif ltyp == "tuple":
-                item = _load_a_listuple(itemloc)
+                item = _load_a_listuple(itemloc, test=test)
                 cdict[dkey] = item
             elif ltyp == "dict":
-                item = _load_a_dictionary(itemloc)
+                item = _load_a_dictionary(itemloc, test=test)
                 cdict[dkey] = item
             else:
                 # possibly warn that something was not saved
@@ -1216,7 +1243,8 @@ def _load_a_dictionary(loc):
 
 def _do_load(cls, file="", strings=None, numeric=None,
              boolean=None, numdata=None, objects=None,
-             lists=None, dictionaries=None, tuples=None):
+             lists=None, dictionaries=None, tuples=None,
+             test=False):
     """Loads data from hdf5 file
 
 
@@ -1236,26 +1264,8 @@ def _do_load(cls, file="", strings=None, numeric=None,
     else:
            
         root = file[thisclass]
-
-    # is this a soft link?
-#    if isinstance(root, h5py.SoftLink):
-#        raise Exception()
-#        
-#    for key in root:
-#        if isinstance(key, h5py.SoftLink):
-#            print(key)
-#            raise Exception()
             
     cid = _load_classid(root)
-
-#    if cid == "":
-#        print("Soft link")
-#        print("loc name: ", root.name)
-#        for key in root:
-#            print(key)
-#            print(root[key])
-#        
-#        raise Exception()
 
     if cid != thisclass:
         raise Exception("File contains an object of unexpected type")
@@ -1264,10 +1274,10 @@ def _do_load(cls, file="", strings=None, numeric=None,
     _load_numeric(root, numeric)
     _load_boolean(root, boolean)
     _load_numdata(root, numdata)
-    _load_objects(root, objects)
-    _load_lists(root, lists)
-    _load_tuples(root, tuples)
-    _load_dictionaries(root, dictionaries)
+    _load_objects(root, objects, test=test)
+    _load_lists(root, lists, test=test)
+    _load_tuples(root, tuples, test=test)
+    _load_dictionaries(root, dictionaries, test=test)
 
     # if file openned here, close it
     if file_openned:

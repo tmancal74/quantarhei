@@ -69,10 +69,10 @@ class TestFrequencyAxis(unittest.TestCase):
         with h5py.File("test_file_ValueAxes",driver="core", 
                            backing_store=False) as f:        
         
-            wa.save(f)
+            wa.save(f, test=True)
             
             tb = FrequencyAxis()
-            tb.load(f)
+            tb.load(f, test=True)
             
             
         

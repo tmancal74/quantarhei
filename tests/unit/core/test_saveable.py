@@ -104,11 +104,11 @@ class TestSaveable(unittest.TestCase):
             t1.set_saveable(t3)
             
             obj1.set_liple([t1,t2])
-            obj1.save(f)
+            obj1.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)
+            obj2.load(f, test=True)
             
             
         self.assertEqual(obj1.a,obj2.a)
@@ -136,10 +136,10 @@ class TestSaveable(unittest.TestCase):
             a = TClass()
 
             t1.set_liple([a, "Hello World!"])
-            t1.save(f)
+            t1.save(f, test=True)
             
             obj2 = TSaveable()
-            obj2.load(f)       
+            obj2.load(f, test=True)       
 
 
     def test_saving_and_loading_2(self):
@@ -161,11 +161,11 @@ class TestSaveable(unittest.TestCase):
             t1.set_saveable(t3)
             
             obj1.set_liple(dict(jedna=t1,dve=t2))
-            obj1.save(f)
+            obj1.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)
+            obj2.load(f, test=True)
             
             
         self.assertEqual(obj1.a,obj2.a)
@@ -192,11 +192,11 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)        
+            obj2.load(f, test=True)        
             
         liple = obj3.liple
         n = len(liple)
@@ -209,11 +209,11 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)        
+            obj2.load(f, test=True)        
             
         liple = obj3.liple
         n = len(liple)
@@ -226,11 +226,11 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)        
+            obj2.load(f, test=True)        
             
         liple = obj3.liple
         n = len(liple)
@@ -243,11 +243,11 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)        
+            obj2.load(f, test=True)        
             
         liple = obj3.liple
         n = len(liple)
@@ -262,11 +262,11 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)        
+            obj2.load(f, test=True)        
             
         liple = obj3.liple
         n = len(liple)
@@ -280,11 +280,11 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)        
+            obj2.load(f, test=True)        
             
         liple = obj3.liple
         for i in liple.keys():
@@ -300,11 +300,11 @@ class TestSaveable(unittest.TestCase):
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            obj3.save(f)
+            obj3.save(f, test=True)
             
             
             obj2 = TSaveable()
-            obj2.load(f)        
+            obj2.load(f, test=True)        
             
         liple = obj3.liple
         n = len(liple)
@@ -332,7 +332,7 @@ class TestSaveable(unittest.TestCase):
             
             obj3.save(f, test=True)
             
-            obj = load(f)
+            obj = load(f, test=True)
             
             info = read_info(f)
             

@@ -82,10 +82,10 @@ class TestAbs(unittest.TestCase):
                        driver=drv, 
                        backing_store=bcs) as f:
     
-            abs1.save(f)
+            abs1.save(f, test=True)
             
             abs2 = AbsSpectrum()
-            abs2.load(f)
+            abs2.load(f, test=True)
             
         numpy.testing.assert_array_equal(abs1.data, abs2.data)
 

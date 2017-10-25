@@ -18,7 +18,7 @@ class SubMode(Saveable):
     shift = Float('shift')
     nmax  = Integer('nmax')
     
-    def __init__(self,omega,shift=0.0,nmax=2):
+    def __init__(self, omega=1.0, shift=0.0, nmax=2):
         self.omega = omega
         self.shift = shift
         self.nmax  = nmax
