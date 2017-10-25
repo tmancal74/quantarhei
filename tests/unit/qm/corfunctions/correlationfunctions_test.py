@@ -313,19 +313,19 @@ class TestCorrelationFunction(unittest.TestCase):
         with h5py.File("test_file_1",driver="core", 
                            backing_store=False) as f:
             
-            f1.save(f)
+            f1.save(f, test=True)
             
             f1_loaded = CorrelationFunction()
-            f1_loaded.load(f)
+            f1_loaded.load(f, test=True)
             
 
         with h5py.File("test_file_2",driver="core", 
                            backing_store=False) as f:
             
-            f2.save(f)
+            f2.save(f, test=True)
             
             f2_loaded = CorrelationFunction()
-            f2_loaded.load(f)
+            f2_loaded.load(f, test=True)
             
             
         numpy.testing.assert_array_equal(f1.data, f1_loaded.data)

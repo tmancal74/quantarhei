@@ -10,6 +10,8 @@
 import inspect
 import fnmatch
 import re
+import path
+import datetime
 from numbers import Number
 
 import h5py
@@ -33,10 +35,51 @@ class Saveable:
     """Class implementing object persistence through saving to hdf5 files
 
 
-
+    FIXME: 
+    New Quantarhei issues
+    
+    1. Multiple saves of the same object should be a avoided
+    If the same object is found twice, only a path to it should be saved
+       
+    2. Block cyclic references of the objects to themselves
+    In the first stage, simply through an Exception if cyclic reference is
+    encountered. Later, check how such references can be reconstructed
+    from the saved information
+       
+    3. Save version of Quantarhei on the top level of the file
+    Something like
+    
+        def save(self, loc, report_unsaved=False, parent=None):
+    
+        version = Manager().version
+        if parent is None:
+            self._save_version(version)
+            
+        pass
+        
 
     """
+    _S__saved_in_this_session_as = None
     _S__stack = []
+
+
+    def _mark_as_saved(self, loc):
+        self._S__saved_in_this_session_as=loc
+        
+        
+    def _saved_in_this_session(self):
+        return (self._S__saved_in_this_session_as is not None)
+
+        
+    def _save_pointer_instead(self, loc, key):
+        """Saves a pointer to the location of this object 
+        elsewhere in this file, rather than the object itself
+        
+        """
+        root = self._create_root_group(loc, key)
+        root.attrs.create("type",
+            numpy.string_("_quantarhei_Saveable_pointer"))
+        root.attrs.create("location", self._S__saved_in_this_session_as)
 
     def _before_save(self):
         """Operations to be done before saving the object
@@ -50,7 +93,8 @@ class Saveable:
         """
         pass
 
-    def save(self, file, report_unsaved=False, stack=None):
+    def save(self, file, report_unsaved=False, stack=None, comment=None, 
+             test=False):
         """Saves the object to a file
 
 
@@ -81,30 +125,42 @@ class Saveable:
         # Before save start-up
         #
         self._before_save()
+        
+        #
+        # Check the stack
+        #
         sid = id(self)  
         m = Manager()
         
         if stack is not None:
             
-
             if sid in stack:
-                ln = len(stack)
-                id_before = stack[ln-1]
-                print(id_before)
-                print(m.save_dict[id_before])
 
-                print(m.save_dict[sid])
-                raise Exception("cyclic reference to ", self)
-
-            self._S__stack = stack
+                _save_cyclic(file, sid)
+                self._after_save()
+                return
+            
+            else:
+                
+                self._S__stack = stack
 
         else:
             
             self._S__stack = []
-            
-        self._S__stack.append(sid)  
-        m.save_dict[sid] = str(file)
         
+        self._S__stack.append(sid) 
+        delete_save_dict = False
+        
+        # if we test or save to a file, the dictionary must be reinitialized
+        if isinstance(file, str) or test:
+            m.save_dict = {}
+            delete_save_dict = True
+        
+        m.save_dict[sid] = file
+        
+        #
+        # Analyze the class and save it
+        #
         strings = {}
         numeric = {}
         boolean = {}
@@ -155,7 +211,8 @@ class Saveable:
 
         _do_save(self, file=file,
                  attributes=attributes,
-                 report_unsaved=report_unsaved)
+                 report_unsaved=report_unsaved,
+                 comment=comment, test=test)
 
         self._S__stack.pop()
         
@@ -164,6 +221,8 @@ class Saveable:
         #
         self._after_save()
 
+        if delete_save_dict:
+            m.save_dict = None
 
     def _before_load(self):
         """Operations to be done before loading the object
@@ -178,7 +237,7 @@ class Saveable:
         pass
 
 
-    def load(self, file):
+    def load(self, file, test=False):
         """This method should be implemented in classes that inherit from here
 
         """
@@ -192,7 +251,19 @@ class Saveable:
         dictionaries = {}
 
         self._before_load()
-
+        
+        m = Manager()
+        delete_save_dict = False
+        
+        if isinstance(file, str) or test:
+            m.save_dict = {}
+            loc = "/"
+            delete_save_dict = True
+        else:
+            loc = file.name
+            
+        m.save_dict[loc] = self
+        
         _do_load(self, file=file,
                  strings=strings,
                  numeric=numeric,
@@ -219,11 +290,172 @@ class Saveable:
             setattr(self, key, dictionaries[key])
 
         self._after_load()
+        
+        if delete_save_dict:
+            m.save_dict = None
+
+###############################################################################
+#
+# Utility functions
+#
+###############################################################################
+
+""" Usage
 
 
+from quantarhei.saveable import load
+
+m = Molecule()
+print(m)
+m.save("molecule.hdf5")
+
+m1 = load("molecule.hdf5")
+print(m1)
+
+from quantarhei.core.dump import dump_object, load_object
+
+dump_object(m, "molecule.pkl")
+m2 = load_object("molecule.pkl")
+
+
+
+Loader function
+
+"""
+
+def get_class(fid):
+    """Returns class of the saved object
+    
+    fid is assumed to be the location in the hdf5 file
+    
+    """
+
+    try:
+        k = 0
+        for key in fid:
+            typ = key
+            k += 1
+        if k != 1:
+            raise Exception("Incorrect format of record")
+
+    except KeyError:
+        raise Exception("Object record not recognized")
+        
+    # get class from string
+    cls = _get_class(typ)
+    
+    return cls
+    
+    
+def load(file, test=False):
+    """Loads a Saveable object from a file
+    
+    
+    """
+    
+    file_opened = False
+    if isinstance(file, str):
+        # open the file
+        fid = h5py.File(file, "r")
+        file_opened = True
+    else: 
+        fid = file
+        
+    cls = get_class(fid)
+    
+    if file_opened or test:
+        test = True
+        
+    # get object from class and load it
+    obj = cls()
+    obj.load(fid, test=test)
+        
+    if file_opened:
+        fid.close()
+        
+    # return the loaded object
+    return obj
+
+    
+def print_info(file):
+    """Prints the info of a file
+    
+    """
+    info = read_info(file)
+    print("File info on:", file)
+    for key in info:
+        if key is not "creating_file":
+            print(key,": ", info[key])
+            
+
+def extract_source_file(file, filename=None):
+    """Extracts creating file
+    
+    """
+    info = read_info(file)
+    
+    fname = info["source_file_name"]
+    ftext = info["source_file"]
+    
+    if filename is not None:
+        fname = fname
+    if fname is None:
+        raise Exception("No file name specified")
+        
+    if ftext is None:
+        print("Source file not recorded: no file created")
+        return
+        
+    with open(fname,"w") as fid:
+        print(fid, ftext)
+        print("Source file saved as: ", fname)
+    
+
+def read_info(file):
+    """Reads the information about the file and returns it as a dictionary
+    
+    """
+    
+    opened_file = False
+    if isinstance(file,str):
+        fid = h5py.File(file, "r")
+        opened_file = True
+    else:
+        fid = file
+        
+    info = {}
+    
+    k = 0
+    for key in fid:
+        loc = fid[key]
+        #print(key, loc)
+        k += 1
+    if k != 1:
+        raise Exception("Incorrect record format")
+        
+    info["class"] = loc.attrs["classid"].decode("utf-8")
+    info["version"] = loc.attrs["version"].decode("utf-8")
+    info["timestamp"] = loc.attrs["timestamp"].decode("utf-8") # includes date
+    info["format"] = loc.attrs["format"].decode("utf-8")
+    info["filename"] = loc.attrs["filename"].decode("utf-8") # original file name
+    info["comment"] = loc.attrs["comment"].decode("utf-8")
+#    info["source_file"] = ... # here the whole python file which created this result can be stored
+#    info["source_file_name"] = ...
+    
+    if opened_file:
+        fid.close()
+    
+    return info
+        
+
+
+
+
+###############################################################################
 #
 # helper functions
 #
+###############################################################################
 
 
 def _create_root_group(start, name):
@@ -231,6 +463,40 @@ def _create_root_group(start, name):
 
     """
     return start.create_group(name)
+
+
+def _save_cyclic(loc, sid):
+    """Saves cyclic reference as a symbolic link
+    
+    """
+    # previous location to which we will make a soft link
+    ploc = Manager().save_dict[sid]
+    
+    # name of the location
+#    try:
+#        name = ploc.name
+#    except AttributeError:
+#        name = ploc
+    name = ploc.name
+#    print(name)
+    
+    # create soft link a save it in stead of saving the object
+    loc.attrs.create("soft_link", numpy.string_(name))    
+    
+    #raise Exception()
+    
+
+def _save_info(loc, info):
+    """Saves a dictionary with info
+
+    """    
+    for rec in info:
+        if rec != "source_file":
+            loc.attrs.create(rec, numpy.string_(info[rec]))
+        else:
+            grp = _create_root_group(loc, "source_file")
+            grp.create_dataset("file_content", data=numpy.string_(info[rec]))
+            
 
 
 def _in_simple_types(item):
@@ -586,7 +852,8 @@ def _save_a_dictionary(loc, key, cdict, report_unsaved=False, stack=None):
         stack.pop()
 
 
-def _do_save(cls, file="", attributes=None, report_unsaved=False):
+def _do_save(cls, file="", attributes=None, report_unsaved=False, comment=None,
+             test=False):
     """Performs the save to hdf5 file
 
 
@@ -605,14 +872,32 @@ def _do_save(cls, file="", attributes=None, report_unsaved=False):
     dictionaries = attributes["dictionaries"]
     tuples = attributes["tuples"]
 
+    
     # check if we should open a file
+    fname = ""
     if isinstance(file, str):
         file_openned = True
         fid = h5py.File(file, "w")
         root = _create_root_group(fid, _get_full_class_name(cls))
-
+        fname = file
     else:
         root = _create_root_group(file, _get_full_class_name(cls))
+
+    if comment is not None:
+        cmt = comment
+    else:
+        cmt = ""
+        
+    if file_openned or test:
+
+        info = {"version":Manager().version,
+                "comment":cmt,
+                "filename":fname,
+                "timestamp":'{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now()),
+                "format":"Quantarhei_hdf5.ver0.0.1"}
+    
+        
+        _save_info(root, info)
 
     # do the save of all dictionaries
     with energy_units("int"):
@@ -641,7 +926,11 @@ def _load_classid(loc):
     """Loads a string as "classid" attribute
 
     """
-    fullclassid = loc.attrs["classid"].decode("utf-8")
+    try:
+        fullclassid = loc.attrs["classid"].decode("utf-8")
+    except KeyError:
+        fullclassid = ""
+        
     return fullclassid
 
 
@@ -697,7 +986,7 @@ def _load_numdata(loc, dictionary):
         dictionary[key] = numpy.array(strs[key])
 
 
-def _load_objects(loc, dictionary):
+def _load_objects(loc, dictionary, test=False):
     """Saves a dictionary of objects under the group "objects"
 
     """
@@ -713,12 +1002,24 @@ def _load_objects(loc, dictionary):
         for kex in objloc.keys():
             objcls = _get_class(kex)
             k += 1
-        obj = objcls()
-        obj.load(objloc)
+        if k != 1:
+            try:
+                sftl = objloc.attrs["soft_link"].decode("utf-8")
+            except KeyError:
+                raise Exception("Empty object")
+                
+            #print("Soft link from: ", objloc, "to: ", sftl)
+            
+            obj = Manager().save_dict[sftl]
+            
+        else:
+            obj = objcls()
+            obj.load(objloc, test=test)
+            
         dictionary[key] = obj
 
 
-def _load_lists(loc, dictionary):
+def _load_lists(loc, dictionary, test=False):
     """Saves a dictionary of lists under the group "lists"
 
     """
@@ -729,11 +1030,11 @@ def _load_lists(loc, dictionary):
 
     for key in  strs.keys():
         loc = strs[key]
-        clist = _load_a_listuple(loc)
+        clist = _load_a_listuple(loc, test=test)
         dictionary[key] = clist
 
 
-def _load_dictionaries(loc, dictionary):
+def _load_dictionaries(loc, dictionary, test=False):
     """Saves a dictionary of dictionaries under the group "dicts"
 
     """
@@ -744,11 +1045,11 @@ def _load_dictionaries(loc, dictionary):
 
     for key in strs.keys():
         loc = strs[key]
-        cdict = _load_a_dictionary(loc)
+        cdict = _load_a_dictionary(loc, test=test)
         dictionary[key] = cdict
 
 
-def _load_tuples(loc, dictionary):
+def _load_tuples(loc, dictionary, test=False):
     """Saves a dictionary of dictionaries under the group "dicts"
 
     """
@@ -759,7 +1060,7 @@ def _load_tuples(loc, dictionary):
 
     for key in  strs.keys():
         loc = strs[key]
-        clist = _load_a_listuple(loc)
+        clist = _load_a_listuple(loc, test=test)
         dictionary[key] = clist
 
 
@@ -779,7 +1080,7 @@ def _load_a_simple_type(loc):
         return loc.attrs["item"]
 
 
-def _load_a_listuple(loc):
+def _load_a_listuple(loc, test=False):
     """Loads a list or tuple of values
 
     All simple values (strings, numeric, boolean), numpy arrays, Savable
@@ -812,7 +1113,7 @@ def _load_a_listuple(loc):
 
             if read_item:
 
-                _read_item(itemloc, clist)
+                _read_item(itemloc, clist, test=test)
 
             else:
 
@@ -852,7 +1153,7 @@ def _load_homo_listuple(loc, clist):
         clist.append(dt)
 
 
-def _read_item(itemloc, clist):
+def _read_item(itemloc, clist, test=False):
     """Reads one item from a location
 
     """
@@ -867,24 +1168,24 @@ def _read_item(itemloc, clist):
 
         cls = _get_class(classname)
         obj = cls()
-        obj.load(itemloc)
+        obj.load(itemloc, test=test)
         clist.append(obj)
 
     elif ltyp == "list":
-        item = _load_a_listuple(itemloc)
+        item = _load_a_listuple(itemloc, test=test)
         clist.append(item)
     elif ltyp == "tuple":
-        item = _load_a_listuple(itemloc)
+        item = _load_a_listuple(itemloc, test=test)
         clist.append(item)
     elif ltyp == "dict":
-        item = _load_a_dictionary(itemloc)
+        item = _load_a_dictionary(itemloc, test=test)
         clist.append(item)
     else:
         # possibly warn that something was not saved
         pass
 
 
-def _load_a_dictionary(loc):
+def _load_a_dictionary(loc, test=False):
     """Loads a dictionary of values
 
     All simple values (strings, numeric, boolean), numpy arrays, Savable
@@ -917,17 +1218,17 @@ def _load_a_dictionary(loc):
 
                 cls = _get_class(classname)
                 obj = cls()
-                obj.load(itemloc)
+                obj.load(itemloc, test=test)
                 cdict[dkey] = obj
 
             elif ltyp == "list":
-                item = _load_a_listuple(itemloc)
+                item = _load_a_listuple(itemloc, test=test)
                 cdict[dkey] = item
             elif ltyp == "tuple":
-                item = _load_a_listuple(itemloc)
+                item = _load_a_listuple(itemloc, test=test)
                 cdict[dkey] = item
             elif ltyp == "dict":
-                item = _load_a_dictionary(itemloc)
+                item = _load_a_dictionary(itemloc, test=test)
                 cdict[dkey] = item
             else:
                 # possibly warn that something was not saved
@@ -942,7 +1243,8 @@ def _load_a_dictionary(loc):
 
 def _do_load(cls, file="", strings=None, numeric=None,
              boolean=None, numdata=None, objects=None,
-             lists=None, dictionaries=None, tuples=None):
+             lists=None, dictionaries=None, tuples=None,
+             test=False):
     """Loads data from hdf5 file
 
 
@@ -960,8 +1262,9 @@ def _do_load(cls, file="", strings=None, numeric=None,
         root = fid[thisclass]
 
     else:
+           
         root = file[thisclass]
-
+            
     cid = _load_classid(root)
 
     if cid != thisclass:
@@ -971,10 +1274,10 @@ def _do_load(cls, file="", strings=None, numeric=None,
     _load_numeric(root, numeric)
     _load_boolean(root, boolean)
     _load_numdata(root, numdata)
-    _load_objects(root, objects)
-    _load_lists(root, lists)
-    _load_tuples(root, tuples)
-    _load_dictionaries(root, dictionaries)
+    _load_objects(root, objects, test=test)
+    _load_lists(root, lists, test=test)
+    _load_tuples(root, tuples, test=test)
+    _load_dictionaries(root, dictionaries, test=test)
 
     # if file openned here, close it
     if file_openned:

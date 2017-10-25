@@ -42,10 +42,10 @@ class TestTimeAxis(unittest.TestCase):
                            backing_store=False) as f:        
             ta = TimeAxis(0.0, 1000, 0.1)
         
-            ta.save(f)
+            ta.save(f, test=True)
             
             tb = TimeAxis()
-            tb.load(f)
+            tb.load(f, test=True)
             
         
         numpy.testing.assert_array_equal(ta.data,tb.data)

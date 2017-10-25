@@ -9,21 +9,23 @@ from ..utils import Bool
 from ..core.managers import UnitsManaged
 from ..core.wrappers import deprecated
 
-class SubMode:
+from ..core.saveable import Saveable
+
+class SubMode(Saveable):
     """ Instance of a vibrational mode relative to a give electronic state """
     
     omega = Float('omega')
     shift = Float('shift')
     nmax  = Integer('nmax')
     
-    def __init__(self,omega,shift=0.0,nmax=2):
+    def __init__(self, omega=1.0, shift=0.0, nmax=2):
         self.omega = omega
         self.shift = shift
         self.nmax  = nmax
         
 # Mode is UnitsManaged with components of different dimensions
 # Mode is not BasisManaged
-class Mode(UnitsManaged):
+class Mode(UnitsManaged, Saveable):
     """ Vibrational mode
     
     This class represents a vibrational mode. 
