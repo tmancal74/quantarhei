@@ -7,9 +7,10 @@
 """
 import numpy
 
+from ...core.saveable import Saveable
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
 
-class SystemBathInteraction:
+class SystemBathInteraction(Saveable):
     """Describes interaction of an open quantum system with its environment
     
     Stores the system--bath interaction operator in form of a set of operators
@@ -30,86 +31,103 @@ class SystemBathInteraction:
     
     """
 
-    def __init__(self, sys_operators, bath_correlation_matrix, system=None):
+    def __init__(self, sys_operators=None, bath_correlation_matrix=None,
+                 system=None):
 
-        # Find the length of the list of operators 
-        if isinstance(sys_operators,list):
-            self.N = len(sys_operators)
-        else:
-            raise Exception("First argument has to a list")
-        
-        # Second argument has to be a CorrelationFunctionMatrix 
-        if not isinstance(bath_correlation_matrix, CorrelationFunctionMatrix):
-            raise Exception("Second argument has to a"+
-                            " CorrelationFunctionMatrix")
+        if ((sys_operators is not None) 
+            and (bath_correlation_matrix is not None)):
+            # Find the length of the list of operators 
+            if isinstance(sys_operators,list):
+                self.N = len(sys_operators)
+            else:
+                raise Exception("First argument has to a list")
             
-        # Check that sys_operators and bath_correlation matrix has 
-        # a compatible number of components
-        if bath_correlation_matrix.nob != self.N:
-            raise Exception("Incompatile number of bath compoments: " +
-                ("Correlation function matrix - %i vs. operators %i" % 
-                (bath_correlation_matrix.nob,self.N)))
-            
-        self.TimeAxis = bath_correlation_matrix.timeAxis
-        
-        # information about aggregate is needed when dealing with 
-        # multiple excitons
-        self.aggregate = None
-        self.molecule = None
-        self.system = None
-
-        from ...builders.aggregates import Aggregate
-        from ...builders.molecules import Molecule    
-        
-        if system is not None:
-            if isinstance(system, Aggregate):
-                self.aggregate = system
-                self.molecule = None
-                self.system = self.aggregate
-
-            if isinstance(system, Molecule):
-                self.aggregate = None
-                self.molecule = system
-                self.system = self.molecule
-
-            
-        if self.N > 0:
-            
-            # First of the operators 
-            KK = sys_operators[0]
-        
-            # Get its dimension 
-            dim = KK.data.shape[0]
-        
-            # Test if it is really an Operator and if yes then save it
-            if True:
+            # Second argument has to be a CorrelationFunctionMatrix 
+            if not isinstance(bath_correlation_matrix, CorrelationFunctionMatrix):
+                raise Exception("Second argument has to a"+
+                                " CorrelationFunctionMatrix")
                 
-                self.KK = numpy.zeros((self.N, dim, dim), dtype=numpy.float64)
-                self.KK[0,:,:] = KK.data       
+            # Check that sys_operators and bath_correlation matrix has 
+            # a compatible number of components
+            if bath_correlation_matrix.nob != self.N:
+                raise Exception("Incompatile number of bath compoments: " +
+                    ("Correlation function matrix - %i vs. operators %i" % 
+                    (bath_correlation_matrix.nob,self.N)))
+                
+            self.TimeAxis = bath_correlation_matrix.timeAxis
             
-            # Save other operators and check their dimensions 
-            for ii in range(1,self.N):
+            # information about aggregate is needed when dealing with 
+            # multiple excitons
+            self.aggregate = None
+            self.molecule = None
+            self.system = None
+    
+            from ...builders.aggregates import Aggregate
+            from ...builders.molecules import Molecule    
+            
+            if system is not None:
+                if isinstance(system, Aggregate):
+                    self.aggregate = system
+                    self.molecule = None
+                    self.system = self.aggregate
+    
+                if isinstance(system, Molecule):
+                    self.aggregate = None
+                    self.molecule = system
+                    self.system = self.molecule
+    
                 
-                KK = sys_operators[ii]
+            if self.N > 0:
                 
-                if True: #isinstance(KK,Operator):
-                    if dim == KK.data.shape[0]:
-                        self.KK[ii,:,:] = KK.data
+                # First of the operators 
+                KK = sys_operators[0]
+            
+                # Get its dimension 
+                dim = KK.data.shape[0]
+            
+                # Test if it is really an Operator and if yes then save it
+                if True:
+                    
+                    self.KK = numpy.zeros((self.N, dim, dim), dtype=numpy.float64)
+                    self.KK[0,:,:] = KK.data       
+                
+                # Save other operators and check their dimensions 
+                for ii in range(1,self.N):
+                    
+                    KK = sys_operators[ii]
+                    
+                    if True: #isinstance(KK,Operator):
+                        if dim == KK.data.shape[0]:
+                            self.KK[ii,:,:] = KK.data
+                        else:
+                            raise Exception("Operators in the list are" 
+                            + " not of the same dimension")
                     else:
-                        raise Exception("Operators in the list are" 
-                        + " not of the same dimension")
-                else:
-                    raise Exception("sys_operators tuple (the first argument)"
-                    + " has to contain cu.oqs.hilbertspace.Operator")
+                        raise Exception("sys_operators tuple (the first argument)"
+                        + " has to contain cu.oqs.hilbertspace.Operator")
+                    
+                self.CC = bath_correlation_matrix
                 
-            self.CC = bath_correlation_matrix
-            
-        else:
-            
-            self.KK = None
-            self.CC = None
+            else:
+                
+                self.KK = None
+                self.CC = None
                       
+    # FIXME: Better get rid of the dependence on the upstream operator 
+    def _before_save(self):
         
+        self._S__aggregate = self.aggregate
+        self._S__system = self.system
+        self.aggregate = None
+        self.system = None
+        
+    def _after_save(self):
+        self.aggregate = self._S__aggregate
+        self.system = self._S__system
+        
+    def _after_load(self):
+        
+        pass
         
     def get_coft(self,n,m):
         """Returns bath correlation function corresponding to sites n and m

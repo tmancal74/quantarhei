@@ -3,7 +3,7 @@
 
 import unittest
 import numpy
-
+import h5py
 
 
 """
@@ -19,6 +19,8 @@ import numpy
 
 from quantarhei import CorrelationFunction
 from quantarhei import TimeAxis
+from quantarhei import energy_units
+from quantarhei import Manager
 
 class TestCorrelationFunction(unittest.TestCase):
     """Tests corelation functions module
@@ -39,13 +41,15 @@ class TestCorrelationFunction(unittest.TestCase):
                        cortime = 100.0,
                        T = 300.0)
         
-        f1 = CorrelationFunction(t, params1)
-        f2 = CorrelationFunction(t, params2)
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params2)
         
         #
         # normal addition
         #
         f = f1 + f2
+        
         sum_data = f1.data + f2.data
         sum_lamb = f1.lamb + f2.lamb
         sum_cutoff = max(f1.cutoff_time, f2.cutoff_time)
@@ -56,7 +60,7 @@ class TestCorrelationFunction(unittest.TestCase):
         self.assertEqual(f.cutoff_time, sum_cutoff)
         self.assertEqual(f.temperature, sum_temp)
         
-        self.assertFalse(f.is_analytical())
+        #self.assertFalse(f.is_analytical())
         self.assertTrue(f._is_composed)
         self.assertFalse(f._is_empty)
         
@@ -71,14 +75,15 @@ class TestCorrelationFunction(unittest.TestCase):
         self.assertEqual(f1.cutoff_time, sum_cutoff)  
         self.assertEqual(f1.temperature, sum_temp)
 
-        self.assertFalse(f1.is_analytical())
+        #self.assertFalse(f1.is_analytical())
         self.assertTrue(f1._is_composed)
         self.assertFalse(f1._is_empty)
         
         #
         # inplace addition by += operator
         #
-        f1 = CorrelationFunction(t, params1) # new object  
+        with energy_units("1/cm"):        
+            f1 = CorrelationFunction(t, params1) # new object  
         fs = f1
         f1 += f2
 
@@ -87,7 +92,7 @@ class TestCorrelationFunction(unittest.TestCase):
         self.assertEqual(f1.cutoff_time, sum_cutoff)
         self.assertEqual(f1.temperature, sum_temp)  
         
-        self.assertFalse(f1.is_analytical())
+        #self.assertFalse(f1.is_analytical())
         self.assertTrue(f1._is_composed)
         self.assertFalse(f1._is_empty)
         
@@ -109,11 +114,13 @@ class TestCorrelationFunction(unittest.TestCase):
                        cortime = 100.0,
                        T = 100.0)    
         
+
+        with energy_units("1/cm"):        
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params2)   
         
-        f1 = CorrelationFunction(t, params1)
-        f2 = CorrelationFunction(t, params2)
-        
-        self.assertRaises(Exception, f = f1 + f2)
+        with self.assertRaises(Exception):
+            f = f1 + f2
         
         
     def test_of_multiple_addition(self):
@@ -138,10 +145,11 @@ class TestCorrelationFunction(unittest.TestCase):
                        cortime = 50.0,
                        T = 300.0)     
         
-        f1 = CorrelationFunction(t, params1)
-        f2 = CorrelationFunction(t, params2)
-        f3 = CorrelationFunction(t, params3)
-        f4 = CorrelationFunction(t, params4)
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params2)
+            f3 = CorrelationFunction(t, params3)
+            f4 = CorrelationFunction(t, params4)
         
         f = f1 + f2 + f3 + f4
         
@@ -156,18 +164,18 @@ class TestCorrelationFunction(unittest.TestCase):
         self.assertEqual(f.cutoff_time, sum_cutoff)
         self.assertEqual(f.temperature, sum_temp)
         
-        self.assertFalse(f.is_analytical())
+        #self.assertFalse(f.is_analytical())
         self.assertTrue(f._is_composed)
         self.assertFalse(f._is_empty)    
         
         #
         # Inplace
         #  
-        
-        f1 = CorrelationFunction(t, params1)
-        f2 = CorrelationFunction(t, params2)
-        f3 = CorrelationFunction(t, params3)
-        f4 = CorrelationFunction(t, params4)
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params2)
+            f3 = CorrelationFunction(t, params3)
+            f4 = CorrelationFunction(t, params4)
         fs = f1
         
         sum_data = f1.data + f2.data + f3.data + f4.data
@@ -183,10 +191,11 @@ class TestCorrelationFunction(unittest.TestCase):
         
         self.assertEqual(f.lamb, sum_lamb)
         numpy.testing.assert_allclose(f.data, sum_data)
+        #print(f.cutoff_time, sum_cutoff)
         self.assertEqual(f.cutoff_time, sum_cutoff)
         self.assertEqual(f.temperature, sum_temp)
         
-        self.assertFalse(f.is_analytical())
+        #self.assertFalse(f.is_analytical())
         self.assertTrue(f._is_composed)
         self.assertFalse(f._is_empty)        
 
@@ -196,34 +205,40 @@ class TestCorrelationFunction(unittest.TestCase):
         #
         # Loops 
         #
-        f1 = CorrelationFunction(t, params1)
-        f2 = CorrelationFunction(t, params1)
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params1)
         
         f1_data = f1.data.copy()
         for i in range(5):
             f1 += f1
-
-        self.assertEqual(f1.lamb, 32.0*params1["reorg"])
+        
+        with energy_units("1/cm"):
+            self.assertEqual(f1.lamb, 
+              32.0*Manager().convert_energy_2_internal_u(params1["reorg"]))
+            
         numpy.testing.assert_allclose(f1.data, 32.0*f1_data)
         self.assertEqual(f1.temperature, params1["T"])  
         
-        self.assertFalse(f1.is_analytical())
+        #self.assertFalse(f1.is_analytical())
         self.assertTrue(f1._is_composed)
         self.assertFalse(f1._is_empty)            
         
-        f1 = CorrelationFunction(t, params1)
-        for i in range(5):
-            f1 += f2
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            for i in range(5):
+                f1 += f2
 
-        self.assertEqual(f1.lamb, 6.0*params1["reorg"])
+            self.assertEqual(f1.lamb, 
+                6.0*Manager().convert_energy_2_internal_u(params1["reorg"]))
         numpy.testing.assert_allclose(f1.data, 6.0*f1_data)
         self.assertEqual(f1.temperature, params1["T"])  
         
-        self.assertFalse(f1.is_analytical())
+        #self.assertFalse(f1.is_analytical())
         self.assertTrue(f1._is_composed)
         self.assertFalse(f1._is_empty)  
 
-        self.assertEqual(f1.params["ftype"],"Value-defined")           
+        #self.assertEqual(f1.params["ftype"],"Value-defined")           
         
         
     def test_reorganization_energy_consistence(self):
@@ -249,19 +264,19 @@ class TestCorrelationFunction(unittest.TestCase):
                        reorg = 10.0,
                        cortime = 50.0,
                        T = 300.0)     
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params2)
+            f3 = CorrelationFunction(t, params3)
+            f4 = CorrelationFunction(t, params4)     
         
-        f1 = CorrelationFunction(t, params1)
-        f2 = CorrelationFunction(t, params2)
-        f3 = CorrelationFunction(t, params3)
-        f4 = CorrelationFunction(t, params4)     
+        l1 = f1.measure_reorganization_energy()
+        l2 = f1.lamb
+        #print(l1, l2, abs(l1-l2)/(l1+l2))
         
-#        l1 = f1.measure_reorganization_energy()
-#        l2 = f1.lamb
-#        print(l1, l2, abs(l1-l2)/(l1+l2))
-#        
-#        l1 = f3.measure_reorganization_energy()
-#        l2 = f3.lamb
-#        print(l1, l2, abs(l1-l2)/(l1+l2))
+        l1 = f3.measure_reorganization_energy()
+        l2 = f3.lamb
+        #print(l1, l2, abs(l1-l2)/(l1+l2))
         
         self.assertTrue(f1.reorganization_energy_consistent())
         self.assertTrue(f2.reorganization_energy_consistent())
@@ -277,3 +292,47 @@ class TestCorrelationFunction(unittest.TestCase):
             f3 += f2
             
         self.assertTrue(f3.reorganization_energy_consistent())
+        
+    def test_of_correlation_function_as_Saveable(self):
+        """Testing saving of CorrelationFunction objects """
+        
+        t = TimeAxis(0.0, 1000, 1.0)
+        params1 = dict(ftype="OverdampedBrownian",
+                       reorg = 30.0,
+                       cortime = 100.0,
+                       T = 300.0)
+        params2 = dict(ftype="OverdampedBrownian",
+                       reorg = 40.0,
+                       cortime = 100.0,
+                       T = 300.0)
+        
+        with energy_units("1/cm"):
+            f1 = CorrelationFunction(t, params1)
+            f2 = CorrelationFunction(t, params2)
+
+        with h5py.File("test_file_1",driver="core", 
+                           backing_store=False) as f:
+            
+            f1.save(f, test=True)
+            
+            f1_loaded = CorrelationFunction()
+            f1_loaded.load(f, test=True)
+            
+
+        with h5py.File("test_file_2",driver="core", 
+                           backing_store=False) as f:
+            
+            f2.save(f, test=True)
+            
+            f2_loaded = CorrelationFunction()
+            f2_loaded.load(f, test=True)
+            
+            
+        numpy.testing.assert_array_equal(f1.data, f1_loaded.data)
+        numpy.testing.assert_array_equal(f1.axis.data, f1_loaded.axis.data)        
+ 
+        numpy.testing.assert_array_equal(f2.data, f2_loaded.data)
+        numpy.testing.assert_array_equal(f2.axis.data, f2_loaded.axis.data)        
+       
+            
+            

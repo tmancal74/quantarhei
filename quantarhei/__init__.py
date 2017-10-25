@@ -87,6 +87,7 @@ from .builders.disorder import Disorder
 from .core.time import TimeAxis
 from .core.frequency import FrequencyAxis
 from .core.dfunction import DFunction
+from .core.saveable import Saveable
 
 #
 # Various managers
@@ -160,6 +161,12 @@ from .qm.corfunctions import CorrelationFunction
 from .qm.corfunctions import SpectralDensity
 
 
+
+###############################################################################
+# Convenience functions
+###############################################################################
+from .core.saveable import load
+from .core.saveable import read_info
 
 
 

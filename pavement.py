@@ -74,13 +74,14 @@ def pylint():
 
     path = 'quantarhei/core'
     r.set_path(path)
-    r.un('matrixdata.py')    
+    #r.un('matrixdata.py')
+    r.un('saveable.py')    
     
 """
     Default 
 """
 
-@needs('unit_tests_v','doc_tests_v','aloe_tests_v')
+@needs('unit_tests_v','doc_tests_v','aloe_tests_v') #, 'pylint')
 @task
 def default():
     pass
