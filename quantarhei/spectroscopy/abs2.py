@@ -361,55 +361,56 @@ class AbsSpectrum(AbsSpectrumBase):
     
     
     """
+    pass
     
-    def _non_data_attributes(self):
-        
-        return {"object_tag":str(self),
-                "axis_real":[self.axis.start, 
-                             self.axis.step,
-                             self.axis.time_start],
-                "axis_int":[self.axis.length],
-                "axis_str":[self.axis.atype]}
-    
-    def save(self, filename):
-        """Save the whole AbsSpectrum object
-        
-        Attributes saved:
-            axis
-            data
-            
-        """
-        # FIXME: convert into hdf5
-        with energy_units("int"):
-            att = self._non_data_attributes()
-            numpy.savez(filename,
-                    axis_real=att["axis_real"],
-                    axis_int=att["axis_int"],
-                    axis_str=att["axis_str"],
-                    axis_data=self.axis.data,
-                    data=self.data)    
-    
-    def load(self, filename):
-        """Loads the AbsSpectrum object from file 
-        
-        """
-        # FIXME: convert into hdf5        
-        infile = numpy.load(filename)
-        
-        start = infile['axis_real'][0]
-        step = infile['axis_real'][1]
-        time_start = infile['axis_real'][2]
-        atype = infile['axis_str'][0]
-        length = infile['axis_int'][0]
-        
-        with energy_units('int'):
-            faxis = FrequencyAxis(start, length, step, atype=atype,
-                              time_start=time_start)
-        
-        data = infile['data']
-        
-        self.set_axis(faxis)
-        self.set_data(data)
+#    def _non_data_attributes(self):
+#        
+#        return {"object_tag":str(self),
+#                "axis_real":[self.axis.start, 
+#                             self.axis.step,
+#                             self.axis.time_start],
+#                "axis_int":[self.axis.length],
+#                "axis_str":[self.axis.atype]}
+#    
+#    def save(self, filename):
+#        """Save the whole AbsSpectrum object
+#        
+#        Attributes saved:
+#            axis
+#            data
+#            
+#        """
+#        # FIXME: convert into hdf5
+#        with energy_units("int"):
+#            att = self._non_data_attributes()
+#            numpy.savez(filename,
+#                    axis_real=att["axis_real"],
+#                    axis_int=att["axis_int"],
+#                    axis_str=att["axis_str"],
+#                    axis_data=self.axis.data,
+#                    data=self.data)    
+#    
+#    def load(self, filename):
+#        """Loads the AbsSpectrum object from file 
+#        
+#        """
+#        # FIXME: convert into hdf5        
+#        infile = numpy.load(filename)
+#        
+#        start = infile['axis_real'][0]
+#        step = infile['axis_real'][1]
+#        time_start = infile['axis_real'][2]
+#        atype = infile['axis_str'][0]
+#        length = infile['axis_int'][0]
+#        
+#        with energy_units('int'):
+#            faxis = FrequencyAxis(start, length, step, atype=atype,
+#                              time_start=time_start)
+#        
+#        data = infile['data']
+#        
+#        self.set_axis(faxis)
+#        self.set_data(data)
 
   
     

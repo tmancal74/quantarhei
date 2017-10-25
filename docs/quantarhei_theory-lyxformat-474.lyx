@@ -1,9 +1,7 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
-\save_transient_properties true
-\origin unavailable
 \textclass book
 \use_default_options true
 \maintain_unincluded_children false
@@ -11,16 +9,16 @@
 \language_package default
 \inputencoding auto
 \fontencoding default
-\font_roman "default" "default"
-\font_sans "default" "default"
-\font_typewriter "default" "default"
-\font_math "auto" "auto"
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100 100
-\font_tt_scale 100 100
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -305,8 +303,8 @@ closed quantum system
 .
  This is a necessary idealization which we need to start with.
  For the sake of interpretation of quantum mechanics, it would be better
- to completely forget about such an idealization once the main concepts
- of quantum theory become somewhat more familiar.
+ to completely forget about such an idealization once the concepts of quantum
+ theory become somewhat more familiar.
  All quantum systems, at the latest at the moment they are measured, are
  open quantum systems, and the only closed system is the whole universe.
 \end_layout
@@ -364,7 +362,8 @@ reference "eq:H_on_psi"
 
 \end_inset
 
-) is not yet meant to describe any physics.
+) is not meant to descibe any physics.
+ It is not like taking a tool and acting with it on a physical system.
  We mean acting in a matematical sense.
  We have a vector 
 \begin_inset Formula $|\psi\rangle,$
@@ -379,8 +378,8 @@ reference "eq:H_on_psi"
 \end_layout
 
 \begin_layout Standard
-The signature of two vectors being different is the fact that their mutual
- scalar product, once they are normalized, is not one.
+The signature of the two vectors being different is the fact that their
+ mutual scalar product, once they are normalized, is not one.
  For all state vectors we assume
 \begin_inset Formula 
 \begin{equation}
@@ -1353,7 +1352,7 @@ Given that for a homodimer
  we have
 \begin_inset Formula 
 \begin{equation}
-K_{12}=\frac{1}{2}\tilde{C}(\omega_{21})=\frac{\lambda J}{2}\frac{1+\coth\left(\frac{J}{k_{B}T}\right)}{J^{2}\tau_{c}+\frac{\hbar^{2}}{4\tau_{c}}}.
+K_{12}=\frac{1}{2}\tilde{C}(\omega_{21})=\frac{\lambda J}{2}\frac{1+\coth\left(\frac{J}{k_{B}T}\right)}{J{}^{2}\tau_{c}+\frac{\hbar^{2}}{4\tau_{c}}}.
 \end{equation}
 
 \end_inset
@@ -1381,7 +1380,7 @@ Standard Förster Theory
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-K_{AD}=|J|^{2}2{\rm Re}\int\limits _{0}^{\infty}{\rm d}t\ \underbrace{e^{-g_{A}(t)-i\omega_{A}t}}_{A(t)}e^{i\omega t}\underbrace{e^{-g_{D}^{*}(t)+i(\omega_{D}-2\lambda_{D})t}}_{F(t)}e^{i\omega t}.
+K_{AD}=|J|^{2}2{\rm Re}\int\limits_{0}^{\infty}{\rm d}t\ \underbrace{e^{-g_{A}(t)-i\omega_{A}t}}_{A(t)}e^{i\omega t}\underbrace{e^{-g_{D}^{*}(t)+i(\omega_{D}-2\lambda_{D})t}}_{F(t)}e^{i\omega t}.
 \end{equation}
 
 \end_inset
@@ -1392,7 +1391,7 @@ Absorption spectrum
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\alpha(\omega)\approx\int\limits _{-\infty}^{\infty}{\rm d}t\ A(t)e^{i\omega t}=A(\omega)
+\alpha(\omega)\approx\int\limits_{-\infty}^{\infty}{\rm d}t\ A(t)e^{i\omega t}=A(\omega)
 \end{equation}
 
 \end_inset
@@ -1414,7 +1413,7 @@ Fourier transform
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-A(t)=\frac{1}{2\pi}\int\limits _{-\infty}^{\infty}{\rm d}\omega\ A(\omega)e^{-i\omega t}
+A(t)=\frac{1}{2\pi}\int\limits_{-\infty}^{\infty}{\rm d}\omega\ A(\omega)e^{-i\omega t}
 \end{equation}
 
 \end_inset

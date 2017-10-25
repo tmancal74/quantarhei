@@ -11,10 +11,14 @@ import unittest
 *******************************************************************************
 """
 import numpy
+import h5py
 
 from quantarhei.spectroscopy.abs import AbsSpectrumBase, AbsSpectrumDifference
 from quantarhei import FrequencyAxis
 from quantarhei import energy_units
+
+from quantarhei import AbsSpectrum, AbsSpectrumCalculator
+from quantarhei import Molecule, CorrelationFunction, TimeAxis
 
 class TestAbs(unittest.TestCase):
     """Tests for the abs package
@@ -33,6 +37,26 @@ class TestAbs(unittest.TestCase):
         self.abss = abss
         self.axis = abss.axis
         
+        
+        
+        
+        time = TimeAxis(0.0,1000,1.0)
+        with energy_units("1/cm"):
+            mol1 = Molecule(elenergies=[0.0, 12000.0])
+            params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100,
+                          T=300)
+            mol1.set_dipole(0,1,[0.0, 1.0, 0.0])
+            cf = CorrelationFunction(time, params)
+            mol1.set_transition_environment((0,1),cf)
+            
+            abs_calc = AbsSpectrumCalculator(time, system=mol1)
+            abs_calc.bootstrap(rwa=12000)
+            
+        abs1 = abs_calc.calculate()
+        
+        self.abs1 = abs1
+        
+        
     def _spectral_shape(self, f, par):
         a = par[0]
         fd = par[1]
@@ -46,11 +70,24 @@ class TestAbs(unittest.TestCase):
         return a
         
             
-    def test_abs_spectrum_base(self):
-        """Testing basic function of AbsSpectrumBase class
+    def test_abs_spectrum_saveablity(self):
+        """Testing if AbsSpectrum is saveble
         
         """
-        pass
+        abs1 = self.abs1
+        
+        drv = "core"
+        bcs = False
+        with h5py.File('tempfile.hdf5', 
+                       driver=drv, 
+                       backing_store=bcs) as f:
+    
+            abs1.save(f, test=True)
+            
+            abs2 = AbsSpectrum()
+            abs2.load(f, test=True)
+            
+        numpy.testing.assert_array_equal(abs1.data, abs2.data)
 
 
     def test_abs_difference_equal_zero(self):

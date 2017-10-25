@@ -39,6 +39,7 @@ class TestMolecule(unittest.TestCase):
             fc = CorrelationFunction(time,params)
         self.m.set_transition_environment((0,1),fc)  
         self.fc = fc
+        
             
     
     def test_Molecule_instantiation(self):
@@ -73,6 +74,15 @@ class TestMolecule(unittest.TestCase):
         """
         use_temporary_file = True
         
+        with energy_units("1/cm"):
+            mod = Mode(frequency=150)
+            mod1 = Mode(frequency=100)
+            
+        m2 = Molecule(elenergies=[0.0, 2.0])
+        m2.add_Mode(mod)
+        m2.add_Mode(mod1)
+
+        
         if use_temporary_file: 
             
             drv = "core"
@@ -83,12 +93,12 @@ class TestMolecule(unittest.TestCase):
                            backing_store=bcs) as f:
                                              
                 #self.m.save_as(f,"Molecule")
-                self.m.save(f)
+                self.m.save(f, test=True)
                 
                 # reread it
                 m = Molecule()
                 #m.load_as(f,"Molecule")
-                m.load(f)
+                m.load(f, test=True)
 
         else:
 
@@ -108,6 +118,25 @@ class TestMolecule(unittest.TestCase):
         
         numpy.testing.assert_array_equal(
                 self.m.get_transition_environment((0,1)).data, self.fc.data)
+        
+        with h5py.File('tempfile.hdf5', 
+                       driver=drv, 
+                       backing_store=bcs) as f:
+                                         
+            #self.m.save_as(f,"Molecule")
+            m2.save(f, test=True)
+            
+            # reread it
+            m3 = Molecule()
+            #m.load_as(f,"Molecule")
+            m3.load(f, test=True)
+
+        self.assertEqual(m2.name, m3.name)
+        self.assertEqual(m2.nel, m3.nel)
+        numpy.testing.assert_array_equal(m2.elenergies, m3.elenergies)
+        
+        self.assertEqual(m2.get_Mode(0).get_energy(0), mod.get_energy(0))
+        self.assertEqual(m2.get_Mode(1).get_energy(0), mod1.get_energy(0))
         
         
         

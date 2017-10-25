@@ -162,6 +162,12 @@ from .qm.corfunctions import SpectralDensity
 
 
 
+###############################################################################
+# Convenience functions
+###############################################################################
+from .core.saveable import load
+from .core.saveable import read_info
+
 
 
 
