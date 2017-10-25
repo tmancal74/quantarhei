@@ -122,6 +122,7 @@ class SystemBathInteraction:
             
         else:
             
+            #FIXME: Molecule needs this method
             bn = self.system.which_band[n]
             bm = self.system.which_band[m]
             
