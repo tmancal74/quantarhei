@@ -10,7 +10,6 @@
 import inspect
 import fnmatch
 import re
-import path
 import datetime
 from numbers import Number
 
