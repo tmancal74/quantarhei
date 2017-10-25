@@ -1157,9 +1157,7 @@ class Aggregate(UnitsManaged, Saveable):
 
         if self._built:
             ham = self.get_Hamiltonian()
-            print(ham)
             sbi = self.get_SystemBathInteraction()
-            print(sbi)
         else:
             raise Exception()
         

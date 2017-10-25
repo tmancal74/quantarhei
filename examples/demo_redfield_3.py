@@ -55,13 +55,18 @@ if not os.path.exists("aggregate.hdf5"):
     
     
     agg.build()
+    
+    print("Number: ", isinstance(agg._built,bool))
+    print("bool  : ", isinstance(agg._built,bool))
+    print(agg._built)
+    
 
 else:
     
     agg = Aggregate()
     agg.load("aggregate.hdf5")
     
-print("Is built? :", agg._built)
+
 
 #
 # Aggregate object can return a propagator
@@ -102,6 +107,5 @@ with eigenbasis_of(ham):
 
     rho.plot(coherences=False, axis=[0,3000,0.0,1.0])
   
-print("Is built before save? :", agg._built)
 agg.save("aggregate.hdf5")
 

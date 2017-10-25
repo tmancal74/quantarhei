@@ -54,6 +54,11 @@ class TSaveable(Saveable):
         """Sets a list or tuple
         """
         self.liple = liple
+        
+    def set_cyclic(self, ts):
+        
+        self.ts = ts
+        self.ts.ts = self
 
 
 class TestSaveable(unittest.TestCase):
@@ -83,6 +88,63 @@ class TestSaveable(unittest.TestCase):
         
         self.obj3 = TSaveable()
         self.obj3.set_liple([1, 2, 3])
+        
+        
+        
+    def testing_cyclic_reference(self):
+        
+        a = TSaveable()
+        b = TSaveable()
+        a.set_cyclic(b)
+        
+        with h5py.File("test_file_1",driver="core", 
+                           backing_store=False) as f:
+
+            a.save(f, test=True)
+        
+            c = TSaveable()
+            
+            c.load(f, test=True)
+            
+        
+        self.assertEqual(id(a), id(a.ts.ts))
+        self.assertEqual(id(c), id(c.ts.ts))
+
+        lst = [a,b, c]
+        
+        c.set_liple(lst)
+        with h5py.File("test_file_1",driver="core", 
+                           backing_store=False) as f:
+
+            c.save(f, test=True)
+            
+            d = TSaveable()
+            
+            d.load(f, test=True)
+            
+
+        self.assertEqual(id(c.liple[0]), id(a))
+        self.assertEqual(id(c.liple[0].ts), id(b))
+        self.assertEqual(id(c.liple[2]), id(c))
+        
+         
+        
+        lst = dict(a=a,b=b, c=c)        
+        c.set_liple(lst)
+        with h5py.File("test_file_1",driver="core", 
+                           backing_store=False) as f:
+
+            c.save(f, test=True)
+            
+            d = TSaveable()
+            
+            d.load(f, test=True)
+            
+
+        self.assertEqual(id(c.liple["a"]), id(a))
+        self.assertEqual(id(c.liple["a"].ts), id(b))
+        self.assertEqual(id(c.liple["c"]), id(c))
+       
         
         
     def test_saving_and_loading_1(self):

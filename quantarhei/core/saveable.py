@@ -172,6 +172,7 @@ class Saveable:
         attributes = {}
 
         attr = _get_udef_attributes(self)
+        
 
         for at_name in attr:
             atr = self.__getattribute__(at_name)
@@ -179,12 +180,13 @@ class Saveable:
                 pass # ignoring Nones
             elif isinstance(atr, str):
                 strings[at_name] = atr
+                # bool but be before Number because apparently bool is Number
+            elif isinstance(atr, bool):
+                boolean[at_name] = atr
             elif isinstance(atr, Number):
                 numeric[at_name] = atr
             elif isinstance(atr, list):
                 lists[at_name] = atr
-            elif isinstance(atr, bool):
-                boolean[at_name] = atr
             elif isinstance(atr, tuple):
                 tuples[at_name] = atr
             elif isinstance(atr, dict):
@@ -969,7 +971,7 @@ def _load_boolean(loc, dictionary):
         return
 
     for key in strs.attrs.keys():
-        dictionary[key] = strs.attrs[key]
+        dictionary[key] = bool(strs.attrs[key])
 
 
 def _load_numdata(loc, dictionary):
@@ -1164,12 +1166,20 @@ def _read_item(itemloc, clist, test=False):
         clist.append(item)
     elif ltyp == "Saveable":
 
+        k = 0
         for key in itemloc.keys():
             classname = key
-
-        cls = _get_class(classname)
-        obj = cls()
-        obj.load(itemloc, test=test)
+            k += 1
+            
+        if k != 1:
+            slink = itemloc.attrs["soft_link"].decode("utf-8")
+            obj = Manager().save_dict[slink]
+        else:
+            cls = _get_class(classname)
+            obj = cls()
+            Manager().save_dict[itemloc.name] = obj
+            obj.load(itemloc, test=test)
+        
         clist.append(obj)
 
     elif ltyp == "list":
@@ -1214,12 +1224,21 @@ def _load_a_dictionary(loc, test=False):
                 cdict[dkey] = item
             elif ltyp == "Saveable":
 
+                k = 0
                 for key in itemloc.keys():
                     classname = key
+                    k += 1
+                    
+                if k != 1:
+                    slink = itemloc.attrs["soft_link"].decode("utf-8")
+                    obj = Manager().save_dict[slink]
+                
+                else:
 
-                cls = _get_class(classname)
-                obj = cls()
-                obj.load(itemloc, test=test)
+                    cls = _get_class(classname)
+                    obj = cls()
+                    Manager().save_dict[itemloc.name] = obj
+                    obj.load(itemloc, test=test)
                 cdict[dkey] = obj
 
             elif ltyp == "list":
