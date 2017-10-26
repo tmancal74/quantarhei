@@ -9,7 +9,7 @@
 """
 
 import os.path
-
+import pickle
 import numpy
 
 from quantarhei import *
@@ -108,4 +108,8 @@ with eigenbasis_of(ham):
     rho.plot(coherences=False, axis=[0,3000,0.0,1.0])
   
 agg.save("aggregate.hdf5")
+
+fid = open("aggregate.pkl","wb")
+pickle.dump(agg, fid)
+fid.close()
 
