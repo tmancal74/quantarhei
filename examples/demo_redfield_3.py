@@ -53,6 +53,10 @@ if not os.path.exists("aggregate.hdf5"):
     m2.set_transition_environment((0,1), cf)
     m3.set_transition_environment((0,1), cf)
     
+    agg.save("unbuilt.hdf5")
+    fid = open("unbuilt.pkl","wb")
+    pickle.dump(agg, fid)
+    fid.close()  
     
     agg.build()
     

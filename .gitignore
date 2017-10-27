@@ -20,6 +20,7 @@ quantarhei.egg-info
 *.mp4
 .*.swp
 *.pkl
+.ipynb_checkpoints/
 
 
 

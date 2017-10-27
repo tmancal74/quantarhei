@@ -21,7 +21,8 @@ conversion_facs_energy = {
     "eV"     : 1.0e-15*const.e/const.hbar,
     "meV"    : 1.0e-18*const.e/const.hbar,
     "J"      : 1.0e-15/const.hbar,
-    "SI"     : 1.0e-15/const.hbar     
+    "SI"     : 1.0e-15/const.hbar,
+    "nm"     : 1.0/(1.0e7*2.0*const.pi*const.c*1.0e-13)    
     } 
 
 
@@ -90,5 +91,44 @@ c_int = const.c*1.0e-5
 # Permeability of vacuum
 
 eps0_int = 1.0e19/(4.0*const.pi*J2int)
+
+
+
+#
+# Conversion function
+#
+
+
+def convert(val, in_units, to=None):
+    """Converts value in certain units into other units
+    
+    """
+    from .managers import energy_units
+    from .managers import Manager
+    m = Manager()
+    with energy_units(in_units):
+        e = m.convert_energy_2_internal_u(val)
+    
+    if to is None:
+        ne = m.convert_energy_2_current_u(e)
+    else:
+        with energy_units(to):
+            ne = m.convert_energy_2_current_u(e)
+        
+    return ne
+
+def in_current_units(val, in_units):
+    """Converts value in certain units into the current units
+    
+    """
+    from .managers import energy_units
+    from .managers import Manager
+
+    m = Manager()
+    with energy_units(in_units):
+        e = m.convert_energy_2_internal_u(val)
+    
+    return m.convert_energy_2_current_u(e)
+         
 
 
