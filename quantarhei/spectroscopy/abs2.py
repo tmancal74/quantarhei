@@ -27,6 +27,8 @@ from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
 from ..core.units import cm2int
 
+from ..core.saveable import Saveable
+
 class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
     """Provides basic container for absorption spectrum
     
@@ -415,12 +417,11 @@ class AbsSpectrum(AbsSpectrumBase):
   
     
     
-class AbsSpectrumContainer():
+class AbsSpectrumContainer(Saveable):
     
     def __init__(self, axis=None):
-        
-        if axis is not None:
-            self.axis = axis
+
+        self.axis = axis
         self.count = 0
         self.spectra = {}
         
@@ -434,9 +435,13 @@ class AbsSpectrumContainer():
         
         """
         frq = spect.axis
+        
+        if self.axis is None:
+            self.axis = frq
+            
         if self.axis.is_equal_to(frq):
             if tag is None:
-                tag1 = self.count
+                tag1 = str(self.count)
             else:
                 tag1 = tag
             self.spectra[tag1] = spect
@@ -450,7 +455,10 @@ class AbsSpectrumContainer():
         
         Checks if the time t2 is present in the t2axis
         
-        """      
+        """  
+        if not isinstance(tag, str):
+            tag = str(tag)
+            
         if tag in self.spectra.keys():
             return self.spectra[tag]     
         else:
@@ -465,68 +473,68 @@ class AbsSpectrumContainer():
         ven = [value for (key, value) in sorted(self.spectra.items())]
         return ven        
     
-    def save(self, filename):
-        """Save the whole set of spectra into an hdf5 file
-
-            
-        """
-        
-        with h5py.File(filename,"w") as f:
-            sps = f.create_group("spectra")
-            sps.attrs.create("count",self.count)
-            dt = h5py.special_dtype(vlen=str)
-            with energy_units("int"):
-                for ks in self.spectra.keys():
-                    # spectrum object to be saved
-                    sp = self.spectra[ks]
-                    # directory name
-                    dtname = "spectrum_"+str(ks)
-                    # creating directory to save this object
-                    spsub = sps.create_group(dtname)
-                    spsub.attrs.create("tag",ks)
-                    # absorption data to be saved
-                    data2save = spsub.create_dataset("data",data=sp.data)
-                    # axis data get some more attributes
-                    atr = sp._non_data_attributes()
-                    data2save.attrs.create("axis_real",atr["axis_real"])
-                    data2save.attrs.create("axis_int",atr["axis_int"])
-                    data2save.attrs.create("axis_str",atr["axis_str"],dtype=dt)
-    
-    
-    
-    def load(self, filename):
-        """Loads the whole set of spectra from an hdf5 file
-        
-        
-        """
-        with h5py.File(filename,"r") as f:
-            sps = f["spectra"]
-            expected_count = sps.attrs["count"]
-            with energy_units("int"):
-                for grp in sps.keys():
-                    spectrum = sps[grp]
-                    tag = spectrum.attrs["tag"]
-                    data = numpy.array(spectrum["data"])
-                    a_real = spectrum["data"].attrs["axis_real"]
-                    a_int = spectrum["data"].attrs["axis_int"]
-                    a_str = spectrum["data"].attrs["axis_str"]
-    
-                    start = a_real[0]
-                    step = a_real[1]
-                    time_start = a_real[2]
-                    atype = a_str[0]
-                    length = a_int[0]
-                    
-                    with energy_units('int'):
-                        faxis = FrequencyAxis(start, length, step, atype=atype,
-                                          time_start=time_start)
-                    aaa = AbsSpectrum(axis=faxis, data=data)
-                    if self.count == 0:
-                        self.set_axis(aaa.axis)
-                    self.set_spectrum(aaa,tag=tag)
-                
-            if self.count != expected_count:
-                raise Exception("Incorrect number of spectra read")
+#    def save(self, filename):
+#        """Save the whole set of spectra into an hdf5 file
+#
+#            
+#        """
+#        
+#        with h5py.File(filename,"w") as f:
+#            sps = f.create_group("spectra")
+#            sps.attrs.create("count",self.count)
+#            dt = h5py.special_dtype(vlen=str)
+#            with energy_units("int"):
+#                for ks in self.spectra.keys():
+#                    # spectrum object to be saved
+#                    sp = self.spectra[ks]
+#                    # directory name
+#                    dtname = "spectrum_"+str(ks)
+#                    # creating directory to save this object
+#                    spsub = sps.create_group(dtname)
+#                    spsub.attrs.create("tag",ks)
+#                    # absorption data to be saved
+#                    data2save = spsub.create_dataset("data",data=sp.data)
+#                    # axis data get some more attributes
+#                    atr = sp._non_data_attributes()
+#                    data2save.attrs.create("axis_real",atr["axis_real"])
+#                    data2save.attrs.create("axis_int",atr["axis_int"])
+#                    data2save.attrs.create("axis_str",atr["axis_str"],dtype=dt)
+#    
+#    
+#    
+#    def load(self, filename):
+#        """Loads the whole set of spectra from an hdf5 file
+#        
+#        
+#        """
+#        with h5py.File(filename,"r") as f:
+#            sps = f["spectra"]
+#            expected_count = sps.attrs["count"]
+#            with energy_units("int"):
+#                for grp in sps.keys():
+#                    spectrum = sps[grp]
+#                    tag = spectrum.attrs["tag"]
+#                    data = numpy.array(spectrum["data"])
+#                    a_real = spectrum["data"].attrs["axis_real"]
+#                    a_int = spectrum["data"].attrs["axis_int"]
+#                    a_str = spectrum["data"].attrs["axis_str"]
+#    
+#                    start = a_real[0]
+#                    step = a_real[1]
+#                    time_start = a_real[2]
+#                    atype = a_str[0]
+#                    length = a_int[0]
+#                    
+#                    with energy_units('int'):
+#                        faxis = FrequencyAxis(start, length, step, atype=atype,
+#                                          time_start=time_start)
+#                    aaa = AbsSpectrum(axis=faxis, data=data)
+#                    if self.count == 0:
+#                        self.set_axis(aaa.axis)
+#                    self.set_spectrum(aaa,tag=tag)
+#                
+#            if self.count != expected_count:
+#                raise Exception("Incorrect number of spectra read")
     
     
 class AbsSpectrumCalculator(EnergyUnitsManaged):
