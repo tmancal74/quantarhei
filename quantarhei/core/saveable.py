@@ -194,7 +194,7 @@ class Saveable:
                 dictionaries[at_name] = atr
             elif isinstance(atr, numpy.ndarray):
                 nb += atr.nbytes
-                print("Numdata: ", at_name, id(atr), atr.nbytes/(1024**2))
+                #print("Numdata: ", at_name, id(atr), atr.nbytes/(1024**2))
                 numdata[at_name] = atr
             elif isinstance(atr, Saveable):
                 objects[at_name] = atr

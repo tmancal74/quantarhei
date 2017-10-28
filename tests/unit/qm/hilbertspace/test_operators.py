@@ -82,4 +82,26 @@ class TestReducedDensityMatrix(unittest.TestCase):
         self.assertTrue(numpy.allclose(pop,[0.5,0.3,0.2]))
         
         
+    def test_saveable(self):
+        """Testing reduced density matrix as Saveable
+        
+        
+        """
+        
+        rdm = ReducedDensityMatrix(data=[[0.5, 0.0, 0.1],
+                                         [0.0, 0.3, 0.0],
+                                         [0.1, 0.0, 0.2]])
+                         
+        import h5py
+              
+        with h5py.File("test_file_operators",driver="core", 
+                           backing_store=False) as fid:
+            
+            rdm.save(fid, test=True)
+            
+            rdm2 = ReducedDensityMatrix()
+            
+            rdm2.load(fid, test=True)
+        
+        self.assertTrue(numpy.allclose(rdm2.data,rdm.data))
                                     

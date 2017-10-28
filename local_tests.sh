@@ -33,6 +33,8 @@ export PYTHONPATH=`pwd`
 #nosetests -vs tests/unit/builders/test_molecules.py
 #nosetests -vs tests/unit/builders/test_aggregates.py
 #nosetests -vs tests/unit/spectroscopy/abs_test.py
+nosetests -vs tests/unit/qm/hilbertspace/test_operators.py
+nosetests -vs tests/unit/qm/propagators/rdmpropagator_test.py
 
 #python examples/demo_redfield_3.py
 
