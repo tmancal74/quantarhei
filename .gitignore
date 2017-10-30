@@ -19,6 +19,8 @@ quantarhei.egg-info
 *.npy
 *.mp4
 .*.swp
+*.pkl
+.ipynb_checkpoints/
 
 
 

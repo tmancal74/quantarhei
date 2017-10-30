@@ -9,7 +9,7 @@
 """
 
 import os.path
-
+import pickle
 import numpy
 
 from quantarhei import *
@@ -53,6 +53,10 @@ if not os.path.exists("aggregate.hdf5"):
     m2.set_transition_environment((0,1), cf)
     m3.set_transition_environment((0,1), cf)
     
+    agg.save("unbuilt.hdf5")
+    fid = open("unbuilt.pkl","wb")
+    pickle.dump(agg, fid)
+    fid.close()  
     
     agg.build()
     
@@ -108,4 +112,8 @@ with eigenbasis_of(ham):
     rho.plot(coherences=False, axis=[0,3000,0.0,1.0])
   
 agg.save("aggregate.hdf5")
+
+fid = open("aggregate.pkl","wb")
+pickle.dump(agg, fid)
+fid.close()
 

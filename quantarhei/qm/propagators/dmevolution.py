@@ -7,31 +7,29 @@ from ...core.matrixdata import MatrixData
 from ...core.time import TimeAxis
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
+from ...core.saveable import Saveable
 
-class DensityMatrixEvolution(MatrixData, BasisManaged):
+class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
     
     data = BasisManagedComplexArray("data") 
     
-    def __init__(self, timeaxis, rhoi=None, name=None):
+    def __init__(self, timeaxis=None, rhoi=None, name=None):
         
-        if not isinstance(timeaxis, TimeAxis):
-            raise Exception("First argument has to be a TimeAxis")
+        if timeaxis is not None:
             
-        #if not isinstance(rhoi,ReducedDensityMatrix):
-        #    raise Exception
-        if name is not None:
-            self.name = name
-        else:
-            self.name = ""
+            if name is not None:
+                self.name = name
+            else:
+                self.name = ""
+                
+            self.TimeAxis = timeaxis
             
-        self.TimeAxis = timeaxis
-        
-        if rhoi is not None:
-            self.dim = rhoi.data.shape[1]        
-            
-            self.set_initial_condition(rhoi)
-        else:
-            self.dim = 0
+            if rhoi is not None:
+                self.dim = rhoi.data.shape[1]        
+                
+                self.set_initial_condition(rhoi)
+            else:
+                self.dim = 0
             
             
     def set_initial_condition(self, rhoi):

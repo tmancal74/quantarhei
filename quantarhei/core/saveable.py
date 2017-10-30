@@ -174,6 +174,7 @@ class Saveable:
         attr = _get_udef_attributes(self)
         
 
+        nb = 0
         for at_name in attr:
             atr = self.__getattribute__(at_name)
             if atr is None:
@@ -192,6 +193,8 @@ class Saveable:
             elif isinstance(atr, dict):
                 dictionaries[at_name] = atr
             elif isinstance(atr, numpy.ndarray):
+                nb += atr.nbytes
+                #print("Numdata: ", at_name, id(atr), atr.nbytes/(1024**2))
                 numdata[at_name] = atr
             elif isinstance(atr, Saveable):
                 objects[at_name] = atr
@@ -210,6 +213,9 @@ class Saveable:
             attributes["dictionaries"] = dictionaries
             attributes["tuples"] = tuples
 
+
+        print("Data size: ", nb/(1024**2))
+            
         _do_save(self, file=file,
                  attributes=attributes,
                  report_unsaved=report_unsaved,
