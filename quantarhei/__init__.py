@@ -168,6 +168,10 @@ from .qm.corfunctions import SpectralDensity
 from .core.saveable import load
 from .core.saveable import read_info
 
+from .core.units import convert
+from .core.units import in_current_units
+
+
 
 
 

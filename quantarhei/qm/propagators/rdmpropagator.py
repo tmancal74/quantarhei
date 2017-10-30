@@ -25,13 +25,14 @@ from ..hilbertspace.hamiltonian import Hamiltonian
 from ..hilbertspace.operators import Operator
 from ...core.time import TimeAxis
 from ...core.time import TimeDependent
+from ...core.saveable import Saveable
 from ..liouvillespace.redfieldtensor import RelaxationTensor
 from ..hilbertspace.operators import ReducedDensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
 
 
-class ReducedDensityMatrixPropagator(MatrixData): 
+class ReducedDensityMatrixPropagator(MatrixData, Saveable): 
     """
     
     Reduced Density Matrix Propagator calculates the evolution of the
@@ -41,7 +42,7 @@ class ReducedDensityMatrixPropagator(MatrixData):
     
     """
     
-    def __init__(self, timeaxis, Ham, RTensor="", Efield="", Trdip=""):
+    def __init__(self, timeaxis=None, Ham=None, RTensor="", Efield="", Trdip=""):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -68,48 +69,50 @@ class ReducedDensityMatrixPropagator(MatrixData):
         self.has_Trdip = False
         self.has_Efield = False
         
-        if isinstance(Ham,Hamiltonian):
-            self.Hamiltonian = Ham
-        else:
-            raise Exception
-        
-        if isinstance(timeaxis,TimeAxis):
-            self.TimeAxis = timeaxis
-        else:
-            raise Exception
-        
-        if isinstance(RTensor,RelaxationTensor):
-            self.RelaxationTensor = RTensor
-            self.has_relaxation = True
-        elif RTensor == "":
-            self.has_relaxation = False
-        else:
-            raise Exception
-
-        if Trdip != "":            
-            if isinstance(Trdip,Operator):
-                self.Trdip = Trdip
-                self.has_Trdip = True
+        if not ((timeaxis is None) and (Ham is None)):
+            
+            if isinstance(Ham,Hamiltonian):
+                self.Hamiltonian = Ham
             else:
                 raise Exception
-
-        if Efield != "":
-            if isinstance(Efield,numpy.ndarray):
-                self.Efield = Efield
-                self.has_Efield = True
             
+            if isinstance(timeaxis,TimeAxis):
+                self.TimeAxis = timeaxis
+            else:
+                raise Exception
             
-        
-        self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
-        self.dt = self.Odt
-        self.Nref = 1
-        
-        self.Nt = self.TimeAxis.data.shape[0]
-        
-        N = self.Hamiltonian.data.shape[0]
-        self.N = N
-        self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
-        self.propagation_name = ""
+            if isinstance(RTensor,RelaxationTensor):
+                self.RelaxationTensor = RTensor
+                self.has_relaxation = True
+            elif RTensor == "":
+                self.has_relaxation = False
+            else:
+                raise Exception
+    
+            if Trdip != "":            
+                if isinstance(Trdip,Operator):
+                    self.Trdip = Trdip
+                    self.has_Trdip = True
+                else:
+                    raise Exception
+    
+            if Efield != "":
+                if isinstance(Efield,numpy.ndarray):
+                    self.Efield = Efield
+                    self.has_Efield = True
+                
+                
+            
+            self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
+            self.dt = self.Odt
+            self.Nref = 1
+            
+            self.Nt = self.TimeAxis.data.shape[0]
+            
+            N = self.Hamiltonian.data.shape[0]
+            self.N = N
+            self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
+            self.propagation_name = ""
         
         
         

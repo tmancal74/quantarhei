@@ -206,7 +206,7 @@ class ProjectionOperator(Operator):
             
             
             
-class DensityMatrix(SelfAdjointOperator):
+class DensityMatrix(SelfAdjointOperator, Saveable):
     """Class representing a density matrix
     
     

@@ -60,7 +60,7 @@ class Manager(metaclass=Singleton):
                       "time"]
 
     units = {"energy"       : ["2pi/fs", "int", "1/cm", "eV", "meV", "THz",
-                               "J", "SI"],
+                               "J", "SI", "nm"],
              "frequency"    : ["2pi/fs", "int", "1/cm", "THz","Hz","SI"],
              "dipolemoment" : ["Debye"],
              "temperature"  : ["2pi/fs", "int", "Kelvin", "Celsius",
@@ -76,7 +76,8 @@ class Manager(metaclass=Singleton):
                    "eV":"eV",
                    "2pi/fs":"2pi/fs",
                    "int":"2pi/fs",
-                   "meV":"meV"}
+                   "meV":"meV",
+                   "nm":"nm"}
                    
     units_repre_latex = {"Kelvin":"K",
                    "Celsius":"C",
@@ -85,7 +86,8 @@ class Manager(metaclass=Singleton):
                    "THz":"THz",
                    "eV":"eV",
                    "2pi/fs":"rad$\cdot$fs$^{-1}$",
-                   "meV":"meV"}                  
+                   "meV":"meV",
+                   "nm":"nm"}                  
 
     def __init__(self):
 
@@ -355,7 +357,23 @@ class Manager(metaclass=Singleton):
             values to convert            
         
         """
-        return val*conversion_facs_energy[self.current_units["energy"]]
+        units = self.current_units["energy"]
+        cfact = conversion_facs_energy[self.current_units["energy"]]
+        
+        # special handling for nano meters
+        if units == "nm":
+            # zero is interpretted as zero energy
+            try:
+                ret = numpy.zeros(val.shape, dtype=val.dtype)
+                ret[val!=0.0] = 1.0/val[val!=0]
+                return ret/cfact
+            except:            
+                return (1.0/val)/cfact
+            #if val == 0.0:
+            #    return 0.0
+            #return (1.0/val)/cfact
+        else:
+            return val*cfact
         
             
     def convert_energy_2_current_u(self,val):
@@ -368,8 +386,20 @@ class Manager(metaclass=Singleton):
             values to convert            
         
         """
+        units = self.current_units["energy"]
+        cfact = conversion_facs_energy[units]
         
-        return val/conversion_facs_energy[self.current_units["energy"]] 
+        # special handling for nanometers
+        if units == "nm":
+            # zero is interpretted as zero energy
+            try:
+                ret = numpy.zeros(val.shape, dtype=val.dtype)
+                ret[val!=0.0] = 1.0/val[val!=0]
+                return ret/cfact
+            except:            
+                return (1.0/val)/cfact
+        else:
+            return val/cfact 
         
 
     def convert_frequency_2_internal_u(self,val):
