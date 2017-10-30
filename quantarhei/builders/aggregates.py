@@ -553,8 +553,8 @@ class Aggregate(UnitsManaged, Saveable):
 #                    
 #            nret += nv
             
-        for state in self.allstates(mult=1, mode="EQ", vibgen_approx=None,
-                                    Nvib=None, vibenergy_cutoff=None):
+        for state in self.allstates(mult=band, mode="EQ", vibgen_approx=vibgen_approx,
+                                    Nvib=Nvib, vibenergy_cutoff=vibenergy_cutoff):
             nret += 1
             
         return nret
@@ -813,7 +813,7 @@ class Aggregate(UnitsManaged, Saveable):
         """
         a = 0
         for ess1 in self.elsignatures():
-            es1 = self.get_electronic_state(ess1)
+            es1 = self.get_electronic_state(ess1, a)
             yield a,es1
             a += 1
         

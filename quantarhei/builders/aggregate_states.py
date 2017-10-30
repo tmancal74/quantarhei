@@ -316,6 +316,8 @@ class electronic_state(UnitsManaged):
             
         if approx is None:    
             return numpy.ndindex(tuple(vibmax))
+        elif approx == 'ZPA':
+            return numpy.ndindex(tuple([1]*len(vibmax)))
         elif approx == 'SPA':
             return self._spa_ndindex(tuple(vibmax), ecut=vibenergy_cutoff)
         elif approx == 'SPPMA':
