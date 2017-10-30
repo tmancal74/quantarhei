@@ -369,7 +369,7 @@ class Aggregate(UnitsManaged, Saveable):
             raise Exception()
 
     
-    def fc_factor(self,state1,state2):
+    def fc_factor(self, state1, state2):
         """Franck-Condon factors between two vibrational states
         
         
@@ -415,8 +415,9 @@ class Aggregate(UnitsManaged, Saveable):
             res = res*rs
             
         return res
-    
-    def transition_dipole(self,state1,state2):
+
+
+    def transition_dipole(self, state1, state2):
         """ Transition dipole moment between two states 
         
         Parameters
@@ -485,33 +486,40 @@ class Aggregate(UnitsManaged, Saveable):
         return eldip*fcfac
     
         
-    def total_number_of_states(self, mult=1, vibgen_approx=None):
+    def total_number_of_states(self, mult=1, vibgen_approx=None,
+                               Nvib=None, vibenergy_cutoff=None):
         """ Total number of states in the aggregate"""
         
         nret = 0
         
-        for elsig in self.elsignatures(mult=mult):
-            
-            cs = electronic_state(self, elsig)
-            
-            if vibgen_approx is None:
-                nv = 1
-                # here we assume all available states
-                for mn in cs.vibmodes:
-                    nv *= mn.nmax
-
-            elif vibgen_approx == "SPA":
-                nv = 1
-                # here only on state per mode in adition to the ground state is
-                # allowed
-                for mn in cs.vibmodes: 
-                    nv += 1
-                    
-            nret += nv
+#        for elsig in self.elsignatures(mult=mult):
+#            
+#            cs = electronic_state(self, elsig)
+#            
+#            if vibgen_approx is None:
+#                nv = 1
+#                # here we assume all available states
+#                for mn in cs.vibmodes:
+#                    nv *= mn.nmax
+#
+#            elif vibgen_approx == "SPA":
+#                nv = 1
+#                # here only one state per mode in adition to the ground state is
+#                # allowed
+#                for mn in cs.vibmodes: 
+#                    nv += 1
+#                    
+#            nret += nv
+        
+        for state in self.allstates(mult=mult, 
+                                    vibgen_approx=vibgen_approx,
+                                    Nvib=Nvib,
+                                    vibenergy_cutoff=vibenergy_cutoff):
+            nret += 1
                 
         return nret
 
-    def total_number_of_electronic_states(self,mult=1):
+    def total_number_of_electronic_states(self, mult=1):
         """ Total number of electronic states in the aggregate"""
         
         nret = 0
@@ -522,27 +530,32 @@ class Aggregate(UnitsManaged, Saveable):
         return nret
 
  
-    def number_of_states_in_band(self, band=1, vibgen_approx=None):
+    def number_of_states_in_band(self, band=1, vibgen_approx=None,
+                                 Nvib=None, vibenergy_cutoff=None):
         """ Number of states in a given excitonic band """
         
         nret = 0
         
-        for elsig in self.elsignatures(mult=band, mode="EQ"):
-            cs = electronic_state(self,elsig)
-            if vibgen_approx is None:
-                nv = 1
-                # here we assume all available states
-                for mn in cs.vibmodes:
-                    nv *= mn.nmax
-
-            elif vibgen_approx == "SPA":
-                nv = 1
-                # here only on state per mode in adition to the ground state is
-                # allowed
-                for mn in cs.vibmodes: 
-                    nv += 1
-                    
-            nret += nv
+#        for elsig in self.elsignatures(mult=band, mode="EQ"):
+#            cs = electronic_state(self,elsig)
+#            if vibgen_approx is None:
+#                nv = 1
+#                # here we assume all available states
+#                for mn in cs.vibmodes:
+#                    nv *= mn.nmax
+#
+#            elif vibgen_approx == "SPA":
+#                nv = 1
+#                # here only on state per mode in adition to the ground state is
+#                # allowed
+#                for mn in cs.vibmodes: 
+#                    nv += 1
+#                    
+#            nret += nv
+            
+        for state in self.allstates(mult=1, mode="EQ", vibgen_approx=None,
+                                    Nvib=None, vibenergy_cutoff=None):
+            nret += 1
             
         return nret
     
@@ -718,7 +731,7 @@ class Aggregate(UnitsManaged, Saveable):
             mlt += 1
             
                     
-    def _add_excitation(self,inlists,strt,omax):
+    def _add_excitation(self, inlists, strt, omax):
         """Adds one excitation to all submitted electronic signatures"""
         
         k = 0
@@ -756,18 +769,24 @@ class Aggregate(UnitsManaged, Saveable):
         return cs.vsignatures(approx=approx)
     
     
-    def allstates(self, mult=1, all_vibronic=True, 
-                  save_indices=False, vibgen_approx=None):
-        """ Generator of all states aggregate states
+    def allstates(self, mult=1, mode="LQ",
+                  all_vibronic=True, 
+                  save_indices=False,
+                  vibgen_approx=None, 
+                  Nvib=None,
+                  vibenergy_cutoff=None):
+        """ Generator of all aggregate states
         
         
         """
         a = 0
         i = 0
         # run over all electronic signatures
-        for ess1 in self.elsignatures(mult=mult):
+        for ess1 in self.elsignatures(mult=mult, mode=mode):
+            
             es1 = self.get_electronic_state(ess1,i)
-            for vsig1 in es1.vsignatures(approx=vibgen_approx):
+            for vsig1 in es1.vsignatures(approx=vibgen_approx, N=Nvib,
+                                         vibenergy_cutoff=vibenergy_cutoff):
                 if all_vibronic:
                     s1 = vibronic_state(es1,vsig1)
                 else:
@@ -834,7 +853,8 @@ class Aggregate(UnitsManaged, Saveable):
     #
     #######################################################################
         
-    def build(self, mult=1, sbi_for_higher_ex=False, vibgen_approx=None):
+    def build(self, mult=1, sbi_for_higher_ex=False,
+              vibgen_approx=None, Nvib=None, vibenergy_cutoff=None):
         """Builds aggregate properties
         
         Calculates Hamiltonian and transition dipole moment matrices and
@@ -876,7 +896,9 @@ class Aggregate(UnitsManaged, Saveable):
         # number of states in the aggregate (taking into account approximations
         # in generation of vibrational states)
         Ntot = self.total_number_of_states(mult=mult, 
-                                           vibgen_approx=vibgen_approx)
+                                           vibgen_approx=vibgen_approx,
+                                           Nvib=Nvib, 
+                                           vibenergy_cutoff=vibenergy_cutoff)
         self.Ntot = Ntot
         self.which_band = numpy.zeros(self.Ntot, dtype=numpy.int)
         self.elsigs = [None]*self.Nel
@@ -893,11 +915,14 @@ class Aggregate(UnitsManaged, Saveable):
             
         # Set up Hamiltonian and Transition dipole moment matrices
         for a, s1 in self.allstates(mult=self.mult, save_indices=True,
-                                    vibgen_approx=vibgen_approx):
+                                    vibgen_approx=vibgen_approx, Nvib=Nvib,
+                                    vibenergy_cutoff=vibenergy_cutoff):
             #print("state = ", a)
             HH[a,a] = s1.energy()
             for b,s2 in self.allstates(mult=self.mult,
-                                    vibgen_approx=vibgen_approx):       
+                                    vibgen_approx=vibgen_approx, Nvib=Nvib,
+                                    vibenergy_cutoff=vibenergy_cutoff): 
+            
                 DD[a,b,:] = self.transition_dipole(s1,s2)
                 
                 #print(" - ", a,b,s1.signature(),s2.signature())
@@ -1092,12 +1117,15 @@ class Aggregate(UnitsManaged, Saveable):
         self._built = True
     
         
-    def rebuild(self, mult=1, vibgen_approx=None):
+    def rebuild(self, mult=1, sbi_for_higher_ex=False,
+              vibgen_approx=None, Nvib=None, vibenergy_cutoff=None):
         """Cleans the object and rebuilds
         
         """
         self.clean()
-        self.build(mult=mult, vibgen_approx=vibgen_approx)
+        self.build(mult=mult, sbi_for_higher_ex=sbi_for_higher_ex,
+              vibgen_approx=vibgen_approx, Nvib=Nvib,
+              vibenergy_cutoff=vibenergy_cutoff)
         
         
     
