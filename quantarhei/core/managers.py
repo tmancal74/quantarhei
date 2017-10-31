@@ -297,11 +297,14 @@ class Manager(metaclass=Singleton):
             
             
             
-    def set_current_units(self,utype,units):
+    def set_current_units(self, utype, units):
         """Sets current units
         
         
         """
+        self._saved_units = {}
+        self._saved_units[utype] = self.get_current_units(utype)
+        
         if utype in self.allowed_utypes:
             if units in self.units[utype]:
                 self.current_units[utype] = units
@@ -309,8 +312,27 @@ class Manager(metaclass=Singleton):
                 raise Exception("Unknown units of %s" % utype)
         else:
             raise Exception("Unknown type of units")
+        
+    def unset_current_units(self, utype):
+        """Restores previously saved units of a given type
+        
+        """
+        try:
+            cunits = self._saved_units[utype]
+        except KeyError:
+            raise Exception("Units to restore not found")
             
-    def get_current_units(self,utype):
+        if utype in self.allowed_utypes:
+            if cunits in self.units[utype]:
+                self.current_units[utype] = cunits
+            else:
+                raise Exception("Unknown units of %s" % utype)
+        else:
+            raise Exception("Unknown type of units")
+        
+        
+        
+    def get_current_units(self, utype):
         """
         
         """

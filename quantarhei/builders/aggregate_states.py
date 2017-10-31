@@ -7,34 +7,34 @@ from ..utils.types import Integer
 from ..core.managers import UnitsManaged, energy_units
 
 
-class aggregate_state():
-    """ State of an aggregate
-    
-    
-    
-    """
-    
-    energy = Float('energy')
-    el_energy = Float('el_energy')
-    vib_energy = Float('vib_energy')
-    
-    def __init__(self, aggregate, state_tuple):
-        
-        desc = state_tuple[0]
-        
-        self.el_descriptor = desc[0]
-        self.vib_descriptor = desc[1:]
-        self.vibrations = state_tuple[1]
-        
-        # This is temporary - numbers have to be computed
-        self.energy = 0.0
-        self.el_energy = 0.0
-        self.vib_energy = 0.0
-        
-        self.aggregate = aggregate
-        
-    def aslist(self):
-        return [self.el_descriptor,self.vib_descriptor]
+#class aggregate_state():
+#    """ State of an aggregate
+#    
+#    
+#    
+#    """
+#    
+#    energy = Float('energy')
+#    el_energy = Float('el_energy')
+#    vib_energy = Float('vib_energy')
+#    
+#    def __init__(self, aggregate, state_tuple):
+#        
+#        desc = state_tuple[0]
+#        
+#        self.el_descriptor = desc[0]
+#        self.vib_descriptor = desc[1:]
+#        self.vibrations = state_tuple[1]
+#        
+#        # This is temporary - numbers have to be computed
+#        self.energy = 0.0
+#        self.el_energy = 0.0
+#        self.vib_energy = 0.0
+#        
+#        self.aggregate = aggregate
+#        
+#    def aslist(self):
+#        return [self.el_descriptor,self.vib_descriptor]
 
 
 class electronic_state(UnitsManaged):
@@ -71,7 +71,7 @@ class electronic_state(UnitsManaged):
     
     nmono = Integer('nmono')
     
-    def __init__(self, aggregate, elsignature, index=0):
+    def __init__(self, aggregate, elsignature, index=None):
         
         Nsig = len(elsignature)
         nmono = len(aggregate.monomers)
@@ -98,20 +98,32 @@ class electronic_state(UnitsManaged):
         self.vibmodes = vb_ls
         self.vsiglength = len(vb_ls)
         
-        self.index = index
+        # if index is specified, use it, otherwise try to search for it
+        if index is not None:
+            self.index = index
+        else:
+            self.index = self.aggregate.elsigs.index(self.elsignature) 
         
         #
         # Implementation of vibrational substate generation approximations
         #
+        #
         self.vibgen_approximation = None
         
         
+    def get_signature(self):
+        """Returns electronic signature of this state
+        
+        """
+        return self.elsignature
+
+
     def energy(self, vsig=None):
         """ Returns energy of the state (electronic + vibrational)
         
         """
         en = 0.0
-        k = 0
+
         if vsig is not None:
             if not (len(vsig) == self.vsiglength):
                 raise Exception()  
@@ -119,8 +131,8 @@ class electronic_state(UnitsManaged):
             for nn in self.vibmodes:
                 en += vsig[k]*self.convert_energy_2_current_u(nn.omega)
                 k += 1
-            k = 0
-            
+
+        k = 0
         for nn in self.elsignature:
             en += \
             self.convert_energy_2_current_u(
@@ -131,20 +143,25 @@ class electronic_state(UnitsManaged):
     
         
     def vibenergy(self, vsig=None):
+        """ Returns vibrational energy of a state
+        
+        """
         
         en = 0.0
-        k = 0
+        
         if vsig is not None:
+            
             if not (len(vsig) == self.vsiglength):
                 raise Exception()  
+           
             k = 0
             for nn in self.vibmodes:
                 en += vsig[k]*self.convert_energy_2_current_u(nn.omega)
                 k += 1
-            k = 0
             
         return en
         
+
     def _spa_ndindex(self, tup, ecut=None):
         """Generates vibrational signatures in SPA 
         
@@ -208,12 +225,6 @@ class electronic_state(UnitsManaged):
         """Generates vibrational signature in Two Particle Approximation (TPA)
         
         """
-#        two = numpy.zeros(len(tup), dtype=numpy.int)
-#        two[:] = 3
-#        shp = tuple(two)
-#        for tpl in numpy.ndindex(shp):
-#            if numpy.sum(tpl) <= 2:
-#               yield tpl
         return self._npa_ndindex(tup, N=2, ecut=ecut)
     
 
@@ -345,7 +356,8 @@ class electronic_state(UnitsManaged):
         for a in self.vibmodes:
             n *= a.nmax
         return n
-        
+
+
     def __str__(self):
         out  = "\nquantarhei.electronic_state object"
         out += "\n=================================="
@@ -367,14 +379,49 @@ class vibronic_state(UnitsManaged):
     def __init__(self, elstate, vsig):
         self.elstate = elstate
         self.vsig = vsig
+
+
+    def get_electronic_state(self):
+        """Returns corresponding electronic state
         
+        """
+        return self.elstate
+
+  
+    def get_vibsignature(self):
+        """Returns corresponding vibrational signature
+        
+        """
+        return self.vsig
+
+
     def energy(self):
         """Returns the energy of the state
         
         """
         return self.elstate.energy(self.vsig)
+
+
+    def vibenergy(self):
+        """ Returns vibrational energy of a state
         
+        """
         
+        en = 0.0
+        
+        if self.vsig is not None:
+            
+            if not (len(self.vsig) == self.elstate.vsiglength):
+                raise Exception()  
+           
+            k = 0
+            for nn in self.elstate.vibmodes:
+                en += self.vsig[k]*self.convert_energy_2_current_u(nn.omega)
+                k += 1
+            
+        return en        
+
+
     def signature(self):
         """Returns a signature of the state
         
