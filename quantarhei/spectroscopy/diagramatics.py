@@ -82,7 +82,7 @@ class liouville_pathway:
         self.ne = 0
 
         # light indiced transitions
-        self.transitions = numpy.zeros((order+1,2))
+        self.transitions = numpy.zeros((order+1,2), dtype=numpy.int)
         
         # relaxation induced transitions
         self.relaxations = [None]*relax_order
@@ -209,7 +209,7 @@ class liouville_pathway:
         
         return out 
     
-    def add_transition(self,transition,side):
+    def add_transition(self, transition, side):
         """ Adds a transition to the Liouville pathway. 
 
         Parameters
@@ -363,8 +363,9 @@ class liouville_pathway:
         
         """
         # weight in the initial state of the first transition
+        n0 = self.transitions[0,1]
         self.pref = self.sign*(numpy.dot(lab.F4eM4,self.F4n)
-        *numpy.real(self.aggregate.rho0[self.transitions[0,1]])) 
+        *numpy.real(self.aggregate.rho0[n0,n0])) 
         
     
     def get_transition_energy(self,n):

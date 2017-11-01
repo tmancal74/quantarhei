@@ -7,6 +7,9 @@ import numpy
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+from ..utils import Integer, Float
+from ..utils.vectors import X
+
 
 class twodspect:
     """ Two-Dimensional Fourier Transformed Optical Spectrum 
@@ -115,9 +118,9 @@ class labsetup:
     
     """
     
-    number_of_pulses = utils.Integer("number_of_pulses")
+    number_of_pulses = Integer("number_of_pulses")
     
-    def __init__(self,nopulses = 3):
+    def __init__(self, nopulses = 3):
         
         self.number_of_pulses = nopulses
     
@@ -126,8 +129,8 @@ class labsetup:
                                [-1.0,-1.0,  4.0]])/30.0
                         
     
-    def set_polarizations(self,pulse_polarizations=(utils.X,utils.X,utils.X), 
-                         detection_polarization=utils.X):
+    def set_polarizations(self, pulse_polarizations=(X, X, X), 
+                         detection_polarization=X):
         if len(pulse_polarizations) == self.number_of_pulses:
 
             self.e = numpy.zeros((4,3))
@@ -182,15 +185,15 @@ class lineshape_generator(renderable):
     
 class gaussian_lineshape_generator(lineshape_generator):
 
-    xwidth = utils.Float("xwidth")
-    ywidth = utils.Float("ywidth")
-    xposition = utils.Float("xposition")
-    yposition = utils.Float("yposition")
-    prefactor = utils.Float("prefactor")
-    phase = utils.Float("phase")
-    correlation_time = utils.Float("correlation_time")
-    population_time = utils.Float("population_time")
-    corr = utils.Float("corr")
+    xwidth = Float("xwidth")
+    ywidth = Float("ywidth")
+    xposition = Float("xposition")
+    yposition = Float("yposition")
+    prefactor = Float("prefactor")
+    phase = Float("phase")
+    correlation_time = Float("correlation_time")
+    population_time = Float("population_time")
+    corr = Float("corr")
     
     def __init__(self,xwidth=1.0,ywidth=1.0):
         """ 2D lineshape generator of Gaussian type
