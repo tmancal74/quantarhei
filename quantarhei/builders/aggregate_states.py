@@ -379,6 +379,12 @@ class vibronic_state(UnitsManaged):
     def __init__(self, elstate, vsig):
         self.elstate = elstate
         self.vsig = vsig
+        
+        try:
+            agg = self.elstate.aggregate
+            self.index = agg.vibsigs.index((elstate.elsignature, vsig))
+        except:
+            self.index = None
 
 
     def get_electronic_state(self):
