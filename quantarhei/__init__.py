@@ -125,6 +125,9 @@ from .spectroscopy.twod2 import TwoDSpectrum
 from .spectroscopy.twod2 import TwoDSpectrumContainer
 from .spectroscopy.twod2 import TwoDSpectrumCalculator
 
+
+from .spectroscopy.diagramatics import LiouvillePathwayAnalyzer
+
 ###############################################################################
 #                           QUANTUM MECHANICS
 ###############################################################################

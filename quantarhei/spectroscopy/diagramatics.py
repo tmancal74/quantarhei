@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
 
+    Liouville pathways and their analysis
+
+
+
+"""
 
 
 import numpy
@@ -382,4 +388,100 @@ class liouville_pathway:
     def get_prefactor(self):
         """ Dipole and temperature dependent prefactor """
         return self.pref
+    
+    
+
+class LiouvillePathwayAnalyzer():
+    """Class providing methods for Liouville pathway analysis
+    
+    
+    """
+
+    def __init__(self):
+        pass
+    
+    
+    def max_pref(self, pthways):
+        """Return the maximum of pathway prefactors
+        
+        """
+        pmax = 0.0
+        k = 0
+        for pway in pthways:
+            if pway.pref > pmax:
+                rec = k
+                pmax = pway.pref
+            k += 1
+            
+        return (pmax, rec)
+    
+    def select_pref_GT(self, val, pthways, verbatime=False):
+        """Select all pathways with prefactors greater than a value
+        
+        """
+        selected = []
+        for pway in pthways:
+            if pway.pref > val:
+                selected.append(pway)
+        
+        if verbatime:
+            print("Selected", len(selected), "pathways")
+            
+        return selected
+    
+    def select_frequency_window(self, window, pthways, verbatime=False):
+        """Selects pathways with omega_1 and omega_3 in a certain range
+        
+        """
+        om1_low = window[0]
+        om1_upp = window[1]
+        om3_low = window[2]
+        om3_upp = window[3]
+        
+        selected = []
+        
+        for pway in pthways:
+            ne = len(pway.frequency)
+            om1 = numpy.abs(pway.frequency[0])
+            om3 = pway.frequency[ne-2]
+            
+            if (((om1 >= om1_low) and (om1 <= om1_upp)) and 
+                ((om3 >= om3_low) and (om3 <= om3_upp))):
+                selected.append(pway) 
+                
+        if verbatime:
+            print("Selected", len(selected), "pathways")
+            
+        return selected
+    
+    
+    def select_omega2(self, interval, pthways, verbatime=False):
+        """Selects pathways with omega_2 in a certain interval
+        
+        """    
+        om2_low = interval[0]
+        om2_upp = interval[1]    
+        
+        selected = []
+        
+        for pway in pthways:
+            ne = len(pway.frequency)
+            om2 = pway.frequency[ne-3] 
+            
+            if (om2 >= om2_low) and (om2 <= om2_upp):
+                selected.append(pway)
+                
+        if verbatime:
+            print("Selected", len(selected), "pathways")
+        
+        return selected
+    
+    
+    def order_by_pref(self, pthways):
+        """Orders the list of pathways by pathway prefactors
+        
+        """
+        lst = sorted(pthways, key=lambda pway: pway.pref, reverse=True)
+        return lst
+    
         
