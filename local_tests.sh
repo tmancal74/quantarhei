@@ -37,8 +37,9 @@ export PYTHONPATH=`pwd`
 #nosetests -vs tests/unit/qm/propagators/rdmpropagator_test.py
 
 #python examples/demo_redfield_3.py
+python examples/demo1.py
 
 
-paver
+#paver
 
 
