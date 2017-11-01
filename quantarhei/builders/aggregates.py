@@ -1019,7 +1019,8 @@ class Aggregate(UnitsManaged, Saveable):
         self.Nb = numpy.zeros(self.mult+1,dtype=numpy.int)
         for ii in range(self.mult+1):
             self.Nb[ii] = self.number_of_states_in_band(band=ii,
-            vibgen_approx=vibgen_approx, Nvib=Nvib)
+            vibgen_approx=vibgen_approx, Nvib=Nvib, 
+            vibenergy_cutoff=vibenergy_cutoff)
        
         
         #######################################################################
@@ -1504,7 +1505,7 @@ class Aggregate(UnitsManaged, Saveable):
         
         rho0 = numpy.zeros((HH.dim,HH.dim),dtype=numpy.complex128)
         if temp == 0.0:
-            print("Zero temperature")
+            #print("Zero temperature")
             rho0[0,0] = 1.0
         else:
             # FIXME: we assume only single exciton band
@@ -1537,7 +1538,7 @@ class Aggregate(UnitsManaged, Saveable):
         
     def get_DensityMatrix(self, condition_type=None,
                                 relaxation_theory_limit=None,
-                                temperature=0):
+                                temperature=0.0):
         """Returns density matrix according to specified condition
         
         Returs density matrix to be used e.g. as initial condition for
@@ -1607,6 +1608,12 @@ class Aggregate(UnitsManaged, Saveable):
             else:
                 rho0 = self._thermal_population(temperature)
                 
+            self.rho0 = rho0
+            return DensityMatrix(data=self.rho0)
+        
+        elif condition_type == "thermal":
+            
+            rho0 = self._thermal_population(temperature)
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
             
@@ -1737,7 +1744,7 @@ class Aggregate(UnitsManaged, Saveable):
     #
     ########################################################################
                        
-    def liouville_pathways_3(self,ptype="R3g",dtol=-1.0,ptol=1.0e-3,lab=None):
+    def liouville_pathways_3(self, ptype="R3g", dtol=-1.0, ptol=1.0e-3, lab=None):
         """ Generator of Liouville pathways """
         
         pop_tol = ptol
@@ -1762,7 +1769,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
 
                         for i2e in nes:
                             
@@ -1830,7 +1837,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
                             
@@ -1905,7 +1912,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
                             
@@ -1979,7 +1986,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
                             
@@ -2057,7 +2064,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
                             
@@ -2134,7 +2141,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
                             
@@ -2204,7 +2211,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
                             
@@ -2284,7 +2291,7 @@ class Aggregate(UnitsManaged, Saveable):
                 for i1g in ngs:
                     
                     # Only thermally allowed starting states are considered
-                    if self.rho0[i1g] > pop_tol:
+                    if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
                             

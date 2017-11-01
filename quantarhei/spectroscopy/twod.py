@@ -514,6 +514,7 @@ class aggregate_lineshape_generator(gaussian_lineshape_generator):
             self.last_t2 = t     
             
     class evolution_lineshape_generator():
+        pass
         
         
        

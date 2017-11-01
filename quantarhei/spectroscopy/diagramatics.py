@@ -12,7 +12,7 @@ class liouville_pathway:
     order = Integer("order")
     nint = Integer("nint")
     
-    def __init__(self,ptype,sinit,aggregate=False, 
+    def __init__(self, ptype, sinit, aggregate=False, 
                  order=3, pname="",relax_order=0, popt_band=0):
         """Liouville pathway through a molecular aggregate
 
@@ -101,6 +101,9 @@ class liouville_pathway:
         
         # frequency of the transition
         self.frequency = numpy.zeros(1+order+relax_order)
+        
+        # orientational prefactor (negative means that it is not initialized)
+        self.pref = -1.0
         
         # band through which the pathway travels at population time
         self.popt_band = popt_band
