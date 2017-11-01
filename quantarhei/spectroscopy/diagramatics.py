@@ -12,7 +12,7 @@ class liouville_pathway:
     order = Integer("order")
     nint = Integer("nint")
     
-    def __init__(self,ptype,sinit,aggregate=False, 
+    def __init__(self, ptype, sinit, aggregate=False, 
                  order=3, pname="",relax_order=0, popt_band=0):
         """Liouville pathway through a molecular aggregate
 
@@ -82,7 +82,7 @@ class liouville_pathway:
         self.ne = 0
 
         # light indiced transitions
-        self.transitions = numpy.zeros((order+1,2))
+        self.transitions = numpy.zeros((order+1,2), dtype=numpy.int)
         
         # relaxation induced transitions
         self.relaxations = [None]*relax_order
@@ -101,6 +101,9 @@ class liouville_pathway:
         
         # frequency of the transition
         self.frequency = numpy.zeros(1+order+relax_order)
+        
+        # orientational prefactor (negative means that it is not initialized)
+        self.pref = -1.0
         
         # band through which the pathway travels at population time
         self.popt_band = popt_band
@@ -206,7 +209,7 @@ class liouville_pathway:
         
         return out 
     
-    def add_transition(self,transition,side):
+    def add_transition(self, transition, side):
         """ Adds a transition to the Liouville pathway. 
 
         Parameters
@@ -360,8 +363,9 @@ class liouville_pathway:
         
         """
         # weight in the initial state of the first transition
+        n0 = self.transitions[0,1]
         self.pref = self.sign*(numpy.dot(lab.F4eM4,self.F4n)
-        *numpy.real(self.aggregate.rho0[self.transitions[0,1]])) 
+        *numpy.real(self.aggregate.rho0[n0,n0])) 
         
     
     def get_transition_energy(self,n):
