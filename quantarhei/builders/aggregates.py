@@ -30,8 +30,8 @@ from ..qm.corfunctions import CorrelationFunctionMatrix
 from ..spectroscopy import diagramatics as diag
 
 #from .aggregate_states import aggregate_state
-from .aggregate_states import electronic_state
-from .aggregate_states import vibronic_state
+from .aggregate_states import ElectronicState
+from .aggregate_states import VibronicState
 
 #from ..core.managers import energy_units
 #from .molecules import Molecule
@@ -422,10 +422,10 @@ class Aggregate(UnitsManaged, Saveable):
         
         Parameters
         ----------
-        state1 : class vibronic_state
+        state1 : class VibronicState
             state 1
             
-        state2 : class vibronic_state
+        state2 : class VibronicState
             state 2 
         
         """
@@ -538,16 +538,13 @@ class Aggregate(UnitsManaged, Saveable):
         nret = 0
         
         for elsig in self.elsignatures(mult=band, mode="EQ"):
-            #cs = electronic_state(self,elsig)
             nv = 1
-            #for mn in cs.vibmodes:
-            #    nv *= mn.nmax
             nret += nv
             
         return nret
     
     
-    def get_electronic_state(self, sig, index=None):
+    def get_ElectronicState(self, sig, index=None):
         """Returns electronic state corresponding to this aggregate
         
         Parameters
@@ -563,15 +560,15 @@ class Aggregate(UnitsManaged, Saveable):
             created during the build.
         
         """
-        return electronic_state(self, sig, index)
+        return ElectronicState(self, sig, index)
 
 
-    def get_vibronic_state(self, esig, vsig):
+    def get_VibronicState(self, esig, vsig):
         """Returns vibronic state corresponding to the two specified signatures
         
         """
-        elstate = self.get_electronic_state(sig=esig)
-        return vibronic_state(elstate, vsig) 
+        elstate = self.get_ElectronicState(sig=esig)
+        return VibronicState(elstate, vsig) 
     
     
     def coupling(self, state1, state2):
@@ -581,7 +578,7 @@ class Aggregate(UnitsManaged, Saveable):
         Parameters
         ----------
         
-        state1 : {electronic_state, vibronic_state}
+        state1 : {ElectronicState, VibronicState}
             States for which coupling should be calculated
             
         
@@ -590,8 +587,8 @@ class Aggregate(UnitsManaged, Saveable):
         #
         # Coupling between two purely electronic states
         #
-        if (isinstance(state1, electronic_state) 
-           and isinstance(state2, electronic_state)):
+        if (isinstance(state1, ElectronicState) 
+           and isinstance(state2, ElectronicState)):
             
             i = state1.index
             j = state2.index
@@ -604,8 +601,8 @@ class Aggregate(UnitsManaged, Saveable):
         #
         # Coupling between two general states
         #
-        elif (isinstance(state1, vibronic_state) 
-          and isinstance(state2, vibronic_state)):
+        elif (isinstance(state1, VibronicState) 
+          and isinstance(state2, VibronicState)):
               
             es1 = state1.elstate
             es2 = state2.elstate
@@ -773,7 +770,7 @@ class Aggregate(UnitsManaged, Saveable):
             Allowed values are None or "SPA"
             
         """
-        cs = electronic_state(self, elsignature)
+        cs = ElectronicState(self, elsignature)
         return cs.vsignatures(approx=approx)
     
     
@@ -804,9 +801,9 @@ class Aggregate(UnitsManaged, Saveable):
             be later used.
             
         all_vibronic : bool
-            If True, all generated states are of the type ``vibronic_state``,
+            If True, all generated states are of the type ``VibronicState``,
             even if no vibrational modes are specified. If False,
-            ``electronic_state`` is returned for pure electronic states
+            ``ElectronicState`` is returned for pure electronic states
             
         vibgen_approx : str {"ZPA", "SPA", "TPA", "NPA", "SPPMA", "TPPMA", "NPPMA"}
             Type of approximation in generating vibrational states
@@ -828,7 +825,7 @@ class Aggregate(UnitsManaged, Saveable):
         for ess1 in self.elsignatures(mult=mult, mode=mode):
             
             # generate electronic state
-            es1 = self.get_electronic_state(ess1, ist)
+            es1 = self.get_ElectronicState(ess1, ist)
             
             # loop over all vibrational signatures in electronic states
             nsig = 0
@@ -836,7 +833,7 @@ class Aggregate(UnitsManaged, Saveable):
                                          vibenergy_cutoff=vibenergy_cutoff):
                 
                 # create vibronic state with a given signature
-                s1 = vibronic_state(es1, vsig1)
+                s1 = VibronicState(es1, vsig1)
                                         
                 if save_indices:
                     # save indices corresponding to vibrational sublevels
@@ -856,7 +853,7 @@ class Aggregate(UnitsManaged, Saveable):
                 # if True return vibronic states even 
                 # for purely electronic state
                 if all_vibronic:
-                    s1 = vibronic_state(es1, None)
+                    s1 = VibronicState(es1, None)
                 else:
                     s1 = es1
 
@@ -875,7 +872,7 @@ class Aggregate(UnitsManaged, Saveable):
         """
         a = 0
         for ess1 in self.elsignatures(mult=mult, mode=mode):
-            es1 = self.get_electronic_state(ess1, a)
+            es1 = self.get_ElectronicState(ess1, a)
             yield a,es1
             a += 1
         
@@ -1665,15 +1662,15 @@ class Aggregate(UnitsManaged, Saveable):
         Parameters
         ----------
 
-        Nf : {int, electronic_state, vibronic_state}
+        Nf : {int, ElectronicState, VibronicState}
             Final state of the transition
             
-        Ni : {int, electronic_state, vibronic_state}
+        Ni : {int, ElectronicState VibronicState}
             Initial state of the transition
         
         """
-        if (isinstance(Nf, electronic_state) 
-            and isinstance(Ni, electronic_state)):
+        if (isinstance(Nf, ElectronicState) 
+            and isinstance(Ni, ElectronicState)):
             
             if self.Ntot == self.Nel:
                 iNf = Nf.index
@@ -1681,15 +1678,15 @@ class Aggregate(UnitsManaged, Saveable):
             else:
                 raise Exception("The Hamiltonian is not pure electronic")
             
-        elif (isinstance(Nf, vibronic_state) 
-            and isinstance(Ni, vibronic_state)):
+        elif (isinstance(Nf, VibronicState) 
+            and isinstance(Ni, VibronicState)):
             vsig = Nf.get_vibsignature()
-            esig = Nf.get_electronic_state().get_signature()
+            esig = Nf.get_ElectronicState().get_signature()
             iNf = self.vibsigs.index((esig, vsig))
             
             print(esig, vsig, iNf)
             vsig = Ni.get_vibsignature()
-            esig = Ni.get_electronic_state().get_signature()
+            esig = Ni.get_ElectronicState().get_signature()
             iNi = self.vibsigs.index((esig, vsig))
             print(esig, vsig, iNi)
             
@@ -2406,15 +2403,15 @@ class Aggregate(UnitsManaged, Saveable):
             raise Exception("Not implemented yet")            
         a = proj[0]
         
-        esg = self.get_electronic_state(self.elsigs[0])
+        esg = self.get_ElectronicState(self.elsigs[0])
         ag = 0
         for vg in esg.vsignatures():
-            vs_g = vibronic_state(esg,vg)
+            vs_g = VibronicState(esg,vg)
             ae = 0
             for ie in range(1,self.number_of_electronic_states_in_band(1)+1):
-                ese = self.get_electronic_state(self.elsigs[ie])
+                ese = self.get_ElectronicState(self.elsigs[ie])
                 for ve in ese.vsignatures():
-                    vs_e = vibronic_state(ese,ve)
+                    vs_e = VibronicState(ese,ve)
                     if True:
                     #if ie == a:
                         Cge[ag,ae] = self.fc_factor(vs_g,vs_e)
