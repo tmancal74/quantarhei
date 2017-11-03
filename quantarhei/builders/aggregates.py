@@ -954,8 +954,8 @@ class Aggregate(UnitsManaged, Saveable):
         for i in range(self.Nel):
             self.vibindices.append([])
         
-        # number of states in the aggregate (taking into account approximations
-        # in generation of vibrational states)
+        # number of states in the aggregate (taking into account 
+        # approximations in generation of vibrational states)
         Ntot = self.total_number_of_states(mult=mult, 
                                            vibgen_approx=vibgen_approx,
                                            Nvib=Nvib, 
