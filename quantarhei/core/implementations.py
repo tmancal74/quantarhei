@@ -25,7 +25,7 @@ def implementation(package="",
         """           
         @wraps(func)
         def wrapper(*arg,**kwargs):
-            fc = get_function(func,package,taskname,
+            fc = get_function(func, package, taskname,
                               default_local=fallback_local,
                               always_local=always_local)
             return fc(*arg,**kwargs)
@@ -41,7 +41,7 @@ def implementation(package="",
 
         """           
  
-        fc = get_function(func,package,taskname,
+        fc = get_function(func, package, taskname,
                           default_local=fallback_local,
                           always_local=always_local) 
 
@@ -70,15 +70,20 @@ def load_function(lib,fce):
     """Load the module and get the desired function
     
     """
-    a =  import_module(lib)
+    try: 
+        a =  import_module(lib)
+    except:
+        print("Cannot load module", lib)
+        
     if hasattr(a,fce):
         fc = getattr(a,fce)
     else:
         raise Exception("Cannot reach implementation of %s " % fce)
 
+
     return fc    
 
-def get_function(func,package,taskname,default_local,always_local):
+def get_function(func, package, taskname, default_local, always_local):
     """Decide which function to use
     
     
@@ -97,7 +102,8 @@ def get_function(func,package,taskname,default_local,always_local):
     # load the package
     try:
         imp_name = imp_prefix + "." + package
-        fc = load_function(imp_name,taskname)
+        fc = load_function(imp_name, taskname)
+        
     except:
     
         try:
@@ -107,11 +113,13 @@ def get_function(func,package,taskname,default_local,always_local):
             else:
                 imp_name = default_imp_prefix + "." + package
                 fc = load_function(imp_name,taskname)
+
             # FIXME: issue a warning
             print("WARNING: import failed, falling back on pure Python")
         except:
             # do not provide implementation, call the decorated function itself
             # FIXME: issue a warning (this is an unwanted result)
+            print("WARNING: calling decorated function itself")
             fc = func
             
     return fc

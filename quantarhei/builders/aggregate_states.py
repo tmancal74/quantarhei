@@ -37,7 +37,8 @@ from ..core.managers import UnitsManaged, energy_units
 #        return [self.el_descriptor,self.vib_descriptor]
 
 
-class electronic_state(UnitsManaged):
+#class electronic_state(UnitsManaged):
+class ElectronicState(UnitsManaged):
     """ Represents electronic state of an aggregate 
    
     Parameters
@@ -359,7 +360,7 @@ class electronic_state(UnitsManaged):
 
 
     def __str__(self):
-        out  = "\nquantarhei.electronic_state object"
+        out  = "\nquantarhei.ElectronicStateobject"
         out += "\n=================================="
         out += "\nenergy = %f" % self.energy()
         out += "\nnumber of substates = %i " % self.number_of_states()
@@ -368,7 +369,8 @@ class electronic_state(UnitsManaged):
         return out
     
         
-class vibronic_state(UnitsManaged):
+#class vibronic_state(UnitsManaged):
+class VibronicState(UnitsManaged):
     """Represents a vibronic state of an aggregate
     
     Vibronic state of an aggregate is composed of an electronic state
@@ -379,9 +381,15 @@ class vibronic_state(UnitsManaged):
     def __init__(self, elstate, vsig):
         self.elstate = elstate
         self.vsig = vsig
+        
+        try:
+            agg = self.elstate.aggregate
+            self.index = agg.vibsigs.index((elstate.elsignature, vsig))
+        except:
+            self.index = None
 
 
-    def get_electronic_state(self):
+    def get_ElectronicState(self):
         """Returns corresponding electronic state
         
         """
@@ -430,9 +438,54 @@ class vibronic_state(UnitsManaged):
     
     
     def __str__(self):
-        out  = "\nquantarhei.vibronic_state object"
+        out  = "\nquantarhei.VibronicState object"
         out += "\n=================================="
         out += "\nenergy = %f" % self.energy()
         out += ("\nmember of an aggregate of %i molecules" 
                 % self.elstate.aggregate.nmono)
         return out        
+    
+    
+class Coherence:
+    """Class representing quantum mechanical coherence
+    
+    This class collects methods for analysis of coherence character
+    
+    
+    
+    Parameters
+    ----------
+    
+    state1 : {ElectronicState, VibronicState}
+        State which participates in the coherence
+        
+    state2 : {ElectronicState, VibronicState}
+        State which participates in the coherence        
+    
+    
+    """
+    
+    def __init__(self, state1, state2):
+        
+        self.state1 = state1
+        self.state2 = state2
+        
+        try:
+            system1 = state1.system
+            system2 = state2.system
+        except:
+            raise Exception("At least one of the states"+
+                            " does not know its system")
+            
+        if system1 != system2:
+            raise Exception("States do not come from the same system")
+            
+        self.system = system1
+
+
+    def get_coherence_character(self):
+        """Returns a dictionary describing the character of a given coherence
+        
+        """
+        
+        return dict(electronic=0.0, vibrational=0.0, mixed=0.0)

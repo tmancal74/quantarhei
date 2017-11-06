@@ -160,26 +160,41 @@ class Manager(metaclass=Singleton):
             "secular-standard-Redfield-rates":"redfield.ssRedfieldRateMatrix"
 
            }
+        
+        #
+        #  All available implementations
+        #
         self.all_implementations = {
-            
-           "redfield.ssRedfieldRateMatrix": {
+           "redfieldrates.ssRedfieldRateMatrix": {
                '0':"quantarhei.implementations.python",
                '1':"quantarhei.implementations.cython"
                }
-           
            }
+            
+        self.all_implementations["redfieldtensor.ssRedfieldTensor"] = \
+            {'0':"quantarhei.implementations.python",
+             '1':"quantarhei.implementations.cython"}
+            
                 
         self.default_implementations = {
-            "redfield.ssRedfieldRateMatrix":'0'
+            "redfieldrates.ssRedfieldRateMatrix":'0',
+            "redfieldtensor.ssRedfieldRateTensor":'0'
             }
 
         self.optimal_implementations = {
-            "redfield.ssRedfieldRateMatrix":'1'
+            "redfieldrates.ssRedfieldRateMatrix":'1'
             }
                 
         self.current_implementations = {
-            "redfield.ssRedfieldRateMatrix":'0'        
+            "redfieldrates.ssRedfieldRateMatrix":'0',
+            "redfieldtensor.ssRedfieldRateTensor":'0'        
             }
+        
+        self.parallel_implementations = {}
+        self.parallel_implementations["redfieldrates."
+                                 +"ssRedfieldRateMatrix"] = \
+            {'0':"quantarhei.implementations.python.parallel",
+             '1':"quantarhei.implementations.cython.parallel"}
                 
         if not exists:
             
@@ -190,7 +205,7 @@ class Manager(metaclass=Singleton):
             self.load_implementations()
             
             
-        self.change_implementation_at_runtime = False
+        self.change_implementation_at_runtime = True
         
         self.basis_stack = []
         self.basis_stack.append(0)
@@ -478,7 +493,7 @@ class Manager(metaclass=Singleton):
         whichone = self.current_implementations[imp_id]
         return self.all_implementations[imp_id][str(whichone)]
         
-    def set_current_implementation(self,imp,choice):
+    def set_current_implementation(self, imp, choice):
         imp_id = self.implementation_points[imp]
         self.current_implementations[imp_id] = choice
         
@@ -567,6 +582,11 @@ class Manager(metaclass=Singleton):
         if self.parallel_conf is None:
             self.parallel_conf = DistributedConfiguration()
         return self.parallel_conf
+
+
+
+
+
 
 
 """
