@@ -105,7 +105,7 @@ def homochain_aggregate(self):
                       reorg=reorg, T=temp, matsubara=matsu)
         
         with energy_units(e_units):
-            m = Molecule("",[0.0, tenergy])
+            m = Molecule(name="",elenergies=[0.0, tenergy])
             cf = CorrelationFunction(time, params)
             m.set_transition_environment((0,1), cf)
             
@@ -113,7 +113,7 @@ def homochain_aggregate(self):
         couplings.append(coupling)
         k += 1
         
-    agg = Aggregate("", molecules=molecules)
+    agg = Aggregate(name="", molecules=molecules)
     
     with energy_units("1/cm"):
         for i in range(k):
