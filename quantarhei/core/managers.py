@@ -7,6 +7,7 @@ import numpy
 
 from .units import conversion_facs_frequency
 from .units import conversion_facs_energy
+from .units import conversion_facs_length
 
 from .singleton import Singleton
 
@@ -57,16 +58,19 @@ class Manager(metaclass=Singleton):
                       "frequency",
                       "dipolemoment",
                       "temperature",
-                      "time"]
+                      "time",
+                      "length"]
 
-    units = {"energy"       : ["2pi/fs", "int", "1/cm", "eV", "meV", "THz",
-                               "J", "SI", "nm"],
-             "frequency"    : ["2pi/fs", "int", "1/cm", "THz","Hz","SI"],
-             "dipolemoment" : ["Debye"],
-             "temperature"  : ["2pi/fs", "int", "Kelvin", "Celsius",
+    units = {"energy"       : ["1/fs", "int", "1/cm", "eV", "meV", "THz",
+                               "J", "SI", "nm", "Ha", "a.u."],
+             "frequency"    : ["1/fs", "int", "1/cm", "THz", "Hz", "SI",
+                               "nm", "Ha", "a.u."],
+             "dipolemoment" : ["Debye", "a.u"],
+             "temperature"  : ["1/fs", "int", "Kelvin", "Celsius",
                                "1/cm", "eV", "meV", "Thz", "SI"],
              "time"         : ["fs", "int", "as", "ps", "ns", "Ms","ms",
-                               "s", "SI"]}
+                               "s", "SI"],
+             "length"       : ["int", "A", "nm", "Bohr", "a.u.", "m", "SI"]}
 
     units_repre = {"Kelvin":"K",
                    "Celsius":"C",
@@ -74,10 +78,12 @@ class Manager(metaclass=Singleton):
                    "1/cm":"1/cm",
                    "THz":"THz",
                    "eV":"eV",
-                   "2pi/fs":"2pi/fs",
+                   "1/fs":"1/fs",
                    "int":"2pi/fs",
                    "meV":"meV",
-                   "nm":"nm"}
+                   "nm":"nm",
+                   "Ha":"Ha",
+                   "a.u.":"a.u."}
                    
     units_repre_latex = {"Kelvin":"K",
                    "Celsius":"C",
@@ -85,9 +91,11 @@ class Manager(metaclass=Singleton):
                    "1/cm":"cm$^-1$",
                    "THz":"THz",
                    "eV":"eV",
-                   "2pi/fs":"rad$\cdot$fs$^{-1}$",
+                   "1/fs":"fs$^{-1}$",
                    "meV":"meV",
-                   "nm":"nm"}                  
+                   "nm":"nm",
+                   "Ha":"Ha",
+                   "a.u.":"a.u."}                  
 
     def __init__(self):
 
@@ -132,16 +140,16 @@ class Manager(metaclass=Singleton):
         #
 
         # internal units are hardwired
-        self.internal_units = {"energy":"2pi/fs", "frequency":"2pi/fs",
+        self.internal_units = {"energy":"1/fs", "frequency":"1/fs",
                                "dipolemoment":"Debye",
-                               "temperature":"Kelvin"}
+                               "temperature":"Kelvin", "length":"A"}
 
         # current units are read from conf file
         if not exists:
             # set hard wired defaults and save them
-            self.current_units = {"energy":"2pi/fs", "frequency":"2pi/fs",
+            self.current_units = {"energy":"1/fs", "frequency":"1/fs",
                                   "dipolemoment":"Debye",
-                                  "temperature":"Kelvin"}
+                                  "temperature":"Kelvin", "length":"A"}
 
 
             # save them
@@ -414,7 +422,7 @@ class Manager(metaclass=Singleton):
         
             
     def convert_energy_2_current_u(self,val):
-        """Convert energy from internal units to currently used units
+        """Converts energy from internal units to currently used units
         
         Parameters
         ==========
@@ -440,7 +448,7 @@ class Manager(metaclass=Singleton):
         
 
     def convert_frequency_2_internal_u(self,val):
-        """Convert frequency from currently used units to internal units
+        """Converts frequency from currently used units to internal units
         
         Parameters
         ==========
@@ -453,7 +461,7 @@ class Manager(metaclass=Singleton):
 
         
     def convert_frequency_2_current_u(self,val):   
-        """Convert frequency from internal units to currently used units
+        """Converts frequency from internal units to currently used units
         
         Parameters
         ==========
@@ -464,8 +472,32 @@ class Manager(metaclass=Singleton):
         """
         return val/conversion_facs_frequency[self.current_units["frequency"]] 
         
+
+    def convert_length_2_internal_u(self,val):
+        """Converts length from currently used units to internal units
         
+        Parameters
+        ==========
+
+        val : number, array, list, tuple of numbers
+            values to convert            
         
+        """
+        return val*conversion_facs_length[self.current_units["length"]]        
+
+
+    def convert_length_2_current_u(self,val):   
+        """Converts frequency from internal units to currently used units
+        
+        Parameters
+        ==========
+
+        val : number, array, list, tuple of numbers
+            values to convert            
+        
+        """
+        return val/conversion_facs_length[self.current_units["length"]]   
+      
             
     def get_implementation_prefix(self,package="",taskname=""):
         #default_imp_prefix = "quantarhei.implementations.python"
@@ -630,12 +662,18 @@ class UnitsManaged(Managed):
     
     """    
     
-    def convert_energy_2_internal_u(self,val):
+    def convert_energy_2_internal_u(self, val):
         return self.manager.convert_energy_2_internal_u(val)
         
-    def convert_energy_2_current_u(self,val):
+    def convert_energy_2_current_u(self, val):
         return self.manager.convert_energy_2_current_u(val)
+ 
+    def convert_length_2_internal_u(self, val):
+        return self.manager.convert_length_2_internal_u(val)
         
+    def convert_length_2_current_u(self, val):
+        return self.manager.convert_length_2_current_u(val)    
+       
     def unit_repr(self,utype="energy"):
         return self.manager.unit_repr(utype)
         
@@ -657,9 +695,30 @@ class EnergyUnitsManaged(Managed):
     def unit_repr(self):
         return self.manager.unit_repr("energy")
 
-    def unit_repr_latex(self,utype="energy"):
+    def unit_repr_latex(self, utype="energy"):
         return self.manager.unit_repr_latex(utype)
-        
+    
+
+class LengthUnitsManaged(Managed):
+    """Class providing functions for length units conversion
+    
+    """
+    
+    utype = "length"
+    units = "A"
+    
+    def convert_2_internal_u(self, val):
+        return self.manager.convert_length_2_internal_u(val)
+ 
+    def convert_2_current_u(self,val):
+        return self.manager.convert_length_2_current_u(val)
+    
+    def unit_repr(self):
+        return self.manager.unit_repr(self.utype)
+
+    def unit_repr_latex(self):
+        return self.manager.unit_repr_latex(self.utype)
+    
         
 class BasisManaged(Managed):
     """Base class for objects with managed basis
@@ -682,6 +741,8 @@ class BasisManaged(Managed):
         self.is_basis_protected = False
         
         
+
+
 
 class units_context_manager:
     """General context manager to manage physical units of values 
@@ -734,6 +795,30 @@ class frequency_units(energy_units):
     """
     pass
         
+
+class length_units(units_context_manager):
+    """Context manager for length units
+    
+    
+    """
+    
+    def __init__(self, units):
+        super().__init__(utype="length")
+        
+        if units in self.manager.units["length"]:
+            self.units = units
+        else:
+            raise Exception("Unknown length units")
+            
+    def __enter__(self):
+        # save current energy units
+        self.units_backup = self.manager.get_current_units("length")
+        self.manager.set_current_units(self.utype,self.units)
+        
+    def __exit__(self,ext_ty,exc_val,tb):
+        self.manager.set_current_units("length",self.units_backup)
+
+
         
 class basis_context_manager:
     """General context manager to manage basis 

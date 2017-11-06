@@ -95,6 +95,7 @@ from .core.saveable import Saveable
 from .core.managers import Manager
 from .core.managers import energy_units
 from .core.managers import frequency_units
+from .core.managers import length_units
 from .core.managers import eigenbasis_of
 from .core.managers import set_current_units
 

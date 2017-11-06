@@ -49,5 +49,5 @@ class TestUnitsManaged(unittest.TestCase):
         """Testing that default internal units are used
         
         """
-        self.assertEqual("2pi/fs",self.u.unit_repr("energy"))
+        self.assertEqual("1/fs",self.u.unit_repr("energy"))
 
