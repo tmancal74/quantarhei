@@ -161,22 +161,24 @@ class Manager(metaclass=Singleton):
 
            }
         
+        #
+        #  All available implementations
+        #
         self.all_implementations = {
-            
            "redfieldrates.ssRedfieldRateMatrix": {
                '0':"quantarhei.implementations.python",
                '1':"quantarhei.implementations.cython"
-               },
-                   
-           "redfieldrates.ssRedfieldRateMatrix_parallel": {
-               '0':"quantarhei.implementations.python.parallel",
-               '1':"quantarhei.implementations.cython.parallel"
                }
-           
            }
+            
+        self.all_implementations["redfieldtensor.ssRedfieldTensor"] = \
+            {'0':"quantarhei.implementations.python",
+             '1':"quantarhei.implementations.cython"}
+            
                 
         self.default_implementations = {
-            "redfieldrates.ssRedfieldRateMatrix":'0'
+            "redfieldrates.ssRedfieldRateMatrix":'0',
+            "redfieldtensor.ssRedfieldRateTensor":'0'
             }
 
         self.optimal_implementations = {
@@ -184,8 +186,15 @@ class Manager(metaclass=Singleton):
             }
                 
         self.current_implementations = {
-            "redfieldrates.ssRedfieldRateMatrix":'0'        
+            "redfieldrates.ssRedfieldRateMatrix":'0',
+            "redfieldtensor.ssRedfieldRateTensor":'0'        
             }
+        
+        self.parallel_implementations = {}
+        self.parallel_implementations["redfieldrates."
+                                 +"ssRedfieldRateMatrix"] = \
+            {'0':"quantarhei.implementations.python.parallel",
+             '1':"quantarhei.implementations.cython.parallel"}
                 
         if not exists:
             
