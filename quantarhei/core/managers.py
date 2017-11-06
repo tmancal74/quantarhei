@@ -164,8 +164,13 @@ class Manager(metaclass=Singleton):
         self.all_implementations = {
             
            "redfieldrates.ssRedfieldRateMatrix": {
-               '0':"quantarhei.implementations.python.qm.liouvillespace.rates",
-               '1':"quantarhei.implementations.cython.qm.liouvillespace.rates"
+               '0':"quantarhei.implementations.python",
+               '1':"quantarhei.implementations.cython"
+               },
+                   
+           "redfieldrates.ssRedfieldRateMatrix_parallel": {
+               '0':"quantarhei.implementations.python.parallel",
+               '1':"quantarhei.implementations.cython.parallel"
                }
            
            }

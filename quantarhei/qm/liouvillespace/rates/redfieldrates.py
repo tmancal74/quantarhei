@@ -164,9 +164,12 @@ class RedfieldRateMatrix:
         #                RR
         #                
         werror = numpy.zeros(2,dtype=numpy.int8)
-        rtol = 1.0e-6        
+        rtol = 1.0e-6    
+        
+        # FIXME: call serial version if no parallelism is required
         ssRedfieldRateMatrix(Na, Nk, KI,
                              cc, rtol, werror, self.data)
+        
         
         if werror[1] == -1:
             print("Warning: Redfield rates signicantly smaller than 0")     
