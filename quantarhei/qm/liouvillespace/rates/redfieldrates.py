@@ -76,7 +76,7 @@ class RedfieldRateMatrix:
                 
                 
     def _set_rates(self):
-        """ Reference implementation, completely in Python
+        """ Prepares all data for rate calculation, and calls an implementation code
         
         """
         
@@ -103,6 +103,7 @@ class RedfieldRateMatrix:
         #print("freq. cut-off",freq_cutoff)
         
         # temperature
+        #FIXME: This has to be easier
         Temp = self.sbi.CC.get_correlation_function(0,0).temperature
         
         
@@ -174,10 +175,11 @@ class RedfieldRateMatrix:
         
         
 
-@implementation("redfield","ssRedfieldRateMatrix",
+@implementation("redfieldrates",
+                "ssRedfieldRateMatrix",
                 at_runtime=True,
-                fallback_local=True,
-                always_local=True)
+                fallback_local=False,
+                always_local=False)
 def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
     """Standard redfield rates
     
@@ -198,55 +200,16 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
         Half of the Fourier transform of the correlation functions 
         at all transition frequencies
         
+    rtol : float
+    
+    
+    werror : int
+    
+    
+    
     RR : real array
         Relaxation rate matrix (to be calculated and returned)
     
     """
+    pass
     
-    # loop over components
-
-    dc = distributed_configuration() # Manager().get_DistributedConfiguration()
-    
-    #
-    #  PARALLELIZED
-    #
-    start_parallel_region()
-    for k in block_distributed_range(0, Nk):
-    #for k in range(Nk):
-        
-        # interaction operator
-        KK = KI[k,:,:]
-
-        for i in range(Na):
-            for j in range(Na):
-                
-                # calculate rates, i.e. off diagonal elements
-                if i != j:                                
-                            
-                    RR[i,j] += (cc[k,i,j]*KK[i,j]*KK[j,i])
-    
-    # FIXME: parallelization ignores werror
-    dc.allreduce(RR, operation="sum")        
-    close_parallel_region()
-    
-    #
-    #  END PARALLELIZED
-    #                   
-     
-    # calculate the diagonal elements (the depopulation rates)            
-    for i in range(Na):
-        for j in range(Na):
-            
-            if i != j:
-                if RR[i,j] < 0.0:
-                    werror[0] = -1
-                    if numpy.abs(RR[i,j]) < rtol:
-                        RR[i,j] = 0.0
-                    else:
-                        werror[1] = -1
-                    
-            if i != j:
-                RR[j,j] -= RR[i,j]
-                    
-                    
-                    

@@ -90,6 +90,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         self.Hamiltonian = ham
         self.SystemBathInteraction = sbi
+        
         self.dim = self.Hamiltonian.dim
         self.name = name
         
@@ -111,7 +112,15 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self._has_cutoff_time = True            
             
         # initialize the tensor right at creation
-        if initialize:   
+        if initialize:  
+            
+            try: 
+                from ...implementations.qm.liouvillespace.redfieldtensor \
+                        import redfieldtensor
+            except:
+                pass
+            
+            
             with energy_units("int"):
                 self._reference_implementation(ham, sbi)        
 
@@ -263,6 +272,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         Ld = numpy.zeros((Nb, Na, Na), dtype=numpy.complex128)
         for ms in range(Nb):
             Ld[ms, :, :] += numpy.conj(numpy.transpose(Lm[ms,:,:]))        
+            
             
         if self.as_operators:
             
