@@ -41,13 +41,16 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
         super().__init__(ham, sbi, initialize=False, 
                              cutoff_time=cutoff_time, 
                              coupling_cutoff=coupling_cutoff)
+        
         Nt = sbi.TimeAxis.length
-        self.data = numpy.zeros((Nt,self.dim,self.dim,self.dim,self.dim),
+        self.data = numpy.zeros((Nt, self.dim, self.dim, self.dim, self.dim),
                                 dtype=numpy.complex128)
+
         if initialize: 
             with energy_units("int"):
                 self._reference_implementation()
-                
+
+
     def _reference_implementation(self):
         """ Reference all Python implementation
         

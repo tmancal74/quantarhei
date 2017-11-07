@@ -20,7 +20,8 @@ class RelaxationTensor(BasisManaged):
             
         self._data_initialized = False
         self.name = ""
-            
+
+
     def secularize(self):
         """Secularizes the relaxation tensor
 
@@ -48,7 +49,8 @@ class RelaxationTensor(BasisManaged):
                                 if not (((ii == jj) and (kk == ll)) 
                                     or ((ii == kk) and (jj == ll))) :
                                         self.data[:,ii,jj,kk,ll] = 0                                        
-                                        
+
+                               
     def transform(self, SS, inv=None):
         """Transformation of the tensor by a given matrix
         
@@ -105,38 +107,6 @@ class RelaxationTensor(BasisManaged):
                         self._data[tt,a,b,:,:] = \
                             numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))            
 
-#            for c in range(dim):
-#                for d in range(dim):
-#                    self._data[:,:,:,c,d] = \
-#                    numpy.tensordot(numpy.tensordot(self._data[:,:,:,c,d],
-#                                                    SS,axes=([2],[0])),
-#                                    S1,axes=([1],[1]))
-#                    
-#            for a in range(dim):
-#                for b in range(dim):
-#                    self._data[:,a,b,:,:] = \
-#                    numpy.tensordot(numpy.tensordot(self._data[:,a,b,:,:],
-#                                                    SS,axes=([2],[0])),
-#                                    S1,axes=([1],[1]))
-       
-                    
-                    
-                    
-#        RR = numpy.zeros((dim,dim,dim,dim), dtype=numpy.complex128)
-#        rr = 0.0 + 0.0j
-#        for ag in range(dim):
-#            for bg in range(dim):
-#                for cg in range(dim):
-#                    for dg in range(dim):
-#                        rr = 0.0
-#                        for a in range(dim):
-#                            for b in range(dim):
-#                                for c in range(dim):
-#                                    for d in range(dim):
-#                                        rr += S1[ag,a]*SS[b,bg]*self._data[a,b,c,d]*SS[c,cg]*S1[dg,d]
-#                        RR[ag,bg,cg,dg] = rr
-#                        
-#        self._data = RR
 
     def updateStructure(self):
         """ Recalculates dephasing and depopulation rates
@@ -176,4 +146,3 @@ class RelaxationTensor(BasisManaged):
                                               +self._data[:,mm,mm,mm,mm])/2.0
                     self._data[:,mm,nn,mm,nn] = self._data[:,nn,mm,nn,mm] 
             
-            pass

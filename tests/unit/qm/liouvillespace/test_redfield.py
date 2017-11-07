@@ -28,7 +28,7 @@ from quantarhei.qm import SystemBathInteraction
 from quantarhei import energy_units
 
 class TestRedfield(unittest.TestCase):
-    """Tests for the Hamiltonian class
+    """Tests for the RedfieldRelaxationTensor class
     
     
     """

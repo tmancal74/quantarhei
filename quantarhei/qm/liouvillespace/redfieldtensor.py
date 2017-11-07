@@ -71,7 +71,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
     
     def __init__(self, ham, sbi, initialize=True,
                  cutoff_time=None, as_operators=False,
-                 name="", site_basis_reference=None):
+                 name=""):
                      
         super().__init__()
         
@@ -94,18 +94,13 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self.dim = self.Hamiltonian.dim
         self.name = name
         
-        self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
-                                dtype=numpy.complex128)
-        
-        self._is_initialized = False   
+        self._is_initialized = False
         self._has_cutoff_time = False
         self.as_operators = as_operators
-        self._site_basis_reference = site_basis_reference 
         
-        # FIXME: remove this if it is a dead end
-        if self._site_basis_reference is not None:
-            print(self._site_basis_reference.is_diagonal())
-        
+        if not self.as_operators:
+            self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
+                                    dtype=numpy.complex128)
         # set cut-off time
         if cutoff_time is not None:
             self.cutoff_time = cutoff_time
@@ -122,11 +117,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
             
             with energy_units("int"):
-                self._reference_implementation(ham, sbi)        
+                self._implementation(ham, sbi)        
 
 
         
-    def _reference_implementation(self, ham, sbi):
+    def _implementation(self, ham, sbi):
         """ Reference implementation, completely in Python
         
         Implementation of Redfield relaxation tensor according to 
@@ -273,6 +268,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         for ms in range(Nb):
             Ld[ms, :, :] += numpy.conj(numpy.transpose(Lm[ms,:,:]))        
             
+        self._post_implementation(Km, Lm, Ld)
+        
+        
+    def _post_implementation(self, Km, Lm, Ld):
             
         if self.as_operators:
             
@@ -353,8 +352,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         """Initializes the Redfield tensor with values 
         
         """
-        self._reference_implementation(self.Hamiltonian,
-                                       self.SystemBathInteraction)
+        self._implementation(self.Hamiltonian,
+                             self.SystemBathInteraction)
 
 
     def convert_2_tensor(self):
