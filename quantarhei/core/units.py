@@ -5,33 +5,38 @@ import scipy.constants as const
 # frequency
 conversion_facs_frequency = {
     "int"    : 1.0,
-    "2pi/fs" : 1.0, 
+    "1/fs" : 1.0, 
     "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
     "THz"    : 2.0*const.pi*1.0e-03,
     "Hz"     : 2.0*const.pi,
-    "SI"     : 2.0*const.pi
+    "SI"     : 2.0*const.pi,
+    "nm"     : 1.0/(1.0e7*2.0*const.pi*const.c*1.0e-13),
+    "a.u."   : 27.21138602*1.0e-15*const.e/const.hbar,
+    "Ha"     : 27.21138602*1.0e-15*const.e/const.hbar      
     } 
 
 # energy
 conversion_facs_energy = {
     "int"    : 1.0,
-    "2pi/fs" : 1.0, 
+    "1/fs" : 1.0, 
     "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
     "THz"    : 2.0*const.pi*1.0e-03,
     "eV"     : 1.0e-15*const.e/const.hbar,
     "meV"    : 1.0e-18*const.e/const.hbar,
     "J"      : 1.0e-15/const.hbar,
     "SI"     : 1.0e-15/const.hbar,
-    "nm"     : 1.0/(1.0e7*2.0*const.pi*const.c*1.0e-13)    
+    "nm"     : 1.0/(1.0e7*2.0*const.pi*const.c*1.0e-13),
+    "a.u."   : 27.21138602*1.0e-15*const.e/const.hbar,
+    "Ha"     : 27.21138602*1.0e-15*const.e/const.hbar    
     } 
 
 
-conversion_facs_position = {
-    "int" : 1.0,
-    "A"   : 1.0,
-    "m"   : 1.0e10,
-    "SI"  : 1.0e10
-}
+#conversion_facs_position = {
+#    "int" : 1.0,
+#    "A"   : 1.0,
+#    "m"   : 1.0e10,
+#    "SI"  : 1.0e10
+#}
 
 
 conversion_facs_time = {
@@ -61,6 +66,16 @@ conversion_facs_edipole = {
     "D"  : 1.0/0.20819434,
     "Cm" : 1.0e-21/const.c,
     "SI" : 1.0e-21/const.c
+}
+
+conversion_facs_length = {
+    "int": 1.0,
+    "A" : 1.0,
+    "Bohr"  : 0.52917721067,
+    "a.u." : 0.52917721067,
+    "nm" : 10.0,
+    "m"  : 1.0e10,
+    "SI" : 1.0e10
 }
 
 #

@@ -37,7 +37,7 @@ class TestHamiltonian(unittest.TestCase):
         
         """        
         cm2int = 2.0*const.pi*const.c*1.0e-13
-        self.assertEquals(self.H.unit_repr(),"2pi/fs")
+        self.assertEquals(self.H.unit_repr(),"1/fs")
         
         if self.verbose:
             print("In internal:")

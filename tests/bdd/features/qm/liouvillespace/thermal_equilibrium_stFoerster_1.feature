@@ -30,4 +30,3 @@ Scenario Outline: Foerster rates for a small chain of molecules
        | 100  | 0.1       | 10000  | 100    |  0.02  |
        | 50   | 0.1       | 10000  | 100    |  0.02  |
 
-
