@@ -1247,6 +1247,8 @@ class Aggregate(UnitsManaged, Saveable):
         from ..qm import TDFoersterRelaxationTensor
         from ..qm import RedfieldFoersterRelaxationTensor
         from ..qm import TDRedfieldFoersterRelaxationTensor
+        from ..qm import LindbladForm
+        
         from ..core.managers import eigenbasis_of
 
         if self._built:
@@ -1275,13 +1277,15 @@ class Aggregate(UnitsManaged, Saveable):
                                             "multichromophoric_Foerster"]
         theories["noneq_Foerster"] = ["noneq_Foerster", "neF"]
         theories["combined_WeakStrong"] = ["combined_WeakStrong", "cWS"]
+        theories["Lindblad_form"] = ["Lindblad_form", "Lf"]
+        theories["electronic_Lindblad"] = ["electronic_Lindblad", "eLf"]
 
         #if ((not recalculate) and 
         #    (relaxation_theory in theories[self._relaxation_theory])):
         #    return self.RelaxationTensor, self.RelaxationHamiltonian
             
         
-        if relaxation_theory in  theories["standard_Redfield"]:
+        if relaxation_theory in theories["standard_Redfield"]:
             
             if time_dependent:
                 
@@ -1398,7 +1402,83 @@ class Aggregate(UnitsManaged, Saveable):
         elif relaxation_theory in theories["combined_WeakStrong"]: 
             
             pass
-               
+ 
+        elif relaxation_theory in theories["Lindblad_form"]:
+            
+            if time_dependent:
+                
+                # Time dependent standard Refield
+                raise Exception("Time dependent Lindblad not implemented yet")
+
+            else:
+            
+                # Linblad form
+            
+                #ham.protect_basis()
+                #with eigenbasis_of(ham):
+                relaxT = LindbladForm(ham, sbi)
+                if secular_relaxation:
+                    relaxT.convert_2_tensor()
+                    relaxT.secularize()
+                #ham.unprotect_basis()  
+                
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "Lindblad_form"
+                
+            return relaxT, ham
+ 
+        elif relaxation_theory in theories["electronic_Lindblad"]:
+            
+            if time_dependent:
+                
+                # Time dependent standard Refield
+                raise Exception("Time dependent Lindblad not implemented yet")
+
+            else:
+            
+                # For purely electronic system, calculate normal Lindblad form
+                if self.Ntot == self.Nel:
+                    relaxT, ham = self.get_RelaxationTensor(timeaxis, 
+                                relaxation_theory="Lindblad_form",
+                                time_dependent=time_dependent,
+                                secular_relaxation=secular_relaxation,
+                                relaxation_cutoff_time=relaxation_cutoff_time,
+                                coupling_cutoff=coupling_cutoff,
+                                recalculate=recalculate)
+                # if vibrational states are present, we create a new SBI
+                else:
+                    # we assume that we have only electronic sbi
+                    # FIXME: make sure that Molecule also has Nel
+                    if sbi.system.Nel == sbi.KK.shape[1]:
+                        # upgrade sbi to vibrational levels
+                        
+                        eKK = sbi.KK
+                        vKK = numpy.zeros((sbi.KK.shape[0], ham.dim, ham.dim),
+                                          dtype=numpy.float64)
+                        
+                        # use eKK to calculate vKK
+                        
+                        sbi.KK = vKK
+                    else:
+                        raise Exception("SystemBathInteraction object has to"+
+                                        " purely electronic")
+                        
+                    relaxT = LindbladForm(ham, sbi)
+                
+                if secular_relaxation:
+                    relaxT.convert_2_tensor()
+                    relaxT.secularize()
+
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "Lindblad_form"
+                
+            return relaxT, ham
+
+             
         else:
             
             raise Exception("Theory not implemented")
@@ -1712,6 +1792,16 @@ class Aggregate(UnitsManaged, Saveable):
             return self.sbi
         else:
             raise Exception("Aggregate object not built")
+
+
+    def set_SystemBathInteraction(self, sbi):
+        """Sets the SystemBathInteraction operator for this aggregate
+        
+        """
+        # FIXME: check its compatibility
+        self.sbi = sbi
+        self.sbi._set_system(self)
+        
 
 
     def get_Hamiltonian(self):

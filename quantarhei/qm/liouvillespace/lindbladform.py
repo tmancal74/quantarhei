@@ -28,13 +28,10 @@ class LindbladForm(RedfieldRelaxationTensor):
         # number of operators            
         Nb = sbi.N   
         
-        Km = numpy.zeros((Nb, Na, Na), dtype=numpy.float64)
+        Lm = numpy.zeros((Nb, Na, Na), dtype=numpy.float64)
         Ld = numpy.zeros((Nb, Na, Na), dtype=numpy.float64)
         for i in range(Nb):
-            Km[i,:,:] = numpy.sqrt(sbi.rates[i])*sbi.KK[i,:,:]
-            Ld[i,:,:] = numpy.transpose(Km[i,:,:])
+            Lm[i,:,:] = sbi.rates[i]*sbi.KK[i,:,:]/2.0
+            Ld[i,:,:] = numpy.transpose(Lm[i,:,:])
         
-        print("%%%%%%%%%%%%%%\n Km=", Km)
-        self._post_implementation(Km, Km, Ld)
-
-        print(self._is_initialized, self._data_initialized)
+        self._post_implementation(sbi.KK, Lm, Ld)

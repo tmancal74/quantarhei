@@ -272,6 +272,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         
     def _post_implementation(self, Km, Lm, Ld):
+        """When components of the tensor are calculated, should they be
+        saved or converted into full tensor?
+        
+        """
             
         if self.as_operators:
             
@@ -323,7 +327,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         start_parallel_region()
         for m in block_distributed_range(0,Nb): #range(Nb):
-            KmLm = numpy.dot(Km[m,:,:],Lm[m,:,:])
+            Kd = numpy.transpose(Km[m,:,:])
+            KdLm = numpy.dot(Kd,Lm[m,:,:])
             LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
             for a in range(Na):
                 for b in range(Na):
@@ -331,9 +336,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                         for d in range(Na):
                             
                             RR[a,b,c,d] += (Km[m,a,c]*Ld[m,d,b] 
-                                            + Lm[m,a,c]*Km[m,d,b])
+                                            + Lm[m,a,c]*Kd[d,b])
                             if b == d:
-                                RR[a,b,c,d] -= KmLm[a,c] 
+                                RR[a,b,c,d] -= KdLm[a,c] 
                             if a == c:
                                 RR[a,b,c,d] -= LdKm[d,b]
                                 
