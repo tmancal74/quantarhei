@@ -28,23 +28,46 @@ class SystemBathInteraction(Saveable):
         Object of the CorrelationFunctionMatrix type holding all correlation
         functions needed for the description of system bath interaction
     
-    
+    rates : list/tuple
+        List or tuple of rates. The total number of rates has to be 
+        the same as the number of operators in the ``sys_operator`` list
+        
+    system : {Molecule, Aggregate}
+        Molecule or Aggregate object in which the system--bath interaction 
+        is specified
+
+
     """
 
     def __init__(self, sys_operators=None, bath_correlation_matrix=None,
-                 system=None):
+                 rates=None, system=None):
 
+        # information about aggregate is needed when dealing with 
+        # multiple excitons
+        self.aggregate = None
+        self.molecule = None
+        self.system = None
+        self.rates = None        
+        self.KK = None
+        self.CC = None
+        self.TimeAxis = None
+        self.rates = None
+        self.N = 0
+        
+        # version with bath correlation functions
         if ((sys_operators is not None) 
             and (bath_correlation_matrix is not None)):
+            
             # Find the length of the list of operators 
             if isinstance(sys_operators,list):
                 self.N = len(sys_operators)
             else:
-                raise Exception("First argument has to a list")
+                raise Exception("sys_operators argument has to a list")
             
             # Second argument has to be a CorrelationFunctionMatrix 
-            if not isinstance(bath_correlation_matrix, CorrelationFunctionMatrix):
-                raise Exception("Second argument has to a"+
+            if not isinstance(bath_correlation_matrix, 
+                              CorrelationFunctionMatrix):
+                raise Exception("ba_correlation_function argument has to a"+
                                 " CorrelationFunctionMatrix")
                 
             # Check that sys_operators and bath_correlation matrix has 
@@ -55,83 +78,85 @@ class SystemBathInteraction(Saveable):
                     (bath_correlation_matrix.nob,self.N)))
                 
             self.TimeAxis = bath_correlation_matrix.timeAxis
-            
-            # information about aggregate is needed when dealing with 
-            # multiple excitons
-            self.aggregate = None
-            self.molecule = None
-            self.system = None
-    
-            from ...builders.aggregates import Aggregate
-            from ...builders.molecules import Molecule    
-            
-            if system is not None:
-                if isinstance(system, Aggregate):
-                    self.aggregate = system
-                    self.molecule = None
-                    self.system = self.aggregate
-    
-                if isinstance(system, Molecule):
-                    self.aggregate = None
-                    self.molecule = system
-                    self.system = self.molecule
-    
-                
+            self._set_system(system)
+
             if self.N > 0:
                 
-                # First of the operators 
-                KK = sys_operators[0]
-            
-                # Get its dimension 
-                dim = KK.data.shape[0]
-            
-                # Test if it is really an Operator and if yes then save it
-                if True:
-                    
-                    self.KK = numpy.zeros((self.N, dim, dim), dtype=numpy.float64)
-                    self.KK[0,:,:] = KK.data       
-                
-                # Save other operators and check their dimensions 
-                for ii in range(1,self.N):
-                    
-                    KK = sys_operators[ii]
-                    
-                    if True: #isinstance(KK,Operator):
-                        if dim == KK.data.shape[0]:
-                            self.KK[ii,:,:] = KK.data
-                        else:
-                            raise Exception("Operators in the list are" 
-                            + " not of the same dimension")
-                    else:
-                        raise Exception("sys_operators tuple (the first argument)"
-                        + " has to contain cu.oqs.hilbertspace.Operator")
-                    
+                self._set_operators(sys_operators)
                 self.CC = bath_correlation_matrix
                 
-            else:
                 
-                self.KK = None
-                self.CC = None
-                      
-    # FIXME: Better get rid of the dependence on the upstream operator 
-    def _before_save(self):
+        # version with system-bath operators and rates
+        elif ((sys_operators is not None) 
+            and (rates is not None)):
+            
+            # Find the length of the list of operators 
+            if isinstance(sys_operators, list):
+                self.N = len(sys_operators)
+            else:
+                raise Exception("First argument has to a list")
+
+            self._set_system(system)
+            
+            if self.N > 0:
+                
+                self._set_operators(sys_operators)   
+                self.CC = None #bath_correlation_matrix
+                
+                if len(rates) != self.N:
+                    raise Exception("Wrong number of rates specified")
+                self.rates = rates
+
+
+    def _set_system(self, system):
+        """Sets the system attribute
         
-        #self._S__aggregate = self.aggregate
-        #self._S__system = self.system
-        #self.aggregate = None
-        #self.system = None
-        pass
+        """
+        from ...builders.aggregates import Aggregate
+        from ...builders.molecules import Molecule    
         
-    def _after_save(self):
-        #self.aggregate = self._S__aggregate
-        #self.system = self._S__system
-        pass
+        if system is not None:
+            if isinstance(system, Aggregate):
+                self.aggregate = system
+                self.molecule = None
+                self.system = self.aggregate
+
+            if isinstance(system, Molecule):
+                self.aggregate = None
+                self.molecule = system
+                self.system = self.molecule
+
+
+    def _set_operators(self, sys_operators):
+        """Sets the system part of the interaction
         
-    def _after_load(self):
+        """
+        # First of the operators 
+        KK = sys_operators[0]
+    
+        # Get its dimension 
+        dim = KK.data.shape[0]
+            
+        self.KK = numpy.zeros((self.N, dim, dim), dtype=numpy.float64)
+        self.KK[0,:,:] = KK.data       
         
-        pass
+        # Save other operators and check their dimensions 
+        for ii in range(1,self.N):
+            
+            KK = sys_operators[ii]
+            
+            if True: #isinstance(KK,Operator):
+                if dim == KK.data.shape[0]:
+                    self.KK[ii,:,:] = KK.data
+                else:
+                    raise Exception("Operators in the list are" 
+                    + " not of the same dimension")
+            else:
+                raise Exception("sys_operators tuple (the first argument)"
+                + " has to contain cu.oqs.hilbertspace.Operator")
+
         
-    def get_coft(self,n,m):
+    def get_coft(self, n, m):
         """Returns bath correlation function corresponding to sites n and m
 
         
@@ -162,7 +187,7 @@ class SystemBathInteraction(Saveable):
                 
                 
                 
-    def get_coft_elsig(self,n_sig,m_sig):
+    def get_coft_elsig(self, n_sig, m_sig):
         """Returns bath correlation based on electronic signatures 
 
 

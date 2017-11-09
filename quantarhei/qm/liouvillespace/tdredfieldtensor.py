@@ -9,7 +9,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
     
     
     
-    def _reference_implementation(self, ham, sbi):
+    def _implementation(self, ham, sbi):
         """ Reference implementation, completely in Python
         
         Implementation of Redfield relaxation tensor according to 
