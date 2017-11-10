@@ -142,7 +142,7 @@ def fetch_template(tname):
     except KeyError:
         raise Exception("Template error: "+tname+" no such template")
         
-    resource_path = '/'.join(('templates', tfile))  
+    resource_path = '/'.join(('wizard', 'templates', tfile))  
 
     template = pkg_resources.resource_string(resource_package, resource_path)
      

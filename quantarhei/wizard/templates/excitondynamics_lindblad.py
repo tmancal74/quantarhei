@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-
 """
 
 Simulation definition file for Quantarhei package. You can run the simulation
 in the terminal using Quantarhei command line tool ``qrhei``. Alternatively you
-can instantiate the class and run it in python/IPython console or in Jupyter notebook.
+can instantiate the class and run it in python/IPython console or in Jupyter 
+notebook.
 
 
 Usage in terminal
@@ -29,7 +28,7 @@ Load the definition file, instantiate it and run it as:
     
 """
 
-from quantarhei.simulations import ExcitonDynamics
+from quantarhei.wizard.simulations import ExcitonDynamics
 
 class mySimulation(ExcitonDynamics):
     """Example file for ExcitonDynamics simulation
@@ -65,10 +64,11 @@ class mySimulation(ExcitonDynamics):
         """Simulation definition
         
         
-        In this method we define the simulation. We have to define molecular system,
-        type of system-bath interaction and the theory to handel it, and the data
-        to be calculated. Below, the definition sections are described in detail
-        together with the definition options and required Quantarhei imports.
+        In this method we define the simulation. We have to define molecular
+        system, type of system-bath interaction and the theory to handel it, 
+        and the data to be calculated. Below, the definition sections are 
+        described in detail together with the definition options and required
+        Quantarhei imports.
         
         
         
@@ -188,7 +188,10 @@ class mySimulation(ExcitonDynamics):
         #
         #############################################################
         
-        task_1 = dict(task="density_matrix_dynamics", 
-                      object_file="rdm"+self._get_timestamp(filename=True)+".hdf5")
+        #task_1 = dict(task="density_matrix_dynamics", 
+        #              object_file="rdm"+self._get_timestamp(filename=True)
+        #              +".hdf5")
+
+        task_1 = dict(task="density_matrix_dynamics") 
         
         self.tasks = [task_1]
