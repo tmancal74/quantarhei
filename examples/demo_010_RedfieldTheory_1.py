@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
+
+#
+# Demo settings
+#
+_show_plots_ = False
+
+
 import numpy
 
 from quantarhei import *
-from modelgenerator import ModelGenerator
+from quantarhei.models.modelgenerator import ModelGenerator
 
 print("""
 *******************************************************************************
@@ -102,7 +109,8 @@ with eigenbasis_of(ham):
     print(" Rate exciton basis: ", 1.0/RRT.data[1,1,2,2])
     rho_t = prop.propagate(rho_i, name="Redfield evolution")
 
-    rho_t.plot(coherences=False)
+    if _show_plots_:
+        rho_t.plot(coherences=False)
     
     rho_i1 = ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
     rho_i1.data[3,3] = 1.0   
@@ -121,13 +129,15 @@ p0 = [i for i in range(ham.dim)]
 p0[3] = 1.0
 pop_t = prop.propagate(p0)
 
-import matplotlib.pyplot as plt
-plt.plot(time.data, pop_t[:,3],'--r')
-plt.show()
+if _show_plots_:
+    import matplotlib.pyplot as plt
+    plt.plot(time.data, pop_t[:,3],'--r')
+    plt.show()
 
-print(RRM.data[2,3])
-with eigenbasis_of(ham):
-    print(RRT.data[2,2,3,3])
+#print(RRM.data[2,3])
+#with eigenbasis_of(ham):
+#    print(RRT.data[2,2,3,3])
 
    
+
 

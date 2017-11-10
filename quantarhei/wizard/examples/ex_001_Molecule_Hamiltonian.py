@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import quantarhei as qr
+_show_plots_ = False
 
+import quantarhei as qr
 
 en = [0.0, 1.0]
 

@@ -443,7 +443,7 @@ class AbsSpectrumContainer(Saveable):
             if tag is None:
                 tag1 = str(self.count)
             else:
-                tag1 = tag
+                tag1 = str(tag)
             self.spectra[tag1] = spect
             self.count += 1
         else:

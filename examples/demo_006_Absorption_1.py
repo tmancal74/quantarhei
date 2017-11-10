@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+_show_plots_ = False
+_save_load_ = False
 
 import quantarhei as qr
 
@@ -22,7 +24,7 @@ en = 12000.0
 e_units = qr.energy_units("1/cm")
 
 with e_units:
-    m = qr.Molecule("Molecule",[0.0,en])
+    m = qr.Molecule(name="Molecule",elenergies=[0.0,en])
     with qr.energy_units("1/cm"):
         cfce1 = qr.CorrelationFunction(ta,cfce_params1)
     
@@ -36,12 +38,14 @@ with qr.energy_units("1/cm"):
     a1 = ac.calculate()
 
 HH = m.get_Hamiltonian()
-with qr.frequency_units("1/cm"):
-    print(HH)
-    a1.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
+
+if _show_plots_:
+    with qr.frequency_units("1/cm"):
+        print(HH)
+        a1.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
     
-save_load = False
-if save_load:
+
+if _save_load_:
 
     filename = "abs_1mol_20cm_100fs_100K_m20"
     with qr.frequency_units("1/cm"):
@@ -53,7 +57,8 @@ if save_load:
     
         f.load(filename,ext="dat",axis="frequency")
     
-        f.plot()
+        if _show_plots_:
+            f.plot()
     
 """
 
@@ -78,18 +83,18 @@ cfce_params2 = dict(ftype="OverdampedBrownian",
 with qr.energy_units("1/cm"):
     cfce1 = qr.CorrelationFunction(ta,cfce_params1)
     cfce2 = qr.CorrelationFunction(ta,cfce_params2)
-    m1 = qr.Molecule("M1",[0.0, 12100])
+    m1 = qr.Molecule([0.0, 12100], name="M1")
     m1.set_dipole(0,1,[0.0,3.0,0.0])
     m1.set_transition_environment((0,1),cfce1)
     m1.position = [0.0,0.0,0.0]
-    m2 = qr.Molecule("M1",[0.0, 12000])
+    m2 = qr.Molecule([0.0, 12000], name="M2")
     m2.set_dipole(0,1,[0.0,1.0,1.0])
     m2.position = [5.0,0.0,0.0]
     m2.set_transition_environment((0,1),cfce2)    
     
     
 # create an aggregate
-AG = qr.Aggregate("TestAggregate")
+AG = qr.Aggregate(name="TestAggregate")
 #AG.set_egcf_matrix(cm)
 
 # fill the cluster with monomers
@@ -115,25 +120,27 @@ with e_units:
     a2 = ac2.calculate()
     a3 = ac3.calculate()
 
-if True:   
+if _save_load_:   
 #with e_units:
-    a3.save("spectrum_a3")  
+    a3.save("spectrum_a3.hdf5")  
     a4 = qr.AbsSpectrum()
-    a4.load("spectrum_a3.npz")
+    a4.load("spectrum_a3.hdf5")
 
-with e_units:
-    #a3.plot(show=False)
-    a4.plot(show=False)
-    a2.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
+if _show_plots_:
+    with e_units:
+        #a3.plot(show=False)
+        a4.plot(show=False)
+        a2.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 
-save_load = True    
-if save_load:
+  
+if _save_load_:
     with e_units:
         a3.save_data("abs_2mol_10cm_60fs_100K_m20",ext="dat")
     
         f = qr.DFunction()
         f.load_data("abs_2mol_10cm_60fs_100K_m20",ext="dat",axis="frequency")
-        f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
+        if _show_plots_:
+            f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 
 """
 
@@ -156,13 +163,13 @@ cfce_params2 = dict(ftype="OverdampedBrownian",
 with qr.energy_units("1/cm"):
     cfce1 = qr.CorrelationFunction(ta,cfce_params1)
     cfce2 = qr.CorrelationFunction(ta,cfce_params2)
-    m1 = qr.Molecule("M1",[0.0, 12100])
+    m1 = qr.Molecule([0.0, 12100], name="M1")
     m1.set_dipole(0,1,[0.0,3.0,0.0])
     m1.set_transition_environment((0,1), cfce2)
-    m2 = qr.Molecule("M2",[0.0, 11800])
+    m2 = qr.Molecule([0.0, 11800], name="M2")
     m2.set_dipole(0,1,[0.0,1.0,2.0])
     m2.set_transition_environment((0,1), cfce1)
-    m3 = qr.Molecule("M3",[0.0, 12500])
+    m3 = qr.Molecule([0.0, 12500], name="M3")
     m3.set_dipole(0,1,[0.0,1.0,1.0])    
     m3.set_transition_environment((0,1), cfce2)    
 
@@ -172,7 +179,7 @@ m2.position = [5.0,0.0,0.0]
 m3.position = [0.0,5.0,0.0]
 
 # create an aggregate
-AG = qr.Aggregate("TestAggregate")
+AG = qr.Aggregate(name="TestAggregate")
 
 
 # fill the cluster with monomers
@@ -228,24 +235,25 @@ ACont.set_spectrum(a3,tag=2)
 a1 = ac1.calculate()
 ACont.set_spectrum(a1,tag=0)
 
-with e_units:
-    a1 = ACont.get_spectrum(tag=0)
-    a1.plot(show=False)
-    a3 = ACont.get_spectrum(tag=2)
-    a3.plot(show=False)
-    a1 = ACont.get_spectrum(tag=1)
-    a2.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+if _show_plots_:
+    with e_units:
+        a1 = ACont.get_spectrum(tag=0)
+        a1.plot(show=False)
+        a3 = ACont.get_spectrum(tag=2)
+        a3.plot(show=False)
+        a1 = ACont.get_spectrum(tag=1)
+        a2.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 
-    
-
-save_load = True   
-if save_load:
+      
+if _save_load_:
     with e_units:
         a2.save_data("abs_3mol_20cm_60fs_100K_m20",ext="dat")
     
         f = qr.DFunction()
         f.load_data("abs_3mol_20cm_60fs_100K_m20",ext="dat",axis="frequency")
-        f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+        
+        if _show_plots_:
+            f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
         
         ACont.save("container.hdf5")
         
@@ -253,7 +261,8 @@ if save_load:
         Cont2.load("container.hdf5")
         
         a6 = Cont2.get_spectrum(1)
-        a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+        if _show_plots_:
+            a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
         
 #        a5 = qr.AbsSpectrum()
 #        a5.load("container_2.npz")

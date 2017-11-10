@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+_show_plots_ = False
+
 """
     Demo of the Lindblad form
     
@@ -60,7 +62,7 @@ time = TimeAxis()
 
 # time is not used here at all
 LFa, ham = agg.get_RelaxationTensor(time, 
-                                    relaxation_theory="electronic_Lindblad")
+           relaxation_theory="electronic_Lindblad")
 LFa.convert_2_tensor()
 
 print(LFa.data[1,1,2,2])

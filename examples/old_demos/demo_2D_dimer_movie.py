@@ -36,7 +36,7 @@ with energy_units("1/cm"):
                      show_states=[11950,12300],
                      progressbar=True)
 
-newpp = newtw.get_PumpProbeSpectrumContainer(skip=19)
-newpp.plot()
-plt.savefig("pp_spect.png")
+#newpp = newtw.get_PumpProbeSpectrumContainer(skip=19)
+#newpp.plot()
+#plt.savefig("pp_spect.png")
 
