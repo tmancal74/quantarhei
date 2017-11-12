@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
+
+#<remove>
+"""
+The <remove> ... </remove> and <indent> directives show the processor
+how to change the code to convert it into a demo.
+
+
+"""
 _show_plots_ = False
 _save_load_ = False
+#</remove>
 
 import quantarhei as qr
 
@@ -39,14 +48,19 @@ with qr.energy_units("1/cm"):
 
 HH = m.get_Hamiltonian()
 
+#<remove>
 if _show_plots_:
+#</remove>
+#<indent decr=4>
     with qr.frequency_units("1/cm"):
         print(HH)
         a1.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
-    
+#<indent incr=4>    
 
+#<remove>
 if _save_load_:
-
+#</remove>
+#<indent decr=4>
     filename = "abs_1mol_20cm_100fs_100K_m20"
     with qr.frequency_units("1/cm"):
         a1.save(filename,ext="dat")
@@ -59,6 +73,7 @@ if _save_load_:
     
         if _show_plots_:
             f.plot()
+#<indent incr=4>
     
 """
 
@@ -120,20 +135,29 @@ with e_units:
     a2 = ac2.calculate()
     a3 = ac3.calculate()
 
+#<remove>
 if _save_load_:   
-#with e_units:
+#</remove>
+#<indent decr=4>
     a3.save("spectrum_a3.hdf5")  
     a4 = qr.AbsSpectrum()
     a4.load("spectrum_a3.hdf5")
+#<indent incr=4>
 
+#<remove>
 if _show_plots_:
+#</remove>
+#<indent decr=4>
     with e_units:
         #a3.plot(show=False)
         a4.plot(show=False)
         a2.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
-
+#<indent incr=4>
   
+#<remove>
 if _save_load_:
+#</remove>
+#<indent decr=4>
     with e_units:
         a3.save_data("abs_2mol_10cm_60fs_100K_m20",ext="dat")
     
@@ -141,7 +165,8 @@ if _save_load_:
         f.load_data("abs_2mol_10cm_60fs_100K_m20",ext="dat",axis="frequency")
         if _show_plots_:
             f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
-
+#<indent incr=4>
+            
 """
 
     Absorption of a simple trimeric aggregate of two-level molecules
@@ -235,7 +260,10 @@ ACont.set_spectrum(a3,tag=2)
 a1 = ac1.calculate()
 ACont.set_spectrum(a1,tag=0)
 
+#<remove>
 if _show_plots_:
+#</remove>
+#<indent decr=4>
     with e_units:
         a1 = ACont.get_spectrum(tag=0)
         a1.plot(show=False)
@@ -243,9 +271,12 @@ if _show_plots_:
         a3.plot(show=False)
         a1 = ACont.get_spectrum(tag=1)
         a2.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
-
+#<indent incr=4>
       
+#<remove>
 if _save_load_:
+#</remove>
+#<indent decr=4>
     with e_units:
         a2.save_data("abs_3mol_20cm_60fs_100K_m20",ext="dat")
     
@@ -263,7 +294,5 @@ if _save_load_:
         a6 = Cont2.get_spectrum(1)
         if _show_plots_:
             a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
-        
-#        a5 = qr.AbsSpectrum()
-#        a5.load("container_2.npz")
-#        a5.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+#<indent incr=4>
+            
