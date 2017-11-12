@@ -85,7 +85,7 @@ mol2.set_transition_environment((0,1),cf)
 #
 # Creating aggregate
 #      
-agg = Aggregate("Dimer", molecules=[mol1, mol2])
+agg = Aggregate(name="Dimer", molecules=[mol1, mol2])
 agg.set_coupling_by_dipole_dipole()
 with energy_units("1/cm"):
     print(agg.get_resonance_coupling(0,1))

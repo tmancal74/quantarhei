@@ -7,13 +7,13 @@
 """
 import numpy
 
-from quantarhei import Manager
-from quantarhei import energy_units
+from ..core.managers import Manager
+from ..core.managers import energy_units
 
-from quantarhei import Aggregate
-from quantarhei import Molecule
-from quantarhei import TimeAxis
-from quantarhei import CorrelationFunction
+from ..builders.aggregates import Aggregate
+from ..builders.molecules import Molecule
+from ..core.time import TimeAxis
+from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 
 
 class ModelGenerator():

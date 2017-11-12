@@ -1,4 +1,0 @@
-reinst:
-	cd ../; make reinst
-
-

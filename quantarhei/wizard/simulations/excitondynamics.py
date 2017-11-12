@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..builders.aggregates import Aggregate
+from ...builders.aggregates import Aggregate
 from .simulation import Simulation
 
 class ExcitonDynamics(Simulation):
@@ -42,7 +42,7 @@ class ExcitonDynamics(Simulation):
         if self.relaxation_theory == "Lindblad_form":
             
             #from ..qm import LindbladForm
-            from ..qm import SystemBathInteraction
+            from ...qm import SystemBathInteraction
             
             ham = self.aggregate.get_Hamiltonian()
             try:
@@ -89,7 +89,7 @@ class ExcitonDynamics(Simulation):
             
             if task["task"] == "density_matrix_dynamics":
                 
-                from ..qm import ReducedDensityMatrixPropagator
+                from ...qm import ReducedDensityMatrixPropagator
                 
                 self._printlog("Calculating density matrix dynamics")
                 rdmprop = ReducedDensityMatrixPropagator(timeaxis=self.timeaxis,

@@ -5,7 +5,7 @@ print(
        Quantarhei Demo for the Chapter 2 of the Quantarhei Theory Text
 """)
 import numpy
-import matplotlib
+#import matplotlib
 #matplotlib.use("wx")
 #import matplotlib.pyplot as plt
 #plt.ion()
@@ -129,7 +129,7 @@ print("""
 
 from quantarhei import Molecule
 
-m = Molecule("Mol 1", [0.0, 1.0])
+m = Molecule(name="Mol 1", elenergies=[0.0, 1.0])
 m.set_adiabatic_coupling(0,1,0.4)
 
 from quantarhei import Mode
@@ -174,10 +174,10 @@ plt.show()
 #
 from quantarhei import Aggregate
 
-mol1 = Molecule("Mol 1", [0.0, 1.0])
-mol2 = Molecule("Mol 2", [0.0, 1.0])
+mol1 = Molecule(name="Mol 1", elenergies=[0.0, 1.0])
+mol2 = Molecule(name="Mol 2", elenergies=[0.0, 1.0])
 
-agg = Aggregate("Dimer")
+agg = Aggregate(name="Dimer")
 
 agg.add_Molecule(mol1)
 agg.add_Molecule(mol2)
