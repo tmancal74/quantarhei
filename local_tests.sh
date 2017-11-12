@@ -40,6 +40,8 @@ export PYTHONPATH=`pwd`
 #python examples/demo1.py
 #python examples/demo_Lindblad_1.py
 
+#python quantarhei/wizard/examples/ex_006_Absorption_1.py
+
 paver
 
 

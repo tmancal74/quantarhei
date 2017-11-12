@@ -361,8 +361,10 @@ def load(file, test=False):
     """
     
     file_opened = False
+    
+    # if file is a string, we need to open it
     if isinstance(file, str):
-        # open the file
+        # open file on a disk
         fid = h5py.File(file, "r")
         file_opened = True
     else: 

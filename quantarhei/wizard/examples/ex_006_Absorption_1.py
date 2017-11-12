@@ -8,12 +8,31 @@ how to change the code to convert it into a demo.
 
 """
 _show_plots_ = False
-_save_load_ = False
+_use_tempdir_ = True
+
+if _use_tempdir_:
+    import tempfile
 #</remove>
 
+import os
+import numpy
 import quantarhei as qr
 
-import numpy
+
+#<remove>
+if _use_tempdir_:
+    # create temporary diretory
+    try:
+        tfid = tempfile.TemporaryDirectory()
+        wdir = tfid.name
+    except:
+        raise Exception("Creating temporary directory failed")
+else:
+#</remove>
+#<indent decr=4>
+    wdir = "."
+#<indent incr=4>    
+
 
 ta = qr.TimeAxis(0.0, 1000, 1.0)
 
@@ -57,22 +76,20 @@ if _show_plots_:
         a1.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
 #<indent incr=4>    
 
+
+filename = os.path.join(wdir, "abs_1mol_20cm_100fs_100K_m20.hdf5")
+with qr.frequency_units("1/cm"):
+    a1.save(filename)
+ 
+with qr.frequency_units("1/cm"):
+    f = qr.AbsSpectrum()
+    f.load(filename)
+
 #<remove>
-if _save_load_:
+    if _show_plots_:
 #</remove>
 #<indent decr=4>
-    filename = "abs_1mol_20cm_100fs_100K_m20"
-    with qr.frequency_units("1/cm"):
-        a1.save(filename,ext="dat")
-    
-    with qr.frequency_units("1/cm"):
-    
-        f = qr.DFunction()
-    
-        f.load(filename,ext="dat",axis="frequency")
-    
-        if _show_plots_:
-            f.plot()
+        f.plot()
 #<indent incr=4>
     
 """
@@ -135,14 +152,10 @@ with e_units:
     a2 = ac2.calculate()
     a3 = ac3.calculate()
 
-#<remove>
-if _save_load_:   
-#</remove>
-#<indent decr=4>
-    a3.save("spectrum_a3.hdf5")  
-    a4 = qr.AbsSpectrum()
-    a4.load("spectrum_a3.hdf5")
-#<indent incr=4>
+filename = os.path.join(wdir, "spectrum_a3.hdf5")
+a3.save(filename)  
+a4 = qr.AbsSpectrum()
+a4.load(filename)
 
 #<remove>
 if _show_plots_:
@@ -154,17 +167,19 @@ if _show_plots_:
         a2.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 #<indent incr=4>
   
+
+filename = os.path.join(wdir, "abs_2mol_10cm_60fs_100K_m20")
+
+with e_units:
+    a3.save_data(filename, ext="dat")
+
+    f = qr.DFunction()
+    f.load_data(filename, ext="dat",axis="frequency")
 #<remove>
-if _save_load_:
+    if _show_plots_:
 #</remove>
-#<indent decr=4>
-    with e_units:
-        a3.save_data("abs_2mol_10cm_60fs_100K_m20",ext="dat")
-    
-        f = qr.DFunction()
-        f.load_data("abs_2mol_10cm_60fs_100K_m20",ext="dat",axis="frequency")
-        if _show_plots_:
-            f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
+#<indent decr=4>    
+        f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 #<indent incr=4>
             
 """
@@ -273,26 +288,30 @@ if _show_plots_:
         a2.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 #<indent incr=4>
       
-#<remove>
-if _save_load_:
-#</remove>
-#<indent decr=4>
-    with e_units:
-        a2.save_data("abs_3mol_20cm_60fs_100K_m20",ext="dat")
+filename1 = os.path.join(wdir, "abs_3mol_20cm_60fs_100K_m20")
+filename2 = os.path.join(wdir, "container.hdf5")
+
+with e_units:
+    a2.save_data(filename1, ext="dat")
+
+    f = qr.DFunction()
+    f.load_data(filename1, ext="dat", axis="frequency")
     
-        f = qr.DFunction()
-        f.load_data("abs_3mol_20cm_60fs_100K_m20",ext="dat",axis="frequency")
+    if _show_plots_:
+        f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+    
+    ACont.save(filename2)
+    
+    Cont2 = qr.AbsSpectrumContainer()
+    Cont2.load(filename2)
+    
+    a6 = Cont2.get_spectrum(1)
+
+#<remove>
+if _show_plots_:
+#</remove>
+#<indent decr=4>        
         
-        if _show_plots_:
-            f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
-        
-        ACont.save("container.hdf5")
-        
-        Cont2 = qr.AbsSpectrumContainer()
-        Cont2.load("container.hdf5")
-        
-        a6 = Cont2.get_spectrum(1)
-        if _show_plots_:
-            a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+    a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 #<indent incr=4>
             
