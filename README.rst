@@ -59,6 +59,20 @@ through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
 
 
 
+New in 0.0.32
+=============
+
+For users:
+
+- Electronic Lindblad form for vibronic Frenkel exciton model
+- Tested examples can be fetched into IPython notebook or Python/IPython console by %example magic command or fetch_example function from quantarhei.wizard.magic module
+- Small improvements and bug fixes
+
+For developers:
+
+
+
+
 New in version 0.0.31
 =====================
 

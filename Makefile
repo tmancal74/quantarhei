@@ -11,7 +11,7 @@
 # Set this to required version or override from command line
 # Default is the current development version 
 #
-VERSION=0.0.31
+VERSION=0.0.32
 
 all:
 
@@ -40,6 +40,13 @@ uninstall: uninst
 
 uninst: 
 	pip uninstall quantarhei
+
+
+##################
+# Upload to pypi #
+##################
+upload: sdist
+	twine upload `ls dist/quantarhei-${VERSION}*`
 
 
 ############
