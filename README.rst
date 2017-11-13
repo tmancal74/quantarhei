@@ -63,15 +63,15 @@ New in version 0.0.31
 =====================
 
 For users:
-* Arbitrary time independent Lindblad form 
-* quantarhei.wizard module which contains IPython magic commands and some helpful Python console commands
-* Simulation templates and tested examples which can be fetched into IPython notebooks or console by %template  magic command (IPython) or fetch_template (console and IPython)
-* Part of the test suit available for installed Quantarhei package (import quantarhei  and run quantarhei.tests.run())
-* Some small improvements and bug fixes
+- Arbitrary time independent Lindblad form 
+- quantarhei.wizard module which contains IPython magic commands and some helpful Python console commands
+- Simulation templates and tested examples which can be fetched into IPython notebooks or console by %template  magic command (IPython) or fetch_template (console and IPython)
+- Part of the test suit available for installed Quantarhei package (import quantarhei  and run quantarhei.tests.run())
+- Some small improvements and bug fixes
 
 For developers:
-* Makefile is back in the package root directory
-* examples directory depleted in favor of quantarhei/wizard/examples directory
-* New tests under quantarhei/tests directory (mostly unit tests which contain plots)
-* pytest required to run example/template tests with matplotlib plots
+- Makefile is back in the package root directory
+- examples directory depleted in favor of quantarhei/wizard/examples directory
+- New tests under quantarhei/tests directory (mostly unit tests which contain plots)
+- pytest required to run example/template tests with matplotlib plots
  
