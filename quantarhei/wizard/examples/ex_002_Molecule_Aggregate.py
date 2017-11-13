@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+#<remove>
 _show_plots_ = False
+#</remove>
 
 from quantarhei import Molecule, Aggregate
 #from quantarhei import energy_units
