@@ -78,7 +78,7 @@ class SystemBathInteraction(Saveable):
                     (bath_correlation_matrix.nob,self.N)))
                 
             self.TimeAxis = bath_correlation_matrix.timeAxis
-            self._set_system(system)
+            self.set_system(system)
 
             if self.N > 0:
                 
@@ -96,7 +96,7 @@ class SystemBathInteraction(Saveable):
             else:
                 raise Exception("First argument has to a list")
 
-            self._set_system(system)
+            self.set_system(system)
             
             if self.N > 0:
                 
@@ -108,7 +108,7 @@ class SystemBathInteraction(Saveable):
                 self.rates = rates
 
 
-    def _set_system(self, system):
+    def set_system(self, system):
         """Sets the system attribute
         
         """

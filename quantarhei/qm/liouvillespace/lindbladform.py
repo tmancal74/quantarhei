@@ -9,6 +9,8 @@ import numpy
 
 from .redfieldtensor import RedfieldRelaxationTensor
 from ...builders.aggregates import Aggregate
+from .systembathinteraction import SystemBathInteraction
+from ...builders.aggregate_states import VibronicState
 
 class LindbladForm(RedfieldRelaxationTensor):
     """Lindblad form of relaxation tensor
@@ -68,7 +70,49 @@ class ElectronicLindbladForm(LindbladForm):
                                  as_operators=as_operators, name=name)
             else:
                 # check the sbi for rates and (electronic) operators
-                pass
+                
+                # sbi operators have to have the same dimension as
+                # the single exciton electronic part of the aggregate
+                Nel1 = 1 + agg.nmono
+                if Nel1 == sbi.KK.shape[1]:
+                    
+                    # create new interaction operators of higher 
+                    # dimensionality
+                    Nop = sbi.KK.shape[0]
+                    ops = []
+                    for k in range(Nop):
+                        newkk = numpy.zeros((agg.Ntot, agg.Ntot), 
+                                            dtype=numpy.float64)
+                        # populate the operator
+                        for i_el in range(agg.Nel):
+                            for i_vib in agg.vibindices[i_el]:
+                                
+                                vs_i = agg.vibsigs[i_vib]
+                                st_i = VibronicState(vs_i[0], vs_i[1])
+                                
+                                for j_el in range(agg.Nel):
+                                    for j_vib in agg.vibindices[j_el]:
+                                
+                                        vs_j = agg.vibsigs[j_vib]
+                                        st_j = VibronicState(vs_j[0],
+                                                             vs_j[1])
+                                
+                                        newkk[i_vib, j_vib] = \
+                                        agg.fc_factor(st_i, st_j)
+                    
+                        ops.append(newkk)
+                    
+                    # with the operators constructed, we create Lindblad form
+                    newsbi = SystemBathInteraction(sys_operators=ops,
+                                                   rates=sbi.rates,
+                                                   system=sbi.system)
+                    super().__init__(ham, newsbi, initialize=initialize,
+                         as_operators=as_operators, name=name)
+
+                
+                else:
+                    raise Exception("Incompatible dimension of system-bath"+
+                                    " interaction operators")
 
         else:
 

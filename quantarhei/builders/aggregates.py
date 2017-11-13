@@ -1800,7 +1800,7 @@ class Aggregate(UnitsManaged, Saveable):
         """
         # FIXME: check its compatibility
         self.sbi = sbi
-        self.sbi._set_system(self)
+        self.sbi.set_system(self)
         
 
 

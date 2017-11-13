@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import numbers
 import numpy
 
 from ...core.matrixdata import MatrixData
@@ -7,6 +8,7 @@ from ...core.saveable import Saveable
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 from .statevector import StateVector
+
 
 
 class Operator(MatrixData, BasisManaged, Saveable):
@@ -194,17 +196,36 @@ class ProjectionOperator(Operator):
     |n\rangle \langle m|
 
     """    
-    def __init__(self,n,m,dim=0):
+    def __init__(self, to_state=-1, from_state=-1, dim=0):
         # here the operator is create and it will know about basis
-        Operator.__init__(self,dim=dim,data=None)
-        if (n < dim and m < dim):
-            # we can use "_data" here
-            self._data[n,m] = 1
+        super().__init__(dim=dim, real=True)
+                    
+        if dim > 0:
+            if ((to_state >= 0) and (to_state < dim)) \
+                and ((from_state >= 0) and (from_state < dim)):
+                self.data[to_state, from_state] = 1.0
+            else:
+                raise Exception("Indices out of range")
         else:
-            raise Exception("Projection Operator indices exceed its dimension")
+            raise Exception("Wrong operator dimension")
             
             
-            
+    def __mul__(self, other):
+        """Multiplication of operator by scalar
+        
+        """
+        if isinstance(other, numbers.Number):
+            self._data = self._data*other
+        else:
+            raise Exception("Only multiplication by scalar is allowed")
+
+
+    def __rmul__(self, other):
+        """Multiplication from right
+        
+        """
+        self.__mult__(other)
+
             
 class DensityMatrix(SelfAdjointOperator, Saveable):
     """Class representing a density matrix

@@ -15,6 +15,7 @@ from .hilbertspace.operators import ReducedDensityMatrix
 #   OPERATORS
 #
 from .hilbertspace.operators import Operator
+from .hilbertspace.operators import ProjectionOperator
 from .hilbertspace.operators import BasisReferenceOperator
 from .hilbertspace.hamiltonian import Hamiltonian
 from .hilbertspace.dmoment import TransitionDipoleMoment

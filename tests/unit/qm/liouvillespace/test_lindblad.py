@@ -81,13 +81,16 @@ class TestLindblad(unittest.TestCase):
         KM[0,1] = self.rates[0]
         KM[1,0] = self.rates[1]
                 
-        print("KT = ", KT)
-        print("KM = ", KM)
-        print("LT = ", LT.data)
+        #print("KT = ", KT)
+        #print("KM = ", KM)
+        #print("LT = ", LT.data)
         
         numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
            
         
+from quantarhei import Molecule, Aggregate, Mode
+from quantarhei.qm import ProjectionOperator
+
 class TestElectronicLindblad(unittest.TestCase):
     """Tests for the ElectronicLindbladForm class
     
@@ -97,62 +100,97 @@ class TestElectronicLindblad(unittest.TestCase):
     def setUp(self,verbose=False):
         
         self.verbose = verbose
-                  
-        K12 = numpy.array([[0.0, 1.0],[0.0, 0.0]],dtype=numpy.float)
-        K21 = numpy.array([[0.0, 0.0],[1.0, 0.0]],dtype=numpy.float)
-
-            
-        KK12 = Operator(data=K12)
-        KK21 = Operator(data=K21)
-
-        self.KK12 = KK12
-        self.KK21 = KK21
+        
+        #
+        # PURE ELECTRONIC AGGREGATE
+        #
+    
+        m1 = Molecule([0.0, 1.0])
+        m2 = Molecule([0.0, 1.0])
+        
+        agg = Aggregate(molecules=[m1, m2])
+        
+        agg.set_resonance_coupling(0,1, 0.1)
+        
+        agg.build()
+        
+        self.ham = agg.get_Hamiltonian()
+                
+        KK12 = ProjectionOperator(1, 2, dim=self.ham.dim)
+        KK21 = ProjectionOperator(2, 1, dim=self.ham.dim)
+        
         self.rates = (1.0/100.0, 1.0/200.0)
         
-        self.sbi1 = SystemBathInteraction([KK12,KK21],
+        self.sbi = SystemBathInteraction([KK12,KK21],
                                           rates=self.rates)
-        self.sbi2 = SystemBathInteraction([KK12,KK21], 
-                                          rates=self.rates)
-        
-        with energy_units("1/cm"):
-            h1 = [[100.0, 0.0],[0.0, 0.0]]
-            h2 = [[100.0, 0.0],[0.0, 0.0]]
-            self.H1 = Hamiltonian(data=h1)
-            self.H2 = Hamiltonian(data=h2)
-            
+        self.sbi.set_system(agg)
 
+        #
+        #  VIBRONIC AGGREGATE
+        #
+        
+        vm1 = Molecule([0.0, 1.0])
+        vm2 = Molecule([0.0, 1.0])
+        mod1 = Mode(0.01)
+        mod2 = Mode(0.01)
+        vm1.add_Mode(mod1)
+        vm2.add_Mode(mod2)
+                
+        mod1.set_nmax(0, 3)
+        mod1.set_nmax(1, 3)
+        
+        mod2.set_nmax(0, 3)
+        mod2.set_nmax(1, 3)
+        
+        vagg = Aggregate(molecules=[vm1, vm2])
+        vagg.set_resonance_coupling(0, 1, 0.1)
+        
+        vagg.build()
+        
+        self.vham = vagg.get_Hamiltonian()
+        
+        self.vsbi = SystemBathInteraction([KK12, KK21], rates=self.rates)
+        self.vsbi.set_system(vagg)
+        
+        
+        
+        
     def test_comparison_of_rates_in_electronic(self):
-        """Testing that ElectronicLindblad tensor and rate matrix are compatible
+        """Testing that ElectronicLindblad and rate matrix are compatible
         
         This is for the case that everything is electronic
         
         
         """ 
-        tensor = True
-#        matrix = True
         
-        dim = self.H1.dim
+        dim = self.ham.dim
         KT = numpy.zeros((dim,dim), dtype=numpy.float64)
         KM = numpy.zeros((dim,dim), dtype=numpy.float64)
         
-        if tensor:
-            #print(self.H1)
-            LT = ElectronicLindbladForm(self.H1, self.sbi1, as_operators=False)
-            
-            for n in range(2):
-                for m in range(2):
-                    #print(n,m,numpy.real(RT.data[n,n,m,m]))
-                    KT[n,m] = numpy.real(LT.data[n,n,m,m])
+        LT = ElectronicLindbladForm(self.ham, self.sbi, as_operators=False)
+        
+        for n in range(dim):
+            for m in range(dim):
+                KT[n,m] = numpy.real(LT.data[n,n,m,m])
                     
         KM = numpy.zeros((dim,dim))
-        KM[0,0] = -self.rates[1]
-        KM[1,1] = -self.rates[0]
-        KM[0,1] = self.rates[0]
-        KM[1,0] = self.rates[1]
+        KM[1,1] = -self.rates[1]
+        KM[2,2] = -self.rates[0]
+        KM[1,2] = self.rates[0]
+        KM[2,1] = self.rates[1]
                 
-        print("KT = ", KT)
-        print("KM = ", KM)
-        print("LT = ", LT.data)
+        #print("KT = ", KT)
+        #print("KM = ", KM)
+        #print("LT = ", LT.data)
         
         numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
                 
+
+    def test_construction_electronic_lindblad(self):
+        """Testing construction of ElectronicLindblad for vibronic system
+         
+        """
+        dim = self.vham.dim
+         
+        LT = ElectronicLindbladForm(self.vham, self.vsbi, as_operators=False)
+     
