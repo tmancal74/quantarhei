@@ -66,7 +66,7 @@ For users:
 
 - Arbitrary time independent Lindblad form 
 - quantarhei.wizard module which contains IPython magic commands and some helpful Python console commands
-- Simulation templates and tested examples which can be fetched into IPython notebooks or console by %template  magic command (IPython) or fetch_template (console and IPython)
+- Simulation templates which can be fetched into IPython notebooks or console by %template  magic command (IPython) or fetch_template (console and IPython)
 - Part of the test suit available for installed Quantarhei package (import quantarhei  and run quantarhei.tests.run())
 - Some small improvements and bug fixes
 
