@@ -29,7 +29,7 @@ such as Hamiltonian, relaxation tensors, various initial
 conditions for density matrix etc.
 
 Quantarhei is at its experimental stage. 
-Current version is 0.0.27
+Current version is 0.0.31
 
 Quantarhei is available in source form on GitHub and from PyPI for installation
 with the pip command.
@@ -59,3 +59,21 @@ through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
 
 
 
+New in version 0.0.31
+=====================
+
+For users:
+
+- Arbitrary time independent Lindblad form 
+- quantarhei.wizard module which contains IPython magic commands and some helpful Python console commands
+- Simulation templates which can be fetched into IPython notebooks or console by %template  magic command (IPython) or fetch_template (console and IPython)
+- Part of the test suit available for installed Quantarhei package
+- Some small improvements and bug fixes
+
+For developers:
+
+- Makefile is back in the package root directory
+- examples directory depleted in favor of quantarhei/wizard/examples directory
+- New tests under quantarhei/tests directory (mostly unit tests which contain plots)
+- pytest required to run newtests with matplotlib plots
+ 
