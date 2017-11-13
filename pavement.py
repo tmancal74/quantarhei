@@ -5,7 +5,10 @@ from paver.easy import sh
 """ 
     Particular tasks
 """
-
+@task
+def matplotlib_tests():
+    sh('cd quantarhei; ./tests.py; cd ..')
+    
 @task
 def unit_tests_vs():
     sh('nosetests -vs tests/unit')
@@ -81,7 +84,8 @@ def pylint():
     Default 
 """
 
-@needs('unit_tests_v','doc_tests_v','aloe_tests_v') #, 'pylint')
+@needs('matplotlib_tests', 'unit_tests_v',
+       'doc_tests_v','aloe_tests_v') #, 'pylint')
 @task
 def default():
     pass
