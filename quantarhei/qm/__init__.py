@@ -48,7 +48,7 @@ from .liouvillespace.redfieldfoerster import RedfieldFoersterRelaxationTensor
 from .liouvillespace.tdredfieldfoerster import TDRedfieldFoersterRelaxationTensor
 
 from .liouvillespace.lindbladform import LindbladForm
-
+from .liouvillespace.lindbladform import ElectronicLindbladForm
 #
 #  PROPAGATORS 
 #

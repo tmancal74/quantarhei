@@ -12,6 +12,7 @@
 # Default is the current development version 
 #
 VERSION=0.0.32
+TASK=
 
 all:
 
@@ -68,7 +69,7 @@ reinst: clean uninst inst
 # Local tests: this will reinstall Quantarhei and run tests #
 #############################################################
 local_tests: reinst
-	paver
+	paver  ${TASK}
 
 
 #############################################
@@ -85,6 +86,8 @@ plot_tests:
 	paver matplotlib_tests
 
 
+pylint:
+	paver pylint
 
 help:
 	@echo "inst, reinst, local_tests, plot_tests, tests, sdist, clean"

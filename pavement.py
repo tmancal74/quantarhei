@@ -71,6 +71,10 @@ def pylint():
     r.set_path(path)
 #    r.un('statevector.py')
 
+    path = 'quantarhei/qm/liouvillespace'
+    r.set_path(path)
+    r.un('lindbladform.py')
+    
     path = 'quantarhei/builders'
     r.set_path(path)
 #    r.un('pdb.py')    
@@ -111,3 +115,6 @@ def windows():
     """ On windows, aloe tool does not work. We do only unit tests"""
     pass
 
+@task
+def dev():
+   sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py') 
