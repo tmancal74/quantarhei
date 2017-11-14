@@ -53,6 +53,30 @@ class ElectronicLindbladForm(LindbladForm):
     Purely electronic relaxation defined in the site basis
 
 
+    Parameters
+    ----------
+    
+    ham : Hamiltonian
+        Hamiltonian of the system (aggregate)
+        
+    sbi : SystemBathInteraction
+        Object describing system--bath interaction. For Lindblad form, this
+        object holds projection operators describing transitions which
+        proceeds with a given rate. Rates are also specified by ``sbi`` object.
+        In addition, ``sbi`` has to have an attribute ``system`` which holds
+        the Aggregate object of the system
+        
+    initialize: boolean
+        if True, Lindblad form will be immediately initialized
+        
+    as_operators: boolean
+        if True, the Lindblad form will be represented by operators and not
+        by a tensor
+        
+    name : str
+        Name of the ElectronicLindbladForm object
+
+
     """
 
     def __init__(self, ham, sbi, initialize=True,
@@ -88,17 +112,20 @@ class ElectronicLindbladForm(LindbladForm):
                             for i_vib in agg.vibindices[i_el]:
                                 
                                 vs_i = agg.vibsigs[i_vib]
-                                st_i = VibronicState(vs_i[0], vs_i[1])
+                                st_i = agg.get_VibronicState(vs_i[0], vs_i[1])
                                 
                                 for j_el in range(agg.Nel):
                                     for j_vib in agg.vibindices[j_el]:
                                 
                                         vs_j = agg.vibsigs[j_vib]
-                                        st_j = VibronicState(vs_j[0],
-                                                             vs_j[1])
+                                        st_j = agg.get_VibronicState(vs_j[0],
+                                                                     vs_j[1])
                                 
+                                        # electronic transition operator
+                                        # dressed in Franck-Condon factors
                                         newkk[i_vib, j_vib] = \
-                                        agg.fc_factor(st_i, st_j)
+                                        agg.fc_factor(st_i, st_j)* \
+                                        sbi.KK[k, i_el, j_el]
                     
                         ops.append(newkk)
                     

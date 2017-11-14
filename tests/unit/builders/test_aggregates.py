@@ -16,10 +16,13 @@ import numpy
 
 from quantarhei import Aggregate
 from quantarhei import Molecule
+from quantarhei import Mode
 
 from quantarhei import CorrelationFunction
 from quantarhei import energy_units
 from quantarhei import TimeAxis
+
+from quantarhei.qm import ReducedDensityMatrix
 
 
 class TestAggregate(unittest.TestCase):
@@ -51,8 +54,25 @@ class TestAggregate(unittest.TestCase):
         self.agg.build()
         
         
+        m3 = Molecule(name="Molecule 1", elenergies=[0.0, 1.0])
+        m4 = Molecule(name="Molecule 2", elenergies=[0.0, 1.0])     
+        m3.add_Mode(Mode(0.01))
+        m4.add_Mode(Mode(0.01))
         
-    
+        mod3 = m3.get_Mode(0)
+        mod4 = m4.get_Mode(0)
+        
+        mod3.set_nmax(0, 4)
+        mod3.set_nmax(1, 4)
+        mod3.set_HR(1, 0.1)
+        mod4.set_nmax(0, 4)
+        mod4.set_nmax(1, 4)
+        mod4.set_HR(1, 0.3)
+        
+        self.vagg = Aggregate(molecules=[m3, m4])
+        self.vagg.build()
+
+
     def test_saving_of_aggregate(self):
         """Testing the saving capability of the Aggregate class
         
@@ -112,4 +132,38 @@ class TestAggregate(unittest.TestCase):
             mnames.remove(m.name)
             
 
+    def test_trace_over_vibrations(self):
+        """Testing trace over vibrational DOF
+        
+        """
+        
+        agg = self.vagg
+        
+        ham = agg.get_Hamiltonian()
+        
+        rho = ReducedDensityMatrix(dim=ham.dim)
+        rho._data[5, 5] = 1.0
+        redr = agg.trace_over_vibrations(rho)
+        
+        numpy.testing.assert_almost_equal(numpy.trace(redr._data), 1.0,
+                                          decimal=7)
+        
+        N = agg.Nb[0]
+        
+        rho = ReducedDensityMatrix(dim=ham.dim)
+        rho._data[N+5, N+5] = 1.0
+        redr = agg.trace_over_vibrations(rho)       
+
+        numpy.testing.assert_almost_equal(numpy.trace(redr._data), 1.0,
+                                          decimal=3)
+
+
+        N = agg.Nb[1]
+        
+        rho = ReducedDensityMatrix(dim=ham.dim)
+        rho._data[N+5, N+5] = 1.0
+        redr = agg.trace_over_vibrations(rho)       
+
+        numpy.testing.assert_almost_equal(numpy.trace(redr._data), 1.0,
+                                          decimal=2)
         

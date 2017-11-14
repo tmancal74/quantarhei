@@ -15,11 +15,16 @@ import numpy
 
 from quantarhei.qm import LindbladForm
 from quantarhei.qm import ElectronicLindbladForm
-from quantarhei import Hamiltonian
+
 from quantarhei.qm import Operator
 from quantarhei.qm import SystemBathInteraction
+from quantarhei.qm import ReducedDensityMatrixPropagator
+from quantarhei.qm import ReducedDensityMatrix
 
+from quantarhei import Hamiltonian
 from quantarhei import energy_units
+from quantarhei import TimeAxis
+
 
 class TestLindblad(unittest.TestCase):
     """Tests for the LindbladForm class
@@ -150,9 +155,7 @@ class TestElectronicLindblad(unittest.TestCase):
         self.vham = vagg.get_Hamiltonian()
         
         self.vsbi = SystemBathInteraction([KK12, KK21], rates=self.rates)
-        self.vsbi.set_system(vagg)
-        
-        
+        self.vsbi.set_system(vagg)       
         
         
     def test_comparison_of_rates_in_electronic(self):
@@ -183,14 +186,63 @@ class TestElectronicLindblad(unittest.TestCase):
         #print("KM = ", KM)
         #print("LT = ", LT.data)
         
-        numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
-                
+        numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)               
+
 
     def test_construction_electronic_lindblad(self):
-        """Testing construction of ElectronicLindblad for vibronic system
+        """Testing construction of electronic Lindblad form for vibronic system
          
         """
-        dim = self.vham.dim
          
         LT = ElectronicLindbladForm(self.vham, self.vsbi, as_operators=False)
+        
+        dim = self.vham.dim
+        zer = numpy.zeros((dim, dim, dim, dim), dtype=numpy.float64)
+        numpy.testing.assert_array_equal(LT._data-LT._data, zer)
+
+
+    def test_comparison_with_and_without_vib(self):
+        """Testing ElectronicLindbladForm in propagation
+        
+        """
+        
+        # Lindblad forms
+        LT = ElectronicLindbladForm(self.ham, self.sbi, as_operators=False)
+        vLT = ElectronicLindbladForm(self.vham, self.vsbi, as_operators=False)
+       
+        # Propagators
+        time = TimeAxis(0.0, 1000, 1.0)
+        el_prop = ReducedDensityMatrixPropagator(time, self.ham, LT)
+        vib_prop = ReducedDensityMatrixPropagator(time, self.vham, vLT)
+        
+        # electronic initial condition
+        rho0 = ReducedDensityMatrix(dim=self.ham.dim)
+        rho0.data[2,2] = 1.0
+        
+        # vibronic intial condition
+        vrho0 = ReducedDensityMatrix(dim=self.vham.dim)
+        agg = self.vsbi.system
+        Nin = agg.vibindices[2][0]
+        vrho0.data[Nin, Nin] = 1.0
+        
+        # propagations
+        rhot = el_prop.propagate(rho0)
+        vrhot = vib_prop.propagate(vrho0)
+        
+        # averaging over vibrational level at t=0
+        Nel = agg.Nel
+        
+        aver_vrhot0 = agg.trace_over_vibrations(vrho0) 
+                
+        # Test
+        numpy.testing.assert_array_equal(rhot._data[0,:,:], rho0._data)
+        numpy.testing.assert_array_equal(rhot._data[0,:,:], aver_vrhot0._data)
+        
+        aver_vrhot10 = agg.trace_over_vibrations(vrhot, 10)
+        numpy.testing.assert_array_equal(rhot._data[10,:,:], 
+                                         aver_vrhot10._data)        
      
+        aver_vrhot800 = agg.trace_over_vibrations(vrhot, 800)
+        numpy.testing.assert_array_equal(rhot._data[800,:,:], 
+                                         aver_vrhot800._data)        
+        

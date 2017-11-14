@@ -327,24 +327,30 @@ class Molecule(UnitsManaged, Saveable):
     #
     # Some getters and setters 
     #
-    def get_Mode(self,N):
+    def get_Mode(self, N):
         try:
             return self.modes[N]
         except:
             raise Exception()
             
-    def get_dipole(self,N,M):
+    def get_number_of_modes(self):
+        """Retruns the number of modes in this molecule
+        
+        """
+        return len(self.modes)
+            
+    def get_dipole(self, N, M):
         try:
-            return self.dmoments[N,M,:]
+            return self.dmoments[N, M, :]
         except:
             raise Exception()
             
-    def set_dipole(self,N,M,vec):
+    def set_dipole(self, N, M, vec):
         if N == M:
             raise Exception("M must not be equal to N")
         try:
-            self.dmoments[N,M,:] = vec
-            self.dmoments[M,N,:] = numpy.conj(vec)
+            self.dmoments[N, M, :] = vec
+            self.dmoments[M, N, :] = numpy.conj(vec)
         except:
             raise Exception()        
 
@@ -383,7 +389,6 @@ class Molecule(UnitsManaged, Saveable):
             # FIXME: calculate the linewidth
             self._nat_linewidth[N] = 1.0/lftm
             self._saved_epsilon_r = epsilon_r
-            
             
         else:
             #raise Exception("Cannot calculate natural lifetime")

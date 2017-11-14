@@ -42,7 +42,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     
     """
     
-    def __init__(self, timeaxis=None, Ham=None, RTensor="", Efield="", Trdip=""):
+    def __init__(self, timeaxis=None, Ham=None, RTensor="",
+                 Efield="", Trdip=""):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -167,7 +168,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """
         self.propagation_name = name
         
-        if not isinstance(rhoi,ReducedDensityMatrix):
+        if not isinstance(rhoi, ReducedDensityMatrix):
             raise Exception("First argument has be of"+
             "the ReducedDensityMatrix type")
                     
@@ -411,7 +412,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """
               Short exp integration
         """
-
+        
+        try:
+            if self.RelaxationTensor.as_operators:
+                return self.__propagate_short_exp_with_rel_operators(rhoi,L=L)
+        except:
+            pass
+        
+        
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
                                            name=self.propagation_name)
         
@@ -420,16 +428,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         HH = self.Hamiltonian.data        
         RR = self.RelaxationTensor.data
-#        dim = self.Hamiltonian.dim        
-
-#        #print("CYTHON")
-#        cython = False
-#        if cython:
-#            
-#            pr.data = prop.propagate(self.TimeAxis.time,self.dt,
-#                                    self.Nt,self.Nref,HH,RR,rho1,dim,L)
-#        
-#            return pr
             
         indx = 1
         for ii in range(1, self.Nt): 
@@ -451,6 +449,59 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         return pr  
         
+    def __propagate_short_exp_with_rel_operators(self,rhoi,L=4):
+        """
+              Short exp integration
+        """
+
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
+                                           name=self.propagation_name)
+        
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+        
+        HH = self.Hamiltonian.data  
+        
+        try:
+            Km = self.RelaxationTensor.Km
+            Lm = self.RelaxationTensor.Lm
+            Ld = self.RelaxationTensor.Ld
+            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
+            Nm = Km.shape[0]
+            for m in range(Nm):
+                Kd[m, :, :] = numpy.transpose(Km[m, :, :])
+        except:
+            raise Exception("Tensor is not in operator form")
+            
+        indx = 1
+        for ii in range(1, self.Nt): 
+            
+            for jj in range(0, self.Nref):
+                
+                for ll in range(1, L+1):
+                    
+                    rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                             - numpy.dot(rho1,HH))
+                    
+                    rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
+                    for mm in range(Nm):
+                        
+                       rhoX += (self.dt/ll)*(
+                        numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                       +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                       -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                       -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+                       )
+                             
+                    rho1 = rhoY + rhoX
+                    
+                    rho2 = rho2 + rho1
+                rho1 = rho2    
+                
+            pr.data[indx,:,:] = rho2 
+            indx += 1             
+            
+        return pr
         
     def __propagate_short_exp_with_TD_relaxation(self,rhoi,L=4):
         """

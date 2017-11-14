@@ -21,14 +21,14 @@ class TestExamples(unittest.TestCase):
         
         do_the_work(efiles)
 
-    def test_examples_006_009(self):
-        """Testing examples 006 - 009
-        """
-
-        # example files
-        efiles = [
-                  "ex_006_Absorption_1.py",
-                 ]
+#    def test_examples_006_009(self):
+#        """Testing examples 006 - 009
+#        """
+#
+#        # example files
+#        efiles = [
+#                  "ex_006_Absorption_1.py",
+#                 ]
         
         do_the_work(efiles)
         
@@ -42,6 +42,7 @@ class TestExamples(unittest.TestCase):
                   "ex_010_RedfieldTheory_1.py",
                   "ex_011_LindbladForm_1.py"
                  ]
+           
         
         do_the_work(efiles)
         

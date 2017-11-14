@@ -79,7 +79,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
             raise Exception("Cannot apply operator to the object")
         
 
-    def transform(self,SS,inv=None):
+    def transform(self, SS, inv=None):
         """Transformation of the operator by a given matrix
         
         
@@ -145,7 +145,7 @@ class SelfAdjointOperator(Operator):
         
     """
     
-    def __init__(self,dim=None,data=None,name=""):
+    def __init__(self, dim=None ,data=None, name=""):
         
         if not ((dim is None) and (data is None)):
             Operator.__init__(self,dim=dim,data=data,name=name)
@@ -180,7 +180,7 @@ class SelfAdjointOperator(Operator):
    
 class BasisReferenceOperator(SelfAdjointOperator):
     
-    def __init__(self,dim=None, name=""):
+    def __init__(self, dim=None, name=""):
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
         series = numpy.array([i for i in range(dim)], dtype=numpy.float64)

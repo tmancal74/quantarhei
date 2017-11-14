@@ -8,6 +8,10 @@ from paver.easy import sh
 @task
 def matplotlib_tests():
     sh('cd quantarhei; ./tests.py; cd ..')
+
+@task
+def examples():
+    sh('nosetests -vs tests/unit/wizard/examples/')
     
 @task
 def unit_tests_vs():
@@ -117,4 +121,6 @@ def windows():
 
 @task
 def dev():
-   sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py') 
+   sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
+   sh('nosetests -vs tests/unit/builders/test_aggregates.py')
+ 

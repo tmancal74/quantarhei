@@ -28,7 +28,7 @@ class RelaxationTensor(BasisManaged):
 
         """
         if self.as_operators:
-            raise Exception("Cannot be secularized in an operator form")
+            raise Exception("Cannot be secularized in the operator form")
             
         else:
             if self.data.ndim == 4:
@@ -146,3 +146,35 @@ class RelaxationTensor(BasisManaged):
                                               +self._data[:,mm,mm,mm,mm])/2.0
                     self._data[:,mm,nn,mm,nn] = self._data[:,nn,mm,nn,mm] 
             
+    
+    def __mult__(self, scalar):
+        """Multiplication of the Tensor by a scalar
+        
+        """
+        import numbers
+        
+        if not isinstance(scalar, numbers.Number):
+            raise Exception("Only multiplication by numbers is implemented")
+            
+        if self.as_operators:
+            raise Exception("Multiplication in operator form not implemented")
+            
+        self._data = self._data*scalar
+        return self
+        
+    def __rmult__(self, scalar):
+        return self.__mult__(scalar)
+    
+    
+    def __add__(self, other):
+        self._data += other._data
+        return self
+
+    def __iadd__(self, other):
+        return self.__add__(other)
+    
+    
+        
+        
+        
+        

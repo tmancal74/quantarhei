@@ -40,7 +40,7 @@ uninstall: uninst
 
 
 uninst: 
-	pip uninstall quantarhei
+	pip uninstall -y quantarhei
 
 
 ##################

@@ -214,7 +214,7 @@ class Saveable:
             attributes["tuples"] = tuples
 
 
-        print("Data size: ", nb/(1024**2))
+        #print("Data size: ", nb/(1024**2))
 
         _do_save(self, file=file,
                  attributes=attributes,

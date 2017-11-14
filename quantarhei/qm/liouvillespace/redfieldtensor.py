@@ -10,6 +10,7 @@
 
 *******************************************************************************
 """
+import time
 import numpy
 import scipy
 
@@ -324,34 +325,43 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #######################################################################
         # PARALLELIZATION
         #######################################################################
+        
+        #from ...implementations.cython.loopit import loopit
+        
 
         start_parallel_region()
+        tt1 = time.time()
         for m in block_distributed_range(0,Nb): #range(Nb):
+            
             Kd = numpy.transpose(Km[m,:,:])
-            KdLm = numpy.dot(Kd,Lm[m,:,:])
-            LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
-            for a in range(Na):
-                for b in range(Na):
-                    for c in range(Na):
-                        for d in range(Na):
-                            
-                            RR[a,b,c,d] += (Km[m,a,c]*Ld[m,d,b] 
-                                            + Lm[m,a,c]*Kd[d,b])
-                            if b == d:
-                                RR[a,b,c,d] -= KdLm[a,c] 
-                            if a == c:
-                                RR[a,b,c,d] -= LdKm[d,b]
+#            KdLm = numpy.dot(Kd,Lm[m,:,:])
+#            LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
+#            for a in range(Na):
+#                print(a)
+#                for b in range(Na):
+#                    for c in range(Na):
+#                        for d in range(Na):
+#                            
+#                            RR[a,b,c,d] += (Km[m,a,c]*Ld[m,d,b] 
+#                                            + Lm[m,a,c]*Kd[d,b])
+#                            if b == d:
+#                                RR[a,b,c,d] -= KdLm[a,c] 
+#                            if a == c:
+#                                RR[a,b,c,d] -= LdKm[d,b]
                                 
+            _loopit(Km, Kd, Lm, Ld, Na, RR, m)
+        
         # perform reduction of the RR
         distributed_configuration().allreduce(RR, operation="sum")
-
+        tt2 = time.time()
+        
         close_parallel_region()
         #######################################################################
         # END PARALLELIZATION
         #######################################################################
         
+        print(tt2-tt1)
         return RR
-
 
     def initialize(self):
         """Initializes the Redfield tensor with values 
@@ -376,4 +386,22 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                                                          
             self.as_operators = False
          
-                      
+ 
+
+def _loopit(Km, Kd, Lm, Ld, Na, RR, m):
+
+    
+    KdLm = numpy.dot(Kd,Lm[m,:,:])
+    LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
+    for a in range(Na):
+        for b in range(Na):
+            for c in range(Na):
+                for d in range(Na):
+                    
+                    RR[a,b,c,d] += (Km[m,a,c]*Ld[m,d,b] 
+                                    + Lm[m,a,c]*Kd[d,b])
+                    if b == d:
+                        RR[a,b,c,d] -= KdLm[a,c] 
+                    if a == c:
+                        RR[a,b,c,d] -= LdKm[d,b]
+            

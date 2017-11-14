@@ -21,6 +21,8 @@ from ..qm.oscillators.ho import operator_factory
 
 from ..qm.hilbertspace.operators import Operator
 from ..qm.hilbertspace.operators import DensityMatrix
+from ..qm.hilbertspace.operators import ReducedDensityMatrix
+from ..qm.propagators.dmevolution import ReducedDensityMatrixEvolution
 from ..qm.liouvillespace.systembathinteraction import SystemBathInteraction
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
@@ -1047,25 +1049,6 @@ class Aggregate(UnitsManaged, Saveable):
         # try to get one from monomers
         else:
             
-#            nm = self.monomers[0]
-#            # FIXME: This is depricated - monomers do not need egcf_matrix
-#            if nm._has_egcf_matrix:
-#                self.egcf_matrix = nm.egcf_matrix
-#                for i in range(self.nmono):
-#                    if not (self.monomers[i].egcf_matrix is self.egcf_matrix):
-#                        raise Exception("Correlation matrix in the" + 
-#                                        " monomer has to be the same as" +
-#                                        " the one of the aggregate.")
-#                                                                                
-#                # seems like everything is consistent -> we can calculate
-#                # system--bath interaction
-#                self._has_system_bath_interaction = True
-#                self._has_egcf_matrix = True
-#                
-#            else:
-                # probably we will not be dealing with an open system
-                # do not set system-bath interaction
-                #raise Exception("Monomer(s) have no egcf matrix")
             self._has_system_bath_interaction = False
             
         # try to set energy gap correlation matrix from monomers
@@ -1199,8 +1182,168 @@ class Aggregate(UnitsManaged, Saveable):
     #
     #    POST BUILDING METHODS
     #
-    ########################################################################       
-  
+    ######################################################################## 
+
+    def trace_over_vibrations(self, operator, Nt=None):
+        """Average operator over vibrational degrees of freedom
+        
+        Average MUST be done in site basis. Only in site basis
+        we can distinguish the vibrational states properly
+        
+        """
+        n_indices = 2
+        evolution = False
+        whole = False
+        
+        if operator.dim == self.Ntot:
+            
+            if isinstance(operator, ReducedDensityMatrix):
+                
+                nop = ReducedDensityMatrix(dim=self.Nel)
+                
+                
+            elif isinstance(operator, ReducedDensityMatrixEvolution):
+                
+                if Nt is not None:
+                    nop = ReducedDensityMatrix(dim=self.Nel)
+                    evolution = True
+                    whole = False
+                else:
+                    nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
+                    rhoi = ReducedDensityMatrix(dim=self.Nel)
+                    # we set zero initial condition, because this initialized 
+                    # the data storage
+                    nop.set_initial_condition(rhoi)
+                    evolution = True
+                    whole = True
+                    
+#                    raise Exception("Cannot trace the whole evolution: "
+#                                    +"not implemented yet")
+                
+            else:
+                raise Exception("Operation not implemented for this type: "+
+                                operator.__class__.__name__)
+            
+            if n_indices == 2:
+                
+                # convert to representation by ground-state oscillator
+                
+                # FIXME: This limitation might not be necessary
+                # in the ground states of all monomers, there must be the same
+                # or greater number of levels than in the excited state
+                
+                # over all monomers
+                for k in range(self.nmono):
+                    mono = self.monomers[k]
+                    # over all modes
+                    n_mod = mono.get_number_of_modes()
+                    for i in range(n_mod):
+                        mod = mono.get_Mode(i)
+                        n_g = mod.get_nmax(0)
+                        # over all excited states
+                        # FIXME: this should be mono.Nel as in Aggregate
+                        for j in range(mono.nel):
+                            if (j > 0):
+                                n_e = mod.get_nmax(j)
+                                if n_e > n_g:
+                                    raise Exception("Number of levels"+
+                        " in the excited state of a molecule has to be \n"+
+                        "the same or smaller than in the ground state")
+                        
+                
+                # do the conversion
+                
+                # 
+                # ground state vibrational states
+                #
+                stgs = []
+                for i_g in self.vibindices[0]:
+                    vs_g = self.vibsigs[i_g]
+                    stg = self.get_VibronicState(vs_g[0],
+                                                vs_g[1])
+                    stgs.append(stg)
+                    
+                if evolution:
+                    
+                    if whole:
+                        
+                        # loop over electronic states n, m
+                        for n in range(self.Nel):
+                            for i_n in self.vibindices[n]:
+                                vs_n = self.vibsigs[i_n]
+                                stn = self.get_VibronicState(vs_n[0], vs_n[1])
+                                
+                                for m in range(self.Nel):
+                                    for i_m in self.vibindices[m]:
+                                        vs_m = self.vibsigs[i_n]
+                                        stm = self.get_VibronicState(vs_m[0], 
+                                                                     vs_m[1])
+                                        
+                                        for stg in stgs:
+                                            
+                                            fc_n = self.fc_factor(stg, stn)
+                                            fc_m = self.fc_factor(stm, stg)
+                                            
+                                            Nr = nop.TimeAxis.length
+                                            for nt in range(Nr):
+                                                contrib = \
+                                                  operator._data[nt, i_n, i_m]\
+                                                  *fc_n*fc_m
+                                                nop._data[nt, n, m] += contrib                          
+                        
+                    else:
+                        # loop over electronic states n, m
+                        for n in range(self.Nel):
+                            for i_n in self.vibindices[n]:
+                                vs_n = self.vibsigs[i_n]
+                                stn = self.get_VibronicState(vs_n[0], vs_n[1])
+                                
+                                for m in range(self.Nel):
+                                    for i_m in self.vibindices[m]:
+                                        vs_m = self.vibsigs[i_n]
+                                        stm = self.get_VibronicState(vs_m[0], 
+                                                                     vs_m[1])
+                                        
+                                        for stg in stgs:
+                                            
+                                            fc_n = self.fc_factor(stg, stn)
+                                            fc_m = self.fc_factor(stm, stg)
+                                            contrib = \
+                                              operator._data[Nt, i_n, i_m]\
+                                              *fc_n*fc_m
+                                            nop._data[n,m] += contrib                    
+                    
+                else:
+                    # loop over electronic states n, m
+                    for n in range(self.Nel):
+                        for i_n in self.vibindices[n]:
+                            vs_n = self.vibsigs[i_n]
+                            stn = self.get_VibronicState(vs_n[0], vs_n[1])
+                            
+                            for m in range(self.Nel):
+                                for i_m in self.vibindices[m]:
+                                    vs_m = self.vibsigs[i_n]
+                                    stm = self.get_VibronicState(vs_m[0], 
+                                                                 vs_m[1])
+                                    
+                                    for stg in stgs:
+                                        
+                                        fc_n = self.fc_factor(stg, stn)
+                                        fc_m = self.fc_factor(stm, stg)
+                                        contrib = \
+                                        operator._data[i_n, i_m]*fc_n*fc_m
+                                        nop._data[n,m] += contrib
+                                
+            else:
+                raise Exception("Cannot trace over this object: "+
+                                "wrong number of indices")
+                            
+            return nop
+        
+        else:
+            raise Exception("Incompatible operator")
+
+
     def get_RWA_suggestion(self):
         """Returns average transition energy 
         
