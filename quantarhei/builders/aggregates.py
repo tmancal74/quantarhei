@@ -850,8 +850,7 @@ class Aggregate(UnitsManaged, Saveable):
                 nsig += 1 # count the number of vibrational signatures    
             
             # if no vibrational signatures
-            if nsig == 0:
-                
+            if nsig == 0:  
                 # if True return vibronic states even 
                 # for purely electronic state
                 if all_vibronic:

@@ -210,7 +210,7 @@ class ProjectionOperator(Operator):
             raise Exception("Wrong operator dimension")
             
             
-    def __mul__(self, other):
+    def __mult__(self, other):
         """Multiplication of operator by scalar
         
         """
@@ -218,14 +218,14 @@ class ProjectionOperator(Operator):
             self._data = self._data*other
         else:
             raise Exception("Only multiplication by scalar is allowed")
+        return self._data
 
-
-    def __rmul__(self, other):
+    def __rmult__(self, other):
         """Multiplication from right
         
         """
-        self.__mult__(other)
-
+        return self.__mult__(other)
+        
             
 class DensityMatrix(SelfAdjointOperator, Saveable):
     """Class representing a density matrix
