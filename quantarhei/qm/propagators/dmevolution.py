@@ -87,7 +87,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         if how == '-':
             howi = ['-k','-r','-b','-g','-m','-y','-c']
         if how == '--':
-            howi = ['--k','--r','--b','--g','--m','--y','--c']
+            howi = ['--r','--b','--g','--m','--y','--c','--k']
             
         N = self.data.shape[1]
 

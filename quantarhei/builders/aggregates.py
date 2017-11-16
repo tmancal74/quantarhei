@@ -974,6 +974,8 @@ class Aggregate(UnitsManaged, Saveable):
         # Transition dipole moment matrix
         DD = numpy.zeros((Ntot, Ntot, 3),dtype=numpy.float64)
         
+        FC = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
+        
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:    
             self.init_coupling_matrix()            
@@ -982,15 +984,17 @@ class Aggregate(UnitsManaged, Saveable):
         for a, s1 in self.allstates(mult=self.mult, save_indices=True,
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
                                     vibenergy_cutoff=vibenergy_cutoff):
-            #print("state = ", a)
+
             HH[a,a] = s1.energy()
-            for b,s2 in self.allstates(mult=self.mult,
+            for b, s2 in self.allstates(mult=self.mult,
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
                                     vibenergy_cutoff=vibenergy_cutoff): 
             
-                DD[a,b,:] = self.transition_dipole(s1,s2)
+                DD[a,b,:] = self.transition_dipole(s1, s2)
                 
-                #print(" - ", a,b,s1.signature(),s2.signature())
+                FC[a,b] = self.fc_factor(s1, s2)
+                
+                #print(" - ", a, b ,s1.signature(),s2.signature())
                 #print("  :", DD[a,b,:] )
                 
                 if a != b:
@@ -1004,6 +1008,8 @@ class Aggregate(UnitsManaged, Saveable):
         self.HamOp = Hamiltonian(data=HH)
 
         self.DD = DD
+        
+        self.FCf = FC
         
         # squares of transition dipoles
         dd2 = numpy.zeros((Ntot,Ntot),dtype=numpy.float64)
@@ -1266,48 +1272,72 @@ class Aggregate(UnitsManaged, Saveable):
                 if evolution:
                     
                     if whole:
+                        import time
                         
+                        t1 = time.time()
                         # loop over electronic states n, m
                         for n in range(self.Nel):
                             for i_n in self.vibindices[n]:
-                                vs_n = self.vibsigs[i_n]
-                                stn = self.get_VibronicState(vs_n[0], vs_n[1])
+#                                vs_n = self.vibsigs[i_n]
+#                                stn = self.get_VibronicState(vs_n[0], vs_n[1])
                                 
                                 for m in range(self.Nel):
                                     for i_m in self.vibindices[m]:
-                                        vs_m = self.vibsigs[i_n]
-                                        stm = self.get_VibronicState(vs_m[0], 
-                                                                     vs_m[1])
+#                                        vs_m = self.vibsigs[i_n]
+#                                        stm = self.get_VibronicState(vs_m[0], 
+#                                                                     vs_m[1])
                                         
-                                        for stg in stgs:
+                                        #for stg in stgs:
+                                        for i_g in range(self.Nb[0]):
                                             
-                                            fc_n = self.fc_factor(stg, stn)
-                                            fc_m = self.fc_factor(stm, stg)
+#                                            fc_n = self.fc_factor(stg, stn)
+#                                            fc_m = self.fc_factor(stm, stg)
                                             
-                                            Nr = nop.TimeAxis.length
-                                            for nt in range(Nr):
-                                                contrib = \
-                                                  operator._data[nt, i_n, i_m]\
-                                                  *fc_n*fc_m
-                                                nop._data[nt, n, m] += contrib                          
+                                            fc_n = self.FCf[i_g, i_n]
+                                            fc_m = self.FCf[i_m, i_g]
+                                            
+                                            prod = fc_n*fc_m
+                                            
+#                                            Nr = nop.TimeAxis.length
+#                                            for nt in range(Nr):
+#                                                contrib = \
+#                                                  operator._data[nt, i_n, i_m]\
+#                                                  *fc_n*fc_m
+#                                                nop._data[nt, n, m] += contrib
+                                            nop._data[:, n, m] += \
+                                            operator._data[:, i_n, i_m]*prod
+                                            
+                        t2 = time.time()
+                        
+                        print("TIME: ", t2-t1)
                         
                     else:
                         # loop over electronic states n, m
                         for n in range(self.Nel):
                             for i_n in self.vibindices[n]:
-                                vs_n = self.vibsigs[i_n]
-                                stn = self.get_VibronicState(vs_n[0], vs_n[1])
+                                #vs_n = self.vibsigs[i_n]
+                                #stn = self.get_VibronicState(vs_n[0], vs_n[1])
                                 
                                 for m in range(self.Nel):
                                     for i_m in self.vibindices[m]:
-                                        vs_m = self.vibsigs[i_n]
-                                        stm = self.get_VibronicState(vs_m[0], 
-                                                                     vs_m[1])
+                                        #vs_m = self.vibsigs[i_m]
+                                        #stm = self.get_VibronicState(vs_m[0], 
+                                        #                             vs_m[1])
                                         
-                                        for stg in stgs:
+#                                        print(i_n, i_m, vs_n, vs_m, self.fc_factor(stn, stm), self.FCf[i_n, i_m])
+                                        
+                                        for i_g in range(self.Nb[0]):
                                             
-                                            fc_n = self.fc_factor(stg, stn)
-                                            fc_m = self.fc_factor(stm, stg)
+                                            #stg = stgs[i_g]
+                                            
+                                            fc_n = self.FCf[i_g, i_n]
+                                            fc_m = self.FCf[i_m, i_g]
+#                                            fc_n = self.fc_factor(stg, stn)
+#                                            fc_m = self.fc_factor(stm, stg)
+#                                            
+#                                            print(i_g, i_n, fc_n, self.FCf[i_g, i_n])
+#                                            print(i_m, i_g, fc_m, self.FCf[i_m, i_g])
+                                            
                                             contrib = \
                                               operator._data[Nt, i_n, i_m]\
                                               *fc_n*fc_m
@@ -1317,19 +1347,24 @@ class Aggregate(UnitsManaged, Saveable):
                     # loop over electronic states n, m
                     for n in range(self.Nel):
                         for i_n in self.vibindices[n]:
-                            vs_n = self.vibsigs[i_n]
-                            stn = self.get_VibronicState(vs_n[0], vs_n[1])
+#                            vs_n = self.vibsigs[i_n]
+#                            stn = self.get_VibronicState(vs_n[0], vs_n[1])
                             
                             for m in range(self.Nel):
                                 for i_m in self.vibindices[m]:
-                                    vs_m = self.vibsigs[i_n]
-                                    stm = self.get_VibronicState(vs_m[0], 
-                                                                 vs_m[1])
+#                                    vs_m = self.vibsigs[i_n]
+#                                    stm = self.get_VibronicState(vs_m[0], 
+#                                                                 vs_m[1])
                                     
-                                    for stg in stgs:
+                                    #for stg in stgs:
+                                    for i_g in range(self.Nb[0]):
                                         
-                                        fc_n = self.fc_factor(stg, stn)
-                                        fc_m = self.fc_factor(stm, stg)
+#                                        fc_n = self.fc_factor(stg, stn)
+#                                        fc_m = self.fc_factor(stm, stg)
+                                            
+                                        fc_n = self.FCf[i_g, i_n]
+                                        fc_m = self.FCf[i_m, i_g]
+                                        
                                         contrib = \
                                         operator._data[i_n, i_m]*fc_n*fc_m
                                         nop._data[n,m] += contrib

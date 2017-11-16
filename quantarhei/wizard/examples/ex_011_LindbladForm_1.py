@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-_show_plots_ = False
+_show_plots_ = True
 """
     Demo of the Lindblad form
     
@@ -77,6 +77,7 @@ LFa.convert_2_tensor()
 print(LFa.data[1,1,2,2])
 print(LFa.data[1,2,1,2])
 
+
 #
 # VIBRONIC Aggregate of two molecules
 #
@@ -91,22 +92,22 @@ mod1 = Mode(0.01)
 mod2 = Mode(0.01)
 mod3 = Mode(0.01)
 
-Nvib = 2
+Nvib = 3
 
 m1v.add_Mode(mod1)
 mod1.set_nmax(0, Nvib)
 mod1.set_nmax(1, Nvib)
-mod1.set_HR(1, 0.01)
+mod1.set_HR(1, 0.3)
 
 m2v.add_Mode(mod2)
 mod2.set_nmax(0, Nvib)
 mod2.set_nmax(1, Nvib)
-mod2.set_HR(1, 0.01)
+mod2.set_HR(1, 0.3)
 
 m3v.add_Mode(mod3)
 mod3.set_nmax(0, Nvib)
 mod3.set_nmax(1, Nvib)
-mod3.set_HR(1, 0.01)
+mod3.set_HR(1, 0.3)
 
 vagg = Aggregate(molecules=[m1v, m2v, m3v])
 vagg.build()
@@ -185,7 +186,7 @@ rhot2 = vibprop.propagate(rho0)
 print("...done")
 
 print("Trace over vibrations")
-rhot1 = vagg.trace_over_vibrations(rhot)
+rhot1 = vagg.trace_over_vibrations(rhot) #, Nt=20)
 print("...done")
 
 #print(rhot2.data[Nt,:,:])
@@ -193,5 +194,5 @@ print("...done")
 
 if _show_plots_:
     rhot2.plot(show=False)
-    rhot1.plot()
+    rhot1.plot(how="--")
 
