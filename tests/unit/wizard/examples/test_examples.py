@@ -21,14 +21,14 @@ class TestExamples(unittest.TestCase):
         
         do_the_work(efiles)
 
-#    def test_examples_006_009(self):
-#        """Testing examples 006 - 009
-#        """
-#
-#        # example files
-#        efiles = [
-#                  "ex_006_Absorption_1.py",
-#                 ]
+    def test_examples_006_009(self):
+        """Testing examples 006 - 009
+        """
+
+        # example files
+        efiles = [
+                  "ex_006_Absorption_1.py",
+                 ]
         
         do_the_work(efiles)
         
@@ -46,6 +46,17 @@ class TestExamples(unittest.TestCase):
         
         do_the_work(efiles)
         
+    def test_examples_020_029(self):
+        """Testing examples 020 - 029
+        """
+
+        # example files
+        efiles = [
+                  "ex_020_EvolutionSuperOperator_1.py"
+                 ]
+           
+        
+        do_the_work(efiles)
         
 def do_the_work(efiles):
 

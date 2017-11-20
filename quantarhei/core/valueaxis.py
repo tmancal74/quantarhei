@@ -317,7 +317,7 @@ class ValueAxis(Saveable):
     
     
     def is_superset_of(self, axis):
-        """Returns True if the ValueAxis is a subset of axis
+        """Returns True if the ValueAxis is a superset of axis
         
         We check if all values of this axis are also values of the submitted 
         axis object.

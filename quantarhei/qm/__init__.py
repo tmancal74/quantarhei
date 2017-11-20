@@ -50,6 +50,8 @@ from .liouvillespace.tdredfieldfoerster import TDRedfieldFoersterRelaxationTenso
 
 from .liouvillespace.lindbladform import LindbladForm
 from .liouvillespace.lindbladform import ElectronicLindbladForm
+
+from .liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 #
 #  PROPAGATORS 
 #

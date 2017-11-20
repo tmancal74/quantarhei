@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-_show_plots_ = True
+_show_plots_ = False
 """
     Demo of the Lindblad form
     
