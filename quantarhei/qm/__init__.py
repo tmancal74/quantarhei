@@ -52,6 +52,9 @@ from .liouvillespace.lindbladform import LindbladForm
 from .liouvillespace.lindbladform import ElectronicLindbladForm
 
 from .liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
+from .liouvillespace.evolutionsuperoperator import SuperOperator
+from .liouvillespace.evolutionsuperoperator import SOpUnity
+
 #
 #  PROPAGATORS 
 #
