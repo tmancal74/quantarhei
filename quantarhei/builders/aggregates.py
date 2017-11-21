@@ -279,12 +279,19 @@ class Aggregate(UnitsManaged, Saveable):
         self.mnames[mono.name] = len(self.monomers)-1
         self.nmono += 1
         
-    def get_Molecule_by_name(self,name):
+    def get_Molecule_by_name(self, name):
         try:
             im = self.mnames[name]
             return self.monomers[im]
         except:
-            raise Exception()        
+            raise Exception()    
+            
+    def get_Molecule_index(self, name):
+        try:
+            im = self.mnames[name]
+            return im
+        except:
+            raise Exception()         
         
     def remove_Molecule(self, mono):
         self.monomers.remove(mono)
@@ -2754,7 +2761,7 @@ class Aggregate(UnitsManaged, Saveable):
         return U_ETICS, U_EX
         
         
-    def liouville_pathways_3T(self, ptype="R3g", eUt2 = None,
+    def liouville_pathways_3T(self, ptype="R3g", eUt2=None,
                               dtol=-1.0, ptol=1.0e-3, lab=None):
         """ Generator of Liouville pathways """
         
@@ -2846,12 +2853,12 @@ class Aggregate(UnitsManaged, Saveable):
                 k = 0
                 l = 0
                 for i1g in ngs:
-                    print("Ground state: ", i1g)
+                    #print("Ground state: ", i1g)
                     # Only thermally allowed starting states are considered
                     if self.rho0[i1g,i1g] > pop_tol:
                 
                         for i2e in nes:
-                            print('\rFirst excitation: %i ' % i2e, end = '\r')
+                            #print('\rFirst excitation: %i ' % i2e, end = '\r')
                             if self.D2[i2e,i1g] < dip_tol:
                                 break
                             
@@ -2863,8 +2870,9 @@ class Aggregate(UnitsManaged, Saveable):
                                 for i3d in nes:
                                     for i2d in nes:
                                         
-                                        if eUt2.data[i3d, i2d, 
-                                                     i3e, i2e] < 0.01:
+                                        evf = numpy.abs(eUt2.data[i3d, i2d, 
+                                                     i3e, i2e])
+                                        if evf < 0.01:
                                             break
                                 
                                         for i4g in ngs:
@@ -2904,6 +2912,7 @@ class Aggregate(UnitsManaged, Saveable):
                                                 #      |e_i3> <e_i2|
                                                 lp.add_transfer(((i3d, i2d)),
                                                                  (i3e, i2e))
+                                                lp.set_evolution_factor(evf)
                                                 lp.add_transition((i4g,i2d),-1)
                                                 #      |e_i3> <g_i4|
                                                 lp.add_transition((i4g,i3d),+1)

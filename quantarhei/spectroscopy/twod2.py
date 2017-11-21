@@ -14,6 +14,7 @@ from ..builders.molecules import Molecule
 from ..core.managers import eigenbasis_of
 from ..core.managers import energy_units
 from ..qm.propagators.poppropagator import PopulationPropagator 
+from ..core.units import convert
 
 from ..utils import derived_type
 
@@ -112,6 +113,29 @@ class TwoDSpectrumBase(DFunction2):
         else:
             
             raise Exception("Unknow type of data: "+dtype)
+
+    def add_data(self, data, dtype="Tot"):
+        if dtype == "Tot":
+            
+            if self.data is None:
+                self.data = numpy.zeros(data.shape, dtype=data.dtype)
+            self.data += data
+            
+        elif dtype == "Reph":
+            if self.reph2D is None:
+                self.reph2D = numpy.zeros(data.shape, dtype=data.dtype)
+            self.reph2D += data                
+            
+        elif dtype == "Nonr":
+            if self.nonr2D is None:
+                self.nonr2D = numpy.zeros(data.shape, dtype=data.dtype)                
+            self.nonr2D += data
+                
+            
+        else:
+            
+            raise Exception("Unknow type of data: "+dtype)
+
         
     def save(self, filename):
         super().save(filename)
@@ -141,6 +165,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
         self.t2 = -1.0
+        super().__init__()
     
     def set_t2(self, t2):
         """Sets the t2 (waiting time) of the spectrum
@@ -215,7 +240,14 @@ class TwoDSpectrum(TwoDSpectrumBase):
         """
         
         if stype == "total":
-            spect2D = self.reph2D + self.nonr2D 
+            if (self.reph2D is not None) and (self.nonr2D is not None):
+                spect2D = self.reph2D + self.nonr2D 
+            elif self.reph2D is not None:
+                spect2D = self.reph2D 
+            elif self.nonr2D is not None:
+                spect2D = self.nonr2D
+                
+            
         elif stype == "rephasing":
             spect2D = self.reph2D
         elif stype == "non-rephasing":
@@ -470,6 +502,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
                 self.xaxis = self._load_axis(rt, "xaxis")
                 self.yaxis = self._load_axis(rt, "yaxis")    
                 
+        
         
 class TwoDSpectrumContainer:
     """Class holding a set of TwoDSpectra
@@ -1127,6 +1160,109 @@ class TwoDSpectrumCalculator:
         return ret
     
     
+class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
+    """Calculator of the 2D spectrum   
     
+    """
+
+    def __init__(self, t1axis, t3axis):
+        t2axis = TimeAxis()
+        super().__init__(t1axis, t2axis, t3axis)
+        self.widthx = convert(500, "1/cm", "int")
+        self.widthy = convert(500, "1/cm", "int")
+        
+        print("Width:", self.widthx)
+        
+    def bootstrap(self,rwa=0.0, pathways=None, verbose=False):
+        
+        self.verbose = verbose
+        self.rwa = rwa
+        self.pathways = pathways
+
+        atype = self.t1axis.atype
+        self.t1axis.atype = 'complete'
+        self.oa1 = self.t1axis.get_FrequencyAxis() 
+        self.oa1.data += self.rwa
+        self.oa1.start += self.rwa
+        self.t1axis.atype = atype
+        
+        atype = self.t3axis.atype
+        self.t3axis.atype = 'complete'
+        self.oa3 = self.t3axis.get_FrequencyAxis() 
+        self.oa3.data += self.rwa
+        self.oa3.start += self.rwa
+        self.t3axis.atype = atype        
+        
+
+    def set_width(self, val):
+        self.widthx = val
+        self.widthy = val
+
+        
+    def calculate(self):
+        
+        onetwod = TwoDSpectrum()
+        onetwod.set_axis_1(self.oa1)
+        onetwod.set_axis_3(self.oa3)
+        
+        for pwy in self.pathways:
+            
+            data = self.calculate_pathway(pwy)
+            
+            if pwy.pathway_type == "R":
+                onetwod.add_data(data, dtype="Reph")
+            elif pwy.pathway_type == "NR":
+                onetwod.add_data(data, dtype="Nonr")
+            else:
+                raise Exception("Unknown pathway type")
+
+        onetwod.set_t2(0.0)    
+            
+        return onetwod
+    
+    def calculate_pathway(self, pathway):
+ 
+        noe = 1+pathway.order+pathway.relax_order 
+        
+        cen1 = pathway.frequency[0]
+        cen3 = pathway.frequency[noe-2]
+        pref = pathway.pref
+        N1 = self.oa1.length
+        N3 = self.oa3.length
+        
+        if pathway.pathway_type == "R":
+
+            reph2D = numpy.zeros((N1, N3), dtype=numpy.float64)
+            
+            oo3 = self.oa3.data[:]
+            for i1 in range(N1):
+                o1 = -self.oa1.data[i1]
+                #for i3 in range(N3):
+                #    o3 = self.oa3.data[i3]
+                    
+                    
+                reph2D[i1, :] = pref*numpy.exp(-((o1-cen1)/self.widthx)**2)*numpy.exp(-((oo3-cen3)/self.widthy)**2)
+                    #print(i1, i3, reph2D[i1, i3])
+        
+            
+            return reph2D
+            
+        elif pathway.pathway_type == "NR":
+           
+            nonr2D = numpy.zeros((N1, N3), dtype=numpy.float64)
+            
+            oo3 = self.oa3.data[:]
+            for i1 in range(N1):
+                o1 = self.oa1.data[i1]
+                #for i3 in range(N3):
+                #    o3 = self.oa3.data[i3]
+                    
+                    
+                nonr2D[i1, :] = pref*numpy.exp(-((o1-cen1)/self.widthx)**2)*numpy.exp(-((oo3-cen3)/self.widthy)**2)
+                    #print(i1, i3, reph2D[i1, i3])
+            
+            return nonr2D
+        
+            
         
         

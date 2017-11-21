@@ -112,6 +112,9 @@ class liouville_pathway(UnitsManaged):
         # orientational prefactor (negative means that it is not initialized)
         self.pref = -1.0
         
+        # factor from evolution (super)operator
+        self.evolfac = 1.0
+        
         # band through which the pathway travels at population time
         self.popt_band = popt_band
         
@@ -169,10 +172,11 @@ class liouville_pathway(UnitsManaged):
                     if ii != 3: # if this is not the last interaction print
                                 # also the frequency
                         spc = self._chars(self.transitions[ii,0], rx)
+                        ene = self.convert_energy_2_current_u(self.frequency[ee])
                         outr =  ("    |%i%s%i|      %r\n" % 
                                                      (self.transitions[ii,0],
                                                       spc, rx, 
-                                            numpy.round(self.frequency[ee])))
+                                            numpy.round(ene)))
                      
                     else: # last interaction
                         spc = self._chars(self.transitions[ii,0], rx)
@@ -192,9 +196,10 @@ class liouville_pathway(UnitsManaged):
                     if ii != 3: # if this is not the last interaction
                                 # print also the frequency
                         spc = self._chars(lx, self.transitions[ii,0])
+                        ene = self.convert_energy_2_current_u(self.frequency[ee])
                         outl =  ("    |%i%s%i|      %r\n" % 
                                               (lx, spc, self.transitions[ii,0],
-                                            numpy.round(self.frequency[ee])))
+                                            numpy.round(ene)))
                     # actually, iteraction from the right as last does not
                     # occur by convention
                                             
@@ -218,8 +223,9 @@ class liouville_pathway(UnitsManaged):
                 outR  = "    |%i%s%i|      %r\n" % (lf, spc, rf,
                                             numpy.round(ene))
                 spc = self._chars("", "", char="*")
-                outR += "   >|%s|< \n" % spc
-                outR += "    |      | \n"
+                outR += "  >>|%s|<< \n" % spc
+                spc = self._chars("", "", char=" ")
+                outR += "    |%s| \n" % spc
                 out = outR+out
                 
                 lx = lf
@@ -234,7 +240,7 @@ class liouville_pathway(UnitsManaged):
 
         outd = ("\n\nLiouville Pathway %s (type = %s) \n" %
                  (self.pathway_name, self.pathway_type))
-        outd += ("Orientational prefactor: %r \n\n" % self.pref)
+        outd += ("Weighting prefactor: %r \n\n" % self.pref)
         
         out = outd+out
         
@@ -357,7 +363,8 @@ class liouville_pathway(UnitsManaged):
         self.event[self.ne] = "R"
         self.ne += 1
         
-        
+    def set_evolution_factor(self, evf):
+        self.evolfac = evf
         
     def build(self):
         """Building the Liouville pathway internals
@@ -402,7 +409,7 @@ class liouville_pathway(UnitsManaged):
         # weight in the initial state of the first transition
         n0 = self.transitions[0,1]
         self.pref = self.sign*(numpy.dot(lab.F4eM4,self.F4n)
-        *numpy.real(self.aggregate.rho0[n0,n0])) 
+        *numpy.real(self.aggregate.rho0[n0,n0]))*self.evolfac 
         
     
     def get_transition_energy(self,n):

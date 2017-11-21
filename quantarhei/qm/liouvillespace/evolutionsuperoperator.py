@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import time
+
 import numpy
 
 from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
@@ -104,16 +106,51 @@ class EvolutionSuperOperator:
                                    self.dense_time.step) 
         
     
-    def _estimate_propagation_time(self, dt, Nt, dim, ti, n, m):
+    def _estimate_remaining_loops(self, Nt, dim, ti, n, m):
+        """
         
-        #tottime = dt*Nt*(dim**2)
+        """
+        return (dim-n)*dim 
         
-        remtime = dt*(Nt-ti)*(dim**2) + (dim-n)*(dim-m)*dt
-        return remtime
+    def _init_progress(self):
+
+        self.ccount = 0
+        self.strtime = time.time()
+        self.oldtime = self.strtime
+        self.remlast = 0
+        
+    def _progress(self, Nt, dim, ti, n, m):
+        
+        curtime = time.time()
+        #dt = curtime - self.oldtime
+        Dt = curtime - self.strtime
+        self.oldtime = curtime
+        self.ccount += 1
+        
+        dt_past = Dt/(self.ccount*dim)
+        
+        remloops = self._estimate_remaining_loops(Nt, dim, ti, n, m)
+        
+        remtime = int(remloops*(dt_past))
+        
+        txt1 = "Propagation cycle "+str(ti)+" of "+str(Nt)+ \
+               " : ("+str(n)+" of "+str(dim)+")"
+        if True:
+        #if remtime <= self.remlast:
+            txt2 = " : remaining time "+str(remtime)+" sec"
+        #else:
+        #    txt2 = " : remaining time ... calculating"
+        tlen1 = len(txt1)
+        tlen2 = len(txt2)
+        
+        rem = 65 - tlen1 - tlen2
+        txt = "\r"+txt1+(" "*rem)+txt2
+        print(txt, end="\r")
+        
+        self.remlast = remtime
         
         
-    def calculate(self):
-        import time
+    def calculate(self, show_progress=False):
 
         dim = self.ham.dim
         Nt = self.time.length
@@ -124,45 +161,54 @@ class EvolutionSuperOperator:
         for i in range(dim):
             for j in range(dim):
                 self.data[0,i,j,i,j] = 1.0
-
+            
+        if show_progress:
+            print("Calculating evolution superoperator ")
+        self._init_progress()
+        
         # first propagation
         self.update_dense_time(0)
         prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
                                               self.relt)
         ctime = self.dense_time  
-        oldtime = time.time()
+
         for n in range(dim):
+            if show_progress:
+                self._progress(Nt, dim, 0, n, 0)
             for m in range(dim):
-                curtime = time.time()
-                dt = curtime - oldtime
-                oldtime = curtime
-                remtime = self._estimate_propagation_time(dt, Nt, dim, 0, n, m)
-                print("First propagation: ", n, m, ": remaining time ", remtime)
                 rhonm0 = ReducedDensityMatrix(dim=dim)
                 rhonm0.data[n,m] = 1.0
                 rhot = prop.propagate(rhonm0)
                 
                 self.data[1, :, :, n, m] = rhot.data[ctime.length-1, :, :]
 
-        
+        Udt = self.data[1,:,:,:,:]
         for ti in range(1, Nt):
-            print("Time step no: ", ti)
-            self.update_dense_time(ti)
-            prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
-                                                  self.relt)
-            ctime = self.dense_time  
-                
-            # the rest of calculations
-            print("evolutionsuperoperator.py: Cycle", ti, "of", Nt)
-            for n in range(dim):
-                for m in range(dim):
-                    print("Propagation: ", n, m)
-                    rhonmt = ReducedDensityMatrix(dim=dim)
-                    rhonmt.data = self.data[ti-1, :, :, n, m]
-                    rhot = prop.propagate(rhonmt)
+            
+           
+            self.data[ti,:,:,:,:] = numpy.tensordot(Udt,self.data[ti-1,:,:,:,:])
+            
+            
+            
+            if False:
+                self.update_dense_time(ti)
+                prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
+                                                      self.relt)
+                ctime = self.dense_time  
                     
-                    self.data[ti, :, :, n, m] = rhot.data[ctime.length-1, :, :]            
+                # the rest of calculations
+                for n in range(dim):
+                    self._progress(Nt, dim, ti, n, 0)
+                    for m in range(dim):
+                        
+                        rhonmt = ReducedDensityMatrix(dim=dim)
+                        rhonmt.data = self.data[ti-1, :, :, n, m]
+                        rhot = prop.propagate(rhonmt)
+                        
+                        self.data[ti, :, :, n, m] = rhot.data[ctime.length-1, :, :]            
 
+        if show_progress:
+            print("...done")
                     
                     
     def at(self, time):
