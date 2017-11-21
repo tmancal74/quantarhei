@@ -1135,6 +1135,7 @@ class Aggregate(UnitsManaged, Saveable):
                 self._has_system_bath_interaction = True
                 self._has_egcf_matrix = True   
                 
+  
             
         if self._has_system_bath_interaction:
             
@@ -1151,7 +1152,8 @@ class Aggregate(UnitsManaged, Saveable):
             # than the number of sites, it means we have vibrational states
             if self.nmono != self.Nb[1]:
                 
-                for i in range(self.Nop): #range(0,self.nmono):
+                #print("TTTT:", self.vibindices, Nop, self.Nb[1])                
+                for i in range(self.Nel-1): #range(0,self.nmono):
                     op1 = Operator(dim=self.HH.shape[0],real=True)
                     # here we make a projector on the subspace defined
                     # by a given electronic state |i>
@@ -1403,7 +1405,7 @@ class Aggregate(UnitsManaged, Saveable):
         return esum/Nn
         
     
-    def get_RelaxationTensor(konself, timeaxis,
+    def get_RelaxationTensor(self, timeaxis,
                        relaxation_theory=None,
                        time_dependent=False,
                        secular_relaxation=False,
