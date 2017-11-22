@@ -63,6 +63,7 @@ New in 0.0.32
 =============
 
 For users:
+
 - Electronic Lindblad form for vibronic Frenkel exciton model
 - Propagation with relaxation tensor (in particular Redfield and Time-dependent Redfield) in operator representation (where applicable it is much faster than with the tensorial representation)
 - Redfield tensor and Time-dependent Redfield tensor can be calculated for a model with arbitrary number of vibrational states
