@@ -20,7 +20,7 @@ class RelaxationTensor(BasisManaged):
             
         self._data_initialized = False
         self.name = ""
-
+        self.as_operators = False
 
     def secularize(self):
         """Secularizes the relaxation tensor
