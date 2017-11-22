@@ -15,6 +15,7 @@ from .hilbertspace.operators import ReducedDensityMatrix
 #   OPERATORS
 #
 from .hilbertspace.operators import Operator
+from .hilbertspace.operators import ProjectionOperator
 from .hilbertspace.operators import BasisReferenceOperator
 from .hilbertspace.hamiltonian import Hamiltonian
 from .hilbertspace.dmoment import TransitionDipoleMoment
@@ -48,6 +49,11 @@ from .liouvillespace.redfieldfoerster import RedfieldFoersterRelaxationTensor
 from .liouvillespace.tdredfieldfoerster import TDRedfieldFoersterRelaxationTensor
 
 from .liouvillespace.lindbladform import LindbladForm
+from .liouvillespace.lindbladform import ElectronicLindbladForm
+
+from .liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
+from .liouvillespace.evolutionsuperoperator import SuperOperator
+from .liouvillespace.evolutionsuperoperator import SOpUnity
 
 #
 #  PROPAGATORS 

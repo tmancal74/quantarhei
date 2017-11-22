@@ -126,6 +126,13 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         """
         self.normalize2(norm=1.0)
+        
+    def subtract(self, val):
+        """Subtracts a value from the spectrum to shift its base line
+        
+        """
+        self.data -= val
+        
 
     def add_to_data(self, spect):
         """Performs addition on the data.

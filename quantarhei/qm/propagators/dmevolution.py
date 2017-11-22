@@ -74,9 +74,9 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
                     numpy.dot(self._data[ii,:,:],SS))    
                     
                     
-    def plot(self,populations=True,popselection="All",\
-                  coherences=True, cohselection="All",how='-',
-                  axis=None, show=True):
+    def plot(self, populations=True, popselection="All", trace=False,
+                   coherences=True, cohselection="All", how='-',
+                   axis=None, show=True):
         """
             Plots selected data.
             Return figure so that it can be manipulated
@@ -87,7 +87,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         if how == '-':
             howi = ['-k','-r','-b','-g','-m','-y','-c']
         if how == '--':
-            howi = ['--k','--r','--b','--g','--m','--y','--c']
+            howi = ['--r','--b','--g','--m','--y','--c','--k']
             
         N = self.data.shape[1]
 
@@ -99,6 +99,13 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
                 plt.plot(self.TimeAxis.data,
                          numpy.real(self.data[:,ii,ii]),howi[kk])
                 
+        if trace:
+            trc = numpy.zeros(self.TimeAxis.length, dtype=numpy.float64)
+            for ti in range(self.TimeAxis.length):
+                trc[ti] = numpy.trace(numpy.real(self.data[ti, :, :]))
+                
+            plt.plot(self.TimeAxis.data, trc, "-k")
+             
         
         if coherences:
             kk = 0

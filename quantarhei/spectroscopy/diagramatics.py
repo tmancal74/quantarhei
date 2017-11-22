@@ -112,6 +112,9 @@ class liouville_pathway(UnitsManaged):
         # orientational prefactor (negative means that it is not initialized)
         self.pref = -1.0
         
+        # factor from evolution (super)operator
+        self.evolfac = 1.0
+        
         # band through which the pathway travels at population time
         self.popt_band = popt_band
         
@@ -120,6 +123,19 @@ class liouville_pathway(UnitsManaged):
         
         # was the pathway already built?
         self.built = False
+        
+    def _chars(self, lx, rx, char=" "):
+        nsp = 10
+        if isinstance(lx,str):
+            ln = 0
+        else:
+            lxs = "%i"%lx
+            rxs = "%i"%rx
+            ln = len(lxs)+len(rxs)
+        spc = char
+        for scount in range(nsp-ln):
+            spc += char
+        return spc
         
     def __str__(self):
         """String representation of the Liouville pathway 
@@ -149,39 +165,50 @@ class liouville_pathway(UnitsManaged):
                 if ii == 0:
                     lx = self.sinit[0]
                     rx = self.sinit[0]
-                    out = ("    |%i    %i|  \n") % (lx, rx)
+                    spc = self._chars(lx, rx)
+                    out = ("    |%i%s%i|  \n") % (lx, spc, rx)
                 # now it depends if the interaction is from left or right
                 if sd == 1: # interaction from left
                     if ii != 3: # if this is not the last interaction print
                                 # also the frequency
-                        outr =  ("    |%i    %i|      %r\n" % 
+                        spc = self._chars(self.transitions[ii,0], rx)
+                        ene = self.convert_energy_2_current_u(self.frequency[ee])
+                        outr =  ("    |%i%s%i|      %r\n" % 
                                                      (self.transitions[ii,0],
-                                        rx,numpy.round(self.frequency[ee])))
+                                                      spc, rx, 
+                                            numpy.round(ene)))
                      
                     else: # last interaction
-                        outr =  ("    |%i    %i|  \n" %
+                        spc = self._chars(self.transitions[ii,0], rx)
+                        outr =  ("    |%i%s%i|  \n" %
                                                      (self.transitions[ii,0],
-                                                     rx)) 
+                                                     spc, rx)) 
                     # output the arrow
-                    outr += ("--->|------|  \n")
+                    spc = self._chars("", "", char="-")
+                    outr += ("--->|%s|  \n" % spc)
                     # and an empty space
-                    outr += ("    |      |  \n") 
+                    spc = self._chars("", "", char=" ")
+                    outr += ("    |%s|  \n" % spc) 
                     # all this is appended at the end
                     out = outr+out
                     lx = self.transitions[ii,0]
                 else:  # interaction from the right
                     if ii != 3: # if this is not the last interaction
                                 # print also the frequency
-                        outl =  ("    |%i    %i|      %r\n" % 
-                                              (lx, self.transitions[ii,0],
-                                            numpy.round(self.frequency[ee])))
+                        spc = self._chars(lx, self.transitions[ii,0])
+                        ene = self.convert_energy_2_current_u(self.frequency[ee])
+                        outl =  ("    |%i%s%i|      %r\n" % 
+                                              (lx, spc, self.transitions[ii,0],
+                                            numpy.round(ene)))
                     # actually, iteraction from the right as last does not
                     # occur by convention
                                             
                     # output the arrow
-                    outl += ("    |------|<---  \n") % self.frequency[ee]
+                    spc = self._chars("", "", char="-")
+                    outl += ("    |%s|<---  \n") % spc #, self.frequency[ee])
                     # and an empty space
-                    outl += ("    |      |  \n")
+                    spc = self._chars("", "", char=" ")
+                    outl += ("    |%s|  \n") % spc
                     # append everything at the end
                     out = outl+out
                     rx = self.transitions[ii,0]
@@ -192,10 +219,13 @@ class liouville_pathway(UnitsManaged):
                 lf = self.relaxations[rr][0][0]
                 rf = self.relaxations[rr][0][1]
                 ene = self.convert_energy_2_current_u(self.frequency[ee])
-                outR  = "    |%i    %i|      %r\n" % (lf,rf,
+                spc = self._chars(lf, rf, char=" ")
+                outR  = "    |%i%s%i|      %r\n" % (lf, spc, rf,
                                             numpy.round(ene))
-                outR += "   >|******|< \n"
-                outR += "    |      | \n"
+                spc = self._chars("", "", char="*")
+                outR += "  >>|%s|<< \n" % spc
+                spc = self._chars("", "", char=" ")
+                outR += "    |%s| \n" % spc
                 out = outR+out
                 
                 lx = lf
@@ -210,7 +240,7 @@ class liouville_pathway(UnitsManaged):
 
         outd = ("\n\nLiouville Pathway %s (type = %s) \n" %
                  (self.pathway_name, self.pathway_type))
-        outd += ("Orientational prefactor: %r \n\n" % self.pref)
+        outd += ("Weighting prefactor: %r \n\n" % self.pref)
         
         out = outd+out
         
@@ -333,7 +363,8 @@ class liouville_pathway(UnitsManaged):
         self.event[self.ne] = "R"
         self.ne += 1
         
-        
+    def set_evolution_factor(self, evf):
+        self.evolfac = evf
         
     def build(self):
         """Building the Liouville pathway internals
@@ -378,7 +409,7 @@ class liouville_pathway(UnitsManaged):
         # weight in the initial state of the first transition
         n0 = self.transitions[0,1]
         self.pref = self.sign*(numpy.dot(lab.F4eM4,self.F4n)
-        *numpy.real(self.aggregate.rho0[n0,n0])) 
+        *numpy.real(self.aggregate.rho0[n0,n0]))*self.evolfac 
         
     
     def get_transition_energy(self,n):
