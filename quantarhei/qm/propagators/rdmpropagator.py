@@ -27,7 +27,7 @@ from ...core.time import TimeAxis
 from ...core.time import TimeDependent
 from ...core.saveable import Saveable
 from ..liouvillespace.redfieldtensor import RelaxationTensor
-from ..hilbertspace.operators import ReducedDensityMatrix
+from ..hilbertspace.operators import ReducedDensityMatrix, DensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
 
@@ -168,7 +168,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """
         self.propagation_name = name
         
-        if not isinstance(rhoi, ReducedDensityMatrix):
+        if not (isinstance(rhoi, ReducedDensityMatrix) 
+             or isinstance(rhoi, DensityMatrix)):
             raise Exception("First argument has be of"+
             "the ReducedDensityMatrix type")
                     
@@ -408,16 +409,16 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
  
  
-    def __propagate_short_exp_with_relaxation(self,rhoi,L=4):
+    def __propagate_short_exp_with_relaxation(self, rhoi, L=4):
         """
               Short exp integration
         """
         
         try:
             if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_with_rel_operators(rhoi,L=L)
+                return self.__propagate_short_exp_with_rel_operators(rhoi, L=L)
         except:
-            pass
+            raise Exception("Operator propagation failed")
         
         
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
@@ -449,7 +450,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         return pr  
         
-    def __propagate_short_exp_with_rel_operators(self,rhoi,L=4):
+    def __propagate_short_exp_with_rel_operators(self, rhoi, L=4):
         """
               Short exp integration
         """
@@ -474,6 +475,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             raise Exception("Tensor is not in operator form")
             
         indx = 1
+
         for ii in range(1, self.Nt): 
             
             for jj in range(0, self.Nref):
@@ -507,6 +509,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """
               Short exp integration
         """
+
+        try:
+            if self.RelaxationTensor.as_operators:
+                return self.__propagate_short_exp_with_TDrel_operators(rhoi, L=L)
+        except:
+            raise Exception("Operator propagation failed")
         
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
@@ -545,6 +553,71 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 indxR += 1             
             
         return pr     
+
+
+    def __propagate_short_exp_with_TDrel_operators(self, rhoi, L=4):
+        """
+              Short exp integration
+        """
+
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
+                                           name=self.propagation_name)
+        
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+        
+        HH = self.Hamiltonian.data  
+
+        if self.RelaxationTensor._has_cutoff_time:
+            cutoff_indx = \
+            self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
+        else:
+            cutoff_indx = self.TimeAxis.length
+
+        try:
+            Km = self.RelaxationTensor.Km
+            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
+            Nm = Km.shape[0]
+            for m in range(Nm):
+                Kd[m, :, :] = numpy.transpose(Km[m, :, :])
+        except:
+            raise Exception("Tensor is not in operator form")
+                        
+        indx = 1
+        indxR = 1
+        for ii in range(1, self.Nt): 
+
+            Lm = self.RelaxationTensor.Lm[indxR,:,:,:]
+            Ld = self.RelaxationTensor.Ld[indxR,:,:,:]
+       
+            for jj in range(0, self.Nref):
+                
+                for ll in range(1, L+1):
+                    
+                    rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                             - numpy.dot(rho1,HH))
+                    
+                    rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
+                    for mm in range(Nm):
+                        
+                       rhoX += (self.dt/ll)*(
+                        numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                       +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                       -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                       -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+                       )
+                             
+                    rho1 = rhoY + rhoX
+                    
+                    rho2 = rho2 + rho1
+                rho1 = rho2    
+                
+            pr.data[indx,:,:] = rho2 
+            indx += 1             
+            if indxR < cutoff_indx-1:                      
+                indxR += 1             
+            
+        return pr
         
         
     def __propagate_diagonalization(self,rhoi):

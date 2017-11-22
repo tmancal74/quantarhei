@@ -71,7 +71,21 @@ class RelaxationTensor(BasisManaged):
         
 
         if not self._data_initialized:
-            print("NOT INITIALIZED")
+            
+            if (self.manager.warn_about_basis_change):
+                print("\nQr >>> Operators of relaxation"+
+                      " tensor '%s' changes basis" %self.name)
+        
+            if inv is None:
+                S1 = numpy.linalg.inv(SS)
+            else:
+                S1 = inv
+
+            for m in range(self.Lm.shape[0]):
+                self.Lm[m,:,:] = numpy.dot(S1,numpy.dot(self.Lm[m,:,:], SS))  
+                self.Ld[m,:,:] = numpy.dot(S1,numpy.dot(self.Ld[m,:,:], SS))
+                self.Km[m,:,:] = numpy.dot(S1,numpy.dot(self.Km[m,:,:], SS))
+            
             return
         
         if (self.manager.warn_about_basis_change):

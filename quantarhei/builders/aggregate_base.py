@@ -1255,7 +1255,8 @@ class AggregateBase(UnitsManaged, Saveable):
         
         if operator.dim == self.Ntot:
             
-            if isinstance(operator, ReducedDensityMatrix):
+            if isinstance(operator, ReducedDensityMatrix) or \
+               isinstance(operator, DensityMatrix):
                 
                 nop = ReducedDensityMatrix(dim=self.Nel)
                 
@@ -1415,7 +1416,8 @@ class AggregateBase(UnitsManaged, Saveable):
                        secular_relaxation=False,
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
-                       recalculate=True):
+                       recalculate=True,
+                       as_operators=False):
         """Returns a relaxation tensor corresponding to the aggregate
         
         
@@ -1484,7 +1486,8 @@ class AggregateBase(UnitsManaged, Saveable):
                 ham.protect_basis()
                 with eigenbasis_of(ham):
                     relaxT = TDRedfieldRelaxationTensor(ham, sbi, 
-                                        cutoff_time=relaxation_cutoff_time)
+                                        cutoff_time=relaxation_cutoff_time,
+                                        as_operators=as_operators)
                     if secular_relaxation:
                         relaxT.secularize() 
                 ham.unprotect_basis()                        
@@ -1493,12 +1496,18 @@ class AggregateBase(UnitsManaged, Saveable):
             
                 # Time independent standard Refield
             
+                
                 ham.protect_basis()
+                
                 with eigenbasis_of(ham):
-                    relaxT = RedfieldRelaxationTensor(ham, sbi)
+                    relaxT = RedfieldRelaxationTensor(ham, sbi,
+                                                    as_operators=as_operators)
+                    
                     if secular_relaxation:
                         relaxT.secularize()
+                    
                 ham.unprotect_basis()  
+
                 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -1793,14 +1802,22 @@ class AggregateBase(UnitsManaged, Saveable):
     
     
     def _impulsive_population(self):
+        """Impulsive excitation of the density matrix from ground state
         
-        rho0 = numpy.zeros((self.Ntot,self.Ntot),dtype=numpy.complex128)
+        """
+        
+        rho0 = numpy.zeros((self.Ntot,self.Ntot), dtype=numpy.complex128)
+        
+        # FIXME: maybe we want something more general here
         rho0[0,0] = 1.0
         
+        # abs value of the transition dipole moment
         dabs = numpy.sqrt(self.DD[:,:,0]**2 + \
                           self.DD[:,:,1]**2 + self.DD[:,:,2]**2)
-                          
-        rho0 = numpy.dot(dabs,numpy.dot(rho0,dabs))
+        # excitation from bra and ket
+        rho0 = numpy.dot(dabs, numpy.dot(rho0,dabs))
+        
+        return rho0
         
         
     def get_DensityMatrix(self, condition_type=None,
@@ -1849,6 +1866,7 @@ class AggregateBase(UnitsManaged, Saveable):
             
             rho0 = self._impulsive_population()
             self.rho0 = rho0
+
             return DensityMatrix(data=self.rho0)
             
         elif condition_type == "thermal_excited_state":

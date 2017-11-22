@@ -32,7 +32,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
             self.set_current_basis(cb)
             # unless it is the basis outside any context
             if cb != 0:
-                self.manager.register_with_basis(cb,self)
+                self.manager.register_with_basis(cb, self)
                 
             self.name=name
                  
@@ -52,7 +52,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
                     self.data = data
                     self.dim = self._data.shape[1]
                 else:
-                    raise Exception #HilbertSpaceException
+                    raise Exception() #HilbertSpaceException
             else:
                 if real:
                     self.data = numpy.zeros((dim,dim),dtype=numpy.float64)
@@ -145,7 +145,7 @@ class SelfAdjointOperator(Operator):
         
     """
     
-    def __init__(self, dim=None ,data=None, name=""):
+    def __init__(self, dim=None, data=None, name=""):
         
         if not ((dim is None) and (data is None)):
             Operator.__init__(self,dim=dim,data=data,name=name)
