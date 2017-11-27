@@ -29,7 +29,7 @@ from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 
 from ..qm.corfunctions import CorrelationFunctionMatrix
 
-from ..spectroscopy import diagramatics as diag
+
 
 #from .aggregate_states import aggregate_state
 from .aggregate_states import ElectronicState

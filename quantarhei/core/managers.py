@@ -280,6 +280,19 @@ class Manager(metaclass=Singleton):
         with open(units_file,'r') as f:
             self.current_units = json.load(f)       
     
+    def get_real_type(self):
+        """Returns default numpy float type
+        
+        """
+        import numpy
+        return numpy.float64
+    
+    def get_complex_type(self):
+        """Returns default numpy complex type
+        
+        """
+        import numpy
+        return numpy.complex128
 
         
     def unit_repr(self,utype="energy",mode="current"):

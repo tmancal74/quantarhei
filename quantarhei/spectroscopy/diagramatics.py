@@ -11,7 +11,7 @@
 import numpy
 
 from ..utils.types import Integer
-from ..core.units import cm2int
+#from ..core.units import cm2int
 from ..core.managers import UnitsManaged
 
 class liouville_pathway(UnitsManaged):
@@ -501,7 +501,7 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
 
 
     def select_pref_GT(self, val, pathways=None, replace=True,
-                       verbatime=False):
+                       verbose=False):
         """Select all pathways with prefactors greater than a value
         
         """
@@ -513,10 +513,10 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
             
         selected = []
         for pway in pthways:
-            if pway.pref > val:
+            if numpy.abs(pway.pref) > val:
                 selected.append(pway)
         
-        if verbatime:
+        if verbose:
             print("Selected", len(selected), "pathways")
             
         # if the pathways were not specified from argument then return selected
