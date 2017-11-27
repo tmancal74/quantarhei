@@ -768,6 +768,7 @@ class AggregateSpectroscopy(AggregateBase):
         
         pop_tol = ptol
         dip_tol = numpy.sqrt(self.D2_max)*dtol
+        evf_tol = 0.01
         
         # Check if the ptype is a tuple
         if not isinstance(ptype, (tuple,list)):
@@ -854,7 +855,7 @@ class AggregateSpectroscopy(AggregateBase):
                 k = 0
                 l = 0
                 for i1g in ngs:
-                    #print("Ground state: ", i1g)
+
                     # Only thermally allowed starting states are considered
                     if self.rho0[i1g,i1g] > pop_tol:
                 
@@ -873,7 +874,7 @@ class AggregateSpectroscopy(AggregateBase):
                                         
                                         evf = numpy.abs(eUt2.data[i3d, i2d, 
                                                      i3e, i2e])
-                                        if evf < 0.01:
+                                        if evf < evf_tol:
                                             break
                                 
                                         for i4g in ngs:
@@ -933,14 +934,7 @@ class AggregateSpectroscopy(AggregateBase):
                 
                 ngs = self.get_electronic_groundstate()
                 nes = self.get_excitonic_band(band=1)
-                
-                #nrg = len(ngs)
-                #nre = len(nes) 
-                
-                #print("Ground state : ", nrg)
-                #print("Excited state: ", nre)
-                #print("R1g: ",nrg*nre*nre*nrg)
-                
+                                
                 k = 0
                 l = 0
                 for i1g in ngs:
@@ -958,63 +952,70 @@ class AggregateSpectroscopy(AggregateBase):
                                 if self.D2[i3e,i1g] < dip_tol:
                                     break
 
-                                for i4g in ngs:
-
-                                    if ((self.D2[i4g,i3e] < dip_tol)
-                                     or (self.D2[i4g,i2e] < dip_tol)):
-                                        break
-
-                                    l += 1
-
-                                    #      Diagram R1g
-                                    #
-                                    #                                     
-                                    #      |g_i4> <g_i4|
-                                    # <----|-----------|
-                                    #      |e_i2> <g_i4|
-                                    #      |-----------|---->
-                                    #      |e_i2> <e_i3|
-                                    #      |-----------|<----
-                                    #      |e_i2> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i1|
-                                
-                                    try:
-                                        lp = \
-                                        diag.liouville_pathway("NR",i1g,
-                                                           aggregate=self,
-                                                           order=3,pname=ptp,
-                                                           popt_band=1)
-                                        #      |g_i1> <g_i1|                                                           
-                                        lp.add_transition((i2e,i1g),+1)
-                                        #      |e_i2> <g_i1|        
-                                        lp.add_transition((i3e,i1g),-1)
-                                        #      |e_i2> <e_i3|
-                                        lp.add_transition((i4g,i3e),-1)
-                                        #      |e_i2> <g_i4|
-                                        lp.add_transition((i4g,i2e),+1)
-                                        #      |g_i4> <g_i4|
-
-                                    except:
+                                for i2d in nes:
+                                    for i3d in nes:
                                         
-                                        break
-                                    
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
+                                        evf = numpy.abs(eUt2.data[i2d, i3d, 
+                                                     i2e, i3e])
+                                        if evf < evf_tol:
+                                            break
+
+
+                                        for i4g in ngs:
+
+                                            if ((self.D2[i4g,i3e] < dip_tol)
+                                             or (self.D2[i4g,i2e] < dip_tol)):
+                                                break
+        
+                                            l += 1
+        
+                                            #      Diagram R1g
+                                            #
+                                            #                                     
+                                            #      |g_i4> <g_i4|
+                                            # <----|-----------|
+                                            #      |d_i2> <g_i4|
+                                            #      |-----------|---->
+                                            #      |d_i2> <d_i3|
+                                            #      |***********|
+                                            #      |e_i2> <e_i3|
+                                            #      |-----------|<----
+                                            #      |e_i2> <g_i1|
+                                            # ---->|-----------|
+                                            #      |g_i1> <g_i1|
+                                        
+                                            try:
+                                                lp = \
+                                                diag.liouville_pathway("NR",i1g,
+                                                                   aggregate=self,
+                                                                   order=3,pname=ptp,
+                                                                   popt_band=1)
+                                                #      |g_i1> <g_i1|                                                           
+                                                lp.add_transition((i2e,i1g),+1)
+                                                #      |e_i2> <g_i1|        
+                                                lp.add_transition((i3e,i1g),-1)
+                                                #      |e_i2> <e_i3|
+                                                lp.add_transfer(((i3d, i2d)),
+                                                                 (i2e, i3e))
+                                                #      |d_i2> <d_i3|                                                                                
+                                                lp.add_transition((i4g,i3d),-1)
+                                                #      |d_i2> <g_i4|
+                                                lp.add_transition((i4g,i2d),+1)
+                                                #      |g_i4> <g_i4|
+        
+                                            except:
+                                                
+                                                break
+                                            
+                                            lp.build()
+                                            lst.append(lp)
+                                            k += 1
             
             if ptp == "R4g":
                 
                 ngs = self.get_electronic_groundstate()
                 nes = self.get_excitonic_band(band=1)
-                
-                #nrg = len(ngs)
-                #nre = len(nes) 
-                
-                #print("Ground state : ", nrg)
-                #print("Excited state: ", nre)
-                #print("R4g: ",nrg*nre*nrg*nrg*nre)
-                
+                                
                 k = 0
                 l = 0
                 for i1g in ngs:
@@ -1086,13 +1087,6 @@ class AggregateSpectroscopy(AggregateBase):
                 except:
                     break
                 
-#                print(ngs)
-#                print(nes)
-#                print(nfs)
-#                for a in nes:
-#                    for b in nfs:
-#                        print(a,b," : ",self.D2[a,b],self.D2[b,a])
-
                 k = 0
                 l = 0
                 for i1g in ngs:
@@ -1124,10 +1118,12 @@ class AggregateSpectroscopy(AggregateBase):
                                     #      Diagram R4g
                                     #
                                     #                                     
-                                    #      |e_i2> <e_i2|
+                                    #      |d_i2> <d_i2|
                                     # <----|-----------|
-                                    #      |f_i4> <e_i2|
+                                    #      |f_i4> <d_i2|
                                     # ---->|-----------|
+                                    #      |d_i3> <d_i2|
+                                    #      |***********|
                                     #      |e_i3> <e_i2|
                                     # ---->|-----------|
                                     #      |g_i1> <e_i2|
@@ -1146,6 +1142,9 @@ class AggregateSpectroscopy(AggregateBase):
                                         #      |g_i1> <e_i2|
                                         lp.add_transition((i3e,i1g),+1)
                                         #      |e_i3> <e_i2|
+                                                lp.add_transfer(((i3d, i2d)),
+                                                                 (i2e, i3e))
+                                                #      |d_i2> <d_i3|                                        
                                         lp.add_transition((i4f,i3e),+1)
                                         #      |f_i4> <e_i2|
                                         lp.add_transition((i2e,i4f),+1)
