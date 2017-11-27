@@ -27,6 +27,8 @@ from ..qm import ReducedDensityMatrix
 
 from ..core.saveable import Saveable
 
+import quantarhei as qr
+
  
     
 class Molecule(UnitsManaged, Saveable):
@@ -113,6 +115,9 @@ class Molecule(UnitsManaged, Saveable):
          
         
         self.dmoments = numpy.zeros((self.nel,self.nel,3)) 
+        
+        # matrix of the transition widths
+        self.widths = None
         
         self._has_nat_lifetime = [False]*self.nel
         self._nat_lifetime = numpy.zeros(self.nel)
@@ -352,7 +357,32 @@ class Molecule(UnitsManaged, Saveable):
             self.dmoments[N, M, :] = vec
             self.dmoments[M, N, :] = numpy.conj(vec)
         except:
-            raise Exception()        
+            raise Exception()  
+            
+    def set_transition_width(self, transition, width):
+        """Sets the width of a given transition
+        
+        
+        Parameters
+        ----------
+        
+        transition : {tuple, list}
+            Quantum numbers of the states between which the transition occurs
+            
+        width : float
+            The width of the transition
+            
+            
+        """
+        if self.width is None:
+            N = self.elenergies.shape[0]
+            self.widths = numpy.zeros((N, N), dtype=qr.REAL)
+        self.widths[transition[0], transition[1]] = width
+        self.widths[transition[1], transition[0]] = width
+
+    def get_transition_width(self, transition):
+        
+        return self.widths[transition[0], transition[1]]
 
     def get_energy(self, N):
         try:

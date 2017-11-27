@@ -40,6 +40,8 @@ from .aggregate_states import VibronicState
 from ..core.managers import Manager
 from ..core.saveable import Saveable
 
+import quantarhei as qr
+
           
 class AggregateBase(UnitsManaged, Saveable):
     """ Molecular aggregate 
@@ -251,15 +253,16 @@ class AggregateBase(UnitsManaged, Saveable):
             
         """
         pass
-        
-                
+
+         
     def set_egcf_matrix(self,cm):
         """Sets a matrix describing system bath interaction
         
         """
         self.egcf_matrix = cm
         self._has_egcf_matrix = True
-    
+
+
     #
     # Monomer
     #
@@ -278,27 +281,29 @@ class AggregateBase(UnitsManaged, Saveable):
         self.monomers.append(mono)
         self.mnames[mono.name] = len(self.monomers)-1
         self.nmono += 1
-        
+
+
     def get_Molecule_by_name(self, name):
         try:
             im = self.mnames[name]
             return self.monomers[im]
         except:
             raise Exception()    
-            
+
+  
     def get_Molecule_index(self, name):
         try:
             im = self.mnames[name]
             return im
         except:
             raise Exception()         
-        
+
+
     def remove_Molecule(self, mono):
         self.monomers.remove(mono)
         self.nmono -= 1
 
-        
-            
+
     def get_nearest_Molecule(self,molecule):
         """Returns a molecule nearest in the aggregate to a given molecule
         
@@ -353,10 +358,13 @@ class AggregateBase(UnitsManaged, Saveable):
         except:
             raise Exception()
             
-    def get_dipole(self,n,N,M):
+    def get_dipole(self, n, N, M):
         nm = self.monomers[n]
         return nm.get_dipole(N,M)
     
+    def get_width(self, n, N, M):
+        nm = self.monomers[n]
+        return nm.get_transition_width((N,M))
     
     def get_max_excitations(self):
         """Returns a list of maximum number of excitations on each monomer
@@ -425,9 +433,35 @@ class AggregateBase(UnitsManaged, Saveable):
             
         return res
 
+    def transition_width(self, state1, state2):
+        
+         exindx = self._get_exindx(state1, state2)
+       
+        
 
     def transition_dipole(self, state1, state2):
         """ Transition dipole moment between two states 
+        
+        Parameters
+        ----------
+        state1 : class VibronicState
+            state 1
+            
+        state2 : class VibronicState
+            state 2 
+        
+        """
+        exindx = self._get_exindx(state1, state2)
+        
+        eldip = self.get_dipole(exindx,0,1)
+           
+        # Franck-Condon factor between the two states
+        fcfac = self.fc_factor(state1,state2)
+
+        return eldip*fcfac
+        
+    def _get_exindx(self, state1, state2):
+        """ Index of molecule with transition 
         
         Parameters
         ----------
@@ -474,25 +508,11 @@ class AggregateBase(UnitsManaged, Saveable):
                 else:
                     exstate = els2
                 exindx = l
-
-            
             
         if exstate is None:
             raise Exception()
         
-
-        eldip = self.get_dipole(exindx,0,1)
-        
-#        eldip = 0.0
-#        for kk in range(len(exstate)):
-#            if (exstate[kk] == 1):
-#                eldip = self.get_dipole(kk,1)
-           
-        # Franck-Condon factor between the two states
-        fcfac = self.fc_factor(state1,state2)
-       
-        
-        return eldip*fcfac
+        return exindx
     
         
     def total_number_of_states(self, mult=1, vibgen_approx=None, Nvib=None,
@@ -911,9 +931,8 @@ class AggregateBase(UnitsManaged, Saveable):
         
         
         return out
-            
-            
-    
+
+
     ###########################################################################
     #
     #    BUILDING
@@ -991,6 +1010,8 @@ class AggregateBase(UnitsManaged, Saveable):
         DD = numpy.zeros((Ntot, Ntot, 3),dtype=numpy.float64)
         # Matrix of Franck-Condon factors
         FC = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
+        # Matrix of the transition widths (their square roots)
+        Wd = numpy.zeros((Ntot, Ntot), dtype=qr.REAL)
         
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:    
@@ -1009,6 +1030,7 @@ class AggregateBase(UnitsManaged, Saveable):
             
                 DD[a,b,:] = self.transition_dipole(s1, s2)                
                 FC[a,b] = self.fc_factor(s1, s2)
+                Wd[a,b] = self.transition_width(s1, s2)
                 
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
@@ -1019,9 +1041,10 @@ class AggregateBase(UnitsManaged, Saveable):
         self.HamOp = Hamiltonian(data=HH)
         self.DD = DD
         self.FCf = FC
+        self.Wd = Wd
         
         # squares of transition dipoles
-        dd2 = numpy.zeros((Ntot,Ntot),dtype=numpy.float64)
+        dd2 = numpy.zeros((Ntot, Ntot),dtype=numpy.float64)
         for a in range(Ntot):
             for b in range(Ntot):
                 dd2[a,b] = numpy.dot(self.DD[a,b,:],self.DD[a,b,:])

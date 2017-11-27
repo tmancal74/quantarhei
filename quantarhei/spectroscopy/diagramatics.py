@@ -246,7 +246,7 @@ class liouville_pathway(UnitsManaged):
         
         return out 
     
-    def add_transition(self, transition, side):
+    def add_transition(self, transition, side, width=-1.0):
         """ Adds a transition to the Liouville pathway. 
 
         Parameters
@@ -286,6 +286,8 @@ class liouville_pathway(UnitsManaged):
         self.transitions[self.nint,:] = transition
         # save the side on which the transition occurs
         self.sides[self.nint] = side 
+        # transition width
+        self.width = width
         # save the current 
         self.current[sd] = nf
         
