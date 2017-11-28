@@ -111,6 +111,8 @@ class AggregateBase(UnitsManaged, Saveable):
         self.HH = None
         self.HamOp = None
         self.DD = None
+        self.Wd = None
+        self.Dr = None
         self.D2 = None
         self.D2_max = 0
         self.sbi = None
@@ -414,14 +416,13 @@ class AggregateBase(UnitsManaged, Saveable):
             # quantum numbers
             qn1 = inx1[kk]
             qn2 = inx2[kk]
-            
-            """calculate FC factors
-            
-            Best implementation would be a table look-up. First we calculate
-            a table of FC factors from known omegas and shifts and here we
-            just consult the table.
-            
-            """
+
+            #calculate FC factors
+            #
+            #Best implementation would be a table look-up. First we calculate
+            #a table of FC factors from known omegas and shifts and here we
+            #just consult the table.
+
             if not self.FC.lookup(shft):
                 fc = self.ops.shift_operator(shft)[:20,:20]
                 self.FC.add(shft,fc)
@@ -433,11 +434,88 @@ class AggregateBase(UnitsManaged, Saveable):
             
         return res
 
-    def transition_width(self, state1, state2):
+
+    def get_transition_width(self, state1, state2=None):
+        """Returns phenomenological width of a given transition
         
-         exindx = self._get_exindx(state1, state2)
-       
+        Parameters
+        ----------
         
+        state1 : {ElectroniState/VibronicState, tuple}
+            If both state1 and state2 are specified, it is assumed they are
+            of the type of Electronic of Vibronic state. Otherwise, if state2
+            is None, it is assumed that it is a tuple representing 
+            a transition
+            
+        state2 : {ElectroniState/VibronicState, None}
+        If not None it is of the type of Electronic of Vibronic state
+        
+        """
+        if state2 is not None:
+
+            # index of a monomer on which the transition occurs
+            exindx = self._get_exindx(state1, state2)
+            width = self.monomers[exindx].get_transition_width((0,1))
+            return width
+
+        else: 
+            
+            transition = state1
+        
+            Nf = transition[0]
+            Ni = transition[1]
+
+            # we only handle g -> 1 exciton band transitions
+            eli = self.elinds[Ni]
+            elf = self.elinds[Nf]
+            if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
+                return self.Wd[Nf, Nf]**2
+            else:
+                return -1.0
+
+
+    def get_transition_dephasing(self, state1, state2=None):
+        """Returns phenomenological dephasing of a given transition
+
+
+
+        Parameters
+        ----------
+        
+        state1 : {ElectroniState/VibronicState, tuple}
+            If both state1 and state2 are specified, it is assumed they are
+            of the type of Electronic of Vibronic state. Otherwise, if state2
+            is None, it is assumed that it is a tuple representing 
+            a transition
+            
+        state2 : {ElectroniState/VibronicState, None}
+        If not None it is of the type of Electronic of Vibronic state
+        
+        
+        """
+        if state2 is not None:
+            
+            # index of a monomer on which the transition occurs
+            exindx = self._get_exindx(state1, state2)
+            if exindx < 0:
+                return 0.0
+            
+            deph = self.monomers[exindx].get_transition_dephasing((0,1))
+            return deph
+    
+        else: 
+            
+            transition = state1
+        
+            Nf = transition[0]
+            Ni = transition[1]
+
+            # we only handle g -> 1 exciton band transitions
+            if (self.which_band[Ni] == 0) and (self.which_band[Nf] == 1):
+                return self.Dr[Nf, Nf]**2
+            else:
+                return -1.0
+
 
     def transition_dipole(self, state1, state2):
         """ Transition dipole moment between two states 
@@ -453,15 +531,19 @@ class AggregateBase(UnitsManaged, Saveable):
         """
         exindx = self._get_exindx(state1, state2)
         
-        eldip = self.get_dipole(exindx,0,1)
+        if (exindx < 0):
+            return 0.0
+        
+        eldip = self.get_dipole(exindx, 0, 1)
            
         # Franck-Condon factor between the two states
         fcfac = self.fc_factor(state1,state2)
 
         return eldip*fcfac
-        
+
+
     def _get_exindx(self, state1, state2):
-        """ Index of molecule with transition 
+        """ Index of molecule with transition or negative number if not found
         
         Parameters
         ----------
@@ -481,7 +563,7 @@ class AggregateBase(UnitsManaged, Saveable):
         b1 = state1.elstate.band
         b2 = state2.elstate.band
         if (abs(b1-b2) != 1):
-            return 0.0
+            return -1
         
         # count the number of differences
         l = 0
@@ -493,7 +575,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 
                 
         if count != 1:
-            return 0.0
+            return -1
         
         # now that we know that the states differ by one excitation, let
         # us find on which molecule it is
@@ -516,7 +598,7 @@ class AggregateBase(UnitsManaged, Saveable):
     
         
     def total_number_of_states(self, mult=1, vibgen_approx=None, Nvib=None,
-                               vibenergy_cutoff=None):
+                               vibenergy_cutoff=None, save_indices=False):
         """ Total number of states in the aggregate
         
         Counts all states of the aggregate by iterating through them. States
@@ -527,9 +609,9 @@ class AggregateBase(UnitsManaged, Saveable):
         nret = 0
         
         for state in self.allstates(mult=mult,
-                                    save_indices=False,
+                                    save_indices=save_indices,
                                     vibgen_approx=vibgen_approx,
-                                    Nvib=Nvib,
+                                    Nvib=Nvib, 
                                     vibenergy_cutoff=vibenergy_cutoff):
             nret += 1
                 
@@ -992,7 +1074,7 @@ class AggregateBase(UnitsManaged, Saveable):
         # approximations in generation of vibrational states)
         Ntot = self.total_number_of_states(mult=mult, 
                                            vibgen_approx=vibgen_approx,
-                                           Nvib=Nvib, 
+                                           Nvib=Nvib, save_indices=False, 
                                            vibenergy_cutoff=vibenergy_cutoff)
         # save total number of states (including vibrational)
         self.Ntot = Ntot
@@ -1012,25 +1094,46 @@ class AggregateBase(UnitsManaged, Saveable):
         FC = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         # Matrix of the transition widths (their square roots)
         Wd = numpy.zeros((Ntot, Ntot), dtype=qr.REAL)
+        # Matrix of dephasing rates
+        Dr = numpy.zeros((Ntot, Ntot), dtype=qr.REAL)
         
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:    
             self.init_coupling_matrix()            
+
+        Ntot = self.total_number_of_states(mult=mult, 
+                                           vibgen_approx=vibgen_approx,
+                                           Nvib=Nvib, save_indices=True, 
+                                           vibenergy_cutoff=vibenergy_cutoff)
+        
+        #print(self.which_band, self.Ntot, len(self.which_band))
             
         # Set up Hamiltonian and Transition dipole moment matrices
-        for a, s1 in self.allstates(mult=self.mult, save_indices=True,
+        for a, s1 in self.allstates(mult=self.mult, 
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
                                     vibenergy_cutoff=vibenergy_cutoff):
+            
+            if a == 0:
+                s0 = s1
 
             # diagonal Hamiltonian elements
             HH[a,a] = s1.energy()
-            for b, s2 in self.allstates(mult=self.mult,
+            
+            # get dephasing and width from the ground-state 
+            # for each excited state
+            elind = self.elinds[a]
+            if self.which_band[elind] == 1:
+                #print(a)
+                Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0))
+                #print(Wd[a,a])
+                Dr[a,a] = numpy.sqrt(self.get_transition_dephasing(s1, s0))
+                
+            for b, s2 in self.allstates(mult=self.mult, 
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
                                     vibenergy_cutoff=vibenergy_cutoff): 
             
                 DD[a,b,:] = self.transition_dipole(s1, s2)                
                 FC[a,b] = self.fc_factor(s1, s2)
-                Wd[a,b] = self.transition_width(s1, s2)
                 
                 if a != b:
                     HH[a,b] = self.coupling(s1,s2) 
@@ -1039,9 +1142,14 @@ class AggregateBase(UnitsManaged, Saveable):
         self.HH = HH
         # FIXME: Do I need this???
         self.HamOp = Hamiltonian(data=HH)
+        # dipole moments
         self.DD = DD
+        # Franck-Condon factors
         self.FCf = FC
+        # widths 
         self.Wd = Wd
+        # dephasings
+        self.Dr = Dr
         
         # squares of transition dipoles
         dd2 = numpy.zeros((Ntot, Ntot),dtype=numpy.float64)
@@ -1770,6 +1878,13 @@ class AggregateBase(UnitsManaged, Saveable):
         
         self.HH = numpy.dot(self.S1,numpy.dot(self.HH,self.SS))
         
+        for ii in range(self.HH.shape[0]):
+            self.Wd[ii,ii] = 0.0
+            self.Dr[ii,ii] = 0.0
+            for nn in range(self.HH.shape[0]):
+                self.Wd[ii,ii] += self.Wd[nn,nn]*abs(SS[ii,nn])**4
+                self.Dr[ii,ii] += self.Dr[nn,nn]*abs(SS[ii,nn])**4
+        
         for n in range(3):
             self.DD[:,:,n] = numpy.dot(self.S1,
                                numpy.dot(self.DD[:,:,n],self.SS))
@@ -1995,11 +2110,11 @@ class AggregateBase(UnitsManaged, Saveable):
             esig = Nf.get_ElectronicState().get_signature()
             iNf = self.vibsigs.index((esig, vsig))
             
-            print(esig, vsig, iNf)
+            #print(esig, vsig, iNf)
             vsig = Ni.get_vibsignature()
             esig = Ni.get_ElectronicState().get_signature()
             iNi = self.vibsigs.index((esig, vsig))
-            print(esig, vsig, iNi)
+            #print(esig, vsig, iNi)
             
         else:
             iNf = Nf
@@ -2012,8 +2127,8 @@ class AggregateBase(UnitsManaged, Saveable):
                                                 -self.HH[iNi,iNi])
         trdipm = self.DD[iNf,iNi,:]
         
-        return (energy,trdipm)
-        
+        return (energy, trdipm)
+
 
     def get_SystemBathInteraction(self):
         """Returns the aggregate SystemBathInteraction object

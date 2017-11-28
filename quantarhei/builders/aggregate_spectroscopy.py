@@ -873,15 +873,35 @@ class AggregateSpectroscopy(AggregateBase):
                                         lp = \
                                         diag.liouville_pathway("R", i1g,
                                                aggregate=self,
-                                               order=3,pname=ptp)         
+                                               order=3,pname=ptp)     
+
+                                        # first transition lineshape
+                                        width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                        deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                        # third transition lineshape
+                                        width3 = \
+                                        self.get_transition_width((i4e,i3g))
+                                        deph3 = \
+                                        self.get_transition_dephasing((i4e,
+                                                                       i3g))
+                                        
                                         # |g_i1> <g_i1|
-                                        lp.add_transition((i2e,i1g),-1)
+                                        lp.add_transition((i2e,i1g),-1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
                                         # |g_i1> <e_i2|
                                         lp.add_transition((i3g,i2e),-1)
                                         # |g_i1> <g_i3|
                                         lp.add_transition((i4e,i1g),+1)
                                         # |e_i5> <g_i3|
-                                        lp.add_transition((i3g,i4e),+1)
+                                        lp.add_transition((i3g,i4e),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
                                         # |g_i3> <g_i3|
 
                                     except:
@@ -959,9 +979,26 @@ class AggregateSpectroscopy(AggregateBase):
                                                             order=3,pname=ptp,
                                                             popt_band=1,
                                                             relax_order=1)
+
+                                                # first transition lineshape
+                                                width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                                deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                                # third transition lineshape
+                                                width3 = \
+                                        self.get_transition_width((i3d, i4g))
+                                                deph3 = \
+                                        self.get_transition_dephasing((i3d,
+                                                                       i4g))
                                                 
+                                    
                                                 #      |g_i1> <g_i1|
-                                                lp.add_transition((i2e,i1g),-1)
+                                                lp.add_transition((i2e,i1g),-1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
                                                 #      |g_i1> <e_i2|
                                                 lp.add_transition((i3e,i1g),+1)
                                                 #      |e_i3> <e_i2|
@@ -970,7 +1007,10 @@ class AggregateSpectroscopy(AggregateBase):
                                                 lp.set_evolution_factor(evf)
                                                 lp.add_transition((i4g,i2d),-1)
                                                 #      |e_i3> <g_i4|
-                                                lp.add_transition((i4g,i3d),+1)
+                                                lp.add_transition((i4g,i3d),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
                                                 #      |g_i4> <g_i4|
         
                                             except:
@@ -1049,8 +1089,26 @@ class AggregateSpectroscopy(AggregateBase):
                                                             order=3,pname=ptp,
                                                             popt_band=1,
                                                             relax_order=1)
+                                                
+                                                # first transition lineshape
+                                                width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                                deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                                # third transition lineshape
+                                                width3 = \
+                                        self.get_transition_width((i2d, i4g))
+                                                deph3 = \
+                                        self.get_transition_dephasing((i2d,
+                                                                       i4g))
+                                                
+                                                
                                                 #      |g_i1> <g_i1|                                                           
-                                                lp.add_transition((i2e,i1g),+1)
+                                                lp.add_transition((i2e,i1g),+1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
                                                 #      |e_i2> <g_i1|        
                                                 lp.add_transition((i3e,i1g),-1)
                                                 #      |e_i2> <e_i3|
@@ -1060,7 +1118,10 @@ class AggregateSpectroscopy(AggregateBase):
                                                 #      |d_i2> <d_i3|                                                                                
                                                 lp.add_transition((i4g,i3d),-1)
                                                 #      |d_i2> <g_i4|
-                                                lp.add_transition((i4g,i2d),+1)
+                                                lp.add_transition((i4g,i2d),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
                                                 #      |g_i4> <g_i4|
         
                                             except:
@@ -1077,7 +1138,7 @@ class AggregateSpectroscopy(AggregateBase):
                 nes = self.get_excitonic_band(band=1)
                                 
                 if verbose:
-                    print("Liouville pathway R1g")
+                    print("Liouville pathway R4g")
                 
                 k = 0
                 l = 0
@@ -1126,14 +1187,35 @@ class AggregateSpectroscopy(AggregateBase):
                                         diag.liouville_pathway("NR",i1g,
                                                            aggregate=self,
                                                            order=3,pname=ptp)
+                                                                                                          
+                                        # first transition lineshape
+                                        width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                        deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                        # third transition lineshape
+                                        width3 = \
+                                        self.get_transition_width((i4e,i1g))
+                                        deph3 = \
+                                        self.get_transition_dephasing((i4e,
+                                                                       i1g))
+                                        
+                                        
                                         #      |g_i1> <g_i1|                                                           
-                                        lp.add_transition((i2e,i1g),+1)
+                                        lp.add_transition((i2e,i1g),+1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
                                         #      |e_i2> <g_i1|
                                         lp.add_transition((i3g,i2e),+1)
                                         #      |g_i3> <g_i1|
                                         lp.add_transition((i4e,i3g),+1)
                                         #      |e_i4> <g_i1|
-                                        lp.add_transition((i1g,i4e),+1)
+                                        lp.add_transition((i1g,i4e),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
                                         #      |g_i1> <g_i1|
 
                                     except:
@@ -1219,8 +1301,25 @@ class AggregateSpectroscopy(AggregateBase):
                                                            order=3,pname=ptp,
                                                            popt_band=1,
                                                            relax_order=1)
+                                                
+                                                # first transition lineshape
+                                                width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                                deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                                # third transition lineshape
+                                                width3 = \
+                                        self.get_transition_width((i4f,i2d))
+                                                deph3 = \
+                                        self.get_transition_dephasing((i4f,
+                                                                       i2d))
+                                                
                                                 #      |g_i1> <g_i1|                                                           
-                                                lp.add_transition((i2e,i1g),-1)
+                                                lp.add_transition((i2e,i1g),-1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
                                                 #      |g_i1> <e_i2|
                                                 lp.add_transition((i3e,i1g),+1)
                                                 #      |e_i3> <e_i2|
@@ -1230,7 +1329,10 @@ class AggregateSpectroscopy(AggregateBase):
                                                 #      |d_i3> <d_i2|                                        
                                                 lp.add_transition((i4f,i3d),+1)
                                                 #      |f_i4> <d_i2|
-                                                lp.add_transition((i2d,i4f),+1)
+                                                lp.add_transition((i2d,i4f),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
                                                 #      |d_i2> <d_i2|
 
                                             except:
@@ -1318,8 +1420,25 @@ class AggregateSpectroscopy(AggregateBase):
                                                             order=3,pname=ptp,
                                                             popt_band=1,
                                                             relax_order=1)
+                                                
+                                                # first transition lineshape
+                                                width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                                deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                                # third transition lineshape
+                                                width3 = \
+                                        self.get_transition_width((i4f,i3d))
+                                                deph3 = \
+                                        self.get_transition_dephasing((i4f,
+                                                                       i3d))
+                                                
                                                 #      |g_i1> <g_i1|                                                           
-                                                lp.add_transition((i2e,i1g),+1)
+                                                lp.add_transition((i2e,i1g),+1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
                                                 #      |e_i2> <g_i1|
                                                 lp.add_transition((i3e,i1g),-1)                                        
                                                 #      |e_i2> <e_i3|
@@ -1329,7 +1448,10 @@ class AggregateSpectroscopy(AggregateBase):
                                                 #      |d_i2> <d_i3|                                        
                                                 lp.add_transition((i4f,i2d),+1)
                                                 #      |f_i4> <d_i3|
-                                                lp.add_transition((i3d,i4f),+1)
+                                                lp.add_transition((i3d,i4f),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
                                                 #      |d_i3> <d_i3|
         
                                             except:

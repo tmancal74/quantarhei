@@ -1176,8 +1176,9 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
         self.widthy = convert(300, "1/cm", "int")
-        
-        #print("Width:", self.widthx)
+        self.dephx = convert(300, "1/cm", "int")
+        self.dephy = convert(300, "1/cm", "int")        
+
         
     def bootstrap(self,rwa=0.0, pathways=None, verbose=False, 
                   shape="Gaussian", all_positive=False):
@@ -1207,6 +1208,10 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
     def set_width(self, val):
         self.widthx = val
         self.widthy = val
+        
+    def set_deph(self, val):
+        self.dephx = val
+        self.dephy = val
 
         
     def calculate(self):
@@ -1247,12 +1252,35 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             pref = numpy.abs(pathway.pref)
         else:
             pref = pathway.pref
+            
         N1 = self.oa1.length
         N3 = self.oa3.length
         
+        if pathway.widths[1] < 0.0:
+            widthx = self.widthx
+        else:
+            widthx = pathway.widths[1]
+            
+        if pathway.widths[3] < 0.0:
+            widthy = self.widthy
+        else:
+            widthy = pathway.widths[3]
+            
+        if pathway.dephs[1] < 0.0:
+            dephx = self.dephx
+        else:
+            dephx = pathway.dephs[1]
+            
+        if pathway.widths[3] < 0.0:
+            dephy = self.dephy
+        else:
+            dephy = pathway.dephs[3]
+        
+        #print(shape, widthx, widthy)
+        
         if pathway.pathway_type == "R":
 
-            reph2D = numpy.zeros((N1, N3), dtype=qr.REAL)
+            reph2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
             
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -1260,8 +1288,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     o1 = -self.oa1.data[i1]                    
                         
                     reph2D[:, i1] = \
-                    pref*numpy.exp(-((o1-cen1)/self.widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/self.widthy)**2)
+                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
+                        *numpy.exp(-((oo3-cen3)/widthy)**2)
             
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
@@ -1269,8 +1297,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     o1 = -self.oa1.data[i1]                    
                         
                     reph2D[:, i1] = \
-                    pref*(self.widthx/((o1-cen1)**2 + self.widthx**2))\
-                        *(self.widthy/((oo3-cen3)**2 + self.widthy**2))
+                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
+                        *(dephy/((oo3-cen3)**2 + dephy**2))
                         
             else:
                 raise Exception("Unknown line shape: "+shape)   
@@ -1279,7 +1307,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             
         elif pathway.pathway_type == "NR":
            
-            nonr2D = numpy.zeros((N1, N3), dtype=qr.REAL)
+            nonr2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
             
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -1287,8 +1315,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     o1 = self.oa1.data[i1]                    
                     
                     nonr2D[:, i1] = \
-                    pref*numpy.exp(-((o1-cen1)/self.widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/self.widthy)**2)
+                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
+                        *numpy.exp(-((oo3-cen3)/widthy)**2)
                         
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
@@ -1296,8 +1324,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     o1 = self.oa1.data[i1]                    
                         
                     nonr2D[:, i1] = \
-                    pref*(self.widthx/((o1-cen1)**2 + self.widthx**2))\
-                        *(self.widthy/((oo3-cen3)**2 + self.widthy**2))
+                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
+                        *(dephy/((oo3-cen3)**2 + dephy**2))
 
             else:
                 raise Exception("Unknown line shape: "+shape)

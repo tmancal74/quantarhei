@@ -14,6 +14,8 @@ from ..utils.types import Integer
 #from ..core.units import cm2int
 from ..core.managers import UnitsManaged
 
+import quantarhei as qr
+
 class liouville_pathway(UnitsManaged):
 
     order = Integer("order")
@@ -73,7 +75,6 @@ class liouville_pathway(UnitsManaged):
         # aggregate for which the pathway is made
         self.aggregate = aggregate 
 
-        
         # current state of the pathway (during building)
         self.current = numpy.zeros(2,dtype=numpy.int16)
         self.current[0] = sinit
@@ -114,6 +115,12 @@ class liouville_pathway(UnitsManaged):
         
         # factor from evolution (super)operator
         self.evolfac = 1.0
+        
+        # transition widths
+        self.widths = None
+        
+        # transition dephasings
+        self.dephs = None
         
         # band through which the pathway travels at population time
         self.popt_band = popt_band
@@ -246,7 +253,8 @@ class liouville_pathway(UnitsManaged):
         
         return out 
     
-    def add_transition(self, transition, side, width=-1.0):
+    def add_transition(self, transition, side, 
+                       interval=0, width=-1.0, deph=-1.0):
         """ Adds a transition to the Liouville pathway. 
 
         Parameters
@@ -285,9 +293,19 @@ class liouville_pathway(UnitsManaged):
         # save the transition associated with this interaction
         self.transitions[self.nint,:] = transition
         # save the side on which the transition occurs
-        self.sides[self.nint] = side 
-        # transition width
-        self.width = width
+        self.sides[self.nint] = side
+        
+        if interval > 0:
+            if self.widths is None:
+                self.widths = numpy.zeros(4, qr.REAL)
+                self.widths[:] = -1.0
+                self.dephs = numpy.zeros(4, qr.REAL)
+                self.dephs[:] = -1.0
+            # transition width
+            self.widths[interval] = width
+            # transition dephasing
+            self.dephs[interval] = deph
+            
         # save the current 
         self.current[sd] = nf
         
@@ -603,7 +621,7 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         """Orders the list of pathways by pathway prefactors
         
         """
-        lst = sorted(pthways, key=lambda pway: pway.pref, reverse=True)
+        lst = sorted(pthways, key=lambda pway: abs(pway.pref), reverse=True)
         return lst
     
         
