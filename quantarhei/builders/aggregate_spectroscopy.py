@@ -759,12 +759,11 @@ class AggregateSpectroscopy(AggregateBase):
 #        # we return a result in exciton basis
 #        return U_ETICS, U_EX
         
-        
 
     
     def liouville_pathways_3T(self, ptype="R3g", eUt2=None,
-                              dtol=-1.0, ptol=1.0e-3, etol=1.0e-6,
-                              verbose=True, lab=None):
+                              dtol=0.01, ptol=1.0e-3, etol=1.0e-6,
+                              verbose=0, lab=None):
         """ Generator of Liouville pathways with energy transfer
         
         
@@ -819,412 +818,24 @@ class AggregateSpectroscopy(AggregateBase):
          
         for ptp in ptype_tuple:
         
-            if ptp == "R3g":
-            
-                if verbose:
-                    print("Liouville pathway R3g")
-                    
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-                
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    
-                    if verbose: 
-                        print("Ground state: ", i1g, "of", len(ngs))
-                        
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g,i1g] > pop_tol:
-
-                        for i2e in nes:
-                            
-                            if self.D2[i2e,i1g] < dip_tol:
-                                break
-                            
-                            for i3g in ngs:
-                                
-                                if self.D2[i3g,i2e] < dip_tol:
-                                    break
-                                
-                                for i4e in nes:
-                            
-                                    if ((self.D2[i4e,i1g] < dip_tol)
-                                    and (self.D2[i3g,i4e] < dip_tol)) :
-                                        break
-                                   
-                                    l += 1
-
-                                    #      Diagram R3g
-                                    #
-                                    #                                     
-                                    #      |g_i3> <g_i3|
-                                    # <----|-----------|
-                                    #      |e_i4> <g_i3|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i3|
-                                    #      |-----------|---->
-                                    #      |g_i1> <e_i2|
-                                    #      |-----------|<----
-                                    #      |g_i1> <g_i1|
-                                    
-                                    try:
-
-                                        lp = \
-                                        diag.liouville_pathway("R", i1g,
-                                               aggregate=self,
-                                               order=3,pname=ptp)     
-
-                                        # first transition lineshape
-                                        width1 = \
-                                        self.get_transition_width((i2e, i1g))
-                                        deph1 = \
-                                        self.get_transition_dephasing((i2e, 
-                                                                       i1g))
-                                        # third transition lineshape
-                                        width3 = \
-                                        self.get_transition_width((i4e,i3g))
-                                        deph3 = \
-                                        self.get_transition_dephasing((i4e,
-                                                                       i3g))
-                                        
-                                        # |g_i1> <g_i1|
-                                        lp.add_transition((i2e,i1g),-1,
-                                                                  interval=1, 
-                                                                  width=width1, 
-                                                                  deph=deph1)
-                                        # |g_i1> <e_i2|
-                                        lp.add_transition((i3g,i2e),-1)
-                                        # |g_i1> <g_i3|
-                                        lp.add_transition((i4e,i1g),+1)
-                                        # |e_i5> <g_i3|
-                                        lp.add_transition((i3g,i4e),+1,
-                                                                  interval=3, 
-                                                                  width=width3, 
-                                                                  deph=deph3)
-                                        # |g_i3> <g_i3|
-
-                                    except:
-                                        
-                                        
-                                        break
-                                    
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-            
-            if ptp == "R2g":
-
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-                
-                if verbose:
-                    print("Liouville pathway R2g")
-                
-                k = 0
-                l = 0
-                for i1g in ngs:
-
-                    if verbose: 
-                        print("Ground state: ", i1g, "of", len(ngs))
-
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g,i1g] > pop_tol:
-                
-                        for i2e in nes:
-                            #print('\rFirst excitation: %i ' % i2e, end = '\r')
-                            if self.D2[i2e,i1g] < dip_tol:
-                                break
-                            
-                            for i3e in nes:
-                                
-                                if self.D2[i3e,i1g] < dip_tol:
-                                    break
-                                
-                                for i3d in nes:
-                                    for i2d in nes:
-                                        
-                                        evf = eUt2.data[i3d, i2d, i3e, i2e]
-                                        if abs(evf) < evf_tol:
-                                            break
-                                
-                                        for i4g in ngs:
-        
-                                            if ((self.D2[i4g,i2e] < dip_tol)
-                                             or (self.D2[i4g,i3e] < dip_tol)):
-                                                break
-                                            
-                                            l += 1
-        
-                                            #      Diagram R2g
-                                            #
-                                            #                                     
-                                            #      |g_i4> <g_i4|
-                                            # <----|-----------|
-                                            #      |d_i3> <g_i4|  
-                                            #      |-----------|---->
-                                            #      |d_i3> <d_i2|
-                                            #      |***********|
-                                            #      |e_i3> <e_i2|
-                                            # ---->|-----------|
-                                            #      |g_i1> <e_i2|
-                                            #      |-----------|<----
-                                            #      |g_i1> <g_i1|
-                                            
-                                            try:
-                                                lp = \
-                                                diag.liouville_pathway("R", 
-                                                                       i1g,
-                                                            aggregate=self,
-                                                            order=3,pname=ptp,
-                                                            popt_band=1,
-                                                            relax_order=1)
-
-                                                # first transition lineshape
-                                                width1 = \
-                                        self.get_transition_width((i2e, i1g))
-                                                deph1 = \
-                                        self.get_transition_dephasing((i2e, 
-                                                                       i1g))
-                                                # third transition lineshape
-                                                width3 = \
-                                        self.get_transition_width((i3d, i4g))
-                                                deph3 = \
-                                        self.get_transition_dephasing((i3d,
-                                                                       i4g))
-                                                
-                                    
-                                                #      |g_i1> <g_i1|
-                                                lp.add_transition((i2e,i1g),-1,
-                                                                  interval=1, 
-                                                                  width=width1, 
-                                                                  deph=deph1)
-                                                #      |g_i1> <e_i2|
-                                                lp.add_transition((i3e,i1g),+1)
-                                                #      |e_i3> <e_i2|
-                                                lp.add_transfer(((i3d, i2d)),
-                                                                 (i3e, i2e))
-                                                lp.set_evolution_factor(evf)
-                                                lp.add_transition((i4g,i2d),-1)
-                                                #      |e_i3> <g_i4|
-                                                lp.add_transition((i4g,i3d),+1,
-                                                                  interval=3, 
-                                                                  width=width3, 
-                                                                  deph=deph3)
-                                                #      |g_i4> <g_i4|
-        
-                                            except:
-                                                
-                                                raise Exception()
-                                                break
-                                            
-                                            lp.build()
-                                            lst.append(lp)
-                                            k += 1
-                
-             
             if ptp == "R1g":
                 
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-                                
-                if verbose:
-                    print("Liouville pathway R1g")
+                generate_R1g(self, lst, eUt2,
+                             pop_tol, dip_tol, evf_tol, verbose)
+
+            if ptp == "R2g":
                 
-                k = 0
-                l = 0
-                for i1g in ngs:
+                generate_R2g(self, lst, eUt2,
+                             pop_tol, dip_tol, evf_tol, verbose)
 
-                    if verbose: 
-                        print("Ground state: ", i1g, "of", len(ngs))
-                    
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g,i1g] > pop_tol:
-                
-                        for i2e in nes:
-                            
-                            if self.D2[i2e,i1g] < dip_tol:
-                                break
-
-                            for i3e in nes:
-
-                                if self.D2[i3e,i1g] < dip_tol:
-                                    break
-
-                                for i2d in nes:
-                                    for i3d in nes:
-                                        
-                                        evf = eUt2.data[i2d, i3d, i2e, i3e]
-                                        if abs(evf) < evf_tol:
-                                            break
-
-                                        for i4g in ngs:
-
-                                            if ((self.D2[i4g,i3d] < dip_tol)
-                                             or (self.D2[i4g,i2d] < dip_tol)):
-                                                break
-        
-                                            l += 1
-        
-                                            #      Diagram R1g
-                                            #
-                                            #                                     
-                                            #      |g_i4> <g_i4|
-                                            # <----|-----------|
-                                            #      |d_i2> <g_i4|
-                                            #      |-----------|---->
-                                            #      |d_i2> <d_i3|
-                                            #      |***********|
-                                            #      |e_i2> <e_i3|
-                                            #      |-----------|<----
-                                            #      |e_i2> <g_i1|
-                                            # ---->|-----------|
-                                            #      |g_i1> <g_i1|
-                                        
-                                            try:
-                                                lp = \
-                                                diag.liouville_pathway("NR",
-                                                                       i1g,
-                                                            aggregate=self,
-                                                            order=3,pname=ptp,
-                                                            popt_band=1,
-                                                            relax_order=1)
-                                                
-                                                # first transition lineshape
-                                                width1 = \
-                                        self.get_transition_width((i2e, i1g))
-                                                deph1 = \
-                                        self.get_transition_dephasing((i2e, 
-                                                                       i1g))
-                                                # third transition lineshape
-                                                width3 = \
-                                        self.get_transition_width((i2d, i4g))
-                                                deph3 = \
-                                        self.get_transition_dephasing((i2d,
-                                                                       i4g))
-                                                
-                                                
-                                                #      |g_i1> <g_i1|                                                           
-                                                lp.add_transition((i2e,i1g),+1,
-                                                                  interval=1, 
-                                                                  width=width1, 
-                                                                  deph=deph1)
-                                                #      |e_i2> <g_i1|        
-                                                lp.add_transition((i3e,i1g),-1)
-                                                #      |e_i2> <e_i3|
-                                                lp.add_transfer(((i3d, i2d)),
-                                                                 (i2e, i3e))
-                                                lp.set_evolution_factor(evf)
-                                                #      |d_i2> <d_i3|                                                                                
-                                                lp.add_transition((i4g,i3d),-1)
-                                                #      |d_i2> <g_i4|
-                                                lp.add_transition((i4g,i2d),+1,
-                                                                  interval=3, 
-                                                                  width=width3, 
-                                                                  deph=deph3)
-                                                #      |g_i4> <g_i4|
-        
-                                            except:
-                                                
-                                                break
-                                            
-                                            lp.build()
-                                            lst.append(lp)
-                                            k += 1
+            if ptp == "R3g":
             
+                generate_R3g(self, lst, pop_tol, dip_tol, verbose)
+                
             if ptp == "R4g":
                 
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-                                
-                if verbose:
-                    print("Liouville pathway R4g")
+                generate_R4g(self, lst, pop_tol, dip_tol, verbose)
                 
-                k = 0
-                l = 0
-                for i1g in ngs:
-
-                    if verbose: 
-                        print("Ground state: ", i1g, "of", len(ngs))
-                    
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g,i1g] > pop_tol:
-                
-                        for i2e in nes:
-                            
-                            if self.D2[i2e,i1g] < dip_tol:
-                                break
-                            
-                            for i3g in ngs:
-
-                                if self.D2[i3g,i2e] < dip_tol:
-                                    break
-                                
-                                for i4e in nes:
-
-                                    if ((self.D2[i4e,i3g] < dip_tol)
-                                     or (self.D2[i1g,i4e] < dip_tol)):
-                                        break
-                                    
-                                    l += 1
-                                    
-
-                                    #      Diagram R4g
-                                    #
-                                    #                                     
-                                    #      |g_i1> <g_i1|
-                                    # <----|-----------|
-                                    #      |e_i4> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i3> <g_i1|
-                                    # <----|-----------|
-                                    #      |e_i2> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        lp = \
-                                        diag.liouville_pathway("NR",i1g,
-                                                           aggregate=self,
-                                                           order=3,pname=ptp)
-                                                                                                          
-                                        # first transition lineshape
-                                        width1 = \
-                                        self.get_transition_width((i2e, i1g))
-                                        deph1 = \
-                                        self.get_transition_dephasing((i2e, 
-                                                                       i1g))
-                                        # third transition lineshape
-                                        width3 = \
-                                        self.get_transition_width((i4e,i1g))
-                                        deph3 = \
-                                        self.get_transition_dephasing((i4e,
-                                                                       i1g))
-                                        
-                                        
-                                        #      |g_i1> <g_i1|                                                           
-                                        lp.add_transition((i2e,i1g),+1,
-                                                                  interval=1, 
-                                                                  width=width1, 
-                                                                  deph=deph1)
-                                        #      |e_i2> <g_i1|
-                                        lp.add_transition((i3g,i2e),+1)
-                                        #      |g_i3> <g_i1|
-                                        lp.add_transition((i4e,i3g),+1)
-                                        #      |e_i4> <g_i1|
-                                        lp.add_transition((i1g,i4e),+1,
-                                                                  interval=3, 
-                                                                  width=width3, 
-                                                                  deph=deph3)
-                                        #      |g_i1> <g_i1|
-
-                                    except:
-                                        
-                                        break
-                                    
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
             
             if ptp == "R1f*":
                 
@@ -1470,5 +1081,448 @@ class AggregateSpectroscopy(AggregateBase):
         return lst     
 
         
+def generate_R1g(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):        
         
+    ngs = self.get_electronic_groundstate()
+    nes = self.get_excitonic_band(band=1)
+    
+    ver = verbose              
+    
+    if verbose > 0:
+        print("Liouville pathway R1g")
+        print("Population tolerance: ", pop_tol)
+        print("Dipole tolerance:     ", dip_tol)
+        print("Evolution amplitude:  ", evf_tol)
+    
+    k = 0
+    l = 0
+    for i1g in ngs:
+
+        if verbose > 0: 
+            print("Ground state: ", i1g, "of", len(ngs))
         
+        # Only thermally allowed starting states are considered
+        if self.rho0[i1g,i1g] > pop_tol:
+    
+            for i2e in nes:
+
+                if verbose > 1: 
+                    print("Excited state: ", i2e, "of", len(nes))
+                
+                if self.D2[i2e, i1g] > dip_tol:
+
+                    for i3e in nes:
+                    
+                        if self.D2[i3e, i1g] > dip_tol:
+                                        
+                            for i2d in nes:
+                                for i3d in nes:
+
+                                    evf = eUt2.data[i2d, i3d, i2e, i3e]
+                                    if abs(evf) > evf_tol:
+
+                                        for i4g in ngs:
+
+                                            if ((self.D2[i4g,i3d] > dip_tol)
+                                            and (self.D2[i4g,i2d] > dip_tol)):
+                                   
+
+                                                l += 1
+                                                
+                                                lp = _generate_R1g(self, i1g,
+                                                                   i2e, i3e,
+                                                                   i2d, i3d,
+                                                                   i4g, evf,
+                                                                   verbose=ver)
+                                                
+                                                lp.build()
+                                                lst.append(lp)
+                                                k += 1
+
+
+def _generate_R1g(self, i1g, i2e, i3e, i2d, i3d, i4g, evf, verbose=0):
+
+    #      Diagram R1g
+    #
+    #                                     
+    #      |g_i4> <g_i4|
+    # <----|-----------|
+    #      |d_i2> <g_i4|
+    #      |-----------|---->
+    #      |d_i2> <d_i3|
+    #      |***********|
+    #      |e_i2> <e_i3|
+    #      |-----------|<----
+    #      |e_i2> <g_i1|
+    # ---->|-----------|
+    #      |g_i1> <g_i1|
+        
+    try:
+        if verbose > 5:
+            print(" * Generating R1g", i1g, i2e, i3e)
+        lp = \
+        diag.liouville_pathway("NR",
+                   i1g,
+                   aggregate=self,
+                   order=3, pname="R1g",
+                   popt_band=1,
+                   relax_order=1)
+
+        # first transition lineshape
+        width1 = \
+        self.get_transition_width((i2e, i1g))
+        deph1 = \
+        self.get_transition_dephasing((i2e, 
+                   i1g))
+        # third transition lineshape
+        width3 = \
+        self.get_transition_width((i2d, i4g))
+        deph3 = \
+        self.get_transition_dephasing((i2d,
+                   i4g))
+
+
+        #      |g_i1> <g_i1|                                                           
+        lp.add_transition((i2e,i1g),+1,
+              interval=1, 
+              width=width1, 
+              deph=deph1)
+        #      |e_i2> <g_i1|        
+        lp.add_transition((i3e,i1g),-1)
+        #      |e_i2> <e_i3|
+        lp.add_transfer(((i2d, i3d)),
+             (i2e, i3e))
+        lp.set_evolution_factor(evf)
+        #      |d_i2> <d_i3|                                                                                
+        lp.add_transition((i4g,i3d),-1)
+        #      |d_i2> <g_i4|
+        lp.add_transition((i4g,i2d),+1,
+              interval=3, 
+              width=width3, 
+              deph=deph3)
+        #      |g_i4> <g_i4|
+
+    except:
+
+        raise Exception("Pathway generation failed")
+        
+    return lp
+
+
+
+def generate_R2g(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
+    
+    ngs = self.get_electronic_groundstate()
+    nes = self.get_excitonic_band(band=1)
+    
+    if verbose > 0:
+        print("Liouville pathway R2g")
+        print("Population tolerance: ", pop_tol)
+        print("Dipole tolerance:     ", dip_tol)
+        print("Evolution amplitude:  ", evf_tol)
+    
+    k = 0
+    l = 0
+    for i1g in ngs:
+
+        if verbose > 0: 
+            print("Ground state: ", i1g, "of", len(ngs))
+
+        # Only thermally allowed starting states are considered
+        if self.rho0[i1g,i1g] > pop_tol:
+    
+            for i2e in nes:
+                
+                if verbose > 1: 
+                    print("Excited state: ", i2e, "of", len(nes))
+               
+                if self.D2[i2e,i1g] > dip_tol:
+                
+                    for i3e in nes:
+                    
+                        if self.D2[i3e,i1g] > dip_tol:
+
+                            for i3d in nes:
+                                for i2d in nes:
+                            
+                                    evf = eUt2.data[i3d, i2d, i3e, i2e]
+                                    if abs(evf) > evf_tol:
+
+                    
+                                        for i4g in ngs:
+
+                                            if ((self.D2[i4g,i2e] > dip_tol)
+                                            and (self.D2[i4g,i3e] > dip_tol)):
+                                    
+                                
+                                                l += 1
+
+                                #      Diagram R2g
+                                #
+                                #                                     
+                                #      |g_i4> <g_i4|
+                                # <----|-----------|
+                                #      |d_i3> <g_i4|  
+                                #      |-----------|---->
+                                #      |d_i3> <d_i2|
+                                #      |***********|
+                                #      |e_i3> <e_i2|
+                                # ---->|-----------|
+                                #      |g_i1> <e_i2|
+                                #      |-----------|<----
+                                #      |g_i1> <g_i1|
+                                
+                                                try:
+                                                    if verbose > 5:
+                                                        print(" * Generating R2g", i1g, i2e, i3e)
+                                                    
+                                                    lp = \
+                                                    diag.liouville_pathway("R", 
+                                                                           i1g,
+                                                                aggregate=self,
+                                                                order=3,pname="R2g",
+                                                                popt_band=1,
+                                                                relax_order=1)
+                
+                                                    # first transition lineshape
+                                                    width1 = \
+                                            self.get_transition_width((i2e, i1g))
+                                                    deph1 = \
+                                            self.get_transition_dephasing((i2e, 
+                                                                           i1g))
+                                                    # third transition lineshape
+                                                    width3 = \
+                                            self.get_transition_width((i3d, i4g))
+                                                    deph3 = \
+                                            self.get_transition_dephasing((i3d,
+                                                                           i4g))
+                                                    
+                                        
+                                                    #      |g_i1> <g_i1|
+                                                    lp.add_transition((i2e,i1g),-1,
+                                                                      interval=1, 
+                                                                      width=width1, 
+                                                                      deph=deph1)
+                                                    #      |g_i1> <e_i2|
+                                                    lp.add_transition((i3e,i1g),+1)
+                                                    #      |e_i3> <e_i2|
+                                                    lp.add_transfer(((i3d, i2d)),
+                                                                     (i3e, i2e))
+                                                    lp.set_evolution_factor(evf)
+                                                    lp.add_transition((i4g,i2d),-1)
+                                                    #      |e_i3> <g_i4|
+                                                    lp.add_transition((i4g,i3d),+1,
+                                                                      interval=3, 
+                                                                      width=width3, 
+                                                                      deph=deph3)
+                                                    #      |g_i4> <g_i4|
+                
+                                                except:
+                                                    
+                                                    raise Exception()
+                                                    break
+                                                
+                                                lp.build()
+                                                lst.append(lp)
+                                                k += 1
+                    
+
+
+def generate_R3g(self, lst, pop_tol, dip_tol, verbose=0):
+
+    ngs = self.get_electronic_groundstate()
+    nes = self.get_excitonic_band(band=1)
+    
+    if verbose > 0:
+        print("Liouville pathway R3g")
+        print("Population tolerance: ", pop_tol)
+        print("Dipole tolerance:     ", dip_tol)
+        #print("Evolution amplitude:  ", evf_tol)
+        
+    
+    k = 0
+    l = 0
+    for i1g in ngs:
+        
+        if verbose > 0: 
+            print("Ground state: ", i1g, "of", len(ngs))
+            
+        # Only thermally allowed starting states are considered
+        if self.rho0[i1g,i1g] > pop_tol:
+
+            for i2e in nes:
+                
+                if verbose > 1: 
+                    print("Excited state: ", i2e, "of", len(nes))
+                
+                if self.D2[i2e,i1g] > dip_tol:
+
+                    for i3g in ngs:
+                    
+                        if self.D2[i3g,i2e] > dip_tol:
+                    
+                            for i4e in nes:
+                
+                                if ((self.D2[i4e,i1g] > dip_tol)
+                                and (self.D2[i3g,i4e] > dip_tol)) :
+
+                       
+                                    l += 1
+
+                        #      Diagram R3g
+                        #
+                        #                                     
+                        #      |g_i3> <g_i3|
+                        # <----|-----------|
+                        #      |e_i4> <g_i3|
+                        # ---->|-----------|
+                        #      |g_i1> <g_i3|
+                        #      |-----------|---->
+                        #      |g_i1> <e_i2|
+                        #      |-----------|<----
+                        #      |g_i1> <g_i1|
+                        
+                                    try:
+                                        if verbose > 5:
+                                            print(" * Generating R3g", i1g, i2e)
+            
+                                        lp = \
+                                        diag.liouville_pathway("R", i1g,
+                                               aggregate=self,
+                                               order=3, pname="R3g")     
+            
+                                        # first transition lineshape
+                                        width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                        deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                        # third transition lineshape
+                                        width3 = \
+                                        self.get_transition_width((i4e,i3g))
+                                        deph3 = \
+                                        self.get_transition_dephasing((i4e,
+                                                                       i3g))
+                                        
+                                        # |g_i1> <g_i1|
+                                        lp.add_transition((i2e,i1g),-1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
+                                        # |g_i1> <e_i2|
+                                        lp.add_transition((i3g,i2e),-1)
+                                        # |g_i1> <g_i3|
+                                        lp.add_transition((i4e,i1g),+1)
+                                        # |e_i5> <g_i3|
+                                        lp.add_transition((i3g,i4e),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
+                                        # |g_i3> <g_i3|
+            
+                                    except:
+
+                                        raise Exception("Generation of pathway failed")
+                                    
+                                    lp.build()
+                                    lst.append(lp)
+                                    k += 1
+
+
+def generate_R4g(self, lst, pop_tol, dip_tol, verbose=0):
+    
+    ngs = self.get_electronic_groundstate()
+    nes = self.get_excitonic_band(band=1)
+                    
+    if verbose > 0:
+        print("Liouville pathway R4g")
+        print("Population tolerance: ", pop_tol)
+        print("Dipole tolerance:     ", dip_tol)
+    
+    k = 0
+    l = 0
+    for i1g in ngs:
+
+        if verbose > 0: 
+            print("Ground state: ", i1g, "of", len(ngs))
+        
+        # Only thermally allowed starting states are considered
+        if self.rho0[i1g,i1g] > pop_tol:
+    
+            for i2e in nes:
+                
+                if verbose > 1: 
+                    print("Excited state: ", i2e, "of", len(nes))
+
+                if self.D2[i2e,i1g] > dip_tol:
+
+                    for i3g in ngs:
+
+                        if self.D2[i3g,i2e] > dip_tol:
+                    
+                            for i4e in nes:
+
+                                if ((self.D2[i4e,i3g] > dip_tol)
+                                and (self.D2[i1g,i4e] > dip_tol)):
+                        
+                                    l += 1
+                        
+
+                        #      Diagram R4g
+                        #
+                        #                                     
+                        #      |g_i1> <g_i1|
+                        # <----|-----------|
+                        #      |e_i4> <g_i1|
+                        # ---->|-----------|
+                        #      |g_i3> <g_i1|
+                        # <----|-----------|
+                        #      |e_i2> <g_i1|
+                        # ---->|-----------|
+                        #      |g_i1> <g_i1|
+
+                                    try:
+                                        if verbose > 5:
+                                            print(" * Generating R4g", i1g, i2e)
+                                        lp = \
+                                        diag.liouville_pathway("NR",i1g,
+                                                           aggregate=self,
+                                                           order=3,pname="R4g")
+                                                                                                          
+                                        # first transition lineshape
+                                        width1 = \
+                                        self.get_transition_width((i2e, i1g))
+                                        deph1 = \
+                                        self.get_transition_dephasing((i2e, 
+                                                                       i1g))
+                                        # third transition lineshape
+                                        width3 = \
+                                        self.get_transition_width((i4e,i1g))
+                                        deph3 = \
+                                        self.get_transition_dephasing((i4e,
+                                                                       i1g))
+                                        
+                                        
+                                        #      |g_i1> <g_i1|                                                           
+                                        lp.add_transition((i2e,i1g),+1,
+                                                                  interval=1, 
+                                                                  width=width1, 
+                                                                  deph=deph1)
+                                        #      |e_i2> <g_i1|
+                                        lp.add_transition((i3g,i2e),+1)
+                                        #      |g_i3> <g_i1|
+                                        lp.add_transition((i4e,i3g),+1)
+                                        #      |e_i4> <g_i1|
+                                        lp.add_transition((i1g,i4e),+1,
+                                                                  interval=3, 
+                                                                  width=width3, 
+                                                                  deph=deph3)
+                                        #      |g_i1> <g_i1|
+            
+                                    except:
+                                        
+                                        break
+                                    
+                                    lp.build()
+                                    lst.append(lp)
+                                    k += 1

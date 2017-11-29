@@ -330,7 +330,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
 
         start_parallel_region()
-        tt1 = time.time()
+        #tt1 = time.time()
         for m in block_distributed_range(0,Nb): #range(Nb):
             
             Kd = numpy.transpose(Km[m,:,:])
@@ -353,14 +353,14 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         # perform reduction of the RR
         distributed_configuration().allreduce(RR, operation="sum")
-        tt2 = time.time()
+        #tt2 = time.time()
         
         close_parallel_region()
         #######################################################################
         # END PARALLELIZATION
         #######################################################################
         
-        print(tt2-tt1)
+        #print(tt2-tt1)
         return RR
 
     def initialize(self):

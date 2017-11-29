@@ -10,3 +10,5 @@
 
 
 """
+
+from .pathwayanalyzer import max_amplitude

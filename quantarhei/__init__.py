@@ -149,7 +149,7 @@ from .spectroscopy.twod2 import TwoDSpectrumCalculator
 from .spectroscopy.twod2 import MockTwoDSpectrumCalculator
 
 
-from .spectroscopy.diagramatics import LiouvillePathwayAnalyzer
+from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
 ###############################################################################
 #                           QUANTUM MECHANICS
