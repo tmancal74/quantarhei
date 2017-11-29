@@ -302,8 +302,13 @@ class TwoDSpectrum(TwoDSpectrumBase):
             cmap = plt.cm.rainbow
             
         if vmax is None:
-            vmax = numpy.amax(realout)            
-        vmin = -vmax*vmin_ratio
+            vmax = numpy.amax(realout)
+
+        vmin = numpy.amin(realout)
+        if vmin < -vmax*vmin_ratio:
+            vmax = -vmin
+        else:
+            vmin = -vmax*vmin_ratio
         
         Npos = Npos_contours
         poslevels = [i*vmax/Npos for i in range(1, Npos)]
@@ -334,7 +339,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
         # positive contours
         plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, levels=poslevels,colors="k",
+                     realout, levels=poslevels, colors="k",
                      linewidth=1)
         
         # zero contour
