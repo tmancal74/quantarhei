@@ -13,7 +13,7 @@ import numpy
 #import h5py
 
 from ..core.managers import UnitsManaged
-from ..core.units import cm2int
+#from ..core.units import cm2int
 from .interactions import dipole_dipole_interaction
 
 from ..qm.oscillators.ho import fcstorage
@@ -437,7 +437,8 @@ class AggregateBase(UnitsManaged, Saveable):
 
     def get_transition_width(self, state1, state2=None):
         """Returns phenomenological width of a given transition
-        
+
+
         Parameters
         ----------
         
@@ -453,10 +454,30 @@ class AggregateBase(UnitsManaged, Saveable):
         """
         if state2 is not None:
 
-            # index of a monomer on which the transition occurs
-            exindx = self._get_exindx(state1, state2)
-            width = self.monomers[exindx].get_transition_width((0,1))
-            return width
+            b1 = state1.elstate.band
+            b2 = state2.elstate.band
+            
+            if abs(b2-b1) == 1:
+            
+                # index of a monomer on which the transition occurs
+                exindx = self._get_exindx(state1, state2)
+                width = self.monomers[exindx].get_transition_width((0,1))
+                print(exindx, width)
+                return width
+            
+            elif abs(b2-b1) == 2:
+                
+                (indx1, indx2) = self._get_twoexindx(state1, state2)
+                print(state1.elstate.elsignature, 
+                      state2.elstate.elsignature, indx1, indx2)
+                width = self.monomers[indx1].get_transition_width((0,1))
+                width += self.monomers[indx2].get_transition_width((0,1))
+                print(indx1, indx2, width)
+                return width
+            
+            else:
+                return -1.0
+            
 
         else: 
             
@@ -465,13 +486,21 @@ class AggregateBase(UnitsManaged, Saveable):
             Nf = transition[0]
             Ni = transition[1]
 
-            # we only handle g -> 1 exciton band transitions
             eli = self.elinds[Ni]
             elf = self.elinds[Nf]
+            
+            # g -> 1 exciton band transitions
             if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
+                # this simulates bath correlation function
                 return self.Wd[Nf, Nf]**2
+            
+            # 1 exciton -> 2 exciton transitions
+            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
+                # this simulates the term  g_ff + g_ee - 2Re g_fe
+                return (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]
+                        - 2.0*self.Wd[Nf, Ni])
             else:
-                return -1.0
+                return 0.0
 
 
     def get_transition_dephasing(self, state1, state2=None):
@@ -510,9 +539,19 @@ class AggregateBase(UnitsManaged, Saveable):
             Nf = transition[0]
             Ni = transition[1]
 
-            # we only handle g -> 1 exciton band transitions
-            if (self.which_band[Ni] == 0) and (self.which_band[Nf] == 1):
+            eli = self.elinds[Ni]
+            elf = self.elinds[Nf]
+            
+            # g -> 1 exciton band transitions
+            if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
                 return self.Dr[Nf, Nf]**2
+            
+            # 1 exciton -> 2 exciton band transitions
+            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
+                # this simulates the term  g_ff + g_ee - 2Re g_fe
+                return (self.Dr[Ni, Ni]**2 + self.Dr[Nf, Nf]
+                        - 2.0*self.Dr[Nf, Ni])
+                
             else:
                 return -1.0
 
@@ -540,6 +579,61 @@ class AggregateBase(UnitsManaged, Saveable):
         fcfac = self.fc_factor(state1,state2)
 
         return eldip*fcfac
+
+    def _get_twoexindx(self, state1, state2):
+        """ Indices of two molecule with transitions or negative number
+        if not found
+        
+        Parameters
+        ----------
+        state1 : class VibronicState
+            state 1
+            
+        state2 : class VibronicState
+            state 2 
+        
+        """
+        # get electronic signatures
+        els1 = state1.elstate.elsignature
+        els2 = state2.elstate.elsignature  
+        
+        # only states in neighboring bands can be connected by dipole moment
+        b1 = state1.elstate.band
+        b2 = state2.elstate.band
+        if (abs(b1-b2) != 2):
+            return -1
+
+        # count the number of differences
+        l = 0
+        count = 0
+        for kk in els1:
+            if kk != els2[l]:
+                count += 1
+            l += 1
+                
+                
+        if count != 2:
+            return -1
+
+        # now that we know that the states differ by two excitations, let
+        # us find on which molecule they are
+        exstates = []
+        exindxs = []
+        l = -1
+        for kk in els1: # signature is just a tuple; iterate over it  
+            l += 1
+            if kk != els2[l]: # this is the index where they differ
+                # which of them is excited
+                if kk > els2[l]:
+                    exstates.append(els1)
+                else:
+                    exstates.append(els2)
+                exindxs.append(l)
+            
+        if len(exstates) == 0:
+            raise Exception()
+        
+        return exindxs[0], exindxs[1]
 
 
     def _get_exindx(self, state1, state2):
@@ -1123,9 +1217,10 @@ class AggregateBase(UnitsManaged, Saveable):
             # for each excited state
             elind = self.elinds[a]
             if self.which_band[elind] == 1:
-                #print(a)
                 Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0))
-                #print(Wd[a,a])
+                Dr[a,a] = numpy.sqrt(self.get_transition_dephasing(s1, s0))
+            elif self.which_band[elind] == 2:
+                Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0))
                 Dr[a,a] = numpy.sqrt(self.get_transition_dephasing(s1, s0))
                 
             for b, s2 in self.allstates(mult=self.mult, 
@@ -1136,7 +1231,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 FC[a,b] = self.fc_factor(s1, s2)
                 
                 if a != b:
-                    HH[a,b] = self.coupling(s1,s2) 
+                    HH[a,b] = self.coupling(s1, s2) 
         
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH

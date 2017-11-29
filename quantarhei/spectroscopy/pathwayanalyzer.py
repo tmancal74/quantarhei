@@ -1,5 +1,25 @@
 # -*- coding: utf-8 -*-
+"""Liouville pathway analysis module
 
+   This module defines classes and function to help in 
+   Liouvile pathway analysis
+   
+   Classes
+   -------
+   
+   LiouvillePathwayAnalyzer
+      
+   
+   Functions
+   ---------
+   
+   max_amplitude(pathways)
+   
+   
+   
+   
+
+"""
 import numpy
 
 from ..core.managers import UnitsManaged, Manager
@@ -8,12 +28,31 @@ from ..core.wrappers import deprecated
 class LiouvillePathwayAnalyzer(UnitsManaged):
     """Class providing methods for Liouville pathway analysis
     
-    
     Parameters
     ----------
     
     pathways : list
         List of pathways to analyze
+    
+    
+    Methods
+    -------
+    
+    set_pathways(pathways=None)
+        Set the pathways for the analysis
+        
+    get_pathways()
+        Returns current list of pathways
+        
+    max_amplitude()
+        Returns a tuple containing the value of the amplitude of the pathway
+        from current list of pathways with the maximum amplitude and its index
+        in the list
+        
+    select_amplitide_GT(val, replace=True, verbose=False)
+        In the current list of pathways this method selects those that have 
+        absolute value of amplitude larger that a given value
+        
     
     """
 
@@ -73,6 +112,7 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
             
         return (pmax, rec)
 
+
     def max_amplitude(self):
         """Return the maximum of pathway prefactors
         
@@ -95,6 +135,7 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         
         """
         return max_amplitude(self.pathways)
+
 
     @deprecated
     def select_pref_GT(self, val, pathways=None, replace=True,

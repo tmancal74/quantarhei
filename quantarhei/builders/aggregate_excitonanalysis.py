@@ -11,9 +11,10 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         """Returns the squares of expansion coefficients of an excitonic state
         
         """
-        coefs = self.SS[:,state]**2
+        coefs = self.SS[:,state]
+        sqrs  = self.SS[:,state]**2
         indx = [i for i in range(self.HH.shape[0])]
-        return indx, coefs
+        return indx, coefs, sqrs
         
     
     # FIXME: what happens when there are no vibrational modes
@@ -38,21 +39,24 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         #cofs = numpy.zeros(N, dtype=qr.REAL)
     
         # to be a method
-        indx, coefs = self.get_expansion_squares(state)
+        indx, coefs, sqrs = self.get_expansion_squares(state)
     
         table_data = []
-        table_data.append(["index","coefficients","state signatures"])
+        table_data.append(["index","squares", "coefficients",
+                           "state signatures"])
         for i in range(N):
-            imax, coef = strip_max_coef(indx, coefs)
+            imax, sqr = _strip_max_coef(indx, sqrs)
+            coef = coefs[imax]
             # to be a method
             sta = self.get_state_signature_by_index(imax)
-            table_data.append([imax, coef, sta])
+            table_data.append([imax, sqr, coef, sta])
             
             #print(imax, "\t", coef,"\t", sta)
             
         table = AsciiTable(table_data)
         print(table.table)
-            
+
+
     def get_intersite_mixing(self, state1=0, state2=0):
         """Returns inter site mixing ration
         
@@ -76,15 +80,15 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     
         return xi        
 
-def strip_max_coef(indx, coefs):
+def _strip_max_coef(indx, sqrs):
     """Returns the index of the maximum coefficient and the coefficient
     and sets the maximum value to zero.
     
     """
-    imax = numpy.argmax(coefs)
-    coef = coefs[imax]
+    imax = numpy.argmax(sqrs)
+    sqr = sqrs[imax]
     
-    coefs[imax] = 0.0
+    sqrs[imax] = 0.0
     
-    return imax, coef
+    return imax, sqr
         
