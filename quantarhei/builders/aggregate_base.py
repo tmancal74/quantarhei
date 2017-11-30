@@ -1191,6 +1191,9 @@ class AggregateBase(UnitsManaged, Saveable):
         # Matrix of dephasing rates
         Dr = numpy.zeros((Ntot, Ntot), dtype=qr.REAL)
         
+        # electronic indices if twice excited state (zero for all other states)
+        twoex_indx = numpy.zeros((2, Ntot), dtype=numpy.int)
+        
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:    
             self.init_coupling_matrix()            
@@ -1216,12 +1219,20 @@ class AggregateBase(UnitsManaged, Saveable):
             # get dephasing and width from the ground-state 
             # for each excited state
             elind = self.elinds[a]
-            if self.which_band[elind] == 1:
+            if (self.which_band[elind] == 1) or (self.which_band[elind] == 2):
                 Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0))
                 Dr[a,a] = numpy.sqrt(self.get_transition_dephasing(s1, s0))
-            elif self.which_band[elind] == 2:
-                Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0))
-                Dr[a,a] = numpy.sqrt(self.get_transition_dephasing(s1, s0))
+
+            # save composition of twice excited states
+            if self.which_band[elind] == 2:
+                k_s = 0
+                c_s = 0
+                for i_s in s1.elstate.elsignature:
+                    if i_s == 1:
+                        twoex_indx[k_s, a] = c_s
+                        k_s += 1
+                    c_s += 1    
+
                 
             for b, s2 in self.allstates(mult=self.mult, 
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
@@ -1245,6 +1256,10 @@ class AggregateBase(UnitsManaged, Saveable):
         self.Wd = Wd
         # dephasings
         self.Dr = Dr
+        
+        # composition of two-ex states
+        # first index of state a is twoex_indx[0, a]
+        self.twoex_indx = twoex_indx
         
         # squares of transition dipoles
         dd2 = numpy.zeros((Ntot, Ntot),dtype=numpy.float64)
@@ -1973,12 +1988,26 @@ class AggregateBase(UnitsManaged, Saveable):
         
         self.HH = numpy.dot(self.S1,numpy.dot(self.HH,self.SS))
         
+        # line shape of 0->1 and 0->2 exciton transitions
         for ii in range(self.HH.shape[0]):
             self.Wd[ii,ii] = 0.0
             self.Dr[ii,ii] = 0.0
             for nn in range(self.HH.shape[0]):
                 self.Wd[ii,ii] += self.Wd[nn,nn]*abs(SS[ii,nn])**4
                 self.Dr[ii,ii] += self.Dr[nn,nn]*abs(SS[ii,nn])**4
+        
+        # some quantity to be precalculated for two-ex lineshape
+        kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
+        for kk in range(self.Nel):
+            if self.which_band[kk] == 2:
+                for aa in self.vibindices[kk]:
+                    print("2ex states: ", aa)
+                    print(self.twoex_indx[:,aa])
+                    
+#                    for nn in self.vibindi:
+#                        for KK in range(self.Nb[2]):
+#                            kappa[nn, aa] += self.SS[KK,aa]**2
+                        
         
         for n in range(3):
             self.DD[:,:,n] = numpy.dot(self.S1,
