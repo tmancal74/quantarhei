@@ -797,12 +797,47 @@ class AggregateBase(UnitsManaged, Saveable):
         #
         if (isinstance(state1, ElectronicState) 
            and isinstance(state2, ElectronicState)):
-            
-            i = state1.index
-            j = state2.index
-            
+                        
             if self.nmono > 1:
-                coup = self.resonance_coupling[i-1,j-1]
+                # coupling within the bands
+                if state1.band == state2.band:
+                    
+                    if state1.band == 1:
+                        
+                        kk = state1.index - 1
+                        ll = state2.index - 1
+                        
+                        if (kk >= 0) and (ll >= 0):
+                            coup = self.resonance_coupling[kk,ll]
+                        else:
+                            coup = 0.0
+
+                    else:
+                        
+                        els1 = state1.elsignature
+                        els2 = state2.elsignature
+                        Ns = len(els1)
+                        sites = [0,0]
+                        k = 0
+                        # count differences
+                        for i in range(Ns):
+                            if els1[i] != els2[i]:
+                                if (k == 0) or (k == 1):
+                                    sites[k] = i
+                                k += 1
+                        # if there are exactly 2 differences, the differing
+                        # two molecules are those coupled; sites[k] contains
+                        # indiced those coupled molecules
+                        if k == 2:
+                            kk = sites[0]
+                            ll = sites[1]
+                            coup = self.resonance_coupling[kk,ll]   
+                        else:
+                            coup = 0.0
+                            
+                else:
+                    coup = 0.0
+    
             else:
                 coup = 0.0
             
@@ -2388,6 +2423,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 if a != b:
                     HH[a,b] = self.coupling(sta, stb) 
         HHel = Hamiltonian(data=HH)
+        
         return HHel
             
 
