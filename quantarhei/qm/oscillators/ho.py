@@ -99,7 +99,7 @@ class operator_factory(Saveable):
         
     def unity_operator(self):
         
-        ones = numpy.ones(self.N,dtype=numpy.float)
+        ones = numpy.ones(self.N, dtype=numpy.float)
         ret = numpy.diag(ones)
         return ret
         

@@ -29,8 +29,6 @@ from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 
 from ..qm.corfunctions import CorrelationFunctionMatrix
 
-
-
 #from .aggregate_states import aggregate_state
 from .aggregate_states import ElectronicState
 from .aggregate_states import VibronicState
@@ -1192,7 +1190,7 @@ class AggregateBase(UnitsManaged, Saveable):
         Dr = numpy.zeros((Ntot, Ntot), dtype=qr.REAL)
         
         # electronic indices if twice excited state (zero for all other states)
-        twoex_indx = numpy.zeros((2, Ntot), dtype=numpy.int)
+        twoex_indx = numpy.zeros((Ntot, 2), dtype=numpy.int)
         
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:    
@@ -1225,13 +1223,17 @@ class AggregateBase(UnitsManaged, Saveable):
 
             # save composition of twice excited states
             if self.which_band[elind] == 2:
+                # k_s counts excited molecules in the doubly exc. state
+                # there are molecules 0 and 1 in diad (n,m)
                 k_s = 0
-                c_s = 0
+                # counts positons in the electronic signature
+                # i.e. it counts molecular index
+                sig_position = 0 
                 for i_s in s1.elstate.elsignature:
                     if i_s == 1:
-                        twoex_indx[k_s, a] = c_s
+                        twoex_indx[a, k_s] = sig_position
                         k_s += 1
-                    c_s += 1    
+                    sig_position += 1    
 
                 
             for b, s2 in self.allstates(mult=self.mult, 
@@ -1988,27 +1990,82 @@ class AggregateBase(UnitsManaged, Saveable):
         
         self.HH = numpy.dot(self.S1,numpy.dot(self.HH,self.SS))
         
-        # line shape of 0->1 and 0->2 exciton transitions
-        for ii in range(self.HH.shape[0]):
-            self.Wd[ii,ii] = 0.0
-            self.Dr[ii,ii] = 0.0
-            for nn in range(self.HH.shape[0]):
-                self.Wd[ii,ii] += self.Wd[nn,nn]*abs(SS[ii,nn])**4
-                self.Dr[ii,ii] += self.Dr[nn,nn]*abs(SS[ii,nn])**4
         
-        # some quantity to be precalculated for two-ex lineshape
+        #
+        # some quantities to be precalculated for two-ex lineshape
+        # 1->2 has to be trasformed first because we need untransformed 0->1
+        # for such a transformation
+        #
+        N1b = self.Nb[0]+self.Nb[1]
+
+        
+        #  \kappa_{nA} = 
+        #  \sum_{K}(\delta_{nk}+\delta_{nl})*|\langle A | K\rangle|^2 
+        #
+        #  where K is a two-exc. state K = (k,l), A is a two-ex. state
+        #  and n is a single exciton state
+        #
+        #  Below aa1 = A, aa2 = n, aa3 = K, st_k = k and st_l = l 
+        #
         kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
-        for kk in range(self.Nel):
-            if self.which_band[kk] == 2:
-                for aa in self.vibindices[kk]:
-                    print("2ex states: ", aa)
-                    print(self.twoex_indx[:,aa])
-                    
-#                    for nn in self.vibindi:
-#                        for KK in range(self.Nb[2]):
-#                            kappa[nn, aa] += self.SS[KK,aa]**2
-                        
+        # Kronecker delta over all states
+        delta = operator_factory(self.Ntot).unity_operator()
         
+        # all states (and 2-ex band selected)
+        for kk1 in range(self.Nel):
+            if self.which_band[kk1] == 2:
+                # all states corresponding to electronic two-exc. state kk
+                for aa1 in self.vibindices[kk1]:
+                    
+                    # all states and (1-ex band selected)
+                    for kk2 in range(self.Nel):
+                        if self.which_band[kk2] == 1:
+                            for aa2 in self.vibindices[kk2]:
+                                
+                                # all states and (2-ex band selected)
+                                for kk3 in range(self.Nel):
+                                    if self.which_band[kk3] == 2:
+                                        for aa3 in self.vibindices[kk3]:
+                                            st_k = self.twoex_indx[aa3,0]
+                                            st_l = self.twoex_indx[aa3,1]
+                                            kappa[aa2, aa1] += (
+                                                 (delta[aa2, st_k] 
+                                                + delta[aa2, st_l])*
+                                                 (SS[aa3, aa1]**2))
+                             
+        #
+        # Transform line shapes for 1->2 transitions
+        #
+        N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
+        Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
+        Dr_a = numpy.zeros(N2b, dtype=qr.REAL)        
+        for aa in range(N1b, N2b):
+            for nn in range(N1b, N2b):
+                st_n = self.twoex_indx[nn,0]
+                st_m = self.twoex_indx[nn,1]
+                Wd_a[aa] += (SS[nn, aa]**2)*\
+                            (self.Wd[st_n, st_n]*kappa[st_n, aa]
+                            +self.Wd[st_m, st_m]*kappa[st_m, aa])
+        W_aux = numpy.diag(Wd_a)
+        self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
+
+        #
+        # Transform line shapes for 0->1 transitions
+        #
+        # line shape of 0->1 and 0->2 exciton transitions
+        Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
+        Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
+        for ii in range(N1b):
+            for nn in range(N1b):
+                Wd_a[ii] += self.Wd[nn,nn]*abs(SS[ii,nn])**4
+                Dr_a[ii] += self.Dr[nn,nn]*abs(SS[ii,nn])**4
+        self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
+        self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
+                                       
+        
+        #
+        # Transform transition dipole moments
+        #
         for n in range(3):
             self.DD[:,:,n] = numpy.dot(self.S1,
                                numpy.dot(self.DD[:,:,n],self.SS))
