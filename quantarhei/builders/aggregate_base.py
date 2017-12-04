@@ -460,17 +460,17 @@ class AggregateBase(UnitsManaged, Saveable):
                 # index of a monomer on which the transition occurs
                 exindx = self._get_exindx(state1, state2)
                 width = self.monomers[exindx].get_transition_width((0,1))
-                print(exindx, width)
+                #print(exindx, width)
                 return width
             
             elif abs(b2-b1) == 2:
                 
                 (indx1, indx2) = self._get_twoexindx(state1, state2)
-                print(state1.elstate.elsignature, 
-                      state2.elstate.elsignature, indx1, indx2)
+                #print(state1.elstate.elsignature, 
+                #      state2.elstate.elsignature, indx1, indx2)
                 width = self.monomers[indx1].get_transition_width((0,1))
                 width += self.monomers[indx2].get_transition_width((0,1))
-                print(indx1, indx2, width)
+                #print(indx1, indx2, width)
                 return width
             
             else:
@@ -490,14 +490,19 @@ class AggregateBase(UnitsManaged, Saveable):
             # g -> 1 exciton band transitions
             if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
                 # this simulates bath correlation function
+                #print("0->1 :", self.Wd[Nf, Nf]**2)
                 return self.Wd[Nf, Nf]**2
             
             # 1 exciton -> 2 exciton transitions
             elif (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
                 # this simulates the term  g_ff + g_ee - 2Re g_fe
-                return (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]
-                        - 2.0*self.Wd[Nf, Ni])
+                ret =  (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]**2
+                        - 2.0*(self.Wd[Nf, Ni]**2))
+                #print("1->2 (", eli, elf,") :", ret, self.Wd[Nf, Ni]**2)
+                return ret
+            
             else:
+                print("This should not be used")
                 return 0.0
 
 
@@ -1231,7 +1236,9 @@ class AggregateBase(UnitsManaged, Saveable):
                 sig_position = 0 
                 for i_s in s1.elstate.elsignature:
                     if i_s == 1:
-                        twoex_indx[a, k_s] = sig_position
+                        # we save indices of electronic states and 
+                        # 0 is taken by the ground state
+                        twoex_indx[a, k_s] = sig_position + 1 
                         k_s += 1
                     sig_position += 1    
 
@@ -2011,54 +2018,80 @@ class AggregateBase(UnitsManaged, Saveable):
         # Kronecker delta over all states
         delta = operator_factory(self.Ntot).unity_operator()
         
-        # all states (and 2-ex band selected)
-        for kk1 in range(self.Nel):
-            if self.which_band[kk1] == 2:
-                # all states corresponding to electronic two-exc. state kk
-                for aa1 in self.vibindices[kk1]:
-                    
-                    # all states and (1-ex band selected)
-                    for kk2 in range(self.Nel):
-                        if self.which_band[kk2] == 1:
-                            for aa2 in self.vibindices[kk2]:
-                                
-                                # all states and (2-ex band selected)
-                                for kk3 in range(self.Nel):
-                                    if self.which_band[kk3] == 2:
-                                        for aa3 in self.vibindices[kk3]:
-                                            st_k = self.twoex_indx[aa3,0]
-                                            st_l = self.twoex_indx[aa3,1]
-                                            kappa[aa2, aa1] += (
-                                                 (delta[aa2, st_k] 
-                                                + delta[aa2, st_l])*
-                                                 (SS[aa3, aa1]**2))
-                             
-        #
-        # Transform line shapes for 1->2 transitions
-        #
-        N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
-        Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
-        Dr_a = numpy.zeros(N2b, dtype=qr.REAL)        
-        for aa in range(N1b, N2b):
-            for nn in range(N1b, N2b):
-                st_n = self.twoex_indx[nn,0]
-                st_m = self.twoex_indx[nn,1]
-                Wd_a[aa] += (SS[nn, aa]**2)*\
-                            (self.Wd[st_n, st_n]*kappa[st_n, aa]
-                            +self.Wd[st_m, st_m]*kappa[st_m, aa])
-        W_aux = numpy.diag(Wd_a)
-        self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
+        if self.mult >= 2:
+            
+            N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
+            
+            # all states (and 2-ex band selected)
+            for kk1 in range(self.Nel):
+                el1 = self.elinds[kk1]
+                if self.which_band[el1] == 2:
+                    # all states corresponding to electronic two-exc. state kk
+                    for aa1 in self.vibindices[kk1]:
+                        
+                        # all states and (1-ex band selected)
+                        for kk2 in range(self.Nel):
+                            el2 = self.elinds[kk2]
+                            if self.which_band[el2] == 1:
+                                for aa2 in self.vibindices[kk2]:
+                                    
+                                    # all states and (2-ex band selected)
+                                    for kk3 in range(self.Nel):
+                                        el3 = self.elinds[kk3]
+                                        if self.which_band[el3] == 2:
+                                            for aa3 in self.vibindices[kk3]:
+                                                st_k = self.twoex_indx[aa3,0]
+                                                st_l = self.twoex_indx[aa3,1]
+                                                kappa[aa2, aa1] += (
+                                                     (delta[aa2, st_k] 
+                                                    + delta[aa2, st_l])*
+                                                     (SS[aa3, aa1]**2))
+                                                     
+            #
+            # Cross terms
+            #
+            for aa_2x in range(N1b, N2b):
+                for alpha in range(N1b):
+                    self.Wd[aa_2x, alpha] = 0.0
+                    for nn_2x in range(N1b, N2b):
+                        for k_1x in range(N1b):
+                            st_n = self.twoex_indx[nn_2x, 0]
+                            st_m = self.twoex_indx[nn_2x, 1]
+                            #print(st_n, st_m)
+                            self.Wd[aa_2x, alpha] += \
+                                ((self.Wd[st_n, st_n]**2)*delta[st_n, k_1x] +
+                                 (self.Wd[st_m, st_m]**2)*delta[st_m, k_1x])*\
+                                 (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)   
+                                 
+            self.Wd[N1b:N2b,0:N1b] = numpy.sqrt(self.Wd[N1b:N2b,0:N1b])
+            #print(self.Wd[N1b:N2b,0:N1b])
+            
+            #
+            # Transform line shapes for 1->2 transitions
+            #
+            Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
+            Dr_a = numpy.zeros(N2b, dtype=qr.REAL)        
+            for aa in range(N1b, N2b):
+                for nn in range(N1b, N2b):
+                    st_n = self.twoex_indx[nn,0]
+                    st_m = self.twoex_indx[nn,1]
+                    Wd_a[aa] += (SS[nn, aa]**2)*\
+                                ((self.Wd[st_n, st_n]**2)*kappa[st_n, aa]
+                                +(self.Wd[st_m, st_m]**2)*kappa[st_m, aa])
+            W_aux = numpy.diag(numpy.sqrt(Wd_a))
+            self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
 
         #
         # Transform line shapes for 0->1 transitions
         #
-        # line shape of 0->1 and 0->2 exciton transitions
         Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
         Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
         for ii in range(N1b):
             for nn in range(N1b):
-                Wd_a[ii] += self.Wd[nn,nn]*abs(SS[ii,nn])**4
-                Dr_a[ii] += self.Dr[nn,nn]*abs(SS[ii,nn])**4
+                Wd_a[ii] += (self.Wd[nn,nn]**2)*abs(SS[ii,nn])**4
+                Dr_a[ii] += (self.Dr[nn,nn]**2)*abs(SS[ii,nn])**4
+        Wd_a = numpy.sqrt(Wd_a)
+        Dr_a = numpy.sqrt(Dr_a)
         self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
         self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
                                        
@@ -2332,13 +2365,30 @@ class AggregateBase(UnitsManaged, Saveable):
 
 
     def get_Hamiltonian(self):
-        """Retruns the aggregate Hamiltonian
+        """Returns the aggregate Hamiltonian
         
         """
         if self._built:
             return self.HamOp #Hamiltonian(data=self.HH) 
         else:
             raise Exception("Aggregate object not built")
+            
+    def get_electronic_Hamiltonian(self):
+        """Returns the aggregate electronic Hamiltonian
+        
+        In case this is a purely electronic aggregate, the output
+        is identical to get_Hamiltonian()
+        
+        """
+        
+        HH = numpy.zeros((self.Nel, self.Nel), dtype=qr.REAL)
+        for (a, sta) in self.elstates(mult=self.mult):
+            HH[a,a] = sta.energy()
+            for (b, stb) in self.elstates(mult=self.mult):
+                if a != b:
+                    HH[a,b] = self.coupling(sta, stb) 
+        HHel = Hamiltonian(data=HH)
+        return HHel
             
 
     def get_TransitionDipoleMoment(self):

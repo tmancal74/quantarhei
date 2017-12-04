@@ -224,7 +224,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #######################################################################
 
         start_parallel_region()
-        for ms in block_distributed_range(0,Nb): #range(Nb):
+        for ms in block_distributed_range(0, Nb): #range(Nb):
+            #print(ms, "of", Nb)
             #for ns in range(Nb):
             if not multi_ex:
                 ns = ms

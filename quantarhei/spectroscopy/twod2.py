@@ -261,6 +261,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
             spect2D = numpy.real(spect2D)
         elif spart == "imaginary":
             spect2D = numpy.imag(spect2D)
+        elif spart == "abs":
+            spect2D = numpy.abs(spect2D)
         else:
             raise Exception("Undefined part of the spectrum: "+spart)
          
@@ -289,7 +291,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
         # Plotting with given units on axes
         #
   
-        realout = spect2D[i1_min:i1_max,i3_min:i3_max]
+        realout = spect2D[i3_min:i3_max,i1_min:i1_max]
     
         if fig is None:
             fig, ax = plt.subplots(1,1)

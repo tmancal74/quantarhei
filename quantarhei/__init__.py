@@ -197,7 +197,7 @@ from .core.saveable import read_info
 from .core.units import convert
 from .core.units import in_current_units
 
-
+from .utils.vectors import normalize2
 
 
 
