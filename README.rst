@@ -29,7 +29,7 @@ such as Hamiltonian, relaxation tensors, various initial
 conditions for density matrix etc.
 
 Quantarhei is at its experimental stage. 
-Current version is 0.0.32
+Current version is 0.0.33
 
 Quantarhei is available in source form on GitHub and from PyPI for installation
 with the pip command.
@@ -56,6 +56,22 @@ and
                                                
 
 through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
+
+
+
+New in 0.0.33
+=============
+
+For users:
+
+- Evolution superoperators for relaxation tensors with constant coefficients (EvolutionSuperOperator class)
+- Liouville pathway analysis including relaxation pathways (in Aggregate class)
+- Small improvements and bug fixes
+
+For developers:
+
+- Aggregate class is broken into smaller pieces which snowball the functionality. Basic class is AggregateBase; new functions of this powerful class are defined in separate child classes. Aggregate class inherits from the whole chain of classes 
+- quantarhei.REAL and quantarhei.COMPLEX types should be now used for numpy arrays throughout the package. These types can be controlled and with it the used numerical precision and memory needs
 
 
 
