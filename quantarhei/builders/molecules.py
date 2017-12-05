@@ -27,6 +27,8 @@ from ..qm import ReducedDensityMatrix
 
 from ..core.saveable import Saveable
 
+import quantarhei as qr
+
  
     
 class Molecule(UnitsManaged, Saveable):
@@ -114,6 +116,12 @@ class Molecule(UnitsManaged, Saveable):
         
         self.dmoments = numpy.zeros((self.nel,self.nel,3)) 
         
+        # matrix of the transition widths
+        self.widths = None
+        
+        # matrix of dephasing rates
+        self.dephs = None
+        
         self._has_nat_lifetime = [False]*self.nel
         self._nat_lifetime = numpy.zeros(self.nel)
         self._nat_linewidth = numpy.zeros(self.nel)        
@@ -145,23 +153,12 @@ class Molecule(UnitsManaged, Saveable):
         self.data = None
         self._data_type = None
    
-    
-#    def save_as(self, root, name):
-#        rtg = self._create_root_group(root, name)
-#        rtg.attrs.create("name", numpy.string_(self.name))
-#        rtg.attrs.create("nel",self.nel)
-#        rtg.create_dataset("elenergies", data=self.elenergies)
-#
-#    def load_as(self, root, name):
-#        rtg = root[name]
-#        self.name = rtg.attrs["name"].decode("utf-8")
-#        self.nel = rtg.attrs["nel"]   
-#        self.elenergies = numpy.array(rtg["elenergies"])
 
     # FIXME: attribute manager in UnitsManager class complicates saving
     def _before_save(self):
         
         self.manager = None
+
         
     def _after_save(self):
         
@@ -173,9 +170,11 @@ class Molecule(UnitsManaged, Saveable):
         
         """
         self.manager = Manager()
+
         
     def get_name(self):
         return self.name
+
         
     def set_name(self, name):
         self.name = name
@@ -279,8 +278,6 @@ class Molecule(UnitsManaged, Saveable):
                                                 transition[1])] = False
                                                 
 
-        
-                                                
     #@deprecated
     def set_egcf(self, transition, egcf):
         self.set_transition_environment(transition, egcf)
@@ -352,14 +349,75 @@ class Molecule(UnitsManaged, Saveable):
             self.dmoments[N, M, :] = vec
             self.dmoments[M, N, :] = numpy.conj(vec)
         except:
-            raise Exception()        
+            raise Exception()  
+            
+    def set_transition_width(self, transition, width):
+        """Sets the width of a given transition
+        
+        
+        Parameters
+        ----------
+        
+        transition : {tuple, list}
+            Quantum numbers of the states between which the transition occurs
+            
+        width : float
+            The width of the transition
+            
+            
+        """
+        if self.widths is None:
+            N = self.elenergies.shape[0]
+            self.widths = numpy.zeros((N, N), dtype=qr.REAL)
+        self.widths[transition[0], transition[1]] = width
+        self.widths[transition[1], transition[0]] = width
+
+
+    def get_transition_width(self, transition):
+        
+        if self.widths is None:
+            return 0.0
+        
+        return self.widths[transition[0], transition[1]]
+
+    
+    def set_transition_dephasing(self, transition, deph):
+        """Sets the dephasing rate of a given transition
+        
+        
+        Parameters
+        ----------
+        
+        transition : {tuple, list}
+            Quantum numbers of the states between which the transition occurs
+            
+        deph : float
+            Dephasing rate of the transition
+            
+            
+        """        
+        if self.dephs is None:
+            N = self.elenergies.shape[0]
+            self.dephs = numpy.zeros((N, N), dtype=qr.REAL)
+        self.dephs[transition[0], transition[1]] = deph
+        self.dephs[transition[1], transition[0]] = deph
+
+
+    def get_transition_dephasing(self, transition):
+        
+        if self.dephs is None:
+            return 0.0
+        
+        return self.dephs[transition[0], transition[1]]
+
 
     def get_energy(self, N):
         try:
             return self.convert_energy_2_current_u(self.elenergies[N])
         except:
             raise Exception()
-            
+
+      
     def set_energy(self, N, en):
         self.elenergies[N] = self.convert_energy_2_internal_u(en)
         

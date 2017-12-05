@@ -1,13 +1,64 @@
 # -*- coding: utf-8 -*-
+"""
+*******************************************************************************
+
+
+    QUANTArhei: Open Quantum System Theory for Molecular Systems 
+    ============================================================
+    
+    (c) 2016 Tomáš Mančal
+    
+    Charles University
+    Faculty of Mathematics and Physics
+    Ke Karlovu 5
+    CZ-121 16 Prague 2
+    Czech Repubic
+
+
+    For support contact the author at : mancal@karlov.mff.cuni.cz
+    
+    
+*******************************************************************************
+
+    Evolution Superoperator module
+
+"""
+
+# standard library imports
 import time
 
+# dependencies imports
 import numpy
 
+# quantarhei imports
 from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.time import TimeAxis
+from ...core.saveable import Saveable
 
+import quantarhei as qr
+
+# FIXME: This class should be a base class for Relaxation tensors
 class SuperOperator:
+    """Class representing superoperators
+    
+    
+    This class represents operators on the space of Hilbert space operators.
+    Usually, we refer to such operators as superoperators. 
+    
+    Parameters
+    ----------
+    
+    dim : int
+        Dimension of the superoperator
+        
+    data : array
+        Data of the superoperator
+        
+    real : bool
+        Is this data real? False if they are complex
+    
+    """
     
     def __init__(self, dim=None, data=None, real=False):
         
@@ -15,10 +66,10 @@ class SuperOperator:
             self.dim = dim
             if real:
                 self.data = numpy.zeros((dim, dim, dim, dim),
-                                        dtype=numpy.float64)
+                                        dtype=qr.REAL)
             else:
                 self.data = numpy.zeros((dim, dim, dim, dim), 
-                                        dtype=numpy.complex128)
+                                        dtype=qr.COMPLEX)
         elif data is not None:
             self.data = data
             self.dim = data.shape[0]
@@ -31,6 +82,20 @@ class SuperOperator:
     
     
 class SOpUnity(SuperOperator):
+    """Class representing a unity superoperator
+    
+    
+    Parameters
+    ----------
+    
+    dim : int
+        Dimension of the unity superoperator
+        
+    data : array
+        If data is specified, only their dimension is used to construct
+        a unity superoperator
+        
+    """
     
     def __init__(self, dim=None, data=None):
         
@@ -41,6 +106,7 @@ class SOpUnity(SuperOperator):
             dim = data.shape[0]
             super().__init__(dim, data=None)
             
+        # initialize the data
         for i in range(self.dim):
             for j in range(self.dim):
                 self.data[i,j,i,j] = 1.0
@@ -50,8 +116,8 @@ class SOpUnity(SuperOperator):
         
     
 
-class EvolutionSuperOperator:
-    """Class representing evolution super operator
+class EvolutionSuperOperator(Saveable):
+    """Class representing evolution superoperator
     
     
     
@@ -151,11 +217,15 @@ class EvolutionSuperOperator:
         
         
     def calculate(self, show_progress=False):
+        """Calculates the data of the evolution superoperator
+        
+        
+        """
 
         dim = self.ham.dim
         Nt = self.time.length
         self.data = numpy.zeros((Nt, dim, dim, dim, dim),
-                                dtype=numpy.complex128)
+                                dtype=qr.COMPLEX)
 
         # zero time value (unity superoperator)
         for i in range(dim):
@@ -184,7 +254,8 @@ class EvolutionSuperOperator:
 
         Udt = self.data[1,:,:,:,:]
         for ti in range(1, Nt):
-            
+            if show_progress:
+                print("Self propagation: ", ti, "of", Nt)            
            
             self.data[ti,:,:,:,:] = numpy.tensordot(Udt,self.data[ti-1,:,:,:,:])
             

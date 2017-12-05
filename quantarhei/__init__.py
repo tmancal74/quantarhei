@@ -15,16 +15,30 @@
     Czech Repubic
 
 
-
     For support contact the author at : mancal@karlov.mff.cuni.cz
     
     
 *******************************************************************************
 
     Classes available from quantarhei are devided into several functional
-    groups. They are all loaded similarly to the Manager class as
+    groups. They can all loaded similarly to the Manager class as
     
-    from quantarhei import Manager
+    >>> from quantarhei import Manager
+    >>> m = qr.Manager()
+    >>> print(m.version)
+    
+    Preferred way of using Quantarhei is to load the package and rename it 
+    to something shorter, like below
+    
+    >>> import quantarhei as qr
+    >>> m = qr.Manager()
+    >>> print(m.version)
+  
+    Numeric types
+    -------------
+    
+    REAL ...... real floating point number type, by default numpy.float64
+    COMPLEX ... complex floating point number type, by default numpy.complex128 
     
     Builders
     --------
@@ -35,8 +49,7 @@
     PDBFile ....... reader and writter of structures from PDB format
     Disorder ...... class managing static disorder of molecular transition
                     energies
-    
-    
+     
     Core classes
     ------------
     
@@ -73,6 +86,15 @@
 ###############################################################################
 
 #
+# Fix used numerical types
+#
+#import numpy
+from .core.managers import Manager
+m = Manager()
+REAL = m.get_real_type() #numpy.float64
+COMPLEX = m.get_complex_type() #numpy.complex128
+
+#
 # Builders
 #
 from .builders.modes import Mode
@@ -92,7 +114,6 @@ from .core.saveable import Saveable
 #
 # Various managers
 #
-from .core.managers import Manager
 from .core.managers import energy_units
 from .core.managers import frequency_units
 from .core.managers import length_units
@@ -125,9 +146,10 @@ from .spectroscopy.abs2 import AbsSpectrumCalculator
 from .spectroscopy.twod2 import TwoDSpectrum
 from .spectroscopy.twod2 import TwoDSpectrumContainer
 from .spectroscopy.twod2 import TwoDSpectrumCalculator
+from .spectroscopy.twod2 import MockTwoDSpectrumCalculator
 
 
-from .spectroscopy.diagramatics import LiouvillePathwayAnalyzer
+from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
 ###############################################################################
 #                           QUANTUM MECHANICS
@@ -175,7 +197,8 @@ from .core.saveable import read_info
 from .core.units import convert
 from .core.units import in_current_units
 
-
+from .utils.vectors import normalize2
+from .utils.vectors import norm 
 
 
 

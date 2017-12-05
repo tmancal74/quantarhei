@@ -463,6 +463,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         HH = self.Hamiltonian.data  
         
+        #print("PROPAGATION")
+        
         try:
             Km = self.RelaxationTensor.Km
             Lm = self.RelaxationTensor.Lm
@@ -477,6 +479,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         indx = 1
 
         for ii in range(1, self.Nt): 
+            #print(ii, "of", self.Nt)
             
             for jj in range(0, self.Nref):
                 
@@ -503,6 +506,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             pr.data[indx,:,:] = rho2 
             indx += 1             
             
+        #print("...DONE")
         return pr
         
     def __propagate_short_exp_with_TD_relaxation(self,rhoi,L=4):

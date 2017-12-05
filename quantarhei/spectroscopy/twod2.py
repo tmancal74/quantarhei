@@ -18,6 +18,8 @@ from ..core.units import convert
 
 from ..utils import derived_type
 
+import quantarhei as qr
+
 import time
 
 try:
@@ -259,6 +261,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
             spect2D = numpy.real(spect2D)
         elif spart == "imaginary":
             spect2D = numpy.imag(spect2D)
+        elif spart == "abs":
+            spect2D = numpy.abs(spect2D)
         else:
             raise Exception("Undefined part of the spectrum: "+spart)
          
@@ -287,7 +291,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
         # Plotting with given units on axes
         #
   
-        realout = spect2D[i1_min:i1_max,i3_min:i3_max]
+        realout = spect2D[i3_min:i3_max,i1_min:i1_max]
     
         if fig is None:
             fig, ax = plt.subplots(1,1)
@@ -300,8 +304,13 @@ class TwoDSpectrum(TwoDSpectrumBase):
             cmap = plt.cm.rainbow
             
         if vmax is None:
-            vmax = numpy.amax(realout)            
-        vmin = -vmax*vmin_ratio
+            vmax = numpy.amax(realout)
+
+        vmin = numpy.amin(realout)
+        if vmin < -vmax*vmin_ratio:
+            vmax = -vmin
+        else:
+            vmin = -vmax*vmin_ratio
         
         Npos = Npos_contours
         poslevels = [i*vmax/Npos for i in range(1, Npos)]
@@ -332,7 +341,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
         # positive contours
         plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, levels=poslevels,colors="k",
+                     realout, levels=poslevels, colors="k",
                      linewidth=1)
         
         # zero contour
@@ -1161,19 +1170,28 @@ class TwoDSpectrumCalculator:
     
     
 class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
-    """Calculator of the 2D spectrum   
+    """Calculator of the 2D spectrum from LiouvillePathway objects
+    
+    
+    This class is used to represent LiouvillePatjway objects. Lineshape is
+    Gaussian 
     
     """
 
     def __init__(self, t1axis, t3axis):
         t2axis = TimeAxis()
         super().__init__(t1axis, t2axis, t3axis)
-        self.widthx = convert(500, "1/cm", "int")
-        self.widthy = convert(500, "1/cm", "int")
+        self.widthx = convert(300, "1/cm", "int")
+        self.widthy = convert(300, "1/cm", "int")
+        self.dephx = convert(300, "1/cm", "int")
+        self.dephy = convert(300, "1/cm", "int")        
+
         
-        print("Width:", self.widthx)
+    def bootstrap(self,rwa=0.0, pathways=None, verbose=False, 
+                  shape="Gaussian", all_positive=False):
         
-    def bootstrap(self,rwa=0.0, pathways=None, verbose=False):
+        self.shape = shape
+        self.all_positive = all_positive
         
         self.verbose = verbose
         self.rwa = rwa
@@ -1197,9 +1215,16 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
     def set_width(self, val):
         self.widthx = val
         self.widthy = val
+        
+    def set_deph(self, val):
+        self.dephx = val
+        self.dephy = val
 
         
     def calculate(self):
+        """Calculate the 2D spectrum for all pathways
+        
+        """
         
         onetwod = TwoDSpectrum()
         onetwod.set_axis_1(self.oa1)
@@ -1207,7 +1232,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         
         for pwy in self.pathways:
             
-            data = self.calculate_pathway(pwy)
+            data = self.calculate_pathway(pwy, shape=self.shape)
             
             if pwy.pathway_type == "R":
                 onetwod.add_data(data, dtype="Reph")
@@ -1219,47 +1244,98 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         onetwod.set_t2(0.0)    
             
         return onetwod
-    
-    def calculate_pathway(self, pathway):
+
+
+    def calculate_pathway(self, pathway, shape="Gaussian"):
+        """Calculate the shape of a Liouville pathway
+        
+        """
  
         noe = 1+pathway.order+pathway.relax_order 
         
         cen1 = pathway.frequency[0]
         cen3 = pathway.frequency[noe-2]
-        pref = pathway.pref
+        if self.all_positive:
+            pref = numpy.abs(pathway.pref)
+        else:
+            pref = pathway.pref
+            
         N1 = self.oa1.length
         N3 = self.oa3.length
         
+        if pathway.widths[1] < 0.0:
+            widthx = self.widthx
+        else:
+            widthx = pathway.widths[1]
+            
+        if pathway.widths[3] < 0.0:
+            widthy = self.widthy
+        else:
+            widthy = pathway.widths[3]
+            
+        if pathway.dephs[1] < 0.0:
+            dephx = self.dephx
+        else:
+            dephx = pathway.dephs[1]
+            
+        if pathway.widths[3] < 0.0:
+            dephy = self.dephy
+        else:
+            dephy = pathway.dephs[3]
+        
+        #print(shape, widthx, widthy)
+        
         if pathway.pathway_type == "R":
 
-            reph2D = numpy.zeros((N1, N3), dtype=numpy.float64)
+            reph2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
             
-            oo3 = self.oa3.data[:]
-            for i1 in range(N1):
-                o1 = -self.oa1.data[i1]
-                #for i3 in range(N3):
-                #    o3 = self.oa3.data[i3]
-                    
-                    
-                reph2D[i1, :] = pref*numpy.exp(-((o1-cen1)/self.widthx)**2)*numpy.exp(-((oo3-cen3)/self.widthy)**2)
-                    #print(i1, i3, reph2D[i1, i3])
-        
+            if shape == "Gaussian":
+                oo3 = self.oa3.data[:]
+                for i1 in range(N1):
+                    o1 = -self.oa1.data[i1]                    
+                        
+                    reph2D[:, i1] = \
+                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
+                        *numpy.exp(-((oo3-cen3)/widthy)**2)
+            
+            elif shape == "Lorentzian":
+                oo3 = self.oa3.data[:]
+                for i1 in range(N1):
+                    o1 = -self.oa1.data[i1]                    
+                        
+                    reph2D[:, i1] = \
+                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
+                        *(dephy/((oo3-cen3)**2 + dephy**2))
+                        
+            else:
+                raise Exception("Unknown line shape: "+shape)   
             
             return reph2D
             
         elif pathway.pathway_type == "NR":
            
-            nonr2D = numpy.zeros((N1, N3), dtype=numpy.float64)
+            nonr2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
             
-            oo3 = self.oa3.data[:]
-            for i1 in range(N1):
-                o1 = self.oa1.data[i1]
-                #for i3 in range(N3):
-                #    o3 = self.oa3.data[i3]
+            if shape == "Gaussian":
+                oo3 = self.oa3.data[:]
+                for i1 in range(N1):
+                    o1 = self.oa1.data[i1]                    
                     
-                    
-                nonr2D[i1, :] = pref*numpy.exp(-((o1-cen1)/self.widthx)**2)*numpy.exp(-((oo3-cen3)/self.widthy)**2)
-                    #print(i1, i3, reph2D[i1, i3])
+                    nonr2D[:, i1] = \
+                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
+                        *numpy.exp(-((oo3-cen3)/widthy)**2)
+                        
+            elif shape == "Lorentzian":
+                oo3 = self.oa3.data[:]
+                for i1 in range(N1):
+                    o1 = self.oa1.data[i1]                    
+                        
+                    nonr2D[:, i1] = \
+                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
+                        *(dephy/((oo3-cen3)**2 + dephy**2))
+
+            else:
+                raise Exception("Unknown line shape: "+shape)
             
             return nonr2D
         

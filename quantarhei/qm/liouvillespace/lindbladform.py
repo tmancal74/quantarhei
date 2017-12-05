@@ -97,7 +97,14 @@ class ElectronicLindbladForm(LindbladForm):
                 
                 # sbi operators have to have the same dimension as
                 # the single exciton electronic part of the aggregate
-                Nel1 = 1 + agg.nmono
+                if agg.mult == 1:
+                    Nel1 = 1 + agg.nmono
+                elif (agg.mult == 2) and (agg.sbi_mult==1):
+                    Nel1 = 1 + agg.nmono 
+                else:
+                    raise Exception("Cannot yet handle"+
+                                    "the case of sbi_mult> 1")
+                    
                 if Nel1 == sbi.KK.shape[1]:
                     
                     # create new interaction operators of higher 

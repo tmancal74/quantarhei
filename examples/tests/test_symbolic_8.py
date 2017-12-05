@@ -241,6 +241,15 @@ def test():
     print(evaluate_cumulant(A, positive_times=(t1, t2, t3),
                              leading_index=a, arrays=["gg"]))    
     
+def oneex_twoex():
+    
+    A = Uedg(f,t1)*Ugde(a,t1)
+    
+    print(evaluate_cumulant(A, positive_times=(t1,), leading_index=a,
+                            arrays="gg"))
+    
+    
+    
 # =============================================================================
 # print("R1g:")
 # st_R1g = "numpy.exp("+R1g()+")"
@@ -306,10 +315,12 @@ def test():
 #print(evaluate_cumulant(A, positive_times=(t1, t2, t3),
 #                             leading_index=a, arrays=["gg"]))   
 
-print("***")
-states = (a,b,c, d) #(a,c,b)
-times = (tau1, tau2, tau3, t2) # (tau1,tau2,t2)
-states = (a,c,b)
-times = (tau1,tau2,t2)
-generate_nth_order_R2g(states, times)
+#print("***")
+#states = (a,b,c, d) #(a,c,b)
+#times = (tau1, tau2, tau3, t2) # (tau1,tau2,t2)
+#states = (a,c,b)
+#times = (tau1,tau2,t2)
+#generate_nth_order_R2g(states, times)
 #test()
+
+oneex_twoex()

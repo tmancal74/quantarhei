@@ -24,12 +24,16 @@
               |
               |  Adds Liouville pathway generation
               V
+        AggregateExcitonAnalysis
+              |
+              |  Adds analysis of excitons
+              V
         Aggregate
         
               
 """
-from .aggregate_spectroscopy import AggregateSpectroscopy
+from .aggregate_excitonanalysis import AggregateExcitonAnalysis
 
 
-class Aggregate(AggregateSpectroscopy):
+class Aggregate(AggregateExcitonAnalysis):
     pass
