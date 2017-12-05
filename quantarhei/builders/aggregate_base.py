@@ -1294,6 +1294,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self.HamOp = Hamiltonian(data=HH)
         # dipole moments
         self.DD = DD
+        self.TrDMOp = TransitionDipoleMoment(data=DD) 
         # Franck-Condon factors
         self.FCf = FC
         # widths 
@@ -2198,9 +2199,11 @@ class AggregateBase(UnitsManaged, Saveable):
         # FIXME: maybe we want something more general here
         rho0[0,0] = 1.0
         
+        DD = self.TrDMOp.data
+        
         # abs value of the transition dipole moment
-        dabs = numpy.sqrt(self.DD[:,:,0]**2 + \
-                          self.DD[:,:,1]**2 + self.DD[:,:,2]**2)
+        dabs = numpy.sqrt(DD[:,:,0]**2 + \
+                          DD[:,:,1]**2 + DD[:,:,2]**2)
         # excitation from bra and ket
         rho0 = numpy.dot(dabs, numpy.dot(rho0,dabs))
         

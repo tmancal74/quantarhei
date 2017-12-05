@@ -15,3 +15,10 @@ def normalize2(vec,norm=1.0):
     vel = numpy.sqrt(numpy.dot(vec,vec))
     out = (vec/vel)*norm
     return out
+
+def norm(vec):
+    """Returns the vector norm (scalar product with itself) """
+    vel = numpy.sqrt(numpy.dot(vec,vec))
+    return vel
+
+

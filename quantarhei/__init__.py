@@ -198,6 +198,7 @@ from .core.units import convert
 from .core.units import in_current_units
 
 from .utils.vectors import normalize2
+from .utils.vectors import norm 
 
 
 
