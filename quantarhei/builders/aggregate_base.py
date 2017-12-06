@@ -1707,6 +1707,23 @@ class AggregateBase(UnitsManaged, Saveable):
         """Returns a relaxation tensor corresponding to the aggregate
         
         
+        Parameters
+        ----------
+        
+        timeaxis : TimeAxis
+            Time axis of the relaxation tensor calculation. It has to be 
+            compatible with the time axis of the correlation functions
+            
+        relaxation_theory: str
+            One of the available relaxation theories
+            
+        time_dependent : boolean
+            Should the relaxation tensor time dependent?
+            
+        secular_relaxation :
+            Should the tensor be secular?
+        
+        
         Returns
         -------
         
@@ -1716,6 +1733,7 @@ class AggregateBase(UnitsManaged, Saveable):
         ham : Hamiltonian
             Hamiltonian corresponding to the aggregate, renormalized by
             the system-bath interaction
+            
             
         """
         
