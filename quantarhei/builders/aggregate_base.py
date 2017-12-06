@@ -1993,6 +1993,7 @@ class AggregateBase(UnitsManaged, Saveable):
                        secular_relaxation=False, 
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
+                       as_operators=True,
                        recalculate=True):
         """Returns propagator of the density matrix
         
@@ -2006,11 +2007,13 @@ class AggregateBase(UnitsManaged, Saveable):
         
             
         relaxT, ham = self.get_RelaxationTensor(timeaxis,
-                       relaxation_theory,
-                       time_dependent,
-                       secular_relaxation, 
-                       relaxation_cutoff_time,
-                       coupling_cutoff, recalculate=recalculate)
+                       relaxation_theory=relaxation_theory,
+                       time_dependent=time_dependent,
+                       secular_relaxation=secular_relaxation, 
+                       relaxation_cutoff_time=relaxation_cutoff_time,
+                       coupling_cutoff=coupling_cutoff,
+                       recalculate=recalculate,
+                       as_operators=as_operators)
         
         with eigenbasis_of(ham):
             prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
