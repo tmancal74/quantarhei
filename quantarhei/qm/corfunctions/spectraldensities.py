@@ -177,7 +177,8 @@ class SpectralDensity(DFunction, UnitsManaged):
                     prms = {}
                     for key in params.keys():
                         if key in self.energy_params:
-                            prms[key] = self.convert_energy_2_internal_u(params[key])
+                            prms[key] = \
+                            self.convert_energy_2_internal_u(params[key])
                         else:
                             prms[key] = params[key]
         
@@ -242,8 +243,12 @@ class SpectralDensity(DFunction, UnitsManaged):
         # protect calculation from units management
         with energy_units("int"):
             omega = self.axis.data
-            cfce = (lamb*ctime)*omega/((omega-omega0)**2 + (ctime)**2) \
-                  +(lamb*ctime)*omega/((omega+omega0)**2 + (ctime)**2)
+            #cfce = (lamb*ctime)*omega/((omega-omega0)**2 + (ctime)**2) \
+            #      +(lamb*ctime)*omega/((omega+omega0)**2 + (ctime)**2)
+            cfce = (2.0*lamb*ctime)*(omega0**2)*\
+                  (omega/(((omega**2)-(omega0**2))**2 + (omega**2)*(ctime**2))) 
+                  #+omega/((omega**2+omega0**2)**2 + (omega**2)*(ctime)**2))
+
 
         if values is not None:
             self._add_me(self.axis, values)
@@ -300,7 +305,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         """Inplace addition of two correlation functions
         
         """  
-        self.add_to_data(other)       
+        self.add_to_data2(other)       
         return self
     
             
@@ -329,10 +334,44 @@ class SpectralDensity(DFunction, UnitsManaged):
            
 
         else:
-            raise Exception("In addition, functions have to share"
-                            +" the same FrequencyAxis object")
+            raise Exception("In the operation of addition, functions "
+                           +"have to share the same FrequencyAxis object")
 
 
+    def add_to_data2(self, other):
+        """Addition of data from a specified SpectralDensity to this object
+        
+        """
+        if self == other:
+            ocor = SpectralDensity(other.axis, other.params)
+        else:
+            ocor = other
+            
+        t1 = self.axis
+        t2 = ocor.axis
+        if t1 == t2:
+            
+            self.data += ocor.data
+            self.lamb += ocor.lamb  # reorganization energy is additive
+            #if ocor.cutoff_time > self.cutoff_time: 
+            #    self.cutoff_time = ocor.cutoff_time  
+                
+            #if self.temperature != ocor.temperature:
+            #    raise Exception("Cannot add two correlation functions "
+            #                   +"on different temperatures")
+    
+
+            for p in ocor.params:
+                self.params.append(p)
+            
+            self._is_composed = True
+            self._is_empty = False
+            
+
+        else:
+            raise Exception("In the operation of addition, functions "
+                           +"have to share the same FrequencyAxis object")
+            
     def is_analytical(self):
         """Returns `True` if analytical
 
