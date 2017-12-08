@@ -13,5 +13,5 @@ setup(
     name = "My hello app",
     cmdclass = {'build_ext': build_ext},
     include_dirs = [numpy.get_include()],
-    ext_modules = ext_modules, #cythonize('loopit.pyx'),  # accepts a glob pattern
-)
+    ext_modules = ext_modules, #cythonize('loopit.pyx'), 
+    )

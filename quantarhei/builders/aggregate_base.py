@@ -1993,7 +1993,7 @@ class AggregateBase(UnitsManaged, Saveable):
                        secular_relaxation=False, 
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
-                       as_operators=True,
+                       as_operators=False,
                        recalculate=True):
         """Returns propagator of the density matrix
         

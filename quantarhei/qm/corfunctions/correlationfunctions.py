@@ -228,10 +228,16 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 self._add_me(self.axis, values) 
                 # update reorganization energy
                 self.lamb = 0.0
+                self.temperature = self.params[0]["T"]
                 for prms in self.params:
                     self.lamb += prms["reorg"]
+                    if self.temperature != prms["T"]:
+                        raise Exception("Inconsistent temperature! "
+                                        +"Temperatures of all "
+                                        +"components have to be the same")
                     
-                #FIXME: set cut-off time
+                #FIXME: set cut-off time and temperature
+                #self._set_temperature_and_cutoff_time(self.params[0])
                     
                 
 

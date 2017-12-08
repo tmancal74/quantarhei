@@ -100,9 +100,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             if Efield != "":
                 if isinstance(Efield,numpy.ndarray):
                     self.Efield = Efield
-                    self.has_Efield = True
-                
-                
+                    self.has_Efield = True 
             
             self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
             self.dt = self.Odt
@@ -115,9 +113,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
             self.propagation_name = ""
         
+            self.verbose = False
+
         
-        
-    def setDtRefinement(self,Nref):
+    def setDtRefinement(self, Nref):
         """
         The TimeAxis object specifies at what times the propagation
         should be stored. We can tell the propagator to use finer
@@ -410,8 +409,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
  
  
     def __propagate_short_exp_with_relaxation(self, rhoi, L=4):
-        """
-              Short exp integration
+        """Integration by short exponentional expansion
+        
+        Integration by expanding exponential to Lth order
+              
+              
         """
         
         try:
@@ -451,8 +453,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr  
         
     def __propagate_short_exp_with_rel_operators(self, rhoi, L=4):
-        """
-              Short exp integration
+        """Integration by short exponentional expansion
+        
+        Integration by expanding exponential to Lth order. 
+              
+            
         """
 
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
@@ -463,12 +468,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         HH = self.Hamiltonian.data  
         
-        #print("PROPAGATION")
+        if self.verbose:
+            print("PROPAGATION (short exponential with "+
+                  "relaxation in operator form): order ", L)
         
         try:
-            Km = self.RelaxationTensor.Km
-            Lm = self.RelaxationTensor.Lm
-            Ld = self.RelaxationTensor.Ld
+            Km = self.RelaxationTensor.Km # real
+            Lm = self.RelaxationTensor.Lm # complex
+            Ld = self.RelaxationTensor.Ld # complex - get by transposition
             Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
             Nm = Km.shape[0]
             for m in range(Nm):
@@ -478,37 +485,44 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         indx = 1
 
-        for ii in range(1, self.Nt): 
-            #print(ii, "of", self.Nt)
+        # loop over time
+        for ii in range(1, self.Nt):
+            if self.verbose:
+                print(" time step ", ii, "of", self.Nt)
             
+            # steps in between saving the results
             for jj in range(0, self.Nref):
                 
+                # L interations to get short exponential expansion
                 for ll in range(1, L+1):
                     
                     rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
                                              - numpy.dot(rho1,HH))
                     
-                    rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
+                    #rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
                     for mm in range(Nm):
                         
-                       rhoX += (self.dt/ll)*(
+                       rhoY += (self.dt/ll)*(
                         numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
                        +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
                        -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
                        -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
                        )
                              
-                    rho1 = rhoY + rhoX
+                    rho1 = rhoY #+ rhoX
                     
                     rho2 = rho2 + rho1
                 rho1 = rho2    
                 
             pr.data[indx,:,:] = rho2 
             indx += 1             
-            
-        #print("...DONE")
+         
+        if self.verbose:    
+            print("...DONE")
+
         return pr
-        
+
+
     def __propagate_short_exp_with_TD_relaxation(self,rhoi,L=4):
         """
               Short exp integration

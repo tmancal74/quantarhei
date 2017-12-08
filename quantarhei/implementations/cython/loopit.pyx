@@ -1,12 +1,14 @@
 import numpy
 cimport numpy 
 
-def loopit(numpy.ndarray Km, numpy.ndarray Kd, numpy.ndarray Lm, 
-           numpy.ndarray Ld, int Na, numpy.ndarray RR, int m):
+REAL_t = numpy.float64_t
 
-    cdef int a, b, c, d
-    cdef numpy.ndarray KdLm = numpy.zeros((Na, Na), dtype=numpy.float)
-    cdef numpy.ndarray LdKm = numpy.zeros((Na, Na), dtype=numpy.float)
+def loopit(numpy.ndarray Km, numpy.ndarray Kd, numpy.ndarray Lm, 
+           numpy.ndarray Ld, long Na, numpy.ndarray RR, long m):
+
+    cdef long a, b, c, d
+    cdef numpy.ndarray KdLm = numpy.zeros((Na, Na), dtype=REAL_t)
+    cdef numpy.ndarray LdKm = numpy.zeros((Na, Na), dtype=REAL_t)
     
     KdLm = numpy.dot(Kd,Lm[m,:,:])
     LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
