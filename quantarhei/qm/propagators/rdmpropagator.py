@@ -31,6 +31,8 @@ from ..hilbertspace.operators import ReducedDensityMatrix, DensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
 
+import quantarhei as qr
+
 
 class ReducedDensityMatrixPropagator(MatrixData, Saveable): 
     """
@@ -515,6 +517,107 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 rho1 = rho2    
                 
             pr.data[indx,:,:] = rho2 
+            indx += 1             
+         
+        if self.verbose:    
+            print("...DONE")
+
+        return pr
+
+
+    def _propagate_short_exp_with_rel_operators(self, rhoi, L=4):
+        """Integration by short exponentional expansion
+        
+        Integration by expanding exponential to Lth order. 
+              
+            
+        """
+
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
+                                           name=self.propagation_name)
+        
+        rho1_r = numpy.real(rhoi.data)
+        rho2_r = numpy.real(rhoi.data)
+        rho1_i = numpy.imag(rhoi.data)
+        rho2_i = numpy.imag(rhoi.data)
+        
+        HH = self.Hamiltonian.data  
+        
+        if self.verbose:
+            print("PROPAGATION (short exponential with "+
+                  "relaxation in operator form): order ", L)
+        
+        try:
+            Km = self.RelaxationTensor.Km # real
+            Lm_r = numpy.real(self.RelaxationTensor.Lm) # complex
+            Lm_i = numpy.imag(self.RelaxationTensor.Lm)
+            #Ld = self.RelaxationTensor.Ld # complex - get by transposition
+            Ld_r = numpy.transpose(Lm_r)
+            Ld_i = -numpy.transpose(Lm_i)
+            Kd = numpy.zeros(Km.shape, dtype=qr.REAL)
+            Nm = Km.shape[0]
+            for m in range(Nm):
+                Kd[m, :, :] = numpy.transpose(Km[m, :, :])
+        except:
+            raise Exception("Tensor is not in operator form")
+            
+        indx = 1
+
+        # loop over time
+        for ii in range(1, self.Nt):
+            if self.verbose:
+                print(" time step ", ii, "of", self.Nt)
+            
+            # steps in between saving the results
+            for jj in range(0, self.Nref):
+                
+                # L interations to get short exponential expansion
+                for ll in range(1, L+1):
+
+                    rhoY_r =  (self.dt/ll)*(numpy.dot(HH,rho1_i) 
+                                          - numpy.dot(rho1_i,HH))
+                    rhoY_i = -(self.dt/ll)*(numpy.dot(HH,rho1_r) 
+                                          - numpy.dot(rho1_r,HH))
+                    
+                    for mm in range(Nm):
+                        
+                       rhoY_r += (self.dt/ll)*(
+                        numpy.dot(Km[mm,:,:], 
+                                  numpy.dot(rho1_r, Ld_r[mm,:,:])
+                                 -numpy.dot(rho1_i, Ld_i[mm,:,:]))
+                       +numpy.dot(numpy.dot(Lm_r[mm,:,:],rho1_r)
+                                 -numpy.dot(Lm_i[mm,:,:],rho1_i),
+                                  Kd[mm,:,:]))
+                       rhoP_r = -numpy.dot(Kd[mm,:,:],
+                                           numpy.dot(Lm_r[mm,:,:], rho1_r)
+                                          -numpy.dot(Lm_i[mm,:,:], rho1_i))
+                       rhoY_r += (self.dt/ll)*(rhoP_r 
+                                             + numpy.transpose(rhoP_r))
+                       
+                       rhoY_i += (self.dt/ll)*(
+                        numpy.dot(Km[mm,:,:],
+                                  numpy.dot(rho1_r, Ld_i[mm,:,:])
+                                 +numpy.dot(rho1_i, Ld_r[mm,:,:]))
+                       +numpy.dot(numpy.dot(rho1_r, Lm_i[mm,:,:])
+                                 +numpy.dot(rho1_i, Lm_r[mm,:,:]),
+                                  Kd[mm,:,:]))
+                       rhoP_i = -numpy.dot(Kd[mm,:,:], 
+                                           numpy.dot(Lm_r[mm,:,:], rho1_i)
+                                          +numpy.dot(Lm_i[mm,:,:], rho1_r))
+                       rhoY_i += -(self.dt/ll)*(rhoP_i
+                                              + numpy.transpose(rhoP_i))
+
+                             
+                    rho1_r = rhoY_r 
+                    rho1_i = rhoY_i
+                    
+                    rho2_r +=  rho1_r
+                    rho2_i +=  rho1_i
+                    
+                rho1_r = rho2_r
+                rho1_i = rho2_i
+                
+            pr.data[indx,:,:] = rho2_r + 1j*rho2_i 
             indx += 1             
          
         if self.verbose:    
