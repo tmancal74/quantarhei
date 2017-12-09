@@ -200,7 +200,7 @@ from .core.units import in_current_units
 from .utils.vectors import normalize2
 from .utils.vectors import norm 
 
-
+from .utils.logging import printlog
 
 
 

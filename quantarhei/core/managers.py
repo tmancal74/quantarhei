@@ -228,6 +228,13 @@ class Manager(metaclass=Singleton):
         
         self.save_dict = {}
         
+        self.verbosity = 0
+        self.log_on_screen = True
+        self.log_to_file = False
+        self.log_file_opened = False
+        self.log_file_name = ""
+        self.log_file = None
+        
             
     def save_settings(self):
 
