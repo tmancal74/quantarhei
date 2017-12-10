@@ -470,9 +470,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         HH = self.Hamiltonian.data  
         
-        if self.verbose:
-            print("PROPAGATION (short exponential with "+
-                  "relaxation in operator form): order ", L)
+        qr.printlog("PROPAGATION (short exponential with "+
+                    "relaxation in operator form): order ", L, 
+                    verbose=self.verbose, loglevel=0)
         
         try:
             Km = self.RelaxationTensor.Km # real
@@ -487,10 +487,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         indx = 1
 
+        levs = [5] #, 8]
+        verb = qr.loglevels2bool(levs)
+        
         # loop over time
         for ii in range(1, self.Nt):
-            if self.verbose:
-                print(" time step ", ii, "of", self.Nt)
+            qr.printlog(" time step ", ii, "of", self.Nt, 
+                        verbose=verb[0], loglevel=levs[0])
             
             # steps in between saving the results
             for jj in range(0, self.Nref):
@@ -518,9 +521,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
             pr.data[indx,:,:] = rho2 
             indx += 1             
-         
-        if self.verbose:    
-            print("...DONE")
+             
+        qr.printlog("...DONE", verbose=self.verbose, loglevel=0)
 
         return pr
 

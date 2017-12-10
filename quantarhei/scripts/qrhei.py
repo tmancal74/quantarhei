@@ -15,14 +15,17 @@ import os, sys
 
 from quantarhei import Manager
 
+import quantarhei as qr
+
     
 def main():
 
     parser = argparse.ArgumentParser(
             description='Quantarhei Package Driver')
- 
-    parser.add_argument("script", metavar='script', type=str,
-                        help='script file to be processed')    
+    
+
+    parser.add_argument("script", metavar='script', type=str, 
+                        help='script file to be processed', nargs='?')    
     parser.add_argument("-v", "--version", action="store_true",
                         help="shows Quantarhei package version")
     parser.add_argument("-i", "--info", action='store_true', 
@@ -35,6 +38,13 @@ def main():
     parser.add_argument("-n", "--nprocesses", type=int, default=0,
                         help="number of processes to start")
     
+    parser.add_argument("-b", "--benchmark", type=int, default=0, 
+                        help="run one of the predefined benchmark"
+                        +"calculations")
+    
+    parser.add_argument("-y", "--verbosity", type=int, default=5, 
+                        help="defines verbosity between 0 and 10")
+    
     args = parser.parse_args() 
     
     
@@ -42,22 +52,52 @@ def main():
     flag_parallel = args.parallel
     flag_silent = args.silent
 
+    m = qr.Manager()
+    m.verbosity = args.verbosity
+        
+    if args.silent:
+        m.verbosity = 0        
+
     #
     # show longer info
     #
     if args.info:
-        print("")
-        print("qrhei: Quantarhei Package Driver")
-        print("")
-        print("MPI parallelization enabled: ", flag_parallel)
+        qr.printlog("\n" 
+                   +"qrhei: Quantarhei Package Driver\n"
+                   +"\n"
+                   +"MPI parallelization enabled: ", flag_parallel,
+                    verbose=True, loglevel=0)
         if not args.version:
-            print("Quantarhei package version: ", Manager().version)
+            qr.printlog("Package version: ", Manager().version, "\n",
+                  verbose=True, loglevel=0)
+        return
             
     #
     # show just Quantarhei version number
     #
     if args.version:
-        print("Quantarhei package version: ", Manager().version)
+        qr.printlog("Quantarhei package version: ", Manager().version, "\n",
+                  verbose=True, loglevel=0)
+        return
+    
+    #
+    # run benchmark
+    #
+    if args.benchmark > 0:
+        import time
+
+        qr.printlog("Running benchmark no. ", args.benchmark, verbose=True,
+                    loglevel=1)
+        import quantarhei.benchmarks.bm_001 as bm        
+        t1 = time.time()
+        bm.main()
+        t2 = time.time()
+        qr.printlog("... done in", t2-t1, "sec", verbose=True,
+                    loglevel=1)
+        
+        return
+        
+        
 
     ###########################################################################    
     #
@@ -73,8 +113,8 @@ def main():
     #
     # Greeting 
     #
-    if not flag_silent:
-        print("Running Quantarhei (python) script file: ", scr)
+    qr.printlog("Running Quantarhei (python) script file: ", scr,
+                verbose=True, loglevel=3)
 
     #
     # Setting environment to see shared libraries
@@ -177,8 +217,7 @@ def main():
         
     else:
         
-        if not flag_silent:
-            print(" --- output below ---")
+        qr.printlog(" --- output below ---", verbose=True, loglevel=0)
         # running the script within the same interpreter
         exec(open(scr).read(), globals())
         
@@ -188,10 +227,10 @@ def main():
     # Saying good bye
     #
     if retval == 0:
-        if not flag_silent:
-            print(" --- output above --- ")
-            print("Finshed sucessfully; exit code: ", retval)
+        qr.printlog(" --- output above --- ", verbose=True, loglevel=0)
+        qr.printlog("Finshed sucessfully; exit code: ", retval,
+                    verbose=True, loglevel=0)
     else:
-        print("Warning, exit code: ", retval)
+        qr.printlog("Warning, exit code: ", retval, verbose=True, loglevel=0)
         
     
