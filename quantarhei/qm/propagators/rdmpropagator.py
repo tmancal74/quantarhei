@@ -699,6 +699,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         except:
             raise Exception("Tensor is not in operator form")
             
+        if use_gpu & torch.cuda.is_available():
+            print("We will use CUDA")
+            rho1_r = rho1_r.cuda()
+            rho2_r = rho1_r
+            rho1_i = rho1_i.cuda()
+            rho2_i = rho1_i
+            HH = HH.cuda()
+            Km = Km.cuda()
+            Lm_r = Lm_r.cuda()
+            Lm_i = Lm_i.cuda()
+ 
         indx = 1
         
         # verbosity inside loops
@@ -718,9 +729,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
                     A = torch.matmul(HH,rho1_i)
                     B = torch.matmul(HH,rho1_r)
-                    rhoY_r =  (dt/ll)*(A + torch.transpose(A, 0, 1))
-                    rhoY_i = -(dt/ll)*(B - torch.transpose(B, 0, 1)) 
-                    
+                    rhoY_r = torch.mul(A + torch.transpose(A, 0, 1), dt/ll)
+                    rhoY_i = torch.mul(B - torch.transpose(B, 0, 1), -dt/ll) 
+
                     for mm in range(Nm):
                     
                         a = torch.matmul(Lm_r[mm,:,:], rho1_r)
@@ -737,19 +748,23 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         
                         A = torch.matmul(Km[mm,:,:], E)
                         B = torch.matmul(Km[mm,:,:], F)
-                        rhoY_r += (dt/ll)*(A + torch.transpose(A, 0, 1))
-                        rhoY_i += (dt/ll)*(B - torch.transpose(B, 0, 1))
-                        
+                        rhoY_r += torch.mul(A + torch.transpose(A, 0, 1),dt/ll)
+                        rhoY_i += torch.mul(B - torch.transpose(B, 0, 1),dt/ll)
+ 
                     rho1_r = rhoY_r 
                     rho1_i = rhoY_i
                     
-                    rho2_r +=  rho1_r
-                    rho2_i +=  rho1_i
+                    rho2_r += rho1_r
+                    rho2_i += rho1_i
                     
                 rho1_r = rho2_r
                 rho1_i = rho2_i
-                
-            pr.data[indx,:,:] = rho2_r.numpy() + 1j*rho2_i.numpy() 
+            
+            if use_gpu & torch.cuda.is_available():
+                rho2_sr = rho2_r.cpu()
+                rho2_si = rho2_i.cpu()
+    
+            pr.data[indx,:,:] = rho2_sr.numpy() + 1j*rho2_si.numpy() 
             indx += 1             
          
         qr.printlog("...DONE", verbose=verbose, loglevel=0)
