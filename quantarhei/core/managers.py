@@ -235,6 +235,9 @@ class Manager(metaclass=Singleton):
         self.log_file_name = ""
         self.log_file = None
         
+        self.use_pytorch = False
+        self.use_gpu = False
+        
             
     def save_settings(self):
 
