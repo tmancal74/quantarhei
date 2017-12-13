@@ -44,7 +44,7 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
         #
         # Guessed dephasing times of the oscillators
         #
-        gammas = [1.0/3000.0]*30
+        gammas = [1.0/3000.0]*len(omegas)
         
         data = []
         for i in range(len(omegas)):
@@ -73,7 +73,7 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
                 ax = sd.axis
             else:
                 sd.axis = ax
-                ret += sd
+                ret = ret + sd
             k +=1
 
         return ret

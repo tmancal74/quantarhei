@@ -77,7 +77,7 @@ def pylint():
 
     path = 'quantarhei/qm/liouvillespace'
     r.set_path(path)
-    r.un('lindbladform.py')
+#    r.un('lindbladform.py')
     
     path = 'quantarhei/builders'
     r.set_path(path)
@@ -86,8 +86,12 @@ def pylint():
     path = 'quantarhei/core'
     r.set_path(path)
     #r.un('matrixdata.py')
-    r.un('saveable.py')    
+    #r.un('saveable.py')    
     
+    path = 'quantarhei/utils/'
+    r.set_path(path)
+    r.un('logging.py')
+
 """
     Default 
 """

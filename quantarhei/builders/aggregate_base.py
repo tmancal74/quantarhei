@@ -1707,6 +1707,23 @@ class AggregateBase(UnitsManaged, Saveable):
         """Returns a relaxation tensor corresponding to the aggregate
         
         
+        Parameters
+        ----------
+        
+        timeaxis : TimeAxis
+            Time axis of the relaxation tensor calculation. It has to be 
+            compatible with the time axis of the correlation functions
+            
+        relaxation_theory: str
+            One of the available relaxation theories
+            
+        time_dependent : boolean
+            Should the relaxation tensor time dependent?
+            
+        secular_relaxation :
+            Should the tensor be secular?
+        
+        
         Returns
         -------
         
@@ -1716,6 +1733,7 @@ class AggregateBase(UnitsManaged, Saveable):
         ham : Hamiltonian
             Hamiltonian corresponding to the aggregate, renormalized by
             the system-bath interaction
+            
             
         """
         
@@ -1975,6 +1993,7 @@ class AggregateBase(UnitsManaged, Saveable):
                        secular_relaxation=False, 
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
+                       as_operators=False,
                        recalculate=True):
         """Returns propagator of the density matrix
         
@@ -1988,11 +2007,13 @@ class AggregateBase(UnitsManaged, Saveable):
         
             
         relaxT, ham = self.get_RelaxationTensor(timeaxis,
-                       relaxation_theory,
-                       time_dependent,
-                       secular_relaxation, 
-                       relaxation_cutoff_time,
-                       coupling_cutoff, recalculate=recalculate)
+                       relaxation_theory=relaxation_theory,
+                       time_dependent=time_dependent,
+                       secular_relaxation=secular_relaxation, 
+                       relaxation_cutoff_time=relaxation_cutoff_time,
+                       coupling_cutoff=coupling_cutoff,
+                       recalculate=recalculate,
+                       as_operators=as_operators)
         
         with eigenbasis_of(ham):
             prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)

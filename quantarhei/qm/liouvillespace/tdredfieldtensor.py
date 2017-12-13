@@ -189,6 +189,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         RR = numpy.zeros((Nt, Na, Na, Na, Na), dtype=numpy.complex128)
         
         for m in range(Nb):
+            #print("m =", m ,"of", Nb)
             for tt in range(Nt):
                 KmLm = numpy.dot(Km[m,:,:],Lm[tt,m,:,:])
                 LdKm = numpy.dot(Ld[tt,m,:,:],Km[m,:,:])

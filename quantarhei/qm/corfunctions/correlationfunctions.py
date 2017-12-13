@@ -153,10 +153,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.lamb = 0.0
             self.temperature = -1.0
             self.cutoff_time = 0.0
-    
-            #
-            # loop over parameter sets
-            #
+
             for params in p2calc:
                 
                 try:
@@ -176,28 +173,73 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 except:
                     raise Exception("Dictionary of parameters does not contain "
                                     +" `ftype` key")
+                    
+                self.params.append(prms)                    
     
-                if ftype == "OverdampedBrownian-HighTemperature":
-        
-                    self._make_overdamped_brownian_ht(prms, values=values)
-        
-                elif ftype == "OverdampedBrownian":
-        
-                    self._make_overdamped_brownian(prms, values=values)
+    
+            if values is None:
+                #
+                # loop over parameter sets
+                #
+                for prms in self.params:
                     
-                elif ftype == "UnderdampedBrownian":
+#                    try:
+#                        ftype = params["ftype"]
+#                        
+#                        if ftype not in CorrelationFunction.allowed_types:
+#                            raise Exception("Unknown CorrelationFunction type")
+#            
+#                        # we mutate the parameters into internal units
+#                        prms = {}
+#                        for key in params.keys():
+#                            if key in self.energy_params:
+#                                prms[key] = self.convert_energy_2_internal_u(params[key])
+#                            else:
+#                                prms[key] = params[key]
+#                                
+#                    except:
+#                        raise Exception("Dictionary of parameters does not contain "
+#                                        +" `ftype` key")                    
+        
+                    if ftype == "OverdampedBrownian-HighTemperature":
+            
+                        self._make_overdamped_brownian_ht(prms) #, values=values)
+            
+                    elif ftype == "OverdampedBrownian":
+            
+                        self._make_overdamped_brownian(prms) #, values=values)
+                        
+                    elif ftype == "UnderdampedBrownian":
+                        
+                        self._make_underdamped_brownian(prms) #, values=values)
+            
+                    elif ftype == "Value-defined":
+            
+                        self._make_value_defined(prms, values)
+            
+                    else:
+                        raise Exception("Unknown correlation function type or"+
+                                        "type domain combination.")
+                        
+                    #self.params.append(prms)
                     
-                    self._make_underdamped_brownian(prms, values=values)
-        
-                elif ftype == "Value-defined":
-        
-                    self._make_value_defined(prms, values)
-        
-                else:
-                    raise Exception("Unknown correlation function type or"+
-                                    "type domain combination.")
+            else:
+                
+                self._add_me(self.axis, values) 
+                # update reorganization energy
+                self.lamb = 0.0
+                self.temperature = self.params[0]["T"]
+                for prms in self.params:
+                    self.lamb += prms["reorg"]
+                    if self.temperature != prms["T"]:
+                        raise Exception("Inconsistent temperature! "
+                                        +"Temperatures of all "
+                                        +"components have to be the same")
                     
-                self.params.append(prms)
+                #FIXME: set cut-off time and temperature
+                #self._set_temperature_and_cutoff_time(self.params[0])
+                    
+                
 
     def _matsubara(self, kBT, ctime, nof):
         """Matsubara frequency part of the Brownian correlation function
@@ -230,7 +272,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.cutoff_time = new_cutoff_time
             
             
-    def _make_overdamped_brownian(self, params, values=None):
+    def _make_overdamped_brownian(self, params): #, values=None):
         """Creates the overdamped Brownian oscillator component
         of the correlation function
         
@@ -248,10 +290,12 @@ class CorrelationFunction(DFunction, UnitsManaged):
         kBT = kB_intK*temperature
         time = self.axis.data
 
-        if values is not None:
-            cfce = values
+        #if values is not None:
+        #    cfce = values
             
-        else:
+        #else:
+        if True:
+            
             cfce = (lamb/(ctime*numpy.tan(1.0/(2.0*kBT*ctime))))\
                 *numpy.exp(-time/ctime) \
                 - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime)
@@ -269,7 +313,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
 
 
-    def _make_overdamped_brownian_ht(self, params, values=None):
+    def _make_overdamped_brownian_ht(self, params): # , values=None):
         """Creates the high temperature overdamped Brownian oscillator 
         component of the correlation function
         
@@ -281,10 +325,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
         kBT = kB_intK*temperature
         time = self.axis.data
 
-        if values is not None:
-            cfce = values
-            
-        else:
+        #if values is not None:
+        #    cfce = values
+        #    
+        #else:
+        if True:
             cfce = 2.0*lamb*kBT*(numpy.exp(-time/ctime)
                                  - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
 
@@ -298,7 +343,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)  
         
 
-    def _make_underdamped_brownian(self, params, values=None):
+    def _make_underdamped_brownian(self, params): #, values=None):
         """Creates underdamped Brownian oscillator component of the correlation
         function
         
@@ -314,10 +359,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
         #kBT = kB_intK*temperature
         time = self.axis #.data
 
-        if values is not None:
-            cfce = values
-            
-        else:
+        #if values is not None:
+        #    cfce = values
+        #    
+        #else:
+        if True:
             with energy_units("int"):
                 # Make it via SpectralDensity
                 fa = SpectralDensity(time, params)
