@@ -59,7 +59,7 @@ def configure(manager):
     ###########################################################################
 
     # usage of mpi
-    conf.mpi_acceleration = True
+    conf.mpi_acceleration = False 
     
     # here one can prevent competing multithreating if necessary
     conf.cpu_acceleration = True
@@ -69,14 +69,14 @@ def configure(manager):
     # this requires pytorch, but it does
     # not switch on pytorch usage for
     # other than GPU computations
-    conf.gpu_acceleration = True
+    conf.gpu_acceleration = False 
     
     # restrict yourself only to certain GPUs
     conf.available_gpus = [0, 1]
     
     # enables pytorch as an alternative
     # to numpy even without GPUs
-    conf.enable_pytorch = True
+    conf.enable_pytorch = False 
     
 
     ###########################################################################
@@ -91,4 +91,6 @@ def configure(manager):
     # verbosity is a number from 0 to 10
     # 0 == no information written
     # 10 == all information is written
-    conf.verbosity = 5
+    conf.verbosity = 5 
+    conf.verbose=True
+
