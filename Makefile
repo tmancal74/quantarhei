@@ -61,6 +61,8 @@ clean:
 	rm -rf dist
 	rm -rf quantarhei.egg-info
 	rm -rf result_images
+	rm -rf qrconf.py quantarhei/qrconf.py
+
 
 
 ################################

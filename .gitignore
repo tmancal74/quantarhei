@@ -22,6 +22,7 @@ quantarhei.egg-info
 .ipynb_checkpoints/
 .cache
 result_images
+qrconf.py
 
 
 

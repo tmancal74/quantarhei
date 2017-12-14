@@ -11,6 +11,11 @@ from .units import conversion_facs_length
 
 from .singleton import Singleton
 
+from .numconf import NumConf
+from .logconf import LogConf
+from .genconf import GenConf
+
+from ..utils.logging import printlog
 
 class Manager(metaclass=Singleton):
     """ Main package Manager
@@ -57,7 +62,7 @@ class Manager(metaclass=Singleton):
     allowed_utypes = ["energy",
                       "frequency",
                       "dipolemoment",
-                      "temperature",
+                      "temperature",   
                       "time",
                       "length"]
 
@@ -81,9 +86,9 @@ class Manager(metaclass=Singleton):
                    "1/fs":"1/fs",
                    "int":"2pi/fs",
                    "meV":"meV",
-                   "nm":"nm",
+                   "nm":"nm",    
                    "Ha":"Ha",
-                   "a.u.":"a.u."}
+                   "a.u.":"a.u."}   
                    
     units_repre_latex = {"Kelvin":"K",
                    "Celsius":"C",
@@ -98,7 +103,7 @@ class Manager(metaclass=Singleton):
                    "a.u.":"a.u."}                  
 
     def __init__(self):
-
+        
         self.current_units = {}
 
         # main configuration file
@@ -228,17 +233,93 @@ class Manager(metaclass=Singleton):
         
         self.save_dict = {}
         
-        self.verbosity = 5
-        self.log_on_screen = True
-        self.log_to_file = False
-        self.log_file_opened = False
-        self.log_file_name = ""
-        self.log_file = None
+        
+        #
+        # Configuration controlable from qrhei (conf file and qrhei script)
+        #
+        self.num_conf = NumConf()
+        
+#        self.verbosity = 5
+#        self.log_on_screen = True
+#        self.log_to_file = False
+#        self.log_file_opened = False
+#        self.log_file_name = ""
+#        self.log_file = None
+        
+        self.log_conf = LogConf()
         
         self.use_pytorch = False
         self.use_gpu = False
         
+        
+        #
+        # Read central configuration from ./quantarhei directory
+        #
+        
+        
+        
+        
+        self.gen_conf = GenConf()
+        #
+        # Read local user configuration file
+        #
+        self._read_uconf()
+        
+        
+    def _read_uconf(self):
+        """Reads used defined local config file
+        
+        From Stackoverflow recipe:
+            https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
             
+        
+        """
+        fname = self.gen_conf.conf_file_name
+        fdir = self.gen_conf.conf_file_path
+        fpath = os.path.join(fdir, fname)
+        
+        from pathlib import Path
+        cfile = Path(fpath)   
+        
+        if cfile.exists() & cfile.is_file():
+
+            self._load_uconf(fpath)
+                
+        else:
+            if cfile.exists():
+                raise Exception("Configuration file "+fpath+" seems to exits"+
+                                " but it is not a file")
+            else:
+                print("Warning: Configuration file "+fpath+" does not exit")
+                print("Warning: Placing a default configuration are using it")
+                
+                import pkg_resources
+
+                resource_package = "quantarhei"  # Could be any module/package name
+                resource_path = '/'.join(('core', 'conf', 'qrhei.py')) 
+                content = pkg_resources.resource_string(resource_package,
+                                                        resource_path)
+
+                with open(fpath, "w") as f:
+                    f.write(content.decode("utf-8"))
+                    
+                self._load_uconf(fpath)
+        
+        #printlog("Configuration file: ", fpath, "loaded", loglevel=9)        
+       
+    def _load_uconf(self, fpath):
+        """
+        
+        """
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("qrconf", fpath)
+            foo = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(foo)        
+            foo.configure(self)
+        except:
+            raise Exception()        
+        
     def save_settings(self):
 
         # main configuration file

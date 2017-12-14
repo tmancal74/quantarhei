@@ -116,7 +116,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
             self.propagation_name = ""
         
-            self.verbose = False
+            self.verbose = Manager().log_conf.verbose
 
         
     def setDtRefinement(self, Nref):
@@ -465,18 +465,20 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         mana = Manager()
         save_pytorch = None
         
-        if mana.use_gpu:
-            save_pytorch = mana.use_pytorch
-            mana.use_pytorch = True
+        if mana.num_conf.gpu_acceleration:
+            save_pytorch = mana.num_conf.enable_pytorch
+            mana.num_conf.enable_pytorch = True
             
-        if mana.use_pytorch:
+        if mana.num_conf.enable_pytorch:
             ret =  self._propagate_SExp_RTOp_ReSymK_Re_pytorch(rhoi,
-                                                 self.Hamiltonian,
-                                                 self.RelaxationTensor,
-                                                 self.dt, 
-                                                 use_gpu=mana.use_gpu, L=L)
+                                        self.Hamiltonian,
+                                        self.RelaxationTensor,
+                                        self.dt, 
+                                        use_gpu=mana.num_conf.gpu_acceleration,
+                                        L=L)
+            
             if save_pytorch is not None:
-                mana.use_patoch = save_pytorch
+                mana.num_conf.enable_pytorch = save_pytorch
                 
             return ret
         
@@ -763,6 +765,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             if use_gpu & torch.cuda.is_available():
                 rho2_sr = rho2_r.cpu()
                 rho2_si = rho2_i.cpu()
+            else:
+                rho2_sr = rho2_r
+                rho2_si = rho2_i                
     
             pr.data[indx,:,:] = rho2_sr.numpy() + 1j*rho2_si.numpy() 
             indx += 1             

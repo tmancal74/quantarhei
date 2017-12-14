@@ -91,6 +91,7 @@
 #import numpy
 from .core.managers import Manager
 m = Manager()
+
 REAL = m.get_real_type() #numpy.float64
 COMPLEX = m.get_complex_type() #numpy.complex128
 

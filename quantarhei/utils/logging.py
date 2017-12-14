@@ -63,7 +63,7 @@ def printlog(*args, verbose=True, loglevel=0, **kwargs):
         raise Exception("Loglevel must be between 0 and 10")
 
 
-    manager = qr.Manager()
+    manager = qr.Manager().log_conf
     if loglevel < manager.verbosity:
 
         if manager.log_on_screen:
@@ -129,7 +129,7 @@ def loglevels2bool(loglevs, verbose=False):
     verb = [False]*len(loglevs)
 
     if verbose:
-        m = qr.Manager()
+        m = qr.Manager().log_conf
         k_v = 0
         for lev in loglevs:
             if m.verbosity > lev:
