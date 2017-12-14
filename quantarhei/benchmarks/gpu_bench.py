@@ -16,16 +16,19 @@ manager = qr.Manager()
 #
 # BENCHMARK SETTINGS
 #
-manager.verbose=True
-manager.verbosity=5
-manager.use_pytorch = False 
+#manager.log_conf.verbose=True
+#manager.log_conf.verbosity=7
+#manager.num_conf.enable_pytorch = False 
+#manager.num_conf.gpu_acceleration = True
+
 Nthreads = 4
-use_gpu = False
 use_mpi = False
 
 fix_seed = True
 
-N_molecules = 4
+N_molecules = 3 
+
+use_gpu = manager.num_conf.gpu_acceleration
 
 #
 # build an elementary model to propagate
@@ -171,7 +174,6 @@ benchmark_report["standard_Redfield_timedependent_False"] = t2-t1
 prop = qr.ReducedDensityMatrixPropagator(timea, Ham=ham, RTensor=RT)
 
 
-
 rho0 = agg.get_DensityMatrix(condition_type="impulsive_excitation", 
                              temperature=0.0)
 rho0.normalize2()
@@ -190,7 +192,5 @@ print("Benchmark calculation finished in ", t_end-t_start, "sec")
 print(benchmark_report)
 
 
-with qr.eigenbasis_of(HH):
-    rhot.plot(coherences=False)
 
     
