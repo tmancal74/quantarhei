@@ -14,6 +14,10 @@
 VERSION=0.0.34
 TASK=
 
+ANACONDA_BIN=anaconda3/bin
+PIP=${HOME}/${ANACONDA_BIN}/pip
+PYTHON=${HOME}/${ANACONDA_BIN}/python
+
 all:
 
 ###########################
@@ -23,14 +27,14 @@ install: inst
 
 
 inst: sdist
-	pip install `ls dist/quantarhei-${VERSION}*`
+	${PIP} install `ls dist/quantarhei-${VERSION}*`
 
 
 ################
 # Distribution #
 ################
 sdist:
-	python setup.py sdist
+	${PYTHON} setup.py sdist
 
 
 ##################
@@ -40,7 +44,7 @@ uninstall: uninst
 
 
 uninst: 
-	pip uninstall -y quantarhei
+	${PIP} uninstall -y quantarhei
 
 
 ##################
@@ -91,5 +95,11 @@ pylint:
 
 help:
 	@echo "inst, reinst, local_tests, plot_tests, tests, sdist, clean"
+
+
+sync:
+	git fetch upstream
+	git checkout master
+	git merge upstream/master
 
 
