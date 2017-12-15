@@ -196,5 +196,4 @@ qr.log_report()
 print(benchmark_report)
 
 
-
     
