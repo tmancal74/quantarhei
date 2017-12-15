@@ -15,8 +15,6 @@ from .numconf import NumConf
 from .logconf import LogConf
 from .genconf import GenConf
 
-from ..utils.logging import printlog
-
 class Manager(metaclass=Singleton):
     """ Main package Manager
 
@@ -255,8 +253,6 @@ class Manager(metaclass=Singleton):
         #
         # Read central configuration from ./quantarhei directory
         #
-        
-        
         
         
         self.gen_conf = GenConf()

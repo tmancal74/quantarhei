@@ -23,6 +23,8 @@ from ...core.parallel import block_distributed_range
 from ...core.parallel import start_parallel_region, close_parallel_region
 from ...core.parallel import distributed_configuration
 
+import quantarhei as qr
+
 class RedfieldRelaxationTensor(RelaxationTensor):
     """Redfield Relaxation Tensor
         
@@ -142,6 +144,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         
         """
+        
+        qr.log_detail("Reference time-independent Redfield tensor calculation")
         #print("Reference Redfield implementation ...")
         #
         # dimension of the Hamiltonian (includes excitons
@@ -225,6 +229,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         start_parallel_region()
         for ms in block_distributed_range(0, Nb): #range(Nb):
+            qr.log_quick("Calculating bath component", ms, "of", Nb, end="\r")
             #print(ms, "of", Nb)
             #for ns in range(Nb):
             if not multi_ex:
@@ -258,6 +263,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                         Lm[ms,a,b] += cc_mnab*Km[ns,a,b] 
              
         # perform reduction of Lm
+        qr.log_quick()
         distributed_configuration().allreduce(Lm, operation="sum")
         close_parallel_region()
 
@@ -272,6 +278,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
         self._post_implementation(Km, Lm, Ld)
         
+        qr.log_detail("... Redfield done")
         
     def _post_implementation(self, Km, Lm, Ld):
         """When components of the tensor are calculated, should they be

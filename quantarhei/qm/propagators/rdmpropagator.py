@@ -497,9 +497,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         HH = self.Hamiltonian.data  
         
-        qr.printlog("PROPAGATION (short exponential with "+
-                    "relaxation in operator form): order ", L, 
-                    verbose=self.verbose, loglevel=0)
+        qr.log_detail("PROPAGATION (short exponential with "+
+                     "relaxation in operator form): order ", L, 
+                     verbose=self.verbose)
+        qr.log_detail("Using complex numpy implementation")
         
         try:
             Km = self.RelaxationTensor.Km # real
@@ -514,7 +515,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         indx = 1
 
-        levs = [5] #, 8]
+        levs = [qr.LOG_QUICK] #, 8]
         verb = qr.loglevels2bool(levs)
         
         # loop over time
@@ -549,7 +550,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             pr.data[indx,:,:] = rho2 
             indx += 1             
              
-        qr.printlog("...DONE", verbose=self.verbose, loglevel=0)
+        qr.log_detail("...DONE")
 
         return pr
 
@@ -574,9 +575,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         # no self beyond this point
         
-        qr.printlog("PROPAGATION (short exponential with "+
+        qr.log_detail("PROPAGATION (short exponential with "+
                     "relaxation in operator form): order ", L, 
-                    verbose=verbose, loglevel=0)
+                    verbose=verbose)
+        qr.log_detail("Using real valued numpy implementation")
         
         pr = ReducedDensityMatrixEvolution(timea, rhoi,
                                            name=prop_name)
@@ -599,13 +601,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         indx = 1
         
         # verbosity inside loops
-        levs = [5] 
-        verb = qr.loglevels2bool(levs)
+        levs = [qr.LOG_QUICK] 
+        verb = qr.loglevels2bool(levs, verbose=self.verbose)
         
         # loop over time
         for ii in range(1, Nt):
-            qr.printlog(" time step ", ii, "of", Nt, 
-                        verbose=verb[0], loglevel=levs[0])
+            qr.printlog("time step ", ii, "of", Nt, 
+                        verbose=verb[0], loglevel=levs[0], end="\r")
             
             # steps in between saving the results
             for jj in range(Nref):
@@ -648,8 +650,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
             pr.data[indx,:,:] = rho2_r + 1j*rho2_i 
             indx += 1             
-         
-        qr.printlog("...DONE", verbose=verbose, loglevel=0)
+        
+        qr.log_detail()
+        qr.log_detail("...DONE")
 
         return pr
 
@@ -679,9 +682,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         # no self beyond this point
         
-        qr.printlog("PROPAGATION (short exponential with "+
+        qr.log_detail("PROPAGATION (short exponential with "+
                     "relaxation in operator form): order ", L, 
-                    verbose=verbose, loglevel=0)
+                    verbose=verbose)
+        qr.log_detail("Using pytorch implementation")
+        qr.log_detail("Using GPU: ", use_gpu & torch.cuda.is_available())
         
         pr = ReducedDensityMatrixEvolution(timea, rhoi,
                                            name=prop_name)
@@ -702,7 +707,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             raise Exception("Tensor is not in operator form")
             
         if use_gpu & torch.cuda.is_available():
-            print("We will use CUDA")
             rho1_r = rho1_r.cuda()
             rho2_r = rho1_r
             rho1_i = rho1_i.cuda()
@@ -715,7 +719,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         indx = 1
         
         # verbosity inside loops
-        levs = [5] 
+        levs = [qr.LOG_QUICK] 
         verb = qr.loglevels2bool(levs)
         
         # loop over time
@@ -772,8 +776,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             pr.data[indx,:,:] = rho2_sr.numpy() + 1j*rho2_si.numpy() 
             indx += 1             
          
-        qr.printlog("...DONE", verbose=verbose, loglevel=0)
-
+        qr.log_detail("...DONE")
         return pr
 
 
