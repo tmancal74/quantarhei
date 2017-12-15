@@ -95,6 +95,12 @@ m = Manager()
 REAL = m.get_real_type() #numpy.float64
 COMPLEX = m.get_complex_type() #numpy.complex128
 
+LOG_URGENT = 0
+LOG_REPORT = 3
+LOG_INFO = 5
+LOG_DETAIL = 7
+LOG_QUICK = 9
+
 #
 # Builders
 #
@@ -203,6 +209,11 @@ from .utils.vectors import norm
 
 from .utils.logging import printlog
 from .utils.logging import loglevels2bool
+from .utils.logging import log_urgent
+from .utils.logging import log_report
+from .utils.logging import log_info
+from .utils.logging import log_detail
+from .utils.logging import log_quick
 
 
 

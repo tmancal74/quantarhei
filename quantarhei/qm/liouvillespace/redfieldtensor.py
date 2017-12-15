@@ -23,6 +23,8 @@ from ...core.parallel import block_distributed_range
 from ...core.parallel import start_parallel_region, close_parallel_region
 from ...core.parallel import distributed_configuration
 
+import quantarhei as qr
+
 class RedfieldRelaxationTensor(RelaxationTensor):
     """Redfield Relaxation Tensor
         
@@ -142,6 +144,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         
         """
+        
+        qr.log_detail("Reference time-independent Redfield tensor calculation")
         #print("Reference Redfield implementation ...")
         #
         # dimension of the Hamiltonian (includes excitons
@@ -225,6 +229,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         start_parallel_region()
         for ms in block_distributed_range(0, Nb): #range(Nb):
+            qr.log_quick("Calculating bath component", ms, "of", Nb, end="\r")
             #print(ms, "of", Nb)
             #for ns in range(Nb):
             if not multi_ex:
@@ -235,29 +240,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 
                 #FIXME: reaching correct correlation function is a nightmare!!!
                 rc1 = sbi.CC.get_coft(ms, ns) 
-                
-                for a in range(Na):
-                    for b in range(Na):
                         
-                        # argument of the integration
-                        eexp = numpy.exp(-1.0j*Om[a,b]*tm) 
-                        rc = rc1[0:length]*eexp
-                        
-                        # spline integration instead of FFT
-                        rr = numpy.real(rc)
-                        ri = numpy.imag(rc)
-                        sr = scipy.interpolate.UnivariateSpline(tm,
-                                    rr, s=0).antiderivative()(tm)
-                        si = scipy.interpolate.UnivariateSpline(tm,
-                                    ri, s=0).antiderivative()(tm)
-                                
-                        # we take the last value (integral to infinity)
-                        cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
-
-                        # \Lambda_m operators
-                        Lm[ms,a,b] += cc_mnab*Km[ns,a,b] 
+                self._guts_Cmplx_Splines(ms, Lm, Km, Na, Om, length, rc1, tm)
              
         # perform reduction of Lm
+        qr.log_quick()
         distributed_configuration().allreduce(Lm, operation="sum")
         close_parallel_region()
 
@@ -272,6 +259,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
         self._post_implementation(Km, Lm, Ld)
         
+        qr.log_detail("... Redfield done")
         
     def _post_implementation(self, Km, Lm, Ld):
         """When components of the tensor are calculated, should they be
@@ -297,7 +285,75 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         self._is_initialized = True
 
-    
+
+    def _guts_Cmplx_Splines(self, ms, Lm, Km, Na, Om, length, rc1, tm):
+
+        for a in range(Na):
+            for b in range(Na):
+                
+                # argument of the integration
+                eexp = numpy.exp(-1.0j*Om[a,b]*tm) 
+                rc = rc1[0:length]*eexp
+                
+                # spline integration instead of FFT
+                rr = numpy.real(rc)
+                ri = numpy.imag(rc)
+                sr = scipy.interpolate.UnivariateSpline(tm,
+                            rr, s=0).antiderivative()(tm)
+                si = scipy.interpolate.UnivariateSpline(tm,
+                            ri, s=0).antiderivative()(tm)
+                        
+                # we take the last value (integral to infinity)
+                cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
+
+                # \Lambda_m operators
+                Lm[ms,a,b] += cc_mnab*Km[ms,a,b] 
+      
+        
+    def _guts_Cmplx_Sum(self, ms, Lm, Km, Na, Om, length, rc1, tm):
+        
+        import scipy
+
+        dt = tm[1]-tm[0]
+        for a in range(Na):
+            for b in range(Na):
+                
+                # argument of the integration
+                eexp = numpy.exp(-1.0j*Om[a,b]*tm) 
+                rc = rc1[0:length]*eexp
+            
+                # we take integral to infinity
+                #cc_mnab = numpy.sum(rc)*dt
+                cc_mnab = scipy.integrate.trapz(rc, dx=dt)
+
+                # \Lambda_m operators
+                Lm[ms,a,b] += cc_mnab*Km[ms,a,b] 
+                
+                
+    def _guts_Cmplx_FFT(self, ms, Lm, Km, Na, Om, length, rc1, tm):
+
+        for a in range(Na):
+            for b in range(Na):
+                
+                # argument of the integration
+                eexp = numpy.exp(-1.0j*Om[a,b]*tm) 
+                rc = rc1[0:length]*eexp
+                
+                # spline integration instead of FFT
+                rr = numpy.real(rc)
+                ri = numpy.imag(rc)
+                sr = scipy.interpolate.UnivariateSpline(tm,
+                            rr, s=0).antiderivative()(tm)
+                si = scipy.interpolate.UnivariateSpline(tm,
+                            ri, s=0).antiderivative()(tm)
+                        
+                # we take the last value (integral to infinity)
+                cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
+
+                # \Lambda_m operators
+                Lm[ms,a,b] += cc_mnab*Km[ms,a,b]   
+                
+            
     def _convert_operators_2_tensor(self, Km, Lm, Ld):
         """Converts operator representation to the tensor one
         
