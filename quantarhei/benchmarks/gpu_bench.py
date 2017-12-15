@@ -16,24 +16,24 @@ manager = qr.Manager()
 #
 # BENCHMARK SETTINGS
 #
-#manager.log_conf.verbose=True
-#manager.log_conf.verbosity=7
-#manager.num_conf.enable_pytorch = False 
-#manager.num_conf.gpu_acceleration = True
+
 
 Nthreads = 4
 use_mpi = False
 
 fix_seed = True
 
-N_molecules = 3 
+N_molecules = 4 
 
-use_gpu = manager.num_conf.gpu_acceleration
 
 #
 # build an elementary model to propagate
 #
-print("\nQuantarhei benchmark calculation (task no. 001)\n")
+qr.log_report("")
+qr.log_report("Quantarhei benchmark calculation (task no. 001)",
+              incr_indent=2)
+qr.log_report("")
+
 t_start = time.time()
 
 benchmark_report = {}
@@ -45,7 +45,7 @@ os.environ["OMP_NUM_THREADS"] = str(Nthreads)
 benchmark_report["Nthreads"] = Nthreads
 
 
-benchmark_report["use_gpu"] = use_gpu
+benchmark_report["gpu_acceleration"] = manager.num_conf.gpu_acceleration
 
 
 if fix_seed:
@@ -74,18 +74,18 @@ placed_molecules = []
 dipole_length = 6.0 
 
 with qr.energy_units("1/cm"):
-    print("Generating molecules\n"
-         +"--------------------")
+    qr.log_report("Generating molecules")
+    qr.log_report("--------------------")
     for i_m in range(N_molecules):
         mol = qr.Molecule([0.0, ex_energies[i_m]])
         mols.append(mol)
-        print("Molecule:", i_m)
+        qr.log_info("Molecule:", i_m)
         
         # Randomly oriented transition dipole moment
         vec = numpy.random.rand(3) - 0.5*numpy.ones(3)
         vec = qr.normalize2(vec, dipole_length)
         mol.set_dipole(0, 1, vec)
-        print("Transition dipole moment:", vec)
+        qr.log_info("Transition dipole moment:", vec)
         
         # Randomly placing the molecule
         placed = False
@@ -109,7 +109,7 @@ with qr.energy_units("1/cm"):
                 placed_molecules.append(mol)
                 placed = True
                 previous_position = pos_n
-                print("Placing molecule no.", i_m, "at:", mol.position)
+                qr.log_info("Placing molecule no.", i_m, "at:", mol.position)
               
         
     
@@ -144,26 +144,28 @@ agg = qr.Aggregate(mols)
 agg.set_coupling_by_dipole_dipole()
 
 # Building the aggregate
-print("\nBuilding aggregate")
+qr.log_report("Building aggregate")
 agg.build()
-print("...done")
+qr.log_report("...done")
 
-print(qr.convert(agg.resonance_coupling, "int", "1/cm"))
+qr.log_detail("Resonance coupling matrix: ")
+qr.log_detail(qr.convert(agg.resonance_coupling, "int", "1/cm"),
+             use_indent=False)
 
 # Dimension of the problem
 HH = agg.get_Hamiltonian()
 Nr = HH.dim
-print("Hamiltonian of rank:", Nr)
+qr.log_detail("Hamiltonian has a rank:", Nr)
 
 benchmark_report["Dimension"] = Nr
     
-print("Calculating Relaxation tensor:")
+qr.log_report("Calculating Relaxation tensor:")
 t1 = time.time()
 (RT, ham) = agg.get_RelaxationTensor(timea, 
                                      relaxation_theory="standard_Redfield",
                                      as_operators=True)
 t2 = time.time()
-print("...done in", t2-t1, "sec")
+qr.log_report("...done in", t2-t1, "sec")
 
 benchmark_report["standard_Redfield_timedependent_False"] = t2-t1
 
@@ -178,16 +180,18 @@ rho0 = agg.get_DensityMatrix(condition_type="impulsive_excitation",
                              temperature=0.0)
 rho0.normalize2()
 
-print("Propagating density matrix:")
+qr.log_report("Propagating density matrix:")
 t1 = time.time()
 rhot = prop.propagate(rho0)
 t2 = time.time()
-print("...done in", t2-t1, "sec")
+qr.log_report("...done in", t2-t1, "sec")
 
 benchmark_report["rdm_propagation_RTtimedependent_False"] = t2-t1
 
 t_end = time.time()
-print("Benchmark calculation finished in ", t_end-t_start, "sec")
+qr.log_report()
+qr.log_report("Benchmark calculation finished in ", t_end-t_start, "sec")
+qr.log_report()
 
 print(benchmark_report)
 
