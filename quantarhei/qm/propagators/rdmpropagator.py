@@ -187,7 +187,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     #
                     #  Propagation with external field 
                     #
-                    if method == "short-exp":
+                    if method == "short-exp": 
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
                         rhoi,L=4)
