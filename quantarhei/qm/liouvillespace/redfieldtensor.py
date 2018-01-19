@@ -241,7 +241,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 #FIXME: reaching correct correlation function is a nightmare!!!
                 rc1 = sbi.CC.get_coft(ms, ns) 
                         
-                self._guts_Cmplx_Splines(ms, Lm, Km, Na, Om, length, rc1, tm)
+                self._guts_Cmplx_Sum(ms, Lm, Km, Na, Om, length, rc1, tm)
              
         # perform reduction of Lm
         qr.log_quick()
