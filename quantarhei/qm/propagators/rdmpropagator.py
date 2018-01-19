@@ -501,11 +501,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         mana = Manager()
         save_pytorch = None
         
+        legacy = mana.gen_conf.legacy_relaxation
+        
         if mana.num_conf.gpu_acceleration:
             save_pytorch = mana.num_conf.enable_pytorch
             mana.num_conf.enable_pytorch = True
             
-        if mana.num_conf.enable_pytorch:
+        if mana.num_conf.enable_pytorch and (not legacy):
             ret =  self._propagate_SExp_RTOp_ReSymK_Re_pytorch(rhoi,
                                         self.Hamiltonian,
                                         self.RelaxationTensor,
@@ -518,12 +520,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
             return ret
         
-        else:
+        elif not legacy:
             return self._propagate_SExp_RTOp_ReSymK_Re_numpy(rhoi,
                                                  self.Hamiltonian,
                                                  self.RelaxationTensor,
                                                  self.dt, L=L)
-            
+        
+        #
+        # legacy version
+        #
 
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
                                            name=self.propagation_name)

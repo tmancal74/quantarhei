@@ -81,7 +81,7 @@ local_tests: reinst
 #############################################
 # Test of the install version of quantarhei #
 #############################################
-tests: 
+test: 
 	paver
 	
 
