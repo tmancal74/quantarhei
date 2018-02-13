@@ -181,7 +181,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
     
         
         
-    def plot(self,**kwargs):
+    def plot(self, **kwargs):
         """ Plotting absorption spectrum using the DFunction plot method
         
         """
@@ -189,7 +189,9 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
             ylabel = r'$\alpha(\omega)$ [a.u.]'
             kwargs["ylabel"] = ylabel
             
-        super().plot(**kwargs)
+        fig = super().plot(**kwargs)
+        if fig is not None:
+            return fig
 
 
         
