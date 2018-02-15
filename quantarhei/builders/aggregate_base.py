@@ -95,6 +95,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self._relaxation_theory = "" #
         
         self._built = False     #
+        self._diagonalized = False
         
         self.mult = 0                #
         self.sbi_mult = 0            #
@@ -2020,9 +2021,15 @@ class AggregateBase(UnitsManaged, Saveable):
             
         
         return prop
+
         
     #FIXME: There must be a general theory here
     def get_RedfieldRateMatrix(self):
+        """Returns Redfield relaxation matrix
+        
+        
+        
+        """
         
         from ..qm import RedfieldRateMatrix
         from ..core.managers import eigenbasis_of
@@ -2039,6 +2046,7 @@ class AggregateBase(UnitsManaged, Saveable):
         ham.unprotect_basis()
         
         return RR
+
             
     def diagonalize(self):
         """Transforms the Hamiltonian 
@@ -2046,6 +2054,9 @@ class AggregateBase(UnitsManaged, Saveable):
            
         """
            
+        if self._diagonalized:
+            return
+        
         ee,SS = numpy.linalg.eigh(self.HH)
         
         self.HD = ee
@@ -2168,6 +2179,8 @@ class AggregateBase(UnitsManaged, Saveable):
         #print(dd2)
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
+        
+        self._diagonalized = True
         
 
     def _thermal_population(self, temp=0.0, subtract=None):

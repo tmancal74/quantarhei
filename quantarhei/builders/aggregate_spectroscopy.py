@@ -692,6 +692,8 @@ class AggregateSpectroscopy(AggregateBase):
             
         """
         
+        self.diagonalize()
+        
         pop_tol = ptol
         dip_tol = numpy.sqrt(self.D2_max)*dtol
         evf_tol = etol
