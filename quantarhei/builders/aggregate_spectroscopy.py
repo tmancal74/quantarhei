@@ -691,8 +691,12 @@ class AggregateSpectroscopy(AggregateBase):
             
             
         """
-        
-        self.diagonalize()
+        if self._diagonalized:
+            if verbose > 0:
+                print("Diagonalizing aggregate")
+            self.diagonalize()
+            if verbose > 0:
+                print("..done")
         
         pop_tol = ptol
         dip_tol = numpy.sqrt(self.D2_max)*dtol
