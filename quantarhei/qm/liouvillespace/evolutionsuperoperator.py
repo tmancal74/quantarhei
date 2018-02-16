@@ -144,7 +144,8 @@ class EvolutionSuperOperator(Saveable):
         self.relt = relt
         
         self.dense_time = None
-        
+
+
     def set_dense_dt(self, Nt):
         """Set a denser time axis for calculations between two points of the superoperator
         
@@ -178,12 +179,14 @@ class EvolutionSuperOperator(Saveable):
         """
         return (dim-n)*dim 
         
+    
     def _init_progress(self):
 
         self.ccount = 0
         self.strtime = time.time()
         self.oldtime = self.strtime
         self.remlast = 0
+        
         
     def _progress(self, Nt, dim, ti, n, m):
         
@@ -241,7 +244,8 @@ class EvolutionSuperOperator(Saveable):
         prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
                                               self.relt)
         ctime = self.dense_time  
-
+        
+        # calculate the whole short time evolution superoperator
         for n in range(dim):
             if show_progress:
                 self._progress(Nt, dim, 0, n, 0)
@@ -257,7 +261,8 @@ class EvolutionSuperOperator(Saveable):
             if show_progress:
                 print("Self propagation: ", ti, "of", Nt)            
            
-            self.data[ti,:,:,:,:] = numpy.tensordot(Udt,self.data[ti-1,:,:,:,:])
+            self.data[ti,:,:,:,:] = \
+                numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
             
             
             
