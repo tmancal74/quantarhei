@@ -125,6 +125,6 @@ def windows():
 
 @task
 def dev():
-   sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
-   sh('nosetests -vs tests/unit/builders/test_aggregates.py')
- 
+   #sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
+   #sh('nosetests -vs tests/unit/builders/test_aggregates.py')
+   sh('nosetests -vs tests/unit/qm/liouvillespace/test_evolutionsuperoperator.py')

@@ -144,6 +144,7 @@ class EvolutionSuperOperator(Saveable):
         self.relt = relt
         
         self.dense_time = None
+        self.set_dense_dt(1)
 
 
     def set_dense_dt(self, Nt):
@@ -157,7 +158,7 @@ class EvolutionSuperOperator(Saveable):
             for numerical propagation
             
         """
-        self.dense_time = TimeAxis(0.0, Nt, self.time.step/Nt)
+        self.dense_time = TimeAxis(0.0, Nt+1, self.time.step/Nt)
         
         
     def update_dense_time(self, i):

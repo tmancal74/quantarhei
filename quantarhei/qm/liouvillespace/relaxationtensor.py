@@ -28,9 +28,10 @@ class RelaxationTensor(BasisManaged):
 
         """
         if self.as_operators:
-            raise Exception("Cannot be secularized in the operator form")
+            self.convert_2_tensor()
+            #raise Exception("Cannot be secularized in the operator form")
             
-        else:
+        if True:
             if self.data.ndim == 4:
                 N = self.data.shape[0]
                 for ii in range(N):
@@ -120,6 +121,13 @@ class RelaxationTensor(BasisManaged):
                     for b in range(dim):
                         self._data[tt,a,b,:,:] = \
                             numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))            
+
+
+    def convert_2_tensor(self):
+        """Converts from operator to tensor form
+        
+        """
+        pass
 
 
     def updateStructure(self):

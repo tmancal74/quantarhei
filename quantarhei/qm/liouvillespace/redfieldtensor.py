@@ -239,7 +239,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 # or a cross-correlation function of sites ns and ms
                 
                 #FIXME: reaching correct correlation function is a nightmare!!!
-                rc1 = sbi.CC.get_coft(ms, ns) 
+                rc1 = sbi.CC.get_coft(ms, ns)  
                         
                 self._guts_Cmplx_Splines(ms, Lm, Km, Na, Om, length, rc1, tm)
              
@@ -287,7 +287,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
 
     def _guts_Cmplx_Splines(self, ms, Lm, Km, Na, Om, length, rc1, tm):
-
+        
         for a in range(Na):
             for b in range(Na):
                 
@@ -420,6 +420,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #print(tt2-tt1)
         return RR
 
+
     def initialize(self):
         """Initializes the Redfield tensor with values 
         
@@ -438,8 +439,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         
         if self.as_operators:
             
-            self.data = self._convert_operators_2_tensor(self.Km,
-                                                         self.Lm, self.Ld)
+            RR = self._convert_operators_2_tensor(self.Km, self.Lm, self.Ld)
+            if True:
+                self.data = RR
+                self._data_initialized = True
                                                          
             self.as_operators = False
          
