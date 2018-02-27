@@ -73,7 +73,8 @@ class SuperOperator:
         elif data is not None:
             self.data = data
             self.dim = data.shape[0]
-        
+      
+
     def apply(self, oper):
         
         oper.data = numpy.tensordot(self.data, oper.data)
@@ -174,6 +175,91 @@ class EvolutionSuperOperator(Saveable):
                                    self.dense_time.step) 
         
     
+        
+    def calculate(self, show_progress=False):
+        """Calculates the data of the evolution superoperator
+        
+        
+        """
+
+        dim = self.ham.dim
+        Nt = self.time.length
+        self.data = numpy.zeros((Nt, dim, dim, dim, dim),
+                                dtype=qr.COMPLEX)
+
+        # zero time value (unity superoperator)
+        for i in range(dim):
+            for j in range(dim):
+                self.data[0,i,j,i,j] = 1.0
+            
+        if show_progress:
+            print("Calculating evolution superoperator ")
+        self._init_progress()
+        
+        # first propagation
+        self.update_dense_time(0)
+        prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
+                                              self.relt)
+        ctime = self.dense_time  
+        
+        # calculate the whole short time evolution superoperator
+        for n in range(dim):
+            if show_progress:
+                self._progress(Nt, dim, 0, n, 0)
+            for m in range(dim):
+                rhonm0 = ReducedDensityMatrix(dim=dim)
+                rhonm0.data[n,m] = 1.0
+                rhot = prop.propagate(rhonm0)
+                
+                self.data[1, :, :, n, m] = rhot.data[ctime.length-1, :, :]
+
+        Udt = self.data[1,:,:,:,:]
+        for ti in range(2, Nt):
+            if show_progress:
+                print("Self propagation: ", ti, "of", Nt)            
+           
+            self.data[ti,:,:,:,:] = \
+                numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
+            
+            
+            
+            if False:
+                self.update_dense_time(ti)
+                prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
+                                                      self.relt)
+                ctime = self.dense_time  
+                    
+                # the rest of calculations
+                for n in range(dim):
+                    self._progress(Nt, dim, ti, n, 0)
+                    for m in range(dim):
+                        
+                        rhonmt = ReducedDensityMatrix(dim=dim)
+                        rhonmt.data = self.data[ti-1, :, :, n, m]
+                        rhot = prop.propagate(rhonmt)
+                        
+                        self.data[ti, :, :, n, m] = rhot.data[ctime.length-1, :, :]            
+
+        if show_progress:
+            print("...done")
+                    
+                    
+    def at(self, time):
+        """Evolution superoperator at a given time
+        
+        """
+
+        ti, dt = self.time.locate(time)
+
+        return SuperOperator(data=self.data[ti, :, :, :, :])
+
+
+
+
+    #
+    # Calculation progress
+    #
+
     def _estimate_remaining_loops(self, Nt, dim, ti, n, m):
         """
         
@@ -219,80 +305,5 @@ class EvolutionSuperOperator(Saveable):
         
         self.remlast = remtime
         
-        
-    def calculate(self, show_progress=False):
-        """Calculates the data of the evolution superoperator
-        
-        
-        """
-
-        dim = self.ham.dim
-        Nt = self.time.length
-        self.data = numpy.zeros((Nt, dim, dim, dim, dim),
-                                dtype=qr.COMPLEX)
-
-        # zero time value (unity superoperator)
-        for i in range(dim):
-            for j in range(dim):
-                self.data[0,i,j,i,j] = 1.0
-            
-        if show_progress:
-            print("Calculating evolution superoperator ")
-        self._init_progress()
-        
-        # first propagation
-        self.update_dense_time(0)
-        prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
-                                              self.relt)
-        ctime = self.dense_time  
-        
-        # calculate the whole short time evolution superoperator
-        for n in range(dim):
-            if show_progress:
-                self._progress(Nt, dim, 0, n, 0)
-            for m in range(dim):
-                rhonm0 = ReducedDensityMatrix(dim=dim)
-                rhonm0.data[n,m] = 1.0
-                rhot = prop.propagate(rhonm0)
-                
-                self.data[1, :, :, n, m] = rhot.data[ctime.length-1, :, :]
-
-        Udt = self.data[1,:,:,:,:]
-        for ti in range(1, Nt):
-            if show_progress:
-                print("Self propagation: ", ti, "of", Nt)            
-           
-            self.data[ti,:,:,:,:] = \
-                numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
-            
-            
-            
-            if False:
-                self.update_dense_time(ti)
-                prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
-                                                      self.relt)
-                ctime = self.dense_time  
-                    
-                # the rest of calculations
-                for n in range(dim):
-                    self._progress(Nt, dim, ti, n, 0)
-                    for m in range(dim):
-                        
-                        rhonmt = ReducedDensityMatrix(dim=dim)
-                        rhonmt.data = self.data[ti-1, :, :, n, m]
-                        rhot = prop.propagate(rhonmt)
-                        
-                        self.data[ti, :, :, n, m] = rhot.data[ctime.length-1, :, :]            
-
-        if show_progress:
-            print("...done")
-                    
-                    
-    def at(self, time):
-
-        ti, dt = self.time.locate(time)
-
-        return SuperOperator(data=self.data[ti, :, :, :, :])
-
                   
                 

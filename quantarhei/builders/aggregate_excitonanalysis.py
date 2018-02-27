@@ -78,7 +78,30 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     x = (ci[n_nu]**2)*(cj[n_mu]**2)
                     xi -= x
                     
-        return xi        
+        return xi    
+
+
+    def get_transition_dipole(self, state1=0, state2=0):
+        """Returns transition dipole moment between two state. 
+        
+        If the second state is not specified, we get transition to the first
+        state from the ground state.
+        
+        """
+        if self._diagonalized:
+            return self.D2[state1, state2]
+        
+        else:
+            raise Exception("Aggregate has to be diagonalized")
+            
+            
+    def get_state_energy(self, state=0):
+        
+        if self._diagonalized:
+            return self.HD[state, state]
+        else:
+            raise Exception("Aggregate has to be diagonalized")
+            
 
 def _strip_max_coef(indx, sqrs):
     """Returns the index of the maximum coefficient and the coefficient
