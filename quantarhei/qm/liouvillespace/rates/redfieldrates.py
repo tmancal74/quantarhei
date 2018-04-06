@@ -99,13 +99,13 @@ class RedfieldRateMatrix:
         
         #FIXME: This has to be made configurable
         # frequency cut-off
-        freq_cutoff = 3000.0*cm2int
+        freq_cutoff = 10000.0*cm2int
         #print("freq. cut-off",freq_cutoff)
         
         # temperature
         #FIXME: This has to be easier
         Temp = self.sbi.CC.get_correlation_function(0,0).temperature
-        
+        print("Temperature: ", Temp)
         
         # transform interaction operators
         for i in range(Nk):
