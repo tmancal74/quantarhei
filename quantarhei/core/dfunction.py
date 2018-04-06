@@ -533,12 +533,11 @@ class DFunction(Saveable):
              text_font=None,
              real_only=True,
              show=True,
-             color=None):
+             color=None, filename="ahoj.png"):
         """Plotting of the DFunction's data against the ValueAxis
 
         """
-
-
+        
         if color is not None:
             if len(color) == 1:
                 clr = [color, color]
@@ -601,6 +600,18 @@ class DFunction(Saveable):
 
         if show:
             plt.show()
+            
+            
+    def savefig(self, filename):
+        """Saves current figure into a file
+        
+        
+        """
+        
+        fig = plt.gcf()
+        fig.savefig(filename, bbox_inches='tight')
+        
+        
 
     def _fname_ext(self, filename, ext):
         """

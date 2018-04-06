@@ -237,28 +237,34 @@ class Manager(metaclass=Singleton):
         #
         self.num_conf = NumConf()
         
-#        self.verbosity = 5
-#        self.log_on_screen = True
-#        self.log_to_file = False
-#        self.log_file_opened = False
-#        self.log_file_name = ""
-#        self.log_file = None
         
         self.log_conf = LogConf()
         
         self.use_pytorch = False
         self.use_gpu = False
-        
+
+
+        self.gen_conf = GenConf()        
         
         #
         # Read central configuration from ./quantarhei directory
         #
         
+         
         
-        self.gen_conf = GenConf()
         #
-        # Read local user configuration file
+        # Read local user config file (this will only be done on request)
         #
+        # self._read_uconf()
+        
+        
+        
+    def load_conf(self):
+        """Loads configuration file
+        
+        This is to be called in scripts and notebooks
+        
+        """
         self._read_uconf()
         
         
@@ -307,12 +313,16 @@ class Manager(metaclass=Singleton):
         """
         
         """
+        #print("Conf path: ", os.path.abspath(fpath))
         try:
             import importlib.util
             spec = importlib.util.spec_from_file_location("qrconf", fpath)
             foo = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(foo)        
+            spec.loader.exec_module(foo)    
+            #print("Configuring Manager:")
+            #print(self)
             foo.configure(self)
+            #print("..done")
         except:
             raise Exception()        
         

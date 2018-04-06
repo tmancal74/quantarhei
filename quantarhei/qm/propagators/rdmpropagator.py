@@ -168,26 +168,43 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         
         """
+        
+        #
+        # FIXME: Remove this
+        #
         self.propagation_name = name
         
+        #
+        # Testing if the object submitted is density matrix
+        #
         if not (isinstance(rhoi, ReducedDensityMatrix) 
              or isinstance(rhoi, DensityMatrix)):
             raise Exception("First argument has be of"+
             "the ReducedDensityMatrix type")
-                    
+              
+        #######################################################################
+        #
+        #    PROPAGATIONS WITH RELAXATION
+        #
+        #
+        #######################################################################
         if self.has_relaxation:
-            
-            if isinstance(self.RelaxationTensor, TimeDependent):
-                #
-                # Time-dependent relaxation tensor
-                #
 
+            ###################################################################
+            #
+            # Time-dependent relaxation tensor
+            #
+            ###################################################################
+            if isinstance(self.RelaxationTensor, TimeDependent):
+
+                ###############################################################
+                #
+                # Propagation with external field
+                #
+                ###############################################################
                 if (self.has_Efield and self.has_Trdip):
                     
-                    #
-                    #  Propagation with external field 
-                    #
-                    if method == "short-exp":
+                    if method == "short-exp": 
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
                         rhoi,L=4)
@@ -206,12 +223,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     else:
                         raise Exception("Unknown propagation method: "+method)
                     
-                    
+                ###############################################################
+                #
+                # Progation without external field
+                #
+                ###############################################################                    
                 else:
 
-                    #
-                    #  Without external field
-                    #
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_TD_relaxation(\
                         rhoi,L=4)
@@ -227,16 +245,20 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     else:
                         raise Exception("Unknown propagation method: "+method)
 
-                
+            ###################################################################
+            #
+            # Constant relaxation tensor
+            #
+            ###################################################################
             else: 
+
+                ###############################################################
                 #
-                # Constant relaxation tensor
-                #                
+                # Propagation with external field
+                #
+                ###############################################################
                 if (self.has_Efield and self.has_Trdip):
                     
-                    #
-                    # External field
-                    #
                     if method == "short-exp":
                         return \
                         self.__propagate_short_exp_with_relaxation_field(
@@ -255,19 +277,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         rhoi,L=6)            
                     else:
                         raise Exception("Unknown propagation method: "+method)                
-                
+                        
+                ###############################################################
+                #
+                # Progation without external field
+                #
+                ###############################################################                    
                 else:
-            
-                    #
-                    # No external field
-                    #
-                    if method == "primitive":
-                        return self.__propagate_primitive_with_relaxation(rhoi)
-                    elif method == "Runge-Kutta":
-                        return self.__propagate_Runge_Kutta(rhoi)
-                    elif method == "diagonalization":
-                        return self.__propagate_diagonalization(rhoi)
-                    elif method == "short-exp":
+
+                    if method == "short-exp":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=4)
                     elif method == "short-exp-2":
@@ -279,23 +297,29 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     elif method == "short-exp-6":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=6)            
+
+                    #
+                    # FIXME: These methods are untested
+                    #
+                    elif method == "primitive":
+                        return self.__propagate_primitive_with_relaxation(rhoi)
+                    elif method == "Runge-Kutta":
+                        return self.__propagate_Runge_Kutta(rhoi)
+                    elif method == "diagonalization":
+                        return self.__propagate_diagonalization(rhoi)
+
                     else:
                         raise Exception("Unknown propagation method: "+method)   
             
+        #######################################################################
+        #
+        #    PROPAGATIONS WITH RELAXATION
+        #
+        #
+        #######################################################################
         else:
-            #
-            # No relaxation
-            #
-                
-            if method == "primitive":
-                return self.__propagate_primitive(rhoi)
-            elif method == "Runge-Kutta":
-                return self.__propagate_Runge_Kutta(rhoi)
-            elif method == "diagonalization":
-                return self.__propagate_diagonalization(rhoi)
                     
-                    
-            elif method == "short-exp":
+            if method == "short-exp":
                 return self.__propagate_short_exp(rhoi,L=4)
             elif method == "short-exp-2":
                 return self.__propagate_short_exp(rhoi,L=2)
@@ -303,19 +327,30 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 return self.__propagate_short_exp(rhoi,L=4)
             elif method == "short-exp-6":
                 return self.__propagate_short_exp(rhoi,L=6)            
+
+            #
+            # FIXME: These methods are not tested
+            #
+            elif method == "primitive":
+                return self.__propagate_primitive(rhoi)
+            elif method == "Runge-Kutta":
+                return self.__propagate_Runge_Kutta(rhoi)
+            elif method == "diagonalization":
+                return self.__propagate_diagonalization(rhoi)
+
             else:
-                raise Exception
+                raise Exception("Unknown propagation method: "+method)
         
             
         
-    def __propagate_primitive(self,rhoi):
+    def __propagate_primitive(self, rhoi):
+        """Primitive integration of equantion of motion
         
+        This is of no other than perhaps pedagogical value
+        
+        """
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
 
-
-        """
-                Primitive intergration
-        """            
         rhoPrim = rhoi.data
         HH = self.Hamiltonian.data  
         
@@ -337,14 +372,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
         
-    def __propagate_primitive_with_relaxation(self,rhoi):
+    def __propagate_primitive_with_relaxation(self, rhoi):
+        """Primitive integration of equantion of motion with relaxation
         
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
-
-
+        This is of no other than perhaps pedagogical value
+        
         """
-                Primitive intergration
-        """            
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+       
         rhoPrim = rhoi.data
         HH = self.Hamiltonian.data        
         RR = self.RelaxationTensor.data        
@@ -367,10 +402,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
         
         
-    def __propagate_Runge_Kutta(self,rhoi):
-        print("Runge-Kutta")
-        """
-              Runge-Kutta integration
+    def __propagate_Runge_Kutta(self, rhoi):
+        """Runge-Kutta integration of equation of motion
+              
+        NOT IMPLEMENTED
+        
         """
         indx = 0
         for ii in self.timeaxis: 
@@ -379,9 +415,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
             indx += 1  
  
-    def __propagate_short_exp(self,rhoi,L=4):
-        """
-              Short exp integration
+
+    def __propagate_short_exp(self, rhoi, L=4):
+        """Short expansion of an exponention to integrate equations of motion
+        
+        
         """
         
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
@@ -393,13 +431,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         indx = 1
         for ii in self.TimeAxis.time[1:self.Nt]:
             
-            pref = (self.dt/ll)            
-            
             for jj in range(0,self.Nref):
                 
                 for ll in range(1,L+1):
                     
-                    rho1 = -1j*pref*(numpy.dot(HH,rho1) \
+                    rho1 = -1j*(self.dt/ll)*(numpy.dot(HH,rho1) \
                              - numpy.dot(rho1,HH) )
                              
                     rho2 = rho2 + rho1
@@ -465,11 +501,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         mana = Manager()
         save_pytorch = None
         
+        legacy = mana.gen_conf.legacy_relaxation
+        
         if mana.num_conf.gpu_acceleration:
             save_pytorch = mana.num_conf.enable_pytorch
             mana.num_conf.enable_pytorch = True
             
-        if mana.num_conf.enable_pytorch:
+        if mana.num_conf.enable_pytorch and (not legacy):
             ret =  self._propagate_SExp_RTOp_ReSymK_Re_pytorch(rhoi,
                                         self.Hamiltonian,
                                         self.RelaxationTensor,
@@ -482,12 +520,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
             return ret
         
-        else:
+        elif not legacy:
             return self._propagate_SExp_RTOp_ReSymK_Re_numpy(rhoi,
                                                  self.Hamiltonian,
                                                  self.RelaxationTensor,
                                                  self.dt, L=L)
-            
+        
+        #
+        # legacy version
+        #
 
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
                                            name=self.propagation_name)

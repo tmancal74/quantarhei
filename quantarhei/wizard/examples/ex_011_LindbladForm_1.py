@@ -19,6 +19,12 @@ print("""
 ***********************************************************
 """)
 
+from quantarhei import Manager
+#
+# FIXME: temporary fix for version 0.0.34
+#
+Manager().gen_conf.legacy_relaxation = True
+
 #
 # PURELY ELECTRONIC Aggregate of two molecules
 #
