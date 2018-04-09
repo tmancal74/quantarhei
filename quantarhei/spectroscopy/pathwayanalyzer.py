@@ -25,6 +25,8 @@ import numpy
 from ..core.managers import UnitsManaged, Manager
 from ..core.wrappers import deprecated
 
+from ..core.units import cm2int
+
 class LiouvillePathwayAnalyzer(UnitsManaged):
     """Class providing methods for Liouville pathway analysis
     
@@ -317,7 +319,8 @@ def select_frequency_window(window, pathways, verbose=False):
     return selected
  
 
-def select_omega2(interval, pathways, verbose=False):
+def select_omega2(interval, pathways, secular=True, 
+                  tolerance=10.0*cm2int, verbose=False):
     """Selects pathways with omega_2 in a certain interval
     
     """    
@@ -335,8 +338,27 @@ def select_omega2(interval, pathways, verbose=False):
         #om2 = pway.frequency[ne-3]
         om2 = pway.get_interval_frequency(ne-3)
         
-        if (om2 >= om2_low) and (om2 <= om2_upp):
-            selected.append(pway)
+        # check previous frequency (feeding)
+        om2_2 =  pway.get_interval_frequency(ne-4)
+        
+        if secular:
+            # case with feeding frequency small
+            if numpy.abs(om2_2) <= tolerance:
+                if (om2 >= om2_low) and (om2 <= om2_upp):
+                    selected.append(pway) 
+            
+            # case of fast feeding frequency
+            elif numpy.abs(om2 - om2_2) <= tolerance:
+                if (om2 >= om2_low) and (om2 <= om2_upp):
+                    selected.append(pway)
+                    
+        else:
+           if (om2 >= om2_low) and (om2 <= om2_upp):         
+               selected.append(pway)
+    
+
+                
+                
             
     if verbose:
         print("Selected", len(selected), "pathways")
