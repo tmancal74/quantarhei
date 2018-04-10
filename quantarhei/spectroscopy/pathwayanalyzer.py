@@ -335,29 +335,39 @@ def select_omega2(interval, pathways, secular=True,
     
     for pway in pthways:
         ne = len(pway.frequency)
-        #om2 = pway.frequency[ne-3]
+        #print("Number of frequencies: ", ne)
         om2 = pway.get_interval_frequency(ne-3)
         
-        # check previous frequency (feeding)
-        om2_2 =  pway.get_interval_frequency(ne-4)
+        # pathways with transfer
+        if ne > 4:
+            # check previous frequency (feeding)
+            om2_2 =  pway.get_interval_frequency(ne-4)
+            #print("om2 = ", om2)
+            #print("before = ", om2_2)
+            #print("diff   = ", numpy.abs(om2-om2_2), "(tol: ", tolerance, ")")
         
-        if secular:
-            # case with feeding frequency small
-            if numpy.abs(om2_2) <= tolerance:
-                if (om2 >= om2_low) and (om2 <= om2_upp):
-                    selected.append(pway) 
-            
-            # case of fast feeding frequency
-            elif numpy.abs(om2 - om2_2) <= tolerance:
-                if (om2 >= om2_low) and (om2 <= om2_upp):
-                    selected.append(pway)
-                    
-        else:
-           if (om2 >= om2_low) and (om2 <= om2_upp):         
-               selected.append(pway)
-    
-
+            if secular:
+                # case with feeding frequency small
+                if numpy.abs(om2_2) <= tolerance:
+                    if (om2 >= om2_low) and (om2 <= om2_upp):
+                        selected.append(pway) 
+                        #print("selected")
                 
+                # case of fast feeding frequency
+                elif numpy.abs(om2 - om2_2) <= tolerance:
+                    if (om2 >= om2_low) and (om2 <= om2_upp):
+                        selected.append(pway)
+                        #print("selected")
+                        
+            else:
+               if (om2 >= om2_low) and (om2 <= om2_upp):         
+                   selected.append(pway)
+                   #print("selected")
+          
+        else:
+            if (om2 >= om2_low) and (om2 <= om2_upp):
+                selected.append(pway)
+                #print("selected")
                 
             
     if verbose:
