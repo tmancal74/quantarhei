@@ -20,10 +20,13 @@ from quantarhei.qm import Operator
 from quantarhei.qm import SystemBathInteraction
 from quantarhei.qm import ReducedDensityMatrixPropagator
 from quantarhei.qm import ReducedDensityMatrix
+from quantarhei.qm import ProjectionOperator
 
 from quantarhei import Hamiltonian
 from quantarhei import energy_units
 from quantarhei import TimeAxis
+
+from quantarhei import eigenbasis_of
 
 
 class TestLindblad(unittest.TestCase):
@@ -58,6 +61,19 @@ class TestLindblad(unittest.TestCase):
             self.H1 = Hamiltonian(data=h1)
             self.H2 = Hamiltonian(data=h2)
             
+            h3 = [[100.0, 20.0],[20.0, 0.0]]
+            self.H3 = Hamiltonian(data=h3)
+            
+            
+        with eigenbasis_of(self.H3):
+            K_12 = ProjectionOperator(0, 1, dim=2)
+            K_21 = ProjectionOperator(1, 0, dim=2)
+            self.K_12 = K_12
+            self.K_21 = K_21
+            
+        self.sbi3 = SystemBathInteraction([K_12, K_21],
+                                          rates=self.rates)
+        
 
     def test_comparison_of_rates(self):
         """Testing that Lindblad tensor and rate matrix are compatible
@@ -91,10 +107,78 @@ class TestLindblad(unittest.TestCase):
         #print("LT = ", LT.data)
         
         numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
-           
+     
+        
+    def test_comparison_of_dynamics(self):
+        """Testing site basis dynamics by Lindblad
+
+        """
+
+        LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
+        LT2 = LindbladForm(self.H1, self.sbi1, as_operators=False)
+        
+        time = TimeAxis(0.0, 1000, 1.0)
+        
+        prop1 = ReducedDensityMatrixPropagator(time, self.H1, LT1)
+        prop2 = ReducedDensityMatrixPropagator(time, self.H1, LT2)
+        
+        rho0 = ReducedDensityMatrix(dim=self.H1.dim)
+        rho0.data[1,1] = 1.0
+          
+        rhot1 = prop1.propagate(rho0)
+        rhot2 = prop2.propagate(rho0)
+        
+        numpy.testing.assert_allclose(rhot1.data,rhot2.data) #, rtol=1.0e-2) 
+
+
+    def test_comparison_of_exciton_dynamics(self):
+        """Testing exciton basis dynamics by Lindblad
+
+        """
+        LT13 = LindbladForm(self.H3, self.sbi3, as_operators=True)
+        LT23 = LindbladForm(self.H3, self.sbi3, as_operators=False)
+        LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
+        
+        time = TimeAxis(0.0, 1000, 1.0)
+        
+        prop0 = ReducedDensityMatrixPropagator(time, self.H1, LT1)
+        prop1 = ReducedDensityMatrixPropagator(time, self.H3, LT13)
+        prop2 = ReducedDensityMatrixPropagator(time, self.H3, LT23)
+
+        rho0 = ReducedDensityMatrix(dim=self.H3.dim)
+        rho0c = ReducedDensityMatrix(dim=self.H1.dim)
+        with eigenbasis_of(self.H3):
+            rho0.data[1,1] = 1.0
+        rho0c.data[1,1] = 1.0
+          
+        rhotc = prop0.propagate(rho0c)
+        rhot1 = prop1.propagate(rho0)
+        rhot2 = prop2.propagate(rho0)
+        
+        numpy.testing.assert_allclose(rhot1.data,rhot2.data) #, rtol=1.0e-2) 
+
+        P = numpy.zeros((2, time.length))
+        Pc = numpy.zeros((2, time.length))
+        with eigenbasis_of(self.H3):
+            for i in range(time.length):
+                P[0,i] = numpy.real(rhot1.data[i,0,0])  # population of exciton 0
+                P[1,i] = numpy.real(rhot1.data[i,1,1])  # population of exciton 1
+
+        for i in range(time.length):
+            Pc[0,i] = numpy.real(rhotc.data[i,0,0])  # population of exciton 0
+            Pc[1,i] = numpy.real(rhotc.data[i,1,1])  # population of exciton 1
+        
+        numpy.testing.assert_allclose(Pc,P) #, rtol=1.0e-2) 
+        
+        import matplotlib.pyplot as plt
+        
+        plt.plot(time.data,Pc[0,:])
+        plt.plot(time.data,Pc[1,:])
+        plt.show()
+        
         
 from quantarhei import Molecule, Aggregate, Mode
-from quantarhei.qm import ProjectionOperator
+#from quantarhei.qm import ProjectionOperator
 
 class TestElectronicLindblad(unittest.TestCase):
     """Tests for the ElectronicLindbladForm class
