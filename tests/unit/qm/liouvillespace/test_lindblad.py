@@ -268,16 +268,16 @@ class TestLindblad(unittest.TestCase):
             P4s[2,i] = numpy.real(rhot4s.data[i,2,2])  # population of exciton 1
 
         
-        import matplotlib.pyplot as plt
+#        import matplotlib.pyplot as plt
         #
-        plt.plot(time.data,P4s[0,:], "-r")
-        plt.plot(time.data,P4s[1,:], "-r")
-        plt.plot(time.data,P4s[2,:], "-r")
-        plt.plot(time.data,P4e[0,:], "-g")
-        plt.plot(time.data,P4e[1,:], "-g")
-        plt.plot(time.data,P4e[2,:], "-g")
+#        plt.plot(time.data,P4s[0,:], "-r")
+#        plt.plot(time.data,P4s[1,:], "-r")
+#        plt.plot(time.data,P4s[2,:], "-r")
+#        plt.plot(time.data,P4e[0,:], "-g")
+#        plt.plot(time.data,P4e[1,:], "-g")
+#        plt.plot(time.data,P4e[2,:], "-g")
         
-        plt.show()
+#        plt.show()
 
         numpy.testing.assert_allclose(P4e, P4s, atol=1.0e-8) 
         
