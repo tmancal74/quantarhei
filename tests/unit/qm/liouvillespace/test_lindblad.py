@@ -38,23 +38,35 @@ class TestLindblad(unittest.TestCase):
     def setUp(self,verbose=False):
         
         self.verbose = verbose
-                  
+           
+        #
+        # Lindblad projection operators
+        #
         K12 = numpy.array([[0.0, 1.0],[0.0, 0.0]],dtype=numpy.float)
         K21 = numpy.array([[0.0, 0.0],[1.0, 0.0]],dtype=numpy.float)
 
-            
         KK12 = Operator(data=K12)
         KK21 = Operator(data=K21)
 
         self.KK12 = KK12
         self.KK21 = KK21
+        
+        #
+        # Linbdlad rates
+        #
         self.rates = (1.0/100.0, 1.0/200.0)
         
+        #
+        # System-bath interaction using operators and rates in site basis
+        #
         self.sbi1 = SystemBathInteraction([KK12,KK21],
                                           rates=self.rates)
         self.sbi2 = SystemBathInteraction([KK12,KK21], 
                                           rates=self.rates)
         
+        #
+        # Test Hamiltonians
+        #
         with energy_units("1/cm"):
             h1 = [[100.0, 0.0],[0.0, 0.0]]
             h2 = [[100.0, 0.0],[0.0, 0.0]]
@@ -64,15 +76,38 @@ class TestLindblad(unittest.TestCase):
             h3 = [[100.0, 20.0],[20.0, 0.0]]
             self.H3 = Hamiltonian(data=h3)
             
+            # less trivial Hamiltonian
+            h4 = [[100.0, 200.0, 30.0  ],
+                  [200.0, 50.0,  -100.0],
+                  [30.0, -100.0,  0.0 ]]
+            self.H4 = Hamiltonian(data=h4)
             
+        #
+        # Projection operators in eigenstate basis
+        #
         with eigenbasis_of(self.H3):
             K_12 = ProjectionOperator(0, 1, dim=2)
             K_21 = ProjectionOperator(1, 0, dim=2)
             self.K_12 = K_12
             self.K_21 = K_21
             
+        with eigenbasis_of(self.H4):
+            Ke_12 = ProjectionOperator(0, 1, dim=3)
+            Ke_21 = ProjectionOperator(1, 0, dim=3)
+            Ke_23 = ProjectionOperator(1, 2, dim=3)
+            Ke_32 = ProjectionOperator(2, 1, dim=3)
+            
+        self.rates4 = [1.0/100, 1.0/200, 1.0/150, 1.0/300]
+            
+        # 
+        # System-bath operators defined in exciton basis
+        #
         self.sbi3 = SystemBathInteraction([K_12, K_21],
                                           rates=self.rates)
+        
+        self.sbi4 = SystemBathInteraction([Ke_12, Ke_21, Ke_23, Ke_32],
+                                          rates=self.rates4)
+        
         
 
     def test_comparison_of_rates(self):
@@ -102,9 +137,6 @@ class TestLindblad(unittest.TestCase):
         KM[0,1] = self.rates[0]
         KM[1,0] = self.rates[1]
                 
-        #print("KT = ", KT)
-        #print("KM = ", KM)
-        #print("LT = ", LT.data)
         
         numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
      
@@ -135,30 +167,52 @@ class TestLindblad(unittest.TestCase):
         """Testing exciton basis dynamics by Lindblad
 
         """
+        
+        # site basis form to be compared with
+        LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
+        
+        # exciton basis forms
         LT13 = LindbladForm(self.H3, self.sbi3, as_operators=True)
         LT23 = LindbladForm(self.H3, self.sbi3, as_operators=False)
-        LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
+
         
         time = TimeAxis(0.0, 1000, 1.0)
         
+        #
+        # Propagators
+        #
         prop0 = ReducedDensityMatrixPropagator(time, self.H1, LT1)
         prop1 = ReducedDensityMatrixPropagator(time, self.H3, LT13)
         prop2 = ReducedDensityMatrixPropagator(time, self.H3, LT23)
 
+        # 
+        # Initial conditions
+        #
         rho0 = ReducedDensityMatrix(dim=self.H3.dim)
-        rho0c = ReducedDensityMatrix(dim=self.H1.dim)
+        rho0c = ReducedDensityMatrix(dim=self.H1.dim) # excitonic
         with eigenbasis_of(self.H3):
             rho0.data[1,1] = 1.0
         rho0c.data[1,1] = 1.0
           
+        #
+        # Propagations
+        #
         rhotc = prop0.propagate(rho0c)
         rhot1 = prop1.propagate(rho0)
         rhot2 = prop2.propagate(rho0)
         
+        # propagation with operator- and tensor forms should be the same
         numpy.testing.assert_allclose(rhot1.data,rhot2.data) #, rtol=1.0e-2) 
+
+        #
+        # Population time evolution by Lindblad is independent 
+        # of the level structure and basis, as long as I compare
+        # populations in basis in which the Lindblad form was defined
+        #
 
         P = numpy.zeros((2, time.length))
         Pc = numpy.zeros((2, time.length))
+        
         with eigenbasis_of(self.H3):
             for i in range(time.length):
                 P[0,i] = numpy.real(rhot1.data[i,0,0])  # population of exciton 0
@@ -168,13 +222,14 @@ class TestLindblad(unittest.TestCase):
             Pc[0,i] = numpy.real(rhotc.data[i,0,0])  # population of exciton 0
             Pc[1,i] = numpy.real(rhotc.data[i,1,1])  # population of exciton 1
         
+        # we compare populations
         numpy.testing.assert_allclose(Pc,P) #, rtol=1.0e-2) 
         
-        import matplotlib.pyplot as plt
-        
-        plt.plot(time.data,Pc[0,:])
-        plt.plot(time.data,Pc[1,:])
-        plt.show()
+        #import matplotlib.pyplot as plt
+        #
+        #plt.plot(time.data,Pc[0,:])
+        #plt.plot(time.data,Pc[1,:])
+        #plt.show()
         
         
 from quantarhei import Molecule, Aggregate, Mode
