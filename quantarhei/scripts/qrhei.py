@@ -119,7 +119,8 @@ def main():
     #
     # Setting environment to see shared libraries
     #
-    if True:
+    shlibs = False
+    if shlibs:
         
         # fix to get it work on Python 3.4 and earlier
         if sys.version_info[1] > 4:
