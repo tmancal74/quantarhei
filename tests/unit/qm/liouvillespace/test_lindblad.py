@@ -82,6 +82,13 @@ class TestLindblad(unittest.TestCase):
                   [30.0, -100.0,  0.0 ]]
             self.H4 = Hamiltonian(data=h4)
             
+            h4s = [[100.0, 0.0, 0.0  ],
+                  [0.0, 50.0,  0.0],
+                  [0.0, 0.0,  0.0 ]]
+            
+            self.H4s = Hamiltonian(data=h4s)
+            
+            
         #
         # Projection operators in eigenstate basis
         #
@@ -96,7 +103,12 @@ class TestLindblad(unittest.TestCase):
             Ke_21 = ProjectionOperator(1, 0, dim=3)
             Ke_23 = ProjectionOperator(1, 2, dim=3)
             Ke_32 = ProjectionOperator(2, 1, dim=3)
-            
+
+        Ks_12 = ProjectionOperator(0, 1, dim=3)
+        Ks_21 = ProjectionOperator(1, 0, dim=3)
+        Ks_23 = ProjectionOperator(1, 2, dim=3)
+        Ks_32 = ProjectionOperator(2, 1, dim=3) 
+           
         self.rates4 = [1.0/100, 1.0/200, 1.0/150, 1.0/300]
             
         # 
@@ -105,7 +117,9 @@ class TestLindblad(unittest.TestCase):
         self.sbi3 = SystemBathInteraction([K_12, K_21],
                                           rates=self.rates)
         
-        self.sbi4 = SystemBathInteraction([Ke_12, Ke_21, Ke_23, Ke_32],
+        self.sbi4e = SystemBathInteraction([Ke_12, Ke_21, Ke_23, Ke_32],
+                                          rates=self.rates4)
+        self.sbi4s = SystemBathInteraction([Ks_12, Ks_21, Ks_23, Ks_32],
                                           rates=self.rates4)
         
         
@@ -175,6 +189,8 @@ class TestLindblad(unittest.TestCase):
         LT13 = LindbladForm(self.H3, self.sbi3, as_operators=True)
         LT23 = LindbladForm(self.H3, self.sbi3, as_operators=False)
 
+        LT4e = LindbladForm(self.H4, self.sbi4e, as_operators=True)
+        LT4s = LindbladForm(self.H4s, self.sbi4s, as_operators=True)
         
         time = TimeAxis(0.0, 1000, 1.0)
         
@@ -184,6 +200,8 @@ class TestLindblad(unittest.TestCase):
         prop0 = ReducedDensityMatrixPropagator(time, self.H1, LT1)
         prop1 = ReducedDensityMatrixPropagator(time, self.H3, LT13)
         prop2 = ReducedDensityMatrixPropagator(time, self.H3, LT23)
+        prop4e = ReducedDensityMatrixPropagator(time, self.H4, LT4e)
+        prop4s = ReducedDensityMatrixPropagator(time, self.H4s, LT4s)        
 
         # 
         # Initial conditions
@@ -191,8 +209,14 @@ class TestLindblad(unittest.TestCase):
         rho0 = ReducedDensityMatrix(dim=self.H3.dim)
         rho0c = ReducedDensityMatrix(dim=self.H1.dim) # excitonic
         with eigenbasis_of(self.H3):
-            rho0.data[1,1] = 1.0
-        rho0c.data[1,1] = 1.0
+            rho0c.data[1,1] = 1.0
+        rho0.data[1,1] = 1.0
+        
+        rho04e = ReducedDensityMatrix(dim=self.H4.dim)
+        rho04s = ReducedDensityMatrix(dim=self.H4.dim)
+        with eigenbasis_of(self.H4):
+            rho04e.data[2,2] = 1.0
+        rho04s.data[2,2] = 1.0        
           
         #
         # Propagations
@@ -200,6 +224,9 @@ class TestLindblad(unittest.TestCase):
         rhotc = prop0.propagate(rho0c)
         rhot1 = prop1.propagate(rho0)
         rhot2 = prop2.propagate(rho0)
+        
+        rhot4e = prop4e.propagate(rho04e)
+        rhot4s = prop4s.propagate(rho04s)
         
         # propagation with operator- and tensor forms should be the same
         numpy.testing.assert_allclose(rhot1.data,rhot2.data) #, rtol=1.0e-2) 
@@ -213,10 +240,14 @@ class TestLindblad(unittest.TestCase):
         P = numpy.zeros((2, time.length))
         Pc = numpy.zeros((2, time.length))
         
+        P4e = numpy.zeros((3, time.length))
+        P4s = numpy.zeros((3, time.length))
+        
         with eigenbasis_of(self.H3):
             for i in range(time.length):
                 P[0,i] = numpy.real(rhot1.data[i,0,0])  # population of exciton 0
                 P[1,i] = numpy.real(rhot1.data[i,1,1])  # population of exciton 1
+                
 
         for i in range(time.length):
             Pc[0,i] = numpy.real(rhotc.data[i,0,0])  # population of exciton 0
@@ -224,14 +255,34 @@ class TestLindblad(unittest.TestCase):
         
         # we compare populations
         numpy.testing.assert_allclose(Pc,P) #, rtol=1.0e-2) 
+
+        with eigenbasis_of(self.H4):
+            for i in range(time.length):
+                P4e[0,i] = numpy.real(rhot4e.data[i,0,0])  # population of exciton 0
+                P4e[1,i] = numpy.real(rhot4e.data[i,1,1])  # population of exciton 1
+                P4e[2,i] = numpy.real(rhot4e.data[i,2,2])  # population of exciton 1
+
+        for i in range(time.length):
+            P4s[0,i] = numpy.real(rhot4s.data[i,0,0])  # population of exciton 0
+            P4s[1,i] = numpy.real(rhot4s.data[i,1,1])  # population of exciton 1
+            P4s[2,i] = numpy.real(rhot4s.data[i,2,2])  # population of exciton 1
+
         
-        #import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt
         #
-        #plt.plot(time.data,Pc[0,:])
-        #plt.plot(time.data,Pc[1,:])
-        #plt.show()
+        plt.plot(time.data,P4s[0,:], "-r")
+        plt.plot(time.data,P4s[1,:], "-r")
+        plt.plot(time.data,P4s[2,:], "-r")
+        plt.plot(time.data,P4e[0,:], "-g")
+        plt.plot(time.data,P4e[1,:], "-g")
+        plt.plot(time.data,P4e[2,:], "-g")
         
+        plt.show()
+
+        numpy.testing.assert_allclose(P4e, P4s, atol=1.0e-8) 
         
+
+
 from quantarhei import Molecule, Aggregate, Mode
 #from quantarhei.qm import ProjectionOperator
 
