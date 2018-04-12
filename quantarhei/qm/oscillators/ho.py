@@ -46,7 +46,7 @@ class operator_factory(Saveable):
     
     Creation and anihilation operators    
     """    
-    def __init__(self,N=100):
+    def __init__(self, N=100):
         # we choose a number of state 
         # to represent all operators
         self.N = N  

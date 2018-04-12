@@ -505,11 +505,15 @@ class DFunction(Saveable):
 
             elif t.atype == "upper-half":
 
-                # FIXME: this is a temporary fix - whole this part needs
+                # this is a temporary fix - whole this part needs
                 # rethinking
                 y = numpy.zeros(t.length,dtype=numpy.complex128)
-                y[0:t.length-1] = Y[t.length+1:2*t.length]
-                y[t.length-1] = 0.0
+                
+                # Vlada's suggestion
+                #y[0:t.length-1] = Y[t.length+1:2*t.length]
+                #y[t.length-1] = 0.0
+                
+                y[0:t.length] = Y[t.length:2*t.length]
                 F = DFunction(t, y)
 
             else:
