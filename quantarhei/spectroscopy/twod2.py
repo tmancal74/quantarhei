@@ -411,14 +411,17 @@ class TwoDSpectrum(TwoDSpectrumBase):
 
             # reconstruct data
             if self.keep_stypes:
-                reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
-                self.reph2D = reph2D   
-                nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
-                self.nonr2D = nonr2D 
+                if self.reph2D is not None:
+                    reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
+                    self.reph2D = reph2D  
+                if self.nonr2D is not None:
+                    nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
+                    self.nonr2D = nonr2D 
                 
             else:
-                data = self.data[i1_min:i1_max,i3_min:i3_max]
-                self.data = data
+                if self.data is not None:
+                    data = self.data[i1_min:i1_max,i3_min:i3_max]
+                    self.data = data
                 
         else:
             # some automatic trimming in the future
