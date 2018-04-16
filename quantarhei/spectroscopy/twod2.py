@@ -712,7 +712,7 @@ class TwoDSpectrumContainer:
                     
                     self.set_spectrum(sp)
                 
-    def trimall_to(self,window=None):
+    def trimall_to(self, window=None):
         """Trims all spectra in the container
         
         """
