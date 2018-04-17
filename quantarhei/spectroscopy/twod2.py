@@ -547,6 +547,7 @@ class TwoDSpectrumContainer:
             raise Exception("Container keeping pathways not available yet")
             
         self.spectra = {}
+        self._which = None
         
         
     def set_spectrum(self, spect):
@@ -561,15 +562,33 @@ class TwoDSpectrumContainer:
         else:
             raise Exception("Waiting time not compatible with the t2 axis")
             
-            
+        
+    def _lousy_equal(self, x1, x2, dx, frac=0.25):
+        """Equals up to fraction of dx
+        
+        This function returns True if x1 is closer to x2 than 1/4 of 
+        a specified interval. In addition it saves the value of x1 to which
+        x2 is equal in the attribute _which of the present class.
+        
+        
+        """
+        if abs(x1-x2) < dx*frac: 
+            self._which = x1
+            return True
+        
+        self._which = None
+        return False
+    
+    
     def get_spectrum(self, t2):
         """Returns spectrum corresponing to time t2
         
         Checks if the time t2 is present in the t2axis
         
         """        
-        if t2 in self.t2axis.data:
-            return self.spectra[t2]     
+        #if t2 in self.t2axis.data:
+        if any(self._lousy_equal(t2, li, self.t2axis.step) for li in self.t2axis.data):
+            return self.spectra[self._which]     
         else:
             raise Exception("Waiting time not compatible with the t2 axis")
 
