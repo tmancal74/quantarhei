@@ -370,7 +370,6 @@ class CorrelationFunctionMatrix(Saveable):
             # available index
             if iof is None:
                 iof = self.nof + 1
-
             while iof > self.nof:
                 self._update_nof_storage()
 

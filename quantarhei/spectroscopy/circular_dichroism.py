@@ -2,9 +2,9 @@
 """
     Quantarhei package (http://www.github.com/quantarhei)
 
-    abs module
+    circdich module
     
-    This module contains classes to support calculation of linear absorption
+    This module contains classes to support calculation of circular dichroism
     spectra.
 
 """
@@ -29,8 +29,8 @@ from ..core.units import cm2int
 
 from ..core.saveable import Saveable
 
-class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
-    """Provides basic container for absorption spectrum
+class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
+    """Provides basic container for circular dichroism spectrum
     
     """
     
@@ -58,7 +58,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         ----------
         
         data : array like object (numpy array)
-            Sets the data of the absorption spectrum
+            Sets the data of the circular dichroism spectrum
             
         """
         self.data = data
@@ -136,8 +136,8 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
     def add_to_data(self, spect):
         """Performs addition on the data.
         
-        Expects a compatible object holding absorption spectrum
-        and adds its data to the present absorption spectrum.
+        Expects a compatible object holding circular dichroism spectrum
+        and adds its data to the present circular dichroism spectrum.
         
         Parameters
         ----------
@@ -166,7 +166,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
     def load_data(self, filename, ext=None, replace=False):
         """Load the spectrum from a file
         
-        Uses the load method of the DFunction class to load the absorption
+        Uses the load method of the DFunction class to load the circular dichroism
         spectrum from a file. It sets the axis type to 'frequency', otherwise
         no changes to the inherited method are applied.
         
@@ -181,7 +181,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         
     def plot(self, **kwargs):
-        """ Plotting absorption spectrum using the DFunction plot method
+        """ Plotting circular dichroism spectrum using the DFunction plot method
         
         """
         if "ylabel" not in kwargs:
@@ -366,8 +366,8 @@ def _n_gaussians(x, N, *params):
         raise Exception("Inconsistend number of parameters")        
 
 
-class AbsSpectrum(AbsSpectrumBase):
-    """Class representing absorption spectrum
+class CircDichSpectrum(CircDichSpectrumBase):
+    """Class representing circular dichroism spectrum
     
     
     """
@@ -383,7 +383,7 @@ class AbsSpectrum(AbsSpectrumBase):
 #                "axis_str":[self.axis.atype]}
 #    
 #    def save(self, filename):
-#        """Save the whole AbsSpectrum object
+#        """Save the whole CircDichSpectrum object
 #        
 #        Attributes saved:
 #            axis
@@ -401,7 +401,7 @@ class AbsSpectrum(AbsSpectrumBase):
 #                    data=self.data)    
 #    
 #    def load(self, filename):
-#        """Loads the AbsSpectrum object from file 
+#        """Loads the CircDicchSpectrum object from file 
 #        
 #        """
 #        # FIXME: convert into hdf5        
@@ -425,7 +425,7 @@ class AbsSpectrum(AbsSpectrumBase):
   
     
     
-class AbsSpectrumContainer(Saveable):
+class CircDichSpectrumContainer(Saveable):
     
     def __init__(self, axis=None):
 
@@ -437,7 +437,7 @@ class AbsSpectrumContainer(Saveable):
         self.axis = axis
         
     def set_spectrum(self, spect, tag=None):
-        """Stores absorption spectrum 
+        """Stores circular dichroism spectrum 
         
         Checks compatibility of its frequency axis
         
@@ -500,7 +500,7 @@ class AbsSpectrumContainer(Saveable):
 #                    # creating directory to save this object
 #                    spsub = sps.create_group(dtname)
 #                    spsub.attrs.create("tag",ks)
-#                    # absorption data to be saved
+#                    # circular dichroism data to be saved
 #                    data2save = spsub.create_dataset("data",data=sp.data)
 #                    # axis data get some more attributes
 #                    atr = sp._non_data_attributes()
@@ -536,7 +536,7 @@ class AbsSpectrumContainer(Saveable):
 #                    with energy_units('int'):
 #                        faxis = FrequencyAxis(start, length, step, atype=atype,
 #                                          time_start=time_start)
-#                    aaa = AbsSpectrum(axis=faxis, data=data)
+#                    aaa = CircDichSpectrum(axis=faxis, data=data)
 #                    if self.count == 0:
 #                        self.set_axis(aaa.axis)
 #                    self.set_spectrum(aaa,tag=tag)
@@ -545,10 +545,10 @@ class AbsSpectrumContainer(Saveable):
 #                raise Exception("Incorrect number of spectra read")
     
     
-class AbsSpectrumCalculator(EnergyUnitsManaged):
-    """Linear absorption spectrum 
+class CircDichSpectrumCalculator(EnergyUnitsManaged):
+    """Circular dichroism spectrum 
     
-    Linear absorption spectrum of a molecule or an aggregate of molecules.
+    Circular dichroism spectrum of a molecule or an aggregate of molecules.
     
     Parameters
     ----------
@@ -556,7 +556,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         TimeAxis on which the calculation will be performed
         
     system : quantarhei.Molecule or quantathei.Aggregate
-        System for which the absorption spectrum will be calculated.
+        System for which the circular dichroism spectrum will be calculated.
         
         
     """
@@ -609,7 +609,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         
     def calculate(self):
-        """ Calculates the absorption spectrum 
+        """ Calculates the circular dichroism spectrum 
         
         
         """
@@ -747,49 +747,34 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             
         return ct
 
-
+    def _excitonic_rot_dip(self, SS, AG, n):
+        Na = AG.nmono
+        rr=0
+        for kk in range(Na):
+            for ll in range(kk+1, Na):
+                displ = AG.monomers[ll].position - AG.monomers[kk].position
+#                    cross = numpy.cross(AG.get_TransitionDipoleMoment().data[0][ll], (AG.get_TransitionDipoleMoment().data[0][kk]))
+                cross = numpy.cross(AG.monomers[ll].get_TransitionDipoleMoment().data[0][1], (AG.monomers[kk].get_TransitionDipoleMoment().data[0][1]))
+                dot = numpy.dot(displ, cross)
+#                    rr += (SS[kk+1,n+1])*(SS[ll+1,n+1])*dot*AG.monomers[ll].get_energy(1)
+                rr += (SS[kk+1,n+1])*(SS[ll+1,n+1])*dot
+        
+        return rr
         
     def _calculate_monomer(self):
-        """ Calculates the absorption spectrum of a monomer 
+        """ Calculates the circular dichroism spectrum of a monomer 
         
         
         """
-        ta = self.TimeAxis
-        # transition frequency
-        om = self.system.elenergies[1]-self.system.elenergies[0]
-        # transition dipole moment
-        dm = self.system.dmoments[0,1,:]
-        # dipole^2
-        dd = numpy.dot(dm,dm)
-        # natural life-time from the dipole moment
-        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
-        
-        if self.system._has_system_bath_coupling:
-            # correlation function
-            ct = self.system.get_egcf((0,1))            
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama}
-        else:
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
-
-        # calculates the one transition of the monomer        
-        data = numpy.real(self.one_transition_spectrum(tr))
+        raise Exception('Not yet implemented. Usually, CD is calculated\
+                        for aggregates')
         
 
-        # we only want to retain the upper half of the spectrum
-        Nt = len(self.frequencyAxis.data)//2        
-        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
-        st = self.frequencyAxis.data[Nt//2]
-        # we represent the Frequency axis anew
-        axis = FrequencyAxis(st,Nt,do)
-        
-        spect = AbsSpectrum(axis=axis, data=data)
-        
-        return spect
         
         
     def _calculate_aggregate(self, relaxation_tensor=None,
                              relaxation_hamiltonian=None, rate_matrix=None):
-        """ Calculates the absorption spectrum of a molecular aggregate
+        """ Calculates the circular dichroism spectrum of a molecular aggregate
         
         
         
@@ -850,6 +835,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         tr["ct"] = ct
         self.system._has_system_bath_coupling = True
         
+        rot_dip = self._excitonic_rot_dip(SS,self.system, 0)  
+        data = rot_dip*numpy.real(self.one_transition_spectrum(tr))
+        
         #
         # Calculates spectrum of a single transition
         #
@@ -860,6 +848,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                 tr["gg"] = gg[ii]
             else:
                 tr["gg"] = [0.0]
+            
+            rot_dip = self._excitonic_rot_dip(SS,self.system, ii-1)  
             #tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
             tr["dd"] = DD.dipole_strength(0,ii)
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
@@ -870,7 +860,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             #
             # Calculates spectrum of a single transition
             #
-            data += numpy.real(self.one_transition_spectrum(tr))
+            data += rot_dip*numpy.real(self.one_transition_spectrum(tr))
 
 
         # we only want to retain the upper half of the spectrum
@@ -889,7 +879,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         if relaxation_tensor is not None:
             RR.transform(S1)
 
-        spect = AbsSpectrum(axis=axis, data=data)
+        spect = CircDichSpectrum(axis=axis, data=data)
         
         return spect        
 
