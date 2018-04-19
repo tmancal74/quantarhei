@@ -73,7 +73,7 @@ class Molecule(UnitsManaged, Saveable):
     # transition dipole moments
     dmoments = array_property('dmoments')    
     
-    # number of electronic states
+    # number of electronic statesarray_property
     nel      = Integer('nel')
     # number of allowed transitions
     nal      = Integer('nal')
@@ -276,8 +276,7 @@ class Molecule(UnitsManaged, Saveable):
                                            
             self._has_egcf[self.triangle.locate(transition[0],
                                                 transition[1])] = False
-                                                
-
+        
     #@deprecated
     def set_egcf(self, transition, egcf):
         self.set_transition_environment(transition, egcf)
@@ -805,8 +804,7 @@ class Molecule(UnitsManaged, Saveable):
 #            for w in wr:
 #                char = d[w[0]]
 #                print("fce ",el, " is a bath no.", w[0]," of ",char)
-                
-            cfm.set_correlation_function(i+1,el,wr)
+            cfm.set_correlation_function(el,wr,i+1)
 
         #
         # System operators corresponding to the correlation functions

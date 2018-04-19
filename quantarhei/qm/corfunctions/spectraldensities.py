@@ -114,7 +114,8 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     """
 
-    energy_params = ("reorg", "omega", "freq")
+    energy_params = ("reorg", "omega", "freq", "fcp", "g_FWHM", "l_FWHM",\
+                     "freq1", "freq2", "gamma")
     analytical_types = ("OverdampedBrownian")
 
     def __init__(self, axis=None, params=None, values=None):
@@ -196,6 +197,18 @@ class SpectralDensity(DFunction, UnitsManaged):
         
                     self._make_underdamped_brownian(prms, values)
                     
+                elif ftype == "Underdamped":
+           
+                    self._make_underdamped(params)
+                    
+                elif ftype == "B777":
+                    
+                    self._make_B777(params)
+                    
+                elif ftype == "CP29":
+                    
+                    self._make_CP29_spectral_density(params, values)
+                    
                 elif ftype == "Value-defined":
         
                     self._make_value_defined(prms, values=values)
@@ -210,7 +223,11 @@ class SpectralDensity(DFunction, UnitsManaged):
         """ Sets the Overdamped Brownian oscillator spectral density
 
         """
-        ctime = params["cortime"]
+        try:
+            ctime = params["cortime"]
+        except:
+            gamma = params["gamma"]
+            ctime = 1/gamma
         lamb = params["reorg"]
 
         # protect calculation from units management
@@ -263,6 +280,148 @@ class SpectralDensity(DFunction, UnitsManaged):
         lim_omega[1] = 0.0
         for i in range(2):
             self.lim_omega[i] += lim_omega[i]
+            
+    # See Valkunas, Abramavicius, Mančal, 2013, Wiley-VCH  
+    def _make_underdamped(self, params, values=None):
+        SPEED_OF_LIGHT = 2.99*(10**8)
+ 
+        # use the units in which params was defined
+        omega0 = params["freq"]
+        lamb = params["reorg"]
+        gamma = params["gamma"]
+        
+        # protect calculation from units management
+        with energy_units("int"):
+            omega = self.axis.data
+            cfce = 2*(lamb*omega*gamma*omega0**2)/((omega**2 - \
+                     omega0**2)**2 + (gamma*omega)**2)
+
+        if values is not None:
+            self._make_me(self.axis, values)
+        else:
+            self._make_me(self.axis, cfce)
+
+        # this is in internal units
+        self.lamb = lamb            
+        self.lim_omega = numpy.zeros(2)
+        self.lim_omega[0] = 0.0
+        self.lim_omega[1] = 4*(gamma*(omega0**2))/((omega0**2)**2)
+        
+    #See Kell et al, 2013, J. Phys. Chem. B. 
+    #This spectral density requires two 'freq' parameters.
+    def _make_B777(self, params, values=None, use_alternative_form=True):
+        
+        lamb = params["reorg"]
+        try:
+            omega1 = params["freq1"]            
+            omega2 = params["freq2"]
+            s = [params['s1'], params['s2']]
+            S0 = params["S0"]
+            freq = [omega1, omega2]
+
+
+        except:
+            omega1 = self.manager.iu_energy(0.56,
+                                          units="1/cm")
+            omega2 = self.manager.iu_energy(1.9,
+                                          units="1/cm")
+            s = [0.8, 0.5]
+            S0 = 0.5
+            freq = [omega1, omega2]
+
+
+        with energy_units("int"):
+            omega = self.axis.data
+            cropped_omega = omega
+
+            j=0
+            for ii in range(2):
+                j = j + (s[ii]/(numpy.math.factorial(7) * 2*(freq[ii]**4)))*\
+                (cropped_omega**3)*(numpy.exp
+                    (-numpy.abs(cropped_omega/freq[ii])**0.5))
+
+#            
+        if use_alternative_form:
+            #This form is taken from Jang, Newton, Silbey, J Chem Phys. 2007.
+            #It gives a polynomial form of the B777 spectral density
+            print('jang used')
+            omega1c = self.manager.iu_energy(170,
+                                      units="1/cm")
+            omega2c = self.manager.iu_energy(34,
+                                      units="1/cm")
+            omega3c = self.manager.iu_energy(69,
+                                      units="1/cm")
+            with energy_units("int"):
+                omega = self.axis.data
+                cfce = 0.22*omega*numpy.exp(-numpy.abs(omega/omega1c))\
+                +(omega/(numpy.abs(omega)))*0.78*((omega**2)/omega2c)*numpy.exp(-numpy.abs(omega/omega2c))\
+                +0.31*((omega**3)/(omega3c**2))*numpy.exp(-numpy.abs(omega/omega3c))
+#        #This factor was not in the  Jang, Newton, Silbey, J Chem Phys. 2007 article.
+#        #It is necessary for the original B777 spectral density, and the alternative form to be equal.
+                cfce = (numpy.amax(j*cropped_omega**2)/numpy.amax(cfce)) * cfce * numpy.pi*S0*(1/(s[0] + s[1])) 
+               
+        if values is not None:
+            self._make_me(self.axis, values)
+        else:
+            self._make_me(self.axis, cfce)
+            
+        self.lamb = lamb            
+        self.lim_omega = numpy.zeros(2)
+        self.lim_omega[0] = 0.0
+        self.lim_omega[1] = 0.0
+        
+    def _make_CP29_spectral_density(self, params, values = None):
+    #This pectral density is based on the one calculated from FLN by 
+    #Rätsep et al. J. Phys. Chem. B 2008, 112, 110-118. It consist of a 
+    #Gaussian on the low-frequency side and a Lagrangian on the high-frequency 
+    #side, with the change point between the functions at 22 per cm. The 
+    #spectral density is scaled by the user-supplied reorg energy and 
+    #prefactors are therefore ignored in the analytical calculations.
+    #default values (1/cm) are: function_change_point=22, g_FWHM = 20,
+    #l_FWHM=60 
+        
+        try:
+            function_change_point = params['fcp']
+            g_FWHM = params['g_FWHM']
+            l_FWHM = params['l_FWHM']
+        except:
+            function_change_point = self.manager.iu_energy(22,
+                                       units="1/cm")
+            g_FWHM = self.manager.iu_energy(20,
+                                       units="1/cm")
+            l_FWHM = self.manager.iu_energy(60,
+                                       units="1/cm")
+            
+        lamb = params["reorg"]
+        cfce = numpy.zeros(self.axis.data.shape)
+       
+        with energy_units("int"):
+            omega = self.axis.data
+            g = numpy.where(numpy.abs(omega) < function_change_point)
+            l = numpy.where(numpy.abs(omega) >= function_change_point)
+            cfce[g] = numpy.exp((-(numpy.abs(omega[g]) - \
+                function_change_point)**2)/(2*0.1803*g_FWHM**2))      
+            cfce[l] = 1/((numpy.abs(omega[l]) - \
+                function_change_point)**2 + (l_FWHM/2)**2)      
+            cfce[g] = cfce[g] * (numpy.amax(cfce[l])/numpy.amax(cfce[g]))     
+            cfce[numpy.where(omega < 0)] = -1*cfce[numpy.where(omega < 0)]     
+            cfce[numpy.isclose(omega, 0, atol=1e-05)] = 0
+            
+        if values is not None:
+            self._make_me(self.axis, values)
+            print('spectral density made from correlation function values')
+
+        else:
+            self._make_me(self.axis, cfce)
+            with energy_units("int"):
+                meareorg = self.measure_reorganization_energy()
+            cfce = (lamb/meareorg)*cfce
+            self._make_me(self.axis, cfce)
+
+        self.lamb = lamb     
+        self.lim_omega = numpy.zeros(2)
+        self.lim_omega[0] = 0.0
+        self.lim_omega[1] = 0.0
             
     def _make_value_defined(self, values=None):
         """ Value defined spectral density
@@ -420,8 +579,10 @@ class SpectralDensity(DFunction, UnitsManaged):
         return SpectralDensity(self.axis, self.params)
 
 
-    def get_CorrelationFunction(self, temperature=None):
-        """Returns correlation function corresponding to the spectral density
+    def get_CorrelationFunction(self, temperature=None, ta=None):
+        """Returns correlation function corresponding to the spectral density.
+        If a TimeAxis object is included, the CorrelationFunction
+        object will be returned with that TimeAxis instance as its time axis.
 
         """
 
@@ -434,6 +595,13 @@ class SpectralDensity(DFunction, UnitsManaged):
             params.append(newdict)
 
         time = self.axis.get_TimeAxis()
+        
+        if ta is not None:
+            if numpy.all(numpy.isclose(ta.data, time.data, 1e-5)):
+                time = ta
+            else:
+                raise Exception('The provided TimeAxis does not have the same\
+                                data as the Fourier transformed axis')
 
         # everything has to be protected from change of units
         with energy_units("int"):
