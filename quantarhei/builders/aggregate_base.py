@@ -69,6 +69,8 @@ class AggregateBase(UnitsManaged, Saveable):
         
         self._has_system_bath_interaction = False #
         
+        self._has_lindich_axes = False
+        
         self.coupling_initiated = False #
         self.resonance_coupling = None
         
@@ -95,7 +97,6 @@ class AggregateBase(UnitsManaged, Saveable):
         self._relaxation_theory = "" #
         
         self._built = False     #
-        self._diagonalized = False
         
         self.mult = 0                #
         self.sbi_mult = 0            #
@@ -255,7 +256,25 @@ class AggregateBase(UnitsManaged, Saveable):
         """
         pass
 
-         
+    
+    def set_lindich_axes(self, axis_orthog_membrane):
+        """ Creates a coordinate system with one axis supplied by the user 
+        (typically an axis orthogonal to the membrane), and two other axes, all 
+        of which are orthonormal.
+        """
+       
+        qr = numpy.vstack((axis_orthog_membrane, numpy.array([1,0,0]), numpy.array([0,1,0]))).T
+        self.q, r = numpy.linalg.qr(qr)
+        self._has_lindich_axes = True       
+    
+    
+    def get_lindich_axes(self):
+        if self._has_lindich_axes:
+            return self.q
+        else:
+            raise Exception("No linear dichroism coordinate system supplied")
+    
+    
     def set_egcf_matrix(self,cm):
         """Sets a matrix describing system bath interaction
         
@@ -1349,8 +1368,11 @@ class AggregateBase(UnitsManaged, Saveable):
             if self.egcf_matrix.nob != self.nmono:
                 raise Exception("Correlation matrix has a size different" + 
                                 " from the number of monomers")
+            #FIXME The aggregate having a egcf matrix does not mean the monomers
+            #have egcf matrices. They could just have correlation funtions.
             for i in range(self.nmono):
-                if not (self.monomers[i].egcf_matrix is self.egcf_matrix):
+                if self.monomers[i]._is_mapped_on_egcf_matrix and \
+                not (self.monomers[i].egcf_matrix is self.egcf_matrix):
                     raise Exception("Correlation matrix in the monomer" +
                                     " has to be the same as the one of" +
                                     " the aggregate.")
@@ -1994,7 +2016,7 @@ class AggregateBase(UnitsManaged, Saveable):
                        secular_relaxation=False, 
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
-                       as_operators=True,
+                       as_operators=False,
                        recalculate=True):
         """Returns propagator of the density matrix
         
@@ -2021,15 +2043,9 @@ class AggregateBase(UnitsManaged, Saveable):
             
         
         return prop
-
         
     #FIXME: There must be a general theory here
     def get_RedfieldRateMatrix(self):
-        """Returns Redfield relaxation matrix
-        
-        
-        
-        """
         
         from ..qm import RedfieldRateMatrix
         from ..core.managers import eigenbasis_of
@@ -2046,7 +2062,6 @@ class AggregateBase(UnitsManaged, Saveable):
         ham.unprotect_basis()
         
         return RR
-
             
     def diagonalize(self):
         """Transforms the Hamiltonian 
@@ -2054,9 +2069,6 @@ class AggregateBase(UnitsManaged, Saveable):
            
         """
            
-        if self._diagonalized:
-            return
-        
         ee,SS = numpy.linalg.eigh(self.HH)
         
         self.HD = ee
@@ -2180,10 +2192,9 @@ class AggregateBase(UnitsManaged, Saveable):
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
         
-        self._diagonalized = True
-        
 
-    def _thermal_population(self, temp=0.0, subtract=None):
+    def _thermal_population(self, temp=0.0, subtract=None,
+                            relaxation_hamiltonian=None):
         """Thermal populations at temperature temp
         
         Thermal populations calculated from the diagonal elements
@@ -2196,14 +2207,17 @@ class AggregateBase(UnitsManaged, Saveable):
         
         kBT = kB_intK*temp
         
-        HH = self.get_Hamiltonian()
-        
+        if not relaxation_hamiltonian:
+            HH = self.get_Hamiltonian()
+        else:
+            HH = relaxation_hamiltonian
+            
         if subtract is None:
             subtract = numpy.zeros(HH.dim, dtype=numpy.float64)
         
         rho0 = numpy.zeros((HH.dim,HH.dim),dtype=numpy.complex128)
         if temp == 0.0:
-            #print("Zero temperature")
+            print("Zero temperature")
             rho0[0,0] = 1.0
         else:
             # FIXME: we assume only single exciton band
@@ -2214,14 +2228,17 @@ class AggregateBase(UnitsManaged, Saveable):
             # we specify the basis from outside. This allows to choose 
             # canonical equilibrium in arbitrary basis
             for i in range(HH.dim-1):
-                ens[i] = HH.data[i+1,i+1] - subtract[i+1]               
+                ens[i] = HH.data[i+1,i+1] - subtract[i+1]      
+
             ne = numpy.exp(-ens/kBT)
+
             sne = numpy.sum(ne)
+
             rho0_diag = ne/sne
+
             rho0[1:,1:] = numpy.diag(rho0_diag)
             
         return rho0
-    
     
     def _impulsive_population(self):
         """Impulsive excitation of the density matrix from ground state
@@ -2246,7 +2263,7 @@ class AggregateBase(UnitsManaged, Saveable):
         
     def get_DensityMatrix(self, condition_type=None,
                                 relaxation_theory_limit=None,
-                                temperature=0.0):
+                                temperature=0, relaxation_hamiltonian=None):
         """Returns density matrix according to specified condition
         
         Returs density matrix to be used e.g. as initial condition for
@@ -2290,7 +2307,6 @@ class AggregateBase(UnitsManaged, Saveable):
             
             rho0 = self._impulsive_population()
             self.rho0 = rho0
-
             return DensityMatrix(data=self.rho0)
             
         elif condition_type == "thermal_excited_state":
@@ -2309,20 +2325,24 @@ class AggregateBase(UnitsManaged, Saveable):
                     rho0 = self._thermal_population(temperature, subtract=re)
                     
                 elif relaxation_theory_limit == "weak_coupling":
-                    
-                    rho0 = self._thermal_population(temperature)
+
+                    if not relaxation_hamiltonian:
+                        H = self.get_Hamiltonian().data
+                    else:
+                        H = relaxation_hamiltonian.data
+                    subt = numpy.zeros(H.shape[0])
+                    subtfil = numpy.amin(numpy.array([H[ii,ii]\
+                                            for ii in range(1, H.shape[0])]))
+                    subt.fill(subtfil)                 
+                    rho0 = self._thermal_population(temperature,\
+                                subtract = subt,
+                                relaxation_hamiltonian=relaxation_hamiltonian)
                     
                 else:
                     raise Exception("Unknown relaxation_theory_limit")
             else:
                 rho0 = self._thermal_population(temperature)
                 
-            self.rho0 = rho0
-            return DensityMatrix(data=self.rho0)
-        
-        elif condition_type == "thermal":
-            
-            rho0 = self._thermal_population(temperature)
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
             

@@ -110,14 +110,20 @@ class CorrelationFunction(DFunction, UnitsManaged):
     """
 
     allowed_types = ("OverdampedBrownian-HighTemperature",
-                     "OverdampedBrownian", 
+                     "OverdampedBrownian",
+                     "OverdampedBrownian_from_Specdens",
                      "UnderdampedBrownian",
-                     "Value-defined")
+                     "Underdamped",
+                     "B777",
+                     "CP29",
+                     "Value-defined"
+                     )
 
     analytical_types = ("OverdampedBrownian-HighTemperature",
                         "OverdampedBrownian")
     
-    energy_params = ("reorg", "omega", "freq")
+    energy_params = ("reorg", "omega", "freq", "fcp", "g_FWHM", "l_FWHM",\
+                     "freq1", "freq2", "gamma")
 
     def __init__(self, axis=None, params=None , values=None):
         super().__init__()
@@ -212,6 +218,18 @@ class CorrelationFunction(DFunction, UnitsManaged):
                     elif ftype == "UnderdampedBrownian":
                         
                         self._make_underdamped_brownian(prms) #, values=values)
+                        
+                    elif ftype == "Underdamped":
+                        
+                        self._make_underdamped(params, values=values)
+                        
+                    elif ftype == "B777":
+                        
+                        self._make_B777(params, values=values)
+                        
+                    elif ftype == "CP29":
+                        
+                        self._make_CP29_spectral_density(params, values=values)
             
                     elif ftype == "Value-defined":
             
@@ -383,6 +401,99 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0/ctime)  
         
+        
+    def _make_underdamped(self, params, values=None):
+        from .spectraldensities import SpectralDensity
+        
+        temperature = params["T"]
+        ctime = params["gamma"]
+        
+        # use the units in which params was defined
+        lamb = params["reorg"]
+        time = self.axis #.data
+
+        if values is not None:
+            cfce = values
+        else:
+            # Make it via SpectralDensity
+            fa = SpectralDensity(time, params)
+            
+            cf = fa.get_CorrelationFunction(temperature=temperature)
+            
+            cfce = cf.data
+
+         # this is a call to the function inherited from DFunction class 
+        self._add_me(self.axis, cfce)
+
+        # update reorganization energy
+        self.lamb += lamb
+        
+        # check temperature and update cutoff time
+        self._set_temperature_and_cutoff_time(temperature, 5.0*ctime) 
+        
+    def _make_B777(self, params, values=None):
+        from .spectraldensities import SpectralDensity
+        
+        temperature = params["T"]
+        ctime = params["gamma"]
+        
+        # use the units in which params was defined
+        lamb = self.manager.iu_energy(params["reorg"],
+                                      units=self.energy_units)
+        time = self.axis #.data
+
+        if values is not None:
+            cfce = values
+        else:
+            # Make it via SpectralDensity
+            fa = SpectralDensity(time, params)
+            
+            cf = fa.get_CorrelationFunction(temperature=temperature)
+            
+            cfce = cf.data
+            
+        # this is a call to the function inherited from DFunction class 
+        self._add_me(self.axis, cfce)
+
+        # update reorganization energy
+        self.lamb += lamb
+        
+        # check temperature and update cutoff time
+        self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)     
+
+        
+    def _make_CP29_spectral_density(self, params, values=None):
+        from .spectraldensities import SpectralDensity
+        
+        temperature = params["T"]
+        ctime = params["gamma"]
+        #omega = params["freq"]
+        
+        # use the units in which params was defined
+        lamb = self.manager.iu_energy(params["reorg"],
+                                      units=self.energy_units)
+        print('correlation function lamb in int units %f' %lamb)
+        time = self.axis #.data
+
+        if values is not None:
+            cfce = values
+        else:
+            # Make it via SpectralDensity
+            fa = SpectralDensity(time, params)
+            
+
+            cf = fa.get_CorrelationFunction(temperature=temperature)
+            
+            cfce = cf.data
+
+        # this is a call to the function inherited from DFunction class 
+        self._add_me(self.axis, cfce)
+
+        # update reorganization energy
+        self.lamb += lamb
+        
+        # check temperature and update cutoff time
+        self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)   
         
     def _make_value_defined(self, params, values):
         
@@ -560,11 +671,12 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return cfce
 
 
-    def get_SpectralDensity(self):
-        """ Returns a corresponding SpectralDensity object
-
-        Returns a SpectralDensity corresponding to this CorrelationFunction
-
+    def get_SpectralDensity(self, fa=None):
+        """
+        Returns a SpectralDensity corresponding to this CorrelationFunction.
+        If a FrequencyAxis object is included, the SpectralDensity
+        object will be returned with that FrequencyAxis instance as its 
+        frequency axis.
 
         """
 
@@ -574,6 +686,13 @@ class CorrelationFunction(DFunction, UnitsManaged):
         with energy_units("int"):
             frequencies = self.axis.get_FrequencyAxis()
             vals = self.get_OddFTCorrelationFunction().data
+            
+            if fa is not None:
+                if numpy.all(numpy.isclose(fa.data, frequencies.data, 1e-5)):
+                    time = ta
+                else:
+                    raise Exception('The provided FrequencyAxis does not have the\
+                                    same data as the Fourier transformed axis')
 
             # FIXME: how to set the limit of SpectralDensity at w->0
             spectd = SpectralDensity(frequencies, self.params, values=vals)
