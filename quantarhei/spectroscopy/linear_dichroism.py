@@ -2,9 +2,9 @@
 """
     Quantarhei package (http://www.github.com/quantarhei)
 
-    abs module
+    lineardichroism module
     
-    This module contains classes to support calculation of linear absorption
+    This module contains classes to support calculation of linear dichroism
     spectra.
 
 """
@@ -29,8 +29,8 @@ from ..core.units import cm2int
 
 from ..core.saveable import Saveable
 
-class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
-    """Provides basic container for absorption spectrum
+class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
+    """Provides basic container for linear dichroism spectrum
     
     """
     
@@ -58,7 +58,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         ----------
         
         data : array like object (numpy array)
-            Sets the data of the absorption spectrum
+            Sets the data of the linear dichroism spectrum
             
         """
         self.data = data
@@ -136,8 +136,8 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
     def add_to_data(self, spect):
         """Performs addition on the data.
         
-        Expects a compatible object holding absorption spectrum
-        and adds its data to the present absorption spectrum.
+        Expects a compatible object holding linear dichroism spectrum
+        and adds its data to the present linear dichroism spectrum.
         
         Parameters
         ----------
@@ -166,7 +166,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
     def load_data(self, filename, ext=None, replace=False):
         """Load the spectrum from a file
         
-        Uses the load method of the DFunction class to load the absorption
+        Uses the load method of the DFunction class to load the linear dichroism
         spectrum from a file. It sets the axis type to 'frequency', otherwise
         no changes to the inherited method are applied.
         
@@ -181,7 +181,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         
         
     def plot(self, **kwargs):
-        """ Plotting absorption spectrum using the DFunction plot method
+        """ Plotting linear dichroism spectrum using the DFunction plot method
         
         """
         if "ylabel" not in kwargs:
@@ -366,8 +366,8 @@ def _n_gaussians(x, N, *params):
         raise Exception("Inconsistend number of parameters")        
 
 
-class AbsSpectrum(AbsSpectrumBase):
-    """Class representing absorption spectrum
+class LinDichSpectrum(LinDichSpectrumBase):
+    """Class representing linear dichroism spectrum
     
     
     """
@@ -383,7 +383,7 @@ class AbsSpectrum(AbsSpectrumBase):
 #                "axis_str":[self.axis.atype]}
 #    
 #    def save(self, filename):
-#        """Save the whole AbsSpectrum object
+#        """Save the whole LinDichSpectrum object
 #        
 #        Attributes saved:
 #            axis
@@ -401,7 +401,7 @@ class AbsSpectrum(AbsSpectrumBase):
 #                    data=self.data)    
 #    
 #    def load(self, filename):
-#        """Loads the AbsSpectrum object from file 
+#        """Loads the LinDichSpectrum object from file 
 #        
 #        """
 #        # FIXME: convert into hdf5        
@@ -425,7 +425,7 @@ class AbsSpectrum(AbsSpectrumBase):
   
     
     
-class AbsSpectrumContainer(Saveable):
+class LinDichSpectrumContainer(Saveable):
     
     def __init__(self, axis=None):
 
@@ -437,7 +437,7 @@ class AbsSpectrumContainer(Saveable):
         self.axis = axis
         
     def set_spectrum(self, spect, tag=None):
-        """Stores absorption spectrum 
+        """Stores linear dichroism spectrum 
         
         Checks compatibility of its frequency axis
         
@@ -500,7 +500,7 @@ class AbsSpectrumContainer(Saveable):
 #                    # creating directory to save this object
 #                    spsub = sps.create_group(dtname)
 #                    spsub.attrs.create("tag",ks)
-#                    # absorption data to be saved
+#                    # linear dichroism data to be saved
 #                    data2save = spsub.create_dataset("data",data=sp.data)
 #                    # axis data get some more attributes
 #                    atr = sp._non_data_attributes()
@@ -536,7 +536,7 @@ class AbsSpectrumContainer(Saveable):
 #                    with energy_units('int'):
 #                        faxis = FrequencyAxis(start, length, step, atype=atype,
 #                                          time_start=time_start)
-#                    aaa = AbsSpectrum(axis=faxis, data=data)
+#                    aaa = LinDichSpectrum(axis=faxis, data=data)
 #                    if self.count == 0:
 #                        self.set_axis(aaa.axis)
 #                    self.set_spectrum(aaa,tag=tag)
@@ -545,10 +545,10 @@ class AbsSpectrumContainer(Saveable):
 #                raise Exception("Incorrect number of spectra read")
     
     
-class AbsSpectrumCalculator(EnergyUnitsManaged):
-    """Linear absorption spectrum 
+class LinDichSpectrumCalculator(EnergyUnitsManaged):
+    """Linear dichroism spectrum 
     
-    Linear absorption spectrum of a molecule or an aggregate of molecules.
+    Linear dichroism spectrum of a molecule or an aggregate of molecules.
     
     Parameters
     ----------
@@ -556,7 +556,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         TimeAxis on which the calculation will be performed
         
     system : quantarhei.Molecule or quantathei.Aggregate
-        System for which the absorption spectrum will be calculated.
+        System for which the linear dichroism spectrum will be calculated.
         
         
     """
@@ -569,7 +569,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                  dynamics="secular",
                  relaxation_tensor=None,
                  rate_matrix=None,
-                 effective_hamiltonian=None):
+                 effective_hamiltonian=None,
+                 vector_perp_to_membrane = numpy.array([-1, -4, 1])):
         
         # protected properties
         self.TimeAxis = timeaxis
@@ -593,6 +594,10 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         if rate_matrix is not None:
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
+        self.vector_perp_to_membrane = vector_perp_to_membrane
+        self.vector_perp_to_membrane = self.vector_perp_to_membrane*(1/numpy.linalg.norm(vector_perp_to_membrane))
+
+
             
         self.rwa = 0.0
         
@@ -609,7 +614,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         
     def calculate(self):
-        """ Calculates the absorption spectrum 
+        """ Calculates the linear dichroism spectrum 
         
         
         """
@@ -682,7 +687,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         """
         ta = tr["ta"] # TimeAxis
-        dd = tr["dd"] # transition dipole moment
+        dd = tr["dd_vec"] # transition dipole moment
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
         
@@ -708,10 +713,12 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             #print("Time dependent: len = ", rt[20], len(rt))
             
         # Fourier transform the result
-        ft = dd*numpy.fft.hfft(at)*ta.step
+        ft = numpy.fft.hfft(at)*ta.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
-        ft = numpy.flipud(ft)   
+        ft = numpy.flipud(ft) 
+        # multiply by the linear dichroism dipole moment pre-factor
+        ft = (-dd[0]**2 + 0.5*dd[1]**2 + 0.5*dd[2]**2)*ft
         # cut the center of the spectrum
         Nt = ta.length #len(ta.data)        
         return ft[Nt//2:Nt+Nt//2]
@@ -748,48 +755,20 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         return ct
 
 
-        
+
     def _calculate_monomer(self):
-        """ Calculates the absorption spectrum of a monomer 
+        """ Calculates the circular dichroism spectrum of a monomer 
         
         
         """
-        ta = self.TimeAxis
-        # transition frequency
-        om = self.system.elenergies[1]-self.system.elenergies[0]
-        # transition dipole moment
-        dm = self.system.dmoments[0,1,:]
-        # dipole^2
-        dd = numpy.dot(dm,dm)
-        # natural life-time from the dipole moment
-        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
-        
-        if self.system._has_system_bath_coupling:
-            # correlation function
-            ct = self.system.get_egcf((0,1))            
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama}
-        else:
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
+        raise Exception('Not yet implemented. Usually, LD is calculated\
+                        for aggregates.')
 
-        # calculates the one transition of the monomer        
-        data = numpy.real(self.one_transition_spectrum(tr))
-        
-
-        # we only want to retain the upper half of the spectrum
-        Nt = len(self.frequencyAxis.data)//2        
-        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
-        st = self.frequencyAxis.data[Nt//2]
-        # we represent the Frequency axis anew
-        axis = FrequencyAxis(st,Nt,do)
-        
-        spect = AbsSpectrum(axis=axis, data=data)
-        
-        return spect
         
         
     def _calculate_aggregate(self, relaxation_tensor=None,
                              relaxation_hamiltonian=None, rate_matrix=None):
-        """ Calculates the absorption spectrum of a molecular aggregate
+        """ Calculates the linear dichroism spectrum of a molecular aggregate
         
         
         
@@ -838,9 +817,19 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         else:
             tr["gg"] = [0.0]
         
+        if not self.system._has_lindich_axes:
+            self.system.set_lindich_axes(self.vector_perp_to_membrane)
+            q = self.system.get_lindich_axes()
+        else:
+            try:
+                q = self.system.get_lindich_axes()
+            except:
+                raise Exception('No orthogonal axis system provided for\
+                                calculation of linear dichroism.')
+        
         # get square of transition dipole moment here    #print(H_RC)
         #tr.append(DD.dipole_strength(0,1))
-        tr["dd"] = DD.dipole_strength(0,1)
+        tr["dd_vec"] = numpy.dot(DD.data[0][1], q)
         # first transition energy
         #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
         tr["om"] = HH.data[1,1]-HH.data[0,0]-self.rwa
@@ -861,7 +850,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             else:
                 tr["gg"] = [0.0]
             #tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
-            tr["dd"] = DD.dipole_strength(0,ii)
+            tr["dd_vec"] = numpy.dot(DD.data[0][ii], q)
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
             tr["om"] = HH.data[ii,ii]-HH.data[0,0]-self.rwa
             #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
@@ -889,7 +878,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         if relaxation_tensor is not None:
             RR.transform(S1)
 
-        spect = AbsSpectrum(axis=axis, data=data)
+        spect = LinDichSpectrum(axis=axis, data=data)
         
         return spect        
 

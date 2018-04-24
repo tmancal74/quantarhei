@@ -146,7 +146,24 @@ from .core.parallel import block_distributed_range
 from .spectroscopy.abs2 import AbsSpectrum
 from .spectroscopy.abs2 import AbsSpectrumContainer
 from .spectroscopy.abs2 import AbsSpectrumCalculator
-
+#
+# Fluorescence
+#
+from .spectroscopy.fluorescence import FluorSpectrum
+from .spectroscopy.fluorescence import FluorSpectrumContainer
+from .spectroscopy.fluorescence import FluorSpectrumCalculator
+#
+# Linear dichroism
+#
+from .spectroscopy.linear_dichroism import LinDichSpectrum
+from .spectroscopy.linear_dichroism import LinDichSpectrumContainer
+from .spectroscopy.linear_dichroism import LinDichSpectrumCalculator
+#
+# Circular dichroism
+#
+from .spectroscopy.circular_dichroism import CircDichSpectrum
+from .spectroscopy.circular_dichroism import CircDichSpectrumContainer
+from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 # Fourier transform Two-Dimensional Spectra
 #
