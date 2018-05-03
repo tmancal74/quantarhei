@@ -2194,16 +2194,27 @@ class AggregateBase(UnitsManaged, Saveable):
         
 
     def _thermal_population(self, temp=0.0, subtract=None,
-                            relaxation_hamiltonian=None):
+                            relaxation_hamiltonian=None, start=0):
         """Thermal populations at temperature temp
         
         Thermal populations calculated from the diagonal elements
-        of the Hamiltonian 
+        of the Hamiltonian.
+        
+        Parameters
+        ----------
+        
+        temp : float
+            Temperature in Kelvins
+            
+        subtract : list like
+            Reoreganization energies to subtract from the Hamiltonian
+            
+        relaxation_hamiltonian: Hamiltonian
+            Hamiltonian according to which we form thermal equilibrium
         
         """
         
         from ..core.units import kB_intK
-        #from ..core.managers import eigenbasis_of
         
         kBT = kB_intK*temp
         
@@ -2216,39 +2227,48 @@ class AggregateBase(UnitsManaged, Saveable):
             subtract = numpy.zeros(HH.dim, dtype=numpy.float64)
         
         rho0 = numpy.zeros((HH.dim,HH.dim),dtype=numpy.complex128)
+        
         if temp == 0.0:
-            print("Zero temperature")
-            rho0[0,0] = 1.0
+            rho0[start,start] = 1.0
+            
         else:
             # FIXME: we assume only single exciton band
-            ens = numpy.zeros(HH.dim-1, dtype=numpy.float64)
-            #
-            #with eigenbasis_of(HH):
-            #
+            
+            # FIXME: why only dim-1 ???
+            #ens = numpy.zeros(HH.dim-1, dtype=numpy.float64)
+            ens = numpy.zeros(HH.dim-start, dtype=numpy.float64)
+
             # we specify the basis from outside. This allows to choose 
             # canonical equilibrium in arbitrary basis
-            for i in range(HH.dim-1):
-                ens[i] = HH.data[i+1,i+1] - subtract[i+1]      
-
+            # FIXME: why 0 is not used ????
+            #for i in range(HH.dim-1):
+            #    ens[i] = HH.data[i+1,i+1] - subtract[i+1]      
+            for i in range(start, HH.dim):
+                ens[i-start] = HH.data[i,i] - subtract[i-start] 
+                
             ne = numpy.exp(-ens/kBT)
-
             sne = numpy.sum(ne)
-
             rho0_diag = ne/sne
-
-            rho0[1:,1:] = numpy.diag(rho0_diag)
+            # FIXME: why is O excluded ????
+            #rho0[1:,1:] = numpy.diag(rho0_diag)
+            rho0[start:,start:] = numpy.diag(rho0_diag)
             
         return rho0
     
-    def _impulsive_population(self):
+    def _impulsive_population(self, relaxation_theory_limit="weak_coupling", 
+                              temperature=0.0):
         """Impulsive excitation of the density matrix from ground state
         
         """
         
-        rho0 = numpy.zeros((self.Ntot,self.Ntot), dtype=numpy.complex128)
+        #rho0 = numpy.zeros((self.Ntot,self.Ntot), dtype=numpy.complex128)
+        ## maybe we want something more general here
+        #rho0[0,0] = 1.0
         
-        # FIXME: maybe we want something more general here
-        rho0[0,0] = 1.0
+        rho = self.get_DensityMatrix(condition_type="thermal", 
+                            relaxation_theory_limit=relaxation_theory_limit,
+                            temperature=temperature)
+        rho0 = rho.data
         
         DD = self.TrDMOp.data
         
@@ -2262,8 +2282,8 @@ class AggregateBase(UnitsManaged, Saveable):
         
         
     def get_DensityMatrix(self, condition_type=None,
-                                relaxation_theory_limit=None,
-                                temperature=0, relaxation_hamiltonian=None):
+                                relaxation_theory_limit="weak_coupling",
+                                temperature=0.0, relaxation_hamiltonian=None):
         """Returns density matrix according to specified condition
         
         Returs density matrix to be used e.g. as initial condition for
@@ -2273,22 +2293,31 @@ class AggregateBase(UnitsManaged, Saveable):
         ----------
         
         condition_type : str
-            Type of the initial condition. If None, the property rho0 is 
-            returned.
+            Type of the initial condition. If None, the property rho0, which 
+            was presumably calculated in the past is returned.
             
         relaxation_theory_limits : str
-            Type of the relaxation theory limits; applies to 
-            `thermal_excited_state` condition type. Possible values are
-            `weak_coupling` and `strong_coupling`. We mean the system bath
-            coupling. When `weak_coupling` is chosen, the density matrix is
-            returned in form of a canonical equilibrium in terms of the
-            the exciton basis. For `strong_coupling`, the canonical equilibrium
-            is calculated in site basis with site energies striped of
-            reorganization energies.
+            Type of the relaxation theory limits; 
+            applies to `thermal` and `thermal_excited_state` condition type. 
+            Possible values are `weak_coupling` and `strong_coupling`. We mean
+            the system bath coupling. When `weak_coupling` is chosen, 
+            the density matrix is returned in form of a canonical equilibrium 
+            in terms of the the exciton basis. For `strong_coupling`, 
+            the canonical equilibrium is calculated in site basis with site 
+            energies striped of reorganization energies.
+            
+        temperature : float
+            Temperature in Kelvin
+            
+        relaxation_hamiltonian : 
+            Hamiltonian according to which we form thermal equilibrium
             
         Condition types
         ---------------
         
+        thermal 
+            Thermally equilibriated population of the whole density matrix
+            
         thermal_excited_state 
             Thermally equilibriuated excited state
             
@@ -2296,22 +2325,33 @@ class AggregateBase(UnitsManaged, Saveable):
             Excitation by ultrabroad laser pulse
             
         """
+        
+        # aggregate must be built before we call this method
         if not self._built:
             raise Exception()
             
+        # if no condition is specified, it is understood that we return
+        # internal rho0, which was calculated sometime in the past
         if condition_type is None:
-            
             return DensityMatrix(data=self.rho0)
-            
+        
+        # impulsive excitation from a thermal ground state
         elif condition_type == "impulsive_excitation":
-            
-            rho0 = self._impulsive_population()
+            rho0 = self._impulsive_population(
+                              relaxation_theory_limit=relaxation_theory_limit, 
+                              temperature=temperature)
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
-            
+           
+        # thermal population based on the total Hamiltonian
+        elif condition_type == "thermal":
+            rho0 = self._thermal_population(temperature)
+            self.rho0 = rho0
+            return DensityMatrix(data=self.rho0)            
+        
         elif condition_type == "thermal_excited_state":
             
-            if relaxation_theory_limit is not None:
+            if True: #relaxation_theory_limit is not None:
                 
                 if relaxation_theory_limit == "strong_coupling":
                     
@@ -2321,7 +2361,7 @@ class AggregateBase(UnitsManaged, Saveable):
                     for i in range(1, Ndim):
                         # FIXME: fix the access to reorganization energy in SBI
                         re[i] = self.sbi.CC.get_reorganization_energy(i-1,i-1)
-                        #print(i, re[i]/cm2int)
+                       
                     rho0 = self._thermal_population(temperature, subtract=re)
                     
                 elif relaxation_theory_limit == "weak_coupling":
@@ -2330,18 +2370,22 @@ class AggregateBase(UnitsManaged, Saveable):
                         H = self.get_Hamiltonian().data
                     else:
                         H = relaxation_hamiltonian.data
+                        
+                    start = self.Nb[0] # this is where excited state starts
                     subt = numpy.zeros(H.shape[0])
-                    subtfil = numpy.amin(numpy.array([H[ii,ii]\
-                                            for ii in range(1, H.shape[0])]))
-                    subt.fill(subtfil)                 
+                    subtfil = numpy.amin(numpy.array([H[ii,ii] \
+                                        for ii in range(start, H.shape[0])]))
+                    subt.fill(subtfil) 
+                    
                     rho0 = self._thermal_population(temperature,\
                                 subtract = subt,
-                                relaxation_hamiltonian=relaxation_hamiltonian)
+                                relaxation_hamiltonian=relaxation_hamiltonian,
+                                start=start)
                     
                 else:
                     raise Exception("Unknown relaxation_theory_limit")
-            else:
-                rho0 = self._thermal_population(temperature)
+            #else:
+            #    rho0 = self._thermal_population(temperature)
                 
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)

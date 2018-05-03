@@ -24,6 +24,7 @@ from quantarhei import TimeAxis
 
 from quantarhei.qm import ReducedDensityMatrix
 
+import quantarhei as qr
 
 class TestAggregate(unittest.TestCase):
     """Tests for the Manager class
@@ -166,4 +167,59 @@ class TestAggregate(unittest.TestCase):
 
         numpy.testing.assert_almost_equal(numpy.trace(redr._data), 1.0,
                                           decimal=2)
+
         
+    def test_get_Density_Matrix_thermal(self):
+        """Testing the get_Densitymatrix method with `thermal` condition type
+        
+        """
+        from quantarhei.core.units import kB_intK
+        
+        vagg = self.vagg
+        H = vagg.get_Hamiltonian()
+        N = H.data.shape[0]
+        
+        # zero temperature
+        rho0 = vagg.get_DensityMatrix(condition_type="thermal")
+        tst0 = numpy.zeros((N,N),dtype=qr.COMPLEX)
+        tst0[0,0] = 1.0
+        
+        numpy.testing.assert_almost_equal(rho0.data, tst0)
+        
+        # room temperature
+        rho0 = vagg.get_DensityMatrix(condition_type="thermal", 
+                                      temperature=300)
+        # cannonical balance between neighboring states is tested
+        kbT = kB_intK*300.0
+        for k in range(N-1):
+            E2 = H.data[k+1,k+1]
+            E1 = H.data[k,k]
+            ratio = numpy.exp(-(E2-E1)/kbT)
+            numpy.testing.assert_almost_equal(ratio, 
+                                       rho0.data[k+1,k+1]/rho0.data[k,k])
+            
+    def test_get_Density_Matrix_thermal_excited(self):
+        """Testing the get_Densitymatrix method with `thermal_excited_state` condition type
+        
+        """
+        from quantarhei.core.units import kB_intK
+        
+        vagg = self.vagg
+        H = vagg.get_Hamiltonian()
+        N = H.data.shape[0]
+        Nb0 = vagg.Nb[0]
+           
+        # zero temperature
+        rho0 = vagg.get_DensityMatrix(condition_type="thermal_excited_state")
+        tst0 = numpy.zeros((N,N),dtype=qr.COMPLEX)
+        tst0[Nb0,Nb0] = 1.0        
+        
+        numpy.testing.assert_almost_equal(rho0.data, tst0)
+        
+        # room temperature
+        rho0 = vagg.get_DensityMatrix(condition_type="thermal_excited_state", 
+                                      temperature=300)
+        # cannonical balance between neighboring states is tested
+        kbT = kB_intK*300.0
+        
+            
