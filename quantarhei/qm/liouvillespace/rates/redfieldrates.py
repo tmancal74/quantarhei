@@ -106,7 +106,6 @@ class RedfieldRateMatrix:
         #FIXME: This has to be easier
         Temp = self.sbi.CC.get_correlation_function(0,0).temperature
         
-        
         # transform interaction operators
         for i in range(Nk):
             KI[i,:,:] = numpy.dot(S1,numpy.dot(KI[i,:,:],SS))
@@ -138,7 +137,6 @@ class RedfieldRateMatrix:
                             cc[k,i,j] = 0.0
                         else:
                             if Om[j,i] < 0.0:
-                                #cc[k,i,j] = (cf.interp_data(Om[i,j])
                                 cc[k,i,j] = numpy.real((cw.at(Om[i,j],
                                 approx="spline")
                                 *numpy.exp(-Om[i,j]/(kB_intK*Temp))))

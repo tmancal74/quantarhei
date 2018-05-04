@@ -411,14 +411,17 @@ class TwoDSpectrum(TwoDSpectrumBase):
 
             # reconstruct data
             if self.keep_stypes:
-                reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
-                self.reph2D = reph2D   
-                nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
-                self.nonr2D = nonr2D 
+                if self.reph2D is not None:
+                    reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
+                    self.reph2D = reph2D  
+                if self.nonr2D is not None:
+                    nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
+                    self.nonr2D = nonr2D 
                 
             else:
-                data = self.data[i1_min:i1_max,i3_min:i3_max]
-                self.data = data
+                if self.data is not None:
+                    data = self.data[i1_min:i1_max,i3_min:i3_max]
+                    self.data = data
                 
         else:
             # some automatic trimming in the future
@@ -544,6 +547,7 @@ class TwoDSpectrumContainer:
             raise Exception("Container keeping pathways not available yet")
             
         self.spectra = {}
+        self._which = None
         
         
     def set_spectrum(self, spect):
@@ -558,15 +562,33 @@ class TwoDSpectrumContainer:
         else:
             raise Exception("Waiting time not compatible with the t2 axis")
             
-            
+        
+    def _lousy_equal(self, x1, x2, dx, frac=0.25):
+        """Equals up to fraction of dx
+        
+        This function returns True if x1 is closer to x2 than 1/4 of 
+        a specified interval. In addition it saves the value of x1 to which
+        x2 is equal in the attribute _which of the present class.
+        
+        
+        """
+        if abs(x1-x2) < dx*frac: 
+            self._which = x1
+            return True
+        
+        self._which = None
+        return False
+    
+    
     def get_spectrum(self, t2):
         """Returns spectrum corresponing to time t2
         
         Checks if the time t2 is present in the t2axis
         
         """        
-        if t2 in self.t2axis.data:
-            return self.spectra[t2]     
+        #if t2 in self.t2axis.data:
+        if any(self._lousy_equal(t2, li, self.t2axis.step) for li in self.t2axis.data):
+            return self.spectra[self._which]     
         else:
             raise Exception("Waiting time not compatible with the t2 axis")
 
@@ -618,6 +640,7 @@ class TwoDSpectrumContainer:
             ppcont.set_spectrum(sp)
             
         return ppcont
+
     
     def get_point_evolution(self, x, y, times):
         """Tracks an evolution of a single point on the 2D spectrum
@@ -633,9 +656,22 @@ class TwoDSpectrumContainer:
             k +=1
             
         return vals
-            
+
+    
+    def fft_in_t2(self, ffttype="complex-positive"):
+        """Fourier transform in t2 time
+        
+        Parameters
+        ----------
+        
+        
+        """
+        pass
+
+          
     def _create_root_group(self, start, name):
         return start.create_group(name)
+
 
     def _save_axis(self, rt, name, ax):
         axdir = rt.create_group(name)
@@ -643,13 +679,16 @@ class TwoDSpectrumContainer:
         axdir.attrs.create("length",ax.length)
         axdir.attrs.create("step",ax.step)
 
+
     def _load_axis(self, rt, name):
         axdir = rt[name]
         start = axdir.attrs["start"]
         length = axdir.attrs["length"]
         step = axdir.attrs["step"]
         return TimeAxis(start, length, step) 
+
         
+    # FIXME: this through Savable
     def save(self, filename):
         """Saves the whole object into file
         
@@ -672,7 +711,7 @@ class TwoDSpectrumContainer:
             
             
             
-    
+    # FIXME: this through Savable    
     def load(self, filename):
         """Loads the whole object from a file
         
@@ -692,7 +731,7 @@ class TwoDSpectrumContainer:
                     
                     self.set_spectrum(sp)
                 
-    def trimall_to(self,window=None):
+    def trimall_to(self, window=None):
         """Trims all spectra in the container
         
         """
@@ -745,7 +784,7 @@ class TwoDSpectrumContainer:
                    stype="total", spart="real", 
                    cmap=None, Npos_contours=10,
                    frate=20, dpi=100, start=None, end=None,
-                   show_states=None, progressbar=False):
+                   show_states=None, progressbar=False, vmax=None):
         
         import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
@@ -762,7 +801,10 @@ class TwoDSpectrumContainer:
         last_t2 = spctr[l-1].get_t2()
         first_t2 = spctr[0].get_t2()
         
-        mx = self.amax()
+        if vmax is None:
+            mx = self.amax()
+        else:
+            mx = vmax
         
         if start is None:
             start = first_t2
@@ -1178,8 +1220,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
     
     """
 
-    def __init__(self, t1axis, t3axis):
-        t2axis = TimeAxis()
+    def __init__(self, t1axis, t2axis, t3axis):
+        #t2axis = TimeAxis()
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
         self.widthy = convert(300, "1/cm", "int")
@@ -1211,6 +1253,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.oa3.start += self.rwa
         self.t3axis.atype = atype        
         
+        self.tc = 0
+            
 
     def set_width(self, val):
         self.widthx = val
@@ -1220,7 +1264,45 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.dephx = val
         self.dephy = val
 
+
+    def set_pathways(self, pathways):
+        self.pathways = pathways
         
+        
+    def calculate_next(self):
+
+        sone = self.calculate_one(self.tc)
+        print(self.tc, sone)
+        self.tc += 1
+        return sone
+
+        
+    def calculate_one(self, tc):
+        """Calculate the 2D spectrum for all pathways
+        
+        """
+        
+        onetwod = TwoDSpectrum()
+        onetwod.set_axis_1(self.oa1)
+        onetwod.set_axis_3(self.oa3)
+        
+        for pwy in self.pathways:
+            
+            data = self.calculate_pathway(pwy, shape=self.shape)
+            
+            if pwy.pathway_type == "R":
+                onetwod.add_data(data, dtype="Reph")
+            elif pwy.pathway_type == "NR":
+                onetwod.add_data(data, dtype="Nonr")
+            else:
+                raise Exception("Unknown pathway type")
+
+        print("Setting: ", self.t2axis.data[tc])
+        onetwod.set_t2(self.t2axis.data[tc])    
+            
+        return onetwod
+
+
     def calculate(self):
         """Calculate the 2D spectrum for all pathways
         

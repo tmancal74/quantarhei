@@ -863,7 +863,7 @@ class Molecule(UnitsManaged, Saveable):
         return SystemBathInteraction(sys_operators,cfm)
         
     
-    def set_mode_environment(self,mode=0,elstate=0,corfunc=None):
+    def set_mode_environment(self, mode=0, elstate=0, corfunc=None):
         """Sets mode environment 
         
         

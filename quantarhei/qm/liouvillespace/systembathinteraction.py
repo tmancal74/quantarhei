@@ -53,10 +53,13 @@ class SystemBathInteraction(Saveable):
         self.TimeAxis = None
         self.rates = None
         self.N = 0
+        self.sbitype = None
         
         # version with bath correlation functions
         if ((sys_operators is not None) 
             and (bath_correlation_matrix is not None)):
+            
+            self.sbitype = "Linear_Coupling"
             
             # Find the length of the list of operators 
             if isinstance(sys_operators,list):
@@ -84,11 +87,13 @@ class SystemBathInteraction(Saveable):
                 
                 self._set_operators(sys_operators)
                 self.CC = bath_correlation_matrix
-                
+             
                 
         # version with system-bath operators and rates
         elif ((sys_operators is not None) 
             and (rates is not None)):
+            
+            self.sbitype = "Lindblad_Form"
             
             # Find the length of the list of operators 
             if isinstance(sys_operators, list):
@@ -217,3 +222,54 @@ class SystemBathInteraction(Saveable):
             
         else:
             return self.CC._cofts[0,:]
+
+
+    def has_temperature(self):
+        """Checkst if the Aggregate has a defined temperature
+        
+        """
+        
+        if self.sbitype == "Lindblad_Form":
+            return False
+        else:
+            try:
+                T = self.get_temperature()
+                if T >= 0.0:
+                    return True
+            except:
+                return False
+                
+
+    def get_temperature(self):
+        """Returns temperature associated with the bath
+        
+        """
+        return self.CC.get_temperature()
+    
+    
+    def get_reorganization_energy(self, i, j=None):
+        """Returns reorganization energy associated with a given site
+        
+        If one index `i` is specified, the function returns reorganization
+        energy associated with i-th site. If two indices are specified,
+        the function returns crosscorrelation function (when i not equal j)
+        or a correlation function of the site (when i = j)
+        
+        """
+        if self.sbitype == "Lindblad_Form":
+            return None
+        else:
+            if j is None:
+                j = i
+            return self.CC.get_reorganization_energy(i,j)
+
+
+    def get_sbitype(self):
+        """Returns the type of SystemBathInteraction 
+        
+        Options are `Lindblad_Form` and `Linear_Coupling`
+         
+        """
+        return self.sbitype
+    
+    
