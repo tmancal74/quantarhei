@@ -158,8 +158,6 @@ def thermal_population_comparison(self, temp, atol):
     #end_feature
     
     """
-    
-    print("Testing Foerster theory")
 
     agg = world.aggregate
     rho0 = ReducedDensityMatrix(dim=world.N)

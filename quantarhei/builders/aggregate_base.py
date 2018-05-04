@@ -2254,6 +2254,7 @@ class AggregateBase(UnitsManaged, Saveable):
             rho0[start:,start:] = numpy.diag(rho0_diag)
             
         return rho0
+
     
     def _impulsive_population(self, relaxation_theory_limit="weak_coupling", 
                               temperature=0.0):
@@ -2283,7 +2284,8 @@ class AggregateBase(UnitsManaged, Saveable):
         
     def get_DensityMatrix(self, condition_type=None,
                                 relaxation_theory_limit="weak_coupling",
-                                temperature=0.0, relaxation_hamiltonian=None):
+                                temperature=None,
+                                relaxation_hamiltonian=None):
         """Returns density matrix according to specified condition
         
         Returs density matrix to be used e.g. as initial condition for
@@ -2329,12 +2331,23 @@ class AggregateBase(UnitsManaged, Saveable):
         # aggregate must be built before we call this method
         if not self._built:
             raise Exception()
+
+        # if Aggregate has interaction with the bath, temperature 
+        # is already defined
+        if temperature is None:
+            if self.sbi is None:
+                temperature = 0.0
+            elif self.sbi.has_temperature():
+                temperature = self.sbi.get_temperature()
+            else:
+                temperature = 0.0
             
         # if no condition is specified, it is understood that we return
         # internal rho0, which was calculated sometime in the past
         if condition_type is None:
             return DensityMatrix(data=self.rho0)
         
+            
         # impulsive excitation from a thermal ground state
         elif condition_type == "impulsive_excitation":
             rho0 = self._impulsive_population(
@@ -2345,6 +2358,7 @@ class AggregateBase(UnitsManaged, Saveable):
            
         # thermal population based on the total Hamiltonian
         elif condition_type == "thermal":
+            print(temperature)
             rho0 = self._thermal_population(temperature)
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)            
@@ -2355,14 +2369,20 @@ class AggregateBase(UnitsManaged, Saveable):
                 
                 if relaxation_theory_limit == "strong_coupling":
                     
+                    start = self.Nb[0] # this is where excited state starts
+                    n1ex= self.Nb[1] # number of excited states in one-ex band
+                    
                     # we need to subtract reorganization energies
                     Ndim = self.get_Hamiltonian().dim
-                    re = numpy.zeros(Ndim, dtype=numpy.float64)
-                    for i in range(1, Ndim):
-                        # FIXME: fix the access to reorganization energy in SBI
-                        re[i] = self.sbi.CC.get_reorganization_energy(i-1,i-1)
+                    re = numpy.zeros(Ndim-start, dtype=numpy.float64)
+                    for i in range(n1ex):
+                        re[i] = \
+                        self.sbi.get_reorganization_energy(i)
                        
-                    rho0 = self._thermal_population(temperature, subtract=re)
+                    rho0 = self._thermal_population(temperature, 
+                                                    subtract=re,
+                                                    start=start)
+                    
                     
                 elif relaxation_theory_limit == "weak_coupling":
 
@@ -2393,6 +2413,21 @@ class AggregateBase(UnitsManaged, Saveable):
         else:
             raise Exception("Unknown condition type")
         
+        
+    def get_temperature(self):
+        """Returns temperature associated with this aggregate
+        
+        
+        The temperature originates from the system-bath interaction
+        
+        """
+
+        # aggregate must be built before we call this method
+        if not self._built:
+            raise Exception()
+            
+        return self.sbi.CC.get_temperature()
+    
         
     def get_electronic_groundstate(self):
         """Indices of states in electronic ground state

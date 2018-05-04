@@ -197,6 +197,7 @@ class TestAggregate(unittest.TestCase):
             ratio = numpy.exp(-(E2-E1)/kbT)
             numpy.testing.assert_almost_equal(ratio, 
                                        rho0.data[k+1,k+1]/rho0.data[k,k])
+
             
     def test_get_Density_Matrix_thermal_excited(self):
         """Testing the get_Densitymatrix method with `thermal_excited_state` condition type
@@ -217,9 +218,24 @@ class TestAggregate(unittest.TestCase):
         numpy.testing.assert_almost_equal(rho0.data, tst0)
         
         # room temperature
-        rho0 = vagg.get_DensityMatrix(condition_type="thermal_excited_state", 
+        rho0 = self.agg.get_DensityMatrix(condition_type="thermal_excited_state", 
                                       temperature=300)
         # cannonical balance between neighboring states is tested
         kbT = kB_intK*300.0
+        
+        
+        
+
+    def test_get_temperature(self):
+        """Testing temperature retrieval from aggregate
+        
+        
+        """
+        agg = self.agg
+        
+        T = agg.get_temperature()
+        
+        numpy.testing.assert_almost_equal(T, 300.0)
+        
         
             
