@@ -75,8 +75,6 @@ class AggregateTest(unittest.TestCase):
         self.vagg = Aggregate(molecules=[m3, m4])
         self.vagg.build()
 
-        pars_1 = dict(name="dimer", environment=None, nstates=2)
-        self.pars_1 = pars_1
 
 #########################################################################
 #
@@ -285,8 +283,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing coupling matrix initialization 
         
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)
+        agg = TestAggregate(name="dimer-2-env")
         
         self.assertFalse(agg.coupling_initiated)
         
@@ -300,8 +297,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing resonance coupling setting with different units
         
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)
+        agg = TestAggregate(name="dimer-2-env")
         agg.init_coupling_matrix()        
         
         agg.set_resonance_coupling(0, 1, 1.0)
@@ -320,8 +316,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing resonance coupling retrieval in different units
         
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)
+        agg = TestAggregate(name="dimer-2-env")
         agg.init_coupling_matrix()        
         agg.set_resonance_coupling(0, 1, 1.0)
 
@@ -345,8 +340,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing setting the whole resonance coupling matrix
         
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)
+        agg = TestAggregate(name="dimer-2-env")
 
         mat = [[0.0, 1.0],
                [1.0, 0.0]]
@@ -374,8 +368,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing dipole-dipole coupling calculation
 
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)
+        agg = TestAggregate(name="dimer-2-env")
 
         coup1 = agg.dipole_dipole_coupling(0,1)
         coup2 = agg.dipole_dipole_coupling(0,1, epsr=2.0)
@@ -390,8 +383,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing dipole-dipole coupling calculation for the whole agregate
         
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)
+        agg = TestAggregate(name="dimer-2-env")
         agg.set_coupling_by_dipole_dipole()
 
         coup1 = agg.dipole_dipole_coupling(0,1)
@@ -408,8 +400,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing resonance coupling calculation by various methods
         
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)
+        agg = TestAggregate(name="dimer-2-env")
         
         agg.calculate_resonance_coupling(method="dipole-dipole")        
         coup1 = agg.dipole_dipole_coupling(0,1)
@@ -426,8 +417,7 @@ class AggregateTest(unittest.TestCase):
         """(Aggregate) Testing add_Molecule() method
         
         """
-        agg = TestAggregate(name=self.pars_1["name"],
-                            params=self.pars_1)   
+        agg = TestAggregate(name="dimer-2-env")   
         
         mol = qr.Molecule(elenergies=[0.0, 1.0])
         
