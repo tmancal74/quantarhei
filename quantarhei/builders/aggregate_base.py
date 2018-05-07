@@ -314,7 +314,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
 
     #
-    # Monomer
+    # Molecues
     #
     def add_Molecule(self, mono):
         """Adds monomer to the aggregate
@@ -331,6 +331,8 @@ class AggregateBase(UnitsManaged, Saveable):
         self.monomers.append(mono)
         self.mnames[mono.name] = len(self.monomers)-1
         self.nmono += 1
+        #
+        # TESTED
 
 
     def get_Molecule_by_name(self, name):
@@ -407,14 +409,19 @@ class AggregateBase(UnitsManaged, Saveable):
             return mn.get_dipole(N,M)
         except:
             raise Exception()
-            
+     
     def get_dipole(self, n, N, M):
         nm = self.monomers[n]
         return nm.get_dipole(N,M)
     
+    
+    #
+    # Various info
+    #
     def get_width(self, n, N, M):
         nm = self.monomers[n]
         return nm.get_transition_width((N,M))
+    
     
     def get_max_excitations(self):
         """Returns a list of maximum number of excitations on each monomer

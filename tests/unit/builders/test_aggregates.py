@@ -422,3 +422,23 @@ class AggregateTest(unittest.TestCase):
         self.assertEqual(coup1, agg.resonance_coupling[1,0])
             
             
+    def test_add_Molecule(self):
+        """(Aggregate) Testing add_Molecule() method
+        
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)   
+        
+        mol = qr.Molecule(elenergies=[0.0, 1.0])
+        
+        nmols1 = agg.nmono
+        agg.add_Molecule(mol)
+        nmols2 = agg.nmono
+        
+        self.assertEqual(nmols1 + 1, nmols2)
+        self.assertEqual(len(agg.monomers), nmols2)
+        self.assertLessEqual(len(agg.mnames), nmols2)
+        
+        
+        
+        
