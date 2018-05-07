@@ -1,33 +1,31 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>quantarhei.core.dfunction &mdash; Quantarhei 1.0 documentation</title>
-    
+    <title>quantarhei.core.dfunction &#8212; Quantarhei 1.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
         VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Quantarhei 1.0 documentation" href="../../../index.html" />
-    <link rel="up" title="Module code" href="../../index.html" /> 
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -37,8 +35,8 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Quantarhei 1.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Quantarhei 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -46,8 +44,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -70,20 +68,23 @@
 
 
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">scipy.interpolate</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="kn">from</span> <span class="nn">.valueaxis</span> <span class="kn">import</span> <span class="n">ValueAxis</span>
-<span class="kn">from</span> <span class="nn">.time</span> <span class="kn">import</span> <span class="n">TimeAxis</span>
-<span class="kn">from</span> <span class="nn">.frequency</span> <span class="kn">import</span> <span class="n">FrequencyAxis</span>
+<span class="kn">from</span> <span class="nn">.valueaxis</span> <span class="k">import</span> <span class="n">ValueAxis</span>
+<span class="kn">from</span> <span class="nn">.time</span> <span class="k">import</span> <span class="n">TimeAxis</span>
+<span class="kn">from</span> <span class="nn">.frequency</span> <span class="k">import</span> <span class="n">FrequencyAxis</span>
+<span class="kn">from</span> <span class="nn">.saveable</span> <span class="k">import</span> <span class="n">Saveable</span>
+<span class="kn">from</span> <span class="nn">.managers</span> <span class="k">import</span> <span class="n">Manager</span>
 
 <span class="c1">#FIXME Check the posibility to set a derivative of the spline at the edges</span>
 <span class="c1">#FIXME Enable vectorial arguments and values</span>
-<div class="viewcode-block" id="DFunction"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction">[docs]</a><span class="k">class</span> <span class="nc">DFunction</span><span class="p">:</span>
+<div class="viewcode-block" id="DFunction"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction">[docs]</a><span class="k">class</span> <span class="nc">DFunction</span><span class="p">(</span><span class="n">Saveable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Discrete function with interpolation</span>
 
@@ -141,6 +142,9 @@
 <span class="sd">        of points on the ValueAxis object of the DFunction. In the &quot;dat&quot;</span>
 <span class="sd">        mode, the 2xN array is saved as a textual file with 2 columns and</span>
 <span class="sd">        the length N.</span>
+
+<span class="sd">    load(filename, axis=&quot;time&quot;, ext=None, replace=False)</span>
+<span class="sd">        Loads the function from a file</span>
 
 
 <span class="sd">    Examples</span>
@@ -224,20 +228,25 @@
 
     <span class="n">allowed_interp_types</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="s2">&quot;spline&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_is_empty</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_empty</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">x</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">y</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_make_me</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_is_empty</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_empty</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_splines_initialized</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_splines_initialized</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">_make_me</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates the DFunction internals</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ValueAxis</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="n">x</span>
@@ -255,9 +264,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">y</span>
 
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="kc">True</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Second argument has to be&quot;</span>
@@ -268,8 +277,75 @@
             <span class="o">+</span> <span class="s2">&quot; one-dimensional numpy.ndarray&quot;</span><span class="p">)</span>
 
 
+    <span class="k">def</span> <span class="nf">_add_me</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds data to the DFunction</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if the DFunction is not initialized, call _make_me</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_me</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+            
+        <span class="c1"># otherwise do the job of adding</span>
+        <span class="k">else</span><span class="p">:</span>
+            
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ValueAxis</span><span class="p">):</span>
+                <span class="n">xaxis</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;First argument has to be of a ValueAxis type&quot;</span><span class="p">)</span>
+    
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">xaxis</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Wrong number of elements&quot;</span>
+                        <span class="o">+</span> <span class="s2">&quot; in 1D numpy.ndarray&quot;</span><span class="p">)</span>
+    
+                    <span class="c1">#Set values of the function</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">y</span>
+    
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span> <span class="o">=</span> <span class="kc">True</span>
+    
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Second argument has to be&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot; one-dimensional numpy.ndarray&quot;</span><span class="p">)</span>
+    
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Second argument has to be&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; one-dimensional numpy.ndarray&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DFunction.at"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.at">[docs]</a>    <span class="k">def</span> <span class="nf">at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">approx</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
+            <span class="c1"># check axis</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">==</span> <span class="n">xaxis</span><span class="p">:</span>
+                <span class="c1"># add data</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">data</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;On addition, axis objects have to be&quot;</span>
+                                <span class="o">+</span><span class="s2">&quot; identical&quot;</span><span class="p">)</span>
+            
+    <span class="k">def</span> <span class="nf">_before_save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Performs some clean-up before saving to file</span>
+<span class="sd">        </span>
+<span class="sd">        The clean-up consists of setting spline initialization to False,</span>
+<span class="sd">        because Saveable cannot save functions associated with spline</span>
+<span class="sd">        approximation of the DFunction.</span>
+<span class="sd">        </span>
+<span class="sd">        Reimplements the same method from Saveable</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_S__state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_splines_initialized</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_splines_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="kc">None</span>
+        
+    <span class="k">def</span> <span class="nf">_after_save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_splines_initialized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_S__state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">Manager</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_after_load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">Manager</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DFunction.at"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.at">[docs]</a>    <span class="k">def</span> <span class="nf">at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">approx</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the function value at the argument `x`</span>
 
 <span class="sd">        Parameters</span>
@@ -338,7 +414,7 @@
                <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">UnivariateSpline</span><span class="p">(</span>
                   <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span><span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_splines_initialized</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_splines_initialized</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="c1">#print(&quot;Calculating splines&quot;)</span>
 
     <span class="k">def</span> <span class="nf">_spline_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
@@ -346,11 +422,29 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_imag</span><span class="p">:</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spline_r</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_spline_i</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spline_r</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_spline_i</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spline_r</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span>
 
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adding two DFunctions together</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">DFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">axis</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;axis attribute of both&quot;</span>
+                            <span class="o">+</span> <span class="s2">&quot; functions has to be identical&quot;</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">f</span>
+    
+    <span class="k">def</span> <span class="nf">add_to_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">pass</span>
+    
+    
 
     <span class="c1">#</span>
     <span class="c1">#</span>
@@ -473,8 +567,16 @@
 
             <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">atype</span> <span class="o">==</span> <span class="s2">&quot;upper-half&quot;</span><span class="p">:</span>
 
-                <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">length</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">length</span><span class="p">]</span>
-                <span class="n">F</span> <span class="o">=</span> <span class="n">DFunction</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+                <span class="c1"># this is a temporary fix - whole this part needs</span>
+                <span class="c1"># rethinking</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">length</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+                
+                <span class="c1"># Vlada&#39;s suggestion</span>
+                <span class="c1">#y[0:t.length-1] = Y[t.length+1:2*t.length]</span>
+                <span class="c1">#y[t.length-1] = 0.0</span>
+                
+                <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">t</span><span class="o">.</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">length</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">length</span><span class="p">]</span>
+                <span class="n">F</span> <span class="o">=</span> <span class="n">DFunction</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown axis type&quot;</span>
@@ -487,30 +589,29 @@
         <span class="k">return</span> <span class="n">F</span></div>
 
 
-<div class="viewcode-block" id="DFunction.plot"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">title_font</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">xlabel</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">ylabel</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">label_font</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">text_font</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-             <span class="n">real_only</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-             <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-             <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DFunction.plot"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">title_font</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">xlabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">label_font</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">text</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">text_font</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">real_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+             <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+             <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;ahoj.png&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plotting of the DFunction&#39;s data against the ValueAxis</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-
-
-        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">clr</span> <span class="o">=</span> <span class="p">[</span><span class="n">color</span><span class="p">,</span> <span class="n">color</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">clr</span> <span class="o">=</span> <span class="p">[</span><span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Complex</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="n">clr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">real_only</span><span class="p">:</span>
                     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="n">clr</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -521,43 +622,43 @@
                     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">clr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">text_font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">text_font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                      <span class="n">text</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">fontdict</span><span class="o">=</span><span class="n">text_font</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">text</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="n">label_font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">label_font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">font</span> <span class="o">=</span> <span class="n">label_font</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">font</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">}</span>
 
-        <span class="k">if</span> <span class="n">xlabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">xl</span> <span class="o">=</span> <span class="s1">r&#39;$\omega$ [fs$^{-1}$]&#39;</span>
+        <span class="k">if</span> <span class="n">xlabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">xl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$\omega$ [fs$^{-1}$]&#39;</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">FrequencyAxis</span><span class="p">):</span>
             <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">unit_repr_latex</span><span class="p">()</span>
-            <span class="n">xl</span> <span class="o">=</span> <span class="s1">r&#39;$\omega$ [&#39;</span><span class="o">+</span><span class="n">units</span><span class="o">+</span><span class="s1">&#39;]&#39;</span>
-            <span class="n">yl</span> <span class="o">=</span> <span class="s1">r&#39;$F(\omega)$&#39;</span>
+            <span class="n">xl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$\omega$ [&#39;</span><span class="o">+</span><span class="n">units</span><span class="o">+</span><span class="s1">&#39;]&#39;</span>
+            <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$F(\omega)$&#39;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">TimeAxis</span><span class="p">):</span>
-            <span class="n">xl</span> <span class="o">=</span> <span class="s1">r&#39;$t$ [fs]&#39;</span>
-            <span class="n">yl</span> <span class="o">=</span> <span class="s1">r&#39;$f(t)$&#39;</span>
+            <span class="n">xl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$t$ [fs]&#39;</span>
+            <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$f(t)$&#39;</span>
 
-        <span class="k">if</span> <span class="n">xlabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">xlabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">xl</span> <span class="o">=</span> <span class="n">xlabel</span>
-        <span class="k">if</span> <span class="n">ylabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ylabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">yl</span> <span class="o">=</span> <span class="n">ylabel</span>
 
         <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">xl</span><span class="p">,</span> <span class="o">**</span><span class="n">font</span><span class="p">)</span>
@@ -565,21 +666,54 @@
 
         <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+            
+            
+<div class="viewcode-block" id="DFunction.savefig"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.savefig">[docs]</a>    <span class="k">def</span> <span class="nf">savefig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Saves current figure into a file</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span></div>
+        
+        
 
+    <span class="k">def</span> <span class="nf">_fname_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># find out if filename has an extension</span>
+        <span class="n">fname</span><span class="p">,</span> <span class="n">ex</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">ex</span> <span class="o">=</span> <span class="n">ex</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">has_ext</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ex</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DFunction.save"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;npy&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">has_ext</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">filename</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">ex</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="n">has_ext</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;npy&#39;</span>
+        <span class="k">elif</span> <span class="n">ext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span>
+            
+        <span class="k">return</span> <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span>
+            
+<div class="viewcode-block" id="DFunction.save_data"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.save_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Saves the DFunction into a file</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">add_imag</span> <span class="o">=</span> <span class="bp">False</span>
-
+        <span class="n">add_imag</span> <span class="o">=</span> <span class="kc">False</span>
+            
+        <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fname_ext</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+        
+        <span class="c1"># now ext is there only to specify format</span>
+        
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="s2">&quot;dat&quot;</span><span class="p">]:</span>
-            <span class="n">fname</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span>
-
+            
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">):</span>
                 <span class="n">ab</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">add_imag</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">add_imag</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">ab</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
             <span class="n">datr</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
@@ -606,7 +740,7 @@
 
 
 
-<div class="viewcode-block" id="DFunction.load"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="DFunction.load_data"><a class="viewcode-back" href="../../../classes/dfunction.html#quantarhei.core.dfunction.DFunction.load_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Loads a DFunction from  a file</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -614,14 +748,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_empty</span> <span class="ow">or</span> <span class="n">replace</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Data already exist in this object.&quot;</span>
             <span class="o">+</span> <span class="s2">&quot; Use replace=True argument (default is replace=False&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;npy&quot;</span><span class="p">,</span><span class="s2">&quot;dat&quot;</span><span class="p">]:</span>
-
-            <span class="n">fname</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown format&quot;</span><span class="p">)</span>
-
+        
+        <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fname_ext</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
 
             <span class="n">ab</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
@@ -629,11 +758,19 @@
         <span class="k">elif</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;dat&quot;</span><span class="p">:</span>
 
             <span class="n">ab</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-
+            
+        <span class="k">else</span><span class="p">:</span>
+            
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown format&quot;</span><span class="p">)</span>
+            
         <span class="n">dt</span> <span class="o">=</span> <span class="n">ab</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ab</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ab</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">st</span> <span class="o">=</span> <span class="n">ab</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">dat</span> <span class="o">=</span> <span class="n">ab</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c1">#if dt &lt; 0:</span>
+        <span class="c1">#    ab[:,0] = 1.0/ab[:,0]</span>
+            
 
         <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span>
 
@@ -664,13 +801,13 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Quantarhei 1.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Quantarhei 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomas Mancal.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016-2018 Tomas Mancal.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>
