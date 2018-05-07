@@ -1,0 +1,339 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Molecule &#8212; Quantarhei 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SystemBathInteraction" href="systembathinteraction.html" />
+    <link rel="prev" title="Aggregate" href="aggregate.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="systembathinteraction.html" title="SystemBathInteraction"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="aggregate.html" title="Aggregate"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Quantarhei 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../classes.html" accesskey="U">Quantarhei Public Classes</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aggregate.html"
+                        title="previous chapter">Aggregate</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="systembathinteraction.html"
+                        title="next chapter">SystemBathInteraction</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/classes/molecule.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-quantarhei.builders.molecules">
+<span id="molecule"></span><h1>Molecule<a class="headerlink" href="#module-quantarhei.builders.molecules" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="quantarhei.builders.molecules.Molecule">
+<em class="property">class </em><code class="descclassname">quantarhei.builders.molecules.</code><code class="descname">Molecule</code><span class="sig-paren">(</span><em>elenergies=[0.0, 1.0], name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-level molecule (monomer)</p>
+<p>The molecule is defined by the vector of energies of its states
+and by the transition dipole moments between allowed transitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) – Monomer descriptor; a string identifying the monomer</li>
+<li><strong>elenergies</strong> (<em>real array</em>) – List of electronic energies, one per state. It includes ground state
+energy. It wise to chose the ground state energy as zero.</li>
+<li><strong>Properties</strong> – </li>
+<li><strong>----------</strong> – </li>
+<li><strong>position</strong> (<em>real array</em>) – 3D vector holding a position of the molecule in space</li>
+<li><strong>elenergies</strong> – vector of electronic energies</li>
+<li><strong>dmoments</strong> (<em>real array</em>) – matrix of transition dipole moments. One vector of the transition
+dipole moment for each pair of electronic states</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt>
+<code class="descname">... to be continued</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.add_Mode">
+<code class="descname">add_Mode</code><span class="sig-paren">(</span><em>mod</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.add_Mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.add_Mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a vibrational mode to the monomer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.check_temperature_consistent">
+<code class="descname">check_temperature_consistent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.check_temperature_consistent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.check_temperature_consistent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks that the temperature is the same for all components</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_Hamiltonian">
+<code class="descname">get_Hamiltonian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_Hamiltonian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_Hamiltonian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Hamiltonian of the Molecule object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_SystemBathInteraction">
+<code class="descname">get_SystemBathInteraction</code><span class="sig-paren">(</span><em>timeAxis</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_SystemBathInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_SystemBathInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a SystemBathInteraction object of the molecule</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_adiabatic_coupling">
+<code class="descname">get_adiabatic_coupling</code><span class="sig-paren">(</span><em>state1</em>, <em>state2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_adiabatic_coupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_adiabatic_coupling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns adiabatic coupling between two states</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_electronic_natural_lifetime">
+<code class="descname">get_electronic_natural_lifetime</code><span class="sig-paren">(</span><em>N</em>, <em>epsilon_r=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_electronic_natural_lifetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_electronic_natural_lifetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns natural lifetime of a given electronic state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_electronic_natural_linewidth">
+<code class="descname">get_electronic_natural_linewidth</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_electronic_natural_linewidth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_electronic_natural_linewidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns natural linewidth of a given electronic state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_mode_environment">
+<code class="descname">get_mode_environment</code><span class="sig-paren">(</span><em>mode</em>, <em>elstate</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_mode_environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_mode_environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns mode environment</p>
+<p>Returns the environment (bath correlation function) interacting with a
+a given mode in a given electronic state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mode</strong> (<em>int</em>) – index of the mode</li>
+<li><strong>elstate</strong> (<em>int</em>) – index of the electronic state</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_number_of_modes">
+<code class="descname">get_number_of_modes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_number_of_modes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_number_of_modes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retruns the number of modes in this molecule</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_temperature">
+<code class="descname">get_temperature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_temperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns temperature of the molecule</p>
+<p>Checks if the setting of environments is consistent and than
+takes the temperature from one of the energy gaps. If no
+environment (correlation function) is assigned to this
+molecule, we assume zero temperature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.get_transition_environment">
+<code class="descname">get_transition_environment</code><span class="sig-paren">(</span><em>transition</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.get_transition_environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.get_transition_environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns energy gap correlation function of a monomer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.set_adiabatic_coupling">
+<code class="descname">set_adiabatic_coupling</code><span class="sig-paren">(</span><em>state1</em>, <em>state2</em>, <em>coupl</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.set_adiabatic_coupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.set_adiabatic_coupling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets adiabatic coupling between two states</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.set_egcf_mapping">
+<code class="descname">set_egcf_mapping</code><span class="sig-paren">(</span><em>transition</em>, <em>correlation_matrix</em>, <em>position</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.set_egcf_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.set_egcf_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a correlation function mapping for a selected transition.</p>
+<p>The monomer can either have a correlation function assigned to it,
+or it can be a part of a correlation matrix. Here the mapping to the
+correlation matrix is specified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>transition</strong> (<em>tuple</em>) – A tuple describing a transition in the molecule, e.g. (0,1) is
+a transition from the ground state to the first excited state.</li>
+<li><strong>correlation_matrix</strong> (<em>CorrelationFunctionMatrix</em>) – An instance of CorrelationFunctionMatrix</li>
+<li><strong>position</strong> (<em>int</em>) – Position in the CorrelationFunctionMatrix corresponding
+to the monomer.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.set_mode_environment">
+<code class="descname">set_mode_environment</code><span class="sig-paren">(</span><em>mode=0</em>, <em>elstate=0</em>, <em>corfunc=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.set_mode_environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.set_mode_environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets mode environment</p>
+<p>Sets the environment (bath correlation function) interacting with a
+a given mode in a given electronic state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mode</strong> (<em>int</em>) – index of the mode</li>
+<li><strong>elstate</strong> (<em>int</em>) – index of the electronic state</li>
+<li><strong>corfunc</strong> (<em>quantarhei.CorrelationFunction</em>) – CorrelationFunction object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.set_transition_dephasing">
+<code class="descname">set_transition_dephasing</code><span class="sig-paren">(</span><em>transition</em>, <em>deph</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.set_transition_dephasing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.set_transition_dephasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the dephasing rate of a given transition</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>transition</strong> (<em>{tuple</em><em>, </em><em>list}</em>) – Quantum numbers of the states between which the transition occurs</li>
+<li><strong>deph</strong> (<em>float</em>) – Dephasing rate of the transition</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.set_transition_environment">
+<code class="descname">set_transition_environment</code><span class="sig-paren">(</span><em>transition</em>, <em>egcf</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.set_transition_environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.set_transition_environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a correlation function for a transition on this monomer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>transition</strong> (<em>tuple</em>) – A tuple describing a transition in the molecule, e.g. (0,1) is
+a transition from the ground state to the first excited state.</li>
+<li><strong>egcf</strong> (<em>CorrelationFunction</em>) – CorrelationFunction object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.builders.molecules.Molecule.set_transition_width">
+<code class="descname">set_transition_width</code><span class="sig-paren">(</span><em>transition</em>, <em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/builders/molecules.html#Molecule.set_transition_width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.builders.molecules.Molecule.set_transition_width" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the width of a given transition</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>transition</strong> (<em>{tuple</em><em>, </em><em>list}</em>) – Quantum numbers of the states between which the transition occurs</li>
+<li><strong>width</strong> (<em>float</em>) – The width of the transition</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="systembathinteraction.html" title="SystemBathInteraction"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="aggregate.html" title="Aggregate"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Quantarhei 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../classes.html" >Quantarhei Public Classes</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2018 Tomas Mancal.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

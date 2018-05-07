@@ -29,7 +29,7 @@ class TestCorrelationFunction(unittest.TestCase):
     """
     
     def test_of_correlation_function_addition(self):
-        """Testing addition of CorrelationFunction objects """
+        """(CorrelationFunction) Testing addition of CorrelationFunction objects """
         
         t = TimeAxis(0.0, 1000, 1.0)
         params1 = dict(ftype="OverdampedBrownian",
@@ -101,7 +101,7 @@ class TestCorrelationFunction(unittest.TestCase):
         
         
     def test_of_correlation_function_addition_T(self):
-        """CorrelationFunction addition with different temperatures raises Exception
+        """(CorrelationFunction) Testing that addition with different temperatures raises Exception
         
         """
         t = TimeAxis(0.0, 1000, 1.0)
@@ -124,7 +124,7 @@ class TestCorrelationFunction(unittest.TestCase):
         
         
     def test_of_multiple_addition(self):
-        """Testing multiple addition of CorrelationFunction objects """
+        """(CorrelationFunction) Testing multiple addition of objects """
         
         t = TimeAxis(0.0, 1000, 1.0)
         
@@ -242,7 +242,7 @@ class TestCorrelationFunction(unittest.TestCase):
         
         
     def test_reorganization_energy_consistence(self):
-        """Checking that reorganization energy is represented consistently
+        """(CorrelationFunction) Checking that reorganization energy is represented consistently
         
         """
         
@@ -294,7 +294,7 @@ class TestCorrelationFunction(unittest.TestCase):
         self.assertTrue(f3.reorganization_energy_consistent())
         
     def test_of_correlation_function_as_Saveable(self):
-        """Testing saving of CorrelationFunction objects """
+        """(CorrelationFunction) Testing of saving """
         
         t = TimeAxis(0.0, 1000, 1.0)
         params1 = dict(ftype="OverdampedBrownian",

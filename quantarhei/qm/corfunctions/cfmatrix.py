@@ -194,7 +194,7 @@ class CorrelationFunctionMatrix(Saveable):
     
 
     def get_correlation_function(self,n,m):
-        """Returns correlation function from the matrix
+        """Returns correlation function associated with sites n and m
 
         Parameters
         ----------
@@ -230,7 +230,7 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def get_coft(self,n,m):
-        """Returns correlation function from the matrix
+        """Returns correlation function corresponding to two states n and m
 
         Parameters
         ----------
@@ -439,6 +439,7 @@ class CorrelationFunctionMatrix(Saveable):
             if ic > self.max_cutoff_index:
                 self.max_cutoff_index = ic
 
+            # this sets also self._confs; this can undergo transformations
             self.data[iof,:] = fce.data
 
             self.lambdas[iof] = fce.lamb
