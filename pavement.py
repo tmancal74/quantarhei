@@ -128,6 +128,7 @@ def dev():
    #sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
    sh('nosetests -vs tests/unit/builders/test_aggregates.py')
    sh('nosetests -vs tests/unit/qm/corfunctions/cfmatrix_test.py')
+   sh('nosetests -vs tests/unit/qm/liouvillespace/test_systembathinteraction.py')
    #sh('nosetests -vs tests/unit/qm/liouvillespace/test_evolutionsuperoperator.py')
    #sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
   
