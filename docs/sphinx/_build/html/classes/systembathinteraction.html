@@ -1,34 +1,32 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>SystemBathInteraction &mdash; Quantarhei 1.0 documentation</title>
-    
+    <title>SystemBathInteraction &#8212; Quantarhei 1.0 documentation</title>
     <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Quantarhei 1.0 documentation" href="../index.html" />
-    <link rel="up" title="Quantarhei Public Classes" href="../classes.html" />
-    <link rel="prev" title="FrequencyAxis" href="frequency.html" /> 
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="StateVector" href="statevector.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -39,29 +37,29 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="frequency.html" title="FrequencyAxis"
+          <a href="statevector.html" title="StateVector"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Quantarhei 1.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../classes.html" accesskey="U">Quantarhei Public Classes</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Quantarhei 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../classes.html" accesskey="U">Quantarhei Public Classes</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="frequency.html"
-                        title="previous chapter">FrequencyAxis</a></p>
+  <p class="topless"><a href="statevector.html"
+                        title="previous chapter">StateVector</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/classes/systembathinteraction.txt"
+      <li><a href="../_sources/classes/systembathinteraction.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -81,17 +79,26 @@
 <p>systembathinteraction module</p>
 <dl class="class">
 <dt id="quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction">
-<em class="property">class </em><code class="descclassname">quantarhei.qm.liouvillespace.systembathinteraction.</code><code class="descname">SystemBathInteraction</code><span class="sig-paren">(</span><em>sys_operators</em>, <em>bath_correlation_matrix</em>, <em>aggregate=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">quantarhei.qm.liouvillespace.systembathinteraction.</code><code class="descname">SystemBathInteraction</code><span class="sig-paren">(</span><em>sys_operators=None</em>, <em>bath_correlation_matrix=None</em>, <em>rates=None</em>, <em>system=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Describes interaction of an open quantum system with its environment</p>
-<p>Stores the system&#8211;bath interaction operator in form of a set of operators
+<p>Stores the system–bath interaction operator in form of a set of operators
 on the Hilbert space of the system and correlation functions of
 the operator on the bath Hilbert space.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sys_operators</strong> (<em>list</em>) &#8211; List of the system part of the system-bath interaction Hamiltonian
-components</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sys_operators</strong> (<em>list</em>) – List of the system part of the system-bath interaction Hamiltonian
+components</li>
+<li><strong>bath_correlation_matrix</strong> (<em>CorrelationFunctionMatrix</em>) – Object of the CorrelationFunctionMatrix type holding all correlation
+functions needed for the description of system bath interaction</li>
+<li><strong>rates</strong> (<em>list/tuple</em>) – List or tuple of rates. The total number of rates has to be
+the same as the number of operators in the <code class="docutils literal"><span class="pre">sys_operator</span></code> list</li>
+<li><strong>system</strong> (<em>{Molecule</em><em>, </em><em>Aggregate}</em>) – Molecule or Aggregate object in which the system–bath interaction
+is specified</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -105,6 +112,41 @@ components</td>
 <dt id="quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_coft_elsig">
 <code class="descname">get_coft_elsig</code><span class="sig-paren">(</span><em>n_sig</em>, <em>m_sig</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction.get_coft_elsig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_coft_elsig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns bath correlation based on electronic signatures</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_reorganization_energy">
+<code class="descname">get_reorganization_energy</code><span class="sig-paren">(</span><em>i</em>, <em>j=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction.get_reorganization_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_reorganization_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns reorganization energy associated with a given site</p>
+<p>If one index <cite>i</cite> is specified, the function returns reorganization
+energy associated with i-th site. If two indices are specified,
+the function returns crosscorrelation function (when i not equal j)
+or a correlation function of the site (when i = j)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_sbitype">
+<code class="descname">get_sbitype</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction.get_sbitype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_sbitype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the type of SystemBathInteraction</p>
+<p>Options are <cite>Lindblad_Form</cite> and <cite>Linear_Coupling</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_temperature">
+<code class="descname">get_temperature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction.get_temperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.get_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns temperature associated with the bath</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.has_temperature">
+<code class="descname">has_temperature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction.has_temperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.has_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checkst if the Aggregate has a defined temperature</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.set_system">
+<code class="descname">set_system</code><span class="sig-paren">(</span><em>system</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quantarhei/qm/liouvillespace/systembathinteraction.html#SystemBathInteraction.set_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#quantarhei.qm.liouvillespace.systembathinteraction.SystemBathInteraction.set_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the system attribute</p>
 </dd></dl>
 
 </dd></dl>
@@ -127,15 +169,15 @@ components</td>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="frequency.html" title="FrequencyAxis"
+          <a href="statevector.html" title="StateVector"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Quantarhei 1.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../classes.html" >Quantarhei Public Classes</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Quantarhei 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../classes.html" >Quantarhei Public Classes</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomas Mancal.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016-2018 Tomas Mancal.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>

@@ -53,7 +53,7 @@ class SystemBathInteraction(Saveable):
         self.TimeAxis = None
         self.rates = None
         self.N = 0
-        self.sbitype = None
+        self.sbitype = "Linear_Coupling"
         
         # version with bath correlation functions
         if ((sys_operators is not None) 
@@ -112,7 +112,7 @@ class SystemBathInteraction(Saveable):
                     raise Exception("Wrong number of rates specified")
                 self.rates = rates
 
-
+  
     def set_system(self, system):
         """Sets the system attribute
         
@@ -166,6 +166,11 @@ class SystemBathInteraction(Saveable):
 
         
         """
+        
+        if self.sbitype != "Linear_Coupling":
+            raise Exception("Correlation functions only defined for "+
+                            "linear microscopic system-bath coupling")
+            
         if self.system is None:
             
             return self.CC.get_coft(n,m)
@@ -197,6 +202,9 @@ class SystemBathInteraction(Saveable):
 
 
         """ 
+        if self.sbitype != "Linear_Coupling":
+            raise Exception("Correlation functions only defined for "+
+                            "linear microscopic system-bath coupling")
                  
         nb = numpy.sum(n_sig)
         mb = numpy.sum(m_sig)
