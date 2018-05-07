@@ -180,8 +180,11 @@ class AggregateBase(UnitsManaged, Saveable):
         """
         self.resonance_coupling = numpy.zeros((self.nmono,self.nmono),
                                               dtype=numpy.float64) 
-        self.coupling_initiated = True           
-        
+        self.coupling_initiated = True  
+        # 
+        # TESTED
+
+    
     def set_resonance_coupling(self, i, j, coupling):
         """Sets resonance coupling value between two sites
         
@@ -193,15 +196,21 @@ class AggregateBase(UnitsManaged, Saveable):
         
         self.resonance_coupling[i,j] = coup
         self.resonance_coupling[j,i] = coup
-        
+        #
+        # TESTED
+ 
+       
     def get_resonance_coupling(self, i, j):
         """Returns resonance coupling value between two sites
         
         """
         coupling = self.resonance_coupling[i,j]
         return self.convert_energy_2_current_u(coupling)
-    
-    def set_resonance_coupling_matrix(self,coupmat): 
+        #
+        # TESTED
+
+
+    def set_resonance_coupling_matrix(self, coupmat): 
         """Sets resonance coupling values from a matrix
         
         """
@@ -213,6 +222,9 @@ class AggregateBase(UnitsManaged, Saveable):
         self.resonance_coupling = coup 
         if not self.coupling_initiated:
             self.coupling_initiated = True
+        #
+        # TESTED
+            
             
     def dipole_dipole_coupling(self, kk, ll, epsr=1.0):
         """Calculates dipole-dipole coupling 
@@ -228,7 +240,11 @@ class AggregateBase(UnitsManaged, Saveable):
         d2 = self.monomers[ll].dmoments[0,1,:]
         r2 = self.monomers[ll].position        
 
-        return dipole_dipole_interaction(r1, r2, d1, d2, epsr)            
+        val =  dipole_dipole_interaction(r1, r2, d1, d2, epsr)            
+        return self.convert_energy_2_current_u(val)
+        #
+        # TESTED
+
 
     def set_coupling_by_dipole_dipole(self, epsr=1.0):
         """Sets resonance coupling by dipole-dipole interaction
@@ -240,8 +256,12 @@ class AggregateBase(UnitsManaged, Saveable):
         for kk in range(self.nmono):
             for ll in range(kk+1,self.nmono):
                 cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr)
-                self.resonance_coupling[kk,ll] = cc
-                self.resonance_coupling[ll,kk] = cc
+                c1 = self.convert_energy_2_internal_u(cc)
+                self.resonance_coupling[kk,ll] = c1
+                self.resonance_coupling[ll,kk] = c1
+        #
+        # TESTED
+
                 
     def calculate_resonance_coupling(self, method="dipole-dipole",
                                params=dict(epsr=1.0)):
@@ -254,9 +274,18 @@ class AggregateBase(UnitsManaged, Saveable):
             Method to be used for calculation of resonance coupling
             
         """
-        pass
+        
+        if method == "dipole-dipole":
+            epsr = params["epsr"]
+            self.set_coupling_by_dipole_dipole(epsr=epsr)
+        else:
+            raise Exception("Unknown method for calculation"+
+                            " of resonance coupling")
+        #
+        # TESTED
 
     
+    # FIXME: This must be set in coordination with objects describing laboratory
     def set_lindich_axes(self, axis_orthog_membrane):
         """ Creates a coordinate system with one axis supplied by the user 
         (typically an axis orthogonal to the membrane), and two other axes, all 
@@ -267,7 +296,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self.q, r = numpy.linalg.qr(qr)
         self._has_lindich_axes = True       
     
-    
+    # FIXME: This must be set in coordination with objects describing laboratory    
     def get_lindich_axes(self):
         if self._has_lindich_axes:
             return self.q
@@ -275,6 +304,7 @@ class AggregateBase(UnitsManaged, Saveable):
             raise Exception("No linear dichroism coordinate system supplied")
     
     
+    # FIXME: This should be delegated SystemBathInteraction
     def set_egcf_matrix(self,cm):
         """Sets a matrix describing system bath interaction
         
@@ -286,7 +316,7 @@ class AggregateBase(UnitsManaged, Saveable):
     #
     # Monomer
     #
-    def add_Molecule(self,mono):
+    def add_Molecule(self, mono):
         """Adds monomer to the aggregate
         
         
@@ -2043,6 +2073,7 @@ class AggregateBase(UnitsManaged, Saveable):
             
         
         return prop
+
         
     #FIXME: There must be a general theory here
     def get_RedfieldRateMatrix(self):
@@ -2062,10 +2093,10 @@ class AggregateBase(UnitsManaged, Saveable):
         ham.unprotect_basis()
         
         return RR
+
             
     def diagonalize(self):
-        """Transforms the Hamiltonian 
-           and transition dipole moment into diagonal basis 
+        """Transforms some internal quantities into diagonal basis 
            
         """
            
@@ -2193,7 +2224,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self.D2_max = numpy.max(dd2)
         
 
-    def _thermal_population(self, temp=0.0, subtract=None,
+    def _thermal_population(self, temp=0.0, subtract=None, 
                             relaxation_hamiltonian=None, start=0):
         """Thermal populations at temperature temp
         
@@ -2209,7 +2240,7 @@ class AggregateBase(UnitsManaged, Saveable):
         subtract : list like
             Reoreganization energies to subtract from the Hamiltonian
             
-        relaxation_hamiltonian: Hamiltonian
+        relaxation_hamiltonian: array
             Hamiltonian according to which we form thermal equilibrium
         
         """
@@ -2218,41 +2249,41 @@ class AggregateBase(UnitsManaged, Saveable):
         
         kBT = kB_intK*temp
         
-        if not relaxation_hamiltonian:
-            HH = self.get_Hamiltonian()
-        else:
-            HH = relaxation_hamiltonian
-            
+        #if not relaxation_hamiltonian:
+        #    HH = self.get_Hamiltonian()
+        #else:
+        #    HH = relaxation_hamiltonian
+        HH = relaxation_hamiltonian
+        
+        # This is all done with arrays, not with Qrhei objects
+        #HH = HH.data
+        dim = HH.shape[0]
+        
         if subtract is None:
-            subtract = numpy.zeros(HH.dim, dtype=numpy.float64)
+            subtract = numpy.zeros(dim, dtype=numpy.float64)
         
-        rho0 = numpy.zeros((HH.dim,HH.dim),dtype=numpy.complex128)
-        
+        rho0 = numpy.zeros((dim, dim),dtype=numpy.complex128)
+            
+              
         if temp == 0.0:
             rho0[start,start] = 1.0
-            
+        
         else:
             # FIXME: we assume only single exciton band
-            
-            # FIXME: why only dim-1 ???
-            #ens = numpy.zeros(HH.dim-1, dtype=numpy.float64)
-            ens = numpy.zeros(HH.dim-start, dtype=numpy.float64)
+        
+            ens = numpy.zeros(dim-start, dtype=numpy.float64)
 
             # we specify the basis from outside. This allows to choose 
             # canonical equilibrium in arbitrary basis
-            # FIXME: why 0 is not used ????
-            #for i in range(HH.dim-1):
-            #    ens[i] = HH.data[i+1,i+1] - subtract[i+1]      
-            for i in range(start, HH.dim):
-                ens[i-start] = HH.data[i,i] - subtract[i-start] 
-                
+            for i in range(start, dim):
+                ens[i-start] = HH[i,i] - subtract[i-start] 
+            
             ne = numpy.exp(-ens/kBT)
             sne = numpy.sum(ne)
             rho0_diag = ne/sne
-            # FIXME: why is O excluded ????
-            #rho0[1:,1:] = numpy.diag(rho0_diag)
             rho0[start:,start:] = numpy.diag(rho0_diag)
-            
+    
+        
         return rho0
 
     
@@ -2261,10 +2292,6 @@ class AggregateBase(UnitsManaged, Saveable):
         """Impulsive excitation of the density matrix from ground state
         
         """
-        
-        #rho0 = numpy.zeros((self.Ntot,self.Ntot), dtype=numpy.complex128)
-        ## maybe we want something more general here
-        #rho0[0,0] = 1.0
         
         rho = self.get_DensityMatrix(condition_type="thermal", 
                             relaxation_theory_limit=relaxation_theory_limit,
@@ -2296,15 +2323,13 @@ class AggregateBase(UnitsManaged, Saveable):
         
         condition_type : str
             Type of the initial condition. If None, the property rho0, which 
-            was presumably calculated in the past is returned.
+            was presumably calculated in the past, is returned.
             
-        relaxation_theory_limits : str
+        relaxation_theory_limits : str {weak_coupling, strong_coupling}
             Type of the relaxation theory limits; 
-            applies to `thermal` and `thermal_excited_state` condition type. 
-            Possible values are `weak_coupling` and `strong_coupling`. We mean
-            the system bath coupling. When `weak_coupling` is chosen, 
+            We mean the system bath coupling. When `weak_coupling` is chosen, 
             the density matrix is returned in form of a canonical equilibrium 
-            in terms of the the exciton basis. For `strong_coupling`, 
+            in terms of the exciton basis. For `strong_coupling`, 
             the canonical equilibrium is calculated in site basis with site 
             energies striped of reorganization energies.
             
@@ -2312,7 +2337,9 @@ class AggregateBase(UnitsManaged, Saveable):
             Temperature in Kelvin
             
         relaxation_hamiltonian : 
-            Hamiltonian according to which we form thermal equilibrium
+            Hamiltonian according to which we form thermal equilibrium. In case
+            of `strong_coupling`, no reorganization energies are subtracted -
+            we assume that the supplied energies are already void of them.
             
         Condition types
         ---------------
@@ -2347,7 +2374,7 @@ class AggregateBase(UnitsManaged, Saveable):
         if condition_type is None:
             return DensityMatrix(data=self.rho0)
         
-            
+        
         # impulsive excitation from a thermal ground state
         elif condition_type == "impulsive_excitation":
             rho0 = self._impulsive_population(
@@ -2356,63 +2383,89 @@ class AggregateBase(UnitsManaged, Saveable):
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
            
+            
         # thermal population based on the total Hamiltonian
         elif condition_type == "thermal":
-            print(temperature)
-            rho0 = self._thermal_population(temperature)
+
+            if not relaxation_hamiltonian:
+                Ham = self.get_Hamiltonian()
+            else:
+                Ham = relaxation_hamiltonian
+            
+            # FIXME: weak and strong limits not distinguished
+            rho0 = self._thermal_population(temperature, 
+                                            relaxation_hamiltonian=Ham.data)
+            
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)            
         
         elif condition_type == "thermal_excited_state":
-            
-            if True: #relaxation_theory_limit is not None:
+                            
+            if relaxation_theory_limit == "strong_coupling":
                 
-                if relaxation_theory_limit == "strong_coupling":
-                    
-                    start = self.Nb[0] # this is where excited state starts
-                    n1ex= self.Nb[1] # number of excited states in one-ex band
-                    
-                    # we need to subtract reorganization energies
-                    Ndim = self.get_Hamiltonian().dim
+                start = self.Nb[0] # this is where excited state starts
+                n1ex= self.Nb[1] # number of excited states in one-ex band
+                
+                if not relaxation_hamiltonian:
+                    HH = self.get_Hamiltonian()
+                    Ndim = HH.dim
                     re = numpy.zeros(Ndim-start, dtype=numpy.float64)
+                    # we need to subtract reorganization energies
                     for i in range(n1ex):
                         re[i] = \
                         self.sbi.get_reorganization_energy(i)
-                       
-                    rho0 = self._thermal_population(temperature, 
-                                                    subtract=re,
-                                                    start=start)
-                    
-                    
-                elif relaxation_theory_limit == "weak_coupling":
-
-                    if not relaxation_hamiltonian:
-                        H = self.get_Hamiltonian().data
-                    else:
-                        H = relaxation_hamiltonian.data
-                        
-                    start = self.Nb[0] # this is where excited state starts
-                    subt = numpy.zeros(H.shape[0])
-                    subtfil = numpy.amin(numpy.array([H[ii,ii] \
-                                        for ii in range(start, H.shape[0])]))
-                    subt.fill(subtfil) 
-                    
-                    rho0 = self._thermal_population(temperature,\
-                                subtract = subt,
-                                relaxation_hamiltonian=relaxation_hamiltonian,
-                                start=start)
-                    
                 else:
-                    raise Exception("Unknown relaxation_theory_limit")
-            #else:
-            #    rho0 = self._thermal_population(temperature)
+                    HH = relaxation_hamiltonian
+                    Ndim = HH.dim
+                    re = numpy.zeros(Ndim-start, dtype=numpy.float64)
+                    # here we assume that reorganizaton energies are already
+                    # removed
+
+                   
+                # we get this in SITE BASIS
+                ham = HH.data
+                
+                rho0 = self._thermal_population(temperature, 
+                                                subtract=re,
+                                                relaxation_hamiltonian=ham,
+                                                start=start)
+                
+            elif relaxation_theory_limit == "weak_coupling":
+
+                if not relaxation_hamiltonian:
+                    Ham = self.get_Hamiltonian()
+                else:
+                    Ham = relaxation_hamiltonian
+                    
+                # we get this in EXCITON BASIS
+                with qr.eigenbasis_of(Ham):
+                    H = Ham.data
+                    
+                start = self.Nb[0] # this is where excited state starts
+                
+                # we subtract lowest energy to ease the calcultion,
+                # but we do not remove reorganization enegies
+                subt = numpy.zeros(H.shape[0])
+                subtfil = numpy.amin(numpy.array([H[ii,ii] \
+                                    for ii in range(start, H.shape[0])]))
+                subt.fill(subtfil) 
+                
+                rho0 = self._thermal_population(temperature,\
+                            subtract = subt,
+                            relaxation_hamiltonian=H,
+                            start=start)
+                
+            else:
+                raise Exception("Unknown relaxation_theory_limit")
                 
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
             
         else:
             raise Exception("Unknown condition type")
-        
+        #
+        # TESTED
+
         
     def get_temperature(self):
         """Returns temperature associated with this aggregate
@@ -2427,8 +2480,10 @@ class AggregateBase(UnitsManaged, Saveable):
             raise Exception()
             
         return self.sbi.CC.get_temperature()
-    
-        
+        #
+        # TESTED
+
+   
     def get_electronic_groundstate(self):
         """Indices of states in electronic ground state
         

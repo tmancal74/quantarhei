@@ -15,6 +15,7 @@ import numpy
 """
 
 from quantarhei import Aggregate
+from quantarhei.builders.aggregate_test import TestAggregate
 from quantarhei import Molecule
 from quantarhei import Mode
 
@@ -26,13 +27,14 @@ from quantarhei.qm import ReducedDensityMatrix
 
 import quantarhei as qr
 
-class TestAggregate(unittest.TestCase):
+class AggregateTest(unittest.TestCase):
     """Tests for the Manager class
     
     
     """
     
     def setUp(self):
+        
         m1 = Molecule(name="Molecule 1", elenergies=[0.0, 1.0])
         m2 = Molecule(name="Molecule 2", elenergies=[0.0, 1.0])
         
@@ -73,9 +75,17 @@ class TestAggregate(unittest.TestCase):
         self.vagg = Aggregate(molecules=[m3, m4])
         self.vagg.build()
 
+        pars_1 = dict(name="dimer", environment=None, nstates=2)
+        self.pars_1 = pars_1
+
+#########################################################################
+#
+#                               TESTS
+#
+#########################################################################
 
     def test_saving_of_aggregate(self):
-        """Testing the saving capability of the Aggregate class
+        """(Aggregate) Testing its saving capability 
         
         
         """
@@ -134,7 +144,7 @@ class TestAggregate(unittest.TestCase):
             
 
     def test_trace_over_vibrations(self):
-        """Testing trace over vibrational DOF
+        """(Aggregate) Testing trace over vibrational DOF
         
         """
         
@@ -170,7 +180,7 @@ class TestAggregate(unittest.TestCase):
 
         
     def test_get_Density_Matrix_thermal(self):
-        """Testing the get_Densitymatrix method with `thermal` condition type
+        """(Aggregate) Testing the get_Densitymatrix method with `thermal` condition type
         
         """
         from quantarhei.core.units import kB_intK
@@ -200,7 +210,7 @@ class TestAggregate(unittest.TestCase):
 
             
     def test_get_Density_Matrix_thermal_excited(self):
-        """Testing the get_Densitymatrix method with `thermal_excited_state` condition type
+        """(Aggregate) Testing the get_Densitymatrix method with `thermal_excited_state` condition type
         
         """
         from quantarhei.core.units import kB_intK
@@ -218,16 +228,49 @@ class TestAggregate(unittest.TestCase):
         numpy.testing.assert_almost_equal(rho0.data, tst0)
         
         # room temperature
-        rho0 = self.agg.get_DensityMatrix(condition_type="thermal_excited_state", 
-                                      temperature=300)
-        # cannonical balance between neighboring states is tested
+                                      
         kbT = kB_intK*300.0
+        
+        H = self.agg.get_Hamiltonian()
+        N = H.data.shape[0]
+        Nb0 = self.agg.Nb[0]
+        
+        with qr.eigenbasis_of(H):
+            rho0 = self.agg.get_DensityMatrix(condition_type="thermal_excited_state", 
+                                              temperature=300)
+       
+        tst0 = numpy.zeros((N,N),dtype=qr.COMPLEX)
+        
+        with qr.eigenbasis_of(H):
+            ssum = 0.0
+            for i in range(Nb0, N):
+                tst0[i,i] = numpy.exp(-(H.data[i,i]-H.data[Nb0,Nb0])/kbT)
+                ssum += tst0[i,i]
+            tst0 = tst0/ssum        
+            numpy.testing.assert_almost_equal(rho0.data, tst0)
+        
+        
+        
+#        ssum = 0.0
+#        for i in range(N):
+#            tst0[i,i] = numpy.exp(-H.data[i,i]/kbT)
+#            ssum += tst0[i,i]
+#        tst0 = tst0/ssum
+#        
+#        DD = vagg.TrDMOp.data
+#        # abs value of the transition dipole moment
+#        dabs = numpy.sqrt(DD[:,:,0]**2 + \
+#                          DD[:,:,1]**2 + DD[:,:,2]**2)
+#        # excitation from bra and ket
+#        tst0 = numpy.dot(dabs, numpy.dot(tst0,dabs)) 
+#        
+#        numpy.testing.assert_almost_equal(rho0.data, tst0)
         
         
         
 
     def test_get_temperature(self):
-        """Testing temperature retrieval from aggregate
+        """(Aggregate) Testing temperature retrieval 
         
         
         """
@@ -237,5 +280,145 @@ class TestAggregate(unittest.TestCase):
         
         numpy.testing.assert_almost_equal(T, 300.0)
         
+  
+    def test_init_coupling_matrix(self):
+        """(Aggregate) Testing coupling matrix initialization 
         
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)
+        
+        self.assertFalse(agg.coupling_initiated)
+        
+        agg.init_coupling_matrix()
+        
+        self.assertTrue(agg.coupling_initiated)
+        self.assertAlmostEqual(0.0, agg.resonance_coupling[0,1])
+
+     
+    def test_set_resonance_coupling(self):        
+        """(Aggregate) Testing resonance coupling setting with different units
+        
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)
+        agg.init_coupling_matrix()        
+        
+        agg.set_resonance_coupling(0, 1, 1.0)
+        self.assertAlmostEqual(1.0, agg.resonance_coupling[0,1])
+        self.assertAlmostEqual(1.0, agg.resonance_coupling[1,0])
+        
+        with qr.energy_units("1/cm"):
+            agg.set_resonance_coupling(0, 1, 100.0)
+        self.assertAlmostEqual(qr.convert(100.0, "1/cm", "int"),
+                               agg.resonance_coupling[0,1])
+        self.assertAlmostEqual(qr.convert(100.0, "1/cm", "int"),
+                               agg.resonance_coupling[1,0])
+        
+     
+    def test_get_resonance_coupling(self):
+        """(Aggregate) Testing resonance coupling retrieval in different units
+        
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)
+        agg.init_coupling_matrix()        
+        agg.set_resonance_coupling(0, 1, 1.0)
+
+        coup = agg.get_resonance_coupling(1,0)
+        self.assertAlmostEqual(coup, 1.0)
+
+        with qr.energy_units("1/cm"):
+            coup = agg.get_resonance_coupling(1,0)
+        self.assertAlmostEqual(coup, qr.convert(1.0, "int", "1/cm"))
+        
+        with qr.energy_units("eV"):
+            coup = agg.get_resonance_coupling(1,0)
+        self.assertAlmostEqual(coup, qr.convert(1.0, "int", "eV"))
+        
+        with qr.energy_units("THz"):
+            coup = agg.get_resonance_coupling(1,0)
+        self.assertAlmostEqual(coup, qr.convert(1.0, "int", "THz"))
+        
+       
+    def test_set_resonance_coupling_matrix(self):
+        """(Aggregate) Testing setting the whole resonance coupling matrix
+        
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)
+
+        mat = [[0.0, 1.0],
+               [1.0, 0.0]]
+        
+        agg.set_resonance_coupling_matrix(mat)
+        self.assertAlmostEqual(agg.resonance_coupling[1,0], 1.0)
+        self.assertAlmostEqual(agg.resonance_coupling[0,1], 1.0)
+        self.assertAlmostEqual(agg.resonance_coupling[0,0], 0.0)
+        self.assertAlmostEqual(agg.resonance_coupling[1,1], 0.0)
+
+        mat = ((0.0, 500.0),
+               (500.0, 0.0))
+        
+        with qr.energy_units("1/cm"):
+            agg.set_resonance_coupling_matrix(mat)
+
+        inint = qr.convert(500, "1/cm", "int")
+        self.assertAlmostEqual(agg.resonance_coupling[1,0], inint)
+        self.assertAlmostEqual(agg.resonance_coupling[0,1], inint)
+        self.assertAlmostEqual(agg.resonance_coupling[0,0], 0.0)
+        self.assertAlmostEqual(agg.resonance_coupling[1,1], 0.0)
+
+    
+    def test_dipole_dipole_coupling(self):
+        """(Aggregate) Testing dipole-dipole coupling calculation
+
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)
+
+        coup1 = agg.dipole_dipole_coupling(0,1)
+        coup2 = agg.dipole_dipole_coupling(0,1, epsr=2.0)
+        self.assertAlmostEqual(coup1, coup2*2.0)
+        
+        with qr.energy_units("1/cm"):
+            coup = agg.dipole_dipole_coupling(0,1)
+        self.assertAlmostEqual(qr.convert(coup1,"int","1/cm"), coup)
+
+
+    def test_set_coupling_by_dipole_dipole(self):
+        """(Aggregate) Testing dipole-dipole coupling calculation for the whole agregate
+        
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)
+        agg.set_coupling_by_dipole_dipole()
+
+        coup1 = agg.dipole_dipole_coupling(0,1)
+        self.assertAlmostEqual(coup1, agg.resonance_coupling[0,1])
+        
+        with qr.energy_units("1/cm"):
+            agg.set_coupling_by_dipole_dipole()
+            
+        coup1 = agg.dipole_dipole_coupling(0,1)
+        self.assertAlmostEqual(coup1, agg.resonance_coupling[0,1])
+
+
+    def test_calculate_resonance_coupling(self):
+        """(Aggregate) Testing resonance coupling calculation by various methods
+        
+        """
+        agg = TestAggregate(name=self.pars_1["name"],
+                            params=self.pars_1)
+        
+        agg.calculate_resonance_coupling(method="dipole-dipole")        
+        coup1 = agg.dipole_dipole_coupling(0,1)
+        
+        self.assertEqual(coup1, agg.resonance_coupling[1,0])
+        
+        with qr.energy_units("1/cm"):
+            agg.calculate_resonance_coupling(method="dipole-dipole")        
+
+        self.assertEqual(coup1, agg.resonance_coupling[1,0])
+            
             
