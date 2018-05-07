@@ -45,7 +45,7 @@ class TestCFMatrix(unittest.TestCase):
 
     
     def test_of_creation(self):
-        """Test of CorrelationFunctionMatrix creation 
+        """(CorrelationFunctionMatrix) Test of creation 
         
         """
         cfm = cors.CorrelationFunctionMatrix(self.time, nob=5)
@@ -55,8 +55,7 @@ class TestCFMatrix(unittest.TestCase):
     
     
     def test_of_temperature_retrieval(self):
-        """Test of temperature retrieval from CorrelationFunctionMatrix
-        
+        """(CorrelationFunctionMatrix) Test of temperature retrieval 
         """
         cfm = cors.CorrelationFunctionMatrix(self.time, nob=5)
         
