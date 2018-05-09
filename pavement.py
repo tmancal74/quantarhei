@@ -96,8 +96,12 @@ def pylint():
     Default 
 """
 
+# Removing matplotlib tests because it does not work on remote travis CI
+#@needs('matplotlib_tests', 'unit_tests_v',
+#       'doc_tests_v','aloe_tests_v') #, 'pylint')
 @needs('matplotlib_tests', 'unit_tests_v',
        'doc_tests_v','aloe_tests_v') #, 'pylint')
+
 @task
 def default():
     pass
