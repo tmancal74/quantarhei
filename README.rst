@@ -1,4 +1,4 @@
-QUANTArhei: Open Quantum System Theory for Molecular Systems
+QUANTArhei: Open Quantum System Theory for Molecular Systems |Build Status|
 ============================================================
 
 Quantarhei is a Molecular Open Quantum Systems Simulator written predominantly
@@ -106,3 +106,8 @@ For developers:
 - New tests under quantarhei/tests directory (mostly unit tests which contain plots)
 - pytest required to run newtests with matplotlib plots
  
+
+.. |Build Status| image:: https://readthedocs.org/projects/quantarhei/badge/?version=latest
+   :target: http://quantarhei.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+   
