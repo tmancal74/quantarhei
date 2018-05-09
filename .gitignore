@@ -23,6 +23,7 @@ tempfile
 .cache
 result_images
 qrconf.py
+docs/sphinx/_build/
 
 
 
