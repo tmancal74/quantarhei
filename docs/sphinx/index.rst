@@ -6,7 +6,7 @@
 Welcome to Quantarhei's Documentation!
 ======================================
 
-This page should one day by the main complete source of documentation
+This page should one day be the main complete source of documentation
 for **Quantarhei** package. We describe Quantarhei's main features and 
 the philosophy behind them. Large part of this documentation is based directly
 on the source code. Inspecting the source code should be an important part
@@ -37,6 +37,9 @@ Dive into Quantarhei documentation below:
    installation
    examples
    classes
+   advclasses
+   mngrclasses
+   internals
    contribute
 
 

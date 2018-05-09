@@ -8,6 +8,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   examples/dfunction
-   examples/time
+   examples/molecule
+
  

@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Quantarhei'
-copyright = '2016, Tomas Mancal'
+copyright = '2016-18, Tomas Mancal'
 author = 'Tomas Mancal'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -101,7 +101,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-# A list of ignored prefixes for module index sorting.
+# A list of ignored \prefixes for module index sorting.
 #modindex_common_prefix = []
 
 # If true, keep warnings as "system message" paragraphs in the built documents.

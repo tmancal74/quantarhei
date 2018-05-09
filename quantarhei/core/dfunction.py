@@ -1,30 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    Quantarhei package (http://www.github.com/quantarhei)
-
-    dfucntion module
-
-
-"""
-import os
-
-import scipy.interpolate
-import numpy
-import numbers
-
-import matplotlib.pyplot as plt
-
-from .valueaxis import ValueAxis
-from .time import TimeAxis
-from .frequency import FrequencyAxis
-from .saveable import Saveable
-from .managers import Manager
-
-#FIXME Check the posibility to set a derivative of the spline at the edges
-#FIXME Enable vectorial arguments and values
-class DFunction(Saveable):
-    """
     Discrete function with interpolation
+    
+    User level function of the Quantarhei package. To be used as:
+        
+    >>> import quantarhei as qr   
+    >>> f = qr.DFunction()
 
     Discrete representation of a function with several modes of interpolation.
     Once defined, the function values are obtained by the method at(x), which
@@ -36,53 +17,6 @@ class DFunction(Saveable):
     approx="spline"), the default switches to "spline". You can always enforce
     the type of interpolation by specifying it explicitely by the `approx`
     argument.
-
-    Parameters
-    ----------
-
-    x : ValueAxis (such as TimeAxis, FrequencyAxis etc.)
-        Array of the values of the argument of the discrete function
-
-    y : numpy.ndarray
-        Array of the function values
-
-
-    Attributes
-    ----------
-
-    allowed_interp_types : tuple
-        Lists allowed interpolation types. Currently `default`, `linear`
-        and `spline`.
-
-    Methods
-    -------
-
-    at(x, approx="default")
-        Returns the value of the function at a given value of argument `x`. The
-        default interpolation is linear, until the spline interpolation is
-        initialized by calling the method with approx = "spline". From then
-        on, the default is spline.
-
-    get_Fourier_transform()
-        Returns a Fourier transformed DFunction
-
-
-    get_inverse_Fourier_transform()
-        Returns inverse Fourier transformed DFunction
-
-    plot()
-        Plots the function
-
-    save(filename, format="numpy")
-        Saves the function to a file. Allowed formats are "npy" and "dat".
-        In the former case ("npy" format) the filename is appended
-        an extension ".npy" and saved as a 2xN array (where N is the number
-        of points on the ValueAxis object of the DFunction. In the "dat"
-        mode, the 2xN array is saved as a textual file with 2 columns and
-        the length N.
-
-    load(filename, axis="time", ext=None, replace=False)
-        Loads the function from a file
 
 
     Examples
@@ -162,11 +96,46 @@ class DFunction(Saveable):
     (numpy.sin(13.2/10.0) + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))
     True
 
+
+    Class Details
+    -------------
+
+"""
+
+import os
+
+import scipy.interpolate
+import numpy
+import numbers
+
+import matplotlib.pyplot as plt
+
+from .valueaxis import ValueAxis
+from .time import TimeAxis
+from .frequency import FrequencyAxis
+from .saveable import Saveable
+from .managers import Manager
+
+#FIXME Check the posibility to set a derivative of the spline at the edges
+#FIXME Enable vectorial arguments and values
+class DFunction(Saveable):
+    """Discrete function with interpolation
+
+    Parameters
+    ----------
+
+    x : ValueAxis (such as TimeAxis, FrequencyAxis etc.)
+        Array of the values of the argument of the discrete function
+
+    y : numpy.ndarray
+        Array of the function values
+
     """
 
     allowed_interp_types = ("linear", "spline", "default")
 
     def __init__(self, x=None, y=None):
+
 
         self._has_imag = None
         self._is_empty = False
@@ -285,6 +254,11 @@ class DFunction(Saveable):
 
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`
+        
+        Returns the value of the function at a given value of argument `x`. The
+        default interpolation is linear, until the spline interpolation is
+        initialized by calling the method with approx = "spline". From then
+        on, the default is spline.
 
         Parameters
         ----------
@@ -538,7 +512,18 @@ class DFunction(Saveable):
              real_only=True,
              show=True,
              color=None, filename="ahoj.png"):
-        """Plotting of the DFunction's data against the ValueAxis
+        """Plotting of the DFunction's data against the ValueAxis.
+        
+        
+        Parameters
+        ----------
+        
+        title : str
+            Title of the plot
+            
+        title_font : str
+            Name of the title font
+            
 
         """
         
