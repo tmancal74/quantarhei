@@ -113,7 +113,7 @@ For developers:
    :target: http://quantarhei.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
    
-.. |Build Status| imager:: https://travis-ci.com/tmancal74/quantarhei.svg?branch=master
+.. |Build Status| image:: https://travis-ci.com/tmancal74/quantarhei.svg?branch=master
    :target: https://travis-ci.com/tmancal74/quantarhei
    :alt: Build Status
  
