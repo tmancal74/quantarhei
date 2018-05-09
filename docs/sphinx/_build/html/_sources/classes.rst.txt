@@ -17,8 +17,5 @@ Contents:
    classes/time
    classes/frequency
    classes/statevector
-   
-   classes/aggregate
-   classes/molecule
    classes/systembathinteraction
  
