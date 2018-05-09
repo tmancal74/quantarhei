@@ -5,7 +5,10 @@ python:
 
 install:
     - pip install paver
-
+    - pip install scipy
+    - pip install numpy
+    - pip install matplotlib
+    
 script: 
     - paver
     
