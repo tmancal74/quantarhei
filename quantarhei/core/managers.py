@@ -1,24 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
-import json
-import pkg_resources
-
-import numpy
-
-from .units import conversion_facs_frequency
-from .units import conversion_facs_energy
-from .units import conversion_facs_length
-
-from .singleton import Singleton
-
-from .numconf import NumConf
-from .logconf import LogConf
-from .genconf import GenConf
-
-class Manager(metaclass=Singleton):
-    """ Main package Manager
-
-
+"""
     This class handles several important package wide tasks:
 
     1) Usage of units across objects storing data
@@ -48,7 +29,48 @@ class Manager(metaclass=Singleton):
         
     units_repre_latex : dictionary
         dictionary of latex prepresentations of available units
+
+
+
+    Units Management
+    ----------------
+    Units management is performed for all classes derived from
+    quantarhei.managers.UnitsManaged class.
+
+
+    Basis Conversion Management
+    ---------------------------
+    Units management is performed for all classes derived from
+    quantarhei.managers.BasisManaged class.
+
+    Basis management works like this: when an class is defined, and its
+    property needs to be basis managed, one should use a predefined type
+    `basis_managed_array_property`
+
+
+
     
+
+"""
+import os
+import json
+import pkg_resources
+
+import numpy
+
+from .units import conversion_facs_frequency
+from .units import conversion_facs_energy
+from .units import conversion_facs_length
+
+from .singleton import Singleton
+
+from .numconf import NumConf
+from .logconf import LogConf
+from .genconf import GenConf
+
+class Manager(metaclass=Singleton):
+    """ Main package Manager
+
     """
     
 
@@ -506,7 +528,7 @@ class Manager(metaclass=Singleton):
         """Convert energy from currently used units to internal units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -535,7 +557,7 @@ class Manager(metaclass=Singleton):
         """Converts energy from internal units to currently used units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -561,7 +583,7 @@ class Manager(metaclass=Singleton):
         """Converts frequency from currently used units to internal units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -574,7 +596,7 @@ class Manager(metaclass=Singleton):
         """Converts frequency from internal units to currently used units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -587,7 +609,7 @@ class Manager(metaclass=Singleton):
         """Converts length from currently used units to internal units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -600,7 +622,7 @@ class Manager(metaclass=Singleton):
         """Converts frequency from internal units to currently used units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -731,26 +753,7 @@ class Manager(metaclass=Singleton):
 
 
 
-"""
 
-    Units Management
-    ----------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.UnitsManaged class.
-
-
-    Basis Conversion Management
-    ---------------------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.BasisManaged class.
-
-    Basis management works like this: when an class is defined, and its
-    property needs to be basis managed, one should use a predefined type
-    `basis_managed_array_property`
-
-
-
-"""
 
 
 
