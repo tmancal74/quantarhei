@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-|Build Status| |DocBuild Status| |Coverage|
+
 
 Welcome to Quantarhei's Documentation!
 ======================================
@@ -40,6 +40,32 @@ test code which demonstrates the errors. Submit this to the maintainers
 and when they agree that the error is real, go ahead to fix it (or get
 it fixed by the maintainers).
 
+Current status of |Qrhei| 
+-------------------------
+
+Tests (on Travis CI) and test coverage (on CodeCov):
+ 
+|Build Status| |Coverage|
+
+Documentation (on Readthedocs): 
+
+|DocBuild Status| 
+
+Licence:
+
+|License|  
+
+Development stage and version: 
+
+|Status| |Version| 
+
+Runs on:
+
+|PyVersions|
+
+
+Detailed Documentation
+----------------------
 
 Dive into |Qrhei|_ documentation below:
 
@@ -75,5 +101,17 @@ Indices and tables
 .. |Coverage| image:: https://img.shields.io/codecov/c/github/tmancal74/quantarhei.svg
    :target: https://codecov.io/gh/tmancal74/quantarhei
    
+.. |Version| image:: https://img.shields.io/pypi/v/quantarhei.svg
+
+.. |Status| image:: https://img.shields.io/pypi/status/quantarhei.svg
+
+.. |PyVersions| image:: https://img.shields.io/pypi/pyversions/quantarhei.svg
+  
+.. |License| image:: https://img.shields.io/pypi/l/quantarhei.svg
+ 
+.. |Forks| image:: https://img.shields.io/github/forks/badges/quantarhei.svg?style=social&label=Fork
+ 
+.. |Stars| image:: https://img.shields.io/github/stars/badges/quantarhei.svg?style=social&label=Stars
+ 
 .. |Qrhei| replace:: **Quantarhei**
 .. _Qrhei: http://github.com/tmancal74/quantarhei
