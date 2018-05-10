@@ -11,7 +11,10 @@ install:
     - pip install numpy
     - pip install matplotlib
     - pip install h5py
+    - pip install coverage
+    - pip install codecov
     
 script: 
     - paver
+    - codecov
     
