@@ -5,7 +5,6 @@ python:
 
 install:
     - pip install .
-    - pip install pytorch
     - pip install -r requirements.txt
     - pip install -r requirements_test.txt
     
