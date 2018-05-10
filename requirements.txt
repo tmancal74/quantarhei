@@ -1,5 +1,4 @@
 scipy
 numpy
-pytorch
 h5py
 matplotlib
