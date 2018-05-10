@@ -36,7 +36,7 @@ def aloe_tests_vs():
 
 @task
 def aloe_tests_v():
-    sh('aloe -v -a !in_development tests/bdd')
+    sh('aloe --with-coverage -v -a !in_development tests/bdd')
     #sh('aloe -v -a absorption tests/bdd')
     
 

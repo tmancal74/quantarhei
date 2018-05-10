@@ -1,7 +1,8 @@
 Get started with Quantarhei
 ===========================
 
-`Quantarhei` is Python package for calculations of molecular open quantum systems' dynamics. 
+|Qrhei|_ is a Python package for calculations of molecular open quantum systems'
+dynamics and spectroscopy. 
 
 
 Contents:
@@ -11,3 +12,6 @@ Contents:
 
    getstarted/intro
  
+
+.. |Qrhei| replace:: **Quantarhei**
+.. _Qrhei: http://github.com/tmancal74/quantarhei

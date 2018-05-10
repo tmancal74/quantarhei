@@ -5,14 +5,8 @@ python:
 
 install:
     - pip install .
-    - pip install paver
-    - pip install aloe
-    - pip install scipy
-    - pip install numpy
-    - pip install matplotlib
-    - pip install h5py
-    - pip install coverage
-    - pip install codecov
+    - pip install requirements.txt
+    - pip install requirements_test.txt
     
 script: 
     - paver
