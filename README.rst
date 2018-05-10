@@ -1,4 +1,4 @@
-|DocBuild Status| |Build Status|
+|Build Status| |DocBuild Status| |Coverage|
 
 QUANTArhei: Open Quantum System Theory for Molecular Systems 
 ============================================================
@@ -117,3 +117,5 @@ For developers:
    :target: https://travis-ci.com/tmancal74/quantarhei
    :alt: Build Status
  
+.. |Coverage| image:: https://img.shields.io/codecov/c/github/tmancal74/quantarhei.svg
+   :target: https://codecov.io/gh/tmancal74/quantarhei

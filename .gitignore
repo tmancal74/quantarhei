@@ -24,7 +24,7 @@ tempfile
 result_images
 qrconf.py
 docs/sphinx/_build/
-
-
+.coverage
+coverage.xml
 
 *.swp
