@@ -97,6 +97,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self._relaxation_theory = "" #
         
         self._built = False     #
+        self._diagonalized = False
         
         self.mult = 0                #
         self.sbi_mult = 0            #
@@ -2229,6 +2230,8 @@ class AggregateBase(UnitsManaged, Saveable):
         #print(dd2)
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
+        
+        self._diagonalized = True
         
 
     def _thermal_population(self, temp=0.0, subtract=None, 

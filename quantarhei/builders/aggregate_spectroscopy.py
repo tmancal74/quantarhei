@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+    Class comprising the aggregate methods for support of spectroscopic simulations
+
+
+
+    Class Details
+    -------------
+
+"""
 
 import numpy
 
@@ -8,8 +17,12 @@ from ..spectroscopy import diagramatics as diag
 import quantarhei as qr
 
 class AggregateSpectroscopy(AggregateBase):
+    """ Class comprising the aggregate methods for support of spectroscopic simulations
 
 
+    """
+    
+    
     ########################################################################
     #
     #   SPECTROSCOPY

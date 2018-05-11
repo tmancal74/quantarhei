@@ -9,5 +9,7 @@ descibed by the `Aggregate` class.
 
    aggregate/aggregate
    aggregate/aggregate_excitons
+   aggregate/aggregate_spectroscopy
+   aggregate/aggregate_base
    aggregate/testaggregate
    

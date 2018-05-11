@@ -11,7 +11,7 @@
     --------
     
     >>> import quantarhei as qr
-    >>> agg = qr.TestAggregate("dimer-2")
+    >>> agg = qr.TestAggregate("homodimer-2")
     >>> agg.set_coupling_by_dipole_dipole()
     >>> agg.build()
     >>> # create information about eigenstates of the aggregate (to call `diagonalize()` is crucial)
@@ -48,12 +48,28 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
     
     
     def get_expansion_squares(self, state=0):
-        """Returns the squares of expansion coefficients of an excitonic state
+        """Returns the squares of expansion coefficients of an excitonic state.
 
+        The Aggregate must be built and diagonalized. This output is used by
+        the `report_on_expansion()` method.
+        
         >>> import quantarhei as qr
-        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg = qr.TestAggregate("homodimer-2")
         >>> agg.set_coupling_by_dipole_dipole()
+        ...
+        ... # build and diagonalize
         >>> agg.build()  
+        >>> agg.diagonalize()
+        ...
+        ... # expansion coefficients 
+        >>> (indx, coefs, sqrs) = agg.get_expansion_squares(1) 
+        >>> print(indx)
+        [0, 1, 2]
+        >>> print(coefs)
+        [ 0.         -0.70710678  0.70710678]
+        >>> print(sqrs)
+        [ 0.   0.5  0.5]
+        
         
         """
         coefs = self.SS[:,state]
@@ -64,7 +80,38 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         
     def report_on_expansion(self, state=0, N=5):
         """Prints a short report on the composition of an exciton state
+
+        Parameters
+        ----------
         
+        state : int
+            Excitonic state of the aggregate
+            
+        N : int
+            Number of states in expansion to report
+            
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg.set_coupling_by_dipole_dipole()
+        ...
+        ... # build and diagonalize
+        >>> agg.build()  
+        >>> agg.diagonalize()
+        ...
+        >>> agg.report_on_expansion(1)
+        +-------+-----------------+-----------------+------------------+
+        | index | squares         | coefficients    | state signatures |
+        +-------+-----------------+-----------------+------------------+
+        | 1     | 0.909988477     | -0.953933161705 | ((1, 0), ())     |
+        | 2     | 0.0900115229999 | 0.300019204385  | ((0, 1), ())     |
+        | 0     | 0.0             | 0.0             | ((0, 0), ())     |
+        | 0     | -1.0            | 0.0             | ((0, 0), ())     |
+        | 0     | -1.0            | 0.0             | ((0, 0), ())     |
+        +-------+-----------------+-----------------+------------------+
+
         """
         try:
             from terminaltables import AsciiTable
@@ -95,7 +142,35 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         
         Inter site mixing ratio gives the probability that
         states ``state1`` and ``state2`` are localized
-        on different pigments.
+        on different pigments. This measure can be used to distinguish 
+        different types of coherence, e.g. vibrational from purely electronic.
+        
+        **Literature:** 
+        
+        |Cit1| available at |citlink|_
+        
+        .. |Cit1| replace:: Pavel Maly, Oscar J. G. Somsen, Vladimir I. \
+        Novoderezhkin, Tomas Mancal, and Rienk van Grondelle, *The Role \
+        of Resonant Vibrations in Electronic Energy Transfer*, ChemPhysChem \
+        2016, 17,1356–1368
+        
+        .. |citlink| replace:: DOI:10.1002/cphc.201500965 
+        .. _citlink: http://dx.doi.org/10.1002/cphc.201500965
+        
+         
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg.set_coupling_by_dipole_dipole()
+        ...
+        ... # build and diagonalize
+        >>> agg.build()  
+        >>> agg.diagonalize()
+
+        >>> agg.get_intersite_mixing(1,2)        
+        0.83618110254573219
         
         """
         ci = self.SS[:,state1]
@@ -115,10 +190,35 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
 
     def get_transition_dipole(self, state1=0, state2=0):
-        """Returns transition dipole moment between two state. 
-        
+        """Returns transition dipole moment between two state.
+ 
         If the second state is not specified, we get transition to the first
         state from the ground state.
+        
+        Parameters
+        ----------
+        
+        state1 : int
+            Starting state of the transition 
+            
+        state2 : int
+            Final states of the transition
+            
+        
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg.set_coupling_by_dipole_dipole()
+        ...
+        ... # build and diagonalize
+        >>> agg.build()  
+        >>> agg.diagonalize() 
+        ...
+        >>> agg.get_transition_dipole(0,1)
+        2.4802649722513967
+        
         
         """
         if self._diagonalized:
@@ -130,6 +230,33 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             
     def get_state_energy(self, state=0):
         """Return the energy of a state with a given index
+        
+        
+        Parameters
+        ----------
+        
+        state : int
+            Index of the state whose energy we ask for
+            
+        
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg.set_coupling_by_dipole_dipole()
+        ...
+        ... # build and diagonalize
+        >>> agg.build()  
+        >>> agg.diagonalize()
+        ...
+        >>> agg.get_state_energy(2)
+        2.3230946635838028
+        
+        >>> with qr.energy_units("1/cm"):
+        ...     agg.get_state_energy(2)
+        12332.931970548969
+        
         
         """
         if self._diagonalized:
@@ -150,11 +277,57 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             states start with an index different from 1.
             
         stop : int (default = None)
-            Where to stop the report. if Nono, all states are reported
+            Where to stop the report. if None, all states are reported
             
         Nrep : int (default = 5)
-            How many sites of the exciton decomposition we should list    
+            How many sites of the exciton decomposition we should list   
+            
+        Examples
+        --------
         
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg.set_coupling_by_dipole_dipole()
+        ...
+        ... # build and diagonalize
+        >>> agg.build()  
+        >>> agg.diagonalize()
+        ...
+        >>> agg.exciton_report()
+        Report on excitonic properties
+        ------------------------------
+        <BLANKLINE>
+        Exciton 1
+        =========
+        <BLANKLINE>
+        Transition energy        :  2.25417864498 1/cm
+        Transition dipole moment :  2.48026497225 D
+        +-------+-----------------+-----------------+------------------+
+        | index | squares         | coefficients    | state signatures |
+        +-------+-----------------+-----------------+------------------+
+        | 1     | 0.909988477     | -0.953933161705 | ((1, 0), ())     |
+        | 2     | 0.0900115229999 | 0.300019204385  | ((0, 1), ())     |
+        | 0     | 0.0             | 0.0             | ((0, 0), ())     |
+        | 0     | -1.0            | 0.0             | ((0, 0), ())     |
+        | 0     | -1.0            | 0.0             | ((0, 0), ())     |
+        +-------+-----------------+-----------------+------------------+
+        <BLANKLINE>
+        Exciton 2
+        =========
+        <BLANKLINE>
+        Transition energy        :  2.32309466358 1/cm
+        Transition dipole moment :  5.16973502775 D
+        +-------+-----------------+----------------+------------------+
+        | index | squares         | coefficients   | state signatures |
+        +-------+-----------------+----------------+------------------+
+        | 2     | 0.909988477     | 0.953933161705 | ((0, 1), ())     |
+        | 1     | 0.0900115229999 | 0.300019204385 | ((1, 0), ())     |
+        | 0     | 0.0             | 0.0            | ((0, 0), ())     |
+        | 0     | -1.0            | 0.0            | ((0, 0), ())     |
+        | 0     | -1.0            | 0.0            | ((0, 0), ())     |
+        +-------+-----------------+----------------+------------------+
+        <BLANKLINE>
+
         """
         
         start_at = start
@@ -203,6 +376,29 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
     # FIXME: move it somewhere else
     def get_state_signature_by_index(self, N):
         """Return aggregate vibronic state signature  by its index
+        
+        
+        Parameters
+        ----------
+        
+        N : int
+            Index of state (or site). Signatures make sense only for localized
+            states
+            
+            
+        Example
+        -------
+        
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg.set_coupling_by_dipole_dipole()
+        ...
+        ... # build and diagonalize
+        >>> agg.build()  
+        >>> agg.diagonalize()
+
+        >>> agg.get_state_signature_by_index(2)
+        ((0, 1), ())
         
         """
         return self.vibsigs[N]
