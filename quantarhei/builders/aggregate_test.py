@@ -19,7 +19,7 @@
         and transition dipole moments specified. No environment
         is defined.
         
-    dimer-2-env:
+    dimer-2-env :
         Dimer of two-level molecules, with positions in space and
         transition dipole moments specified. For each molecule
         we define energy gap correlation function (energy gao 
@@ -35,7 +35,7 @@ import numpy
 
 from .aggregates import Aggregate
 from .molecules import Molecule
-from .. import convert
+from ..core.units import convert
 from ..core.time import TimeAxis
 from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 from ..core.managers import energy_units 
@@ -72,6 +72,15 @@ class TestAggregate(Aggregate):
     """
     
     def __init__(self, name=None):
+        """ Some more doctests
+        
+        >>> TestAggregate()
+        Traceback (most recent call last):
+            ...
+        Exception: Aggregate name not specified
+        
+        
+        """
         
         if name is None:
             raise Exception("Aggregate name not specified")
@@ -108,6 +117,13 @@ class TestAggregate(Aggregate):
     
     def _molecules(self, N, nst):
         """Creates molecules to be filled into Aggregate
+        
+        Testing that None is returned for wrong arguments
+        
+        >>> tagg = TestAggregate("dimer-2")
+        >>> mols = tagg._molecules(3, 5)
+        >>> print(mols)
+        None
         
         """
         
@@ -147,3 +163,4 @@ class TestAggregate(Aggregate):
         else:
             
             return None
+        

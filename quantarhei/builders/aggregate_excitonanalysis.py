@@ -1,4 +1,39 @@
 # -*- coding: utf-8 -*-
+"""Class adding exciton analysis on molecular aggregates
+
+    Most of the present methods are available after the aggregate is
+    diagonalized by calling the ``diagonalize`` method.
+
+    **This class should not be used directly**. Use `Aggregate` class, which
+    inherits all the methods from here, instead.
+    
+    Examples
+    --------
+    
+    >>> import quantarhei as qr
+    >>> agg = qr.TestAggregate("dimer-2")
+    >>> agg.set_coupling_by_dipole_dipole()
+    >>> agg.build()
+    >>> # create information about eigenstates of the aggregate (to call `diagonalize()` is crucial)
+    >>> agg.diagonalize()
+    >>> #
+    >>> # Create a report on expantions of state with index `1`
+    >>> agg.report_on_expansion(1)
+    +-------+---------+-----------------+------------------+
+    | index | squares | coefficients    | state signatures |
+    +-------+---------+-----------------+------------------+
+    | 1     | 0.5     | -0.707106781187 | ((1, 0), ())     |
+    | 2     | 0.5     | 0.707106781187  | ((0, 1), ())     |
+    | 0     | 0.0     | 0.0             | ((0, 0), ())     |
+    | 0     | -1.0    | 0.0             | ((0, 0), ())     |
+    | 0     | -1.0    | 0.0             | ((0, 0), ())     |
+    +-------+---------+-----------------+------------------+
+    
+
+    Class Details
+    -------------
+
+"""
 import numpy
 
 from .aggregate_spectroscopy import AggregateSpectroscopy
@@ -7,8 +42,6 @@ import quantarhei as qr
 class AggregateExcitonAnalysis(AggregateSpectroscopy):
     """Class adding exciton analysis on molecular aggregates
     
-    Most of the present methods are available after the aggregate is
-    diagonalized by calling the ``diagonalize`` method.
     
     
     """

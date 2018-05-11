@@ -107,6 +107,7 @@ LOG_QUICK = 9
 from .builders.modes import Mode
 from .builders.molecules import Molecule
 from .builders.aggregates import Aggregate
+from .builders.aggregate_test import TestAggregate
 from .builders.pdb import PDBFile
 from .builders.disorder import Disorder
 

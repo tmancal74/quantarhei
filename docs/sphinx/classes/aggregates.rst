@@ -8,4 +8,6 @@ descibed by the `Aggregate` class.
    :maxdepth: 2
 
    aggregate/aggregate
+   aggregate/aggregate_excitons
    aggregate/testaggregate
+   
