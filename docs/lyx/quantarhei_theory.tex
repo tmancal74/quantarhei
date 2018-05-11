@@ -1,4 +1,4 @@
-%% LyX 2.1.4 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 2.2.2 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[oneside,english]{book}
 \usepackage[latin9]{inputenc}
@@ -10,70 +10,92 @@
 \usepackage{babel}
 \begin{document}
 
-\title{Open Quantum Systems Theory behind Quantarhei Package}
-
+\title{Open Quantum Systems Theory behind Quanta$\rho\varepsilon\iota$
+Package}
 
 \author{Tom\'{a}\v{s} Man\v{c}al}
-
 
 \date{\today}
 
 \maketitle
-
-\paragraph{In this document, we summarize the theory of open quantum systems
-as it is implemented in the Quantarhei package. Before it grows into
-a self-contained text, the following books should be consulted to
-gat a full picture: Volkhard May and Oliver Kühn, \emph{Charge and
-Energy Transfer in Molecular Systems}, Wiley-VCH, Berlin, 2000 (and
-later editions), Shaul Mukamel, \emph{Principles of Nonlinear Spectroscopy},
-Oxford University Press, Oxford, 1995 and Leonas Valkunas, Darius
-Abramavicius and Tom\'{a}\v{s} Man\v{c}al, \emph{Molecular Excitation
-Dynamics and Relaxation}, Wiley-VCH, Weinheim, 2013. }
-
 \tableofcontents{}
-
 
 \chapter{Introduction}
 
+This text presents a theoretical backbround for a Python software
+package Quanta$\rho\varepsilon\iota$ (see \verb$http://github.com/tmancal74/quantarhei$).
+
 Quanta$\rho\varepsilon\iota$ deals with the dynamics and spectroscopy
-of molecular systems. This is said mainly to stress that we are far
-away from the part of physics usually know as solid state physics
-or solid state theory. There is no prejudice or personal liking behind
-this. It is to say that there are huge differences in theoretical
-approaches to a problem of regular solid and small molecular aggregates.
-Many concepts discussed here do apply in solid state problems and
-many do not. It is a huge mistake to think that concepts that bare
-the same name are automatically transferable across the theoretical
-domains such as chemical physics and solid state physics.
+of molecular systems. This is said mainly to stress that this package
+is not intended to treat the part of physics usually know as solid
+state physics or solid state theory. There is no prejudice or personal
+(dis)liking behind this. It is to say that there are huge differences
+in theoretical approaches to a problem of regular solid and that of
+a small molecular aggregate. Many concepts discussed here do apply
+in solid state problems, and many do not. It is a huge mistake to
+think that concepts that bare the same name in two different branches
+of physics are automatically transferable between the two theoretical
+domains. This is definitely the case for fields such as chemical physics
+and solid state physics.
 
-We do not explain quantum mechanics itself here.
+In this text, we do not explain quantum mechanics itself. It is expected
+that the reader has a knowledge of quantum mechanics on the level
+of a completed undergraduate course. Any standard textbook of quantum
+mechanics will suffice for a start. This assumpltion will allow us
+to skip elementary introduction into concepts of quantum mechanics
+and we could concentrate on the question how these concepts are represented
+in Quanta$\rho\varepsilon\iota$.
 
+The following books should be consulted to get a fuller picture, especially
+if you want to use Quanta$\rho\varepsilon\iota$ before this text
+grows into a self-contained informal textbook: 
+\begin{itemize}
+\item Volkhard May and Oliver Kühn, \emph{Charge and Energy Transfer in
+Molecular Systems}, Wiley-VCH, Berlin, 2000 (and later editions)
+\item Shaul Mukamel, \emph{Principles of Nonlinear Spectroscopy}, Oxford
+University Press, Oxford, 1995
+\item Leonas Valkunas, Darius Abramavicius and Tom\'{a}\v{s} Man\v{c}al,
+\emph{Molecular Excitation Dynamics and Relaxation}, Wiley-VCH, Weinheim,
+2013. 
+\end{itemize}
 
 \chapter{Closed Quantum Systems}
 
+\paragraph{Concepts introduced in this chapter}
+\begin{itemize}
+\item Closed quantum system
+\item State vector
+\item Hamiltonian
+\item Schroedinger equation, evolution operator
+\item Hilbert space, representation in basis states
+\item Systems with many degrees of freedom
+\end{itemize}
 Quantum theory is build upon a concept of a closed quantum system\index{closed quantum system}.
-This is a necessary idealization which we need for a start. It would
-be, however, better to completely forget it once the concepts of quantum
-theory become somewhat more familiar. Later in this text, we will
-try to explain why.
+This is a necessary idealization which we need to start with. For
+the sake of interpretation of quantum mechanics, it would be better
+to completely forget about such an idealization once the main concepts
+of quantum theory become somewhat more familiar. All quantum systems,
+at the latest at the moment they are measured, are open quantum systems,
+and the only closed system is the whole universe.
+
+\section{Time Evolution of a State Vector}
 
 We describe those physical properties of a molecular (or atomic) system
 that are important for its dynamics by the so-called Hamiltonian\index{Hamiltonian}
 (or energy) operator $\hat{H}$. The state of the system is described
 by a state vector\index{state vector} $|\psi(t)\rangle$ which can
-be time dependent. All operators, not just the Hamiltonian can act
-of the state vector and change it
+be time dependent. All operators, not just the Hamiltonian, can act
+on the state vector and change it
 \begin{equation}
 |\phi\rangle=\hat{H}|\psi\rangle.\label{eq:H_on_psi}
 \end{equation}
-Eq. (\ref{eq:H_on_psi}) is not meant to descibe any physics. It is
-not like taking a tool and acting with it on a physical system. We
-mean acting in a matematical sense. We have a vector $|\psi\rangle,$
+Eq. (\ref{eq:H_on_psi}) is not yet meant to describe any physics.
+We mean acting in a matematical sense. We have a vector $|\psi\rangle,$
 and when we apply an operator $\hat{H}$ to it, we get a different
 vector. 
 
-The signature of the two vectors being different is the fact that
-their scalar product, once they are normalized, is not one. For all
+The signature of two vectors being different is the fact that their
+mutual scalar product, once they are normalized, is not one. For all
 state vectors we assume
 \begin{equation}
 \langle\psi(t)|\psi(t)\rangle=1,
@@ -81,9 +103,9 @@ state vectors we assume
 i.e. we assume that they are normalized to one. In general, if $|\psi\rangle$
 and $|\phi\rangle$ are two normalized state vectors, then
 \begin{equation}
-\langle\psi|\phi\rangle\leq1.
+\langle\psi|\phi\rangle\leq1,
 \end{equation}
-
+and the equality applies when the vectors are the same.
 
 In Quanta$\rho\varepsilon\iota$ the state vector is represented by
 the \verb$StateVector$\index{quantarhei.StateVector class} class,
@@ -91,8 +113,8 @@ and the Hamiltonian is correspondingly represented by the \verb$Hamiltonian$\ind
 class (see Quanta$\rho\varepsilon\iota$ documentation). 
 
 The time evolution of a closed quantum mechanical system is governed
-by the \index{Schroedinger equation}Sch\inputencoding{latin1}{r}\inputencoding{latin9}\"{o}dinger
-equation which reads
+by the \index{Schroedinger equation}Schr\"{o}dinger equation which
+reads
 \begin{equation}
 \frac{\partial}{\partial t}|\psi(t)\rangle=-\frac{i}{\hbar}\hat{H}|\psi(t)\rangle.
 \end{equation}
@@ -103,7 +125,7 @@ a given initial state $|\psi_{0}\rangle$.
 A very important quantity for formal manipulations in quantum mechanics
 is the so-called evolution operator\index{evolution operator}
 \begin{equation}
-U(t,t_{0})=\exp\left\{-\frac{i}{\hbar}\hat{H}(t-t_{0})\right\}.
+U(t,t_{0})=\exp\left\{ -\frac{i}{\hbar}\hat{H}(t-t_{0})\right\} .
 \end{equation}
 If at time $t=t_{0}$ we have $|\psi(t_{0})\rangle=|\psi_{0}\rangle$
 then 
@@ -111,7 +133,14 @@ then
 |\psi(t)\rangle=U(t,t_{0})|\psi_{0}\rangle.
 \end{equation}
 
-
+From the point of view of Quanta$\rho\varepsilon\iota$, the state
+vector $|\psi\rangle$ is a complex vector on a vector space with
+some limited number of dimensions. Similarly, operators such as $\hat{H}$
+are represented by matrices. The raw vectors corresponding to the
+$|\psi\rangle$ and raw matrices corresponding to $\hat{H}$ can be
+accessed trough the atribute \verb$data$ of the corresponding object
+in Quanta$\rho\varepsilon\iota$. Time dependent quantites have one
+additional index specifying time. 
 
 \section{Molecular Hamiltonian}
 
@@ -129,7 +158,6 @@ one can write
 \hat{H}_{{\rm mol}}=\epsilon_{g}|g\rangle\langle g|+\epsilon_{e}|e\rangle\langle e|.\label{eq:bare_2level}
 \end{equation}
 This is the simplest bare molecule of interest in Quanta$\rho\varepsilon\iota$. 
-
 
 \subsection{Molecule with a Single Vibrational Mode}
 
@@ -180,9 +208,8 @@ Similarly, we have
 The definitions we introduced here allow us for instance to rearange
 the Hamiltonian into a form
 \begin{equation}
-\hat{H}_{{\rm mol}}=\left(\epsilon_{g}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|g\rangle\langle g|+\left(\epsilon_{e}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|e\rangle\langle e|.
+\hat{H}_{{\rm mol}}=\left(\epsilon_{g}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|g\rangle\langle g|+\left(\epsilon_{e}+\sum_{n}n\hbar\omega|n\rangle\langle n|\right)|e\rangle\langle e|.\label{eq:Hem_el_1vib_equiv}
 \end{equation}
-
 
 If we do not insist on writing out the vibrational Hamiltonian using
 the vibrational eigenstates, we can as well write
@@ -192,6 +219,10 @@ the vibrational eigenstates, we can as well write
 This form of the vibrational Hamiltonian will enable us to introduce
 interaction between the two DOF is a very sensible manner.
 
+It is easy to see that if we prepare the molecular system described
+by the Hamiltonian, Eq. (\ref{eq:Ham_el_1vib}) or equivalently Eq.
+(\ref{eq:Hem_el_1vib_equiv}), in its excited state, it will stay
+there indefinetly. The state vector $|\psi\rangle$ can be 
 
 \section{Systems of More than One Molecule}
 \begin{verbatim}
@@ -199,7 +230,6 @@ interaction between the two DOF is a very sensible manner.
 \end{verbatim}
 
 \chapter{Bath Correlation Functions and Spectral Densities}
-
 
 \section{Bath Correlation Function}
 
@@ -226,7 +256,6 @@ so that
 \begin{equation}
 C(t)=C^{\prime}(t)+iC^{\prime\prime}(t)
 \end{equation}
-
 
 
 \section{Spectral Density}
@@ -269,13 +298,11 @@ J(\omega)=\sum_{\xi}|g_{\xi}|^{2}\delta(\omega-\omega_{\xi})
 \end{equation}
 
 
-
 \chapter{Standard Redfield Theory}
 
 In this section we define the \index{standard Redfield relaxation tensor}standard
 Redfield relaxation tensor in a form which is implemented in Quanta$\rho\epsilon\iota$.
 Our formulation is based on the reference {[}MayKuehn{]}
-
 
 \section{General Formula}
 
@@ -283,16 +310,13 @@ Our formulation is based on the reference {[}MayKuehn{]}
 K_{n}^{(I)}(-\tau)=U_{S}(\tau)K_{n}U_{S}^{\dagger}(\tau)
 \end{equation}
 
-
 \begin{equation}
 \Lambda_{m}=\sum_{n}\int\limits _{0}^{\infty}{\rm d}\tau\ C_{mn}(\tau)K_{n}^{(I)}(-\tau)
 \end{equation}
 
-
 \begin{equation}
 \frac{\partial}{\partial t}\rho(t)=-\frac{i}{\hbar}\left[H_{S},\rho(t)\right]_{-}-{\cal R}\rho(t)
 \end{equation}
-
 
 \[
 {\cal R}\rho(t)=-\frac{1}{\hbar^{2}}\sum_{m}\left(K_{m}\Lambda_{m}\rho(t)+\rho(t)\Lambda_{n}^{\dagger}K_{m}\right)
@@ -302,7 +326,6 @@ K_{n}^{(I)}(-\tau)=U_{S}(\tau)K_{n}U_{S}^{\dagger}(\tau)
 \begin{equation}
 +\frac{1}{\hbar^{2}}\sum_{m}\left(K_{m}\rho(t)\Lambda_{m}^{\dagger}+\Lambda_{m}\rho(t)K_{m}\right)
 \end{equation}
-
 
 
 \subsection{Relaxation rate}
@@ -350,9 +373,7 @@ and correspondingly
 \end{equation}
 
 
-
 \section{Analytical Results}
-
 
 \subsection{Homo-dimer}
 
@@ -360,7 +381,6 @@ The system-bath interaction operators are
 \begin{equation}
 K_{m}=|m\rangle\langle m|
 \end{equation}
-
 
 If both energy gap fluctuate with the same energy gap correlation
 function $C(t)$, and the fluctuations on individual sites are independent
@@ -387,18 +407,36 @@ K_{ab}=\frac{1}{2}\tilde{C}(\omega_{ba})=\frac{1}{2}\left(1+\coth\left(\frac{\om
 \end{equation}
 Given that for a homodimer $\omega_{12}=2J$ we have
 \begin{equation}
-K_{12}=\frac{1}{2}\tilde{C}(\omega_{21})=\frac{\lambda J}{2}\frac{1+\coth\left(\frac{J}{k_{B}T}\right)}{J{}^{2}\tau_{c}+\frac{\hbar^{2}}{4\tau_{c}}}.
+K_{12}=\frac{1}{2}\tilde{C}(\omega_{21})=\frac{\lambda J}{2}\frac{1+\coth\left(\frac{J}{k_{B}T}\right)}{J^{2}\tau_{c}+\frac{\hbar^{2}}{4\tau_{c}}}.
 \end{equation}
-
 
 This formula is used to test the calculations of Redfield rates and
 of the Redfield tensor in Quanta$\rho\epsilon\iota$.
 
-
 \subsection{Hetero-dimer}
 
-\appendix
+\chapter{Standard Förster Theory}
 
+\begin{equation}
+K_{AD}=|J|^{2}2{\rm Re}\int\limits _{0}^{\infty}{\rm d}t\ \underbrace{e^{-g_{A}(t)-i\omega_{A}t}}_{A(t)}e^{i\omega t}\underbrace{e^{-g_{D}^{*}(t)+i(\omega_{D}-2\lambda_{D})t}}_{F(t)}e^{i\omega t}.
+\end{equation}
+Absorption spectrum
+
+\begin{equation}
+\alpha(\omega)\approx\int\limits _{-\infty}^{\infty}{\rm d}t\ A(t)e^{i\omega t}=A(\omega)
+\end{equation}
+Fluorescence spectrum
+
+\begin{equation}
+f(\omega)\approx\int\limits _{-\infty}^{\infty}{\rm d}t\ F(t)e^{i\omega t}=F(\omega)
+\end{equation}
+Fourier transform
+
+\begin{equation}
+A(t)=\frac{1}{2\pi}\int\limits _{-\infty}^{\infty}{\rm d}\omega\ A(\omega)e^{-i\omega t}
+\end{equation}
+
+\appendix
 
 \chapter{Microscopic Derivation of Spectral Density Symmetries}
 

@@ -27,4 +27,8 @@ docs/sphinx/_build/
 .coverage
 coverage.xml
 
+quantarhei_theory/
+quantarhei_theory.pdf
+
+
 *.swp

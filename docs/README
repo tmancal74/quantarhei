@@ -1,4 +1,22 @@
-This directory contains Sphinx documentation and the documentation
+This directory contains Sphinx documentation and the lyx/latex documentation
 of the theory behind Quantarhei package.
 
+Subdirectories
+==============
+
+lyx
+---
+
+Use standard latex tools (dvisp, ps2pdf) to produce pdf file of the theory
+and latex2html to produce its html version. If all required tools
+are installed, you can use the Makefile present in the ./lyx directory.
+
+sphinxs
+-------
+
+Use sphinx tools to produce html documentation. If all tools are installed,
+this can be done using the existing Makefile.
  
+
+
+
