@@ -49,6 +49,11 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
     
     def get_expansion_squares(self, state=0):
         """Returns the squares of expansion coefficients of an excitonic state
+
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
+        >>> agg.set_coupling_by_dipole_dipole()
+        >>> agg.build()  
         
         """
         coefs = self.SS[:,state]
