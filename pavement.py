@@ -27,8 +27,10 @@ def unit_tests_v():
 @task
 def doc_tests_v():    
     sh('nosetests --with-coverage --with-doctest -vs quantarhei/core/')
+    sh('nosetests --with-coverage --with-doctest -vs quantarhei/builders/')
     sh('nosetests --with-coverage --with-doctest -vs quantarhei/qm/corfunctions')
     sh('nosetests --with-coverage --with-doctest -vs quantarhei/qm/propagators/poppropagator.py')
+    
     
 @task
 def aloe_tests_vs():
@@ -74,6 +76,7 @@ def pylint():
     path = 'quantarhei/qm/hilbertspace'
     r.set_path(path)
 #    r.un('statevector.py')
+    r.un('aggregate_test.py')
 
     path = 'quantarhei/qm/liouvillespace'
     r.set_path(path)

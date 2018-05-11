@@ -1,80 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    Quantarhei package (http://www.github.com/quantarhei)
-
-    correlationfunctions module
-
-
-"""
-
-import numpy
-import scipy.interpolate as interp
-
-from ...core.dfunction import DFunction
-from ...core.units import kB_intK
-from ...core.managers import UnitsManaged
-from ...core.managers import energy_units
-from ...core.time import TimeAxis
-from ...core.frequency import FrequencyAxis
-
-
-class CorrelationFunction(DFunction, UnitsManaged):
-    """Provides typical Bath correlation function types.
+    Provides typical Bath correlation function types.
 
     Most important types of bath or energy gap correlation functions are
     provided. Where possible, the correlation function is calculated
     from the parameters from analytical formulae. Where such formulae are
     not available, correlation function is calculated by transformation
     of the spectral density.
-
-    Parameters
-    ----------
-
-    axis : TimeAxis
-        TimeAxis object specifying the time interval on which the
-        correlation function is defined.
-
-    params : dictionary
-        A dictionary of the correlation function parameters
-
-    values : optional
-        Correlation function can be set by specifying values at all times
-
-    Methods
-    -------
-
-    is_analytical()
-        Returns `True` if the correlation function is calculated from an
-        analytical formula, `False` otherwise.
-
-    copy()
-        Returns a copy of the CorrelationFunction object
-
-    get_temperature()
-        Returns the temperature of the correlation function
-
-    get_reorganization_energy()
-        Returns the reorganization energy parameters of
-        the correlation function
-
-    measure_reorganization_energy()
-        Calculates reorganization energy from the shape of the correlation
-        function
-
-    get_FTCorrelationFunction()
-        Returns the Fourier transform of the correlation function
-
-    get_EvenFTCorrelationFunction()
-        Returns the Fourier transform of the real part of the correlation
-        function
-
-    get_OddFTCorrelationFunction()
-        Returns the Fourier transform of the imaginary part of the correlation
-        function
-
-    get_SpectralDensity()
-        Returns numerically calculated spectral density
-
 
     Types of correlation function provided
     --------------------------------------
@@ -106,6 +38,40 @@ class CorrelationFunction(DFunction, UnitsManaged):
     >>> lamb_measured = cf.measure_reorganization_energy()
     >>> print(numpy.allclose(lamb_definition, lamb_measured, rtol=1.0e-4))
     True
+
+    Details of Classes Provided
+    ---------------------------
+    
+"""
+
+import numpy
+import scipy.interpolate as interp
+
+from ...core.dfunction import DFunction
+from ...core.units import kB_intK
+from ...core.managers import UnitsManaged
+from ...core.managers import energy_units
+from ...core.time import TimeAxis
+from ...core.frequency import FrequencyAxis
+
+
+class CorrelationFunction(DFunction, UnitsManaged):
+    """Provides typical Bath correlation function types.
+
+
+    Parameters
+    ----------
+
+    axis : TimeAxis
+        TimeAxis object specifying the time interval on which the
+        correlation function is defined.
+
+    params : dictionary
+        A dictionary of the correlation function parameters
+
+    values : optional
+        Correlation function can be set by specifying values at all times
+
 
     """
 
@@ -626,6 +592,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         else:
             return False
 
+
     def is_analytical(self):
         """Returns `True` if analytical
 
@@ -643,11 +610,13 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """
         return self.temperature
 
+
     def get_reorganization_energy(self):
         """Returns the reorganization energy of the correlation function
 
         """
         return self.convert_energy_2_current_u(self.lamb)
+
 
     def measure_reorganization_energy(self):
         """Calculates the reorganization energy of the correlation function
@@ -691,8 +660,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 if numpy.all(numpy.isclose(fa.data, frequencies.data, 1e-5)):
                     time = ta
                 else:
-                    raise Exception('The provided FrequencyAxis does not have the\
-                                    same data as the Fourier transformed axis')
+                    raise Exception("The provided FrequencyAxis does not "
+                                    + "have the same data as the Fourier "
+                                    + "transformed axis")
 
             # FIXME: how to set the limit of SpectralDensity at w->0
             spectd = SpectralDensity(frequencies, self.params, values=vals)
@@ -711,6 +681,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             ftcf = FTCorrelationFunction(self.axis, self.params)
         return ftcf
 
+
     def get_OddFTCorrelationFunction(self):
         """Returns a odd part of the Fourier transform of correlation function
 
@@ -723,6 +694,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         with energy_units("int"):
             oftcf = OddFTCorrelationFunction(self.axis, self.params)
         return oftcf
+
 
     def get_EvenFTCorrelationFunction(self):
         """Returns a even part of the Fourier transform of correlation function

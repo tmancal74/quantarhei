@@ -60,7 +60,7 @@ Molecular Systems
    :maxdepth: 2
    
    classes/molecule
-   classes/aggregate   
+   classes/aggregates   
    
 Molecular Environment
 ---------------------

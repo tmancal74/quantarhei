@@ -1,4 +1,35 @@
 # -*- coding: utf-8 -*-
+"""
+    Class to support tests on Aggregate class
+
+    This class provides an easy access to a prefilled, but not initiallized
+    object of the Aggregate class. These can be used for testing and 
+    demonstration. There are several types of aggregates available, 
+    distinguished by the `name` argument of the constructor.
+        
+        
+    TestAggregates Provided 
+    -----------------------
+    
+    Below we list the valid values for the `name` argument of the TestAggregate
+    constructor:
+                
+    dimer-2 :
+        Dimer of two-level molecules, with positions in space
+        and transition dipole moments specified. No environment
+        is defined.
+        
+    dimer-2-env:
+        Dimer of two-level molecules, with positions in space and
+        transition dipole moments specified. For each molecule
+        we define energy gap correlation function (energy gao 
+        correlation functions on different sites are not correlated). 
+
+
+    Class Details
+    -------------
+
+"""
 
 import numpy
 
@@ -10,34 +41,37 @@ from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 from ..core.managers import energy_units 
 
 class TestAggregate(Aggregate):
+    """Class to support tests on Aggregate class
+    
+    
+    Parameters
+    ----------
+    
+    name : str
+        Name characterizing the test aggregate.
+        
+        
+    Examples
+    --------
+
+    Dimers
+    
+    >>> # Dimer of two-level systems 
+    >>> tagg = TestAggregate(name="dimer-2")
+    >>> tagg.build()
+    >>> tagg.has_SystemBathInteraction()
+    False
+
+    
+    >>> # Dimer of two-level systems with an environment
+    >>> tagg = TestAggregate(name="dimer-2-env")
+    >>> tagg.build()
+    >>> tagg.has_SystemBathInteraction()
+    True
+    
+    """
     
     def __init__(self, name=None):
-        """Class to support tests on Aggregate class
-        
-        
-        Parameters
-        ----------
-        
-        name : str
-            Name characterizing the test aggregate.
-            
-            
-        Names
-        -----
-            
-        dimer-2 :
-            Dimer of two-level molecules, with positions in space
-            and transition dipole moments specified. No environment
-            is defined.
-            
-        dimer-2-env:
-            Dimer of two-level molecules, with positions in space and
-            transition dipole moments specified. For each molecule
-            we define energy gap correlation function (energy gao 
-            correlation functions on different sites are not correlated). 
-            
-        
-        """
         
         if name is None:
             raise Exception("Aggregate name not specified")
@@ -73,6 +107,9 @@ class TestAggregate(Aggregate):
   
     
     def _molecules(self, N, nst):
+        """Creates molecules to be filled into Aggregate
+        
+        """
         
         if (N == 2) and (nst == 2):
             

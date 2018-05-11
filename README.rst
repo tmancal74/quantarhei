@@ -70,8 +70,8 @@ For users:
  - Many small improvements and bug fixes 
 
 For developers:
- - The code is now hosted on travis-ci.com and the builds are tested after every commit. Corresponding badge |Build Status|_ has been added to README
- - The code is now hosted on codecov.com and its coverage by tests is measured. Corresponding badge showing the coverage |Coverage|_ has beed added to README
+ - The code is now hosted on travis-ci.com and the builds are tested after every commit. Corresponding badge |Build Status| has been added to README
+ - The code is now hosted on codecov.com and its coverage by tests is measured. Corresponding badge showing the coverage |Coverage| has beed added to README
 
 
 New in 0.0.34

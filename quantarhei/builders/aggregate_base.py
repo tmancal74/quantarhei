@@ -2577,6 +2577,20 @@ class AggregateBase(UnitsManaged, Saveable):
         return (energy, trdipm)
 
 
+    def has_SystemBathInteraction(self):
+        """Returns True if the Aggregate is embedded in a defined environment
+        
+        """
+
+        # aggregate must be built before we call this method
+        if not self._built:
+            raise Exception()
+            
+        if (self.sbi is not None) and self._has_system_bath_interaction:
+            return True
+        
+        return False
+
     def get_SystemBathInteraction(self):
         """Returns the aggregate SystemBathInteraction object
         
