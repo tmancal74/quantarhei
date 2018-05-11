@@ -102,16 +102,13 @@ Indices and tables
    :target: https://codecov.io/gh/tmancal74/quantarhei
    
 .. |Version| image:: https://img.shields.io/pypi/v/quantarhei.svg
+   :target: https://pypi.org/project/quantarhei/
 
 .. |Status| image:: https://img.shields.io/pypi/status/quantarhei.svg
 
 .. |PyVersions| image:: https://img.shields.io/pypi/pyversions/quantarhei.svg
   
 .. |License| image:: https://img.shields.io/pypi/l/quantarhei.svg
- 
-.. |Forks| image:: https://img.shields.io/github/forks/badges/quantarhei.svg?style=social&label=Fork
- 
-.. |Stars| image:: https://img.shields.io/github/stars/badges/quantarhei.svg?style=social&label=Stars
  
 .. |Qrhei| replace:: **Quantarhei**
 .. _Qrhei: http://github.com/tmancal74/quantarhei
