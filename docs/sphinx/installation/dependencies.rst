@@ -10,6 +10,7 @@ you need the following Python packages.
 - `scipy`_
 - `pytorch`_
 - `matplotlib`_
+- `terminaltables`_
 - `h5py`_
 
 To develop Quantarhei, you need the following packages
@@ -31,5 +32,6 @@ To develop Quantarhei, you need the following packages
 .. _`aloe`: https://aloe.readthedocs.io
 .. _`coverage`: https://coverage.readthedocs.io
 .. _`codecov`: https://codecov.io
-.. _`matplotlib`: http
+.. _`matplotlib`: https://matplotlib.org
+.. _`terminaltables`: https://robpol86.github.io/terminaltables/
 
