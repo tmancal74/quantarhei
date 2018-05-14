@@ -3,7 +3,8 @@
 Quantarhei Installation
 =======================
 
-Quantarhei can be installed from source code, or via `pip` and `conda` commands. We recommend to install it using a scientific
+Quantarhei can be installed from source code, or via `pip` and `conda` 
+commands. We recommend to install it using a scientific
 Python package manager available from Anaconda_. Follow the instructions below.
 
 .. toctree::
