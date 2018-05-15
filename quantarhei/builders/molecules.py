@@ -418,10 +418,33 @@ class Molecule(UnitsManaged, Saveable):
     # Some getters and setters 
     #
     def get_Mode(self, N):
-        try:
-            return self.modes[N]
-        except:
-            raise Exception()
+        """Returns the Nth mode of the Molecule object
+        
+        
+        Parameters
+        ----------
+        
+        N : int
+            Index of the mode to be returned
+            
+            
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> mol = qr.TestMolecule("two-levels-1-mode")
+        >>> mod = mol.get_Mode(1)
+        Traceback (most recent call last):
+            ...
+        IndexError: list index out of range
+        
+        >>> mod = mol.get_Mode(0)
+        >>> mod.get_energy(1)
+        1.0
+        
+        """
+        
+        return self.modes[N]
 
    
     def get_number_of_modes(self):

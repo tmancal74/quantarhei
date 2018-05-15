@@ -9,5 +9,7 @@ completness of documentation.
 .. toctree::
    :maxdepth: 1
 
+   modes/mode
+   modes/submode
    aggregate/aggregate_excitons
    aggregate/testaggregate
