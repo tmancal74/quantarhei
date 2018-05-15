@@ -11,14 +11,14 @@ import unittest
 *******************************************************************************
 """
 import numpy
-import h5py
+#import h5py
 import copy
 
-from quantarhei.spectroscopy.abs2 import AbsSpectrumBase, AbsSpectrumContainer
+#from quantarhei.spectroscopy.absbase import AbsSpectrumBase
 from quantarhei import FrequencyAxis
 from quantarhei import energy_units
 
-from quantarhei import AbsSpectrum, AbsSpectrumCalculator
+from quantarhei import AbsSpectrum, AbsSpectrumCalculator, AbsSpectrumContainer
 from quantarhei import Molecule, Aggregate, CorrelationFunction, TimeAxis
 
 class TestAbs(unittest.TestCase):
@@ -29,7 +29,7 @@ class TestAbs(unittest.TestCase):
     
     def setUp(self,verbose=False):
         
-        abss = AbsSpectrumBase()
+        abss = AbsSpectrum()
         with energy_units("1/cm"):
             f = FrequencyAxis(10000.0,2000, 1.0)
             a = self._spectral_shape(f, [1.0, 11000.0, 100.0])
@@ -65,7 +65,7 @@ class TestAbs(unittest.TestCase):
         
     def _opt_spectral_shape(self, par):
         f = self.axis
-        a = AbsSpectrumBase(axis=f,data=self._spectral_shape(f, par))
+        a = AbsSpectrum(axis=f,data=self._spectral_shape(f, par))
         return a
     
     
@@ -74,7 +74,7 @@ class TestAbs(unittest.TestCase):
         
         """
         def reset_tester():
-            abss2 = AbsSpectrumBase()
+            abss2 = AbsSpectrum()
             abss2.set_axis(copy.deepcopy(self.abss.axis))
             abss2.set_data(copy.deepcopy(self.abss.data))
             return abss2

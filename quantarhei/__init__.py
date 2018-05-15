@@ -146,8 +146,8 @@ from .core.parallel import block_distributed_range
 # Linear absorption 
 #
 from .spectroscopy.abs2 import AbsSpectrum
-from .spectroscopy.abs2 import AbsSpectrumContainer
-from .spectroscopy.abs2 import AbsSpectrumCalculator
+from .spectroscopy.abscontainer import AbsSpectrumContainer
+from .spectroscopy.abscalculator import AbsSpectrumCalculator
 #
 # Fluorescence
 #

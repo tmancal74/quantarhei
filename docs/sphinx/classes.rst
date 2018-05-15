@@ -80,6 +80,16 @@ Quantum Mechanics
 
    classes/statevector
 
+Spectroscopy
+------------
 
+.. toctree::
+   :maxdepth: 2
+   
+   classes/spectroscopy/abs
+   classes/spectroscopy/twod
+   
+   
+   
    
  
