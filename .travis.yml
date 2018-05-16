@@ -10,5 +10,7 @@ install:
     
 script: 
     - paver
+   
+after_success:
     - codecov
-    
+
