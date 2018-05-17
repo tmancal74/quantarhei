@@ -768,10 +768,10 @@ class Molecule(UnitsManaged, Saveable):
         4
         
         >>> print(H.data)
-        [[0. 0. 0. 0.]
-         [0. 1. 0. 0.]
-         [0. 0. 1. 0.]
-         [0. 0. 0. 2.]]
+        [[ 0.  0.  0.  0.]
+         [ 0.  1.  0.  0.]
+         [ 0.  0.  1.  0.]
+         [ 0.  0.  0.  2.]]
         
         """
         # list of vibrational Hamiltonians

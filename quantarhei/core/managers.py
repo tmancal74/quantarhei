@@ -124,6 +124,13 @@ class Manager(metaclass=Singleton):
 
     def __init__(self):
         
+        try:
+            # this is numpy 1.14
+            numpy.set_printoptions(precision=8, legacy='1.13')
+        except:
+            # before there was no `sign` parameters
+            numpy.set_printoptions(precision=8)
+        
         self.current_units = {}
 
         # main configuration file

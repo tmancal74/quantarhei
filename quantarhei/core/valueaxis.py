@@ -1,3 +1,6 @@
+
+
+
 # -*- coding: utf-8 -*-
 """
     Linear array of values which are used as variables of numerical functions 
@@ -40,7 +43,7 @@
     The attribute `data` is an array of floats
 
     >>> print(va.data[3:5])
-    [3. 4.]
+    [ 3.  4.]
 
     Attributes `min` and `max` are provided for convenience
 
