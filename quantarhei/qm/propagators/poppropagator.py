@@ -133,8 +133,8 @@ class PopulationPropagator:
         >>> prop = PopulationPropagator(ta, rate_matrix=numpy.array(KK))
         >>> U = prop.get_PropagationMatrix(ts)
         >>> print(U[:,:,0])
-        [[ 1.  0.]
-         [ 0.  1.]]
+        [[1. 0.]
+         [0. 1.]]
         
         
         """

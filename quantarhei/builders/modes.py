@@ -331,8 +331,8 @@ class Mode(UnitsManaged, Saveable):
         >>> freq = mod.get_energy(1)
         >>> sft = mod.get_shift(1)
         >>> hr = (sft**2)/2.0
-        >>> print(hr)
-        1.0
+        >>> print("{0:.2f}".format(hr))
+        1.00
 
         Exception will be thrown if HR factor is set to the ground-state
         
@@ -505,8 +505,8 @@ class Mode(UnitsManaged, Saveable):
         0.0
 
         >>> mod.set_HR(1, 1.0)
-        >>> print(mod.get_HR(1))
-        1.0
+        >>> print("{0:.2f}".format(mod.get_HR(1)))
+        1.00
         
         >>> mod.get_HR(0)
         0.0

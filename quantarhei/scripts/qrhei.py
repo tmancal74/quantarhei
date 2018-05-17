@@ -13,8 +13,6 @@ import subprocess
 from pathlib import Path
 import os, sys
 
-from quantarhei import Manager
-
 import quantarhei as qr
 
     
@@ -68,7 +66,7 @@ def main():
                    +"MPI parallelization enabled: ", flag_parallel,
                     verbose=True, loglevel=0)
         if not args.version:
-            qr.printlog("Package version: ", Manager().version, "\n",
+            qr.printlog("Package version: ", qr.Manager().version, "\n",
                   verbose=True, loglevel=0)
         return
             
@@ -76,7 +74,7 @@ def main():
     # show just Quantarhei version number
     #
     if args.version:
-        qr.printlog("Quantarhei package version: ", Manager().version, "\n",
+        qr.printlog("Quantarhei package version: ", qr.Manager().version, "\n",
                   verbose=True, loglevel=0)
         return
     
@@ -229,7 +227,7 @@ def main():
     #
     if retval == 0:
         qr.printlog(" --- output above --- ", verbose=True, loglevel=0)
-        qr.printlog("Finshed sucessfully; exit code: ", retval,
+        qr.printlog("Finished sucessfully; exit code: ", retval,
                     verbose=True, loglevel=0)
     else:
         qr.printlog("Warning, exit code: ", retval, verbose=True, loglevel=0)

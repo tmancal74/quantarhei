@@ -565,8 +565,8 @@ class Molecule(UnitsManaged, Saveable):
         This methods reacts to the `energy_units` context manager
         
         >>> with qr.energy_units("1/cm"):
-        ...     mol.get_energy(1)
-        5308.8374588761453
+        ...     print("{0:.8f}".format(mol.get_energy(1)))
+        5308.83745888
         
         """
         try:
@@ -611,7 +611,7 @@ class Molecule(UnitsManaged, Saveable):
         self.elenergies[N] = self.convert_energy_2_internal_u(en)
         
             
-    def set_electronic_natural_lifetime(self,N,epsilon_r=1.0):
+    def set_electronic_natural_lifetime(self, N, epsilon_r=1.0):
         
         rate = 0.0
         eps = eps0_int*epsilon_r
@@ -643,7 +643,7 @@ class Molecule(UnitsManaged, Saveable):
             self._nat_lifetime[N] = numpy.inf   
             
             
-    def get_electronic_natural_lifetime(self,N,epsilon_r=1.0):
+    def get_electronic_natural_lifetime(self, N, epsilon_r=1.0):
         """Returns natural lifetime of a given electronic state
         
         """            
@@ -768,10 +768,10 @@ class Molecule(UnitsManaged, Saveable):
         4
         
         >>> print(H.data)
-        [[ 0.  0.  0.  0.]
-         [ 0.  1.  0.  0.]
-         [ 0.  0.  1.  0.]
-         [ 0.  0.  0.  2.]]
+        [[0. 0. 0. 0.]
+         [0. 1. 0. 0.]
+         [0. 0. 1. 0.]
+         [0. 0. 0. 2.]]
         
         """
         # list of vibrational Hamiltonians

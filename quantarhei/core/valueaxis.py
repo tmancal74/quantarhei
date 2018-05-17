@@ -40,7 +40,7 @@
     The attribute `data` is an array of floats
 
     >>> print(va.data[3:5])
-    [ 3.  4.]
+    [3. 4.]
 
     Attributes `min` and `max` are provided for convenience
 
@@ -55,7 +55,7 @@
     >>> i,diff = va.locate(16.3)
     >>> print(i)
     16
-    >>> print(diff)
+    >>> print("{0:.1f}".format(diff))
     0.3
 
     The following returns the nearest index on the axis

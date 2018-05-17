@@ -2,5 +2,6 @@ scipy
 numpy
 h5py
 matplotlib
-terminaltables
+terminaltables==3.1.0
+
 
