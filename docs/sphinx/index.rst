@@ -122,8 +122,9 @@ Dive into |Qrhei|_ documentation below:
    internals
    contribute
 
+
 Parts of Documentation Considered Complete
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 1

@@ -11,6 +11,8 @@ Python package manager available from Anaconda_. Follow the instructions below.
    :maxdepth: 2
 
    installation/sourcecode
+   installation/pip
+   installation/conda
    installation/dependencies
 
 
