@@ -15,71 +15,25 @@ import os, sys
 
 import quantarhei as qr
 
+def do_command_run(args):
+    """Runs a script 
     
-def main():
+    
+    """
+    
+    m = qr.Manager().log_conf
+    
+    m.verbosity = args.verbosity
 
-    parser = argparse.ArgumentParser(
-            description='Quantarhei Package Driver')
-    
-
-    parser.add_argument("script", metavar='script', type=str, 
-                        help='script file to be processed', nargs='?')    
-    parser.add_argument("-v", "--version", action="store_true",
-                        help="shows Quantarhei package version")
-    parser.add_argument("-i", "--info", action='store_true', 
-                        help="shows detailed information about Quantarhei"+
-                        " installation")
-    parser.add_argument("-s", "--silent", action='store_true', 
-                        help="no output from qrhei script itself")
-    parser.add_argument("-p", "--parallel", action='store_true', 
-                        help="executes the code in parallel")
-    parser.add_argument("-n", "--nprocesses", type=int, default=0,
-                        help="number of processes to start")
-    
-    parser.add_argument("-b", "--benchmark", type=int, default=0, 
-                        help="run one of the predefined benchmark"
-                        +"calculations")
-    
-    parser.add_argument("-y", "--verbosity", type=int, default=5, 
-                        help="defines verbosity between 0 and 10")
-    
-    args = parser.parse_args() 
-    
-    
     nprocesses = args.nprocesses
     flag_parallel = args.parallel
     flag_silent = args.silent
-
-    m = qr.Manager()
-    m.verbosity = args.verbosity
-        
-    if args.silent:
-        m.verbosity = 0        
-
-    #
-    # show longer info
-    #
-    if args.info:
-        qr.printlog("\n" 
-                   +"qrhei: Quantarhei Package Driver\n"
-                   +"\n"
-                   +"MPI parallelization enabled: ", flag_parallel,
-                    verbose=True, loglevel=0)
-        if not args.version:
-            qr.printlog("Package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=0)
-        return
-            
-    #
-    # show just Quantarhei version number
-    #
-    if args.version:
-        qr.printlog("Quantarhei package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=0)
-        return
     
+    if args.silent:
+        m.verbosity = 0
+        
     #
-    # run benchmark
+    # Run benchmark
     #
     if args.benchmark > 0:
         import time
@@ -94,70 +48,20 @@ def main():
                     loglevel=1)
         
         return
-        
-        
 
-    ###########################################################################    
-    #
-    # Running a script
-    #
-    ###########################################################################
     
     #
     # Script name
     # 
-    scr = args.script
+    if args.script:
+        scr = args.script[0]
 
     #
     # Greeting 
     #
     qr.printlog("Running Quantarhei (python) script file: ", scr,
                 verbose=True, loglevel=3)
-
-    #
-    # Setting environment to see shared libraries
-    #
-    shlibs = False
-    if shlibs:
         
-        # fix to get it work on Python 3.4 and earlier
-        if sys.version_info[1] > 4:
-            # home
-            home = str(Path.home())
-        else:
-            from os.path import expanduser
-            home = expanduser("~")
-        #home = str(Path.home())
-        slib_path = os.path.join(home,"lib")
-        
-        from sys import platform as _platform
-    
-        if _platform == "linux" or _platform == "linux2":
-            # linux
-            if not flag_silent:
-                print("Running on platform " +_platform+" (linux)")
-                print("Setting shared libraty path to: "+slib_path)
-            os.environ["LD_LIBRARY_PATH"]=slib_path
-            
-        elif _platform == "darwin":
-            # MAC OS X
-            if not flag_silent:
-                print("Running on platform " +_platform+" (macOS)")
-                print("Setting shared libraty path to: "+slib_path)
-            os.environ["DYLD_LIBRARY_PATH"]=slib_path
-            
-        elif _platform == "win32":
-            # Windows
-            print(_platform+" win32")
-            
-        elif _platform == "win64":
-            # Windows 64-bit
-            print(_platform+"  win64")
-            
-        else:
-            print(_platform+" unrecognized")
-            raise Exception("Unrecognized platform")
-    
     
     #
     # Run serial or parallel 
@@ -226,10 +130,174 @@ def main():
     # Saying good bye
     #
     if retval == 0:
+        qr.printlog("", verbose=True, loglevel=0)
         qr.printlog(" --- output above --- ", verbose=True, loglevel=0)
         qr.printlog("Finished sucessfully; exit code: ", retval,
                     verbose=True, loglevel=0)
     else:
         qr.printlog("Warning, exit code: ", retval, verbose=True, loglevel=0)
+        
+
+def do_command_test(args):
+    """Runs Quantarhei tests
+    
+    """
+    
+    qr.printlog("Running tests", loglevel=0)
+    
+
+def do_command_fetch(args):
+    """Fetches files for Quantarhei
+    
+    """
+    
+    qr.printlog("Fetching something ...", loglevel=0)
+
+   
+def do_command_list(args):
+    """Lists files for Quantarhei
+    
+    """
+    
+    qr.printlog("Listing something ...", loglevel=0)
+
+
+def do_command_config(args):
+    """Configures Quantarhei
+    
+    """
+    
+    qr.printlog("Setting configuration", loglevel=0)
+
+
+def do_command_report(args):
+    """Reports on Quantarhei and the system
+    
+    """
+    
+    qr.printlog("Probing system configuration", loglevel=0)
+
+    
+def main():
+    
+    
+    parser = argparse.ArgumentParser(
+            description='Quantarhei Package Driver')
+    
+    
+    subparsers = parser.add_subparsers(help="Subcommands")
+
+    
+    #
+    # Driver options
+    #
+    parser.add_argument("-v", "--version", action="store_true",
+                        help="shows Quantarhei package version")
+    parser.add_argument("-i", "--info", action='store_true', 
+                        help="shows detailed information about Quantarhei"+
+                        " installation")
+    parser.add_argument("-y", "--verbosity", type=int, default=5, 
+                        help="defines verbosity between 0 and 10")
+ 
+    
+    #
+    # Subparser for command `run`
+    #
+   
+    parser_run = subparsers.add_parser("run", help="Script runner")
+    
+    parser_run.add_argument("script", metavar='script', type=str, 
+                          help='script file to be processed', nargs=1)
+    parser_run.add_argument("-s", "--silent", action='store_true', 
+                          help="no output from qrhei script itself")
+    parser_run.add_argument("-p", "--parallel", action='store_true', 
+                          help="executes the code in parallel")
+    parser_run.add_argument("-n", "--nprocesses", type=int, default=0,
+                          help="number of processes to start")
+    parser_run.add_argument("-b", "--benchmark", type=int, default=0, 
+                          help="run one of the predefined benchmark"
+                          +"calculations")
+    
+    parser_run.set_defaults(func=do_command_run)
+    
+    #
+    # Subparser for command `test`
+    #
+
+    parser_test = subparsers.add_parser("test", help="Test runner")
+    
+    parser_test.set_defaults(func=do_command_test)    
+    
+    #
+    # Subparser for command `fetch`
+    #
+
+    parser_fetch = subparsers.add_parser("fetch", help="Fetches examples,"
+                                        +" benchmarks, tutorials, templates"
+                                        +" and configuration files")
+    
+    parser_fetch.set_defaults(func=do_command_fetch)    
+
+    #
+    # Subparser for command `list`
+    #
+
+    parser_list = subparsers.add_parser("list", help="Lists examples,"
+                                    +" benchmarks, tutorials and templates")
+    
+    parser_list.set_defaults(func=do_command_list)    
+
+    #
+    # Subparser for command `config`
+    #
+
+    parser_conf = subparsers.add_parser("config", help="Configures Quantarhei")
+    
+    parser_conf.set_defaults(func=do_command_config)    
+
+    #
+    # Subparser for command `report`
+    #
+
+    parser_report = subparsers.add_parser("report", help=
+                                "Probes Quantarhei as system configurations")
+    
+    parser_report.set_defaults(func=do_command_report)    
+    
+    #
+    # Parsing all arguments
+    #
+    args = parser.parse_args()       
+
+    #
+    # show longer info
+    #
+    if args.info:
+        qr.printlog("\n" 
+                   +"qrhei: Quantarhei Package Driver\n",
+                   verbose=True, loglevel=0)
+#                   +"\n"
+#                   +"MPI parallelization enabled: ", flag_parallel,
+#                    verbose=True, loglevel=0)
+        if not args.version:
+            qr.printlog("Package version: ", qr.Manager().version, "\n",
+                  verbose=True, loglevel=0)
+        return
+            
+    #
+    # show just Quantarhei version number
+    #
+    if args.version:
+        qr.printlog("Quantarhei package version: ", qr.Manager().version, "\n",
+                  verbose=True, loglevel=0)
+        return
+    
+        
+    try:      
+        if args.func:
+            args.func(args)
+    except:
+        parser.error("No arguments provided")
+
         
     
