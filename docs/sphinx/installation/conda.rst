@@ -25,8 +25,10 @@ Quantarhei package for your platform
 
 .. code:: bash
 
-    $ conda install quantarhei
+    $ conda install -c tmancal74 quantarhei 
     
+The `-c` option specifies the chanell from which Quantarhei is installed. The
+value `tmancal74` is here to stay for a foreseable future.
 The `conda` command will install all the dependencies of Quantarhei.
 
 

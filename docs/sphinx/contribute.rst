@@ -18,6 +18,7 @@ Contents:
    :maxdepth: 2
 
    contribute/github
+   qeps/qeps
 
  
 .. _`git`: https://git-scm.com
