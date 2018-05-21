@@ -33,13 +33,20 @@ studied, it becomes clear, how different the descriptions can be. Techniques
 and approximations suitable for descrition of transport phenomena in 
 solid state systems are very different than in molecular physics. 
 
+**Quantarhei aims at implementation and documentation of the shared know-how
+of the molecular open quantum systems community, which meets over the problems
+of the charge and energy transfer and spectroscopy of light-harvesting 
+molecular aggregates**. This know-how can be very useful outside this
+community, especially for studying other open quantum systems, but we are
+aware of the limits of our endever.
+
 Principles of Quantarhei
 ------------------------
 
 Subject of Quantarhei
 ~~~~~~~~~~~~~~~~~~~~~
 
-Acknowledging this diversity of sub-fields characterising open quantum
+Acknowledging the diversity of sub-fields characterising open quantum
 systems, the present software package - Quantarhei - has the word **molecular**
 inserted in its subtitle: *molecular open quantum systems simulator*. At 
 least for the foreseable future, it will concentrate only on the molecular
@@ -55,8 +62,8 @@ molecules can be assigned or calculated. The similarity between microscopic
 objects like molecules and the concept of object in programming leads to the
 second principle of Quantarhei philosophy:
 
-    2. **Quantarhei is object oriented. Basic objects
-       are molecules and their aggregates**
+    2. :ref:`Quantarhei is object oriented. Basic objects
+       are molecules and their aggregates <object-oriented-label>`
     
 Best examples of application of the open quantum systems theory implemented
 in Quantarhei come from the study of natural light-harvesting. Chlorophyll
@@ -80,7 +87,8 @@ the most convenient representation of our quantum mechanical problem. However,
 there is another principle at the basis of quantum mechanics, which makes it
 (with a litle extension) into the list of Quantarhei founding principles:
 
-    3. **Physics is basis independent, theories are not**
+    3. :ref:`Physics is basis independent, theories are not 
+    <basis-in-quantarhei-label>`
     
 This means that user should know in what basis she defines quantities,
 she should be given a freedom to choose a basis to work in,
@@ -124,7 +132,7 @@ body. It is clear that physics does not care about our units, but people need
 to pass the information among themselves using some predefined standards. 
 Quantarhei recoginzes this by its fourth principle: 
 
-    4. **Physics does not depend on units, numbers do**
+    4. :ref:`Physics does not depend on units, numbers do <units-label>`
     
 Quantarhei provides simple mechanisms for specifying and convering values
 in and out of various unit systems. Again, defining, reading, saving and
@@ -134,6 +142,11 @@ does not suffer. But as a user, you can specify and display the results in
 the units most comfortable for you.
 
 
+    5. :ref:`There is Quantum Mechanics deep down there <quantum-mechanics>`
+    
+    
+\... to be written
+    
 Transparency of Quantarhei's implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -144,7 +157,7 @@ produces are correct is through the community control. Quantarhei is an open
 source project so that everybody call check its internals and see how it
 works inside.
 
-    5. **Quantarhei is open source and transparent**
+    5. :ref:`Quantarhei is open source and transparent <transparency-label>`
     
 All Quantarhei's functionality is available in open source format, with 
 important numerical sections well separated from the more administrative
@@ -156,40 +169,57 @@ can check the correctness of implementation. To ensure that Quantarhei is
 completely transparent, we decided to have it written in Python using only
 standard scientific libraries such as numpy and scipy. The principle is
 
-    6. **Quantarhei is written in Python**
+    6. :ref:`Quantarhei is written in Python <why-python-label>`
 
-On the face of it, both the 6th and 7th principles would be too restrictive
+
+On the face of it, both the 5th and 6th principles would be too restrictive
 if applied strictly. Python, even with numpy, might not provide the best
 performace for many numerical problems. Being completely open source might
 also not always be the best practise. What if, in the future, a non open
 source library will be available for free (e.g. for non-profit community)
-for some of the desired functionality, with huge performace benefits. It 
+with some of the desired functionality, and with huge performace benefits. It 
 would be perhaps desirable to integrate it with Quantarhei. However, in order
 to keep the promis of transparency, it is required that an alternative
 (perhaps low performace) implementation of the functionality exists in 
 Quantarhei for both reasons of testing the functionality and perhaps
-pedagogical reasons. The seveth Quantarhei principle is
+pedagogical reasons. This requires too things, first non-Python extensions
+must be possible, and a mechanism for keeping the transparency must be
+provided. The seveth Quantarhei principle is
+
+    7. :ref:`Quantarhei is extensible <extensions-label>`
+
+Quantarhei provides a standardized mechanism for writting extensions.
+Different implementations should be allowed to *compete* for the same 
+functionality, i.e. the user should be able to select an implementation, if
+more than one are available. At the same time, we want that a simple
+Python implementation is always available so that people could install a 
+Python-only source distribution and play with it and its source code. 
+Therefore:
     
-    7. **Non-Python extensions must be coverred by a Python implementation**
+    8. :ref:`Non-Python extensions must be coverred by a Python implementation <non-python-label>`
     
-    
+Quantarhei does not want to prohibit its commercial use. If Quantarhei becomes
+a platform which can be used for industrial simulations, and provides would
+be motivated to sell high performace modules for Quantarhei, we (the 
+originators of this project) would be extremely happy about it.    
+
 \... to be continued
 
 Reproducibility of Simulations with Quantarhei
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    9. Simulation by Quantarhei are reproducible
+    
+    
+Teaching with Quantarhei
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+    10. Quantarhei is well documented with examples and templates available
+    
+    
 \... to be continued
     
 .. 
-    Molecular and aggregate objects in Quantarhei form the layer closest to the
-    user. Below this layer there is a layer describing quantum mechanics of the
-    problem. In quantum mechanics of open system we deal with operators and 
-    superoperators, which are very happy about being treated as objects. 
-    Especially, the fact that an abstract object is independent of its mathematical
-    representation (the basis of representation) is well represented by the 
-    idea of object in programming languages. 
-
-
     |Qrhei|_ is an object oriented library for writting Python scripts to simulate
     problems related to excited state dynamics and spectroscopy of molecular 
     systems. 
@@ -201,6 +231,15 @@ Some More Details of the Quantarhei Principles
     :maxdepth: 1
     
     details/molsys
+    details/object
+    details/basis
+    details/units
+    details/qm
+    details/transparency
+    details/python
+    details/extensions
+    details/non_python
+    
 
 .. |Qrhei| replace:: **Quantarhei**
 .. _Qrhei: http://github.com/tmancal74/quantarhei
