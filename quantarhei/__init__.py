@@ -177,6 +177,8 @@ from .spectroscopy.twod2 import MockTwoDSpectrumCalculator
 
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
+from .spectroscopy.labsetup import LabSetup
+
 ###############################################################################
 #                           QUANTUM MECHANICS
 ###############################################################################

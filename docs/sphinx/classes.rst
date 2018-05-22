@@ -88,6 +88,7 @@ Spectroscopy
    
    classes/spectroscopy/abs
    classes/spectroscopy/twod
+   classes/spectroscopy/labsetup
    
    
    

@@ -1,5 +1,5 @@
-QEP 0 — Quantarhei enhancement proposal
-=======================================
+QEP 0 --- Quantarhei enhancement proposal
+=========================================
 
 
 Author

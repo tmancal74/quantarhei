@@ -116,6 +116,7 @@ from .frequency import FrequencyAxis
 from .saveable import Saveable
 from .managers import Manager
 
+
 #FIXME Check the posibility to set a derivative of the spline at the edges
 #FIXME Enable vectorial arguments and values
 class DFunction(Saveable):
@@ -252,6 +253,7 @@ class DFunction(Saveable):
     def _after_load(self):
         self.manager = Manager()
 
+
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`
         
@@ -291,10 +293,37 @@ class DFunction(Saveable):
     #
     #
 
-    def _get_linear_approx(self, x):
+    def _get_linear_approx(self, x_in):
         """Returns linear interpolation of the function
 
         """
+        # FIXME: we need qr.FLOAT or more flexible, here
+        try:
+            ln = len(x_in)
+        except:
+            ln = 0
+        
+        if ln > 0:
+            val = numpy.zeros(len(x_in), dtype=numpy.float64)
+            k_i = 0
+            for x in x_in:
+#                n,dval = self.axis.locate(x)
+#                if n+1 >= self.axis.length:
+#                    val[k_i] = self.data[n] \
+#                    + dval/self.axis.step*(self.data[n]-self.data[n-1])
+#                else:
+#                    val[k_i] = self.data[n] \
+#                    + dval/self.axis.step*(self.data[n+1]-self.data[n])
+                val[k_i] = self._approx_point(x)
+                k_i += 1
+        else:
+            val = self._approx_point(x_in)
+            
+        return val
+
+
+    def _approx_point(self, x):
+        
         n,dval = self.axis.locate(x)
         if n+1 >= self.axis.length:
             val = self.data[n] \
@@ -302,9 +331,9 @@ class DFunction(Saveable):
         else:
             val = self.data[n] \
             + dval/self.axis.step*(self.data[n+1]-self.data[n])
-
         return val
-
+    
+        
     def _get_spline_approx(self, x):
         """Returns spline interpolation of the function
 
