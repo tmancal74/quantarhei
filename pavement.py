@@ -30,6 +30,7 @@ def doc_tests_v():
     sh('nosetests --with-coverage --with-doctest -vs quantarhei/builders/')
     sh('nosetests --with-coverage --with-doctest -vs quantarhei/qm/corfunctions')
     sh('nosetests --with-coverage --with-doctest -vs quantarhei/qm/propagators/poppropagator.py')
+    sh('nosetests --with-coverage --with-doctest -vs quantarhei/spectroscopy/')
     
     
 @task
@@ -104,7 +105,6 @@ def pylint():
 #       'doc_tests_v','aloe_tests_v') #, 'pylint')
 @needs('unit_tests_v',
        'doc_tests_v','aloe_tests_v') #, 'pylint')
-
 @task
 def default():
     pass
@@ -133,8 +133,8 @@ def windows():
 @task
 def dev():
    #sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
-   #sh('nosetests --with-coverage --with-doctest -vs quantarhei/builders/')
-   sh('nosetests --with-coverage --with-doctest -vs quantarhei/spectroscopy/')
+   #sh('nosetests --with-doctest -vs quantarhei/builders/')
+   sh('nosetests  --with-doctest -vs quantarhei/spectroscopy/')
    #sh('nosetests -vs tests/unit/builders/test_aggregates.py')
    #sh('nosetests -vs tests/unit/qm/corfunctions/cfmatrix_test.py')
    #sh('nosetests -vs tests/unit/qm/liouvillespace/test_systembathinteraction.py')
