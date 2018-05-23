@@ -2,7 +2,6 @@ from paver.tasks import task
 from paver.tasks import needs
 from paver.easy import sh
 
-
 """ 
     Particular tasks
 """
@@ -12,7 +11,7 @@ def matplotlib_tests():
 
 @task
 def examples():
-    sh('nosetests -vs tests/unit/wizard/examples/')
+    sh('nosetests  -vs tests/unit/wizard/examples/')
     
 @task
 def unit_tests_vs():
