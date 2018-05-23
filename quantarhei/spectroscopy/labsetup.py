@@ -127,7 +127,7 @@ class LabSetup:
         >>> lab = LabSetup()
         ... 
         >>> # Time axis around 0
-        >>> time = qr.TimeAxis(-500.0, 1000, 1.0)
+        >>> time = qr.TimeAxis(-500.0, 1000, 1.0, atype="complete")
 
         Gaussian pulse shape in time domain
         
@@ -148,7 +148,7 @@ class LabSetup:
             import matplotlib.pyplot as plt
             
             lab = qr.LabSetup()
-            time = qr.TimeAxis(-500.0, 1000, 1.0)
+            time = qr.TimeAxis(-500.0, 1000, 1.0, atype="complete")
             pulse2 = dict(ptype="Gaussian", FWHM=150.0, amplitude=1.0)
             params = (pulse2, pulse2, pulse2)
             lab.set_pulse_shapes(time, params)
@@ -254,12 +254,23 @@ class LabSetup:
             ...
         Exception: set_pulses requires 3 parameter sets
         
+
+        >>> params = (pulse2, pulse2)
+        >>> lab.set_pulse_shapes(time.data, params)
+        Traceback (most recent call last):
+            ...
+        Exception: Wrong axis paramater
         
         """
         
         if isinstance(axis, TimeAxis):
-            self.timeaxis = axis
-            self.axis_type = "time"
+            if axis.atype == "complete":
+                self.timeaxis = axis
+                self.axis_type = "time"
+            else:
+                raise Exception("TimeAxis has to be of 'complete' type"+
+                                " use atype='complete' as a parameter"+
+                                " of TimeAxis")
             
         elif isinstance(axis, FrequencyAxis):
             self.freqaxis = axis
@@ -337,6 +348,11 @@ class LabSetup:
                     raise Exception("Unknown pulse type")
                     
                 k_p += 1
+             
+            if self.axis_type == "time":
+                self.has_timedomain = True
+            elif self.axis_type == "frequency":
+                self.has_freqdomain = True
                 
         else:
             text = "set_pulses requires "+str(self.number_of_pulses) \
@@ -454,12 +470,104 @@ class LabSetup:
 
 
     def convert_to_time(self):
-        pass
+        """Converts pulse information from frequency domain to time domain
+        
+        
+        
+        Examples
+        --------
+        
+        
+        Situation in which excetions are thrown
+        
+        >>> lab = LabSetup()
+        >>> lab.convert_to_time()
+        Traceback (most recent call last):
+            ...
+        Exception: Cannot convert to time domain: frequency domain not set
+        
+        
+        """
+        if self.has_freqdomain:
+            
+            pass
+        
+        else:
+            raise Exception("Cannot convert to time domain: "+ 
+                            "frequency domain not set")
 
     
     def convert_to_frequency(self):
-        pass
+        """Converts pulse information from time domain to frequency domain
+        
+        
+        
+        Examples
+        --------
 
+        >>> import quantarhei as qr
+        >>> lab = LabSetup()
+        >>> time = qr.TimeAxis(-100,200,1.0, atype="complete")
+        >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
+        >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_shapes(time, params)
+        >>> lab.convert_to_frequency()
+        >>> # plot the original and the FT pulses
+        >>> pls_1f = lab.pulse_f[1]                      # doctest: +SKIP
+        >>> plt.plot(pls_1f.axis.data, pls_1f.data)      # doctest: +SKIP
+        >>> pls_1t = lab.pulse_t[1]                      # doctest: +SKIP
+        >>> plt.plot(pls_1t.axis.data, pls_1t.data)      # doctest: +SKIP
+        >>> plt.show()                                   # doctest: +SKIP
+        
+        .. plot::
+
+            import quantarhei as qr
+            import matplotlib.pyplot as plt
+            lab = qr.LabSetup()
+            time = qr.TimeAxis(-100,200,1.0, atype="complete")
+            pulse = dict(ptype="Gaussian", FWHM=5, amplitude=1.0)
+            params = (pulse, pulse, pulse)
+            lab.set_pulse_shapes(time, params)
+            lab.convert_to_frequency()
+            
+            pls_1f = lab.pulse_f[1]
+            plt.plot(pls_1f.axis.data, pls_1f.data)
+            pls_1t = lab.pulse_t[1]
+            plt.plot(pls_1t.axis.data, pls_1t.data)
+            plt.show()
+            
+        
+        Situation in which excetions are thrown
+        
+        >>> lab = LabSetup()
+        >>> lab.convert_to_frequency()
+        Traceback (most recent call last):
+            ...
+        Exception: Cannot convert to frequency domain: time domain not set
+        
+        
+        """
+        if self.has_timedomain:
+            
+            time = self.timeaxis
+            freq = time.get_FrequencyAxis()
+            
+            k_p = 0
+            for pulse in self.pulse_t:
+                ft_pulse = pulse.get_Fourier_transform()
+                # we replace the DFunction's axis attribute with the one
+                # calculated above; in time domain the pulses also share
+                # the same TimeAxis object
+                ft_pulse.axis = freq
+                self.pulse_f[k_p] = ft_pulse
+                k_p += 1
+            
+            self.has_freqdomain = True
+                
+        else:
+            raise Exception("Cannot convert to frequency domain: "+ 
+                            "time domain not set")
+        
     
     def get_pulse_envelop(self, k, t):
         """Returns a numpy array with the pulse time-domain envelope
@@ -480,7 +588,7 @@ class LabSetup:
 
         >>> import quantarhei as qr
         >>> lab = LabSetup()
-        >>> time = qr.TimeAxis(-100, 200, 1.0)
+        >>> time = qr.TimeAxis(-100, 200, 1.0, atype="complete")
         >>> pulse2 = dict(ptype="Gaussian", FWHM=30.0, amplitude=1.0)
         >>> params = (pulse2, pulse2, pulse2)
         >>> lab.set_pulse_shapes(time, params)
@@ -496,7 +604,7 @@ class LabSetup:
             import matplotlib.pyplot as plt
             
             lab = qr.LabSetup()
-            time = qr.TimeAxis(-500.0, 1000, 1.0)
+            time = qr.TimeAxis(-500.0, 1000, 1.0, atype="complete")
             pulse2 = dict(ptype="Gaussian", FWHM=150.0, amplitude=1.0)
             params = (pulse2, pulse2, pulse2)
             lab.set_pulse_shapes(time, params)
