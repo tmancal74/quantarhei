@@ -11,7 +11,7 @@ def matplotlib_tests():
 
 @task
 def examples():
-    sh('nosetests -vs tests/unit/wizard/examples/')
+    sh('nosetests  -vs tests/unit/wizard/examples/')
     
 @task
 def unit_tests_vs():
@@ -22,7 +22,7 @@ def doc_tests_vs():
 
 @task
 def unit_tests_v():
-    sh('nosetests --with-coverage -v tests/unit')
+    sh('nosetests  --with-coverage -v tests/unit')
     
 @task
 def doc_tests_v():    
@@ -134,7 +134,7 @@ def windows():
 def dev():
    #sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
    #sh('nosetests --with-doctest -vs quantarhei/builders/')
-   sh('nosetests  --with-doctest -vs quantarhei/spectroscopy/')
+   sh('nosetests   --with-doctest -vs quantarhei/spectroscopy/')
    #sh('nosetests -vs tests/unit/builders/test_aggregates.py')
    #sh('nosetests -vs tests/unit/qm/corfunctions/cfmatrix_test.py')
    #sh('nosetests -vs tests/unit/qm/liouvillespace/test_systembathinteraction.py')

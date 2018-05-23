@@ -26,9 +26,9 @@ Scenario Outline: Redfield rates for a small chain of molecules
     When I calculate aggregate Redfield relaxation tensor
     Then long time Redfield populations will correspond to canonical equilibrium with temperature <temp> K with atol <atol>
     Examples:
-       | temp | time_step | nsteps  | matsu  | atol   |
-       | 300  | 1.0       | 10000   | 100    |  0.01  |
-       | 200  | 1.0       | 10000   | 100    |  0.01  |
-       | 100  | 1.0       | 10000   | 100    |  0.01  |
-       | 50   | 1.0       | 10000   | 100    |  0.01  |
+       | temp | time_step | nsteps   | matsu  | atol   |
+       | 300  | 0.1       | 100000   | 100    |  0.01  |
+       | 200  | 0.1       | 100000   | 100    |  0.01  |
+       | 100  | 0.1       | 100000   | 100    |  0.01  |
+       | 50   | 1.0       | 10000    | 100    |  0.01  |
        
