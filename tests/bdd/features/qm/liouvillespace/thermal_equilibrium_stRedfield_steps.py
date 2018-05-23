@@ -43,21 +43,21 @@ Scenario Outline: Redfield rates for a small chain of molecules
 
 example_1 = """
     Examples:
-       | temp | time_step | nsteps  | matsu  | atol    |
-       | 300  | 0.1       | 100000  | 100    |  0.001  |
-       | 200  | 0.1       | 100000  | 100    |  0.001  |
-       | 100  | 0.1       | 150000  | 100    |  0.005  |
-       | 50   | 0.1       | 100000  | 200    |  0.01   |
+       | temp | time_step | nsteps | matsu  | atol   |
+       | 300  | 1.0       | 10000  | 100    |  0.01  |
+       | 200  | 1.0       | 10000  | 100    |  0.02  |
+       | 100  | 1.0       | 10000  | 100    |  0.02  |
+       | 50   | 1.0       | 10000  | 100    |  0.02  |
 
 """
 
 example_2 = """
     Examples:
-       | temp | time_step | nsteps   | matsu  | atol   |
-       | 300  | 0.1       | 100000   | 100    |  0.01  |
-       | 200  | 0.1       | 100000   | 100    |  0.01  |
-       | 100  | 0.1       | 100000   | 100    |  0.01  |
-       | 50   | 1.0       | 10000    | 100    |  0.01  |
+       | temp | time_step | nsteps  | matsu  | atol   |
+       | 300  | 1.0       | 10000   | 100    |  0.01  |
+       | 200  | 1.0       | 10000   | 100    |  0.01  |
+       | 100  | 1.0       | 10000   | 100    |  0.01  |
+       | 50   | 1.0       | 10000   | 100    |  0.01  |
        
 """
 
@@ -194,7 +194,6 @@ def thermal_population_comparison(self, temp, atol):
         print("\nExpected thermal population at ", temp, "K")
         rhoT = agg.get_DensityMatrix(condition_type="thermal_excited_state",
                                      temperature=world.temperature)
-        
         pop_T = numpy.zeros(world.N, dtype=numpy.float64)
         for i in range(world.N):
             pop_T[i] = numpy.real(rhoT.data[i,i])
@@ -203,9 +202,6 @@ def thermal_population_comparison(self, temp, atol):
         print("Final calculated population")
         rho0.data[world.N-1,world.N-1] = 1.0
         rho_t = world.prop.propagate(rho0)
-        
-        #rho_t.plot(coherences=False)        
-        
         pop_C = numpy.zeros(world.N, dtype=numpy.float64)
         for i in range(world.N):
             pop_C[i] = numpy.real(rho_t.data[world.time.length-1,i,i])
