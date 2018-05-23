@@ -304,7 +304,8 @@ class DFunction(Saveable):
             ln = 0
         
         if ln > 0:
-            val = numpy.zeros(len(x_in), dtype=numpy.float64)
+                
+            val = numpy.zeros(len(x_in), dtype=self.data.dtype)
             k_i = 0
             for x in x_in:
 #                n,dval = self.axis.locate(x)
@@ -324,7 +325,7 @@ class DFunction(Saveable):
 
     def _approx_point(self, x):
         
-        n,dval = self.axis.locate(x)
+        n, dval = self.axis.locate(x)
         if n+1 >= self.axis.length:
             val = self.data[n] \
             + dval/self.axis.step*(self.data[n]-self.data[n-1])

@@ -261,6 +261,13 @@ class LabSetup:
             ...
         Exception: Wrong axis paramater
         
+        >>> time = qr.TimeAxis(0.0, 1000, 1.0)
+        >>> lab.set_pulse_shapes(time, params)
+        Traceback (most recent call last):
+            ...
+        Exception: TimeAxis has to be of 'complete' type use atype='complete' as a parameter of TimeAxis
+
+        
         """
         
         if isinstance(axis, TimeAxis):
@@ -478,18 +485,19 @@ class LabSetup:
         --------
         
         >>> import quantarhei as qr
+        >>> import matplotlib.pyplot as plt
         >>> lab = LabSetup()
-        >>> freq = qr.FrequencyAxis(-100,200,1.0) # atype="complete" is default
+        >>> freq = qr.FrequencyAxis(-100, 200, 1.0) # atype="complete" is default
         >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
         >>> params = (pulse, pulse, pulse)
         >>> lab.set_pulse_shapes(freq, params)
         >>> lab.convert_to_time()
         >>> # plot the original and the FT pulses
-        >>> pls_1f = lab.pulse_f[1]                      # doctest: +SKIP
-        >>> plt.plot(pls_1f.axis.data, pls_1f.data)      # doctest: +SKIP
-        >>> pls_1t = lab.pulse_t[1]                      # doctest: +SKIP
-        >>> plt.plot(pls_1t.axis.data, pls_1t.data)      # doctest: +SKIP
-        >>> plt.show()                                   # doctest: +SKIP
+        >>> pls_1f = lab.pulse_f[1]                          # doctest: +SKIP
+        >>> p1 = plt.plot(pls_1f.axis.data, pls_1f.data)     # doctest: +SKIP
+        >>> pls_1t = lab.pulse_t[1]                          # doctest: +SKIP
+        >>> p2 = plt.plot(pls_1t.axis.data, pls_1t.data)     # doctest: +SKIP 
+        >>> plt.show()                                       # doctest: +SKIP
         
         .. plot::
 
@@ -508,6 +516,45 @@ class LabSetup:
             plt.plot(pls_1t.axis.data, pls_1t.data)
             plt.show()
 
+
+        Now we compare back and forth Fourier transform with the original
+
+        >>> import quantarhei as qr
+        >>> import numpy
+        >>> lab = LabSetup()
+        >>> freq = qr.FrequencyAxis(-100,200,1.0) # atype="complete" is default
+        >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
+        >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_shapes(freq, params)
+        >>> freq_vals_1 = lab.get_pulse_spectrum(2, freq.data)
+        >>> lab.convert_to_time()
+        
+        Here we override the original frequency domain definition
+        
+        >>> lab.convert_to_frequency()
+        >>> freq_vals_2 = lab.get_pulse_spectrum(2, freq.data)
+        >>> numpy.allclose(freq_vals_2, freq_vals_1)
+        True
+        
+        and now the other way round
+        
+        >>> import quantarhei as qr
+        >>> import numpy
+        >>> lab = LabSetup()
+        >>> time = qr.TimeAxis(-100,200,1.0, atype="complete")
+        >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
+        >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_shapes(time, params)  
+        >>> time_vals_1 = lab.get_pulse_envelop(2, time.data)
+        >>> lab.convert_to_frequency()        
+ 
+        Here we override the original time domain definition
+        
+        >>> lab.convert_to_time()
+        >>> time_vals_2 = lab.get_pulse_envelop(2, freq.data)
+        >>> numpy.allclose(time_vals_2, time_vals_1)
+        True
+        
         
         Situation in which excetions are thrown
         
@@ -534,6 +581,7 @@ class LabSetup:
                 self.pulse_t[k_p] = ft_pulse
                 k_p += 1
             
+            self.timeaxis = time
             self.has_timedomain = True
         
         else:
@@ -606,6 +654,7 @@ class LabSetup:
                 self.pulse_f[k_p] = ft_pulse
                 k_p += 1
             
+            self.freqaxis = freq
             self.has_freqdomain = True
                 
         else:
