@@ -434,7 +434,7 @@ class DFunction(Saveable):
             t = w.get_TimeAxis()
 
             Y = w.length*numpy.fft.fftshift(numpy.fft.ifft(
-                numpy.fft.fftshift(y)))*w.domega/(numpy.pi*2.0)
+                numpy.fft.fftshift(y)))*w.step/(numpy.pi*2.0)
 
             if w.atype == "complete":
 

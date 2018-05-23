@@ -477,6 +477,37 @@ class LabSetup:
         Examples
         --------
         
+        >>> import quantarhei as qr
+        >>> lab = LabSetup()
+        >>> freq = qr.FrequencyAxis(-100,200,1.0) # atype="complete" is default
+        >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
+        >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_shapes(freq, params)
+        >>> lab.convert_to_time()
+        >>> # plot the original and the FT pulses
+        >>> pls_1f = lab.pulse_f[1]                      # doctest: +SKIP
+        >>> plt.plot(pls_1f.axis.data, pls_1f.data)      # doctest: +SKIP
+        >>> pls_1t = lab.pulse_t[1]                      # doctest: +SKIP
+        >>> plt.plot(pls_1t.axis.data, pls_1t.data)      # doctest: +SKIP
+        >>> plt.show()                                   # doctest: +SKIP
+        
+        .. plot::
+
+            import quantarhei as qr
+            import matplotlib.pyplot as plt
+            lab = qr.LabSetup()
+            freq = qr.FrequencyAxis(-100,200,1.0)
+            pulse = dict(ptype="Gaussian", FWHM=5, amplitude=1.0)
+            params = (pulse, pulse, pulse)
+            lab.set_pulse_shapes(freq, params)
+            lab.convert_to_time()
+            
+            pls_1f = lab.pulse_f[1]
+            plt.plot(pls_1f.axis.data, pls_1f.data)
+            pls_1t = lab.pulse_t[1]
+            plt.plot(pls_1t.axis.data, pls_1t.data)
+            plt.show()
+
         
         Situation in which excetions are thrown
         
@@ -490,7 +521,20 @@ class LabSetup:
         """
         if self.has_freqdomain:
             
-            pass
+            freq = self.freqaxis
+            time = freq.get_TimeAxis()
+            
+            k_p = 0
+            for pulse in self.pulse_f:
+                ft_pulse = pulse.get_Fourier_transform()
+                # we replace the DFunction's axis attribute with the one
+                # calculated above; in time domain the pulses also share
+                # the same TimeAxis object
+                ft_pulse.axis = time
+                self.pulse_t[k_p] = ft_pulse
+                k_p += 1
+            
+            self.has_timedomain = True
         
         else:
             raise Exception("Cannot convert to time domain: "+ 
