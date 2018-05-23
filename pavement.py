@@ -22,7 +22,7 @@ def doc_tests_vs():
 
 @task
 def unit_tests_v():
-    sh('nosetests --with-coverage -v tests/unit')
+    sh('nosetests  --with-coverage -v tests/unit')
     
 @task
 def doc_tests_v():    
