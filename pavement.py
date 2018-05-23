@@ -22,13 +22,16 @@ def doc_tests_vs():
 
 @task
 def unit_tests_v():
-    sh('nosetests -v tests/unit')
+    sh('nosetests --with-coverage -v tests/unit')
     
 @task
 def doc_tests_v():    
-    sh('nosetests --with-doctest -vs quantarhei/core/')
-    sh('nosetests --with-doctest -vs quantarhei/qm/corfunctions')
-    sh('nosetests --with-doctest -vs quantarhei/qm/propagators/poppropagator.py')
+    sh('nosetests --with-coverage --with-doctest -vs quantarhei/core/')
+    sh('nosetests --with-coverage --with-doctest -vs quantarhei/builders/')
+    sh('nosetests --with-coverage --with-doctest -vs quantarhei/qm/corfunctions')
+    sh('nosetests --with-coverage --with-doctest -vs quantarhei/qm/propagators/poppropagator.py')
+    sh('nosetests --with-coverage --with-doctest -vs quantarhei/spectroscopy/')
+    
     
 @task
 def aloe_tests_vs():
@@ -36,7 +39,7 @@ def aloe_tests_vs():
 
 @task
 def aloe_tests_v():
-    sh('aloe -v -a !in_development tests/bdd')
+    sh('aloe --with-coverage -v -a !in_development tests/bdd')
     #sh('aloe -v -a absorption tests/bdd')
     
 
@@ -74,6 +77,7 @@ def pylint():
     path = 'quantarhei/qm/hilbertspace'
     r.set_path(path)
 #    r.un('statevector.py')
+    r.un('aggregate_test.py')
 
     path = 'quantarhei/qm/liouvillespace'
     r.set_path(path)
@@ -96,7 +100,10 @@ def pylint():
     Default 
 """
 
-@needs('matplotlib_tests', 'unit_tests_v',
+# Removing matplotlib tests because it does not work on remote travis CI
+#@needs('matplotlib_tests', 'unit_tests_v',
+#       'doc_tests_v','aloe_tests_v') #, 'pylint')
+@needs('unit_tests_v',
        'doc_tests_v','aloe_tests_v') #, 'pylint')
 @task
 def default():
@@ -125,6 +132,15 @@ def windows():
 
 @task
 def dev():
-   sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
-   sh('nosetests -vs tests/unit/builders/test_aggregates.py')
- 
+   #sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
+   #sh('nosetests --with-doctest -vs quantarhei/builders/')
+   sh('nosetests  --with-doctest -vs quantarhei/spectroscopy/')
+   #sh('nosetests -vs tests/unit/builders/test_aggregates.py')
+   #sh('nosetests -vs tests/unit/qm/corfunctions/cfmatrix_test.py')
+   #sh('nosetests -vs tests/unit/qm/liouvillespace/test_systembathinteraction.py')
+   #sh('nosetests -vs tests/unit/qm/liouvillespace/test_evolutionsuperoperator.py')
+   #sh('nosetests -vs tests/unit/qm/liouvillespace/test_lindblad.py')
+  
+@task
+def codecov():
+    sh('codecov --token=34f2053d-7aa9-4b0c-b776-92d852e597ca')

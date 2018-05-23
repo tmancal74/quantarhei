@@ -8,7 +8,7 @@ dist
 quantarhei.egg-info
 .DS_Store
 .coverage
-
+tempfile
 *~
 *.lyx~
 *.lyx#
@@ -23,7 +23,12 @@ quantarhei.egg-info
 .cache
 result_images
 qrconf.py
+docs/sphinx/_build/
+.coverage
+coverage.xml
 
+quantarhei_theory/
+quantarhei_theory.pdf
 
 
 *.swp

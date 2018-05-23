@@ -1,4 +1,74 @@
 # -*- coding: utf-8 -*-
+"""Multi-level molecule (monomer)
+
+    The molecule is defined by the vector of energies of its states
+    and by the transition dipole moments between allowed transitions.
+
+    >>> m = Molecule([0.0, 1.0], "Alphonso")
+    >>> print("Hi, my name is", m.get_name()+"!")
+    Hi, my name is Alphonso!
+
+
+    Information about the molecule can be obtained simply by printing it
+    
+    >>> print(m)
+    <BLANKLINE>
+    quantarhei.Molecule object
+    ==========================
+       name = Alphonso  
+       position = None
+       number of electronic states = 2
+       # State properties
+       State nr: 0 (ground state)
+          electronic energy = 0.0 1/fs
+          number of vibrational modes = 0
+    <BLANKLINE>
+       State nr: 1
+          electronic energy = 1.0 1/fs
+          transition 0 -> 1 
+          transition dipole moment = [0.0, 0.0, 0.0]
+          number of vibrational modes = 0
+    <BLANKLINE>
+
+    
+    >>> import quantarhei as qr
+    >>> mol = qr.TestMolecule("two-levels-1-mode")
+    >>> print(mol)
+    <BLANKLINE>
+    quantarhei.Molecule object
+    ==========================
+       name = two-levels-1-mode  
+       position = None
+       number of electronic states = 2
+       # State properties
+       State nr: 0 (ground state)
+          electronic energy = 0.0 1/fs
+          number of vibrational modes = 1
+          # Mode properties
+          mode no. = 0 
+             frequency = 1.0 1/fs
+             shift = 0.0
+             nmax = 2
+       State nr: 1
+          electronic energy = 1.0 1/fs
+          transition 0 -> 1 
+          transition dipole moment = [0.0, 0.0, 0.0]
+          number of vibrational modes = 1
+          # Mode properties
+          mode no. = 0 
+             frequency = 1.0 1/fs
+             shift = 0.0
+             nmax = 2
+    
+
+    Class Details
+    -------------
+    
+    
+
+"""
+
+
 import numpy
 
 from ..utils import array_property
@@ -34,35 +104,17 @@ import quantarhei as qr
 class Molecule(UnitsManaged, Saveable):
     """Multi-level molecule (monomer)
 
-    The molecule is defined by the vector of energies of its states
-    and by the transition dipole moments between allowed transitions.
-    
+
     Parameters
     ----------
     
     name : str
         Monomer descriptor; a string identifying the monomer
+
     elenergies : list of real numbers
         List of electronic energies, one per state. It includes ground state
         energy. It wise to chose the ground state energy as zero. 
 
-    Properties
-    ----------
-    
-    position : real array
-       3D vector holding a position of the molecule in space
-       
-    elenergies : real array
-       vector of electronic energies
-       
-    dmoments : real array
-       matrix of transition dipole moments. One vector of the transition
-       dipole moment for each pair of electronic states
-
-        
-    Methods
-    -------
-    ... to be continued
     
     """
     
@@ -73,7 +125,7 @@ class Molecule(UnitsManaged, Saveable):
     # transition dipole moments
     dmoments = array_property('dmoments')    
     
-    # number of electronic states
+    # number of electronic statesarray_property
     nel      = Integer('nel')
     # number of allowed transitions
     nal      = Integer('nal')
@@ -104,16 +156,16 @@ class Molecule(UnitsManaged, Saveable):
         
         
         
-        # FIXME: check the order of energies (increasing order has to be enforced)        
-        # no vibrational modes is a defauls
+        # FIXME: check the order of energies (increasing order has 
+        # to be enforced) no vibrational modes is a defauls
         self.nmod = 0
         self.modes = []  
         
         # allowed transitions are now only between the ground state and
-        # the rest of the excited states
+        # the rest of the excited states are dark
         self.allowed_transitions = []
          
-        
+        # transition dipole moments
         self.dmoments = numpy.zeros((self.nel,self.nel,3)) 
         
         # matrix of the transition widths
@@ -173,10 +225,31 @@ class Molecule(UnitsManaged, Saveable):
 
         
     def get_name(self):
+        """Returns the name of the molecule
+        
+        Examples
+        --------
+        
+        >>> m = Molecule([0.0, 1.0], name="Jane")
+        >>> m.get_name()
+        'Jane'
+        
+        """
         return self.name
 
         
     def set_name(self, name):
+        """Sets the name of the Molecule object
+        
+        Examples
+        --------
+        
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_name("Jane")
+        >>> print(m.get_name())
+        Jane
+        
+        """
         self.name = name
         
         
@@ -193,7 +266,7 @@ class Molecule(UnitsManaged, Saveable):
             A tuple describing a transition in the molecule, e.g. (0,1) is
             a transition from the ground state to the first excited state.
             
-        correlation_matrix : cu.oqs.correlationfunctions.CorrelationFunctionMatrix
+        correlation_matrix : CorrelationFunctionMatrix
             An instance of CorrelationFunctionMatrix
             
         position : int
@@ -276,8 +349,7 @@ class Molecule(UnitsManaged, Saveable):
                                            
             self._has_egcf[self.triangle.locate(transition[0],
                                                 transition[1])] = False
-                                                
-
+        
     #@deprecated
     def set_egcf(self, transition, egcf):
         self.set_transition_environment(transition, egcf)
@@ -301,7 +373,8 @@ class Molecule(UnitsManaged, Saveable):
                 return self.egcf_matrix.cfunc[iof]
 
         raise Exception("No environment set for the transition")   
-        
+
+   
     #@deprecated
     def get_egcf(self, transition): 
         
@@ -312,9 +385,29 @@ class Molecule(UnitsManaged, Saveable):
         return self.get_transition_environment(transition).data         
             
     
-    def add_Mode(self,mod):
-        """Adds a vibrational mode to the monomer"""
-        if isinstance(mod,Mode):
+    def add_Mode(self, mod):
+        """Adds a vibrational mode to the monomer
+        
+        Parameters
+        ----------
+        
+        mod : quantarhei.Mode
+            Intramolecular vibrational mode
+            
+            
+        Examples
+        --------
+        
+        >>> mode = qr.Mode()
+        >>> mol = Molecule([0.0, 2.0])
+        >>> print(mol.get_number_of_modes())
+        0
+        >>> mol.add_Mode(mode)
+        >>> print(mol.get_number_of_modes())
+        1
+        
+        """
+        if isinstance(mod, Mode):
             mod.set_Molecule(self)
             self.modes.append(mod)
             self.nmod += 1
@@ -325,17 +418,56 @@ class Molecule(UnitsManaged, Saveable):
     # Some getters and setters 
     #
     def get_Mode(self, N):
-        try:
-            return self.modes[N]
-        except:
-            raise Exception()
+        """Returns the Nth mode of the Molecule object
+        
+        
+        Parameters
+        ----------
+        
+        N : int
+            Index of the mode to be returned
             
+            
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> mol = qr.TestMolecule("two-levels-1-mode")
+        >>> mod = mol.get_Mode(1)
+        Traceback (most recent call last):
+            ...
+        IndexError: list index out of range
+        
+        >>> mod = mol.get_Mode(0)
+        >>> mod.get_energy(1)
+        1.0
+        
+        """
+        
+        return self.modes[N]
+
+   
     def get_number_of_modes(self):
         """Retruns the number of modes in this molecule
         
+        
+        Examples
+        --------
+        
+
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.get_number_of_modes()
+        0
+
+        >>> import quantarhei as qr
+        >>> m = qr.TestMolecule("two-levels-1-mode")
+        >>> m.get_number_of_modes()
+        1
+        
         """
         return len(self.modes)
-            
+
+        
     def get_dipole(self, N, M):
         try:
             return self.dmoments[N, M, :]
@@ -412,6 +544,31 @@ class Molecule(UnitsManaged, Saveable):
 
 
     def get_energy(self, N):
+        """Returns energy of the Nth state of the molecule
+        
+        
+        Parameters
+        ----------
+        
+        N : int
+            Index of the state
+            
+            
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> mol = qr.TestMolecule("two-levels-1-mode")
+        >>> mol.get_energy(1)
+        1.0
+        
+        This methods reacts to the `energy_units` context manager
+        
+        >>> with qr.energy_units("1/cm"):
+        ...     print("{0:.8f}".format(mol.get_energy(1)))
+        5308.83745888
+        
+        """
         try:
             return self.convert_energy_2_current_u(self.elenergies[N])
         except:
@@ -419,10 +576,42 @@ class Molecule(UnitsManaged, Saveable):
 
       
     def set_energy(self, N, en):
+        """Sets the energy of the Nth state of the molecule
+        
+        
+        Parameters
+        ----------
+        
+        N : int
+            Index of the state
+            
+        en : float
+            Energy to be assigned to the Nth state.
+            
+            
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> mol = qr.TestMolecule("two-levels-1-mode")
+        >>> mol.set_energy(1, 1.5)
+        >>> mol.get_energy(1)
+        1.5
+
+        This method reacts to the `energy_units` context manager
+
+        >>> import quantarhei as qr
+        >>> mol = qr.TestMolecule("two-levels-1-mode")
+        >>> with qr.energy_units("1/cm"):
+        ...     mol.set_energy(1, 5308.8374588761453)
+        >>> mol.get_energy(1)
+        1.0
+
+        """
         self.elenergies[N] = self.convert_energy_2_internal_u(en)
         
             
-    def set_electronic_natural_lifetime(self,N,epsilon_r=1.0):
+    def set_electronic_natural_lifetime(self, N, epsilon_r=1.0):
         
         rate = 0.0
         eps = eps0_int*epsilon_r
@@ -454,7 +643,7 @@ class Molecule(UnitsManaged, Saveable):
             self._nat_lifetime[N] = numpy.inf   
             
             
-    def get_electronic_natural_lifetime(self,N,epsilon_r=1.0):
+    def get_electronic_natural_lifetime(self, N, epsilon_r=1.0):
         """Returns natural lifetime of a given electronic state
         
         """            
@@ -491,8 +680,7 @@ class Molecule(UnitsManaged, Saveable):
             rdm = ReducedDensityMatrix(data=dat)
                 
         
-        return rdm
-        
+        return rdm        
         
         
     def get_temperature(self):
@@ -521,7 +709,6 @@ class Molecule(UnitsManaged, Saveable):
             
             raise Exception("Molecular environment has"+
             "an inconsisten temperature")
-
         
         
     def check_temperature_consistent(self):
@@ -530,7 +717,8 @@ class Molecule(UnitsManaged, Saveable):
         """
         #FIXME: implement the check
         return True
-        
+
+     
     def set_adiabatic_coupling(self,state1,state2,coupl):
         """Sets adiabatic coupling between two states
         
@@ -546,6 +734,7 @@ class Molecule(UnitsManaged, Saveable):
         self.adiabatic_coupling[self.triangle.locate(state1,state2)] = cp
         self._has_adiabatic[self.triangle.locate(state1,state2)] = True
 
+
     def get_adiabatic_coupling(self,state1,state2):
         """Returns adiabatic coupling between two states
         
@@ -553,8 +742,6 @@ class Molecule(UnitsManaged, Saveable):
         """
         return self.adiabatic_coupling[self.triangle.locate(state1,state2)]
         
-        
-
          
     def get_electronic_natural_linewidth(self,N):
         """Returns natural linewidth of a given electronic state
@@ -570,6 +757,21 @@ class Molecule(UnitsManaged, Saveable):
     def get_Hamiltonian(self):
         """Returns the Hamiltonian of the Molecule object
         
+        
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> mol = qr.TestMolecule("two-levels-1-mode")
+        >>> H = mol.get_Hamiltonian()
+        >>> print(H.dim)
+        4
+        
+        >>> print(H.data)
+        [[ 0.  0.  0.  0.]
+         [ 0.  1.  0.  0.]
+         [ 0.  0.  1.  0.]
+         [ 0.  0.  0.  2.]]
         
         """
         # list of vibrational Hamiltonians
@@ -645,7 +847,8 @@ class Molecule(UnitsManaged, Saveable):
                     if self._has_adiabatic[self.triangle.locate(i,j)]:
                         J = self.get_adiabatic_coupling(i,j)
                         hj = numpy.zeros((ldim[i],ldim[j]),dtype=numpy.float)
-                        # FIXME: this works only if the frequencies of the oscillators are the same
+                        # FIXME: this works only if the frequencies
+                        # of the oscillators are the same
                         for k in range(min([ldim[i],ldim[j]])):
                             hj[k,k] = J
                         ham[lb[i]:ub[i],lb[j]:ub[j]] = hj
@@ -692,8 +895,7 @@ class Molecule(UnitsManaged, Saveable):
         totdim = numpy.sum(ldim)
 
         return totdim, ldim        
-        
-        
+               
         
     def get_TransitionDipoleMoment(self):
 
@@ -759,7 +961,8 @@ class Molecule(UnitsManaged, Saveable):
                                               # the baths
                     else:
                         where[eg] = [(nob,nob)]
-                    # for each bath, save the state of the traprint(mols_c2)  nsition g -> j
+                    # for each bath, save the state of the traprint(mols_c2)
+                    # nsition g -> j
                     d[nob] = j
                         
                     nob += 1
@@ -805,8 +1008,7 @@ class Molecule(UnitsManaged, Saveable):
 #            for w in wr:
 #                char = d[w[0]]
 #                print("fce ",el, " is a bath no.", w[0]," of ",char)
-                
-            cfm.set_correlation_function(i+1,el,wr)
+            cfm.set_correlation_function(el,wr,i+1)
 
         #
         # System operators corresponding to the correlation functions
@@ -865,7 +1067,7 @@ class Molecule(UnitsManaged, Saveable):
         return SystemBathInteraction(sys_operators,cfm)
         
     
-    def set_mode_environment(self,mode=0,elstate=0,corfunc=None):
+    def set_mode_environment(self, mode=0, elstate=0, corfunc=None):
         """Sets mode environment 
         
         

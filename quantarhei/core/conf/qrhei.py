@@ -94,3 +94,9 @@ def configure(manager):
     conf.verbosity = 5 
     conf.verbose=True
 
+    ###########################################################################
+    # general configuration
+    ###########################################################################
+    conf = manager.gen_conf # DO NOT EDIT THIS LINE
+    ###########################################################################
+    conf.legacy_relaxation = False

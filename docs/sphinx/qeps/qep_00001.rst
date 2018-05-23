@@ -1,0 +1,161 @@
+QEP 0 --- Quantarhei enhancement proposal
+=========================================
+
+
+Author
+------
+Tomas Mancal
+
+Email: tmancal74@gmail.cz
+
+
+Status 
+------
+
+Created: 18-05-18
+
+Proposal is open
+
+
+Abstract
+--------
+
+Quantarhei Enhancement Proposal (QEP) is proposed as a mechanism for 
+steering Quantarhei development. 
+
+
+Rationale
+---------
+
+Quantarhei is a tool to help researchers simulate processes in molecular 
+open quantum systems. It is a scientific library with Python interface. 
+It is a Python scripting tool and an environment helping to achieve 
+reproducible and transparent simulations. It is also a very specific and 
+opiniated take on the theory of open quantum systems and spectroscopic 
+experiments done on them. It is a maintained open source project, which 
+welcomes help from outside. 
+
+To stress the maintanance point of the project, I propose a mechanism to 
+extend Quantarhei by new features in a collaboration between the main 
+maintainer and the user community. This mechanism, the Quantarhei enhancemet 
+proposal (QEP), will have the main maitainer in its center. The main 
+maintainer reserves the right to introduce new features without consultation 
+with the community, i.e. bypassing the QEP mechanism. It is the 
+responsibility of the maintainer to judge whether it is wise to do so and 
+at what stage of development it is approriate. 
+
+Each QEP is initiated by a document submitted to the main maintainer. 
+This document will be assigned a number and it will be made public. 
+The community will then have certain time to comment on the proposal, 
+suggest changes.
+
+After the discussion, the main maintainer accepts or rejects the proposal. 
+In the former case, new branch will be created in the Quantarhei repository 
+and developer(s) will be assigned to implement the feature according to the 
+consensus reached in the discussion phase. At suitable development phases, 
+code will be pulled from the developers to the QEP branch of the main 
+repository and after the completion, it will be pulled by the main maintainer 
+into the master branch of Quantarhei.
+
+At the stage of pulling to the master repository, the test coverage must be
+mearly 100 % and the tests must pass. When the new feature is released,
+the QEP will be closed.  
+
+
+
+Specification
+-------------
+
+This proposal does not involve any new code. The Specification section suggests
+the details of the proposal evaluation process. 
+
+1. Proposal submission
+~~~~~~~~~~~~~~~~~~~~~~
+
+Quantarhei provides a website with a template for the QEP. The proposee will
+fill in the details of the proposal according to the template and submit it
+via a form provided at the website.
+
+2. Pre-evaluation
+~~~~~~~~~~~~~~~~~
+
+The main maintainer will pre-evaluate the proposal and upon mutual agreement
+with the author, the propsal with optional revision from the main maintainer
+will be published on the Quantarhei's website. During publication, the proposal
+will be assigned a number which will never be changed.
+
+3. Community discussion phase
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A deadline will be set for
+the community to submit comments and request modifications to the propsal.
+During the discussion phase the original QEP will be modified, individuals 
+given this right by the main maintainer will be able to edit it. 
+The discussion phase will be closed after a reasonable deadline by the main
+maintainer.
+
+4. Decision Phase
+~~~~~~~~~~~~~~~~~
+
+The proposal will be accepted or rejected by the main maintainer. A QEP 
+maintainer will be assigned and a branch bearing the QEP number will be
+opened on the main repository, to which the maintainer will have access.
+
+5. Implementation phase
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Developers interested in implementing the proposal will clone the QEP branch
+from the main repository and send their pull requests to the QEP maintainer.
+The feature will be implemented according to the Implementation section of
+the QEP. If necessary, the original QEP will be modified. All changes to the
+QEP must be documented and highlighted so that they can be judged by the 
+main maintainer. All parts of the new code have to be tested, and near 100 %
+test coverage is required.
+
+6. Documentation
+~~~~~~~~~~~~~~~~
+
+The feature has to be reasonably documented. The main maintainer will not
+accept undocumented features, even if they pass tests.
+
+7. Acceptance phase
+~~~~~~~~~~~~~~~~~~~
+
+When the new feature is ready and tested in its branch a pull request is 
+submitted to the master branch. The main maintainer inspects the pull request
+and decides about its acceptance. When the pull request is accepted, 
+the feature will be a part of the next release of the package.
+
+8. Closing the QEP
+~~~~~~~~~~~~~~~~~~
+
+The QEP is closed when the feature is released with a new version of
+Quantarhei. From that point on, all changes to the new code will be handled
+as bug fixes, or by new QEPs. Information about the new feature
+
+Implementation
+--------------
+
+To implement the QEP, the following work has to be done.
+
+    1. Create a dedicated website quantarhei.org
+    2. Move Quantarhei to a new dedicated repository 
+        - github.com/quantarhei/quantarhei
+    3. Post QEP template on the website
+    4. Create forum for submission and discussion of QEP
+    5. Post Contribution guidelines (and Code of conduct)
+
+Backwards Compatibility
+-----------------------
+
+There are no compatibility issues known.
+
+Copyright
+---------
+
+This document has been placed in the public domain.
+
+References
+----------
+
+[1] Python PEPs Index, https://www.python.org/dev/peps/

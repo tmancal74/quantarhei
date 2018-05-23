@@ -106,7 +106,9 @@ LOG_QUICK = 9
 #
 from .builders.modes import Mode
 from .builders.molecules import Molecule
+from .builders.molecule_test import TestMolecule
 from .builders.aggregates import Aggregate
+from .builders.aggregate_test import TestAggregate
 from .builders.pdb import PDBFile
 from .builders.disorder import Disorder
 
@@ -144,9 +146,26 @@ from .core.parallel import block_distributed_range
 # Linear absorption 
 #
 from .spectroscopy.abs2 import AbsSpectrum
-from .spectroscopy.abs2 import AbsSpectrumContainer
-from .spectroscopy.abs2 import AbsSpectrumCalculator
-
+from .spectroscopy.abscontainer import AbsSpectrumContainer
+from .spectroscopy.abscalculator import AbsSpectrumCalculator
+#
+# Fluorescence
+#
+from .spectroscopy.fluorescence import FluorSpectrum
+from .spectroscopy.fluorescence import FluorSpectrumContainer
+from .spectroscopy.fluorescence import FluorSpectrumCalculator
+#
+# Linear dichroism
+#
+from .spectroscopy.linear_dichroism import LinDichSpectrum
+from .spectroscopy.linear_dichroism import LinDichSpectrumContainer
+from .spectroscopy.linear_dichroism import LinDichSpectrumCalculator
+#
+# Circular dichroism
+#
+from .spectroscopy.circular_dichroism import CircDichSpectrum
+from .spectroscopy.circular_dichroism import CircDichSpectrumContainer
+from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 # Fourier transform Two-Dimensional Spectra
 #
@@ -157,6 +176,8 @@ from .spectroscopy.twod2 import MockTwoDSpectrumCalculator
 
 
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
+
+from .spectroscopy.labsetup import LabSetup
 
 ###############################################################################
 #                           QUANTUM MECHANICS

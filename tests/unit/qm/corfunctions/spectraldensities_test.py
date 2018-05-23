@@ -26,7 +26,6 @@ class TestSpectralDensity(unittest.TestCase):
     
     
     """
-    pass
     
     def test_underdamped_brownian_oscillator(self):
         """Testing Underdamped Brownian oscillator spectral density

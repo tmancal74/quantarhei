@@ -56,6 +56,7 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
                 if i != j:                                
                             
                     RR[i,j] += (cc[k,i,j]*KK[i,j]*KK[j,i])
+                    
     
     # FIXME: parallelization ignores werror
     dc.allreduce(RR, operation="sum")        

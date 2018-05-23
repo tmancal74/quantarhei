@@ -87,7 +87,7 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def _initiate_storage(self):
-        """Initializes storage of functions when object is created or uodated
+        """Initializes storage of functions when object is created or updated
 
         """
         nob = self.nob
@@ -151,9 +151,50 @@ class CorrelationFunctionMatrix(Saveable):
             self.where[i] = save_where[i]
         self._cofts[0:nof+1,:] = save_cofts
 
+    
+    def _check_temperature_consistency(self):
+        """Checks if the temperature of all correlation functions is the same
+        
+        Checks that all correlation functions have temperature specified and 
+        that they are the same.
+        
+        
+        """
+        temp = -1.0
+        none_count = 0
+        for cf in self.cfuncs:
+            if cf is not None:
+                T = cf.get_temperature()
+                if temp < 0.0:
+                    temp = T
+                if T != temp:
+                    raise Exception("Temperature of "+
+                                "CorrelationFunctionMatrix is not consistent")
+            else:
+                none_count += 1
+
+        if none_count > 1:
+            raise Exception()
+            
+        return temp
+    
+
+    def get_temperature(self):
+        """Returns temperature of the system
+        
+        
+        Temperature is speficied in the correlation functions. It is returned
+        if it is the same for all correlation functions in the matrix. 
+        Otherwise, exception is thrown.
+        
+        
+        """
+        temp = self._check_temperature_consistency()
+        return temp
+    
 
     def get_correlation_function(self,n,m):
-        """Returns correlation function from the matrix
+        """Returns correlation function associated with sites n and m
 
         Parameters
         ----------
@@ -163,10 +204,12 @@ class CorrelationFunctionMatrix(Saveable):
         #return self.data[self.cpointer[n,m],:]
         return self.cfuncs[self.cpointer[n,m]]
 
+
     def get_reorganization_energy(self,n,m):
         """Returns reorganization energie in the site basis """
         #FIXME: should this should use _A2  ????
         return self.lambdas[self.cpointer[n,m]]
+
 
     def get_reorganization_energy4(self,a,b,c,d):
         """Returns reorganization energy in the transformed basis
@@ -185,8 +228,9 @@ class CorrelationFunctionMatrix(Saveable):
         else:
             raise Exception()
 
+
     def get_coft(self,n,m):
-        """Returns correlation function from the matrix
+        """Returns correlation function corresponding to two states n and m
 
         Parameters
         ----------
@@ -194,6 +238,7 @@ class CorrelationFunctionMatrix(Saveable):
             indices of the matrix
         """
         return self._cofts[self.cpointer[n,m],:]
+
 
     def get_hoft(self,n,m):
         """Returns first integral of the correlation function from the matrix
@@ -205,6 +250,7 @@ class CorrelationFunctionMatrix(Saveable):
         """
         return self._hofts[self.cpointer[n,m],:]
 
+
     def get_goft(self,n,m):
         """Returns the lineshape function from the matrix
 
@@ -215,6 +261,7 @@ class CorrelationFunctionMatrix(Saveable):
         """
         return self._gofts[self.cpointer[n,m],:]
 
+
     def get_coft4(self,a,b,c,d):
         if self._is_transformed:
             ret = numpy.zeros(self.timeAxis.length)
@@ -223,6 +270,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         else:
             raise Exception()
+
 
     def get_coft_matrix(self,t=None):
         """Returns full matrix of correlation functions
@@ -257,6 +305,7 @@ class CorrelationFunctionMatrix(Saveable):
         else:
             raise Exception()
 
+
     def get_hoft4(self,a,b,c,d):
         if self._is_transformed:
             ret = numpy.zeros(self.timeAxis.length)
@@ -265,6 +314,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         else:
             raise Exception()
+
 
     def get_hoft_matrix(self,t=None):
         """Returns full matrix of once integrated correlation functions
@@ -299,6 +349,7 @@ class CorrelationFunctionMatrix(Saveable):
         else:
             raise Exception()
 
+
     def get_goft4(self,a,b,c,d):
         if self._is_transformed:
             ret = numpy.zeros(self.timeAxis.length)
@@ -307,6 +358,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         else:
             raise Exception()
+
 
     def get_goft_matrix(self,t=None):
         """Returns full matrix of lineshape functions
@@ -370,13 +422,12 @@ class CorrelationFunctionMatrix(Saveable):
             # available index
             if iof is None:
                 iof = self.nof + 1
-
             while iof > self.nof:
                 self._update_nof_storage()
 
             if iof == 0:
                 raise Exception("Zeros correlation function is \
-                                reserved for an emty function.")
+                                reserved for an empty function.")
             if iof >= self.nof+1:
                 raise Exception("Index out of bounds")
 
@@ -388,6 +439,7 @@ class CorrelationFunctionMatrix(Saveable):
             if ic > self.max_cutoff_index:
                 self.max_cutoff_index = ic
 
+            # this sets also self._confs; this can undergo transformations
             self.data[iof,:] = fce.data
 
             self.lambdas[iof] = fce.lamb
@@ -406,6 +458,7 @@ class CorrelationFunctionMatrix(Saveable):
                 ret = i
 
         return ret
+
 
     def _update_where(self, iof, fce, where):
 

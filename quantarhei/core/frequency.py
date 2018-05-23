@@ -1,45 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-    Quantarhei package (http://www.github.com/quantarhei)
-
-    FrequencyAxis module
-
-
-"""
-import numpy
-
-from .valueaxis import ValueAxis
-from .managers import EnergyUnitsManaged
-from .managers import energy_units
-from ..utils.types import UnitsManagedRealArray
-from ..utils.types import UnitsManagedReal
-
-
-class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
-    """ Class representing frequency axis of calculations
-
-
-
-    Parameters
-    ----------
-    start : float
-        start of the FrequencyAxis
-
-    length : int
-        number of steps
-
-    step : float
-        time step
-
-    atype : string {"complete","upper-half"}
-        Axis type
-
-    Attributes
-    ----------
-    data : float array
-        Holds the values of frequency
-
-
+    Class representing frequency axis of calculations
+    
+    
     Examples
     --------
 
@@ -78,7 +41,6 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
     Traceback (most recent call last):
     ...
     Exception: Cannot create upper-half TimeAxis from an odd number of points
-
 
 
     Relation between TimeAxis and FrequencyAxis
@@ -152,6 +114,37 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
     >>> tb = wb.get_TimeAxis()
     >>> print(numpy.allclose(tb.data,times[5:10]))
     True
+
+    
+    Class Details
+    -------------
+
+"""
+import numpy
+
+from .valueaxis import ValueAxis
+from .managers import EnergyUnitsManaged
+from .managers import energy_units
+from ..utils.types import UnitsManagedRealArray
+from ..utils.types import UnitsManagedReal
+
+
+class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
+    """Class representing frequency axis of calculations 
+
+    Parameters
+    ----------
+    start : float
+        start of the FrequencyAxis
+
+    length : int
+        number of steps
+
+    step : float
+        time step
+
+    atype : string {"complete","upper-half"}
+        Axis type
 
     """
 

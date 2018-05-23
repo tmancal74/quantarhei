@@ -1,0 +1,7 @@
+scipy
+numpy
+h5py
+matplotlib
+terminaltables==3.1.0
+
+

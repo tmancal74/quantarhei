@@ -1,24 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
-import json
-import pkg_resources
-
-import numpy
-
-from .units import conversion_facs_frequency
-from .units import conversion_facs_energy
-from .units import conversion_facs_length
-
-from .singleton import Singleton
-
-from .numconf import NumConf
-from .logconf import LogConf
-from .genconf import GenConf
-
-class Manager(metaclass=Singleton):
-    """ Main package Manager
-
-
+"""
     This class handles several important package wide tasks:
 
     1) Usage of units across objects storing data
@@ -48,7 +29,48 @@ class Manager(metaclass=Singleton):
         
     units_repre_latex : dictionary
         dictionary of latex prepresentations of available units
+
+
+
+    Units Management
+    ----------------
+    Units management is performed for all classes derived from
+    quantarhei.managers.UnitsManaged class.
+
+
+    Basis Conversion Management
+    ---------------------------
+    Units management is performed for all classes derived from
+    quantarhei.managers.BasisManaged class.
+
+    Basis management works like this: when an class is defined, and its
+    property needs to be basis managed, one should use a predefined type
+    `basis_managed_array_property`
+
+
+
     
+
+"""
+import os
+import json
+import pkg_resources
+
+import numpy
+
+from .units import conversion_facs_frequency
+from .units import conversion_facs_energy
+from .units import conversion_facs_length
+
+from .singleton import Singleton
+
+from .numconf import NumConf
+from .logconf import LogConf
+from .genconf import GenConf
+
+class Manager(metaclass=Singleton):
+    """ Main package Manager
+
     """
     
 
@@ -101,6 +123,13 @@ class Manager(metaclass=Singleton):
                    "a.u.":"a.u."}                  
 
     def __init__(self):
+        
+        try:
+            # this is numpy 1.14
+            numpy.set_printoptions(precision=8, legacy='1.13')
+        except:
+            # before there was no `sign` parameters
+            numpy.set_printoptions(precision=8)
         
         self.current_units = {}
 
@@ -237,28 +266,34 @@ class Manager(metaclass=Singleton):
         #
         self.num_conf = NumConf()
         
-#        self.verbosity = 5
-#        self.log_on_screen = True
-#        self.log_to_file = False
-#        self.log_file_opened = False
-#        self.log_file_name = ""
-#        self.log_file = None
         
         self.log_conf = LogConf()
         
         self.use_pytorch = False
         self.use_gpu = False
-        
+
+
+        self.gen_conf = GenConf()        
         
         #
         # Read central configuration from ./quantarhei directory
         #
         
+         
         
-        self.gen_conf = GenConf()
         #
-        # Read local user configuration file
+        # Read local user config file (this will only be done on request)
         #
+        # self._read_uconf()
+        
+        
+        
+    def load_conf(self):
+        """Loads configuration file
+        
+        This is to be called in scripts and notebooks
+        
+        """
         self._read_uconf()
         
         
@@ -307,12 +342,16 @@ class Manager(metaclass=Singleton):
         """
         
         """
+        #print("Conf path: ", os.path.abspath(fpath))
         try:
             import importlib.util
             spec = importlib.util.spec_from_file_location("qrconf", fpath)
             foo = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(foo)        
+            spec.loader.exec_module(foo)    
+            #print("Configuring Manager:")
+            #print(self)
             foo.configure(self)
+            #print("..done")
         except:
             raise Exception()        
         
@@ -496,7 +535,7 @@ class Manager(metaclass=Singleton):
         """Convert energy from currently used units to internal units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -525,7 +564,7 @@ class Manager(metaclass=Singleton):
         """Converts energy from internal units to currently used units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -551,7 +590,7 @@ class Manager(metaclass=Singleton):
         """Converts frequency from currently used units to internal units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -564,7 +603,7 @@ class Manager(metaclass=Singleton):
         """Converts frequency from internal units to currently used units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -577,7 +616,7 @@ class Manager(metaclass=Singleton):
         """Converts length from currently used units to internal units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -590,7 +629,7 @@ class Manager(metaclass=Singleton):
         """Converts frequency from internal units to currently used units
         
         Parameters
-        ==========
+        ----------
 
         val : number, array, list, tuple of numbers
             values to convert            
@@ -721,26 +760,7 @@ class Manager(metaclass=Singleton):
 
 
 
-"""
 
-    Units Management
-    ----------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.UnitsManaged class.
-
-
-    Basis Conversion Management
-    ---------------------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.BasisManaged class.
-
-    Basis management works like this: when an class is defined, and its
-    property needs to be basis managed, one should use a predefined type
-    `basis_managed_array_property`
-
-
-
-"""
 
 
 

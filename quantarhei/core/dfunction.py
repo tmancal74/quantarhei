@@ -1,30 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    Quantarhei package (http://www.github.com/quantarhei)
-
-    dfucntion module
-
-
-"""
-import os
-
-import scipy.interpolate
-import numpy
-import numbers
-
-import matplotlib.pyplot as plt
-
-from .valueaxis import ValueAxis
-from .time import TimeAxis
-from .frequency import FrequencyAxis
-from .saveable import Saveable
-from .managers import Manager
-
-#FIXME Check the posibility to set a derivative of the spline at the edges
-#FIXME Enable vectorial arguments and values
-class DFunction(Saveable):
-    """
     Discrete function with interpolation
+    
+    User level function of the Quantarhei package. To be used as:
+        
+    >>> import quantarhei as qr   
+    >>> f = qr.DFunction()
 
     Discrete representation of a function with several modes of interpolation.
     Once defined, the function values are obtained by the method at(x), which
@@ -36,53 +17,6 @@ class DFunction(Saveable):
     approx="spline"), the default switches to "spline". You can always enforce
     the type of interpolation by specifying it explicitely by the `approx`
     argument.
-
-    Parameters
-    ----------
-
-    x : ValueAxis (such as TimeAxis, FrequencyAxis etc.)
-        Array of the values of the argument of the discrete function
-
-    y : numpy.ndarray
-        Array of the function values
-
-
-    Attributes
-    ----------
-
-    allowed_interp_types : tuple
-        Lists allowed interpolation types. Currently `default`, `linear`
-        and `spline`.
-
-    Methods
-    -------
-
-    at(x, approx="default")
-        Returns the value of the function at a given value of argument `x`. The
-        default interpolation is linear, until the spline interpolation is
-        initialized by calling the method with approx = "spline". From then
-        on, the default is spline.
-
-    get_Fourier_transform()
-        Returns a Fourier transformed DFunction
-
-
-    get_inverse_Fourier_transform()
-        Returns inverse Fourier transformed DFunction
-
-    plot()
-        Plots the function
-
-    save(filename, format="numpy")
-        Saves the function to a file. Allowed formats are "npy" and "dat".
-        In the former case ("npy" format) the filename is appended
-        an extension ".npy" and saved as a 2xN array (where N is the number
-        of points on the ValueAxis object of the DFunction. In the "dat"
-        mode, the 2xN array is saved as a textual file with 2 columns and
-        the length N.
-
-    load(filename, axis="time", ext=None, replace=False)
-        Loads the function from a file
 
 
     Examples
@@ -162,11 +96,47 @@ class DFunction(Saveable):
     (numpy.sin(13.2/10.0) + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))
     True
 
+
+    Class Details
+    -------------
+
+"""
+
+import os
+
+import scipy.interpolate
+import numpy
+import numbers
+
+import matplotlib.pyplot as plt
+
+from .valueaxis import ValueAxis
+from .time import TimeAxis
+from .frequency import FrequencyAxis
+from .saveable import Saveable
+from .managers import Manager
+
+
+#FIXME Check the posibility to set a derivative of the spline at the edges
+#FIXME Enable vectorial arguments and values
+class DFunction(Saveable):
+    """Discrete function with interpolation
+
+    Parameters
+    ----------
+
+    x : ValueAxis (such as TimeAxis, FrequencyAxis etc.)
+        Array of the values of the argument of the discrete function
+
+    y : numpy.ndarray
+        Array of the function values
+
     """
 
     allowed_interp_types = ("linear", "spline", "default")
 
     def __init__(self, x=None, y=None):
+
 
         self._has_imag = None
         self._is_empty = False
@@ -283,8 +253,14 @@ class DFunction(Saveable):
     def _after_load(self):
         self.manager = Manager()
 
+
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`
+        
+        Returns the value of the function at a given value of argument `x`. The
+        default interpolation is linear, until the spline interpolation is
+        initialized by calling the method with approx = "spline". From then
+        on, the default is spline.
 
         Parameters
         ----------
@@ -317,20 +293,48 @@ class DFunction(Saveable):
     #
     #
 
-    def _get_linear_approx(self, x):
+    def _get_linear_approx(self, x_in):
         """Returns linear interpolation of the function
 
         """
-        n,dval = self.axis.locate(x)
+        # FIXME: we need qr.FLOAT or more flexible, here
+        try:
+            ln = len(x_in)
+        except:
+            ln = 0
+        
+        if ln > 0:
+                
+            val = numpy.zeros(len(x_in), dtype=self.data.dtype)
+            k_i = 0
+            for x in x_in:
+#                n,dval = self.axis.locate(x)
+#                if n+1 >= self.axis.length:
+#                    val[k_i] = self.data[n] \
+#                    + dval/self.axis.step*(self.data[n]-self.data[n-1])
+#                else:
+#                    val[k_i] = self.data[n] \
+#                    + dval/self.axis.step*(self.data[n+1]-self.data[n])
+                val[k_i] = self._approx_point(x)
+                k_i += 1
+        else:
+            val = self._approx_point(x_in)
+            
+        return val
+
+
+    def _approx_point(self, x):
+        
+        n, dval = self.axis.locate(x)
         if n+1 >= self.axis.length:
             val = self.data[n] \
             + dval/self.axis.step*(self.data[n]-self.data[n-1])
         else:
             val = self.data[n] \
             + dval/self.axis.step*(self.data[n+1]-self.data[n])
-
         return val
-
+    
+        
     def _get_spline_approx(self, x):
         """Returns spline interpolation of the function
 
@@ -431,7 +435,7 @@ class DFunction(Saveable):
             t = w.get_TimeAxis()
 
             Y = w.length*numpy.fft.fftshift(numpy.fft.ifft(
-                numpy.fft.fftshift(y)))*w.domega/(numpy.pi*2.0)
+                numpy.fft.fftshift(y)))*w.step/(numpy.pi*2.0)
 
             if w.atype == "complete":
 
@@ -505,11 +509,15 @@ class DFunction(Saveable):
 
             elif t.atype == "upper-half":
 
-                # FIXME: this is a temporary fix - whole this part needs
+                # this is a temporary fix - whole this part needs
                 # rethinking
                 y = numpy.zeros(t.length,dtype=numpy.complex128)
-                y[0:t.length-1] = Y[t.length+1:2*t.length]
-                y[t.length-1] = 0.0
+                
+                # Vlada's suggestion
+                #y[0:t.length-1] = Y[t.length+1:2*t.length]
+                #y[t.length-1] = 0.0
+                
+                y[0:t.length] = Y[t.length:2*t.length]
                 F = DFunction(t, y)
 
             else:
@@ -533,12 +541,22 @@ class DFunction(Saveable):
              text_font=None,
              real_only=True,
              show=True,
-             color=None):
-        """Plotting of the DFunction's data against the ValueAxis
+             color=None, filename="ahoj.png"):
+        """Plotting of the DFunction's data against the ValueAxis.
+        
+        
+        Parameters
+        ----------
+        
+        title : str
+            Title of the plot
+            
+        title_font : str
+            Name of the title font
+            
 
         """
-
-
+        
         if color is not None:
             if len(color) == 1:
                 clr = [color, color]
@@ -601,6 +619,18 @@ class DFunction(Saveable):
 
         if show:
             plt.show()
+            
+            
+    def savefig(self, filename):
+        """Saves current figure into a file
+        
+        
+        """
+        
+        fig = plt.gcf()
+        fig.savefig(filename, bbox_inches='tight')
+        
+        
 
     def _fname_ext(self, filename, ext):
         """

@@ -1,21 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    Quantarhei package (http://www.github.com/quantarhei)
-
-    TimeAxis module
-
-
-"""
-import numpy
-
-from .valueaxis import ValueAxis
-from .managers import energy_units
-
-class TimeDependent:
-    pass
-
-class TimeAxis(ValueAxis):
-    """ Class representing time in time dependent calculations.
+    Class representing time in time dependent calculations.
+    
+    User level function of the Quantarhei package. To be used as:
+        
+    >>> import quantarhei as qr   
+    >>> time = qr.TimeAxis()
 
     The `TimeAxis` class stands in a close relation to `FrequencyAxis`
     class of the `quantarhei` package. `FrequencyAxis` represents the
@@ -30,27 +20,6 @@ class TimeAxis(ValueAxis):
     function which fulfills the relation (in LaTeX)
 
     C(-t) = C^{*}(t)
-
-
-    Parameters
-    ----------
-    start : float
-        start of the TimeAxis
-
-    length : int
-        number of steps
-
-    step : float
-        time step
-
-    atype : string {"complete","upper-half"}
-        Axis type
-
-    Attributes
-    ----------
-    data : float array
-        Holds the values of time, it is equivalent to the atribute
-        TimeAxis.time
 
 
     Examples
@@ -224,6 +193,41 @@ class TimeAxis(ValueAxis):
     >>> wb = tb.get_FrequencyAxis()
     >>> print(numpy.allclose(wb.data,freques))
     True
+
+
+    Class Details
+    -------------
+
+
+
+"""
+
+import numpy
+
+from .valueaxis import ValueAxis
+from .managers import energy_units
+
+class TimeDependent:
+    pass
+
+class TimeAxis(ValueAxis):
+    """ Class representing time in time dependent calculations.
+
+
+    Parameters
+    ----------
+    start : float
+        start of the TimeAxis
+
+    length : int
+        number of steps
+
+    step : float
+        time step
+
+    atype : string {"complete","upper-half"}
+        Axis type
+
 
     """
 
