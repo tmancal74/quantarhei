@@ -127,7 +127,7 @@ help:
 #
 # update from master branch of the quantarhei's main repository
 #
-git_merge_upstream:
+git_update_master:
 	git fetch upstream
 	git checkout master
 	git merge upstream/master
