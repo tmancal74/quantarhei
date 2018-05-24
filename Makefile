@@ -20,6 +20,8 @@ ANACONDA_BIN=anaconda3/bin
 PIP=${HOME}/${ANACONDA_BIN}/pip
 PYTHON=${HOME}/${ANACONDA_BIN}/python
 
+REPOSITORY=https://github.com/tmancal74/quantarhei
+
 all:
 
 ###########################
@@ -115,7 +117,7 @@ help:
 	@echo ""
 	@echo "Git tasks: "
 	@echo "----------"
-	@echo "add_upstream, sync_master"
+	@echo "git_add_upstream, git_merge_upstream"
 	@echo ""
 
 ############################################
@@ -125,7 +127,7 @@ help:
 #
 # update from master branch of the quantarhei's main repository
 #
-sync_master:
+git_merge_upstream:
 	git fetch upstream
 	git checkout master
 	git merge upstream/master
@@ -134,7 +136,7 @@ sync_master:
 #
 # connect a forked local repository to the main quantarhei repository	
 #
-add_upstream:
-	git remote add upstream http://github.com/tmancal74/quantarhei
+git_add_upstream:
+	git remote add upstream ${REPOSITORY}
 
 
