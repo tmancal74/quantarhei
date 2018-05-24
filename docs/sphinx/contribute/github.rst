@@ -85,13 +85,47 @@ command
     
 The package is now install on your system.
 
+You can now test the package by calling the local `Makefile`. Before you do
+that, install some packages on which the testing depends. The easiest way is
+to you the `requirements_test.txt` file in the root directory of the package:
 
+.. code:: bash
+
+    $ pip install -r requirements_test.txt
+    
+This will install all required packages. 
+
+The next step is to run the tests: 
+
+.. code:: bash
+
+    $ make test
+    
+It will take couple of minutes to finish, and it should end up with an `OK`.
+
+Configuring Git
+---------------
+
+In order for your repository to recognize you when you push in your changes,
+you need to configure the information Git has about you. Set your user name,
+and set your email (the one that is associated with your GitHub account)
+by the following commands
+
+.. code:: bash
+
+    $ git config --global user.name "Dobran Krasa"
+    $ git config --global user.email dobrank@gmail.com
+
+This should be enough to keep you well identified, when you push your changes
+to the on-line repository.
+
+\... to be continued
 
 Keeping track of remote changes
 -------------------------------
 
 If you plan to make changes to the sotware you just downloaded (by cloning the
-repository), you would like to receive update as a new work is added to the 
+repository), you would like to receive updates as new work is added to the 
 original repository. This can be easily done.
 
 \... to be continued
