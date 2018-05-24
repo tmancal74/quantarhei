@@ -126,12 +126,133 @@ Keeping track of remote changes
 
 If you plan to make changes to the sotware you just downloaded (by cloning the
 repository), you would like to receive updates as new work is added to the 
-original repository. This can be easily done.
+original repository. This can be easily done. In the `Makefile` which is
+included in the root directory of the package, there is a predefined 
+command which connects your local repository to the original on-line repository
+and allows you to do regular updates.
 
-\... to be continued
+First time you want to update, you need to type:
+
+.. code:: bash
+
+    $ make git_add_upstream
+    
+This will set the original on-line Quantarhei repository, where all the
+development converges as an `remote upstream` repository for your project.
+You can now do updates regularly using another task predefined in the Makefile:
+
+.. code:: bash
+
+    $ make git_update_master
+    
+This command merges all the changes from the master branch of the Quantarhei
+project into your master branch. It leaves you in the *master* branch. If you
+need to update the brach *my_branch* on which you work, do the following (it
+is assumed you do it right after the previous command):
+
+.. code:: bash
+
+    $ git checkout my_branch
+    $ git merge master
+    
+Now you are in your working branch *my_branch* and you are up-to-date. Do this
+regularly so that you avoid large changes to be made to your code form outside,
+which are more likely to lead to conflicts.
+
+Contributing to the code
+------------------------
+
+Now you are free to make any changes to the code you want. To contribute to
+Quantarhei for really, it is advisable to consult the :ref:`guidelines for 
+contributors <how-to-contribute>`, which are part of this documentation. Here,
+we concentrate only on the technical aspect of it.
+
+At this point it is worth to mention that there is plent of excellent 
+information about how to use Git on Internet and in books. If you mean your
+open source involvement seriously, go on and read a lot about Git. Here we
+only review basics.
+
+When you made changes to the code, you can see which files were changed by the 
+*status* subcommand of Git:
+
+.. code:: bash
+
+    $ git status
+    
+You may get the something similar to the following:
+
+.. code:: bash
+
+    On branch master
+    Your branch is up to date with 'origin/master'.
+    
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git checkout -- <file>..." to discard changes in working directory)
+    
+    	modified:   docs/sphinx/contribute/github.rst
+    
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+    
+    	docs/sphinx/contribute/howtocont.rst
+    
+    no changes added to commit (use "git add" and/or "git commit -a")
+
+Git informs you that there is one changed file and one new untracked file. You
+are advised to use `git add` command to include these files to the next commit,
+or to use `git commit -a`.  
+
+We will use the latter to record the changes you have made:
+
+.. code:: bash
+
+    $ git commit -a
+    
+Now the changes are commited, but in Git, everything is local. You changes 
+still only live locally on your computer. To push them to the on-line
+repository (to your private repository that you forked) you need to use the
+`push` subcommand of the Git:
+
+.. code:: bash
+
+    $ git push
+    
+This will communicate with the remote repository, and upload your changes.
+Git will open your favourite editor - if you did not configure the editor,
+be prepared to use `vi` (use ESC, : and wq! to save and leave after you
+wrote a commit message describing your changes).
+
+With your changes committed and pushed into repository you can perhaps run
+tests (may you should have done this before the commit), or simply continue
+working on your copy of Quantarhei. An important part of contributing is
+also :ref:`writting tests <write-tests>`, which is also described in this
+documentation. 
+
+
+Pull Requests
+-------------
+
+The final stage of your contribution is to push the code into the main 
+repository. This is something where the `Github website`_ can greatly 
+help you. Consult Github's `help on pull requests`_. When you open a
+pull request, you code will be reviewed and eventually (if it is good), 
+it will be pulled
+by the maintainer into the master branch of the Quantarhei repository.
+Acceptance of a pull request may be a long process. It is greatly helped
+by following advice of the :ref:`contribution guidelines <how-to-contribute>` 
+and by remembering that there is no acceptance of the code with out
+proper tests (which you are supposed to write with an advice of the
+corresponding :ref:`guidelines <write-tests>`.)
+
+When your pull request is accepted,
+you can enjoy seeing your code appearing with the next release of Quantarhei.
+
 
 
 .. _`github.com`: https://github.com/tmancal74/quantarhei
 .. _`Git`: https://git-scm.com
 .. _`Github website`: http://github.com
 .. _`project Github website`: https://github.com/tmancal74/quantarhei
+.. _`help on pull requests`: https://help.github.com/articles/about-pull-requests/
+

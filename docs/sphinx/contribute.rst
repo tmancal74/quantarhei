@@ -12,12 +12,22 @@ The full list of dependencies of Quantarhei on external libraries can be found
 :ref:`here <dependencies-label>`. Consult the installation documentation in 
 Section :ref:`installation-label`.
 
-Contents:
+Here you find information about several aspects of contributing code to
+Quantarhei:
 
 .. toctree::
    :maxdepth: 2
 
    contribute/github
+   contribute/howtocont
+   contribute/writetests
+
+Quantarhei Enhancement Proposals
+--------------------------------
+
+.. toctree::
+   :maxdepth: 2
+     
    qeps/qeps
 
  
