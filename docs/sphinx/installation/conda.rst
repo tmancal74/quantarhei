@@ -16,6 +16,34 @@ As a first step, install the Anaconda distribution of Python. Download and
 installation instructions for all major platforms can be found on the
 Anaconda_ website.
 
+Make sure that you really run Python installed with Anaconda. On some systems,
+notably on some Linuxes, Python will already be installed when you first
+log in. It might however by Python 2. Try the following command on command
+line
+
+.. code:: bash
+
+    $ python --version
+    
+You should see something like this
+
+.. code:: bash
+
+    Python 3.6.4 :: Anaconda, Inc.
+    
+    
+**OpenSuSE note**: When installing, Anaconda asks whether it can prepend its
+$HOME/anaconda3/bin path to the $PATH variable in your `.bashrc` file. 
+Only in this case you propertly get Anaconda Python called when typing `python`
+on the command line. On (at least one version of) OpenSuSE, this leads to
+X-Windows not loading after you re-log in. In this case, it is recommended not
+to prepend the path to Anaconda Python in .bashrc, but only top do it by 
+hand when you first open the terminal:
+
+.. code:: bash
+
+    $ export PATH=$HOME/anaconda3/bin:$PATH 
+
 
 2. Installation using `conda` command
 -------------------------------------
