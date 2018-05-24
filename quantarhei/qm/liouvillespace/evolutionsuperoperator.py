@@ -35,52 +35,11 @@ from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.time import TimeAxis
 from ...core.saveable import Saveable
+from .superoperator import SuperOperator
 
 import quantarhei as qr
 
-# FIXME: This class should be a base class for Relaxation tensors
-class SuperOperator:
-    """Class representing superoperators
-    
-    
-    This class represents operators on the space of Hilbert space operators.
-    Usually, we refer to such operators as superoperators. 
-    
-    Parameters
-    ----------
-    
-    dim : int
-        Dimension of the superoperator
-        
-    data : array
-        Data of the superoperator
-        
-    real : bool
-        Is this data real? False if they are complex
-    
-    """
-    
-    def __init__(self, dim=None, data=None, real=False):
-        
-        if dim is not None:
-            self.dim = dim
-            if real:
-                self.data = numpy.zeros((dim, dim, dim, dim),
-                                        dtype=qr.REAL)
-            else:
-                self.data = numpy.zeros((dim, dim, dim, dim), 
-                                        dtype=qr.COMPLEX)
-        elif data is not None:
-            self.data = data
-            self.dim = data.shape[0]
-      
 
-    def apply(self, oper):
-        
-        oper.data = numpy.tensordot(self.data, oper.data)
-        
-        return oper
-    
     
 class SOpUnity(SuperOperator):
     """Class representing a unity superoperator
@@ -245,8 +204,16 @@ class EvolutionSuperOperator(Saveable):
                     
                     
     def at(self, time):
-        """Evolution superoperator at a given time
+        """Retruns evolution superoperator tensor at a given time
         
+        
+        Parameters
+        ----------
+        
+        time : float
+            Time (in fs) at which the tensor should be returned
+            
+            
         """
 
         ti, dt = self.time.locate(time)
