@@ -311,8 +311,15 @@ def aloe_tests_cov_v():
 @task
 def html():
     sh('cd docs/sphinx/; make html')
-    
 
+#
+# TASK: html_clean
+#   
+@task
+def html_clean():
+    sh('cd docs/sphinx/; make clean')
+
+    
 ###############################################################################
 #
 #   Pylint tests

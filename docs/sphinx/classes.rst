@@ -80,6 +80,16 @@ Quantum Mechanics
 
    classes/statevector
 
+Quantum Mechanics of Open Systems
+---------------------------------
+
+.. toctree::
+   :maxdepth: 2
+   
+   classes/superoperator
+   classes/superopunity
+   classes/evolsupop
+
 Spectroscopy
 ------------
 

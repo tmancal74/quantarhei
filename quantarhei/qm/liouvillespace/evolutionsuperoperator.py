@@ -1,26 +1,193 @@
 # -*- coding: utf-8 -*-
-"""
-*******************************************************************************
+"""Class representing evolution superoperator
 
-
-    QUANTArhei: Open Quantum System Theory for Molecular Systems 
-    ============================================================
-    
-    (c) 2016 Tomáš Mančal
-    
-    Charles University
-    Faculty of Mathematics and Physics
-    Ke Karlovu 5
-    CZ-121 16 Prague 2
-    Czech Repubic
-
-
-    For support contact the author at : mancal@karlov.mff.cuni.cz
+    This class represents evolution superoperator at discrete times. 
     
     
-*******************************************************************************
+    
+    Examples
+    --------
+    
+    Evolution superoperator can be
+    created from a known Hamiltonian and relaxation tensor
+    
+    >>> import quantarhei as qr
+    >>> # We use the predefined Aggregate - dimer of two-level systems
+    >>> # with an environment
+    >>> tagg = qr.TestAggregate(name="dimer-2-env")
+    >>> tagg.set_coupling_by_dipole_dipole()
+    >>> tagg.build()
+    >>> # we get the existing predefined time axis for the calculations
+    >>> time = tagg.get_SystemBathInteraction().TimeAxis
+    >>> print(time.start, time.length, time.step)
+    0 1000 1.0
+    
+    We create relaxation tensor and obtain renormalized Hamiltonian from 
+    standard Redfield theory (`stR`)
+    
+    >>> RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
+    
+    We initialize evolution superoperator
+    
+    >>> eSO = EvolutionSuperOperator(time, ham=HH, relt=RR)
+    >>> eSO.calculate()
+    
+    We create initial condition. Dimension of the problem is 3 (ground state
+    and two excited states of the dimer)
+    
+    >>> dim = HH.dim
+    >>> print(dim)
+    3
+    
+    >>> rho = qr.ReducedDensityMatrix(dim=dim)
+    >>> rho.data[2,2] = 1.0
+    >>> print(rho)
+    <BLANKLINE>
+    quantarhei.ReducedDensityMatrix object
+    ======================================
+    data = 
+    [[ 0. 0.j  0. 0.j  0. 0.j]
+     [ 0. 0.j  0. 0.j  0. 0.j]
+     [ 0. 0.j  0. 0.j  1. 0.j]]
 
-    Evolution Superoperator module
+    Now we calculate density matrix evolution using a propagator
+
+    >>> prop = tagg.get_ReducedDensityMatrixPropagator(time, 
+    ...                                                relaxation_theory="stR")
+    >>> rhot = prop.propagate(rho)
+    
+    Comparing the results at one point can be done like this:
+    
+    >>> rhot_eSO = eSO.apply(100.0, rho)
+    >>> dat_100_eSO = rhot_eSO.data
+    >>> dat_100     = rhot.data[100,:,:]
+    >>> numpy.allclose(dat_100_eSO, dat_100)
+    True
+    
+    To see the full aggreement, we may plot all the times calculated with
+    both methods. We plot the dynamics calculated using the evolution
+    superoperator only every 20 fs using asterisks "*"
+        
+    .. plot::
+        
+        import quantarhei as qr
+        import matplotlib.pyplot as plt
+        import numpy
+        
+        # We use the predefined Aggregate - dimer of two-level systems
+        # with an environment
+        tagg = qr.TestAggregate(name="dimer-2-env")
+        tagg.set_coupling_by_dipole_dipole()
+        tagg.build()
+        
+        # we get the existing predefined time axis for the calculations
+        time = tagg.get_SystemBathInteraction().TimeAxis
+        
+        RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
+        
+        eSO = qr.qm.EvolutionSuperOperator(time, ham=HH, relt=RR)
+        eSO.calculate()
+        
+        dim = HH.dim
+        
+        rho = qr.ReducedDensityMatrix(dim=dim)
+        rho.data[2,2] = 1.0
+        
+        prop = tagg.get_ReducedDensityMatrixPropagator(time,
+                                                       relaxation_theory="stR")
+        rhot = prop.propagate(rho)
+        
+        rhot.plot(coherences=False, show=False)
+        
+        time_skip = numpy.arange(0.0, 1000, 20.0)
+        rhot_skip = numpy.zeros((50,3,3))
+        k = 0
+        for tm in time_skip:
+            rhot_skip[k,:,:] = numpy.real(eSO.apply(tm, rho).data)
+            k += 1
+        
+        plt.plot(time_skip,numpy.real(rhot_skip[:,1,1]),"*g")
+        plt.plot(time_skip,numpy.real(rhot_skip[:,2,2]),"*g")
+        
+        plt.show()
+        
+        
+    We may want to calculate the evolotion superoperator with a step larger
+    than the one which we specified for evaluation of bath correlation
+    functions (In this example we use predefined  SystemBathInteraction object
+    which holds this information). Our time axis is too dense for our needs.
+    We specify a less dense one
+    
+    >>> time2 = qr.TimeAxis(0.0, 1000, 50.0)
+    
+    This one has the step of 50 fs. We define an evolution superoperator
+    with this time:
+        
+    >>> eSO2 = qr.qm.EvolutionSuperOperator(time2, HH, RR)
+    
+    Now, to obtain the same results as before, we need to set a time step
+    of the propagation to 1 fs as before. This is done by setting a "dense"
+    time step with is N times shorter than the one specified in the time 
+    axis. In our case N = 50
+    
+    >>> eSO2.set_dense_dt(50)
+    >>> eSO2.calculate()
+    >>> rhot_eSO = eSO.apply(100.0, rho)
+    >>> dat_100_eSO = rhot_eSO.data
+    >>> numpy.allclose(dat_100_eSO, dat_100)
+    True
+    
+    We can calculate a similar picture as before, but now with an evolution
+    superoperator calculated only every 50 fs.
+    
+    .. plot::
+        
+        import quantarhei as qr
+        import matplotlib.pyplot as plt
+        import numpy
+        
+        # We use the predefined Aggregate - dimer of two-level systems
+        # with an environment
+        tagg = qr.TestAggregate(name="dimer-2-env")
+        tagg.set_coupling_by_dipole_dipole()
+        tagg.build()
+        
+        # we get the existing predefined time axis for the calculations
+        time = tagg.get_SystemBathInteraction().TimeAxis
+        time2 = qr.TimeAxis(0.0, int(time.length/50), 50*time.step)
+        
+        RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
+        
+        eSO = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=RR)
+        eSO.set_dense_dt(50)
+        eSO.calculate()
+        
+        dim = HH.dim
+        
+        rho = qr.ReducedDensityMatrix(dim=dim)
+        rho.data[2,2] = 1.0
+        
+        prop = tagg.get_ReducedDensityMatrixPropagator(time,
+                                                       relaxation_theory="stR")
+        rhot = prop.propagate(rho)
+        
+        rhot.plot(coherences=False, show=False)
+        
+        
+        rhot_skip = numpy.zeros((time2.length,3,3))
+        k = 0
+        for tm in time2.data:
+            rhot_skip[k,:,:] = numpy.real(eSO.apply(tm, rho).data)
+            k += 1
+        
+        plt.plot(time2.data,numpy.real(rhot_skip[:,1,1]),"*g")
+        plt.plot(time2.data,numpy.real(rhot_skip[:,2,2]),"*g")
+        
+        plt.show()
+                                                                                                                  
+
+    Class Details
+    -------------
 
 """
 
@@ -38,45 +205,9 @@ from ...core.saveable import Saveable
 from .superoperator import SuperOperator
 
 import quantarhei as qr
+          
 
-
-    
-class SOpUnity(SuperOperator):
-    """Class representing a unity superoperator
-    
-    
-    Parameters
-    ----------
-    
-    dim : int
-        Dimension of the unity superoperator
-        
-    data : array
-        If data is specified, only their dimension is used to construct
-        a unity superoperator
-        
-    """
-    
-    def __init__(self, dim=None, data=None):
-        
-        if dim is not None:
-            super().__init__(dim, data=None)
-            
-        elif data is not None:
-            dim = data.shape[0]
-            super().__init__(dim, data=None)
-            
-        # initialize the data
-        for i in range(self.dim):
-            for j in range(self.dim):
-                self.data[i,j,i,j] = 1.0
-            
-        
-        
-        
-    
-
-class EvolutionSuperOperator(Saveable):
+class EvolutionSuperOperator(SuperOperator, Saveable):
     """Class representing evolution superoperator
     
     
@@ -133,7 +264,6 @@ class EvolutionSuperOperator(Saveable):
                                    self.dense_time.length,
                                    self.dense_time.step) 
         
-    
         
     def calculate(self, show_progress=False):
         """Calculates the data of the evolution superoperator
@@ -224,18 +354,14 @@ class EvolutionSuperOperator(Saveable):
 
 
     #
-    # Calculation progress
+    # Calculation `progressbar`
     #
 
     def _estimate_remaining_loops(self, Nt, dim, ti, n, m):
-        """
-        
-        """
         return (dim-n)*dim 
         
     
     def _init_progress(self):
-
         self.ccount = 0
         self.strtime = time.time()
         self.oldtime = self.strtime
@@ -249,7 +375,7 @@ class EvolutionSuperOperator(Saveable):
         Dt = curtime - self.strtime
         self.oldtime = curtime
         self.ccount += 1
-        
+         
         dt_past = Dt/(self.ccount*dim)
         
         remloops = self._estimate_remaining_loops(Nt, dim, ti, n, m)
@@ -272,5 +398,36 @@ class EvolutionSuperOperator(Saveable):
         
         self.remlast = remtime
         
-                  
-                
+          
+    def apply(self, time, target, copy=True):
+        """Applies the evolution superoperator at a given time
+        
+        
+        Parameters
+        ----------
+        
+        time : float
+            Time at which the evolution superoperator should be applied
+            
+        target : Operator
+            Operator which the evolution superoperator should be applied
+            
+        copy : bool
+            If True, the target object is copied and new value is assigned
+            to its `data` attribute. If False, we assign the new values to
+            the target object itself and no copying occurs.
+
+
+        """
+        ti, dt = self.time.locate(time)
+
+        if copy:
+            import copy
+            oper_ven = copy.copy(target)
+            oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
+                                            target.data)
+            return oper_ven
+        else:
+            target.data = numpy.tensordot(self.data[ti, :, :, :, :],
+                                          target.data)
+            return target                
