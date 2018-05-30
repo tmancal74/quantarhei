@@ -1461,6 +1461,130 @@ reference "eq:C_omega_by_C_2primes"
 ).
 \end_layout
 
+\begin_layout Chapter
+A Bit of Philosophy around Spectroscopy: What Happens When ...?
+\end_layout
+
+\begin_layout Standard
+In the Sections above, we have provided various derivations of equations
+ of motion for density matrix and of (non-)linear responses of various order
+ in the external perturbation by light.
+ For this we used the most convenient quantum mechanical object we have
+ at hand, namely the (reduced) statistical operator (a.k.a.
+ density matrix).
+ Density matrix is extremely convenient for derivations like this, because
+ it allows us to relatively simply account for our lack of knowledge of
+ (or disinterest in) some parts of the system that we investigate.
+ In stead of using the total statistical operator 
+\begin_inset Formula $W(t)$
+\end_inset
+
+, which contains all possible information about the state of the whole system
+ we investigate (this system in fact includes also the laboratory and the
+ scientists in it etc.), we can 
+\emph on
+reduce
+\emph default
+ the information by tracing out all 
+\emph on
+irrelevant
+\emph default
+ information.
+ We only have to decide which DOF are the irrelevant one and denote them
+ as a 
+\emph on
+bath
+\emph default
+ or 
+\emph on
+environment
+\emph default
+ (let us use the subscript B for these DOF) and perform a trace
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\rho(t)={\rm tr}_{B}\left\{W(t)\right\}.
+\end{equation}
+
+\end_inset
+
+If we are lucky, we can derive some effective equations of motion for 
+\begin_inset Formula $\rho(t)$
+\end_inset
+
+ and (almost) eliminate the environment from our thinking.
+ 
+\end_layout
+
+\begin_layout Standard
+The trick with density matrix is that 
+\begin_inset Formula $\rho(t)$
+\end_inset
+
+ alone can be used to evaluate all quantities which do not depend on the
+ bath.
+ In addition it is possible to formulate fenomenological theory of dissipative
+ processes using the reduced density matrix.
+ This makes 
+\begin_inset Formula $\rho(t)$
+\end_inset
+
+ a very applealing quantity.
+ In some sense it is also possible to claim that the density matrix has
+ an simpler interpretation that the 
+\emph on
+state vector
+\emph default
+ (i.e.
+ the wavefunction), but we will show here that this is an illusion.
+\end_layout
+
+\begin_layout Section
+Interpretation of Density Matrix Elements
+\end_layout
+
+\begin_layout Standard
+Interpretation of the state vector 
+\begin_inset Formula $|\psi\rangle$
+\end_inset
+
+ is always a bit difficult to swallow, especially for the beginners in quantum
+ mechanics.
+ Given a quantum mechanical state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+, the element (or component) 
+\begin_inset Formula $\langle a|\psi\rangle$
+\end_inset
+
+ of the state vector 
+\begin_inset Formula $|\psi\rangle$
+\end_inset
+
+ represent the probability amplitude that the system is in the state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+.
+ That is, one has to square the element to get the probability, i.e.
+ to something directly measurable (if a detector for state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+ exists):
+\begin_inset Formula 
+\begin{equation}
+P_{a}=\left|\langle a|\psi\rangle\right|^{2}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
 \begin_inset CommandInset index_print
 LatexCommand printindex

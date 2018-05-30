@@ -46,63 +46,22 @@ it fixed by the maintainers).
 Current status of |Qrhei| 
 =========================
 
-Source Code and Binaries
-~~~~~~~~~~~~~~~~~~~~~~~~
-
 |Qrhei|_'s source code is available from `Github`_, source and binary bundles
-for easy installation can be found on `Pypi`_ and `Anaconda Cloud`_.
-
-Tests and Test Coverage 
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Latest builds are tested on `Travis CI`_ and their build status is displayed
-below. Test coverage is measured by `coverage` package and displayed on 
-`Codecov`_
- 
-|Build Status| |Coverage|
-
-Documentation (on Readthedocs)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+for easy installation can be found on `Pypi`_ and `Anaconda Cloud`_. Latest
+builds are tested on `Travis CI`_ and the st coverage is measured 
+by `coverage` package and displayed on `Codecov`_
 Documentation for |Qrhei|_ can be found on `Readthedocs`_. Also the documentaion
-is build from the source code with the status below. Besides that we have some
+is build from the source code. Besides that we have some
 interactive examples installed on `Crosscompute`_. 
-
-|DocBuild Status| 
-
-Licence
-~~~~~~~
-
 |Qrhei|_ is an Open Source software published under the MIT license, which is
 short and very non-restrictive.
-
-|License|  
-
-Development stage and version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
-
 At present we are in the alpha stage of the development. Our interim goal is 
 version 0.1.0, for which we are developing a definition (see our `Github Wiki
 page`_)
-
-|Status| |Conda| |Version| 
-
-
-Supported Python Versions
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
 We expect our package to run on more than the most current version of Python,
 but at the moment we do not explicitely test it.
-
-|PyVersions|
-
-Supported Platforms
-~~~~~~~~~~~~~~~~~~~
-
 When installing from Anaconda Clound (recommended) the package supports
-all major platforms:
-
-|Installer| |Platforms|
+all major platforms.
 
 
 Detailed Documentation
@@ -139,32 +98,6 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-
-.. |DocBuild Status| image:: https://readthedocs.org/projects/quantarhei/badge/?version=latest
-   :target: http://quantarhei.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-   
-.. |Build Status| image:: https://travis-ci.com/tmancal74/quantarhei.svg?branch=master
-   :target: https://travis-ci.com/tmancal74/quantarhei
-   :alt: Build Status
- 
-.. |Coverage| image:: https://img.shields.io/codecov/c/github/tmancal74/quantarhei.svg
-   :target: https://codecov.io/gh/tmancal74/quantarhei
-   
-.. |Version| image:: https://img.shields.io/pypi/v/quantarhei.svg
-   :target: https://pypi.org/project/quantarhei/
-
-.. |Status| image:: https://img.shields.io/pypi/status/quantarhei.svg
-
-.. |Conda| image:: https://anaconda.org/tmancal74/quantarhei/badges/version.svg
-
-.. |PyVersions| image:: https://img.shields.io/pypi/pyversions/quantarhei.svg
-  
-.. |License| image:: https://img.shields.io/pypi/l/quantarhei.svg
-
-.. |Installer| image:: https://anaconda.org/tmancal74/quantarhei/badges/installer/conda.svg
-
-.. |Platforms| image:: https://anaconda.org/tmancal74/quantarhei/badges/platforms.svg
  
 .. |Qrhei| replace:: **Quantarhei**
 .. _Qrhei: http://github.com/tmancal74/quantarhei
