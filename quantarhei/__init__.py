@@ -1,78 +1,127 @@
 # -*- coding: utf-8 -*-
 """
-*******************************************************************************
+    Quantarhei User Level Classes and Objects
+    =========================================
+
+    In Quantarhei, classes are losely grouped into three categories. First,
+    there is agroup of classes, which represent basic concepts of quantum
+    mechanics, provide access to important implementations of spectroscopic
+    simulations and dynamics of open quantum systems, and classes which allow
+    basic management of the simulation environment and numerical results.
+    These classed are called **user level classes**, and they are all
+    accessible in highest namespace level of the Quantarhei package.
+    If you import Quantarhei like this:
+
+    >>> import quantarhei as qr
+
+    you can access user level classes through the qr. prefix, e.g.
 
 
-    QUANTArhei: Open Quantum System Theory for Molecular Systems 
-    ============================================================
-    
-    (c) 2016 Tomáš Mančal
-    
-    Charles University
-    Faculty of Mathematics and Physics
-    Ke Karlovu 5
-    CZ-121 16 Prague 2
-    Czech Repubic
+    >>> manager = qr.Manager()
+    >>> print(manager.version)
+    0.0.35
 
-
-    For support contact the author at : mancal@karlov.mff.cuni.cz
+    The list of user level classes is provided below. Tue latest and most
+    uptodate information can be obtained by viewing the source code of the 
+    root `__init__.py` file of the packages. All classes imported there are
+    considered user level classes.
     
     
-*******************************************************************************
-
-    Classes available from quantarhei are devided into several functional
-    groups. They can all loaded similarly to the Manager class as
+    Other Class Levels
+    ------------------
     
-    >>> from quantarhei import Manager
-    >>> m = qr.Manager()
-    >>> print(m.version)
-    
-    Preferred way of using Quantarhei is to load the package and rename it 
-    to something shorter, like below
+    In this documentation we recognize two more groups (or levels) of classes.
+    More specialized classes, which normal user does not need as often as the
+    user level classes are called **advanced level classes**. These use the
+    second level name space. For instance the class `SystemBathInteraction`
+    is relatively rarely used directly. It is therefore *hidden* in the name
+    space `qm` (as quantum mechanics) of the package. This class can be 
+    instantiated e.g. like this
     
     >>> import quantarhei as qr
-    >>> m = qr.Manager()
-    >>> print(m.version)
+    >>> sbi = qr.qm.SystemBathInteraction()
+    
+    Advanced level classes are still intendend for relatively frequent use
+    by the user. However, in order to reduced the *apparent* complexity of
+    basic usage of Quantarhei, advanced level classes are documented in their
+    respective sub-packages, one level deeper than user level classes. Complete
+    documentation of advanced level classes is available in the Advanced Level
+    Classes section of this documentation.
+    
+    Everything else in Quantarhei package goes under the banner of
+    **expert level classes**. This includes all classes and objects used 
+    internally in Quantarhei. We make every effort to document also this part
+    of the package as completely as possible, but it is the last item on the
+    list, so to say. The user is welcome to learn and use the expert level
+    classes, but our aim is to structure Quantarhei in such a way, that this
+    is not necessary. More on expert level classes in the section in 
+    Quantarhei internals.
+
+    User Level Objects and Convenience Functions
+    ============================================
+    
+    Besides classes, Quantarhei also defines some user level objects and
+    convenience functions. They are listed here under several categories
   
     Numeric types
     -------------
-    
-    REAL ...... real floating point number type, by default numpy.float64
-    COMPLEX ... complex floating point number type, by default numpy.complex128 
-    
-    Builders
-    --------
-    
-    Mode .......... represents a harmonic vibrational mode of a molecule
-    Molecule ...... represents a molecule
-    Aggregate ..... represents an aggregate of molecules
-    PDBFile ....... reader and writter of structures from PDB format
-    Disorder ...... class managing static disorder of molecular transition
-                    energies
-     
-    Core classes
-    ------------
-    
-    TimeAxis ......... linear axis of real values representing discrete time
-    FrequencyAxis .... linear axis of real values representing discrete
-                       frequency axis
-    DFunction ........ discrete function
-    
-    
-    Various managers
-    ----------------
-    
-    Manager ............ the main behind-the-scenes manager of the package
-    energy_units ....... energy units manager for use with the "with" construct
-    frequency_units .... frequency units manager for use with 
-                         the "with" construct
-    eigenbasis_of ...... manager of the basis transformations to be used with 
-                         the "with" construct
-    set_current_units .. function to set current units globally
-    
-    ... to be continued
 
-*******************************************************************************
+    .. toctree::
+        :maxdepth: 2
+        
+        functions/numtypes        
+    
+    Convenience Functions
+    ---------------------
+    
+    .. toctree::
+        :maxdepth: 2
+        
+        functions/convenience
+        
+    
+    Logging Functions and Loglevels
+    -------------------------------
+
+    .. toctree::
+        :maxdepth: 2
+        
+        functions/logging
+
+   
+    .. 
+        Builders
+        --------
+        
+        Mode .......... represents a harmonic vibrational mode of a molecule
+        Molecule ...... represents a molecule
+        Aggregate ..... represents an aggregate of molecules
+        PDBFile ....... reader and writter of structures from PDB format
+        Disorder ...... class managing static disorder of molecular transition
+                        energies
+         
+        Core classes
+        ------------
+        
+        TimeAxis ......... linear axis of real values representing discrete time
+        FrequencyAxis .... linear axis of real values representing discrete
+                           frequency axis
+        DFunction ........ discrete function
+        
+        
+        Various managers
+        ----------------
+        
+        Manager ............ the main behind-the-scenes manager of the package
+        energy_units ....... energy units manager for use with the "with" construct
+        frequency_units .... frequency units manager for use with 
+                             the "with" construct
+        eigenbasis_of ...... manager of the basis transformations to be used with 
+                             the "with" construct
+        set_current_units .. function to set current units globally
+        
+        ... to be continued
+
 
 """
 
