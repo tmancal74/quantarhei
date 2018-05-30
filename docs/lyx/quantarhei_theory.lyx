@@ -1482,7 +1482,7 @@ environment
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\rho(t)={\rm tr}_{B}\left\{W(t)\right\}.
+\rho(t)={\rm tr}_{B}\left\{ W(t)\right\} .
 \end{equation}
 
 \end_inset
@@ -1644,7 +1644,7 @@ is the probability amplitude of the state
 , the off-diagonal element is just a product of two such amplitudes
 \begin_inset Formula 
 \begin{equation}
-\rho_{ab}(t)=c_{a}(t)c_{b}^{*}(t).
+\rho_{ab}(t)=c_{a}(t)c_{b}^{*}(t).\label{eq:simple_DM}
 \end{equation}
 
 \end_inset
@@ -1673,7 +1673,7 @@ W(t)=|\Psi(t)\rangle\langle\Psi(t)|,
 and 
 \begin_inset Formula 
 \begin{equation}
-\rho(t)={\rm tr_{B}\left\{W(t)\right\}}?
+\rho(t)={\rm tr_{B}\left\{ W(t)\right\} }?
 \end{equation}
 
 \end_inset
@@ -1688,7 +1688,7 @@ Now the diagonal elements
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\rho_{aa}(t)={\rm tr}_{B}\left\{\langle a|\Psi(t)\rangle\langle\Psi(t)|a\rangle\right\}.
+\rho_{aa}(t)={\rm tr}_{B}\left\{ \langle a|\Psi(t)\rangle\langle\Psi(t)|a\rangle\right\} .
 \end{equation}
 
 \end_inset
@@ -1790,6 +1790,93 @@ In case of the off-diagonal element
 
 , there is even more possible confusion about what represents a state of
  what.
+ The off-diagonal element of 
+\begin_inset Formula $W(t)$
+\end_inset
+
+, i.e.
+ 
+\begin_inset Formula 
+\begin{equation}
+W_{ab}(t)=\langle a|W(t)|b\rangle=c_{a}(t)c_{b}^{*}(t)|\phi_{a}(t)\rangle\langle\phi_{b}(t)|,
+\end{equation}
+
+\end_inset
+
+despite being an operator on the Hilbert space of the environmental DOF,
+ is not itself a valid density matrix.
+ It can easily have negative diagonal elements, so they cannot represent
+ probabilities of finding system in any states.
+ This only underlines the fact that a projector 
+\begin_inset Formula $|a\rangle\langle b|$
+\end_inset
+
+ is not a projector on a state.
+ The language used around non-linear response functions, in which 
+\begin_inset Quotes eld
+\end_inset
+
+system is excited into coherence state
+\begin_inset Quotes erd
+\end_inset
+
+ or so, does not describe any physical states or processes.
+ It only describes a formal expressions which one obtains in perturbation
+ theory in a language which makes them easier to graps.
+ Measurable signals originate from certain elements of the density matrix
+ in perturbation theory, but this does not make these elements to represent
+ any physical states.
+ 
+\end_layout
+
+\begin_layout Standard
+When we trace over 
+\begin_inset Formula $W_{ab}(t)$
+\end_inset
+
+ we obtain the element 
+\begin_inset Formula $\rho_{ab}(t)$
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\rho_{ab}(t)={\rm tr}_{B}\left\{W_{ab}(t)\right\},
+\end{equation}
+
+\end_inset
+
+we can see that it is composed of two parts
+\begin_inset Formula 
+\begin{equation}
+\rho_{ab}(t)=c_{a}(t)c_{b}^{*}(t)\langle\phi_{b}(t)|\phi_{a}(t)\rangle,
+\end{equation}
+
+\end_inset
+
+one of which looks very much like the simple density matrix of the system
+ without interaction with the bath (
+\begin_inset Formula $c_{a}(t)c_{b}^{*}(t)$
+\end_inset
+
+), see Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:simple_DM"
+
+\end_inset
+
+), and one which corresponds to an overlap between state vectors describing
+ the bath relative to the 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+ and 
+\begin_inset Formula $|b\rangle$
+\end_inset
+
+ states.
  
 \end_layout
 
@@ -1823,7 +1910,7 @@ P(t)\approx\rho_{eg}(t).
 Absorption spectrum has a similar dependence
 \begin_inset Formula 
 \begin{equation}
-\alpha(\omega)\approx{\rm Re}\int\limits_{0}^{\infty}{\rm d}t\;\rho_{eg}(t)e^{i\omega t}.
+\alpha(\omega)\approx{\rm Re}\int\limits _{0}^{\infty}{\rm d}t\;\rho_{eg}(t)e^{i\omega t}.
 \end{equation}
 
 \end_inset
