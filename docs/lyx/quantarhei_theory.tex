@@ -436,6 +436,173 @@ Fourier transform
 A(t)=\frac{1}{2\pi}\int\limits _{-\infty}^{\infty}{\rm d}\omega\ A(\omega)e^{-i\omega t}
 \end{equation}
 
+
+\chapter{Spectroscopy and (Non-)Linear Optical Response }
+
+\chapter{A Bit of Philosophy around Spectroscopy}
+
+\paragraph{Concepts introduced in this chapter}
+\begin{itemize}
+\item Interpretation of reduced density matrix elements
+\item Relative state interpretation of quantum mechanics
+\end{itemize}
+In the Sections above, we have provided various derivations of equations
+of motion for density matrix and of (non-)linear responses of various
+order in the external perturbation by light. For this we used the
+most convenient quantum mechanical object we have at hand, namely
+the (reduced) statistical operator (a.k.a. density matrix). Density
+matrix is extremely convenient for derivations like this, because
+it allows us to relatively simply account for our lack of knowledge
+of (or disinterest in) some parts of the system that we investigate.
+In stead of using the total statistical operator $W(t)$, which contains
+all possible information about the state of the whole system we investigate
+(this system in fact includes also the laboratory and the scientists
+in it etc.), we can \emph{reduce} the information by tracing out all
+\emph{irrelevant} information. We only have to decide which DOF are
+the irrelevant ones and denote them as a \emph{bath} or \emph{environment}
+(let us use the subscript B for these DOF) over which we perform a
+trace
+
+\begin{equation}
+\rho(t)={\rm tr}_{B}\left\{W(t)\right\}.
+\end{equation}
+If we are lucky, we can derive some effective equations of motion
+for $\rho(t)$ and (almost) eliminate the environment from our thinking. 
+
+The trick with density matrix is that $\rho(t)$ alone can be used
+to evaluate all quantities which do not depend on the bath. In addition
+it is possible to formulate fenomenological theory of dissipative
+processes using the reduced density matrix. This makes $\rho(t)$
+a very applealing quantity. In some sense it is also possible to claim
+that the density matrix has an simpler interpretation that the \emph{state
+vector} (i.e. the wavefunction), but we will show here that this is
+an illusion.
+
+\section{Interpretation of Density Matrix Elements\label{sec:Interpretation-of-Density}}
+
+Interpretation of the state vector $|\psi\rangle$ is always a bit
+difficult to swallow, especially for the beginners in quantum mechanics.
+Given a quantum mechanical state $|a\rangle$, the element (or component)
+$\langle a|\psi\rangle$ of the state vector $|\psi\rangle$ represent
+the probability amplitude that the system is in the state $|a\rangle$.
+That is, one has to square the element to get the probability, i.e.
+to something directly measurable (if a detector for state $|a\rangle$
+exists):
+\begin{equation}
+P_{a}=\left|\langle a|\psi\rangle\right|^{2}.
+\end{equation}
+The quantity that we propagate in Schr\"{o}dinger equation does not
+have a \emph{direct physical meaning}, it has to be processes after
+propagation. 
+
+The density matrix, on the contrary, is conceived in such a way that
+its diagonal elements represent the probabilities directly. That's
+great, because we propagate something \emph{real} again (both in physical
+and mathematical sense). More over, one can include statistics into
+the density matrix. Evolution of an ensemble can be represented by
+the density matrix $\rho(t)$, but it cannot (easily) be done by wavefunction.
+This seems to be a clear advantage for density matrix over wavefunction.
+
+Somewhat problematic is the interpretation of the density matrix off-diabonal
+elements. While element $\rho_{aa}(t)=\langle a|\rho(t)|a\rangle$
+gives the probability that the system will be measured in state $|a\rangle$,
+what is given by the element $\rho_{ab}(t)=\langle a|\rho(t)|b\rangle$?
+When the density matrix can be represented by a projector on a state
+vector, i.e. when
+\begin{equation}
+\rho(t)=|\psi(t)\rangle\langle\psi(t)|,
+\end{equation}
+and 
+\begin{equation}
+c_{a}(t)=\langle a|\psi(t)\rangle,
+\end{equation}
+is the probability amplitude of the state $|a\rangle$, the off-diagonal
+element is just a product of two such amplitudes
+\begin{equation}
+\rho_{ab}(t)=c_{a}(t)c_{b}^{*}(t).
+\end{equation}
+The probability amplitudes are back, we did not get rid of them at
+all. A slight advatange of density matrix representation is that it
+automatically cancels the absolute phase, but otherwise we carry the
+same information in the density matrix as we do in wavefunction (not
+suprisingly). 
+
+What about when $\rho(t)$ really is the reduced density matrix, i.e.
+\begin{equation}
+W(t)=|\Psi(t)\rangle\langle\Psi(t)|,
+\end{equation}
+and 
+\begin{equation}
+\rho(t)={\rm tr_{B}\left\{W(t)\right\}}?
+\end{equation}
+Now the diagonal elements $\rho_{aa}(t)$ read as
+
+\begin{equation}
+\rho_{aa}(t)={\rm tr}_{B}\left\{\langle a|\Psi(t)\rangle\langle\Psi(t)|a\rangle\right\}.
+\end{equation}
+This element can be given a simple interpretation in all details.
+First, we realize that one can write
+\begin{equation}
+|\Psi(t)\rangle=\sum_{a}\langle a|\Psi(t)\rangle|a\rangle=\sum_{a}c_{a}(t)\frac{\langle a|\Psi(t)\rangle}{\sqrt{|\langle a|\Psi(t)\rangle|^{2}}}|a\rangle,
+\end{equation}
+where
+\begin{equation}
+c_{a}(t)=\sqrt{|\langle a|\Psi(t)\rangle|^{2}},
+\end{equation}
+which means that 
+\begin{equation}
+|\phi_{a}(t)\rangle=\frac{\langle a|\Psi(t)\rangle}{\sqrt{|\langle a|\Psi(t)\rangle|^{2}}}
+\end{equation}
+is the normalized environmental state vector relative to the state
+$|a\rangle$ of the reduced system. The diagonal element $W_{aa}(t)$
+of the total density matrix then reads
+\begin{equation}
+W_{aa}(t)=\langle a|W(t)|a\rangle=|c_{a}(t)|^{2}|\phi_{a}(t)\rangle\langle\phi_{a}(t)|=\rho_{aa}(t)w_{aa}(t),
+\end{equation}
+where $w_{aa}(t)$ is a density matrix of the bath, relative to the
+state $|a\rangle$. When the system is in state $|a\rangle$, the
+bath can be assigned a regular normalized density matrix $w_{aa}(t)$.
+This density matrix has the usual interpretation and it describes
+the state of a physical system (in this case the bath). By measurement,
+one can in principle reduce the system to state $|a\rangle$ and then
+$w_{aa}(t)$ would represent the corresponding state of the bath.
+Only in such a case can one say: ``The bath is in state represented
+by density matrix $w_{aa}(t)$''. In all other cases, the state of
+the bath is not determined by a single density matrix. Effectively
+it is undetermined the same way the state of the subsystem itself
+is undetermined, because teh system and its environment are entangled.
+
+In case of the off-diagonal element $\rho_{ab}(t)$, there is even
+more possible confusion about what represents a state of what. 
+
+\section{Model Case of Absorption Spectroscopy}
+
+Based on the discussion from Section \ref{sec:Interpretation-of-Density},
+we can describe what happens during absorption in the following way.
+
+Density matrix description has an apparent interpretational problem
+here. The polarization which generates the first order electric field
+in the same which mixes with incoming field and causes its decay (absorption)
+is proportional to the off-diagonal element of the density matrix
+\begin{equation}
+P(t)\approx\rho_{eg}(t).
+\end{equation}
+Absorption spectrum has a similar dependence
+\begin{equation}
+\alpha(\omega)\approx{\rm Re}\int\limits_{0}^{\infty}{\rm d}t\;\rho_{eg}(t)e^{i\omega t}.
+\end{equation}
+One can understand this as completely formal relations between the
+state - here represented by $\rho(t)$ - and measured quantities.
+But because in explanations of non-linear spectroscopy, people often
+use language like: ``system is excited into coherence, then it is
+converted to population ...'', it invokes much confusion in an attempt
+to answer various (legitimous) questions as to in what state the system
+actually is during absorption, what happens to the bath during absorption
+etc.
+
+The key is to understand that elements nor sections or parts of the
+density matrix 
+
 \appendix
 
 \chapter{Microscopic Derivation of Spectral Density Symmetries}

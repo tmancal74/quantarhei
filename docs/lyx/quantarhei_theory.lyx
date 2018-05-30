@@ -1422,47 +1422,24 @@ A(t)=\frac{1}{2\pi}\int\limits _{-\infty}^{\infty}{\rm d}\omega\ A(\omega)e^{-i\
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-appendix
-\end_layout
-
-\end_inset
-
-
+\begin_layout Chapter
+Spectroscopy and (Non-)Linear Optical Response 
 \end_layout
 
 \begin_layout Chapter
-Microscopic Derivation of Spectral Density Symmetries
+A Bit of Philosophy around Spectroscopy
 \end_layout
 
-\begin_layout Standard
-Here we will derive the Eqs.
- (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:C_omega_symmetry"
-
-\end_inset
-
-) and (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:C_omega_by_C_2primes"
-
-\end_inset
-
-).
+\begin_layout Paragraph
+Concepts introduced in this chapter
 \end_layout
 
-\begin_layout Chapter
-A Bit of Philosophy around Spectroscopy: What Happens When ...?
+\begin_layout Itemize
+Interpretation of reduced density matrix elements
+\end_layout
+
+\begin_layout Itemize
+Relative state interpretation of quantum mechanics
 \end_layout
 
 \begin_layout Standard
@@ -1490,7 +1467,7 @@ reduce
 irrelevant
 \emph default
  information.
- We only have to decide which DOF are the irrelevant one and denote them
+ We only have to decide which DOF are the irrelevant ones and denote them
  as a 
 \emph on
 bath
@@ -1499,7 +1476,7 @@ bath
 \emph on
 environment
 \emph default
- (let us use the subscript B for these DOF) and perform a trace
+ (let us use the subscript B for these DOF) over which we perform a trace
 \end_layout
 
 \begin_layout Standard
@@ -1543,6 +1520,13 @@ state vector
 
 \begin_layout Section
 Interpretation of Density Matrix Elements
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Interpretation-of-Density"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1577,12 +1561,335 @@ Interpretation of the state vector
  exists):
 \begin_inset Formula 
 \begin{equation}
-P_{a}=\left|\langle a|\psi\rangle\right|^{2}
+P_{a}=\left|\langle a|\psi\rangle\right|^{2}.
 \end{equation}
 
 \end_inset
 
+The quantity that we propagate in Schr
+\begin_inset ERT
+status open
 
+\begin_layout Plain Layout
+
+
+\backslash
+"{o}
+\end_layout
+
+\end_inset
+
+dinger equation does not have a 
+\emph on
+direct physical meaning
+\emph default
+, it has to be processes after propagation.
+ 
+\end_layout
+
+\begin_layout Standard
+The density matrix, on the contrary, is conceived in such a way that its
+ diagonal elements represent the probabilities directly.
+ That's great, because we propagate something 
+\emph on
+real
+\emph default
+ again (both in physical and mathematical sense).
+ More over, one can include statistics into the density matrix.
+ Evolution of an ensemble can be represented by the density matrix 
+\begin_inset Formula $\rho(t)$
+\end_inset
+
+, but it cannot (easily) be done by wavefunction.
+ This seems to be a clear advantage for density matrix over wavefunction.
+\end_layout
+
+\begin_layout Standard
+Somewhat problematic is the interpretation of the density matrix off-diabonal
+ elements.
+ While element 
+\begin_inset Formula $\rho_{aa}(t)=\langle a|\rho(t)|a\rangle$
+\end_inset
+
+ gives the probability that the system will be measured in state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+, what is given by the element 
+\begin_inset Formula $\rho_{ab}(t)=\langle a|\rho(t)|b\rangle$
+\end_inset
+
+? When the density matrix can be represented by a projector on a state vector,
+ i.e.
+ when
+\begin_inset Formula 
+\begin{equation}
+\rho(t)=|\psi(t)\rangle\langle\psi(t)|,
+\end{equation}
+
+\end_inset
+
+and 
+\begin_inset Formula 
+\begin{equation}
+c_{a}(t)=\langle a|\psi(t)\rangle,
+\end{equation}
+
+\end_inset
+
+is the probability amplitude of the state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+, the off-diagonal element is just a product of two such amplitudes
+\begin_inset Formula 
+\begin{equation}
+\rho_{ab}(t)=c_{a}(t)c_{b}^{*}(t).
+\end{equation}
+
+\end_inset
+
+The probability amplitudes are back, we did not get rid of them at all.
+ A slight advatange of density matrix representation is that it automatically
+ cancels the absolute phase, but otherwise we carry the same information
+ in the density matrix as we do in wavefunction (not suprisingly).
+ 
+\end_layout
+
+\begin_layout Standard
+What about when 
+\begin_inset Formula $\rho(t)$
+\end_inset
+
+ really is the reduced density matrix, i.e.
+ 
+\begin_inset Formula 
+\begin{equation}
+W(t)=|\Psi(t)\rangle\langle\Psi(t)|,
+\end{equation}
+
+\end_inset
+
+and 
+\begin_inset Formula 
+\begin{equation}
+\rho(t)={\rm tr_{B}\left\{W(t)\right\}}?
+\end{equation}
+
+\end_inset
+
+Now the diagonal elements 
+\begin_inset Formula $\rho_{aa}(t)$
+\end_inset
+
+ read as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\rho_{aa}(t)={\rm tr}_{B}\left\{\langle a|\Psi(t)\rangle\langle\Psi(t)|a\rangle\right\}.
+\end{equation}
+
+\end_inset
+
+This element can be given a simple interpretation in all details.
+ First, we realize that one can write
+\begin_inset Formula 
+\begin{equation}
+|\Psi(t)\rangle=\sum_{a}\langle a|\Psi(t)\rangle|a\rangle=\sum_{a}c_{a}(t)\frac{\langle a|\Psi(t)\rangle}{\sqrt{|\langle a|\Psi(t)\rangle|^{2}}}|a\rangle,
+\end{equation}
+
+\end_inset
+
+where
+\begin_inset Formula 
+\begin{equation}
+c_{a}(t)=\sqrt{|\langle a|\Psi(t)\rangle|^{2}},
+\end{equation}
+
+\end_inset
+
+which means that 
+\begin_inset Formula 
+\begin{equation}
+|\phi_{a}(t)\rangle=\frac{\langle a|\Psi(t)\rangle}{\sqrt{|\langle a|\Psi(t)\rangle|^{2}}}
+\end{equation}
+
+\end_inset
+
+is the normalized environmental state vector relative to the state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+ of the reduced system.
+ The diagonal element 
+\begin_inset Formula $W_{aa}(t)$
+\end_inset
+
+ of the total density matrix then reads
+\begin_inset Formula 
+\begin{equation}
+W_{aa}(t)=\langle a|W(t)|a\rangle=|c_{a}(t)|^{2}|\phi_{a}(t)\rangle\langle\phi_{a}(t)|=\rho_{aa}(t)w_{aa}(t),
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $w_{aa}(t)$
+\end_inset
+
+ is a density matrix of the bath, relative to the state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+.
+ When the system is in state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+, the bath can be assigned a regular normalized density matrix 
+\begin_inset Formula $w_{aa}(t)$
+\end_inset
+
+.
+ This density matrix has the usual interpretation and it describes the state
+ of a physical system (in this case the bath).
+ By measurement, one can in principle reduce the system to state 
+\begin_inset Formula $|a\rangle$
+\end_inset
+
+ and then 
+\begin_inset Formula $w_{aa}(t)$
+\end_inset
+
+ would represent the corresponding state of the bath.
+ Only in such a case can one say: 
+\begin_inset Quotes eld
+\end_inset
+
+The bath is in state represented by density matrix 
+\begin_inset Formula $w_{aa}(t)$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ In all other cases, the state of the bath is not determined by a single
+ density matrix.
+ Effectively it is undetermined the same way the state of the subsystem
+ itself is undetermined, because teh system and its environment are entangled.
+\end_layout
+
+\begin_layout Standard
+In case of the off-diagonal element 
+\begin_inset Formula $\rho_{ab}(t)$
+\end_inset
+
+, there is even more possible confusion about what represents a state of
+ what.
+ 
+\end_layout
+
+\begin_layout Section
+Model Case of Absorption Spectroscopy
+\end_layout
+
+\begin_layout Standard
+Based on the discussion from Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Interpretation-of-Density"
+
+\end_inset
+
+, we can describe what happens during absorption in the following way.
+\end_layout
+
+\begin_layout Standard
+Density matrix description has an apparent interpretational problem here.
+ The polarization which generates the first order electric field in the
+ same which mixes with incoming field and causes its decay (absorption)
+ is proportional to the off-diagonal element of the density matrix
+\begin_inset Formula 
+\begin{equation}
+P(t)\approx\rho_{eg}(t).
+\end{equation}
+
+\end_inset
+
+Absorption spectrum has a similar dependence
+\begin_inset Formula 
+\begin{equation}
+\alpha(\omega)\approx{\rm Re}\int\limits_{0}^{\infty}{\rm d}t\;\rho_{eg}(t)e^{i\omega t}.
+\end{equation}
+
+\end_inset
+
+One can understand this as completely formal relations between the state
+ - here represented by 
+\begin_inset Formula $\rho(t)$
+\end_inset
+
+ - and measured quantities.
+ But because in explanations of non-linear spectroscopy, people often use
+ language like: 
+\begin_inset Quotes eld
+\end_inset
+
+system is excited into coherence, then it is converted to population ...
+\begin_inset Quotes erd
+\end_inset
+
+, it invokes much confusion in an attempt to answer various (legitimous)
+ questions as to in what state the system actually is during absorption,
+ what happens to the bath during absorption etc.
+\end_layout
+
+\begin_layout Standard
+The key is to understand that elements nor sections or parts of the density
+ matrix 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+appendix
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+Microscopic Derivation of Spectral Density Symmetries
+\end_layout
+
+\begin_layout Standard
+Here we will derive the Eqs.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:C_omega_symmetry"
+
+\end_inset
+
+) and (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:C_omega_by_C_2primes"
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Standard
