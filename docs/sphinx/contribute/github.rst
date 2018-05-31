@@ -217,8 +217,19 @@ repository (to your private repository that you forked) you need to use the
 .. code:: bash
 
     $ git push
+
+You might get an error message in some cases, which asks for `--set-upstream`
+option. In this case you type:
     
-This will communicate with the remote repository, and upload your changes.
+.. code:: bash
+ 
+    $ git push --set-upstream origin YOUR-BRANCH-NAME
+    
+and Git sets the correct target for your push. This should happen only first
+time you use a given branch.
+    
+The push command will communicate with the remote repository,
+and upload your changes.
 Git will open your favourite editor - if you did not configure the editor,
 be prepared to use `vi` (use ESC, : and wq! to save and leave after you
 wrote a commit message describing your changes).
