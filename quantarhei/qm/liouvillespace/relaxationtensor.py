@@ -2,12 +2,13 @@
 
 import numpy
 
-from ...core.managers import BasisManaged
-from ...utils.types import BasisManagedComplexArray
+from .superoperator import SuperOperator
+#from ...core.managers import BasisManaged
+#from ...utils.types import BasisManagedComplexArray
 
-class RelaxationTensor(BasisManaged):
+class RelaxationTensor(SuperOperator): #BasisManaged):
 
-    data = BasisManagedComplexArray("data")
+    #data = BasisManagedComplexArray("data")
     
     def __init__(self):
         

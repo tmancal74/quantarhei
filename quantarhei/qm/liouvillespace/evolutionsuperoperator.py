@@ -202,10 +202,12 @@ from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.time import TimeAxis
 from ...core.saveable import Saveable
+
 from .superoperator import SuperOperator
 
 import quantarhei as qr
-          
+
+#from ...utils.types import BasisManagedComplexArray
 
 class EvolutionSuperOperator(SuperOperator, Saveable):
     """Class representing evolution superoperator
@@ -228,15 +230,26 @@ class EvolutionSuperOperator(SuperOperator, Saveable):
     """
     
     def __init__(self, time=None, ham=None, relt=None):
-        
+        super().__init__()
         
         self.time = time
         self.ham = ham
         self.relt = relt
+        try:
+            self.dim = ham.dim
+        except:
+            self.dim = 1
         
         self.dense_time = None
         self.set_dense_dt(1)
-
+        
+        try:
+            Nt = self.time.length
+        except:
+            Nt = 1
+            
+        self.data = numpy.zeros((Nt, self.dim, self.dim, self.dim, self.dim),
+                                dtype=qr.COMPLEX)
 
     def set_dense_dt(self, Nt):
         """Set a denser time axis for calculations between two points of the superoperator
@@ -271,12 +284,15 @@ class EvolutionSuperOperator(SuperOperator, Saveable):
         
         """
 
-        dim = self.ham.dim
         Nt = self.time.length
-        self.data = numpy.zeros((Nt, dim, dim, dim, dim),
-                                dtype=qr.COMPLEX)
+        
+        if self.dim != self.data.shape[0]:
+            self.data = numpy.zeros((Nt, self.dim, self.dim,
+                                     self.dim, self.dim),
+                                    dtype=qr.COMPLEX)
 
         # zero time value (unity superoperator)
+        dim = self.dim
         for i in range(dim):
             for j in range(dim):
                 self.data[0,i,j,i,j] = 1.0
