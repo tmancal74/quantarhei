@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    Quantarhei package (http://www.github.com/quantarhei)
-
-    redfield tensor module
+    Redfield Tensor
     
-*******************************************************************************
-
-    REDFIELD RELAXATION TENSOR
-
-*******************************************************************************
+    
+    Class Details
+    -------------
+    
 """
 import time
 import numpy
@@ -76,7 +73,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                  cutoff_time=None, as_operators=False,
                  name=""):
                      
-        super().__init__()
+        #super().__init__()
+        self._initialize_basis()
         
         #
         # Check the types of the arguments
@@ -97,6 +95,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self.dim = self.Hamiltonian.dim
         self.name = name
         
+        self._data_initialized = False
         self._is_initialized = False
         self._has_cutoff_time = False
         self.as_operators = as_operators

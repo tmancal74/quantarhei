@@ -54,6 +54,16 @@ Quantum Mechanics of Open Systems
    classes/superoperator
    classes/superopunity
    classes/evolsupop
+   
+Relaxation Tensors
+------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   classes/relaxtensors/relaxtensors
+   classes/relaxtensors/redfieldtensor
+   classes/relaxtensors/foerstertensor
 
 Spectroscopy
 ------------

@@ -204,12 +204,13 @@ from ...core.time import TimeAxis
 from ...core.saveable import Saveable
 
 from .superoperator import SuperOperator
+from ...core.time import TimeDependent
 
 import quantarhei as qr
 
 #from ...utils.types import BasisManagedComplexArray
 
-class EvolutionSuperOperator(SuperOperator, Saveable):
+class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     """Class representing evolution superoperator
     
     

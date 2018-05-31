@@ -12,16 +12,20 @@ class RelaxationTensor(SuperOperator): #BasisManaged):
     
     def __init__(self):
         
+        self._initialize_basis()
+            
+        self._data_initialized = False
+        self.name = ""
+        self.as_operators = False
+        
+    def _initialize_basis(self):
+
         # Set the currently used basis
         cb = self.manager.get_current_basis()
         self.set_current_basis(cb)
         # unless it is the basis outside any context
         if cb != 0:
-            self.manager.register_with_basis(cb,self)
-            
-        self._data_initialized = False
-        self.name = ""
-        self.as_operators = False
+            self.manager.register_with_basis(cb,self)        
 
     def secularize(self):
         """Secularizes the relaxation tensor

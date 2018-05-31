@@ -22,7 +22,6 @@ import quantarhei as qr
 from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 
-# FIXME: This class should be a base class for Relaxation tensors
 class SuperOperator(BasisManaged):
     """Class representing superoperators
     
