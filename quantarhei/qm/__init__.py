@@ -53,6 +53,7 @@ from .liouvillespace.lindbladform import ElectronicLindbladForm
 
 from .liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 from .liouvillespace.superoperator import SuperOperator
+from .liouvillespace.superoperator_test import TestSuperOperator
 from .liouvillespace.supopunity import SOpUnity
 
 #
