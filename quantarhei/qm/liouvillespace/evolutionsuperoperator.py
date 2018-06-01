@@ -46,10 +46,10 @@
     quantarhei.ReducedDensityMatrix object
     ======================================
     data = 
-    [[ 0.+0.j  0.+0.j  0.+0.j]
-     [ 0.+0.j  0.+0.j  0.+0.j]
-     [ 0.+0.j  0.+0.j  1.+0.j]]
-
+    [[ 0. 0.j  0. 0.j  0. 0.j]
+     [ 0. 0.j  0. 0.j  0. 0.j]
+     [ 0. 0.j  0. 0.j  1. 0.j]]
+    
     Now we calculate density matrix evolution using a propagator
 
     >>> prop = tagg.get_ReducedDensityMatrixPropagator(time, 
