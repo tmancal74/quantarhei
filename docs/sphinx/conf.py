@@ -33,6 +33,7 @@ sys.path.insert(1, os.path.abspath('./ext'))
 extensions = [
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
+    'sphinx.ext.inheritance_diagram',
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',

@@ -2,25 +2,30 @@
 
 import numpy
 
-from ...core.managers import BasisManaged
-from ...utils.types import BasisManagedComplexArray
+from .superoperator import SuperOperator
+#from ...core.managers import BasisManaged
+#from ...utils.types import BasisManagedComplexArray
 
-class RelaxationTensor(BasisManaged):
+class RelaxationTensor(SuperOperator): #BasisManaged):
 
-    data = BasisManagedComplexArray("data")
+    #data = BasisManagedComplexArray("data")
     
     def __init__(self):
         
+        self._initialize_basis()
+            
+        self._data_initialized = False
+        self.name = ""
+        self.as_operators = False
+        
+    def _initialize_basis(self):
+
         # Set the currently used basis
         cb = self.manager.get_current_basis()
         self.set_current_basis(cb)
         # unless it is the basis outside any context
         if cb != 0:
-            self.manager.register_with_basis(cb,self)
-            
-        self._data_initialized = False
-        self.name = ""
-        self.as_operators = False
+            self.manager.register_with_basis(cb,self)        
 
     def secularize(self):
         """Secularizes the relaxation tensor

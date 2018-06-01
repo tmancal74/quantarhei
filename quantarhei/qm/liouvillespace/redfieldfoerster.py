@@ -2,13 +2,15 @@
 import numpy
 
 from .redfieldtensor import RedfieldRelaxationTensor
+from .foerstertensor import FoersterRelaxationTensor
 from .foerstertensor import _reference_implementation as foerster_rates
 from ..corfunctions.correlationfunctions import c2g
 from ...core.managers import Manager
 from ...core.managers import energy_units
 
 
-class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
+class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
+                                       FoersterRelaxationTensor):
     """Combination of Redfield and Foerster relaxation tensors
     
     Paramaters
@@ -50,6 +52,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor):
         if initialize: 
             with energy_units("int"):
                 self._reference_implementation()
+
                 
     def _reference_implementation(self):
         """ Reference all Python implementation

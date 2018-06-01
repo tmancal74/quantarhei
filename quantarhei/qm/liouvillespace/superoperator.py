@@ -19,8 +19,10 @@ import numpy
 # quantarhei imports
 import quantarhei as qr
 
-# FIXME: This class should be a base class for Relaxation tensors
-class SuperOperator:
+from ...core.managers import BasisManaged
+from ...utils.types import BasisManagedComplexArray
+
+class SuperOperator(BasisManaged):
     """Class representing superoperators
     
     
@@ -45,8 +47,13 @@ class SuperOperator:
     >>> So = SuperOperator()
     >>> print(So.dim is None)
     True
+    
+    But calling uninitialize data attribute raises an exception
     >>> print(So.data is None)
-    True
+    Traceback (most recent call last):
+        ...
+    AttributeError: 'SuperOperator' object has no attribute '_data'
+    
     
     Creating with `dim` arguments creates a zero superoperator
     
@@ -73,10 +80,20 @@ class SuperOperator:
     
     """
     
+    data = BasisManagedComplexArray("data")
+    
     def __init__(self, dim=None, data=None, real=False):
         
+        # Set the currently used basis
+        cb = self.manager.get_current_basis()
+        self.set_current_basis(cb)
+        # unless it is the basis outside any context
+        if cb != 0:
+            self.manager.register_with_basis(cb,self)
+            
+        self._data_initialized = False
+        
         self.dim = dim
-        self.data = data
         if dim is not None:
             if real:
                 self.data = numpy.zeros((dim, dim, dim, dim),
@@ -85,6 +102,7 @@ class SuperOperator:
                 self.data = numpy.zeros((dim, dim, dim, dim), 
                                         dtype=qr.COMPLEX)
         elif data is not None:
+            self.data = data
             if len(data.shape) != 4:
                 raise Exception("The data do not represent a superoperator")
             Nd = data.shape[0]
@@ -166,9 +184,139 @@ class SuperOperator:
         if copy:
             import copy
             oper_ven = copy.copy(oper)
-            oper_ven.data = numpy.tensordot(self.data, oper.data)
+            oper_ven.data = numpy.tensordot(self._data, oper.data)
             return oper_ven
         else:
             oper.data = numpy.tensordot(self.data, oper.data)
             return oper
+
+
+    def transform(self, SS, inv=None):
+        """Transforms the superoperator to a new basis
+        
+
+        Transformation of the superoperator follows similar rules
+        as the one of operators. An operar :math:`A` is transformed as 
+        follows:
+        
+        .. math::
+            
+            A_{\\alpha\\beta} = \\sum_{ij}(s^{-1})_{\\alpha i}A_{ij}s_{j\\beta}
+            
+        and 
+        
+        .. math::
+            
+            A_{ij} = \\sum_{\\alpha\\beta} s_{i\\alpha} \\
+            A_{\\alpha\\beta}(s^{-1})_{\\beta j}
+            
+        The transformation matrix :math:`s` is obtained by standard
+        diagonalization routines and its elements can be expressed in Dirac
+        notation as
+        
+        .. math:: 
+            
+            s_{i\\alpha} = \\langle i | \\alpha \\rangle
+            
+        The inverse matrix :math:`s^{-1}` is obtained by transposition, because
+        
+        .. math::
+            
+            \\langle i | j \\rangle = \\delta_{ij} = \\
+            \sum_{\\alpha} \\langle i | \\alpha \\rangle \\
+            \\langle \\alpha | j \\rangle 
+            
+        and we see that 
+        
+        .. math::
+            
+            (s^{-1})_{\\alpha i} = s_{i \\alpha}.
+            
+        
+        Given an operator :math:`A` which is
+        a result of an action of the superoperator :math:`R` on operar
+        :math:`A` we can see that the transformation occurs as follows:
+        
+        .. math::
+            
+            A_{ij} = \\sum_{kl}R_{ijkl}B_{kl}
+            
+        .. math::
+            
+            A_{\\alpha\\beta} = \\
+            \\sum_{ij}(s^{-1})_{\\alpha i}A_{ij}s_{j\\beta} = \\
+            \\sum_{ijkl} (s^{-1})_{\\alpha i} s_{j\\beta} R_{ijkl} B_{kl}
+            
+        Using the back transformation of the operator :math:`B` we obtaine
+        
+        .. math::
+            
+            A_{\\alpha\\beta} = \\
+            \\sum_{ij}(s^{-1})_{\\alpha i}A_{ij}s_{j\\beta} = \\
+            \\sum_{\\gamma\\delta} \\left [  \\right ] B_{\\gamma\\delta}
+
+        which translates into
+        
+        .. math::
+            
+            R_{\\alpha\\beta\\gamma\\delta} = \\
+            \\sum_{ijkl} s_{i \\alpha} \\
+            s_{j\\beta} R_{ijkl} \\
+            s_{k\\gamma}s_{l\\delta}
+
+        
+        Parameters
+        ----------
+        
+        SS : float matrix
+            Transformation matrix
+            
+        inv : float matrix, optional
+            Inverse of the transformation matrix
+    
+        Examples
+        --------
+        
+        """
+    
+        #
+        # if inverse matrix not present, we create it
+        #
+        if inv is None:
+            S1 = numpy.linalg.inv(SS)
+        else:
+            S1 = inv
+            
+        # dimension of the transformation matrix
+        dim = SS.shape[0]
+        
+        #
+        # Dimension 4 means a single, time independent superoperator 
+        #
+        if self._data.ndim == 4:
+            for c in range(dim):
+                for d in range(dim):
+                    self._data[:,:,c,d] = \
+                    numpy.dot(S1,numpy.dot(self._data[:,:,c,d],SS))
+                    
+            for a in range(dim):
+                for b in range(dim):
+                    self._data[a,b,:,:] = \
+                    numpy.dot(S1,numpy.dot(self._data[a,b,:,:],SS))
+                    
+        #
+        # Larger dimension means more superoperators or time dependence
+        #
+        else:
+
+            for tt in range(self._data.shape[0]):
+                for c in range(dim):
+                    for d in range(dim):
+                        self._data[tt,:,:,c,d] = \
+                            numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
+                    
+                for a in range(dim):
+                    for b in range(dim):
+                        self._data[tt,a,b,:,:] = \
+                            numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))            
     

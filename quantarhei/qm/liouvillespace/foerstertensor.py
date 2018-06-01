@@ -16,7 +16,8 @@ class FoersterRelaxationTensor(RelaxationTensor):
     """
     def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
-        super().__init__()
+        #super().__init__()
+        self._initialize_basis()
         
         if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -27,6 +28,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             
         self._is_initialized = False
         self._has_cutoff_time = False
+        self.as_operators = False
         
         if cutoff_time is not None:
             self.cutoff_time = cutoff_time
@@ -39,10 +41,13 @@ class FoersterRelaxationTensor(RelaxationTensor):
     
         
         if initialize:
-            
             self.initialize()
             self._data_initialized = True 
             self._is_initialized = True
+            
+        else:
+            self._data_initialized = False
+            
 
     def initialize(self):
         

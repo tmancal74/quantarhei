@@ -194,7 +194,8 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             self.JR[:,:] = 0.0
             self._has_remainder_coupling = False
 
-    def transform(self,SS,inv=None):
+
+    def transform(self, SS, inv=None):
         """Transformation of the Hamiltonian and the remainder coupling
         
         

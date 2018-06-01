@@ -126,7 +126,7 @@ class Manager(metaclass=Singleton):
         
         try:
             # this is numpy 1.14
-            numpy.set_printoptions(precision=8, sign=' ') # legacy='1.13')
+            numpy.set_printoptions(precision=8, sign=' ', legacy='1.13')
         except:
             # before there was no `sign` parameters
             numpy.set_printoptions(precision=8)
