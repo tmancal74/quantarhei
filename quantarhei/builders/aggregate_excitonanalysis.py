@@ -303,8 +303,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 1
         =========
         <BLANKLINE>
-        Transition energy        :  2.25417864497671 1/cm
-        Transition dipole moment :  2.4802649722513967 D
+        Transition energy        : 2.25417864 1/cm
+        Transition dipole moment : 2.48026497 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -318,8 +318,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 2
         =========
         <BLANKLINE>
-        Transition energy        :  2.323094663583803 1/cm
-        Transition dipole moment :  5.169735027748602 D
+        Transition energy        : 2.32309466 1/cm
+        Transition dipole moment : 5.16973503 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -363,10 +363,10 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     print(line)
                     print("")
                     with qr.energy_units("1/cm"):
-                        print("Transition energy        : ", tre
-                              , "1/cm")
-                        print("Transition dipole moment : ", dip
-                              , "D")
+                        print("Transition energy        "+
+                              ": {:.8f} 1/cm".format(tre))
+                        print("Transition dipole moment "+
+                              ": {:.8f} D".format(dip))
                     self.report_on_expansion(Nst, N=Nrep)
                     print("")
 
