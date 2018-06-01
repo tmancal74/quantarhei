@@ -117,7 +117,7 @@ help:
 	@echo ""
 	@echo "Git tasks: "
 	@echo "----------"
-	@echo "git_add_upstream, git_merge_upstream"
+	@echo "git_add_upstream, git_update_master"
 	@echo ""
 
 ############################################
