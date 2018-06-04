@@ -90,7 +90,8 @@ def parsing():
 
     else:
         print("No file specified: quiting")
-        return -1
+        parser.print_help()
+        return 0
 
     steps_pass = True
     if args.no_pass:
@@ -238,6 +239,8 @@ def main():
 
     #(children, ddir, steps_pass, filename) = parsing()
     parse_data = parsing()
+    if not isinstance(parse_data, dict):
+        return 0
 
     print("")
     print("Analyzing file: ", parse_data["filename"])

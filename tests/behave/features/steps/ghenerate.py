@@ -20,7 +20,10 @@ from behave import *
 #
 @given('that Quantarhei is installed')
 def step_given(context):
-    pass
+    
+    # if this does not break, quantarhei is installed
+    import quantarhei as qr
+    assert isinstance(qr.Manager().version, str)
 
 
 #
@@ -28,7 +31,10 @@ def step_given(context):
 #
 @when('I run the ghenerate script')
 def step_when(context):
-    pass
+    from subprocess import check_output
+
+    output = check_output("ghenerate")
+    context.output = output
 
 
 #
@@ -36,15 +42,66 @@ def step_when(context):
 #
 @then('I get a simple usage message')
 def step_then(context):
-    pass
+    import re
+
+    res = re.search("No file specified: quiting\nusage:", 
+                    context.output.decode('utf-8'))
+    if res is None:
+        print(context.output.decode('utf-8'))
+        raise Exception("No usage message returned")
 
 
+def secure_temp_dir(context):
+    import os
+    import tempfile
+    
+    tmpd = tempfile.TemporaryDirectory()
+    
+    context.tempdir = tmpd
+    context.cwd = os.getcwd()   
+
+
+def cleanup_temp_dir(context):
+    import os
+    os.chdir(context.cwd)
+    context.tempdir.cleanup()
+
+
+def fetch_test_feature_file(context, filename):
+    import os
+    import os.path
+    import shutil
+    
+    os.chdir(context.tempdir.name)
+    shutil.copyfile(os.path.join(context.cwd, "qrhei.feature"), 
+                    os.path.join(".", filename))
+    os.chdir(context.cwd)
+    
+    
+    
 #
 # And ...
 #
 @given('current directory contains a feature file')
 def step_given(context):
-    pass
+    from subprocess import check_output
+    import re
+    import os
+    
+    secure_temp_dir(context)
+    
+    
+    ffile = "test.feature"
+    fetch_test_feature_file(context, ffile)
+    
+    os.chdir(context.tempdir.name)
+    output = check_output(["ls", "-l"]).decode("utf-8")
+    os.chdir(context.cwd)
+    res = re.search(ffile, output)
+    
+    if res is None:
+        cleanup_temp_dir(context)
+        raise Exception("Feature file: "+ffile+" not found")
 
 
 #
@@ -52,7 +109,16 @@ def step_given(context):
 #
 @given('the default destination directory exists')
 def step_given(context):
-    pass
+    from pathlib import Path
+    import os.path
+    
+    path = os.path.join(context.tempdir.name, "ghen")
+    
+    my_file = Path(path)
+    if not my_file.exists():
+        my_file.mkdir()
+        
+    assert my_file.is_dir()
 
 
 #
@@ -60,47 +126,100 @@ def step_given(context):
 #
 @when('I run the ghenerate script with the name of the feature file')
 def step_when(context):
-    pass
-
+    from subprocess import check_output
+    from subprocess import call
+    import os
+    
+    #print(os.getcwd())
+    #print(check_output(["ls", "-la"]).decode("utf-8"))
+    #print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
+    os.chdir(context.tempdir.name)
+    call(["ghenerate", "test.feature"])
+    print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
+    os.chdir(context.cwd)
 
 #
 # Then ...
 #
 @then('feature file is converted into a Python step file')
 def step_then(context):
+    # this will remain empty, there is no way how this can be checked
     pass
 
-
+ 
 #
 # And ...
 #
 @then('the step file is saved into default destination directory')
 def step_then(context):
-    pass
-
+    from subprocess import check_output
+    import re
+    import os
+      
+    os.chdir(context.tempdir.name)
+    output = check_output(["ls", "ghen"])
+    os.chdir(context.cwd)
+    
+    if re.search("test.py", output.decode()) is None:
+        cleanup_temp_dir(context)
+        raise Exception()
+        
 
 #
 # And ...
 #
 @given('{destination_directory} exists')
 def step_given(context, destination_directory):
-    pass
+    from pathlib import Path
+    import os
+    
+    os.chdir(context.tempdir.name)
+    
+    my_file = Path(destination_directory)
+    my_file.mkdir()
+    
+    if not my_file.is_dir():
+        cleanup_temp_dir(context)
+        raise Exception()
 
+    os.chdir(context.cwd)
 
 #
 # When ...
 #
 @when('I run {ghenerate_command} with the option specifying destination directory')
 def step_when(context, ghenerate_command):
-    pass
+    from subprocess import check_output
+    from subprocess import call
+    import os
+    
+    os.chdir(context.tempdir.name)
+    
+    try:
+        call(["ls", "-la"])
+        gh = ghenerate_command.split()
+        gh.append("test.feature")
+        
+        print(">>>", gh)
+        output = check_output(gh)
+        print(output.decode("utf-8"))
 
+    except:
+        cleanup_temp_dir(context)
+        raise Exception("Command failed")
+    
+    #context.output = output
+    os.chdir(context.cwd)    
 
 #
 # And ...
 #
 @then('step file is saved into the destination directory')
 def step_then(context):
-    pass
+
+    
+    cleanup_temp_dir(context)
+    
 
 
 #
@@ -132,4 +251,4 @@ def step_then(context):
 #
 @then('step file is saved to the destination directory')
 def step_then(context):
-    pass
+    cleanup_temp_dir(context)
