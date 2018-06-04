@@ -379,6 +379,10 @@ def pylint():
     path = 'quantarhei/utils/'
     r.set_path(path)
 #    r.un('logging.py')
+    
+    path = 'quantarhei/scripts/'
+    r.set_path(path)
+    r.un('ghenerate.py')
 
 
 ###############################################################################

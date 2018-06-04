@@ -7,190 +7,307 @@
 
 
 """
+# standard imports
 import argparse
 import datetime
 import time
 import os
+import re
 
-import quantarhei as qr
-
+# third party imports
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
 
-
-def main():
-
-    descr = 'Ghenerate, the Gherkin python step generator from Quantarhei'
-    parser = argparse.ArgumentParser(
-            description=descr+' ...')
+# quantarhei
+import quantarhei as qr
 
 
-    parser.add_argument("file", metavar='file', type=str, 
-                         help='feature file to be processed', nargs='?')
+def parsing():
+    """This function handles parsing command line arguments
+
+
+    """
+
+    descr = 'Ghenerate, the Gherkin Python Step Generator from Quantarhei'
+    parser = argparse.ArgumentParser(description=descr+' ...')
+
+
+    parser.add_argument("file", metavar='file', type=str,
+                        help='feature file to be processed', nargs='?')
 
     #
     # Generator options
     #
     parser.add_argument("-v", "--version", action="store_true",
                         help="shows Quantarhei package version")
-    parser.add_argument("-i", "--info", action='store_true', 
+    parser.add_argument("-i", "--info", action='store_true',
                         help="shows detailed information about Quantarhei"+
                         " installation")
-    parser.add_argument("-d", "--destination", type=str,  
+    parser.add_argument("-d", "--destination", type=str,
                         help="specifies destination directory for the"+
                         " generated step file")
-    
+    parser.add_argument("-n", "--no-pass", action="store_true",
+                        help="empty tests should not pass (default is"
+                        +" passing empty tests)")
 
     #
     # Parsing all arguments
     #
-    args = parser.parse_args()       
+    args = parser.parse_args()
 
     #
     # show longer info
     #
     if args.info:
-        qr.printlog("\n" 
-                   +"ghenerate: Quantarhei Gherkin Python Step Generator\n",
-                   verbose=True, loglevel=0)
+        qr.printlog("\n"
+                    +"ghenerate: Quantarhei Gherkin Python Step Generator\n",
+                    verbose=True, loglevel=0)
 
         if not args.version:
             qr.printlog("Package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=0)
-        return
-            
+                        verbose=True, loglevel=0)
+        return 0
+
     #
     # show just Quantarhei version number
     #
     if args.version:
         qr.printlog("Quantarhei package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=0)
-        return
+                    verbose=True, loglevel=0)
+        return 0
 
     if args.destination:
         ddir = args.destination
     else:
         ddir = "ghen"
-        
+
     if args.file:
-        
+
         print("")
         print(descr+" ...")
-        
-        filename = args.file 
-        
+
+        filename = args.file
+
     else:
         print("No file specified: quiting")
-        return
-    
-    # FIXME: find out if the file has a .feature extension
-    # FIXME: is it a feature file at all?
-    with open(filename, 'r') as myfile:
-      data = myfile.read()
-    
+        return -1
+
+    steps_pass = True
+    if args.no_pass:
+        steps_pass = False
+
+    try:
+        with open(filename, 'r') as myfile:
+            data = myfile.read()
+    except:
+        raise Exception("Problems reading file: "+filename)
+
     parser = Parser()
-    feature_file = parser.parse(TokenScanner(data))
-    
-    # FIXME: should we iterate over more features in one file?
-    children = feature_file["feature"]["children"]
-    
-    print("")
-    print("Analyzing file: ", filename)
-    print("Number of features: ", len(children))
-    
-    steps = children[0]["steps"]
-    
-    print("Number of steps in the feature: ", len(steps))
-    
-    print("Following steps found:")
-    for step in steps:
-       print("    ", step["keyword"], "\t :\t", step["text"])
-    
-    
+    try:
+        feature_file = parser.parse(TokenScanner(data))
+    except:
+        raise Exception("Problem parsing file: "+filename+
+                        " - is it a feature file?")
+
+    try:
+        children = feature_file["feature"]["children"]
+    except:
+        raise Exception("No scenarii or scenario outlines")
+
+    return dict(children=children, ddir=ddir,
+                steps_pass=steps_pass, filename=filename)
+
+
+def analyze_children(children):
+    """Analyzes children of the feature and prints info
+
+    """
+
+    test_strings = []
+    for scenario in children:
+
+        print(scenario["keyword"], ":", scenario["name"])
+
+        steps = scenario["steps"]
+
+        print("Number of steps in the scenario: ", len(steps))
+
+        print("Following steps found:")
+        for step in steps:
+            print("    ", step["keyword"], "\t :\t", step["text"])
+            text = step["text"]
+            if text not in test_strings:
+                test_strings.append(text)
+            else:
+                print("\t*Duplicate test string:", text)
+                print("\tOnly first occurence will be used to generate step")
+        print("")
+
+
+def check_outputfile_exists(ddir, filename):
+    """Checks the existance of destination directory and the target file
+
+    """
+
     (filen, ext) = os.path.splitext(os.path.basename(filename))
-    
+
+    if ext != ".feature":
+        raise Exception("Feature file has to have the .feature extension")
+
     if not os.path.exists(ddir):
-        os.makedirs(ddir)    
+        os.makedirs(ddir)
     ofile = os.path.join(ddir, filen+'.py')
-    
+
     print("")
     print("Generating file: ", ofile)
     print("")
-    
-    ctm = time.time()
-    tstamp = datetime.datetime.fromtimestamp(ctm).strftime('%Y-%m-%d %H:%M:%S')
 
-    #FIXME: check existence (if in steps - do not overwrite)    
     if os.path.isfile(ofile):
         answr = input("file `"+ofile+"` exists. Overwrite? (y/n) [n]: ")
         if answr.strip() != "y":
             print("Your answer is `"+answr+"`")
             print("... aborting")
             return 1
-        
-    with open(ofile, 'w') as myfile:
-        myfile.write(
-'''"""
+
+    return ofile
+
+
+def write_func_def(myfile, step, textrep, args, current):
+    """Write step function implementation header
+
+    """
+
+    if step["keyword"].strip() == "Given":
+        myfile.write("\n\n#\n# Given ... \n#\n")
+        myfile.write("@given('"+textrep+"')\n")
+        myfile.write("def step_given("+args+"):\n")
+        current = "given"
+    elif step["keyword"].strip() == "When":
+        myfile.write("\n\n#\n# When ...\n#\n")
+        myfile.write("@when('"+textrep+"')\n")
+        myfile.write("def step_when("+args+"):\n")
+        current = "when"
+    elif step["keyword"].strip() == "Then":
+        myfile.write("\n\n#\n# Then ...\n#\n")
+        myfile.write("@then('"+textrep+"')\n")
+        myfile.write("def step_then("+args+"):\n")
+        current = "then"
+    elif step["keyword"].strip() == "And":
+        if current == "":
+            raise Exception("`And` has to be preceeded by a "+
+                            "line with `Given`, `When` or"+
+                            "`Then`")
+        myfile.write("\n\n#\n# And ...\n#\n")
+        myfile.write("@"+current+"('"+textrep+"')\n")
+        myfile.write("def step_"+current+"("+args+"):\n")
+    else:
+        raise Exception("unknown keyword: "+step["keyword"])
+
+    return current
+
+
+def write_header(myfile):
+    """Write the output file header
+
+    """
+    tstamp = datetime.datetime.fromtimestamp(time.time()).\
+    strftime('%Y-%m-%d %H:%M:%S')
+    myfile.write('''"""
 
     Autogenerated by ghenerate script, part of Quantarhei
     http://github.com/tmancal74/quantarhei
     Tomas Mancal, tmancal74@gmai.com
-    
-    Generated on: {} 
+
+    Generated on: {}
 
     Edit the functions below to give them desired functionality.
     In present version of `ghenerate`, no edits or replacements
     are perfomed in the feature file text.
 
-
 """
 
 from behave import *
-'''.format(tstamp))                     
-                   
-        # FIXME: the 'text' should be searched for variables
-        current = ""
-        for step in steps:
-            if ((step["keyword"].strip() == "Given")
-                or (step["keyword"].strip() == "given")):
-                myfile.write("\n\n#\n# Given ... \n#\n")
-                myfile.write("@given('"+step["text"]+"')\n")
-                myfile.write("def step_given(context):\n")
-                myfile.write("    pass\n")
-                current = "given"
-            elif ((step["keyword"].strip() == "When")
-                or (step["keyword"].strip() == "when")):
-                myfile.write("\n\n#\n# When ...\n#\n")
-                myfile.write("@when('"+step["text"]+"')\n")
-                myfile.write("def step_when(context):\n")
-                myfile.write("    pass\n")
-                current = "when"
-            elif ((step["keyword"].strip() == "Then")
-                or (step["keyword"].strip() == "then")):
-                myfile.write("\n\n#\n# Then ...\n#\n")
-                myfile.write("@then('"+step["text"]+"')\n")
-                myfile.write("def step_then(context):\n")
-                myfile.write("    pass\n")
-                current = "then"
-            elif ((step["keyword"].strip() == "And")
-                or (step["keyword"].strip() == "and")):
-                if current == "":
-                    raise Exception()
-                myfile.write("\n\n#\n# And ...\n#\n")
-                myfile.write("@"+current+"('"+step["text"]+"')\n")
-                myfile.write("def step_"+current+"(context):\n")
-                myfile.write("    pass\n")
-            else:
-                print("unknown keyword:", step["keyword"])
-                
-    print("... done")
+'''.format(tstamp))
+
+
+def main():
+    """Script's main function
+
+
+    """
+
+    #(children, ddir, steps_pass, filename) = parsing()
+    parse_data = parsing()
+
     print("")
- 
+    print("Analyzing file: ", parse_data["filename"])
+    print("Number of scenarii/scenario outlines: ",
+          len(parse_data["children"]))
+    print("")
+
+    analyze_children(parse_data["children"])
+
+    ofile = check_outputfile_exists(parse_data["ddir"], parse_data["filename"])
+
+    with open(ofile, 'w') as myfile:
+
+        write_header(myfile)
+
+        test_strings = []
+        for scenario in parse_data["children"]:
+
+            steps = scenario["steps"]
+
+            current = ""
+            for step in steps:
+                text = step["text"]
+
+                # the step strings should not be duplicate
+                if text not in test_strings:
+                    test_strings.append(text)
+
+                    # the 'text' is searched for variables
+                    args = "context"
+                    iterator = re.compile('<([^<]*)>').finditer(text)
+                    for mtch in iterator:
+                        # when variable found store it to args
+                        # and replace the brackets
+                        var = mtch.group()
+                        var = var[1:len(var)-1]
+                        args += ", "+var
+                        text = re.sub("<"+var+">", "{"+var+"}", text)
+
+                    #
+                    # Header
+                    #
+                    current = write_func_def(myfile, step, text, args, current)
+
+                    #
+                    # Body
+                    #
+                    if parse_data["steps_pass"]:
+                        myfile.write("    pass\n")
+                    else:
+                        myfile.write("    assert False is True")
+
+                # in case of duplication we just keep going
+                else:
+                    if step["keyword"].strip() == "Given":
+                        current = "given"
+                    elif step["keyword"].strip() == "When":
+                        current = "when"
+                    elif step["keyword"].strip() == "Then":
+                        current = "then"
+                    elif step["keyword"].strip() == "And":
+                        if current == "":
+                            raise Exception("`And` has to be preceeded by a "+
+                                            "line with `Given`, `When` or"+
+                                            "`Then`")
+                    else:
+                        raise Exception("unknown keyword: "+step["keyword"])
 
 
+        print("... done")
+        print("")
 
-
-
-
-
-
+        return 0
