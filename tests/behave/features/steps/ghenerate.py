@@ -12,34 +12,41 @@
 
 """
 import os
-import tempfile
-import shutil
-import re
 
 from subprocess import check_output
 from subprocess import call
 
-from behave import *
+from behave import given
+from behave import when
+from behave import then
 
+import quantarhei.tests.testing.behave as bhv
 
 #
-# Given ... 
+# Given ...
 #
 @given('that Quantarhei is installed')
-def step_given(context):
-    
+def step_given_1(context):
+    """Step implementation for:
+
+        Given that Quantarhei is installed
+
+    """
+
     # if this does not break, quantarhei is installed
-    import quantarhei as qr
-    assert isinstance(qr.Manager().version, str)
+    bhv.quantarhei_installed(context)
 
 
 #
 # When ...
 #
 @when('I run the ghenerate script')
-def step_when(context):
-    from subprocess import check_output
+def step_when_1(context):
+    """Step implementation for:
 
+        When I run the ghenerate script
+
+    """
     output = check_output("ghenerate")
     context.output = output
 
@@ -48,117 +55,61 @@ def step_when(context):
 # Then ...
 #
 @then('I get a simple usage message')
-def step_then(context):
-    import re
+def step_then_1(context):
+    """Step implementation for:
 
-    res = re.search("No file specified: quiting\nusage:", 
-                    context.output.decode('utf-8'))
-    if res is None:
-        print(context.output.decode('utf-8'))
-        raise Exception("No usage message returned")
-
-
-def secure_temp_dir(context):
-    """Creates temporary directory and stores its info into context
-    
-    """
-    tmpd = tempfile.TemporaryDirectory()
-    context.tempdir = tmpd
-
-
-def cleanup_temp_dir(context):
-    """Cleans up temporary directory
-    
-    
-    """
-    
-    try:
-        os.chdir(context.cwd)
-    except:
-        print("Current working file record does not exist")
-        
-    try:
-        context.tempdir.cleanup()
-    except:
-        print("Temporary directory cannot be cleaned up - does it exist?")
-        
-
-def fetch_test_feature_file(context, filename):
-    """Fetches the file with a given name from the storage of test files
-    
-    """
-    
-    # right now, the storage is in the directory from which we start
-    source_dir = context.cwd
-    
-    # copy the file to current directory
-    shutil.copyfile(os.path.join(source_dir, "qrhei.feature"), 
-                    os.path.join(os.getcwd(), filename))
-
-
-class testdir():
-    """Context manager for test directory
-    
-    With this context manager we enter temporary directory which was
-    prepared in the startup phase of the test. The context manager makes sure
-    that when tests fail the temporary directory is properly cleaned up.
+        Then I get a simple usage message
 
     """
-    
-    def __init__(self, context):
-        
-        self.context = context
-        try:
-            tempdir = context.tempdir
-            if tempdir is None:
-                raise Exception()
-        except:
-            raise Exception("Context does not contain info about tempdir")
+    bhv.check_message_contains(context, "No file specified: quiting\nusage:",
+                               err_msg="No usage message returned")
 
 
-    def __enter__(self):
-        self.context.cwd = os.getcwd()
-        os.chdir(self.context.tempdir.name)
-
-    def __exit__(self,  exc_type, exc_value, traceback):
-        os.chdir(self.context.cwd)
-        if exc_type is not None:
-            cleanup_temp_dir(self.context)
-
-    
 #
 # And ...
 #
 @given('current directory contains a feature file')
-def step_given(context):
-    
-    secure_temp_dir(context)
-    
-    with testdir(context):
+def step_given_2(context):
+    """Step implementation for:
+
+        And current directory contains a feature file
+
+    """
+
+    bhv.secure_temp_dir(context)
+
+    with bhv.testdir(context):
         ffile = "test.feature"
-        fetch_test_feature_file(context, ffile)
-    
-        output = check_output(["ls", "-l"]).decode("utf-8")
-        res = re.search(ffile, output)
-    
-        if res is None:  
+        bhv.fetch_test_feature_file(context, ffile)
+
+        if not os.path.isfile(ffile):
             raise Exception("Feature file: "+ffile+" not found")
+        
+        #output = check_output(["ls", "-l"]).decode("utf-8")
+        #res = re.search(ffile, output)
+        #
+        #if res is None:
+        #    raise Exception("Feature file: "+ffile+" not found")
 
 
 #
 # And ...
 #
 @given('the default destination directory exists')
-def step_given(context):
+def step_given_3(context):
+    """Step implementation for:
+
+        And the default destination directory exists
+
+    """
     from pathlib import Path
 
-    with testdir(context):    
-    
-        path = os.path.join(context.tempdir.name, "ghen")    
+    with bhv.testdir(context):
+        path = os.path.join(context.tempdir.name, "ghen")
         my_file = Path(path)
         if not my_file.exists():
             my_file.mkdir()
-        
+
         if not my_file.is_dir():
             raise Exception("Defailt destination directory does not exist.")
 
@@ -167,51 +118,82 @@ def step_given(context):
 # When ...
 #
 @when('I run the ghenerate script with the name of the feature file')
-def step_when(context):
+def step_when_2(context):
+    """Step implementation for:
 
-    with testdir(context):    
-        #print(os.getcwd())
-        #print(check_output(["ls", "-la"]).decode("utf-8"))
-        #print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
-        call("ghenerate test.feature", shell=True, 
-             cwd=context.tempdir.name)
-        print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
+        When I run the ghenerate script with the name of the feature file
+
+    """
+
+    context.feature_file = "test.feature"
+    context.step_file = "test.py"
+    
+    with bhv.testdir(context):
+
+        bhv.shell_command(context, "ghenerate "+context.feature_file,
+                          err_msg="Command ghenerate "+context.feature_file+
+                          " failed")
+
+
 
 
 #
 # Then ...
 #
 @then('feature file is converted into a Python step file')
-def step_then(context):
-    # this will remain empty, there is no way how this can be checked
-    pass
+def step_then_2(context):
+    """Step implementation for:
 
- 
+        Then feature file is converted into a Python step file
+
+    """
+
+    # this will remain empty, there is no way how this can be checked
+    context.output = ""
+
 #
 # And ...
 #
 @then('the step file is saved into default destination directory')
-def step_then(context):
-      
-    with testdir(context):
-        output = check_output("ls ghen", shell=True)
+def step_then_3(context):
+    """Step implementation for:
+
+        And the step file is saved into default destination directory
+
+    """
     
-        if re.search("test.py", output.decode()) is None:
-            raise Exception("step file not found")
+    with bhv.testdir(context):
         
+        call(["ls", "-la"])
+        ffile = os.path.join("ghen", context.step_file)
+        print(ffile)
+        if not os.path.isfile(ffile):
+            raise Exception("Step file: "+ffile+" not found")
+
+        #output = check_output("ls ghen", shell=True)
+        #
+        #if re.search("test.py", output.decode("utf-8")) is None:
+        #    raise Exception("step file not found")
+
 
 #
 # And ...
 #
 @given('{destination_directory} exists')
-def step_given(context, destination_directory):
+def step_given_4(context, destination_directory):
+    """Step implementation for:
+
+        And {destination_directory} exists
+
+    """
     from pathlib import Path
 
-    with testdir(context):
-        
+    with bhv.testdir(context):
+
         my_file = Path(destination_directory)
         my_file.mkdir()
-    
+        context.dest = destination_directory
+
         if not my_file.is_dir():
             raise Exception("Destination directory "+destination_directory+
                             " does not exist")
@@ -221,68 +203,93 @@ def step_given(context, destination_directory):
 # When ...
 #
 @when('I run {ghenerate_command} with the option specifying destination directory')
-def step_when(context, ghenerate_command):
+def step_when_4(context, ghenerate_command):
+    """Step implementation for:
+
+        When I run {ghenerate_command} with the option specifying destination directory
+
+    """
     
-    with testdir(context):
+    context.step_file = os.path.join(context.dest, "test.py")
     
-        try:
-            call(["ls", "-la"])
-            
-#            cmd = ghenerate_command.split()
-#            
-#            gh = [cmd[0]]
-#            cmd.remove(cmd[0])
-#            
-#            sp = " "
-#            arg = sp.join(cmd)
-#            gh.append(arg)
-#            gh.append("test.feature")
-            
-            gh = ghenerate_command+" "+"test.feature"
-            print(">>> ", gh)
-            output = check_output(gh, shell=True, cwd=os.getcwd())
-            print(output.decode("utf-8"))
-    
-        except:
-            raise Exception("Command failed")   
+    with bhv.testdir(context):
+        
+        ghencom = ghenerate_command+" "+"test.feature"
+        err_msg = "Command "+ghenerate_command+" failed"
+        
+        bhv.shell_command(context, ghencom, err_msg=err_msg )
+
 
 
 #
 # And ...
 #
 @then('step file is saved into the destination directory')
-def step_then(context):
-    cleanup_temp_dir(context)
+def step_then_4(context):
+    """Step implementation for:
+
+        And step file is saved into the destination directory
+
+    """
+    step_file = context.step_file
     
+    with bhv.testdir(context):
+        
+        if not os.path.isfile(step_file):
+            raise Exception("step file not found")
+
+        #output = check_output("ls "+dest, shell=True, cwd=os.getcwd())
+        #
+        #if re.search("test.py", output.decode("utf-8")) is None:
+        #   raise Exception("step file not found")
+
+    bhv.cleanup_temp_dir(context)
 
 
 #
 # And ...
 #
 @given('the {destination_directory} does not exist')
-def step_given(context, destination_directory):
-    pass
+def step_given_5(context, destination_directory):
+    """Step implementation for:
 
+        And the {destination_directory} does not exist
 
-#
-# When ...
-#
-@when('I run {ghenerate_command} with feature file name')
-def step_when(context, ghenerate_command):
-    pass
+    """
+    context.dest = destination_directory
+
+    with bhv.testdir(context):
+
+        if os.path.isdir(destination_directory):
+            raise Exception("directory "+destination_directory+
+                            " must NOT be present for this test to start")
+
+        #output = check_output("ls -la", shell=True, cwd=os.getcwd())
+        #
+        #if re.search(destination_directory,
+        #             output.decode("utf-8")) is not None:
+        #    raise Exception("directory "+destination_directory+
+        #                    " must NOT be present for this test to start")
 
 
 #
 # Then ...
 #
 @then('destination directory is created')
-def step_then(context):
-    pass
+def step_then_5(context):
+    """Step implementation for:
 
+        Then destination directory is created
 
-#
-# And ...
-#
-@then('step file is saved to the destination directory')
-def step_then(context):
-    cleanup_temp_dir(context)
+    """
+    dest = context.dest
+
+    with bhv.testdir(context):
+
+        if not os.path.isdir(dest):
+            raise Exception("directory "+dest+" was not found")
+
+        #output = check_output("ls -la", shell=True, cwd=os.getcwd())
+        #
+        #if re.search(dest, output.decode("utf-8")) is None:
+        #    raise Exception("directory "+dest+" was not found")

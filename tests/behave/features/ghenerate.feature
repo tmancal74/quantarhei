@@ -42,10 +42,10 @@ Feature: Ghenerate script reads a feature file and converts it into step file in
         Given that Quantarhei is installed
         And current directory contains a feature file
         And the <destination_directory> does not exist
-        When I run <ghenerate_command> with feature file name
+        When I run <ghenerate_command> with the option specifying destination directory
         Then destination directory is created
         And feature file is converted into a Python step file
-        And step file is saved to the destination directory
+        And step file is saved into the destination directory
 
         Examples:
         | destination_directory   |   ghenerate_command                |
