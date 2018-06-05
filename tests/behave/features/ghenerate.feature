@@ -32,9 +32,9 @@ Feature: Ghenerate script reads a feature file and converts it into step file in
         | ghenerate                        | ghen                  |
         | ghenerate -d ghen                | ghen                  |
         | ghenerate -d steps               | steps                 |
-        | ghenerate —d steps    | steps                 |
+        | ghenerate --destination steps    | steps                 |
         | ghenerate -d some_dir            | some_dir              |
-        | ghenerate —d some_dir | some_dir              |
+        | ghenerate --destination some_dir | some_dir              |
 
 
     Scenario Outline: if destination directory is missing, it is created before file is saved
@@ -51,9 +51,9 @@ Feature: Ghenerate script reads a feature file and converts it into step file in
         | destination_directory   |   ghenerate_command                |
         | ghen                    |   ghenerate                        |
         | ghen                    |   ghenerate -d ghen                |
-        | ghen                    |   ghenerate -d ghen     | 
+        | ghen                    |   ghenerate --destination ghen     |
         | steps                   |   ghenerate -d steps               |
-        | steps                   |   ghenerate —d steps    |
+        | steps                   |   ghenerate --destination steps    |
         | some_dir                |   ghenerate -d some_dir            |
-        | some_dir                |   ghenerate —d some_dir |
-
+        | some_dir                |   ghenerate --destination some_dir |
+        

@@ -11,6 +11,13 @@
     are perfomed in the feature file text.
 
 """
+import os
+import tempfile
+import shutil
+import re
+
+from subprocess import check_output
+from subprocess import call
 
 from behave import *
 
@@ -52,56 +59,90 @@ def step_then(context):
 
 
 def secure_temp_dir(context):
-    import os
-    import tempfile
+    """Creates temporary directory and stores its info into context
     
+    """
     tmpd = tempfile.TemporaryDirectory()
-    
     context.tempdir = tmpd
-    context.cwd = os.getcwd()   
 
 
 def cleanup_temp_dir(context):
-    import os
-    os.chdir(context.cwd)
-    context.tempdir.cleanup()
-
+    """Cleans up temporary directory
+    
+    
+    """
+    
+    try:
+        os.chdir(context.cwd)
+    except:
+        print("Current working file record does not exist")
+        
+    try:
+        context.tempdir.cleanup()
+    except:
+        print("Temporary directory cannot be cleaned up - does it exist?")
+        
 
 def fetch_test_feature_file(context, filename):
-    import os
-    import os.path
-    import shutil
+    """Fetches the file with a given name from the storage of test files
     
-    os.chdir(context.tempdir.name)
-    shutil.copyfile(os.path.join(context.cwd, "qrhei.feature"), 
-                    os.path.join(".", filename))
-    os.chdir(context.cwd)
+    """
     
+    # right now, the storage is in the directory from which we start
+    source_dir = context.cwd
     
+    # copy the file to current directory
+    shutil.copyfile(os.path.join(source_dir, "qrhei.feature"), 
+                    os.path.join(os.getcwd(), filename))
+
+
+class testdir():
+    """Context manager for test directory
+    
+    With this context manager we enter temporary directory which was
+    prepared in the startup phase of the test. The context manager makes sure
+    that when tests fail the temporary directory is properly cleaned up.
+
+    """
+    
+    def __init__(self, context):
+        
+        self.context = context
+        try:
+            tempdir = context.tempdir
+            if tempdir is None:
+                raise Exception()
+        except:
+            raise Exception("Context does not contain info about tempdir")
+
+
+    def __enter__(self):
+        self.context.cwd = os.getcwd()
+        os.chdir(self.context.tempdir.name)
+
+    def __exit__(self,  exc_type, exc_value, traceback):
+        os.chdir(self.context.cwd)
+        if exc_type is not None:
+            cleanup_temp_dir(self.context)
+
     
 #
 # And ...
 #
 @given('current directory contains a feature file')
 def step_given(context):
-    from subprocess import check_output
-    import re
-    import os
     
     secure_temp_dir(context)
     
+    with testdir(context):
+        ffile = "test.feature"
+        fetch_test_feature_file(context, ffile)
     
-    ffile = "test.feature"
-    fetch_test_feature_file(context, ffile)
+        output = check_output(["ls", "-l"]).decode("utf-8")
+        res = re.search(ffile, output)
     
-    os.chdir(context.tempdir.name)
-    output = check_output(["ls", "-l"]).decode("utf-8")
-    os.chdir(context.cwd)
-    res = re.search(ffile, output)
-    
-    if res is None:
-        cleanup_temp_dir(context)
-        raise Exception("Feature file: "+ffile+" not found")
+        if res is None:  
+            raise Exception("Feature file: "+ffile+" not found")
 
 
 #
@@ -110,15 +151,16 @@ def step_given(context):
 @given('the default destination directory exists')
 def step_given(context):
     from pathlib import Path
-    import os.path
+
+    with testdir(context):    
     
-    path = os.path.join(context.tempdir.name, "ghen")
-    
-    my_file = Path(path)
-    if not my_file.exists():
-        my_file.mkdir()
+        path = os.path.join(context.tempdir.name, "ghen")    
+        my_file = Path(path)
+        if not my_file.exists():
+            my_file.mkdir()
         
-    assert my_file.is_dir()
+        if not my_file.is_dir():
+            raise Exception("Defailt destination directory does not exist.")
 
 
 #
@@ -126,17 +168,15 @@ def step_given(context):
 #
 @when('I run the ghenerate script with the name of the feature file')
 def step_when(context):
-    from subprocess import check_output
-    from subprocess import call
-    import os
-    
-    #print(os.getcwd())
-    #print(check_output(["ls", "-la"]).decode("utf-8"))
-    #print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
-    os.chdir(context.tempdir.name)
-    call(["ghenerate", "test.feature"])
-    print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
-    os.chdir(context.cwd)
+
+    with testdir(context):    
+        #print(os.getcwd())
+        #print(check_output(["ls", "-la"]).decode("utf-8"))
+        #print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
+        call("ghenerate test.feature", shell=True, 
+             cwd=context.tempdir.name)
+        print(check_output(["ls", "-la", "ghen"]).decode("utf-8"))
+
 
 #
 # Then ...
@@ -152,17 +192,12 @@ def step_then(context):
 #
 @then('the step file is saved into default destination directory')
 def step_then(context):
-    from subprocess import check_output
-    import re
-    import os
       
-    os.chdir(context.tempdir.name)
-    output = check_output(["ls", "ghen"])
-    os.chdir(context.cwd)
+    with testdir(context):
+        output = check_output("ls ghen", shell=True)
     
-    if re.search("test.py", output.decode()) is None:
-        cleanup_temp_dir(context)
-        raise Exception()
+        if re.search("test.py", output.decode()) is None:
+            raise Exception("step file not found")
         
 
 #
@@ -171,53 +206,52 @@ def step_then(context):
 @given('{destination_directory} exists')
 def step_given(context, destination_directory):
     from pathlib import Path
-    import os
-    
-    os.chdir(context.tempdir.name)
-    
-    my_file = Path(destination_directory)
-    my_file.mkdir()
-    
-    if not my_file.is_dir():
-        cleanup_temp_dir(context)
-        raise Exception()
 
-    os.chdir(context.cwd)
+    with testdir(context):
+        
+        my_file = Path(destination_directory)
+        my_file.mkdir()
+    
+        if not my_file.is_dir():
+            raise Exception("Destination directory "+destination_directory+
+                            " does not exist")
+
 
 #
 # When ...
 #
 @when('I run {ghenerate_command} with the option specifying destination directory')
 def step_when(context, ghenerate_command):
-    from subprocess import check_output
-    from subprocess import call
-    import os
     
-    os.chdir(context.tempdir.name)
+    with testdir(context):
     
-    try:
-        call(["ls", "-la"])
-        gh = ghenerate_command.split()
-        gh.append("test.feature")
-        
-        print(">>>", gh)
-        output = check_output(gh)
-        print(output.decode("utf-8"))
+        try:
+            call(["ls", "-la"])
+            
+#            cmd = ghenerate_command.split()
+#            
+#            gh = [cmd[0]]
+#            cmd.remove(cmd[0])
+#            
+#            sp = " "
+#            arg = sp.join(cmd)
+#            gh.append(arg)
+#            gh.append("test.feature")
+            
+            gh = ghenerate_command+" "+"test.feature"
+            print(">>> ", gh)
+            output = check_output(gh, shell=True, cwd=os.getcwd())
+            print(output.decode("utf-8"))
+    
+        except:
+            raise Exception("Command failed")   
 
-    except:
-        cleanup_temp_dir(context)
-        raise Exception("Command failed")
-    
-    #context.output = output
-    os.chdir(context.cwd)    
 
 #
 # And ...
 #
 @then('step file is saved into the destination directory')
 def step_then(context):
-
-    
     cleanup_temp_dir(context)
     
 
