@@ -37,7 +37,7 @@ def quantarhei_installed(context, version=None):
         assert context.version == version
 
 
-def shell_command(context, cmd, err_msg):
+def shell_command(context, cmd, err_msg="Shell command error"):
     """Runs a shell command in current directory
 
 

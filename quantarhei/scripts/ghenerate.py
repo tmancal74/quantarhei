@@ -173,25 +173,31 @@ def check_outputfile_exists(ddir, filename):
     return ofile
 
 
-def write_func_def(myfile, step, textrep, args, current):
+def write_func_def(myfile, step, textrep, args, current, k_step):
     """Write step function implementation header
 
     """
 
     if step["keyword"].strip() == "Given":
-        myfile.write("\n\n#\n# Given ... \n#\n")
+        myfile.write("\n\n#\n# Given ...\n#\n")
         myfile.write("@given('"+textrep+"')\n")
-        myfile.write("def step_given("+args+"):\n")
+        myfile.write("def step_given_"+str(k_step)+"("+args+"):\n")
+        myfile.write('    """\n\n        Given '+textrep+"\n\n")
+        myfile.write('    """\n')
         current = "given"
     elif step["keyword"].strip() == "When":
         myfile.write("\n\n#\n# When ...\n#\n")
         myfile.write("@when('"+textrep+"')\n")
-        myfile.write("def step_when("+args+"):\n")
+        myfile.write("def step_when_"+str(k_step)+"("+args+"):\n")
+        myfile.write('    """\n\n        When '+textrep+"\n\n")
+        myfile.write('    """\n')
         current = "when"
     elif step["keyword"].strip() == "Then":
         myfile.write("\n\n#\n# Then ...\n#\n")
         myfile.write("@then('"+textrep+"')\n")
-        myfile.write("def step_then("+args+"):\n")
+        myfile.write("def step_then_"+str(k_step)+"("+args+"):\n")
+        myfile.write('    """\n\n        Then '+textrep+"\n\n")
+        myfile.write('    """\n')
         current = "then"
     elif step["keyword"].strip() == "And":
         if current == "":
@@ -200,7 +206,9 @@ def write_func_def(myfile, step, textrep, args, current):
                             "`Then`")
         myfile.write("\n\n#\n# And ...\n#\n")
         myfile.write("@"+current+"('"+textrep+"')\n")
-        myfile.write("def step_"+current+"("+args+"):\n")
+        myfile.write("def step_"+current+"_"+str(k_step)+"("+args+"):\n")
+        myfile.write('    """\n\n        And '+textrep+"\n\n")
+        myfile.write('    """\n')
     else:
         raise Exception("unknown keyword: "+step["keyword"])
 
@@ -227,7 +235,10 @@ def write_header(myfile):
 
 """
 
-from behave import *
+from behave import given
+from behave import when
+from behave import then
+
 '''.format(tstamp))
 
 
@@ -257,6 +268,7 @@ def main():
         write_header(myfile)
 
         test_strings = []
+        k_step = 0
         for scenario in parse_data["children"]:
 
             steps = scenario["steps"]
@@ -283,7 +295,9 @@ def main():
                     #
                     # Header
                     #
-                    current = write_func_def(myfile, step, text, args, current)
+                    k_step += 1
+                    current = write_func_def(myfile, step, text,
+                                             args, current, k_step)
 
                     #
                     # Body

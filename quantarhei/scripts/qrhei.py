@@ -11,9 +11,12 @@
 import argparse
 import subprocess
 from pathlib import Path
-import os, sys
+import os
+import sys
+import fnmatch
 
 import quantarhei as qr
+
 
 def do_command_run(args):
     """Runs a script 
@@ -144,7 +147,38 @@ def do_command_test(args):
     """
     
     qr.printlog("Running tests", loglevel=0)
+
+
+def _match_filenames(filenames, pattern):
     
+    return fnmatch.filter(filenames, pattern) 
+    
+   
+def do_command_list(args):
+    """Lists files for Quantarhei
+    
+    """
+    global parser_list
+    
+    if args.examples:
+        qr.printlog("Listing available examples ...", loglevel=0)
+    
+        import quantarhei.wizard.examples as exmpl
+         
+        filenames = exmpl._available_examples
+        
+        if args.glob:
+            pattern = args.glob
+            matching = _match_filenames(filenames, pattern)
+        else:
+            matching = filenames
+            
+        for ex in matching:
+            qr.printlog("    "+ex, loglevel=0)
+
+    else:
+        parser_list.print_help()
+
 
 def do_command_fetch(args):
     """Fetches files for Quantarhei
@@ -152,14 +186,6 @@ def do_command_fetch(args):
     """
     
     qr.printlog("Fetching something ...", loglevel=0)
-
-   
-def do_command_list(args):
-    """Lists files for Quantarhei
-    
-    """
-    
-    qr.printlog("Listing something ...", loglevel=0)
 
 
 def do_command_config(args):
@@ -180,6 +206,7 @@ def do_command_report(args):
     
 def main():
     
+    global parser_list
     
     parser = argparse.ArgumentParser(
             description='Quantarhei Package Driver')
@@ -235,6 +262,9 @@ def main():
     parser_fetch = subparsers.add_parser("fetch", help="Fetches examples,"
                                         +" benchmarks, tutorials, templates"
                                         +" and configuration files")
+
+    parser_fetch.add_argument("-e", "--example", type=str, default="",
+                             help="fetches a specified example file")
     
     parser_fetch.set_defaults(func=do_command_fetch)    
 
@@ -244,9 +274,16 @@ def main():
 
     parser_list = subparsers.add_parser("list", help="Lists examples,"
                                     +" benchmarks, tutorials and templates")
+
+    parser_list.add_argument("glob", metavar='glob', type=str, 
+                          help='file name', nargs="?")
+    parser_list.add_argument("-e", "--examples", action='store_true', 
+                             help="list all available example files")
     
     parser_list.set_defaults(func=do_command_list)    
 
+
+    
     #
     # Subparser for command `config`
     #
