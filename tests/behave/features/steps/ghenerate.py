@@ -20,7 +20,7 @@ from behave import given
 from behave import when
 from behave import then
 
-import quantarhei.tests.testing.behave as bhv
+import quantarhei.testing.behave as bhv
 
 #
 # Given ...

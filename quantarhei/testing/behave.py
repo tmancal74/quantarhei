@@ -117,7 +117,7 @@ def fetch_test_feature_file(context, filename):
 
     """
     resource_package = "quantarhei"
-    resource_path = '/'.join(('tests', 'resources', 'behave', filename))
+    resource_path = '/'.join(('testing', 'resources', 'behave', filename))
 
     content = pkg_resources.resource_string(resource_package, resource_path)
 

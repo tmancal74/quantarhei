@@ -97,7 +97,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'quantarhei': ['tests/resources/behave/test.feature'],
+        'quantarhei': ['testing/resources/behave/test.feature'],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
