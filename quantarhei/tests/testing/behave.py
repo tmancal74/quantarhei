@@ -64,7 +64,7 @@ def shell_command(context, cmd, err_msg):
         raise Exception(err_msg)
 
 
-def check_message_contains(context, text, err_msg):
+def check_output_contains(context, text, err_msg):
     """Checks that message contains certain text
 
 

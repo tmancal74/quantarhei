@@ -98,7 +98,7 @@ def matplotlib_tests():
     !!!Currently it is not run in automatic build testing!!!
     
     """
-    sh('cd quantarhei; ./tests.py; cd ..')
+    sh('cd tests/matplotlib; ./tests.py; cd ..')
 
 
 ###############################################################################
@@ -297,6 +297,16 @@ def aloe_tests_cov_vs():
 @task
 def aloe_tests_cov_v():
     sh('aloe --with-coverage -v -a !in_development tests/bdd')
+
+
+###############################################################################
+#
+#    Behave tests
+#
+###############################################################################
+@task
+def behave():
+    sh("cd tests/behave/features; behave --no-capture")
 
 
 ###############################################################################

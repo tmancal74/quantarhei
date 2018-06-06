@@ -61,7 +61,7 @@ def step_then_1(context):
         Then I get a simple usage message
 
     """
-    bhv.check_message_contains(context, "No file specified: quiting\nusage:",
+    bhv.check_output_contains(context, "No file specified: quiting\nusage:",
                                err_msg="No usage message returned")
 
 
