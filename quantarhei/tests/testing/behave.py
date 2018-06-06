@@ -54,9 +54,8 @@ def shell_command(context, cmd, err_msg):
     """
     try:
     
-        context.cwd = os.getcwd()
         context.last_cmd = cmd
-        output = check_output(cmd, shell=True, cwd=context.cwd)
+        output = check_output(cmd, shell=True, cwd=os.getcwd())
         context.output = output
 
     except:

@@ -14,7 +14,7 @@
 import os
 
 from subprocess import check_output
-from subprocess import call
+#from subprocess import call
 
 from behave import given
 from behave import when
@@ -84,12 +84,6 @@ def step_given_2(context):
 
         if not os.path.isfile(ffile):
             raise Exception("Feature file: "+ffile+" not found")
-        
-        #output = check_output(["ls", "-l"]).decode("utf-8")
-        #res = re.search(ffile, output)
-        #
-        #if res is None:
-        #    raise Exception("Feature file: "+ffile+" not found")
 
 
 #
@@ -127,14 +121,12 @@ def step_when_2(context):
 
     context.feature_file = "test.feature"
     context.step_file = "test.py"
-    
+
     with bhv.testdir(context):
 
         bhv.shell_command(context, "ghenerate "+context.feature_file,
                           err_msg="Command ghenerate "+context.feature_file+
                           " failed")
-
-
 
 
 #
@@ -161,19 +153,15 @@ def step_then_3(context):
         And the step file is saved into default destination directory
 
     """
-    
+
     with bhv.testdir(context):
-        
-        call(["ls", "-la"])
+
         ffile = os.path.join("ghen", context.step_file)
         print(ffile)
         if not os.path.isfile(ffile):
             raise Exception("Step file: "+ffile+" not found")
 
-        #output = check_output("ls ghen", shell=True)
-        #
-        #if re.search("test.py", output.decode("utf-8")) is None:
-        #    raise Exception("step file not found")
+    bhv.cleanup_temp_dir(context)
 
 
 #
@@ -209,15 +197,15 @@ def step_when_4(context, ghenerate_command):
         When I run {ghenerate_command} with the option specifying destination directory
 
     """
-    
+
     context.step_file = os.path.join(context.dest, "test.py")
-    
+
     with bhv.testdir(context):
-        
+
         ghencom = ghenerate_command+" "+"test.feature"
         err_msg = "Command "+ghenerate_command+" failed"
-        
-        bhv.shell_command(context, ghencom, err_msg=err_msg )
+
+        bhv.shell_command(context, ghencom, err_msg=err_msg)
 
 
 
@@ -232,16 +220,11 @@ def step_then_4(context):
 
     """
     step_file = context.step_file
-    
+
     with bhv.testdir(context):
-        
+
         if not os.path.isfile(step_file):
             raise Exception("step file not found")
-
-        #output = check_output("ls "+dest, shell=True, cwd=os.getcwd())
-        #
-        #if re.search("test.py", output.decode("utf-8")) is None:
-        #   raise Exception("step file not found")
 
     bhv.cleanup_temp_dir(context)
 
@@ -264,13 +247,6 @@ def step_given_5(context, destination_directory):
             raise Exception("directory "+destination_directory+
                             " must NOT be present for this test to start")
 
-        #output = check_output("ls -la", shell=True, cwd=os.getcwd())
-        #
-        #if re.search(destination_directory,
-        #             output.decode("utf-8")) is not None:
-        #    raise Exception("directory "+destination_directory+
-        #                    " must NOT be present for this test to start")
-
 
 #
 # Then ...
@@ -288,8 +264,3 @@ def step_then_5(context):
 
         if not os.path.isdir(dest):
             raise Exception("directory "+dest+" was not found")
-
-        #output = check_output("ls -la", shell=True, cwd=os.getcwd())
-        #
-        #if re.search(dest, output.decode("utf-8")) is None:
-        #    raise Exception("directory "+dest+" was not found")
