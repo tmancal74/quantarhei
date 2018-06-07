@@ -306,7 +306,7 @@ def aloe_tests_cov_v():
 ###############################################################################
 @task
 def behave():
-    sh("cd tests/behave/features; behave --no-capture")
+    sh("cd tests/behave/features; coverage run $(which behave)")
 
 
 ###############################################################################
@@ -478,7 +478,8 @@ def codecov():
 #
 @needs('unit_tests_cov_v',
        'doc_tests_cov_v',
-       'aloe_tests_cov_v')
+       'aloe_tests_cov_v',
+       'behave')
 @task
 def default():
     """Default paver task

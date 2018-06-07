@@ -487,4 +487,94 @@ def step_then_24(context):
         
     except KeyError as e:
         assert str(e) == "'ahoj'"
+
+
+###############################################################################
+#
+#  Fourier transform
+#
+###############################################################################
+        
+
+#
+# Given ...
+#
+@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis')
+def step_given_25(context, N):
+    """
+
+        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis
+
+    """
+    import numpy
+    
+    Nn = int(N)
+    
+    context.spectra = []
+    
+    def func(x,y,t):
+        
+        Delta = 10.0
+        omega = 2.0*3.14159/20.0 
+        gamma = 1.0/100.0
+        
+        data = numpy.zeros((len(x), len(y), len(t)))
+        
+        for i_x in range(len(x)):
+            for i_y in range(len(y)):
+                data[i_x, i_y, :] = numpy.exp(-((x[i_x]+y[i_y])/Delta)**2)* \
+                                    numpy.cos(omega*t)*numpy.exp(-t/gamma)
+        
+        return data
+
+    time = qr.TimeAxis(0.0, Nn, 2.0)
+    xrange = qr.ValueAxis(-50.0, 100, 1.0).data
+    yrange = qr.ValueAxis(-50.0, 100, 1.0).data
+    
+    for k_n in range(Nn):
+        data = func(xrange, yrange, time.data)
+        spect = qr.TwoDSpectrum()
+        spect.set_data(data)
+        spect.set_axis_1(xrange)
+        spect.set_axis_3(yrange)
+        context.spectra.append(spect)
+
+#
+# When ...
+#
+@when('I calculate Fourier transform on the container')
+def step_when_26(context):
+    """
+
+        When I calculate Fourier transform on the container
+
+    """
+    pass
+
+
+#
+# Then ...
+#
+@then('I get correct pointwise Fourier transform of the spectra')
+def step_then_27(context):
+    """
+
+        Then I get correct pointwise Fourier transform of the spectra
+
+    """
+    pass
+
+
+#
+# And ...
+#
+@then('the TwoDSpectrum container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis')
+def step_then_28(context):
+    """
+
+        And the TwoDSpectrum container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis
+
+    """
+    pass
+
       
