@@ -29,11 +29,11 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     Scenario Outline: TwoDSpectrumContainer indexes by ValueAxis
         Given that I have <N> TwoDSpectrum objects
         And I have an empty TwoDSpectrum container
-        And I have a ValueAxis of of lenght <N> starting from zero with certain <step>
+        And I have a ValueAxis of lenght <N> starting from zero with certain <step>
         When I set the container to accept index by ValueAxis
         And I add the spectra to the container using values from ValueAxis
         Then TwoDSpectrum can be retrieved using values <val> from ValueAxis
-        But when values is out of bounds, I get an exception
+        But when values are out of bounds, I get an exception
         And TwoDSpectrum can be retrieved using the index <i>
         But when index is out of bounds, I get an exception
         
@@ -45,3 +45,42 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 15  |   2.0  |  16.0  |  10  |
     | 15  |   2.0  |  18.0  |  20  |
     
+    
+    Scenario Outline: TwoDSpectrumContainer indexes by TimeAxis
+        Given that I have <N> TwoDSpectrum objects
+        And I have an empty TwoDSpectrum container
+        And I have a TimeAxis of lenght <N> starting from zero with certain <step>
+        When I set the container to accept index by TimeAxis
+        And I add the spectra to the container using values from TimeAxis
+        Then TwoDSpectrum can be retrieved using values <val> from TimeAxis
+        But when values are out of bounds, I get an exception
+        And TwoDSpectrum can be retrieved using the index <i>
+        But when index is out of bounds, I get an exception        
+        
+    Examples:
+    |  N  |  step  |  val   |  i   |
+    |  5  |   0.3  |  0.9   |  4   |
+    | 12  |   1.0  |  10.0  |  4   |
+    | 12  |   1.0  |  15.0  |  5   |
+    | 15  |   2.0  |  16.0  |  10  |
+    | 15  |   2.0  |  18.0  |  20  |
+
+
+    Scenario Outline: TwoDSpectrumContainer indexes by FrequencyAxis
+        Given that I have <N> TwoDSpectrum objects
+        And I have an empty TwoDSpectrum container
+        And I have a FrequencyAxis of lenght <N> starting from zero with certain <step>
+        When I set the container to accept index by FrequencyAxis
+        And I add the spectra to the container using values from FrequencyAxis
+        Then TwoDSpectrum can be retrieved using values <val> from FrequencyAxis
+        But when values are out of bounds, I get an exception
+        And TwoDSpectrum can be retrieved using the index <i>
+        But when index is out of bounds, I get an exception        
+        
+    Examples:
+    |  N  |  step  |  val   |  i   |
+    |  5  |   0.3  |  0.9   |  4   |
+    | 12  |   1.0  |  10.0  |  4   |
+    | 12  |   1.0  |  15.0  |  5   |
+    | 15  |   2.0  |  16.0  |  10  |
+    | 15  |   2.0  |  18.0  |  20  |

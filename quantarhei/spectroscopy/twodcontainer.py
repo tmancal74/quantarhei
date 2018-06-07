@@ -51,6 +51,7 @@ class TwoDSpectrumContainer:
         
         self.itype = None
         self.index = 0
+        self.tags = []
         
         if self.keep_pathways:
             raise Exception("Container keeping pathways not available yet")
@@ -105,6 +106,19 @@ class TwoDSpectrumContainer:
             self.index += 1
             return self.index
         
+        elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+            
+            if tag is not None:
+                if tag in self.axis.data:
+                    self.spectra[tag] = spect
+                    self.tags.append(tag)
+                    self.index += 1
+                else:
+                    raise Exception("Tag not compatible with the ValueAxis")
+            else:
+                raise Exception("No tag specified - cannot store spectrum")
+            return self.index
+        
         t2 = spect.get_t2()
         if t2 in self.t2axis.data:
             self.spectra[t2] = spect
@@ -122,13 +136,30 @@ class TwoDSpectrumContainer:
         
         """
         if abs(x1-x2) < dx*frac: 
-            self._which = x1
+            self._which = x2
             return True
         
         self._which = None
         return False
-    
-    
+
+
+    def get_spectrum_by_index(self, indx):
+        """Returns spectrum by integet index
+        
+        The integer index is assigned to all spectra in the order they were
+        saved to the container. They can be retrieved in this order
+        
+        """
+        
+        if self.itype == "integer":
+            
+            return self.get_spectrum(indx)
+        
+        else:
+
+            return self.spectra[self.tags[indx]]
+        
+        
     def get_spectrum(self, tag):
         """Returns spectrum corresponing to time t2
         
@@ -146,6 +177,16 @@ class TwoDSpectrumContainer:
             
             return self.spectra[str(tag)]
 
+        elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+            if any(self._lousy_equal(tag, li, self.axis.step) 
+               for li in self.axis.data):
+
+                return self.spectra[self._which]     
+            else:
+                raise Exception("Tag not compatible with the ValueAxis")
+         
+        return
+    
         #if t2 in self.t2axis.data:
         if any(self._lousy_equal(t2, li, self.t2axis.step) 
                for li in self.t2axis.data):

@@ -107,7 +107,7 @@ def step_then_5(context, i):
         context.out_of_range = i_n
         return
 
-    if not (ids[i_n] == id(cont.get_spectrum(i_n))):
+    if not (ids[i_n] == id(cont.get_spectrum_by_index(i_n))):
         raise Exception("Incorrect retrieval of spectrum from container")
 
 
@@ -127,21 +127,24 @@ def step_then_6(context):
         cont = context.container
         try:
             
-            cont.get_spectrum(i_n)
+            cont.get_spectrum_by_index(i_n)
             
         except KeyError as e:
             print(e, "'"+str(i_n)+"'")
             assert str(e) == "'"+str(i_n)+"'"
             
+        except IndexError as e:
+            print(e, "list index out of range")
+            assert str(e) ==  "list index out of range"           
  
 #
 # And ...
 #
-@given('I have a ValueAxis of of lenght {N} starting from zero with certain {step}')
+@given('I have a ValueAxis of lenght {N} starting from zero with certain {step}')
 def step_given_7(context, N, step):
     """
 
-        And I have a ValueAxis of of lenght {N} starting from zero with certain {step}
+        And I have a ValueAxis of lenght {N} starting from zero with certain {step}
 
     """
     length = int(N)
@@ -163,7 +166,10 @@ def step_when_8(context):
         When I set the container to accept index by ValueAxis
 
     """
-    pass
+    cont = context.container
+    vaxis = context.vaxis
+    
+    cont.use_indexing_type(vaxis)
 
 
 #
@@ -176,7 +182,14 @@ def step_when_9(context):
         And I add the spectra to the container using values from ValueAxis
 
     """
-    pass
+    cont = context.container
+    spectra = context.spectra
+    
+    i_n = 0
+    for val in context.vaxis.data:
+        cont.set_spectrum(spectra[i_n], tag=val)
+        i_n += 1
+        
 
 
 #
@@ -189,18 +202,200 @@ def step_then_10(context, val):
         Then TwoDSpectrum can be retrieved using values {val} from ValueAxis
 
     """
-    pass
+    cont = context.container
+    vaxis = context.vaxis
+    
+    context.out_of_range = 0
+    
+    vmax = vaxis.max
+    
+    if (float(val) < vmax):
+
+        cont.get_spectrum(float(val))
+
+    else:
+
+        context.out_of_range=float(val)
+        
 
 
 #
 # But ...
 #
-@then('when values is out of bounds, I get an exception')
+@then('when values are out of bounds, I get an exception')
 def step_then_11(context):
     """
 
-        But when values is out of bounds, I get an exception
+        But when values are out of bounds, I get an exception
 
     """
-    pass
-           
+    val = context.out_of_range
+    
+    if val > 0:
+
+        cont = context.container
+        try:
+            
+            cont.get_spectrum(val)
+            
+        except Exception as e:
+            assert str(e) == "Tag not compatible with the ValueAxis"        
+        
+#
+# And ...
+#
+@given('I have a TimeAxis of lenght {N} starting from zero with certain {step}')
+def step_given_12(context, N, step):
+    """
+
+        And I have a TimeAxis of lenght {N} starting from zero with certain {step}
+
+    """
+    length = int(N)
+    step = float(step)
+    vaxis = qr.TimeAxis(0.0, length, step)
+    
+    context.vaxis = vaxis
+    context.length = length
+    context.step = step
+
+#
+# When ...
+#
+@when('I set the container to accept index by TimeAxis')
+def step_when_13(context):
+    """
+
+        When I set the container to accept index by TimeAxis
+
+    """
+    cont = context.container
+    vaxis = context.vaxis
+    
+    cont.use_indexing_type(vaxis)
+
+
+#
+# And ...
+#
+@when('I add the spectra to the container using values from TimeAxis')
+def step_when_14(context):
+    """
+
+        And I add the spectra to the container using values from TimeAxis
+
+    """
+    cont = context.container
+    spectra = context.spectra
+    
+    i_n = 0
+    for val in context.vaxis.data:
+        cont.set_spectrum(spectra[i_n], tag=val)
+        i_n += 1
+
+
+#
+# Then ...
+#
+@then('TwoDSpectrum can be retrieved using values {val} from TimeAxis')
+def step_then_15(context, val):
+    """
+
+        Then TwoDSpectrum can be retrieved using values {val} from TimeAxis
+
+    """
+    cont = context.container
+    vaxis = context.vaxis
+    
+    context.out_of_range = 0
+    
+    vmax = vaxis.max
+    
+    if (float(val) < vmax):
+
+        cont.get_spectrum(float(val))
+
+    else:
+
+        context.out_of_range=float(val)
+
+#
+# And ...
+#
+@given('I have a FrequencyAxis of lenght {N} starting from zero with certain {step}')
+def step_given_16(context, N, step):
+    """
+
+        And I have a FrequencyAxis of lenght {N} starting from zero with certain {step}
+
+    """
+    length = int(N)
+    step = float(step)
+    vaxis = qr.FrequencyAxis(0.0, length, step)
+    
+    context.vaxis = vaxis
+    context.length = length
+    context.step = step
+
+
+#
+# When ...
+#
+@when('I set the container to accept index by FrequencyAxis')
+def step_when_17(context):
+    """
+
+        When I set the container to accept index by FrequencyAxis
+
+    """
+    cont = context.container
+    vaxis = context.vaxis
+    
+    cont.use_indexing_type(vaxis)
+
+
+#
+# And ...
+#
+@when('I add the spectra to the container using values from FrequencyAxis')
+def step_when_18(context):
+    """
+
+        And I add the spectra to the container using values from FrequencyAxis
+
+    """
+    cont = context.container
+    spectra = context.spectra
+    
+    i_n = 0
+    for val in context.vaxis.data:
+        cont.set_spectrum(spectra[i_n], tag=val)
+        i_n += 1
+
+
+#
+# Then ...
+#
+@then('TwoDSpectrum can be retrieved using values {val} from FrequencyAxis')
+def step_then_19(context, val):
+    """
+
+        Then TwoDSpectrum can be retrieved using values {val} from FrequencyAxis
+
+    """
+    cont = context.container
+    vaxis = context.vaxis
+    
+    context.out_of_range = 0
+    
+    vmax = vaxis.max
+    
+    if (float(val) < vmax):
+
+        cont.get_spectrum(float(val))
+
+    else:
+
+        context.out_of_range=float(val)
+
+          
