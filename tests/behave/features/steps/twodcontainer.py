@@ -398,4 +398,93 @@ def step_then_19(context, val):
 
         context.out_of_range=float(val)
 
-          
+#
+# And ...
+#
+@given('I have a list of strings of lenght {N}')
+def step_given_20(context, N):
+    """
+
+        And I have a list of strings of lenght {N}
+
+    """
+    strlist = []
+    Nn = int(N)
+    for k_n in range(Nn):
+        strng = "string_"+str(k_n)
+        strlist.append(strng)
+        
+    context.strlist = strlist
+
+
+#
+# When ...
+#
+@when('I set the container to accept index by strings')
+def step_when_21(context):
+    """
+
+        When I set the container to accept index by strings
+
+    """
+    cont = context.container
+    
+    cont.use_indexing_type("string")
+
+
+#
+# And ...
+#
+@when('I add the spectra to the container using values from the list of strings')
+def step_when_22(context):
+    """
+
+        And I add the spectra to the container using values from the list of strings
+
+    """
+    cont = context.container
+    
+    k_i = 0
+    for strng in context.strlist:
+        spect = context.spectra[k_i]
+        cont.set_spectrum(spect, tag=strng)
+        k_i += 1
+
+
+
+#
+# Then ...
+#
+@then('TwoDSpectrum can be retrieved using values from the list of strings')
+def step_then_23(context):
+    """
+
+        Then TwoDSpectrum can be retrieved using values from the list of strings
+
+    """
+    
+    cont = context.container
+    
+    for strng in context.strlist:
+        
+        cont.get_spectrum(strng)    
+
+
+#
+# But ...
+#
+@then('when values are not in the list of strings, I get an exception')
+def step_then_24(context):
+    """
+
+        But when values are not in the list of strings, I get an exception
+
+    """
+    cont = context.container
+    try:
+        
+        cont.get_spectrum("ahoj")
+        
+    except KeyError as e:
+        assert str(e) == "'ahoj'"
+      

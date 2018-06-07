@@ -119,11 +119,20 @@ class TwoDSpectrumContainer:
                 raise Exception("No tag specified - cannot store spectrum")
             return self.index
         
-        t2 = spect.get_t2()
-        if t2 in self.t2axis.data:
-            self.spectra[t2] = spect
+        elif self.itype == "string":
+            if tag is not None:
+                stag = str(tag)
+                self.spectra[stag] = spect
+                self.tags.append(stag)
+                self.index += 1
+            else:
+                raise Exception("No tag specified - cannot store spectrum")
+            return self.index
+
         else:
-            raise Exception("Waiting time not compatible with the t2 axis")
+            
+            raise Exception("Unknown type of indexing")    
+
             
         
     def _lousy_equal(self, x1, x2, dx, frac=0.25):
@@ -173,7 +182,7 @@ class TwoDSpectrumContainer:
             
             
         """        
-        if self.itype == "integer":
+        if self.itype in ["integer", "string"]:
             
             return self.spectra[str(tag)]
 
@@ -184,15 +193,11 @@ class TwoDSpectrumContainer:
                 return self.spectra[self._which]     
             else:
                 raise Exception("Tag not compatible with the ValueAxis")
-         
-        return
-    
-        #if t2 in self.t2axis.data:
-        if any(self._lousy_equal(t2, li, self.t2axis.step) 
-               for li in self.t2axis.data):
-            return self.spectra[self._which]     
+        
         else:
-            raise Exception("Waiting time not compatible with the t2 axis")
+            
+            raise Exception("Unknown type of indexing")
+
 
 
     def length(self):

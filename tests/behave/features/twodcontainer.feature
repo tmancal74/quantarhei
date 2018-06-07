@@ -84,3 +84,25 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 12  |   1.0  |  15.0  |  5   |
     | 15  |   2.0  |  16.0  |  10  |
     | 15  |   2.0  |  18.0  |  20  |
+    
+
+    Scenario Outline: TwoDSpectrumContainer indexes by strings
+        Given that I have <N> TwoDSpectrum objects
+        And I have an empty TwoDSpectrum container
+        And I have a list of strings of lenght <N>
+        When I set the container to accept index by strings
+        And I add the spectra to the container using values from the list of strings
+        Then TwoDSpectrum can be retrieved using values from the list of strings
+        But when values are not in the list of strings, I get an exception
+        And TwoDSpectrum can be retrieved using the index <i>
+        But when index is out of bounds, I get an exception        
+        
+    Examples:
+    |  N  |  i   |
+    |  5  |  4   |
+    | 12  |  4   |
+    | 12  |  5   |
+    | 15  |  10  |
+    | 15  |  20  |
+
+    
