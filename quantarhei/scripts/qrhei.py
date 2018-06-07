@@ -15,6 +15,8 @@ import os
 import sys
 import fnmatch
 
+import pkg_resources
+
 import quantarhei as qr
 
 
@@ -149,8 +151,14 @@ def do_command_test(args):
     qr.printlog("Running tests", loglevel=0)
 
 
-def _match_filenames(filenames, pattern):
+def _match_filenames(filenames, pattern, add_stars=False):
     
+    if add_stars:
+        if not pattern.startswith("*"):
+            pattern = "*"+pattern
+        if not pattern.endswith("*"):
+            pattern = pattern+"*"
+            
     return fnmatch.filter(filenames, pattern) 
     
    
@@ -169,7 +177,7 @@ def do_command_list(args):
         
         if args.glob:
             pattern = args.glob
-            matching = _match_filenames(filenames, pattern)
+            matching = _match_filenames(filenames, pattern, add_stars=True)
         else:
             matching = filenames
             
@@ -184,8 +192,58 @@ def do_command_fetch(args):
     """Fetches files for Quantarhei
     
     """
+
+    global parser_fetch
     
-    qr.printlog("Fetching something ...", loglevel=0)
+    if args.examples:
+        qr.printlog("Fetching example(s) ...", loglevel=0)
+    
+        import quantarhei.wizard.examples as exmpl
+         
+        filenames = exmpl._available_examples
+        
+        
+        if args.glob:
+            pattern = args.glob
+            matching = _match_filenames(filenames, pattern, add_stars=True)
+        else:
+            matching = []
+            
+        if len(matching) > 0:           
+            for filename in matching:
+                
+                resource_package = "quantarhei"
+                resource_path = '/'.join(('wizard', 'examples', filename))
+
+                content = pkg_resources.resource_string(resource_package,
+                                                        resource_path)
+                
+                over = True
+
+                if os.path.isfile(filename):
+                    qr.printlog("File", filename, "already exists!")
+                    answr = input(" Overwrite? (y/n) [n]")
+                    if answr == "y":
+                        over = True
+                    else:
+                        over = False
+                elif os.path.isdir(filename):
+                    qr.printlog("Directory with the name", filename,
+                                "already exists!")
+                    qr.printlog("Aborting fetching")
+                    over = False
+                    
+                if over:
+                    with open(filename, "w") as file:
+                        file.write(content.decode("utf-8"))
+                    
+                    qr.printlog("    "+filename, loglevel=0)
+
+        else:
+            qr.printlog("No matching examples found", loglevel=0)
+
+    else:
+        parser_fetch.print_help()
 
 
 def do_command_config(args):
@@ -207,6 +265,7 @@ def do_command_report(args):
 def main():
     
     global parser_list
+    global parser_fetch
     
     parser = argparse.ArgumentParser(
             description='Quantarhei Package Driver')
@@ -263,8 +322,10 @@ def main():
                                         +" benchmarks, tutorials, templates"
                                         +" and configuration files")
 
-    parser_fetch.add_argument("-e", "--example", type=str, default="",
-                             help="fetches a specified example file")
+    parser_fetch.add_argument("glob", metavar='glob', type=str, 
+                              help='file name', nargs="?")
+    parser_fetch.add_argument("-e", "--examples", action='store_true',
+                              help="fetches a specified example file")
     
     parser_fetch.set_defaults(func=do_command_fetch)    
 
@@ -276,7 +337,7 @@ def main():
                                     +" benchmarks, tutorials and templates")
 
     parser_list.add_argument("glob", metavar='glob', type=str, 
-                          help='file name', nargs="?")
+                             help='file name', nargs="?")
     parser_list.add_argument("-e", "--examples", action='store_true', 
                              help="list all available example files")
     

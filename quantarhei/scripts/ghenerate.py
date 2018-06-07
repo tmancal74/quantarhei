@@ -49,6 +49,9 @@ def parsing():
     parser.add_argument("-n", "--no-pass", action="store_true",
                         help="empty tests should not pass (default is"
                         +" passing empty tests)")
+    parser.add_argument("-f", "--start-from", type=int,
+                        help="step functions will be numberred starting"
+                        +" from this value")
 
     #
     # Parsing all arguments
@@ -97,6 +100,10 @@ def parsing():
     if args.no_pass:
         steps_pass = False
 
+    k_from = 0
+    if args.start_from:
+        k_from = args.start_from
+
     try:
         with open(filename, 'r') as myfile:
             data = myfile.read()
@@ -116,7 +123,7 @@ def parsing():
         raise Exception("No scenarii or scenario outlines")
 
     return dict(children=children, ddir=ddir,
-                steps_pass=steps_pass, filename=filename)
+                steps_pass=steps_pass, filename=filename, k_from=k_from)
 
 
 def analyze_children(children):
@@ -268,7 +275,7 @@ def main():
         write_header(myfile)
 
         test_strings = []
-        k_step = 0
+        k_step = parse_data["k_from"]
         for scenario in parse_data["children"]:
 
             steps = scenario["steps"]

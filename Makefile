@@ -66,7 +66,7 @@ clean:
 	rm -rf quantarhei.egg-info
 	rm -rf result_images
 	rm -rf qrconf.py quantarhei/qrconf.py
-
+	rm -rf coverage.xml
 
 
 ################################

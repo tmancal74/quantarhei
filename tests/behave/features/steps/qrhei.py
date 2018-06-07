@@ -61,7 +61,7 @@ def step_when_2(context):
     
     with bhv.testdir(context):
         for file in context.files:
-            bhv.shell_command(context, "qrhei fetch --example "+file)
+            bhv.shell_command(context, "qrhei fetch --examples "+file)
             print(context.output.decode("utf-8"))
           
         if not os.path.isfile(file):
@@ -81,5 +81,5 @@ def step_then_3(context):
 
     """
     if len(context.failures) > 0:
-        print(context.failures)
-        raise Exception("some examples are not fetchable")
+        raise Exception("some examples are not fetchable: "
+                        +str(context.failures))
