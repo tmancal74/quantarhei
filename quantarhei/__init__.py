@@ -219,7 +219,7 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 # Fourier transform Two-Dimensional Spectra
 #
 from .spectroscopy.twod2 import TwoDSpectrum
-from .spectroscopy.twod2 import TwoDSpectrumContainer
+from .spectroscopy.twodcontainer import TwoDSpectrumContainer
 from .spectroscopy.twod2 import TwoDSpectrumCalculator
 from .spectroscopy.twod2 import MockTwoDSpectrumCalculator
 

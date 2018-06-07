@@ -3,7 +3,7 @@
 import numpy
 
 from .twod2 import TwoDSpectrum
-from .twod2 import TwoDSpectrumContainer
+from .twodcontainer import TwoDSpectrumContainer
 from .twod2 import TwoDSpectrumCalculator
 
 import matplotlib.pyplot as plt

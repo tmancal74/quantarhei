@@ -10,12 +10,8 @@ import unittest
 
 *******************************************************************************
 """
-import numpy
 
-from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
-from quantarhei.spectroscopy.twod2 import TwoDSpectrumCalculator
-
-from quantarhei import TimeAxis
+import quantarhei as qr
 
 
 class TestTwod(unittest.TestCase):
@@ -40,12 +36,12 @@ class TestTwod(unittest.TestCase):
         """Testing basic functions of the TwoDSpectrumCalculator class
         
         """
-        t1 = TimeAxis(0.0, 1000, 1.0)
-        t3 = TimeAxis(0.0, 1000, 1.0)
+        t1 = qr.TimeAxis(0.0, 1000, 1.0)
+        t3 = qr.TimeAxis(0.0, 1000, 1.0)
         
-        t2 = TimeAxis(30, 10, 10.0)
+        t2 = qr.TimeAxis(30, 10, 10.0)
         
-        twod_calc = TwoDSpectrumCalculator(t1, t2, t3)
+        twod_calc = qr.TwoDSpectrumCalculator(t1, t2, t3)
         
         
             

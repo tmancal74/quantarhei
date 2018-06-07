@@ -216,6 +216,16 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
         myfile.write("def step_"+current+"_"+str(k_step)+"("+args+"):\n")
         myfile.write('    """\n\n        And '+textrep+"\n\n")
         myfile.write('    """\n')
+    elif step["keyword"].strip() == "But":
+        if current == "":
+            raise Exception("`But` has to be preceeded by a "+
+                            "line with `Given`, `When` or"+
+                            "`Then`")
+        myfile.write("\n\n#\n# But ...\n#\n")
+        myfile.write("@"+current+"('"+textrep+"')\n")
+        myfile.write("def step_"+current+"_"+str(k_step)+"("+args+"):\n")
+        myfile.write('    """\n\n        But '+textrep+"\n\n")
+        myfile.write('    """\n')
     else:
         raise Exception("unknown keyword: "+step["keyword"])
 
@@ -325,6 +335,11 @@ def main():
                     elif step["keyword"].strip() == "And":
                         if current == "":
                             raise Exception("`And` has to be preceeded by a "+
+                                            "line with `Given`, `When` or"+
+                                            "`Then`")
+                    elif step["keyword"].strip() == "But":
+                        if current == "":
+                            raise Exception("`But` has to be preceeded by a "+
                                             "line with `Given`, `When` or"+
                                             "`Then`")
                     else:
