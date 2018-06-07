@@ -268,7 +268,7 @@ class TwoDSpectrumContainer:
         return vals
 
     
-    def fft_in_t2(self, ffttype="complex-positive"):
+    def fft(self, ffttype="complex-positive"):
         """Fourier transform in t2 time
         
         Parameters

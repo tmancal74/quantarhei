@@ -510,7 +510,7 @@ def step_given_25(context, N):
     
     Nn = int(N)
     
-    context.spectra = []
+    spectra = []
     
     def func(x,y,t):
         
@@ -518,11 +518,10 @@ def step_given_25(context, N):
         omega = 2.0*3.14159/20.0 
         gamma = 1.0/100.0
         
-        data = numpy.zeros((len(x), len(y), len(t)))
+        data = numpy.zeros((len(x), len(y)))
         
         for i_x in range(len(x)):
-            for i_y in range(len(y)):
-                data[i_x, i_y, :] = numpy.exp(-((x[i_x]+y[i_y])/Delta)**2)* \
+                data[i_x, :] = numpy.exp(-((x[i_x]+y)/Delta)**2)* \
                                     numpy.cos(omega*t)*numpy.exp(-t/gamma)
         
         return data
@@ -531,13 +530,22 @@ def step_given_25(context, N):
     xrange = qr.ValueAxis(-50.0, 100, 1.0).data
     yrange = qr.ValueAxis(-50.0, 100, 1.0).data
     
+    cont = qr.TwoDSpectrumContainer()
+    cont.use_indexing_type(time)
+    
     for k_n in range(Nn):
-        data = func(xrange, yrange, time.data)
+        tt = time.data[k_n]
+        data = func(xrange, yrange, tt)
         spect = qr.TwoDSpectrum()
         spect.set_data(data)
         spect.set_axis_1(xrange)
         spect.set_axis_3(yrange)
-        context.spectra.append(spect)
+        spectra.append(spect)
+        
+        cont.set_spectrum(spect, tt)
+        
+    context.container = cont
+
 
 #
 # When ...
@@ -549,7 +557,9 @@ def step_when_26(context):
         When I calculate Fourier transform on the container
 
     """
-    pass
+    cont = context.container
+
+    cont.fft()
 
 
 #
