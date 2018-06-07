@@ -157,7 +157,6 @@ def step_then_3(context):
     with bhv.testdir(context):
 
         ffile = os.path.join("ghen", context.step_file)
-        print(ffile)
         if not os.path.isfile(ffile):
             raise Exception("Step file: "+ffile+" not found")
 

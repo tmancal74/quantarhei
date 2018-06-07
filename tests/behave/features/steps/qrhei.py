@@ -12,6 +12,8 @@
 
 """
 
+import os
+
 from behave import given
 from behave import when
 from behave import then
@@ -54,12 +56,18 @@ def step_when_2(context):
         When I fetch all examples one by one
 
     """
+    
+    failures = []
+    
     with bhv.testdir(context):
         for file in context.files:
-            bhv.shell_command(context, "qrhei list --examples "+file)
+            bhv.shell_command(context, "qrhei fetch --example "+file)
             print(context.output.decode("utf-8"))
+          
+        if not os.path.isfile(file):
+            failures.append("File: "+file+" was not fetched")
             
-        raise Exception()
+    context.failures = failures
 
 
 #
@@ -72,4 +80,6 @@ def step_then_3(context):
         Then examples are all fetchable
 
     """
-    pass
+    if len(context.failures) > 0:
+        print(context.failures)
+        raise Exception("some examples are not fetchable")
