@@ -12,6 +12,8 @@ import h5py
 import numpy
 
 from ..core.time import TimeAxis
+from ..core.valueaxis import ValueAxis
+from ..core.frequency import FrequencyAxis
 from .twod2 import TwoDSpectrum
 
 from ..core.managers import energy_units
@@ -45,6 +47,10 @@ class TwoDSpectrumContainer:
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
         
+        self.axis = None
+        
+        self.itype = None
+        self.index = 0
         
         if self.keep_pathways:
             raise Exception("Container keeping pathways not available yet")
@@ -53,12 +59,52 @@ class TwoDSpectrumContainer:
         self._which = None
         
         
-    def set_spectrum(self, spect):
-        """Stores spectrum for time t2
+    def use_indexing_type(self, itype):
+        """Sets the type of indices used to identify spectra
+        
+        Parameters
+        ----------
+        
+        itype : string, ValueAxis, TimeAxis, FrequencyAxis
+            Type of indexig. If itype is a string, it should have values
+            either 'integer' or 'string' in which case the specra will be 
+            stored by integer index or by string (as in dictionary). If 
+            itype is a ValueAxis (TimeAxis, FrequencyAxis), spectra will
+            be indexed by the values in the axis object.
+        
+        """
+        
+        if isinstance(itype, str):
+            if itype == "integer":
+                self.itype = "integer"
+            elif itype == "string":
+                self.itype = "string"
+            else:
+                raise Exception("Unknown indexing type")
+        elif isinstance(itype, ValueAxis):
+            if isinstance(itype, TimeAxis):
+                self.itype = "TimeAxis"
+            elif isinstance(itype, FrequencyAxis):
+                self.itype = "FrequencyAxis"
+            else:
+                self.itype = "ValueAxis"
+            self.axis = itype
+        else:
+            raise Exception("Unknown indexing type")
+        
+
+    def set_spectrum(self, spect, tag=None):
+        """Stores spectrum with a tag (time, index, etc.)
         
         Checks if the time t2 is present in the t2axis
         
         """
+        
+        if self.itype == "integer":
+            self.spectra[str(self.index)] = spect
+            self.index += 1
+            return self.index
+        
         t2 = spect.get_t2()
         if t2 in self.t2axis.data:
             self.spectra[t2] = spect
@@ -83,7 +129,7 @@ class TwoDSpectrumContainer:
         return False
     
     
-    def get_spectrum(self, t2):
+    def get_spectrum(self, tag):
         """Returns spectrum corresponing to time t2
         
         Checks if the time t2 is present in the t2axis
@@ -96,6 +142,10 @@ class TwoDSpectrumContainer:
             
             
         """        
+        if self.itype == "integer":
+            
+            return self.spectra[str(tag)]
+
         #if t2 in self.t2axis.data:
         if any(self._lousy_equal(t2, li, self.t2axis.step) 
                for li in self.t2axis.data):
@@ -221,7 +271,7 @@ class TwoDSpectrumContainer:
                     sp._save_axis(srt,"xaxis",sp.xaxis,)
                     sp._save_axis(srt,"yaxis",sp.yaxis)
             
-     
+      
     # FIXME: this through Savable    
     def load(self, filename):
         """Loads the whole object from a file

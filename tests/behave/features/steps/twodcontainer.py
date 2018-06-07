@@ -16,7 +16,7 @@ from behave import given
 from behave import when
 from behave import then
 
-
+import quantarhei as qr
 
 #
 # Given ...
@@ -28,7 +28,17 @@ def step_given_1(context, N):
         Given that I have {N} TwoDSpectrum objects
 
     """
-    pass
+    spectra = []
+    ids = []
+    
+    for i_n in range(int(N)):
+        spec = qr.TwoDSpectrum()
+        itsid = id(spec)
+        spectra.append(spec)
+        ids.append(itsid)
+        
+    context.spectra = spectra
+    context.ids = ids
 
 
 #
@@ -41,7 +51,8 @@ def step_given_2(context):
         And I have an empty TwoDSpectrum container
 
     """
-    pass
+    container = qr.TwoDSpectrumContainer()
+    context.container = container
 
 
 #
@@ -54,7 +65,9 @@ def step_when_3(context):
         When I set the container to accept indexing by integers
 
     """
-    pass
+    cont = context.container
+    
+    cont.use_indexing_type("integer")
 
 
 #
@@ -67,7 +80,9 @@ def step_when_4(context):
         And I add the spectra to the container one by one
 
     """
-    pass
+    cont = context.container
+    for spect in context.spectra:
+        cont.set_spectrum(spect)
 
 
 #
@@ -80,17 +95,112 @@ def step_then_5(context, i):
         Then TwoDSpectrum can be retrieved using the index {i}
 
     """
+    ids = context.ids
+    cont = context.container
+    
+    length = len(ids)
+    
+    i_n = int(i)
+    
+    context.out_of_range = 0
+    if i_n >= length:
+        context.out_of_range = i_n
+        return
+
+    if not (ids[i_n] == id(cont.get_spectrum(i_n))):
+        raise Exception("Incorrect retrieval of spectrum from container")
+
+
+#
+# But ...
+#
+@then('when index is out of bounds, I get an exception')
+def step_then_6(context):
+    """
+
+        But when index is out of bounds, I get an exception
+
+    """
+    i_n = context.out_of_range
+    if  i_n > 0:
+        
+        cont = context.container
+        try:
+            
+            cont.get_spectrum(i_n)
+            
+        except KeyError as e:
+            print(e, "'"+str(i_n)+"'")
+            assert str(e) == "'"+str(i_n)+"'"
+            
+ 
+#
+# And ...
+#
+@given('I have a ValueAxis of of lenght {N} starting from zero with certain {step}')
+def step_given_7(context, N, step):
+    """
+
+        And I have a ValueAxis of of lenght {N} starting from zero with certain {step}
+
+    """
+    length = int(N)
+    step = float(step)
+    vaxis = qr.ValueAxis(0.0, length, step)
+    
+    context.vaxis = vaxis
+    context.length = length
+    context.step = step
+
+
+#
+# When ...
+#
+@when('I set the container to accept index by ValueAxis')
+def step_when_8(context):
+    """
+
+        When I set the container to accept index by ValueAxis
+
+    """
+    pass
+
+
+#
+# And ...
+#
+@when('I add the spectra to the container using values from ValueAxis')
+def step_when_9(context):
+    """
+
+        And I add the spectra to the container using values from ValueAxis
+
+    """
+    pass
+
+
+#
+# Then ...
+#
+@then('TwoDSpectrum can be retrieved using values {val} from ValueAxis')
+def step_then_10(context, val):
+    """
+
+        Then TwoDSpectrum can be retrieved using values {val} from ValueAxis
+
+    """
     pass
 
 
 #
 # But ...
 #
-@then('the when index is out of bounds, I get an exception')
-def step_then_6(context):
+@then('when values is out of bounds, I get an exception')
+def step_then_11(context):
     """
 
-        But the when index is out of bounds, I get an exception
+        But when values is out of bounds, I get an exception
 
     """
     pass
+           
