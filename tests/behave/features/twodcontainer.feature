@@ -7,7 +7,8 @@
 Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     TwoDSpectrum container should be able to index its content by integer values,
     by arbitrary ValueAxis (including TimeAxis) and by a list of strings 
-    (like a dictionary).
+    (like a dictionary). It can perform Fourier transform in its content if
+    it is indexed by ValueAxis, TimeAxis of FrequencyAxis.
     
     
     Scenario Outline: TwoDSpectrumContainer indexes by an integer number

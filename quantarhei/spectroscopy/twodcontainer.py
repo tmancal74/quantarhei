@@ -97,7 +97,17 @@ class TwoDSpectrumContainer:
     def set_spectrum(self, spect, tag=None):
         """Stores spectrum with a tag (time, index, etc.)
         
-        Checks if the time t2 is present in the t2axis
+        Stores the spectrum according to present indexing scheme
+        
+        Parameters
+        ----------
+        
+        spect : TwoDSpectrum
+            Object holding the spectrum
+            
+        tag : {int, string, ValuesAxis, TimeAxis, FrequencyAxis}
+            Tag which will be used for retrieval of the spectrum from 
+            the container.
         
         """
         
@@ -133,14 +143,13 @@ class TwoDSpectrumContainer:
             
             raise Exception("Unknown type of indexing")    
 
-            
-        
+
     def _lousy_equal(self, x1, x2, dx, frac=0.25):
         """Equals up to fraction of dx
         
-        This function returns True if x1 is closer to x2 than 1/4 of 
-        a specified interval. In addition it saves the value of x1 to which
-        x2 is equal in the attribute _which of the present class.
+        This function returns True if x1 is closer to x2 than `frac` of 
+        a specified interval. In addition it saves the value of x2 to which
+        x1 is equal in the attribute _which of the present class.
         
         
         """
@@ -158,6 +167,12 @@ class TwoDSpectrumContainer:
         The integer index is assigned to all spectra in the order they were
         saved to the container. They can be retrieved in this order
         
+        Parameters
+        ----------
+        
+        indx : int
+            Index of the spectrum to be retrieved
+            
         """
         
         if self.itype == "integer":
@@ -167,8 +182,8 @@ class TwoDSpectrumContainer:
         else:
 
             return self.spectra[self.tags[indx]]
-        
-        
+
+
     def get_spectrum(self, tag):
         """Returns spectrum corresponing to time t2
         
@@ -199,14 +214,29 @@ class TwoDSpectrumContainer:
             raise Exception("Unknown type of indexing")
 
 
-
     def length(self):
+        """Returns the length of the container
+        
+        
+        """
         return len(self.spectra.keys())
 
-        
+
     def get_spectra(self, start=None, end=None):
         """Returns a list of the calculated spectra
         
+        Returns all spectra or an interval of spectra when `start` and `end`
+        are specified
+        
+        Parameters
+        ----------
+        
+        start : int
+            Index of the first spectrum to be returned
+            
+        end : int
+            Index of the last spectrum to be returned
+
         """
         
         ven = [value for (key, value) in sorted(self.spectra.items())]
@@ -255,6 +285,19 @@ class TwoDSpectrumContainer:
     def get_point_evolution(self, x, y, times):
         """Tracks an evolution of a single point on the 2D spectrum
         
+        
+        Parameters
+        ----------
+        
+        x : float
+            x coordinate in the 2D spectrum (usually omega_1 axis)
+
+        y : float
+            y coordinate in the 2D spectrum (usually omega_3 axis)
+            
+        times : ValueAxis
+            Times (usually waiting t_2 times) in which spectra are taken
+            
         """
         
         vals = numpy.zeros(times.length)
@@ -271,12 +314,76 @@ class TwoDSpectrumContainer:
     def fft(self, ffttype="complex-positive"):
         """Fourier transform in t2 time
         
+        
         Parameters
         ----------
         
+        ffttype : string
+            Specifies the type Fourier transform we perform
         
         """
-        pass
+        if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+            raise Exception("FFT cannot be performed for"+
+                            " this type of indexing")
+            
+        # put all data into one array
+        tags = self.axis.data
+        Nos = self.length()
+
+        if len(tags) == Nos:
+            tag1 = self.axis.data[0]
+            sp1 = self.get_spectrum(tag1)
+            N1, N2 = sp1.data.shape
+            data = numpy.zeros((N1, N2, Nos), dtype=sp1.data.dtype)
+            for k_n in range(Nos):
+                tag = self.axis.data[k_n]
+                spect = self.get_spectrum(tag)
+                data[:,:,k_n] = spect.data
+            
+        else:
+            raise Exception("Number of spectra not consistent"+
+                            " with ValueAxis object")
+            
+        #
+        # FFT of the axis
+        #
+        if isinstance(self.axis, TimeAxis):
+            print("Making Frequency Axis")
+            new_axis = self.axis.get_FrequencyAxis()
+            
+        elif isinstance(self.axis, FrequencyAxis):
+            new_axis = self.axis.get_TimeAxis()
+            
+        else: 
+            # this must be ValueAxis
+
+            ftaxdata = numpy.fft.fftfreq(self.axis.length, self.axis.step)
+            ftaxdata = numpy.fft.fftshift(ftaxdata)
+            
+            start = ftaxdata[0]
+            length = len(ftaxdata)
+            step = ftaxdata[1]-ftaxdata[0]
+
+            new_axis = ValueAxis(start, length, step)            
+
+        
+        #
+        # FFT of the data
+        #
+        ftdata = data
+        
+        # save it to a new container
+        new_container = TwoDSpectrumContainer()
+        new_container.use_indexing_type(new_axis)
+        print("new container")
+        for k_n in range(Nos):
+            tag = new_axis.data[k_n]
+            spect = TwoDSpectrum()
+            spect.set_data(ftdata[:, :, k_n])
+            new_container.set_spectrum(spect, tag=tag)
+        
+        
+        return new_container
 
           
     def _create_root_group(self, start, name):

@@ -105,6 +105,7 @@ import numpy
 from ..utils import Float
 from ..utils import Integer
 from .saveable import Saveable
+from .. import REAL
 
 class ValueAxis(Saveable):
     """Linear array of values which are used as variables of numerical functions 
@@ -141,7 +142,7 @@ class ValueAxis(Saveable):
 
         self.data = numpy.linspace(start,
                                    start+(length-1)*step, length,
-                                   dtype=numpy.float)
+                                   dtype=REAL)
 
 
     @property

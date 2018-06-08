@@ -74,18 +74,22 @@ class TwoDSpectrumBase(DFunction2):
     # to keep Liouville pathways separate?
     keep_pathways = False
     
+    dtypes = ["Tot", "Reph", "Nonr"]
+    
     # to keep stypes separate?
     keep_stypes = True
     
     def __init__(self):
         super().__init__()
         
-        self.data = None
         self.xaxis = None
         self.yaxis = None
             
         self.reph2D = None
         self.nonr2D = None
+        self.data = None
+        
+        self.dtype = None
 
 
     def set_axis_1(self, axis):
@@ -93,30 +97,80 @@ class TwoDSpectrumBase(DFunction2):
         
         """
         self.xaxis = axis
-        
+
+
     def set_axis_3(self, axis):
         """Sets the y-axis of te spectrum (omega_3 axis)
         
         """
         self.yaxis = axis
+
+
+    def set_data_type(self, dtype="Tot"):
+        """Sets the data type for this 2D spectrum
+        
+        Parameters
+        ----------
+        
+        dtype : string
+           Specifies the type of data stored in this TwoDSpectrum object 
+        """
+        
+        if dtype in self.dtypes:
+            self.dtype = dtype
+        else:
+            raise Exception("Unknown data type for TwoDSpectrum object")
+
         
     def set_data(self, data, dtype="Tot"):
+        """Sets the data of the 2D spectrum
+        
+        Sets the object data depending on the specified type and stores the
+        type
+        
+        
+        Parameters
+        ----------
+        
+        data : 2D array
+            Data of the spectrum, float or complex
+            
+        dtype : string
+            Type of the data stored. Three values are allowed, namely, `Reph`
+            for rephasing spectra, `Nonr` for non-rephasing spectra, and `Tot` 
+            for total spectrum, which is the sum of both
+            
+        """
+        if self.dtype is None:
+            if dtype in self.dtypes:
+                self.dtype = dtype
+        else:
+            if dtype != self.dtype:
+                raise Exception("Incorrect data type in TwoDSpectrum")
+                
         if dtype == "Tot":
             self.data = data
             
         elif dtype == "Reph":
-            
             self.reph2D = data
             
-        elif dtype == "Nonr":
-            
+        elif dtype == "Nonr":        
             self.nonr2D = data
             
         else:
             
             raise Exception("Unknow type of data: "+dtype)
 
+
     def add_data(self, data, dtype="Tot"):
+        
+        if dtype is None:
+            if dtype in self.dtypes:
+                self.dtype = dtype
+        else:
+            if dtype != self.dtype:
+                raise Exception("Incorrect data type in TwoDSpectrum")
+
         if dtype == "Tot":
             
             if self.data is None:
@@ -132,8 +186,7 @@ class TwoDSpectrumBase(DFunction2):
             if self.nonr2D is None:
                 self.nonr2D = numpy.zeros(data.shape, dtype=data.dtype)                
             self.nonr2D += data
-                
-            
+
         else:
             
             raise Exception("Unknow type of data: "+dtype)
@@ -168,14 +221,16 @@ class TwoDSpectrum(TwoDSpectrumBase):
         self.keep_stypes = keep_stypes
         self.t2 = -1.0
         super().__init__()
-    
+
+
     def set_t2(self, t2):
         """Sets the t2 (waiting time) of the spectrum
         
         
         """
         self.t2 = t2
-        
+
+
     def get_t2(self):
         """Returns the t2 (waiting time) of the spectrum
         
@@ -187,10 +242,20 @@ class TwoDSpectrum(TwoDSpectrumBase):
         """Returns value of the spectrum at a given coordinate
         
         """
+        if self.dtype is None:
+            raise Exception("No data in the TwoDSpectrum object")
+            
         (ix, dist) = self.xaxis.locate(x)
         (iy, dist) = self.yaxis.locate(y)    
         
-        return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
+        if self.dtype == "Tot":
+            return self.data[ix,iy]
+            #return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
+        elif self.dtype == "Reph":
+            return self.reph2D[ix,iy]
+        elif self.dtype == "Nonr":
+            return self.nonr2D[ix,iy]
+
     
     def get_max_value(self):
         

@@ -11,6 +11,7 @@
     are perfomed in the feature file text.
 
 """
+import numpy
 
 from behave import given
 from behave import when
@@ -526,16 +527,16 @@ def step_given_25(context, N):
         
         return data
 
-    time = qr.TimeAxis(0.0, Nn, 2.0)
-    xrange = qr.ValueAxis(-50.0, 100, 1.0).data
-    yrange = qr.ValueAxis(-50.0, 100, 1.0).data
+    time = qr.ValueAxis(0.0, Nn, 2.0)
+    xrange = qr.ValueAxis(-50.0, 100, 1.0)
+    yrange = qr.ValueAxis(-50.0, 100, 1.0)
     
     cont = qr.TwoDSpectrumContainer()
     cont.use_indexing_type(time)
     
     for k_n in range(Nn):
         tt = time.data[k_n]
-        data = func(xrange, yrange, tt)
+        data = func(xrange.data, yrange.data, tt)
         spect = qr.TwoDSpectrum()
         spect.set_data(data)
         spect.set_axis_1(xrange)
@@ -559,8 +560,9 @@ def step_when_26(context):
     """
     cont = context.container
 
-    cont.fft()
+    new_cont = cont.fft()
 
+    context.new_container = new_cont
 
 #
 # Then ...
@@ -572,8 +574,34 @@ def step_then_27(context):
         Then I get correct pointwise Fourier transform of the spectra
 
     """
-    pass
-
+    
+    fft = context.new_container
+    
+    oldaxis = context.container.axis
+    axis = fft.axis
+    
+    freq = numpy.fft.fftfreq(oldaxis.length, oldaxis.step)
+    freq = numpy.fft.fftshift(freq)
+    
+    # this has to be done to get desired precision 
+    vax = qr.ValueAxis(freq[0], len(freq), freq[1]-freq[0])
+    
+    #
+    # Asserting the value axis has the right values
+    #
+    numpy.testing.assert_allclose(axis.data, vax.data)
+    
+    #
+    # Asserting FFT of the data
+    #
+    
+    # we pick several point where we test FFT 
+    points = [[-10.0, 10.0], [0.0, 0.0], [0.0, 5.0], [5.0, -1]]
+    
+    cont = context.container
+    for point in points:
+        evol = cont.get_point_evolution(point[0], point[1], oldaxis)
+    
 
 #
 # And ...
@@ -585,6 +613,20 @@ def step_then_28(context):
         And the TwoDSpectrum container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis
 
     """
-    pass
+    fft = context.new_container
+    
+    oldaxis = context.container.axis
+    axis = fft.axis
+    
+    freq = numpy.fft.fftfreq(oldaxis.length, oldaxis.step)
+    freq = numpy.fft.fftshift(freq)
+    
+    # this has to be done to get desired precision 
+    vax = qr.ValueAxis(freq[0], len(freq), freq[1]-freq[0])
+    
+    #
+    # Asserting the value axis has the right values
+    #
+    numpy.testing.assert_allclose(axis.data, vax.data)
 
       
