@@ -14,10 +14,12 @@ import numpy
 from ..core.time import TimeAxis
 from ..core.valueaxis import ValueAxis
 from ..core.frequency import FrequencyAxis
+from ..core.dfunction import DFunction
 from .twod2 import TwoDSpectrum
 
 from ..core.managers import energy_units
 from .. import COMPLEX
+from .. import REAL
 
 
 
@@ -317,7 +319,7 @@ class TwoDSpectrumContainer:
         return vals
 
     
-    def fft(self, ffttype="complex-positive"):
+    def fft(self, ffttype="complex-positive", window=None):
         """Fourier transform in t2 time
         
         
@@ -326,12 +328,23 @@ class TwoDSpectrumContainer:
         
         ffttype : string
             Specifies the type Fourier transform we perform
+            
+        window : DFunction
+            Windowing function for the data. Default is None
         
         """
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             raise Exception("FFT cannot be performed for"+
                             " this type of indexing")
-            
+
+        # even when no window function is supplied, we create one with
+        # all elements equal to one
+        if window is None:
+            winfce = DFunction(self.axis, 
+                               numpy.ones(self.axis.length, dtype=REAL))
+        else:
+            winfce = window
+                
         # put all data into one array
         tags = self.axis.data
         Nos = self.length()
@@ -376,7 +389,13 @@ class TwoDSpectrumContainer:
         #
         # FFT of the data
         #
-        ftdata = numpy.fft.fft(data, axis=2)
+        
+        # window function
+        ftdata = numpy.zeros(data.shape, dtype=data.dtype)
+        for i_n in range(data.shape[0]):
+            for j_n in range(data.shape[1]):
+                ftdata[i_n,j_n,:] = data[i_n,j_n,:]*winfce.data
+        ftdata = numpy.fft.fft(ftdata, axis=2)
         ftdata = numpy.fft.fftshift(ftdata, axes=2)
         
         # save it to a new container
