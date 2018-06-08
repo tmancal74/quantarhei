@@ -12,8 +12,8 @@ from aloe import world
 
 import numpy
 
-from quantarhei.dev.feature import FeatureFileGenerator
-from quantarhei.dev.feature import match_number 
+from quantarhei.testing.feature import FeatureFileGenerator
+from quantarhei.testing.feature import match_number 
 
 from quantarhei import Molecule
 from quantarhei import Aggregate

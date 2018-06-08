@@ -1,15 +1,13 @@
 
 #
 #  Combined Redfield and Foerster relaxation theories 
-#  should result in canonical equilibrum
 #
 #
 #
 
-Feature: Combined Redfield-Foerster relaxation theory results in cannonical equilibrium 
+Feature: Combined Redfield-Foerster relaxation theory 
 
-    Combination of Redfield and Foerster relaxation tensors should result in
-    cannonical equilibrium
+    Combination of Redfield and Foerster relaxation tensors 
 
 #@redfield-foerster
 @in_development
@@ -32,5 +30,4 @@ Scenario Outline: Redfield-Foerster rates for a small chain of molecules
        | 200  | 0.1       | 10000  | 100    |   50        | 0.02  |
        | 100  | 0.1       | 10000  | 100    |   50        | 0.02  |
        | 50   | 0.1       | 10000  | 100    |   50        | 0.02  |
-
 

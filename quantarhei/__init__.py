@@ -166,6 +166,7 @@ from .builders.disorder import Disorder
 #
 from .core.time import TimeAxis
 from .core.frequency import FrequencyAxis
+from .core.valueaxis import ValueAxis
 from .core.dfunction import DFunction
 from .core.saveable import Saveable
 
@@ -219,7 +220,7 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 # Fourier transform Two-Dimensional Spectra
 #
 from .spectroscopy.twod2 import TwoDSpectrum
-from .spectroscopy.twod2 import TwoDSpectrumContainer
+from .spectroscopy.twodcontainer import TwoDSpectrumContainer
 from .spectroscopy.twod2 import TwoDSpectrumCalculator
 from .spectroscopy.twod2 import MockTwoDSpectrumCalculator
 

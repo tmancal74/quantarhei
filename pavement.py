@@ -98,7 +98,7 @@ def matplotlib_tests():
     !!!Currently it is not run in automatic build testing!!!
     
     """
-    sh('cd quantarhei; ./tests.py; cd ..')
+    sh('cd tests/matplotlib; ./tests.py; cd ..')
 
 
 ###############################################################################
@@ -301,6 +301,16 @@ def aloe_tests_cov_v():
 
 ###############################################################################
 #
+#    Behave tests
+#
+###############################################################################
+@task
+def behave():
+    sh("cd tests/behave/features; coverage run $(which behave)")
+
+
+###############################################################################
+#
 #   Documentation build test
 #
 ###############################################################################
@@ -379,6 +389,10 @@ def pylint():
     path = 'quantarhei/utils/'
     r.set_path(path)
 #    r.un('logging.py')
+    
+    path = 'quantarhei/scripts/'
+    r.set_path(path)
+    r.un('ghenerate.py')
 
 
 ###############################################################################
@@ -464,7 +478,8 @@ def codecov():
 #
 @needs('unit_tests_cov_v',
        'doc_tests_cov_v',
-       'aloe_tests_cov_v')
+       'aloe_tests_cov_v',
+       'behave')
 @task
 def default():
     """Default paver task

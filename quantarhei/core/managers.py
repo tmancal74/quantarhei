@@ -53,6 +53,14 @@
 
 """
 import os
+import warnings
+
+#
+# This stops future warnings, notably those in h5py library
+# FIXME: remove this in "future"
+#
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import json
 import pkg_resources
 
