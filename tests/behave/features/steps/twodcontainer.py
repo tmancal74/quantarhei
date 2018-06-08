@@ -495,18 +495,10 @@ def step_then_24(context):
 #  Fourier transform
 #
 ###############################################################################
-        
+      
 
-#
-# Given ...
-#
-@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis')
-def step_given_25(context, N):
-    """
+def _container(context, N, cls):
 
-        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis
-
-    """
     import numpy
     
     Nn = int(N)
@@ -527,7 +519,7 @@ def step_given_25(context, N):
         
         return data
 
-    time = qr.ValueAxis(0.0, Nn, 2.0)
+    time = cls(0.0, Nn, 2.0)
     xrange = qr.ValueAxis(-50.0, 100, 1.0)
     yrange = qr.ValueAxis(-50.0, 100, 1.0)
     
@@ -545,7 +537,21 @@ def step_given_25(context, N):
         
         cont.set_spectrum(spect, tt)
         
-    context.container = cont
+    context.container = cont    
+    
+
+#
+# Given ...
+#
+@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis')
+def step_given_25(context, N):
+    """
+
+        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis
+
+    """
+
+    _container(context, N, qr.ValueAxis)
 
 
 #
@@ -580,27 +586,25 @@ def step_then_27(context):
     oldaxis = context.container.axis
     axis = fft.axis
     
-    freq = numpy.fft.fftfreq(oldaxis.length, oldaxis.step)
-    freq = numpy.fft.fftshift(freq)
-    
-    # this has to be done to get desired precision 
-    vax = qr.ValueAxis(freq[0], len(freq), freq[1]-freq[0])
-    
-    #
-    # Asserting the value axis has the right values
-    #
-    numpy.testing.assert_allclose(axis.data, vax.data)
-    
     #
     # Asserting FFT of the data
     #
     
-    # we pick several point where we test FFT 
+    # we pick several points where we test FFT 
     points = [[-10.0, 10.0], [0.0, 0.0], [0.0, 5.0], [5.0, -1]]
     
     cont = context.container
     for point in points:
+        # time domain curve at a position in 2D spectrum 
         evol = cont.get_point_evolution(point[0], point[1], oldaxis)
+        # Fourier transform of the time domain curve 
+        fevol_direct = numpy.fft.fft(evol)
+        # at the same point in ffted container, we should get the same FFT 
+        fevol_cont   = fft.get_point_evolution(point[0], point[1], axis)
+        # assert equality
+        numpy.testing.assert_allclose(fevol_direct, fevol_cont)
+        
+        
     
 
 #
@@ -618,7 +622,7 @@ def step_then_28(context):
     oldaxis = context.container.axis
     axis = fft.axis
     
-    freq = numpy.fft.fftfreq(oldaxis.length, oldaxis.step)
+    freq = (2.0*numpy.pi)*numpy.fft.fftfreq(oldaxis.length, oldaxis.step)
     freq = numpy.fft.fftshift(freq)
     
     # this has to be done to get desired precision 
@@ -629,4 +633,66 @@ def step_then_28(context):
     #
     numpy.testing.assert_allclose(axis.data, vax.data)
 
-      
+
+#
+# Given ...
+#
+@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by TimeAxis')
+def step_given_29(context, N):
+    """
+
+        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by TimeAxis
+
+    """
+    _container(context, N, qr.TimeAxis)
+
+
+#
+# And ...
+#
+@then('the TwoDSpectrum container will be indexed by FrequencyAxis which corresponds to the original TimeAxis')
+def step_then_30(context):
+    """
+
+        And the TwoDSpectrum container will be indexed by FrequencyAxis which corresponds to the original TimeAxis
+
+    """
+    fft = context.new_container
+    ori = context.container
+    
+    ori_fftaxis = ori.axis.get_FrequencyAxis()
+    fft_axis = fft.axis
+    
+    assert ori_fftaxis == fft_axis
+
+
+#
+# Given ...
+#
+@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by FrequencyAxis')
+def step_given_31(context, N):
+    """
+
+        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by FrequencyAxis
+
+    """
+    _container(context, N, qr.FrequencyAxis)
+
+
+#
+# And ...
+#
+@then('the TwoDSpectrum container will be indexed by TimeAxis which corresponds to the original FrequencyAxis')
+def step_then_32(context):
+    """
+
+        And the TwoDSpectrum container will be indexed by TimeAxis which corresponds to the original FrequencyAxis
+
+    """
+    fft = context.new_container
+    ori = context.container
+    
+    ori_fftaxis = ori.axis.get_TimeAxis()
+    fft_axis = fft.axis
+    
+    assert ori_fftaxis == fft_axis

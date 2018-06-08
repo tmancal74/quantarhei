@@ -17,6 +17,7 @@ from ..core.frequency import FrequencyAxis
 from .twod2 import TwoDSpectrum
 
 from ..core.managers import energy_units
+from .. import COMPLEX
 
 
 
@@ -85,11 +86,16 @@ class TwoDSpectrumContainer:
         elif isinstance(itype, ValueAxis):
             if isinstance(itype, TimeAxis):
                 self.itype = "TimeAxis"
+                self.axis = itype
+                # This axis must FFT in the "standard" way 
+                # -- it must of the "complete" type 
+                self.axis.atype = "complete" 
             elif isinstance(itype, FrequencyAxis):
                 self.itype = "FrequencyAxis"
+                self.axis = itype
             else:
                 self.itype = "ValueAxis"
-            self.axis = itype
+                self.axis = itype
         else:
             raise Exception("Unknown indexing type")
         
@@ -300,7 +306,7 @@ class TwoDSpectrumContainer:
             
         """
         
-        vals = numpy.zeros(times.length)
+        vals = numpy.zeros(times.length, dtype=COMPLEX)
         k = 0
         for t2 in times.data:
             
@@ -348,7 +354,6 @@ class TwoDSpectrumContainer:
         # FFT of the axis
         #
         if isinstance(self.axis, TimeAxis):
-            print("Making Frequency Axis")
             new_axis = self.axis.get_FrequencyAxis()
             
         elif isinstance(self.axis, FrequencyAxis):
@@ -357,7 +362,8 @@ class TwoDSpectrumContainer:
         else: 
             # this must be ValueAxis
 
-            ftaxdata = numpy.fft.fftfreq(self.axis.length, self.axis.step)
+            ftaxdata = (2.0*numpy.pi)*numpy.fft.fftfreq(self.axis.length,
+                                                        self.axis.step)
             ftaxdata = numpy.fft.fftshift(ftaxdata)
             
             start = ftaxdata[0]
@@ -370,7 +376,8 @@ class TwoDSpectrumContainer:
         #
         # FFT of the data
         #
-        ftdata = data
+        ftdata = numpy.fft.fft(data, axis=2)
+        ftdata = numpy.fft.fftshift(ftdata, axes=2)
         
         # save it to a new container
         new_container = TwoDSpectrumContainer()
@@ -380,6 +387,8 @@ class TwoDSpectrumContainer:
             tag = new_axis.data[k_n]
             spect = TwoDSpectrum()
             spect.set_data(ftdata[:, :, k_n])
+            spect.set_axis_1(sp1.xaxis)
+            spect.set_axis_3(sp1.yaxis)
             new_container.set_spectrum(spect, tag=tag)
         
         
