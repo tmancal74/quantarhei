@@ -3,6 +3,9 @@
 
 
 """
+from functools import partial
+import numbers
+
 import h5py
 import matplotlib.pyplot as plt  
 import numpy
@@ -39,37 +42,49 @@ except:
     _have_aceto = False 
 
 
-class DFunction2:
-    """Descrete two-dimensional function 
+def twodspectrum_dictionary(name, dtype):
+    """Defines operations on the storage of two-dimensional spectral data
     
-    Note: This will be later moved into the core package of Quantarhei
-    It handles basic saving and loading operatoins of a two-dimensional
-    discrete function
+    
     """
-    def __init__(self, x=None, y=None, z=None):
-        pass
     
-    def save(self, filename):
-        pass
-    
-    def load(self, filename):
-        pass
-    
-    def plot(self,**kwargs):
-        pass    
+    storage_name = '_'+name
+
+    @property
+    def prop(self):
+        storage = getattr(self, storage_name)
+        
+        # here decide which of the 
+        return 0
+        
+    @prop.setter
+    def prop(self, value):
+        if isinstance(value, numpy.ndarray):
+            storage = getattr(self, storage_name)
+            
+        else:
+            raise TypeError('{} must contain \
+                            values of type {})'.format(name, dtype), dtype)
+            
+    return prop
+
+#
+# Storage type for 2D spectra
+#
+TwoDSpectrumDataArray = partial(twodspectrum_dictionary, dtype=numbers.Complex)     
 
 
-class TwoDSpectrumBase(DFunction2):
+class TwoDSpectrumBase:
     """Basic class of a two-dimensional spectrum
     
     
     """
     
     # spectral types
-    stypes = ["rephasing","non-rephasing","nonrephasing", "total"]
+    stypes = ["rephasing", "non-rephasing", "nonrephasing", "total"]
     
     # spectral parts
-    sparts = ["real","imaginary"]
+    sparts = ["real", "imaginary"]
     
     # to keep Liouville pathways separate?
     keep_pathways = False
@@ -78,7 +93,13 @@ class TwoDSpectrumBase(DFunction2):
     
     # to keep stypes separate?
     keep_stypes = True
-    
+
+    #
+    # Storage of 2D data
+    #
+    d__data = TwoDSpectrumDataArray("d__data")
+
+
     def __init__(self):
         super().__init__()
         
@@ -191,12 +212,7 @@ class TwoDSpectrumBase(DFunction2):
             
             raise Exception("Unknow type of data: "+dtype)
 
-        
-    def save(self, filename):
-        super().save(filename)
-    
-    def load(self, filename):
-        super().load(filename)
+
         
     
     
@@ -278,8 +294,6 @@ class TwoDSpectrum(TwoDSpectrumBase):
         ppc = PumpProbeSpectrumCalculator()
         return ppc.calculate_from_2D(self)
     
-    
-        
     
     def plot(self, fig=None, window=None, stype="total", spart="real",
              vmax=None, vmin_ratio=0.5, 
@@ -495,11 +509,13 @@ class TwoDSpectrum(TwoDSpectrumBase):
     def show(self):
         
         plt.show()
-        
+
+
     def savefig(self, filename):
         
         plt.savefig(filename)
-        
+
+ 
     def _create_root_group(self, start, name):
         return start.create_group(name)
     
