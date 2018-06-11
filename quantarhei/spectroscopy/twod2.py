@@ -213,7 +213,41 @@ class TwoDSpectrumBase:
             raise Exception("Unknow type of data: "+dtype)
 
 
+    def _add_data(self, data, mode=None, dtype="Tot", tag=None):
+        """Adds data to this 2D spectrum
         
+        This method is used when partial data are stored in this spectrum
+        object, and it is expected that more data will come. To set spectrum
+        data in one shot, you can use `set_data` method.
+        
+        
+        Parameters
+        ----------
+        
+        data : array
+            Numpy array compatible in dimensions with the axes of the spectrum
+            
+        mode : string or None
+            Mode of adding data specifies if the data correspond to individual
+            pathway (mode="pathways"), a type of pathways such as "R1g", 
+            "R2g" etc., process such as "GSB", "ESA" etc. (mode="processes"),
+            or signal such as "Reph" or "Nonr" (mode="signals"). One can
+            also store a complete spectrum under the mode="Tot".
+            
+        dtype : string
+            Type of data; under mode="pathways", dtype specifies the character
+            of the pathway (such as "R1g", "R2g", etc.)
+            
+        tag : string
+            Used in the mode="pathways". It provides a unique tag to identify
+            the pathway
+            
+        """
+        pass
+
+
+    def _set_data(self, data, mode=None, dtype="Tot", tag=None):
+        pass
     
     
 class TwoDSpectrum(TwoDSpectrumBase):
