@@ -407,7 +407,7 @@ def pylint():
 #
 # Targets for doc tests
 #       
-doc_devs = ['quantarhei/qm/liouvillespace']
+doc_devs = ['quantarhei/spectroscopy/twod2.py'] #['quantarhei/qm/liouvillespace']
 
 #
 # Targets for unit tests

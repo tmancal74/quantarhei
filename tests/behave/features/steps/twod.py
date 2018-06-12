@@ -18,6 +18,7 @@ from behave import when
 from behave import then
 
 import quantarhei as qr
+from quantarhei.spectroscopy.twod2 import _ptypes, _processes
 
 
 def _spectrum(a, b):
@@ -59,7 +60,7 @@ def step_given_1(context):
     data_list = []
     para_list = [[1.0, 10.0], [2.0, 20.0], [0.5, 12.0],
                  [0.1, 16.0], [0.2, 8.9], [0.3, 9.0]]
-    types = ["R1f", "R2g", "R3g", "R3g", "R1f", "R2g"]
+    types = ["R1fs", "R2g", "R3g", "R3g", "R1fs", "R2g"]
     tags  = ["r1f1", "r2g1", "r3g1", "r3g2", "r1f2", "r2g2"]
 
 
@@ -103,11 +104,16 @@ def step_then_3(context):
     tags = context.tags
     
     k_l = 0
-    for data in data_list:
+    for (x, y, data) in data_list:
         tpp = types[k_l]
         tag = tags[k_l]
         
-        twod._add_data(data, dtype=tpp, tag=tag)
+        if (k_l == 0):
+            twod.set_axis_1(x)
+            twod.set_axis_3(y)
+        twod._add_data(data, resolution="pathways", dtype=tpp, tag=tag)
+        
+        numpy.testing.assert_allclose(twod._d__data[tpp][tag], data)
         
         k_l += 1
         
@@ -116,15 +122,31 @@ def step_then_3(context):
 #
 # And ...
 #
-@then('I can retrieve spectra by tag')
+@then('I can retrieve spectra by type and tag')
 def step_then_4(context):
     """
 
-        And I can retrieve spectra by tag
+        And I can retrieve spectra by type and tag
 
     """
-    pass
-
+    twod = context.twod
+    twod.set_resolution("pathways")
+    
+    data_list = context.data_list
+    types = context.types
+    tags = context.tags
+    
+    k_l = 0
+    for (x, y, data) in data_list:
+        tpp = types[k_l]
+        tag = tags[k_l]
+        
+        twod.set_data_flag([tpp, tag])
+        
+        retrieved_data = twod.d__data 
+        
+        numpy.testing.assert_allclose(retrieved_data, data)
+        k_l += 1
 
 #
 # And ...
@@ -136,8 +158,46 @@ def step_then_5(context, type):
         And I can retrieve sum of spectra of a given type {type}
 
     """
-    pass
+    def _get_tag_of_type(typ, tags):
+        """Selects all tags of pathways of a give tag
+        
+        """
+        return_tags = []
+        for tag in tags:
+            if tag[0] == typ:
+                return_tags.append(tag)
+        return return_tags
 
+
+    # first we get data for comparison
+    twod = context.twod
+    
+    tags = twod.get_all_tags()
+    
+    if type in _ptypes:
+        tags_of_type = _get_tag_of_type(type, tags)
+
+        dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                           dtype=qr.COMPLEX)
+        for pair in tags_of_type:
+            twod.set_data_flag(pair)
+            try:
+                data = twod.d__data
+                dsum += data
+            except:
+                pass
+    
+    # here we test it without first changing the resolution
+    pass
+    
+    # here we change the resolution of the storage
+    twod.set_resolution("types")
+    twod.set_data_flag(type)
+    
+    retrieved_data = twod.d__data
+    
+    numpy.testing.assert_allclose(retrieved_data, dsum)
+    
 
 #
 # And ...
@@ -149,7 +209,25 @@ def step_then_6(context, process):
         And I can retrieve sum of spectra of a given process {process}
 
     """
-    pass
+    # first we get data for comparison
+    twod = context.twod
+    
+    types = _processes[process]
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)   
+    for typ in types:
+        twod.set_data_flag(typ)
+        data = twod.d__data
+        if data is not None:
+            dsum += data
+
+#    twod.set_resolution("processes")
+#    twod.set_data_flag(process)
+#    
+#    retrieved_data = twod.d__data
+#    
+#    numpy.testing.assert_allclose(retrieved_data, dsum)    
+#
 
 
 #
