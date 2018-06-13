@@ -131,6 +131,174 @@ def _get_type_and_tag(obj, storage):
     return piece
 
 
+def _pathways_to_processes(obj, process):
+
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+        
+    if process not in _processes:
+        raise Exception("Unknown process")
+        
+    # FIXME: implement       
+        
+        
+    return data
+
+
+def _pathways_to_signals(obj, signal):
+
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+        
+    if signal not in _signals:
+        raise Exception("Unknown process")
+        
+    # FIXME: implement       
+        
+    return data        
+
+
+def _pathways_to_total(obj):
+    
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    # FIXME: implement
+
+    return data        
+
+
+def _types_to_processes(obj, process):
+    """Sums pathways of different types into a specified process spectrum
+    
+    
+    """
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+
+    types = _processes[process]
+    for dtype in types:
+        try:
+            ddata = obj._d__data[dtype]
+        except KeyError:
+            # set to None if dtype not present
+            ddata = None
+        except AttributeError:
+            # no data
+            ddata = None
+            
+        if ddata is not None:
+            data += ddata
+
+    return data
+
+
+def _types_to_signals(obj, signal):
+    """Sums pathways of different types into a specified signal spectrum
+    
+    
+    """
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+        
+    types = _signals[signal]
+    
+    for dtype in types:
+        try:
+            ddata = obj._d__data[dtype]
+        except KeyError:
+            # set to None if dtype not present
+            ddata = None
+        except AttributeError:
+            # no data
+            ddata = None
+            
+        if ddata is not None:
+            data += ddata
+
+    return data
+
+
+def _signals_to_total(obj):
+    """Sums spectra corresponding to different signals into the total spectrum
+    
+    """    
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    
+        for signal in _signals:
+            
+            data += obj._d__data[signal]
+            
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    return data
+            
+
+def _processes_to_total(obj):
+    """Sums spectra corresponding to different processes into the total spectrum
+    
+    """
+    
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    
+        for process in _processes:
+            
+            data += obj._d__data[process]
+            
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    return data
+
+
+def _types_to_total(obj):
+    """Sums all pathways into the total spectrum
+    
+    
+    """
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    
+        # sum over all processes
+        for process in _processes:
+            
+            data += _types_to_processes(process)
+            
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    return data
+
 def twodspectrum_dictionary(name, dtype):
     """Defines operations on the storage of two-dimensional spectral data
     
@@ -148,37 +316,107 @@ def twodspectrum_dictionary(name, dtype):
         # with pathway resolution => type and tag has to be specified
         #
         if self.storage_resolution == "pathways":
-            
-            if self.current_dtype not in _ptypes:
-                # check the current_type attribute
-                raise Exception("Wrong pathways type")
              
-            piece = storage[self.current_dtype]
+            if self.current_dtype in _ptypes:
+                piece = storage[self.current_dtype]
+                
+                #
+                # return as pathway
+                #
+                if self.current_tag is not None:
+                    return piece[self.current_tag]
             
-            return piece[self.current_tag]
-        
+                #
+                # return as type
+                #
+                else:
+                    # tag not specified so we add up all pathways
+                    # of a given type
+                    k_i = 0
+                    for dat in piece:
+                        if k_i == 0:
+                            data = dat.copy()
+                        else:
+                            data += dat
+                            
+                    return data
+                    
+            elif self.current_dtype in _processes:
+                
+                #
+                # return as process
+                #
+                return _pathways_to_processes(self, self.current_dtype)
+                
+            elif self.current_dtype in _signals:
+                #
+                # return as signals
+                #
+                return _pathways_to_signals(self, self.current_dtype)
+                
+            elif self.current_dtype == "off":
+                
+                #
+                # return total spectrum
+                #
+                return _pathways_to_total(self)
+ 
         #
         # Resolution = "types"
         #
         elif self.storage_resolution == "types":
             
-            if self.current_dtype not in _ptypes:
-                # check the current_type attribute
-                raise Exception("Wrong pathways type")
+            if self.current_dtype in _ptypes:
+                return storage[self.current_dtype]
 
+            elif self.current_dtype in _processes:
+                
+                # return as process
+                return _types_to_processes(self, self.current_dtype)
             
-            return storage[self.current_dtype]  
+            elif self.current_dtype in _signals:
+                #
+                # return as signals
+                #
+                return _types_to_signals(self, self.current_dtype)
+                
+            elif self.current_dtype == "off":
+                
+                #
+                # return total spectrum
+                #
+                return _types_to_total(self)
 
         #
         # Resolution = "processes"
         #
         elif self.storage_resolution == "processes":
 
-            if self.current_dtype not in _processes:
-                # check the current_type attribute
-                raise Exception("Wrong process type")            
+            if self.current_dtype in _processes:
+                return storage[self.current_dtype]
             
-            return storage[self.current_dtype]
+            elif self.current_dtype == "off":
+                
+                #
+                # Return total spectrum
+                #
+                return _processes_to_total(self)
+
+        #
+        # Resolution = "signals"
+        #
+        elif self.storage_resolution == "signals":
+
+            if self.current_dtype in _signals:
+                return storage[self.current_dtype]
+            
+            elif self.current_dtype == "off":
+                
+                #
+                # return total spectrum
+                #
+                return _signals_to_total(self)                
+                
             
         else:
             raise Exception("not implemented")              
@@ -552,29 +790,8 @@ class TwoDSpectrumBase:
             storage = {}
             
             for process in _processes.keys():
-
-                if self.storage_initialized:
-                    data = numpy.zeros((self.xaxis.length,
-                                        self.yaxis.length),
-                                        dtype=COMPLEX)
-                else:
-                    data = numpy.zeros((1,1), dtype=COMPLEX)
-
-
-                types = _processes[process]
-                for dtype in types:
-                    try:
-                        ddata = self._d__data[dtype]
-                    except KeyError:
-                        # set to None if dtype not present
-                        ddata = None
-                    except AttributeError:
-                        # no data
-                        ddata = None
-                        
-                    if ddata is not None:
-                        data += ddata
-                    
+                
+                data = _types_to_processes(self, process)                    
                 storage[process] = data
            
             self._d__data = storage
@@ -585,41 +802,26 @@ class TwoDSpectrumBase:
             storage = {}
             
             for signal in _signals.keys():
-
-                if self.storage_initialized:
-                    data = numpy.zeros((self.xaxis.length,
-                                        self.yaxis.length),
-                                        dtype=COMPLEX)
-                else:
-                    data = numpy.zeros((1,1), dtype=COMPLEX)
-                    
-                types = _signals[signal]
                 
-                for dtype in types:
-                    try:
-                        ddata = self._d__data[dtype]
-                    except KeyError:
-                        # set to None if dtype not present
-                        ddata = None
-                    except AttributeError:
-                        # no data
-                        ddata = None
-                        
-                    if ddata is not None:
-                        data += ddata
-                    
+                data = _types_to_signals(self, signal) 
                 storage[signal] = data
            
             self._d__data = storage
             
         # converts "signals" to "off"
         elif (old == 1) and (new == 0):
-            pass
+            storage = {}
+            
+            data = _signals_to_total(self)
+            storage["off"] = data
         
         # converts "processes" to "off"
         elif (old == 2) and (new == 0):
-            pass
-        
+            storage = {}
+            
+            data = _processes_to_total(self)
+            storage["off"] = data
+            
         else:
             raise Exception("Cannot convert resolution for level "+str(old)+
                             " to level "+str(new))

@@ -18,7 +18,7 @@ from behave import when
 from behave import then
 
 import quantarhei as qr
-from quantarhei.spectroscopy.twod2 import _ptypes, _processes
+from quantarhei.spectroscopy.twod2 import _ptypes, _processes, _signals
 
 
 def _spectrum(a, b):
@@ -222,12 +222,12 @@ def step_then_6(context, process):
             dsum += data
 
 #    twod.set_resolution("processes")
-#    twod.set_data_flag(process)
-#    
-#    retrieved_data = twod.d__data
-#    
-#    numpy.testing.assert_allclose(retrieved_data, dsum)    
-#
+    twod.set_data_flag(process)
+    
+    retrieved_data = twod.d__data
+    
+    numpy.testing.assert_allclose(retrieved_data, dsum)    
+
 
 
 #
@@ -240,4 +240,21 @@ def step_then_7(context, signal):
         And I can retrieve sum of spectra of a given signal {signal}
 
     """
-    pass
+    # first we get data for comparison
+    twod = context.twod
+    
+    types = _signals[signal]
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)   
+    for typ in types:
+        twod.set_data_flag(typ)
+        data = twod.d__data
+        if data is not None:
+            dsum += data
+
+#    twod.set_resolution("processes")
+    twod.set_data_flag(signal)
+    
+    retrieved_data = twod.d__data
+    
+    numpy.testing.assert_allclose(retrieved_data, dsum)

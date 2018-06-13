@@ -20,11 +20,11 @@ Feature: TwoDSpectrum can store data in different level of details.
         
     Examples:
         | type |  process  |   signal  |
-        | R2g  |  SE       |   Reph    |
-        | R1g  |  GSB      |   Nonr    |
-        | R3g  |  ESA      |   Reph    |
-        | R4g  |  SE       |   Nonr    |
-        | R1fs |  GSB      |   Reph    |
-        | R2fs |  ESA      |   Nonr    |
-        | R3fs |  SE       |   Reph    |
+        | R2g  |  SE       |   REPH    |
+        | R1g  |  GSB      |   NONR    |
+        | R3g  |  ESA      |   REPH    |
+        | R4g  |  SE       |   NONR    |
+        | R1fs |  GSB      |   REPH    |
+        | R2fs |  ESA      |   NONR    |
+        | R3fs |  SE       |   REPH    |
          
