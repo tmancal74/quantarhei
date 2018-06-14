@@ -317,7 +317,7 @@ def _types_to_total(obj):
         # sum over all processes
         for process in _processes:
             
-            data += _types_to_processes(process)
+            data += _types_to_processes(obj, process)
             
     else:
         data = numpy.zeros((1,1), dtype=COMPLEX)
@@ -399,6 +399,11 @@ def twodspectrum_dictionary(name, dtype):
                 # return total spectrum
                 #
                 return _pathways_to_total(self)
+            
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
  
         #
         # Resolution = "types"
@@ -426,11 +431,16 @@ def twodspectrum_dictionary(name, dtype):
                 #
                 return _types_to_total(self)
 
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
+
         #
         # Resolution = "processes"
         #
         elif self.storage_resolution == "processes":
-
+            
             if self.current_dtype in _processes:
                 return storage[self.current_dtype]
             
@@ -440,6 +450,11 @@ def twodspectrum_dictionary(name, dtype):
                 # Return total spectrum
                 #
                 return _processes_to_total(self)
+
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
 
         #
         # Resolution = "signals"
@@ -455,8 +470,22 @@ def twodspectrum_dictionary(name, dtype):
                 # return total spectrum
                 #
                 return _signals_to_total(self)                
+
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
                 
+        elif self.storage_resolution == "off":
             
+            if self.current_dtype == "total":
+                return storage["total"]
+            
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
+
         else:
             raise Exception("not implemented")              
 
@@ -781,13 +810,46 @@ class TwoDSpectrumBase:
                 # recalculate data towards lower resolution
                 self._convert_resolution(res_old, res_new)
             
-            self.storage_resolution = resolution
+            #self.storage_resolution = resolution
         else:
             raise Exception("Unknown resolution: "+resolution)
 
 
+    def get_resolution(self):
+        """Returns storage resolution
+        
+        """
+        return self.storage_resolution
+
+
     def _convert_resolution(self, old, new):
         """Converts storage from one level of resolution to another
+        
+        """
+        
+        _conversion_paths = {4:{3:[4,3], 2:[4,3,2], 1:[4,3,1], 0:[4,3,2,0]}, 
+                 3:{2:[3,2], 1:[3,1], 0:[3,2,0]},
+                 2:{0:[2,0]},
+                 1:{0:[1,0]}}
+        
+        try:
+            path = _conversion_paths[old][new]
+        except KeyError:
+            raise Exception("Cannot convert resolution for level "+str(old)+
+                            " to level "+str(new))
+        
+        for step in path:
+            if step == old:
+                start = old
+            else:
+                end = step
+                self._convert_res_elementary(start, end)
+                self.storage_resolution = _resolutions[end]
+                start = end
+
+        
+    def _convert_res_elementary(self, old, new):
+        """Performs simple storage conversions involving only one step conversion
         
         """
         
@@ -853,14 +915,18 @@ class TwoDSpectrumBase:
             storage = {}
             
             data = _signals_to_total(self)
-            storage["off"] = data
+            storage["total"] = data
+            
+            self._d__data = storage
         
         # converts "processes" to "off"
         elif (old == 2) and (new == 0):
             storage = {}
             
             data = _processes_to_total(self)
-            storage["off"] = data
+            storage["total"] = data
+            
+            self._d__data = storage
             
         else:
             raise Exception("Cannot convert resolution for level "+str(old)+

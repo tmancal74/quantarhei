@@ -220,7 +220,88 @@ def _sum_pathways_to_total(twod):
             dsum += data
             
     return dsum
-    
+
+
+def _sum_types_to_process(twod, process):
+
+    types = _processes[process]
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)   
+    for typ in types:
+        try:
+            data = twod._d__data[typ]
+        except:
+            data = None
+            
+        if data is not None:
+            dsum += data
+            
+    return dsum
+
+
+def _sum_types_to_signal(twod, signal):
+
+    types = _signals[signal]
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)   
+    for typ in types:
+        try:
+            data = twod._d__data[typ]
+        except:
+            data = None
+            
+        if data is not None:
+            dsum += data
+            
+    return dsum
+
+
+def _sum_types_to_total(twod):
+
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)   
+    for typ in _ptypes:
+        try:
+            data = twod._d__data[typ]
+        except:
+            data = None
+            
+        if data is not None:
+            dsum += data
+            
+    return dsum
+
+
+def _sum_processes_to_total(twod):
+
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX) 
+    for process in _processes:
+        try:
+            data = twod._d__data[process]
+        except:
+            data = None
+            
+        if data is not None:
+            dsum += data
+            
+    return dsum
+
+
+def _sum_signals_to_total(twod):
+
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX) 
+    for signal in _signals:
+        try:
+            data = twod._d__data[signal]
+        except:
+            data = None
+            
+        if data is not None:
+            dsum += data
+            
+    return dsum
 
 #
 # And ...
@@ -237,7 +318,12 @@ def step_then_5(context, type):
     # first we get data for comparison
     twod = context.twod
     
-    dsum = _sum_pathways_to_types(twod, type)
+    res = twod.get_resolution()
+    
+    if res == "pathways":
+        dsum = _sum_pathways_to_types(twod, type)
+    elif res == "types":
+        dsum = twod._d__data[type]
     
     # here we test it without first changing the resolution
     twod.set_data_flag(type)
@@ -260,7 +346,14 @@ def step_then_6(context, process):
     # first we get data for comparison
     twod = context.twod
     
-    dsum = _sum_pathways_to_process(twod, process)
+    res = twod.get_resolution()
+    
+    if res == "pathways":
+        dsum = _sum_pathways_to_process(twod, process)
+    elif res == "types":
+        dsum = _sum_types_to_process(twod, process)
+    elif res == "processes":
+        dsum = twod._d__data[process]
 
 #    twod.set_resolution("processes")
     twod.set_data_flag(process)
@@ -284,8 +377,15 @@ def step_then_7(context, signal):
     # first we get data for comparison
     twod = context.twod
     
-    dsum = _sum_pathways_to_signal(twod, signal)
-
+    res = twod.get_resolution()
+    
+    if res == "pathways":
+        dsum = _sum_pathways_to_signal(twod, signal)
+    elif res == "types":
+        dsum = _sum_types_to_signal(twod, signal)
+    elif res == "signals":
+        dsum = twod._d__data[signal]
+        
 #    twod.set_resolution("processes")
     twod.set_data_flag(signal)
     
@@ -307,8 +407,21 @@ def step_then_8(context):
     # first we get data for comparison
     twod = context.twod
     
-    dsum = _sum_pathways_to_total(twod)
-
+    res = twod.get_resolution()
+    
+    if res == "pathways":
+        dsum = _sum_pathways_to_total(twod)
+    elif res == "types":
+        dsum = _sum_types_to_total(twod)
+    elif res == "processes":
+        dsum = _sum_processes_to_total(twod)
+    elif res == "signals":
+        dsum = _sum_signals_to_total(twod)
+    elif res == "off":
+        dsum = twod._d__data["total"]
+    else:
+        raise Exception("Unknow storage resolution: "+res)
+    
 #    twod.set_resolution("processes")
     twod.set_data_flag("total")
     
@@ -316,3 +429,137 @@ def step_then_8(context):
     
     numpy.testing.assert_allclose(retrieved_data, dsum)
 
+
+#
+# And ...
+#
+@given('I create a new TwoDSpectrum object')
+def step_given_9(context):
+    """
+
+        And I create a new TwoDSpectrum object
+
+    """
+    context.twod = qr.TwoDSpectrum()
+
+
+#
+# And ...
+#
+@given('I save 2D data using type and tag')
+def step_given_10(context):
+    """
+
+        And I save 2D data using type and tag
+
+    """
+    twod = context.twod
+    
+    data_list = context.data_list
+    types = context.types
+    tags = context.tags
+    
+    k_l = 0
+    for (x, y, data) in data_list:
+        tpp = types[k_l]
+        tag = tags[k_l]
+        
+        if (k_l == 0):
+            twod.set_axis_1(x)
+            twod.set_axis_3(y)
+        twod._add_data(data, resolution="pathways", dtype=tpp, tag=tag)
+        
+        numpy.testing.assert_allclose(twod._d__data[tpp][tag], data)
+        
+        k_l += 1
+    
+
+#
+# When ...
+#
+@when('I convert the storage mode into the one storing only types of pathways')
+def step_when_11(context):
+    """
+
+        When I convert the storage mode into the one storing only types of pathways
+
+    """
+    twod = context.twod
+    twod.set_resolution("types")
+    
+
+#
+# When ...
+#
+@when('I convert the storage mode into the one storing spectra of processes')
+def step_when_12(context):
+    """
+
+        When I convert the storage mode into the one storing spectra of processes
+
+    """
+    twod = context.twod
+    twod.set_resolution("processes")
+
+
+#
+# But ...
+#
+@then('when I try to retrieve signal {signal} I get an exception')
+def step_then_13(context, signal):
+    """
+
+        But when I try to retrieve signal {signal} I get an exception
+
+    """
+    twod = context.twod
+    
+    twod.set_data_flag(signal)
+    
+    got_exception = False
+    try:
+        twod.d__data
+    except:
+        got_exception = True 
+    
+    assert got_exception
+
+
+#
+# When ...
+#
+@when('I convert the storage mode into the one storing rephasing and non-rephasing signals')
+def step_when_14(context):
+    """
+
+        When I convert the storage mode into the one storing rephasing and non-rephasing signals
+
+    """
+    twod = context.twod
+    twod.set_resolution("signals")
+
+#
+# But ...
+#
+@then('when I try to retrieve process {process} I get an exception')
+def step_then_15(context, process):
+    """
+
+        But when I try to retrieve process {process} I get an exception
+
+    """
+    pass
+
+
+#
+# When ...
+#
+@when('I convert the storage mode into the storing total spectrum')
+def step_when_16(context):
+    """
+
+        When I convert the storage mode into the storing total spectrum
+
+    """
+    twod = context.twod
+    twod.set_resolution("off")

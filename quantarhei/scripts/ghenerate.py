@@ -143,7 +143,7 @@ def analyze_children(children):
         print("Following steps found:")
         for step in steps:
             print("    ", step["keyword"], "\t :\t", step["text"])
-            text = step["text"]
+            text = step["keyword"]+": "+step["text"]
             if text not in test_strings:
                 test_strings.append(text)
             else:
@@ -289,14 +289,22 @@ def main():
         for scenario in parse_data["children"]:
 
             steps = scenario["steps"]
-
+            
             current = ""
             for step in steps:
                 text = step["text"]
+                
+                if step["keyword"] != "And ":
+                    prepo = step["keyword"]
+                    # if keyword is not And, prepo remains
+                    
+                check_text = prepo+": "+step["text"]
 
                 # the step strings should not be duplicate
-                if text not in test_strings:
-                    test_strings.append(text)
+                # but the same text can follow different keywords with 
+                # different code
+                if check_text not in test_strings:
+                    test_strings.append(check_text)
 
                     # the 'text' is searched for variables
                     args = "context"
