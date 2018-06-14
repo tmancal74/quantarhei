@@ -138,13 +138,24 @@ def _pathways_to_processes(obj, process):
                             obj.yaxis.length),
                             dtype=COMPLEX)
     else:
-        data = numpy.zeros((1,1), dtype=COMPLEX)
+        return numpy.zeros((1,1), dtype=COMPLEX)
         
     if process not in _processes:
-        raise Exception("Unknown process")
+        raise Exception("Unknown process: "+process)
         
-    # FIXME: implement       
+    else:
         
+        # types corresponding to process
+        types = _processes[process]
+        for typ in types:
+            # pways corresponding to a given type
+            try:
+                pways = obj._d__data[typ]
+            except:
+                pways = []
+            # sum those pathways
+            for tag in pways:
+                data += pways[tag]
         
     return data
 
@@ -159,9 +170,21 @@ def _pathways_to_signals(obj, signal):
         data = numpy.zeros((1,1), dtype=COMPLEX)
         
     if signal not in _signals:
-        raise Exception("Unknown process")
+        raise Exception("Unknown signal: "+signal)
         
-    # FIXME: implement       
+    else:
+        
+        # types corresponding to signal
+        types = _signals[signal]
+        for typ in types:
+            # pways corresponding to a given type
+            try:
+                pways = obj._d__data[typ]
+            except:
+                pways = []
+            # sum those pathways
+            for tag in pways:
+                data += pways[tag]
         
     return data        
 
@@ -175,7 +198,9 @@ def _pathways_to_total(obj):
     else:
         data = numpy.zeros((1,1), dtype=COMPLEX)
 
-    # FIXME: implement
+    for signal in _signals:
+        
+        data += _pathways_to_signals(obj, signal)
 
     return data        
 
@@ -299,6 +324,7 @@ def _types_to_total(obj):
 
     return data
 
+
 def twodspectrum_dictionary(name, dtype):
     """Defines operations on the storage of two-dimensional spectral data
     
@@ -318,8 +344,19 @@ def twodspectrum_dictionary(name, dtype):
         if self.storage_resolution == "pathways":
              
             if self.current_dtype in _ptypes:
-                piece = storage[self.current_dtype]
-                
+
+                if self.storage_initialized:
+    
+                    try:
+                        piece = storage[self.current_dtype]
+                    except:
+                        return numpy.zeros((self.xaxis.length,
+                                            self.yaxis.length),
+                                            dtype=COMPLEX)
+
+                else:
+                    return numpy.zeros((1,1), dtype=COMPLEX)
+                                
                 #
                 # return as pathway
                 #
@@ -333,11 +370,13 @@ def twodspectrum_dictionary(name, dtype):
                     # tag not specified so we add up all pathways
                     # of a given type
                     k_i = 0
-                    for dat in piece:
+                    for tag in piece:
+                        dat = piece[tag]
                         if k_i == 0:
                             data = dat.copy()
                         else:
                             data += dat
+                        k_i += 1
                             
                     return data
                     
@@ -354,7 +393,7 @@ def twodspectrum_dictionary(name, dtype):
                 #
                 return _pathways_to_signals(self, self.current_dtype)
                 
-            elif self.current_dtype == "off":
+            elif self.current_dtype == "total":
                 
                 #
                 # return total spectrum
@@ -380,7 +419,7 @@ def twodspectrum_dictionary(name, dtype):
                 #
                 return _types_to_signals(self, self.current_dtype)
                 
-            elif self.current_dtype == "off":
+            elif self.current_dtype == "total":
                 
                 #
                 # return total spectrum
@@ -395,7 +434,7 @@ def twodspectrum_dictionary(name, dtype):
             if self.current_dtype in _processes:
                 return storage[self.current_dtype]
             
-            elif self.current_dtype == "off":
+            elif self.current_dtype == "total":
                 
                 #
                 # Return total spectrum
@@ -410,7 +449,7 @@ def twodspectrum_dictionary(name, dtype):
             if self.current_dtype in _signals:
                 return storage[self.current_dtype]
             
-            elif self.current_dtype == "off":
+            elif self.current_dtype == "total":
                 
                 #
                 # return total spectrum
@@ -637,6 +676,7 @@ class TwoDSpectrumBase:
             self.address_length = 2
         else:
             self.current_dtype = flag
+            self.current_tag = None
             self.address_length = 1
 
 

@@ -49,7 +49,7 @@ def _spectrum(a, b):
 #
 # Given ...
 #
-@given('that I have data corresponding to individual liouville pathways in 2D spectrum')
+@given('that I have data corresponding to individual Liouville pathways in 2D spectrum')
 def step_given_1(context):
     """
 
@@ -148,29 +148,19 @@ def step_then_4(context):
         numpy.testing.assert_allclose(retrieved_data, data)
         k_l += 1
 
-#
-# And ...
-#
-@then('I can retrieve sum of spectra of a given type {type}')
-def step_then_5(context, type):
+
+def _get_tag_of_type(typ, tags):
+    """Selects all tags of pathways of a give tag
+    
     """
-
-        And I can retrieve sum of spectra of a given type {type}
-
-    """
-    def _get_tag_of_type(typ, tags):
-        """Selects all tags of pathways of a give tag
-        
-        """
-        return_tags = []
-        for tag in tags:
-            if tag[0] == typ:
-                return_tags.append(tag)
-        return return_tags
+    return_tags = []
+    for tag in tags:
+        if tag[0] == typ:
+            return_tags.append(tag)
+    return return_tags
 
 
-    # first we get data for comparison
-    twod = context.twod
+def _sum_pathways_to_types(twod, type):
     
     tags = twod.get_all_tags()
     
@@ -186,17 +176,75 @@ def step_then_5(context, type):
                 dsum += data
             except:
                 pass
+
+    return dsum
+
+
+def _sum_pathways_to_process(twod, process):
+
+    types = _processes[process]
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)   
+    for typ in types:
+        #twod.set_data_flag(typ)
+        #data = twod.d__data
+        data = _sum_pathways_to_types(twod, typ)
+        if data is not None:
+            dsum += data
+            
+    return dsum
+
+
+def _sum_pathways_to_signal(twod, signal):
+    
+    types = _signals[signal]
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)   
+    for typ in types:
+        #twod.set_data_flag(typ)
+        #data = twod.d__data
+        data = _sum_pathways_to_types(twod, typ)
+        if data is not None:
+            dsum += data
+
+    return dsum
+
+
+def _sum_pathways_to_total(twod):
+
+    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
+                       dtype=qr.COMPLEX)    
+    for signal in _signals:
+        data = _sum_pathways_to_signal(twod, signal)
+        if data is not None:
+            dsum += data
+            
+    return dsum
+    
+
+#
+# And ...
+#
+@then('I can retrieve sum of spectra of a given type {type}')
+def step_then_5(context, type):
+    """
+
+        And I can retrieve sum of spectra of a given type {type}
+
+    """
+
+
+    # first we get data for comparison
+    twod = context.twod
+    
+    dsum = _sum_pathways_to_types(twod, type)
     
     # here we test it without first changing the resolution
-    pass
-    
-    # here we change the resolution of the storage
-    twod.set_resolution("types")
     twod.set_data_flag(type)
     
     retrieved_data = twod.d__data
     
-    numpy.testing.assert_allclose(retrieved_data, dsum)
+    numpy.testing.assert_allclose(retrieved_data, dsum, atol=1.0e-5)
     
 
 #
@@ -212,14 +260,7 @@ def step_then_6(context, process):
     # first we get data for comparison
     twod = context.twod
     
-    types = _processes[process]
-    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
-                       dtype=qr.COMPLEX)   
-    for typ in types:
-        twod.set_data_flag(typ)
-        data = twod.d__data
-        if data is not None:
-            dsum += data
+    dsum = _sum_pathways_to_process(twod, process)
 
 #    twod.set_resolution("processes")
     twod.set_data_flag(process)
@@ -243,14 +284,7 @@ def step_then_7(context, signal):
     # first we get data for comparison
     twod = context.twod
     
-    types = _signals[signal]
-    dsum = numpy.zeros((twod.xaxis.length, twod.yaxis.length),
-                       dtype=qr.COMPLEX)   
-    for typ in types:
-        twod.set_data_flag(typ)
-        data = twod.d__data
-        if data is not None:
-            dsum += data
+    dsum = _sum_pathways_to_signal(twod, signal)
 
 #    twod.set_resolution("processes")
     twod.set_data_flag(signal)
@@ -258,3 +292,27 @@ def step_then_7(context, signal):
     retrieved_data = twod.d__data
     
     numpy.testing.assert_allclose(retrieved_data, dsum)
+
+
+#
+# And ...
+#
+@then('I can retrieve total spectrum')
+def step_then_8(context):
+    """
+
+        And I can retrieve total spectrum
+
+    """
+    # first we get data for comparison
+    twod = context.twod
+    
+    dsum = _sum_pathways_to_total(twod)
+
+#    twod.set_resolution("processes")
+    twod.set_data_flag("total")
+    
+    retrieved_data = twod.d__data
+    
+    numpy.testing.assert_allclose(retrieved_data, dsum)
+
