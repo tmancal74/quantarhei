@@ -289,7 +289,7 @@ def derived_type(name,dtype_in):
     else:
         tp = partial(typed_property,dtype=dtype_in)
     return tp(name)                    
-            
+    
 
 
 Float   = partial(typed_property,dtype=numbers.Real)
@@ -317,6 +317,6 @@ UnitsManagedReal = partial(units_managed_property,
                               
 ManagedComplexArray = partial(managed_array_property,dtype=numbers.Complex)
 
-ManagedRealArray = partial(managed_array_property,dtype=numbers.Real)      
+ManagedRealArray = partial(managed_array_property,dtype=numbers.Real)
 
                               

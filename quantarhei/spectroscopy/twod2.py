@@ -3,6 +3,9 @@
 
 
 """
+from functools import partial
+import numbers
+
 import h5py
 import matplotlib.pyplot as plt  
 import numpy
@@ -15,6 +18,7 @@ from ..core.managers import eigenbasis_of
 from ..core.managers import energy_units
 from ..qm.propagators.poppropagator import PopulationPropagator 
 from ..core.units import convert
+from .. import COMPLEX
 
 from ..utils import derived_type
 
@@ -39,37 +43,515 @@ except:
     _have_aceto = False 
 
 
-class DFunction2:
-    """Descrete two-dimensional function 
+# FIXME: Check these names
+
+#
+#  Pathway types
+#
+_ptypes = ["R1g", "R2g", "R3g", "R4g", "R1fs", "R2fs", "R3fs", "R4fs"]
+
+#
+# Processes --- GSB, SE, ESA and DC
+#
+_processes = dict(GSB=[_ptypes[0], _ptypes[1]], SE=[_ptypes[2], _ptypes[3]],
+                  ESA=[_ptypes[4], _ptypes[5]], DC=[_ptypes[6], _ptypes[7]])
+
+#
+# Types of signals --- rephasing (REPH), non-rephasing (NONR) 
+#                      and double coherence (DC)
+#
+_signals = dict(REPH=[_ptypes[1], _ptypes[2], _ptypes[4]],
+                NONR=[_ptypes[0], _ptypes[3], _ptypes[5]],
+                DC=[_ptypes[6], _ptypes[7]])
+
+#
+# Storage resolutions
+#
+_resolutions = ["off", "signals", "processes", "types", "pathways"]
+
+
+def _resolution2number(res):
+    """Converts resolution string to number
     
-    Note: This will be later moved into the core package of Quantarhei
-    It handles basic saving and loading operatoins of a two-dimensional
-    discrete function
+    Parameters
+    ----------
+    
+    res : string
+        Resolution string. Here is conversion table    
+        | string    | integer |
+        | pathways  |   4     |
+        | types     |   3     |
+        | processes |   2     |
+        | signals   |   1     |
+        | off       |   0     |
+    
+    
+    >>> _resolution2number("pathways")
+    4
+    
+    >>> _resolution2number("types")
+    3
+    
+    >>> _resolution2number("processes")
+    2
+    
+    >>> _resolution2number("signals")
+    1
+    
+    >>> _resolution2number("off")
+    0
+    
+    
+    
     """
-    def __init__(self, x=None, y=None, z=None):
-        pass
-    
-    def save(self, filename):
-        pass
-    
-    def load(self, filename):
-        pass
-    
-    def plot(self,**kwargs):
-        pass    
+    if res in _resolutions:
+        return _resolutions.index(res)
+    else:
+        raise Exception("Unknow resolution level in TwoDSpectrum")
 
 
-class TwoDSpectrumBase(DFunction2):
+def _get_type_and_tag(obj, storage):
+
+    if obj.current_dtype not in _ptypes:
+        # check the current_type attribute
+        raise Exception("Wrong pathways type")
+
+    try:
+        # get the dictionary of pathways with a give type
+        piece = storage[obj.current_dtype]
+    except IndexError:
+        # if it does not exist, create it
+        storage[obj.current_dtype] = {}
+        piece = storage[obj.current_dtype]
+
+    if obj.current_tag in piece.keys():
+        # if the tag exists raise Exception
+        raise Exception("Tag already exists")
+        
+    return piece
+
+
+def _pathways_to_processes(obj, process):
+
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        return numpy.zeros((1,1), dtype=COMPLEX)
+        
+    if process not in _processes:
+        raise Exception("Unknown process: "+process)
+        
+    else:
+        
+        # types corresponding to process
+        types = _processes[process]
+        for typ in types:
+            # pways corresponding to a given type
+            try:
+                pways = obj._d__data[typ]
+            except:
+                pways = []
+            # sum those pathways
+            for tag in pways:
+                data += pways[tag]
+        
+    return data
+
+
+def _pathways_to_signals(obj, signal):
+
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+        
+    if signal not in _signals:
+        raise Exception("Unknown signal: "+signal)
+        
+    else:
+        
+        # types corresponding to signal
+        types = _signals[signal]
+        for typ in types:
+            # pways corresponding to a given type
+            try:
+                pways = obj._d__data[typ]
+            except:
+                pways = []
+            # sum those pathways
+            for tag in pways:
+                data += pways[tag]
+        
+    return data        
+
+
+def _pathways_to_total(obj):
+    
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    for signal in _signals:
+        
+        data += _pathways_to_signals(obj, signal)
+
+    return data        
+
+
+def _types_to_processes(obj, process):
+    """Sums pathways of different types into a specified process spectrum
+    
+    
+    """
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+
+    types = _processes[process]
+    for dtype in types:
+        try:
+            ddata = obj._d__data[dtype]
+        except KeyError:
+            # set to None if dtype not present
+            ddata = None
+        except AttributeError:
+            # no data
+            ddata = None
+            
+        if ddata is not None:
+            data += ddata
+
+    return data
+
+
+def _types_to_signals(obj, signal):
+    """Sums pathways of different types into a specified signal spectrum
+    
+    
+    """
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+        
+    types = _signals[signal]
+    
+    for dtype in types:
+        try:
+            ddata = obj._d__data[dtype]
+        except KeyError:
+            # set to None if dtype not present
+            ddata = None
+        except AttributeError:
+            # no data
+            ddata = None
+            
+        if ddata is not None:
+            data += ddata
+
+    return data
+
+
+def _signals_to_total(obj):
+    """Sums spectra corresponding to different signals into the total spectrum
+    
+    """    
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    
+        for signal in _signals:
+            
+            data += obj._d__data[signal]
+            
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    return data
+            
+
+def _processes_to_total(obj):
+    """Sums spectra corresponding to different processes into the total spectrum
+    
+    """
+    
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    
+        for process in _processes:
+            
+            data += obj._d__data[process]
+            
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    return data
+
+
+def _types_to_total(obj):
+    """Sums all pathways into the total spectrum
+    
+    
+    """
+    if obj.storage_initialized:
+        data = numpy.zeros((obj.xaxis.length,
+                            obj.yaxis.length),
+                            dtype=COMPLEX)
+    
+        # sum over all processes
+        for process in _processes:
+            
+            data += _types_to_processes(obj, process)
+            
+    else:
+        data = numpy.zeros((1,1), dtype=COMPLEX)
+
+    return data
+
+
+def twodspectrum_dictionary(name, dtype):
+    """Defines operations on the storage of two-dimensional spectral data
+    
+    
+    """
+    
+    storage_name = '_'+name
+
+    @property
+    def prop(self):
+        
+        storage = getattr(self, storage_name)
+        
+        #
+        # with pathway resolution => type and tag has to be specified
+        #
+        if self.storage_resolution == "pathways":
+             
+            if self.current_dtype in _ptypes:
+
+                if self.storage_initialized:
+    
+                    try:
+                        piece = storage[self.current_dtype]
+                    except:
+                        return numpy.zeros((self.xaxis.length,
+                                            self.yaxis.length),
+                                            dtype=COMPLEX)
+
+                else:
+                    return numpy.zeros((1,1), dtype=COMPLEX)
+                                
+                #
+                # return as pathway
+                #
+                if self.current_tag is not None:
+                    return piece[self.current_tag]
+            
+                #
+                # return as type
+                #
+                else:
+                    # tag not specified so we add up all pathways
+                    # of a given type
+                    k_i = 0
+                    for tag in piece:
+                        dat = piece[tag]
+                        if k_i == 0:
+                            data = dat.copy()
+                        else:
+                            data += dat
+                        k_i += 1
+                            
+                    return data
+                    
+            elif self.current_dtype in _processes:
+                
+                #
+                # return as process
+                #
+                return _pathways_to_processes(self, self.current_dtype)
+                
+            elif self.current_dtype in _signals:
+                #
+                # return as signals
+                #
+                return _pathways_to_signals(self, self.current_dtype)
+                
+            elif self.current_dtype == "total":
+                
+                #
+                # return total spectrum
+                #
+                return _pathways_to_total(self)
+            
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
+ 
+        #
+        # Resolution = "types"
+        #
+        elif self.storage_resolution == "types":
+            
+            if self.current_dtype in _ptypes:
+                return storage[self.current_dtype]
+
+            elif self.current_dtype in _processes:
+                
+                # return as process
+                return _types_to_processes(self, self.current_dtype)
+            
+            elif self.current_dtype in _signals:
+                #
+                # return as signals
+                #
+                return _types_to_signals(self, self.current_dtype)
+                
+            elif self.current_dtype == "total":
+                
+                #
+                # return total spectrum
+                #
+                return _types_to_total(self)
+
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
+
+        #
+        # Resolution = "processes"
+        #
+        elif self.storage_resolution == "processes":
+            
+            if self.current_dtype in _processes:
+                return storage[self.current_dtype]
+            
+            elif self.current_dtype == "total":
+                
+                #
+                # Return total spectrum
+                #
+                return _processes_to_total(self)
+
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
+
+        #
+        # Resolution = "signals"
+        #
+        elif self.storage_resolution == "signals":
+
+            if self.current_dtype in _signals:
+                return storage[self.current_dtype]
+            
+            elif self.current_dtype == "total":
+                
+                #
+                # return total spectrum
+                #
+                return _signals_to_total(self)                
+
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
+                
+        elif self.storage_resolution == "off":
+            
+            if self.current_dtype == "total":
+                return storage["total"]
+            
+            else:
+                raise Exception("Inappropriate data type: "
+                                +self.current_dtype+" for storage resolution "
+                                +self.storage_resolution)
+
+        else:
+            raise Exception("not implemented")              
+
+        
+    @prop.setter
+    def prop(self, value):
+        
+        ini = getattr(self, "storage_initialized")
+        if not ini:
+            setattr(self, storage_name, {})
+            setattr(self, "storage_initialized", True)
+        
+        if isinstance(value, numpy.ndarray):
+
+            storage = getattr(self, storage_name)
+
+            #
+            # with pathway resolution => type and tag has to be specified
+            #
+            if self.storage_resolution == "pathways":
+
+                if self.current_dtype not in _ptypes:
+                    # check the current_type attribute
+                    raise Exception("Wrong pathways type")
+            
+                try:
+                    # get the dictionary of pathways with a give type
+                    piece = storage[self.current_dtype]
+                except KeyError:
+                    # if it does not exist, create it
+                    storage[self.current_dtype] = {}
+                    piece = storage[self.current_dtype]
+            
+                if self.current_tag in piece.keys():
+                    # if the tag exists raise Exception
+                    raise Exception("Tag already exists")
+                        
+                    if value.shape != (self.xaxis.length, self.yaxis.length):
+                        # if the data shape is not consistent, raise Exception
+                        raise Exception("Data not consistent with spectrum axes")
+
+                piece[self.current_tag] = value
+                                        
+        else:
+            raise TypeError('{} must contain \
+                            values of type {})'.format(name, dtype), dtype)
+            
+    return prop
+
+#
+# Storage type for 2D spectra
+#
+TwoDSpectrumDataArray = partial(twodspectrum_dictionary, dtype=numbers.Complex)     
+
+
+class TwoDSpectrumBase:
     """Basic class of a two-dimensional spectrum
     
     
     """
     
     # spectral types
-    stypes = ["rephasing","non-rephasing","nonrephasing", "total"]
+    stypes = ["rephasing", "non-rephasing", "nonrephasing", "total"]
     
     # spectral parts
-    sparts = ["real","imaginary"]
+    sparts = ["real", "imaginary"]
     
     # to keep Liouville pathways separate?
     keep_pathways = False
@@ -78,7 +560,13 @@ class TwoDSpectrumBase(DFunction2):
     
     # to keep stypes separate?
     keep_stypes = True
-    
+
+    #
+    # Storage of 2D data
+    #
+    d__data = TwoDSpectrumDataArray("d__data")
+
+
     def __init__(self):
         super().__init__()
         
@@ -90,6 +578,14 @@ class TwoDSpectrumBase(DFunction2):
         self.data = None
         
         self.dtype = None
+        
+        # initially, the highest possible resolution is set
+        self.storage_resolution = "pathways"
+        self.storage_initialized = False
+        
+        self.current_dtype = None
+        self.current_tag = None
+        self.address_length = 1
 
 
     def set_axis_1(self, axis):
@@ -191,14 +687,311 @@ class TwoDSpectrumBase(DFunction2):
             
             raise Exception("Unknow type of data: "+dtype)
 
+
+    def set_data_flag(self, flag):
+        """Sets a flag by which date will be retrieved and save to `data`
+        attribute
         
-    def save(self, filename):
-        super().save(filename)
-    
-    def load(self, filename):
-        super().load(filename)
         
-    
+        """
+        
+        if isinstance(flag, list):
+            self.current_dtype = flag[0]
+            try:
+                self.current_tag = flag[1]
+            except IndexError:
+                raise Exception("flag in form of a list must have"
+                                +" two elements")
+            self.address_length = 2
+        else:
+            self.current_dtype = flag
+            self.current_tag = None
+            self.address_length = 1
+
+
+    def get_all_tags(self):
+        """Retunrs tags of the pathways stored under `pathways` resolution
+        
+        The tags are returned in a two membered list with its type, i.e.
+        as [type, tag]
+        
+        """
+        tags = []
+        for typ in _ptypes:
+            try:
+                pdict = self._d__data[typ]
+            except KeyError:
+                pdict = {}
+            keys = pdict.keys()
+            for key in keys:
+                tags.append([typ, key])
+                
+        return tags
+
+
+    def set_resolution(self, resolution):
+        """Sets the storage resolution attribute of TwoDSpectrum
+
+
+        Parameters
+        ----------
+        
+        resolution : string
+            Resolution in which data are stored in TwoDSpectrum object.
+            Values are one of the strings: `pathways` - stores individual
+            Liouville pathways, `types` - stores sets of pathways corresponding
+            to different shapes of Feynman diagrams, `processes` - stores
+            data corresponding to processes, such as stimulated emission and
+            ground state bleach, `signals` - stores only rephasing and
+            non-rephasing signals separately, `off` - stores only total
+            spectrum.
+            
+        
+        Examples
+        --------
+        
+        Initial resolution is the highest one, i.e. 'pathways'
+        
+        >>> spect1 = TwoDSpectrum()
+        >>> spect2 = TwoDSpectrum()
+        >>> spect1.storage_resolution
+        'pathways'
+        
+        We can set only decreasing resolution
+        
+        >>> spect1.set_resolution("types")
+        >>> spect2.set_resolution("types")
+        >>> spect1.storage_resolution
+        'types'
+
+        "types" can be converted either to "processes" or "signals"
+        
+        >>> spect1.set_resolution("processes")
+        >>> spect1.storage_resolution
+        'processes'
+
+        "processes" cannot be converted to "signals"
+
+        >>> spect1.set_resolution("signals")
+        Traceback (most recent call last):
+            ...
+        Exception: Cannot convert resolution for level 2 to level 1
+                
+        >>> spect2.set_resolution("signals")
+        >>> spect2.storage_resolution
+        'signals'
+        
+        If we set increasing resolution we get an exception
+        
+        >>> spect1.set_resolution("types")
+        Traceback (most recent call last):
+            ...
+        Exception: Cannot convert from lower to higher resolution
+
+        From "signals" and "types" you can convert to no resolution, i.e.
+        to total spectrum where storage resolution is 'off'
+
+        >>> spect1.set_resolution("off")
+        >>> spect1.storage_resolution
+        'off'
+        
+        >>> spect2.set_resolution("off")
+        >>> spect2.storage_resolution
+        'off'
+        
+        """
+        if resolution in _resolutions:
+            res_old = _resolution2number(self.storage_resolution)
+            res_new = _resolution2number(resolution)
+            if res_old < res_new:
+                raise Exception("Cannot convert from lower"+
+                                " to higher resolution")
+            elif res_old > res_new:
+                # recalculate data towards lower resolution
+                self._convert_resolution(res_old, res_new)
+            
+            #self.storage_resolution = resolution
+        else:
+            raise Exception("Unknown resolution: "+resolution)
+
+
+    def get_resolution(self):
+        """Returns storage resolution
+        
+        """
+        return self.storage_resolution
+
+
+    def _convert_resolution(self, old, new):
+        """Converts storage from one level of resolution to another
+        
+        """
+        
+        _conversion_paths = {4:{3:[4,3], 2:[4,3,2], 1:[4,3,1], 0:[4,3,2,0]}, 
+                 3:{2:[3,2], 1:[3,1], 0:[3,2,0]},
+                 2:{0:[2,0]},
+                 1:{0:[1,0]}}
+        
+        try:
+            path = _conversion_paths[old][new]
+        except KeyError:
+            raise Exception("Cannot convert resolution for level "+str(old)+
+                            " to level "+str(new))
+        
+        for step in path:
+            if step == old:
+                start = old
+            else:
+                end = step
+                self._convert_res_elementary(start, end)
+                self.storage_resolution = _resolutions[end]
+                start = end
+
+        
+    def _convert_res_elementary(self, old, new):
+        """Performs simple storage conversions involving only one step conversion
+        
+        """
+        
+        # convert "pathways" to "types"
+        if (old == 4) and (new == 3):
+            
+            storage = {}
+            data_present = True
+            
+            for dtype in _ptypes:
+                # get a dictionary of pathways of a given type
+                try:
+                    pdict = self._d__data[dtype]
+                except KeyError:
+                    # ignore if some are absent
+                    pdict = {}                    
+                except AttributeError:
+                    # no data
+                    pdict = {}
+                    data_present = False
+
+                # sum all data
+                if data_present:
+                    data = numpy.zeros((self.xaxis.length, self.yaxis.length),
+                                       dtype=COMPLEX)
+                else:
+                    data = numpy.zeros((1, 1),
+                                       dtype=COMPLEX)
+                    
+                for key in pdict.keys():
+                    data += pdict[key]
+                
+                storage[dtype] = data
+           
+            self._d__data = storage
+                  
+        # convert "types" to "processes"
+        elif (old == 3) and (new == 2):
+            
+            storage = {}
+            
+            for process in _processes.keys():
+                
+                data = _types_to_processes(self, process)                    
+                storage[process] = data
+           
+            self._d__data = storage
+            
+        # convert "types" to "signals"
+        elif (old == 3) and (new == 1):
+
+            storage = {}
+            
+            for signal in _signals.keys():
+                
+                data = _types_to_signals(self, signal) 
+                storage[signal] = data
+           
+            self._d__data = storage
+            
+        # converts "signals" to "off"
+        elif (old == 1) and (new == 0):
+            storage = {}
+            
+            data = _signals_to_total(self)
+            storage["total"] = data
+            
+            self._d__data = storage
+        
+        # converts "processes" to "off"
+        elif (old == 2) and (new == 0):
+            storage = {}
+            
+            data = _processes_to_total(self)
+            storage["total"] = data
+            
+            self._d__data = storage
+            
+        else:
+            raise Exception("Cannot convert resolution for level "+str(old)+
+                            " to level "+str(new))
+
+
+    def _add_data(self, data, resolution=None, dtype="Tot", tag=None):
+        """Adds data to this 2D spectrum
+        
+        This method is used when partial data are stored in this spectrum
+        object, and it is expected that more data will come. To set spectrum
+        data in one shot, you can use `set_data` method.
+        
+        
+        Parameters
+        ----------
+        
+        data : array
+            Numpy array compatible in dimensions with the axes of the spectrum
+            
+        resolution : string or None
+            Resolution of adding data. If the data correspond to individual
+            `pathways` (resolution="pathways"), a `types` of pathways
+            (resolution="types") such as "R1g", "R2g" etc., 
+            `process` (resolution="processes") such as "GSB", "ESA" etc.,
+            or `signals` such as "Reph" or "Nonr" (resolution="signals"). 
+            One can also store a complete spectrum under the resolution="off".
+            
+        dtype : string
+            Type of data; under resolution="pathway", dtype specifies the 
+            character of the pathway (such as "R1g", "R2g", etc.)
+            
+        tag : string
+            Used in the resolution="pathway". It provides a unique tag to 
+            identify the pathway
+            
+        """
+        if resolution is None:
+            resolution = self.storage_resolution
+        else:
+            res1 = _resolution2number(resolution)
+            res2 = _resolution2number(self.storage_resolution)
+            if res1 <= res2:
+            
+                pass
+            
+            else:
+                raise Exception("This TwoDSpectrum does not have enough "
+                                +"resolution to add data with resolution = "
+                                +resolution)
+
+        if resolution == "pathways":
+            if dtype in _ptypes:
+                if tag is not None:
+                    self.set_data_flag([dtype, tag])
+                    self.d__data = data
+                else:
+                    raise Exception("Tag for Liouville pathway not specified")
+            else:
+                raise Exception("Unknown type of Liouville pathway: "+dtype)
+        
+
+    def _set_data(self, data, mode=None, dtype="Tot", tag=None):
+        pass
+
     
 class TwoDSpectrum(TwoDSpectrumBase):
     """This class represents a single 2D spectrum
@@ -278,8 +1071,6 @@ class TwoDSpectrum(TwoDSpectrumBase):
         ppc = PumpProbeSpectrumCalculator()
         return ppc.calculate_from_2D(self)
     
-    
-        
     
     def plot(self, fig=None, window=None, stype="total", spart="real",
              vmax=None, vmin_ratio=0.5, 
@@ -495,11 +1286,13 @@ class TwoDSpectrum(TwoDSpectrumBase):
     def show(self):
         
         plt.show()
-        
+
+
     def savefig(self, filename):
         
         plt.savefig(filename)
-        
+
+ 
     def _create_root_group(self, start, name):
         return start.create_group(name)
     

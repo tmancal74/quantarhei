@@ -243,6 +243,11 @@ class ValueAxis(Saveable):
         return ((self.start == axis.start) and (self.step == axis.step)
                 and (self.length == axis.length))
 
+        
+    def __eq__(self, other):
+        return self.is_equal_to(other)
+
+
     def is_extension_of(self, axis):
         """Returns True if the axis is contained in this ValueAxis
         

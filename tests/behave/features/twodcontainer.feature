@@ -119,6 +119,29 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 20   |
     | 100  |
 
+
+    Scenario Outline: TwoDSpectrumContainer can do Fourier transform when it is indexed by TimeAxis
+        Given that I have a TwoDSpectrumContainer containing <N> spectra indexed by TimeAxis
+        When I calculate Fourier transform on the container
+        Then I get correct pointwise Fourier transform of the spectra
+        And the TwoDSpectrum container will be indexed by FrequencyAxis which corresponds to the original TimeAxis
+        
+    Examples:
+    | N    |
+    | 10   |
+    | 20   |
+    | 100  |
     
-         
+
+    Scenario Outline: TwoDSpectrumContainer can do Fourier transform when it is indexed by FrequencyAxis
+        Given that I have a TwoDSpectrumContainer containing <N> spectra indexed by FrequencyAxis
+        When I calculate Fourier transform on the container
+        Then I get correct pointwise Fourier transform of the spectra
+        And the TwoDSpectrum container will be indexed by TimeAxis which corresponds to the original FrequencyAxis
+        
+    Examples:
+    | N    |
+    | 10   |
+    | 20   |
+    | 100  |      
         

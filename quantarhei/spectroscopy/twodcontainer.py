@@ -14,9 +14,12 @@ import numpy
 from ..core.time import TimeAxis
 from ..core.valueaxis import ValueAxis
 from ..core.frequency import FrequencyAxis
+from ..core.dfunction import DFunction
 from .twod2 import TwoDSpectrum
 
 from ..core.managers import energy_units
+from .. import COMPLEX
+from .. import REAL
 
 
 
@@ -85,11 +88,16 @@ class TwoDSpectrumContainer:
         elif isinstance(itype, ValueAxis):
             if isinstance(itype, TimeAxis):
                 self.itype = "TimeAxis"
+                self.axis = itype
+                # This axis must FFT in the "standard" way 
+                # -- it must of the "complete" type 
+                self.axis.atype = "complete" 
             elif isinstance(itype, FrequencyAxis):
                 self.itype = "FrequencyAxis"
+                self.axis = itype
             else:
                 self.itype = "ValueAxis"
-            self.axis = itype
+                self.axis = itype
         else:
             raise Exception("Unknown indexing type")
         
@@ -300,7 +308,7 @@ class TwoDSpectrumContainer:
             
         """
         
-        vals = numpy.zeros(times.length)
+        vals = numpy.zeros(times.length, dtype=COMPLEX)
         k = 0
         for t2 in times.data:
             
@@ -311,7 +319,7 @@ class TwoDSpectrumContainer:
         return vals
 
     
-    def fft(self, ffttype="complex-positive"):
+    def fft(self, ffttype="complex-positive", window=None):
         """Fourier transform in t2 time
         
         
@@ -320,12 +328,23 @@ class TwoDSpectrumContainer:
         
         ffttype : string
             Specifies the type Fourier transform we perform
+            
+        window : DFunction
+            Windowing function for the data. Default is None
         
         """
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             raise Exception("FFT cannot be performed for"+
                             " this type of indexing")
-            
+
+        # even when no window function is supplied, we create one with
+        # all elements equal to one
+        if window is None:
+            winfce = DFunction(self.axis, 
+                               numpy.ones(self.axis.length, dtype=REAL))
+        else:
+            winfce = window
+                
         # put all data into one array
         tags = self.axis.data
         Nos = self.length()
@@ -348,7 +367,6 @@ class TwoDSpectrumContainer:
         # FFT of the axis
         #
         if isinstance(self.axis, TimeAxis):
-            print("Making Frequency Axis")
             new_axis = self.axis.get_FrequencyAxis()
             
         elif isinstance(self.axis, FrequencyAxis):
@@ -357,7 +375,8 @@ class TwoDSpectrumContainer:
         else: 
             # this must be ValueAxis
 
-            ftaxdata = numpy.fft.fftfreq(self.axis.length, self.axis.step)
+            ftaxdata = (2.0*numpy.pi)*numpy.fft.fftfreq(self.axis.length,
+                                                        self.axis.step)
             ftaxdata = numpy.fft.fftshift(ftaxdata)
             
             start = ftaxdata[0]
@@ -370,7 +389,14 @@ class TwoDSpectrumContainer:
         #
         # FFT of the data
         #
-        ftdata = data
+        
+        # window function
+        ftdata = numpy.zeros(data.shape, dtype=data.dtype)
+        for i_n in range(data.shape[0]):
+            for j_n in range(data.shape[1]):
+                ftdata[i_n,j_n,:] = data[i_n,j_n,:]*winfce.data
+        ftdata = numpy.fft.fft(ftdata, axis=2)
+        ftdata = numpy.fft.fftshift(ftdata, axes=2)
         
         # save it to a new container
         new_container = TwoDSpectrumContainer()
@@ -380,6 +406,8 @@ class TwoDSpectrumContainer:
             tag = new_axis.data[k_n]
             spect = TwoDSpectrum()
             spect.set_data(ftdata[:, :, k_n])
+            spect.set_axis_1(sp1.xaxis)
+            spect.set_axis_3(sp1.yaxis)
             new_container.set_spectrum(spect, tag=tag)
         
         
