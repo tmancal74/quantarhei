@@ -171,6 +171,9 @@ class Manager(metaclass=Singleton):
             # load the main configuration file
             with open(self.cfile, 'r') as f:
                 self.main_conf = json.load(f)
+                
+                
+        self.current_basis_operator = None
 
 
 
@@ -428,6 +431,12 @@ class Manager(metaclass=Singleton):
         import numpy
         return numpy.complex128
 
+
+    def store_current_basis_operator(self, op):
+        self.current_basis_operator = op
+        
+    def remove_current_basis_operator(self):
+        self.current_basis_operator = None
         
     def unit_repr(self,utype="energy",mode="current"):
         """Returns a string representing the currently used units
@@ -681,10 +690,6 @@ class Manager(metaclass=Singleton):
     
     def commit_implementation(self,imp_point,prefix,asint=None):
         pass
-    
-    
-    
-    
     
     def get_current_basis(self):
         """Returns the current basis id
@@ -974,6 +979,7 @@ class eigenbasis_of(basis_context_manager):
     def __init__(self, operator):
         super().__init__()
         self.op = operator
+        self.manager.store_current_basis_operator(self.op)
         
         
     def __enter__(self):
@@ -1037,6 +1043,7 @@ class eigenbasis_of(basis_context_manager):
                 if op not in ops_above:
                     self.manager.register_with_basis(nb,op)
             
+        self.manager.remove_current_basis_operator()
             
         del self.manager.basis_registered[bb]
 
