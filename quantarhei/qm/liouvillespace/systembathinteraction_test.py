@@ -40,7 +40,24 @@ class TestSystemBathInteraction(SystemBathInteraction):
             super().__init__(sys_operators=sys_ops, rates=rates)
             
             
-        
+        elif name == "trimer-2-lind":
+            agg = TestAggregate(name="trimer-2")
+            agg.build()
+            
+            N = agg.get_Hamiltonian().dim
+            
+            P1 = ProjectionOperator(1, 2, dim=N)
+            P2 = ProjectionOperator(2, 1, dim=N)
+            P3 = ProjectionOperator(2, 3, dim=N)
+            P4 = ProjectionOperator(3, 2, dim=N)
+            P5 = ProjectionOperator(1, 3, dim=N)
+            P6 = ProjectionOperator(3, 1, dim=N)
+            
+            sys_ops = [P1, P2, P3, P4, P5, P6]
+            rates = [1.0/100.0, 1.0/200, 1.0/100.0, 
+                     1.0/300.0, 1.0/200, 1.0/500.0]
+            
+            super().__init__(sys_operators=sys_ops, rates=rates)        
 
         
             
