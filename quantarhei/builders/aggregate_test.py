@@ -94,7 +94,12 @@ class TestAggregate(Aggregate):
     >>> tagg.build()
     >>> tagg.has_SystemBathInteraction()
     True
-    
+
+    >>> # Trimer of two-level systems without an environment
+    >>> tagg = TestAggregate(name="trimer-2")
+    >>> tagg.build()
+    >>> tagg.has_SystemBathInteraction()
+    False    
     
     """
     

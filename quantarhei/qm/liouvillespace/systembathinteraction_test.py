@@ -1,10 +1,35 @@
 # -*- coding: utf-8 -*-
+"""Test class for SystemBathInteraction
 
+
+    Provides ready to use classes of the type SystemBathInteraction
+    
+    
+    Class Details
+    -------------
+
+"""
 from .systembathinteraction import SystemBathInteraction
 
 
 class TestSystemBathInteraction(SystemBathInteraction):
+    """Test class for SystemBathInteraction
+
+
+    Provides ready to use classes of the type SystemBathInteraction
     
+    
+    >>> tsbi = TestSystemBathInteraction("trimer-2-lind")
+    >>> tsbi.N
+    6
+    
+    >>> tsbi = TestSystemBathInteraction()
+    Traceback (most recent call last):
+        ...
+    Exception: Name of the test must be specified
+
+    """
+     
     def __init__(self, name=None):
         
         if name is None:
