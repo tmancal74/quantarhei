@@ -116,4 +116,127 @@ Feature: TwoDSpectrum can store data in different level of details.
         | R3fs |  SE       |   REPH    |
         
         
-    
+    Scenario Outline: TwoDSpectra storing data accoring to pathway types can convert into storage of spectra related to processes
+        Given that I have data corresponding to Liouville pathway types
+        And I create a new TwoDSpectrum object
+        And I save 2D data using type information
+        When I convert the storage mode into the one storing spectra of processes
+        Then I can retrieve sum of spectra of a given process <process>
+        And I can retrieve total spectrum
+        But when I try to retrieve signal <signal> I get an exception
+
+    Examples:
+        |  process  |   signal  |
+        |  SE       |   REPH    |
+        |  GSB      |   NONR    |
+        |  ESA      |   REPH    |
+        |  SE       |   NONR    |
+        |  GSB      |   REPH    |
+        |  ESA      |   NONR    |
+        |  SE       |   REPH    |
+
+
+    Scenario Outline: TwoDSpectra storing data accoring to pathway types can convert into storage of spectra related to signals
+        Given that I have data corresponding to Liouville pathway types
+        And I create a new TwoDSpectrum object
+        And I save 2D data using type information
+        When I convert the storage mode into the one storing spectra of rephasing and non-rephasing signals
+        Then I can retrieve sum of spectra of a given signal <signal>
+        And I can retrieve total spectrum
+        But when I try to retrieve process <process> I get an exception
+
+    Examples:
+        |  process  |   signal  |
+        |  SE       |   REPH    |
+        |  GSB      |   NONR    |
+        |  ESA      |   REPH    |
+        |  SE       |   NONR    |
+        |  GSB      |   REPH    |
+        |  ESA      |   NONR    |
+        |  SE       |   REPH    |
+
+
+    Scenario Outline: TwoDSpectra storing data accoring to pathway types can convert into storage of total spectrum only
+        Given that I have data corresponding to Liouville pathway types
+        And I create a new TwoDSpectrum object
+        And I save 2D data using type information
+        When I convert the storage mode into the storing total spectrum
+        Then I can retrieve total spectrum
+        But when I try to retrieve process <process> I get an exception
+        And when I try to retrieve signal <signal> I get an exception
+        And when I try to retrieve pathways I get an exception
+
+    Examples:
+        |  process  |   signal  |
+        |  SE       |   REPH    |
+        |  GSB      |   NONR    |
+        |  ESA      |   REPH    |
+        |  SE       |   NONR    |
+        |  GSB      |   REPH    |
+        |  ESA      |   NONR    |
+        |  SE       |   REPH    |
+
+
+    Scenario Outline: TwoDSpectra storing data accoring to signal type can convert into storage of total spectrum only
+        Given that I have data corresponding to signal types
+        And I create a new TwoDSpectrum object
+        And I save 2D data using signal types
+        When I convert the storage mode into the storing total spectrum
+        Then I can retrieve total spectrum
+        But when I try to retrieve process <process> I get an exception
+        And when I try to retrieve signal <signal> I get an exception
+        And when I try to retrieve pathways I get an exception
+        And when I try to retrieve types of spectra I get an exception
+
+    Examples:
+        |  process  |   signal  |
+        |  SE       |   REPH    |
+        |  GSB      |   NONR    |
+        |  ESA      |   REPH    |
+        |  SE       |   NONR    |
+        |  GSB      |   REPH    |
+        |  ESA      |   NONR    |
+        |  SE       |   REPH    |
+
+
+    Scenario Outline: TwoDSpectra storing data accoring to processes can convert into storage of total spectrum only
+        Given that I have data corresponding to processes
+        And I create a new TwoDSpectrum object
+        And I save 2D data using processes
+        When I convert the storage mode into the storing total spectrum
+        Then I can retrieve total spectrum
+        But when I try to retrieve process <process> I get an exception
+        And when I try to retrieve signal <signal> I get an exception
+        And when I try to retrieve pathways I get an exception
+        And when I try to retrieve types of spectra I get an exception
+
+    Examples:
+        |  process  |   signal  |
+        |  SE       |   REPH    |
+        |  GSB      |   NONR    |
+        |  ESA      |   REPH    |
+        |  SE       |   NONR    |
+        |  GSB      |   REPH    |
+        |  ESA      |   NONR    |
+        |  SE       |   REPH    |
+
+        
+    Scenario Outline: TwoDSpectra storing only total data 
+        Given that I have data corresponding to total spectrum
+        And I create a new TwoDSpectrum object
+        When I save 2D data of the total spectrum
+        Then I can retrieve total spectrum
+        But when I try to retrieve process <process> I get an exception
+        And when I try to retrieve signal <signal> I get an exception
+        And when I try to retrieve pathways I get an exception
+        And when I try to retrieve types of spectra I get an exception
+
+    Examples:
+        |  process  |   signal  |
+        |  SE       |   REPH    |
+        |  GSB      |   NONR    |
+        |  ESA      |   REPH    |
+        |  SE       |   NONR    |
+        |  GSB      |   REPH    |
+        |  ESA      |   NONR    |
+        |  SE       |   REPH    |

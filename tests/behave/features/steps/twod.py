@@ -418,7 +418,17 @@ def step_then_8(context):
     elif res == "signals":
         dsum = _sum_signals_to_total(twod)
     elif res == "off":
-        dsum = twod._d__data["total"]
+        #dsum = twod._d__data["total"]
+
+        data_list = context.data_list    
+        k_l = 0
+        for (x, y, data) in data_list:
+            if k_l == 0:
+                dsum = data.copy()
+            else:
+                dsum += data        
+            k_l += 1
+
     else:
         raise Exception("Unknow storage resolution: "+res)
     
@@ -563,3 +573,269 @@ def step_when_16(context):
     """
     twod = context.twod
     twod.set_resolution("off")
+
+
+#
+# Given ...
+#
+@given('that I have data corresponding to Liouville pathway types')
+def step_given_17(context):
+    """
+
+        Given that I have data corresponding to Liouville pathway types
+
+    """
+    data_list = []
+    para_list = [[1.0, 10.0], [2.0, 20.0], [0.5, 12.0],
+                 [0.1, 16.0], [0.2, 8.9], [0.3, 9.0]]
+    types = ["R1fs", "R2g", "R3g", "R3g", "R1fs", "R2g"]
+
+
+    for pars in para_list:
+        data_list.append(_spectrum(pars[0], pars[1]))
+        
+        
+    context.data_list = data_list
+    context.types = types
+
+
+#
+# And ...
+#
+@given('I save 2D data using type information')
+def step_given_18(context):
+    """
+
+        And I save 2D data using type information
+
+    """
+    twod = context.twod
+    twod.set_resolution("types")
+    data_list = context.data_list
+    types = context.types
+    
+    k_l = 0
+    for (x, y, data) in data_list:
+        tpp = types[k_l]
+        
+        if (k_l == 0):
+            twod.set_axis_1(x)
+            twod.set_axis_3(y)
+        twod._add_data(data, dtype=tpp)
+        
+        #numpy.testing.assert_allclose(twod._d__data[tpp], data)
+        
+        k_l += 1
+
+
+#
+# When ...
+#
+@when('I convert the storage mode into the one storing spectra of rephasing and non-rephasing signals')
+def step_when_19(context):
+    """
+
+        When I convert the storage mode into the one storing spectra of rephasing and non-rephasing signals
+
+    """
+    twod = context.twod
+    twod.set_resolution("signals")
+
+
+#
+# And ...
+#
+@then('when I try to retrieve pathways I get an exception')
+def step_then_20(context):
+    """
+
+        And when I try to retrieve pathways I get an exception
+
+    """
+    twod = context.twod
+    twod.set_data_flag(["R1fs", "path1"])
+    
+    got_exception = False
+    
+    try:
+        twod.d__data
+    except:
+        got_exception = True
+        
+    assert got_exception
+    
+    
+#
+# Given ...
+#
+@given('that I have data corresponding to signal types')
+def step_given_21(context):
+    """
+
+        Given that I have data corresponding to signal types
+
+    """
+    data_list = []
+    para_list = [[1.0, 10.0], [2.0, 20.0], [0.5, 12.0],
+                 [0.1, 16.0], [0.2, 8.9], [0.3, 9.0]]
+    types = ["REPH", "REPH", "REPH", "REPH", "NONR", "NONR"]
+
+
+    for pars in para_list:
+        data_list.append(_spectrum(pars[0], pars[1]))
+        
+        
+    context.data_list = data_list
+    context.types = types
+
+#
+# And ...
+#
+@given('I save 2D data using signal types')
+def step_given_22(context):
+    """
+
+        And I save 2D data using signal types
+
+    """
+    twod = context.twod
+    twod.set_resolution("signals")
+    data_list = context.data_list
+    types = context.types
+    
+    k_l = 0
+    for (x, y, data) in data_list:
+        tpp = types[k_l]
+        
+        if (k_l == 0):
+            twod.set_axis_1(x)
+            twod.set_axis_3(y)
+        twod._add_data(data, dtype=tpp)
+        
+        #numpy.testing.assert_allclose(twod._d__data[tpp], data)
+        
+        k_l += 1
+
+
+#
+# And ...
+#
+@then('when I try to retrieve types of spectra I get an exception')
+def step_then_23(context):
+    """
+
+        And when I try to retrieve types of spectra I get an exception
+
+    """
+    twod = context.twod
+    twod.set_data_flag("R1fs")
+    got_exception = False
+    try:
+        twod.d__data
+    except:
+        got_exception = True
+    
+    assert got_exception
+
+    
+#
+# Given ...
+#
+@given('that I have data corresponding to processes')
+def step_given_24(context):
+    """
+
+        Given that I have data corresponding to processes
+
+    """
+    data_list = []
+    para_list = [[1.0, 10.0], [2.0, 20.0], [0.5, 12.0],
+                 [0.1, 16.0], [0.2, 8.9], [0.3, 9.0]]
+    types = ["GSB", "ESA", "SE", "GSB", "SE", "ESA"]
+
+    for pars in para_list:
+        data_list.append(_spectrum(pars[0], pars[1]))
+        
+        
+    context.data_list = data_list
+    context.types = types
+
+#
+# And ...
+#
+@given('I save 2D data using processes')
+def step_given_25(context):
+    """
+
+        And I save 2D data using processes
+
+    """
+    twod = context.twod
+    twod.set_resolution("processes")
+    data_list = context.data_list
+    types = context.types
+    
+    k_l = 0
+    for (x, y, data) in data_list:
+        tpp = types[k_l]
+        
+        if (k_l == 0):
+            twod.set_axis_1(x)
+            twod.set_axis_3(y)
+        twod._add_data(data, dtype=tpp)
+        
+        #numpy.testing.assert_allclose(twod._d__data[tpp], data)
+        
+        k_l += 1
+
+
+#
+# Given ...
+#
+@given('that I have data corresponding to total spectrum')
+def step_given_26(context):
+    """
+
+        Given that I have data corresponding to total spectrum
+
+    """
+    data_list = []
+    para_list = [[1.0, 10.0], [2.0, 20.0], [0.5, 12.0],
+                 [0.1, 16.0], [0.2, 8.9], [0.3, 9.0]]
+    types = ["GSB", "ESA", "SE", "GSB", "SE", "ESA"]
+
+    for pars in para_list:
+        data_list.append(_spectrum(pars[0], pars[1]))
+        
+        
+    context.data_list = data_list
+    context.types = types
+
+
+#
+# When ...
+#
+@when('I save 2D data of the total spectrum')
+def step_when_27(context):
+    """
+
+        When I save 2D data of the total spectrum
+
+    """
+    twod = context.twod
+    twod.set_resolution("off")
+    data_list = context.data_list
+    
+    k_l = 0
+    for (x, y, data) in data_list:        
+        if (k_l == 0):
+            totd = data.copy()
+            twod.set_axis_1(x)
+            twod.set_axis_3(y)            
+        else:
+            totd += data
+        k_l += 1
+
+    twod._add_data(totd, dtype="total")
+
+
