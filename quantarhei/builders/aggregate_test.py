@@ -99,7 +99,7 @@ class TestAggregate(Aggregate):
     >>> tagg = TestAggregate(name="trimer-2")
     >>> tagg.build()
     >>> tagg.has_SystemBathInteraction()
-    False    
+    False
     
     """
     
