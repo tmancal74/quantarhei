@@ -185,12 +185,14 @@
 
 # standard library imports
 import time
+import numbers
 
 # dependencies imports
 import numpy
 
 # quantarhei imports
 from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
+from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.time import TimeAxis
 from ...core.saveable import Saveable
@@ -415,7 +417,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         Parameters
         ----------
         
-        time : float
+        time : float or TimeAxis
             Time at which the evolution superoperator should be applied
             
         target : Operator
@@ -428,15 +430,32 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
 
         """
-        ti, dt = self.time.locate(time)
+        
+        if isinstance(time, numbers.Real):
+            
+            ti, dt = self.time.locate(time)
+            single_point = True
 
-        if copy:
-            import copy
-            oper_ven = copy.copy(target)
-            oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                            target.data)
-            return oper_ven
+
+        if single_point:
+            if copy:
+                import copy
+                oper_ven = copy.copy(target)
+                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
+                                                target.data)
+                return oper_ven
+            else:
+                target.data = numpy.tensordot(self.data[ti, :, :, :, :],
+                                              target.data)
+                return target
+            
         else:
-            target.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                          target.data)
-            return target                
+            # here, copy parameters is irrelevant
+            rhot = ReducedDensityMatrixEvolution(timeaxis=time, rhoi=target)
+            k_i = 0
+            for tt in time.data:
+                rhot.data[k_i,:,:] = numpy.tensordot(self.data[k_i,:,:,:,:],
+                                                     target.data)
+                k_i += 1
+
+                
