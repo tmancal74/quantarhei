@@ -25,7 +25,7 @@ from .hilbertspace.dmoment import TransitionDipoleMoment
 #   SYSTEM-BATH INTERACTION
 #
 from .liouvillespace.systembathinteraction import SystemBathInteraction
-
+from .liouvillespace.systembathinteraction_test import TestSystemBathInteraction
 #
 #   RELAXATION THEORY
 #

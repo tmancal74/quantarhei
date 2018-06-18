@@ -8,6 +8,8 @@ from ...core.time import TimeAxis
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 from ...core.saveable import Saveable
+from ..hilbertspace.operators import DensityMatrix
+from ..hilbertspace.operators import ReducedDensityMatrix
 
 class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
     
@@ -41,7 +43,25 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         self._data = numpy.zeros((self.TimeAxis.length, self.dim, \
                     self.dim),dtype=numpy.complex128)
         self.data[0,:,:] = rhoi.data        
+
         
+    def at(self, time):
+        """Returns density matrix at a given time
+        
+        
+        Parameters
+        ----------
+        
+        time : float
+            Time (in fs) at which the tensor should be returned
+            
+            
+        """
+
+        ti, dt = self.TimeAxis.locate(time)
+
+        return DensityMatrix(data=self.data[ti, :, :])
+
 
     def transform(self, SS, inv=None):
         """Transformation of the operator by a given matrix
@@ -203,5 +223,21 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         
         
 class ReducedDensityMatrixEvolution(DensityMatrixEvolution):
-    pass
+    
+    def at(self, time):
+        """Returns density matrix at a given time
+        
+        
+        Parameters
+        ----------
+        
+        time : float
+            Time (in fs) at which the tensor should be returned
+            
+            
+        """
+
+        ti, dt = self.TimeAxis.locate(time)
+
+        return ReducedDensityMatrix(data=self.data[ti, :, :])
 

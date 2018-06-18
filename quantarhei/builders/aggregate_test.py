@@ -94,7 +94,12 @@ class TestAggregate(Aggregate):
     >>> tagg.build()
     >>> tagg.has_SystemBathInteraction()
     True
-    
+
+    >>> # Trimer of two-level systems without an environment
+    >>> tagg = TestAggregate(name="trimer-2")
+    >>> tagg.build()
+    >>> tagg.has_SystemBathInteraction()
+    False
     
     """
     
@@ -141,6 +146,12 @@ class TestAggregate(Aggregate):
                 
             super().__init__(molecules=[m1, m2])
             
+        elif name == "trimer-2":
+            
+            m1, m2, m3 = self._molecules(N=3, nst=2, homo=False)
+            
+            super().__init__(molecules=[m1, m2, m3])
+            
         elif name == "homodimer-2-env":
             
             m1, m2 = self._molecules(N=2, nst=2, homo=True)
@@ -184,7 +195,7 @@ class TestAggregate(Aggregate):
             nstates = nst
             
             # check inputs
-            if (nstates < 2) or (nstates > 3):
+            if nstates != 2:
                 raise Exception()
                 
             # set parameters
@@ -219,8 +230,57 @@ class TestAggregate(Aggregate):
             m1.position = r1
             m2.position = r2
  
-            return [m1, m2]   
+            return [m1, m2]
         
+        elif (N == 3) and (nst == 2):
+        
+            nstates = nst
+            
+            # check inputs
+            if nstates != 2:
+                raise Exception()
+                
+            # set parameters
+            gap1 = convert(12000, "1/cm", to="int")
+            energies1 = numpy.zeros(nstates)
+            for s in range(nstates):
+                energies1[s] = s*gap1
+                
+            if homo:
+                gap2 = convert(12000, "1/cm", to="int")
+                gap3 = gap2
+            else:
+                gap2 = convert(12300, "1/cm", to="int")
+                gap3 = convert(12350, "1/cm", to="int")
+            energies2 = numpy.zeros(nstates)
+            energies3 = numpy.zeros(nstates)
+            for s in range(nstates):
+                energies2[s] = s*gap2
+                energies3[s] = s*gap3
+                
+            # molecules
+            m1 = Molecule(elenergies=energies1)
+            m2 = Molecule(elenergies=energies2)
+            m3 = Molecule(elenergies=energies3)
+            
+            # set transition dipole moments
+            dip1 = [0.0, 2.0, 0.0]
+            dip2 = [0.0, 1.3, 1.4]
+            dip3 = [1.0, 1.2, 0.0]
+            m1.set_dipole(0, 1, dip1)
+            m2.set_dipole(0, 1, dip2)
+            m3.set_dipole(0, 1, dip3)
+            
+            #set molecular positions
+            r1 = [0.0, 0.0, 0.0]
+            r2 = [5.0, 0.0, 0.0]
+            r3 = [0.0, 0.0, 5.0]
+            m1.position = r1
+            m2.position = r2
+            m3.position = r3
+ 
+            return [m1, m2, m3]
+                        
         else:
             
             return None
