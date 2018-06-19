@@ -8,6 +8,7 @@ from ...core.saveable import Saveable
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 from .statevector import StateVector
+from ... import COMPLEX, REAL
 
 
 
@@ -55,9 +56,9 @@ class Operator(MatrixData, BasisManaged, Saveable):
                     raise Exception() #HilbertSpaceException
             else:
                 if real:
-                    self.data = numpy.zeros((dim,dim),dtype=numpy.float64)
+                    self.data = numpy.zeros((dim,dim),dtype=REAL)
                 else:
-                    self.data = numpy.zeros((dim,dim),dtype=numpy.complex128)
+                    self.data = numpy.zeros((dim,dim),dtype=COMPLEX)
                 self.dim = dim
 
 
@@ -183,7 +184,7 @@ class UnityOperator(SelfAdjointOperator):
     def __init__(self, dim=None, name=""):
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
-        series = numpy.array([1 for i in range(dim)], dtype=numpy.float64)
+        series = numpy.array([1 for i in range(dim)], dtype=COMPLEX)
         data = numpy.diag(series)
         super().__init__(dim=dim,data=data,name=name)    
     

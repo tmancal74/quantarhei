@@ -23,6 +23,8 @@ from .hilbertspace.hamiltonian import Hamiltonian
 from .hilbertspace.dmoment import TransitionDipoleMoment
 
 
+from .liouvillespace.liouvillian import Liouvillian
+
 #
 #   SYSTEM-BATH INTERACTION
 #
