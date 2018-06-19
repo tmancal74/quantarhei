@@ -412,7 +412,8 @@ doc_devs = ['quantarhei/spectroscopy/twod2.py', 'quantarhei/qm/liouvillespace']
 #
 # Targets for unit tests
 #
-unit_devs = ['tests/unit/qm/liouvillespace/test_evolutionsuperoperator.py']
+unit_devs = ['tests/unit/qm/liouvillespace/test_evolutionsuperoperator.py',
+             'tests/unit/qm/propagators/rdmpropagator_test.py']
 
 
 cmd = 'nosetests'

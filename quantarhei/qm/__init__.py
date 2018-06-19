@@ -15,12 +15,15 @@ from .hilbertspace.operators import ReducedDensityMatrix
 #   OPERATORS
 #
 from .hilbertspace.operators import Operator
+from .hilbertspace.operators import SelfAdjointOperator
 from .hilbertspace.operators import ProjectionOperator
 from .hilbertspace.operators import BasisReferenceOperator
 from .hilbertspace.operators import UnityOperator
 from .hilbertspace.hamiltonian import Hamiltonian
 from .hilbertspace.dmoment import TransitionDipoleMoment
 
+
+from .liouvillespace.liouvillian import Liouvillian
 
 #
 #   SYSTEM-BATH INTERACTION
