@@ -14,5 +14,6 @@ script:
     - paver
    
 after_success:
+    - coverage combine ./.coverage ./tests/behave/features/.coverage
     - codecov
 
