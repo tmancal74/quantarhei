@@ -185,12 +185,14 @@
 
 # standard library imports
 import time
+import numbers
 
 # dependencies imports
 import numpy
 
 # quantarhei imports
 from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
+from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.time import TimeAxis
 from ...core.saveable import Saveable
@@ -243,6 +245,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             
         self.data = numpy.zeros((Nt, self.dim, self.dim, self.dim, self.dim),
                                 dtype=qr.COMPLEX)
+
 
     def set_dense_dt(self, Nt):
         """Set a denser time axis for calculations between two points of the superoperator
@@ -359,6 +362,100 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         return SuperOperator(data=self.data[ti, :, :, :, :])
 
+          
+    def apply(self, time, target, copy=True):
+        """Applies the evolution superoperator at a given time
+        
+        
+        Parameters
+        ----------
+        
+        time : float, array (list, tupple) of floats or TimeAxis
+            Time(s) at which the evolution superoperator should be applied
+            
+        target : DensityMatrix, ReducedDensityMatrix
+            Operator which the evolution superoperator should be applied
+            
+        copy : bool
+            If True, the target object is copied and new value is assigned
+            to its `data` attribute. If False, we assign the new values to
+            the target object itself and no copying occurs.
+
+
+        """
+
+        if isinstance(time, numbers.Real):
+            
+            #
+            # Apply at a single point in time and return ReducedDensityMatrix
+            #
+            ti, dt = self.time.locate(time)
+            if copy:
+                import copy
+                oper_ven = copy.copy(target)
+                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
+                                                target.data)
+                return oper_ven
+            else:
+                target.data = numpy.tensordot(self.data[ti, :, :, :, :],
+                                              target.data)
+                return target
+            
+        else:
+            # Probably evaluation at more than one time
+            # here, `copy` parameter is irrelevant
+            
+            if isinstance(time, str) or (id(time) == id(self.time)):
+                
+                #
+                # Either we say time="all" or time= exactly the time axis
+                # of the evolution superoperator
+                #
+                # we apply the tensor at all its points
+                #
+                
+                if isinstance(time, str):
+                    if time != "all":
+                        raise Exception("When argument time is a string, "+
+                                        "it must be equal to 'all'")
+
+                rhot = ReducedDensityMatrixEvolution(timeaxis=self.time,
+                                                     rhoi=target)
+                k_i = 0
+                for tt in time.data:
+                    rhot.data[k_i,:,:] = \
+                    numpy.tensordot(self.data[k_i,:,:,:,:],
+                                    target.data)
+                    k_i += 1
+                
+                return rhot
+
+            elif isinstance(time, (list, numpy.array, tuple, TimeAxis)):
+                
+                #
+                # we apply at points specified by TimeAxis
+                #
+                if isinstance(time, TimeAxis):
+                    ntime = time
+                else:
+                    length = len(time)
+                    dt = time[1]-time[0]
+                    t0 = time[0]
+                    ntime = TimeAxis(t0, length, dt)
+                
+                rhot = ReducedDensityMatrixEvolution(timeaxis=ntime,
+                                                     rhoi=target)
+                
+                k_i = 0
+                for tt in ntime.data:
+                    Ut = self.at(tt)
+                    rhot.data[k_i,:,:] = numpy.tensordot(Ut.data, target.data)
+                    k_i += 1
+                    
+                return rhot
+            
+            else:
+                raise Exception("Invalid argument: time")
 
 
 
@@ -406,37 +503,4 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         print(txt, end="\r")
         
         self.remlast = remtime
-        
-          
-    def apply(self, time, target, copy=True):
-        """Applies the evolution superoperator at a given time
-        
-        
-        Parameters
-        ----------
-        
-        time : float
-            Time at which the evolution superoperator should be applied
-            
-        target : Operator
-            Operator which the evolution superoperator should be applied
-            
-        copy : bool
-            If True, the target object is copied and new value is assigned
-            to its `data` attribute. If False, we assign the new values to
-            the target object itself and no copying occurs.
-
-
-        """
-        ti, dt = self.time.locate(time)
-
-        if copy:
-            import copy
-            oper_ven = copy.copy(target)
-            oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                            target.data)
-            return oper_ven
-        else:
-            target.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                          target.data)
-            return target                
+                        

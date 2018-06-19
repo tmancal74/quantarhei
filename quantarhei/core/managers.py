@@ -684,7 +684,7 @@ class Manager(metaclass=Singleton):
     def set_current_implementation(self, imp, choice):
         imp_id = self.implementation_points[imp]
         self.current_implementations[imp_id] = choice
-        
+
     def register_implementation(self,imp_point,prefix,asint=None):
         pass
     
@@ -997,7 +997,7 @@ class eigenbasis_of(basis_context_manager):
         
         #SS = self.op.diagonalize()
         SS = self.op.get_diagonalization_matrix()
-        nb = self.manager.set_new_basis(SS)
+        self.manager.set_new_basis(SS)
 
         #self.manager.register_with_basis(nb,self.op)
         #self.op.set_current_basis(nb)
