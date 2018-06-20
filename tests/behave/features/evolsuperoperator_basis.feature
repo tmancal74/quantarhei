@@ -23,7 +23,7 @@ Feature: Evolution super operator basis transformations
            | 300.0   |
            
     Scenario Outline: Evolution superoperator is calculated correctly in site basis
-        Given I have a Hamiltonian H, Lidblad form L an initial density matrix R
+        Given I have a Hamiltonian H, Lidblad form L and initial density matrix R
         When I calculate evolution superoperator using H and L in sitebasis
         And I calculate dynamics of R using H and L to get R1
         And I apply the evolution superoperator to R to get R2 at times <t_prop>
@@ -39,7 +39,7 @@ Feature: Evolution super operator basis transformations
                    
 
     Scenario Outline: Evolution superoperator is calculated correctly in exciton basis
-        Given I have a Hamiltonian H, Lidblad form L an initial density matrix R
+        Given I have a Hamiltonian H, Lidblad form L and initial density matrix R
         When I calculate evolution superoperator using H and L in exciton basis
         And I calculate dynamics of R using H and L to get R1
         And I apply the evolution superoperator to R to get R2 at times <t_prop>
@@ -55,7 +55,7 @@ Feature: Evolution super operator basis transformations
 
            
     Scenario Outline: Evolution superoperator is calculated correctly in combination of bases
-        Given I have a Hamiltonian H, Lidblad form L an initial density matrix R
+        Given I have a Hamiltonian H, Lidblad form L and initial density matrix R
         When I calculate evolution superoperator in site basis using H and L in exciton basis
         And I calculate dynamics of R using H and L to get R1
         And I apply the evolution superoperator to R to get R2 at times <t_prop>

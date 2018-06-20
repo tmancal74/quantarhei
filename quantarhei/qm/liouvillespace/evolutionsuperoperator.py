@@ -199,6 +199,7 @@ from ...core.saveable import Saveable
 
 from .superoperator import SuperOperator
 from ...core.time import TimeDependent
+from ... import COMPLEX
 
 import quantarhei as qr
 
@@ -278,16 +279,28 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """Calculates the data of the evolution superoperator
         
         
+        Parameters
+        ----------
+        
+        show_progress : bool
+            When set True, reports on its progress and elapsed time
+        
+        
         """
 
         Nt = self.time.length
         
+        #
+        # Create new data
+        #
         if self.dim != self.data.shape[0]:
             self.data = numpy.zeros((Nt, self.dim, self.dim,
                                      self.dim, self.dim),
                                     dtype=qr.COMPLEX)
-
+            
+        #
         # zero time value (unity superoperator)
+        #
         dim = self.dim
         for i in range(dim):
             for j in range(dim):
@@ -297,49 +310,42 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             print("Calculating evolution superoperator ")
         self._init_progress()
         
-        # first propagation
-        self.update_dense_time(0)
-        prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
+        #
+        # Let us propagate to time = dt
+        #
+        one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
+        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
                                               self.relt)
-        ctime = self.dense_time  
-        
-        # calculate the whole short time evolution superoperator
+        rhonm0 = ReducedDensityMatrix(dim=dim)
+        Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
             if show_progress:
                 self._progress(Nt, dim, 0, n, 0)
             for m in range(dim):
-                rhonm0 = ReducedDensityMatrix(dim=dim)
                 rhonm0.data[n,m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                
-                self.data[1, :, :, n, m] = rhot.data[ctime.length-1, :, :]
+                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                rhonm0.data[n,m] = 0.0
 
-        Udt = self.data[1,:,:,:,:]
+
+        #
+        # propagation to the end of the first interval
+        #
+        Udt = Ut1
+        for ti in range(2, self.dense_time.length):
+            Udt = numpy.tensordot(Ut1, Udt)
+            
+        self.data[1,:,:,:,:] = Udt
+
+        #
+        # repeat propagation over the longer interval
+        #
         for ti in range(2, Nt):
             if show_progress:
                 print("Self propagation: ", ti, "of", Nt)            
            
             self.data[ti,:,:,:,:] = \
                 numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
-            
-            
-            
-            if False:
-                self.update_dense_time(ti)
-                prop = ReducedDensityMatrixPropagator(self.dense_time, self.ham,
-                                                      self.relt)
-                ctime = self.dense_time  
-                    
-                # the rest of calculations
-                for n in range(dim):
-                    self._progress(Nt, dim, ti, n, 0)
-                    for m in range(dim):
-                        
-                        rhonmt = ReducedDensityMatrix(dim=dim)
-                        rhonmt.data = self.data[ti-1, :, :, n, m]
-                        rhot = prop.propagate(rhonmt)
-                        
-                        self.data[ti, :, :, n, m] = rhot.data[ctime.length-1, :, :]            
 
         if show_progress:
             print("...done")

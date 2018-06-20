@@ -101,11 +101,11 @@ def step_then_6(context):
 #
 # Given ...
 #
-@given('I have a Hamiltonian H, Lidblad form L an initial density matrix R')
+@given('I have a Hamiltonian H, Lidblad form L and initial density matrix R')
 def step_given_7(context):
     """
 
-        Given I have a Hamiltonian H, Lidblad form L an initial density matrix R
+        Given I have a Hamiltonian H, Lidblad form L and initial density matrix R
 
     """
     # create test aggregatedimer
@@ -113,8 +113,8 @@ def step_given_7(context):
     agg.build()
     
     # get the associated time axis and the relaxation tensor and Hamiltonian
-    time = qr.TimeAxis(0, 100, 1.0)
-    time2 = qr.TimeAxis(0, 10, 10.0)
+    time = qr.TimeAxis(0, 320, 1.0)
+    time2 = qr.TimeAxis(0, 32, 10.0)
     context.time = time
     context.time2 = time2
     
@@ -209,7 +209,7 @@ def step_then_11(context, t_prop):
     R1_t = context.R1.at(t)
     R2 = context.R2
     
-    numpy.testing.assert_allclose(R1_t.data, R2.data)
+    numpy.testing.assert_allclose(R1_t.data, R2.data, rtol=1.0e-12, atol=1.0e-12)
 
 
 #

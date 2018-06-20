@@ -13,6 +13,7 @@ import numpy
 
 from .aggregate_base import AggregateBase
 from ..spectroscopy import diagramatics as diag
+from ..core.managers import eigenbasis_of
 
 import quantarhei as qr
 
@@ -679,7 +680,7 @@ class AggregateSpectroscopy(AggregateBase):
             List of strings or a string representing one or more
             Liouville pathway types that are to be calculated
             
-        eUt2 : EvolutionSuperOperator
+        eUt2 : SuperOperator
             Evolution superoperator at time t2 representing the energy 
             transfer in the system 
             
@@ -724,37 +725,41 @@ class AggregateSpectroscopy(AggregateBase):
         
         if verbose > 0:
             print("Pathways", ptype_tuple)
+            
+        # data of the evolution superoperator in eigenstate basis
+        with eigenbasis_of(self.HamOp):
+            eUt2_dat = eUt2.data
          
         for ptp in ptype_tuple:
         
             if ptp == "R1g":
                 
-                generate_R1g(self, lst, eUt2,
+                generate_R1g(self, lst, eUt2_dat,
                              pop_tol, dip_tol, evf_tol, verbose)
 
             if ptp == "R2g":
                 
-                generate_R2g(self, lst, eUt2,
+                generate_R2g(self, lst, eUt2_dat,
                              pop_tol, dip_tol, evf_tol, verbose)
 
             if ptp == "R3g":
             
-                generate_R3g(self, lst, eUt2, pop_tol, dip_tol, verbose)
+                generate_R3g(self, lst, eUt2_dat, pop_tol, dip_tol, verbose)
                 
             if ptp == "R4g":
                 
-                generate_R4g(self, lst, eUt2, pop_tol, dip_tol, verbose)
+                generate_R4g(self, lst, eUt2_dat, pop_tol, dip_tol, verbose)
                 
             
             if ptp == "R1f*":
                 
-                generate_R1f(self, lst, eUt2, 
+                generate_R1f(self, lst, eUt2_dat, 
                              pop_tol, dip_tol, evf_tol, verbose)
                 
             
             if ptp == "R2f*":
                 
-                generate_R2f(self, lst, eUt2, 
+                generate_R2f(self, lst, eUt2_dat, 
                              pop_tol, dip_tol, evf_tol, verbose)
                                    
         
@@ -802,7 +807,7 @@ def generate_R1g(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i2d in nes:
                                 for i3d in nes:
 
-                                    evf = eUt2.data[i2d, i3d, i2e, i3e]
+                                    evf = eUt2[i2d, i3d, i2e, i3e]
                                     if abs(evf) > evf_tol:
 
                                         for i4g in ngs:
@@ -929,7 +934,7 @@ def generate_R2g(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i3d in nes:
                                 for i2d in nes:
                             
-                                    evf = eUt2.data[i3d, i2d, i3e, i2e]
+                                    evf = eUt2[i3d, i2d, i3e, i2e]
                                     if abs(evf) > evf_tol:
 
                     
@@ -1045,7 +1050,7 @@ def generate_R3g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
                     
                         if self.D2[i3g,i2e] > dip_tol:
                             
-                            evf = eUt2.data[i1g, i3g, i1g, i3g]
+                            evf = eUt2[i1g, i3g, i1g, i3g]
                     
                             for i4e in nes:
                 
@@ -1148,7 +1153,7 @@ def generate_R4g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
 
                         if self.D2[i3g,i2e] > dip_tol:
                     
-                            evf = eUt2.data[i1g, i3g, i1g, i3g]
+                            evf = eUt2[i1g, i3g, i1g, i3g]
 
                             for i4e in nes:
 
@@ -1259,7 +1264,7 @@ def generate_R1f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i3d in nes:
                                 for i2d in nes:
                             
-                                    evf = eUt2.data[i3d, i2d, i3e, i2e]
+                                    evf = eUt2[i3d, i2d, i3e, i2e]
                                     if abs(evf) > evf_tol:
                     
                                         for i4f in nfs:
@@ -1378,7 +1383,7 @@ def generate_R2f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i2d in nes:
                                 for i3d in nes:
                             
-                                    evf = eUt2.data[i2d, i3d, i2e, i3e]
+                                    evf = eUt2[i2d, i3d, i2e, i3e]
                                     if abs(evf) > evf_tol:
 
                                         for i4f in nfs:
