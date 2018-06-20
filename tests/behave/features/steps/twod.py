@@ -38,8 +38,8 @@ def _spectrum(a, b):
         
         return data
 
-    xrange = qr.ValueAxis(-50.0, 100, 1.0)
-    yrange = qr.ValueAxis(-50.0, 100, 1.0)
+    xrange = qr.FrequencyAxis(-50.0, 100, 1.0)
+    yrange = qr.FrequencyAxis(-50.0, 100, 1.0)
     
     data = func(xrange.data, yrange.data, a, b)
     
@@ -849,7 +849,24 @@ def step_given_28(context):
         And I trim the data to half the length of the axes
 
     """
-    pass
+    twod = context.twod
+    
+    minx = twod.xaxis.min
+    maxx = twod.xaxis.max
+    miny = twod.yaxis.min
+    maxy = twod.yaxis.max
+    
+    xcentr = (minx+maxx)/2.0
+    xwidth = maxx-xcentr
+    minx = xcentr - xwidth/2.0
+    maxx = xcentr + xwidth/2.0
+    
+    ycentr = (miny+maxy)/2.0
+    ywidth = maxy-ycentr
+    miny = ycentr - ywidth/2.0
+    maxy = ycentr + ywidth/2.0
+    
+    twod.trim_to(window=[minx, maxx, miny, maxy])
 
 
 #

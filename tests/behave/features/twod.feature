@@ -267,3 +267,12 @@ Feature: TwoDSpectrum can store data in different level of details.
         |  GSB      |   REPH    |
         |  ESA      |   NONR    |
         |  SE       |   REPH    |
+        
+        
+    Scenario: TwoDSpectrum storing data by liouville pathways can be trimmed
+        Given that I have data corresponding to individual Liouville pathways in 2D spectrum
+        And I create a new TwoDSpectrum object
+        And I save 2D data using type and tag
+        And I trim the data to half the length of the axes
+        When I convert the storage mode into the storing total spectrum
+        Then I can retrieve total spectrum with half the length of the axes

@@ -1437,6 +1437,9 @@ class TwoDSpectrum(TwoDSpectrumBase):
         """Trims the 2D spectrum to a specified region
         
         """
+        
+        legacy = False
+        
         if window is not None:
             axis = window
             w1_min = axis[0]
@@ -1460,8 +1463,10 @@ class TwoDSpectrum(TwoDSpectrumBase):
             start_1 = self.xaxis.data[i1_min]
             length_1 = i1_max - i1_min
             step_1 = self.xaxis.step
+            atype = self.xaxis.atype
+                
             xaxis = FrequencyAxis(start_1,length_1,step_1, 
-                                  atype=self.xaxis.atype,
+                                  atype=atype,
                                   time_start=self.xaxis.time_start)
             self.xaxis = xaxis
             
@@ -1474,20 +1479,93 @@ class TwoDSpectrum(TwoDSpectrumBase):
                                   time_start=self.yaxis.time_start)                
             self.yaxis = yaxis            
             
+            if legacy:
 
-            # reconstruct data
-            if self.keep_stypes:
-                if self.reph2D is not None:
-                    reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
-                    self.reph2D = reph2D  
-                if self.nonr2D is not None:
-                    nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
-                    self.nonr2D = nonr2D 
-                
+                # reconstruct data
+                if self.keep_stypes:
+                    if self.reph2D is not None:
+                        reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
+                        self.reph2D = reph2D  
+                    if self.nonr2D is not None:
+                        nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
+                        self.nonr2D = nonr2D 
+                    
+                else:
+                    if self.data is not None:
+                        data = self.data[i1_min:i1_max,i3_min:i3_max]
+                        self.data = data
+        
             else:
-                if self.data is not None:
-                    data = self.data[i1_min:i1_max,i3_min:i3_max]
-                    self.data = data
+                
+                if self.storage_resolution == "pathways":
+                    for typ in _ptypes:
+                        piece_ex = True
+                        try:
+                            piece = self._d__data[typ]
+                        except:
+                            piece_ex = False
+                        if piece_ex:
+                            for tag in piece.keys():
+                                data_ex = True
+                                try:
+                                    data = piece[tag]
+                                except KeyError:
+                                    data_ex = False
+                                if data_ex:
+                                    ndata = data[i1_min:i1_max,i3_min:i3_max]
+                                    piece[tag] = ndata                       
+                        
+                elif self.storage_resolution == "types":
+                    
+                    for typ in _ptypes:
+                        self.set_data_flag(typ)
+                        data_ex = True
+                        try:
+                            data = self.d__data
+                        except KeyError:
+                            data_ex = False
+                        if data_ex:
+                            ndata = data[i1_min:i1_max,i3_min:i3_max]
+                            self.d__data = ndata
+                        
+                elif self.storage_resolution == "signals":
+                    
+                    for typ in _signals:
+                        self.set_data_flag(typ)
+                        data_ex = True
+                        try:
+                            data = self.d__data
+                        except KeyError:
+                            data_ex = False
+                            
+                        if data_ex:
+                            ndata = data[i1_min:i1_max,i3_min:i3_max]
+                            self.d__data = ndata
+                        
+                elif self.storage_resolution == "processes":
+                    
+                    for typ in _processes:
+                        self.set_data_flag(typ)
+                        data_ex = True
+                        try:
+                            data = self.d__data
+                        except KeyError:
+                            data_ex = False
+                        if data_ex:
+                            ndata = data[i1_min:i1_max,i3_min:i3_max]
+                            self.d__data = ndata
+                            
+                elif self.storage_resolution == "total":
+                    self.set_data_flag("total")
+                    data_ex = True
+                    try:
+                        data = self.d__data
+                    except KeyError:
+                        data_ex = False
+                    if data_ex:
+                        ndata = data[i1_min:i1_max,i3_min:i3_max]
+                        self.d__data = ndata
+                
                 
         else:
             # some automatic trimming in the future
