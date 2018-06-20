@@ -1291,22 +1291,37 @@ class TwoDSpectrum(TwoDSpectrumBase):
             
             
         """
+        legacy = False
         
         if stype == "total":
-            if (self.reph2D is not None) and (self.nonr2D is not None):
-                spect2D = self.reph2D + self.nonr2D 
-            elif self.reph2D is not None:
-                spect2D = self.reph2D 
-            elif self.nonr2D is not None:
-                spect2D = self.nonr2D
-                
             
+            if not legacy:
+                self.set_data_flag("total")
+                spect2D = self.d__data
+            else:
+                if (self.reph2D is not None) and (self.nonr2D is not None):
+                    spect2D = self.reph2D + self.nonr2D 
+                elif self.reph2D is not None:
+                    spect2D = self.reph2D 
+                elif self.nonr2D is not None:
+                    spect2D = self.nonr2D
+                
         elif stype == "rephasing":
-            spect2D = self.reph2D
+            if not legacy:
+                self.set_data_flag("REPH")
+                spect2D = self.d__data
+            else:
+                spect2D = self.reph2D
         elif stype == "non-rephasing":
-            spect2D = self.nonr2D            
+            if not legacy:
+                self.set_data_flag("NONR")
+                spect2D = self.d__data
+            else:
+                spect2D = self.nonr2D            
         else:
             raise Exception("Undefined spectrum type"+stype)
+        
+        
         
         if spart == "real":
             spect2D = numpy.real(spect2D)
@@ -2021,7 +2036,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
     def calculate_next(self):
 
         sone = self.calculate_one(self.tc)
-        print(self.tc, sone)
+        #print(self.tc, sone)
         self.tc += 1
         return sone
 
@@ -2034,15 +2049,16 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         onetwod = TwoDSpectrum()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
+        onetwod.set_resolution("signals")
         
         for pwy in self.pathways:
             
             data = self.calculate_pathway(pwy, shape=self.shape)
             
             if pwy.pathway_type == "R":
-                onetwod.add_data(data, dtype="Reph")
+                onetwod._add_data(data, dtype="REPH")
             elif pwy.pathway_type == "NR":
-                onetwod.add_data(data, dtype="Nonr")
+                onetwod._add_data(data, dtype="NONR")
             else:
                 raise Exception("Unknown pathway type")
 
@@ -2060,15 +2076,16 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         onetwod = TwoDSpectrum()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
+        onetwod.set_resolution("signals")
         
         for pwy in self.pathways:
             
             data = self.calculate_pathway(pwy, shape=self.shape)
             
             if pwy.pathway_type == "R":
-                onetwod.add_data(data, dtype="Reph")
+                onetwod._add_data(data, dtype="REPH")
             elif pwy.pathway_type == "NR":
-                onetwod.add_data(data, dtype="Nonr")
+                onetwod._add_data(data, dtype="NONR")
             else:
                 raise Exception("Unknown pathway type")
 

@@ -839,3 +839,28 @@ def step_when_27(context):
     twod._add_data(totd, dtype="total")
 
 
+#
+# And ...
+#
+@given('I trim the data to half the length of the axes')
+def step_given_28(context):
+    """
+
+        And I trim the data to half the length of the axes
+
+    """
+    pass
+
+
+#
+# Then ...
+#
+@then('I can retrieve total spectrum with half the length of the axes')
+def step_then_29(context):
+    """
+
+        Then I can retrieve total spectrum with half the length of the axes
+
+    """
+    pass
+

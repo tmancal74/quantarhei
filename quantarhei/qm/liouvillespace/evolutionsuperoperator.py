@@ -247,6 +247,11 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.data = numpy.zeros((Nt, self.dim, self.dim, self.dim, self.dim),
                                 dtype=qr.COMPLEX)
 
+    def get_Hamiltonian(self):
+        """Returns the Hamiltonian associated with thise evolution
+        
+        """
+        return self.ham
 
     def set_dense_dt(self, Nt):
         """Set a denser time axis for calculations between two points of the superoperator

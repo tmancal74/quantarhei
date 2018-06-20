@@ -665,7 +665,7 @@ class AggregateSpectroscopy(AggregateBase):
                 
 
     
-    def liouville_pathways_3T(self, ptype="R3g", eUt2=None,
+    def liouville_pathways_3T(self, ptype="R3g", eUt=None, t2=0.0,
                               dtol=0.01, ptol=1.0e-3, etol=1.0e-6,
                               verbose=0, lab=None):
         """ Generator of Liouville pathways with energy transfer
@@ -680,9 +680,12 @@ class AggregateSpectroscopy(AggregateBase):
             List of strings or a string representing one or more
             Liouville pathway types that are to be calculated
             
-        eUt2 : SuperOperator
-            Evolution superoperator at time t2 representing the energy 
+        eUt : EvolutionSuperOperator
+            Evolution superoperator representing the energy 
             transfer in the system 
+            
+        t2 : float
+            Waiting time at which the spectrum is calculated
             
         dtol : float
             Minimum acceptable strength of the transition from ground
@@ -727,7 +730,9 @@ class AggregateSpectroscopy(AggregateBase):
             print("Pathways", ptype_tuple)
             
         # data of the evolution superoperator in eigenstate basis
-        with eigenbasis_of(self.HamOp):
+        eUt2 = eUt.at(t2)
+        HH = eUt.get_Hamiltonian()
+        with eigenbasis_of(HH):
             eUt2_dat = eUt2.data
          
         for ptp in ptype_tuple:

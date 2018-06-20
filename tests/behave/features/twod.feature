@@ -240,3 +240,30 @@ Feature: TwoDSpectrum can store data in different level of details.
         |  GSB      |   REPH    |
         |  ESA      |   NONR    |
         |  SE       |   REPH    |
+
+
+#
+# Trimming
+#
+
+    Scenario Outline: TwoDSpectra storing data accoring to signal type can be trimmed
+        Given that I have data corresponding to signal types
+        And I create a new TwoDSpectrum object
+        And I save 2D data using signal types
+        And I trim the data to half the length of the axes
+        When I convert the storage mode into the storing total spectrum
+        Then I can retrieve total spectrum with half the length of the axes
+        But when I try to retrieve process <process> I get an exception
+        And when I try to retrieve signal <signal> I get an exception
+        And when I try to retrieve pathways I get an exception
+        And when I try to retrieve types of spectra I get an exception
+
+    Examples:
+        |  process  |   signal  |
+        |  SE       |   REPH    |
+        |  GSB      |   NONR    |
+        |  ESA      |   REPH    |
+        |  SE       |   NONR    |
+        |  GSB      |   REPH    |
+        |  ESA      |   NONR    |
+        |  SE       |   REPH    |
