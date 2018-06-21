@@ -866,6 +866,10 @@ def step_given_28(context):
     miny = ycentr - ywidth/2.0
     maxy = ycentr + ywidth/2.0
     
+    twod.set_data_flag("total")
+    shp = twod.d__data.shape
+    context.shape = shp
+    
     twod.trim_to(window=[minx, maxx, miny, maxy])
 
 
@@ -879,5 +883,72 @@ def step_then_29(context):
         Then I can retrieve total spectrum with half the length of the axes
 
     """
-    pass
+    twod = context.twod
+    
+    twod.set_data_flag("total")
+    tot_spect = twod.d__data
+    
+    shp_half = tot_spect.shape
+    shp = context.shape
+    
+    assert (shp_half[0] < shp[0]) and (shp_half[1] < shp[1]) 
 
+
+#
+# And ...
+#
+@given('I convert the storage mode into {storage_mode}')
+def step_given_30(context, storage_mode):
+    """
+
+        And I convert the storage mode into {storage_mode}
+
+    """
+    twod = context.twod
+    
+    twod.set_resolution(storage_mode)
+
+
+#
+# When ...
+#
+@when('I devide the spectrum by number {number}')
+def step_when_31(context, number):
+    """
+
+        When I devide the spectrum by number {number}
+
+    """
+    nr_f = float(number)
+    nr_f_inv = 1.0/nr_f
+    try:
+        nr_i = int(number)
+    except ValueError:
+        nr_i = 1
+    nr_i_inv = 1.0/nr_i
+    
+    twod = context.twod
+    twod.devide_by(nr_i)
+    twod.devide_by(nr_i_inv)
+    twod.devide_by(nr_f)
+    twod.devide_by(nr_f_inv)
+
+
+#
+# Then ...
+#
+@then('I can retrieve total spectrum at a point [{px}, {py}]')
+def step_then_32(context, px, py):
+    """
+
+        Then I can retrieve total spectrum at a point [{px}, {py}]
+
+    """
+    twod = context.twod
+    pxn = float(px)
+    pyn = float(py)
+    twod.set_data_flag("total")
+    val = twod.get_value_at(pxn, pyn)
+    
+    
+    

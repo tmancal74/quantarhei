@@ -653,7 +653,8 @@ class TwoDSpectrumBase:
         self.storage_resolution = "pathways"
         self.storage_initialized = False
         
-        self.current_dtype = None
+        # if no dtype is specified, we return total spectrum
+        self.current_dtype = "total"  
         self.current_tag = None
         self.address_length = 1
 
@@ -802,6 +803,7 @@ class TwoDSpectrumBase:
                 
         return tags
 
+
     # FIXME: maybe set_storage_resolution ?
     def set_resolution(self, resolution):
         """Sets the storage resolution attribute of TwoDSpectrum
@@ -887,6 +889,7 @@ class TwoDSpectrumBase:
             #self.storage_resolution = resolution
         else:
             raise Exception("Unknown resolution: "+resolution)
+
 
     # FIXME: maybe get_storage_resolution
     def get_resolution(self):
@@ -1186,8 +1189,80 @@ class TwoDSpectrumBase:
         """
         
         pass
-
     
+    
+    def get_all_data(self):
+        """Returns a dictionary of all data stored in the object
+        
+        The data are returned as a dictionary with keys corresponding
+        to current storage mode. If the storage resolution is `pathway`,
+        keys are strings constucted as TYPE+"_"+str(TAG), where TYPE is the
+        type string and TAG is the tag of the pathway.
+        
+        It is expected that most often the keys will not be even used
+        
+        """
+        data_dict = {}
+        if self.storage_resolution == "pathways":
+            for typ in _ptypes:
+                try:
+                    piece = self._d__data[typ]
+                except KeyError:
+                    piece = []
+                for tag in piece:
+                    key = typ+"_"+str(tag)
+                    data_dict[key] = piece[tag]
+        
+        elif self.storage_resolution == "types":
+            for typ in _ptypes:
+                data_ex = True
+                try:
+                    data = self._d__data[typ]
+                except KeyError:
+                    data_ex = False
+                if data_ex:
+                    key = typ
+                    data_dict[key] = data
+                
+        elif self.storage_resolution == "signals":
+            for typ in _signals:
+                data_ex = True
+                try:
+                    data = self._d__data[typ]
+                except KeyError:
+                    data_ex = False
+                if data_ex:
+                    key = typ
+                    data_dict[key] = data                
+
+        elif self.storage_resolution == "processes":
+            for typ in _processes:
+                data_ex = True
+                try:
+                    data = self._d__data[typ]
+                except KeyError:
+                    data_ex = False
+                if data_ex:
+                    key = typ
+                    data_dict[key] = data             
+                
+        elif self.storage_resolution == "off":
+            data_ex = True
+            try:
+                data = self._d__data["total"]
+            except:
+                data_ex = False
+            if data_ex:
+                key = "total"
+                data_dict[key] = data
+            
+        else:
+            raise Exception("Unknown storage resolution: "
+                            +self.storage_resolution)
+
+        return data_dict
+
+
 class TwoDSpectrum(TwoDSpectrumBase):
     """This class represents a single 2D spectrum
     
@@ -1225,26 +1300,41 @@ class TwoDSpectrum(TwoDSpectrumBase):
         """
         return self.t2
     
-    
+   
     def get_value_at(self, x, y):
         """Returns value of the spectrum at a given coordinate
         
         """
-        if self.dtype is None:
-            raise Exception("No data in the TwoDSpectrum object")
-            
+        
+        legacy = False
+
+        if legacy:
+            if self.dtype is None:
+                raise Exception("Data type not set")
+        else:
+            if self.current_dtype is None:
+                raise Exception("No data type specified")
+
         (ix, dist) = self.xaxis.locate(x)
         (iy, dist) = self.yaxis.locate(y)    
-        
-        if self.dtype == "Tot":
-            return self.data[ix,iy]
-            #return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
-        elif self.dtype == "Reph":
-            return self.reph2D[ix,iy]
-        elif self.dtype == "Nonr":
-            return self.nonr2D[ix,iy]
 
-    
+        if legacy:
+            
+            if self.dtype == "Tot":
+                return self.data[ix,iy]
+                #return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
+            elif self.dtype == "Reph":
+                return self.reph2D[ix,iy]
+            elif self.dtype == "Nonr":
+                return self.nonr2D[ix,iy]
+        
+        else:
+            
+            return self.d__data[ix, iy]
+        
+
+
+    # FIXME: introduce new storage
     def get_max_value(self):
         
         return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
@@ -1253,9 +1343,26 @@ class TwoDSpectrum(TwoDSpectrumBase):
     def devide_by(self, val):
         """Devides the total spectrum by a value
         
+        
+        Parameters
+        ----------
+        
+        val : float, int
+            Value by which we devide the spectrum
+        
         """
-        self.reph2D = self.reph2D/val
-        self.nonr2D = self.nonr2D/val  
+        
+        legacy = False
+        
+        if legacy:
+            self.reph2D = self.reph2D/val
+            self.nonr2D = self.nonr2D/val
+        else:
+            data_dict = self.get_all_data()
+            for data_key in data_dict:
+                data = data_dict[data_key]
+                data[:,:] = data/val
+
 
 
     def get_PumpProbeSpectrum(self):
@@ -1407,20 +1514,20 @@ class TwoDSpectrum(TwoDSpectrumBase):
         # positive contours
         plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, levels=poslevels, colors="k",
-                     linewidth=1)
+                     realout, levels=poslevels, colors="k")
+                     #linewidth=1)
         
         # zero contour
         plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, levels=[0],colors="b",
-                     linewidth=1)
+                     realout, levels=[0],colors="b")
+                     #linewidth=1)
         
-        # negatove contours
+        # negative contours
         plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
-                     realout, levels=neglevels,colors="k",
-                     linewidth=1)  
+                     realout, levels=neglevels,colors="k")
+                     #linewidth=1)  
         
         
         if colorbar:
@@ -1435,6 +1542,18 @@ class TwoDSpectrum(TwoDSpectrumBase):
 
     def trim_to(self, window=None):
         """Trims the 2D spectrum to a specified region
+        
+        Parameters
+        ----------
+        
+        window : array
+            Spectral window to which the present 2D spectrum 
+            should be trimmed. The window is specified as
+            an array [w1_min, w1_max, w3_min, w3_max], where 
+            w1_min is the lower bound of the w1 axis (the x-axis),
+            w1_max is the upper bound of the w1 axis and similarly
+            for the w3 axis (y-axis) of the spectrum.
+            
         
         """
         

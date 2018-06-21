@@ -111,13 +111,15 @@ class TwoDSpectrumContainer:
         ----------
         
         spect : TwoDSpectrum
-            Object holding the spectrum
+            Object holding the spectrum; when not tag is specified for a
+            spectrum which as its t2 time set, the tag is set to t2 time.
             
         tag : {int, string, ValuesAxis, TimeAxis, FrequencyAxis}
             Tag which will be used for retrieval of the spectrum from 
             the container.
         
         """
+        
         
         if self.itype == "integer":
             self.spectra[str(self.index)] = spect
@@ -126,6 +128,11 @@ class TwoDSpectrumContainer:
         
         elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             
+            if tag is None:
+                # we will read the spectrum intrinsic t2 time and set it as tag
+                if spect.t2 >= 0.0:
+                    tag = spect.t2
+                    
             if tag is not None:
                 if tag in self.axis.data:
                     self.spectra[tag] = spect
@@ -134,7 +141,9 @@ class TwoDSpectrumContainer:
                 else:
                     raise Exception("Tag not compatible with the ValueAxis")
             else:
-                raise Exception("No tag specified - cannot store spectrum")
+                raise Exception("No tag specified, and spectrum"
+                                +" does not have t2 time set"
+                                +" - cannot store spectrum")
             return self.index
         
         elif self.itype == "string":
@@ -319,7 +328,7 @@ class TwoDSpectrumContainer:
         return vals
 
     
-    def fft(self, ffttype="complex-positive", window=None):
+    def fft(self, ffttype="complex-positive", window=None, dtype=None, tag=None):
         """Fourier transform in t2 time
         
         
@@ -333,6 +342,11 @@ class TwoDSpectrumContainer:
             Windowing function for the data. Default is None
         
         """
+        
+        legacy = False
+        
+        dtype = "total"
+        
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             raise Exception("FFT cannot be performed for"+
                             " this type of indexing")
@@ -352,12 +366,23 @@ class TwoDSpectrumContainer:
         if len(tags) == Nos:
             tag1 = self.axis.data[0]
             sp1 = self.get_spectrum(tag1)
-            N1, N2 = sp1.data.shape
-            data = numpy.zeros((N1, N2, Nos), dtype=sp1.data.dtype)
+            
+            if legacy:
+                N1, N2 = sp1.data.shape
+                data = numpy.zeros((N1, N2, Nos), dtype=sp1.data.dtype)
+            else:
+                N1, N2 = sp1.d__data.shape
+                data = numpy.zeros((N1, N2, Nos), dtype=sp1.d__data.dtype)
             for k_n in range(Nos):
                 tag = self.axis.data[k_n]
-                spect = self.get_spectrum(tag)
-                data[:,:,k_n] = spect.data
+                
+                if legacy:
+                    spect = self.get_spectrum(tag)
+                    data[:,:,k_n] = spect.data
+                else:
+                    spect = self.get_spectrum(tag)
+                    spect.set_data_flag(dtype)
+                    data[:,:,k_n] = spect.d__data
             
         else:
             raise Exception("Number of spectra not consistent"+
@@ -405,9 +430,16 @@ class TwoDSpectrumContainer:
         for k_n in range(Nos):
             tag = new_axis.data[k_n]
             spect = TwoDSpectrum()
-            spect.set_data(ftdata[:, :, k_n])
             spect.set_axis_1(sp1.xaxis)
             spect.set_axis_3(sp1.yaxis)
+            
+            # FIXME: this will not work now
+            if legacy:
+                spect.set_data(ftdata[:, :, k_n])
+            else:
+                spect.set_resolution("off")
+                spect._add_data(ftdata[:, :, k_n],dtype="total")
+
             new_container.set_spectrum(spect, tag=tag)
         
         

@@ -530,7 +530,12 @@ def _container(context, N, cls):
         tt = time.data[k_n]
         data = func(xrange.data, yrange.data, tt)
         spect = qr.TwoDSpectrum()
-        spect.set_data(data)
+        spect.set_resolution("off")
+        spect.set_data_flag("total")
+        
+        #spect.set_data(data)
+        spect._add_data(data, dtype="total")
+        
         spect.set_axis_1(xrange)
         spect.set_axis_3(yrange)
         spectra.append(spect)

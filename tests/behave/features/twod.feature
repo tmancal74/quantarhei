@@ -276,3 +276,57 @@ Feature: TwoDSpectrum can store data in different level of details.
         And I trim the data to half the length of the axes
         When I convert the storage mode into the storing total spectrum
         Then I can retrieve total spectrum with half the length of the axes
+        
+
+#
+# Operations on the spectrum
+#
+
+    Scenario Outline: TwoDSpectra in any storage mode can be devided by a number
+        Given that I have data corresponding to individual Liouville pathways in 2D spectrum
+        And I create a new TwoDSpectrum object
+        And I save 2D data using type and tag
+        And I convert the storage mode into <storage_mode>
+        When I devide the spectrum by number <number>    
+        Then I can retrieve total spectrum
+        
+    Examples:
+        | storage_mode | number |
+        |  pathways    |  2.0   |
+        |  pathways    |  3     |
+        |  pathways    |  10.1  |
+        |  types       |  2.0   |
+        |  types       |  3     |
+        |  types       |  10.1  |
+        |  signals     |  3     |
+        |  signals     |  10.1  |
+        |  processes   |  3     |
+        |  processes   |  10.1  |
+        |  off         |  3     |
+        |  off         |  10.1  |
+
+
+    Scenario Outline: From TwoDSpectra in any storage mode one can get value at a point
+        Given that I have data corresponding to individual Liouville pathways in 2D spectrum
+        And I create a new TwoDSpectrum object
+        And I save 2D data using type and tag
+        And I convert the storage mode into <storage_mode>
+        When I devide the spectrum by number <number>    
+        Then I can retrieve total spectrum at a point [<px>, <py>]
+        
+    Examples:
+        | storage_mode | number | px    | py    |
+        |  pathways    |  2.0   | 0.0   | 0.0   |
+        |  pathways    |  3     | 0.0   | 0.0   |
+        |  pathways    |  10.1  | 0.0   | 0.0   |
+        |  types       |  2.0   | 0.0   | 0.0   |
+        |  types       |  3     | 0.0   | 0.0   |
+        |  types       |  10.1  | 0.0   | 0.0   |
+        |  signals     |  3     | 0.0   | 0.0   |
+        |  signals     |  10.1  | 0.0   | 0.0   |
+        |  processes   |  3     | 0.0   | 0.0   |
+        |  processes   |  10.1  | 0.0   | 0.0   |
+        |  off         |  3     | 0.0   | 0.0   |
+        |  off         |  10.1  | 0.0   | 0.0   |
+ 
+                              
