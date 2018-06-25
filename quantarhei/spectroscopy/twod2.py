@@ -406,6 +406,7 @@ def twodspectrum_dictionary(name, dtype):
                 return _pathways_to_processes(self, self.current_dtype)
                 
             elif self.current_dtype in _signals:
+                
                 #
                 # return as signals
                 #
@@ -429,7 +430,12 @@ def twodspectrum_dictionary(name, dtype):
         elif self.storage_resolution == "types":
             
             if self.current_dtype in _ptypes:
-                return storage[self.current_dtype]
+                try: 
+                    ret = storage[self.current_dtype]
+                except KeyError:
+                    ret = None
+                    
+                return ret
 
             elif self.current_dtype in _processes:
                 
@@ -460,8 +466,13 @@ def twodspectrum_dictionary(name, dtype):
         elif self.storage_resolution == "processes":
             
             if self.current_dtype in _processes:
-                return storage[self.current_dtype]
-            
+                try:
+                    ret = storage[self.current_dtype]
+                except KeyError:
+                    ret = None
+                    
+                return ret
+
             elif self.current_dtype == "total":
                 
                 #
@@ -480,7 +491,12 @@ def twodspectrum_dictionary(name, dtype):
         elif self.storage_resolution == "signals":
 
             if self.current_dtype in _signals:
-                return storage[self.current_dtype]
+                try:
+                    ret = storage[self.current_dtype]
+                except KeyError:
+                    ret = None
+                    
+                return ret
             
             elif self.current_dtype == "total":
                 
@@ -497,8 +513,13 @@ def twodspectrum_dictionary(name, dtype):
         elif self.storage_resolution == "off":
             
             if self.current_dtype == "total":
-                return storage["total"]
-            
+                try:
+                    ret = storage["total"]
+                except KeyError:
+                    ret = None
+                    
+                return ret
+
             else:
                 raise Exception("Inappropriate data type: "
                                 +self.current_dtype+" for storage resolution "
@@ -1638,12 +1659,12 @@ class TwoDSpectrum(TwoDSpectrumBase):
                     
                     for typ in _ptypes:
                         self.set_data_flag(typ)
-                        data_ex = True
-                        try:
-                            data = self.d__data
-                        except KeyError:
-                            data_ex = False
-                        if data_ex:
+                        #data_ex = True
+                        #try:
+                        data = self.d__data
+                        #except KeyError:
+                        #    data_ex = False
+                        if data is not None:
                             ndata = data[i1_min:i1_max,i3_min:i3_max]
                             self.d__data = ndata
                         
@@ -1651,13 +1672,13 @@ class TwoDSpectrum(TwoDSpectrumBase):
                     
                     for typ in _signals:
                         self.set_data_flag(typ)
-                        data_ex = True
-                        try:
-                            data = self.d__data
-                        except KeyError:
-                            data_ex = False
+                        #data_ex = True
+                        #try:
+                        data = self.d__data
+                        #except KeyError:
+                        #    data_ex = False
                             
-                        if data_ex:
+                        if data is not None:
                             ndata = data[i1_min:i1_max,i3_min:i3_max]
                             self.d__data = ndata
                         
@@ -1665,23 +1686,23 @@ class TwoDSpectrum(TwoDSpectrumBase):
                     
                     for typ in _processes:
                         self.set_data_flag(typ)
-                        data_ex = True
-                        try:
-                            data = self.d__data
-                        except KeyError:
-                            data_ex = False
-                        if data_ex:
+                        #data_ex = True
+                        #try:
+                        data = self.d__data
+                        #except KeyError:
+                        #    data_ex = False
+                        if data is not None:
                             ndata = data[i1_min:i1_max,i3_min:i3_max]
                             self.d__data = ndata
                             
                 elif self.storage_resolution == "total":
                     self.set_data_flag("total")
-                    data_ex = True
-                    try:
-                        data = self.d__data
-                    except KeyError:
-                        data_ex = False
-                    if data_ex:
+                    #data_ex = True
+                    #try:
+                    data = self.d__data
+                    #except KeyError:
+                    #    data_ex = False
+                    if data is not None:
                         ndata = data[i1_min:i1_max,i3_min:i3_max]
                         self.d__data = ndata
                 

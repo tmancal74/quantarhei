@@ -328,9 +328,15 @@ class TwoDSpectrumContainer:
         return vals
 
     
-    def fft(self, ffttype="complex-positive", window=None, dtype=None, tag=None):
+    def fft(self, ffttype="complex-positive", window=None, dtype="total", tag=None):
         """Fourier transform in t2 time
         
+        This method performs FFT on the container data determined by the
+        value of the `dtype` argument. The new container is created and 
+        the storage resolution of its components is set `off`. This means
+        that the container and its spectra have no idea about what data they
+        store. Even when plotting the spectra, one has to set plotting of
+        the `total` spectrum.
         
         Parameters
         ----------
@@ -344,8 +350,6 @@ class TwoDSpectrumContainer:
         """
         
         legacy = False
-        
-        dtype = "total"
         
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             raise Exception("FFT cannot be performed for"+
@@ -371,6 +375,7 @@ class TwoDSpectrumContainer:
                 N1, N2 = sp1.data.shape
                 data = numpy.zeros((N1, N2, Nos), dtype=sp1.data.dtype)
             else:
+                sp1.set_data_flag(dtype)
                 N1, N2 = sp1.d__data.shape
                 data = numpy.zeros((N1, N2, Nos), dtype=sp1.d__data.dtype)
             for k_n in range(Nos):
@@ -426,7 +431,7 @@ class TwoDSpectrumContainer:
         # save it to a new container
         new_container = TwoDSpectrumContainer()
         new_container.use_indexing_type(new_axis)
-        print("new container")
+
         for k_n in range(Nos):
             tag = new_axis.data[k_n]
             spect = TwoDSpectrum()
@@ -522,7 +527,7 @@ class TwoDSpectrumContainer:
             for s in self.get_spectra():
                 s.trim_to(window=axes)
 
-           
+    # FIXME: this is still legacy version        
     def amax(self, spart="real"):
         """Returns maximum amplitude of the spectra in the container
         
