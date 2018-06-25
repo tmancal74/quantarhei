@@ -438,7 +438,6 @@ class TwoDSpectrumContainer:
             spect.set_axis_1(sp1.xaxis)
             spect.set_axis_3(sp1.yaxis)
             
-            # FIXME: this will not work now
             if legacy:
                 spect.set_data(ftdata[:, :, k_n])
             else:

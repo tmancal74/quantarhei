@@ -60,6 +60,37 @@ and
 through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
 
 
+
+New in 0.0.36
+=============
+
+For users:  
+ - Quantarhei now available also as a conda package 
+ - Recommended installation procedure documented
+ - TwoDSpectrum class revised - new method names, better storage model (keeps track of rephasing and non-rephasing part, groups of pathways associated with different processes when required, stores different pathways separately when required)
+ - Improved TwoDSpectrumContainer (can hold a group of spectra identified by an arbitrary ValueAxis (most notably TimeAxis and FrequencyAxis), integer index or list of strings). Copies the new storage improvement on TwoDSpectrum.
+ - labsetup class changed to LabSetup and extended by information about pulse profiles and spectra. labsetup is left as deprecated for compatibility
+ - Fourier transform of 2D spectra in t2, via TwoDSpectrumContainer; also enables FFT with window function
+ - Functions of ValueAxis introduced in a special module; Tukey window function for FFT in waiting time is one of them
+ - SuperOperator is BasisManaged; basis management is solved for both time-dependent and time-independent super operators
+ - RelaxationTensor now inherits from SuperOperator and it is BasisManaged through that inheritance
+ - EvolutionSuperOperator tested, documented and it is BasisManaged
+ - EvolutionSuperOperator’s method apply() can be applied with time argument which is of type TimeAxis type, float or array of floats; returns DensityMatrix or DensityMatrixEvolution
+ - Quantarhei driver qrhei changes format: use ‘qrhei run scriptname’ to run scripts and consult the -h option of ‘qrhei run’; parallel runs untested in this version
+ - Documentation contains a description of the concept of “user”, “advanced”, and “expert” levels of classes in Quantarhei.
+ - List of classes completely covered by documentation and doctests included in on-line documentation
+ - Classes Mode, SubMode, Molecule, TwoDSpectrumContainer completely documented
+ - Documentation enhanced
+ - Countless small improvements and bug fixes
+
+For developers:
+ - Code of conduct file now in the root directory of the package
+ - Absorption spectroscopy related classes now organized in one file per class fashion so that automatic documentation is easier to read
+ - New subpackage quantarhei.testing united all custom functions that support testing. It includes feature.py module previously found in quantarhei.dev subpacked (now removed) and a behave.py module which supports tests with behave package
+ - Behave package is now used for some tests (in particular for tests of the “qrhei” driver). Future acceptance tests should preferentially be written with this package
+ - New helper script “ghenerate” autogenerates Python step files for tests with ‘behave’ package from the Gherkin feature files 
+
+
 New in 0.0.35
 =============
 
