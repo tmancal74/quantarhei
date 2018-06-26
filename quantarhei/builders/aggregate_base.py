@@ -2107,7 +2107,10 @@ class AggregateBase(UnitsManaged, Saveable):
         """Transforms some internal quantities into diagonal basis 
            
         """
-           
+        
+        if self._diagonalized:
+            return
+        
         ee,SS = numpy.linalg.eigh(self.HH)
         
         self.HD = ee
