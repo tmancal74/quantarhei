@@ -1537,18 +1537,20 @@ class TwoDSpectrum(TwoDSpectrumBase):
                      self.yaxis.data[i3_min:i3_max],
                      realout, levels=poslevels, colors="k")
                      #linewidth=1)
+                     
+        if spart != "abs":
+            # zero contour
+            plt.contour(self.xaxis.data[i1_min:i1_max],
+                         self.yaxis.data[i3_min:i3_max],
+                         realout, levels=[0],colors="b")
+                         #linewidth=1)
         
-        # zero contour
-        plt.contour(self.xaxis.data[i1_min:i1_max],
-                     self.yaxis.data[i3_min:i3_max],
-                     realout, levels=[0],colors="b")
-                     #linewidth=1)
         
-        # negative contours
-        plt.contour(self.xaxis.data[i1_min:i1_max],
-                     self.yaxis.data[i3_min:i3_max],
-                     realout, levels=neglevels,colors="k")
-                     #linewidth=1)  
+            # negative contours
+            plt.contour(self.xaxis.data[i1_min:i1_max],
+                         self.yaxis.data[i3_min:i3_max],
+                         realout, levels=neglevels,colors="k")
+                         #linewidth=1)  
         
         
         if colorbar:
