@@ -78,14 +78,20 @@ class Simulation(Saveable):
     def _close_logfile(self):
         pass
 
-    def _get_timestamp(self, filename=False):
 
+    def _get_timestamp(self, filename=False):
+        """Returns current time stemp
+        
+        """
         if filename:
             return '{:%Y-%m-%d_%H:%M:%S}'.format(datetime.datetime.now())
         return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+
     
     def _print_greetings(self):
+        """Prints opening greeting of the simulation
         
+        """
         time_stamp = self._get_timestamp()
 
         grstring = self._starline + "* Quantarhei Simulation\n*"
@@ -95,9 +101,12 @@ class Simulation(Saveable):
         grstring += "\n* Initial timestamp: "+time_stamp
         grstring += self._starline
         self._printlog(grstring, loglevel=0)
-        
+
+       
     def _print_goodbye(self):
+        """Prints the last message before leaving
         
+        """
         time_stamp = self._get_timestamp()
 
         grstring = self._starline + "* Simulation finished\n*"
@@ -105,6 +114,7 @@ class Simulation(Saveable):
         grstring += self._starline
         
         self._printlog(grstring, loglevel=0)
+
         
     def _printlog(self, *args, loglevel=0):
         """Logs output on screen and into a file
