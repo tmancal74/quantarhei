@@ -19,6 +19,24 @@ import numpy
 from .managers import energy_units
 from .managers import Manager
 
+from .parcel import Parcel
+
+
+class Saveable2:
+    
+    def save(self, filename, comment=None):
+        
+        p = Parcel()
+        p.set_content(self)
+        p.set_comment(comment)
+        
+        p.save(filename)
+        
+        
+    
+        
+        
+
 def _isattr(obj):
     """Returns True if the object is an attribute of the class, i.e. it is
     not a method.

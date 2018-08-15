@@ -1284,7 +1284,7 @@ class TwoDSpectrumBase:
         return data_dict
 
 
-class TwoDSpectrum(TwoDSpectrumBase):
+class TwoDSpectrum(TwoDSpectrumBase, qr.Saveable2):
     """This class represents a single 2D spectrum
     
     Methods
@@ -1795,91 +1795,91 @@ class TwoDSpectrum(TwoDSpectrumBase):
 
 
 
-    #
-    #  Implementation of saving and loading 
-    #
-    #  FIXME: this should be replaced by inheritance from Saveable 
-    #
-    #
- 
-    def _create_root_group(self, start, name):
-        return start.create_group(name)
-    
-    def _save_attributes(self,rt):
-        rt.attrs.create("t2", self.t2)
-        keeps = []
-        if self.keep_pathways:
-            keeps.append(1)
-        else:
-            keeps.append(0)
-        if self.keep_stypes:
-            keeps.append(1)
-        else:
-            keeps.append(0)
-            
-        rt.attrs.create("keeps",keeps)
-
-    def _load_attributes(self,rt):
-        self.t2 = rt.attrs["t2"]
-        keeps = rt.attrs["keeps"]
-        self.keep_pathways = (keeps[0] == 1)
-        self.keep_stypes = (keeps[1] == 1)
-                    
-    def _save_data(self,rt):
-        if self.keep_stypes:
-            rt.create_dataset("reph2D",data=self.reph2D)
-            rt.create_dataset("nonr2D",data=self.nonr2D)
-        else:
-            rt.create_dataset("data",data=self.data)
-
-    def _load_data(self,rt):
-        if self.keep_stypes:
-            self.reph2D = numpy.array(rt["reph2D"])
-            self.nonr2D = numpy.array(rt["nonr2D"])
-        else:
-            self.data = numpy.array(rt["data"]) 
-            
-    def _save_axis(self, rt, name, ax):
-        axdir = rt.create_group(name)
-        axdir.attrs.create("start",ax.start)
-        axdir.attrs.create("length",ax.length)
-        axdir.attrs.create("step",ax.step)
-        #FIXME: atype and time_start
-
-    def _load_axis(self, rt, name):
-        axdir = rt[name]
-        start = axdir.attrs["start"]
-        length = axdir.attrs["length"]
-        step = axdir.attrs["step"]
-        return FrequencyAxis(start, length, step)   
-    
-    def save(self, filename, units="int"):
-        """Saves the whole object into file
-        
-        
-        """
-        with h5py.File(filename,"w") as f:
-            rt = self._create_root_group(f,"spectrum")
-            self._save_attributes(rt)
-            self._save_data(rt)
-            with energy_units(units):
-                self._save_axis(rt, "xaxis", self.xaxis)
-                self._save_axis(rt, "yaxis", self.yaxis)
-            
-            
-            
-    def load(self, filename, units="int"):
-        """Loads the whole object from a file
-        
-        
-        """
-        with h5py.File(filename,"r") as f:
-            rt = f["spectrum"]
-            self._load_attributes(rt)
-            self._load_data(rt)
-            with energy_units(units):
-                self.xaxis = self._load_axis(rt, "xaxis")
-                self.yaxis = self._load_axis(rt, "yaxis")    
+#    #
+#    #  Implementation of saving and loading 
+#    #
+#    #  FIXME: this should be replaced by inheritance from Saveable 
+#    #
+#    #
+# 
+#    def _create_root_group(self, start, name):
+#        return start.create_group(name)
+#    
+#    def _save_attributes(self,rt):
+#        rt.attrs.create("t2", self.t2)
+#        keeps = []
+#        if self.keep_pathways:
+#            keeps.append(1)
+#        else:
+#            keeps.append(0)
+#        if self.keep_stypes:
+#            keeps.append(1)
+#        else:
+#            keeps.append(0)
+#            
+#        rt.attrs.create("keeps",keeps)
+#
+#    def _load_attributes(self,rt):
+#        self.t2 = rt.attrs["t2"]
+#        keeps = rt.attrs["keeps"]
+#        self.keep_pathways = (keeps[0] == 1)
+#        self.keep_stypes = (keeps[1] == 1)
+#                    
+#    def _save_data(self,rt):
+#        if self.keep_stypes:
+#            rt.create_dataset("reph2D",data=self.reph2D)
+#            rt.create_dataset("nonr2D",data=self.nonr2D)
+#        else:
+#            rt.create_dataset("data",data=self.data)
+#
+#    def _load_data(self,rt):
+#        if self.keep_stypes:
+#            self.reph2D = numpy.array(rt["reph2D"])
+#            self.nonr2D = numpy.array(rt["nonr2D"])
+#        else:
+#            self.data = numpy.array(rt["data"]) 
+#            
+#    def _save_axis(self, rt, name, ax):
+#        axdir = rt.create_group(name)
+#        axdir.attrs.create("start",ax.start)
+#        axdir.attrs.create("length",ax.length)
+#        axdir.attrs.create("step",ax.step)
+#        #FIXME: atype and time_start
+#
+#    def _load_axis(self, rt, name):
+#        axdir = rt[name]
+#        start = axdir.attrs["start"]
+#        length = axdir.attrs["length"]
+#        step = axdir.attrs["step"]
+#        return FrequencyAxis(start, length, step)   
+#    
+#    def save(self, filename, units="int"):
+#        """Saves the whole object into file
+#        
+#        
+#        """
+#        with h5py.File(filename,"w") as f:
+#            rt = self._create_root_group(f,"spectrum")
+#            self._save_attributes(rt)
+#            self._save_data(rt)
+#            with energy_units(units):
+#                self._save_axis(rt, "xaxis", self.xaxis)
+#                self._save_axis(rt, "yaxis", self.yaxis)
+#            
+#            
+#            
+#    def load(self, filename, units="int"):
+#        """Loads the whole object from a file
+#        
+#        
+#        """
+#        with h5py.File(filename,"r") as f:
+#            rt = f["spectrum"]
+#            self._load_attributes(rt)
+#            self._load_data(rt)
+#            with energy_units(units):
+#                self.xaxis = self._load_axis(rt, "xaxis")
+#                self.yaxis = self._load_axis(rt, "yaxis")    
                 
 
 class TwoDSpectrumCalculator:

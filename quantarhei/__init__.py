@@ -169,6 +169,8 @@ from .core.frequency import FrequencyAxis
 from .core.valueaxis import ValueAxis
 from .core.dfunction import DFunction
 from .core.saveable import Saveable
+
+from .core.saveable import Saveable2
 from .core.parcel import Parcel
 
 #
@@ -272,6 +274,8 @@ from .qm.corfunctions import SpectralDensity
 ###############################################################################
 from .core.saveable import load
 from .core.saveable import read_info
+
+from .core.parcel import save_parcel
 from .core.parcel import load_parcel
 from .core.parcel import check_parcel
 
