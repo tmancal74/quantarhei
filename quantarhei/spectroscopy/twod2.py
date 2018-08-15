@@ -1354,13 +1354,21 @@ class TwoDSpectrum(TwoDSpectrumBase):
             return self.d__data[ix, iy]
         
 
-
-    # FIXME: introduce new storage
     def get_max_value(self):
+        """Maximum value of the real part of the spectrum
         
-        return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
+        
+        """
+        legacy = False
+        
+        if legacy:
+            return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
+        
+        else:
+            return numpy.amax(numpy.real(self.d__data))
             
     
+    #FIXME: introduce new storage scheme
     def devide_by(self, val):
         """Devides the total spectrum by a value
         
@@ -1395,12 +1403,14 @@ class TwoDSpectrum(TwoDSpectrumBase):
         return ppc.calculate_from_2D(self)
     
     
-    def plot(self, fig=None, window=None, stype="total", spart="real",
+    def plot(self, fig=None, window=None, 
+             stype="total", spart="real",
              vmax=None, vmin_ratio=0.5, 
              colorbar=True, colorbar_loc="right",
              cmap=None, Npos_contours=10,
              show_states=None,
-             text_loc=[0.05,0.9], fontsize="20", label=None):
+             text_loc=[0.05,0.9], fontsize="20", label=None,
+             show=False, savefig=None):
         """Plots the 2D spectrum
         
         Parameters
@@ -1408,7 +1418,8 @@ class TwoDSpectrum(TwoDSpectrumBase):
         
         fig : matplotlib.figure
             Figure into which plotting will be done. This is used e.g. when
-            making a movie using moview writter (may be obsolete)
+            making a movie using moview writter (may be obsolete).
+            If fig is None, we create a new figure object.
             
         window : list
             Specifies the plotted window in current energy units. When axes
@@ -1417,15 +1428,29 @@ class TwoDSpectrum(TwoDSpectrumBase):
         stype : {"total", "rephasing", "non-rephasing"}
             type of the spectrum 
             
+        spart : {"real", "imaginary", "abs"}
+            part of the spectrum to be plotted
+            
+        vmax : float
+            max of the plotting range in the z-direction. If vmax is None,
+            maximum of the real part of the spectrum is used to determine
+            the values of `vmax`
+            
+            
+            
             
         """
         legacy = False
         
+        # 
+        # What type of spectra to plot
+        #
         if stype == "total":
             
             if not legacy:
                 self.set_data_flag("total")
                 spect2D = self.d__data
+                
             else:
                 if (self.reph2D is not None) and (self.nonr2D is not None):
                     spect2D = self.reph2D + self.nonr2D 
@@ -1440,17 +1465,21 @@ class TwoDSpectrum(TwoDSpectrumBase):
                 spect2D = self.d__data
             else:
                 spect2D = self.reph2D
+                
         elif stype == "non-rephasing":
             if not legacy:
                 self.set_data_flag("NONR")
                 spect2D = self.d__data
             else:
-                spect2D = self.nonr2D            
+                spect2D = self.nonr2D     
+                
         else:
             raise Exception("Undefined spectrum type"+stype)
         
         
-        
+        #
+        # What part of the spectrum to plot
+        #
         if spart == "real":
             spect2D = numpy.real(spect2D)
         elif spart == "imaginary":
@@ -1487,6 +1516,9 @@ class TwoDSpectrum(TwoDSpectrumBase):
   
         realout = spect2D[i3_min:i3_max,i1_min:i1_max]
     
+        #
+        #  How to treat the figures
+        #
         if fig is None:
             fig, ax = plt.subplots(1,1)
         else:
@@ -1494,9 +1526,16 @@ class TwoDSpectrum(TwoDSpectrumBase):
             fig.add_subplot(1,1,1)
             ax = fig.axes[0]
             
+        #
+        # Color map
+        #
         if cmap is None:
             cmap = plt.cm.rainbow
             
+            
+        #
+        # Actual plotting
+        #
         if vmax is None:
             vmax = numpy.amax(realout)
 
@@ -1521,10 +1560,11 @@ class TwoDSpectrum(TwoDSpectrumBase):
                                     self.yaxis.data[i3_max-1]],
                    origin='lower', vmax=vmax, vmin=vmin,
                    interpolation='bilinear', cmap=cmap)  
-        
+
+        #
+        # Label
+        #
         pos = text_loc
-        
-        # text
         if label is not None:
             label = label    
             ax.text((prvo-levo)*pos[0]+levo,
@@ -1532,12 +1572,17 @@ class TwoDSpectrum(TwoDSpectrumBase):
                 label,
                 fontsize=str(fontsize))
         
-        # positive contours
+        #
+        # Contours
+        #
+        
+        # positive contours are always plotted
         plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
                      realout, levels=poslevels, colors="k")
                      #linewidth=1)
-                     
+              
+        # other contours only if we do not plot absolute values
         if spart != "abs":
             # zero contour
             plt.contour(self.xaxis.data[i1_min:i1_max],
@@ -1552,15 +1597,50 @@ class TwoDSpectrum(TwoDSpectrumBase):
                          realout, levels=neglevels,colors="k")
                          #linewidth=1)  
         
-        
+        #
+        # Color bar presence
+        #
         if colorbar:
             plt.clim(vmin=vmin,vmax=vmax)
             fig.colorbar(cm)
             
+        #
+        # Plot lines denoting positions of selected transitions
+        #
         if show_states is not None:
             for en in show_states:  
                 plt.plot([en,en],[dole,hore],'--k',linewidth=1.0)
                 plt.plot([levo,prvo],[en,en],'--k',linewidth=1.0)
+            
+        #
+        # Should the spectra be showed now?
+        #
+        if show:
+            self.show()
+            
+        #
+        # Saving the figure
+        #
+        if savefig:
+            self.savefig(savefig)
+
+            
+    def show(self):
+        """Show the plot of 2D spectrum
+        
+        By default, plots are not shown. It is waited until explicit show()
+        is called
+        
+        """
+        
+        plt.show()
+        
+
+    def savefig(self, filename):
+        """Saves the fige of the plot into a file
+        
+        """
+        plt.savefig(filename)
             
 
     def trim_to(self, window=None):
@@ -1712,24 +1792,7 @@ class TwoDSpectrum(TwoDSpectrumBase):
         else:
             # some automatic trimming in the future
             pass
-     
-           
-    def show(self):
-        """Show the plot of 2D spectrum
-        
-        By default, plots are not shown. It is waited until explicit show()
-        is called
-        
-        """
-        
-        plt.show()
-        
 
-    def savefig(self, filename):
-        """Saves the fige of the plot into a file
-        
-        """
-        plt.savefig(filename)
 
 
     #
