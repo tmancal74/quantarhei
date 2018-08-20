@@ -5,6 +5,10 @@
     Defines the class Saveable. Saveable object knows how to inspect
     itself and save its data into a hdf5 file.
 
+    Defines the class Saveable.
+    
+    Saveable objects can save themselves to and load themselves from a file
+    
 
 """
 import inspect
@@ -14,28 +18,70 @@ import datetime
 from numbers import Number
 
 import h5py
-import numpy
 
 from .managers import energy_units
 from .managers import Manager
 
+
+# all imports above can be removed
+
+import numpy
+
 from .parcel import Parcel
+from .parcel import load_parcel
 
 
 class Saveable2:
+    """Defines a class of objects that can save and load themselves
+    
+    
+    """
     
     def save(self, filename, comment=None):
+        """Saves the object with all its content into a file
         
+        
+        Parameters
+        ----------
+        
+        filename : str or File
+            Name of the file or a file object to which the content of
+            the object will be saved 
+        
+        comment : str
+            A comment which will be saved together with the content of
+            the object
+        
+        
+        """
         p = Parcel()
         p.set_content(self)
         p.set_comment(comment)
         
         p.save(filename)
+
+
+    def load(self, filename):
+        """Loads an object from a file and returns it
+        
+        Parameters
+        ----------
+        
+        filename : str or File
+            Filename of the file or file descriptor of the file from which
+            and object should be loaded.
+        
+        """
+        
+        return load_parcel(filename)
         
         
-    
-        
-        
+###############################################################################
+#
+# Everything below is legacy and will be removed in future versions
+#
+#
+###############################################################################
 
 def _isattr(obj):
     """Returns True if the object is an attribute of the class, i.e. it is
