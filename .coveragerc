@@ -1,3 +1,9 @@
 [run]
 source=quantarhei
+omit=
+   ./tests/*
+   ./quantarhei/*
+
+[report]
+precision=2
 
