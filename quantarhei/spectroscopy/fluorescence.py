@@ -15,7 +15,7 @@ Created on Mon Apr  9 14:26:16 2018
     spectra.
 
 """
-import h5py
+#import h5py
 import numpy
 import scipy
 import matplotlib.pyplot as plt

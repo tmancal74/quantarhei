@@ -6,7 +6,7 @@
 from functools import partial
 import numbers
 
-import h5py
+#import h5py
 import matplotlib.pyplot as plt  
 import numpy
 
@@ -15,10 +15,11 @@ from ..core.frequency import FrequencyAxis
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..core.managers import eigenbasis_of
-from ..core.managers import energy_units
+#from ..core.managers import energy_units
 from ..qm.propagators.poppropagator import PopulationPropagator 
 from ..core.units import convert
 from .. import COMPLEX
+from ..core.saveable import Saveable
 
 from ..utils import derived_type
 
@@ -1284,7 +1285,7 @@ class TwoDSpectrumBase:
         return data_dict
 
 
-class TwoDSpectrum(TwoDSpectrumBase, qr.Saveable2):
+class TwoDSpectrum(TwoDSpectrumBase, Saveable):
     """This class represents a single 2D spectrum
     
     Methods

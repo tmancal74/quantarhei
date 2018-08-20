@@ -83,7 +83,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['numpy','scipy','matplotlib',
-                      'h5py','terminaltables','gherkin-official'],
+                      'dill','terminaltables','gherkin-official'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

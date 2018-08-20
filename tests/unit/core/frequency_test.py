@@ -2,7 +2,8 @@
 
 import unittest
 import numpy
-import h5py
+#import h5py
+import tempfile
 
 from quantarhei import energy_units
 
@@ -66,13 +67,14 @@ class TestFrequencyAxis(unittest.TestCase):
             i1 = wa.locate(10000.0)
             self.assertEqual(nsni, i1[0])
             
-        with h5py.File("test_file_ValueAxes",driver="core", 
-                           backing_store=False) as f:        
+        #with h5py.File("test_file_ValueAxes",driver="core", 
+        #                   backing_store=False) as f:    
+        with tempfile.TemporaryFile() as f:
         
             wa.save(f, test=True)
             
             tb = FrequencyAxis()
-            tb.load(f, test=True)
+            tb = tb.load(f, test=True)
             
             
         

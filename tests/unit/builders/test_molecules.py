@@ -2,7 +2,8 @@
 
 import unittest
 import numpy
-import h5py
+#import h5py
+import tempfile
 
 """
 *******************************************************************************
@@ -85,12 +86,13 @@ class TestMolecule(unittest.TestCase):
         
         if use_temporary_file: 
             
-            drv = "core"
-            bcs = False
+            #drv = "core"
+            #bcs = False
         
-            with h5py.File('tempfile.hdf5', 
-                           driver=drv, 
-                           backing_store=bcs) as f:
+            #with h5py.File('tempfile.hdf5', 
+            #               driver=drv, 
+            #               backing_store=bcs) as f:
+            with tempfile.TemporaryFile() as f:
                                              
                 #self.m.save_as(f,"Molecule")
                 self.m.save(f, test=True)
@@ -98,18 +100,20 @@ class TestMolecule(unittest.TestCase):
                 # reread it
                 m = Molecule()
                 #m.load_as(f,"Molecule")
-                m.load(f, test=True)
+                m = m.load(f, test=True)
 
         else:
 
-            with h5py.File('tempfile.hdf5') as f:                                           
+            #with h5py.File('tempfile.hdf5') as f: 
+            with open('tempfile.qrp', 'wb') as f:                                          
                 #self.m.save_as(f,"Molecules")
                 self.m.save(f)
             
-            with h5py.File('tempfile.hdf5') as f:
+            #with h5py.File('tempfile.hdf5') as f:
+            with open('tempfile.qrp', 'rb') as f:
                 m = Molecule()
                 #m.load_as(f,"Molecules")
-                m.load(f)
+                m = m.load(f)
             
 
         self.assertEqual(self.m.name, m.name)
@@ -119,9 +123,10 @@ class TestMolecule(unittest.TestCase):
         numpy.testing.assert_array_equal(
                 self.m.get_transition_environment((0,1)).data, self.fc.data)
         
-        with h5py.File('tempfile.hdf5', 
-                       driver=drv, 
-                       backing_store=bcs) as f:
+        #with h5py.File('tempfile.hdf5', 
+        #               driver=drv, 
+        #               backing_store=bcs) as f:
+        with tempfile.TemporaryFile() as f:
                                          
             #self.m.save_as(f,"Molecule")
             m2.save(f, test=True)
@@ -129,7 +134,7 @@ class TestMolecule(unittest.TestCase):
             # reread it
             m3 = Molecule()
             #m.load_as(f,"Molecule")
-            m3.load(f, test=True)
+            m3 = m3.load(f, test=True)
 
         self.assertEqual(m2.name, m3.name)
         self.assertEqual(m2.nel, m3.nel)

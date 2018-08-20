@@ -5,7 +5,7 @@ import pkg_resources
 import unittest
 import numpy
 
-from quantarhei import load
+from quantarhei import load_parcel as load
 
 class TestLindbladDynamics(unittest.TestCase):
     """Tests for the units package
@@ -27,7 +27,7 @@ class TestLindbladDynamics(unittest.TestCase):
 
         # get file for comparison
         filename = pkg_resources.resource_filename(__package__,   
-                                    "excitondynamics_lindblad_rhot.hdf5_test")
+                                    "excitondynamics_lindblad_rhot.qrp_test")
         # load object for comparison
         rhot = load(filename)
 

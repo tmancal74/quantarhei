@@ -11,7 +11,8 @@ import unittest
 *******************************************************************************
 """
 import numpy
-import h5py
+#import h5py
+import tempfile
 
 from quantarhei.spectroscopy.abs import AbsSpectrumBase, AbsSpectrumDifference
 from quantarhei import FrequencyAxis
@@ -76,16 +77,18 @@ class TestAbs(unittest.TestCase):
         """
         abs1 = self.abs1
         
-        drv = "core"
-        bcs = False
-        with h5py.File('tempfile.hdf5', 
-                       driver=drv, 
-                       backing_store=bcs) as f:
+        #drv = "core"
+        #bcs = False
+        
+        with tempfile.TemporaryFile() as f:
+        #with h5py.File('tempfile.hdf5', 
+        #               driver=drv, 
+        #               backing_store=bcs) as f:
     
-            abs1.save(f, test=True)
-            
+            abs1.save(f) #, test=True)
+            f.seek(0)
             abs2 = AbsSpectrum()
-            abs2.load(f, test=True)
+            abs2 = abs2.load(f) #, test=True)
             
         numpy.testing.assert_array_equal(abs1.data, abs2.data)
 

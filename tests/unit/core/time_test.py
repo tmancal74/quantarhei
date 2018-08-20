@@ -2,7 +2,8 @@
 
 
 import unittest
-import h5py
+#import h5py
+import tempfile
 import numpy
 
 
@@ -38,14 +39,16 @@ class TestTimeAxis(unittest.TestCase):
         """Testing the Saveability of TimeAxis
         
         """
-        with h5py.File("test_file_ValueAxes",driver="core", 
-                           backing_store=False) as f:        
+        
+        #with h5py.File("test_file_ValueAxes",driver="core", 
+        #                   backing_store=False) as f:   
+        with tempfile.TemporaryFile() as f:
             ta = TimeAxis(0.0, 1000, 0.1)
         
-            ta.save(f, test=True)
-            
+            ta.save(f) #, test=True)
+            f.seek(0)
             tb = TimeAxis()
-            tb.load(f, test=True)
+            tb = tb.load(f) #, test=True)
             
         
         numpy.testing.assert_array_equal(ta.data,tb.data)

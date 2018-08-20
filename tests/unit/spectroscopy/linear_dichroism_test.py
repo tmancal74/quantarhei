@@ -11,7 +11,7 @@ import copy
 *******************************************************************************
 """
 import numpy
-import h5py
+#import h5py
 
 from quantarhei.spectroscopy.linear_dichroism import LinDichSpectrumBase, LinDichSpectrumContainer
 from quantarhei import FrequencyAxis
@@ -144,14 +144,17 @@ class TestLinDich(unittest.TestCase):
     def test_lindich_spectrum_saveablity(self):
         """Testing if LinDichSpectrumContainer is saveable
         """
+        
+        import tempfile
         lindich1 = self.lindich1
         cntnr = LinDichSpectrumContainer()
         cntnr.set_spectrum(lindich1, tag='tester')
         
-        cntnr.save('tempfile', test=True)
-            
-        lindich2 = LinDichSpectrumContainer()
-        lindich2.load('tempfile')
+        with tempfile.TemporaryFile() as f:
+            cntnr.save(f)
+            f.seek(0)
+            lindich2 = LinDichSpectrumContainer()
+            lindich2 = lindich2.load(f)
 
         data2 = lindich2.get_spectrum(tag='tester').data
         

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import h5py
 import numpy
 
 """
@@ -14,7 +13,8 @@ import numpy
 *******************************************************************************
 """
 
-
+legacy = False
+import tempfile
 from quantarhei.core.saveable import Saveable
         
 
@@ -94,18 +94,28 @@ class TestSaveable(unittest.TestCase):
     def testing_cyclic_reference(self):
         
         a = TSaveable()
+        a.a = 1.0
         b = TSaveable()
+        b.b = 2.0
         a.set_cyclic(b)
         
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
-
-            a.save(f, test=True)
-        
-            c = TSaveable()
+        if legacy:
+            with h5py.File("test_file_1",driver="core", 
+                               backing_store=False) as f:
+    
+                a.save(f, test=True)
             
-            c.load(f, test=True)
-            
+                c = TSaveable()
+                
+                c.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                
+                a.save(f)
+                f.seek(0)
+                
+                c = TSaveable()
+                c = c.load(f)
         
         self.assertEqual(id(a), id(a.ts.ts))
         self.assertEqual(id(c), id(c.ts.ts))
@@ -113,37 +123,55 @@ class TestSaveable(unittest.TestCase):
         lst = [a,b, c]
         
         c.set_liple(lst)
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
+        
+        if legacy:
+            with h5py.File("test_file_1",driver="core", 
+                               backing_store=False) as f:
+    
+                c.save(f, test=True)
+                
+                d = TSaveable()
+                
+                d.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                
+                c.save(f)
+                f.seek(0)
+                
+                c = TSaveable()
+                d = c.load(f)            
 
-            c.save(f, test=True)
-            
-            d = TSaveable()
-            
-            d.load(f, test=True)
-            
-
-        self.assertEqual(id(c.liple[0]), id(a))
-        self.assertEqual(id(c.liple[0].ts), id(b))
-        self.assertEqual(id(c.liple[2]), id(c))
+        self.assertEqual(d.liple[0].a, a.a)
+        self.assertEqual(d.liple[0].ts.a, b.a)
+        self.assertEqual(d.liple[2].a, c.a)
         
          
         
         lst = dict(a=a,b=b, c=c)        
         c.set_liple(lst)
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
+        
+        if legacy:
+            with h5py.File("test_file_1",driver="core", 
+                               backing_store=False) as f:
+    
+                c.save(f, test=True)
+                
+                d = TSaveable()
+                
+                d.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                
+                c.save(f)
+                f.seek(0)
+                
+                d = TSaveable()
+                d = d.load(f)            
 
-            c.save(f, test=True)
-            
-            d = TSaveable()
-            
-            d.load(f, test=True)
-            
-
-        self.assertEqual(id(c.liple["a"]), id(a))
-        self.assertEqual(id(c.liple["a"].ts), id(b))
-        self.assertEqual(id(c.liple["c"]), id(c))
+        self.assertEqual(d.liple["a"].a, a.a)
+        self.assertEqual(d.liple["a"].ts.a, b.a)
+        self.assertEqual(d.liple["c"].a, c.a)
        
         
         
@@ -155,22 +183,40 @@ class TestSaveable(unittest.TestCase):
         
         obj1 = self.obj1
         
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
-            
-            t1 = TSaveable()
-            t2 = TSaveable()
-            t3 = TSaveable()
-            t3.set_str("ahoj","cau")
-            
-            t1.set_saveable(t3)
-            
-            obj1.set_liple([t1,t2])
-            obj1.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)
+        if legacy:
+            with h5py.File("test_file_1",driver="core", 
+                               backing_store=False) as f:
+                
+                t1 = TSaveable()
+                t2 = TSaveable()
+                t3 = TSaveable()
+                t3.set_str("ahoj","cau")
+                
+                t1.set_saveable(t3)
+                
+                obj1.set_liple([t1,t2])
+                obj1.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                t1 = TSaveable()
+                t2 = TSaveable()
+                t3 = TSaveable()
+                t3.set_str("ahoj","cau")
+                
+                t1.set_saveable(t3)
+                
+                obj1.set_liple([t1,t2])
+                obj1.save(f)
+                
+                f.seek(0)
+                
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
+                
             
             
         self.assertEqual(obj1.a,obj2.a)
@@ -185,23 +231,26 @@ class TestSaveable(unittest.TestCase):
         self.assertEqual(obj1.obj.text,obj2.obj.text)
         self.assertEqual(obj1.liple[0].obj.text, t3.text)
 
-        class TClass:
-            
-            def __init__(self):
-                self.x = "Neco"
-                
-                
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
-            
-            t1 = TSaveable()
-            a = TClass()
 
-            t1.set_liple([a, "Hello World!"])
-            t1.save(f, test=True)
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)       
+#        class TClass:
+#            
+#            def __init__(self):
+#                self.x = "Neco"
+#                
+#                if legacy:     
+#                    with h5py.File("test_file_1",driver="core", 
+#                                       backing_store=False) as f:
+#                        
+#                        t1 = TSaveable()
+#                        a = TClass()
+#            
+#                        t1.set_liple([a, "Hello World!"])
+#                        t1.save(f, test=True)
+#                        
+#                        obj2 = TSaveable()
+#                        obj2.load(f, test=True)   
+#                else:
+#                    pass
 
 
     def test_saving_and_loading_2(self):
@@ -212,22 +261,40 @@ class TestSaveable(unittest.TestCase):
         
         obj1 = self.obj1
         
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
-            
-            t1 = TSaveable()
-            t2 = TSaveable()
-            t3 = TSaveable()
-            t3.set_str("ahoj","cau")
-            
-            t1.set_saveable(t3)
-            
-            obj1.set_liple(dict(jedna=t1,dve=t2))
-            obj1.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)
+        if legacy:
+            with h5py.File("test_file_1",driver="core", 
+                               backing_store=False) as f:
+                
+                t1 = TSaveable()
+                t2 = TSaveable()
+                t3 = TSaveable()
+                t3.set_str("ahoj","cau")
+                
+                t1.set_saveable(t3)
+                
+                obj1.set_liple(dict(jedna=t1,dve=t2))
+                obj1.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                t1 = TSaveable()
+                t2 = TSaveable()
+                t3 = TSaveable()
+                t3.set_str("ahoj","cau")
+                
+                t1.set_saveable(t3)
+                
+                obj1.set_liple(dict(jedna=t1,dve=t2))
+                obj1.save(f)
+                
+                f.seek(0)
+                
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
+                
             
             
         self.assertEqual(obj1.a,obj2.a)
@@ -251,14 +318,23 @@ class TestSaveable(unittest.TestCase):
            
         obj3 = self.obj3
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
-            
-            obj3.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)        
+        if legacy:
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                
+                f.seek(0)
+                
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
             
         liple = obj3.liple
         n = len(liple)
@@ -268,15 +344,26 @@ class TestSaveable(unittest.TestCase):
         # -------------------------------------------------
         obj3.set_liple(["abc","bca", "cab"])
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
+        if legacy:
             
-            obj3.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)        
-            
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                
+                f.seek(0)
+                
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
+
+                
         liple = obj3.liple
         n = len(liple)
         for i in range(n):
@@ -285,14 +372,23 @@ class TestSaveable(unittest.TestCase):
         # -------------------------------------------------
         obj3.set_liple([1,"bca", "cab"])
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
-            
-            obj3.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)        
+        if legacy:
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                
+                f.seek(0)
+                
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
             
         liple = obj3.liple
         n = len(liple)
@@ -302,14 +398,22 @@ class TestSaveable(unittest.TestCase):
         # -------------------------------------------------
         obj3.set_liple([[1,2,3],"bca", "cab"])
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
-            
-            obj3.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)        
+        if legacy:
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                
+                f.seek(0)
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
             
         liple = obj3.liple
         n = len(liple)
@@ -321,14 +425,21 @@ class TestSaveable(unittest.TestCase):
         # -------------------------------------------------
         obj3.set_liple([[1,2,3],("bca",2,("a",234.0)), "cab"])
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
-            
-            obj3.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)        
+        if legacy:
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                f.seek(0)
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
             
         liple = obj3.liple
         n = len(liple)
@@ -339,14 +450,22 @@ class TestSaveable(unittest.TestCase):
         # -------------------------------------------------
         obj3.set_liple(dict(ab="ahoj", cd=2.0))
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
-            
-            obj3.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)        
+        if legacy:
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                
+                f.seek(0)
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
             
         liple = obj3.liple
         for i in liple.keys():
@@ -359,14 +478,22 @@ class TestSaveable(unittest.TestCase):
         obj3.set_liple([[1,2,3],("bca",2,("a",234.0)), 
                         dict(ab="ahoj", cd=2.0)])
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
-            
-            obj3.save(f, test=True)
-            
-            
-            obj2 = TSaveable()
-            obj2.load(f, test=True)        
+        if legacy:
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                
+                obj2 = TSaveable()
+                obj2.load(f, test=True)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                
+                f.seek(0)
+                obj2 = TSaveable()
+                obj2 = obj2.load(f)
             
         liple = obj3.liple
         n = len(liple)
@@ -383,25 +510,40 @@ class TestSaveable(unittest.TestCase):
         
         
         """ 
-           
-        from quantarhei.core.saveable import load, read_info
+        if legacy:
+            from quantarhei.core.saveable import load, read_info
+        else:
+             from quantarhei.core.parcel import load_parcel, check_parcel
         from quantarhei import Manager
         
         obj3 = self.obj3
         
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
-            
-            obj3.save(f, test=True)
-            
-            obj = load(f, test=True)
-            
-            info = read_info(f)
+        if legacy:
+            with h5py.File("test_file_2",driver="core", 
+                               backing_store=False) as f:
+                
+                obj3.save(f, test=True)
+                
+                obj = load(f, test=True)
+                
+                info = read_info(f)
+        else:
+            with tempfile.TemporaryFile() as f:
+                obj3.save(f)
+                
+                f.seek(0)
+                obj = load_parcel(f)
+                
+                f.seek(0)
+                info = check_parcel(f)
             
         liple = obj3.liple
         n = len(liple)
         for i in range(n):
             self.assertEqual(obj3.liple[i],obj.liple[i])
-        self.assertEqual(info["version"],Manager().version)
-            
+        
+        if legacy:
+            self.assertEqual(info["version"],Manager().version)
+        else:
+            self.assertEqual(info["qrversion"], Manager().version)
             

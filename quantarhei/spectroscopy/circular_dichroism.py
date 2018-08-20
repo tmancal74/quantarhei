@@ -8,7 +8,7 @@
     spectra.
 
 """
-import h5py
+#import h5py
 import numpy
 import scipy
 import matplotlib.pyplot as plt

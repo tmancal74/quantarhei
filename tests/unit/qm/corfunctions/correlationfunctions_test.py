@@ -3,7 +3,7 @@
 
 import unittest
 import numpy
-import h5py
+#import h5py
 
 
 """
@@ -310,22 +310,24 @@ class TestCorrelationFunction(unittest.TestCase):
             f1 = CorrelationFunction(t, params1)
             f2 = CorrelationFunction(t, params2)
 
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
+        import tempfile
+        with tempfile.TemporaryFile() as f:
+        #with h5py.File("test_file_1",driver="core", 
+        #                   backing_store=False) as f:
             
-            f1.save(f, test=True)
-            
+            f1.save(f)#, test=True)
+            f.seek(0)
             f1_loaded = CorrelationFunction()
-            f1_loaded.load(f, test=True)
+            f1_loaded = f1_loaded.load(f) #, test=True)
             
-
-        with h5py.File("test_file_2",driver="core", 
-                           backing_store=False) as f:
+        with tempfile.TemporaryFile() as f:
+        #with h5py.File("test_file_2",driver="core", 
+        #                   backing_store=False) as f:
             
-            f2.save(f, test=True)
-            
+            f2.save(f) #, test=True)
+            f.seek(0)
             f2_loaded = CorrelationFunction()
-            f2_loaded.load(f, test=True)
+            f2_loaded = f2_loaded.load(f) #, test=True)
             
             
         numpy.testing.assert_array_equal(f1.data, f1_loaded.data)

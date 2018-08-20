@@ -136,13 +136,16 @@ class TestAbs(unittest.TestCase):
         """Testing if AbsSpectrumContainer is saveable
         
         """
+        import tempfile
         abs1 = self.abs1
         cntnr = AbsSpectrumContainer()
         cntnr.set_spectrum(abs1, tag='tester')
-        cntnr.save('tempfile', test=True)
-            
-        abs2 = AbsSpectrumContainer()
-        abs2.load('tempfile')
+        
+        with tempfile.TemporaryFile() as f:
+            cntnr.save(f) #'tempfile', test=True)
+            f.seek(0)
+            abs2 = AbsSpectrumContainer()
+            abs2 = abs2.load(f) #'tempfile')
 
         data2 = abs2.get_spectrum(tag='tester').data
         

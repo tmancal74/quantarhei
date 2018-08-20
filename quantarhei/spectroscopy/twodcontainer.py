@@ -7,7 +7,7 @@
     -------------
 
 """
-import h5py
+#import h5py
 #import matplotlib.pyplot as plt  
 import numpy
 
@@ -21,9 +21,10 @@ from ..core.managers import energy_units
 from .. import COMPLEX
 from .. import REAL
 
+from ..core.saveable import Saveable
 
 
-class TwoDSpectrumContainer:
+class TwoDSpectrumContainer(Saveable):
     """Class holding a set of TwoDSpectra
     
 
@@ -469,46 +470,46 @@ class TwoDSpectrumContainer:
         return TimeAxis(start, length, step) 
 
         
-    # FIXME: this through Savable
-    def save(self, filename):
-        """Saves the whole object into file
-        
-        
-        """
-        with energy_units("int"):
-            with h5py.File(filename,"w") as f:
-                self._save_axis(f,"t2axis",self.t2axis)
-                rt = self._create_root_group(f, "spectra")            
-                for sp in self.get_spectra():
-                    t2 = sp.get_t2
-                    rgname = "spectrum_"+str(t2)
-                    srt = sp._create_root_group(rt,rgname)
-                    sp._save_attributes(srt)
-                    sp._save_data(srt)
-                    sp._save_axis(srt,"xaxis",sp.xaxis,)
-                    sp._save_axis(srt,"yaxis",sp.yaxis)
-            
-      
-    # FIXME: this through Savable    
-    def load(self, filename):
-        """Loads the whole object from a file
-        
-        
-        """
-        with energy_units("int"):
-            with h5py.File(filename,"r") as f:
-                self.t2axis = self._load_axis(f, "t2axis")
-                rt = f["spectra"]
-                for key in rt.keys():
-                    sp = TwoDSpectrum()
-                    srt = rt[key]
-                    sp._load_attributes(srt)
-                    sp._load_data(srt)
-                    sp.xaxis = sp._load_axis(srt,"xaxis")
-                    sp.yaxis = sp._load_axis(srt,"yaxis")
-                    
-                    self.set_spectrum(sp)
-
+#    # FIXME: this through Savable
+#    def save(self, filename):
+#        """Saves the whole object into file
+#        
+#        
+#        """
+#        with energy_units("int"):
+#            with h5py.File(filename,"w") as f:
+#                self._save_axis(f,"t2axis",self.t2axis)
+#                rt = self._create_root_group(f, "spectra")            
+#                for sp in self.get_spectra():
+#                    t2 = sp.get_t2
+#                    rgname = "spectrum_"+str(t2)
+#                    srt = sp._create_root_group(rt,rgname)
+#                    sp._save_attributes(srt)
+#                    sp._save_data(srt)
+#                    sp._save_axis(srt,"xaxis",sp.xaxis,)
+#                    sp._save_axis(srt,"yaxis",sp.yaxis)
+#            
+#      
+#    # FIXME: this through Savable    
+#    def load(self, filename):
+#        """Loads the whole object from a file
+#        
+#        
+#        """
+#        with energy_units("int"):
+#            with h5py.File(filename,"r") as f:
+#                self.t2axis = self._load_axis(f, "t2axis")
+#                rt = f["spectra"]
+#                for key in rt.keys():
+#                    sp = TwoDSpectrum()
+#                    srt = rt[key]
+#                    sp._load_attributes(srt)
+#                    sp._load_data(srt)
+#                    sp.xaxis = sp._load_axis(srt,"xaxis")
+#                    sp.yaxis = sp._load_axis(srt,"yaxis")
+#                    
+#                    self.set_spectrum(sp)
+#
 
     def trimall_to(self, window=None):
         """Trims all spectra in the container

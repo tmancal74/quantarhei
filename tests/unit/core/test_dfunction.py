@@ -2,7 +2,8 @@
 
 import unittest
 import numpy
-import h5py
+#import h5py
+import tempfile
 
 from quantarhei import DFunction, FrequencyAxis
 
@@ -24,13 +25,14 @@ class TestDFunction(unittest.TestCase):
         
         #fce.plot()
 
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
+        #with h5py.File("test_file_1",driver="core", 
+        #                   backing_store=False) as f:
+        with tempfile.TemporaryFile() as f:
         
             fce.save(f, test=True)
         
             fce2 = DFunction()
-            fce2.load(f, test=True)
+            fce2 = fce2.load(f, test=True)
         
         #fce2.plot()
         
@@ -39,8 +41,6 @@ class TestDFunction(unittest.TestCase):
         
     def test_dfunction_saveable_2(self):
         """Testing if DFunction can save spline initiated object correctly
-        
-        "Correctly" means that it saves it as un-initiated
         
         """
         
@@ -57,23 +57,24 @@ class TestDFunction(unittest.TestCase):
 #        print(val_mez_linear)
 #        print(val_mez_spline)
 
-        with h5py.File("test_file_1",driver="core", 
-                           backing_store=False) as f:
+        #with h5py.File("test_file_1",driver="core", 
+        #                   backing_store=False) as f:
+        with tempfile.TemporaryFile() as f:
         
             fce.save(f, test=True)
         
             fce2 = DFunction()
-            fce2.load(f, test=True)
+            fce2 = fce2.load(f, test=True)
 
         self.assertEqual(fce._splines_initialized, True)
-        self.assertEqual(fce2._splines_initialized, False)
+        self.assertEqual(fce2._splines_initialized, True)
             
         new_mez_linear = fce2.at(20.5)
         new_mez_spline = fce2.at(20.5, approx="spline")
 #        print(new_mez_linear)
 #        print(new_mez_spline)
 
-        self.assertEqual(val_mez_linear, new_mez_linear)
+        self.assertEqual(val_mez_spline, new_mez_linear)
         self.assertEqual(val_mez_spline, new_mez_spline)
         self.assertEqual(fce._splines_initialized, fce2._splines_initialized)
         numpy.testing.assert_array_equal(fce.data, fce2.data)

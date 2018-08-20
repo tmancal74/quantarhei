@@ -11,7 +11,7 @@ import unittest
 *******************************************************************************
 """
 import numpy
-import h5py
+#import h5py
 import copy
 
 from quantarhei.spectroscopy.fluorescence import FluorSpectrumBase, FluorSpectrumContainer
@@ -135,14 +135,17 @@ class TestFluor(unittest.TestCase):
         """Testing if FluorSpectrumContainer is saveable
         
         """
+        import tempfile
         fluor1 = self.fluor1
         cntnr = FluorSpectrumContainer()
         cntnr.set_spectrum(fluor1, tag='tester')
         
-        cntnr.save('tempfile', test=True)
+        with tempfile.TemporaryFile() as f:
+            cntnr.save(f)
+            f.seek(0)
             
-        fluor2 = FluorSpectrumContainer()
-        fluor2.load('tempfile')
+            fluor2 = FluorSpectrumContainer()
+            fluor2 = fluor2.load(f)
 
         data2 = fluor2.get_spectrum(tag='tester').data
         

@@ -92,16 +92,19 @@ class TestReducedDensityMatrix(unittest.TestCase):
                                          [0.0, 0.3, 0.0],
                                          [0.1, 0.0, 0.2]])
                          
-        import h5py
+        #import h5py
               
-        with h5py.File("test_file_operators",driver="core", 
-                           backing_store=False) as fid:
+        #with h5py.File("test_file_operators",driver="core", 
+        #                   backing_store=False) as fid:
+        import tempfile
+        with tempfile.TemporaryFile() as fid:
             
-            rdm.save(fid, test=True)
+            rdm.save(fid) #, test=True)
+            fid.seek(0)
             
             rdm2 = ReducedDensityMatrix()
             
-            rdm2.load(fid, test=True)
+            rdm2 = rdm2.load(fid) #, test=True)
         
         self.assertTrue(numpy.allclose(rdm2.data,rdm.data))
                                     

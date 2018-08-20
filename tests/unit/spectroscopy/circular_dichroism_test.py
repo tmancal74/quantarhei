@@ -12,7 +12,7 @@ import copy
 *******************************************************************************
 """
 import numpy
-import h5py
+#import h5py
 
 from quantarhei.spectroscopy.circular_dichroism import CircDichSpectrumBase, CircDichSpectrumContainer
 from quantarhei import FrequencyAxis
@@ -144,14 +144,16 @@ class TestCircDich(unittest.TestCase):
     def test_circdich_spectrum_saveablity(self):
         """Testing if CircDichSpectrumContainer is saveable
         """
+        import tempfile
         circdich1 = self.circdich1
         cntnr = CircDichSpectrumContainer()
         cntnr.set_spectrum(circdich1, tag='tester')
         
-        cntnr.save('tempfile', test=True)
-            
-        circdich2 = CircDichSpectrumContainer()
-        circdich2.load('tempfile')
+        with tempfile.TemporaryFile() as f:
+            cntnr.save(f)
+            f.seek(0)
+            circdich2 = CircDichSpectrumContainer()
+            circdich2 = circdich2.load(f)
 
         data2 = circdich2.get_spectrum(tag='tester').data
         

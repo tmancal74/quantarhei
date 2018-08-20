@@ -1,6 +1,5 @@
 scipy
 numpy>=1.14.0
-h5py
 matplotlib
 terminaltables==3.1.0
 gherkin-official

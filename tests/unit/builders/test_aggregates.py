@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import h5py
+#import h5py
+import tempfile
 import numpy
 
 """
@@ -91,25 +92,28 @@ class AggregateTest(unittest.TestCase):
         
         if use_temporary_file: 
             
-            drv = "core"
-            bcs = False
+            #drv = "core"
+            #bcs = False
         
-            with h5py.File('tempfile.hdf5', 
-                           driver=drv, 
-                           backing_store=bcs) as f:
+            #with h5py.File('tempfile.hdf5', 
+            #               driver=drv, 
+            #               backing_store=bcs) as f:
+            with tempfile.TemporaryFile() as f:
                                              
-                self.agg.save(f,report_unsaved=True)
+                self.agg.save(f, test=True) #,report_unsaved=True)
                 
                 # reread it
                 agg = Aggregate()
-                agg.load(f)
+                agg = agg.load(f, test=True)
 
         else:
 
-            with h5py.File('tempfile.hdf5') as f:                                           
+            #with h5py.File('tempfile.hdf5') as f:
+            with open('tempfile.qrp','wb') as f:                                           
                 self.agg.save(f)
             
-            with h5py.File('tempfile.hdf5') as f:
+            #with h5py.File('tempfile.hdf5') as f:
+            with open('tempfile.qrp','rb') as f:
                 agg = Aggregate()
                 agg.load(f)
             

@@ -113,3 +113,5 @@ def check_parcel(filename):
                     comment=obj.comment)
     else:
         raise Exception("The file does not represent a Quantarhei parcel")    
+
+    

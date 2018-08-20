@@ -77,13 +77,13 @@ if _show_plots_:
 #<indent incr=4>    
 
 
-filename = os.path.join(wdir, "abs_1mol_20cm_100fs_100K_m20.hdf5")
+filename = os.path.join(wdir, "abs_1mol_20cm_100fs_100K_m20.qrp")
 with qr.frequency_units("1/cm"):
     a1.save(filename)
  
 with qr.frequency_units("1/cm"):
     f = qr.AbsSpectrum()
-    f.load(filename)
+    f = f.load(filename)
 
 #<remove>
     if _show_plots_:
@@ -152,10 +152,10 @@ with e_units:
     a2 = ac2.calculate()
     a3 = ac3.calculate()
 
-filename = os.path.join(wdir, "spectrum_a3.hdf5")
+filename = os.path.join(wdir, "spectrum_a3.qrp")
 a3.save(filename)  
 a4 = qr.AbsSpectrum()
-a4.load(filename)
+a4 = a4.load(filename)
 
 #<remove>
 if _show_plots_:
@@ -289,7 +289,7 @@ if _show_plots_:
 #<indent incr=4>
       
 filename1 = os.path.join(wdir, "abs_3mol_20cm_60fs_100K_m20")
-filename2 = os.path.join(wdir, "container.hdf5")
+filename2 = os.path.join(wdir, "container.qrp")
 
 with e_units:
     a2.save_data(filename1, ext="dat")
@@ -303,7 +303,7 @@ with e_units:
     ACont.save(filename2)
     
     Cont2 = qr.AbsSpectrumContainer()
-    Cont2.load(filename2)
+    Cont2 = Cont2.load(filename2)
     
     a6 = Cont2.get_spectrum(1)
 
