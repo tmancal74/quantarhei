@@ -95,6 +95,12 @@ test:
 plot_tests: 
 	paver matplotlib_tests
 
+####################
+# Update examples  #
+####################
+update_examples:
+	cd examples; python admin/make_demos.py
+
 
 pylint:
 	paver pylint
@@ -114,6 +120,7 @@ help:
 	@echo "test        ... run tests"
 	@echo "sdist       ... create distribution"
 	@echo "clean       ... clean the repository"
+	@echo "examples    ... updates examples"
 	@echo ""
 	@echo "Git tasks: "
 	@echo "----------"
