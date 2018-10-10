@@ -222,15 +222,21 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     relt: relaxation tensor
         Relaxation tensor of the system
         
+    mode: str 
+        Mode of information storage. It can be "all" which means that all
+        points of the evolution are stored, or it can be "jit" = just in (one)
+        time. In the "jit" mode, only the "present" time of the evolution
+        operator is stored.
     
     """
     
-    def __init__(self, time=None, ham=None, relt=None):
+    def __init__(self, time=None, ham=None, relt=None, mode="all"):
         super().__init__()
         
         self.time = time
         self.ham = ham
         self.relt = relt
+        self.mode = mode
         try:
             self.dim = ham.dim
         except:
@@ -238,14 +244,23 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         self.dense_time = None
         self.set_dense_dt(1)
-        
-        try:
-            Nt = self.time.length
-        except:
-            Nt = 1
             
-        self.data = numpy.zeros((Nt, self.dim, self.dim, self.dim, self.dim),
-                                dtype=qr.COMPLEX)
+        self.data = numpy.zeros((self.dim, self.dim, self.dim, self.dim),
+                                dtype=qr.COMPLEX) 
+        #
+        # zero time value (unity superoperator)
+        #
+        dim = self.dim
+        for i in range(dim):
+            for j in range(dim):
+                self.data[i,j,i,j] = 1.0
+                
+        self.now = 0
+        
+        if self.mode == "jit":
+            self.Udt = numpy.zeros((self.dim, self.dim, self.dim, self.dim),
+                                   dtype=qr.COMPLEX)
+        
 
     def get_Hamiltonian(self):
         """Returns the Hamiltonian associated with thise evolution
@@ -292,14 +307,15 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         
         """
-
+        if self.mode != "all":
+            raise Exception("This method (calculate()) can be used only"+
+                            " with mode='all'")
         Nt = self.time.length
         
         #
         # Create new data
         #
-        if self.dim != self.data.shape[0]:
-            self.data = numpy.zeros((Nt, self.dim, self.dim,
+        self.data = numpy.zeros((Nt, self.dim, self.dim,
                                      self.dim, self.dim),
                                     dtype=qr.COMPLEX)
             
@@ -331,6 +347,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 rhot = prop.propagate(rhonm0)
                 Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
                 rhonm0.data[n,m] = 0.0
+                self.now += 1
 
 
         #
@@ -355,23 +372,89 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if show_progress:
             print("...done")
                     
-                    
-    def at(self, time):
+            
+    def calculate_next(self):
+        """Calculates one point of data of the superopetor
+        
+        """
+        
+        if self.mode != "jit":
+            raise Exception("This method (calculate_next()) can be used only"+
+                            " with mode='jit'")
+
+        #
+        # Propagation in the first interval
+        #
+        if self.now == 0:
+            #
+            # Create new data
+            #
+            if self.dim != self.data.shape[0]:
+                self.data = numpy.zeros((self.dim, self.dim,
+                                         self.dim, self.dim),
+                                        dtype=qr.COMPLEX)
+    
+            #
+            # zero time value (unity superoperator)
+            #
+            dim = self.dim
+            for i in range(dim):
+                for j in range(dim):
+                    self.data[i,j,i,j] = 1.0
+
+            one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
+            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
+                                              self.relt)
+            rhonm0 = ReducedDensityMatrix(dim=dim)
+            Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+            for n in range(dim):
+                for m in range(dim):
+                    rhonm0.data[n,m] = 1.0
+                    rhot = prop.propagate(rhonm0)
+                    Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                    rhonm0.data[n,m] = 0.0
+
+            #
+            # propagation to the end of the first interval
+            #
+            Udt = Ut1
+            for ti in range(2, self.dense_time.length):
+                Udt = numpy.tensordot(Ut1, Udt)
+            self.Udt = Udt
+            
+            self.data[:,:,:,:] = self.Udt[:,:,:,:]
+            
+            self.now += 1
+        
+        #
+        # Propagations of the later intervals
+        #
+        else:
+            self.data[:,:,:,:] = \
+                numpy.tensordot(self.Udt, self.data[:,:,:,:])
+            self.now += 1
+
+
+    def at(self, time=None):
         """Retruns evolution superoperator tensor at a given time
         
         
         Parameters
         ----------
         
-        time : float
-            Time (in fs) at which the tensor should be returned
+        time : float, None
+            Time (in fs) at which the tensor should be returned. If time is
+            None, the whole data object is returned
             
             
         """
 
-        ti, dt = self.time.locate(time)
+        if time is not None:
+            ti, dt = self.time.locate(time)
 
-        return SuperOperator(data=self.data[ti, :, :, :, :])
+            return SuperOperator(data=self.data[ti, :, :, :, :])
+        else:
+            return SuperOperator(data=self.data)
 
           
     def apply(self, time, target, copy=True):
