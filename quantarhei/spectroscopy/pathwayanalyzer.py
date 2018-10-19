@@ -402,4 +402,42 @@ def select_sign(pathways, sign):
     
     return selected
 
+ 
+def select_by_states(pathways, states):
+    """Returns one pathway which goes through a given pattern of states 
     
+    Returns unique pathway which goes through a given pattern of states
+    or does not return anything
+    
+    Parameters
+    ----------
+    
+    pathways : list, tuple
+        List of tuple of states to analyze
+        
+    states : list, tuple
+        List of dyads which describe the states involved in a given Liouville
+        pathway. States are listed from left to right, from bottom to the top
+        
+    
+    
+    """
+    
+    for pw in pathways:
+        
+        print(pw.states.shape[0])
+        ch = -1
+        for k in range(pw.states.shape[0]):
+            print(pw.states[k,0], pw.states[k, 1], states[k][0], states[k][1])
+            if not ((pw.states[k, 0] == states[k][0]) &
+                    (pw.states[k, 1] == states[k][1])):
+                break
+            
+            ch += 1
+            
+        print(ch, k)
+        if ch == k:
+            return pw
+        
+
+                
