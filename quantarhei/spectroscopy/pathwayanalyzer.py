@@ -26,6 +26,8 @@ from ..core.managers import UnitsManaged, Manager
 from ..core.wrappers import deprecated
 
 from ..core.units import cm2int
+from ..core.parcel import load_parcel
+from .. import REAL, COMPLEX
 
 class LiouvillePathwayAnalyzer(UnitsManaged):
     """Class providing methods for Liouville pathway analysis
@@ -408,6 +410,30 @@ def select_by_states(pathways, states):
     
     Returns unique pathway which goes through a given pattern of states
     or does not return anything
+
+    The following diagram 
+
+            |12       12|  
+        --->|-----------|  
+            |           |  
+            |48       12|      2.0
+        --->|-----------|  
+            |           |  
+            |21       12|      0.0
+          >>|***********|<< 
+            |           | 
+            |6         6|      0.0
+        --->|-----------|  
+            |           |  
+            |0         6|      -2.0
+            |-----------|<---  
+            |           |  
+            |0         0|  
+    
+    turns into the following tuple
+    
+    ((0,0), (0,6), (6,6), (21, 12), (48, 12), (12,12))
+    
     
     Parameters
     ----------
@@ -422,22 +448,147 @@ def select_by_states(pathways, states):
     
     
     """
-    
+
+    # loop over all pathways
     for pw in pathways:
-        
-        print(pw.states.shape[0])
+
         ch = -1
+        # loop over the Feynman diagram
         for k in range(pw.states.shape[0]):
-            print(pw.states[k,0], pw.states[k, 1], states[k][0], states[k][1])
-            if not ((pw.states[k, 0] == states[k][0]) &
-                    (pw.states[k, 1] == states[k][1])):
+            
+            # check if prescribed states match the pathway states
+            if not ((pw.states[k, 0] == states[k+1][0]) &
+                    (pw.states[k, 1] == states[k+1][1])):
+                # leave if there is a mismatch
                 break
             
             ch += 1
             
-        print(ch, k)
+        # if all lines match, return the pathway
         if ch == k:
             return pw
         
 
+def look_for_pathways(name="pathways", ext="qrp", check=False, directory="."):
+    """Load pathways by t2
+    
+    """
+    
+    # get all files with the name_*.ext pattern
+    import glob
+    import os.path
+    
+    path = os.path.join(directory,name+"_*."+ext)
+    files = glob.glob(path)
+
+    # get a list of t2s
+    t2s = []
+    for fl in files:
+        t2 = float(fl.split("_")[1].split("."+ext)[0])
+        t2s.append(t2)
+    
+    t2s = numpy.array(t2s)
+    t2s = numpy.sort(t2s)
+    # if check == True load them all and check they are list of pathways
+    if check:
+        pass
+    
+    
+    return t2s
+
+
+def load_pathways_by_t2(t2, name="pathways", ext="qrp", directory=".",
+                        tag_type=REAL):
+    """Load pathways by t2 time
+    
+    """
+    
+    t2_str = str(t2)
+    fname = name+"_"+t2_str+"."+ext
+    #print(fname)
+    try:
+        pw = load_parcel(fname)
+    except:
+        print("Error while loading")
+        return []
+    
+    return pw
+
+
+def save_pathways_by_t2(t2, name="pathways", ext="qrp", directory=".",
+                        tag_type=REAL):
+    pass
+
+
+# FIXME: This is done in an inefficient way, loading the files multiply
+def get_evolution_from_saved_pathways(states, name="pathways", ext="qrp", 
+                                      directory=".", tag_type=REAL, repl=0.0):
+    """Reconstructs the evolution of the pathway contribution in t2 time
+    
+    """
+    t2s = look_for_pathways(name=name, ext=ext)
+   
+
+    # order t2s
+    t2s = numpy.sort(t2s)
+    evol = _get_evol(t2s, states, name, ext, repl=repl)
+        
+    return t2s, evol
+
+         
+        
+def _is_tuple_of_dyads(states):
+    """Check if the object is a tuple or list of dyads
+    
+    """
+    
+    def _is_a_dyad(dd):
+        return len(dd) == 2
+    
+    ret = False
+    for st in states:
+        if _is_a_dyad(st):
+            ret = True
+        else:
+            ret = False
+            break
+        
+    return ret
+
+
+def _get_evol(t2s, states, name, ext, repl=0.0):
+    """Return evolution of a single pathway
+    
+    """
+    
+    N = 1
+    if _is_tuple_of_dyads(states):
+        evol = numpy.zeros(len(t2s), dtype=COMPLEX)
+    else:
+        N = len(states)
+        evol = numpy.zeros((len(t2s),N), dtype=COMPLEX)
+        
+    k = 0
+    for t2 in t2s:
+        #print(t2)
+        pws = load_pathways_by_t2(t2, name=name, ext=ext)
+        
+        if N == 1:
+            pw = select_by_states(pws, states)
+            if pw is None:
+                evol[k] = repl
+            else:
+                evol[k] = pw.pref
+        else:
+            l = 0
+            for st in states:
+                pw = select_by_states(pws, st)
+                if pw is None:
+                    evol[k,l] = repl
+                else:
+                    evol[k,l] = pw.pref
+                l += 1
                 
+        k += 1
+    
+    return evol
