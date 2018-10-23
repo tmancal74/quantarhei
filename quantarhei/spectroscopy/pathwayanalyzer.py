@@ -272,6 +272,25 @@ def max_amplitude(pathways):
 def select_amplitude_GT(val, pathways, verbose=False):
     """Select all pathways with abs value of prefactors greater than a value
     
+    Parameters
+    ----------
+    
+    val : float
+        Value to compare with the pathway prefactor
+        
+    pathways : list of pathways
+        List of the Liouville pathways to analyze
+        
+    verbose: bool
+        If set True, number of selected pathways is reported
+        
+        
+    Returns
+    -------
+    
+    selected : list
+        List of selected pathways
+        
     """
     
     pthways = pathways
