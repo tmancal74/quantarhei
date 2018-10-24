@@ -45,6 +45,9 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         """
         self.data = data
         
+    def add_data(self, data):
+        self.data += data
+        
     def set_by_interpolation(self, x, y, xaxis="frequency"):
         
         from scipy import interpolate

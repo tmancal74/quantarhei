@@ -1178,7 +1178,160 @@ class Molecule(UnitsManaged, Saveable):
                            self.modes[m1].get_nmax(n))
             
         return out
+
+      
+    def liouville_pathways_1(self, eUt=None, ham=None, dtol=0.01, ptol=1.0e-3,
+                             etol=1.0e-6, verbose=0, lab=None):
+        """ Generator of the first order Liouville pathways 
         
+        
+        Generator of the pathways for an absorption spectrum
+        calculation.
+        
+        
+        
+        Parameters
+        ----------
+        
+            
+        eUt : EvolutionSuperOperator
+            Evolution superoperator representing the evolution of optical
+            coherence in the system 
+            
+            
+        dtol : float
+            Minimum acceptable strength of the transition from ground
+            to excited state, relative to the maximum dipole strength 
+            available in the system
+            
+        ptol : float
+            Minimum acceptable population of the ground state (e.g. states
+            not thermally populated are excluded)
+
+        lab : LaboratorySetup
+            Object representing laboratory setup - number of pulses, 
+            polarization etc.
+            
+        Returns
+        -------
+        
+        lst : list
+            List of LiouvillePathway objects
+            
+            
+        """
+        if self._diagonalized:
+            if verbose > 0:
+                print("Diagonalizing aggregate")
+            self.diagonalize()
+            if verbose > 0:
+                print("..done")
+        
+        pop_tol = ptol
+        dip_tol = numpy.sqrt(self.D2_max)*dtol
+        evf_tol = etol
+                        
+        if eUt is None:
+            
+            # secular absorption spectrum calculation
+            eUt2_dat = None
+            sec = True
+        
+        else:
+            
+            raise Exception("Not implemented yet")
+
+        lst = []        
+
+        if sec:
+            generate_1orderP_sec(self, lst,
+                                 pop_tol, dip_tol, verbose)
+        else:
+            raise Exception("Not implemented yet")                                
+        
+        if lab is not None:
+            for l in lst:
+                l.orientational_averaging(lab)
+         
+        return lst   
+
+def generate_1orderP_sec(self, lst,
+                         pop_tol, dip_tol, verbose):
+    
+    ngs = (0) # self.get_electronic_groundstate()
+    nes = (1) #self.get_excitonic_band(band=1)
+    
+    if verbose > 0:
+        print("Liouville pathway of first order")
+        print("Population tolerance: ", pop_tol)
+        print("Dipole tolerance:     ", dip_tol)
+
+    k = 0
+    l = 0
+    for i1g in ngs:
+
+        if verbose > 0: 
+            print("Ground state: ", i1g, "of", len(ngs))
+        
+        # Only thermally allowed starting states are considered
+        if True: #self.rho0[i1g,i1g] > pop_tol:
+    
+            D2 = numpy.dot(self.dmoments[0,1,:], self.dmoments[0,1,:])
+            for i2e in nes:
+                
+                if D2 > dip_tol: #self.D2[i2e,i1g] > dip_tol:
+                
+                                
+                    l += 1
+                                
+
+                    #      Diagram P1
+                    #
+                    #                                     
+                    #      |g_i1> <g_i1|
+                    # <----|-----------|
+                    #      |e_i2> <g_i1|
+                    # ---->|-----------|
+                    #      |g_i1> <g_i1|
+
+                    try:
+                        if verbose > 5:
+                            print(" * Generating P1", i1g, i2e)
+
+                        lp = \
+                        diag.liouville_pathway("NR",
+                                               i1g,
+                                    aggregate=self,
+                                    order=1,pname="P1",
+                                    popt_band=1,
+                                    relax_order=1)
+                        
+                        # first transition lineshape
+                        width1 = \
+                            self.get_transition_width((i2e, i1g))
+                        deph1 = \
+                            self.get_transition_dephasing((i2e, 
+                                               i1g))
+                        
+                        #      |g_i1> <g_i1|                                                           
+                        lp.add_transition((i2e,i1g),+1,
+                                          interval=1, 
+                                          width=width1, 
+                                          deph=deph1)
+                        #      |e_i2> <g_i1|
+                        lp.add_transition((i1g,i2e),+1,
+                                          interval=1, 
+                                          width=width1, 
+                                          deph=deph1)
+                        #      |g_i1> <g_i1|
+
+                    except:
+                        
+                        break
+                    
+                    lp.build()
+                    lst.append(lp)
+                    k += 1
 
 def PiMolecule(Molecule):
     

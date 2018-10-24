@@ -398,12 +398,17 @@ class liouville_pathway(UnitsManaged):
         
         d = self.dmoments
         
-        self.F4n[0] = numpy.dot(d[3,:],d[2,:])*numpy.dot(d[1,:],d[0,:])
-        self.F4n[1] = numpy.dot(d[3,:],d[1,:])*numpy.dot(d[2,:],d[0,:])
-        self.F4n[2] = numpy.dot(d[3,:],d[0,:])*numpy.dot(d[2,:],d[1,:]) 
+        if self.order == 3:
+            self.F4n[0] = numpy.dot(d[3,:],d[2,:])*numpy.dot(d[1,:],d[0,:])
+            self.F4n[1] = numpy.dot(d[3,:],d[1,:])*numpy.dot(d[2,:],d[0,:])
+            self.F4n[2] = numpy.dot(d[3,:],d[0,:])*numpy.dot(d[2,:],d[1,:]) 
         
-        self.sign = numpy.prod(self.sides)
-        
+            self.sign = numpy.prod(self.sides)
+            
+        elif self.order == 1:
+            self.or_av_1 = (1.0/3.0)*numpy.dot(d[0,:], d[1,:])
+            self.sign = 1.0
+            
         self.built = True
         
         
@@ -428,8 +433,12 @@ class liouville_pathway(UnitsManaged):
         """
         # weight in the initial state of the first transition
         n0 = self.transitions[0,1]
-        self.pref = self.sign*(numpy.dot(lab.F4eM4,self.F4n)
-        *numpy.real(self.aggregate.rho0[n0,n0]))*self.evolfac 
+        
+        if self.order == 3:
+            self.pref = self.sign*(numpy.dot(lab.F4eM4,self.F4n)
+            *numpy.real(self.aggregate.rho0[n0,n0]))*self.evolfac 
+        elif self.order == 1:
+            self.pref = numpy.real(self.aggregate.rho0[n0,n0])*self.or_av_1
         
     
     def get_transition_energy(self,n):

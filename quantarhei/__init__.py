@@ -201,6 +201,7 @@ from .core.parallel import block_distributed_range
 from .spectroscopy.abs2 import AbsSpectrum
 from .spectroscopy.abscontainer import AbsSpectrumContainer
 from .spectroscopy.abscalculator import AbsSpectrumCalculator
+from .spectroscopy.mockabscalculator import MockAbsSpectrumCalculator
 #
 # Fluorescence
 #

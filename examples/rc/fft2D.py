@@ -114,6 +114,24 @@ print("and ", agg2.Ntot, " (electro-vibrational) states in total")
 #
 # Electronic aggregate is built with single exciton states only
 #
+width = qr.convert(wincm, "1/cm", "int")
+PM = agg_el.get_Molecule_by_name("PM")
+PM.set_transition_width((0,1), width)
+PL = agg_el.get_Molecule_by_name("PL")
+PL.set_transition_width((0,1), width)
+
+width = qr.convert(wincm_B, "1/cm", "int")
+BM = agg_el.get_Molecule_by_name("BM")
+BM.set_transition_width((0,1), width)
+BL = agg_el.get_Molecule_by_name("BL")
+BL.set_transition_width((0,1), width)
+
+width = qr.convert(wincm, "1/cm", "int")
+PCT1 = agg_el.get_Molecule_by_name("PCT1")
+PCT1.set_transition_width((0,1), width)
+PCT2 = agg_el.get_Molecule_by_name("PCT2")
+PCT2.set_transition_width((0,1), width)
+print("Aggregate has ", agg_el.nmono, "single excited electronic states")
 agg_el.build(mult=1)
 HHe = agg_el.get_Hamiltonian()
 
@@ -187,12 +205,78 @@ LF_el = qr.qm.ElectronicLindbladForm(HHe, sbi_el, as_operators=True)
 
 
 # In[9]:
+#
+# Laboratory setup
+#
 
+from quantarhei import LabSetup
+from quantarhei.utils.vectors import X, Y, Z
+
+lab = LabSetup()
+lab.set_polarizations(pulse_polarizations=[X,X,X], detection_polarization=X)
 
 #
 # We define time axis for propagation
 # 
 time_axis = qr.TimeAxis(0.0, propagation_N_steps, propagation_dt)
+
+agg_el.diagonalize()
+
+#
+#  Absorption Spectrum by pathway method
+#
+
+mac = qr.MockAbsSpectrumCalculator(time_axis, system=agg_el)
+
+rho0 = agg_el.get_DensityMatrix(condition_type="thermal", temperature=0.0)
+ham = agg_el.get_Hamiltonian()
+
+pthways = agg_el.liouville_pathways_1(lab=lab, ham=ham, etol=1.0e-5,
+                                       verbose=0) 
+
+mac.bootstrap(rwa=qr.convert(12200.0,"1/cm","int"), 
+              shape="Gaussian")
+
+mac.set_pathways(pthways)
+
+abs1 = mac.calculate()
+abs1.normalize2(norm=0.53)
+
+#
+# Absorption by standard method
+#
+try:
+    abscalc = qr.load_parcel("../model/in/calcAbs.qrp")
+except:
+    pass
+#
+# Plotting absorption spectra
+#
+try:
+    absexp = qr.load_parcel("../model/in/bas_77K.qrp")
+
+    absexp.normalize()
+    absexp.subtract(0.086)
+    absexp.normalize2(norm=0.53)
+except:
+    pass
+
+plt.figure(1)
+with qr.energy_units("1/cm"):
+    abs1.plot(axis=[10500,15000, 0.0, 0.7], show=False)
+    try:
+        absexp.plot()
+    except:
+        pass
+    try:
+        abscalc.plot()
+    except:
+        pass
+    
+plt.savefig(os.path.join(pre_out,"abs1.png"))
+plt.close()
+raise Exception()
+
 
 #
 # and propagator which can propagate purely electronic and electro-vibrational systems
@@ -405,15 +489,7 @@ else:
 # In[17]:
 
 print("Calculating 2D spectra:")
-#
-# Laboratory setup
-#
 
-from quantarhei import LabSetup
-from quantarhei.utils.vectors import X, Y, Z
-
-lab = LabSetup()
-lab.set_polarizations(pulse_polarizations=[X,X,X], detection_polarization=X)
 
 #
 # Laser pulse weighting is on the way
@@ -440,6 +516,7 @@ print("Diagonalized in ", t2-t1, "s")
 # # Calculation of spectra at different $t_2$ times
 
 # In[19]:
+
 
 
 #
