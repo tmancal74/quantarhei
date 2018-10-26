@@ -82,7 +82,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         
         
-    def calculate(self):
+    def calculate(self, raw=False):
         """ Calculates the absorption spectrum 
         
         
@@ -92,7 +92,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             if self.system is not None:
                 if isinstance(self.system,Molecule):
                     #self._calculate_Molecule(rwa)      
-                    spect = self._calculate_monomer()
+                    spect = self._calculate_monomer(raw=raw)
                 elif isinstance(self.system,Aggregate):
                     spect = self._calculate_aggregate( 
                                               relaxation_tensor=
@@ -100,7 +100,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                                               rate_matrix=
                                               self._rate_matrix,
                                               relaxation_hamiltonian=
-                                              self._relaxation_hamiltonian)
+                                              self._relaxation_hamiltonian,
+                                              raw=raw)
             else:
                 raise Exception("System to calculate spectrum for not defined")
         
@@ -223,7 +224,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
 
 
         
-    def _calculate_monomer(self):
+    def _calculate_monomer(self, raw=False):
         """ Calculates the absorption spectrum of a monomer 
         
         
@@ -255,6 +256,11 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         st = self.frequencyAxis.data[Nt//2]
         # we represent the Frequency axis anew
         axis = FrequencyAxis(st,Nt,do)
+
+        # multiply the spectrum by frequency (compulsory prefactor)
+        if not raw:
+            data = axis.data*data
+
         
         spect = AbsSpectrum(axis=axis, data=data)
         
@@ -262,7 +268,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         
     def _calculate_aggregate(self, relaxation_tensor=None,
-                             relaxation_hamiltonian=None, rate_matrix=None):
+                             relaxation_hamiltonian=None, rate_matrix=None,
+                             raw=False):
         """ Calculates the absorption spectrum of a molecular aggregate
         
         
@@ -354,6 +361,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         # we represent the Frequency axis anew
         axis = FrequencyAxis(st,Nt,do)
         
+        # multiply the spectrum by frequency (compulsory prefactor)
+        if not raw:
+            data = axis.data*data
         
         # transform all quantities back
         S1 = numpy.linalg.inv(SS)
