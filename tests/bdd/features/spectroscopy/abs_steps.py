@@ -79,7 +79,7 @@ def absorption_spectrum_molecule(self):
     
     ac = AbsSpectrumCalculator(world.ta,m)
     ac.bootstrap(rwa=m.elenergies[1])
-    a1 = ac.calculate()
+    a1 = ac.calculate(raw=True)
     
     with energy_units("1/cm"):
         world.abs = numpy.zeros((len(a1.data),2))
@@ -127,7 +127,7 @@ def absorption_spectrum_dimer(self):
     ac = AbsSpectrumCalculator(world.ta,AG)
     with energy_units("1/cm"):
         ac.bootstrap(rwa=12000)
-        a1 = ac.calculate()
+        a1 = ac.calculate(raw=True)
     
     with energy_units("1/cm"):
         world.abs = numpy.zeros((len(a1.data),2))
@@ -182,7 +182,7 @@ def absorption_spectrum_trimer(self):
     
     with energy_units("1/cm"):
         ac.bootstrap(rwa=12000)
-        a1 = ac.calculate()
+        a1 = ac.calculate(raw=True)
     
     with energy_units("1/cm"):
         world.abs = numpy.zeros((len(a1.data),2))
