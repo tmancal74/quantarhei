@@ -89,7 +89,8 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         if shape == "Gaussian":
             o1 = self.oa1.data                    
                     
-            data[:] = pref*numpy.exp(-((o1-cen1)/widthx)**2)/(numpy.sqrt(3.14150)*widthx)
+            data[:] = pref*numpy.exp(-((o1-cen1)/widthx)**2) \
+                      /(numpy.sqrt(numpy.pi)*widthx)
             
             if not raw:
                 data = o1*data
@@ -98,7 +99,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         elif shape == "Lorentzian":
             o1 = self.oa1.data                    
                     
-            data[:] = pref*(dephx/3.14159)/((o1-cen1)**2 + dephx**2)
+            data[:] = pref*(dephx/numpy.pi)/((o1-cen1)**2 + dephx**2)
 
             if not raw:
                 data = o1*data

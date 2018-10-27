@@ -2428,7 +2428,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                         
                     reph2D[:, i1] = \
                     pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/widthy)**2)
+                        *numpy.exp(-((oo3-cen3)/widthy)**2)\
+                        /(numpy.pi*widthx*widthy)
             
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
@@ -2436,8 +2437,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     o1 = -self.oa1.data[i1]                    
                         
                     reph2D[:, i1] = \
-                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
-                        *(dephy/((oo3-cen3)**2 + dephy**2))
+                    pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
+                        *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
                         
             else:
                 raise Exception("Unknown line shape: "+shape)   
@@ -2455,7 +2456,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     
                     nonr2D[:, i1] = \
                     pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/widthy)**2)
+                        *numpy.exp(-((oo3-cen3)/widthy)**2)\
+                        /(numpy.pi*widthx*widthy)
                         
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
@@ -2463,8 +2465,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     o1 = self.oa1.data[i1]                    
                         
                     nonr2D[:, i1] = \
-                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
-                        *(dephy/((oo3-cen3)**2 + dephy**2))
+                    pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
+                        *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
 
             else:
                 raise Exception("Unknown line shape: "+shape)
