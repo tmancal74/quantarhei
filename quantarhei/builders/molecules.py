@@ -473,6 +473,7 @@ class Molecule(UnitsManaged, Saveable):
             return self.dmoments[N, M, :]
         except:
             raise Exception()
+
             
     def set_dipole(self, N, M, vec):
         if N == M:
@@ -482,6 +483,7 @@ class Molecule(UnitsManaged, Saveable):
             self.dmoments[M, N, :] = numpy.conj(vec)
         except:
             raise Exception()  
+
             
     def set_transition_width(self, transition, width):
         """Sets the width of a given transition
@@ -494,7 +496,8 @@ class Molecule(UnitsManaged, Saveable):
             Quantum numbers of the states between which the transition occurs
             
         width : float
-            The width of the transition
+            The full width at half maximum (FWHM) of a Gaussian lineshape,
+            or half width at half maximum (HWHM) of a Lorentzian lineshape
             
             
         """
@@ -506,6 +509,19 @@ class Molecule(UnitsManaged, Saveable):
 
 
     def get_transition_width(self, transition):
+        """Returns the transition width
+        
+        
+        Returns the full width at half maximum (FWHM) of a Gaussian lineshape,
+        or half width at half maximum (HWHM) of a Lorentzian lineshape
+        
+        Parameters
+        ----------
+        
+        transition : {tuple, list}
+            Quantum numbers of the states between which the transition occurs
+            
+        """
         
         if self.widths is None:
             return 0.0
@@ -536,6 +552,16 @@ class Molecule(UnitsManaged, Saveable):
 
 
     def get_transition_dephasing(self, transition):
+        """Returns the dephasing rate of a given transition
+        
+        
+        Parameters
+        ----------
+        
+        transition : {tuple, list}
+            Quantum numbers of the states between which the transition occurs
+            
+        """
         
         if self.dephs is None:
             return 0.0

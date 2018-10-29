@@ -69,8 +69,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             self._has_rate_matrix = True
             
         self.rwa = 0.0
-        
-    def bootstrap(self,rwa=0.0):
+
+     
+    def bootstrap(self,rwa=0.0, lab=None):
         """
         
         """
@@ -80,7 +81,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
             self.frequencyAxis.data += self.rwa     
         
-        
+        #if isinstance(self.system, Aggregate):
+        #    self.system.diagonalize()
+                    
         
     def calculate(self, raw=False):
         """ Calculates the absorption spectrum 
@@ -93,7 +96,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                 if isinstance(self.system,Molecule):
                     #self._calculate_Molecule(rwa)      
                     spect = self._calculate_monomer(raw=raw)
-                elif isinstance(self.system,Aggregate):
+                elif isinstance(self.system, Aggregate):
                     spect = self._calculate_aggregate( 
                                               relaxation_tensor=
                                               self._relaxation_tensor,
