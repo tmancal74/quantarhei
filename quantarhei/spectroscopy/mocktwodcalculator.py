@@ -6,6 +6,8 @@ from .twodcalculator import TwoDSpectrumCalculator
 from .twod2 import TwoDSpectrum
 from ..core.units import convert
 from .. import COMPLEX
+from .lineshapes import gaussian2D
+from .lineshapes import lorentzian2D
 
 class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
     """Calculator of the 2D spectrum from LiouvillePathway objects
@@ -130,7 +132,9 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         """Calculate the shape of a Liouville pathway
         
         """
- 
+        
+        oldv = False
+        
         noe = 1+pathway.order+pathway.relax_order 
         
         cen1 = pathway.frequency[0]
@@ -171,23 +175,42 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
-                for i1 in range(N1):
-                    o1 = -self.oa1.data[i1]                    
+                
+                if oldv:
+                    for i1 in range(N1):
+                        o1 = -self.oa1.data[i1]                    
                         
-                    reph2D[:, i1] = \
-                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/widthy)**2)\
-                        /(numpy.pi*widthx*widthy)
+                        reph2D[:, i1] = \
+                        pref*numpy.exp(-((o1-cen1)/widthx)**2)\
+                            *numpy.exp(-((oo3-cen3)/widthy)**2)\
+                            /(numpy.pi*widthx*widthy)
             
+                else:
+
+                    oo1 = -self.oa1.data[:]
+                    
+                    reph2D = pref*gaussian2D(oo1, cen1, widthx,
+                                             oo3, cen3, widthy)
+
+                    
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
-                for i1 in range(N1):
-                    o1 = -self.oa1.data[i1]                    
+                
+                if oldv:
+                    for i1 in range(N1):
+                        o1 = -self.oa1.data[i1]                    
                         
-                    reph2D[:, i1] = \
-                    pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
-                        *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
-                        
+                        reph2D[:, i1] = \
+                        pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
+                            *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
+                    
+                else:
+
+                    oo1 = -self.oa3.data[:]
+                    
+                    reph2D = pref*lorentzian2D(oo1, cen1, dephx,
+                                               oo3, cen3, dephy)
+                    
             else:
                 raise Exception("Unknown line shape: "+shape)   
             
@@ -199,22 +222,40 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
-                for i1 in range(N1):
-                    o1 = self.oa1.data[i1]                    
+                
+                if oldv:
+                    for i1 in range(N1):
+                        o1 = self.oa1.data[i1]                    
                     
-                    nonr2D[:, i1] = \
-                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/widthy)**2)\
-                        /(numpy.pi*widthx*widthy)
+                        nonr2D[:, i1] = \
+                        pref*numpy.exp(-((o1-cen1)/widthx)**2)\
+                            *numpy.exp(-((oo3-cen3)/widthy)**2)\
+                            /(numpy.pi*widthx*widthy)
+                            
+                else:
+
+                    oo1 = self.oa1.data[:]
+                    
+                    reph2D = pref*gaussian2D(oo1, cen1, widthx,
+                                             oo3, cen3, widthy)
                         
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
-                for i1 in range(N1):
-                    o1 = self.oa1.data[i1]                    
+                
+                if oldv:
+                    for i1 in range(N1):
+                        o1 = self.oa1.data[i1]                    
                         
-                    nonr2D[:, i1] = \
-                    pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
-                        *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
+                        nonr2D[:, i1] = \
+                        pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
+                            *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
+                            
+                else:
+
+                    oo1 = self.oa3.data[:]
+                    
+                    reph2D = pref*lorentzian2D(oo1, cen1, dephx,
+                                               oo3, cen3, dephy)
 
             else:
                 raise Exception("Unknown line shape: "+shape)

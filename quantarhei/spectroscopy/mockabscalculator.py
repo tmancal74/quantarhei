@@ -155,7 +155,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
             
             #z = (o1 - cen1 + 1j*dephx)*numpy.sqrt(numpy.log(2.0))/widthx
             
-            data[:] = pref*lineshapes.voigt(o1, widthx, dephx)
+            data[:] = pref*lineshapes.voigt(o1, cen1, widthx, dephx)
                       #numpy.sqrt(numpy.log(2.0))*\
                       #numpy.real(special.wofz(z)) \
                       #/(numpy.sqrt(numpy.pi)*widthx)
