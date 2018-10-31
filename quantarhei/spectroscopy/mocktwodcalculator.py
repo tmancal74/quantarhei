@@ -206,7 +206,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     
                 else:
 
-                    oo1 = -self.oa3.data[:]
+                    oo1 = -self.oa1.data[:]
                     
                     reph2D = pref*lorentzian2D(oo1, cen1, dephx,
                                                oo3, cen3, dephy)
@@ -234,7 +234,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                             
                 else:
 
-                    oo1 = self.oa1.data[:]
+                    oo1 = self.oa1.data[:]                    
                     
                     reph2D = pref*gaussian2D(oo1, cen1, widthx,
                                              oo3, cen3, widthy)
@@ -252,7 +252,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                             
                 else:
 
-                    oo1 = self.oa3.data[:]
+                    oo1 = self.oa1.data[:]
                     
                     reph2D = pref*lorentzian2D(oo1, cen1, dephx,
                                                oo3, cen3, dephy)
