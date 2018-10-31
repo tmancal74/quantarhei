@@ -225,8 +225,8 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 from .spectroscopy.twod2 import TwoDSpectrum
 from .spectroscopy.twodcontainer import TwoDSpectrumContainer
-from .spectroscopy.twod2 import TwoDSpectrumCalculator
-from .spectroscopy.twod2 import MockTwoDSpectrumCalculator
+from .spectroscopy.twodcalculator import TwoDSpectrumCalculator
+from .spectroscopy.mocktwodcalculator import MockTwoDSpectrumCalculator
 
 
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
