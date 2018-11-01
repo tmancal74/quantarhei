@@ -60,12 +60,19 @@ and
 through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
 
 
-New in 0.0.42
+New in 0.0.43
 =============
 
 For users:
  - Some bug fixes
+ 
+New in 0.0.42
+=============
 
+For users:
+ - Improved effective lineshapes for 2D spectrum calculations
+ - Calculation of absorption spectrum using forst order Liouville pathways
+ - Some bug fixes including an frequency factor in absorption spectrum
 
 New in 0.0.41
 =============
