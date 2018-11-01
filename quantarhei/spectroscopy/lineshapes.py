@@ -52,10 +52,11 @@ def cvoigt(omega, cent, delta, gamma=0.0):
     """Complex normalized Voigt line shape
     
     """
-    fac = 2.0*numpy.sqrt(numpy.log(2.0))/delta
-    z = (gamma - 1j*(omega - cent))/fac
+    a = (delta**2)/(4.0*numpy.log(2))
+    z = (gamma - 1j*(omega - cent))/(2.0*numpy.sqrt(a))
     
-    return special.erfcx(z)/(numpy.sqrt(numpy.pi)*fac)
+    
+    return numpy.real(special.erfcx(z))*numpy.sqrt(numpy.pi/a)/2.0
 
 
 ###############################################################################
@@ -91,7 +92,7 @@ def voigt2D(omega1, cent1, delta1, gamma1,
         data = numpy.zeros((N1, N2), dtype=COMPLEX)  
 
         for k in range(N1):
-            data[k, :] = dat1[k]*dat2[:]
+            data[:, k] = dat1[k]*dat2[:]
         
     else:
         
