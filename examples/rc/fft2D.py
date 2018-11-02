@@ -65,7 +65,7 @@ agg = qr.load_parcel(os.path.join(pre_in,
                                   "fraction_45_2_vibrations_CT_unbuilt.qrp"))
 agg2 = qr.load_parcel(os.path.join(pre_in,
                                    "fraction_45_2_vibrations_CT_unbuilt.qrp"))
-agg_el = qr.load_parcel(os.path.join(pre_in,"fraction_40_4_CT_unbuilt.qrp"))   
+agg_el = qr.load_parcel(os.path.join(pre_in,"fraction_eff_40_4_CT_unbuilt.qrp"))   
 
 
 # In[5]:
@@ -84,19 +84,19 @@ agg.build(mult=1, vibgen_approx="TPA")
 # It also has to be built with
 # two-exciton states (in two-particle approximation)
 #
-width = qr.convert(wincm, "1/cm", "int")
+width = qr.convert(wincm_P, "1/cm", "int")
 PM = agg2.get_Molecule_by_name("PM")
 PM.set_transition_width((0,1), width)
 PL = agg2.get_Molecule_by_name("PL")
 PL.set_transition_width((0,1), width)
 
-width = qr.convert(wincm, "1/cm", "int")
+width = qr.convert(wincm_B, "1/cm", "int")
 BM = agg2.get_Molecule_by_name("BM")
 BM.set_transition_width((0,1), width)
 BL = agg2.get_Molecule_by_name("BL")
 BL.set_transition_width((0,1), width)
 
-width = qr.convert(wincm, "1/cm", "int")
+width = qr.convert(wincm_CT, "1/cm", "int")
 PCT1 = agg2.get_Molecule_by_name("PCT1")
 PCT1.set_transition_width((0,1), width)
 PCT2 = agg2.get_Molecule_by_name("PCT2")
@@ -114,7 +114,7 @@ print("and ", agg2.Ntot, " (electro-vibrational) states in total")
 #
 # Electronic aggregate is built with single exciton states only
 #
-width = qr.convert(wincm, "1/cm", "int")
+width = qr.convert(wincm_P, "1/cm", "int")
 PM = agg_el.get_Molecule_by_name("PM")
 PM.set_transition_width((0,1), width)
 PL = agg_el.get_Molecule_by_name("PL")
@@ -126,7 +126,7 @@ BM.set_transition_width((0,1), width)
 BL = agg_el.get_Molecule_by_name("BL")
 BL.set_transition_width((0,1), width)
 
-width = qr.convert(wincm, "1/cm", "int")
+width = qr.convert(wincm_CT, "1/cm", "int")
 PCT1 = agg_el.get_Molecule_by_name("PCT1")
 PCT1.set_transition_width((0,1), width)
 PCT2 = agg_el.get_Molecule_by_name("PCT2")
@@ -275,7 +275,7 @@ with qr.energy_units("1/cm"):
     
 plt.savefig(os.path.join(pre_out,"abs1.png"))
 plt.close()
-raise Exception()
+
 
 
 #
