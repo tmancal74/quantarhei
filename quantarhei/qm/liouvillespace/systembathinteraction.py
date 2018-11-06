@@ -32,6 +32,18 @@ class SystemBathInteraction(Saveable):
         List or tuple of rates. The total number of rates has to be 
         the same as the number of operators in the ``sys_operator`` list
         
+    drates : array
+        An array of dephasing rates. The dimension of the array must
+        correspond to the dimension of the treated system.
+        
+    dtype : str
+        Type of the dehasing defined in `drates`. The types are "Lorentzian"
+        which is default, and correponds to a dephasing rate equation with
+        the term -\gamma\rho_{ab} on the right hand side. The dephasing
+        is exponential. The type "Gaussian" results in a Gaussian dephasing
+        and corresponds to the term -\gamma t \rho_{ab} on the right hand 
+        side of the rate equation.
+        
     system : {Molecule, Aggregate}
         Molecule or Aggregate object in which the system--bath interaction 
         is specified
@@ -40,7 +52,7 @@ class SystemBathInteraction(Saveable):
     """
 
     def __init__(self, sys_operators=None, bath_correlation_matrix=None,
-                 rates=None, system=None):
+                 rates=None, drates=None, dtype="Lorentzian", system=None):
 
         # information about aggregate is needed when dealing with 
         # multiple excitons
@@ -112,7 +124,24 @@ class SystemBathInteraction(Saveable):
                     raise Exception("Wrong number of rates specified")
                 self.rates = rates
 
-  
+        elif ((sys_operators is None) and (drates is not None)):
+            
+            self.sbitype = "Pure_Dephasing"
+            
+            if len(drates.shape) != 2:
+                raise Exception("Pure dephasing rates must"
+                                +" be defined by a matrix")
+                
+            if drates.shape[0] != drates.shape[1]:
+                raise Exception("Pure dephasing rates must"
+                                +" be defined by a square matrix")
+                
+            self.N = drates.shape[0]
+            self.set_system(system)
+            self.CC = None
+            
+            
+    
     def set_system(self, system):
         """Sets the system attribute
         

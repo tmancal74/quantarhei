@@ -55,6 +55,9 @@ from .liouvillespace.tdredfieldfoerster import TDRedfieldFoersterRelaxationTenso
 from .liouvillespace.lindbladform import LindbladForm
 from .liouvillespace.lindbladform import ElectronicLindbladForm
 
+from .liouvillespace.puredephasing import PureDephasing
+
+
 from .liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 from .liouvillespace.superoperator import SuperOperator
 from .liouvillespace.superoperator_test import TestSuperOperator

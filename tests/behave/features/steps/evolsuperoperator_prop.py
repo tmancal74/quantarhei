@@ -156,4 +156,144 @@ def step_then_8(context, t_prop):
     R3 = context.R3
     R2 = context.R2
     
-    numpy.testing.assert_allclose(R3.data, R2.data, rtol=1.0e-12, atol=1.0e-12)
+    numpy.testing.assert_allclose(R3.data, R2.data, rtol=1.0e-10, atol=1.0e-10)
+    
+#
+# Given ...
+#
+@given('I have an initial density matrix R and pure dephasing matrix D')
+def step_given_9(context):
+    """
+
+        Given I have an initial density matrix R and pure dephasing matrix D
+
+    """
+    
+    dd = numpy.array([[0.0,        0.0,            0.0,        0.0],
+                      [0.0,        0.0,      1.0/100.0,  1.0/100.0],
+                      [0.0,  1.0/100.0,            0.0,  1.0/100.0],
+                      [0.0,  1.0/100.0,      1.0/100.0,        0.0]])
+    
+    context.dd = dd
+    
+    # create test aggregatedimer
+    agg = qr.TestAggregate("trimer-2")
+    agg.build()
+    
+    # get the associated time axis and the relaxation tensor and Hamiltonian
+    time = qr.TimeAxis(0, 320, 1.0)
+    time2 = qr.TimeAxis(0, 32, 10.0)
+    context.time = time
+    context.time2 = time2
+    
+    HH = agg.get_Hamiltonian()
+    context.H = HH
+    
+    SBI = qr.qm.TestSystemBathInteraction(name="trimer-2-lind")
+    LL = qr.qm.LindbladForm(HH, SBI)
+    
+    context.L= LL
+    
+    # initial density matrix
+    R = qr.ReducedDensityMatrix(dim=HH.dim)
+    R.data[2,2] = 1.0 
+    
+    context.R = R
+
+#
+# And ...
+#
+@given('I set dephasing type as {deph_type}')
+def step_given_10(context, deph_type):
+    """
+
+        And I set dephasing type as {deph_type}
+
+    """
+    dd = context.dd
+    
+    DD = qr.qm.PureDephasing(drates=dd, dtype=deph_type)
+    
+    context.DD = DD
+    time = context.time2
+    HH = context.H
+    LL = context.L
+    
+    # define and calculate evolution superoperator
+    U = qr.qm.EvolutionSuperOperator(time, ham=HH, relt=LL, pdeph=DD)
+   
+    with qr.eigenbasis_of(HH):
+        U.calculate()
+    
+    context.U = U
+    
+    # initial density matrix
+    R = qr.ReducedDensityMatrix(dim=HH.dim)
+    R.data[2,2] = 1.0 
+    
+    context.R = R
+
+
+#
+# When ...
+#
+@when('I calculate evolution superoperator U with time step {N_dense} and D in place')
+def step_when_11(context, N_dense):
+    """
+
+        When I calculate evolution superoperator U with time step {N_dense} and D in place
+
+    """
+    # parameter from outside
+    Nd = int(N_dense)
+    
+    # all that is needed from context
+    HH = context.H
+    LL = context.L
+    time = context.time
+    DD = context.DD
+    
+    # time step and number of steps
+    Nt = time.length
+    dt = time.step
+
+    # we will make Nd times longer steps
+    Nt_u = int(Nt/Nd)
+    dt_u = dt*Nd
+    
+    # new time axis
+    time_u = qr.TimeAxis(0.0, Nt_u, dt_u)
+    
+    # calculate evolution superoperator
+    U = qr.qm.EvolutionSuperOperator(time=time_u, ham=HH, relt=LL, pdeph=DD)
+    U.set_dense_dt(Nd)
+    with qr.eigenbasis_of(HH):
+        U.calculate()
+    
+    # save into context
+    context.U = U
+
+#
+# And ...
+#
+@when('I calculate dynamics of R using H, L and D to get R1')
+def step_when_12(context):
+    """
+
+        And I calculate dynamics of R using H, L and D to get R1
+
+    """
+    time = context.time2
+    HH = context.H
+    LL = context.L
+    DD = context.DD
+    
+    prop = qr.ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                             RTensor=LL, PDeph=DD)
+
+    R = context.R
+    
+    with qr.eigenbasis_of(HH):
+        R1 = prop.propagate(R)
+
+    context.R1 = R1

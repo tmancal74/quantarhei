@@ -46,7 +46,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     """
     
     def __init__(self, timeaxis=None, Ham=None, RTensor="",
-                 Efield="", Trdip=""):
+                 Efield="", Trdip="", PDeph=None):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -72,6 +72,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """
         self.has_Trdip = False
         self.has_Efield = False
+        self.has_PDeph = False
         
         if not ((timeaxis is None) and (Ham is None)):
             
@@ -104,6 +105,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 if isinstance(Efield,numpy.ndarray):
                     self.Efield = Efield
                     self.has_Efield = True 
+            
+            if PDeph is not None:
+                self.PDeph = PDeph
+                self.has_PDeph = True
             
             self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
             self.dt = self.Odt
@@ -558,38 +563,81 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         levs = [qr.LOG_QUICK] #, 8]
         verb = qr.loglevels2bool(levs)
-        
-        # loop over time
-        for ii in range(1, self.Nt):
-            qr.printlog(" time step ", ii, "of", self.Nt, 
-                        verbose=verb[0], loglevel=levs[0])
+
+        # after each step we apply pure dephasing (if present)
+        if self.has_PDeph:
             
-            # steps in between saving the results
-            for jj in range(0, self.Nref):
+            
+            # loop over time
+            for ii in range(1, self.Nt):
+                qr.printlog(" time step ", ii, "of", self.Nt, 
+                            verbose=verb[0], loglevel=levs[0])
                 
-                # L interations to get short exponential expansion
-                for ll in range(1, L+1):
+                # steps in between saving the results
+                for jj in range(0, self.Nref):
                     
-                    rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                             - numpy.dot(rho1,HH))
-                    
-                    #rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
-                    for mm in range(Nm):
+                    # L interations to get short exponential expansion
+                    for ll in range(1, L+1):
                         
-                       rhoY += (self.dt/ll)*(
-                        numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
-                       +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
-                       -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
-                       -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
-                       )
-                             
-                    rho1 = rhoY #+ rhoX
-                    
-                    rho2 = rho2 + rho1
-                rho1 = rho2    
+                        rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                                 - numpy.dot(rho1,HH))
+                        
+                        #rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
+                        for mm in range(Nm):
+                            
+                           rhoY += (self.dt/ll)*(
+                            numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                           +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                           -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                           -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+                           )
+                                 
+                        rho1 = rhoY #+ rhoX
+                        
+                        rho2 = rho2 + rho1
+                        
+                        rho2 = rho2*numpy.exp(-self.PDeph.data*self.dt)
+                        
+                    rho1 = rho2    
                 
-            pr.data[indx,:,:] = rho2 
-            indx += 1             
+                pr.data[indx,:,:] = rho2 
+                indx += 1
+            
+        # no extra dephasing
+        else:
+            
+             # loop over time
+            for ii in range(1, self.Nt):
+                qr.printlog(" time step ", ii, "of", self.Nt, 
+                            verbose=verb[0], loglevel=levs[0])
+                
+                # steps in between saving the results
+                for jj in range(0, self.Nref):
+                    
+                    # L interations to get short exponential expansion
+                    for ll in range(1, L+1):
+                        
+                        rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                                 - numpy.dot(rho1,HH))
+                        
+                        #rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
+                        for mm in range(Nm):
+                            
+                           rhoY += (self.dt/ll)*(
+                            numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                           +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                           -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                           -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+                           )
+                                 
+                        rho1 = rhoY #+ rhoX
+                        
+                        rho2 = rho2 + rho1
+                    rho1 = rho2    
+                
+                pr.data[indx,:,:] = rho2 
+                indx += 1
+           
              
         qr.log_detail("...DONE")
 
@@ -644,53 +692,110 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # verbosity inside loops
         levs = [qr.LOG_QUICK] 
         verb = qr.loglevels2bool(levs, verbose=self.verbose)
-        
-        # loop over time
-        for ii in range(1, Nt):
-            qr.printlog("time step ", ii, "of", Nt, 
-                        verbose=verb[0], loglevel=levs[0], end="\r")
-            
-            # steps in between saving the results
-            for jj in range(Nref):
-                
-                # L interations to get short exponential expansion
-                for ll in range(1, L+1):
 
-                    A = numpy.dot(HH,rho1_i)
-                    B = numpy.dot(HH,rho1_r)
-                    rhoY_r =  (dt/ll)*(A + numpy.transpose(A))
-                    rhoY_i = -(dt/ll)*(B - numpy.transpose(B)) 
-                    
-                    for mm in range(Nm):
-                    
-                        a = numpy.dot(Lm_r[mm,:,:], rho1_r)
-                        A = a - numpy.transpose(a)
-                        b = numpy.dot(Lm_i[mm,:,:], rho1_i)
-                        B = b - numpy.transpose(b)
-                        c = numpy.dot(Lm_r[mm,:,:], rho1_i)
-                        C = -(c + numpy.transpose(c))
-                        d = numpy.dot(Lm_i[mm,:,:], rho1_r)
-                        D = d + numpy.transpose(d)
-                        
-                        E = B - A
-                        F = C - D
-                        
-                        A = numpy.dot(Km[mm,:,:], E)
-                        B = numpy.dot(Km[mm,:,:], F)
-                        rhoY_r += (dt/ll)*(A + numpy.transpose(A))
-                        rhoY_i += (dt/ll)*(B - numpy.transpose(B))
-                        
-                    rho1_r = rhoY_r 
-                    rho1_i = rhoY_i
-                    
-                    rho2_r +=  rho1_r
-                    rho2_i +=  rho1_i
-                    
-                rho1_r = rho2_r
-                rho1_i = rho2_i
+        # after each step we apply pure dephasing (if present)
+        if self.has_PDeph:
+        
+            # loop over time
+            for ii in range(1, Nt):
+                qr.printlog("time step ", ii, "of", Nt, 
+                            verbose=verb[0], loglevel=levs[0], end="\r")
                 
-            pr.data[indx,:,:] = rho2_r + 1j*rho2_i 
-            indx += 1             
+                # steps in between saving the results
+                for jj in range(Nref):
+                    
+                    # L interations to get short exponential expansion
+                    for ll in range(1, L+1):
+    
+                        A = numpy.dot(HH,rho1_i)
+                        B = numpy.dot(HH,rho1_r)
+                        rhoY_r =  (dt/ll)*(A + numpy.transpose(A))
+                        rhoY_i = -(dt/ll)*(B - numpy.transpose(B)) 
+                        
+                        for mm in range(Nm):
+                        
+                            a = numpy.dot(Lm_r[mm,:,:], rho1_r)
+                            A = a - numpy.transpose(a)
+                            b = numpy.dot(Lm_i[mm,:,:], rho1_i)
+                            B = b - numpy.transpose(b)
+                            c = numpy.dot(Lm_r[mm,:,:], rho1_i)
+                            C = -(c + numpy.transpose(c))
+                            d = numpy.dot(Lm_i[mm,:,:], rho1_r)
+                            D = d + numpy.transpose(d)
+                            
+                            E = B - A
+                            F = C - D
+                            
+                            A = numpy.dot(Km[mm,:,:], E)
+                            B = numpy.dot(Km[mm,:,:], F)
+                            rhoY_r += (dt/ll)*(A + numpy.transpose(A))
+                            rhoY_i += (dt/ll)*(B - numpy.transpose(B))
+                            
+                        rho1_r = rhoY_r 
+                        rho1_i = rhoY_i
+                        
+                        rho2_r +=  rho1_r
+                        rho2_i +=  rho1_i
+                        
+                        rho2_r = rho2_r*numpy.exp(-self.PDeph.data*dt)
+                        rho2_i = rho2_i*numpy.exp(-self.PDeph.data*dt)
+                        
+                    rho1_r = rho2_r
+                    rho1_i = rho2_i
+                    
+                pr.data[indx,:,:] = rho2_r + 1j*rho2_i 
+                indx += 1             
+
+        # propagatiomn with no extra dephasing
+        else:
+            
+            # loop over time
+            for ii in range(1, Nt):
+                qr.printlog("time step ", ii, "of", Nt, 
+                            verbose=verb[0], loglevel=levs[0], end="\r")
+                
+                # steps in between saving the results
+                for jj in range(Nref):
+                    
+                    # L interations to get short exponential expansion
+                    for ll in range(1, L+1):
+    
+                        A = numpy.dot(HH,rho1_i)
+                        B = numpy.dot(HH,rho1_r)
+                        rhoY_r =  (dt/ll)*(A + numpy.transpose(A))
+                        rhoY_i = -(dt/ll)*(B - numpy.transpose(B)) 
+                        
+                        for mm in range(Nm):
+                        
+                            a = numpy.dot(Lm_r[mm,:,:], rho1_r)
+                            A = a - numpy.transpose(a)
+                            b = numpy.dot(Lm_i[mm,:,:], rho1_i)
+                            B = b - numpy.transpose(b)
+                            c = numpy.dot(Lm_r[mm,:,:], rho1_i)
+                            C = -(c + numpy.transpose(c))
+                            d = numpy.dot(Lm_i[mm,:,:], rho1_r)
+                            D = d + numpy.transpose(d)
+                            
+                            E = B - A
+                            F = C - D
+                            
+                            A = numpy.dot(Km[mm,:,:], E)
+                            B = numpy.dot(Km[mm,:,:], F)
+                            rhoY_r += (dt/ll)*(A + numpy.transpose(A))
+                            rhoY_i += (dt/ll)*(B - numpy.transpose(B))
+                            
+                        rho1_r = rhoY_r 
+                        rho1_i = rhoY_i
+                        
+                        rho2_r +=  rho1_r
+                        rho2_i +=  rho1_i
+                        
+                    rho1_r = rho2_r
+                    rho1_i = rho2_i
+                    
+                pr.data[indx,:,:] = rho2_r + 1j*rho2_i 
+                indx += 1             
+
         
         qr.log_detail()
         qr.log_detail("...DONE")

@@ -230,13 +230,14 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     
     """
     
-    def __init__(self, time=None, ham=None, relt=None, mode="all"):
+    def __init__(self, time=None, ham=None, relt=None, pdeph=None, mode="all"):
         super().__init__()
         
         self.time = time
         self.ham = ham
         self.relt = relt
         self.mode = mode
+        self.pdeph = pdeph
         try:
             self.dim = ham.dim
         except:

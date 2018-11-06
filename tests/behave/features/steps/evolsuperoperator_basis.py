@@ -209,7 +209,7 @@ def step_then_11(context, t_prop):
     R1_t = context.R1.at(t)
     R2 = context.R2
     
-    numpy.testing.assert_allclose(R1_t.data, R2.data, rtol=1.0e-12, atol=1.0e-12)
+    numpy.testing.assert_allclose(R1_t.data, R2.data, rtol=1.0e-5, atol=1.0e-5)
 
 
 #
