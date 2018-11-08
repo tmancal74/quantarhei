@@ -36,6 +36,9 @@ def step_given_1(context, dtime):
 
     # create test aggregatedimer
     agg = qr.TestAggregate("trimer-2")
+    with qr.energy_units("1/cm"):
+        agg.set_resonance_coupling(0,1,100.0)
+        agg.set_resonance_coupling(1,2,50.0)
     agg.build()
     
 
