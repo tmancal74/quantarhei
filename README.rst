@@ -64,6 +64,9 @@ New in 0.0.43
 =============
 
 For users:
+ - PureDephasing super-operator to allow additional pure dephasing for realistic lineshapes in effective lineshape description of time-resolved experiments
+ - Empty relaxation superopetator (as an empty Lindblad form) introduced (as a temporary fix to allow pure dephasing dynamics only)
+ - Consistent calculation of pure dephasing of non-optical coherence elements of the density matrix from effective lineshape theory (including electronic only dephasing in vibrational-electronic systems)
  - Some bug fixes
  
 New in 0.0.42
@@ -71,7 +74,7 @@ New in 0.0.42
 
 For users:
  - Improved effective lineshapes for 2D spectrum calculations
- - Calculation of absorption spectrum using forst order Liouville pathways
+ - Calculation of absorption spectrum using first order Liouville pathways
  - Some bug fixes including an frequency factor in absorption spectrum
 
 New in 0.0.41

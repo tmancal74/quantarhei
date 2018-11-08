@@ -337,7 +337,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #
         one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
         prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                              self.relt)
+                                              self.relt, PDeph=self.pdeph)
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):

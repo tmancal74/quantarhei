@@ -86,7 +86,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
         # SystemBathInteraction
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of" +
+            if sbi is not None:
+                raise Exception("Second argument must be of" +
                             " the SystemBathInteraction type")
 
         self.Hamiltonian = ham

@@ -11,6 +11,7 @@ from .redfieldtensor import RedfieldRelaxationTensor
 from ...builders.aggregates import Aggregate
 from .systembathinteraction import SystemBathInteraction
 from ...builders.aggregate_states import VibronicState
+from ... import REAL
 
 class LindbladForm(RedfieldRelaxationTensor):
     """Lindblad form of relaxation tensor
@@ -21,7 +22,6 @@ class LindbladForm(RedfieldRelaxationTensor):
 
     def __init__(self, ham, sbi, initialize=True,
                  as_operators=True, name=""):
-
         super().__init__(ham, sbi, initialize=initialize,
                          as_operators=as_operators, name=name)
 
@@ -34,15 +34,25 @@ class LindbladForm(RedfieldRelaxationTensor):
         Na = ham.dim
 
         # number of operators
-        Nb = sbi.N
+        if sbi is None:
+            Nb = 1
+        else:
+            Nb = sbi.N
 
-        llm = numpy.zeros((Nb, Na, Na), dtype=numpy.float64)
-        lld = numpy.zeros((Nb, Na, Na), dtype=numpy.float64)
-        for i in range(Nb):
-            llm[i, :, :] = sbi.rates[i]*sbi.KK[i, :, :]/2.0
-            lld[i, :, :] = numpy.transpose(llm[i, :, :])
+        llm = numpy.zeros((Nb, Na, Na), dtype=REAL)
+        lld = numpy.zeros((Nb, Na, Na), dtype=REAL)
+        
+        if sbi is not None:
+            for i in range(Nb):
+                llm[i, :, :] = sbi.rates[i]*sbi.KK[i, :, :]/2.0
+                lld[i, :, :] = numpy.transpose(llm[i, :, :])
 
-        self._post_implementation(sbi.KK, llm, lld)
+        if sbi is None:
+            KK = numpy.zeros((1, Na, Na), dtype=REAL)
+        else:
+            KK = sbi.KK
+            
+        self._post_implementation(KK, llm, lld)
 
 
 

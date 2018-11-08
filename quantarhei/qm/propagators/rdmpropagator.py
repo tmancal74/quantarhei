@@ -45,7 +45,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     
     """
     
-    def __init__(self, timeaxis=None, Ham=None, RTensor="",
+    def __init__(self, timeaxis=None, Ham=None, RTensor=None,
                  Efield="", Trdip="", PDeph=None):
         """
         
@@ -73,9 +73,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_Trdip = False
         self.has_Efield = False
         self.has_PDeph = False
+        self.has_RTensor = False
         
         if not ((timeaxis is None) and (Ham is None)):
             
+            #
+            # Hamiltonian and TimeAxis are required
+            #
             if isinstance(Ham,Hamiltonian):
                 self.Hamiltonian = Ham
             else:
@@ -86,10 +90,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             else:
                 raise Exception
             
+            #
+            # RelaxationTensor is not requited
+            #
             if isinstance(RTensor,RelaxationTensor):
                 self.RelaxationTensor = RTensor
+                self.has_RTensor = True
                 self.has_relaxation = True
-            elif RTensor == "":
+            elif RTensor is None:
+                self.has_RTensor = False
                 self.has_relaxation = False
             else:
                 raise Exception
@@ -106,9 +115,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     self.Efield = Efield
                     self.has_Efield = True 
             
+            #
+            # Pure dephasing also counts as relaxation
+            #
             if PDeph is not None:
                 self.PDeph = PDeph
                 self.has_PDeph = True
+                self.has_relaxation = True
+            
             
             self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
             self.dt = self.Odt
@@ -189,7 +203,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
               
         #######################################################################
         #
-        #    PROPAGATIONS WITH RELAXATION
+        #    PROPAGATIONS WITH RELAXATION AND/OR DEPHASING
         #
         #
         #######################################################################
@@ -567,7 +581,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # after each step we apply pure dephasing (if present)
         if self.has_PDeph:
             
-            
             # loop over time
             for ii in range(1, self.Nt):
                 qr.printlog(" time step ", ii, "of", self.Nt, 
@@ -595,8 +608,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         rho1 = rhoY #+ rhoX
                         
                         rho2 = rho2 + rho1
-                        
-                        rho2 = rho2*numpy.exp(-self.PDeph.data*self.dt)
+                       
+                    # This really has to be here, not inside previous loop
+                    rho2 = rho2*numpy.exp(-self.PDeph.data*self.dt)
                         
                     rho1 = rho2    
                 
@@ -633,6 +647,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         rho1 = rhoY #+ rhoX
                         
                         rho2 = rho2 + rho1
+                    
                     rho1 = rho2    
                 
                 pr.data[indx,:,:] = rho2 
