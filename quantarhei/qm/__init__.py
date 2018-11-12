@@ -56,6 +56,7 @@ from .liouvillespace.lindbladform import LindbladForm
 from .liouvillespace.lindbladform import ElectronicLindbladForm
 
 from .liouvillespace.puredephasing import PureDephasing
+from .liouvillespace.puredephasing import ElectronicPureDephasing
 
 
 from .liouvillespace.evolutionsuperoperator import EvolutionSuperOperator

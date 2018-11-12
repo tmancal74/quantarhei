@@ -82,8 +82,8 @@ def step_when_2(context, time_step, N_dense):
     dt = float(time_step)
     N_dense = int(N_dense)
     
-    time = qr.TimeAxis(0, 320, 1.0)
-    time2 = qr.TimeAxis(0, 32, dt)
+    time = qr.TimeAxis(0, 1320, 1.0)
+    time2 = qr.TimeAxis(0, 132, dt)
     context.time = time
     context.time2 = time2
     
@@ -119,6 +119,7 @@ def step_when_3(context, t_prop):
     t = float(t_prop)
 
     RD = U.apply(t, R)
+
 
     context.RD = RD
 
@@ -175,3 +176,127 @@ def step_then_5(context, t_prop):
         print(RE.data)
     
     numpy.testing.assert_allclose(RD.data, RE.data, rtol=1.0e-5, atol=1.0e-5)
+
+#
+# Given ...
+#
+@given('I have PureDephasing object D with dephasing constant {dtime} and initial density matrix R')
+def step_given_6(context, dtime):
+    """
+
+        Given I have PureDephasing object D with dephasing constant {dtime} and initial density matrix R
+
+    """
+    td = float(dtime)
+    print("Dephasing time", td)
+    context.td = td
+
+    # create test aggregatedimer
+    agg = qr.TestAggregate("trimer-2")
+    with qr.energy_units("1/cm"):
+        agg.set_resonance_coupling(0,1,100.0)
+        agg.set_resonance_coupling(1,2,50.0)
+    agg.build()
+    
+
+    
+    HH = agg.get_Hamiltonian()
+    context.H = HH
+    
+    print("Hamiltonian:")
+    print(HH)
+    
+    # initial density matrix
+    R = qr.ReducedDensityMatrix(dim=HH.dim)
+    with qr.eigenbasis_of(HH):
+        R.data[1:4,1:4] = 0.5
+
+    
+    context.R = R
+    
+    dd = numpy.zeros((4,4), dtype=qr.REAL)
+    dd[1,2] = (1.0/td)**2
+    dd[2,1] = (1.0/td)**2
+    dd[1,3] = (1.0/td)**2
+    dd[3,1] = (1.0/td)**2
+    dd[2,3] = (1.0/td)**2
+    dd[3,2] = (1.0/td)**2
+    D = qr.qm.PureDephasing(drates=dd, dtype="Gaussian")
+    
+    context.D = D
+
+
+#
+# And ...
+#
+@when('I multiply each coherence element by corresponding Gaussian decay with dephasing time {dtime} to get RE at time {t_prop}')
+def step_when_7(context, dtime, t_prop):
+    """
+
+        And I multiply each coherence element by corresponding Gaussian decay with dephasing time {dtime} to get RE at time {t_prop}
+
+    """
+    delta = (1.0/float(dtime))**2
+    t = float(t_prop)
+
+    R = context.R
+    
+    HH = context.H
+    
+    RE = qr.ReducedDensityMatrix(dim=HH.dim)
+    RE.data[:,:] = 0.0
+    with qr.eigenbasis_of(HH):
+        for i in range(4):
+            for j in range(4):
+                om = HH.data[i,i]-HH.data[j,j]
+                if i != j:
+                    RE.data[i,j] = R.data[i,j]*numpy.exp(-1j*om*t -(delta/2.0)*(t**2))
+                else:
+                    RE.data[i,j] = R.data[i,j]*numpy.exp(-1j*om*t)
+        
+    context.RE = RE
+    
+    
+#
+# When ...
+#
+@when('I calculate EvolutionSuperOperator step by step using only PureDephasing D with {time_step} and {N_dense}')
+def step_when_8(context, time_step, N_dense):
+    """
+
+        When I calculate EvolutionSuperOperator step by step using only PureDephasing D with {time_step} and {N_dense} 
+
+    """
+    # get the associated time axis and the relaxation tensor and Hamiltonian
+    dt = float(time_step)
+    N_dense = int(N_dense)
+    
+    Ntot = 1320
+    Nsteps = int(Ntot/N_dense)
+    time = qr.TimeAxis(0, Ntot, 1.0)
+    time2 = qr.TimeAxis(0, Nsteps, dt)
+    context.time = time
+    context.time2 = time2
+    
+    HH = context.H
+    DD = context.D
+   
+    # This tests if it is possible to ignore relaxation tensor in defining
+    # evolution superoperator
+    L =  qr.qm.LindbladForm(HH, sbi=None)
+    
+    U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                     pdeph=DD, mode="jit")
+    U.set_dense_dt(N_dense)
+    
+    U1 = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                     pdeph=DD)
+    
+    with qr.eigenbasis_of(HH):
+        
+        for i in range(1, Nsteps):
+            U.calculate_next()
+            U1.data[i,:,:,:,:] = U.data[:,:,:,:]
+            
+    context.U = U1
+

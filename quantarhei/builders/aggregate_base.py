@@ -1286,6 +1286,8 @@ class AggregateBase(UnitsManaged, Saveable):
         Wd = numpy.zeros((Ntot, Ntot), dtype=qr.REAL)
         # Matrix of dephasing rates
         Dr = numpy.zeros((Ntot, Ntot), dtype=qr.REAL)
+        # Matrix of dephasing transformation coefficients
+        self.Xi = numpy.zeros((Ntot, self.Nel), dtype=qr.REAL)
         
         # electronic indices if twice excited state (zero for all other states)
         twoex_indx = numpy.zeros((Ntot, 2), dtype=numpy.int)
@@ -1590,7 +1592,7 @@ class AggregateBase(UnitsManaged, Saveable):
     ########################################################################### 
 
     def trace_over_vibrations(self, operator, Nt=None):
-        """Average operator over vibrational degrees of freedom
+        """Average an operator over vibrational degrees of freedom
         
         Average MUST be done in site basis. Only in site basis
         we can distinguish the vibrational states properly
@@ -2214,9 +2216,24 @@ class AggregateBase(UnitsManaged, Saveable):
                 Dr_a[ii] += (self.Dr[nn,nn]**2)*abs(SS[ii,nn])**4
         Wd_a = numpy.sqrt(Wd_a)
         Dr_a = numpy.sqrt(Dr_a)
+        
+        
         self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
         self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
                                        
+        
+        #
+        #
+        # Coefficients xi_{ai} to transform pure dephasing of electronic coherence
+        #
+        #
+        # all states and (1-ex band selected)
+        for aa in range(N1b):
+            for ii in range(self.Nel):
+                el2 = self.elinds[ii]
+                if self.which_band[el2] == 1:
+                    for ialph in self.vibindices[ii]:
+                        self.Xi[aa, ii] += SS[aa, ialph]**2
         
         #
         # Transform transition dipole moments

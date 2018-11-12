@@ -453,6 +453,22 @@ trD = agg_el.get_TransitionDipoleMoment()
 
 
 #
+# THIS TAKES FEW TENS OF SECONDS
+#
+# In future version of Quantarhei, this call will not be needed (it will be done silently elsewhere, when needed)
+print("Diagonalization of the aggregate representation:")
+t1 = time.time()
+agg2.diagonalize()
+t2 = time.time()
+print("Diagonalized in ", t2-t1, "s")
+
+print("Calculating electronic pure dephasing")
+t1 = time.time()
+p_deph = qr.qm.ElectronicPureDephasing(agg2)
+t2 = time.time()
+print("Pure dephasing calculated in ", t2-t1, "s")
+
+#
 # THIS TAKES FEW MINUTES (depending on t2_N_steps)
 #
 
@@ -467,7 +483,8 @@ print("Setting up evolution superoperator at", t2_N_steps, "points:")
 #
 time_so = qr.TimeAxis(0.0, t2_N_steps, t2_time_step)
 
-eUt = qr.qm.EvolutionSuperOperator(time_so, HH, LF_frac, mode=eUt_mode)
+eUt = qr.qm.EvolutionSuperOperator(time_so, HH, LF_frac, 
+                                   pdeph=p_deph, mode=eUt_mode)
 
 #
 # This cuts the time step N times to make the numerics work !
@@ -501,16 +518,6 @@ print("Calculating 2D spectra:")
 
 # In[18]:
 
-
-#
-# THIS TAKES FEW TENS OF SECONDS
-#
-# In future version of Quantarhei, this call will not be needed (it will be done silently elsewhere, when needed)
-print("Diagonalization of the aggregate representation:")
-t1 = time.time()
-agg2.diagonalize()
-t2 = time.time()
-print("Diagonalized in ", t2-t1, "s")
 
 
 # # Calculation of spectra at different $t_2$ times

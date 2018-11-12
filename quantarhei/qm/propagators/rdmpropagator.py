@@ -581,13 +581,29 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # after each step we apply pure dephasing (if present)
         if self.has_PDeph:
             
+            if self.PDeph.dtype == "Lorentzian":
+                expo = numpy.exp(-self.PDeph.data*self.dt)
+                t0 = 0.0
+            elif self.PDeph.dtype == "Gaussian":
+                expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
+                t0 = self.PDeph.data*self.dt
+            
+            #print("*** PROPAGATION **** ", self.PDeph.dtype)
+            #print(self.Nt)
+            
             # loop over time
             for ii in range(1, self.Nt):
                 qr.printlog(" time step ", ii, "of", self.Nt, 
                             verbose=verb[0], loglevel=levs[0])
                 
+                # time at the beginning of the step
+                tNt = self.TimeAxis.data[indx-1]  
+                #print("tNt = ", tNt)
+                
                 # steps in between saving the results
                 for jj in range(0, self.Nref):
+                    
+                    tt = tNt + jj*self.dt  # time right now 
                     
                     # L interations to get short exponential expansion
                     for ll in range(1, L+1):
@@ -610,7 +626,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         rho2 = rho2 + rho1
                        
                     # This really has to be here, not inside previous loop
-                    rho2 = rho2*numpy.exp(-self.PDeph.data*self.dt)
+                    #if self.PDeph.dtype == "Gaussian":
+                    #    expo = numpy.exp(-self.PDeph.data*((tt**2)-((tt-self.dt)**2))/2.0)
+                        
+                    rho2 = rho2*expo*numpy.exp(-t0*tt)
+                    #print("t = ", tt)
                         
                     rho1 = rho2    
                 

@@ -46,6 +46,7 @@ import numpy
 
 from .aggregates import Aggregate
 from .molecules import Molecule
+from .modes import Mode
 from ..core.units import convert
 from ..core.time import TimeAxis
 from ..qm.corfunctions.correlationfunctions import CorrelationFunction
@@ -174,6 +175,21 @@ class TestAggregate(Aggregate):
            
             # set their environment
             # nothing here
+                
+            super().__init__(molecules=[m1, m2])   
+            
+        elif name == "dimer-2-vib":
+            
+            m1, m2 = self._molecules(N=2, nst=2)
+           
+            with energy_units("1/cm"):
+                mod1 = Mode(100.0)
+                m1.add_Mode(mod1)
+                mod1.set_HR(1,0.1)
+                
+                mod2 = Mode(100.0)
+                m2.add_Mode(mod2)
+                mod2.set_HR(1,0.1)
                 
             super().__init__(molecules=[m1, m2])            
   

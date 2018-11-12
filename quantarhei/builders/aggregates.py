@@ -26,6 +26,9 @@
         AggregateExcitonAnalysis :
             adds analysis of excitons
 
+        AggregatePureDephasing :
+            adds calculation of effective pure dephasing rates
+            
         Aggregate :
             wraps everything up
       
@@ -34,10 +37,10 @@
     -------------
               
 """
-from .aggregate_excitonanalysis import AggregateExcitonAnalysis
+from .aggregate_pdeph import AggregatePureDephasing
 
 
-class Aggregate(AggregateExcitonAnalysis):
+class Aggregate(AggregatePureDephasing):
     
     """
     This clas wraps up the definition of the Aggregate class. It is the end
