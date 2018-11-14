@@ -247,6 +247,18 @@ class TimeAxis(ValueAxis):
             raise Exception("Unknown time axis type")
 
 
+    def shift_to_zero(self):
+        """Shifts the values so that the first one is zero
+        
+        """
+        if self.start != self.data[0]:
+            raise Exception("Inconsistent data")
+            
+        if self.start > 0.0:
+            self.data[:] = self.data[:] - self.start
+            self.start = 0.0
+            
+            
     def get_FrequencyAxis(self):
         """ Returns corresponding FrequencyAxis object
 

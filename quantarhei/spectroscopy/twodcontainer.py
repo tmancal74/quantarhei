@@ -22,7 +22,7 @@ from .. import COMPLEX
 from .. import REAL
 
 from ..core.saveable import Saveable
-
+import quantarhei as qr
 
 class TwoDSpectrumContainer(Saveable):
     """Class holding a set of TwoDSpectra
@@ -329,7 +329,8 @@ class TwoDSpectrumContainer(Saveable):
         return vals
 
     
-    def fft(self, ffttype="complex-positive", window=None, dtype="total", tag=None):
+    def fft(self, ffttype="complex-positive", window=None, offset=0.0,
+            dtype="total", tag=None):
         """Fourier transform in t2 time
         
         This method performs FFT on the container data determined by the
@@ -363,24 +364,41 @@ class TwoDSpectrumContainer(Saveable):
                                numpy.ones(self.axis.length, dtype=REAL))
         else:
             winfce = window
-                
+              
+        # restrict the time axis by the off-set
+        tlist = []
+        for tt in self.axis.data:
+            if tt >= offset:
+                tlist.append(tt)
+        if len(tlist) > 1:
+            dt = tlist[1]-tlist[0]
+            Nt = len(tlist)
+            t0 = tlist[0]
+            eff_axis = TimeAxis(t0, Nt, dt, atype="complete") # effective time axis for fft
+        else:
+            raise Exception("Offset too large")
+            
         # put all data into one array
-        tags = self.axis.data
+        
+        #raise Exception()
+        
+        tags = eff_axis.data #self.axis.data
         Nos = self.length()
 
-        if len(tags) == Nos:
-            tag1 = self.axis.data[0]
+        if len(tags) <= Nos:
+            tag1 = eff_axis.data[0] #self.axis.data[0]
             sp1 = self.get_spectrum(tag1)
             
             if legacy:
                 N1, N2 = sp1.data.shape
-                data = numpy.zeros((N1, N2, Nos), dtype=sp1.data.dtype)
+                data = numpy.zeros((N1, N2, len(tags)), dtype=sp1.data.dtype)
             else:
                 sp1.set_data_flag(dtype)
                 N1, N2 = sp1.d__data.shape
-                data = numpy.zeros((N1, N2, Nos), dtype=sp1.d__data.dtype)
-            for k_n in range(Nos):
-                tag = self.axis.data[k_n]
+                data = numpy.zeros((N1, N2, len(tags)), dtype=sp1.d__data.dtype)
+
+            for k_n in range(len(tags)):
+                tag = eff_axis.data[k_n] #self.axis.data[k_n]
                 
                 if legacy:
                     spect = self.get_spectrum(tag)
@@ -397,17 +415,20 @@ class TwoDSpectrumContainer(Saveable):
         #
         # FFT of the axis
         #
-        if isinstance(self.axis, TimeAxis):
-            new_axis = self.axis.get_FrequencyAxis()
+        axis = eff_axis # = self.axis
+        axis.shift_to_zero()
+        
+        if isinstance(axis, TimeAxis):
+            new_axis = axis.get_FrequencyAxis()
             
-        elif isinstance(self.axis, FrequencyAxis):
-            new_axis = self.axis.get_TimeAxis()
+        elif isinstance(axis, FrequencyAxis):
+            new_axis = axis.get_TimeAxis()
             
         else: 
             # this must be ValueAxis
 
-            ftaxdata = (2.0*numpy.pi)*numpy.fft.fftfreq(self.axis.length,
-                                                        self.axis.step)
+            ftaxdata = (2.0*numpy.pi)*numpy.fft.fftfreq(axis.length,
+                                                        axis.step)
             ftaxdata = numpy.fft.fftshift(ftaxdata)
             
             start = ftaxdata[0]
@@ -423,9 +444,11 @@ class TwoDSpectrumContainer(Saveable):
         
         # window function
         ftdata = numpy.zeros(data.shape, dtype=data.dtype)
+        Nwin = len(winfce.data)
+        Ndat = data.shape[2]
         for i_n in range(data.shape[0]):
             for j_n in range(data.shape[1]):
-                ftdata[i_n,j_n,:] = data[i_n,j_n,:]*winfce.data
+                ftdata[i_n,j_n,:] = data[i_n,j_n,:]*winfce.data[Nwin-Ndat:Nwin]
         ftdata = numpy.fft.fft(ftdata, axis=2)
         ftdata = numpy.fft.fftshift(ftdata, axes=2)
         
@@ -433,7 +456,7 @@ class TwoDSpectrumContainer(Saveable):
         new_container = TwoDSpectrumContainer()
         new_container.use_indexing_type(new_axis)
 
-        for k_n in range(Nos):
+        for k_n in range(Ndat):
             tag = new_axis.data[k_n]
             spect = TwoDSpectrum()
             spect.set_axis_1(sp1.xaxis)
@@ -470,47 +493,6 @@ class TwoDSpectrumContainer(Saveable):
         return TimeAxis(start, length, step) 
 
         
-#    # FIXME: this through Savable
-#    def save(self, filename):
-#        """Saves the whole object into file
-#        
-#        
-#        """
-#        with energy_units("int"):
-#            with h5py.File(filename,"w") as f:
-#                self._save_axis(f,"t2axis",self.t2axis)
-#                rt = self._create_root_group(f, "spectra")            
-#                for sp in self.get_spectra():
-#                    t2 = sp.get_t2
-#                    rgname = "spectrum_"+str(t2)
-#                    srt = sp._create_root_group(rt,rgname)
-#                    sp._save_attributes(srt)
-#                    sp._save_data(srt)
-#                    sp._save_axis(srt,"xaxis",sp.xaxis,)
-#                    sp._save_axis(srt,"yaxis",sp.yaxis)
-#            
-#      
-#    # FIXME: this through Savable    
-#    def load(self, filename):
-#        """Loads the whole object from a file
-#        
-#        
-#        """
-#        with energy_units("int"):
-#            with h5py.File(filename,"r") as f:
-#                self.t2axis = self._load_axis(f, "t2axis")
-#                rt = f["spectra"]
-#                for key in rt.keys():
-#                    sp = TwoDSpectrum()
-#                    srt = rt[key]
-#                    sp._load_attributes(srt)
-#                    sp._load_data(srt)
-#                    sp.xaxis = sp._load_axis(srt,"xaxis")
-#                    sp.yaxis = sp._load_axis(srt,"yaxis")
-#                    
-#                    self.set_spectrum(sp)
-#
-
     def trimall_to(self, window=None):
         """Trims all spectra in the container
 

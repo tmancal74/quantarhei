@@ -462,11 +462,17 @@ agg2.diagonalize()
 t2 = time.time()
 print("Diagonalized in ", t2-t1, "s")
 
-print("Calculating electronic pure dephasing")
-t1 = time.time()
-p_deph = qr.qm.ElectronicPureDephasing(agg2)
-t2 = time.time()
-print("Pure dephasing calculated in ", t2-t1, "s")
+pure_deph = True
+t_offset = 80.0
+
+if pure_deph:
+    print("Calculating electronic pure dephasing")
+    t1 = time.time()
+    p_deph = qr.qm.ElectronicPureDephasing(agg2)
+    t2 = time.time()
+    print("Pure dephasing calculated in ", t2-t1, "s")
+else:
+    p_deph = None
 
 #
 # THIS TAKES FEW MINUTES (depending on t2_N_steps)
@@ -726,7 +732,13 @@ while (N_T2 < time_so.length):
         print("Propagating dynamics ...")
         t1 = time.time()
     
-        eUt.calculate_next()
+        if eUt.has_PureDephasing():
+            # pure dephasing has to be used in side basis
+            with qr.eigenbasis_of(ham):
+                eUt.calculate_next()
+        else:
+            # here we avoid unnecessary basis transformations
+            eUt.calculate_next()
         
         t2 = time.time()
         print(" ... propagated in ", t2-t1, "sec")
@@ -851,7 +863,7 @@ window = func.Tukey(time_so, r=tukey_r, sym=False)
 # Specify REPH, NONR or `total` to get different types of spectra
 #
 print("Calculating FFT of the 2D maps")
-fcont = cont.fft(window=window, dtype="REPH")
+fcont = cont.fft(window=window, dtype="REPH", offset=t_offset)
 
 
 # In[25]:
@@ -882,7 +894,9 @@ with qr.energy_units("1/cm"):
 Npoint = int(3*Ndat/4)
 
 om = fcont.axis.data[Npoint]
+print("omega: ", om)
 sp = fcont.get_spectrum(om)
+
 units = "1/cm"
 with qr.energy_units(units):
     print("Spectrum at frequency:", fcont.axis.data[Npoint], units)
@@ -912,10 +926,10 @@ if not skip:
 
 # In[29]:
 
-print("The most intensive pathway (as an example)")
-with qr.energy_units("1/cm"):
-    pathw = pw[0]
-    print(pathw)
+    print("The most intensive pathway (as an example)")
+    with qr.energy_units("1/cm"):
+        pathw = pw[0]
+        print(pathw)
 
 
 #print("Saving evolution superoperator")

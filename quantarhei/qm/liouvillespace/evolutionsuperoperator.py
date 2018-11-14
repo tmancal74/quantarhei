@@ -314,6 +314,16 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.pdeph = pdeph        
 
 
+    def has_PureDephasing(self):
+        """Return True if the EvolutionSuperOperator has pure dephasing
+        
+        """
+        if self.pdeph is None:
+            return False
+        else:
+            return True
+
+
     def calculate(self, show_progress=False):
         """Calculates the data of the evolution superoperator
         

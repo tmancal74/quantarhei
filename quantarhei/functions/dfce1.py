@@ -75,13 +75,21 @@ class Tukey(DFunction):
         
     """
     
-    def __init__(self, x, r, sym=True):
+    def __init__(self, x, r, sym=True, x_offset=0.0):
         super().__init__()
         L = x.length
+        
         if sym:
             data = signal.tukey(L, r, sym=sym)
-            self._make_me(x, data)
+            
         else:
             data = signal.tukey(2*L, r*2, sym=sym)
             data = data[L:]
-            self._make_me(x, data)
+            
+        ii = 0
+        for xi in x.data:
+            if xi < x_offset:
+                data[ii] = 0.0
+            ii += 1
+                
+        self._make_me(x, data)     
