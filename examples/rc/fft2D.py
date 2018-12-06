@@ -21,6 +21,10 @@ try:
     print("propagation_dt = ", propagation_dt)
     print("")
     
+    print("2D FFT parameters:")
+    print("FFT offset: ", t_offset)
+    print("Plot window (in cm-1) = ", plot_window)
+    print("")    
 except:
     traceback.print_exc()
     print("Configuration file is incomplete")
@@ -451,19 +455,35 @@ trD = agg_el.get_TransitionDipoleMoment()
 
 # In[16]:
 
+if restart:
+    
+    print("\nReloading last state ")
+    try:
+        state = qr.load_parcel("A_saved_state.qrp")
+        N_T2 = state[0]  # here we take the saved value
+        agg2 = state[3]
+        print("... reload succesful")
+    except:
+        N_T2 = 0
+        restart = False
+        print("... reload failed; starting from the beginning")
+
+else:
+    N_T2 = 0
 
 #
 # THIS TAKES FEW TENS OF SECONDS
 #
 # In future version of Quantarhei, this call will not be needed (it will be done silently elsewhere, when needed)
-print("Diagonalization of the aggregate representation:")
+print("\nDiagonalization of the aggregate representation:")
 t1 = time.time()
 agg2.diagonalize()
 t2 = time.time()
 print("Diagonalized in ", t2-t1, "s")
 
-pure_deph = True
-t_offset = 80.0
+
+pure_deph = False #True
+#t_offset = 80.0
 
 if pure_deph:
     print("Calculating electronic pure dephasing")
@@ -561,17 +581,6 @@ ham = eUt.get_Hamiltonian()
 # Are we going to reload container and continue somewhere?
 #
 
-if restart:
-    
-    try:
-        state = qr.load_parcel("A_saved_state.qrp")
-        N_T2 = state[0]  # here we take the saved value
-    except:
-        N_T2 = 0
-        restart = False
-
-else:
-    N_T2 = 0
     
     
 #
@@ -615,9 +624,15 @@ while (N_T2 < time_so.length):
         else:
             eUt2 = eUt.at()
         
+        
+        print(eUt2.data)
+        print(T2)
+        print(msc.t2axis.length)
+        
         pthways = agg2.liouville_pathways_3T(ptype=typs,
                                               lab=lab,
-                                              eUt=eUt2, ham=ham, t2=T2, etol=1.0e-5,
+                                              eUt=eUt2, ham=ham, t2=T2, 
+                                              etol=1.0e-6,
                                               verbose=0) 
                                               #eUt2=qr.qm.SOpUnity(dim=HH.dim))
         t2 = time.time()
@@ -710,7 +725,7 @@ while (N_T2 < time_so.length):
         # Save stuff for a restart
         #
         if eUt_mode == "jit":
-            state = [N_T2, cont, eUt]
+            state = [N_T2, cont, eUt, agg2] #, msc]
             prcl = qr.Parcel()
             prcl.set_content(state)
             prcl.save("A_saved_state.qrp")
@@ -719,6 +734,11 @@ while (N_T2 < time_so.length):
         
         cont = state[1]
         eUt = state[2]
+        #msc = state[4]
+        if N_T2+1 < time_so.length:
+            print("Setting next step as ", N_T2+1, " i.e. ",
+                  time_so.data[N_T2+1], "fs")
+            msc.set_next(N_T2+1) 
         
         cont.t2axis = time_so
         cont.use_indexing_type(time_so)
@@ -816,7 +836,8 @@ if repeat:
 else:
     
     N_T2_pul = int(N_T2/2)
-    print("Saving 2D spectrum at", time_so.data[N_T2_pul], "fs (as an example)")
+    print("Saving 2D spectrum at",
+          time_so.data[N_T2_pul], "fs (as an example)")
     twod = cont.get_spectrum(time_so.data[N_T2_pul])
 
 #
@@ -830,9 +851,12 @@ else:
 #
 # Plotting an example spectrum
 #
+    
+# plot_window = [11000,13500,11000,13500]
+    
 with qr.energy_units("1/cm"):
     #plt.figure(1)
-    twod.plot(window=[11000,13500,11000,13500], Npos_contours=10,              
+    twod.plot(window=plot_window, Npos_contours=10,              
               stype="total", spart="real")
     plt.savefig(os.path.join(pre_out,"twod_example_at_T2.png"))
     #plt.close()
@@ -845,7 +869,7 @@ with qr.energy_units("1/cm"):
 # If the plotting window is reasonable, we should cut the unnecessary data by trimming the 2D spectrum
 #
 with qr.energy_units("1/cm"): 
-    cont.trimall_to(window=[11000,13500,11000,13500])
+    cont.trimall_to(window=plot_window)
 
 
 # In[24]:
@@ -891,16 +915,16 @@ with qr.energy_units("1/cm"):
 #
 
 # The point with the frequency nearest to the desired one should be chosen
-Npoint = int(3*Ndat/4)
+#show_Npoint = 7 #int(3*Ndat/4)
 
-om = fcont.axis.data[Npoint]
-print("omega: ", om)
+om = fcont.axis.data[show_Npoint]
+#print("omega: ", om)
 sp = fcont.get_spectrum(om)
 
 units = "1/cm"
 with qr.energy_units(units):
-    print("Spectrum at frequency:", fcont.axis.data[Npoint], units)
-    sp.plot(window=[11000,13500,11000,13500], Npos_contours=30, 
+    print("Spectrum at frequency:", fcont.axis.data[show_Npoint], units)
+    sp.plot(window=plot_window, Npos_contours=30, 
               stype="total", spart="abs")
     sp.savefig(os.path.join(pre_out, "twod_fft_map.png"))
 

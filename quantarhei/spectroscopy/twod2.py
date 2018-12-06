@@ -1546,18 +1546,24 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         #
         
         # positive contours are always plotted
-        plt.contour(self.xaxis.data[i1_min:i1_max],
+        try:
+            plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
                      realout, levels=poslevels, colors="k")
                      #linewidth=1)
+        except:
+            print("No positive contours found; not plotted")
               
         # other contours only if we do not plot absolute values
         if spart != "abs":
             # zero contour
-            plt.contour(self.xaxis.data[i1_min:i1_max],
+            try:
+                plt.contour(self.xaxis.data[i1_min:i1_max],
                          self.yaxis.data[i3_min:i3_max],
                          realout, levels=[0],colors="b")
                          #linewidth=1)
+            except:
+                print("Zero contour not found; not plotting")
         
         
             # negative contours

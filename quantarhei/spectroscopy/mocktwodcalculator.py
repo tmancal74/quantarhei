@@ -74,6 +74,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.tc += 1
         return sone
 
+    def set_next(self, tc):
+        self.tc = tc
         
     def calculate_one(self, tc):
         """Calculate the 2D spectrum for all pathways
@@ -84,7 +86,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")
-        
+
+        k = 0        
         for pwy in self.pathways:
             
             data = self.calculate_pathway(pwy, shape=self.shape)
@@ -96,7 +99,15 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             else:
                 raise Exception("Unknown pathway type")
 
-        print("Setting: ", self.t2axis.data[tc])
+            k += 1
+        
+        if k == 0:
+            pwy = None
+            data = self.calculate_pathway(pwy, shape=self.shape)
+            onetwod._add_data(data, dtype="REPH")
+            print("Warning: calculating empty 2D spectrum")
+
+        #print("Setting: ", self.t2axis.data[tc])
         onetwod.set_t2(self.t2axis.data[tc])    
             
         return onetwod
@@ -112,6 +123,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")
         
+        k = 0
         for pwy in self.pathways:
             
             data = self.calculate_pathway(pwy, shape=self.shape)
@@ -122,6 +134,13 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                 onetwod._add_data(data, dtype="NONR")
             else:
                 raise Exception("Unknown pathway type")
+                
+            k += 1
+        
+        if k == 0:
+            pwy = None
+            data = self.calculate_pathway(pwy, shape=self.shape)
+            onetwod._add_data(data, dtype="REPH")
 
         onetwod.set_t2(0.0)    
             
@@ -132,6 +151,13 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         """Calculate the shape of a Liouville pathway
         
         """
+        
+        # we can calculate empty pathway
+        if pathway is None:
+            N1 = self.oa1.length
+            N3 = self.oa3.length            
+            reph2D = numpy.zeros((N1, N3), dtype=COMPLEX)
+            return reph2D
         
         # FIXME: remove the old version sometime soon
         oldv = False
