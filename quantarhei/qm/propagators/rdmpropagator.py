@@ -45,7 +45,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     
     """
     
-    def __init__(self, timeaxis=None, Ham=None, RTensor=None,
+    def __init__(self, timeaxis=None, Ham=None, RWA=None, RTensor=None,
                  Efield="", Trdip="", PDeph=None):
         """
         
@@ -54,8 +54,20 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         relaxation tensor.Time axis of the propagation is specied by 
         the second argument.
         
+        RWA : tuple
+            A tuple of block starting indices. It is assumed that if RWA is
+            to be used, that there is at least a ground state and a single
+            block of excited state starting from the Nth energy level. In this
+            case the tuple reads (0, N). The tuple always starts with 0. In
+            case there are two excited blocks, it reads (0, N1, N2) where
+            N2 > N1 > 0.
+        
+        
+        Examples
+        --------
+        
         The constructor accepts only numpy.ndarray object, so the
-        following code will fail, becuase it submits normal Python arrays.         
+        following code will fail, because it submits normal Python arrays.         
         
         >>> pr = RDMPropagator([[0.0, 0.0],[0.0, 1.0]],[0,1,2,3,4,5])
         Traceback (most recent call last):
@@ -74,6 +86,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_Efield = False
         self.has_PDeph = False
         self.has_RTensor = False
+        self.has_RWA = False
         
         if not ((timeaxis is None) and (Ham is None)):
             
@@ -114,6 +127,45 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 if isinstance(Efield,numpy.ndarray):
                     self.Efield = Efield
                     self.has_Efield = True 
+            
+            
+            #
+            # RWA
+            #
+            if RWA is not None:
+                
+                self.Nblocks = len(RWA)
+                average_energy = numpy.zeros(self.Nblocks, dtype=qr.REAL)
+                if RWA[0] != 0:
+                    raise Exception("First element in RWA has to be zero")
+                self.RWA = RWA
+                self.RWU = numpy.zeros(RWA.shape, dtype=RWA.dtype)
+                HH = self.Hamiltonian.data
+                shape = HH.shape
+                HOmega = numpy.zeros(shape, dtype=qr.REAL)
+                # loop over blocks
+                for block in range(self.Nblocks):
+                    if block < self.Nblocks-1:
+                        upper = self.RWA[block+1]
+                    else:
+                        upper = shape[0]
+                    average_energy[block] = 0.0
+                    Nk = 0
+                    # calculate average energy of the block
+                    for in_block in range(self.RWA[block], upper):
+                        print("block and in_block: ", block, in_block)
+                        average_energy[block] += HH[in_block,in_block]
+                        Nk += 1
+                    average_energy[block] = average_energy[block]/Nk
+                    # put average energy for all energies in the block
+                    for ii in range(self.RWA[block],self.RWA[block]+Nk):
+                        HOmega[ii,ii] = average_energy[block]
+                    self.RWU[block] = self.RWA[block]+Nk
+                                    
+                self.HOmega = HOmega
+                
+                print(self.RWA)
+                print(self.RWU)
             
             #
             # Pure dephasing also counts as relaxation

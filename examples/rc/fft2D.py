@@ -49,6 +49,14 @@ print("Quantarhei version: ", qr.Manager().version, "\n")
 pre_in = os.path.join("..", "model", "out")
 pre_out = "out"
 
+# check if pre_out exists and is a directory
+if not os.path.isdir(pre_out):
+    try:
+        os.makedirs(pre_out, exist_ok=True)
+    except:
+        raise Exception("Output directory name '"
+                        +pre_out+"' does not represent a valid directory")
+
 # In[2]:
 
 
@@ -285,8 +293,8 @@ plt.close()
 #
 # and propagator which can propagate purely electronic and electro-vibrational systems
 #
-prop = qr.qm.ReducedDensityMatrixPropagator(time_axis, HH, LF_frac)
-prope = qr.qm.ReducedDensityMatrixPropagator(time_axis, HHe, LF_el)
+prop = qr.qm.ReducedDensityMatrixPropagator(time_axis, HH, RTensor=LF_frac)
+prope = qr.qm.ReducedDensityMatrixPropagator(time_axis, HHe, RTensor=LF_el)
 
 
 # In[10]:
@@ -509,7 +517,16 @@ print("Setting up evolution superoperator at", t2_N_steps, "points:")
 #
 time_so = qr.TimeAxis(0.0, t2_N_steps, t2_time_step)
 
-eUt = qr.qm.EvolutionSuperOperator(time_so, HH, LF_frac, 
+Number_of_bands = len(agg2.Nb)
+
+rwa_indices = numpy.zeros(Number_of_bands, dtype=numpy.int)
+for ii in range(Number_of_bands):
+    if ii > 0:
+        rwa_indices[ii] = agg2.Nb[ii-1]+1
+        
+print("RWA: ", rwa_indices)
+
+eUt = qr.qm.EvolutionSuperOperator(time_so, HH, RWA=rwa_indices, relt=LF_frac, 
                                    pdeph=p_deph, mode=eUt_mode)
 
 #
@@ -525,6 +542,16 @@ if eUt_mode == "all":
     t1 = time.time()
     eUt.calculate(show_progress=True)
     t2 = time.time()
+            
+    indx = (eUt.data[2,:,:,:,:]>1.0).nonzero()
+    no_elem = len(indx[0])
+    for ii in range(no_elem):
+        print("*** - ", (indx[0][ii], indx[1][ii], indx[2][ii], indx[3][ii]))
+    eUt.plot_element((indx[0][0], indx[1][0], indx[2][0], indx[3][0]))
+    eUt.plot_element((10, 10, 13, 13))
+    eUt.plot_element((10, 13, 10, 13))
+    plt.savefig(os.path.join(pre_out,"element.png"))
+    
     print("Finished in ", t2-t1, "sec")
 else:
     print("Dynamics will be calculated on fly")
@@ -576,11 +603,6 @@ msc.bootstrap(rwa=qr.convert(12200.0,"1/cm","int"),
               all_positive=False, shape="Gaussian")
 
 ham = eUt.get_Hamiltonian()
-
-#
-# Are we going to reload container and continue somewhere?
-#
-
     
     
 #
@@ -625,9 +647,13 @@ while (N_T2 < time_so.length):
             eUt2 = eUt.at()
         
         
-        print(eUt2.data)
+        print(numpy.max(eUt2.data))
         print(T2)
         print(msc.t2axis.length)
+        
+        
+            
+        
         
         pthways = agg2.liouville_pathways_3T(ptype=typs,
                                               lab=lab,
@@ -666,17 +692,26 @@ while (N_T2 < time_so.length):
         #
         
         # on P-
-        pw_Pm = spec.select_frequency_window([qr.convert(11000, "1/cm", "int"), qr.convert(11500, "1/cm", "int"),
-                                       qr.convert(11000, "1/cm", "int"), qr.convert(13800, "1/cm", "int")], pw)
+        pw_Pm = spec.select_frequency_window(
+                [qr.convert(11000, "1/cm", "int"), 
+                 qr.convert(11500, "1/cm", "int"),
+                 qr.convert(11000, "1/cm", "int"), 
+                 qr.convert(13800, "1/cm", "int")], pw)
     
         # on P+
-        pw_Pp = spec.select_frequency_window([qr.convert(11500, "1/cm", "int"), qr.convert(12200, "1/cm", "int"),
-                                       qr.convert(11000, "1/cm", "int"), qr.convert(13800, "1/cm", "int")], pw)
+        pw_Pp = spec.select_frequency_window(
+                [qr.convert(11500,"1/cm", "int"),
+                 qr.convert(12200, "1/cm", "int"),
+                 qr.convert(11000, "1/cm", "int"),
+                 qr.convert(13800, "1/cm", "int")], pw)
     
         # on B
-        pw_B = spec.select_frequency_window([qr.convert(12200, "1/cm", "int"), qr.convert(13000, "1/cm", "int"),
-                                       qr.convert(11000, "1/cm", "int"), qr.convert(13800, "1/cm", "int")], pw)
-    
+        pw_B = spec.select_frequency_window(
+                [qr.convert(12200, "1/cm", "int"),
+                 qr.convert(13000, "1/cm", "int"),
+                 qr.convert(11000, "1/cm", "int"),
+                 qr.convert(13800, "1/cm", "int")], pw)
+
         print("Number of pathways on P- ", len(pw_Pm))
         print("Number of pathways on P+ ", len(pw_Pp))
         print("Number of pathways on B  ", len(pw_B))
@@ -716,7 +751,8 @@ while (N_T2 < time_so.length):
     
         print("Saving all pathways:")
         prcl = qr.save_parcel(pw,
-                              os.path.join(pre_out, "pathways"+"_"+str(T2)+".qrp"),
+                              os.path.join(pre_out,
+                                           "pathways"+"_"+str(T2)+".qrp"),
                               comment="pathways at t2 = "+str(T2))
         print("...done")
     

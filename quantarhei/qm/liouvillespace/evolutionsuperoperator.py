@@ -200,6 +200,7 @@ from ...core.saveable import Saveable
 from .superoperator import SuperOperator
 from ...core.time import TimeDependent
 from ... import COMPLEX
+import matplotlib.pyplot as plt
 
 import quantarhei as qr
 
@@ -230,7 +231,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     
     """
     
-    def __init__(self, time=None, ham=None, relt=None, pdeph=None, mode="all"):
+    def __init__(self, time=None, ham=None, relt=None, RWA=None, pdeph=None, mode="all"):
         super().__init__()
         
         self.time = time
@@ -238,6 +239,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.relt = relt
         self.mode = mode
         self.pdeph = pdeph
+        self.RWA = RWA
         try:
             self.dim = ham.dim
         except:
@@ -360,6 +362,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             print("Calculating evolution superoperator ")
         self._init_progress()
         
+        
+        
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
         #
@@ -374,8 +378,10 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 t0 = self.time.data[ti-1] # initial time of the propagation
                 one_step_time = TimeAxis(t0, self.dense_time.length,
                                          self.dense_time.step)
+                
                 prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                      self.relt, 
+                                                      RWA=self.RWA,
+                                                      RTensor=self.relt, 
                                                       PDeph=self.pdeph)
                 rhonm0 = ReducedDensityMatrix(dim=dim)
                 Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
@@ -400,8 +406,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             #
             t0 = 0.0
             one_step_time = TimeAxis(t0, 2, self.dense_time.step)
-            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                  self.relt, PDeph=self.pdeph)
+            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, RWA=self.RWA,
+                                                  RTensor=self.relt, PDeph=self.pdeph)
             rhonm0 = ReducedDensityMatrix(dim=dim)
             Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
             for n in range(dim):
@@ -475,7 +481,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             one_step_time = TimeAxis(t0, self.dense_time.length,
                                      self.dense_time.step)
             prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                  self.relt, 
+                                                  RWA=self.RWA,
+                                                  RTensor=self.relt, 
                                                   PDeph=self.pdeph)
             dim = self.dim
             rhonm0 = ReducedDensityMatrix(dim=dim)
@@ -517,7 +524,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     
                 one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
                 prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                  self.relt)
+                                                      RWA=self.RWA,
+                                                      RTensor=self.relt)
                 rhonm0 = ReducedDensityMatrix(dim=dim)
                 Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
                 for n in range(dim):
@@ -665,6 +673,30 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 raise Exception("Invalid argument: time")
 
 
+    def plot_element(self, elem):
+        """Plots a selected element of the evolution superoperator
+        
+        
+        Parameters
+        ----------
+        
+        elem : tuple
+            A tuple of indices determing the element of the superoperator
+            
+        """
+        
+        shape = self.data.shape
+        tl = self.time.length
+        if (len(elem) == len(shape)-1) and (len(elem) == 4):
+
+            if tl == shape[0]:
+                plt.plot(self.time.data,
+                         self.data[:,elem[0],elem[1],elem[2],elem[3]])
+        
+        else:
+            print("Nothing to plot")
+            
+            
 
     #
     # Calculation `progressbar`
