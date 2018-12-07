@@ -231,7 +231,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     
     """
     
-    def __init__(self, time=None, ham=None, relt=None, RWA=None, pdeph=None, mode="all"):
+    def __init__(self, time=None, ham=None, relt=None, pdeph=None, mode="all"):
         super().__init__()
         
         self.time = time
@@ -239,7 +239,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.relt = relt
         self.mode = mode
         self.pdeph = pdeph
-        self.RWA = RWA
+        
         try:
             self.dim = ham.dim
         except:
@@ -380,7 +380,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                                          self.dense_time.step)
                 
                 prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                      RWA=self.RWA,
                                                       RTensor=self.relt, 
                                                       PDeph=self.pdeph)
                 rhonm0 = ReducedDensityMatrix(dim=dim)
@@ -406,8 +405,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             #
             t0 = 0.0
             one_step_time = TimeAxis(t0, 2, self.dense_time.step)
-            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, RWA=self.RWA,
-                                                  RTensor=self.relt, PDeph=self.pdeph)
+            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
+                                                  RTensor=self.relt, 
+                                                  PDeph=self.pdeph)
             rhonm0 = ReducedDensityMatrix(dim=dim)
             Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
             for n in range(dim):
@@ -481,7 +481,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             one_step_time = TimeAxis(t0, self.dense_time.length,
                                      self.dense_time.step)
             prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                  RWA=self.RWA,
                                                   RTensor=self.relt, 
                                                   PDeph=self.pdeph)
             dim = self.dim
@@ -524,7 +523,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     
                 one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
                 prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                      RWA=self.RWA,
                                                       RTensor=self.relt)
                 rhonm0 = ReducedDensityMatrix(dim=dim)
                 Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)

@@ -5,6 +5,7 @@ from ...core.managers import BasisManaged
 from ...core.managers import EnergyUnitsManaged
 from ...utils.types import ManagedRealArray
 from .operators import Operator
+from ... import REAL
 
 import numpy
 
@@ -28,7 +29,64 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             if not self.check_selfadjoint():
                 raise Exception("The data of this operator have"+
                                 "to be represented by a selfadjoint matrix")
-            
+        
+        self.rwa_indices = None
+        self.rwa_energies = None
+        self.has_rwa = False
+        self.Nblocks = 1
+
+
+    def set_rwa(self, rwa_indices):
+        """sets indice of RWA blocks of the Hamiltonian
+        
+        
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate(name="trimer-2")
+        >>> agg.build()
+        >>> H = agg.get_Hamiltonian()
+        >>> print(H)
+        <BLANKLINE>
+        quantarhei.Hamiltonian object
+        =============================
+        units of energy 1/fs
+        data = 
+        [[ 0.          0.          0.          0.        ]
+         [ 0.          2.26038188  0.          0.        ]
+         [ 0.          0.          2.31689143  0.        ]
+         [ 0.          0.          0.          2.32630969]]
+        >>> print(H.rwa_energies)
+        [ 0.          2.30119433  2.30119433  2.30119433]
+        
+        """
+
+        if rwa_indices[0] != 0:
+            raise Exception("First element in 'rwa_indices' has to be zero")
+        self.rwa_indices = rwa_indices
+
+        self.Nblocks = len(self.rwa_indices)
+        self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
+        
+        en_block = numpy.zeros(self.Nblocks, dtype=REAL)
+        for block in range(self.Nblocks):
+            if block < self.Nblocks-1:
+                upper = self.rwa_indices[block+1]
+            else:
+                upper = self.data.shape[0]
+            k = 0
+            # calculate average energy in the block
+            for ii in range(self.rwa_indices[block],upper):
+                en_block[block] += self.data[ii,ii]
+                k += 1
+            en_block[block] = en_block[block]/float(k)
+            # set rwa_energies within the block
+            for ii in range(self.rwa_indices[block],upper):
+                self.rwa_energies[ii] = en_block[block]            
+        
+        self.has_rwa = True
+        
             
     def diagonalize(self, coupling_cutoff=None):
         """Diagonalizes the Hamiltonian matrix 

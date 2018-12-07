@@ -1350,7 +1350,7 @@ class AggregateBase(UnitsManaged, Saveable):
         
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
-        # FIXME: Do I need this???
+        # Hamiltonian operator
         self.HamOp = Hamiltonian(data=HH)
         # dipole moments
         self.DD = DD
@@ -1387,6 +1387,12 @@ class AggregateBase(UnitsManaged, Saveable):
         self.Nbe = numpy.zeros(self.mult+1, dtype=numpy.int)
         for ii in range(self.mult+1):
             self.Nbe[ii] = self.number_of_electronic_states_in_band(band=ii)
+
+        # prepare RWA indices and set info for Rotating Wave Approximation
+        rwa_indices = numpy.zeros(self.mult+1, numpy.int)
+        for ii in range(self.mult):
+            rwa_indices[ii+1] = rwa_indices[ii]+self.Nb[ii]
+        self.HamOp.set_rwa(rwa_indices)
        
         
         #######################################################################

@@ -490,7 +490,7 @@ t2 = time.time()
 print("Diagonalized in ", t2-t1, "s")
 
 
-pure_deph = False #True
+pure_deph = True
 #t_offset = 80.0
 
 if pure_deph:
@@ -517,16 +517,7 @@ print("Setting up evolution superoperator at", t2_N_steps, "points:")
 #
 time_so = qr.TimeAxis(0.0, t2_N_steps, t2_time_step)
 
-Number_of_bands = len(agg2.Nb)
-
-rwa_indices = numpy.zeros(Number_of_bands, dtype=numpy.int)
-for ii in range(Number_of_bands):
-    if ii > 0:
-        rwa_indices[ii] = agg2.Nb[ii-1]+1
-        
-print("RWA: ", rwa_indices)
-
-eUt = qr.qm.EvolutionSuperOperator(time_so, HH, RWA=rwa_indices, relt=LF_frac, 
+eUt = qr.qm.EvolutionSuperOperator(time_so, HH, relt=LF_frac, 
                                    pdeph=p_deph, mode=eUt_mode)
 
 #
@@ -543,11 +534,12 @@ if eUt_mode == "all":
     eUt.calculate(show_progress=True)
     t2 = time.time()
             
-    indx = (eUt.data[2,:,:,:,:]>1.0).nonzero()
-    no_elem = len(indx[0])
-    for ii in range(no_elem):
-        print("*** - ", (indx[0][ii], indx[1][ii], indx[2][ii], indx[3][ii]))
-    eUt.plot_element((indx[0][0], indx[1][0], indx[2][0], indx[3][0]))
+#    indx = (eUt.data[2,:,:,:,:]>1.0).nonzero()
+#    no_elem = len(indx[0])
+#    for ii in range(no_elem):
+#        print("*** - ", (indx[0][ii], indx[1][ii], indx[2][ii], indx[3][ii]))
+#    eUt.plot_element((indx[0][0], indx[1][0], indx[2][0], indx[3][0]))
+    eUt.plot_element((0, 3, 0, 9))
     eUt.plot_element((10, 10, 13, 13))
     eUt.plot_element((10, 13, 10, 13))
     plt.savefig(os.path.join(pre_out,"element.png"))
@@ -645,15 +637,6 @@ while (N_T2 < time_so.length):
             eUt2 = eUt.at(T2)
         else:
             eUt2 = eUt.at()
-        
-        
-        print(numpy.max(eUt2.data))
-        print(T2)
-        print(msc.t2axis.length)
-        
-        
-            
-        
         
         pthways = agg2.liouville_pathways_3T(ptype=typs,
                                               lab=lab,
@@ -789,7 +772,7 @@ while (N_T2 < time_so.length):
         t1 = time.time()
     
         if eUt.has_PureDephasing():
-            # pure dephasing has to be used in side basis
+            # pure dephasing has to be used in site basis
             with qr.eigenbasis_of(ham):
                 eUt.calculate_next()
         else:

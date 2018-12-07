@@ -45,7 +45,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     
     """
     
-    def __init__(self, timeaxis=None, Ham=None, RWA=None, RTensor=None,
+    def __init__(self, timeaxis=None, Ham=None, RTensor=None,
                  Efield="", Trdip="", PDeph=None):
         """
         
@@ -132,40 +132,21 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             #
             # RWA
             #
-            if RWA is not None:
+            if self.Hamiltonian.has_rwa:
                 
-                self.Nblocks = len(RWA)
-                average_energy = numpy.zeros(self.Nblocks, dtype=qr.REAL)
-                if RWA[0] != 0:
-                    raise Exception("First element in RWA has to be zero")
-                self.RWA = RWA
-                self.RWU = numpy.zeros(RWA.shape, dtype=RWA.dtype)
+                self.RWA = self.Hamiltonian.rwa_indices
+                self.RWU = numpy.zeros(self.RWA.shape, dtype=self.RWA.dtype)
+                
                 HH = self.Hamiltonian.data
                 shape = HH.shape
                 HOmega = numpy.zeros(shape, dtype=qr.REAL)
-                # loop over blocks
-                for block in range(self.Nblocks):
-                    if block < self.Nblocks-1:
-                        upper = self.RWA[block+1]
-                    else:
-                        upper = shape[0]
-                    average_energy[block] = 0.0
-                    Nk = 0
-                    # calculate average energy of the block
-                    for in_block in range(self.RWA[block], upper):
-                        print("block and in_block: ", block, in_block)
-                        average_energy[block] += HH[in_block,in_block]
-                        Nk += 1
-                    average_energy[block] = average_energy[block]/Nk
-                    # put average energy for all energies in the block
-                    for ii in range(self.RWA[block],self.RWA[block]+Nk):
-                        HOmega[ii,ii] = average_energy[block]
-                    self.RWU[block] = self.RWA[block]+Nk
+                for ii in range(shape[0]):
+                    HOmega[ii,ii] = self.Hamiltonian.rwa_energies[ii]
                                     
                 self.HOmega = HOmega
                 
-                print(self.RWA)
-                print(self.RWU)
+                #print(self.RWA)
+                #print(self.RWU)
             
             #
             # Pure dephasing also counts as relaxation
@@ -607,7 +588,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
         
-        HH = self.Hamiltonian.data  
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
         
         qr.log_detail("PROPAGATION (short exponential with "+
                      "relaxation in operator form): order ", L, 
