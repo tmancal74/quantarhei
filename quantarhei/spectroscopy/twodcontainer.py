@@ -364,19 +364,22 @@ class TwoDSpectrumContainer(Saveable):
                                numpy.ones(self.axis.length, dtype=REAL))
         else:
             winfce = window
-              
-        # restrict the time axis by the off-set
-        tlist = []
-        for tt in self.axis.data:
-            if tt >= offset:
-                tlist.append(tt)
-        if len(tlist) > 1:
-            dt = tlist[1]-tlist[0]
-            Nt = len(tlist)
-            t0 = tlist[0]
-            eff_axis = TimeAxis(t0, Nt, dt, atype="complete") # effective time axis for fft
+             
+        if isinstance(self.axis, TimeAxis):
+            # restrict the time axis by the off-set
+            tlist = []
+            for tt in self.axis.data:
+                if tt >= offset:
+                    tlist.append(tt)
+            if len(tlist) > 1:
+                dt = tlist[1]-tlist[0]
+                Nt = len(tlist)
+                t0 = tlist[0]
+                eff_axis = TimeAxis(t0, Nt, dt, atype="complete") # effective time axis for fft
+            else:
+                raise Exception("Offset too large")
         else:
-            raise Exception("Offset too large")
+            eff_axis = self.axis
             
         # put all data into one array
         
@@ -415,10 +418,10 @@ class TwoDSpectrumContainer(Saveable):
         #
         # FFT of the axis
         #
-        axis = eff_axis # = self.axis
-        axis.shift_to_zero()
+        axis = eff_axis # = self.axis            
         
         if isinstance(axis, TimeAxis):
+            axis.shift_to_zero()
             new_axis = axis.get_FrequencyAxis()
             
         elif isinstance(axis, FrequencyAxis):
