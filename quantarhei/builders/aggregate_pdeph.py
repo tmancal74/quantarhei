@@ -58,7 +58,7 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
         self.diagonalize()
         
         # Na is the number of states (vibronic origin)
-        Na = self.Nel
+        Na = self.Ntot
         # self.Nel number of electronic states
         xiai = numpy.zeros((Na, self.Nel), dtype=REAL)
         for aa in range(Na):
@@ -68,6 +68,7 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
                 for alph_i in self.vibindices[ii]:
                     xiai[aa,ii] += self.SS[aa,st]**2
                     st += 1
-            
+        self.xi = xiai
+        
         # return PureDephasing object
         return ElectronicPureDephasing(self, dtype=dtype)

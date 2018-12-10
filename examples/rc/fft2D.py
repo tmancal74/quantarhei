@@ -119,6 +119,7 @@ print("Aggregate has ", agg2.nmono, "single excited electronic states")
 agg2.build(mult=2, vibgen_approx="TPA")
 
 print("and ", agg2.Ntot, " (electro-vibrational) states in total")
+print("Number of single exciton states :", agg2.Nb[0]+agg2.Nb[1])
 
 
 # In[6]:

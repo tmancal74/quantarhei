@@ -664,6 +664,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     #if self.PDeph.dtype == "Gaussian":
                     #    expo = numpy.exp(-self.PDeph.data*((tt**2)-((tt-self.dt)**2))/2.0)
                         
+                    print("rho2: ", rho2.shape)
+                    print("rhoi: ", rhoi.data.shape)
+                    print("expo: ", expo.shape)
+                    #print("t0:   ", t0.shape)
                     rho2 = rho2*expo*numpy.exp(-t0*tt)
                     #print("t = ", tt)
                         
