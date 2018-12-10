@@ -623,8 +623,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             elif self.PDeph.dtype == "Gaussian":
                 expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
                 t0 = self.PDeph.data*self.dt
-            
-            #print("*** PROPAGATION **** ", self.PDeph.dtype)
+
             #print(self.Nt)
             
             # loop over time

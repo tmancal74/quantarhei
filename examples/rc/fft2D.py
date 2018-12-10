@@ -19,6 +19,7 @@ try:
     
     
     print("propagation_dt = ", propagation_dt)
+    print("Using pure dephasing = ", pure_deph)
     print("")
     
     print("2D FFT parameters:")
@@ -490,13 +491,13 @@ t2 = time.time()
 print("Diagonalized in ", t2-t1, "s")
 
 
-pure_deph = True
+#pure_deph = True
 #t_offset = 80.0
 
 if pure_deph:
     print("Calculating electronic pure dephasing")
     t1 = time.time()
-    p_deph = qr.qm.ElectronicPureDephasing(agg2)
+    p_deph = qr.qm.ElectronicPureDephasing(agg2, dtype="Gaussian")
     t2 = time.time()
     print("Pure dephasing calculated in ", t2-t1, "s")
 else:
@@ -719,7 +720,7 @@ while (N_T2 < time_so.length):
         msc.set_pathways(pw)
         twod = msc.calculate_next()
         t2 = time.time()
-        print("..done in", t2-t1,"sec")
+        print("... done in", t2-t1,"sec")
         
         #
         # set current t2 time to the spectrum as a tag
@@ -737,7 +738,7 @@ while (N_T2 < time_so.length):
                               os.path.join(pre_out,
                                            "pathways"+"_"+str(T2)+".qrp"),
                               comment="pathways at t2 = "+str(T2))
-        print("...done")
+        print("... done")
     
     
         #
@@ -773,6 +774,7 @@ while (N_T2 < time_so.length):
     
         if eUt.has_PureDephasing():
             # pure dephasing has to be used in site basis
+            print("   calculating in eigenstate basis")
             with qr.eigenbasis_of(ham):
                 eUt.calculate_next()
         else:
@@ -780,7 +782,7 @@ while (N_T2 < time_so.length):
             eUt.calculate_next()
         
         t2 = time.time()
-        print(" ... propagated in ", t2-t1, "sec")
+        print("... propagated in ", t2-t1, "sec")
         
     N_T2 += 1
 
@@ -850,7 +852,7 @@ if repeat:
     msc.set_pathways(pw)
     twod = msc.calculate_next()
     t2 = time.time()
-    print("..done in", t2-t1,"sec")
+    print("... done in", t2-t1,"sec")
     
 else:
     

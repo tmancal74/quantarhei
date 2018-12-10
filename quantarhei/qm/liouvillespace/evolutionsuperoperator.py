@@ -396,7 +396,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
                     
                 if show_progress:
-                    print("/ropagation: ", ti, "of", Nt)            
+                    print("propagation: ", ti, "of", Nt)            
                 
         else:
             
