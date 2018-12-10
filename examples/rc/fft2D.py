@@ -32,6 +32,13 @@ except:
     quit()
 
 
+try:
+    el2plot = evol_super_op_elems2plot
+    print("Evolution Superoperator Elements to be plotted")
+    print(evol_super_op_elems2plot)
+except:
+    evol_super_op_elems2plot = None
+    
 # In[1]:
 
 import os
@@ -498,7 +505,7 @@ print("Diagonalized in ", t2-t1, "s")
 if pure_deph:
     print("Calculating electronic pure dephasing")
     t1 = time.time()
-    p_deph = qr.qm.ElectronicPureDephasing(agg2, dtype="Gaussian")
+    p_deph = qr.qm.ElectronicPureDephasing(agg, dtype="Gaussian")
     t2 = time.time()
     print("Pure dephasing calculated in ", t2-t1, "s")
 else:
@@ -535,16 +542,13 @@ if eUt_mode == "all":
     t1 = time.time()
     eUt.calculate(show_progress=True)
     t2 = time.time()
-            
-#    indx = (eUt.data[2,:,:,:,:]>1.0).nonzero()
-#    no_elem = len(indx[0])
-#    for ii in range(no_elem):
-#        print("*** - ", (indx[0][ii], indx[1][ii], indx[2][ii], indx[3][ii]))
-#    eUt.plot_element((indx[0][0], indx[1][0], indx[2][0], indx[3][0]))
-    eUt.plot_element((0, 3, 0, 9))
-    eUt.plot_element((10, 10, 13, 13))
-    eUt.plot_element((10, 13, 10, 13))
-    plt.savefig(os.path.join(pre_out,"element.png"))
+     
+    # we plot selected evolution superoperato elements
+    if evol_super_op_elems2plot is not None:    
+        for elem in evol_super_op_elems2plot:
+            eUt.plot_element(elem)
+   
+        plt.savefig(os.path.join(pre_out,"element.png"))
     
     print("Finished in ", t2-t1, "sec")
 else:
