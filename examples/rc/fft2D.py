@@ -472,6 +472,9 @@ trD = agg_el.get_TransitionDipoleMoment()
 
 # In[16]:
 
+#
+# Reloading state for restart
+#
 if restart:
     
     print("\nReloading last state ")
@@ -610,13 +613,12 @@ print("2D spectra ...")
 tg1 = time.time()
 
 while (N_T2 < time_so.length):
-#for N_T2 in range(time_so.length):
     
     #
     #  Select t2 time
     #
     T2 = time_so.data[N_T2]
-    print("\n***** Evolution at ", T2, " fs *****")
+    print("\n***** Calculating spectrum at t2 = ", T2, " fs *****")
         
           
     if not restart:
@@ -738,14 +740,13 @@ while (N_T2 < time_so.length):
     
         cont.set_spectrum(twod)
     
-        print("Saving all pathways:")
+        print("Saving all pathways at t2 = ", T2, " fs")
         prcl = qr.save_parcel(pw,
                               os.path.join(pre_out,
                                            "pathways"+"_"+str(T2)+".qrp"),
                               comment="pathways at t2 = "+str(T2))
         print("... done")
-    
-    
+       
         #
         # Save stuff for a restart
         #
@@ -759,12 +760,15 @@ while (N_T2 < time_so.length):
         
         cont = state[1]
         eUt = state[2]
+        eUt.time = time_so 
         #msc = state[4]
         if N_T2+1 < time_so.length:
             print("Setting next step as ", N_T2+1, " i.e. ",
                   time_so.data[N_T2+1], "fs")
             msc.set_next(N_T2+1) 
         
+        else:
+            print(" ... already calculated")
         cont.t2axis = time_so
         cont.use_indexing_type(time_so)
         restart = False
@@ -773,8 +777,10 @@ while (N_T2 < time_so.length):
     #
     # propagation of the evolution superoperator
     #
-    if eUt_mode == "jit":
-        print("Propagating dynamics ...")
+    if (eUt_mode == "jit") and (N_T2+1 < time_so.length) :
+        print("Propagating dynamics from ", T2,
+              " to ", time_so.data[N_T2+1], " ...")
+        
         t1 = time.time()
     
         if eUt.has_PureDephasing():

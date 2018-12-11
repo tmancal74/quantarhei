@@ -542,6 +542,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             indx += 1             
             
         return pr  
+
         
     def __propagate_short_exp_with_rel_operators(self, rhoi, L=4):
         """Integration by short exponentional expansion
@@ -623,8 +624,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             elif self.PDeph.dtype == "Gaussian":
                 expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
                 t0 = self.PDeph.data*self.dt
-
-            #print(self.Nt)
             
             # loop over time
             for ii in range(1, self.Nt):
@@ -660,16 +659,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         
                         rho2 = rho2 + rho1
                        
-                    # This really has to be here, not inside previous loop
-                    #if self.PDeph.dtype == "Gaussian":
-                    #    expo = numpy.exp(-self.PDeph.data*((tt**2)-((tt-self.dt)**2))/2.0)
-                        
-                    print("rho2: ", rho2.shape)
-                    print("rhoi: ", rhoi.data.shape)
-                    print("expo: ", expo.shape)
-                    #print("t0:   ", t0.shape)
+                    # pure dephasing is added here                        
                     rho2 = rho2*expo*numpy.exp(-t0*tt)
-                    #print("t = ", tt)
                         
                     rho1 = rho2    
                 

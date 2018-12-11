@@ -476,7 +476,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # We calculate every interval completely
             #
             ti = self.now + 1
-            
+
             t0 = self.time.data[ti-1] # initial time of the propagation
             one_step_time = TimeAxis(t0, self.dense_time.length,
                                      self.dense_time.step)
