@@ -33,6 +33,9 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.rwa_indices = None
         self.rwa_energies = None
         self.has_rwa = False
+        # In future, the Hamiltonian should have a block structure
+        # reflected in the data storage, for now we are fine just with 
+        # knowing that the blocks are there
         self.Nblocks = 1
 
 
@@ -52,14 +55,17 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         quantarhei.Hamiltonian object
         =============================
         units of energy 1/fs
+        Rotating Wave Approximation (RWA) enabled : True
+        Number of blocks : 2
+        Block average energies:
+         0 : 0.0
+         1 : 2.3011943314
         data = 
         [[ 0.          0.          0.          0.        ]
          [ 0.          2.26038188  0.          0.        ]
          [ 0.          0.          2.31689143  0.        ]
          [ 0.          0.          0.          2.32630969]]
-        >>> print(H.rwa_energies)
-        [ 0.          2.30119433  2.30119433  2.30119433]
-        
+
         """
 
         if rwa_indices[0] != 0:
@@ -69,6 +75,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.Nblocks = len(self.rwa_indices)
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
         
+        # average energies in every block
         en_block = numpy.zeros(self.Nblocks, dtype=REAL)
         for block in range(self.Nblocks):
             if block < self.Nblocks-1:
@@ -85,6 +92,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             for ii in range(self.rwa_indices[block],upper):
                 self.rwa_energies[ii] = en_block[block]            
         
+        # we have information on RWA
         self.has_rwa = True
         
             
@@ -147,6 +155,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             self.JR = numpy.dot(self.SS,numpy.dot(self.JR,self.SS.T))
         if with_remainder and self._has_remainder_coupling:                
             self.data += self.JR
+
             
     def remove_cutoff_coupling(self, coupling_cutoff):
         """Removes the couplings smaller than a specified cutoff
@@ -178,6 +187,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                     self._data[jj,ii] = 0.0
         self.JR = JR
         self._has_remainder_coupling = True
+
         
     def subtract_cutoff_coupling(self, coupling_cutoff):
         """Subtracts the cut-off coupling from all coupling elements
@@ -288,6 +298,14 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         out  = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
         out += "\nunits of energy %s" % self.unit_repr()
+        out += "\nRotating Wave Approximation (RWA) enabled : "\
+            +str(self.has_rwa)
+        if self.has_rwa:
+            out += "\nNumber of blocks : "+str(self.Nblocks)
+            out += "\nBlock average energies:"
+            for k in range(self.Nblocks):
+                out += "\n "+str(k)+" : "\
+                +str(self.rwa_energies[self.rwa_indices[k]])
         out += "\ndata = \n"
         out += str(self.data)
         return out
