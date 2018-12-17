@@ -17,6 +17,8 @@ from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
 from .twod2 import TwoDSpectrum
 
+from ..core.managers import Manager
+
 from ..core.managers import energy_units
 from .. import COMPLEX
 from .. import REAL
@@ -231,6 +233,27 @@ class TwoDSpectrumContainer(Saveable):
             
             raise Exception("Unknown type of indexing")
 
+
+    def get_nearest(self, val):
+        
+        if self.itype == "FrequencyAxis":
+            #print(Manager().current_units["frequency"])
+            #print(Manager().current_units["energy"])
+            nval = Manager().convert_energy_2_internal_u(val)
+            # get tags and convert them to numbers
+            ntags = numpy.zeros(len(self.tags), dtype=REAL)
+            k = 0
+            for stag in self.tags:
+                #print(stag)
+                ntag = float(stag)
+                ntags[k] = ntag
+                k += 1
+            dtags = numpy.abs(ntags - nval)
+            imin = numpy.argmin(dtags)
+            #print("Returning spectrum at: ", 
+            #      Manager().convert_energy_2_current_u(self.tags[imin]))
+            return self.spectra[self.tags[imin]], imin
+            
 
     def length(self):
         """Returns the length of the container

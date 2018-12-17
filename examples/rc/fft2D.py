@@ -1,57 +1,144 @@
 # coding: utf-8
+###############################################################################
+#
+#
+#
+#
+#
+#
+#
+###############################################################################
 
 #
-# Reading configuration file 
+###############################################################################
 #
+# SCRIPT CONFIGURATION
+#
+###############################################################################
+#
+
+# standard libraries
+import os
+import datetime
+import time
+
+# pyplot
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
+
+# numerics
+import numpy
+
+# quantarhei
+import quantarhei as qr
+import quantarhei.spectroscopy as spec
+
+global eUt_mode
+
+#
+# Reading of configuration file 
 #
 with open("fft2D.conf","r") as f:
     txt = f.read()
     exec(txt)
-    
-# try the configuration
-import traceback
-import datetime
-try:
-    print("\nRC Simulation", datetime.datetime.now(),"\n")
-    print("Simulation parameters: ")
-    print("restart  = ", restart)
-    print("eUt_mode = ", eUt_mode)
+ 
+def tprint(var, messg=None, default=None):
+    """Test the existence of the variable with the name `var`
     
     
-    print("propagation_dt = ", propagation_dt)
-    print("Using pure dephasing = ", pure_deph)
-    print("")
+    If the default is specified, the non-existence of the variable
+    is not a problem, and the variable is set to the default
     
-    print("2D FFT parameters:")
-    print("FFT offset: ", t_offset)
-    print("Plot window (in cm-1) = ", plot_window)
-    print("")    
-except:
-    traceback.print_exc()
-    print("Configuration file is incomplete")
-    quit()
-
-
-try:
-    el2plot = evol_super_op_elems2plot
-    print("Evolution Superoperator Elements to be plotted")
-    print(evol_super_op_elems2plot)
-except:
-    evol_super_op_elems2plot = None
+    """    
+    import traceback
     
-# In[1]:
+    try:
+        if messg is not None:
+            print("#", messg)
+        val = eval(var)
+        if isinstance(val, str):
+            val = '"'+val+'"'
+        print(var, "=", val)
 
-import os
+    except:
+        if default is None:
+            traceback.print_exc()
+            print("Configuration file is incomplete")
+            quit()
+        else:
+            globals()[var] = default
+            val = eval(var)
+            if isinstance(val, str):
+                val = '"'+val+'"'
+            print(var,"=", val, "# (default)")
 
-import quantarhei as qr
-import quantarhei.spectroscopy as spec
-import numpy
-import time
+    
+#
+# Test the compulsory part of the configuration
+#
 
-import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+print("")     
+print("######################################################################")
+print("#                                                                    #")
+print("#             FT VIBRONIC 2D MAPS of REACTION CENTER                 #")
+print("#                                                                    #")
+print("#             Quantarhei simulation script                           #")
+print("#                                                                    #")
+print("#    This script is a part of the supporting information             #")
+print("#    of the following publication:                                   #")
+print("#                                                                    #")      
+print("#    Policht, V.; ..., (2019)                                        #")
+print("#                                                                    #")
+print("#                                                                    #")      
+print("######################################################################")
+print("")
+print("Simulation started at: "+str(datetime.datetime.now()))
+print("Quantarhei version: ", qr.Manager().version)
+print("")
+print("***                      Simulation parameters                     ***")
+print("\n# This block can be used as an input file for another calculation")
+print("\n# Waiting time propagation parameters:")
+tprint("eUt_mode", default="jit")
+tprint("restart", default=True)
+tprint("pure_deph", messg="Using pure dephasing?", default=True)
+tprint("t2_N_steps")
+tprint("t2_time_step")
+tprint("t2_sub", default=10)
+tprint("transfer_times")
+tprint("uphill_thermal", default = True)
+tprint("ignore_slower_than", messg="Ignore uphill rates slower than this (fs)")
 
-print("Quantarhei version: ", qr.Manager().version, "\n")
+print("\n# Time domain 2D calculation parameters:")
+tprint("t1_N_steps", messg="t1 coherence time")
+tprint("t1_time_step")
+tprint("t3_N_steps", messg="t3 coherence time")
+tprint("t3_time_step")
+
+print("\n# Effective lineshape parameters:")
+tprint("wincm_P")
+tprint("wincm_B")
+tprint("wincm_CT")
+
+print("\n# Demo propagation parameters:")
+tprint("propagation_dt")
+tprint("propagation_N_steps")
+
+print("\n# 2D FFT parameters:")
+tprint("plot_window")
+tprint("t_offset", default=0.0, messg="FFT offset")
+tprint("tukey_r")
+tprint("show_omega", default=0.0)
+
+print("\n# Auxiliary plots:")
+tprint("evol_super_op_elems2plot", default=[],
+       messg="Evolution Superoperator Elements to be plotted")
+
+print("\n# End of the input file")
+print("")
+print("***                      Simulation output                         ***")
+print("")
+
+
 
 # input and output paths of the script
 pre_in = os.path.join("..", "model", "out")
@@ -65,17 +152,12 @@ if not os.path.isdir(pre_out):
         raise Exception("Output directory name '"
                         +pre_out+"' does not represent a valid directory")
 
-# In[2]:
-
 
 #
-# This is needed in version 0.0.36 for propagation with Lindblad form
+# This is needed in version 0.0.36 and later for propagation with Lindblad form
 #
 qr.Manager().gen_conf.legacy_relaxation = True
 
-
-
-# In[4]:
 
 #
 # Load aggregates constructed in the previous phase of the calculation
@@ -85,10 +167,8 @@ agg = qr.load_parcel(os.path.join(pre_in,
                                   "fraction_45_2_vibrations_CT_unbuilt.qrp"))
 agg2 = qr.load_parcel(os.path.join(pre_in,
                                    "fraction_45_2_vibrations_CT_unbuilt.qrp"))
-agg_el = qr.load_parcel(os.path.join(pre_in,"fraction_eff_40_4_CT_unbuilt.qrp"))   
-
-
-# In[5]:
+agg_el = qr.load_parcel(os.path.join(pre_in,
+                                     "fraction_eff_40_4_CT_unbuilt.qrp"))   
 
 
 #
@@ -129,8 +209,6 @@ print("and ", agg2.Ntot, " (electro-vibrational) states in total")
 print("Number of single exciton states :", agg2.Nb[0]+agg2.Nb[1])
 
 
-# In[6]:
-
 
 #
 # Electronic aggregate is built with single exciton states only
@@ -157,54 +235,62 @@ agg_el.build(mult=1)
 HHe = agg_el.get_Hamiltonian()
 
 
-# In[7]:
-
 
 #
 #  Here we define system-bath interaction operators for relaxation in both
 #  the purely electronic and the electro-vibrational Hamiltonian
 #
 #
+#transfer_times = ([(1,2), 27.0],
+#                  [(2,3), 157.0],
+#                  [(2,4), 157.0])
+#uphill_thermal = True
+#ignore_slower_than = 3000.0
+
+kb_intK = qr.core.units.kB_intK
 e1_dim = agg_el.Nel
 with qr.eigenbasis_of(HHe):
 
-    K_12 = qr.qm.ProjectionOperator(1, 2, dim=e1_dim)
-    K_21 = qr.qm.ProjectionOperator(2, 1, dim=e1_dim)
-    K_23 = qr.qm.ProjectionOperator(2, 3, dim=e1_dim)
-    K_32 = qr.qm.ProjectionOperator(3, 2, dim=e1_dim)
-    K_24 = qr.qm.ProjectionOperator(2, 4, dim=e1_dim)
-    #K1_toCT = qr.qm.ProjectionOperator(4, 1, dim=e1_dim)
-
-    K_17 = qr.qm.ProjectionOperator(1, 5, dim=e1_dim)
-    K_18 = qr.qm.ProjectionOperator(1, 6, dim=e1_dim)
-    #print(K_12)
-
-    # thermal factor for the rates
-    kb_intK = qr.core.units.kB_intK
-    expDEkbT = numpy.exp(-(HHe.data[2,2]-HHe.data[1,1])/(kb_intK*77.0))
-
-    # experimental kinetics
-    ops = [K_12, K_23, K_24] 
+    operators = []
+    rates = []
+    for trt in transfer_times:
+        ff = trt[0][0]  
+        ii = trt[0][1]
+        rt = 1.0/trt[1]
+        if ii > ff:
+            operators.append(qr.qm.ProjectionOperator(ff, ii, dim=e1_dim))
+            rates.append(rt)
+        else:
+            raise Exception("Only downhill rates should"+
+                            " be specified explicitely")
+        # thermal factor for the rates
+        DeltE = HHe.data[ii,ii]-HHe.data[ff,ff] 
+        expDEkbT = numpy.exp(-DeltE/(kb_intK*77.0))
+        rtU = rt*expDEkbT        
+        print("ET transfer time (",ff,"<--",ii,"):", trt[1],"fs")
+        print("Uphill time      (",ii,"<--",ff,"):", 1.0/rtU,"fs")
+        print(" energy gap : ", qr.convert(DeltE,"int","1/cm"), "1/cm")
+        if (1.0/rtU) > ignore_slower_than:
+            print(" - Ignoring uphill energy transfer slower than",
+                  ignore_slower_than/1000," ps.")
+        else:
+            operators.append(qr.qm.ProjectionOperator(ii, ff, dim=e1_dim))
+            rates.append(rtU)
+            print("Setting uphill transfer rate")
         
-    # rates in the order defined above
-    rates = [1.0/27.0, 1.0/157.0, 1.0/157.0] 
 
 #
 # Electronic only system-bath interaction operator
 #
-sbi_el = qr.qm.SystemBathInteraction(sys_operators=ops,
-                                     rates=rates)
+sbi_el = qr.qm.SystemBathInteraction(sys_operators=operators, rates=rates)
 sbi_el.set_system(agg_el)
 
 #
 # System-bath interaction including vibrational states
 #
-sbi = qr.qm.SystemBathInteraction(sys_operators=ops,
+sbi = qr.qm.SystemBathInteraction(sys_operators=operators,
                                   rates=rates)
 sbi.set_system(agg)
-
-
-# In[8]:
 
 
 #
@@ -225,13 +311,12 @@ LF_frac = qr.qm.ElectronicLindbladForm(HH, sbi, as_operators=True)
 LF_el = qr.qm.ElectronicLindbladForm(HHe, sbi_el, as_operators=True)
 
 
-# In[9]:
 #
 # Laboratory setup
 #
 
 from quantarhei import LabSetup
-from quantarhei.utils.vectors import X, Y, Z
+from quantarhei.utils.vectors import X #, Y, Z
 
 lab = LabSetup()
 lab.set_polarizations(pulse_polarizations=[X,X,X], detection_polarization=X)
@@ -244,22 +329,23 @@ time_axis = qr.TimeAxis(0.0, propagation_N_steps, propagation_dt)
 agg_el.diagonalize()
 
 #
-#  Absorption Spectrum by pathway method
+#  Absorption Spectrum calculated by the pathway method
 #
 
-mac = qr.MockAbsSpectrumCalculator(time_axis, system=agg_el)
-
+# initial conditions before excitation
 rho0 = agg_el.get_DensityMatrix(condition_type="thermal", temperature=0.0)
+# electronic Hamiltonian
 ham = agg_el.get_Hamiltonian()
-
+# first order Liouville pathways
 pthways = agg_el.liouville_pathways_1(lab=lab, ham=ham, etol=1.0e-5,
                                        verbose=0) 
-
+# absorption spectrum calculator
+mac = qr.MockAbsSpectrumCalculator(time_axis, system=agg_el)
 mac.bootstrap(rwa=qr.convert(12200.0,"1/cm","int"), 
               shape="Gaussian")
-
 mac.set_pathways(pthways)
 
+# here we calculate the spectrum
 abs1 = mac.calculate()
 abs1.normalize2(norm=0.53)
 
@@ -306,9 +392,6 @@ prop = qr.qm.ReducedDensityMatrixPropagator(time_axis, HH, RTensor=LF_frac)
 prope = qr.qm.ReducedDensityMatrixPropagator(time_axis, HHe, RTensor=LF_el)
 
 
-# In[10]:
-
-
 #
 # Here we define the intial density matrix for propagation
 #
@@ -327,20 +410,24 @@ if impulsive:
     # we can trace out vibrations to get reduced density matrix which
     # is electronic only
     # we check it against a purely electronic state below
-    print("Comparison of pure electronic and vibrational but traced over DMs")
+    print("Pure electronic vs. vibrational but traced  over vibrations\n"
+          "initial"+
+          " density matrices")
     sig0 = agg.trace_over_vibrations(rho0)
-    with qr.eigenbasis_of(HHe):
-        # print populations
-        print([numpy.real(sig0.data[i,i]) for i in range(1, e1_dim)])
-    
     #
     # Impulsive excitation with purely electronic system
     #
     rho0e = agg_el.get_DensityMatrix(condition_type="impulsive_excitation")
     rho0e.normalize2()
+
     with qr.eigenbasis_of(HHe):
         # print populations
-        print([numpy.real(rho0e.data[i,i]) for i in range(1, e1_dim)])
+        print("|      Traced       |      Electronic     |")
+        print("|-----------------------------------------|")
+        for i in range(1, e1_dim):
+            print("|",numpy.real(sig0.data[i,i]),"|",
+                  numpy.real(rho0e.data[i,i]),"|")
+    
 else:
  
     #
@@ -359,11 +446,6 @@ else:
     with qr.eigenbasis_of(HHe):    
         rho0e.data[:,:] = 0.0
         rho0e.data[2,2] = 1.0
-    
-
-
-
-# In[11]:
 
 
 #
@@ -379,7 +461,7 @@ print("Including vibrations ...")
 t1 = time.time()
 rhot = prop.propagate(rho0)
 t2 = time.time()
-print("Propagation in:", t2-t1, "sec")
+print("... done. Propagation took:", t2-t1, "sec")
 
 #
 # Propagation of the electronic only system
@@ -389,10 +471,7 @@ t1 = time.time()
 #with qr.eigenbasis_of(HHe):
 rhoet = prope.propagate(rho0e)
 t2 = time.time()
-print("Propagation in:", t2-t1, "sec")
-
-
-# In[12]:
+print("... done. Propagation took:", t2-t1, "sec")
 
 
 #
@@ -404,9 +483,6 @@ sigt = agg.trace_over_vibrations(rhot)
 #print(rhot.data.shape)
 
 
-# In[13]:
-
-
 #
 # Here we can compare electronic eigenstate populations at different times
 #
@@ -415,13 +491,11 @@ Nt = int(propagation_N_steps/2)
 tm = time_axis.data[Nt]
 print("Populations at time = ", tm)
 with qr.eigenbasis_of(HHe):
-    print("Traced: ")
-    print([numpy.real(sigt.data[0,i,i]) for i in range(1, e1_dim)])
-    print("Purely electronic: ")
-    print([numpy.real(rhoet.data[0,i,i]) for i in range(1, e1_dim)])
-
-
-# In[14]:
+    print("|      Traced       |      Electronic     |")
+    print("|-----------------------------------------|")
+    for i in range(1, e1_dim):
+        print("|",numpy.real(sigt.data[Nt,i,i]),"|",
+              numpy.real(rhoet.data[Nt,i,i]),"|")
 
 
 show_plots = True
@@ -462,15 +536,10 @@ if show_plots:
         plt.close()
 
 
-# In[15]:
-
-
 trD = agg_el.get_TransitionDipoleMoment()
 
 
 # ## Liouville pathways
-
-# In[16]:
 
 #
 # Reloading state for restart
@@ -494,7 +563,8 @@ else:
 #
 # THIS TAKES FEW TENS OF SECONDS
 #
-# In future version of Quantarhei, this call will not be needed (it will be done silently elsewhere, when needed)
+# In future version of Quantarhei, this call will not be needed 
+# (it will be done silently elsewhere, when needed)
 print("\nDiagonalization of the aggregate representation:")
 t1 = time.time()
 agg2.diagonalize()
@@ -502,11 +572,8 @@ t2 = time.time()
 print("Diagonalized in ", t2-t1, "s")
 
 
-#pure_deph = True
-#t_offset = 80.0
-
 if pure_deph:
-    print("Calculating electronic pure dephasing")
+    print("Calculating electronic pure dephasing superoperator")
     t1 = time.time()
     p_deph = qr.qm.ElectronicPureDephasing(agg, dtype="Gaussian")
     t2 = time.time()
@@ -557,10 +624,8 @@ if eUt_mode == "all":
 else:
     print("Dynamics will be calculated on fly")
 
-# In[17]:
 
 print("Calculating 2D spectra:")
-
 
 #
 # Laser pulse weighting is on the way
@@ -568,17 +633,6 @@ print("Calculating 2D spectra:")
 
 #spectrum = qr.DFunction(time, values)
 # lab.set_pulse_spectra((0,1,2,3), stype="power", spectrum )
-
-
-# In[18]:
-
-
-
-# # Calculation of spectra at different $t_2$ times
-
-# In[19]:
-
-
 
 #
 # we define a container for 2D spectra
@@ -627,7 +681,8 @@ while (N_T2 < time_so.length):
         # Generation of Liouville pathways
         #
     
-        rho0 = agg2.get_DensityMatrix(condition_type="thermal", temperature=0.0)
+        rho0 = agg2.get_DensityMatrix(condition_type="thermal",
+                                      temperature=0.0)
     
         # types of pathways calculated
         reph = ("R2g", "R3g", "R1f*")
@@ -651,7 +706,7 @@ while (N_T2 < time_so.length):
                                               eUt=eUt2, ham=ham, t2=T2, 
                                               etol=1.0e-6,
                                               verbose=0) 
-                                              #eUt2=qr.qm.SOpUnity(dim=HH.dim))
+
         t2 = time.time()
         print(" ... done")
         print("Generation time: ", t2-t1, "sec")
@@ -801,11 +856,6 @@ tg2 = time.time()
 print("In total 2D spectra calculation took: ", tg2-tg1, "sec.")
 
 
-
-
-# In[20]:
-
-
 #
 # Here you can inspect and/or recalculate some spectra
 #
@@ -873,11 +923,10 @@ else:
     twod = cont.get_spectrum(time_so.data[N_T2_pul])
 
 #
-# When this cell is left, we either retrieve one spectrum from container, or calculate a new one from available pathways
+# When this cell is left, we either retrieve one spectrum from container,
+# or calculate a new one from available pathways
 #
 
-
-# In[21]:
 
 
 #
@@ -885,26 +934,23 @@ else:
 #
     
 # plot_window = [11000,13500,11000,13500]
-    
+
+print("Plotting example 2D spectrum at ", time_so.data[N_T2_pul], " fs")
+ex2Dfile = "twod_example_at_T2.png"
 with qr.energy_units("1/cm"):
     #plt.figure(1)
     twod.plot(window=plot_window, Npos_contours=10,              
               stype="total", spart="real")
-    plt.savefig(os.path.join(pre_out,"twod_example_at_T2.png"))
+    plt.savefig(os.path.join(pre_out, ex2Dfile))
     #plt.close()
-
-
-# In[22]:
-
+print("... saved into: ", ex2Dfile)
 
 #
-# If the plotting window is reasonable, we should cut the unnecessary data by trimming the 2D spectrum
+# If the plotting window is reasonable, we should cut the unnecessary data
+# by trimming the 2D spectrum
 #
 with qr.energy_units("1/cm"): 
     cont.trimall_to(window=plot_window)
-
-
-# In[24]:
 
 
 #
@@ -918,59 +964,51 @@ window = func.Tukey(time_so, r=tukey_r, sym=False)
 #
 # Specify REPH, NONR or `total` to get different types of spectra
 #
-print("Calculating FFT of the 2D maps")
+print("\nCalculating FFT of the 2D maps")
 fcont = cont.fft(window=window, dtype="REPH", offset=t_offset)
-
-
-# In[25]:
-
 
 #
 # Have a look which frequencies we actually have
 #
 Ndat = len(fcont.axis.data)
-print("Number of frequency points:", Ndat)
-print("\nIn 1/cm they are:")
+print("\nNumber of frequency points:", Ndat)
+print("In 1/cm they are:")
 with qr.energy_units("1/cm"):
     for k_i in range(Ndat):
         print(k_i, fcont.axis.data[k_i])
-    
-
-
-# In[26]:
 
 
 #
-# Current storage of the specta in the container works on string representation of the frequency. 
-# As a consequence the container does not recognize units of frequency. We print the frequency 
+# Current storage of the specta in the container works on string 
+# representation of the frequency. As a consequence the container does not
+# recognize units of frequency. We print the frequency 
 # in 1/cm, but we have to specify it in internal units
 #
 
 # The point with the frequency nearest to the desired one should be chosen
 #show_Npoint = 7 #int(3*Ndat/4)
 
-om = fcont.axis.data[show_Npoint]
-#print("omega: ", om)
-sp = fcont.get_spectrum(om)
+with qr.frequency_units("1/cm"):
+    sp, show_Npoint = fcont.get_nearest(show_omega)
 
 units = "1/cm"
 with qr.energy_units(units):
-    print("Spectrum at frequency:", fcont.axis.data[show_Npoint], units)
+    print("\nPlotting spectrum at frequency:", fcont.axis.data[show_Npoint], units)
     sp.plot(window=plot_window, Npos_contours=30, 
               stype="total", spart="abs")
-    sp.savefig(os.path.join(pre_out, "twod_fft_map.png"))
+    fftfile = "twod_fft_map.png"
+    sp.savefig(os.path.join(pre_out, fftfile))
+    print("... saved into: ", fftfile)
 
-# In[46]:
-
-print("Saving spectral containers - both time and fft")
-qr.save_parcel(fcont,os.path.join(pre_out,"spectra_container_fft.qrp"))
-qr.save_parcel(cont,os.path.join(pre_out,"spectra_container_time.qrp"))
-
+print("\nSaving spectral containers - both time and fft")
+spcontfile_fft = "spectra_container_fft.qrp"
+spcontfile_tm = "spectra_container_time.qrp"
+qr.save_parcel(fcont,os.path.join(pre_out, spcontfile_fft))
+qr.save_parcel(cont,os.path.join(pre_out, spcontfile_tm))
+print("... saved into: ", spcontfile_fft)
+print("           and: ", spcontfile_tm)
 
 # # Check individual pathways here
-
-# In[28]:
-
 
 skip = True
 
@@ -979,8 +1017,6 @@ if not skip:
         for pathw in pw:
             print(pathw)
 
-
-# In[29]:
 
     print("The most intensive pathway (as an example)")
     with qr.energy_units("1/cm"):
@@ -993,3 +1029,12 @@ if not skip:
 #peUt.set_content(eUt)
 #peUt.save(os.path.join(pre_out,"evolution_op_eUt.qrp"))
 
+print("")
+print("######################################################################")
+print("#                                                                    #")
+print("#        Simulation finished successfully                            #")
+print("#                                                                    #")
+print("######################################################################")
+#
+# EOF
+#

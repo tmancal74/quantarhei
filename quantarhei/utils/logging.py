@@ -4,6 +4,7 @@
 
 
 """
+import traceback
 import quantarhei as qr
 
 
@@ -27,6 +28,7 @@ def log_quick(*args, verbose=True, **kwargs):
     if not verbose:
         return
     printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)
+
 
 def printlog(*args, verbose=True, loglevel=0, 
              incr_indent=0, use_indent=True, **kwargs):
@@ -174,3 +176,33 @@ def loglevels2bool(loglevs, verbose=False):
             k_v += 1
 
     return verb
+
+
+def tprint(var, messg=None, default=None):
+    """Test the existence of the variable with the name `var`
+    
+    
+    If the default is specified, the non-existence of the variable
+    is not a problem, and the variable is set to the default
+    
+    """    
+    try:
+        if messg is not None:
+            print("#", messg)
+        val = eval(globals()[var])
+        if isinstance(val, str):
+            val = '"'+val+'"'
+        print(var, "=", val)
+
+    except:
+        if default is None:
+            traceback.print_exc()
+            print("Configuration file is incomplete")
+            quit()
+        else:
+            globals()[var] = default
+            val = eval(globals()[var])
+            if isinstance(val, str):
+                val = '"'+val+'"'
+            print(var,"=", val, "# (default)")
+
