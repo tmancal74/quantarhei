@@ -210,16 +210,19 @@ PL = agg2.get_Molecule_by_name("PL")
 PL.set_transition_width((0,1), width)
 
 width = qr.convert(wincm_B, "1/cm", "int")
-BM = agg2.get_Molecule_by_name("BM")
-BM.set_transition_width((0,1), width)
 BL = agg2.get_Molecule_by_name("BL")
 BL.set_transition_width((0,1), width)
 
-width = qr.convert(wincm_CT, "1/cm", "int")
-PCT1 = agg2.get_Molecule_by_name("PCT1")
-PCT1.set_transition_width((0,1), width)
-PCT2 = agg2.get_Molecule_by_name("PCT2")
-PCT2.set_transition_width((0,1), width)
+if False:
+    BM = agg2.get_Molecule_by_name("BM")
+    BM.set_transition_width((0,1), width)
+    width = qr.convert(wincm_CT, "1/cm", "int")
+    PCT1 = agg2.get_Molecule_by_name("PCT1")
+    PCT1.set_transition_width((0,1), width)
+    PCT2 = agg2.get_Molecule_by_name("PCT2")
+    PCT2.set_transition_width((0,1), width)
+
+
 print("Aggregate has ", agg2.nmono, "single excited electronic states")
 
 agg2.build(mult=2, vibgen_approx="TPA")
@@ -239,16 +242,20 @@ PL = agg_el.get_Molecule_by_name("PL")
 PL.set_transition_width((0,1), width)
 
 width = qr.convert(wincm_B, "1/cm", "int")
-BM = agg_el.get_Molecule_by_name("BM")
-BM.set_transition_width((0,1), width)
 BL = agg_el.get_Molecule_by_name("BL")
 BL.set_transition_width((0,1), width)
 
-width = qr.convert(wincm_CT, "1/cm", "int")
-PCT1 = agg_el.get_Molecule_by_name("PCT1")
-PCT1.set_transition_width((0,1), width)
-PCT2 = agg_el.get_Molecule_by_name("PCT2")
-PCT2.set_transition_width((0,1), width)
+if False:
+    
+    BM = agg_el.get_Molecule_by_name("BM")
+    BM.set_transition_width((0,1), width)
+    
+    width = qr.convert(wincm_CT, "1/cm", "int")
+    PCT1 = agg_el.get_Molecule_by_name("PCT1")
+    PCT1.set_transition_width((0,1), width)
+    PCT2 = agg_el.get_Molecule_by_name("PCT2")
+    PCT2.set_transition_width((0,1), width)
+
 print("Aggregate has ", agg_el.nmono, "single excited electronic states")
 agg_el.build(mult=1)
 HHe = agg_el.get_Hamiltonian()
@@ -587,6 +594,7 @@ if restart_now:
     except:
         N_T2 = 0
         restart = False
+        restart_now = False
         print("... reload failed; starting from the beginning")
 
 else:

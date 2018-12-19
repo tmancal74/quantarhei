@@ -1,0 +1,7 @@
+#! /bin/sh 
+RUNNER=python
+
+cd $1; ${RUNNER} ../fft2D.py
+
+
+
