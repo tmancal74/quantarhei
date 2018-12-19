@@ -26,6 +26,12 @@ import time
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
+try:
+    from terminaltables import AsciiTable
+except:
+    raise Exception("Get terminaltables package "
+                            +"for this functionality")
+
 # numerics
 import numpy
 
@@ -97,6 +103,9 @@ print("Quantarhei version: ", qr.Manager().version)
 print("")
 print("***                      Simulation parameters                     ***")
 print("\n# This block can be used as an input file for another calculation")
+print("\n# Input and output directories")
+tprint("out_dir", default="out")
+tprint("model", default=os.path.join("..","model"))
 print("\n# Waiting time propagation parameters:")
 tprint("eUt_mode", default="jit")
 tprint("restart", default=True)
@@ -132,17 +141,27 @@ tprint("show_omega", default=0.0)
 print("\n# Auxiliary plots:")
 tprint("evol_super_op_elems2plot", default=[],
        messg="Evolution Superoperator Elements to be plotted")
+tprint("show_kinetics", default=False)
+tprint("comparison_elems", default=(1,1))
+tprint("detail_elems", default=(6,6))
 
 print("\n# End of the input file")
 print("")
 print("***                      Simulation output                         ***")
 print("")
 
-
-
+#show_kinetics = True
+#
+#comparison_elems = (1,1)
+#detail_elems = (6,6)
+#
 # input and output paths of the script
-pre_in = os.path.join("..", "model", "out")
-pre_out = "out"
+#model = "model"
+#out_dir = "out"
+
+pre_out = out_dir
+pre_in = os.path.join(model, "out")
+
 
 # check if pre_out exists and is a directory
 if not os.path.isdir(pre_out):
@@ -410,9 +429,8 @@ if impulsive:
     # we can trace out vibrations to get reduced density matrix which
     # is electronic only
     # we check it against a purely electronic state below
-    print("Pure electronic vs. vibrational but traced  over vibrations\n"
-          "initial"+
-          " density matrices")
+    print("\nInitial density matrices: "+
+          "\nPure electronic vs. vibrational but traced  over vibrations")
     sig0 = agg.trace_over_vibrations(rho0)
     #
     # Impulsive excitation with purely electronic system
@@ -420,14 +438,17 @@ if impulsive:
     rho0e = agg_el.get_DensityMatrix(condition_type="impulsive_excitation")
     rho0e.normalize2()
 
+    table_data = []
+    table_data.append(["Traced","Electronic"])
+
     with qr.eigenbasis_of(HHe):
-        # print populations
-        print("|      Traced       |      Electronic     |")
-        print("|-----------------------------------------|")
         for i in range(1, e1_dim):
-            print("|",numpy.real(sig0.data[i,i]),"|",
-                  numpy.real(rho0e.data[i,i]),"|")
-    
+            traced = "{0:.8f}".format(numpy.real(sig0.data[i,i]))
+            electr = "{0:.8f}".format(numpy.real(rho0e.data[i,i]))
+            table_data.append([traced, electr])
+
+        table = AsciiTable(table_data)
+        print(table.table)            
 else:
  
     #
@@ -452,7 +473,7 @@ else:
 # THIS TAKES FEW SECONDS
 #
 
-print("Propagating the system (electronic only and vibrational)")
+print("\nPropagating the system (electronic only and vibrational)")
 
 #
 # Propagation of the whole system including vibrations 
@@ -490,35 +511,41 @@ print("Checking populations at one point:")
 Nt = int(propagation_N_steps/2)
 tm = time_axis.data[Nt]
 print("Populations at time = ", tm)
+table_data = []
+table_data.append(["Traced","Electronic"])
 with qr.eigenbasis_of(HHe):
-    print("|      Traced       |      Electronic     |")
-    print("|-----------------------------------------|")
+
     for i in range(1, e1_dim):
-        print("|",numpy.real(sigt.data[Nt,i,i]),"|",
-              numpy.real(rhoet.data[Nt,i,i]),"|")
+        traced = "{0:.8f}".format(numpy.real(sigt.data[Nt,i,i]))
+        electr = "{0:.8f}".format(numpy.real(rhoet.data[Nt,i,i]))
+        table_data.append([traced, electr])
 
+    table = AsciiTable(table_data)
+    print(table.table)            
 
-show_plots = True
 
 #
 # Plot of the dynamics
 #
-if show_plots:
+if show_kinetics:
     with qr.eigenbasis_of(HHe):
-        #sigt.plot(coherences=False, axis=[0, 500, 0, 1.1], show=False)
-        #rhoet.plot(coherences=False)
         plt.figure(1)
-        plt.plot(rhot.TimeAxis.data, numpy.real(sigt.data[:,1,1]), "-r")
-        plt.plot(rhot.TimeAxis.data, numpy.real(rhoet.data[:,1,1]), "-b")
+        plt.plot(rhot.TimeAxis.data, 
+                 numpy.real(sigt.data[:,comparison_elems[0],
+                                      comparison_elems[1]]), "-r")
+        plt.plot(rhot.TimeAxis.data,
+                 numpy.real(rhoet.data[:,comparison_elems[0],
+                                       comparison_elems[1]]), "-b")
         #plt.show()
-        plt.savefig(os.path.join(pre_out,"fig01_kinetics_electronic_1_1.png"))
+        plt.savefig(os.path.join(pre_out,"fig01_kinetics_electronic_comp.png"))
         plt.close()
     
     with qr.eigenbasis_of(HH):
         plt.figure(1)
-        plt.plot(rhot.TimeAxis.data, numpy.real(rhot.data[:,6,6]))
+        plt.plot(rhot.TimeAxis.data,
+                 numpy.real(rhot.data[:,detail_elems[0],detail_elems[1]]))
         #plt.show()
-        plt.savefig(os.path.join(pre_out,"fig02_kinetics_all_6_6.png"))
+        plt.savefig(os.path.join(pre_out,"fig02_kinetics_all_detail.png"))
         plt.close()
         
     with qr.eigenbasis_of(HH):
@@ -545,6 +572,11 @@ trD = agg_el.get_TransitionDipoleMoment()
 # Reloading state for restart
 #
 if restart:
+    restart_now = True
+else:
+    restart_now = False
+
+if restart_now:
     
     print("\nReloading last state ")
     try:
@@ -612,6 +644,10 @@ if eUt_mode == "all":
     t1 = time.time()
     eUt.calculate(show_progress=True)
     t2 = time.time()
+    
+    if restart:
+        # save the eUt for restart
+        pass
      
     # we plot selected evolution superoperato elements
     if evol_super_op_elems2plot is not None:    
@@ -675,7 +711,7 @@ while (N_T2 < time_so.length):
     print("\n***** Calculating spectrum at t2 = ", T2, " fs *****")
         
           
-    if not restart:
+    if not restart_now:
 
         #
         # Generation of Liouville pathways
@@ -805,7 +841,7 @@ while (N_T2 < time_so.length):
         #
         # Save stuff for a restart
         #
-        if eUt_mode == "jit":
+        if restart:
             state = [N_T2, cont, eUt, agg2] #, msc]
             prcl = qr.Parcel()
             prcl.set_content(state)
@@ -826,7 +862,7 @@ while (N_T2 < time_so.length):
             print(" ... already calculated")
         cont.t2axis = time_so
         cont.use_indexing_type(time_so)
-        restart = False
+        restart_now = False
         
 
     #
