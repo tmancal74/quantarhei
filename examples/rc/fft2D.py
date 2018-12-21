@@ -127,9 +127,6 @@ tprint("t3_N_steps", messg="t3 coherence time")
 tprint("t3_time_step")
 
 print("\n# Effective lineshape parameters:")
-#tprint("wincm_P")
-#tprint("wincm_B")
-#tprint("wincm_CT")
 tprint("transition_widths")
 
 print("\n# Demo propagation parameters:")
@@ -141,6 +138,12 @@ tprint("plot_window")
 tprint("t_offset", default=0.0, messg="FFT offset")
 tprint("tukey_r")
 tprint("show_omega", default=0.0)
+print("\n# Liouville pathway selection:")
+tprint("frequency_interval")
+if show_omega < frequency_interval[0] or show_omega > frequency_interval[1]:
+    print("  WARNING: pathways will not have right frequencies (show_omega)"+
+          "\n  is out of selection window")
+    raise Exception("Stopping because of a warning")
 
 print("\n# Auxiliary plots:")
 tprint("evol_super_op_elems2plot", default=[],
@@ -184,7 +187,6 @@ agg2 = qr.load_parcel(os.path.join(pre_in,
 agg_el = qr.load_parcel(os.path.join(pre_in,
                                      "fraction_eff_40_4_CT_unbuilt.qrp"))   
 
-
 #
 # Aggregate with vibrational states, Hamiltonian generated up to single
 # exciton states in a Two-particle approximation
@@ -212,7 +214,6 @@ agg2.build(mult=2, vibgen_approx="TPA")
 print("and ", agg2.Ntot, " (electro-vibrational) states in total")
 print("Number of single exciton states :", agg2.Nb[0]+agg2.Nb[1])
 
-
 #
 # Electronic aggregate is built with single exciton states only
 #
@@ -227,18 +228,11 @@ print("Aggregate has ", agg_el.nmono, "single excited electronic states")
 agg_el.build(mult=1)
 HHe = agg_el.get_Hamiltonian()
 
-
-
 #
 #  Here we define system-bath interaction operators for relaxation in both
 #  the purely electronic and the electro-vibrational Hamiltonian
 #
 #
-#transfer_times = ([(1,2), 27.0],
-#                  [(2,3), 157.0],
-#                  [(2,4), 157.0])
-#uphill_thermal = True
-#ignore_slower_than = 3000.0
 
 kb_intK = qr.core.units.kB_intK
 e1_dim = agg_el.Nel
@@ -732,8 +726,8 @@ while (N_T2 < time_so.length):
         pw = []
         
         # we take a range of t2 frequencies
-        om_low = qr.convert(550, "1/cm", "int")
-        om_up = qr.convert(650, "1/cm", "int")
+        om_low = qr.convert(frequency_interval[0], "1/cm", "int")
+        om_up = qr.convert(frequency_interval[1], "1/cm", "int")
         pw_p570 = spec.select_omega2((om_low, om_up), pthways)
         pw_m570 = spec.select_omega2((-om_up, -om_low), pthways)
     
@@ -867,72 +861,11 @@ while (N_T2 < time_so.length):
 tg2 = time.time()
 print("In total 2D spectra calculation took: ", tg2-tg1, "sec.")
 
-
-#
-# Here you can inspect and/or recalculate some spectra
-#
-# If repeat is True, you can construct a new spectrum from existing pathways,
-# i.e. those regarding the last calculated spectrum
-#
-#
-
-repeat = False
-
-if repeat:
-
-    pw_p = spec.select_amplitude_GT(0.000001, pw_p570)
-    pw_m = spec.select_amplitude_GT(0.000001, pw_m570)
-    pw_S = []
-    pw_S += pw_p
-    pw_S += pw_m
-    pw = spec.order_by_amplitude(pw_S)
-
-    # on P-
-    pw_Pm = spec.select_frequency_window([qr.convert(11000, "1/cm", "int"),
-                                          qr.convert(11500, "1/cm", "int"),
-                                          qr.convert(11000, "1/cm", "int"),
-                                          qr.convert(13800, "1/cm", "int")], pw)
-
-    # on P+
-    pw_Pp = spec.select_frequency_window([qr.convert(11500, "1/cm", "int"),
-                                          qr.convert(12200, "1/cm", "int"),
-                                          qr.convert(12700, "1/cm", "int"),
-                                          qr.convert(13800, "1/cm", "int")], pw)
-
-    # on B
-    pw_B = spec.select_frequency_window([qr.convert(12200, "1/cm", "int"),
-                                         qr.convert(13000, "1/cm", "int"),
-                                         qr.convert(11000, "1/cm", "int"),
-                                         qr.convert(13800, "1/cm", "int")], pw)
-
-    print("Number of pathways on P- ", len(pw_Pm))
-    print("Number of pathways on P+ ", len(pw_Pp))
-    print("Number of pathways on B  ", len(pw_B))    
     
-    pw = []
-    #pw += pw_Pm
-    pw += pw_Pp
-    #pw += pw_B
-
-    t2 = time.time()
-    print("Pathways selected in", t2-t1, "sec")
-    
-    t1 = time.time()
-    print("Calculating frequency map")
-
-    msc.bootstrap(rwa=qr.convert(12200.0,"1/cm","int"), 
-              all_positive=False, shape="Gaussian")
-    msc.set_pathways(pw)
-    twod = msc.calculate_next()
-    t2 = time.time()
-    print("... done in", t2-t1,"sec")
-    
-else:
-    
-    N_T2_pul = int(N_T2/2)
-    print("Saving 2D spectrum at",
-          time_so.data[N_T2_pul], "fs (as an example)")
-    twod = cont.get_spectrum(time_so.data[N_T2_pul])
+N_T2_pul = int(N_T2/2)
+print("Saving 2D spectrum at",
+      time_so.data[N_T2_pul], "fs (as an example)")
+twod = cont.get_spectrum(time_so.data[N_T2_pul])
 
 #
 # When this cell is left, we either retrieve one spectrum from container,
@@ -997,9 +930,6 @@ with qr.energy_units("1/cm"):
 # in 1/cm, but we have to specify it in internal units
 #
 
-# The point with the frequency nearest to the desired one should be chosen
-#show_Npoint = 7 #int(3*Ndat/4)
-
 with qr.frequency_units("1/cm"):
     sp, show_Npoint = fcont.get_nearest(show_omega)
 
@@ -1035,11 +965,6 @@ if not skip:
         pathw = pw[0]
         print(pathw)
 
-
-#print("Saving evolution superoperator")
-#peUt = qr.Parcel()
-#peUt.set_content(eUt)
-#peUt.save(os.path.join(pre_out,"evolution_op_eUt.qrp"))
 
 print("")
 print("######################################################################")
