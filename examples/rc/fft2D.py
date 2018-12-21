@@ -10,11 +10,7 @@
 ###############################################################################
 
 #
-###############################################################################
-#
-# SCRIPT CONFIGURATION
-#
-###############################################################################
+# Imports
 #
 
 # standard libraries
@@ -39,7 +35,14 @@ import numpy
 import quantarhei as qr
 import quantarhei.spectroscopy as spec
 
-global eUt_mode
+#
+###############################################################################
+#
+# SCRIPT CONFIGURATION
+#
+###############################################################################
+#
+
 
 #
 # Reading of configuration file 
@@ -124,9 +127,10 @@ tprint("t3_N_steps", messg="t3 coherence time")
 tprint("t3_time_step")
 
 print("\n# Effective lineshape parameters:")
-tprint("wincm_P")
-tprint("wincm_B")
-tprint("wincm_CT")
+#tprint("wincm_P")
+#tprint("wincm_B")
+#tprint("wincm_CT")
+tprint("transition_widths")
 
 print("\n# Demo propagation parameters:")
 tprint("propagation_dt")
@@ -149,15 +153,6 @@ print("\n# End of the input file")
 print("")
 print("***                      Simulation output                         ***")
 print("")
-
-#show_kinetics = True
-#
-#comparison_elems = (1,1)
-#detail_elems = (6,6)
-#
-# input and output paths of the script
-#model = "model"
-#out_dir = "out"
 
 pre_out = out_dir
 pre_in = os.path.join(model, "out")
@@ -203,25 +198,12 @@ agg.build(mult=1, vibgen_approx="TPA")
 # It also has to be built with
 # two-exciton states (in two-particle approximation)
 #
-width = qr.convert(wincm_P, "1/cm", "int")
-PM = agg2.get_Molecule_by_name("PM")
-PM.set_transition_width((0,1), width)
-PL = agg2.get_Molecule_by_name("PL")
-PL.set_transition_width((0,1), width)
 
-width = qr.convert(wincm_B, "1/cm", "int")
-BL = agg2.get_Molecule_by_name("BL")
-BL.set_transition_width((0,1), width)
-
-if False:
-    BM = agg2.get_Molecule_by_name("BM")
-    BM.set_transition_width((0,1), width)
-    width = qr.convert(wincm_CT, "1/cm", "int")
-    PCT1 = agg2.get_Molecule_by_name("PCT1")
-    PCT1.set_transition_width((0,1), width)
-    PCT2 = agg2.get_Molecule_by_name("PCT2")
-    PCT2.set_transition_width((0,1), width)
-
+for mol_name in transition_widths:
+    
+    width = qr.convert(transition_widths[mol_name], "1/cm", "int")
+    mol = agg2.get_Molecule_by_name(mol_name)
+    mol.set_transition_width((0,1), width)
 
 print("Aggregate has ", agg2.nmono, "single excited electronic states")
 
@@ -231,30 +213,15 @@ print("and ", agg2.Ntot, " (electro-vibrational) states in total")
 print("Number of single exciton states :", agg2.Nb[0]+agg2.Nb[1])
 
 
-
 #
 # Electronic aggregate is built with single exciton states only
 #
-width = qr.convert(wincm_P, "1/cm", "int")
-PM = agg_el.get_Molecule_by_name("PM")
-PM.set_transition_width((0,1), width)
-PL = agg_el.get_Molecule_by_name("PL")
-PL.set_transition_width((0,1), width)
 
-width = qr.convert(wincm_B, "1/cm", "int")
-BL = agg_el.get_Molecule_by_name("BL")
-BL.set_transition_width((0,1), width)
-
-if False:
+for mol_name in transition_widths:
     
-    BM = agg_el.get_Molecule_by_name("BM")
-    BM.set_transition_width((0,1), width)
-    
-    width = qr.convert(wincm_CT, "1/cm", "int")
-    PCT1 = agg_el.get_Molecule_by_name("PCT1")
-    PCT1.set_transition_width((0,1), width)
-    PCT2 = agg_el.get_Molecule_by_name("PCT2")
-    PCT2.set_transition_width((0,1), width)
+    width = qr.convert(transition_widths[mol_name], "1/cm", "int")
+    mol = agg_el.get_Molecule_by_name(mol_name)
+    mol.set_transition_width((0,1), width)
 
 print("Aggregate has ", agg_el.nmono, "single excited electronic states")
 agg_el.build(mult=1)
@@ -439,6 +406,7 @@ if impulsive:
     print("\nInitial density matrices: "+
           "\nPure electronic vs. vibrational but traced  over vibrations")
     sig0 = agg.trace_over_vibrations(rho0)
+    
     #
     # Impulsive excitation with purely electronic system
     #
@@ -593,7 +561,7 @@ if restart_now:
         print("... reload succesful")
     except:
         N_T2 = 0
-        restart = False
+        #restart = False
         restart_now = False
         print("... reload failed; starting from the beginning")
 
