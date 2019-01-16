@@ -20,6 +20,7 @@
    
 
 """
+import os
 import numpy
 
 from ..core.managers import UnitsManaged, Manager
@@ -524,9 +525,9 @@ def load_pathways_by_t2(t2, name="pathways", ext="qrp", directory=".",
     
     t2_str = str(t2)
     fname = name+"_"+t2_str+"."+ext
-    #print(fname)
+    path = os.path.join(directory, fname)
     try:
-        pw = load_parcel(fname)
+        pw = load_parcel(path)
     except:
         print("Error while loading")
         return []
@@ -545,12 +546,12 @@ def get_evolution_from_saved_pathways(states, name="pathways", ext="qrp",
     """Reconstructs the evolution of the pathway contribution in t2 time
     
     """
-    t2s = look_for_pathways(name=name, ext=ext)
+    t2s = look_for_pathways(name=name, ext=ext, directory=directory)
    
 
     # order t2s
     t2s = numpy.sort(t2s)
-    evol = _get_evol(t2s, states, name, ext, repl=repl)
+    evol = _get_evol(t2s, states, name, ext, directory, repl=repl)
         
     return t2s, evol
 
@@ -575,7 +576,7 @@ def _is_tuple_of_dyads(states):
     return ret
 
 
-def _get_evol(t2s, states, name, ext, repl=0.0):
+def _get_evol(t2s, states, name, ext, directory, repl=0.0):
     """Return evolution of a single pathway
     
     """
@@ -589,8 +590,7 @@ def _get_evol(t2s, states, name, ext, repl=0.0):
         
     k = 0
     for t2 in t2s:
-        #print(t2)
-        pws = load_pathways_by_t2(t2, name=name, ext=ext)
+        pws = load_pathways_by_t2(t2, name=name, ext=ext, directory=directory)
         
         if N == 1:
             pw = select_by_states(pws, states)
