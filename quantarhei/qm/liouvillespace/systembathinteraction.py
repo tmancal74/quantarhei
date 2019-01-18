@@ -59,7 +59,7 @@ class SystemBathInteraction(Saveable):
         self.aggregate = None
         self.molecule = None
         self.system = None
-        self.rates = None        
+        self.rates = None
         self.KK = None
         self.CC = None
         self.TimeAxis = None
@@ -299,6 +299,16 @@ class SystemBathInteraction(Saveable):
             if j is None:
                 j = i
             return self.CC.get_reorganization_energy(i,j)
+
+
+    def get_correlation_time(self, i, j=None):
+        
+        if self.sbitype == "Lindblad_Form":
+            return None
+        else:
+            if j is None:
+                j = i
+            return self.CC.get_correlation_time(i,j)
 
 
     def get_sbitype(self):

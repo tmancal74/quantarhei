@@ -82,7 +82,21 @@ class TestSystemBathInteraction(SystemBathInteraction):
             rates = [1.0/100.0, 1.0/200, 1.0/100.0, 
                      1.0/300.0, 1.0/200, 1.0/500.0]
             
-            super().__init__(sys_operators=sys_ops, rates=rates)        
+            super().__init__(sys_operators=sys_ops, rates=rates)
+            
+        elif name == "dimer-2-lorentz":
+            
+            N = agg.get_Hamiltonian().dim
+            
+            P1 = ProjectionOperator(1, 2, dim=N)
+            P2 = ProjectionOperator(2, 1, dim=N)
+            
+            sys_ops = [P1, P2]
+            rates = [1.0/100.0, 1.0/200]
+            ctimes = []
+            
+            super().__init__(sys_operators=sys_ops, rates=rates)            
+            
 
         
             
