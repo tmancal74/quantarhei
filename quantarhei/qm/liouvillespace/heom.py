@@ -7,6 +7,7 @@
 import numpy
 from ... import REAL, COMPLEX
 from ..hilbertspace.operators import ReducedDensityMatrix
+from ..propagators.dmevolution import DensityMatrixEvolution
 
 class KTHierarchy:
     """ Kubo-Tanimura Hierarchy
@@ -62,8 +63,6 @@ class KTHierarchy:
     300
     >>> print(Hy.hsize)
     15
-    >>> print(Hy.indxs)
-    [[[0, 0]], [[1, 0], [0, 1]], [[2, 0], [1, 1], [0, 2]], [[3, 0], [2, 1], [1, 2], [0, 3]], [[4, 0], [3, 1], [2, 2], [1, 3], [0, 4]]]
     >>> print(Hy.Vs[0,:,:])
     [[ 0.  0.  0.]
      [ 0.  1.  0.]
@@ -76,7 +75,26 @@ class KTHierarchy:
     [[ 0.+0.j  0.+0.j  0.+0.j]
      [ 0.+0.j  0.+0.j  0.+0.j]
      [ 0.+0.j  0.+0.j  0.+0.j]]
-
+    >>> print(Hy.levels)
+    [ 0  1  3  6 10]
+    >>> print(Hy.levlengths)
+    [1 2 3 4 5]
+    >>> print(Hy.hinds)
+    [[0 0]
+     [1 0]
+     [0 1]
+     [2 0]
+     [1 1]
+     [0 2]
+     [3 0]
+     [2 1]
+     [1 2]
+     [0 3]
+     [4 0]
+     [3 1]
+     [2 2]
+     [1 3]
+     [0 4]]
 
     """
     
@@ -104,10 +122,10 @@ class KTHierarchy:
         self.temp = self.sbi.get_temperature()
         
         # generation of hierarchy indices
-        self.indxs = self._generate_indices(self.nbath, level=self.depth)
+        indxs = self._generate_indices(self.nbath, level=self.depth)
         
         self.hsize = 0
-        for levels in self.indxs:    
+        for levels in indxs:    
             self.hsize += len(levels)
         
         self.Vs = self.sbi.KK
@@ -117,6 +135,18 @@ class KTHierarchy:
         # This needs to be basis controlled
         self.ado = None
         self.reset_ados()
+        
+        #
+        # numpy representation of the hierarchy indices
+        #
+        
+        # indices where the levels start
+        self.levels = numpy.zeros(depth+1, dtype=numpy.int)
+        # lengths of the levels
+        self.levlengths = numpy.zeros(depth+1, dtype=numpy.int)
+        # indices
+        self.hinds = self._convert_2_matrix(indxs)
+        
 
 
     def _generate_indices(self, N, level=0):
@@ -165,13 +195,40 @@ class KTHierarchy:
         level4.append([0,4])
         lret.append(level4)                
         return lret
+      
+    def _convert_2_matrix(self, indxs):
+        hsize = 0
+        lvl = 0
+        start = 0
+        self.levels[lvl] = start
+        for levels in indxs:
+            if lvl > 0:
+                self.levels[lvl] = start
+            lngth = len(levels)
+            self.levlengths[lvl] = lngth
+            hsize += lngth
+            lvl +=1
+            start = start+lngth
+            
+        mat = numpy.zeros((hsize, self.nbath), dtype=numpy.int)
+        ii = 0
+        for level in indxs:
+            for inds in level:
+                kk = 0
+                for ind in inds:
+                    mat[ii, kk] = ind
+                    kk += 1
+                ii += 1
+        
+        return mat
         
     
     def set_rdo(self, rdo):
         """Sets the density operator of the hierarchy
         """
         self.rho = rdo
-        
+
+   
     def reset_ados(self):
         """Creates memory of ADOs and sets them to zero
         
@@ -181,15 +238,83 @@ class KTHierarchy:
         
         
 class KTHierarchyPropagator:
+    """Propagator of the Kubo-Tanimura hierarchy
+    
+    >>> import quantarhei as qr
+    >>> m1 = qr.Molecule([0.0, 1.0])
+    >>> m2 = qr.Molecule([0.0, 1.0])
+    >>> agg = qr.Aggregate([m1, m2])
+    >>> agg.set_resonance_coupling(0,1,0.1)
+    >>> agg.build()
+    >>> ham = agg.get_Hamiltonian()
+    >>> sbi = qr.qm.TestSystemBathInteraction("dimer-2-env")
+    >>> Hy = KTHierarchy(ham, sbi, 4)
+    >>> rhoi = qr.ReducedDensityMatrix(dim=ham.dim)
+    >>> rhoi.data[2,2] = 1.0
+    >>> print(rhoi)
+    <BLANKLINE>
+    quantarhei.ReducedDensityMatrix object
+    ======================================
+    data = 
+    [[ 0.+0.j  0.+0.j  0.+0.j]
+     [ 0.+0.j  0.+0.j  0.+0.j]
+     [ 0.+0.j  0.+0.j  1.+0.j]]
+    >>> time = qr.TimeAxis(0.0, 1000, 1.0)
+    >>> kprop = KTHierarchyPropagator(time, Hy)
+    >>> rhot = kprop.propagate(rhoi)
+    >>> #print(rhot.data[:,2,2])
+    
+    
+    """
     
     def __init__(self, timeaxis, hierarchy):
         
-        pass
+        self.timeaxis = timeaxis
+        self.Nt = timeaxis.length
+        self.dt = timeaxis.step
+        self.hy = hierarchy
+        
     
     
-    def propagate(self, rhoi):
+    def propagate(self, rhoi, L=4):
+        """Propagates the Kubo-Tanimura Hierarchy including the RDO
         
-        rho = rhoi
+        """
         
-        return rho
+        rhot = DensityMatrixEvolution(timeaxis=self.timeaxis, rhoi=rhoi)
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+        ado1 = self.hy.ado
+        ado2 = self.hy.ado
+        
+        HH = self.hy.ham.data
+        self.Nref = 1
+
+        indx = 1
+        for ii in self.timeaxis.data[1:self.Nt]:
+            
+            for jj in range(0,self.Nref):
+                
+                for ll in range(1,L+1):
+                    
+                    # RDO right-hand-side
+                    rho1 = -1j*(self.dt/ll)*(numpy.dot(HH,rho1) \
+                             - numpy.dot(rho1,HH) )
+                    
+                    # ADO right-hand-side
+                    # loop over hierarchy indices
+                    
+                    ado1 = 0.0
+                    
+                    ado2 = ado2 + ado1      
+                    rho2 = rho2 + rho1
+                    
+                rho1 = rho2
+                ado1 = ado2
+                
+            rhot.data[indx,:,:] = rho2                        
+            indx += 1             
+            
+        
+        return rhot
     
