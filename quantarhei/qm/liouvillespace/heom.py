@@ -120,6 +120,7 @@ class KTHierarchy:
             self.lam[ii] = self.sbi.get_reorganization_energy(ii)
             
         self.temp = self.sbi.get_temperature()
+        self.kBT = 1.0
         
         # generation of hierarchy indices
         indxs = self._generate_indices(self.nbath, level=self.depth)
@@ -146,6 +147,13 @@ class KTHierarchy:
         self.levlengths = numpy.zeros(depth+1, dtype=numpy.int)
         # indices
         self.hinds = self._convert_2_matrix(indxs)
+        
+        self.nm1 = numpy.zeros(self.hsize, self.nbath)
+        self.np1 = numpy.zeros(self.hsize, self.nbath)
+        self._make_nmp1()
+        
+        self.Gamma = numpy.zeros(self.hsize, dtype=REAL)
+        self._make_Gamma()
         
 
 
@@ -223,6 +231,43 @@ class KTHierarchy:
         return mat
         
     
+    def _make_nmp1(self):
+        """ Makes the list of indices obtained from n by -1 or +1 operations
+        
+        """
+        
+        for nn in range(self.hsize):
+            for kk in range(self.nbath):
+                indxm = numpy.zeros(self.nbath, dtype=numpy.int)
+                indxm[:] = self.hinds[nn,:]
+                indxm[kk] -= 1
+
+                indxp = numpy.zeros(self.nbath, dtype=numpy.int)
+                indxp[:] = self.hinds[nn,:]
+                indxp[kk] += 1
+                
+                venm = -1
+                venp = -1
+                for ll in range(nn):
+                    if self.hy.hinds[ll,:] == indxm:
+                        venm = ll
+                    if self.hy.hinds[ll,:] == indxp:
+                        venp = ll
+                
+                self.nm1[nn, kk] = venm
+                self.np1[nn, kk] = venp
+        
+        
+    def _make_Gamma(self):
+        """ Decay factor of a given ADO
+        
+        """
+        
+        for nn in range(self.hsize):
+            for kk in range(self.nbath):
+                self.Gamma[nn] += self.hinds[nn,kk]*self.gamm[kk]
+
+        
     def set_rdo(self, rdo):
         """Sets the density operator of the hierarchy
         """
@@ -280,41 +325,91 @@ class KTHierarchyPropagator:
         """Propagates the Kubo-Tanimura Hierarchy including the RDO
         
         """
-        
         rhot = DensityMatrixEvolution(timeaxis=self.timeaxis, rhoi=rhoi)
-        rho1 = rhoi.data
-        rho2 = rhoi.data
+
         ado1 = self.hy.ado
         ado2 = self.hy.ado
-        
-        HH = self.hy.ham.data
+
         self.Nref = 1
 
         indx = 1
         for ii in self.timeaxis.data[1:self.Nt]:
-            
+
             for jj in range(0,self.Nref):
-                
+
                 for ll in range(1,L+1):
-                    
-                    # RDO right-hand-side
-                    rho1 = -1j*(self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) )
-                    
-                    # ADO right-hand-side
-                    # loop over hierarchy indices
-                    
-                    ado1 = 0.0
-                    
+
+                    ado1 = self._ado_cros_rhs(ado1, (self.dt/ll)) \
+                         + self._ado_self_rhs(ado1, (self.dt/ll))
+
                     ado2 = ado2 + ado1      
-                    rho2 = rho2 + rho1
-                    
-                rho1 = rho2
                 ado1 = ado2
-                
-            rhot.data[indx,:,:] = rho2                        
+
+            self.hy.ado = ado2
+            rhot.data[indx,:,:] = ado2[0,:,:]                        
             indx += 1             
-            
-        
+
         return rhot
+
+
+    def _ado_self_rhs(self, ado1, dt):
+        """Self contribution of the equation for the hierarchy ADOs
+
+        """
+        ado3 = numpy.zeros(ado1.shape, dtype=ado1.dtype)
+        HH = self.hy.ham.data
+        
+        for nn in range(self.hy.hsize):
+            
+            # 
+            ado3[nn,:,:] = -dt*(1j*(numpy.dot(HH, ado1[nn,:,:])
+                                  - numpy.dot(ado1[nn,:,:],HH)) 
+                                + self.hy.Gamma[nn]*ado1[nn,:,:])
+           
+                           
+        return ado3
+
     
+    
+    def _ado_cros_rhs(self, ado1, dt):
+        """All cross-terms of the Hierarchy 
+        
+        """
+        
+        ado3 = numpy.zeros(ado1.shape, dtype=ado1.dtype)
+        rl = numpy.zeros((ado1.shape[1],ado1.shape[2]), dtype=ado1.dtype)
+        rr = numpy.zeros((ado1.shape[1],ado1.shape[2]), dtype=ado1.dtype)
+        
+        
+        for nn in range(self.hy.hsize):
+            for kk in range(self.hy.nbath):
+                
+                # Theta+ and Psi+
+                nk = self.hy.hinds[nn,kk]   
+                jj = self.hy.nm1[nn,kk]
+                
+                if nk*jj > 0:
+                    
+                    rr = numpy.dot(self.hy.Vs[kk,:,:], ado1[jj,:,:])
+                    rl = numpy.dot(ado1[jj,:,:],self.hy.Vs[kk,:,:])
+                    
+                    # Theta
+                    ado3[nn,:,:] += dt*nk*self.hy.lam[kk]*self.hy.gamma[kk]* \
+                                    (rr-rl)
+                        
+                            
+                    # Psi
+                    ado3[nn,:,:] += (1j*dt)*2.0*nk*self.hy.lam[kk]*self.kBT* \
+                                    (rr+rl)
+                    
+                # Psi-
+                jj = self.hy.np1[nn,kk]
+                
+                if jj >= 0:
+
+                    rr = numpy.dot(self.hy.Vs[kk,:,:], ado1[jj, :,:])
+                    rl = numpy.dot(ado1[jj,:,:],self.hy.Vs[kk,:,:])
+                    
+                    ado3[nn,:,:] += (1j*dt)*(rr-rl)
+                    
+        return ado3
