@@ -148,8 +148,8 @@ class KTHierarchy:
         # indices
         self.hinds = self._convert_2_matrix(indxs)
         
-        self.nm1 = numpy.zeros(self.hsize, self.nbath)
-        self.np1 = numpy.zeros(self.hsize, self.nbath)
+        self.nm1 = numpy.zeros((self.hsize, self.nbath), dtype=numpy.int)
+        self.np1 = numpy.zeros((self.hsize, self.nbath), dtype=numpy.int)
         self._make_nmp1()
         
         self.Gamma = numpy.zeros(self.hsize, dtype=REAL)
@@ -249,9 +249,9 @@ class KTHierarchy:
                 venm = -1
                 venp = -1
                 for ll in range(nn):
-                    if self.hy.hinds[ll,:] == indxm:
+                    if numpy.array_equal(self.hinds[ll,:], indxm):
                         venm = ll
-                    if self.hy.hinds[ll,:] == indxp:
+                    if numpy.array_equal(self.hinds[ll,:], indxp):
                         venp = ll
                 
                 self.nm1[nn, kk] = venm
@@ -265,7 +265,7 @@ class KTHierarchy:
         
         for nn in range(self.hsize):
             for kk in range(self.nbath):
-                self.Gamma[nn] += self.hinds[nn,kk]*self.gamm[kk]
+                self.Gamma[nn] += self.hinds[nn,kk]*self.gamma[kk]
 
         
     def set_rdo(self, rdo):
