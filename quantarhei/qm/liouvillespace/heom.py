@@ -6,8 +6,9 @@
 """
 import numpy
 from ... import REAL, COMPLEX
-from ..hilbertspace.operators import ReducedDensityMatrix
 from ..propagators.dmevolution import DensityMatrixEvolution
+from ...core.units import kB_int
+from ..corfunctions.correlationfunctions import CorrelationFunction
 
 class KTHierarchy:
     """ Kubo-Tanimura Hierarchy
@@ -49,6 +50,10 @@ class KTHierarchy:
      [ 0.   0.1  1. ]]
     >>> sbi = qr.qm.TestSystemBathInteraction("dimer-2-env")
     >>> Hy = KTHierarchy(ham, sbi, 4)
+    Warning: OverdampedBrownian spectral density
+     - only high-temperature limit of this function is used in HEOM
+    Warning: OverdampedBrownian spectral density
+     - only high-temperature limit of this function is used in HEOM
     >>> print(Hy.dim)
     3
     >>> print(Hy.nbath)
@@ -67,14 +72,6 @@ class KTHierarchy:
     [[ 0.  0.  0.]
      [ 0.  1.  0.]
      [ 0.  0.  0.]]
-    >>> print(Hy.rho)
-    <BLANKLINE>
-    quantarhei.ReducedDensityMatrix object
-    ======================================
-    data = 
-    [[ 0.+0.j  0.+0.j  0.+0.j]
-     [ 0.+0.j  0.+0.j  0.+0.j]
-     [ 0.+0.j  0.+0.j  0.+0.j]]
     >>> print(Hy.levels)
     [ 0  1  3  6 10]
     >>> print(Hy.levlengths)
@@ -104,12 +101,29 @@ class KTHierarchy:
         self.sbi = sbi
         self.depth = depth
         
-        
         # dimension of the ADOs
         self.dim = ham.dim
         
         # number of baths
         self.nbath = self.sbi.N
+
+        # FIXME
+        # check that sbi only has correlation functions of Lorentz type
+        for ii in range(self.nbath):
+            cc = self.sbi.CC.get_correlation_function(ii,ii)
+            prms = cc.params[0]
+            if prms["ftype"] == CorrelationFunction.allowed_types[1]:
+                tp = CorrelationFunction.allowed_types[1]
+                print("Warning: "+tp+" spectral density\n"+
+                      " - only high-temperature limit "+
+                      "of this function is used in HEOM")
+            elif prms["ftype"] in [CorrelationFunction.allowed_types[0],
+                                   "Lorentz-Drude"]:
+                pass
+            else:    
+                raise Exception("Spectral density/Correlation function type:"+
+                                prms["ftype"]+
+                                "\nHEOM is not implemented for this function")
         
         self.gamma = numpy.zeros(self.nbath, dtype=REAL)
         for ii in range(self.nbath):
@@ -120,10 +134,10 @@ class KTHierarchy:
             self.lam[ii] = self.sbi.get_reorganization_energy(ii)
             
         self.temp = self.sbi.get_temperature()
-        self.kBT = 1.0
+        self.kBT = self.temp*kB_int
         
         # generation of hierarchy indices
-        indxs = self._generate_indices(self.nbath, level=self.depth)
+        indxs = self.generate_indices(self.nbath, level=self.depth)
         
         self.hsize = 0
         for levels in indxs:    
@@ -131,8 +145,9 @@ class KTHierarchy:
         
         self.Vs = self.sbi.KK
         
-        self.rho = ReducedDensityMatrix(data=numpy.zeros((self.dim, self.dim),
-                                                         dtype=COMPLEX))
+        #self.rho = ReducedDensityMatrix(data=numpy.zeros((self.dim, self.dim),
+        #                                                 dtype=COMPLEX))
+        
         # This needs to be basis controlled
         self.ado = None
         self.reset_ados()
@@ -155,9 +170,58 @@ class KTHierarchy:
         self.Gamma = numpy.zeros(self.hsize, dtype=REAL)
         self._make_Gamma()
         
+        self.hpop = None
+        
+
+    
+    def generate_indices(self, N, level=0):
+        """Generates indices of the hierarchy up a certain level
+        
+        
+        Parameters
+        ----------
+        
+        N : int
+            Number of indices in the hierarchy
+            
+        level : int
+            Highest level of the hierarchy to be generated
+        
+        """
+        
+        if N == 2:
+            return self._generate_indices_2_0to4(N, level)
+        else:
+            
+            lret = []
+            
+            level_prev = []
+            inilist = [0]*N          # lowest level 
+            level_prev.append(inilist)
+            lret.append(level_prev)            
+            
+            for kk in range(level):
+                last_level = kk
+                new_level_prev = []
+                for old_level in level_prev:
+                    doit = False
+                    for nn in range(N):
+                        if old_level[nn] == last_level:
+                            doit = True
+                        if doit:
+                            nlist = old_level.copy()
+                            nlist[nn] += 1
+                            new_level_prev.append(nlist)
+            
+                level_prev = new_level_prev
+                lret.append(level_prev)
+            
+            return lret
+            
+            
 
 
-    def _generate_indices(self, N, level=0):
+    def _generate_indices_2_0to4(self, N=2, level=0):
         """Generation of hierarchy indices for a give problem
         
         """
@@ -205,6 +269,10 @@ class KTHierarchy:
         return lret
       
     def _convert_2_matrix(self, indxs):
+        """Convert the list of levels of the hierarchy into an numpy array
+        
+        
+        """
         hsize = 0
         lvl = 0
         start = 0
@@ -247,10 +315,11 @@ class KTHierarchy:
                 indxp[kk] += 1
                 
                 venm = -1
-                venp = -1
                 for ll in range(nn):
                     if numpy.array_equal(self.hinds[ll,:], indxm):
                         venm = ll
+                venp = -1
+                for ll in range(self.hsize):
                     if numpy.array_equal(self.hinds[ll,:], indxp):
                         venp = ll
                 
@@ -268,32 +337,42 @@ class KTHierarchy:
                 self.Gamma[nn] += self.hinds[nn,kk]*self.gamma[kk]
 
         
-    def set_rdo(self, rdo):
-        """Sets the density operator of the hierarchy
-        """
-        self.rho = rdo
+#    def set_rdo(self, rdo):
+#        """Sets the density operator of the hierarchy
+#        
+#        """
+#        self.rho = rdo
 
    
     def reset_ados(self):
         """Creates memory of ADOs and sets them to zero
         
         """
-        self.ado = numpy.zeros((self.hsize, self.dim, self.dim-1),
+        self.ado = numpy.zeros((self.hsize, self.dim, self.dim),
                                dtype=COMPLEX)
         
         
 class KTHierarchyPropagator:
     """Propagator of the Kubo-Tanimura hierarchy
     
+    >>> import numpy
     >>> import quantarhei as qr
-    >>> m1 = qr.Molecule([0.0, 1.0])
-    >>> m2 = qr.Molecule([0.0, 1.0])
+    >>> with qr.energy_units("1/cm"):
+    ...     m1 = qr.Molecule([0.0, 10000.0])
+    ...     m2 = qr.Molecule([0.0, 10000.0])
+    ...     #m3 = qr.Molecule([0.0, 10000.0])
     >>> agg = qr.Aggregate([m1, m2])
-    >>> agg.set_resonance_coupling(0,1,0.1)
+    >>> with qr.energy_units("1/cm"):
+    ...     agg.set_resonance_coupling(0,1,80.0)
+    ...     #agg.set_resonance_coupling(0,2,100.0)
     >>> agg.build()
     >>> ham = agg.get_Hamiltonian()
     >>> sbi = qr.qm.TestSystemBathInteraction("dimer-2-env")
     >>> Hy = KTHierarchy(ham, sbi, 4)
+    Warning: OverdampedBrownian spectral density
+     - only high-temperature limit of this function is used in HEOM
+    Warning: OverdampedBrownian spectral density
+     - only high-temperature limit of this function is used in HEOM
     >>> rhoi = qr.ReducedDensityMatrix(dim=ham.dim)
     >>> rhoi.data[2,2] = 1.0
     >>> print(rhoi)
@@ -307,7 +386,15 @@ class KTHierarchyPropagator:
     >>> time = qr.TimeAxis(0.0, 1000, 1.0)
     >>> kprop = KTHierarchyPropagator(time, Hy)
     >>> rhot = kprop.propagate(rhoi)
-    >>> #print(rhot.data[:,2,2])
+    
+    #>>> import matplotlib.pyplot as plt
+    #>>> N = time.length
+    #>>> with qr.eigenbasis_of(ham):
+    #...     plt.plot(time.data[0:N], rhot.data[0:N,1,1],"-b")
+    #...     plt.plot(time.data[0:N], rhot.data[0:N,2,2],"-r")
+    #...     plt.plot(time.data[0:N], numpy.real(rhot.data[0:N,1,2]),"-g")
+    #>>> plt.show()
+
     
     
     """
@@ -321,16 +408,49 @@ class KTHierarchyPropagator:
         
     
     
-    def propagate(self, rhoi, L=4):
+    def propagate(self, rhoi, L=4, report_hierarchy=False,
+                                   free_hierarchy=False):
         """Propagates the Kubo-Tanimura Hierarchy including the RDO
         
         """
         rhot = DensityMatrixEvolution(timeaxis=self.timeaxis, rhoi=rhoi)
 
+        # normally inital condition goes here
+        self.hy.ado[0,:,:] = rhoi.data
         ado1 = self.hy.ado
         ado2 = self.hy.ado
+        
+        if free_hierarchy:
+            slevel = 1
+        else:
+            slevel = 0
+            
+        if slevel == 1:
+            # in this case we set zero's level equal to zero
+            self.hy.ado[0,:,:] = 0.0
+            # and this is the initial condition for the hierarchy
+            for kk in range(self.hy.nbath):
+                rr = numpy.dot(self.hy.Vs[kk,:,:], rhoi.data)
+                rl = numpy.dot(rhoi.data,self.hy.Vs[kk,:,:])
+                    
+                # Theta
+                self.hy.ado[kk+1,:,:] += self.hy.lam[kk]*self.hy.gamma[kk]* \
+                                    (rr+rl)
+                        
+                            
+                # Psi
+                self.hy.ado[kk+1,:,:] += 1j*2.0* \
+                                    self.hy.lam[kk]*self.hy.kBT* \
+                                    (rr-rl)
 
         self.Nref = 1
+        
+        if report_hierarchy:
+            # we report population of hierarchy ADO
+            Nt = rhot.data.shape[0]
+            self.hy.hpop = numpy.zeros((Nt, self.hy.hsize), dtype=REAL)
+            for kk in range(self.hy.hsize):
+                self.hy.hpop[0,kk] = numpy.trace(self.hy.ado[kk,:,:])
 
         indx = 1
         for ii in self.timeaxis.data[1:self.Nt]:
@@ -339,27 +459,31 @@ class KTHierarchyPropagator:
 
                 for ll in range(1,L+1):
 
-                    ado1 = self._ado_cros_rhs(ado1, (self.dt/ll)) \
-                         + self._ado_self_rhs(ado1, (self.dt/ll))
+                    ado1 = self._ado_cros_rhs(ado1, (self.dt/ll), slevel) \
+                         + self._ado_self_rhs(ado1, (self.dt/ll), slevel)
 
                     ado2 = ado2 + ado1      
                 ado1 = ado2
 
             self.hy.ado = ado2
-            rhot.data[indx,:,:] = ado2[0,:,:]                        
+            rhot.data[indx,:,:] = ado2[0,:,:]
+            if report_hierarchy:
+                # we report population of hierarchy ADO
+                for kk in range(self.hy.hsize):
+                    self.hy.hpop[indx, kk] = numpy.trace(ado2[kk,:,:])                       
             indx += 1             
 
         return rhot
 
 
-    def _ado_self_rhs(self, ado1, dt):
+    def _ado_self_rhs(self, ado1, dt, slevel=0):
         """Self contribution of the equation for the hierarchy ADOs
 
         """
         ado3 = numpy.zeros(ado1.shape, dtype=ado1.dtype)
         HH = self.hy.ham.data
         
-        for nn in range(self.hy.hsize):
+        for nn in range(slevel, self.hy.hsize):
             
             # 
             ado3[nn,:,:] = -dt*(1j*(numpy.dot(HH, ado1[nn,:,:])
@@ -371,7 +495,7 @@ class KTHierarchyPropagator:
 
     
     
-    def _ado_cros_rhs(self, ado1, dt):
+    def _ado_cros_rhs(self, ado1, dt, slevel=0):
         """All cross-terms of the Hierarchy 
         
         """
@@ -381,32 +505,35 @@ class KTHierarchyPropagator:
         rr = numpy.zeros((ado1.shape[1],ado1.shape[2]), dtype=ado1.dtype)
         
         
-        for nn in range(self.hy.hsize):
+        for nn in range(slevel, self.hy.hsize):
             for kk in range(self.hy.nbath):
                 
                 # Theta+ and Psi+
                 nk = self.hy.hinds[nn,kk]   
                 jj = self.hy.nm1[nn,kk]
                 
-                if nk*jj > 0:
+                
+                if nk*jj >= 0:
+                    
                     
                     rr = numpy.dot(self.hy.Vs[kk,:,:], ado1[jj,:,:])
                     rl = numpy.dot(ado1[jj,:,:],self.hy.Vs[kk,:,:])
                     
                     # Theta
                     ado3[nn,:,:] += dt*nk*self.hy.lam[kk]*self.hy.gamma[kk]* \
-                                    (rr-rl)
+                                    (rr+rl)
                         
                             
                     # Psi
-                    ado3[nn,:,:] += (1j*dt)*2.0*nk*self.hy.lam[kk]*self.kBT* \
-                                    (rr+rl)
+                    ado3[nn,:,:] += (1j*dt)*2.0*nk* \
+                                    self.hy.lam[kk]*self.hy.kBT* \
+                                    (rr-rl)
                     
                 # Psi-
                 jj = self.hy.np1[nn,kk]
                 
-                if jj >= 0:
-
+                if jj > 0:
+   
                     rr = numpy.dot(self.hy.Vs[kk,:,:], ado1[jj, :,:])
                     rl = numpy.dot(ado1[jj,:,:],self.hy.Vs[kk,:,:])
                     

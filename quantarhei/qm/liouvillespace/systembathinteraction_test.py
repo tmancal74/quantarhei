@@ -48,7 +48,16 @@ class TestSystemBathInteraction(SystemBathInteraction):
             
             # copy it into the newly created object
             self.__dict__ = agg.sbi.__dict__.copy()
-        
+
+        elif name == "trimer-2-env":
+            # we get SBI from here
+            agg = TestAggregate(name=name)
+            agg.build()
+    
+            super().__init__()
+            
+            # copy it into the newly created object
+            self.__dict__ = agg.sbi.__dict__.copy()        
 
         elif name == "dimer-2-lind":
             agg = TestAggregate(name="dimer-2")

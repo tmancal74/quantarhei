@@ -268,7 +268,8 @@ from .qm import ReducedDensityMatrixEvolution
 from .qm.corfunctions import CorrelationFunction
 from .qm.corfunctions import SpectralDensity
 
-
+from .qm.liouvillespace.heom import KTHierarchy
+from .qm.liouvillespace.heom import KTHierarchyPropagator
 
 ###############################################################################
 # Convenience functions
