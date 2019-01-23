@@ -31,9 +31,9 @@ with qr.energy_units("1/cm"):
 
 #   Interaction with the bath is set through bath correlation functions
 timea = qr.TimeAxis(0.0, 2000, 1.0)
-cpar1 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=30,
+cpar1 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=70,
             cortime=50, T=300)
-cpar2 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=30,
+cpar2 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50,
             cortime=50, T=300)
 
 with qr.energy_units("1/cm"):

@@ -112,6 +112,7 @@ tprint("model", default=os.path.join("..","model"))
 print("\n# Waiting time propagation parameters:")
 tprint("eUt_mode", default="jit")
 tprint("restart", default=True)
+tprint("stop_after_propagation", default=False)
 tprint("pure_deph", messg="Using pure dephasing?", default=True)
 tprint("t2_N_steps")
 tprint("t2_time_step")
@@ -213,6 +214,9 @@ agg2.build(mult=2, vibgen_approx="TPA")
 
 print("and ", agg2.Ntot, " (electro-vibrational) states in total")
 print("Number of single exciton states :", agg2.Nb[0]+agg2.Nb[1])
+
+
+qr.save_parcel(agg2, os.path.join(pre_out,"agg2_built.qrp"))
 
 #
 # Electronic aggregate is built with single exciton states only
@@ -617,7 +621,10 @@ if eUt_mode == "all":
     
     if restart:
         # save the eUt for restart
-        pass
+        qr.save_parcel(eUt, os.path.join(pre_out,"eUt.qrp"))
+        
+    if stop_after_propagation:
+        exit()
      
     # we plot selected evolution superoperato elements
     if evol_super_op_elems2plot is not None:    
@@ -871,7 +878,6 @@ twod = cont.get_spectrum(time_so.data[N_T2_pul])
 # When this cell is left, we either retrieve one spectrum from container,
 # or calculate a new one from available pathways
 #
-
 
 
 #
