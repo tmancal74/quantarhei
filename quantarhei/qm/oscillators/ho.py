@@ -2,6 +2,7 @@
 import numpy
 
 from ...core.saveable import Saveable
+from ...core.dfunction import DFunction
 
 
 class fcstorage(Saveable):
@@ -103,5 +104,73 @@ class operator_factory(Saveable):
         ret = numpy.diag(ones)
         return ret
         
+
+    
+class qrepresentation:
+    """Coordinate representation of the HO wavefunctions
+    
+    
+    """
+    
+    def __init__(self, qaxis):
+        
+        self.qaxis = qaxis
+        self.ho_eigenfce_generated = False
+        
+    
+    def generate_ho_eigenfunctions(self):
+        """Generated q-representation of HO eigenfunctions
+        
+        """
+        self.ho_eigenfce_generated = True
+
+
+    def get_ho_eigenfunction(self, N):
+        """Returns q-representation of HO eigenfunction
+        
+        """
+        if self.ho_eigenfce_generated:
+            pass
+        else:
+            raise Exception("HO Eigenfunctions must be generated first")
+
+
+    def get_ho_ground_state(self):
+        """Returns the ground state wavefunction of the Harmonic oscillator
+        
+        
+        """
+        
+        data = numpy.exp(-(self.qaxis.data**2)/2)\
+            /numpy.sqrt(numpy.sqrt(numpy.pi))
+        psi0 = DFunction(x=self.qaxis, y=data)
+        
+        return psi0
+    
+    
+    def get_coherent_state(self, alpha):
+        """Returns q-representation of a coherent state with a given alpha
+        
+        """
+        
+        ar = numpy.real(alpha)
+        ai = numpy.imag(alpha)
+        sq2 = numpy.sqrt(2.0)
+        q = self.qaxis.data
+        data = numpy.exp(-((q+sq2*ar)**2)/2)*\
+                            numpy.exp(-1j*ar*ai + 1j*sq2*ai*q)\
+                            /numpy.sqrt(numpy.sqrt(numpy.pi))
+                            
+        psi_alpha = DFunction(x=self.qaxis, y=data)        
+        
+        return psi_alpha
+
+
+    def get_probability_distribution(self, wfce):
+        """Returns probability distribution for a given wavefunction
+        
+        """
+        
+        return DFunction(x=wfce.axis, y=numpy.abs(wfce.data)**2)
         
         

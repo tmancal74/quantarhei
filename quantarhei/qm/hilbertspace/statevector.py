@@ -110,6 +110,22 @@ class StateVector(BasisManaged):
 
         self._data = numpy.dot(S1,self._data)
         
+
+    def get_DensityMatrix(self):
+        """Constructs DensityMatrix from the present StateVector
+        
+        """
+        from .operators import DensityMatrix
+
+        rho = DensityMatrix(dim=self.dim)
+        
+        for ii in range(self.dim):
+            for jj in range(self.dim):
+                rho.data[ii,jj] = self.data[ii]*numpy.conj(self.data[jj])
+        
+        return rho
+        
+        
     def __str__(self):
         out  = "\nquantarhei.StateVector object"
         out += "\n============================="

@@ -598,6 +598,11 @@ class DFunction(Saveable):
         else:
             font={'size':20}
 
+        if xlabel is None:
+            xl = ""
+        if ylabel is None:
+            yl = ""
+            
         if xlabel is not None:
             xl = r'$\omega$ [fs$^{-1}$]'
 
@@ -614,8 +619,10 @@ class DFunction(Saveable):
         if ylabel is not None:
             yl = ylabel
 
-        plt.xlabel(xl, **font)
-        plt.ylabel(yl, **font)
+        if xl is not None:
+            plt.xlabel(xl, **font)
+        if xl is not None:
+            plt.ylabel(yl, **font)
 
         if show:
             plt.show()

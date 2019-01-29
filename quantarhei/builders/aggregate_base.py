@@ -22,7 +22,10 @@ from ..qm.oscillators.ho import operator_factory
 from ..qm.hilbertspace.operators import Operator
 from ..qm.hilbertspace.operators import DensityMatrix
 from ..qm.hilbertspace.operators import ReducedDensityMatrix
+from ..qm.hilbertspace.statevector import StateVector
+from ..qm.propagators.dmevolution import DensityMatrixEvolution
 from ..qm.propagators.dmevolution import ReducedDensityMatrixEvolution
+from ..qm.propagators.statevectorevolution import StateVectorEvolution
 from ..qm.liouvillespace.systembathinteraction import SystemBathInteraction
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
@@ -1616,7 +1619,8 @@ class AggregateBase(UnitsManaged, Saveable):
                 nop = ReducedDensityMatrix(dim=self.Nel)
                 
                 
-            elif isinstance(operator, ReducedDensityMatrixEvolution):
+            elif isinstance(operator, ReducedDensityMatrixEvolution) or \
+               isinstance(operator, DensityMatrixEvolution):
                 
                 if Nt is not None:
                     nop = ReducedDensityMatrix(dim=self.Nel)
@@ -1745,6 +1749,31 @@ class AggregateBase(UnitsManaged, Saveable):
         
         else:
             raise Exception("Incompatible operator")
+
+
+    def convert_to_DensityMatrix(self, psi, trace_over_vibrations=True):
+        """Converts StateVector into DensityMatrix (possibly reduced one)
+        
+        """
+    
+        if trace_over_vibrations:
+            
+            if isinstance(psi, StateVector):
+                rho = psi.get_DensityMatrix()
+                rho = self.trace_over_vibrations()
+            elif isinstance(psi, StateVectorEvolution):
+                # FIXME: Implement direct conversion
+                rho = psi.get_DensityMatrixEvolution()
+                rho = self.trace_over_vibrations()
+            
+        else:
+            
+            if isinstance(psi, StateVector):
+                rho = psi.get_DensityMatrix()
+            elif isinstance(psi, StateVectorEvolution):
+                rho = psi.get_DensityMatrixEvolution()
+        
+        return rho
 
 
     def get_RWA_suggestion(self):
