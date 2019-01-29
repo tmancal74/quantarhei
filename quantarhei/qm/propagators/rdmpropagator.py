@@ -481,7 +481,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         HH = self.Hamiltonian.data        
         
         indx = 1
-        for ii in self.TimeAxis.time[1:self.Nt]:
+        for ii in self.TimeAxis.data[1:self.Nt]:
             
             for jj in range(0,self.Nref):
                 

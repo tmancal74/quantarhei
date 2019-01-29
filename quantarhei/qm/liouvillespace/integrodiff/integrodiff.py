@@ -3,6 +3,9 @@ import numpy
 import matplotlib.pyplot as plt
 
 from ...propagators.dmevolution import ReducedDensityMatrixEvolution
+from ...hilbertspace.operators import ProjectionOperator
+from ...liouvillespace.systembathinteraction import SystemBathInteraction
+from ...liouvillespace.lindbladform import LindbladForm
 from .... import COMPLEX, REAL
 
 class IntegrodiffPropagator:
@@ -24,11 +27,37 @@ class IntegrodiffPropagator:
     inhom : Time dependent operator
         Inhomogeneous terms - a time dependent operator
 
+    fft : bool
+        If True, propagation is solved through Fourier transform method
+        Default is True
+    
+    save_fft_kernel : bool
+        If True, the FFTed integration kernel is saved
+        
+    timefac : int
+        Factor by which the time of the FTT is lengthed with respect 
+        to the submitted TimeAxis. The added part of the time axis
+        is zero-padded. Default values is 3.
+        
+    decay_fraction : float
+        Fraction of the TimeAxis in which the decay should be e^-1. When 
+        the max time of the TimeAxis is Tmax, and decay_fraction=2, then
+        the decay time is Tmax/decay_fraction. Default values if 2.0
+        
+    correct_short_time : bool
+        If set True, short time propagation will be calculated in time
+        domain. Frequency domain calculation usually shows some oscillations
+        around time zero.
+    
+    correction_length : float
+        How long the correction should be (from zero)
 
     """
     
     def __init__(self, timeaxis, ham, kernel=None,
-                 inhom=None, fft=True, save_fft_kernel=False):
+                 inhom=None, fft=True, save_fft_kernel=False,
+                 timefac=3, decay_fraction=2.0,
+                 correct_short_time=False, correction_length=0.0):
         
         self.timeaxis = timeaxis
         self.ham = ham
@@ -41,17 +70,17 @@ class IntegrodiffPropagator:
             self.resolv = None
             
             # FFT on timeaxis twice as long as defines (we add negative times)
-            tlen = 2*self.timeaxis.length
+            tlen = timefac*self.timeaxis.length
             tstart = self.timeaxis.data[0]
-            tstop = self.timeaxis.step*(tlen-1)
+            tstop = tstart + self.timeaxis.step*(tlen-1)
             
             tt = numpy.linspace(tstart, tstop, tlen)
             
-            gamma = 1.0/self.timeaxis.data[self.timeaxis.length-1]
+            gamma = decay_fraction/self.timeaxis.data[self.timeaxis.length-1]
             self.gamma = gamma
             
             # test of the FFT
-            test = True
+            test = False
             if test:
                 
                 gam = 1.0/5.0
@@ -77,12 +106,13 @@ class IntegrodiffPropagator:
             N1 = self.ham.dim
              
             self.om = numpy.zeros(len(tt), REAL)
-            om = self.om
-            
             # calculate frequencies
-            self.om[:] = 1.0
+            self.om[:] = (2.0*numpy.pi)* \
+                         numpy.fft.fftfreq(tlen, self.timeaxis.step)
+            om = self.om           
+            #self.om[:] = numpy.fft.fftfreq(tlen, self.timeaxis.step)
             
-            unity = numpy.zeros(( N1, N1, N1, N1), dtype=REAL)
+            unity = numpy.zeros((N1, N1, N1, N1), dtype=REAL)
             
             # Superoperator unity                  
             for ii in range(N1):
@@ -116,10 +146,10 @@ class IntegrodiffPropagator:
                 MM[:self.timeaxis.length,:,:,:,:] = self.kernel
                 
                 # we renormalize the kernel by a e^{-gam*t} decay
-                for tm in tt:
-                    MM[tm,:,:,:,:] = MM[tm,:,:,:,:]*numpy.exp(-gamma*tm)
+                for tm in range(len(tt)):
+                    MM[tm,:,:,:,:] = MM[tm,:,:,:,:]*numpy.exp(-gamma*tt[tm])
                     
-                MM = numpy.fft.fft(MM, axis=0)
+                MM = numpy.fft.ifft(MM, axis=0)*self.timeaxis.step*tlen*2.0
                 if save_fft_kernel:
                     self.fftKernel = MM
                     
@@ -132,6 +162,7 @@ class IntegrodiffPropagator:
                     A = numpy.linalg.inv(A)                          
                     self.resolv[io,:,:,:,:] = A.reshape(N1, N1, N1, N1)
             else:
+                
                 # if kernel is not present, we calculate with Hamiltonian only
                 self.resolv = numpy.zeros((tlen, N1, N1, N1, N1), COMPLEX)
                 for io in range(len(tt)):
@@ -159,36 +190,105 @@ class IntegrodiffPropagator:
             
             Nt = len(self.om)
             
-            rhOm = numpy.zeros((Nt, N1**2), dtype=COMPLEX)
+            rhOm = numpy.zeros((Nt, N1, N1), dtype=COMPLEX)
             
-            rho0 = rhoi.data.reshape(N1**2)
+            rho0 = rhoi.data #.reshape(N1**2)
             
             for ii in range(Nt):
                 G = self.resolv[ii,:,:,:,:]
-                Gr = G.reshape(N1**2, N1**2)
-                rhOm[ii,:] = numpy.dot(Gr, rho0)
-                
-            rhOm = numpy.fft.ifft(rhOm, axis=0)
-    
-            tlen = 2*self.timeaxis.length
-            tstart = self.timeaxis.data[0]
-            tstop = self.timeaxis.step*(tlen-1)
+                #Gr = G.reshape(N1**2, N1**2)
+                rhOm[ii,:,:] = numpy.tensordot(G, rho0)            
             
-            tt = numpy.linspace(tstart, tstop, tlen)
+            rhOm = numpy.fft.fft(rhOm, axis=0) \
+                    *((self.om[1]-self.om[0])/(2.0*numpy.pi))
     
             # lift the gamma damping
-            for ii in range(self.timeaxis.length):
-                rhot.data[ii,:,:] = rhOm[ii,:].reshape(N1, N1)* \
-                                    numpy.exp(self.gamma*tt[ii])
+            Nt = self.timeaxis.length
+            for ii in range(1,Nt):
+                rhot.data[ii,:,:] = rhOm[ii,:,:]* \
+                numpy.exp(self.gamma*self.timeaxis.data[ii])
             
             return rhot
         
         else:
             
             # propagation in time domain
+
+            rho1 = rhoi.data
+            rho2 = rhoi.data
+        
+            self.Nref = 1
+            L = 4
+            dt = self.timeaxis.step
+            indx = 1
+            for ii in range(1,self.timeaxis.length):
+            
+                for jj in range(0, self.Nref):
+                    
+                    for ll in range(1,L+1):
+                        
+                        rho1 = (dt/ll)* \
+                               self._right_hand_side(ii-1, rho1, rhot)
+                                 
+                        rho2 = rho2 + rho1
+                    rho1 = rho2    
+                    
+                rhot.data[indx,:,:] = rho2                        
+                indx += 1             
             
             return rhot
         
         
         
+    def _convolution_with_kernel(self, tn, rhot):
+        """Convolution of the density matrix with integration kernel
         
+        
+        """
+        dim = rhot.data.shape[1]
+        rho = numpy.zeros((dim, dim), dtype=COMPLEX)
+        for nn in range(tn):
+            nr = tn - nn
+            rho += self.timeaxis.step* \
+                   numpy.tensordot(self.kernel[nn,:,:,:,:],rhot.data[nr,:,:])
+            
+        return rho
+
+
+    def _right_hand_side(self, tn, rho, rhot):
+        
+        ham = self.ham.data
+        drho = -1j*(numpy.dot(ham, rho) - numpy.dot(rho, ham))
+        #drho = numpy.tensordot(self.kernel, rho)
+        drho += -self._convolution_with_kernel(tn, rhot)
+        
+        return drho
+
+        
+    def _test_kernel(self):
+        """Returns a simple kernel for tests
+        
+        """
+        
+        dim = self.ham.dim
+        Nt = self.timeaxis.length
+        MM = numpy.zeros((Nt, dim, dim, dim, dim), dtype=COMPLEX)
+        gamma = 1.0/10.0
+        
+        if dim == 2:
+            K01 = ProjectionOperator(0,1,dim)
+            K10 = ProjectionOperator(1,0,dim)
+            
+            sys_ops = [K01, K10]
+            rates = [1.0/30.0, 1.0/20.0]
+            sbi = SystemBathInteraction(sys_operators=sys_ops, rates=rates)
+            
+            lbf = LindbladForm(self.ham, sbi, as_operators=False)
+            #return lbf.data
+            
+            for ti in range(Nt):
+                tm = self.timeaxis.data[ti]
+                MM[ti,:,:,:,:] = -lbf.data*numpy.exp(-gamma*tm)
+                
+            return MM
+            
