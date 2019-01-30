@@ -54,7 +54,7 @@ class IntegrodiffPropagator:
 
     """
     
-    def __init__(self, timeaxis, ham, kernel=None,
+    def __init__(self, timeaxis, ham, kernel=None, cutoff_time=-1,
                  inhom=None, fft=True, save_fft_kernel=False,
                  timefac=3, decay_fraction=2.0,
                  correct_short_time=False, correction_length=0.0):
@@ -62,6 +62,16 @@ class IntegrodiffPropagator:
         self.timeaxis = timeaxis
         self.ham = ham
         self.kernel = kernel
+        
+        if cutoff_time > 0 and cutoff_time <= \
+                               self.kernel.shape[0]*timeaxis.step:
+            self.kernel_cutoff = min(int(cutoff_time/timeaxis.step),
+                                     self.kernel.shape[0])
+        elif self.kernel is not None:
+            self.kernel_cutoff = self.kernel.shape[0]
+        else:
+            self.kernel_cutoff = -1
+            
         self.inhom = inhom
         self.fft = fft
         
@@ -187,6 +197,9 @@ class IntegrodiffPropagator:
         rhot = ReducedDensityMatrixEvolution(self.timeaxis, rhoi)
 
         if self.fft:
+            #
+            # Propagation by FFT method
+            #
             
             Nt = len(self.om)
             
@@ -212,23 +225,29 @@ class IntegrodiffPropagator:
         
         else:
             
-            # propagation in time domain
-
+            #
+            # propagation in time domain by short exponential approximation
+            #
+            
             rho1 = rhoi.data
             rho2 = rhoi.data
         
-            self.Nref = 1
+            self.Nref = 1  # we need to calculate integral from the saved
+                           # values, and correspondingly, dt has to be small
+            
             L = 4
+            self.last_tn = -1
             dt = self.timeaxis.step
             indx = 1
+            
             for ii in range(1,self.timeaxis.length):
             
                 for jj in range(0, self.Nref):
                     
-                    for ll in range(1,L+1):
+                    for ll in range(1, L+1):
                         
                         rho1 = (dt/ll)* \
-                               self._right_hand_side(ii-1, rho1, rhot)
+                               self._right_hand_side(ii, rho1, rhot)
                                  
                         rho2 = rho2 + rho1
                     rho1 = rho2    
@@ -240,18 +259,29 @@ class IntegrodiffPropagator:
         
         
         
-    def _convolution_with_kernel(self, tn, rhot):
+    def _convolution_with_kernel(self, tn, rho_in, rhot):
         """Convolution of the density matrix with integration kernel
         
         
         """
         dim = rhot.data.shape[1]
-        rho = numpy.zeros((dim, dim), dtype=COMPLEX)
-        for nn in range(tn):
-            nr = tn - nn
-            rho += self.timeaxis.step* \
+        
+        if tn == self.last_tn:
+            rho = self.last_int
+        else:
+            rho = numpy.zeros((dim, dim), dtype=COMPLEX)
+            self.last_int = numpy.zeros((dim, dim), dtype=COMPLEX)
+            for nn in range(1, self.kernel_cutoff):
+                nr = tn - nn
+                rho += self.timeaxis.step* \
                    numpy.tensordot(self.kernel[nn,:,:,:,:],rhot.data[nr,:,:])
+            self.last_int[:,:] = rho
             
+        rho += \
+        self.timeaxis.step*numpy.tensordot(self.kernel[0,:,:,:,:],rho_in)
+        
+        self.last_tn = tn
+        
         return rho
 
 
@@ -260,12 +290,12 @@ class IntegrodiffPropagator:
         ham = self.ham.data
         drho = -1j*(numpy.dot(ham, rho) - numpy.dot(rho, ham))
         #drho = numpy.tensordot(self.kernel, rho)
-        drho += -self._convolution_with_kernel(tn, rhot)
+        drho += -self._convolution_with_kernel(tn, rho, rhot)
         
         return drho
 
         
-    def _test_kernel(self):
+    def _test_kernel(self, ctime):
         """Returns a simple kernel for tests
         
         """
@@ -273,7 +303,7 @@ class IntegrodiffPropagator:
         dim = self.ham.dim
         Nt = self.timeaxis.length
         MM = numpy.zeros((Nt, dim, dim, dim, dim), dtype=COMPLEX)
-        gamma = 1.0/10.0
+        gamma = 1.0/ctime
         
         if dim == 2:
             K01 = ProjectionOperator(0,1,dim)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 import matplotlib.pyplot as plt
 import quantarhei as qr
 import numpy
@@ -57,16 +58,16 @@ if plotit:
 from quantarhei.qm.liouvillespace.integrodiff.integrodiff \
      import IntegrodiffPropagator
 
-timea = qr.TimeAxis(0.0, 400, 0.1)
+timea = qr.TimeAxis(0.0, 200, 0.5)
 Nt = timea.length
 ham = qr.Hamiltonian(data=[[0.0, 0.1], [0.1, 0.01]])
 
 ip = IntegrodiffPropagator(timea, ham, timefac=3, decay_fraction=2.0)
 
-ker = ip._test_kernel()
+ker = ip._test_kernel(ctime=20.0)
 
 ip2 = IntegrodiffPropagator(timea, ham, kernel=ker, 
-                            fft=False)
+                            fft=False, cutoff_time=80)
 ip3 = IntegrodiffPropagator(timea, ham, kernel=ker, 
                             fft=True, timefac=3, decay_fraction=2.0)
 
@@ -76,7 +77,6 @@ rhoi = qr.ReducedDensityMatrix(data=[[0.0, 0.0],[0.0, 1.0]])
 
 rhot_i = ip.propagate(rhoi)
 rhot_n = np.propagate(rhoi)
-
 if plotit:
     plt.plot(timea.data, numpy.real(rhot_n.data[:,0,0]),"-b")
     plt.plot(timea.data, numpy.real(rhot_n.data[:,1,1]),"-r")
@@ -88,10 +88,13 @@ if plotit:
     #rhot_n.plot(coherences=False, show=True)
 
 
-
+t1 = time.time()
 rhot_k = ip2.propagate(rhoi)
+t2 = time.time()
+print("Propagated in:", t2-t1)
 
 rhot_k3 = ip3.propagate(rhoi)
+
 
 #plotit = True
 if plotit:
