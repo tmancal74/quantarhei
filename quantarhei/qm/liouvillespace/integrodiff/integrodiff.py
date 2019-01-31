@@ -295,30 +295,4 @@ class IntegrodiffPropagator:
         return drho
 
         
-    def _test_kernel(self, ctime):
-        """Returns a simple kernel for tests
-        
-        """
-        
-        dim = self.ham.dim
-        Nt = self.timeaxis.length
-        MM = numpy.zeros((Nt, dim, dim, dim, dim), dtype=COMPLEX)
-        gamma = 1.0/ctime
-        
-        if dim == 2:
-            K01 = ProjectionOperator(0,1,dim)
-            K10 = ProjectionOperator(1,0,dim)
-            
-            sys_ops = [K01, K10]
-            rates = [1.0/30.0, 1.0/20.0]
-            sbi = SystemBathInteraction(sys_operators=sys_ops, rates=rates)
-            
-            lbf = LindbladForm(self.ham, sbi, as_operators=False)
-            #return lbf.data
-            
-            for ti in range(Nt):
-                tm = self.timeaxis.data[ti]
-                MM[ti,:,:,:,:] = -lbf.data*numpy.exp(-gamma*tm)
-                
-            return MM
-            
+             
