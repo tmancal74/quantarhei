@@ -247,6 +247,7 @@ from .qm import ReducedDensityMatrix
 from .qm import BasisReferenceOperator
 from .qm import Hamiltonian
 from .qm import TransitionDipoleMoment
+from .qm import UnityOperator
 
 #
 # Propagators

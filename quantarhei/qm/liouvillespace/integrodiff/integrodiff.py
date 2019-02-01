@@ -3,9 +3,12 @@ import numpy
 import matplotlib.pyplot as plt
 
 from ...propagators.dmevolution import ReducedDensityMatrixEvolution
-from ...hilbertspace.operators import ProjectionOperator
-from ...liouvillespace.systembathinteraction import SystemBathInteraction
-from ...liouvillespace.lindbladform import LindbladForm
+#from ...hilbertspace.operators import ProjectionOperator
+#from ...liouvillespace.systembathinteraction import SystemBathInteraction
+#from ...liouvillespace.lindbladform import LindbladForm
+from ...liouvillespace.liouvillian import Liouvillian
+from ...liouvillespace.supopunity import SOpUnity
+#from ...hilbertspace.operators import UnityOperator
 from .... import COMPLEX, REAL
 
 class IntegrodiffPropagator:
@@ -88,29 +91,7 @@ class IntegrodiffPropagator:
             
             gamma = decay_fraction/self.timeaxis.data[self.timeaxis.length-1]
             self.gamma = gamma
-            
-            # test of the FFT
-            test = False
-            if test:
-                
-                gam = 1.0/5.0
-                
-                ff = numpy.cos(2.0*numpy.pi*tt/3.0)
-                plt.plot(tt, ff)
-                plt.show()
-                
-                fcor = ff*numpy.exp(-gam*tt)
-                fo = numpy.fft.fft(fcor)
-                
-                plt.plot(tt, fo)
-                plt.show()
-                
-                f1cor = numpy.fft.ifft(fo)
-                f1 = f1cor*numpy.exp(gam*tt)
-        
-                plt.plot(tt, ff, "-b")
-                plt.plot(tt, f1, "--r")
-                plt.show()        
+                   
     
             # FFT of the kernel
             N1 = self.ham.dim
@@ -120,31 +101,13 @@ class IntegrodiffPropagator:
             self.om[:] = (2.0*numpy.pi)* \
                          numpy.fft.fftfreq(tlen, self.timeaxis.step)
             om = self.om           
-            #self.om[:] = numpy.fft.fftfreq(tlen, self.timeaxis.step)
             
-            unity = numpy.zeros((N1, N1, N1, N1), dtype=REAL)
-            
-            # Superoperator unity                  
-            for ii in range(N1):
-                for jj in range(N1):
-                    for kk in range(N1):
-                        for ll in range(N1):
-                            if (ii == kk) and (jj == ll):
-                                unity[ii,jj,kk,ll] = 1.0
-             
-            # Kronecker delta                  
-            delta = numpy.zeros((N1, N1), dtype=REAL)
-            for ii in range(N1):
-                delta[ii,ii] = 1.0
+            # Superoperator unity  
+            unity = SOpUnity(dim=self.ham.dim).data                
             
             # Liouvillian
-            LL = numpy.zeros((N1, N1, N1, N1), dtype=REAL)
-            for ii in range(N1):
-                for jj in range(N1):
-                    for kk in range(N1):
-                        for ll in range(N1):
-                            LL[ii,jj,kk,ll] = ham.data[ii,kk]*delta[jj,ll] \
-                                             -ham.data[ll,jj]*delta[kk,ii]
+            LL = Liouvillian(self.ham).data
+            
             if self.kernel is not None:
                 with_kernel = True
             else:
