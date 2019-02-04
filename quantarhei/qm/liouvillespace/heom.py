@@ -7,6 +7,7 @@
 import numpy
 from ... import REAL, COMPLEX
 from ..propagators.dmevolution import DensityMatrixEvolution
+from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.units import kB_int
 from ..corfunctions.correlationfunctions import CorrelationFunction
 
@@ -267,6 +268,7 @@ class KTHierarchy:
         level4.append([0,4])
         lret.append(level4)                
         return lret
+
       
     def _convert_2_matrix(self, indxs):
         """Convert the list of levels of the hierarchy into an numpy array
@@ -336,13 +338,6 @@ class KTHierarchy:
             for kk in range(self.nbath):
                 self.Gamma[nn] += self.hinds[nn,kk]*self.gamma[kk]
 
-        
-#    def set_rdo(self, rdo):
-#        """Sets the density operator of the hierarchy
-#        
-#        """
-#        self.rho = rdo
-
    
     def reset_ados(self):
         """Creates memory of ADOs and sets them to zero
@@ -350,7 +345,31 @@ class KTHierarchy:
         """
         self.ado = numpy.zeros((self.hsize, self.dim, self.dim),
                                dtype=COMPLEX)
+
+
+    def get_kernel(self, timeaxis):
+        """Returns integration kernel for the time-non-local equation
         
+        """
+        N = self.dim
+        Nt = timeaxis.length
+        kernel = numpy.zeros((Nt,N,N,N,N), dtype=COMPLEX)
+        
+        khprop = KTHierarchyPropagator(timeaxis, self)
+        
+        rhoi = ReducedDensityMatrix(dim=self.dim)
+        for ii in range(N):
+            for jj in range(N):
+                print("Starting:", ii, jj)
+                rhoi.data[ii,jj] = 1.0
+                
+                rhot = khprop.propagate(rhoi, free_hierarchy=True)
+                kernel[:,:,:,ii,jj] = rhot.data
+                print("... finished.")
+                
+        return kernel
+                
+
         
 class KTHierarchyPropagator:
     """Propagator of the Kubo-Tanimura hierarchy
@@ -414,35 +433,42 @@ class KTHierarchyPropagator:
         
         """
         rhot = DensityMatrixEvolution(timeaxis=self.timeaxis, rhoi=rhoi)
-
-        # normally inital condition goes here
-        self.hy.ado[0,:,:] = rhoi.data
-        ado1 = self.hy.ado
-        ado2 = self.hy.ado
         
         if free_hierarchy:
-            slevel = 1
-        else:
-            slevel = 0
             
-        if slevel == 1:
-            # in this case we set zero's level equal to zero
+            # first act with lifting superoperators
+            self.hy.ado = self._QHP(rhoi)
+            # then set zero's level equal to zero
             self.hy.ado[0,:,:] = 0.0
-            # and this is the initial condition for the hierarchy
-            for kk in range(self.hy.nbath):
-                rr = numpy.dot(self.hy.Vs[kk,:,:], rhoi.data)
-                rl = numpy.dot(rhoi.data,self.hy.Vs[kk,:,:])
-                    
-                # Theta
-                self.hy.ado[kk+1,:,:] += self.hy.lam[kk]*self.hy.gamma[kk]* \
-                                    (rr+rl)
-                        
-                            
-                # Psi
-                self.hy.ado[kk+1,:,:] += 1j*2.0* \
-                                    self.hy.lam[kk]*self.hy.kBT* \
-                                    (rr-rl)
+#            # and this is the initial condition for the hierarchy
+#            for kk in range(self.hy.nbath):
+#                rr = numpy.dot(self.hy.Vs[kk,:,:], rhoi.data)
+#                rl = numpy.dot(rhoi.data,self.hy.Vs[kk,:,:])
+#                    
+#                # Theta
+#                self.hy.ado[kk+1,:,:] += self.hy.lam[kk]*self.hy.gamma[kk]* \
+#                                    (rr+rl)
+#                        
+#                            
+#                # Psi
+#                self.hy.ado[kk+1,:,:] += 1j*2.0* \
+#                                    self.hy.lam[kk]*self.hy.kBT* \
+#                                    (rr-rl)
+            
+            # Now we propagate normally; slevel is set to 1 so zero's order
+            # does not update and stays zero
+            slevel = 1
+            
+        else:
+            
+            # normally inital condition goes here
+            self.hy.ado[0,:,:] = rhoi.data
+            slevel = 0
+        
+        ado1 = self.hy.ado
+        ado2 = self.hy.ado
 
+        # no fine time-step for integro-differential solver
         self.Nref = 1
         
         if report_hierarchy:
@@ -466,13 +492,21 @@ class KTHierarchyPropagator:
                 ado1 = ado2
 
             self.hy.ado = ado2
-            rhot.data[indx,:,:] = ado2[0,:,:]
+            
+            if free_hierarchy:
+                # we apply the hierarchy and set rhot
+                ado3 = self._PHQ(ado2)
+                rhot.data[indx,:,:] = ado3[0,:,:]
+
+            else:
+                rhot.data[indx,:,:] = ado2[0,:,:]
+                
             if report_hierarchy:
                 # we report population of hierarchy ADO
                 for kk in range(self.hy.hsize):
                     self.hy.hpop[indx, kk] = numpy.trace(ado2[kk,:,:])                       
             indx += 1             
-
+            
         return rhot
 
 
@@ -540,3 +574,24 @@ class KTHierarchyPropagator:
                     ado3[nn,:,:] += (1j*dt)*(rr-rl)
                     
         return ado3
+
+
+    def _QHP(self, rhoi, slevel=1):
+        """One application of the hierarchy operators 
+        
+        """
+        ado1 = numpy.zeros((self.hy.hsize, self.hy.dim, self.hy.dim),
+                           dtype=COMPLEX)
+        ado1[0,:,:] = rhoi.data[:,:]
+        
+        return self._ado_cros_rhs(ado1, dt=1.0, slevel=slevel)
+
+
+    def  _PHQ(self, adof, slevel=0):
+        """
+        
+        """
+        return self._ado_cros_rhs(adof, dt=1.0, slevel=slevel)
+
+    
+        

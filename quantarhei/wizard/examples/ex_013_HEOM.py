@@ -146,6 +146,11 @@ if _show_plots_:
         #plt.plot(timea.data[0:N], Hy.hpop[0:N,10], "-g")
     plt.show()
 
+print("Kernel generation")
+tmx = qr.TimeAxis(0.0, 100, 1.0)
+ker = Hy6.get_kernel(tmx)
+
+
 print("")
 print("***********************************************************")
 print("*                                                         *")

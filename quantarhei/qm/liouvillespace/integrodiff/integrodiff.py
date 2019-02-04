@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy
-import matplotlib.pyplot as plt
 
 from ...propagators.dmevolution import ReducedDensityMatrixEvolution
-#from ...hilbertspace.operators import ProjectionOperator
-#from ...liouvillespace.systembathinteraction import SystemBathInteraction
-#from ...liouvillespace.lindbladform import LindbladForm
 from ...liouvillespace.liouvillian import Liouvillian
 from ...liouvillespace.supopunity import SOpUnity
-#from ...hilbertspace.operators import UnityOperator
 from .... import COMPLEX, REAL
 
 class IntegrodiffPropagator:
@@ -114,6 +109,7 @@ class IntegrodiffPropagator:
                 with_kernel = False
                 
             if with_kernel:
+                
                 # if kernel is present, we use it for calculation
                 MM = numpy.zeros((tlen, N1, N1, N1, N1), dtype=COMPLEX)
                 MM[:self.timeaxis.length,:,:,:,:] = self.kernel
@@ -134,6 +130,7 @@ class IntegrodiffPropagator:
                     A = self.resolv[io,:,:,:,:].reshape(N1**2, N1**2)
                     A = numpy.linalg.inv(A)                          
                     self.resolv[io,:,:,:,:] = A.reshape(N1, N1, N1, N1)
+
             else:
                 
                 # if kernel is not present, we calculate with Hamiltonian only
