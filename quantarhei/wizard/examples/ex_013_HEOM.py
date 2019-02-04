@@ -36,8 +36,8 @@ with qr.energy_units("1/cm"):
     agg.set_resonance_coupling(0,2,100.0)
 
 #   Interaction with the bath is set through bath correlation functions
-timea = qr.TimeAxis(0.0, 1000, 1.0)
-cpar1 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=70,
+timea = qr.TimeAxis(0.0, 400, 1.0)
+cpar1 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50,
             cortime=50, T=300)
 cpar2 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50,
             cortime=50, T=300)
@@ -88,7 +88,9 @@ print("Size of hierarchy of depth",Hy7.depth,"is",Hy7.hsize)
 rhoi = qr.ReducedDensityMatrix(dim=ham.dim)
 
 with qr.eigenbasis_of(ham):
-    rhoi.data[2,2] = 1.0
+    rhoi.data[2,2] = 0.8
+    rhoi.data[1,1] = 0.1
+    rhoi.data[3,3] = 0.1
 
 #print(rhoi)
     
@@ -155,8 +157,9 @@ print("Kernel generation")
 
 ker = Hy6.get_kernel(timea)
 
-ip8 = IntegrodiffPropagator(timea, ham, kernel=ker, fft=False, cutoff_time=80)
-                            #fft=True, timefac=3, decay_fraction=2.0)
+ip8 = IntegrodiffPropagator(timea, ham, kernel=ker,
+                            fft=True, timefac=3, decay_fraction=2.0)
+   #fft=False) #, cutoff_time=100)
 
 rhot8 = ip8.propagate(rhoi)
 
@@ -168,7 +171,11 @@ if _show_plots_:
     N = timea.length
     with qr.eigenbasis_of(ham):
         #plt.plot(timea.data[0:N], rhot8.data[0:N,0,0])
-        plt.plot(timea.data[0:N], trc[0:N],"-m")
+        #plt.plot(timea.data[0:N], trc[0:N],"-m")
+        plt.plot(timea.data[0:N], ker[0:N,1,1,1,1],"-m")
+        plt.plot(timea.data[0:N], ker[0:N,1,2,1,2],"-m")
+        plt.plot(timea.data[0:N], ker[0:N,2,2,2,2],"-m")
+        plt.show()
         plt.plot(timea.data[0:N], rhot8.data[0:N,1,1],"-b")
         plt.plot(timea.data[0:N], rhot8.data[0:N,2,2],"-r")
         plt.plot(timea.data[0:N], rhot8.data[0:N,1,2],"-k") 
@@ -180,7 +187,7 @@ if _show_plots_:
 print("")
 print("***********************************************************")
 print("*                                                         *")
-print("*               Demo finihed successfully                 *")
+print("*               Demo finished successfully                 *")
 print("*                                                         *")
 print("***********************************************************")
 

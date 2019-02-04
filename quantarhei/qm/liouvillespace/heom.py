@@ -365,7 +365,7 @@ class KTHierarchy:
                 rhoi.data[ii,jj] = 1.0
                 
                 rhot = khprop.propagate(rhoi, free_hierarchy=True)
-                kernel[:,:,:,ii,jj] = rhot.data[:,:,:]
+                kernel[:,:,:,ii,jj] = -rhot.data[:,:,:]
 
                 print("... finished.")
                 
@@ -440,10 +440,12 @@ class KTHierarchyPropagator:
             
             # first act with lifting superoperators
             self.hy.ado = self._QHP(rhoi)
+            add = self._PHQ(self.hy.ado)
+            rhot.data[0,:,:] = add[0,:,:]
             
             # Now we propagate normally; slevel is set to 1 so zero's order
             # does not update and stays zero
-            slevel = 0
+            slevel = 1
             
         else:
             
