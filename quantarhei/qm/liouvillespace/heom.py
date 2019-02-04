@@ -361,10 +361,12 @@ class KTHierarchy:
         for ii in range(N):
             for jj in range(N):
                 print("Starting:", ii, jj)
+                rhoi = ReducedDensityMatrix(dim=self.dim)
                 rhoi.data[ii,jj] = 1.0
                 
                 rhot = khprop.propagate(rhoi, free_hierarchy=True)
-                kernel[:,:,:,ii,jj] = rhot.data
+                kernel[:,:,:,ii,jj] = rhot.data[:,:,:]
+
                 print("... finished.")
                 
         return kernel
@@ -438,26 +440,10 @@ class KTHierarchyPropagator:
             
             # first act with lifting superoperators
             self.hy.ado = self._QHP(rhoi)
-            # then set zero's level equal to zero
-            self.hy.ado[0,:,:] = 0.0
-#            # and this is the initial condition for the hierarchy
-#            for kk in range(self.hy.nbath):
-#                rr = numpy.dot(self.hy.Vs[kk,:,:], rhoi.data)
-#                rl = numpy.dot(rhoi.data,self.hy.Vs[kk,:,:])
-#                    
-#                # Theta
-#                self.hy.ado[kk+1,:,:] += self.hy.lam[kk]*self.hy.gamma[kk]* \
-#                                    (rr+rl)
-#                        
-#                            
-#                # Psi
-#                self.hy.ado[kk+1,:,:] += 1j*2.0* \
-#                                    self.hy.lam[kk]*self.hy.kBT* \
-#                                    (rr-rl)
             
             # Now we propagate normally; slevel is set to 1 so zero's order
             # does not update and stays zero
-            slevel = 1
+            slevel = 0
             
         else:
             
@@ -584,7 +570,10 @@ class KTHierarchyPropagator:
                            dtype=COMPLEX)
         ado1[0,:,:] = rhoi.data[:,:]
         
-        return self._ado_cros_rhs(ado1, dt=1.0, slevel=slevel)
+        ador =  self._ado_cros_rhs(ado1, dt=1.0, slevel=slevel)
+        ador[0,:,:] = 0.0 # nullify the 0 order so that it cannot contribute
+        
+        return ador
 
 
     def  _PHQ(self, adof, slevel=0):

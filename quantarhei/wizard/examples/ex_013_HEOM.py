@@ -2,7 +2,12 @@
 _show_plots_ = False
 
 import time
+
+import numpy
+
 import quantarhei as qr
+from quantarhei.qm.liouvillespace.integrodiff.integrodiff \
+     import IntegrodiffPropagator
 
 print("")
 print("***********************************************************")
@@ -147,9 +152,30 @@ if _show_plots_:
     plt.show()
 
 print("Kernel generation")
-tmx = qr.TimeAxis(0.0, 100, 1.0)
-ker = Hy6.get_kernel(tmx)
 
+ker = Hy6.get_kernel(timea)
+
+ip8 = IntegrodiffPropagator(timea, ham, kernel=ker, fft=False, cutoff_time=80)
+                            #fft=True, timefac=3, decay_fraction=2.0)
+
+rhot8 = ip8.propagate(rhoi)
+
+trc = numpy.zeros(timea.length, dtype=qr.REAL)
+for ti in range(timea.length):
+    trc[ti] = numpy.real(numpy.trace(rhot8.data[ti,:,:]))
+
+if _show_plots_:
+    N = timea.length
+    with qr.eigenbasis_of(ham):
+        #plt.plot(timea.data[0:N], rhot8.data[0:N,0,0])
+        plt.plot(timea.data[0:N], trc[0:N],"-m")
+        plt.plot(timea.data[0:N], rhot8.data[0:N,1,1],"-b")
+        plt.plot(timea.data[0:N], rhot8.data[0:N,2,2],"-r")
+        plt.plot(timea.data[0:N], rhot8.data[0:N,1,2],"-k") 
+        plt.plot(timea.data[0:N], rhot6.data[0:N,1,1],"--b")
+        plt.plot(timea.data[0:N], rhot6.data[0:N,2,2],"--r")
+        plt.plot(timea.data[0:N], rhot6.data[0:N,1,2],"--k")
+    plt.show()
 
 print("")
 print("***********************************************************")
