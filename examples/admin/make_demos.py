@@ -80,5 +80,12 @@ for file in files:
         print(file,"-->", demo_file)
         copy_file(from_loc=exloc, file=file,
                   to=".", as_file=demo_file) #, fltr=fltr_fce)
-    
+    if pref == "data":
+        nr = get_number(file)
+        root = get_root(file)
+        
+        data_file = "data_"+nr+root
+        print(file,"-->", data_file)        
+        copy_file(from_loc=exloc, file=file,
+                  to=".", as_file=data_file)    
     

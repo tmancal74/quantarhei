@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
-_show_plots_ = True
+
+_show_plots_ = False
+
+print("""
+***********************************************************      
+*
+*
+*     PDB Extraction of FMO and Absorption Calculation
+*
+*
+***********************************************************
+""")
+
 
 import numpy
 
@@ -14,8 +26,8 @@ import quantarhei as qr
 #
 # Read a PDB file
 #
-file = PDBFile("3eoj.pdb")
-#file = PDBFile("3eni.pdb")
+file = PDBFile("data_050_3eoj.pdb")
+#file = PDBFile("data_050_3eni.pdb")
 print("Loaded", file.linecount, "lines")
 
 #

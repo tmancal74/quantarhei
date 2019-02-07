@@ -15,9 +15,9 @@ time = TimeAxis(0.0, 3000, 1.0)
 
 with energy_units("1/cm"):
 
-    m1 = Molecule("Mol 1", [0.0, 10100.0])
-    m2 = Molecule("Mol 2", [0.0, 10050.0])
-    m3 = Molecule("Mol 3", [0.0, 10000.0])
+    m1 = Molecule([0.0, 10100.0])
+    m2 = Molecule([0.0, 10050.0])
+    m3 = Molecule([0.0, 10000.0])
     
     m1.position = [0.0, 0.0, 0.0]
     m2.position = [10.0, 0.0, 0.0]
@@ -26,7 +26,7 @@ with energy_units("1/cm"):
     m2.set_dipole(0,1,[5.8, 0.0, 0.0])
     m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
 
-    agg = Aggregate("Dimer")
+    agg = Aggregate(name="Dimer")
     agg.add_Molecule(m1)
     agg.add_Molecule(m2)
     agg.add_Molecule(m3)
