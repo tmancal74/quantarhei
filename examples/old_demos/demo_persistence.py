@@ -2,7 +2,7 @@
 from quantarhei.core.matrixdata import MatrixData
 
 
-file = TemporaryFile()
+#file = TemporaryFile()
 
 m = MatrixData(data=[0.0, 1.0, 2.0])
 print(m.data)
