@@ -443,7 +443,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             print("...done")
                     
             
-    def calculate_next(self):
+    def calculate_next(self, save=False):
         """Calculates one point of data of the superopetor
         
         """
@@ -456,21 +456,38 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
 
             if self.now == 0:
+
                 #
                 # Create new data
-                #
-                if self.dim != self.data.shape[0]:
-                    self.data = numpy.zeros((self.dim, self.dim,
-                                             self.dim, self.dim),
-                                            dtype=qr.COMPLEX)
+                #                
+                if save:
+                    # if we are supposed to save all time steps
+                    Nt = self.time.length                    
+                    self.data = numpy.zeros((Nt, self.dim, self.dim,
+                                                 self.dim, self.dim),
+                                                dtype=qr.COMPLEX)
+                    #
+                    # zero time value (unity superoperator)
+                    #
+                    dim = self.dim
+                    for i in range(dim):
+                        for j in range(dim):
+                            self.data[i,j,i,j] = 1.0
+                        
+                else:
+                    # if we need to keep only the last state
+                    if self.dim != self.data.shape[0]:
+                        self.data = numpy.zeros((self.dim, self.dim,
+                                                 self.dim, self.dim),
+                                                 dtype=qr.COMPLEX)
         
-                #
-                # zero time value (unity superoperator)
-                #
-                dim = self.dim
-                for i in range(dim):
-                    for j in range(dim):
-                        self.data[i,j,i,j] = 1.0
+                    #
+                    # zero time value (unity superoperator)
+                    #
+                    dim = self.dim
+                    for i in range(dim):
+                        for j in range(dim):
+                            self.data[0,i,j,i,j] = 1.0
             
             #
             # We calculate every interval completely
@@ -494,8 +511,12 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     rhonm0.data[n,m] = 0.0
                     #self.now += 1
             
-            self.data[:,:,:,:] = \
-                numpy.tensordot(Ut1, self.data[:,:,:,:])
+            if save:
+                self.data[ti, :,:,:,:] = \
+                numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
+            else:
+                self.data[:,:,:,:] = \
+                    numpy.tensordot(Ut1, self.data[:,:,:,:])
               
             self.now += 1
                   
@@ -507,19 +528,34 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             if self.now == 0:
                 #
                 # Create new data
-                #
-                if self.dim != self.data.shape[0]:
-                    self.data = numpy.zeros((self.dim, self.dim,
-                                             self.dim, self.dim),
-                                            dtype=qr.COMPLEX)
-        
-                #
-                # zero time value (unity superoperator)
-                #
-                dim = self.dim
-                for i in range(dim):
-                    for j in range(dim):
-                        self.data[i,j,i,j] = 1.0
+                #                
+                if save:
+                    # if we are supposed to save all time steps
+                    Nt = self.time.length                    
+                    self.data = numpy.zeros((Nt, self.dim, self.dim,
+                                                 self.dim, self.dim),
+                                                dtype=qr.COMPLEX)
+                    #
+                    # zero time value (unity superoperator)
+                    #
+                    dim = self.dim
+                    for i in range(dim):
+                        for j in range(dim):
+                            self.data[0, i,j,i,j] = 1.0
+
+                else:
+                    # if we need to keep only the last state
+                    if self.dim != self.data.shape[0]:
+                        self.data = numpy.zeros((self.dim, self.dim,
+                                                 self.dim, self.dim),
+                                                 dtype=qr.COMPLEX)        
+                    #
+                    # zero time value (unity superoperator)
+                    #
+                    dim = self.dim
+                    for i in range(dim):
+                        for j in range(dim):
+                            self.data[i,j,i,j] = 1.0
     
                 one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
                 prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
@@ -541,7 +577,10 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     Udt = numpy.tensordot(Ut1, Udt)
                 self.Udt = Udt
                 
-                self.data[:,:,:,:] = self.Udt[:,:,:,:]
+                if save:
+                    self.data[1,:,:,:,:] = self.Udt[:,:,:,:]
+                else:
+                    self.data[:,:,:,:] = self.Udt[:,:,:,:]
                 
                 self.now += 1
             
@@ -549,8 +588,18 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # Propagations of the later intervals
             #
             else:
-                self.data[:,:,:,:] = \
-                    numpy.tensordot(self.Udt, self.data[:,:,:,:])
+                
+                ti = self.now + 1
+                
+                if save:
+                    print(self.data.shape)
+                    print(self.Udt.shape)
+                    self.data[ti, :,:,:,:] = \
+                        numpy.tensordot(self.Udt, self.data[ti-1,:,:,:,:])
+                else:
+                    self.data[:,:,:,:] = \
+                        numpy.tensordot(self.Udt, self.data[:,:,:,:])
+                
                 self.now += 1
 
 

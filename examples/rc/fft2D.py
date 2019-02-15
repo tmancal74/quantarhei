@@ -602,6 +602,8 @@ print("Setting up evolution superoperator at", t2_N_steps, "points:")
 #
 time_so = qr.TimeAxis(0.0, t2_N_steps, t2_time_step)
 
+#p_deph = None
+
 eUt = qr.qm.EvolutionSuperOperator(time_so, HH, relt=LF_frac, 
                                    pdeph=p_deph, mode=eUt_mode)
 
@@ -819,7 +821,7 @@ while (N_T2 < time_so.length):
         # Save stuff for a restart
         #
         if restart:
-            state = [N_T2, cont, eUt, agg2] #, msc]
+            state = [N_T2, cont, eUt, agg2, agg] #, msc]
             prcl = qr.Parcel()
             prcl.set_content(state)
             prcl.save("A_saved_state.qrp")

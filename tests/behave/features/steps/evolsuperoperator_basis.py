@@ -237,7 +237,7 @@ def step_when_12(context):
 # When ...
 #
 @when('I calculate evolution superoperator in site basis using H and L in exciton basis')
-def step_when_12(context):
+def step_when_13(context):
     """
 
         When I calculate evolution superoperator in site basis using H and L in exciton basis
@@ -255,3 +255,54 @@ def step_when_12(context):
     U.calculate()
     
     context.U = U
+    
+    
+#
+# When ...
+#
+@when('I calculate evolution superoperator using H and L with "jit" settings in exciton basis')
+def step_when_14(context):
+    """
+
+        When I calculate evolution superoperator using H and L with "jit" settings in exciton basis
+
+    """
+    # define and calculate evolution superoperator
+    time2 = context.time2
+    LL = context.L
+    HH = context.H
+   
+    with qr.eigenbasis_of(HH):
+        U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=LL, mode="jit")
+        U.set_dense_dt(10)
+    
+    for tt in range(1,time2.length):
+        U.calculate_next(save=True)
+    
+    context.U = U
+    
+    
+#
+# When ...
+#
+@when('I calculate evolution superoperator using H and L with "no save jit" settings in exciton basis')
+def step_when_15(context):
+    """
+
+        When I calculate evolution superoperator using H and L with "no save jit" settings in exciton basis
+
+    """
+    time2 = context.time2
+    LL = context.L
+    HH = context.H
+   
+    with qr.eigenbasis_of(HH):
+        U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=LL, mode="jit")
+        U2 = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=LL, mode="all")
+        U2.set_dense_dt(10)
+    
+    for tt in range(1,time2.length):
+        U.calculate_next()
+        U2.data[tt,:,:,:,:] = U.data
+        
+    context.U = U2

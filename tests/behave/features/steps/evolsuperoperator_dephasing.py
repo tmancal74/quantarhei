@@ -300,3 +300,51 @@ def step_when_8(context, time_step, N_dense):
             
     context.U = U1
 
+
+#
+# Given ...
+#
+@given('I have a Hamiltonian H, Lidblad form L, PureDephasing object D with dephasing constant {dtime} and initial density matrix R')
+def step_given_9(context, dtime):
+    """
+
+        Given I have a Hamiltonian H, Lidblad form L, PureDephasing object D with dephasing constant {dtime} and initial density matrix R
+
+    """
+    td = float(dtime)
+    print("Dephasing time", td)
+    context.td = td
+
+    # create test aggregatedimer
+    agg = qr.TestAggregate("trimer-2")
+    with qr.energy_units("1/cm"):
+        agg.set_resonance_coupling(0,1,100.0)
+        agg.set_resonance_coupling(1,2,50.0)
+    agg.build()
+    
+
+    
+    HH = agg.get_Hamiltonian()
+    context.H = HH
+    
+    print("Hamiltonian:")
+    print(HH)
+    
+    # initial density matrix
+    R = qr.ReducedDensityMatrix(dim=HH.dim)
+    with qr.eigenbasis_of(HH):
+        R.data[1:4,1:4] = 0.5
+
+    
+    context.R = R
+    
+    dd = numpy.zeros((4,4), dtype=qr.REAL)
+    dd[1,2] = 1.0/td
+    dd[2,1] = 1.0/td
+    dd[1,3] = 1.0/td
+    dd[3,1] = 1.0/td
+    dd[2,3] = 1.0/td
+    dd[3,2] = 1.0/td
+    D = qr.qm.PureDephasing(drates=dd)
+    
+    context.D = D
