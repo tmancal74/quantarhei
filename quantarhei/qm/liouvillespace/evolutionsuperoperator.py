@@ -472,7 +472,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     dim = self.dim
                     for i in range(dim):
                         for j in range(dim):
-                            self.data[i,j,i,j] = 1.0
+                            self.data[0,i,j,i,j] = 1.0
                         
                 else:
                     # if we need to keep only the last state
@@ -487,7 +487,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     dim = self.dim
                     for i in range(dim):
                         for j in range(dim):
-                            self.data[0,i,j,i,j] = 1.0
+                            self.data[i,j,i,j] = 1.0
             
             #
             # We calculate every interval completely
