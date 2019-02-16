@@ -330,6 +330,10 @@ def step_given_9(context, dtime):
     print("Hamiltonian:")
     print(HH)
     
+    L =  qr.qm.LindbladForm(HH, sbi=None)
+    
+    context.L = L
+    
     # initial density matrix
     R = qr.ReducedDensityMatrix(dim=HH.dim)
     with qr.eigenbasis_of(HH):
@@ -348,3 +352,79 @@ def step_given_9(context, dtime):
     D = qr.qm.PureDephasing(drates=dd)
     
     context.D = D
+
+
+#
+# When ...
+#
+@when('I calculate EvolutionSuperOperator step by step using PureDephasing D and Lindblad form L with {time_step} and {N_dense}')
+def step_when_10(context, time_step, N_dense):
+    """
+
+        When I calculate EvolutionSuperOperator step by step using PureDephasing D and Lindblad form L with {time_step} and {N_dense}
+
+    """
+    HH = context.H
+    L = context.L
+    DD = context.D
+
+    dt = float(time_step)
+    N_dense = int(N_dense)
+    Ntot = 1320
+    Nsteps = int(Ntot/N_dense)
+
+    time2 = qr.TimeAxis(0, Nsteps, dt)
+    context.time2 = time2
+
+    U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                     pdeph=DD, mode="jit")
+    U.set_dense_dt(N_dense)
+    
+    U1 = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                     pdeph=DD)
+    
+    with qr.eigenbasis_of(HH):
+        
+        for i in range(1, Nsteps):
+            U.calculate_next()
+            U1.data[i,:,:,:,:] = U.data[:,:,:,:]
+            
+    context.U = U1
+
+
+
+#
+# And ...
+#
+@when('I propagate with Lindblad form L and PureDephasing D to get RE at time {t_prop}')
+def step_when_11(context, t_prop):
+    """
+
+        And I propagate with Lindblad form L and PureDephasing D to get RE at time {t_prop}
+
+    """
+
+    t = float(t_prop)
+
+    # initial density matrix
+    R = context.R
+    
+    HH = context.H
+    
+    RE = qr.ReducedDensityMatrix(dim=HH.dim)
+    RE.data[:,:] = 0.0
+
+    time2 = context.time2
+    t2, dt2 = time2.locate(t)
+    
+    L = context.L
+    D = context.D
+    
+    prop = qr.ReducedDensityMatrixPropagator(timeaxis=time2,
+                                             Ham=HH, RTensor=L, PDeph=D)
+    
+    rhot = prop.propagate(R)
+    
+    RE = qr.ReducedDensityMatrix(data=rhot.data[t2,:,:])
+        
+    context.RE = RE
