@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-_show_plots_ = False
+_show_plots_ = True
 
 import time
 
@@ -36,7 +36,7 @@ with qr.energy_units("1/cm"):
     agg.set_resonance_coupling(0,2,100.0)
 
 #   Interaction with the bath is set through bath correlation functions
-timea = qr.TimeAxis(0.0, 400, 1.0)
+timea = qr.TimeAxis(0.0, 500, 1.0)
 cpar1 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50,
             cortime=50, T=300)
 cpar2 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50,

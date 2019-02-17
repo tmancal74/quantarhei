@@ -8,6 +8,7 @@ import numpy
 from ... import REAL, COMPLEX
 from ..propagators.dmevolution import DensityMatrixEvolution
 from ..hilbertspace.operators import ReducedDensityMatrix
+from ..hilbertspace.operators import UnityOperator
 from ...core.units import kB_int
 from ..corfunctions.correlationfunctions import CorrelationFunction
 
@@ -369,8 +370,65 @@ class KTHierarchy:
 
                 print("... finished.")
                 
+        qhp = self._QHPsop()
+        phq = self._PHQsop()
+        for tk in range(Nt):
+            k1 = numpy.tensordot(kernel[tk,:,:,:,:], qhp)
+            kernel[tk,:,:,:,:] = numpy.tensordot(phq, k1)
+        
         return kernel
+
+
+    def _QHPsop(self):
+        
+        N = self.dim
+        delta = UnityOperator(dim=N).data
+        qhp = numpy.zeros((N, N, N, N), dtype=COMPLEX)
+        
+        for kk in range(self.nbath):
                 
+            # Theta+ and Psi+
+            nk = self.hinds[1,kk]
+            jj = self.nm1[1,kk]
+            
+            print(kk, nk, jj)
+
+            if nk*jj > 0:
+
+                print("Calculating QHP:")
+                for ii_i in range(N):
+                    for jj_i in range(N):
+                        for kk_i in range(N):
+                            for ll_i in range(N):
+                                # Theta
+                                qhp[ii_i,jj_i,kk_i,ll_i] += \
+                                nk*self.lam[kk]*self.gamma[kk]*\
+                                (self.Vs[kk,ii_i,kk_i]*delta[jj_i,ll_i]
+                                 + delta[kk_i,ii_i]*self.Vs[kk,ll_i,jj_i])
+                                # Psi
+                                qhp[ii_i,jj_i,kk_i,ll_i] += \
+                                1j*2.0*nk*self.lam[kk]*self.kBT* \
+                                (self.Vs[kk,ii_i,kk_i]*delta[jj_i,ll_i]
+                                 - delta[kk_i,ii_i]*self.Vs[kk,ll_i,jj_i])
+                         
+                print(" ...done")
+                
+        return qhp                
+
+
+    def _PHQsop(self):
+        
+        N = self.dim
+        delta = UnityOperator(dim=N).data
+        phq = numpy.zeros((N, N, N, N), dtype=COMPLEX)
+        for ii in range(N):
+            for jj in range(N):
+                for kk in range(N):
+                    for ll in range(N):
+                        phq[ii,jj,kk,ll] = delta[ii,kk]*delta[jj,ll]
+                    
+        return phq        
+
 
         
 class KTHierarchyPropagator:
@@ -439,9 +497,11 @@ class KTHierarchyPropagator:
         if free_hierarchy:
             
             # first act with lifting superoperators
-            self.hy.ado = self._QHP(rhoi)
-            add = self._PHQ(self.hy.ado)
-            rhot.data[0,:,:] = add[0,:,:]
+            self.hy.ado[1,:,:] = rhoi.data
+            N = rhoi.dim
+            Nt = self.timeaxis.length
+            ker = numpy.zeros((Nt,N,N), dtype=COMPLEX)
+            ker[0,:,:] = rhoi.data
             
             # Now we propagate normally; slevel is set to 1 so zero's order
             # does not update and stays zero
@@ -482,9 +542,7 @@ class KTHierarchyPropagator:
             self.hy.ado = ado2
             
             if free_hierarchy:
-                # we apply the hierarchy and set rhot
-                ado3 = self._PHQ(ado2)
-                rhot.data[indx,:,:] = ado3[0,:,:]
+                ker[indx,:,:] = ado2[1,:,:] 
 
             else:
                 rhot.data[indx,:,:] = ado2[0,:,:]
@@ -564,25 +622,26 @@ class KTHierarchyPropagator:
         return ado3
 
 
-    def _QHP(self, rhoi, slevel=1):
-        """One application of the hierarchy operators 
-        
-        """
-        ado1 = numpy.zeros((self.hy.hsize, self.hy.dim, self.hy.dim),
-                           dtype=COMPLEX)
-        ado1[0,:,:] = rhoi.data[:,:]
-        
-        ador =  self._ado_cros_rhs(ado1, dt=1.0, slevel=slevel)
-        ador[0,:,:] = 0.0 # nullify the 0 order so that it cannot contribute
-        
-        return ador
+#    def _QHP(self, rhoi, slevel=1):
+#        """One application of the hierarchy operators 
+#        
+#        """
+#        ado1 = numpy.zeros((self.hy.hsize, self.hy.dim, self.hy.dim),
+#                           dtype=COMPLEX)
+#        ado1[0,:,:] = rhoi.data[:,:]
+#        
+#        ador =  self._ado_cros_rhs(ado1, dt=1.0, slevel=slevel)
+#        ador[0,:,:] = 0.0 # nullify the 0 order so that it cannot contribute
+#        
+#        return ador
 
 
-    def  _PHQ(self, adof, slevel=0):
-        """
-        
-        """
-        return self._ado_cros_rhs(adof, dt=1.0, slevel=slevel)
+
+#    def  _PHQ(self, adof, slevel=0):
+#        """
+#        
+#        """
+#        return self._ado_cros_rhs(adof, dt=1.0, slevel=slevel)
 
     
         
