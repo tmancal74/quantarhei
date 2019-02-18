@@ -20,6 +20,7 @@ from ...core.parallel import block_distributed_range
 from ...core.parallel import start_parallel_region, close_parallel_region
 from ...core.parallel import distributed_configuration
 
+
 import quantarhei as qr
 
 class RedfieldRelaxationTensor(RelaxationTensor):
@@ -68,7 +69,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
     """
     
-    
+
     def __init__(self, ham, sbi, initialize=True,
                  cutoff_time=None, as_operators=False,
                  name=""):
@@ -273,6 +274,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self.Km = Km
             self.Lm = Lm
             self.Ld = Ld
+            
+            
             
         else:
             

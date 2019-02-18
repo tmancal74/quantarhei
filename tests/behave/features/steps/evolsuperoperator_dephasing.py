@@ -170,12 +170,16 @@ def step_then_5(context, t_prop):
     
     with qr.eigenbasis_of(context.H):
         print(context.R)
-        print("\nCalculated with U")
+        print("\nCalculated with U:")
+        print("Shape: ", RD.data.shape)
         print(RD.data)
-        print("\nCalculated simply")
+        print("\nReference calculation:")
+        print("Shape: ", RE.data.shape)
         print(RE.data)
     
-    numpy.testing.assert_allclose(RD.data, RE.data, rtol=1.0e-5, atol=1.0e-5)
+        print("\nMax diff:", numpy.amax(numpy.abs(RD.data - RE.data)))
+        
+        numpy.testing.assert_allclose(RD.data, RE.data, rtol=1.0e-5, atol=1.0e-5)
 
 #
 # Given ...
@@ -366,7 +370,7 @@ def step_when_10(context, time_step, N_dense):
     """
     HH = context.H
     L = context.L
-    DD = context.D
+    DD = None #context.D
 
     dt = float(time_step)
     N_dense = int(N_dense)
@@ -418,12 +422,14 @@ def step_when_11(context, t_prop):
     t2, dt2 = time2.locate(t)
     
     L = context.L
-    D = context.D
+    D = None #context.D
     
     prop = qr.ReducedDensityMatrixPropagator(timeaxis=time2,
                                              Ham=HH, RTensor=L, PDeph=D)
+    prop.setDtRefinement(10)
     
-    rhot = prop.propagate(R)
+    with qr.eigenbasis_of(HH):
+        rhot = prop.propagate(R)
     
     RE = qr.ReducedDensityMatrix(data=rhot.data[t2,:,:])
         
