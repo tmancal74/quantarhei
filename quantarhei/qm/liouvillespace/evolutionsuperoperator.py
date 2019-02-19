@@ -325,6 +325,47 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         else:
             return True
 
+    def _initialize_data(self, save=False):
+        """Initializes EvolutionSuperOperator data
+        
+        """
+        
+        #
+        # Create new data
+        #      
+
+        if (self.mode == "all") or save:          
+
+            # if we are supposed to save all time steps
+            Nt = self.time.length                    
+            self.data = numpy.zeros((Nt, self.dim, self.dim,
+                                         self.dim, self.dim),
+                                        dtype=qr.COMPLEX)
+            #
+            # zero time value (unity superoperator)
+            #
+            dim = self.dim
+            for i in range(dim):
+                for j in range(dim):
+                    self.data[0,i,j,i,j] = 1.0
+                
+        elif self.mode == "jit":
+            
+            # if we need to keep only the last state
+            if self.dim != self.data.shape[0]:
+                self.data = numpy.zeros((self.dim, self.dim,
+                                         self.dim, self.dim),
+                                         dtype=qr.COMPLEX)
+
+            #
+            # zero time value (unity superoperator)
+            #
+            dim = self.dim
+            for i in range(dim):
+                for j in range(dim):
+                    self.data[i,j,i,j] = 1.0
+        
+        
 
     def calculate(self, show_progress=False):
         """Calculates the data of the evolution superoperator
@@ -343,26 +384,14 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                             " with mode='all'")
         Nt = self.time.length
         
-        #
-        # Create new data
-        #
-        self.data = numpy.zeros((Nt, self.dim, self.dim,
-                                     self.dim, self.dim),
-                                    dtype=qr.COMPLEX)
-            
-        #
-        # zero time value (unity superoperator)
-        #
-        dim = self.dim
-        for i in range(dim):
-            for j in range(dim):
-                self.data[0,i,j,i,j] = 1.0
+        self._initialize_data()
             
         if show_progress:
             print("Calculating evolution superoperator ")
         self._init_progress()
         
         
+        dim = self.dim
         
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
@@ -459,36 +488,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
                 #
                 # Create new data
-                #                
-                if save:
-                    # if we are supposed to save all time steps
-                    Nt = self.time.length                    
-                    self.data = numpy.zeros((Nt, self.dim, self.dim,
-                                                 self.dim, self.dim),
-                                                dtype=qr.COMPLEX)
-                    #
-                    # zero time value (unity superoperator)
-                    #
-                    dim = self.dim
-                    for i in range(dim):
-                        for j in range(dim):
-                            self.data[0,i,j,i,j] = 1.0
-                        
-                else:
-                    # if we need to keep only the last state
-                    if self.dim != self.data.shape[0]:
-                        self.data = numpy.zeros((self.dim, self.dim,
-                                                 self.dim, self.dim),
-                                                 dtype=qr.COMPLEX)
-        
-                    #
-                    # zero time value (unity superoperator)
-                    #
-                    dim = self.dim
-                    for i in range(dim):
-                        for j in range(dim):
-                            self.data[i,j,i,j] = 1.0
-            
+                #    
+                self._initialize_data(save=save)
+                            
             #
             # We calculate every interval completely
             #
@@ -528,35 +530,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             if self.now == 0:
                 #
                 # Create new data
-                #                
-                if save:
-                    # if we are supposed to save all time steps
-                    Nt = self.time.length                    
-                    self.data = numpy.zeros((Nt, self.dim, self.dim,
-                                                 self.dim, self.dim),
-                                                dtype=qr.COMPLEX)
-                    #
-                    # zero time value (unity superoperator)
-                    #
-                    dim = self.dim
-                    for i in range(dim):
-                        for j in range(dim):
-                            self.data[0, i,j,i,j] = 1.0
-
-                else:
-                    # if we need to keep only the last state
-                    if self.dim != self.data.shape[0]:
-                        self.data = numpy.zeros((self.dim, self.dim,
-                                                 self.dim, self.dim),
-                                                 dtype=qr.COMPLEX)        
-                    #
-                    # zero time value (unity superoperator)
-                    #
-                    dim = self.dim
-                    for i in range(dim):
-                        for j in range(dim):
-                            self.data[i,j,i,j] = 1.0
-    
+                #  
+                self._initialize_data(save=save)
+                dim = self.dim
                 one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
                 prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
                                                       RTensor=self.relt)
@@ -592,8 +568,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 ti = self.now + 1
                 
                 if save:
-                    print(self.data.shape)
-                    print(self.Udt.shape)
                     self.data[ti, :,:,:,:] = \
                         numpy.tensordot(self.Udt, self.data[ti-1,:,:,:,:])
                 else:

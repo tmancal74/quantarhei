@@ -193,8 +193,7 @@ class TestLindblad(unittest.TestCase):
         rho0 = ReducedDensityMatrix(dim=self.H1.dim)
         rho0.data[1,1] = 1.0
           
-        #with eigenbasis_of(self.H1):
-        if True:
+        with eigenbasis_of(self.H1):
             rhot1_e = prop1.propagate(rho0)
             
         with eigenbasis_of(self.H1):
@@ -212,7 +211,8 @@ class TestLindblad(unittest.TestCase):
         """(LINDBLAD) Testing transformations into different bases
 
         """
-        Manager().warn_about_basis_change = True
+        #Manager().warn_about_basis_change = True
+        #Manager().warn_about_basis_changing_objects = True
         
         LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True, name="LT1")
         LT2 = LindbladForm(self.H1, self.sbi1, as_operators=False, name="LT2")
@@ -223,8 +223,7 @@ class TestLindblad(unittest.TestCase):
             rho0.data[0,0] = 0.3
                 
           
-        #with eigenbasis_of(self.H1):
-        if True:
+        with eigenbasis_of(self.H1):
             rhot1_e = LT1.apply(rho0, copy=True)
             
         with eigenbasis_of(self.H1):
@@ -235,7 +234,7 @@ class TestLindblad(unittest.TestCase):
             
         numpy.testing.assert_allclose(rhot1_l.data, rhot1_e.data)
         numpy.testing.assert_allclose(rhot2_l.data, rhot2_e.data)
-        #numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data) #, rtol=1.0e-2) 
+        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data) #, rtol=1.0e-2) 
 
     
 

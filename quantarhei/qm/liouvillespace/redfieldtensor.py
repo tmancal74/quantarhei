@@ -19,7 +19,8 @@ from ...core.managers import  energy_units
 from ...core.parallel import block_distributed_range
 from ...core.parallel import start_parallel_region, close_parallel_region
 from ...core.parallel import distributed_configuration
-
+from ...core.managers import BasisManaged
+from ...utils.types import BasisManagedComplexArray
 
 import quantarhei as qr
 
@@ -68,7 +69,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
             
     """
-    
+
+    #data = BasisManagedComplexArray("data")
+    Km = BasisManagedComplexArray("Km")
+    Lm = BasisManagedComplexArray("Lm")
+    Ld = BasisManagedComplexArray("Ld")    
 
     def __init__(self, ham, sbi, initialize=True,
                  cutoff_time=None, as_operators=False,
@@ -121,10 +126,90 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
             
             with energy_units("int"):
-                self._implementation(ham, sbi)        
+                self._implementation(ham, sbi)   
+                
 
-
+    def apply(self, oper, copy=True):
+        """Applies the relaxation tensor on a superoperator
         
+        """
+        
+        if self.as_operators:
+            
+            print("Applying Relaxation tensor")
+            if copy:
+                import copy
+                oper_ven = copy.copy(oper)
+            else:
+                oper_ven = oper
+            
+            rho1 = oper.data
+            # apply tensor to data
+            
+            Lm = self.Lm            
+            Km = self.Km
+            Ld = self.Ld
+            
+            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
+            Nm = Km.shape[0]
+            ven = numpy.zeros(oper.data.shape, dtype=numpy.complex128)
+            for mm in range(Nm):
+                Kd[mm, :, :] = numpy.transpose(Km[mm, :, :])
+            
+                ven += (
+                numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:])))
+                
+            oper_ven.data = ven
+                
+            return oper_ven
+            
+        else:
+            
+            return super().apply(oper, copy=copy)
+
+
+    def transform(self, SS, inv=None):
+        """Transformation of the tensor by a given matrix
+        
+        
+        This function transforms the Operator into a different basis, using
+        a given transformation matrix.
+        
+        Parameters
+        ----------
+         
+        SS : matrix, numpy.ndarray
+            transformation matrix
+            
+        inv : matrix, numpy.ndarray
+            inverse of the transformation matrix
+            
+        """  
+        
+        if self.as_operators:
+            
+            if (self.manager.warn_about_basis_change):
+                print("\nQr >>> Operators of relaxation"+
+                      " in Redfield tensor '%s' changes basis" %self.name)
+        
+            if inv is None:
+                S1 = numpy.linalg.inv(SS)
+            else:
+                S1 = inv
+
+            for m in range(self._Lm.shape[0]):
+                self._Lm[m,:,:] = numpy.dot(S1,numpy.dot(self._Lm[m,:,:], SS))  
+                self._Ld[m,:,:] = numpy.dot(S1,numpy.dot(self._Ld[m,:,:], SS))
+                self._Km[m,:,:] = numpy.dot(S1,numpy.dot(self._Km[m,:,:], SS))
+     
+        else:
+    
+            super().transform(SS)
+            
+
     def _implementation(self, ham, sbi):
         """ Reference implementation, completely in Python
         

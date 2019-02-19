@@ -370,7 +370,7 @@ def step_when_10(context, time_step, N_dense):
     """
     HH = context.H
     L = context.L
-    DD = None #context.D
+    DD = context.D
 
     dt = float(time_step)
     N_dense = int(N_dense)
@@ -380,22 +380,35 @@ def step_when_10(context, time_step, N_dense):
     time2 = qr.TimeAxis(0, Nsteps, dt)
     context.time2 = time2
 
-    U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
-                                     pdeph=DD, mode="jit")
-    U.set_dense_dt(N_dense)
+    mode = "jit"
     
-    U1 = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
-                                     pdeph=DD)
-    
-    with qr.eigenbasis_of(HH):
+    if mode == "jit":
+
+        U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                         pdeph=DD, mode="jit")
+        U.set_dense_dt(N_dense)
         
-        for i in range(1, Nsteps):
-            U.calculate_next()
-            U1.data[i,:,:,:,:] = U.data[:,:,:,:]
+        U1 = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                         pdeph=DD)
+        
+        with qr.eigenbasis_of(HH):
             
-    context.U = U1
+            for i in range(1, Nsteps):
+                U.calculate_next()
+                U1.data[i,:,:,:,:] = U.data[:,:,:,:]
+                
+        context.U = U1
 
+    elif mode == "all":
+        
+        U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                         pdeph=DD, mode="all")
+        U.set_dense_dt(N_dense)   
+        
+        with qr.eigenbasis_of(HH):
+                U.calculate()
 
+        context.U = U
 
 #
 # And ...
@@ -422,7 +435,7 @@ def step_when_11(context, t_prop):
     t2, dt2 = time2.locate(t)
     
     L = context.L
-    D = None #context.D
+    D = context.D
     
     prop = qr.ReducedDensityMatrixPropagator(timeaxis=time2,
                                              Ham=HH, RTensor=L, PDeph=D)
@@ -434,3 +447,94 @@ def step_when_11(context, t_prop):
     RE = qr.ReducedDensityMatrix(data=rhot.data[t2,:,:])
         
     context.RE = RE
+
+
+#
+# When ...
+#
+@when('I calculate EvolutionSuperOperator in one shot using only PureDephasing D with {time_step} and {N_dense}')
+def step_when_12(context, time_step, N_dense):
+    """
+
+        When I calculate EvolutionSuperOperator in one shot using only PureDephasing D with {time_step} and {N_dense}
+
+    """
+    HH = context.H
+    L = qr.qm.LindbladForm(HH, sbi=None)
+    DD = context.D
+
+    dt = float(time_step)
+    N_dense = int(N_dense)
+    Ntot = 1320
+    Nsteps = int(Ntot/N_dense)
+
+    time2 = qr.TimeAxis(0, Nsteps, dt)
+    context.time2 = time2
+
+    mode = "all"
+    U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                     pdeph=DD, mode=mode)
+    U.set_dense_dt(N_dense)
+    
+    if mode == "all":
+        with qr.eigenbasis_of(HH):
+            U.calculate()
+                
+        context.U = U
+
+    elif mode == "jit":
+        U1 = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                         pdeph=DD)
+        
+        with qr.eigenbasis_of(HH):
+            
+            for i in range(1, Nsteps):
+                U.calculate_next()
+                U1.data[i,:,:,:,:] = U.data[:,:,:,:]
+                
+        context.U = U1
+        
+    #
+# When ...
+#
+@when('I calculate EvolutionSuperOperator in one shot using PureDephasing D and Lindblad form L with {time_step} and {N_dense}')
+def step_when_13(context, time_step, N_dense):
+    """
+
+        When I calculate EvolutionSuperOperator in one shot using PureDephasing D and Lindblad form L with {time_step} and {N_dense}
+
+    """
+    HH = context.H
+    L = context.L
+    DD = context.D
+
+    dt = float(time_step)
+    N_dense = int(N_dense)
+    Ntot = 1320
+    Nsteps = int(Ntot/N_dense)
+
+    time2 = qr.TimeAxis(0, Nsteps, dt)
+    context.time2 = time2
+
+    mode = "all"
+    U = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                     pdeph=DD, mode=mode)
+    U.set_dense_dt(N_dense)
+    
+    if mode == "all":
+        with qr.eigenbasis_of(HH):
+            U.calculate()
+                
+        context.U = U
+
+    elif mode == "jit":
+        U1 = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=L, 
+                                         pdeph=DD)
+        
+        with qr.eigenbasis_of(HH):
+            
+            for i in range(1, Nsteps):
+                U.calculate_next()
+                U1.data[i,:,:,:,:] = U.data[:,:,:,:]
+                
+        context.U = U1

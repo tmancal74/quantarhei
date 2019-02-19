@@ -3,18 +3,10 @@
 import numpy
 
 from .superoperator import SuperOperator
-#from ...core.managers import BasisManaged
-#from ...utils.types import BasisManagedComplexArray
-
-from ...core.managers import BasisManaged
-from ...utils.types import BasisManagedComplexArray
 
 class RelaxationTensor(SuperOperator):
 
-    #data = BasisManagedComplexArray("data")
-    Km = BasisManagedComplexArray("Km")
-    Lm = BasisManagedComplexArray("Lm")
-    Ld = BasisManagedComplexArray("Ld")
+
     
     def __init__(self):
         
@@ -33,45 +25,6 @@ class RelaxationTensor(SuperOperator):
         if cb != 0:
             self.manager.register_with_basis(cb, self)        
 
-
-    def apply(self, oper, copy=True):
-        """Applies the relaxation tensor on a superoperator
-        
-        """
-        
-        if self.as_operators:
-            
-            print("Applying Relaxation tensor")
-            if copy:
-                import copy
-                oper_ven = copy.copy(oper)
-            else:
-                oper_ven = oper
-            
-            rho1 = oper.data
-            # apply tensor to data
-            Km = self._Km
-            Ld = self._Ld
-            Lm = self._Lm
-            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
-            Nm = Km.shape[0]
-            ven = numpy.zeros(oper.data.shape, dtype=numpy.complex128)
-            for mm in range(Nm):
-                Kd[mm, :, :] = numpy.transpose(Km[mm, :, :])
-            
-                ven += (
-                numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
-                +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
-                -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
-                -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:])))
-                
-            oper_ven.data = ven
-                
-            return oper_ven
-            
-        else:
-            
-            return super().apply(oper, copy=copy)
 
 
     def secularize(self):
@@ -122,25 +75,6 @@ class RelaxationTensor(SuperOperator):
             
         """        
 
-        if not self._data_initialized:
-            
-            if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operators of relaxation"+
-                      " tensor '%s' changes basis" %self.name)
-        
-            if inv is None:
-                S1 = numpy.linalg.inv(SS)
-            else:
-                S1 = inv
-
-            for m in range(self.Lm.shape[0]):
-                self._Lm[m,:,:] = numpy.dot(S1,numpy.dot(self._Lm[m,:,:], SS))  
-                self._Ld[m,:,:] = numpy.dot(S1,numpy.dot(self._Ld[m,:,:], SS))
-                self._Km[m,:,:] = numpy.dot(S1,numpy.dot(self._Km[m,:,:], SS))
-            
-            return
-        
-        
         if (self.manager.warn_about_basis_change):
                 print("\nQr >>> Relaxation tensor '%s' changes basis"
                       %self.name)
