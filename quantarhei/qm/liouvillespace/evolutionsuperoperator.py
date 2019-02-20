@@ -433,29 +433,33 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # We calculate the first step of the first interval
             #
             t0 = 0.0
-            one_step_time = TimeAxis(t0, 2, self.dense_time.step)
-            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
-                                                  RTensor=self.relt, 
-                                                  PDeph=self.pdeph)
-            rhonm0 = ReducedDensityMatrix(dim=dim)
-            Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
-            for n in range(dim):
-                if show_progress:
-                    self._progress(Nt, dim, 0, n, 0)
-                for m in range(dim):
-                    rhonm0.data[n,m] = 1.0
-                    rhot = prop.propagate(rhonm0)
-                    Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                    rhonm0.data[n,m] = 0.0
-                    #self.now += 1
-    
-            #
-            # propagation to the end of the first interval
-            #
-            Udt = Ut1
-            for ti in range(2, self.dense_time.length):
-                Udt = numpy.tensordot(Ut1, Udt)
-                
+#            one_step_time = TimeAxis(t0, 2, self.dense_time.step)
+#            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
+#                                                  RTensor=self.relt, 
+#                                                  PDeph=self.pdeph)
+#            rhonm0 = ReducedDensityMatrix(dim=dim)
+#            Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+#            for n in range(dim):
+#                if show_progress:
+#                    self._progress(Nt, dim, 0, n, 0)
+#                for m in range(dim):
+#                    rhonm0.data[n,m] = 1.0
+#                    rhot = prop.propagate(rhonm0)
+#                    Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+#                    rhonm0.data[n,m] = 0.0
+#                    #self.now += 1
+#    
+#            #
+#            # propagation to the end of the first interval
+#            #
+#            Udt = Ut1
+#            for ti in range(2, self.dense_time.length):
+#                Udt = numpy.tensordot(Ut1, Udt)
+             
+            Udt = self._one_step_with_dense_Lorentz(t0,
+                                                    self.dense_time.length,
+                                                    self.dense_time.step,
+                                                    show_progress)
             self.data[1,:,:,:,:] = Udt
     
             #
@@ -470,8 +474,50 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         if show_progress:
             print("...done")
-                    
             
+            
+    def _elemental_step_Lorentz(self, t0, dens_dt, Nt, show_progress=False):
+        """Single elemental step of propagation with the dense time step
+        
+        """
+        
+        dim = self.ham.dim
+        one_step_time = TimeAxis(t0, 2, self.dense_time.step)
+        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
+                                              RTensor=self.relt, 
+                                              PDeph=self.pdeph)
+        rhonm0 = ReducedDensityMatrix(dim=dim)
+        Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        for n in range(dim):
+            if show_progress:
+                self._progress(Nt, dim, 0, n, 0)
+            for m in range(dim):
+                rhonm0.data[n,m] = 1.0
+                rhot = prop.propagate(rhonm0)
+                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                rhonm0.data[n,m] = 0.0
+        return Ut1
+
+
+    def _one_step_with_dense_Lorentz(self, t0, Ndense, dens_dt, Nt,
+                                     show_progress=False):
+        """One step of propagation over the standard time step
+        
+        This step is componsed of Ndense time steps
+        
+        """
+        
+        Ut1 = self._elemental_step_Lorentz(t0, dens_dt, Nt,
+                                           show_progress=show_progress)
+        #
+        # propagation to the end of the first interval
+        #
+        Udt = Ut1
+        for ti in range(2, self.dense_time.length):
+            Udt = numpy.tensordot(Ut1, Udt)
+        return Udt
+        
+           
     def calculate_next(self, save=False):
         """Calculates one point of data of the superopetor
         

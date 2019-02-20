@@ -75,7 +75,7 @@ Feature: EvolutionSuperOperator can be calculated with pure dephasing
          
     Examples: Parameters 
         |  dtime  |  time_step  |  N_dense  |  t_prop  |
-        |  100.0  |    10.0     |    10     |     0.0  |
+#        |  100.0  |    10.0     |    10     |     0.0  |
 #        |  100.0  |    10.0     |    10     |    50.0  |
 #        |  100.0  |    10.0     |    10     |   100.0  |
 #        |  100.0  |    10.0     |    10     |   200.0  |
