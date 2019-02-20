@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
+_show_plots_ = True
 import numpy
-
-_show_plots_ = False
-
-print("""
-***********************************************************      
-*
-*
-*          Evolution superoperator demo
-*
-*
-***********************************************************
-""")
-
 
 import quantarhei as qr
 
@@ -21,14 +9,15 @@ qr.Manager().gen_conf.legacy_relaxation = True
 print("Preparing a model system:")
 
 with qr.energy_units("1/cm"):
-    mol1 = qr.Molecule([0.0, 12000])
+    mol1 = qr.Molecule([0.0, 12010])
     mol2 = qr.Molecule([0.0, 12000])
     mol3 = qr.Molecule([0.0, 12100])
-    mol4 = qr.Molecule([0.0, 12100])
+    mol4 = qr.Molecule([0.0, 12110])
 
 agg = qr.Aggregate([mol1, mol2, mol3, mol4])
 agg.set_resonance_coupling(2,3,qr.convert(100.0,"1/cm","int"))
 agg.set_resonance_coupling(1,3,qr.convert(100.0,"1/cm","int"))
+agg.set_resonance_coupling(1,2,qr.convert(0.0,"1/cm","int"))
 
 qr.save_parcel(agg,"agg.qrp")
 agg2 = qr.load_parcel("agg.qrp")
@@ -110,13 +99,14 @@ for j in range(1, time_so.length):
 rhoc_0_data = numpy.zeros((Ndim, Ndim), dtype=qr.COMPLEX)
 rhoc_1_data = numpy.zeros((Ndim, Ndim), dtype=qr.COMPLEX)
 rhoc_2_data = numpy.zeros((Ndim, Ndim), dtype=qr.COMPLEX)
-    
+rhot_2_data = numpy.zeros((Ndim, Ndim), dtype=qr.COMPLEX)    
 
+print(ham)
 if _show_plots_:
     print("Comparing in a plots 1:")
     with qr.eigenbasis_of(ham):
     #if True:
-        #rhot.plot(populations=False, show=False)
+        rhot.plot(populations=False, show=False)
         rhoc1.plot(populations=False)
         rhoc_0_data[:,:] = rhoc1.data[0,:,:]
     print("...done")
@@ -126,52 +116,12 @@ with qr.eigenbasis_of(ham):
 
 print("Difference: ", numpy.amax(numpy.abs(rhoc_1_data - rhoc_0_data)))    
 
-#print(eS.at(100.0).data.shape)
+D = None
 
-print("\nThe same with additional pure dephasing:")
-
-#rho0 = qr.ReducedDensityMatrix(dim=Ndim)
-#rho0.data[4,4] = 0.5
-#rho0.data[3,3] = 0.5
-#rho0.data[3,4] = 0.5
-#rho0.data[4,3] = 0.5
-
-print("Setting up pure dephasing:")
-
-td = 50.0
-
-dd = numpy.zeros((5,5), dtype=qr.REAL)
-dd[1,2] = 1.0/td
-dd[2,1] = 1.0/td
-dd[1,3] = 1.0/td
-dd[3,1] = 1.0/td
-dd[2,3] = 1.0/td
-dd[3,2] = 1.0/td
-dd[4,3] = 1.0/td
-dd[3,4] = 1.0/td
-D = None #qr.qm.PureDephasing(drates=dd)
-print("...done")
-
-print("Evolution superoperator with pure dephasing:")
-
-mode = "all"
-
-if mode == "jit":
-    eS2 = qr.qm.EvolutionSuperOperator(time_so, ham, rt, pdeph=D, mode="jit")
-    eS2.set_dense_dt(100)
-    eS = qr.qm.EvolutionSuperOperator(time_so, ham, rt, pdeph=D)
-    eS.set_dense_dt(100)
-    
-    with qr.eigenbasis_of(ham):
-        for ii in range(1,time_so.length):
-            eS2.calculate_next()
-            eS.data[ii,:,:,:,:] = eS2.data
-
-else:
-    eS = qr.qm.EvolutionSuperOperator(time_so, ham, rt, pdeph=D)
-    eS.set_dense_dt(100)
-    with qr.eigenbasis_of(ham):
-        eS.calculate()
+eS = qr.qm.EvolutionSuperOperator(time_so, ham, rt, pdeph=D)
+eS.set_dense_dt(100)
+with qr.eigenbasis_of(ham):
+    eS.calculate()
 
 
 rhoc = qr.qm.DensityMatrixEvolution(time_so)
@@ -196,13 +146,15 @@ with qr.eigenbasis_of(ham):
     rhot = prop_tot.propagate(rho0)
 print("...done")
 
+print(ham)
 if _show_plots_:
     print("Comparing in plots 2:")
     with qr.eigenbasis_of(ham):
     #if True:
         #rhoc.plot(coherences=True, populations=False, show=False)
-        #rhot.plot(coherences=True, populations=False, show=False)
+        rhot.plot(coherences=True, populations=False, show=False)
         rhoc_2_data[:,:] = rhoc1.data[0,:,:]
+        rhot_2_data[:,:] = rhot.data[0,:,:]
         rhoc1.plot(populations=False)
         
         #rhoc.plot(show=False)
@@ -211,6 +163,51 @@ if _show_plots_:
 
     print("...done")    
 
-print("Difference: ", numpy.amax(numpy.abs(rhoc_2_data - rhoc_0_data)))    
-print(rho0)
+print("Difference: ", numpy.amax(numpy.abs(rhoc_2_data - rhoc_0_data)))   
+print("Difference: ", numpy.amax(numpy.abs(rhot_2_data - rhoc_0_data))) 
 
+
+eS = qr.qm.EvolutionSuperOperator(time_so, ham, rt)
+eS.set_dense_dt(100)
+
+eS.calculate()
+
+prop_tot = qr.ReducedDensityMatrixPropagator(time_tot, ham, rt)
+
+rhot = prop_tot.propagate(rho0)
+
+#
+# Reconstruct density matrix by applying evolution superoperator
+#
+rhoc1 = qr.qm.DensityMatrixEvolution(time_so)
+rhoc1.set_initial_condition(rho0)
+
+for j in range(1, time_so.length):
+    
+    tj = time_so.data[j]
+    sU = eS.at(tj)
+    rdm0 = qr.qm.ReducedDensityMatrix(dim=Ndim, data=rho0.data)
+    
+    rhoc1.data[j, :, :] = sU.apply(rdm0).data
+    
+if _show_plots_:
+    print("Comparing in plots 2:")
+    with qr.eigenbasis_of(H):
+    #if True:
+        #rhoc.plot(coherences=True, populations=False, show=False)
+        rhot.plot(coherences=True, populations=False, show=False)
+        rhoc_2_data[:,:] = rhoc1.data[0,:,:]
+        rhot_2_data[:,:] = rhot.data[0,:,:]
+        rhoc1.plot(populations=False)
+
+print(H)
+print(ham)
+print("Copy")
+diff = H.data - ham.data
+ham.data = H.data[:,:]
+print(numpy.max(numpy.abs(H.data-ham.data)))
+print(numpy.linalg.eig(H.data))
+print(numpy.linalg.eig(ham.data))
+print(numpy.linalg.eig(ham.data - diff))
+print(diff)
+print(numpy.max(diff))

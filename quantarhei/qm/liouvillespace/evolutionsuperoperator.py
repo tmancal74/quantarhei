@@ -391,9 +391,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             print("Calculating evolution superoperator ")
         self._init_progress()
         
-        
-        dim = self.dim
-        
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
         #
@@ -406,21 +403,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             for ti in range(1, Nt):
                 
                 t0 = self.time.data[ti-1] # initial time of the propagation
-                one_step_time = TimeAxis(t0, self.dense_time.length,
-                                         self.dense_time.step)
-                
-                prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                      RTensor=self.relt, 
-                                                      PDeph=self.pdeph)
-                rhonm0 = ReducedDensityMatrix(dim=dim)
-                Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
-                for n in range(dim):
-                    for m in range(dim):
-                        rhonm0.data[n,m] = 1.0
-                        rhot = prop.propagate(rhonm0)
-                        Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                        rhonm0.data[n,m] = 0.0
-                        #self.now += 1
+
+                Ut1 = self._elemental_step_TimeDependent(t0)
                 
                 self.data[ti,:,:,:,:] = \
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
@@ -435,7 +419,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             #
             t0 = 0.0
 
-            self.data[1,:,:,:,:] = self._one_step_with_dense_Lorentz(t0,
+            self.data[1,:,:,:,:] = self._one_step_with_dense_TimeIndep(t0,
                                                     self.dense_time.length,
                                                     self.dense_time.step,
                                                     Nt,
@@ -450,7 +434,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             print("...done")
             
             
-    def _elemental_step_Lorentz(self, t0, dens_dt, Nt, show_progress=False):
+    def _elemental_step_TimeIndep(self, t0, dens_dt, Nt, show_progress=False):
         """Single elemental step of propagation with the dense time step
         
         """
@@ -473,7 +457,33 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Ut1
 
 
-    def _one_step_with_dense_Lorentz(self, t0, Ndense, dens_dt, Nt,
+    def _elemental_step_TimeDependent(self, t0):
+        """Single step of propagation with the dense time step 
+        
+        assuming time dependent relaxation tensor
+        
+        """
+        
+        dim = self.dim
+        one_step_time = TimeAxis(t0, self.dense_time.length,
+                                 self.dense_time.step)
+        
+        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
+                                              RTensor=self.relt, 
+                                              PDeph=self.pdeph)
+        rhonm0 = ReducedDensityMatrix(dim=dim)
+        Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        for n in range(dim):
+            for m in range(dim):
+                rhonm0.data[n,m] = 1.0
+                rhot = prop.propagate(rhonm0)
+                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                rhonm0.data[n,m] = 0.0
+                #self.now += 1
+        return Ut1
+
+
+    def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt,
                                      show_progress=False):
         """One step of propagation over the standard time step
         
@@ -481,7 +491,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         """
         
-        Ut1 = self._elemental_step_Lorentz(t0, dens_dt, Nt,
+        Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt,
                                            show_progress=show_progress)
         #
         # propagation to the end of the first interval
@@ -536,21 +546,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             t0 = self.time.data[ti-1] # initial time of the propagation
             
-            one_step_time = TimeAxis(t0, self.dense_time.length,
-                                     self.dense_time.step)
-            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                  RTensor=self.relt, 
-                                                  PDeph=self.pdeph)
-            dim = self.dim
-            rhonm0 = ReducedDensityMatrix(dim=dim)
-            Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
-            for n in range(dim):
-                for m in range(dim):
-                    rhonm0.data[n,m] = 1.0
-                    rhot = prop.propagate(rhonm0)
-                    Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                    rhonm0.data[n,m] = 0.0
-                    #self.now += 1
+            Ut1 = self._elemental_step_TimeDependent(t0)
             
             if save:
                 self.data[ti, :,:,:,:] = \
@@ -574,7 +570,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
                 t0 = 0.0
 
-                self.Udt = self._one_step_with_dense_Lorentz(t0,
+                self.Udt = self._one_step_with_dense_TimeIndep(t0,
                                                     self.dense_time.length,
                                                     self.dense_time.step, Nt,
                                                     show_progress=False) 
