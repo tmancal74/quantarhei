@@ -146,11 +146,18 @@ D = None #qr.qm.PureDephasing(drates=dd)
 print("...done")
 
 print("Evolution superoperator with pure dephasing:")
+eS2 = qr.qm.EvolutionSuperOperator(time_so, ham, rt, pdeph=D, mode="jit")
+eS2.set_dense_dt(100)
 eS = qr.qm.EvolutionSuperOperator(time_so, ham, rt, pdeph=D)
 eS.set_dense_dt(100)
 
 #with qr.eigenbasis_of(ham):
-eS.calculate()
+for ii in range(1,time_so.length):
+    eS2.calculate_next()
+    eS.data[ii,:,:,:,:] = eS2.data
+
+#eS.calculate()
+
 
 rhoc = qr.qm.DensityMatrixEvolution(time_so)
 rhoc.set_initial_condition(rho0)

@@ -89,6 +89,8 @@ def step_when_2(context, time_step, N_dense):
     
     HH = context.H
     DD = context.D
+
+    print("Dephasing type: ", DD.dtype)
    
     # This tests if it is possible to ignore relaxation tensor in defining
     # evolution superoperator
@@ -179,7 +181,8 @@ def step_then_5(context, t_prop):
     
         print("\nMax diff:", numpy.amax(numpy.abs(RD.data - RE.data)))
         
-        numpy.testing.assert_allclose(RD.data, RE.data, rtol=1.0e-5, atol=1.0e-5)
+        numpy.testing.assert_allclose(RD.data, RE.data, rtol=1.0e-5,
+                                          atol=1.0e-5)
 
 #
 # Given ...
@@ -284,6 +287,8 @@ def step_when_8(context, time_step, N_dense):
     
     HH = context.H
     DD = context.D
+    
+    print("Dephasing type: ", DD.dtype)
    
     # This tests if it is possible to ignore relaxation tensor in defining
     # evolution superoperator
@@ -353,7 +358,7 @@ def step_given_9(context, dtime):
     dd[3,1] = 1.0/td
     dd[2,3] = 1.0/td
     dd[3,2] = 1.0/td
-    D = qr.qm.PureDephasing(drates=dd)
+    D = qr.qm.PureDephasing(drates=dd, dtype="Gaussian")
     
     context.D = D
 
@@ -381,6 +386,7 @@ def step_when_10(context, time_step, N_dense):
     context.time2 = time2
 
     mode = "jit"
+    print("Pure dephasing: ", DD.dtype)
     
     if mode == "jit":
 
@@ -538,3 +544,55 @@ def step_when_13(context, time_step, N_dense):
                 U1.data[i,:,:,:,:] = U.data[:,:,:,:]
                 
         context.U = U1
+        
+#
+# Given ...
+#
+@given('I have a Hamiltonian H, Lidblad form L, PureDephasing object D with dephasing time {dtime} and initial density matrix R')
+def step_given_14(context, dtime):
+    """
+
+        Given I have a Hamiltonian H, Lidblad form L, PureDephasing object D with dephasing time {dtime} and initial density matrix R
+
+    """
+    td = float(dtime)
+    print("Dephasing time", td)
+    context.td = td
+
+    # create test aggregatedimer
+    agg = qr.TestAggregate("trimer-2")
+    with qr.energy_units("1/cm"):
+        agg.set_resonance_coupling(0,1,100.0)
+        agg.set_resonance_coupling(1,2,50.0)
+    agg.build()
+    
+
+    
+    HH = agg.get_Hamiltonian()
+    context.H = HH
+    
+    print("Hamiltonian:")
+    print(HH)
+    
+    L =  qr.qm.LindbladForm(HH, sbi=None)
+    
+    context.L = L
+    
+    # initial density matrix
+    R = qr.ReducedDensityMatrix(dim=HH.dim)
+    with qr.eigenbasis_of(HH):
+        R.data[1:4,1:4] = 0.5
+
+    
+    context.R = R
+    
+    dd = numpy.zeros((4,4), dtype=qr.REAL)
+    dd[1,2] = 1.0/td
+    dd[2,1] = 1.0/td
+    dd[1,3] = 1.0/td
+    dd[3,1] = 1.0/td
+    dd[2,3] = 1.0/td
+    dd[3,2] = 1.0/td
+    D = qr.qm.PureDephasing(drates=dd, dtype="Lorentzian")
+    
+    context.D = D
