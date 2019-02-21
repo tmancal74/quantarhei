@@ -11,6 +11,8 @@ import numpy
 from ..core.frequency import FrequencyAxis
 from .. import COMPLEX
 from ..core.saveable import Saveable
+from ..core.datasaveable import DataSaveable
+from ..utils.types import check_numpy_array
 
 # FIXME: Check these names
 
@@ -596,7 +598,35 @@ TwoDSpectrumDataArray = partial(twodspectrum_dictionary,
                                 dtype=numbers.Complex)     
 
 
-class TwoDSpectrumBase:
+def twod_data_wrapper(dtype):
+    """Handles access to the d__data property of TwoDSpectrum 
+    
+    """
+    storage_name = "d__data"
+    
+    @property
+    def prop(self):
+        return getattr(self,storage_name)
+    
+    @prop.setter
+    def prop(self, value):
+        if self._allow_data_writing:
+            try:
+                vl = check_numpy_array(value) 
+                setattr(self,storage_name,vl)
+            except:
+                raise TypeError(
+                'Value must be either a list or numpy.array')
+        else:  
+            raise Exception("`data` property if for reading only")
+        
+    return prop
+
+
+DataWrapper = partial(twod_data_wrapper, dtype=numbers.Complex)
+
+
+class TwoDSpectrumBase(DataSaveable):
     """Basic class of a two-dimensional spectrum
     
     
@@ -620,8 +650,10 @@ class TwoDSpectrumBase:
     # Storage of 2D data
     #
     d__data = TwoDSpectrumDataArray("d__data")
+    data = DataWrapper()
 
-
+    _allow_data_writing = False
+    
     def __init__(self):
         super().__init__()
         
@@ -633,7 +665,7 @@ class TwoDSpectrumBase:
         ##########################################
         self.reph2D = None
         self.nonr2D = None
-        self.data = None
+        #self.data = None
         
         self.dtype = None
         ##########################################
@@ -649,6 +681,78 @@ class TwoDSpectrumBase:
         self.address_length = 1
 
 
+    def set_data_writable(self):
+        """Lifts the protection of the data property 
+        
+        """
+        if not self.storage_initialized:
+            self.set_resolution("off")
+            
+        self._allow_data_writing = True
+
+    def set_data_protected(self):
+        """Sets back the protection of the data property 
+        
+        """
+        self._allow_data_writing = False
+
+
+#    def _loadBinaryData(self, file):
+#        """Imports binary data from a file
+#        
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#
+#        """          
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._loadBinaryData(file)
+#        self._allow_data_writing = False
+#
+#    def _loadBinaryData_compressed(self, file):
+#        """Imports binary data from a file
+#
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#        
+#        """          
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._loadBinaryData_compressed(file)
+#        self._allow_data_writing = False
+#
+#    def _importDataFromText(self, file):
+#        """Imports textual data to a file
+#
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#
+#        """        
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._importDataFromText(file)
+#        self._allow_data_writing = False
+#
+#    def _loadMatlab(self, file):
+#        """Imports textual data to a file
+#
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#
+#        """        
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._loadMatlab(file)
+#        self._allow_data_writing = False
+        
     def set_axis_1(self, axis):
         """Sets the x-axis of te spectrum (omega_1 axis)
         
@@ -661,6 +765,11 @@ class TwoDSpectrumBase:
         
         """
         self.yaxis = axis
+
+
+#    def initialize_storage(self, storage_resolution):
+#        self.storage_resolution = storage_resolution
+        
 
     # FIXME: to be deprecated
     def set_data_type(self, dtype="Tot"):
@@ -1032,6 +1141,12 @@ class TwoDSpectrumBase:
             identify the pathway
             
         """
+        if not self.storage_initialized:
+            self._d__data = {}
+            self.storage_initialized =  True
+            if resolution is not None:
+                self.storage_resolution = resolution
+            
         if resolution is None:
             resolution = self.storage_resolution
         else:

@@ -59,6 +59,15 @@ and
 
 through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
 
+New in 0.0.45
+=============
+
+For users:
+ - Improved ability to calculate and analyze 2D frequency maps
+ - Saving of TwoDSpectrum data into text files (.dat, .txt), numpy formats (.npy, .npz) and Matlab files (.mat) is enabled
+ - Problem which caused Redfield and Lindblad operators not to transform to correct basis when represented by operators was fixed
+ - Some small bug fixes 
+
 New in 0.0.44
 =============
 

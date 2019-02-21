@@ -618,7 +618,13 @@ if eUt_mode == "all":
     # This takes time (use eUt.calculate(show_progress=True) to see progress)
     print("Calculating the whole dynamics in advance ...")
     t1 = time.time()
-    eUt.calculate(show_progress=True)
+    
+    if eUt.has_PureDephasing:
+        with qr.eigenbasis_of(HH):
+            eUt.calculate(show_progress=True)
+    else:
+        eUt.calculate(show_progress=True)
+        
     t2 = time.time()
     
     if restart:
