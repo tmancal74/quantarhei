@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
+from ..core.datasaveable import DataSaveable
 from ..core.managers import EnergyUnitsManaged
 from ..core.units import cm2int
 
 
-class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
+class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
     """Provides basic container for absorption spectrum
     
     """
@@ -148,22 +149,36 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged):
         self.data += spect.data
         
         
-    def load_data(self, filename, ext=None, replace=False):
-        """Load the spectrum from a file
-        
-        Uses the load method of the DFunction class to load the absorption
-        spectrum from a file. It sets the axis type to 'frequency', otherwise
-        no changes to the inherited method are applied.
-        
-        Parameters
-        ----------
+#    def load_data(self, filename, ext=None, replace=False):
+#        """Load the spectrum from a file
+#        
+#        Uses the load method of the DFunction class to load the absorption
+#        spectrum from a file. It sets the axis type to 'frequency', otherwise
+#        no changes to the inherited method are applied.
+#        
+#        Parameters
+#        ----------
+#        
+#        """
+#        super().load_data(filename, ext=ext, axis='frequency', replace=replace)
+#
+#    #save method is inherited from DFunction 
+    
+    def save_data(self, filename):
+        """Saves the data of this absorption spectrum
         
         """
-        super().load_data(filename, ext=ext, axis='frequency', replace=replace)
+        super().save_data(filename, with_axis=self.axis)
 
-    #save method is inherited from DFunction 
-    
+
+    def load_data(self, filename):
+        """Loads data from file into this absorption spectrum
         
+        """
+        if self.axis is None:
+            raise Exception("The property `axis` has to be defined")
+        super().load_data(filename, with_axis=self.axis)
+
         
     def plot(self, **kwargs):
         """ Plotting absorption spectrum using the DFunction plot method

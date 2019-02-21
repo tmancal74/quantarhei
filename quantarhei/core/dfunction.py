@@ -114,12 +114,13 @@ from .valueaxis import ValueAxis
 from .time import TimeAxis
 from .frequency import FrequencyAxis
 from .saveable import Saveable
+from .datasaveable import DataSaveable
 from .managers import Manager
 
 
 #FIXME Check the posibility to set a derivative of the spline at the edges
 #FIXME Enable vectorial arguments and values
-class DFunction(Saveable):
+class DFunction(Saveable, DataSaveable):
     """Discrete function with interpolation
 
     Parameters
@@ -658,90 +659,90 @@ class DFunction(Saveable):
             
         return fname, ext
             
-    def save_data(self, filename, ext=None):
-        """Saves the DFunction into a file
-
-        """
-        add_imag = False
-            
-        fname, ext = self._fname_ext(filename, ext)
-        
-        # now ext is there only to specify format
-        
-        if ext in ["npy", "dat"]:
-            
-            if isinstance(self.data[0], numbers.Real):
-                ab = numpy.zeros((self.axis.length, 2))
-            else:
-                add_imag = True
-                ab = numpy.zeros((self.axis.length, 3))
-
-            datr = numpy.real(self.data)
-            for kk in range(self.axis.length):
-                ab[kk,0] = self.axis.data[kk]
-                ab[kk,1] = datr[kk]
-
-            if add_imag:
-                dati = numpy.imag(self.data)
-                for kk in range(self.axis.length):
-                    ab[kk,2] = dati[kk]
-
-        else:
-            raise Exception("Unknown format")
-
-        if ext == "npy":
-
-            numpy.save(fname, ab)
-
-        elif ext == "dat":
-
-            numpy.savetxt(fname, ab)
-
-
-
-
-    def load_data(self, filename, axis="time", ext=None, replace=False):
-        """Loads a DFunction from  a file
-
-        """
-
-        if not (self._is_empty or replace):
-            raise Exception("Data already exist in this object."
-            + " Use replace=True argument (default is replace=False")
-        
-        fname, ext = self._fname_ext(filename, ext)
-        
-        if ext == "npy":
-
-            ab = numpy.load(fname)
-
-        elif ext == "dat":
-
-            ab = numpy.loadtxt(fname)
-            
-        else:
-            
-            raise Exception("Unknown format")
-            
-        dt = ab[1,0] - ab[0,0]
-        N = len(ab[:,0])
-        st = ab[0,0]
-        dat = ab[:,1]
-        
-        #if dt < 0:
-        #    ab[:,0] = 1.0/ab[:,0]
-            
-
-        if axis == "time":
-
-            axs = TimeAxis(st, N, dt)
-
-        elif axis == "frequency":
-
-            axs = FrequencyAxis(st, N, dt)
-
-        else:
-
-            axs = ValueAxis(st, N, dt)
-
-        self._make_me(axs, dat)
+#    def save_data(self, filename, ext=None):
+#        """Saves the DFunction into a file
+#
+#        """
+#        add_imag = False
+#            
+#        fname, ext = self._fname_ext(filename, ext)
+#        
+#        # now ext is there only to specify format
+#        
+#        if ext in ["npy", "dat"]:
+#            
+#            if isinstance(self.data[0], numbers.Real):
+#                ab = numpy.zeros((self.axis.length, 2))
+#            else:
+#                add_imag = True
+#                ab = numpy.zeros((self.axis.length, 3))
+#
+#            datr = numpy.real(self.data)
+#            for kk in range(self.axis.length):
+#                ab[kk,0] = self.axis.data[kk]
+#                ab[kk,1] = datr[kk]
+#
+#            if add_imag:
+#                dati = numpy.imag(self.data)
+#                for kk in range(self.axis.length):
+#                    ab[kk,2] = dati[kk]
+#
+#        else:
+#            raise Exception("Unknown format")
+#
+#        if ext == "npy":
+#
+#            numpy.save(fname, ab)
+#
+#        elif ext == "dat":
+#
+#            numpy.savetxt(fname, ab)
+#
+#
+#
+#
+#    def load_data(self, filename, axis="time", ext=None, replace=False):
+#        """Loads a DFunction from  a file
+#
+#        """
+#
+#        if not (self._is_empty or replace):
+#            raise Exception("Data already exist in this object."
+#            + " Use replace=True argument (default is replace=False")
+#        
+#        fname, ext = self._fname_ext(filename, ext)
+#        
+#        if ext == "npy":
+#
+#            ab = numpy.load(fname)
+#
+#        elif ext == "dat":
+#
+#            ab = numpy.loadtxt(fname)
+#            
+#        else:
+#            
+#            raise Exception("Unknown format")
+#            
+#        dt = ab[1,0] - ab[0,0]
+#        N = len(ab[:,0])
+#        st = ab[0,0]
+#        dat = ab[:,1]
+#        
+#        #if dt < 0:
+#        #    ab[:,0] = 1.0/ab[:,0]
+#            
+#
+#        if axis == "time":
+#
+#            axs = TimeAxis(st, N, dt)
+#
+#        elif axis == "frequency":
+#
+#            axs = FrequencyAxis(st, N, dt)
+#
+#        else:
+#
+#            axs = ValueAxis(st, N, dt)
+#
+#        self._make_me(axs, dat)
