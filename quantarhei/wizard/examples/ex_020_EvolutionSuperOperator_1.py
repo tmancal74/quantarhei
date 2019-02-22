@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy
+import tempfile
+import os
 
 _show_plots_ = False
 
@@ -30,8 +32,10 @@ agg = qr.Aggregate([mol1, mol2, mol3, mol4])
 agg.set_resonance_coupling(2,3,qr.convert(100.0,"1/cm","int"))
 agg.set_resonance_coupling(1,3,qr.convert(100.0,"1/cm","int"))
 
-qr.save_parcel(agg,"agg.qrp")
-agg2 = qr.load_parcel("agg.qrp")
+with tempfile.TemporaryDirectory() as tdir:
+    path = os.path.join(tdir,"agg.qrp")
+    qr.save_parcel(agg,path)
+    agg2 = qr.load_parcel(path)
 agg2.build()
 
 H = agg2.get_Hamiltonian()
