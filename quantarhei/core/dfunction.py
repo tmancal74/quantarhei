@@ -116,6 +116,7 @@ from .frequency import FrequencyAxis
 from .saveable import Saveable
 from .datasaveable import DataSaveable
 from .managers import Manager
+from .. import REAL
 
 
 #FIXME Check the posibility to set a derivative of the spline at the edges
@@ -387,7 +388,6 @@ class DFunction(Saveable, DataSaveable):
     def add_to_data(self, other):
         pass
     
-    
 
     #
     #
@@ -395,7 +395,7 @@ class DFunction(Saveable, DataSaveable):
     #
     #
 
-    def get_Fourier_transform(self):
+    def get_Fourier_transform(self, window=None):
         """Returns Fourier transform of the DFunction
 
         """
@@ -404,6 +404,14 @@ class DFunction(Saveable, DataSaveable):
         y = self.data
 
         if isinstance(t, TimeAxis):
+            
+            if window is None:
+                winfce = DFunction(self.axis, 
+                                   numpy.ones(self.axis.length, dtype=REAL))
+            else:
+                winfce = window
+                
+            y = y*winfce.data
 
             w = t.get_FrequencyAxis()
 

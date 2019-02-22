@@ -654,6 +654,7 @@ if eUt_mode == "all":
         qr.save_parcel(eUt, os.path.join(pre_out,"eUt.qrp"))
         
     if stop_after_propagation:
+        print("Simulation stops, because `stop_after_propagation == True`")
         exit()
      
     # we plot selected evolution superoperato elements
@@ -668,6 +669,21 @@ else:
     print("Dynamics will be calculated on fly")
 
 
+if eUt_mode == "jit" and stop_after_propagation:
+    
+    if eUt.has_PureDephasing:
+        with qr.eigenbasis_of(HH):
+            for ii in range(1,time_so.length):
+                print("Propagation", ii, "of", time_so.length)
+                eUt.calculate_next()
+    else:
+        for ii in range(1,time_so.length):
+            print("Propagation", ii, "of", time_so.length)
+            eUt.calculate_next()
+            
+        print("Simulation stops, because `stop_after_propagation == True`")
+        exit()
+        
 print("Calculating 2D spectra:")
 
 #

@@ -89,7 +89,7 @@ class liouville_pathway(UnitsManaged):
         # index of events in the diagram (interactions and relaxations)
         self.ne = 0
 
-        # light indiced transitions
+        # light induced transitions
         self.transitions = numpy.zeros((order+1,2), dtype=numpy.int)
         
         # relaxation induced transitions
@@ -252,7 +252,8 @@ class liouville_pathway(UnitsManaged):
         out = outd+out
         
         return out 
-    
+
+
     def add_transition(self, transition, side, 
                        interval=0, width=-1.0, deph=-1.0):
         """ Adds a transition to the Liouville pathway. 
@@ -464,6 +465,39 @@ class liouville_pathway(UnitsManaged):
         
         """
         return self.pref
+    
+    def get_states(self):
+        """Returns a tuple of states through which the pathway passes
+        
+        
+        """
+        states = []
+        self.current[0] = self.sinit[0]
+        self.current[1] = self.sinit[0]
+        states.append((self.current[0], self.current[1]))
+
+        ii = 0
+        rr = 0
+        for ev in self.event:
+            if ev == "I":
+                if self.sides[ii] == 1:
+                    self.current[0] = self.transitions[ii, 0]
+                elif self.sides[ii] == -1:
+                    self.current[1] = self.transitions[ii, 0]
+                ii += 1
+            elif ev == "R":
+                self.current[0] = self.relaxations[rr][0][0]
+                self.current[1] = self.relaxations[rr][0][1]
+                rr += 1
+            states.append((self.current[0], self.current[1]))
+                    
+#        print(self.sinit)
+#        print(self.transitions)
+#        print(self.event)
+#        print(self.sides)
+#        print(self.relaxations)
+        
+        return tuple(states)
     
     
 

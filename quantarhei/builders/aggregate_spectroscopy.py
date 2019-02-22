@@ -732,20 +732,25 @@ class AggregateSpectroscopy(AggregateBase):
         #
         # data of the evolution superoperator in eigenstate basis
         #
+        
         try:
             # either the eUt is a complete evolution superoperator
             eUt2 = eUt.at(t2)
+            eUt2_dat = numpy.zeros(eUt2.data.shape, dtype=eUt2.data.dtype)
             HH = eUt.get_Hamiltonian()
             with eigenbasis_of(HH):
-                eUt2_dat = eUt2.data
+                eUt2_dat[:,:,:,:] = eUt2.data
         except:
             # or it is only a super operator at a given time t2
             # in this case 'ham' must be specified
             eUt2 = eUt
+            eUt2_dat = numpy.zeros(eUt2.data.shape, dtype=eUt2.data.dtype)
             with eigenbasis_of(ham):
-                eUt2_dat = eUt2.data
+                eUt2_dat[:,:,:,:] = eUt2.data
     
-         
+        
+        
+        
         for ptp in ptype_tuple:
         
             if ptp == "R1g":
