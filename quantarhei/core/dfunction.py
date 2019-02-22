@@ -255,6 +255,39 @@ class DFunction(Saveable, DataSaveable):
     def _after_load(self):
         self.manager = Manager()
 
+    
+    def change_axis(self, axis):
+        """Replaces the axis object with a compatible one, zero pads or trims the values
+        
+        """
+        if self.axis.is_equal_to(axis):
+            # simple replacement
+            self.axis = axis
+            
+        elif self.axis.is_extension_of(axis):
+            
+            # we trim to the new axis
+            ndata = numpy.zeros(axis.length, dtype=self.data.dtype)
+            for ii in range(axis.length):
+                ndata[ii] = self.at(axis.data[ii])
+                
+            self.__init__(x=axis, y=ndata)
+                
+        elif self.axis.is_subsection_of(axis):
+            # we zero pad the values
+            ndata = numpy.zeros(axis.length, dtype=self.data.dtype)
+            for ii in range(axis.length):
+                x = axis.data[ii]
+                if (x >= self.axis.min) and (x <= self.axis.max):
+                    ndata[ii] = self.at(axis.data[ii])
+                else:
+                    ndata[ii] = 0.0
+                
+            self.__init__(x=axis, y=ndata)
+        
+        else:
+            raise Exception("Incompatible axis")
+        
 
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`

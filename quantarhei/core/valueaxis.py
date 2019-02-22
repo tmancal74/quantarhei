@@ -253,9 +253,20 @@ class ValueAxis(Saveable):
         
         """
         ret = True
-        ret = ret and (self.start == axis.start)
+        ret = ret and (self.start <= axis.start)
         ret = ret and (self.step == axis.step)
-        ret = ret and (self.length >= axis.length)
+        ret = ret and (self.max >= axis.max)
+        
+        found_one_point = False
+        N = self.length
+        k = 0
+        while (not found_one_point) and (k < N):
+            point = self.data[k]
+            if point in axis.data:
+                found_one_point = True
+            k += 1
+            
+        ret = ret and found_one_point
         
         return ret
     
@@ -264,9 +275,9 @@ class ValueAxis(Saveable):
         
         """
         ret = True
-        ret = ret and (self.start == axis.start)
+        ret = ret and (self.start in axis.data)
         ret = ret and (self.step == axis.step)
-        ret = ret and (self.length <= axis.length)
+        ret = ret and (self.max in axis.data)
         
         return ret
     
