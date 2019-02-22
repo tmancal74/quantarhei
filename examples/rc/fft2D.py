@@ -158,6 +158,14 @@ print("")
 print("***                      Simulation output                         ***")
 print("")
 
+#
+###############################################################################
+#
+# END OF SCRIPT CONFIGURATION
+#
+###############################################################################
+#
+
 pre_out = out_dir
 pre_in = os.path.join(model, "out")
 
@@ -602,7 +610,21 @@ print("Setting up evolution superoperator at", t2_N_steps, "points:")
 #
 time_so = qr.TimeAxis(0.0, t2_N_steps, t2_time_step)
 
-#p_deph = None
+
+#
+# Estimation of the evolution superoperator memory need
+#
+mem_eUt = (HH.dim**4)*16
+if eUt_mode == "all":
+    mem_eUt *= time_so.length
+mem_eUt = mem_eUt/(1024**2)
+if mem_eUt > 1000:
+    print("\nEstimated memory need for evolution superoperator:", 
+          mem_eUt/1024, "GB\n")
+else:
+    print("\nEstimated memory need for evolution superoperator:", 
+          mem_eUt, "MB\n")    
+    
 
 eUt = qr.qm.EvolutionSuperOperator(time_so, HH, relt=LF_frac, 
                                    pdeph=p_deph, mode=eUt_mode)
