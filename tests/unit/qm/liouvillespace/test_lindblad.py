@@ -486,14 +486,14 @@ class TestElectronicLindblad(unittest.TestCase):
         aver_vrhot0 = agg.trace_over_vibrations(vrho0) 
                 
         # Test
-        numpy.testing.assert_array_equal(rhot._data[0,:,:], rho0._data)
-        numpy.testing.assert_array_equal(rhot._data[0,:,:], aver_vrhot0._data)
+        numpy.testing.assert_allclose(rhot._data[0,:,:], rho0._data)
+        numpy.testing.assert_allclose(rhot._data[0,:,:], aver_vrhot0._data)
         
         aver_vrhot10 = agg.trace_over_vibrations(vrhot, 10)
-        numpy.testing.assert_array_equal(rhot._data[10,:,:], 
+        numpy.testing.assert_allclose(rhot._data[10,:,:], 
                                          aver_vrhot10._data)        
      
         aver_vrhot800 = agg.trace_over_vibrations(vrhot, 800)
-        numpy.testing.assert_array_equal(rhot._data[800,:,:], 
+        numpy.testing.assert_allclose(rhot._data[800,:,:], 
                                          aver_vrhot800._data)        
         
