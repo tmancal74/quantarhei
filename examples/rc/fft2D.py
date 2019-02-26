@@ -748,7 +748,7 @@ while (N_T2 < time_so.length):
         noreph = ("R1g", "R4g", "R2f*")
     
         # add all types needed
-        typs = reph #+ noreph
+        typs = reph + noreph
             
         #
         # Here we generate the pathways

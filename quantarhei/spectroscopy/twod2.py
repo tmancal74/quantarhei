@@ -12,6 +12,8 @@ from ..core.frequency import FrequencyAxis
 from .. import COMPLEX
 from ..core.saveable import Saveable
 from ..core.datasaveable import DataSaveable
+from ..core.dfunction import DFunction
+from ..core.valueaxis import ValueAxis
 from ..utils.types import check_numpy_array
 
 # FIXME: Check these names
@@ -1426,17 +1428,49 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         if legacy:
             
             if self.dtype == "Tot":
-                return self.data[ix,iy]
+                return self.data[iy,ix]
                 #return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
             elif self.dtype == "Reph":
-                return self.reph2D[ix,iy]
+                return self.reph2D[iy,ix]
             elif self.dtype == "Nonr":
-                return self.nonr2D[ix,iy]
+                return self.nonr2D[iy,ix]
         
         else:
             
-            return self.d__data[ix, iy]
+            return self.d__data[iy, ix]
+
+
+    def get_cut_along_x(self, y0):
+        """Retruns a DFunction with the cut of the spectrum along the x axis
         
+        """
+        (iy, dist) = self.yaxis.locate(y0)
+        
+        ax = self.xaxis
+        vals = numpy.zeros(ax.length, dtype=self.d__data.dtype)
+        for ii in range(ax.length):
+            vals[ii] = self.d__data[iy, ii]
+    
+        return DFunction(ax, vals)
+    
+
+    def get_cut_along_y(self, x0):
+        """Retruns a DFunction with the cut of the spectrum along the y axis
+        
+        """
+        (ix, dist) = self.xaxis.locate(x0)
+        
+        ay = self.yaxis
+        vals = numpy.zeros(ay.length, dtype=self.d__data.dtype)
+        for ii in range(ay.length):
+            vals[ii] = self.d__data[ii, ix]
+    
+        return DFunction(ay, vals)   
+    
+
+    def get_cut_along(self, point1, point2):
+        
+        pass
 
     def get_max_value(self):
         """Maximum value of the real part of the spectrum
