@@ -1441,7 +1441,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
 
     def get_cut_along_x(self, y0):
-        """Retruns a DFunction with the cut of the spectrum along the x axis
+        """Returns a DFunction with the cut of the spectrum along the x axis
         
         """
         (iy, dist) = self.yaxis.locate(y0)
@@ -1455,7 +1455,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
     
 
     def get_cut_along_y(self, x0):
-        """Retruns a DFunction with the cut of the spectrum along the y axis
+        """Returns a DFunction with the cut of the spectrum along the y axis
         
         """
         (ix, dist) = self.xaxis.locate(x0)
@@ -1468,9 +1468,12 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         return DFunction(ay, vals)   
     
 
-    def get_cut_along(self, point1, point2):
+    def get_cut_along_line(self, point1, point2):
+        """Returns a cut along a line specified by two points
         
+        """
         pass
+
 
     def get_max_value(self):
         """Maximum value of the real part of the spectrum
@@ -1484,6 +1487,20 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         
         else:
             return numpy.amax(numpy.real(self.d__data))
+
+
+    def get_min_value(self):
+        """Minimum value of the real part of the spectrum
+        
+        
+        """
+        legacy = False
+        
+        if legacy:
+            return numpy.amin(numpy.real(self.reph2D+self.nonr2D))
+        
+        else:
+            return numpy.amin(numpy.real(self.d__data))
             
     
     #FIXME: introduce new storage scheme
