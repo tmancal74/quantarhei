@@ -27,11 +27,14 @@ from ..core.managers import UnitsManaged, Manager
 from ..core.wrappers import deprecated
 
 from ..core.units import cm2int
+from ..core.units import convert
 from ..core.parcel import load_parcel
 from .. import REAL, COMPLEX
 
 from ..core.time import TimeAxis
 from ..core.dfunction import DFunction
+
+
 
 class LiouvillePathwayAnalyzer(UnitsManaged):
     """Class providing methods for Liouville pathway analysis
@@ -599,7 +602,74 @@ def get_prefactors_from_saved_pathways(states, name="pathways", ext="qrp",
     
     return DFunction(x=taxis, y=evol)
          
+
+def get_TwoDSpectrum_from_saved_pathways(t2, t1axis, t3axis, name="pathways",
+                                         ext="qrp", directory=".",
+                                         tag_type=REAL):
+    """Returns a 2D spectrum calculated based on the saved Liouville pathways
+    
+    """
+    pwt2 = load_pathways_by_t2(t2, name=name, ext=ext,
+                               directory=directory, tag_type=tag_type)
+    
+    # calculate 2D spectrum from the loaded pathways
+    twod = get_TwoDSpectrum_from_pathways(pwt2, t1axis, t3axis)
+    
+    # return it
+    return twod
+
+
+def get_TwoDSpectrum_from_pathways(pathways, t1axis, t3axis):
+    """Returns a 2D spectrum calculated based on submitted Liouville pathways
+    
+    """    
+    from .mocktwodcalculator import MockTwoDSpectrumCalculator
+    t2axis = TimeAxis(0.0,1,1.0)
+    mcalc = MockTwoDSpectrumCalculator(t1axis, t2axis, t3axis)
+    mcalc.bootstrap(rwa = convert(12000.0,"1/cm","int"), pathways=pathways)
+    twod = mcalc.calculate()
+
+    return twod
+
+
+def get_TwoDSpectrumContainer_from_saved_pathways(t1axis, t3axis,
+                                                  name="pathways", ext="qrp",
+                                                  directory=".",
+                                                  tag_type=REAL):
+    """Returns a container with 2D spectra calculated from saved pathways
+    
+    """
+    from .twodcontainer import TwoDSpectrumContainer
+    
+    t2s = look_for_pathways(name=name, ext=ext, directory=directory)
+    
+
+    # order t2s
+    t2s = numpy.sort(t2s)
+    time2 = TimeAxis(t2s[0], len(t2s), t2s[1]-t2s[0])
+    tcont = TwoDSpectrumContainer(t2axis=time2)
+    tcont.use_indexing_type(itype=time2)
+    
+    for t2 in t2s:
+        pwt2 = load_pathways_by_t2(t2, name=name, ext=ext,
+                                   directory=directory, tag_type=tag_type)
         
+        
+        # calculate 2D spectrum from saved pathways
+        twod = get_TwoDSpectrum_from_pathways(pwt2, t1axis, t3axis)
+        
+        # put it into container
+        tcont.set_spectrum(twod, tag=t2)
+        
+    # return the container
+    return tcont
+    
+
+        
+
+
+
+    
 def _is_tuple_of_dyads(states):
     """Check if the object is a tuple or list of dyads
     

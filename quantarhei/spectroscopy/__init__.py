@@ -21,3 +21,7 @@ from .pathwayanalyzer import look_for_pathways
 from .pathwayanalyzer import load_pathways_by_t2
 from .pathwayanalyzer import save_pathways_by_t2
 from .pathwayanalyzer import get_evolution_from_saved_pathways
+from .pathwayanalyzer import get_prefactors_from_saved_pathways
+from .pathwayanalyzer import get_TwoDSpectrum_from_pathways
+from .pathwayanalyzer import get_TwoDSpectrum_from_saved_pathways
+from .pathwayanalyzer import get_TwoDSpectrumContainer_from_saved_pathways
