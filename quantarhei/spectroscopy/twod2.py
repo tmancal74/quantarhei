@@ -1472,7 +1472,14 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         """Returns a cut along a line specified by two points
         
         """
-        pass
+        (x1, dist) = self.xaxis.locate(point1[0])
+        (y1, dist) = self.yaxis.locate(point1[1])
+        (x2, dist) = self.xaxis.locate(point2[0])
+        (y2, dist) = self.yaxis.locate(point2[1])
+        
+        length = numpy.sqrt((x1-x2)**2 + (y1-y2)**2)
+        
+        print(length)
 
 
     def get_max_value(self):

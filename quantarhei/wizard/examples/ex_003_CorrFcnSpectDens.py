@@ -20,6 +20,8 @@ from quantarhei.core.units import kB_int
 
 import numpy
 
+_show_plots_ = True
+
 """
 
 """
@@ -52,8 +54,9 @@ with energy_units("1/cm"):
 #sd.save_data("ob_sd_20cm_100fs_300K_m20", ext="dat")
     
 
-# plotting the correlation function
-cf.plot(ylabel=r'$C(t)$ [rad$^2\cdot$fs$^{-2}$]',real_only=False)
+if _show_plots_:
+    # plotting the correlation function
+    cf.plot(ylabel=r'$C(t)$ [rad$^2\cdot$fs$^{-2}$]',real_only=False)
 
 # Fourier transform of the correlation function    
 cF = cf.get_Fourier_transform()
@@ -63,10 +66,11 @@ cF1 = cf.get_FTCorrelationFunction()
 cF1o = cf.get_OddFTCorrelationFunction()
 cF1e = cf.get_EvenFTCorrelationFunction()
 
-# Plotting the Fourier transform
-cF.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$^2\cdot$fs$^{-1}$]',
-        real_only=False,
-        axis=[-0.4,0.4,-0.005,0.025],show=False)
+if _show_plots_:
+    # Plotting the Fourier transform
+    cF.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$^2\cdot$fs$^{-1}$]',
+            real_only=False,
+            axis=[-0.4,0.4,-0.005,0.025],show=False)
 
         
 wa = cF.axis
@@ -82,8 +86,10 @@ while k > 0:
     
 tf = DFunction(wa,vals)
 
-tf.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$\cdot$fs$^{-1}$]'
-    ,axis=[-0.1,0.1,-0.005,numpy.max(numpy.real(cF.data))*1.1],real_only=False)
+if _show_plots_:
+    tf.plot(ylabel=r'$\tilde{C}(\omega)$ [rad$\cdot$fs$^{-1}$]',
+            axis=[-0.1,0.1,-0.005,numpy.max(numpy.real(cF.data))*1.1],
+            real_only=False)
     
 
  # Get spectral density       
@@ -95,8 +101,9 @@ with energy_units("1/cm"):
     cf1n = sd1.get_CorrelationFunction()
     sd1n = cf1.get_SpectralDensity()
 
-cf1.plot(real_only=False,show=False)
-cf1n.plot()
+if _show_plots_:
+    cf1.plot(real_only=False,show=False)
+    cf1n.plot()
 
 lamb_cfm = cf1.measure_reorganization_energy()
 lamb_def = cf1.get_reorganization_energy()
@@ -105,19 +112,19 @@ print(lamb_cfm, lamb_def, lamb_sdm)
 print(numpy.allclose(lamb_cfm,lamb_def,rtol=1.0e-3))
 print(numpy.allclose(lamb_sdm,lamb_def,rtol=1.0e-2))
 
-
-sd1.plot(show=False)
-sd1n.plot(axis=[-0.1,0.1,-0.004,0.004])
-
-
-
-# Plot spectral density
-with energy_units("1/cm"):
-    #cF1.plot(show=False)
-    #cF1e.plot(show=False)
-    cF1o.plot(show=False)
+if _show_plots_:
     sd1.plot(show=False)
-    sd.plot(axis=[-1000,1000,-0.008,0.008])
+    sd1n.plot(axis=[-0.1,0.1,-0.004,0.004])
+
+
+
+    # Plot spectral density
+    with energy_units("1/cm"):
+        #cF1.plot(show=False)
+        #cF1e.plot(show=False)
+        cF1o.plot(show=False)
+        sd1.plot(show=False)
+        sd.plot(axis=[-1000,1000,-0.008,0.008])
     
 df = numpy.max(numpy.abs(cF1o.data-sd1.data))
 print(df)
@@ -134,8 +141,9 @@ with energy_units("eV"):
     print(wm.step)
  
 ftc = sd1.get_FTCorrelationFunction()  
-cF1.plot(show=False)
-ftc.plot(axis=[-0.1,0.1,0,0.06])
+if _show_plots_:
+    cF1.plot(show=False)
+    ftc.plot(axis=[-0.1,0.1,0,0.06])
 
  
 

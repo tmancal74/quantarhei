@@ -10,8 +10,11 @@ from quantarhei import TimeAxis, energy_units
 axis = TimeAxis(0.0, 10000, 1.0)
 
 db = SpectralDensityDB(verbose=True)
-#sdw = db.get_SpectralDensity(axis, "Wendling_JPCB_104_2000_5825")
-sdw = db.get_SpectralDensity(axis, "Renger_JCP_2002")
+print("DB instatiated")
+sdw = db.get_SpectralDensity(axis, "Wendling_JPCB_104_2000_5825")
+#sdw = db.get_SpectralDensity(axis, "Renger_JCP_2002")
+
+print(sdw.__doc__)
 
 params = dict(ftype="OverdampedBrownian", reorg=300.0, cortime=100.0)
 with energy_units("1/cm"):
