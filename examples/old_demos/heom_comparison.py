@@ -13,18 +13,24 @@ cfce_params1 = dict(ftype="OverdampedBrownian",
                    T=300,
                    matsubara=20)
 
+cfce_params2 = dict(ftype="OverdampedBrownian",
+                   reorg=20.0,
+                   cortime=60.0,
+                   T=300,
+                   matsubara=20)
+
 en = 12000.0
 
 with e_units:
     cfce1 = CorrelationFunction(ta,cfce_params1)
     cfce2 = CorrelationFunction(ta,cfce_params2)
-    m1 = Molecule("M1",[0.0, 12100])
+    m1 = Molecule([0.0, 12100])
     m1.set_dipole(0,1,[0.0,3.0,0.0])
     m1.set_transition_environment((0,1), cfce1)
-    m2 = Molecule("M2",[0.0, 11800])
+    m2 = Molecule([0.0, 11800])
     m2.set_dipole(0,1,[0.0,1.0,2.0])
     m2.set_transition_environment((0,1), cfce1)
-    m3 = Molecule("M3",[0.0, 12500])
+    m3 = Molecule([0.0, 12500])
     m3.set_dipole(0,1,[0.0,1.0,1.0])    
     m3.set_transition_environment((0,1), cfce1)    
 
@@ -34,7 +40,7 @@ m2.position = [7.0,0.0,0.0]
 m3.position = [0.0,7.0,0.0]
 
 # create an aggregate
-AG = Aggregate("TestAggregate")
+AG = Aggregate()
 
 
 # fill the cluster with monomers

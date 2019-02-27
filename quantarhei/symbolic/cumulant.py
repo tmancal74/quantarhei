@@ -20,7 +20,7 @@ class CumulantException(Exception):
 class CumulantExpr(QExpr):
 
         
-    def _eval_simplify(self,ratio,measure):
+    def _eval_simplify(self, ratio, measure, rational, inverse):
         return self._evaluate_second_order_rules()
         #return A._getExpr()
         
