@@ -2286,6 +2286,9 @@ class AggregateBase(UnitsManaged, Saveable):
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
         
+        self.rho0 = numpy.zeros(self.HH.shape, dtype=qr.COMPLEX)
+        self.rho0[0,0] = 1.0
+        
         self._diagonalized = True
         
 

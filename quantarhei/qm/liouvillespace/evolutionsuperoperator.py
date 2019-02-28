@@ -716,7 +716,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 raise Exception("Invalid argument: time")
 
 
-    def plot_element(self, elem):
+    def plot_element(self, elem, show=True):
         """Plots a selected element of the evolution superoperator
         
         
@@ -735,6 +735,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             if tl == shape[0]:
                 plt.plot(self.time.data,
                          self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                if show:
+                    plt.show()
         
         else:
             print("Nothing to plot")

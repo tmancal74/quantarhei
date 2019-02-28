@@ -25,3 +25,5 @@ from .pathwayanalyzer import get_prefactors_from_saved_pathways
 from .pathwayanalyzer import get_TwoDSpectrum_from_pathways
 from .pathwayanalyzer import get_TwoDSpectrum_from_saved_pathways
 from .pathwayanalyzer import get_TwoDSpectrumContainer_from_saved_pathways
+
+from ..utils.vectors import X, Y, Z
