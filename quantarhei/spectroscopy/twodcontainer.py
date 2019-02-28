@@ -65,6 +65,9 @@ class TwoDSpectrumContainer(Saveable):
         self.spectra = {}
         self._which = None
         
+        if t2axis is not None:
+            self.use_indexing_type(itype=t2axis)
+        
         
     def use_indexing_type(self, itype):
         """Sets the type of indices used to identify spectra

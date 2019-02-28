@@ -82,7 +82,6 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         
         """
         
-        print(tc)
         onetwod = TwoDSpectrum()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
@@ -91,14 +90,11 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         k = 0        
         for pwy in self.pathways:
             
-            print("Pathway: ", k)
             data = self.calculate_pathway(pwy, shape=self.shape)
-            print(numpy.max(numpy.real(data)))
+
             if pwy.pathway_type == "R":
-                print("Calculating R")
                 onetwod._add_data(data, dtype="REPH")
             elif pwy.pathway_type == "NR":
-                print("Calculating NR")
                 onetwod._add_data(data, dtype="NONR")
             else:
                 raise Exception("Unknown pathway type")
@@ -111,7 +107,6 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             onetwod._add_data(data, dtype="REPH")
             print("Warning: calculating empty 2D spectrum")
 
-        print("Setting: ", self.t2axis.data[tc])
         onetwod.set_t2(self.t2axis.data[tc])    
             
         return onetwod
@@ -218,9 +213,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             
                 else:
 
-                    print("************")
                     oo1 = -self.oa1.data[:]
-                    
+
                     reph2D = pref*gaussian2D(oo1, cen1, widthx,
                                                  oo3, cen3, widthy)
 

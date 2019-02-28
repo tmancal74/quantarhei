@@ -11,7 +11,6 @@ import os
 import numpy
 
 import quantarhei as qr
-import quantarhei.spectroscopy as spec
 
 from quantarhei.qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 
@@ -27,10 +26,10 @@ _show_plots_ = True
 with qr.energy_units("1/cm"):
     # two two-level molecules
     m1 = qr.Molecule([0.0, 12000.0])
-    m2 = qr.Molecule([0.0, 12500.0])
+    m2 = qr.Molecule([0.0, 12200.0])
     
     # transitions will have Gaussian lineshape with a width specified here
-    m1.set_transition_width((0,1), 200.0)
+    m1.set_transition_width((0,1), 200.0) 
     m2.set_transition_width((0,1), 200.0)
 
 # we create an aggregate from the two molecules
@@ -38,7 +37,7 @@ agg = qr.Aggregate(molecules=[m1, m2])
 
 # we set transition dipole moment orientations for the two molecules
 m1.set_dipole(0,1,[1.0, 0.0, 0.0])
-m2.set_dipole(0,1,[0.2, 0.9, 0.0])
+m2.set_dipole(0,1,[0.3, 0.5, 0.0])
 
 # resonance coupling is set by hand
 with qr.energy_units("1/cm"):
@@ -113,8 +112,7 @@ from quantarhei.spectroscopy.mocktwodcalculator \
 from quantarhei.spectroscopy import X
 
 calc = TwoDSpectrumCalculator(t1_axis, t2_axis, t3_axis)
-print(H.rwa_energies)
-calc.bootstrap(rwa=qr.convert(12200.0,"1/cm","int"))
+calc.bootstrap(rwa=qr.convert(12050.0,"1/cm","int"))
 
 agg_2D.build(mult=2)
 agg_2D.diagonalize()
@@ -123,29 +121,35 @@ agg_2D.diagonalize()
 lab = qr.LabSetup()
 lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 
-T2 = 0.0
-Uin = eUt.at(T2)
+tcont = qr.TwoDSpectrumContainer(t2axis=t2_axis)
 
-rho0 = agg_2D.get_DensityMatrix(condition_type="thermal",
-                                      temperature=0.0)
+for T2 in t2_axis.data:
+    
+    Uin = eUt.at(T2)
 
-# get Liouville pathways
-pws = agg_2D.liouville_pathways_3T(ptype="R2g",
-                                   eUt=Uin, ham=H, t2=T2, lab=lab)
+    rho0 = agg_2D.get_DensityMatrix(condition_type="thermal",
+                                    temperature=0.0)
 
-pws = spec.order_by_amplitude(pws)
+    # get Liouville pathways
+    pws = agg_2D.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
+                                              "R4g", "R1f", "R2f"),
+                                       eUt=Uin, ham=H, t2=T2, lab=lab)
+
+    calc.set_pathways(pws)
+
+    twod1 = calc.calculate_next()
+    #twod1.set_t2(0.0)
+
+    tcont.set_spectrum(twod1, tag=T2)
+
+
+T2 = 990.0
+twod = tcont.get_spectrum(T2)
+
+print(numpy.max(twod.data))
 with qr.energy_units("1/cm"):
-    print(len(pws))
-    for pw in pws:
-        print(pw)
-
-calc.set_pathways(pws)
-
-twod1 = calc.calculate_next()
-twod1.set_t2(0.0)
-
-print(numpy.max(twod1.data))
-with qr.energy_units("1/cm"):
-    twod1.plot(Npos_contours=10,              
+    twod.plot(Npos_contours=10, window=[11500,13000,11500,13000],            
               stype="total", spart="real")
 
+
+tcont.make_movie("twod.mpeg")

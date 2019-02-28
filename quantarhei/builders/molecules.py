@@ -483,11 +483,12 @@ class Molecule(UnitsManaged, Saveable):
             
             
         """
+        cwidth = qr.Manager().convert_energy_2_internal_u(width)
         if self.widths is None:
             N = self.elenergies.shape[0]
             self.widths = numpy.zeros((N, N), dtype=qr.REAL)
-        self.widths[transition[0], transition[1]] = width
-        self.widths[transition[1], transition[0]] = width
+        self.widths[transition[0], transition[1]] = cwidth
+        self.widths[transition[1], transition[0]] = cwidth
 
 
     def get_transition_width(self, transition):
