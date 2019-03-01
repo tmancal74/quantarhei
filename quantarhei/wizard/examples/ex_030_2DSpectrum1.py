@@ -82,7 +82,7 @@ sbi = qr.qm.SystemBathInteraction(sys_operators=[K], rates=rates)
 
 L = qr.qm.LindbladForm(H, sbi)
 
-print(L)
+#print(L)
 
 eUt = EvolutionSuperOperator(time=t2_axis, ham=H, relt=L)
 eUt.set_dense_dt(10)
@@ -143,7 +143,7 @@ for T2 in t2_axis.data:
     tcont.set_spectrum(twod1, tag=T2)
 
 
-T2 = 990.0
+T2 = 10.0
 twod = tcont.get_spectrum(T2)
 
 print(numpy.max(twod.data))
@@ -152,4 +152,4 @@ with qr.energy_units("1/cm"):
               stype="total", spart="real")
 
 
-tcont.make_movie("twod.mpeg")
+#tcont.make_movie("twod.mpeg")
