@@ -1437,6 +1437,8 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         
         else:
             
+            
+            # FIXME: try linear interpolation
             return self.d__data[iy, ix]
 
 
@@ -1468,18 +1470,76 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         return DFunction(ay, vals)   
     
 
-    def get_cut_along_line(self, point1, point2):
+    def get_cut_along_line(self, point1, point2, which_step=None, step=None):
         """Returns a cut along a line specified by two points
         
         """
-        (x1, dist) = self.xaxis.locate(point1[0])
-        (y1, dist) = self.yaxis.locate(point1[1])
-        (x2, dist) = self.xaxis.locate(point2[0])
-        (y2, dist) = self.yaxis.locate(point2[1])
+        vx1 = point1[0]
+        vy1 = point1[1]
+        vx2 = point2[0]
+        vy2 = point2[0]
         
-        length = numpy.sqrt((x1-x2)**2 + (y1-y2)**2)
+        (x1, dist) = self.xaxis.locate(vx1)
+        (y1, dist) = self.yaxis.locate(vy1)
+        (x2, dist) = self.xaxis.locate(vx2)
+        (y2, dist) = self.yaxis.locate(vy2)
         
-        print(length)
+        length = numpy.sqrt((vx1-vx2)**2 + (vy1-vy2)**2)
+        
+        if which_step is None:
+            wstep = "x"
+        else:
+            wstep = which_step
+            
+        if step is None:
+            if wstep == "x":
+                dx = self.xaxis.step
+            elif wstep == "y":
+                dx = self.yaxis.step
+            else:
+                raise Exception("Step along the cut line is not defined")
+                
+        else:
+            dx = step
+             
+        Nstep = int(length/dx)
+        
+        axis = ValueAxis(0.0, Nstep+1, dx)
+            
+        vals = numpy.zeros(Nstep+1, dtype=self.d__data.dtype)
+        ii = 0
+        for val in axis.data:
+            vx1 = self.xaxis.data[x1]
+            vx2 = self.xaxis.data[x2]
+            vy1 = self.yaxis.data[y1]
+            vy2 = self.yaxis.data[y2]
+            x = vx1 + val*(vx2-vx1)/(Nstep*dx)
+            y = vy1 + val*(vy2-vy1)/(Nstep*dx)
+            vals[ii] = self.get_value_at(x,y)
+            ii += 1
+            
+        return DFunction(axis, vals)    
+        
+    
+    def get_diagonal_cut(self):
+        """Returns cut of the spectrum along the diagonal 
+        
+        
+        """
+        
+        point1 = [self.xaxis.min, self.yaxis.min]
+        point2 = [self.xaxis.max, self.yaxis.max]
+        
+        fce = self.get_cut_along_line(point1, point2, which_step="x")
+        
+        fce.axis.data += point1[0]
+        
+        return fce
+    
+
+    def get_anti_diagonal_cut(self, point):
+        
+        pass
 
 
     def get_max_value(self):
@@ -1541,7 +1601,9 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         
         """
         from .pumpprobe import PumpProbeSpectrumCalculator
-        ppc = PumpProbeSpectrumCalculator()
+        from ..core.time import TimeAxis
+        fake_t = TimeAxis(0,1,1.0)
+        ppc = PumpProbeSpectrumCalculator(fake_t, fake_t, fake_t)
         return ppc.calculate_from_2D(self)
     
     

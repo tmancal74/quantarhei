@@ -305,13 +305,17 @@ class TwoDSpectrumContainer(Saveable):
         
         k = 0
         ppc = []
+        ttc = []
+        ii = 0
         for sp in self.get_spectra():
             if k == 0:
                 pp = sp.get_PumpProbeSpectrum()
                 ppc.append(pp)
+                ttc.append(self.axis.data[ii])
             k += 1
             if k > skip:
                 k = 0
+            ii += 1
             
         length = len(ppc)
         start = ppc[0].get_t2()
@@ -320,8 +324,11 @@ class TwoDSpectrumContainer(Saveable):
         naxis = TimeAxis(start,length,step)        
         ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
 
+        ii = 0
         for sp in ppc:
-            ppcont.set_spectrum(sp)
+            tt = ttc[ii]
+            ppcont.set_spectrum(sp, tt)
+            ii += 1
             
         return ppcont
 
@@ -543,13 +550,25 @@ class TwoDSpectrumContainer(Saveable):
         """Returns maximum amplitude of the spectra in the container
         
         """
-        mxs = []
-        for s in self.get_spectra():       
-            spect2D = numpy.real(s.reph2D) + numpy.real(s.nonr2D)   
-            mx = numpy.amax(spect2D)
-            mxs.append(mx)
-        return numpy.amax(numpy.array(mxs))
+        
+        legacy = False
+        
+        if legacy:
+            mxs = []
+            for s in self.get_spectra():       
+                spect2D = numpy.real(s.reph2D) + numpy.real(s.nonr2D)   
+                mx = numpy.amax(spect2D)
+                mxs.append(mx)
+            return numpy.amax(numpy.array(mxs))
 
+        else:
+            mxs = []
+            for s in self.get_spectra():       
+                spect2D = numpy.real(s.d__data)   
+                mx = numpy.amax(spect2D)
+                mxs.append(mx)
+            return numpy.amax(numpy.array(mxs))
+        
 
     # Print iterations progress
     def _printProgressBar(self, iteration, total, 
@@ -590,6 +609,7 @@ class TwoDSpectrumContainer(Saveable):
         import matplotlib.animation as manimation
         
         FFMpegWriter = manimation.writers["ffmpeg"]
+
         metadata = dict(title="Test Movie", artist='Matplotlib',
                 comment='Movie support!')
         writer = FFMpegWriter(fps=frate, metadata=metadata)
