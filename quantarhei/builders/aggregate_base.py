@@ -2425,7 +2425,8 @@ class AggregateBase(UnitsManaged, Saveable):
         
         # aggregate must be built before we call this method
         if not self._built:
-            raise Exception()
+            raise Exception("Aggregate must be built before"
+                            +" get_DensityMatrix can be invoked.")
 
         # if Aggregate has interaction with the bath, temperature 
         # is already defined

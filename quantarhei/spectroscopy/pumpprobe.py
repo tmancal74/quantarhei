@@ -225,57 +225,84 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                                            suffix = 'Complete', length = 50)
                 
                 k += 1
-#                if k == 20:
-#                    return
+
 
 class PumpProbeSpectrumCalculator(TwoDSpectrumCalculator):
     
     def __init__(self, t1axis, t2axis, t3axis):
         pass
     
-    def calculate_from_2D(self, twod):
-        """Calculates pump-probe spectrum from 2D spectrum
-        
-        Calculates pump-probe spectrum from 2D spectrum
-        using projection theorem
-        
-        Parameters
-        ----------
-        
-        twod: TwoDSpectrum
-            2D spectrum from which pump-probe will be calculated
-            
-        """
-        
-        pp = PumpProbeSpectrum()
-        
-        # waiting time
-        t2 = twod.get_t2()
-        pp.set_t2(t2)
-        
-        # time step for integration
-        xaxis = twod.xaxis
-        dw = xaxis.step
-        
-        # real part of the total 2D spectrum
-        tddata = numpy.real(twod.d__data)
-        
-        # integration over omega_1 axis
-        ppdata = -numpy.sum(tddata,axis=1)*dw
-        
-        # setting pump-probe data
-        pp.set_data(ppdata)
-        pp.set_axis(twod.yaxis)
-        
-        return pp
 
+
+def calculate_from_2D(twod):
+    """Calculates pump-probe spectrum from 2D spectrum
+    
+    Calculates pump-probe spectrum from 2D spectrum
+    using projection theorem
+    
+    Parameters
+    ----------
+    
+    twod: TwoDSpectrum
+        2D spectrum from which pump-probe will be calculated
+        
+    """
+    
+    pp = PumpProbeSpectrum()
+    
+    # waiting time
+    t2 = twod.get_t2()
+    pp.set_t2(t2)
+    
+    # time step for integration
+    xaxis = twod.xaxis
+    dw = xaxis.step
+    
+    # real part of the total 2D spectrum
+    tddata = numpy.real(twod.d__data)
+    
+    # integration over omega_1 axis
+    ppdata = -numpy.sum(tddata,axis=1)*dw
+    
+    # setting pump-probe data
+    pp.set_data(ppdata)
+    pp.set_axis(twod.yaxis)
+    
+    return pp
+    
 
 
 class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
+    """Effective line shape pump-probe spectrum calculator
+    
+    
+    """
     
     
     def calculate_all_system(self, sys, H, eUt, lab):
+        """Calculates all spectra corresponding to a specified t2axis
         
-        tcont = super().calculate_all_system(sys, H, eUt, lab)
-        return tcont.get_PumpProbeSpectrumContainer()
+        """
+        
+        temporary_fix = True
+        
+        if temporary_fix:
+            # calculation via 2D spectrum
+            tcont = super().calculate_all_system(sys, H, eUt, lab)
+            return tcont.get_PumpProbeSpectrumContainer()
+      
+    
+    def calculate_one_system(self, t2, sys, H, eUt, lab):
+        """Calculates one spectru corresponding to a specified t2 time
+        
+        """
+        
+        temporary_fix = True
+        
+        if temporary_fix:
+            # calculation via 2D spectrum
+            tcont = super().calculate_one_system(t2, sys, H, eUt, lab)
+            return tcont.get_PumpProbeSpectrum()
+
+
         

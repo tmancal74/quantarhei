@@ -1600,11 +1600,13 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum
         
         """
-        from .pumpprobe import PumpProbeSpectrumCalculator
-        from ..core.time import TimeAxis
-        fake_t = TimeAxis(0,1,1.0)
-        ppc = PumpProbeSpectrumCalculator(fake_t, fake_t, fake_t)
-        return ppc.calculate_from_2D(self)
+        #from .pumpprobe import PumpProbeSpectrumCalculator
+        from . import pumpprobe as pp
+        #from ..core.time import TimeAxis
+        #fake_t = TimeAxis(0,1,1.0)
+        #ppc = PumpProbeSpectrumCalculator(fake_t, fake_t, fake_t)
+        #return ppc.calculate_from_2D(self)
+        return pp.calculate_from_2D(self)
     
     
     def plot(self, fig=None, window=None, 

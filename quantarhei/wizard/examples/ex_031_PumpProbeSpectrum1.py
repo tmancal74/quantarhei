@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 
-    Calculation of 2D spectra with effective lineshapes 
+    Calculation of pump-probe spectra with effective lineshapes 
 
 
 """
 import copy
 import quantarhei as qr
-
+    
+from quantarhei.spectroscopy import X
 
 _show_plots_ = True
 _movie_ = True
@@ -22,21 +23,25 @@ with qr.energy_units("1/cm"):
     # two two-level molecules
     m1 = qr.Molecule([0.0, 12000.0])
     m2 = qr.Molecule([0.0, 12300.0])
+    m3 = qr.Molecule([0.0, 12600.0])
     
     # transitions will have Gaussian lineshape with a width specified here
     m1.set_transition_width((0,1), 150.0) 
     m2.set_transition_width((0,1), 150.0)
+    m3.set_transition_width((0,1), 200.0)
 
 # we create an aggregate from the two molecules
-agg = qr.Aggregate(molecules=[m1, m2])
+agg = qr.Aggregate(molecules=[m1, m2, m3])
 
 # we set transition dipole moment orientations for the two molecules
 m1.set_dipole(0,1,[1.0, 0.8, 0.8])
 m2.set_dipole(0,1,[0.8, 0.8, 0.0])
+m3.set_dipole(0,1,[0.0, 2.0, 0.0])
 
 # resonance coupling is set by hand
 with qr.energy_units("1/cm"):
     agg.set_resonance_coupling(0,1, 100.0)
+    agg.set_resonance_coupling(1,2, 50.0)
 
 # we copy the aggregate before it is built. For the calculation of 2D 
 # spectrum, we need to build the aggregate so that it contains two-exciton
@@ -62,14 +67,15 @@ with qr.energy_units("1/cm"):
 ###############################################################################
 
 # time span of the excited state evolution (later t2 time of the 2D spectrum)
-t2_axis = qr.TimeAxis(0.0, 100, 10.0)
+t2_axis = qr.TimeAxis(0.0, 300, 10.0)
 
 # Lindblad relaxation operator
 with qr.eigenbasis_of(H):
-    K = qr.qm.ProjectionOperator(1,2,dim=H.dim)
-rates = [1.0/200.0]
+    K1 = qr.qm.ProjectionOperator(1,2,dim=H.dim)
+    K2 = qr.qm.ProjectionOperator(2,3,dim=H.dim)
+rates = [1.0/500.0, 1.0/100.0]
 
-sbi = qr.qm.SystemBathInteraction(sys_operators=[K], rates=rates)
+sbi = qr.qm.SystemBathInteraction(sys_operators=[K1, K2], rates=rates)
 
 L = qr.qm.LindbladForm(H, sbi)
 
@@ -77,7 +83,8 @@ L = qr.qm.LindbladForm(H, sbi)
 eUt = qr.EvolutionSuperOperator(time=t2_axis, ham=H, relt=L)
 eUt.set_dense_dt(10)
 
-eUt.calculate()
+with qr.eigenbasis_of(H):
+    eUt.calculate()
 
 if _show_plots_:
     with qr.eigenbasis_of(H):
@@ -89,7 +96,7 @@ if _show_plots_:
     
 ###############################################################################
 #
-# 2D SPECTRUM: effective lineshape 2D spectrum
+# PUMP-PROBE SPECTRUM: effective lineshape pump-probe spectrum
 #
 ###############################################################################
 
@@ -98,15 +105,6 @@ if _show_plots_:
 t1_axis = qr.TimeAxis(0.0, 100, 10.0)
 t3_axis = qr.TimeAxis(0.0, 100, 10.0)
 
-from quantarhei.spectroscopy.mocktwodcalculator \
-    import MockTwoDSpectrumCalculator as TwoDSpectrumCalculator
-    
-from quantarhei.spectroscopy import X
-
-calc = TwoDSpectrumCalculator(t1_axis, t2_axis, t3_axis)
-with qr.energy_units("1/cm"):
-    calc.bootstrap(rwa=12100.0) #qr.convert(12100.0,"1/cm","int"))
-
 agg_2D.build(mult=2)
 agg_2D.diagonalize()
 
@@ -114,62 +112,16 @@ agg_2D.diagonalize()
 lab = qr.LabSetup()
 lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 
-tcont = calc.calculate_all_system(agg_2D, H, eUt, lab)
-
-T2 = 0.0
-twod = tcont.get_spectrum(T2)
-
-if _show_plots_:
-    plot_window = [11500,13000,11500,13000]
-    with qr.energy_units("1/cm"):
-        twod.plot(Npos_contours=10, window=plot_window,            
-                  stype="total", spart="real")
-    
-if _movie_:
-    with qr.energy_units("1/cm"):
-        tcont.make_movie("twod.mp4", window=plot_window)
-
-
-###############################################################################
 #
-# PUMP PROBE SPECRA as projections for 2D spectra
+# Given a molecular system (only Aggregate class so far), we calculate
+# 2D spectrum along the whole t2 axis in one shot
 #
-###############################################################################
-
-# pump-probe spectrum can be obtained as a projection of a 2D spectrum
-pprop = twod.get_PumpProbeSpectrum()
-
-if _show_plots_:
-    with qr.energy_units("1/cm"):
-        pprop.plot(axis=[11500, 13000, -1200.0, 0.0], vmax=100,
-                   title="Pump probe spectrum",
-                   show=True)
- 
-# Pump-probe spectra also have their container
-pcont = qr.PumpProbeSpectrumContainer(t2axis=t2_axis)
-pcont.set_spectrum(pprop, tag=T2)
-
-T2 = 300.0
-twod = tcont.get_spectrum(T2)
-pprop = twod.get_PumpProbeSpectrum()
-pcont.set_spectrum(pprop, tag=T2)
-
-# Container can be plotted (all curves in one plot)
-if _show_plots_:
-    with qr.energy_units("1/cm"):
-        pcont.plot()
+pcalc = qr.MockPumpProbeSpectrumCalculator(t1_axis, t2_axis, t3_axis)
+with qr.energy_units("1/cm"):
+    pcalc.bootstrap(rwa=12100.0)
     
-# Pump-probe spectra from 2D spectrum container
-pcont2 = tcont.get_PumpProbeSpectrumContainer()
-
-if _show_plots_:
-    with qr.energy_units("1/cm"):
-        pcont2.plot()
+pcont3 = pcalc.calculate_all_system(agg_2D, H, eUt, lab)
 
 if _movie_:
     with qr.energy_units("1/cm"):   
-        pcont2.make_movie("pprob.mp4")
-
-
-
-
+        pcont3.make_movie("pprob2.mp4")

@@ -228,6 +228,13 @@ from .spectroscopy.twodcontainer import TwoDSpectrumContainer
 from .spectroscopy.twodcalculator import TwoDSpectrumCalculator
 from .spectroscopy.mocktwodcalculator import MockTwoDSpectrumCalculator
 
+#
+# Pump-probe spectrum
+#
+from .spectroscopy.pumpprobe import PumpProbeSpectrum
+from .spectroscopy.pumpprobe import PumpProbeSpectrumContainer
+from .spectroscopy.pumpprobe import PumpProbeSpectrumCalculator
+from .spectroscopy.pumpprobe import MockPumpProbeSpectrumCalculator
 
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
@@ -262,6 +269,13 @@ from .qm import ReducedDensityMatrixPropagator
 from .qm.propagators.statevectorevolution import StateVectorEvolution
 from .qm import DensityMatrixEvolution
 from .qm import ReducedDensityMatrixEvolution
+
+#
+# Evolution operators
+#
+from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
+
+
 
 #
 # System-bath interaction
