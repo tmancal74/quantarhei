@@ -19,6 +19,7 @@ tempfile
 *.mp4
 .*.swp
 *.pkl
+*.qrp
 .ipynb_checkpoints/
 .cache
 result_images
