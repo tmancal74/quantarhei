@@ -69,7 +69,12 @@ For users:
  - Saving of TwoDSpectrum data into text files (.dat, .txt), numpy formats (.npy, .npz) and Matlab files (.mat) is enabled
  - Problem which caused Redfield and Lindblad operators not to transform to correct basis when represented by operators was fixed
  - Problem which caused Liouville pathways to be calculated with site basis evolution superoperator was fixed
+ - operator_factory class of Harmonic oscillator now fixed to return correct shift operator for complex inputs
+ - operator_factory is now available from quantarhei.models.HarmonicOscillator package
  - Some small bug fixes 
+ 
+For developers:
+ - Failing documentation compilation fixed and adjusted to new version of matplotlib
 
 New in 0.0.44
 =============
