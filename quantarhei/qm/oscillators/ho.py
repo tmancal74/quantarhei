@@ -1,8 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+    Quantarhei package (http://www.github.com/quantarhei)
+
+    ho (harmonic oscillator) module
+
+
+
+
+
+"""
 import numpy
 
 from ...core.saveable import Saveable
 from ...core.dfunction import DFunction
+from ... import COMPLEX
 
 
 class fcstorage(Saveable):
@@ -75,17 +86,99 @@ class operator_factory(Saveable):
 
         return ad
         
+
     def shift_operator(self,dd_):
         """Calculates the Shift Operator based on the size N_ of the basis
-        of states and the shift dd_."""
+        of states and the shift dd_.
+        
+        
+        The shift operator is defined as
+        
+        .. math::
+            
+            D_{\\alpha} = e^{-\\alpha \\frac{\\partial}{\\partial Q}}
+         
+        where :math:`Q` is the dimensionless coordinate of the Harmonic
+        oscillator with Hamiltonian
+         
+        .. math::
+             
+            H = \\frac{\\hbar\\omega}{2}\\left(P^2 + Q^2\\right).
+             
+        In this definition, the shift operator acts on a statevector
+        :math:`\\psi(Q)` in :math:`Q`-representation is such a way that it
+        shifts it by the value :math:`\\alpha` along the its coordinate
+        :math:`Q`, i.e.
+        
+        .. math::
+            
+            D_{\\alpha}\\psi(Q) = \\psi(Q-\\alpha).
+            
+        This definition is consistent with the definition of a shift operator
+        as defined in Wikipedia (look for shift operator). It shifts the 
+        function to the right along the coordite :math:`Q` axis (unlike in
+        the definition in Wikipedia - this seems to be more natural for 
+        physicists.)
+        
+        The dimensionless
+        coordite :math:`Q` and dimensionless momentum :math:`P` are related
+        to creation and annihilation operators as
+        
+        .. math::
+            
+            a = \\frac{1}{\\sqrt{2}}\\left(Q+iP\\right)
+            
+        .. math::    
+            a^{\\dagger} = \\frac{1}{\\sqrt{2}}\\left(Q-iP\\right)
+
+        .. math::
+            
+            Q = \\frac{1}{\\sqrt{2}}\\left(a + a^{\\dagger}\\right)
+
+        .. math::
+            
+            P = \\frac{1}{i\\sqrt{2}}\\left(a-a^{\\dagger}\\right).
+            
+        With these definitions we have 
+        
+        .. math::
+            
+            H = \\hbar\\omega\\left(a^{\\dagger}a + \\frac{1}{2}\\right)
+            
+        As we have :math:`P=-i\\frac{\\partial}{\\partial Q}`, the shift
+        operator reads as
+        
+        .. math::
+            
+            D_{\\alpha} = e^{-i\\alpha P} = e^{-\\frac{\\alpha}{\sqrt{2}}\\left(a-a^{\\dagger}\\right)}
+            
+        
+        The operator can be generalized for complex values of :math:`\\alpha`
+        to read
+        
+        .. math::
+            
+            D_{\\alpha} = e^{\\frac{1}{\sqrt{2}}\\left(\\alpha a^{\\dagger}-\\alpha^{*}a\\right)},
+            
+        where :math:`*` represents complex conjugation. This is the definition 
+        implemented in Quantarhei.
+        
+        The definition differs by the factor of :math:`\\sqrt{2}` from what
+        is usually used in literature, but for applications in molecular
+        physics, this definition seems to be more reasoble.
+            
+        
+        
+        
+        """
         
         N_ = self.N
         aa = self.anihilation_operator()
         ad = self.creation_operator()
         
         # construct the Shift Operator
-        Dd_large = numpy.zeros((N_,N_),dtype=numpy.float)
-        Dd_large = dd_*(ad-aa)/numpy.sqrt(2.0)
+        Dd_large = numpy.zeros((N_,N_),dtype=COMPLEX)
+        Dd_large = (dd_*ad-numpy.conj(dd_)*aa)/numpy.sqrt(2.0)
 
         # Diagonalize and obtain transformation matrix
         A,S = numpy.linalg.eig(Dd_large)
@@ -95,7 +188,7 @@ class operator_factory(Saveable):
         Dd_large = numpy.diag(numpy.exp(A))
     
         # Transform back and reduce to the lower number of states
-        return numpy.real(numpy.dot(S,numpy.dot(Dd_large,S1)))
+        return numpy.dot(S,numpy.dot(Dd_large,S1))
         
         
     def unity_operator(self):
