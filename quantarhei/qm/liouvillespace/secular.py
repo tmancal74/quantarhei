@@ -7,6 +7,7 @@
     -------------
 
 """
+import numpy
 
 from ...core.managers import Manager
 
@@ -80,6 +81,13 @@ class Secular:
     
     is_secular = False
     secular_basis_op = None
+    secular_time_dependent = False
+    
+    # coherence decay rates
+    secular_GG = None
+    
+    # population tranfer rates
+    secular_KK = None
 
     ###########################################################################
     #
@@ -146,7 +154,19 @@ class Secular:
                         " needs to be implemented in a class inheriting"+
                         " from Secular")
     
-    
+    def apply(self, rho):
+        """Application of the secular tensor on the statistical operator
+        
+        
+        """
+        rhoret = -self.secular_GG*rho.data
+        if self._has_rates:
+            rhoret += numpy.diagflat(numpy.einsum("ij,jj", 
+                                     self.secular_KK.data, rho.data))
+            
+        return rhoret
+        
+        
     ###########################################################################
     #
     # Private methods

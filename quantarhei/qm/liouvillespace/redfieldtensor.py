@@ -79,7 +79,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                  cutoff_time=None, as_operators=False,
                  name=""):
                      
-        #super().__init__()
         self._initialize_basis()
         
         #
