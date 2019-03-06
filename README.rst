@@ -9,7 +9,7 @@ Greek philosopher Heraclitus of Ephesus. "Panta rhei" means "Everything flows"
 or "Everything is in flux" which is quite fitting when you change Panta into
 Quanta.
 
-In "Quantarhei" the last four letter ("rhei") should be written in Greek,
+In "Quantarhei" the last four letters ("rhei") should be written in Greek,
 i.e. (using LateX convention) "\\rho \\epsilon \\iota". 
 
 ----
