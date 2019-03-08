@@ -94,7 +94,7 @@ class KTHierarchy:
      [2 2]
      [1 3]
      [0 4]]
-
+    
     """
     
     def __init__(self, ham, sbi, depth=2):
@@ -191,33 +191,54 @@ class KTHierarchy:
         
         """
         
-        if N == 2:
+        if False:
             return self._generate_indices_2_0to4(N, level)
         else:
             
             lret = []
             
-            level_prev = []
-            inilist = [0]*N          # lowest level 
-            level_prev.append(inilist)
-            lret.append(level_prev)            
-            
-            for kk in range(level):
-                last_level = kk
-                new_level_prev = []
-                for old_level in level_prev:
-                    doit = False
-                    for nn in range(N):
-                        if old_level[nn] == last_level:
-                            doit = True
-                        if doit:
+            if False:
+                level_prev = []
+                inilist = [0]*N          # lowest level 
+                level_prev.append(inilist)
+                lret.append(level_prev)            
+                
+                for kk in range(level):
+                    last_level = kk
+                    new_level_prev = []
+                    for old_level in level_prev:
+                        doit = False
+                        for nn in range(N):
+                            if old_level[nn] == last_level:
+                                doit = True
+                            if doit:
+                                nlist = old_level.copy()
+                                nlist[nn] += 1
+                                new_level_prev.append(nlist)
+                
+                    level_prev = new_level_prev
+                    lret.append(level_prev)
+            else:
+                
+                level_prev = []
+                inilist = [0]*N
+                level_prev.append(inilist)
+                lret.append(level_prev)
+                
+                for kk in range(level):
+                    last_level = kk
+                    new_level_prev = []
+                    for old_level in level_prev:
+                        for nn in range(N):
                             nlist = old_level.copy()
                             nlist[nn] += 1
-                            new_level_prev.append(nlist)
-            
-                level_prev = new_level_prev
-                lret.append(level_prev)
-            
+                            #check if it is already in
+                            if nlist not in new_level_prev:
+                                new_level_prev.append(nlist)
+                                
+                    level_prev = new_level_prev
+                    lret.append(level_prev)
+                
             return lret
             
             
@@ -484,7 +505,22 @@ class KTHierarchyPropagator:
         self.Nt = timeaxis.length
         self.dt = timeaxis.step
         self.hy = hierarchy
-        
+
+        #
+        # RWA
+        #
+        if self.hy.ham.has_rwa:
+            
+            self.RWA = self.hy.ham.rwa_indices
+            self.RWU = numpy.zeros(self.RWA.shape, dtype=self.RWA.dtype)
+            
+            HH = self.hy.ham.data
+            shape = HH.shape
+            HOmega = numpy.zeros(shape, dtype=REAL)
+            for ii in range(shape[0]):
+                HOmega[ii,ii] = self.hy.ham.rwa_energies[ii]
+                                
+            self.HOmega = HOmega        
     
     
     def propagate(self, rhoi, L=4, report_hierarchy=False,
@@ -561,7 +597,11 @@ class KTHierarchyPropagator:
 
         """
         ado3 = numpy.zeros(ado1.shape, dtype=ado1.dtype)
-        HH = self.hy.ham.data
+        
+        if self.hy.ham.has_rwa:
+            HH = self.hy.ham.data  - self.HOmega
+        else:
+            HH = self.hy.ham.data
         
         for nn in range(slevel, self.hy.hsize):
             

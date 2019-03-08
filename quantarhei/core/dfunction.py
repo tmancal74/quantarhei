@@ -573,6 +573,23 @@ class DFunction(Saveable, DataSaveable):
         return F
 
 
+    def fit_exponential(self, guess=None):
+        """Exponential fit of the function
+        
+        """
+        from scipy.optimize import curve_fit
+        
+        if guess is None:
+            # we make a guess with one exponential of 100 fs decay time
+            guess = [self.data[0], 1.0/100.0, 0.0]
+            
+        popt, pcov = curve_fit(_exp_fcion, self.axis.data, self.data, p0=guess)
+        
+        return popt
+        
+            
+
+
     def plot(self, title=None,
              title_font=None,
              axis=None,
@@ -787,3 +804,20 @@ class DFunction(Saveable, DataSaveable):
 #            axs = ValueAxis(st, N, dt)
 #
 #        self._make_me(axs, dat)
+
+
+def _exp_fcion(t, *params):
+    
+    np = len(params)
+    ret = 0.0
+    nexp = int((np - 1)/2)
+    kp = 0
+    for kk in range(nexp):
+        #print(kp, params[kp])
+        #print(kp+1,params[kp+1], t)
+        ret += params[kp]*numpy.exp(-params[kp+1]*t)
+        kp += 2
+    #print(kp, params[kp])
+    ret += params[kp]
+    
+    return ret

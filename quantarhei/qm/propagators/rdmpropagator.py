@@ -589,6 +589,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
         
+        #
+        # RWA is applied here
+        #
         if self.Hamiltonian.has_rwa:
             HH = self.Hamiltonian.data  - self.HOmega
         else:
