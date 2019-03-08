@@ -57,7 +57,7 @@ E1 = 10000.0         # in cm^-1
 E2 = 10000.0         # in cm^-1
 
 # bath parameters
-lamb = 100.0          # in cm^-1
+lamb = 50.0          # in cm^-1
 tc = 50.0            # in fs
 Temperature = 300.0  # in K
 
@@ -147,6 +147,8 @@ for J in Js:
     rhoi = qr.ReducedDensityMatrix(dim=ham.dim)
     rhon = qr.ReducedDensityMatrix(dim=ham.dim)
 
+    # FIXME: look at a truly realistic excitation
+    #if True:
     with qr.eigenbasis_of(ham):
         rhoi.data[2,2] = 0.5
         rhoi.data[1,1] = 0.5
