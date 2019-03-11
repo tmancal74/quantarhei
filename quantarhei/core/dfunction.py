@@ -620,7 +620,7 @@ class DFunction(Saveable, DataSaveable):
         
         
         def funcf(x, *p):
-            return _n_gaussians(x, N, *p)
+            return _n_gaussians(x, *p)
         
         # minimize, leastsq,
         from scipy.optimize import curve_fit            
@@ -641,7 +641,7 @@ class DFunction(Saveable, DataSaveable):
         
         # FIXME: Create a readable report
         
-        return popt, pcov
+        return popt #, pcov
             
 
 
@@ -819,7 +819,7 @@ def _gaussian(x, height, center, fwhm, offset=0.0):
                             (fwhm**2)) + offset   
 
 
-def _n_gaussians(x, N, *params):
+def _n_gaussians(x, *params):
     """Sum of N Gaussian functions plus an offset from zero
 
     Parameters
@@ -827,9 +827,6 @@ def _n_gaussians(x, N, *params):
     
     x : float
         values to calculate Gaussians function at        
-
-    N : int
-        number of Gaussians
         
     params : floats
         3*N + 1 parameters corresponding to height, center, fwhm  for each 
@@ -839,8 +836,7 @@ def _n_gaussians(x, N, *params):
     n = len(params)
     k = n//3
     
-    if (k*3 == n) and (k == N):
-        
+    if k*3 + 1 == n:       
         res = 0.0
         pp = numpy.zeros(3)
         for i in range(k):
