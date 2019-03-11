@@ -587,6 +587,85 @@ class DFunction(Saveable, DataSaveable):
         
         return popt
         
+
+    def fit_gaussian(self, N=1, guess=None, plot=False, Nsvf=251):
+        from scipy.signal import savgol_filter
+        from scipy.interpolate import UnivariateSpline
+        """Performs a Gaussian fit of the spectrum based on an initial guess
+        
+        
+        Parameters
+        ----------
+        
+        Nsvf : int
+            Length of the Savitzky-Golay filter window (odd integer)
+            
+            
+        """
+        x = self.axis.data
+        y = self.data
+        
+        if guess is None:
+            
+            raise Exception("Guess is required at this time")
+            # FIXME: create a reasonable guess
+            guess = [1.0, 11000.0, 300.0, 0.2,
+                     11800, 400, 0.2, 12500, 300]
+            
+            #
+            # Find local maxima and guess their parameters
+            #
+
+            # Fit with a given number of Gaussian functions
+            
+            if not self._splines_initialized:
+                self._set_splines()
+            
+            # get first derivative and smooth it
+            der = self._spline_r.derivative()
+            y1 = der(x)
+            y1sm = savgol_filter(y1,Nsvf,polyorder=3)
+        
+            # get second derivative and smooth it
+            y1sm_spl_der = UnivariateSpline(x,y1sm,s=0).derivative()(x)
+            y2sm = savgol_filter(y1sm_spl_der,Nsvf,polyorder=3)
+        
+            # find positions of optima by looking for zeros of y1sm
+        
+        
+            # isolate maxima by looking at the value of y2sm
+        
+
+            #plt.plot(x, der(x))
+            #plt.plot(x, y1sm)
+            plt.plot(x, y2sm)
+            plt.show()
+        
+        
+        
+        def funcf(x, *p):
+            return _n_gaussians(x, N, *p)
+        
+        # minimize, leastsq,
+        from scipy.optimize import curve_fit            
+        popt, pcov = curve_fit(funcf, x, y, p0=guess)
+        
+        if plot:
+        
+            plt.plot(x,y)
+            plt.plot(x,_n_gaussians(x, N, *popt))
+            for i in range(N):
+                a = popt[3*i]
+                print(i, a)
+                b = popt[3*i+1]
+                c = popt[3*i+2]
+                y = _gaussian(x, a, b, c)
+                plt.plot(x, y,'-r')
+            plt.show()
+        
+        # FIXME: Create a readable report
+        
+        return popt, pcov
             
 
 
@@ -717,94 +796,6 @@ class DFunction(Saveable, DataSaveable):
             
         return fname, ext
             
-#    def save_data(self, filename, ext=None):
-#        """Saves the DFunction into a file
-#
-#        """
-#        add_imag = False
-#            
-#        fname, ext = self._fname_ext(filename, ext)
-#        
-#        # now ext is there only to specify format
-#        
-#        if ext in ["npy", "dat"]:
-#            
-#            if isinstance(self.data[0], numbers.Real):
-#                ab = numpy.zeros((self.axis.length, 2))
-#            else:
-#                add_imag = True
-#                ab = numpy.zeros((self.axis.length, 3))
-#
-#            datr = numpy.real(self.data)
-#            for kk in range(self.axis.length):
-#                ab[kk,0] = self.axis.data[kk]
-#                ab[kk,1] = datr[kk]
-#
-#            if add_imag:
-#                dati = numpy.imag(self.data)
-#                for kk in range(self.axis.length):
-#                    ab[kk,2] = dati[kk]
-#
-#        else:
-#            raise Exception("Unknown format")
-#
-#        if ext == "npy":
-#
-#            numpy.save(fname, ab)
-#
-#        elif ext == "dat":
-#
-#            numpy.savetxt(fname, ab)
-#
-#
-#
-#
-#    def load_data(self, filename, axis="time", ext=None, replace=False):
-#        """Loads a DFunction from  a file
-#
-#        """
-#
-#        if not (self._is_empty or replace):
-#            raise Exception("Data already exist in this object."
-#            + " Use replace=True argument (default is replace=False")
-#        
-#        fname, ext = self._fname_ext(filename, ext)
-#        
-#        if ext == "npy":
-#
-#            ab = numpy.load(fname)
-#
-#        elif ext == "dat":
-#
-#            ab = numpy.loadtxt(fname)
-#            
-#        else:
-#            
-#            raise Exception("Unknown format")
-#            
-#        dt = ab[1,0] - ab[0,0]
-#        N = len(ab[:,0])
-#        st = ab[0,0]
-#        dat = ab[:,1]
-#        
-#        #if dt < 0:
-#        #    ab[:,0] = 1.0/ab[:,0]
-#            
-#
-#        if axis == "time":
-#
-#            axs = TimeAxis(st, N, dt)
-#
-#        elif axis == "frequency":
-#
-#            axs = FrequencyAxis(st, N, dt)
-#
-#        else:
-#
-#            axs = ValueAxis(st, N, dt)
-#
-#        self._make_me(axs, dat)
-
 
 def _exp_fcion(t, *params):
     
@@ -821,3 +812,69 @@ def _exp_fcion(t, *params):
     ret += params[kp]
     
     return ret
+
+            
+def _gaussian(x, height, center, fwhm, offset=0.0):
+    """Gaussian function with a possible offset
+    
+    
+    Parameters
+    ----------
+    
+    x : float array
+        values to calculate Gaussian function at
+        
+    height : float
+        height of the Gaussian at maximum
+        
+    center : float
+        position of maximum
+        
+    fwhm : float
+        full width at half maximum of the Gaussian function
+        
+    offset : float
+        the value at infinity; effectively an offset on the y-axis
+        
+    
+    """
+    
+    return height*numpy.exp(-(((x - center)**2)*4.0*numpy.log(2.0))/
+                            (fwhm**2)) + offset   
+
+
+def _n_gaussians(x, N, *params):
+    """Sum of N Gaussian functions plus an offset from zero
+
+    Parameters
+    ----------
+    
+    x : float
+        values to calculate Gaussians function at        
+
+    N : int
+        number of Gaussians
+        
+    params : floats
+        3*N + 1 parameters corresponding to height, center, fwhm  for each 
+        Gaussian and one value of offset
+        
+    """
+    n = len(params)
+    k = n//3
+    
+    if (k*3 == n) and (k == N):
+        
+        res = 0.0
+        pp = numpy.zeros(3)
+        for i in range(k):
+            pp[0:3] = params[3*i:3*i+3]
+            #pp[3] = 0.0
+            arg = tuple(pp)
+            res += _gaussian(x, *arg)
+        res += params[n-1] # last parameter is an offset
+        return res
+            
+    else:
+        raise Exception("Inconsistend number of parameters")        
+
