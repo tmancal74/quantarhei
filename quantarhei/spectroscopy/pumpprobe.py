@@ -40,6 +40,21 @@ class PumpProbeSpectrum(DFunction):
         return self
 
 
+    def set_t2(self, t2):
+        """Sets the t2 (waiting time) of the spectrum
+        
+        
+        """
+        self.t2 = t2
+
+
+    def get_t2(self):
+        """Returns the t2 (waiting time) of the spectrum
+        
+        """
+        return self.t2
+
+
 #    def plot(self, fig=None, axis=None, title=None, text=None, label=None,
 #             xlabel=None,
 #             ylabel=None, label_font=None, text_font=None,
@@ -219,8 +234,9 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                 self._printProgressBar(0, l, prefix = 'Progress:',
                                        suffix = 'Complete', length = 50)
             for sp in self.get_spectra(start=start, end=end):
-                sp.plot(fig=fig, axis=axis, vmax=mx, vmin=mn,
-                        label="T="+str(sp.get_t2())+"fs")
+                # FIXME: this does not work as it should yet
+                sp.plot(show=False) #fig=fig, axis=axis, vmax=mx, vmin=mn,
+                          #label="T="+str(sp.get_t2())+"fs")
                 writer.grab_frame()
                 if progressbar:
                     self._printProgressBar(k + 1, l, prefix = 'Progress:',
