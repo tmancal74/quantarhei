@@ -156,7 +156,7 @@ def test_gaussian(x, f, inpar, fitpar):
     y = ref_ngauss(x, inpar)
     if _show_plots_:
         plt.plot(x, y, "-r")
-        f.plot(show=False)
+        f.plot(color="-k", show=False)
         plt.plot(x, ref_ngauss(x, fitpar), "--g")
         plt.show()
 

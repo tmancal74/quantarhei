@@ -672,7 +672,7 @@ class DFunction(Saveable, DataSaveable):
         """
         
         if color is not None:
-            if len(color) == 1:
+            if (len(color) == 1) or isinstance(color, str):
                 clr = [color, color]
             else:
                 clr = [color[0], color[1]]
