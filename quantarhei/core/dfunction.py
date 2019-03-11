@@ -115,7 +115,6 @@ from .time import TimeAxis
 from .frequency import FrequencyAxis
 from .saveable import Saveable
 from .datasaveable import DataSaveable
-from .managers import Manager
 from .. import REAL
 
 
@@ -231,29 +230,6 @@ class DFunction(Saveable, DataSaveable):
             else: 
                 raise Exception("On addition, axis objects have to be"
                                 +" identical")
-            
-    def _before_save(self):
-        """Performs some clean-up before saving to file
-        
-        The clean-up consists of setting spline initialization to False,
-        because Saveable cannot save functions associated with spline
-        approximation of the DFunction.
-        
-        Reimplements the same method from Saveable
-        
-        """
-        
-        self._S__state = self._splines_initialized
-        self._splines_initialized = False
-        self.manager = None
-        
-    def _after_save(self):
-        
-        self._splines_initialized = self._S__state
-        self.manager = Manager()
-        
-    def _after_load(self):
-        self.manager = Manager()
 
     
     def change_axis(self, axis):
