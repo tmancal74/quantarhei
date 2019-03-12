@@ -84,6 +84,7 @@ pip = 'pip'
 python = 'python'
 deldir = 'rmdir /s /q '
 delfile = 'del /s /q '
+repository = 'https://github.com/tmancal74/quantarhei'
 
 @task
 def sdist():
@@ -163,7 +164,51 @@ def plot_tests():
 def update_examples():
 	sh('cd examples; python admin/make_demos.py')
 
-    
+@task
+def tasks():
+	print("")
+	print("Quantarhei Paver Tasks")
+	print("======================")
+	print("")
+	print("Essential tasks: ")
+	print("----------------")
+	print("inst        ... install quantarhei from this source code")
+	print("reinst      ... uninstall and install from this source code")
+	print("local_tests ... uninstall, install and run tests")
+	print("plot_tests  ... run tests of plotting")
+	print("test        ... run tests")
+	print("sdist       ... create distribution")
+	print("clean       ... clean the repository")
+	print("examples    ... updates examples")
+	print("")
+	print("Git tasks: ")
+	print("----------")
+	print("git_add_upstream, git_update_master")
+	print("")
+
+############################################
+#  Helper tasks for managing pull-requests
+############################################
+
+#
+# update from master branch of the quantarhei's main repository
+#
+@task
+def git_update_master():
+	sh('git fetch upstream')
+	sh('git checkout master')
+	sh('git merge upstream/master')
+
+
+#
+# connect a forked local repository to the main quantarhei repository	
+#
+@task
+def git_add_upstream():
+	sh('git remote add upstream '+repository)
+
+
+
 ###############################################################################
 # 
 #     Graphical output testing
