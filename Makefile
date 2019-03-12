@@ -25,17 +25,17 @@ REPOSITORY=https://github.com/tmancal74/quantarhei
 all:
 
 ###########################
-# Quantarhei installation #
+# Quantarhei installation #  PAVER
 ###########################
 install: inst
 
-
+# PAVER
 inst: sdist
 	${PIP} install `ls dist/quantarhei-${VERSION}*`
 
 
 ################
-# Distribution #
+# Distribution #   PAVER
 ################
 sdist:
 	${PYTHON} setup.py sdist

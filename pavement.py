@@ -79,7 +79,91 @@ from paver.tasks import task
 from paver.tasks import needs
 from paver.easy import sh
 
+version = "0.0.45"
+pip = 'pip'
+python = 'python'
+deldir = 'rmdir /s /q '
+delfile = 'del /s /q '
 
+@task
+def sdist():
+    sh(python+" setup.py sdist")
+
+@needs('sdist')
+@task
+def inst():
+    
+    sh(pip+' install dist/quantarhei-'+version+'.tar.gz')
+    
+@needs('inst')
+@task
+def install():
+    pass
+
+
+@needs('uninst')
+@task
+def uninstall():
+    pass
+
+@task
+def uninst():
+	sh(pip+' uninstall -y quantarhei')
+    
+##################
+# Upload to pypi #
+##################
+@needs('sdist')
+@task
+def upload():
+	sh('twine upload dist/quantarhei-'+version+'.tar.gz')
+
+
+############
+# Clean-up #
+############
+@task
+def clean():
+	sh(deldir+'dist')
+	sh(delfile+'quantarhei.egg-info')
+	sh(delfile+'result_images')
+	sh(delfile+'qrconf.py quantarhei/qrconf.py')
+	sh(delfile+'coverage.xml')
+
+
+################################
+# Reinstallation with clean-up #
+################################
+@needs('clean','uninst', 'inst')
+@task
+def reinst():
+    pass
+
+#############################################################
+# Local tests: this will reinstall Quantarhei and run tests #
+#############################################################
+@needs('reinst')
+@task
+def local_tests():
+	sh('paver')
+
+
+####################
+# Test of plotting #
+####################
+@needs('matplotlib_tests')
+@task
+def plot_tests(): 
+	pass 
+
+####################
+# Update examples  #
+####################
+@task
+def update_examples():
+	sh('cd examples; python admin/make_demos.py')
+
+    
 ###############################################################################
 # 
 #     Graphical output testing
@@ -306,7 +390,7 @@ def aloe_tests_cov_v():
 ###############################################################################
 @task
 def behave():
-    sh("cd tests/behave/features; coverage run $(which behave)")
+    sh("cd tests/behave/features","coverage run behave") # $(which behave)")
 
 
 ###############################################################################
@@ -479,12 +563,27 @@ def codecov():
 #
 # This is called when paver is run without any task
 #
+#@needs('unit_tests_cov_v',
+#       'doc_tests_cov_v',
+#       'aloe_tests_cov_v',
+#       'behave')
+@needs('test')
+@task
+def default():
+    """Default paver task
+    
+    """
+    pass
+
+#
+# This is called when paver is run without any task
+#
 @needs('unit_tests_cov_v',
        'doc_tests_cov_v',
        'aloe_tests_cov_v',
        'behave')
 @task
-def default():
+def test():
     """Default paver task
     
     """
