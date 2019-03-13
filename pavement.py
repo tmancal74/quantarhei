@@ -186,11 +186,26 @@ def upload():
 ############
 @task
 def clean():
-	sh(deldir+'dist')
-	sh(delfile+'quantarhei.egg-info')
-	sh(delfile+'result_images')
-	sh(delfile+'qrconf.py quantarhei/qrconf.py')
-	sh(delfile+'coverage.xml')
+    try:
+        sh(deldir+'dist')
+    except:
+        print("Directory not present - no problem")
+    try:    
+        sh(delfile+'quantarhei.egg-info')
+    except:
+        print("File not present - no problem")
+    try:
+        sh(deldir+'result_images')
+    except:
+        print("Directory not present - no problem")
+    try:
+        sh(delfile+'qrconf.py quantarhei/qrconf.py')
+    except:
+        print("File not present - no problem")
+    try:        
+        sh(delfile+'coverage.xml')
+    except:
+        print("File not present - no problem")
 
 
 ################################
