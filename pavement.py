@@ -75,17 +75,78 @@
     
 
 """
+import contextlib
+import os
+import subprocess
+import platform
+
+
 from paver.tasks import task
 from paver.tasks import needs
 from paver.easy import sh
 
+
 version = "0.0.45"
+
+sys_name = platform.system()
+
+
+
 pip = 'pip'
 python = 'python'
-deldir = 'rmdir /s /q '
-delfile = 'del /s /q '
+
+# 
+# Commands for deleting files and directories silently and without error codes
+#
+if sys_name == "Darwin" or sys_name == "Linux":
+    deldir = 'rm -r -f '
+    delfile = 'rm -r -f '
+elif sys_name == "Windows":
+    deldir = 'rmdir /s /q '
+    delfile = 'del /s /q '
+else:
+    raise Exception("Unknown system")
+
+#
+# The Mother of all repositories
+#
 repository = 'https://github.com/tmancal74/quantarhei'
 
+
+#
+# look for location of `behave`
+#
+p = subprocess.Popen('which behave', shell=True,
+                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+ii = 0
+for line in p.stdout.readlines():
+    behave_bin = str(line.decode())
+    ii += 1
+if ii != 1:
+    raise Exception("Don't know where `behave` is")
+
+#
+# Context manager for getting into subdirectories
+#
+@contextlib.contextmanager
+def cd(path):
+   old_path = os.getcwd()
+   os.chdir(path)
+   try:
+       yield
+   finally:
+       os.chdir(old_path)
+       
+def rm_rf(path):
+    """Removal of files and directories, recursively and silently
+    
+    """
+    pass
+    
+#
+# Standard developer tasks
+#
+       
 @task
 def sdist():
     sh(python+" setup.py sdist")
@@ -435,7 +496,8 @@ def aloe_tests_cov_v():
 ###############################################################################
 @task
 def behave():
-    sh("cd tests/behave/features","coverage run behave") # $(which behave)")
+    with cd(os.path.join('tests', 'behave', 'features')):
+        sh("coverage run "+behave_bin) # $(which behave)")
 
 
 ###############################################################################
