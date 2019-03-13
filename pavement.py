@@ -116,14 +116,18 @@ repository = 'https://github.com/tmancal74/quantarhei'
 #
 # look for location of `behave`
 #
-p = subprocess.Popen('which behave', shell=True,
-                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-ii = 0
-for line in p.stdout.readlines():
-    behave_bin = str(line.decode())
-    ii += 1
-if ii != 1:
-    raise Exception("Don't know where `behave` is")
+if sys_name != "Windows":
+    p = subprocess.Popen('which behave', shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    ii = 0
+    for line in p.stdout.readlines():
+        behave_bin = str(line.decode())
+        ii += 1
+    if ii != 1:
+        raise Exception("Don't know where `behave` is")
+else:
+    behave_bin = "behave"
+    
 
 #
 # Context manager for getting into subdirectories
