@@ -55,97 +55,6 @@ class PumpProbeSpectrum(DFunction):
         return self.t2
 
 
-#    def plot(self, fig=None, axis=None, title=None, text=None, label=None,
-#             xlabel=None,
-#             ylabel=None, label_font=None, text_font=None,
-#             text_loc=[0.05,0.1], fontsize="20",
-#             vmax=None, vmin=None, color=None, show=False):
-#        """Plots 2D spectrum
-#        
-#        
-#        """
-#        if axis is not None:
-#            axs = list(axis)
-#            
-#            if len(axs) == 2:
-#                axs.append(numpy.amin(self.data))
-#                axs.append(numpy.amax(self.data))
-#                
-#            if len(axs) != 4:
-#                raise Exception("Wrong axis specification")
-#        else:
-#            axs = [self.xaxis.min, self.xaxis.max,
-#                   numpy.amin(self.data),numpy.amax(self.data)]
-#            
-#        if fig is None:
-#            fig, ax = plt.subplots(1,1)
-#        else:
-#            fig.clear()
-#            fig.add_subplot(1,1,1)
-#            ax = fig.axes[0]
-#            
-#        if color is not None:
-#            plt.plot(self.xaxis.data,self.data, color)
-#        else:
-#            plt.plot(self.xaxis.data,self.data)
-#
-#        if vmax is not None:
-#            axs[3] = vmax
-#            
-#        if vmin is not None:
-#            axs[2] = vmin
-#            
-#        if axs is not None:
-#            plt.axis(axs)
-#
-#        if title is not None:
-#            plt.title(title)
-#
-#        if text is not None:
-#            if text_font is not None:
-#                plt.text(text[0],text[1],
-#                     text[2], fontdict=text_font)
-#            else:
-#                plt.text(text[0], text[1], text[2])
-#
-#        if label_font is not None:
-#            font = label_font
-#        else:
-#            font={'size':20}        
-#
-#        #
-#        # Label
-#        #
-#        levo = axs[0]
-#        prvo = axs[1]
-#        dole = axs[2]
-#        hore = axs[3]
-#        pos = text_loc
-#        if label is not None:
-#            label = label    
-#            ax.text((prvo-levo)*pos[0]+levo,
-#                (hore-dole)*pos[1]+dole,
-#                label,
-#                fontsize=str(fontsize))
-#
-#        if xlabel is None:
-#            xl = ""
-#        if ylabel is None:
-#            yl = ""    
-#
-#        if xlabel is not None:
-#            xl = xlabel
-#        if ylabel is not None:
-#            yl = ylabel
-#
-#        if xl is not None:
-#            plt.xlabel(xl, **font)
-#        if xl is not None:
-#            plt.ylabel(yl, **font)
-#
-#        if show:
-#            plt.show()
-
 
 class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
     """Container for a set of pump-probe spectra
@@ -235,8 +144,9 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                                        suffix = 'Complete', length = 50)
             for sp in self.get_spectra(start=start, end=end):
                 # FIXME: this does not work as it should yet
-                sp.plot(show=False) #fig=fig, axis=axis, vmax=mx, vmin=mn,
-                          #label="T="+str(sp.get_t2())+"fs")
+                sp.plot(show=False, fig=fig, axis=axis,
+                        label="T="+str(sp.get_t2())+"fs") #, vmax=mx, vmin=mn,
+                          #)
                 writer.grab_frame()
                 if progressbar:
                     self._printProgressBar(k + 1, l, prefix = 'Progress:',

@@ -124,4 +124,4 @@ pcont3 = pcalc.calculate_all_system(agg_2D, H, eUt, lab)
 
 if _movie_:
     with qr.energy_units("1/cm"):   
-        pcont3.make_movie("pprob2.mp4")
+        pcont3.make_movie("pprob2.mp4") #, axis=[10500, 13500, -600, 100])

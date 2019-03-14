@@ -645,14 +645,19 @@ class DFunction(Saveable, DataSaveable):
             
 
 
-    def plot(self, title=None,
+    def plot(self, fig=None, title=None,
              title_font=None,
              axis=None,
+             vmax=None,
+             vmin=None,
              xlabel=None,
              ylabel=None,
              label_font=None,
              text=None,
              text_font=None,
+             label = None,
+             text_loc=[0.05,0.9],
+             fontsize="20",
              real_only=True,
              show=True,
              color=None, filename="ahoj.png"):
@@ -670,7 +675,46 @@ class DFunction(Saveable, DataSaveable):
             
 
         """
+        #
+        #  How to treat the figures
+        #
+        if fig is None:
+            fig, ax = plt.subplots(1,1)
+        else:
+            fig.clear()
+            fig.add_subplot(1,1,1)
+            ax = fig.axes[0]
+
+        if axis is None:
+            if vmax is None:
+                hore = numpy.amax(numpy.real(self.data))
+            else:
+                hore = vmax
+            if vmin is None:
+                dole = numpy.amin(numpy.real(self.data))
+            else:
+                dole = vmin
+
+            levo = self.axis.min
+            prvo = self.axis.max
+
+        else:
+            levo = axis[0]
+            prvo = axis[1]
+            dole = axis[2]
+            hore = axis[3]
         
+        #
+        # Label
+        #
+        pos = text_loc
+        if label is not None:
+            label = label    
+            ax.text((prvo-levo)*pos[0]+levo,
+                (hore-dole)*pos[1]+dole,
+                label,
+                fontsize=str(fontsize))
+            
         if color is not None:
             if (len(color) == 1) or isinstance(color, str):
                 clr = [color, color]
