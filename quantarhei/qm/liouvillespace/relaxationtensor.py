@@ -3,12 +3,13 @@
 import numpy
 
 from .superoperator import SuperOperator
-#from ...core.managers import BasisManaged
-#from ...utils.types import BasisManagedComplexArray
+from .secular import Secular
 
-class RelaxationTensor(SuperOperator): #BasisManaged):
-
-    #data = BasisManagedComplexArray("data")
+class RelaxationTensor(SuperOperator, Secular):
+    """Basic class representing a relaxation tensor
+    
+    
+    """
     
     def __init__(self):
         
@@ -17,7 +18,8 @@ class RelaxationTensor(SuperOperator): #BasisManaged):
         self._data_initialized = False
         self.name = ""
         self.as_operators = False
-        
+
+ 
     def _initialize_basis(self):
 
         # Set the currently used basis
@@ -25,36 +27,84 @@ class RelaxationTensor(SuperOperator): #BasisManaged):
         self.set_current_basis(cb)
         # unless it is the basis outside any context
         if cb != 0:
-            self.manager.register_with_basis(cb,self)        
+            self.manager.register_with_basis(cb, self)        
 
-    def secularize(self):
+
+
+    def secularize(self, legacy=True):
         """Secularizes the relaxation tensor
 
 
         """
-        if self.as_operators:
-            self.convert_2_tensor()
-            #raise Exception("Cannot be secularized in the operator form")
+        
+        if legacy:
             
-        if True:
-            if self.data.ndim == 4:
-                N = self.data.shape[0]
-                for ii in range(N):
-                    for jj in range(N):
-                        for kk in range(N):
-                            for ll in range(N):
-                                if not (((ii == jj) and (kk == ll)) 
-                                    or ((ii == kk) and (jj == ll))) :
-                                        self.data[ii,jj,kk,ll] = 0
-            else:  
-                N = self.data.shape[1]
-                for ii in range(N):
-                    for jj in range(N):
-                        for kk in range(N):
-                            for ll in range(N):
-                                if not (((ii == jj) and (kk == ll)) 
-                                    or ((ii == kk) and (jj == ll))) :
-                                        self.data[:,ii,jj,kk,ll] = 0                                        
+            if self.as_operators:
+                self.convert_2_tensor()
+                #raise Exception("Cannot be secularized in the operator form")
+                
+            if True:
+                if self.data.ndim == 4:
+                    N = self.data.shape[0]
+                    for ii in range(N):
+                        for jj in range(N):
+                            for kk in range(N):
+                                for ll in range(N):
+                                    if not (((ii == jj) and (kk == ll)) 
+                                        or ((ii == kk) and (jj == ll))) :
+                                            self.data[ii,jj,kk,ll] = 0
+                else:  
+                    N = self.data.shape[1]
+                    for ii in range(N):
+                        for jj in range(N):
+                            for kk in range(N):
+                                for ll in range(N):
+                                    if not (((ii == jj) and (kk == ll)) 
+                                        or ((ii == kk) and (jj == ll))) :
+                                            self.data[:,ii,jj,kk,ll] = 0
+                                            
+        else:
+            
+            super().secularize()
+
+
+    def _set_population_rates_from_operators(self):
+        raise Exception("Method _set_population_rates_from_operators()"+
+                        " needs to be implemented in a class inheriting"+
+                        " from Secular")
+
+
+    def _set_population_rates_from_tensor(self):
+        """ 
+        
+        """
+        if self.data.ndim == 4:            
+            self.secular_KK = numpy.einsum("iijj->ij", self.data)
+        else:      
+            self.secular_KK = numpy.einsum("hiijj->hij", self.data)            
+
+
+    def _set_dephasing_rates_from_operators(self):
+        raise Exception("Method _set_dephasing_rates_from_operators()"+
+                        " needs to be implemented in a class inheriting"+
+                        " from Secular")
+
+
+    def _set_dephasing_rates_from_tensor(self):
+        """
+        
+        """
+        if self.data.ndim == 4:
+            N = self.data.shape[0]
+            
+            self.secular_GG = numpy.einsum("ijij->ij", self.data)
+            for ii in range(N):
+                self.secular_GG[ii,ii] = 0.0
+        else:
+            N = self.data.shape[1]
+            self.secular_GG = numpy.einsum("hijij->hij", self.data)            
+            for ii in range(N):
+                self.secular_GG[:,ii,ii] = 0.0
 
                                
     def transform(self, SS, inv=None):
@@ -74,26 +124,7 @@ class RelaxationTensor(SuperOperator): #BasisManaged):
             inverse of the transformation matrix
             
         """        
-        
 
-        if not self._data_initialized:
-            
-            if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operators of relaxation"+
-                      " tensor '%s' changes basis" %self.name)
-        
-            if inv is None:
-                S1 = numpy.linalg.inv(SS)
-            else:
-                S1 = inv
-
-            for m in range(self.Lm.shape[0]):
-                self.Lm[m,:,:] = numpy.dot(S1,numpy.dot(self.Lm[m,:,:], SS))  
-                self.Ld[m,:,:] = numpy.dot(S1,numpy.dot(self.Ld[m,:,:], SS))
-                self.Km[m,:,:] = numpy.dot(S1,numpy.dot(self.Km[m,:,:], SS))
-            
-            return
-        
         if (self.manager.warn_about_basis_change):
                 print("\nQr >>> Relaxation tensor '%s' changes basis"
                       %self.name)
@@ -188,7 +219,8 @@ class RelaxationTensor(SuperOperator): #BasisManaged):
             
         self._data = self._data*scalar
         return self
-        
+
+    
     def __rmult__(self, scalar):
         return self.__mult__(scalar)
     
@@ -197,11 +229,62 @@ class RelaxationTensor(SuperOperator): #BasisManaged):
         self._data += other._data
         return self
 
+
     def __iadd__(self, other):
         return self.__add__(other)
     
     
+    def _rhs(self, rho):
+        """Applies the tensor to a given matrix
+        
+        """
+        
+        if self.as_operators:
+            
+            return self._rhs_as_operators(rho)
+        
+        else:
+            
+            return self._rhs_as_tensor(rho)
         
         
+    def _rhs_as_operators(self, rho):
+        """Applies the tensor in form of a set of operators to a given matrix
+        
+        Parameters
+        ----------
+        
+        rho : complex or real array
+            Array representing density matrix
+        
+        
+        Returns
+        -------
+        
+        Complex array
+        
+        
+        """
+        pass
+    
+
+    def _rhs_as_tensor(self, rho):
+        """Applies the tensor to a given matrix
+        
+        Parameters
+        ----------
+        
+        rho : complex or real array
+            Array representing density matrix
+        
+        
+        Returns
+        -------
+        
+        Complex array
+        
+        
+        """
+        return numpy.tensordot(self.data, rho)
         
         

@@ -48,7 +48,16 @@ class TestSystemBathInteraction(SystemBathInteraction):
             
             # copy it into the newly created object
             self.__dict__ = agg.sbi.__dict__.copy()
-        
+
+        elif name == "trimer-2-env":
+            # we get SBI from here
+            agg = TestAggregate(name=name)
+            agg.build()
+    
+            super().__init__()
+            
+            # copy it into the newly created object
+            self.__dict__ = agg.sbi.__dict__.copy()        
 
         elif name == "dimer-2-lind":
             agg = TestAggregate(name="dimer-2")
@@ -82,7 +91,21 @@ class TestSystemBathInteraction(SystemBathInteraction):
             rates = [1.0/100.0, 1.0/200, 1.0/100.0, 
                      1.0/300.0, 1.0/200, 1.0/500.0]
             
-            super().__init__(sys_operators=sys_ops, rates=rates)        
+            super().__init__(sys_operators=sys_ops, rates=rates)
+            
+        elif name == "dimer-2-lorentz":
+            
+            N = agg.get_Hamiltonian().dim
+            
+            P1 = ProjectionOperator(1, 2, dim=N)
+            P2 = ProjectionOperator(2, 1, dim=N)
+            
+            sys_ops = [P1, P2]
+            rates = [1.0/100.0, 1.0/200]
+            ctimes = []
+            
+            super().__init__(sys_operators=sys_ops, rates=rates)            
+            
 
         
             

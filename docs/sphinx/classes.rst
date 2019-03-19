@@ -44,6 +44,7 @@ Quantum Mechanics
    :maxdepth: 2   
 
    classes/statevector
+   classes/qm/ho
 
 Quantum Mechanics of Open Systems
 ---------------------------------

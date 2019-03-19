@@ -228,6 +228,13 @@ from .spectroscopy.twodcontainer import TwoDSpectrumContainer
 from .spectroscopy.twodcalculator import TwoDSpectrumCalculator
 from .spectroscopy.mocktwodcalculator import MockTwoDSpectrumCalculator
 
+#
+# Pump-probe spectrum
+#
+from .spectroscopy.pumpprobe import PumpProbeSpectrum
+from .spectroscopy.pumpprobe import PumpProbeSpectrumContainer
+from .spectroscopy.pumpprobe import PumpProbeSpectrumCalculator
+from .spectroscopy.pumpprobe import MockPumpProbeSpectrumCalculator
 
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
@@ -247,6 +254,7 @@ from .qm import ReducedDensityMatrix
 from .qm import BasisReferenceOperator
 from .qm import Hamiltonian
 from .qm import TransitionDipoleMoment
+from .qm import UnityOperator
 
 #
 # Propagators
@@ -263,12 +271,20 @@ from .qm import DensityMatrixEvolution
 from .qm import ReducedDensityMatrixEvolution
 
 #
+# Evolution operators
+#
+from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
+
+
+
+#
 # System-bath interaction
 #
 from .qm.corfunctions import CorrelationFunction
 from .qm.corfunctions import SpectralDensity
 
-
+from .qm.liouvillespace.heom import KTHierarchy
+from .qm.liouvillespace.heom import KTHierarchyPropagator
 
 ###############################################################################
 # Convenience functions

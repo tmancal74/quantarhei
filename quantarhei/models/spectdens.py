@@ -70,6 +70,7 @@ class DataDefinedEntry(DatabaseEntry):
         # try to get data defined in get_data method
         #
         data = self.get_data()
+        
         if data is not None:
             self._rawdata = self.get_data()
             length = len(self._rawdata)
@@ -160,7 +161,10 @@ class SpectralDensityDB:
 
             # find all present classes
             for name, obj in inspect.getmembers(wen):
-                if inspect.isclass(obj):
+                
+                if (inspect.isclass(obj) and
+                    (not ((name == "DataDefinedEntry")
+                    or (name == "DatabaseEntry")))):
                     
                     # get the class
                     cls = getattr(wen, name)

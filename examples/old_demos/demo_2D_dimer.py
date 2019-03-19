@@ -18,9 +18,11 @@ from quantarhei import energy_units
 from quantarhei import TimeAxis
 from quantarhei import CorrelationFunction
 
-from quantarhei.spectroscopy.twod2 import TwoDSpectrumCalculator
-from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
-from quantarhei.spectroscopy.twod2 import TwoDSpectrum
+#from quantarhei.spectroscopy.twod2 import TwoDSpectrumCalculator
+#from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
+#from quantarhei.spectroscopy.twod2 import TwoDSpectrum
+
+import quantarhei as qr
 
 from aceto.lab_settings import lab_settings
 
@@ -106,7 +108,7 @@ t2s = TimeAxis(0.0, 5, 20.0)
 #
 # Set up calculator
 #
-tcalc = TwoDSpectrumCalculator(t1axis=ta, t2axis=t2s, t3axis=ta,
+tcalc = qr.TwoDSpectrumCalculator(t1axis=ta, t2axis=t2s, t3axis=ta,
                                system=agg)
 
 tcalc.bootstrap(rwa, verbose=True, lab=lab)
@@ -130,7 +132,7 @@ t_start = time.time()
 with energy_units("1/cm"):
     
     k = 0
-    twods = TwoDSpectrumContainer(t2s)
+    twods = qr.TwoDSpectrumContainer(t2s)
     
     for tt2 in t2s.data:
         

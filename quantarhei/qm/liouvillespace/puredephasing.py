@@ -15,6 +15,7 @@
 import numpy
 
 from ...builders.aggregates import Aggregate
+from ...core.managers import eigenbasis_of
 from ... import REAL
 
 class PureDephasing: #(BasisManaged):
@@ -54,13 +55,14 @@ class ElectronicPureDephasing(PureDephasing):
         if self.system_is_aggregate:
             
             Nstates = self.system.Ntot
-            Nel = self.system.number_of_electronic_states_in_band(1)+1 #self.system.Nb[1]+1
+            Nel = self.system.number_of_electronic_states_in_band(1)+1 
             self.data = numpy.zeros((Nstates, Nstates), dtype=REAL)
             
             widths = numpy.zeros(Nel, dtype=REAL)
             for ii in range(Nel):
                 if ii > 0:
-                    widths[ii] = self.system.monomers[ii-1].get_transition_width((0,1))
+                    widths[ii] = self.system.monomers[ii
+                                      -1].get_transition_width((0,1))
                 
             self.system.diagonalize()
             
@@ -71,3 +73,19 @@ class ElectronicPureDephasing(PureDephasing):
                     for ii in range(Nel):
                         self.data[aa,bb] += \
                         widths[ii]*(Xi[aa,ii]**2 - Xi[bb,ii]**2)**2
+
+            
+    def eigenbasis(self):
+        """Returns the context for the eigenbasis in which pure dephasing is defined
+        
+        
+        To be used as
+        
+        pd = PureDephasing(sys)
+        with pd.eigenbasis:
+            ...
+        
+        """
+        ham = self.system.get_Hamiltonian()
+        return eigenbasis_of(ham)
+            

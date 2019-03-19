@@ -26,7 +26,7 @@ from quantarhei import Hamiltonian
 from quantarhei import energy_units
 from quantarhei import TimeAxis
 
-from quantarhei import eigenbasis_of
+from quantarhei import eigenbasis_of, Manager
 
 
 class TestLindblad(unittest.TestCase):
@@ -176,6 +176,67 @@ class TestLindblad(unittest.TestCase):
         
         numpy.testing.assert_allclose(rhot1.data,rhot2.data) #, rtol=1.0e-2) 
 
+
+    def test_propagation_in_different_basis(self):
+        """(LINDBLAD) Testing comparison of propagations in different bases
+
+        """
+
+        LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
+        LT2 = LindbladForm(self.H1, self.sbi1, as_operators=False)
+        
+        time = TimeAxis(0.0, 1000, 1.0)
+        
+        prop1 = ReducedDensityMatrixPropagator(time, self.H1, LT1)
+        prop2 = ReducedDensityMatrixPropagator(time, self.H1, LT2)
+        
+        rho0 = ReducedDensityMatrix(dim=self.H1.dim)
+        rho0.data[1,1] = 1.0
+          
+        with eigenbasis_of(self.H1):
+            rhot1_e = prop1.propagate(rho0)
+            
+        with eigenbasis_of(self.H1):
+            rhot2_e = prop2.propagate(rho0)
+
+        rhot1_l = prop1.propagate(rho0)
+        rhot2_l = prop2.propagate(rho0)
+            
+        numpy.testing.assert_allclose(rhot1_l.data, rhot1_e.data)
+        numpy.testing.assert_allclose(rhot2_l.data, rhot2_e.data)
+        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data) #, rtol=1.0e-2) 
+        
+    
+    def test_transformation_in_different_basis(self):
+        """(LINDBLAD) Testing transformations into different bases
+
+        """
+        #Manager().warn_about_basis_change = True
+        #Manager().warn_about_basis_changing_objects = True
+        
+        LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True, name="LT1")
+        LT2 = LindbladForm(self.H1, self.sbi1, as_operators=False, name="LT2")
+
+        rho0 = ReducedDensityMatrix(dim=self.H1.dim, name="ahoj")
+        with eigenbasis_of(self.H1):
+            rho0.data[1,1] = 0.7
+            rho0.data[0,0] = 0.3
+                
+          
+        with eigenbasis_of(self.H1):
+            rhot1_e = LT1.apply(rho0, copy=True)
+            
+        with eigenbasis_of(self.H1):
+            rhot2_e = LT2.apply(rho0, copy=True)
+
+        rhot1_l = LT1.apply(rho0, copy=True)
+        rhot2_l = LT2.apply(rho0, copy=True)
+            
+        numpy.testing.assert_allclose(rhot1_l.data, rhot1_e.data)
+        numpy.testing.assert_allclose(rhot2_l.data, rhot2_e.data)
+        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data) #, rtol=1.0e-2) 
+
+    
 
     def test_comparison_of_exciton_dynamics(self):
         """Testing exciton basis dynamics by Lindblad
@@ -425,14 +486,14 @@ class TestElectronicLindblad(unittest.TestCase):
         aver_vrhot0 = agg.trace_over_vibrations(vrho0) 
                 
         # Test
-        numpy.testing.assert_array_equal(rhot._data[0,:,:], rho0._data)
-        numpy.testing.assert_array_equal(rhot._data[0,:,:], aver_vrhot0._data)
+        numpy.testing.assert_allclose(rhot._data[0,:,:], rho0._data)
+        numpy.testing.assert_allclose(rhot._data[0,:,:], aver_vrhot0._data)
         
         aver_vrhot10 = agg.trace_over_vibrations(vrhot, 10)
-        numpy.testing.assert_array_equal(rhot._data[10,:,:], 
+        numpy.testing.assert_allclose(rhot._data[10,:,:], 
                                          aver_vrhot10._data)        
      
         aver_vrhot800 = agg.trace_over_vibrations(vrhot, 800)
-        numpy.testing.assert_array_equal(rhot._data[800,:,:], 
+        numpy.testing.assert_allclose(rhot._data[800,:,:], 
                                          aver_vrhot800._data)        
         

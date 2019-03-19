@@ -210,6 +210,8 @@ class CorrelationFunctionMatrix(Saveable):
         #FIXME: should this should use _A2  ????
         return self.lambdas[self.cpointer[n,m]]
 
+    def get_correlation_time(self,n,m):
+        return self.get_correlation_function(n,m).params[0]["cortime"]
 
     def get_reorganization_energy4(self,a,b,c,d):
         """Returns reorganization energy in the transformed basis

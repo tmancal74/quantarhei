@@ -3,11 +3,14 @@
 import numpy
 
 from .twodcalculator import TwoDSpectrumCalculator
+from .twodcontainer import TwoDSpectrumContainer
 from .twod2 import TwoDSpectrum
 from ..core.units import convert
 from .. import COMPLEX
 from .lineshapes import gaussian2D
 from .lineshapes import lorentzian2D
+from ..core.managers import Manager
+from ..core.managers import energy_units
 
 class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
     """Calculator of the 2D spectrum from LiouvillePathway objects
@@ -34,33 +37,36 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.all_positive = all_positive
         
         self.verbose = verbose
-        self.rwa = rwa
+        self.rwa = Manager().convert_energy_2_internal_u(rwa)
         self.pathways = pathways
 
-        atype = self.t1axis.atype
-        self.t1axis.atype = 'complete'
-        self.oa1 = self.t1axis.get_FrequencyAxis() 
-        self.oa1.data += self.rwa
-        self.oa1.start += self.rwa
-        self.t1axis.atype = atype
-        
-        atype = self.t3axis.atype
-        self.t3axis.atype = 'complete'
-        self.oa3 = self.t3axis.get_FrequencyAxis() 
-        self.oa3.data += self.rwa
-        self.oa3.start += self.rwa
-        self.t3axis.atype = atype        
+        with energy_units("int"):
+            atype = self.t1axis.atype
+            self.t1axis.atype = 'complete'
+            self.oa1 = self.t1axis.get_FrequencyAxis() 
+            self.oa1.data += self.rwa
+            self.oa1.start += self.rwa
+            self.t1axis.atype = atype
+            
+            atype = self.t3axis.atype
+            self.t3axis.atype = 'complete'
+            self.oa3 = self.t3axis.get_FrequencyAxis() 
+            self.oa3.data += self.rwa
+            self.oa3.start += self.rwa
+            self.t3axis.atype = atype        
         
         self.tc = 0
             
 
     def set_width(self, val):
-        self.widthx = val
-        self.widthy = val
+        m = Manager()
+        self.widthx = m.convert_energy_2_internal_u(val)
+        self.widthy = m.convert_energy_2_internal_u(val)
         
     def set_deph(self, val):
-        self.dephx = val
-        self.dephy = val
+        m = Manager()
+        self.dephx = m.convert_energy_2_internal_u(val)
+        self.dephy = m.convert_energy_2_internal_u(val)
 
 
     def set_pathways(self, pathways):
@@ -91,7 +97,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         for pwy in self.pathways:
             
             data = self.calculate_pathway(pwy, shape=self.shape)
-            
+
             if pwy.pathway_type == "R":
                 onetwod._add_data(data, dtype="REPH")
             elif pwy.pathway_type == "NR":
@@ -107,7 +113,6 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             onetwod._add_data(data, dtype="REPH")
             print("Warning: calculating empty 2D spectrum")
 
-        #print("Setting: ", self.t2axis.data[tc])
         onetwod.set_t2(self.t2axis.data[tc])    
             
         return onetwod
@@ -146,6 +151,58 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             
         return onetwod
 
+
+    def calculate_all_system(self, sys, H, eUt, lab):
+        """Calculates all 2D spectra for a system and evolution superoperator
+        
+        """
+        tcont = TwoDSpectrumContainer(t2axis=self.t2axis)
+        
+        for T2 in self.t2axis.data:
+            
+#            Uin = eUt.at(T2)
+#        
+#            rho0 = sys.get_DensityMatrix(condition_type="thermal",
+#                                         temperature=0.0)
+#        
+#            # get Liouville pathways
+#            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
+#                                                   "R4g", "R1f*", "R2f*"),
+#                                                   eUt=Uin, ham=H, t2=T2,
+#                                                   lab=lab)
+#        
+#            self.set_pathways(pws)
+#        
+#            twod1 = self.calculate_next()
+            
+            twod1 = self.calculate_one_system(T2, sys, H, eUt, lab)
+        
+            tcont.set_spectrum(twod1, tag=T2)
+            
+        return tcont
+
+
+    def calculate_one_system(self, t2, sys, H, eUt, lab):
+        """Returns 2D spectrum at t2 for a system and evolution superoperator
+        
+        """
+        Uin = eUt.at(t2)
+    
+        rho0 = sys.get_DensityMatrix(condition_type="thermal",
+                                     temperature=0.0)
+    
+        # get Liouville pathways
+        pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
+                                               "R4g", "R1f*", "R2f*"),
+                                               eUt=Uin, ham=H, t2=t2,
+                                               lab=lab)
+    
+        self.set_pathways(pws)
+    
+        twod1 = self.calculate_next()
+        
+        return twod1
+        
 
     def calculate_pathway(self, pathway, shape="Gaussian"):
         """Calculate the shape of a Liouville pathway
@@ -215,7 +272,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                 else:
 
                     oo1 = -self.oa1.data[:]
-                    
+
                     reph2D = pref*gaussian2D(oo1, cen1, widthx,
                                                  oo3, cen3, widthy)
 

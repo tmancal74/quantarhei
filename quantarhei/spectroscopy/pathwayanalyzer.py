@@ -20,14 +20,21 @@
    
 
 """
+import os
 import numpy
 
 from ..core.managers import UnitsManaged, Manager
 from ..core.wrappers import deprecated
 
 from ..core.units import cm2int
+from ..core.units import convert
 from ..core.parcel import load_parcel
 from .. import REAL, COMPLEX
+
+from ..core.time import TimeAxis
+from ..core.dfunction import DFunction
+
+
 
 class LiouvillePathwayAnalyzer(UnitsManaged):
     """Class providing methods for Liouville pathway analysis
@@ -524,9 +531,9 @@ def load_pathways_by_t2(t2, name="pathways", ext="qrp", directory=".",
     
     t2_str = str(t2)
     fname = name+"_"+t2_str+"."+ext
-    #print(fname)
+    path = os.path.join(directory, fname)
     try:
-        pw = load_parcel(fname)
+        pw = load_parcel(path)
     except:
         print("Error while loading")
         return []
@@ -545,17 +552,124 @@ def get_evolution_from_saved_pathways(states, name="pathways", ext="qrp",
     """Reconstructs the evolution of the pathway contribution in t2 time
     
     """
-    t2s = look_for_pathways(name=name, ext=ext)
+    t2s = look_for_pathways(name=name, ext=ext, directory=directory)
    
 
     # order t2s
     t2s = numpy.sort(t2s)
-    evol = _get_evol(t2s, states, name, ext, repl=repl)
-        
-    return t2s, evol
+    evol = _get_evol(t2s, states, name, ext, directory, repl=repl)
+    
+    dt = t2s[1] - t2s[0]
+    length = len(t2s)
+    
+    taxis = TimeAxis(t2s[0], length, dt)
+    
+    ii = 0
+    for tt in t2s:
+        if tt != taxis.data[ii]:
+            raise Exception("The set of available times"+
+                            " does not correspond to a continuous time axis")
+        ii += 1
+    
+    return DFunction(x=taxis, y=evol)
+    
+    #return t2s, evol
 
+
+def get_prefactors_from_saved_pathways(states, name="pathways", ext="qrp", 
+                                      directory=".", tag_type=REAL, repl=0.0):
+    """Reconstructs the evolution of the pathway contribution in t2 time
+    
+    """
+    t2s = look_for_pathways(name=name, ext=ext, directory=directory)
+   
+
+    # order t2s
+    t2s = numpy.sort(t2s)
+    evol = _get_pref(t2s, states, name, ext, directory, repl=repl)
+    
+    dt = t2s[1] - t2s[0]
+    length = len(t2s)
+    
+    taxis = TimeAxis(t2s[0], length, dt)
+    
+    ii = 0
+    for tt in t2s:
+        if tt != taxis.data[ii]:
+            raise Exception("The set of available times"+
+                            " does not correspond to a continuous time axis")
+        ii += 1
+    
+    return DFunction(x=taxis, y=evol)
          
+
+def get_TwoDSpectrum_from_saved_pathways(t2, t1axis, t3axis, name="pathways",
+                                         ext="qrp", directory=".",
+                                         tag_type=REAL):
+    """Returns a 2D spectrum calculated based on the saved Liouville pathways
+    
+    """
+    pwt2 = load_pathways_by_t2(t2, name=name, ext=ext,
+                               directory=directory, tag_type=tag_type)
+    
+    # calculate 2D spectrum from the loaded pathways
+    twod = get_TwoDSpectrum_from_pathways(pwt2, t1axis, t3axis)
+    
+    # return it
+    return twod
+
+
+def get_TwoDSpectrum_from_pathways(pathways, t1axis, t3axis):
+    """Returns a 2D spectrum calculated based on submitted Liouville pathways
+    
+    """    
+    from .mocktwodcalculator import MockTwoDSpectrumCalculator
+    t2axis = TimeAxis(0.0,1,1.0)
+    mcalc = MockTwoDSpectrumCalculator(t1axis, t2axis, t3axis)
+    mcalc.bootstrap(rwa = convert(12000.0,"1/cm","int"), pathways=pathways)
+    twod = mcalc.calculate()
+
+    return twod
+
+
+def get_TwoDSpectrumContainer_from_saved_pathways(t1axis, t3axis,
+                                                  name="pathways", ext="qrp",
+                                                  directory=".",
+                                                  tag_type=REAL):
+    """Returns a container with 2D spectra calculated from saved pathways
+    
+    """
+    from .twodcontainer import TwoDSpectrumContainer
+    
+    t2s = look_for_pathways(name=name, ext=ext, directory=directory)
+    
+
+    # order t2s
+    t2s = numpy.sort(t2s)
+    time2 = TimeAxis(t2s[0], len(t2s), t2s[1]-t2s[0])
+    tcont = TwoDSpectrumContainer(t2axis=time2)
+    tcont.use_indexing_type(itype=time2)
+    
+    for t2 in t2s:
+        pwt2 = load_pathways_by_t2(t2, name=name, ext=ext,
+                                   directory=directory, tag_type=tag_type)
         
+        
+        # calculate 2D spectrum from saved pathways
+        twod = get_TwoDSpectrum_from_pathways(pwt2, t1axis, t3axis)
+        
+        # put it into container
+        tcont.set_spectrum(twod, tag=t2)
+        
+    # return the container
+    return tcont
+    
+
+        
+
+
+
+    
 def _is_tuple_of_dyads(states):
     """Check if the object is a tuple or list of dyads
     
@@ -575,7 +689,7 @@ def _is_tuple_of_dyads(states):
     return ret
 
 
-def _get_evol(t2s, states, name, ext, repl=0.0):
+def _get_evol(t2s, states, name, ext, directory, repl=0.0):
     """Return evolution of a single pathway
     
     """
@@ -589,8 +703,43 @@ def _get_evol(t2s, states, name, ext, repl=0.0):
         
     k = 0
     for t2 in t2s:
-        #print(t2)
-        pws = load_pathways_by_t2(t2, name=name, ext=ext)
+        pws = load_pathways_by_t2(t2, name=name, ext=ext, directory=directory)
+        
+        if N == 1:
+            pw = select_by_states(pws, states)
+            if pw is None:
+                evol[k] = repl
+            else:
+                evol[k] = pw.evolfac
+        else:
+            l = 0
+            for st in states:
+                pw = select_by_states(pws, st)
+                if pw is None:
+                    evol[k,l] = repl
+                else:
+                    evol[k,l] = pw.evolfac
+                l += 1
+                
+        k += 1
+    
+    return evol
+
+def _get_pref(t2s, states, name, ext, directory, repl=0.0):
+    """Return evolution of a single pathway
+    
+    """
+    
+    N = 1
+    if _is_tuple_of_dyads(states):
+        evol = numpy.zeros(len(t2s), dtype=COMPLEX)
+    else:
+        N = len(states)
+        evol = numpy.zeros((len(t2s),N), dtype=COMPLEX)
+        
+    k = 0
+    for t2 in t2s:
+        pws = load_pathways_by_t2(t2, name=name, ext=ext, directory=directory)
         
         if N == 1:
             pw = select_by_states(pws, states)
@@ -611,3 +760,5 @@ def _get_evol(t2s, states, name, ext, repl=0.0):
         k += 1
     
     return evol
+    
+    

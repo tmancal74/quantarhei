@@ -137,6 +137,23 @@ class TestAggregate(Aggregate):
             m2.set_transition_environment((0, 1), cfce)
                 
             super().__init__(molecules=[m1, m2])
+
+        elif name == "trimer-2-env":
+            
+            m1, m2, m3 = self._molecules(N=3, nst=2)
+            
+            # set their environment
+            time = TimeAxis(0, 1000, 1.0)
+            cpar = dict(ftype="OverdampedBrownian", reorg=20,
+                        cortime=100, T=300)
+            with energy_units("1/cm"):
+                cfce = CorrelationFunction(time, cpar)
+                
+            m1.set_transition_environment((0, 1), cfce)
+            m2.set_transition_environment((0, 1), cfce)
+            m3.set_transition_environment((0, 1), cfce)
+                
+            super().__init__(molecules=[m1, m2, m3])
             
         elif name == "dimer-2":
             

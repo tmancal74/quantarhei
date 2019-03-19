@@ -204,24 +204,6 @@ class Molecule(UnitsManaged, Saveable):
         self.model = None
         self.data = None
         self._data_type = None
-   
-
-    # FIXME: attribute manager in UnitsManager class complicates saving
-    def _before_save(self):
-        
-        self.manager = None
-
-        
-    def _after_save(self):
-        
-        self.manager = Manager()
-        
-
-    def _after_load(self):
-        """Set the manager as in UnitsManaged constructor
-        
-        """
-        self.manager = Manager()
 
         
     def get_name(self):
@@ -501,11 +483,12 @@ class Molecule(UnitsManaged, Saveable):
             
             
         """
+        cwidth = qr.Manager().convert_energy_2_internal_u(width)
         if self.widths is None:
             N = self.elenergies.shape[0]
             self.widths = numpy.zeros((N, N), dtype=qr.REAL)
-        self.widths[transition[0], transition[1]] = width
-        self.widths[transition[1], transition[0]] = width
+        self.widths[transition[0], transition[1]] = cwidth
+        self.widths[transition[1], transition[0]] = cwidth
 
 
     def get_transition_width(self, transition):

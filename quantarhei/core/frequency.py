@@ -14,7 +14,7 @@
     >>> print(ta.length)
     100
 
-    The type `upper-half` only refers to the corresponding TimeAxix. Everything
+    The type `upper-half` only refers to the corresponding TimeAxis. Everything
     about the FrequencyAxis remains the same as with `complete`.
 
     >>> wa = FrequencyAxis(0.0, 100, 0.05, atype = "upper-half")
@@ -23,6 +23,7 @@
     50
 
     #>>> print(ta.step,2.0*numpy.pi/(100*wa.step))
+    
     >>> print(numpy.allclose(ta.step,2.0*numpy.pi/(100*wa.step)))
     True
 
@@ -33,7 +34,7 @@
     >>> print(ta.length)
     99
 
-    But `upper-half` throughs an exception, because by definition its number of
+    But `upper-half` throws an exception, because by definition its number of
     points is `2*N`, where `N` is an integer.
 
     >>> wa = FrequencyAxis(0.0,99,0.05,atype="upper-half")

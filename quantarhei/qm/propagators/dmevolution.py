@@ -4,7 +4,7 @@ import numpy
 import matplotlib.pylab as plt
 
 from ...core.matrixdata import MatrixData
-from ...core.time import TimeAxis
+#from ...core.time import TimeAxis
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 from ...core.saveable import Saveable
@@ -30,8 +30,9 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
                 self.dim = rhoi.data.shape[1]        
                 
                 self.set_initial_condition(rhoi)
-            else:
+            else: 
                 self.dim = 0
+                                        
             
             
     def set_initial_condition(self, rhoi):
@@ -92,8 +93,21 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         for ii in range(self.TimeAxis.length):
             self._data[ii,:,:] = numpy.dot(S1,
                     numpy.dot(self._data[ii,:,:],SS))    
+            
+    
+    def normalize(self):
+        
+        tr = numpy.trace(self.data[0,:,:])
+        self.data = self.data/tr
+
+
+    def get_TimeAxis(self):
+        """Returns the TimeAxis of the present evolution
+        
+        """
+        return self.TimeAxis              
                     
-                    
+
     def plot(self, populations=True, popselection="All", trace=False,
                    coherences=True, cohselection="All", how='-',
                    axis=None, show=True):

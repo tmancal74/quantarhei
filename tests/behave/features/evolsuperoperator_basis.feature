@@ -68,3 +68,35 @@ Feature: Evolution super operator basis transformations
            | 20.0    |
            | 50.0    |
            | 30.0    | 
+
+          
+    Scenario Outline: Evolution superoperator is calculated correctly with "jit" method
+        Given I have a Hamiltonian H, Lidblad form L and initial density matrix R
+        When I calculate evolution superoperator using H and L with "jit" settings in exciton basis
+        And I calculate dynamics of R using H and L to get R1
+        And I apply the evolution superoperator to R to get R2 at times <t_prop>
+        Then R1 equals R2 at times <t_prop>
+        
+       Examples: Propagation times
+           | t_prop  |
+           | 0.0     |
+           | 10.0    |
+           | 20.0    |
+           | 50.0    |
+           | 30.0    |
+
+          
+    Scenario Outline: Evolution superoperator is calculated correctly with "no save jit" method
+        Given I have a Hamiltonian H, Lidblad form L and initial density matrix R
+        When I calculate evolution superoperator using H and L with "no save jit" settings in exciton basis
+        And I calculate dynamics of R using H and L to get R1
+        And I apply the evolution superoperator to R to get R2 at times <t_prop>
+        Then R1 equals R2 at times <t_prop>
+        
+       Examples: Propagation times
+           | t_prop  |
+           | 0.0     |
+           | 10.0    |
+           | 20.0    |
+           | 50.0    |
+           | 30.0    |

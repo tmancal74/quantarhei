@@ -9,7 +9,7 @@ Greek philosopher Heraclitus of Ephesus. "Panta rhei" means "Everything flows"
 or "Everything is in flux" which is quite fitting when you change Panta into
 Quanta.
 
-In "Quantarhei" the last four letter ("rhei") should be written in Greek,
+In "Quantarhei" the last four letters ("rhei") should be written in Greek,
 i.e. (using LateX convention) "\\rho \\epsilon \\iota". 
 
 ----
@@ -59,6 +59,29 @@ and
 
 through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
 
+New in 0.0.45
+=============
+
+For users:
+ - Improved ability to calculate and analyze 2D frequency maps
+ - get_Fourier_transform method of DFunction accepts a windowing function, which works the same as the one of TwoDSpectrumContainer
+ - Calculation of effective lineshape pump-probe spectra
+ - Saving of TwoDSpectrum data into text files (.dat, .txt), numpy formats (.npy, .npz) and Matlab files (.mat) is enabled
+ - Problem which caused Redfield and Lindblad operators not to transform to correct basis when represented by operators was fixed
+ - Problem which caused Liouville pathways to be calculated with site basis evolution superoperator was fixed
+ - operator_factory class of Harmonic oscillator now fixed to return correct shift operator for complex inputs
+ - operator_factory is now available from quantarhei.models.HarmonicOscillator package
+ - Some small bug fixes 
+ 
+For developers:
+ - Failing documentation compilation fixed and adjusted to new version of matplotlib
+
+New in 0.0.44
+=============
+
+For users:
+ - Basic implementation of HEOM
+ - Some bug fixes
 
 New in 0.0.43
 =============

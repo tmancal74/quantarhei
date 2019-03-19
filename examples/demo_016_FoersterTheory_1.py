@@ -7,16 +7,16 @@
 
 
 """
-
+_show_plots_ = False
 
 import numpy
 
-from quantarhei import *
-import quantarhei as qm
+
+import quantarhei as qr
+import quantarhei.models as models
 
 import matplotlib.pyplot as plt
 
-from modelgenerator import ModelGenerator
 
 print("""
 *******************************************************************************
@@ -26,11 +26,11 @@ print("""
 *******************************************************************************
 """)
 
-Nt = 1000
-dt = 1.0
-time = TimeAxis(0.0, Nt, dt)
+Nt = 3000
+dt = 0.5
+time = qr.TimeAxis(0.0, Nt, dt)
 
-mg = ModelGenerator()
+mg = models.ModelGenerator()
 agg = mg.get_Aggregate_with_environment(name="pentamer-1_env",
                                         timeaxis=time)
 
@@ -47,23 +47,25 @@ H = agg.get_Hamiltonian()
 #
 prop_Foerster = agg.get_ReducedDensityMatrixPropagator(time,
                            relaxation_theory="standard_Foerster",
-                           time_dependent=False)   
+                           time_dependent=True)   
 
 #
 # Initial density matrix
 #
 shp = H.dim
-rho_i1 = ReducedDensityMatrix(dim=shp, name="Initial DM")
+rho_i1 = qr.ReducedDensityMatrix(dim=shp, name="Initial DM")
 rho_i1.data[shp-1,shp-1] = 1.0   
    
 #
 # Propagation of the density matrix
 #   
-with eigenbasis_of(H):
+#with qr.eigenbasis_of(H):
+if True:
     rho_t1 = prop_Foerster.propagate(rho_i1,
                                  name="Foerster evolution from aggregate")
     
-rho_t1.plot(coherences=False, axis=[0,Nt*dt,0,1.0])
+    if _show_plots_:
+        rho_t1.plot(coherences=True, axis=[0,Nt*dt,0,1.0], show=False)
 
 #
 # Thermal excited state to compare with
@@ -72,19 +74,22 @@ rho0 = agg.get_DensityMatrix(condition_type="thermal_excited_state",
                              relaxation_theory_limit="strong_coupling",
                              temperature=300)
  
-with eigenbasis_of(H):
-#if True:       
-    pop = numpy.zeros((time.length,shp),dtype=numpy.float64)
-    for i in range(1, H.dim):
-        pop[:,i] = numpy.real(rho0.data[i,i]) 
-        plt.plot(time.data,pop[:,i],'--k')
+if _show_plots_:
+    #with qr.eigenbasis_of(H):
+    if True:       
+        pop = numpy.zeros((time.length,shp),dtype=numpy.float64)
+        for i in range(1, H.dim):
+            pop[:,i] = numpy.real(rho0.data[i,i]) 
+            plt.plot(time.data,pop[:,i],'--k')
+    
+        # plot the termal distrubution
+        plt.plot(time.data,pop[:,1],'--r')
+        plt.plot(time.data,pop[:,2],'--b')
+        plt.plot(time.data,pop[:,3],'--g')
+        plt.show()
 
-#    # plot the termal distrubution
-#    plt.plot(time.data,pop[:,1],'--r')
-#    plt.plot(time.data,pop[:,2],'--b')
-#    plt.plot(time.data,pop[:,3],'--g')  
+#RR = prop_Foerster.RelaxationTensor
+#with qr.eigenbasis_of(H):
+#    if isinstance(RR, qr.core.time.TimeDependent):
+#        print(RR.data[:,1,1,2,2])
 
-RR = prop_Foerster.RelaxationTensor
-with eigenbasis_of(H):
-    if isinstance(RR, qm.core.time.TimeDependent):
-        print(RR.data[:,1,1,2,2])

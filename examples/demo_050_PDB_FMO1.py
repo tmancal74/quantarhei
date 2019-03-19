@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+
+_show_plots_ = False
+
+print("""
+***********************************************************      
+*
+*
+*     PDB Extraction of FMO and Absorption Calculation
+*
+*
+***********************************************************
+""")
+
+
 import numpy
 
 from quantarhei.builders.pdb import PDBFile
@@ -7,11 +21,13 @@ from quantarhei.models.bacteriochlorophylls import BacterioChlorophyll
 from quantarhei import Aggregate
 from quantarhei import energy_units
 
+import quantarhei as qr
+    
 #
 # Read a PDB file
 #
-file = PDBFile("3eoj.pdb")
-#file = PDBFile("3eni.pdb")
+file = PDBFile("data_050_3eoj.pdb")
+#file = PDBFile("data_050_3eni.pdb")
 print("Loaded", file.linecount, "lines")
 
 #
@@ -46,6 +62,8 @@ for name in names:
             # all except for 378 go into aggregate
             if name != "378":
                 for_aggregate.append(m)
+             
+
         
 #
 # Create an new aggregate of the Bacteriochlorophylls without BChl8
@@ -77,6 +95,15 @@ with energy_units("1/cm"):
 agg.set_coupling_by_dipole_dipole(epsr=1.21)
 
 
+# Setting spectral density to all molecules
+tmax = qr.TimeAxis(0.0, 1000, 1.0)
+param = dict(ftype="OverdampedBrownian", reorg=50,
+            cortime=50, T=300)
+with qr.energy_units("1/cm"):
+    cfce = qr.CorrelationFunction(tmax, param)
+    
+for mol in agg.monomers:
+    mol.set_transition_environment((0,1), cfce)
 
 
 #
@@ -99,5 +126,20 @@ with energy_units("1/cm"):
                            formatter={'all':lambda x: "%8.1f" % x})
     print(H.data[1:,1:])
 
+
+agg.diagonalize()
+
+
+calc = qr.AbsSpectrumCalculator(tmax, system=agg)
+#with qr.energy_units("1/cm"):
+rwa = agg.get_RWA_suggestion()
+print("RWA frequency =", rwa)
+calc.bootstrap(rwa=rwa)
+abss = calc.calculate()
+abss.normalize2()
+
+if _show_plots_:
+    with qr.energy_units("1/cm"):
+        abss.plot(axis=[11500,13000,0,1.1])    
 
 

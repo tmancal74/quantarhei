@@ -32,50 +32,50 @@ class example_data_defined_array(DataDefinedEntry):
         
         return data
     
-class example_data_defined_string(DataDefinedEntry):
-    
-    direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
-    identificator = "Example 2"    
-    
-    def get_data_string(self):
-        
-        return """
-                
-                  0.0,  0.0
-                  1.0,  0.1
-                  2.0,  0.2
-                  3.0,  0.25
-                  4.0,  0.27
-                  5.0,  0.28
-                  6.0,  0.28
-                  7.0,  0.27
-                  8.0,  0.25
-                  9.0,  0.23
-                  10.0, 0.20
-                  
-                """
-
-class example_data_defined_comment(DataDefinedEntry):
-    """
-                
-                  0.0,  0.0
-                  1.0,  0.1
-                  2.0,  0.2
-                  3.0,  0.25
-                  4.0,  0.27
-                  5.0,  0.28
-                  6.0,  0.28
-                  7.0,  0.27
-                  8.0,  0.25
-                  9.0,  0.23
-                  10.0, 0.20
-                  
-    """
-    direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
-    identificator = "Example 3"
-    
-    
-    
+#class example_data_defined_string(DataDefinedEntry):
+#    
+#    direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
+#    identificator = "Example 2"    
+#    
+#    def get_data_string(self):
+#        
+#        return """
+#                
+#                  0.0,  0.0
+#                  1.0,  0.1
+#                  2.0,  0.2
+#                  3.0,  0.25
+#                  4.0,  0.27
+#                  5.0,  0.28
+#                  6.0,  0.28
+#                  7.0,  0.27
+#                  8.0,  0.25
+#                  9.0,  0.23
+#                  10.0, 0.20
+#                  
+#                """
+#
+#class example_data_defined_comment(DataDefinedEntry):
+#    """
+#                
+#                  0.0,  0.0
+#                  1.0,  0.1
+#                  2.0,  0.2
+#                  3.0,  0.25
+#                  4.0,  0.27
+#                  5.0,  0.28
+#                  6.0,  0.28
+#                  7.0,  0.27
+#                  8.0,  0.25
+#                  9.0,  0.23
+#                  10.0, 0.20
+#                  
+#    """
+#    direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
+#    identificator = "Example 3"
+#    
+#    
+#    
        
 
 if __name__ == "__main__":
@@ -85,6 +85,6 @@ if __name__ == "__main__":
     plt.plot(ex1._rawdata[:,0], ex1._rawdata[:,1])
     plt.show()    
     
-    ex2 = example_data_defined_string()
-    print(ex2.get_data_string())
+    #ex2 = example_data_defined_string()
+    #print(ex2.get_data_string())
     

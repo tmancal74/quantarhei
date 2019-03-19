@@ -9,6 +9,9 @@ from ...core.time import TimeAxis
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 
+from .dmevolution import DensityMatrixEvolution
+from ..hilbertspace.operators import DensityMatrix
+
 class StateVectorEvolution(MatrixData, BasisManaged): 
     
     data = BasisManagedComplexArray("data")
@@ -70,6 +73,30 @@ class StateVectorEvolution(MatrixData, BasisManaged):
 
         for nt in range(self.TimeAxis.length):
             self._data[nt,:] = numpy.dot(S1,self._data[nt,:])
+
+
+    def get_DensityMatrixEvolution(self):
+        """Constructs DensityMatrix from the present StateVector
+        
+        """
+        
+        rhot = DensityMatrixEvolution(timeaxis=self.TimeAxis)
+        
+        rhoi = DensityMatrix(dim=self.dim)
+        for ii in range(self.dim):
+            for jj in range(self.dim):
+                rhoi.data[ii,jj] = self.data[0,ii]* \
+                                   numpy.conj(self.data[0,jj])
+        
+        rhot.set_initial_condition(rhoi)
+        
+        #for tt in range(1, self.TimeAxis.length):
+        for ii in range(self.dim):
+            for jj in range(self.dim):
+                rhot.data[1:,ii,jj] = self.data[1:,ii]* \
+                                      numpy.conj(self.data[1:,jj])
+        
+        return rhot
         
             
             

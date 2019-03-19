@@ -98,7 +98,7 @@ mod1 = Mode(0.01)
 mod2 = Mode(0.01)
 mod3 = Mode(0.01)
 
-Nvib = 3
+Nvib = 2
 
 m1v.add_Mode(mod1)
 mod1.set_nmax(0, Nvib)

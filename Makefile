@@ -11,7 +11,7 @@
 # Set this to required version or override from command line
 # Default is the current development version 
 #
-VERSION=0.0.43
+VERSION=0.0.45
 TASK=
 
 ANACONDA_BIN=anaconda3/bin
@@ -25,17 +25,17 @@ REPOSITORY=https://github.com/tmancal74/quantarhei
 all:
 
 ###########################
-# Quantarhei installation #
+# Quantarhei installation #  PAVER
 ###########################
 install: inst
 
-
+# PAVER
 inst: sdist
 	${PIP} install `ls dist/quantarhei-${VERSION}*`
 
 
 ################
-# Distribution #
+# Distribution #   PAVER
 ################
 sdist:
 	${PYTHON} setup.py sdist

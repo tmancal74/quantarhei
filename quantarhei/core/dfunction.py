@@ -114,12 +114,13 @@ from .valueaxis import ValueAxis
 from .time import TimeAxis
 from .frequency import FrequencyAxis
 from .saveable import Saveable
-from .managers import Manager
+from .datasaveable import DataSaveable
+from .. import REAL
 
 
 #FIXME Check the posibility to set a derivative of the spline at the edges
 #FIXME Enable vectorial arguments and values
-class DFunction(Saveable):
+class DFunction(Saveable, DataSaveable):
     """Discrete function with interpolation
 
     Parameters
@@ -229,30 +230,40 @@ class DFunction(Saveable):
             else: 
                 raise Exception("On addition, axis objects have to be"
                                 +" identical")
-            
-    def _before_save(self):
-        """Performs some clean-up before saving to file
-        
-        The clean-up consists of setting spline initialization to False,
-        because Saveable cannot save functions associated with spline
-        approximation of the DFunction.
-        
-        Reimplements the same method from Saveable
+
+    
+    def change_axis(self, axis):
+        """Replaces the axis object with a compatible one, zero pads or trims the values
         
         """
+        if self.axis.is_equal_to(axis):
+            # simple replacement
+            self.axis = axis
+            
+        elif self.axis.is_extension_of(axis):
+            
+            # we trim to the new axis
+            ndata = numpy.zeros(axis.length, dtype=self.data.dtype)
+            for ii in range(axis.length):
+                ndata[ii] = self.at(axis.data[ii])
+                
+            self.__init__(x=axis, y=ndata)
+                
+        elif self.axis.is_subsection_of(axis):
+            # we zero pad the values
+            ndata = numpy.zeros(axis.length, dtype=self.data.dtype)
+            for ii in range(axis.length):
+                x = axis.data[ii]
+                if (x >= self.axis.min) and (x <= self.axis.max):
+                    ndata[ii] = self.at(axis.data[ii])
+                else:
+                    ndata[ii] = 0.0
+                
+            self.__init__(x=axis, y=ndata)
         
-        self._S__state = self._splines_initialized
-        self._splines_initialized = False
-        self.manager = None
+        else:
+            raise Exception("Incompatible axis")
         
-    def _after_save(self):
-        
-        self._splines_initialized = self._S__state
-        self.manager = Manager()
-        
-    def _after_load(self):
-        self.manager = Manager()
-
 
     def at(self, x, approx="default"):
         """Returns the function value at the argument `x`
@@ -386,7 +397,6 @@ class DFunction(Saveable):
     def add_to_data(self, other):
         pass
     
-    
 
     #
     #
@@ -394,7 +404,7 @@ class DFunction(Saveable):
     #
     #
 
-    def get_Fourier_transform(self):
+    def get_Fourier_transform(self, window=None):
         """Returns Fourier transform of the DFunction
 
         """
@@ -403,6 +413,14 @@ class DFunction(Saveable):
         y = self.data
 
         if isinstance(t, TimeAxis):
+            
+            if window is None:
+                winfce = DFunction(self.axis, 
+                                   numpy.ones(self.axis.length, dtype=REAL))
+            else:
+                winfce = window
+                
+            y = y*winfce.data
 
             w = t.get_FrequencyAxis()
 
@@ -531,14 +549,115 @@ class DFunction(Saveable):
         return F
 
 
-    def plot(self, title=None,
+    def fit_exponential(self, guess=None):
+        """Exponential fit of the function
+        
+        """
+        from scipy.optimize import curve_fit
+        
+        if guess is None:
+            # we make a guess with one exponential of 100 fs decay time
+            guess = [self.data[0], 1.0/100.0, 0.0]
+            
+        popt, pcov = curve_fit(_exp_fcion, self.axis.data, self.data, p0=guess)
+        
+        return popt
+        
+
+    def fit_gaussian(self, N=1, guess=None, plot=False, Nsvf=251):
+        from scipy.signal import savgol_filter
+        from scipy.interpolate import UnivariateSpline
+        """Performs a Gaussian fit of the spectrum based on an initial guess
+        
+        
+        Parameters
+        ----------
+        
+        Nsvf : int
+            Length of the Savitzky-Golay filter window (odd integer)
+            
+            
+        """
+        x = self.axis.data
+        y = self.data
+        
+        if guess is None:
+            
+            raise Exception("Guess is required at this time")
+            # FIXME: create a reasonable guess
+            guess = [1.0, 11000.0, 300.0, 0.2,
+                     11800, 400, 0.2, 12500, 300]
+            
+            #
+            # Find local maxima and guess their parameters
+            #
+
+            # Fit with a given number of Gaussian functions
+            
+            if not self._splines_initialized:
+                self._set_splines()
+            
+            # get first derivative and smooth it
+            der = self._spline_r.derivative()
+            y1 = der(x)
+            y1sm = savgol_filter(y1,Nsvf,polyorder=3)
+        
+            # get second derivative and smooth it
+            y1sm_spl_der = UnivariateSpline(x,y1sm,s=0).derivative()(x)
+            y2sm = savgol_filter(y1sm_spl_der,Nsvf,polyorder=3)
+        
+            # find positions of optima by looking for zeros of y1sm
+        
+        
+            # isolate maxima by looking at the value of y2sm
+        
+
+            #plt.plot(x, der(x))
+            #plt.plot(x, y1sm)
+            plt.plot(x, y2sm)
+            plt.show()
+        
+        
+        
+        def funcf(x, *p):
+            return _n_gaussians(x, *p)
+        
+        # minimize, leastsq,
+        from scipy.optimize import curve_fit            
+        popt, pcov = curve_fit(funcf, x, y, p0=guess)
+        
+        if plot:
+        
+            plt.plot(x,y)
+            plt.plot(x,_n_gaussians(x, N, *popt))
+            for i in range(N):
+                a = popt[3*i]
+                print(i, a)
+                b = popt[3*i+1]
+                c = popt[3*i+2]
+                y = _gaussian(x, a, b, c)
+                plt.plot(x, y,'-r')
+            plt.show()
+        
+        # FIXME: Create a readable report
+        
+        return popt #, pcov
+            
+
+
+    def plot(self, fig=None, title=None,
              title_font=None,
              axis=None,
+             vmax=None,
+             vmin=None,
              xlabel=None,
              ylabel=None,
              label_font=None,
              text=None,
              text_font=None,
+             label = None,
+             text_loc=[0.05,0.9],
+             fontsize="20",
              real_only=True,
              show=True,
              color=None, filename="ahoj.png"):
@@ -556,9 +675,48 @@ class DFunction(Saveable):
             
 
         """
+        #
+        #  How to treat the figures
+        #
+        if fig is None:
+            fig, ax = plt.subplots(1,1)
+        else:
+            fig.clear()
+            fig.add_subplot(1,1,1)
+            ax = fig.axes[0]
+
+        if axis is None:
+            if vmax is None:
+                hore = numpy.amax(numpy.real(self.data))
+            else:
+                hore = vmax
+            if vmin is None:
+                dole = numpy.amin(numpy.real(self.data))
+            else:
+                dole = vmin
+
+            levo = self.axis.min
+            prvo = self.axis.max
+
+        else:
+            levo = axis[0]
+            prvo = axis[1]
+            dole = axis[2]
+            hore = axis[3]
         
+        #
+        # Label
+        #
+        pos = text_loc
+        if label is not None:
+            label = label    
+            ax.text((prvo-levo)*pos[0]+levo,
+                (hore-dole)*pos[1]+dole,
+                label,
+                fontsize=str(fontsize))
+            
         if color is not None:
-            if len(color) == 1:
+            if (len(color) == 1) or isinstance(color, str):
                 clr = [color, color]
             else:
                 clr = [color[0], color[1]]
@@ -598,6 +756,11 @@ class DFunction(Saveable):
         else:
             font={'size':20}
 
+        if xlabel is None:
+            xl = ""
+        if ylabel is None:
+            yl = ""
+            
         if xlabel is not None:
             xl = r'$\omega$ [fs$^{-1}$]'
 
@@ -614,8 +777,10 @@ class DFunction(Saveable):
         if ylabel is not None:
             yl = ylabel
 
-        plt.xlabel(xl, **font)
-        plt.ylabel(yl, **font)
+        if xl is not None:
+            plt.xlabel(xl, **font)
+        if xl is not None:
+            plt.ylabel(yl, **font)
 
         if show:
             plt.show()
@@ -651,90 +816,81 @@ class DFunction(Saveable):
             
         return fname, ext
             
-    def save_data(self, filename, ext=None):
-        """Saves the DFunction into a file
 
-        """
-        add_imag = False
+def _exp_fcion(t, *params):
+    
+    np = len(params)
+    ret = 0.0
+    nexp = int((np - 1)/2)
+    kp = 0
+    for kk in range(nexp):
+        #print(kp, params[kp])
+        #print(kp+1,params[kp+1], t)
+        ret += params[kp]*numpy.exp(-params[kp+1]*t)
+        kp += 2
+    #print(kp, params[kp])
+    ret += params[kp]
+    
+    return ret
+
             
-        fname, ext = self._fname_ext(filename, ext)
+def _gaussian(x, height, center, fwhm, offset=0.0):
+    """Gaussian function with a possible offset
+    
+    
+    Parameters
+    ----------
+    
+    x : float array
+        values to calculate Gaussian function at
         
-        # now ext is there only to specify format
+    height : float
+        height of the Gaussian at maximum
         
-        if ext in ["npy", "dat"]:
-            
-            if isinstance(self.data[0], numbers.Real):
-                ab = numpy.zeros((self.axis.length, 2))
-            else:
-                add_imag = True
-                ab = numpy.zeros((self.axis.length, 3))
-
-            datr = numpy.real(self.data)
-            for kk in range(self.axis.length):
-                ab[kk,0] = self.axis.data[kk]
-                ab[kk,1] = datr[kk]
-
-            if add_imag:
-                dati = numpy.imag(self.data)
-                for kk in range(self.axis.length):
-                    ab[kk,2] = dati[kk]
-
-        else:
-            raise Exception("Unknown format")
-
-        if ext == "npy":
-
-            numpy.save(fname, ab)
-
-        elif ext == "dat":
-
-            numpy.savetxt(fname, ab)
-
-
-
-
-    def load_data(self, filename, axis="time", ext=None, replace=False):
-        """Loads a DFunction from  a file
-
-        """
-
-        if not (self._is_empty or replace):
-            raise Exception("Data already exist in this object."
-            + " Use replace=True argument (default is replace=False")
+    center : float
+        position of maximum
         
-        fname, ext = self._fname_ext(filename, ext)
+    fwhm : float
+        full width at half maximum of the Gaussian function
         
-        if ext == "npy":
-
-            ab = numpy.load(fname)
-
-        elif ext == "dat":
-
-            ab = numpy.loadtxt(fname)
-            
-        else:
-            
-            raise Exception("Unknown format")
-            
-        dt = ab[1,0] - ab[0,0]
-        N = len(ab[:,0])
-        st = ab[0,0]
-        dat = ab[:,1]
+    offset : float
+        the value at infinity; effectively an offset on the y-axis
         
-        #if dt < 0:
-        #    ab[:,0] = 1.0/ab[:,0]
+    
+    """
+    
+    return height*numpy.exp(-(((x - center)**2)*4.0*numpy.log(2.0))/
+                            (fwhm**2)) + offset   
+
+
+def _n_gaussians(x, *params):
+    """Sum of N Gaussian functions plus an offset from zero
+
+    Parameters
+    ----------
+    
+    x : float
+        values to calculate Gaussians function at        
+        
+    params : floats
+        3*N + 1 parameters corresponding to height, center, fwhm  for each 
+        Gaussian and one value of offset
+        
+    """
+    n = len(params)
+    k = n//3
+    
+    if k*3 + 1 == n:       
+        res = 0.0
+        pp = numpy.zeros(3)
+        for i in range(k):
+            pp[0:3] = params[3*i:3*i+3]
+            #pp[3] = 0.0
+            arg = tuple(pp)
+            res += _gaussian(x, *arg)
+        res += params[n-1] # last parameter is an offset
+        return res
             
+    else:
+        raise Exception("Inconsistend number of parameters")        
 
-        if axis == "time":
-
-            axs = TimeAxis(st, N, dt)
-
-        elif axis == "frequency":
-
-            axs = FrequencyAxis(st, N, dt)
-
-        else:
-
-            axs = ValueAxis(st, N, dt)
-
-        self._make_me(axs, dat)

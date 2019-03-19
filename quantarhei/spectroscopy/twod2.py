@@ -11,6 +11,10 @@ import numpy
 from ..core.frequency import FrequencyAxis
 from .. import COMPLEX
 from ..core.saveable import Saveable
+from ..core.datasaveable import DataSaveable
+from ..core.dfunction import DFunction
+from ..core.valueaxis import ValueAxis
+from ..utils.types import check_numpy_array
 
 # FIXME: Check these names
 
@@ -596,7 +600,35 @@ TwoDSpectrumDataArray = partial(twodspectrum_dictionary,
                                 dtype=numbers.Complex)     
 
 
-class TwoDSpectrumBase:
+def twod_data_wrapper(dtype):
+    """Handles access to the d__data property of TwoDSpectrum 
+    
+    """
+    storage_name = "d__data"
+    
+    @property
+    def prop(self):
+        return getattr(self,storage_name)
+    
+    @prop.setter
+    def prop(self, value):
+        if self._allow_data_writing:
+            try:
+                vl = check_numpy_array(value) 
+                setattr(self,storage_name,vl)
+            except:
+                raise TypeError(
+                'Value must be either a list or numpy.array')
+        else:  
+            raise Exception("`data` property if for reading only")
+        
+    return prop
+
+
+DataWrapper = partial(twod_data_wrapper, dtype=numbers.Complex)
+
+
+class TwoDSpectrumBase(DataSaveable):
     """Basic class of a two-dimensional spectrum
     
     
@@ -620,8 +652,10 @@ class TwoDSpectrumBase:
     # Storage of 2D data
     #
     d__data = TwoDSpectrumDataArray("d__data")
+    data = DataWrapper()
 
-
+    _allow_data_writing = False
+    
     def __init__(self):
         super().__init__()
         
@@ -633,7 +667,7 @@ class TwoDSpectrumBase:
         ##########################################
         self.reph2D = None
         self.nonr2D = None
-        self.data = None
+        #self.data = None
         
         self.dtype = None
         ##########################################
@@ -649,6 +683,78 @@ class TwoDSpectrumBase:
         self.address_length = 1
 
 
+    def set_data_writable(self):
+        """Lifts the protection of the data property 
+        
+        """
+        if not self.storage_initialized:
+            self.set_resolution("off")
+            
+        self._allow_data_writing = True
+
+    def set_data_protected(self):
+        """Sets back the protection of the data property 
+        
+        """
+        self._allow_data_writing = False
+
+
+#    def _loadBinaryData(self, file):
+#        """Imports binary data from a file
+#        
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#
+#        """          
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._loadBinaryData(file)
+#        self._allow_data_writing = False
+#
+#    def _loadBinaryData_compressed(self, file):
+#        """Imports binary data from a file
+#
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#        
+#        """          
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._loadBinaryData_compressed(file)
+#        self._allow_data_writing = False
+#
+#    def _importDataFromText(self, file):
+#        """Imports textual data to a file
+#
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#
+#        """        
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._importDataFromText(file)
+#        self._allow_data_writing = False
+#
+#    def _loadMatlab(self, file):
+#        """Imports textual data to a file
+#
+#        This workaround is needed because the data property of TwoDSpectrumBase
+#        is read only
+#
+#        """        
+#        if not self.storage_initialized:
+#            self.set_resolution("off")
+#            
+#        self._allow_data_writing = True
+#        super()._loadMatlab(file)
+#        self._allow_data_writing = False
+        
     def set_axis_1(self, axis):
         """Sets the x-axis of te spectrum (omega_1 axis)
         
@@ -661,6 +767,11 @@ class TwoDSpectrumBase:
         
         """
         self.yaxis = axis
+
+
+#    def initialize_storage(self, storage_resolution):
+#        self.storage_resolution = storage_resolution
+        
 
     # FIXME: to be deprecated
     def set_data_type(self, dtype="Tot"):
@@ -1032,6 +1143,12 @@ class TwoDSpectrumBase:
             identify the pathway
             
         """
+        if not self.storage_initialized:
+            self._d__data = {}
+            self.storage_initialized =  True
+            if resolution is not None:
+                self.storage_resolution = resolution
+            
         if resolution is None:
             resolution = self.storage_resolution
         else:
@@ -1311,17 +1428,119 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         if legacy:
             
             if self.dtype == "Tot":
-                return self.data[ix,iy]
+                return self.data[iy,ix]
                 #return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
             elif self.dtype == "Reph":
-                return self.reph2D[ix,iy]
+                return self.reph2D[iy,ix]
             elif self.dtype == "Nonr":
-                return self.nonr2D[ix,iy]
+                return self.nonr2D[iy,ix]
         
         else:
             
-            return self.d__data[ix, iy]
+            
+            # FIXME: try linear interpolation
+            return self.d__data[iy, ix]
+
+
+    def get_cut_along_x(self, y0):
+        """Returns a DFunction with the cut of the spectrum along the x axis
         
+        """
+        (iy, dist) = self.yaxis.locate(y0)
+        
+        ax = self.xaxis
+        vals = numpy.zeros(ax.length, dtype=self.d__data.dtype)
+        for ii in range(ax.length):
+            vals[ii] = self.d__data[iy, ii]
+    
+        return DFunction(ax, vals)
+    
+
+    def get_cut_along_y(self, x0):
+        """Returns a DFunction with the cut of the spectrum along the y axis
+        
+        """
+        (ix, dist) = self.xaxis.locate(x0)
+        
+        ay = self.yaxis
+        vals = numpy.zeros(ay.length, dtype=self.d__data.dtype)
+        for ii in range(ay.length):
+            vals[ii] = self.d__data[ii, ix]
+    
+        return DFunction(ay, vals)   
+    
+
+    def get_cut_along_line(self, point1, point2, which_step=None, step=None):
+        """Returns a cut along a line specified by two points
+        
+        """
+        vx1 = point1[0]
+        vy1 = point1[1]
+        vx2 = point2[0]
+        vy2 = point2[0]
+        
+        (x1, dist) = self.xaxis.locate(vx1)
+        (y1, dist) = self.yaxis.locate(vy1)
+        (x2, dist) = self.xaxis.locate(vx2)
+        (y2, dist) = self.yaxis.locate(vy2)
+        
+        length = numpy.sqrt((vx1-vx2)**2 + (vy1-vy2)**2)
+        
+        if which_step is None:
+            wstep = "x"
+        else:
+            wstep = which_step
+            
+        if step is None:
+            if wstep == "x":
+                dx = self.xaxis.step
+            elif wstep == "y":
+                dx = self.yaxis.step
+            else:
+                raise Exception("Step along the cut line is not defined")
+                
+        else:
+            dx = step
+             
+        Nstep = int(length/dx)
+        
+        axis = ValueAxis(0.0, Nstep+1, dx)
+            
+        vals = numpy.zeros(Nstep+1, dtype=self.d__data.dtype)
+        ii = 0
+        for val in axis.data:
+            vx1 = self.xaxis.data[x1]
+            vx2 = self.xaxis.data[x2]
+            vy1 = self.yaxis.data[y1]
+            vy2 = self.yaxis.data[y2]
+            x = vx1 + val*(vx2-vx1)/(Nstep*dx)
+            y = vy1 + val*(vy2-vy1)/(Nstep*dx)
+            vals[ii] = self.get_value_at(x,y)
+            ii += 1
+            
+        return DFunction(axis, vals)    
+        
+    
+    def get_diagonal_cut(self):
+        """Returns cut of the spectrum along the diagonal 
+        
+        
+        """
+        
+        point1 = [self.xaxis.min, self.yaxis.min]
+        point2 = [self.xaxis.max, self.yaxis.max]
+        
+        fce = self.get_cut_along_line(point1, point2, which_step="x")
+        
+        fce.axis.data += point1[0]
+        
+        return fce
+    
+
+    def get_anti_diagonal_cut(self, point):
+        
+        pass
+
 
     def get_max_value(self):
         """Maximum value of the real part of the spectrum
@@ -1335,6 +1554,20 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         
         else:
             return numpy.amax(numpy.real(self.d__data))
+
+
+    def get_min_value(self):
+        """Minimum value of the real part of the spectrum
+        
+        
+        """
+        legacy = False
+        
+        if legacy:
+            return numpy.amin(numpy.real(self.reph2D+self.nonr2D))
+        
+        else:
+            return numpy.amin(numpy.real(self.d__data))
             
     
     #FIXME: introduce new storage scheme
@@ -1367,9 +1600,13 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum
         
         """
-        from .pumpprobe import PumpProbeSpectrumCalculator
-        ppc = PumpProbeSpectrumCalculator()
-        return ppc.calculate_from_2D(self)
+        #from .pumpprobe import PumpProbeSpectrumCalculator
+        from . import pumpprobe as pp
+        #from ..core.time import TimeAxis
+        #fake_t = TimeAxis(0,1,1.0)
+        #ppc = PumpProbeSpectrumCalculator(fake_t, fake_t, fake_t)
+        #return ppc.calculate_from_2D(self)
+        return pp.calculate_from_2D(self)
     
     
     def plot(self, fig=None, window=None, 

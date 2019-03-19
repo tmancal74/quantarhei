@@ -112,6 +112,7 @@ tprint("model", default=os.path.join("..","model"))
 print("\n# Waiting time propagation parameters:")
 tprint("eUt_mode", default="jit")
 tprint("restart", default=True)
+tprint("stop_after_propagation", default=False)
 tprint("pure_deph", messg="Using pure dephasing?", default=True)
 tprint("t2_N_steps")
 tprint("t2_time_step")
@@ -156,6 +157,14 @@ print("\n# End of the input file")
 print("")
 print("***                      Simulation output                         ***")
 print("")
+
+#
+###############################################################################
+#
+# END OF SCRIPT CONFIGURATION
+#
+###############################################################################
+#
 
 pre_out = out_dir
 pre_in = os.path.join(model, "out")
@@ -213,6 +222,9 @@ agg2.build(mult=2, vibgen_approx="TPA")
 
 print("and ", agg2.Ntot, " (electro-vibrational) states in total")
 print("Number of single exciton states :", agg2.Nb[0]+agg2.Nb[1])
+
+
+qr.save_parcel(agg2, os.path.join(pre_out,"agg2_built.qrp"))
 
 #
 # Electronic aggregate is built with single exciton states only
@@ -598,6 +610,22 @@ print("Setting up evolution superoperator at", t2_N_steps, "points:")
 #
 time_so = qr.TimeAxis(0.0, t2_N_steps, t2_time_step)
 
+
+#
+# Estimation of the evolution superoperator memory need
+#
+mem_eUt = (HH.dim**4)*16
+if eUt_mode == "all":
+    mem_eUt *= time_so.length
+mem_eUt = mem_eUt/(1024**2)
+if mem_eUt > 1000:
+    print("\nEstimated memory need for evolution superoperator:", 
+          mem_eUt/1024, "GB\n")
+else:
+    print("\nEstimated memory need for evolution superoperator:", 
+          mem_eUt, "MB\n")    
+    
+
 eUt = qr.qm.EvolutionSuperOperator(time_so, HH, relt=LF_frac, 
                                    pdeph=p_deph, mode=eUt_mode)
 
@@ -612,12 +640,22 @@ if eUt_mode == "all":
     # This takes time (use eUt.calculate(show_progress=True) to see progress)
     print("Calculating the whole dynamics in advance ...")
     t1 = time.time()
-    eUt.calculate(show_progress=True)
+    
+    if eUt.has_PureDephasing:
+        with qr.eigenbasis_of(HH):
+            eUt.calculate(show_progress=True)
+    else:
+        eUt.calculate(show_progress=True)
+        
     t2 = time.time()
     
     if restart:
         # save the eUt for restart
-        pass
+        qr.save_parcel(eUt, os.path.join(pre_out,"eUt.qrp"))
+        
+    if stop_after_propagation:
+        print("Simulation stops, because `stop_after_propagation == True`")
+        exit()
      
     # we plot selected evolution superoperato elements
     if evol_super_op_elems2plot is not None:    
@@ -631,6 +669,21 @@ else:
     print("Dynamics will be calculated on fly")
 
 
+if eUt_mode == "jit" and stop_after_propagation:
+    
+    if eUt.has_PureDephasing:
+        with qr.eigenbasis_of(HH):
+            for ii in range(1,time_so.length):
+                print("Propagation", ii, "of", time_so.length)
+                eUt.calculate_next()
+    else:
+        for ii in range(1,time_so.length):
+            print("Propagation", ii, "of", time_so.length)
+            eUt.calculate_next()
+            
+        print("Simulation stops, because `stop_after_propagation == True`")
+        exit()
+        
 print("Calculating 2D spectra:")
 
 #
@@ -695,7 +748,7 @@ while (N_T2 < time_so.length):
         noreph = ("R1g", "R4g", "R2f*")
     
         # add all types needed
-        typs = reph #+ noreph
+        typs = reph + noreph
             
         #
         # Here we generate the pathways
@@ -812,7 +865,7 @@ while (N_T2 < time_so.length):
         # Save stuff for a restart
         #
         if restart:
-            state = [N_T2, cont, eUt, agg2] #, msc]
+            state = [N_T2, cont, eUt, agg2, agg] #, msc]
             prcl = qr.Parcel()
             prcl.set_content(state)
             prcl.save("A_saved_state.qrp")
@@ -871,7 +924,6 @@ twod = cont.get_spectrum(time_so.data[N_T2_pul])
 # When this cell is left, we either retrieve one spectrum from container,
 # or calculate a new one from available pathways
 #
-
 
 
 #

@@ -75,9 +75,218 @@
     
 
 """
+import contextlib
+import os
+import subprocess
+import platform
+
+
 from paver.tasks import task
 from paver.tasks import needs
 from paver.easy import sh
+
+
+version = "0.0.45"
+
+sys_name = platform.system()
+
+
+
+pip = 'pip'
+python = 'python'
+
+# 
+# Commands for deleting files and directories silently and without error codes
+#
+if sys_name == "Darwin" or sys_name == "Linux":
+    deldir = 'rm -r -f '
+    delfile = 'rm -r -f '
+elif sys_name == "Windows":
+    deldir = 'rmdir /s /q '
+    delfile = 'del /s /q '
+else:
+    raise Exception("Unknown system")
+
+#
+# The Mother of all repositories
+#
+repository = 'https://github.com/tmancal74/quantarhei'
+
+
+#
+# look for location of `behave`
+#
+if sys_name != "Windows":
+    p = subprocess.Popen('which behave', shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    ii = 0
+    for line in p.stdout.readlines():
+        behave_bin = str(line.decode())
+        ii += 1
+    if ii != 1:
+        raise Exception("Don't know where `behave` is")
+else:
+    behave_bin = "behave"
+    
+
+#
+# Context manager for getting into subdirectories
+#
+@contextlib.contextmanager
+def cd(path):
+   old_path = os.getcwd()
+   os.chdir(path)
+   try:
+       yield
+   finally:
+       os.chdir(old_path)
+       
+def rm_rf(path):
+    """Removal of files and directories, recursively and silently
+    
+    """
+    pass
+    
+#
+# Standard developer tasks
+#
+       
+@task
+def sdist():
+    sh(python+" setup.py sdist")
+
+@needs('sdist')
+@task
+def inst():
+    
+    sh(pip+' install dist/quantarhei-'+version+'.tar.gz')
+    
+@needs('inst')
+@task
+def install():
+    pass
+
+
+@needs('uninst')
+@task
+def uninstall():
+    pass
+
+@task
+def uninst():
+	sh(pip+' uninstall -y quantarhei')
+    
+##################
+# Upload to pypi #
+##################
+@needs('sdist')
+@task
+def upload():
+	sh('twine upload dist/quantarhei-'+version+'.tar.gz')
+
+
+############
+# Clean-up #
+############
+@task
+def clean():
+    try:
+        sh(deldir+'dist')
+    except:
+        print("Directory not present - no problem")
+    try:    
+        sh(delfile+'quantarhei.egg-info')
+    except:
+        print("File not present - no problem")
+    try:
+        sh(deldir+'result_images')
+    except:
+        print("Directory not present - no problem")
+    try:
+        sh(delfile+'qrconf.py quantarhei/qrconf.py')
+    except:
+        print("File not present - no problem")
+    try:        
+        sh(delfile+'coverage.xml')
+    except:
+        print("File not present - no problem")
+
+
+################################
+# Reinstallation with clean-up #
+################################
+@needs('clean','uninst', 'inst')
+@task
+def reinst():
+    pass
+
+#############################################################
+# Local tests: this will reinstall Quantarhei and run tests #
+#############################################################
+@needs('reinst')
+@task
+def local_tests():
+	sh('paver')
+
+
+####################
+# Test of plotting #
+####################
+@needs('matplotlib_tests')
+@task
+def plot_tests(): 
+	pass 
+
+####################
+# Update examples  #
+####################
+@task
+def update_examples():
+	sh('cd examples; python admin/make_demos.py')
+
+@task
+def tasks():
+	print("")
+	print("Quantarhei Paver Tasks")
+	print("======================")
+	print("")
+	print("Essential tasks: ")
+	print("----------------")
+	print("inst        ... install quantarhei from this source code")
+	print("reinst      ... uninstall and install from this source code")
+	print("local_tests ... uninstall, install and run tests")
+	print("plot_tests  ... run tests of plotting")
+	print("test        ... run tests")
+	print("sdist       ... create distribution")
+	print("clean       ... clean the repository")
+	print("examples    ... updates examples")
+	print("")
+	print("Git tasks: ")
+	print("----------")
+	print("git_add_upstream, git_update_master")
+	print("")
+
+############################################
+#  Helper tasks for managing pull-requests
+############################################
+
+#
+# update from master branch of the quantarhei's main repository
+#
+@task
+def git_update_master():
+	sh('git fetch upstream')
+	sh('git checkout master')
+	sh('git merge upstream/master')
+
+
+#
+# connect a forked local repository to the main quantarhei repository	
+#
+@task
+def git_add_upstream():
+	sh('git remote add upstream '+repository)
+
 
 
 ###############################################################################
@@ -306,7 +515,8 @@ def aloe_tests_cov_v():
 ###############################################################################
 @task
 def behave():
-    sh("cd tests/behave/features; coverage run $(which behave)")
+    with cd(os.path.join('tests', 'behave', 'features')):
+        sh("coverage run "+behave_bin) # $(which behave)")
 
 
 ###############################################################################
@@ -479,12 +689,27 @@ def codecov():
 #
 # This is called when paver is run without any task
 #
+#@needs('unit_tests_cov_v',
+#       'doc_tests_cov_v',
+#       'aloe_tests_cov_v',
+#       'behave')
+@needs('test')
+@task
+def default():
+    """Default paver task
+    
+    """
+    pass
+
+#
+# This is called when paver is run without any task
+#
 @needs('unit_tests_cov_v',
        'doc_tests_cov_v',
        'aloe_tests_cov_v',
        'behave')
 @task
-def default():
+def test():
     """Default paver task
     
     """

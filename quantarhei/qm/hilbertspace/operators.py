@@ -283,8 +283,16 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         dat = numpy.dot(etimesd,numpy.dot(self.data,etimesd))
         
         return ReducedDensityMatrix(data=dat)
+
+
+    def normalize(self):
+        """Normalize the trace of the density matrix
         
-            
+        """
+        tr = numpy.trace(self.data)
+        self.data = self.data/tr
+
+
     def __str__(self):
         out  = "\nquantarhei.DensityMatrix object"
         out += "\n==============================="

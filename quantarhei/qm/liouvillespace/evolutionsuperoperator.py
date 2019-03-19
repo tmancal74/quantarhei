@@ -326,6 +326,48 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             return True
 
 
+    def _initialize_data(self, save=False):
+        """Initializes EvolutionSuperOperator data
+        
+        """
+        
+        #
+        # Create new data
+        #      
+
+        if (self.mode == "all") or save:          
+
+            # if we are supposed to save all time steps
+            Nt = self.time.length                    
+            self.data = numpy.zeros((Nt, self.dim, self.dim,
+                                         self.dim, self.dim),
+                                         dtype=qr.COMPLEX)
+            #
+            # zero time value (unity superoperator)
+            #
+            dim = self.dim
+            for i in range(dim):
+                for j in range(dim):
+                    self.data[0,i,j,i,j] = 1.0
+                
+        elif self.mode == "jit":
+            
+            # if we need to keep only the last state
+            if self.dim != self.data.shape[0]:
+                self.data = numpy.zeros((self.dim, self.dim,
+                                         self.dim, self.dim),
+                                         dtype=qr.COMPLEX)
+
+            #
+            # zero time value (unity superoperator)
+            #
+            dim = self.dim
+            for i in range(dim):
+                for j in range(dim):
+                    self.data[i,j,i,j] = 1.0
+        
+        
+
     def calculate(self, show_progress=False):
         """Calculates the data of the evolution superoperator
         
@@ -343,26 +385,11 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                             " with mode='all'")
         Nt = self.time.length
         
-        #
-        # Create new data
-        #
-        self.data = numpy.zeros((Nt, self.dim, self.dim,
-                                     self.dim, self.dim),
-                                    dtype=qr.COMPLEX)
-            
-        #
-        # zero time value (unity superoperator)
-        #
-        dim = self.dim
-        for i in range(dim):
-            for j in range(dim):
-                self.data[0,i,j,i,j] = 1.0
+        self._initialize_data()
             
         if show_progress:
             print("Calculating evolution superoperator ")
         self._init_progress()
-        
-        
         
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
@@ -376,21 +403,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             for ti in range(1, Nt):
                 
                 t0 = self.time.data[ti-1] # initial time of the propagation
-                one_step_time = TimeAxis(t0, self.dense_time.length,
-                                         self.dense_time.step)
-                
-                prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                      RTensor=self.relt, 
-                                                      PDeph=self.pdeph)
-                rhonm0 = ReducedDensityMatrix(dim=dim)
-                Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
-                for n in range(dim):
-                    for m in range(dim):
-                        rhonm0.data[n,m] = 1.0
-                        rhot = prop.propagate(rhonm0)
-                        Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                        rhonm0.data[n,m] = 0.0
-                        #self.now += 1
+
+                Ut1 = self._elemental_step_TimeDependent(t0)
                 
                 self.data[ti,:,:,:,:] = \
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
@@ -404,46 +418,107 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # We calculate the first step of the first interval
             #
             t0 = 0.0
-            one_step_time = TimeAxis(t0, 2, self.dense_time.step)
-            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
-                                                  RTensor=self.relt, 
-                                                  PDeph=self.pdeph)
-            rhonm0 = ReducedDensityMatrix(dim=dim)
-            Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
-            for n in range(dim):
-                if show_progress:
-                    self._progress(Nt, dim, 0, n, 0)
-                for m in range(dim):
-                    rhonm0.data[n,m] = 1.0
-                    rhot = prop.propagate(rhonm0)
-                    Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                    rhonm0.data[n,m] = 0.0
-                    #self.now += 1
-    
-            #
-            # propagation to the end of the first interval
-            #
-            Udt = Ut1
-            for ti in range(2, self.dense_time.length):
-                Udt = numpy.tensordot(Ut1, Udt)
-                
-            self.data[1,:,:,:,:] = Udt
-    
+
+            self.data[1,:,:,:,:] = self._one_step_with_dense_TimeIndep(t0,
+                                                    self.dense_time.length,
+                                                    self.dense_time.step,
+                                                    Nt,
+                                                    show_progress) 
             #
             # repeat propagation over the longer interval
             #
-            for ti in range(2, Nt):
-                if show_progress:
-                    print("Self propagation: ", ti, "of", Nt)            
-               
-                self.data[ti,:,:,:,:] = \
-                    numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
+            self._calculate_remainig_using_first_interval(Nt,
+                                                          show_progress)
 
         if show_progress:
             print("...done")
-                    
             
-    def calculate_next(self):
+            
+    def _elemental_step_TimeIndep(self, t0, dens_dt, Nt, show_progress=False):
+        """Single elemental step of propagation with the dense time step
+        
+        """
+        
+        dim = self.ham.dim
+        one_step_time = TimeAxis(t0, 2, self.dense_time.step)
+        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
+                                              RTensor=self.relt, 
+                                              PDeph=self.pdeph)
+        rhonm0 = ReducedDensityMatrix(dim=dim)
+        Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        for n in range(dim):
+            if show_progress:
+                self._progress(Nt, dim, 0, n, 0)
+            for m in range(dim):
+                rhonm0.data[n,m] = 1.0
+                rhot = prop.propagate(rhonm0)
+                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                rhonm0.data[n,m] = 0.0
+        return Ut1
+
+
+    def _elemental_step_TimeDependent(self, t0):
+        """Single step of propagation with the dense time step 
+        
+        assuming time dependent relaxation tensor
+        
+        """
+        
+        dim = self.dim
+        one_step_time = TimeAxis(t0, self.dense_time.length,
+                                 self.dense_time.step)
+        
+        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
+                                              RTensor=self.relt, 
+                                              PDeph=self.pdeph)
+        rhonm0 = ReducedDensityMatrix(dim=dim)
+        Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        for n in range(dim):
+            for m in range(dim):
+                rhonm0.data[n,m] = 1.0
+                rhot = prop.propagate(rhonm0)
+                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                rhonm0.data[n,m] = 0.0
+                #self.now += 1
+        return Ut1
+
+
+    def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt,
+                                     show_progress=False):
+        """One step of propagation over the standard time step
+        
+        This step is componsed of Ndense time steps
+        
+        """
+        
+        Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt,
+                                           show_progress=show_progress)
+        #
+        # propagation to the end of the first interval
+        #
+        Udt = Ut1
+        for ti in range(2, self.dense_time.length):
+            Udt = numpy.tensordot(Ut1, Udt)
+        return Udt
+
+        
+    def _calculate_remainig_using_first_interval(self, Nt,
+                                                 show_progress=False):
+        """Calculate the rest of the superoperator with known first interval
+        
+        
+        """
+        Udt = self.data[1,:,:,:,:]
+        
+        for ti in range(2, Nt):
+            if show_progress:
+                print("Self propagation: ", ti, "of", Nt)            
+           
+            self.data[ti,:,:,:,:] = \
+                numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])        
+
+
+    def calculate_next(self, save=False):
         """Calculates one point of data of the superopetor
         
         """
@@ -451,51 +526,34 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if self.mode != "jit":
             raise Exception("This method (calculate_next()) can be used only"+
                             " with mode='jit'")
+            
+        Nt = self.time.length
 
         if (self.pdeph is not None) and (self.pdeph.dtype == "Gaussian"):
 
 
             if self.now == 0:
+
                 #
                 # Create new data
-                #
-                if self.dim != self.data.shape[0]:
-                    self.data = numpy.zeros((self.dim, self.dim,
-                                             self.dim, self.dim),
-                                            dtype=qr.COMPLEX)
-        
-                #
-                # zero time value (unity superoperator)
-                #
-                dim = self.dim
-                for i in range(dim):
-                    for j in range(dim):
-                        self.data[i,j,i,j] = 1.0
-            
+                #    
+                self._initialize_data(save=save)
+                            
             #
             # We calculate every interval completely
             #
             ti = self.now + 1
 
             t0 = self.time.data[ti-1] # initial time of the propagation
-            one_step_time = TimeAxis(t0, self.dense_time.length,
-                                     self.dense_time.step)
-            prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                  RTensor=self.relt, 
-                                                  PDeph=self.pdeph)
-            dim = self.dim
-            rhonm0 = ReducedDensityMatrix(dim=dim)
-            Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
-            for n in range(dim):
-                for m in range(dim):
-                    rhonm0.data[n,m] = 1.0
-                    rhot = prop.propagate(rhonm0)
-                    Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                    rhonm0.data[n,m] = 0.0
-                    #self.now += 1
             
-            self.data[:,:,:,:] = \
-                numpy.tensordot(Ut1, self.data[:,:,:,:])
+            Ut1 = self._elemental_step_TimeDependent(t0)
+            
+            if save:
+                self.data[ti, :,:,:,:] = \
+                numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
+            else:
+                self.data[:,:,:,:] = \
+                    numpy.tensordot(Ut1, self.data[:,:,:,:])
               
             self.now += 1
                   
@@ -507,41 +565,20 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             if self.now == 0:
                 #
                 # Create new data
-                #
-                if self.dim != self.data.shape[0]:
-                    self.data = numpy.zeros((self.dim, self.dim,
-                                             self.dim, self.dim),
-                                            dtype=qr.COMPLEX)
-        
-                #
-                # zero time value (unity superoperator)
-                #
-                dim = self.dim
-                for i in range(dim):
-                    for j in range(dim):
-                        self.data[i,j,i,j] = 1.0
-    
-                one_step_time = TimeAxis(0.0, 2, self.dense_time.step)
-                prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                                      RTensor=self.relt)
-                rhonm0 = ReducedDensityMatrix(dim=dim)
-                Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
-                for n in range(dim):
-                    for m in range(dim):
-                        rhonm0.data[n,m] = 1.0
-                        rhot = prop.propagate(rhonm0)
-                        Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                        rhonm0.data[n,m] = 0.0
-    
-                #
-                # propagation to the end of the first interval
-                #
-                Udt = Ut1
-                for ti in range(2, self.dense_time.length):
-                    Udt = numpy.tensordot(Ut1, Udt)
-                self.Udt = Udt
+                #  
+                self._initialize_data(save=save)
+
+                t0 = 0.0
+
+                self.Udt = self._one_step_with_dense_TimeIndep(t0,
+                                                    self.dense_time.length,
+                                                    self.dense_time.step, Nt,
+                                                    show_progress=False) 
                 
-                self.data[:,:,:,:] = self.Udt[:,:,:,:]
+                if save:
+                    self.data[1,:,:,:,:] = self.Udt[:,:,:,:]
+                else:
+                    self.data[:,:,:,:] = self.Udt[:,:,:,:]
                 
                 self.now += 1
             
@@ -549,8 +586,16 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # Propagations of the later intervals
             #
             else:
-                self.data[:,:,:,:] = \
-                    numpy.tensordot(self.Udt, self.data[:,:,:,:])
+                
+                ti = self.now + 1
+                
+                if save:
+                    self.data[ti, :,:,:,:] = \
+                        numpy.tensordot(self.Udt, self.data[ti-1,:,:,:,:])
+                else:
+                    self.data[:,:,:,:] = \
+                        numpy.tensordot(self.Udt, self.data[:,:,:,:])
+                
                 self.now += 1
 
 
@@ -671,7 +716,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 raise Exception("Invalid argument: time")
 
 
-    def plot_element(self, elem):
+    def plot_element(self, elem, show=True):
         """Plots a selected element of the evolution superoperator
         
         
@@ -690,6 +735,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             if tl == shape[0]:
                 plt.plot(self.time.data,
                          self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                if show:
+                    plt.show()
         
         else:
             print("Nothing to plot")

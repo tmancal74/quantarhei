@@ -38,9 +38,23 @@ class TestExamples(unittest.TestCase):
         """
 
         # example files
+#        efiles = [
+#                  "ex_010_RedfieldTheory_1.py",
+#                  "ex_011_LindbladForm_1.py",
+#                  "ex_012_Integrodiff.py",
+#                  "ex_013_HEOM.py",
+#                  "ex_014_HEOM_rates.py",
+#                  "ex_015_RedfieldTheory_2.py",
+#                  "ex_016_FoersterTheory_1.py"
+#                 ]
+
         efiles = [
                   "ex_010_RedfieldTheory_1.py",
-                  "ex_011_LindbladForm_1.py"
+                  "ex_011_LindbladForm_1.py",
+                  "ex_013_HEOM.py",
+                  "ex_014_HEOM_rates.py",
+                  "ex_015_RedfieldTheory_2.py",
+                  "ex_016_FoersterTheory_1.py"
                  ]
            
         
@@ -57,7 +71,31 @@ class TestExamples(unittest.TestCase):
            
         
         do_the_work(efiles)
+ 
+#    def test_examples_050_059(self):
+#        """Testing examples 050 - 059
+#        """
+#
+#        # example files
+#        efiles = [
+#                  "ex_050_PDB_FMO1.py"
+#                 ]
+#           
+#        
+#        do_the_work(efiles)
+ 
+    def test_examples_800_809(self):
+        """Testing examples 800 - 809
+        """
+
+        # example files
+        efiles = [
+                  "ex_800_DiagProblem.py"
+                 ]
+           
         
+        do_the_work(efiles)
+      
 def do_the_work(efiles):
 
     for efile in efiles:

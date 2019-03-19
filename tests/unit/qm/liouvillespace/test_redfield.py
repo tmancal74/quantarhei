@@ -24,7 +24,8 @@ from quantarhei.qm.corfunctions import SpectralDensity
 from quantarhei import TimeAxis, eigenbasis_of
 from quantarhei.qm import Operator
 from quantarhei.qm import SystemBathInteraction
-
+from quantarhei.qm import ReducedDensityMatrixPropagator
+from quantarhei.qm import ReducedDensityMatrix
 from quantarhei import energy_units
 
 class TestRedfield(unittest.TestCase):
@@ -116,4 +117,36 @@ class TestRedfield(unittest.TestCase):
         
         numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
                 
+
+    def test_propagation_in_different_basis(self):
+        """(REDFIELD) Testing comparison of propagations in different bases
+
+        """
+
+        LT1 = RedfieldRelaxationTensor(self.H1, self.sbi1, as_operators=True)
+        LT2 = RedfieldRelaxationTensor(self.H1, self.sbi1, as_operators=False)
+        
+        time = TimeAxis(0.0, 1000, 1.0)
+        
+        prop1 = ReducedDensityMatrixPropagator(time, self.H1, LT1)
+        prop2 = ReducedDensityMatrixPropagator(time, self.H1, LT2)
+        
+        rho0 = ReducedDensityMatrix(dim=self.H1.dim)
+        rho0.data[1,1] = 1.0
+          
+        with eigenbasis_of(self.H1):
+        #if True:
+            rhot1_e = prop1.propagate(rho0)
             
+        with eigenbasis_of(self.H1):
+            rhot2_e = prop2.propagate(rho0)
+
+        rhot1_l = prop1.propagate(rho0)
+        rhot2_l = prop2.propagate(rho0)
+            
+        numpy.testing.assert_allclose(rhot1_l.data, rhot1_e.data,
+                                      rtol=1.0e-5, atol=1.0e-12)
+        numpy.testing.assert_allclose(rhot2_l.data, rhot1_e.data,
+                                      rtol=1.0e-5, atol=1.0e-12)
+        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data,
+                                      rtol=1.0e-5, atol=1.0e-12)              

@@ -168,20 +168,26 @@ if _show_plots_:
 #<indent incr=4>
   
 
-filename = os.path.join(wdir, "abs_2mol_10cm_60fs_100K_m20")
-
+filename = os.path.join(wdir, "abs_2mol_10cm_60fs_100K_m20.dat")
 with e_units:
-    a3.save_data(filename, ext="dat")
+    a3.save_data(filename) #, ext="dat")
 
     f = qr.DFunction()
-    f.load_data(filename, ext="dat",axis="frequency")
+    f.axis = a3.axis
+    
+    print(a3.axis)
+    print(f.axis)
+    print("Loading data")
+    f.load_data(filename, with_axis=f.axis) #, ext="dat",axis="frequency")
+    print("..done")
 #<remove>
     if _show_plots_:
 #</remove>
 #<indent decr=4>    
         f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 #<indent incr=4>
-            
+     
+
 """
 
     Absorption of a simple trimeric aggregate of two-level molecules
@@ -285,17 +291,17 @@ if _show_plots_:
         a3 = ACont.get_spectrum(tag=2)
         a3.plot(show=False)
         a1 = ACont.get_spectrum(tag=1)
-        a2.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+        a1.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 #<indent incr=4>
       
-filename1 = os.path.join(wdir, "abs_3mol_20cm_60fs_100K_m20")
+filename1 = os.path.join(wdir, "abs_3mol_20cm_60fs_100K_m20.dat")
 filename2 = os.path.join(wdir, "container.qrp")
 
 with e_units:
-    a2.save_data(filename1, ext="dat")
+    a2.save_data(filename1) #, ext="dat")
 
-    f = qr.DFunction()
-    f.load_data(filename1, ext="dat", axis="frequency")
+    f = qr.AbsSpectrum(axis=a2.axis)
+    f.load_data(filename1) #, with_axis=a2.axis) # ext="dat", axis="frequency")
     
     if _show_plots_:
         f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
@@ -311,7 +317,7 @@ with e_units:
 if _show_plots_:
 #</remove>
 #<indent decr=4>        
-        
-    a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
+    with e_units:        
+        a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 #<indent incr=4>
             

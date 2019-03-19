@@ -40,6 +40,8 @@ from .liouvillespace.rates.tdredfieldrates import TDRedfieldRateMatrix
 from .liouvillespace.rates.modifiedredfieldrates import ModifiedRedfieldRateMatrix
 from .liouvillespace.rates.ratematrix import RateMatrix
 
+from .liouvillespace.relaxationtensor import RelaxationTensor
+
 # Relaxation tensors (weak SB theory)
 from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
 from .liouvillespace.tdredfieldtensor import TDRedfieldRelaxationTensor

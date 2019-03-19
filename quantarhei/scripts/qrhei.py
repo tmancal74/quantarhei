@@ -194,6 +194,13 @@ def do_command_fetch(args):
     """
 
     global parser_fetch
+
+    def get_number(file):
+        """Returns the number part of the file name
+        
+        """
+        parts = file.split(sep="_")
+        return parts[1]
     
     if args.examples:
         qr.printlog("Fetching example(s) ...", loglevel=0)
@@ -201,13 +208,21 @@ def do_command_fetch(args):
         import quantarhei.wizard.examples as exmpl
          
         filenames = exmpl._available_examples
-        
+        data_files = exmpl._available_data
         
         if args.glob:
             pattern = args.glob
             matching = _match_filenames(filenames, pattern, add_stars=True)
         else:
             matching = []
+        
+        if len(matching) > 0:
+            newmatch = matching.copy()
+            for match in matching:
+                data_pattern = get_number(match)
+                newmatch += _match_filenames(data_files, data_pattern,
+                                             add_stars=True)
+            matching = newmatch 
             
         if len(matching) > 0:           
             for filename in matching:

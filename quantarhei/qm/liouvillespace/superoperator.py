@@ -184,7 +184,7 @@ class SuperOperator(BasisManaged):
         if copy:
             import copy
             oper_ven = copy.copy(oper)
-            oper_ven.data = numpy.tensordot(self._data, oper.data)
+            oper_ven.data = numpy.tensordot(self.data, oper.data)
             return oper_ven
         else:
             oper.data = numpy.tensordot(self.data, oper.data)
@@ -278,7 +278,10 @@ class SuperOperator(BasisManaged):
         --------
         
         """
-    
+        if (self.manager.warn_about_basis_change):
+            print("\nQr >>> SuperOperator "+
+                  "'%s' changes basis" %self.name)
+        
         #
         # if inverse matrix not present, we create it
         #

@@ -617,6 +617,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """
         return self.convert_energy_2_current_u(self.lamb)
 
+    def get_correlation_time(self):
+        """Returns correlation time associated with the first component 
+        of the bath correlation function
+        """
+        return self.params[0]["ctime"]
 
     def measure_reorganization_energy(self):
         """Calculates the reorganization energy of the correlation function
