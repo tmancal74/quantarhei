@@ -16,6 +16,7 @@ from ...core.time import TimeAxis
 from .correlationfunctions import CorrelationFunction
 from .correlationfunctions import FTCorrelationFunction
 from ...core.units import kB_int
+from ...core.units import convert
 
 #from .correlationfunctions import c2h
 
@@ -203,7 +204,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                     
                 elif ftype == "B777":
                     
-                    self._make_B777(params)
+                    self._make_B777(prms)
                     
                 elif ftype == "CP29":
                     
@@ -307,64 +308,65 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 4*(gamma*(omega0**2))/((omega0**2)**2)
         
-    #See Kell et al, 2013, J. Phys. Chem. B. 
-    #This spectral density requires two 'freq' parameters.
-    def _make_B777(self, params, values=None, use_alternative_form=True):
+    # See Renger, Journal of Chemical Physics 2002
+    # See Jang, Newton, Silbey, J Chem Phys. 2007 for alternate form
+    # (See Kell et al, 2013, J. Phys. Chem. B.) 
+    def _make_B777(self, params, values=None):
         
-        lamb = params["reorg"]
         try:
-            omega1 = params["freq1"]            
+            omega1 = params["freq1"]
             omega2 = params["freq2"]
             s = [params['s1'], params['s2']]
-            S0 = params["S0"]
-            freq = [omega1, omega2]
-
 
         except:
-            omega1 = self.manager.iu_energy(0.56,
-                                          units="1/cm")
-            omega2 = self.manager.iu_energy(1.9,
-                                          units="1/cm")
+            omega1 = convert(0.56, "1/cm", "int")
+            omega2 = convert(1.9, "1/cm", "int")
             s = [0.8, 0.5]
-            S0 = 0.5
-            freq = [omega1, omega2]
-
+        
+        lamb = params["reorg"]
+        freq = [omega1, omega2]
 
         with energy_units("int"):
             omega = self.axis.data
             cropped_omega = omega
-
-            j=0
+            cfce_renger=0
             for ii in range(2):
-                j = j + (s[ii]/(numpy.math.factorial(7) * 2*(freq[ii]**4)))*\
-                (cropped_omega**3)*(numpy.exp
-                    (-numpy.abs(cropped_omega/freq[ii])**0.5))
+        # Cropped_omega**2 converts the form of spec dens to same as alt form
+                cfce_renger = cfce_renger + (cropped_omega**2)\
+                *(s[ii]/(numpy.math.factorial(7) * 2*(freq[ii]**4)))*\
+                (cropped_omega**3)\
+                *(numpy.exp(-numpy.abs(cropped_omega/freq[ii])**0.5))
 
-#            
-        if use_alternative_form:
+        # Takes alternative from as default but can be edited in params
+        if "alternative_form" not in params or params["alternative_form"]:
             #This form is taken from Jang, Newton, Silbey, J Chem Phys. 2007.
             #It gives a polynomial form of the B777 spectral density
-            print('jang used')
-            omega1c = self.manager.iu_energy(170,
-                                      units="1/cm")
-            omega2c = self.manager.iu_energy(34,
-                                      units="1/cm")
-            omega3c = self.manager.iu_energy(69,
-                                      units="1/cm")
+            print('\nJang used\n')
+            omega1c = convert(170, "1/cm", "int")
+            omega2c = convert(34, "1/cm", "int")
+            omega3c = convert(69, "1/cm", "int")
+
             with energy_units("int"):
+                # (omega/(numpy.abs(omega))) in the second term ensures
+                # proper treatment of -ve frequencies
                 omega = self.axis.data
-                cfce = 0.22*omega*numpy.exp(-numpy.abs(omega/omega1c))\
-                +(omega/(numpy.abs(omega)))*0.78*((omega**2)/omega2c)*numpy.exp(-numpy.abs(omega/omega2c))\
-                +0.31*((omega**3)/(omega3c**2))*numpy.exp(-numpy.abs(omega/omega3c))
-#        #This factor was not in the  Jang, Newton, Silbey, J Chem Phys. 2007 article.
-#        #It is necessary for the original B777 spectral density, and the alternative form to be equal.
-                cfce = (numpy.amax(j*cropped_omega**2)/numpy.amax(cfce)) * cfce * numpy.pi*S0*(1/(s[0] + s[1])) 
-               
-        if values is not None:
-            self._make_me(self.axis, values)
+                cfce_jang = \
+                0.22*omega*numpy.exp(-numpy.abs(omega/omega1c))+\
+                0.78*(omega/(numpy.abs(omega)))*((omega**2)/omega2c)*numpy.exp\
+                                                  (-numpy.abs(omega/omega2c))+\
+                0.31*((omega**3)/(omega3c**2))*numpy.\
+                                                 exp(-numpy.abs(omega/omega3c))
+
+            if values is not None:
+                self._make_me(self.axis, values)
+            else:
+                self._make_me(self.axis, cfce_jang)
         else:
-            self._make_me(self.axis, cfce)
-            
+            if values is not None:
+                self._make_me(self.axis, values)
+            else:
+                self._make_me(self.axis, cfce_renger)
+
         self.lamb = lamb            
         self.lim_omega = numpy.zeros(2)
         self.lim_omega[0] = 0.0
