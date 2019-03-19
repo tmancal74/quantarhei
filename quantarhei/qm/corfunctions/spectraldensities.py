@@ -12,7 +12,7 @@ from ...core.dfunction import DFunction
 from ...core.managers import UnitsManaged
 from ...core.managers import energy_units
 from ...core.time import TimeAxis
-from ...core.frequency import FrequencyAxis
+#from ...core.frequency import FrequencyAxis
 from .correlationfunctions import CorrelationFunction
 from .correlationfunctions import FTCorrelationFunction
 from ...core.units import kB_int
@@ -204,7 +204,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                     
                 elif ftype == "B777":
                     
-                    self._make_B777(params)
+                    self._make_B777(prms)
                     
                 elif ftype == "CP29":
                     
@@ -313,22 +313,18 @@ class SpectralDensity(DFunction, UnitsManaged):
     # (See Kell et al, 2013, J. Phys. Chem. B.) 
     def _make_B777(self, params, values=None):
         
-        # Do not use 'freq1'/'freq2' (units issue when combining spec dens)
         try:
-            omega1 = params["om1"]
-            omega2 = params["om2"]
+            omega1 = params["freq1"]
+            omega2 = params["freq2"]
             s = [params['s1'], params['s2']]
-            #S0 = params["S0"]
 
         except:
-            omega1 = 0.56
-            omega2 = 1.9
+            omega1 = convert(0.56, "1/cm", "int")
+            omega2 = convert(1.9, "1/cm", "int")
             s = [0.8, 0.5]
-            #S0 = 0.5
-        # These S0 paramaters are only used for the scaling factor (remove?)
-
+        
         lamb = params["reorg"]
-        freq = [convert(omega1, "1/cm", "int"), convert(omega2, "1/cm", "int")]
+        freq = [omega1, omega2]
 
         with energy_units("int"):
             omega = self.axis.data
@@ -360,12 +356,6 @@ class SpectralDensity(DFunction, UnitsManaged):
                                                   (-numpy.abs(omega/omega2c))+\
                 0.31*((omega**3)/(omega3c**2))*numpy.\
                                                  exp(-numpy.abs(omega/omega3c))
-
-        # I presume this is relvant to converting between the forms of spec
-        # dens but they are the same without it and this factor of ~1.2 seems
-        # redundant. Maybe we can remove it?
-                #cfce_jang = (numpy.amax(cfce_renger)/numpy.amax(cfce_jang))\
-                #* cfce_jang #* numpy.pi*S0*(1/(s[0] + s[1]))
 
             if values is not None:
                 self._make_me(self.axis, values)

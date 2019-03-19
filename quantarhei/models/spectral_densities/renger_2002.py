@@ -34,12 +34,10 @@ class renger_2002a(SpectralDensityDatabaseEntry):
 
         # Option of varying the paramaters of the Renger spec dens
         # values from the paper are set by default
-        # enter om1/2 as 1/cm (they are converted in SpectralDensity)
-        params.update({"om1": 0.56,
-                       "om2": 1.9,
+        params.update({"freq1": 0.56,
+                       "freq2": 1.9,
                         's1':   0.8,
-                        's2':   0.5,
-                        "S0":   0.5})
+                        's2':   0.5})
 
         with energy_units("1/cm"):
             sd = SpectralDensity(axis, params)
