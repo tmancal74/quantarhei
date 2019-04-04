@@ -787,4 +787,20 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         print(txt, end="\r")
         
         self.remlast = remtime
-                        
+
+
+    def __str__(self):
+        out  = "\nquantarhei.EvolutionSuperOperator object"
+        out += "\n========================================"
+#        out += "\nunits of energy %s" % self.unit_repr()
+#        out += "\nRotating Wave Approximation (RWA) enabled : "\
+#            +str(self.has_rwa)
+#        if self.has_rwa:
+#            out += "\nNumber of blocks : "+str(self.Nblocks)
+#            out += "\nBlock average energies:"
+#            for k in range(self.Nblocks):
+#                out += "\n "+str(k)+" : "\
+#                +str(self.rwa_energies[self.rwa_indices[k]])
+        #out += "\ndata = \n"
+        #out += str(self.data)
+        return out                        

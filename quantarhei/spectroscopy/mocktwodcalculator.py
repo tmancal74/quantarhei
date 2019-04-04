@@ -152,32 +152,23 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         return onetwod
 
 
-    def calculate_all_system(self, sys, H, eUt, lab):
+    def calculate_all_system(self, sys, H, eUt, lab, show_progress=False):
         """Calculates all 2D spectra for a system and evolution superoperator
         
         """
         tcont = TwoDSpectrumContainer(t2axis=self.t2axis)
         
+        kk = 1
+        Nk = self.t2axis.length
         for T2 in self.t2axis.data:
             
-#            Uin = eUt.at(T2)
-#        
-#            rho0 = sys.get_DensityMatrix(condition_type="thermal",
-#                                         temperature=0.0)
-#        
-#            # get Liouville pathways
-#            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-#                                                   "R4g", "R1f*", "R2f*"),
-#                                                   eUt=Uin, ham=H, t2=T2,
-#                                                   lab=lab)
-#        
-#            self.set_pathways(pws)
-#        
-#            twod1 = self.calculate_next()
+            if show_progress:
+                print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
             
             twod1 = self.calculate_one_system(T2, sys, H, eUt, lab)
         
             tcont.set_spectrum(twod1, tag=T2)
+            kk += 1
             
         return tcont
 
@@ -186,17 +177,34 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         """Returns 2D spectrum at t2 for a system and evolution superoperator
         
         """
-        Uin = eUt.at(t2)
+        try:
+            Uin = eUt.at(t2)
+        except:
+            Uin = eUt
     
+        # FIXME: this needs to be set differently, and it mu
         rho0 = sys.get_DensityMatrix(condition_type="thermal",
                                      temperature=0.0)
-    
+        
+        # evolution superoperator is only in single exciton manifold
+        # Hamiltonian covers all states, if they have the same dimension
+        # we do not calculate ESA
+        has_ESA = True
+        if eUt.dim == H.dim:
+            has_ESA = False
+        
         # get Liouville pathways
-        pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                               "R4g", "R1f*", "R2f*"),
-                                               eUt=Uin, ham=H, t2=t2,
-                                               lab=lab)
-    
+        if has_ESA:
+            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
+                                                   "R4g", "R1f*", "R2f*"),
+                                                   eUt=Uin, ham=H, t2=t2,
+                                                   lab=lab)
+        else:
+            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
+                                                   "R4g"),
+                                                   eUt=Uin, ham=H, t2=t2,
+                                                   lab=lab)
+
         self.set_pathways(pws)
     
         twod1 = self.calculate_next()

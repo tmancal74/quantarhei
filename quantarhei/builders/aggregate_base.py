@@ -156,19 +156,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self.coupling_initiated = False     #
         self.resonance_coupling = None    #
         
-        self._init_me()        
-
-
-    def _before_save(self):
-        self.manager = None
-
-
-    def _after_save(self):
-        self.manager = Manager()
-
-
-    def _after_load(self):
-        self.manager = Manager()
+        self._init_me()
         
 
     ########################################################################
@@ -1345,11 +1333,11 @@ class AggregateBase(UnitsManaged, Saveable):
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
                                     vibenergy_cutoff=vibenergy_cutoff): 
             
-                DD[a,b,:] = self.transition_dipole(s1, s2)                
-                FC[a,b] = self.fc_factor(s1, s2)
+                DD[a,b,:] = numpy.real(self.transition_dipole(s1, s2))                
+                FC[a,b] = numpy.real(self.fc_factor(s1, s2))
                 
                 if a != b:
-                    HH[a,b] = self.coupling(s1, s2) 
+                    HH[a,b] = numpy.real(self.coupling(s1, s2)) 
         
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH

@@ -1804,10 +1804,13 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         
         
             # negative contours
-            plt.contour(self.xaxis.data[i1_min:i1_max],
+            try:
+                plt.contour(self.xaxis.data[i1_min:i1_max],
                          self.yaxis.data[i3_min:i3_max],
                          realout, levels=neglevels,colors="k")
-                         #linewidth=1)  
+                         #linewidth=1) 
+            except:
+                print("Negative contour not found; not plotting")
         
         #
         # Color bar presence

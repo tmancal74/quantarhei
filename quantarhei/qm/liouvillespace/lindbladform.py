@@ -140,9 +140,9 @@ class ElectronicLindbladForm(LindbladForm):
                                 
                                         # electronic transition operator
                                         # dressed in Franck-Condon factors
-                                        newkk[i_vib, j_vib] = \
-                                        agg.fc_factor(st_i, st_j)* \
-                                        sbi.KK[k, i_el, j_el]
+                                        newkk[i_vib, j_vib] = (
+                                        numpy.real(agg.fc_factor(st_i, st_j))*
+                                        sbi.KK[k, i_el, j_el])
                     
                         ops.append(newkk)
                     
