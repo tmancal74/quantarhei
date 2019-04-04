@@ -1,24 +1,30 @@
 # -*- coding: utf-8 -*-
 
 import quantarhei as qr
+from quantarhei import LabSetup
+from quantarhei.utils.vectors import X #, Y, Z
+import quantarhei.functions as func
 
-use_vib = True
+use_vib = False
+vib_loc = "down"
+
 make_movie = True
+
+HR = 0.01
 
 # dimer of molecules
 with qr.energy_units("1/cm"):
     mol1 = qr.Molecule([0.0, 10000.0])
     mol2 = qr.Molecule([0.0, 10500.0])
     
+    mod1 = qr.Mode(500.0)
     mod2 = qr.Mode(500.0)
-    
-
 
 mol1.set_transition_width((0,1), qr.convert(200.0, "1/cm", "int"))
-mol1.set_dipole(0,1,[1.0, 0.0, 0.0])
+mol1.set_dipole(0,1,[1.5, 0.0, 0.0])
 
 mol2.set_transition_width((0,1), qr.convert(200.0, "1/cm", "int"))
-mol2.set_dipole(0,1,[1.0, 1.0, 0.0])
+mol2.set_dipole(0,1,[-1.0, -1.0, 0.0])
 
 agg = qr.Aggregate([mol1, mol2])
 
@@ -28,11 +34,29 @@ with qr.energy_units("1/cm"):
 agg.save("agg.qrp")
 
 if use_vib:
-    mol2.add_Mode(mod2)
-    mod2.set_nmax(0, 3)
-    mod2.set_nmax(1, 3)
-    mod2.set_HR(1, 0.01)
 
+    if vib_loc == "down":
+        set_vib = [True, False]
+    elif vib_loc == "up":
+        set_vib = [False, True]
+    elif vib_loc == "both":
+        st_vib = [True, True]
+    else:
+        raise Exception("Unknown location of the vibrations")
+        
+    if set_vib[0]:
+        mol1.add_Mode(mod1)
+        mod1.set_nmax(0, 3)
+        mod1.set_nmax(1, 3)
+        mod1.set_HR(1, HR)
+    
+    if set_vib[1]:
+        mol2.add_Mode(mod2)
+        mod2.set_nmax(0, 3)
+        mod2.set_nmax(1, 3)
+        mod2.set_HR(1, HR)
+
+    
 agg_el = qr.load_parcel("agg.qrp")
 
 agg.save("agg_vib.qrp")
@@ -44,18 +68,12 @@ agg_el.build(mult=1)
 HH = agg.get_Hamiltonian()
 He = agg_el.get_Hamiltonian()
 
-
-
-with qr.energy_units("1/cm"):
-    print(HH)
+#with qr.energy_units("1/cm"):
+#    print(HH)
 
 #
 # Laboratory setup
 #
-
-from quantarhei import LabSetup
-from quantarhei.utils.vectors import X #, Y, Z
-
 lab = LabSetup()
 lab.set_polarizations(pulse_polarizations=[X,X,X], detection_polarization=X)
 
@@ -101,15 +119,24 @@ sbi.set_system(agg)
 
 LF = qr.qm.ElectronicLindbladForm(HH, sbi, as_operators=True)
 
-eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, mode="all")
+#
+# Pure dephasing
+#
+p_deph = qr.qm.ElectronicPureDephasing(agg, dtype="Gaussian")
+
+
+eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, pdeph=p_deph,
+                                   mode="all")
 eUt.set_dense_dt(100)
-eUt.calculate(show_progress=False)
+eUt.calculate(show_progress=True)
 
 agg3.build(mult=2)
 agg3.diagonalize()
 
+
+print("Dims: ", eUt.dim, HH.dim)
 for t2 in time2.data:
-    print(t2)
+    print("t2 =", t2)
     twod = msc.calculate_one_system(t2, agg3, HH, eUt, lab)
     cont.set_spectrum(twod)
 
@@ -120,7 +147,7 @@ if make_movie:
 #
 # Window function for subsequenty FFT
 #
-import quantarhei.functions as func
+
 window = func.Tukey(time2, r=0.3, sym=False)
 
 #
@@ -129,7 +156,7 @@ window = func.Tukey(time2, r=0.3, sym=False)
 # Specify REPH, NONR or `total` to get different types of spectra
 #
 print("\nCalculating FFT of the 2D maps")
-fcont = cont.fft(window=window, dtype="REPH", dpart="real", offset=0.0)
+fcont = cont.fft(window=window, dtype="total", dpart="real", offset=0.0)
 
 show_omega = 500.0
 
@@ -154,5 +181,5 @@ with qr.energy_units(units):
     sp.plot(Npos_contours=10, 
             stype="total", spart="abs")   
     fftfile = "twod_fft_map.png"
-    #sp.savefig(os.path.join(pre_out, fftfile))
+    sp.savefig(fftfile)#os.path.join(pre_out, fftfile))
     print("... saved into: ", fftfile)

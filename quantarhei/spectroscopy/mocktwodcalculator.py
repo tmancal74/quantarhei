@@ -186,11 +186,10 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         rho0 = sys.get_DensityMatrix(condition_type="thermal",
                                      temperature=0.0)
         
-        # evolution superoperator is only in single exciton manifold
-        # Hamiltonian covers all states, if they have the same dimension
-        # we do not calculate ESA
+        # if the Hamiltonian is larger than eUt, we will calculate ESA
         has_ESA = True
-        if eUt.dim == H.dim:
+        H1 = sys.get_Hamiltonian()
+        if H1.dim == eUt.dim:
             has_ESA = False
         
         # get Liouville pathways
