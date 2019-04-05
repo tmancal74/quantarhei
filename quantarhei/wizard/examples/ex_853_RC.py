@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import time
+import matplotlib.pyplot as plt
+
 import quantarhei as qr
 from quantarhei import LabSetup
 from quantarhei.utils.vectors import X 
 import quantarhei.functions as func
 
 use_vib = True
-vib_loc = "up"
+vib_loc = "down"
 
 make_movie = False
 
@@ -21,7 +24,7 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
     E0 = 10000.0
     dip1 = [1.5, 0.0, 0.0]
     dip2 = [-1.0, -1.0, 0.0]
-    width = 200.0
+    width = 100.0
     rate = 1.0/200.0
     
     # dimer of molecules
@@ -183,23 +186,93 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
     
     units = "1/cm"
     with qr.energy_units(units):
+        
+        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+ \
+        "_J="+str(JJ)
+        if use_vib:
+            sys_char = "_vib"
+        else:
+            sys_char = "_ele"
+        data_ext = sys_char+".png"
+        obj_ext = sys_char+".qrp"
+        
         print("\nPlotting spectrum at frequency:", 
               fcont.axis.data[show_Npoint1], units)
-        #sp.plot(Npos_contours=10, window=[9500,11500, 9500, 11500],
-        #          stype="total", spart="abs")
         sp1.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
-        fftfile = "twod_fft_map_1.png"
-        sp1.savefig(fftfile)#os.path.join(pre_out, fftfile))
+        fftfile = "twod_fft"+data_descr+"_omega="+str(omega)+data_ext
+
+        sp1.savefig(fftfile)
         print("... saved into: ", fftfile)
+        
         print("\nPlotting spectrum at frequency:", 
               fcont.axis.data[show_Npoint2], units)
-        #sp.plot(Npos_contours=10, window=[9500,11500, 9500, 11500],
-        #          stype="total", spart="abs")
         sp2.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
-        fftfile = "twod_fft_map_2.png"
-        sp2.savefig(fftfile)#os.path.join(pre_out, fftfile))
-        print("... saved into: ", fftfile) 
+        fftfile = "twod_fft"+data_descr+"_omega="+str(-omega)+data_ext
 
-run(omega, HR, dE, JJ, vib_loc,use_vib, make_movie)
+        sp2.savefig(fftfile)
+        print("... saved into: ", fftfile) 
+        
+        #points = fcont.get_point_evolution(E0+dE, E0+dE, fcont.axis)
+        
+        #plt.plot(fcont.axis.data, points)
+        #plt.show()
+    
+    # saving containers
+    print("Saving container into: fcont"+data_descr+obj_ext)
+    fcont.save("fcont"+data_descr+obj_ext)
+        
+
+
+parms1 = [dict(HR=0.05, omega=500.0, dE=500.0, JJ=30, use_vib=True),
+          dict(HR=0.05, omega=500.0, dE=500.0, JJ=0, use_vib=True)]
+
+parms2 = [dict(HR=0.01, omega=500.0, dE=500.0, JJ=30, use_vib=True),
+          dict(HR=0.01, omega=500.0, dE=500.0, JJ=0, use_vib=True)]
+
+parms3 = [dict(HR=0.01, omega=500.0, dE=500.0, JJ=30, use_vib=False),
+          dict(HR=0.01, omega=500.0, dE=500.0, JJ=0, use_vib=False)]
+
+parms4 = [dict(HR=0.01, omega=700.0, dE=500.0, JJ=30, use_vib=True),
+          dict(HR=0.01, omega=700.0, dE=500.0, JJ=0, use_vib=True)]
+
+parms5 = [dict(HR=0.01, omega=700.0, dE=500.0, JJ=30, use_vib=False),
+          dict(HR=0.01, omega=700.0, dE=500.0, JJ=0, use_vib=False)]
+
+parms = parms1+parms2+parms3+parms4+parms5
+
+kk = 1
+tA = time.time()
+print("Staring the simulation at:", tA)
+for par in parms:
+    print("Run no.", kk, "of", len(parms))
+    omega = par["omega"]
+    HR = par["HR"]
+    dE = par["dE"]
+    JJ = par["JJ"]
+    use_vib = par["use_vib"]
+    
+    print("Calculating spectra ...")
+    t1 = time.time()
+    run(omega, HR, dE, JJ, vib_loc, use_vib, make_movie)
+    t2 = time.time()
+    print("... done in",t2-t1,"sec")
+    
+    kk += 1
+    
+tB = time.time()
+print("... finished in", tB-tA,"sec")
+
+
+"""
+
+Rephasing and non-rephasing maps
+ - mostly rephasing !!!!
+ 
+Update Quantarhei on server
+
+New release with the fix
+
+
+"""
