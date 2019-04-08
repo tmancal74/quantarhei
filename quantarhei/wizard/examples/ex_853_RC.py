@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
+"""
+
+    Simulation script for the publication:
+    
+    ...
+
+
+    
+
+
+"""
+
 
 import time
+import os
+
 import matplotlib.pyplot as plt
 
 import quantarhei as qr
@@ -8,26 +22,28 @@ from quantarhei import LabSetup
 from quantarhei.utils.vectors import X 
 import quantarhei.functions as func
 
-use_vib = True
-vib_loc = "down"
-
 make_movie = False
 
-HR = 0.05
-omega = 500.0
-dE = 500.0
-JJ = 30.0
+def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
+        make_movie=False):
+    """Runs a complete set of simulations for a single set of parameters
+    
+    
+    
+    """
 
-
-def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
-
+    #
+    #  FIXED PARAMETERS
+    #
     E0 = 10000.0
     dip1 = [1.5, 0.0, 0.0]
     dip2 = [-1.0, -1.0, 0.0]
     width = 100.0
     rate = 1.0/200.0
     
-    # dimer of molecules
+    #
+    #   Model system is a dimer of molecules
+    #
     with qr.energy_units("1/cm"):
         mol1 = qr.Molecule([0.0, E0])
         mol2 = qr.Molecule([0.0, E0+dE])
@@ -48,6 +64,9 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
     
     agg.save("agg.qrp")
     
+    #
+    # if nuclear vibrations are to be added, do it here
+    #
     if use_vib:
     
         if vib_loc == "down":
@@ -72,8 +91,15 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
             mod2.set_HR(1, HR)
     
         
+    #
+    # Electronic only aggregate
+    #
     agg_el = qr.load_parcel("agg.qrp")
     
+    #
+    # Two aggregate objects with vibrations (will be build with and without
+    # two-exciton band)
+    #
     agg.save("agg_vib.qrp")
     agg3 = qr.load_parcel("agg_vib.qrp")
     
@@ -144,8 +170,6 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
     agg3.build(mult=2)
     agg3.diagonalize()
     
-    
-    print("Dims: ", eUt.dim, HH.dim)
     for t2 in time2.data:
         print("t2 =", t2)
         twod = msc.calculate_one_system(t2, agg3, HH, eUt, lab)
@@ -166,7 +190,7 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
     # Specify REPH, NONR or `total` to get different types of spectra
     #
     print("\nCalculating FFT of the 2D maps")
-    fcont = cont.fft(window=window, dtype="total") #, dpart="real", offset=0.0)
+    fcont = cont.fft(window=window, dtype=stype) #, dpart="real", offset=0.0)
     
     show_omega = omega
     
@@ -187,8 +211,9 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
     units = "1/cm"
     with qr.energy_units(units):
         
-        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+ \
-        "_J="+str(JJ)
+        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+"_J="+str(JJ)+ \
+                     "_stype="+stype
+        
         if use_vib:
             sys_char = "_vib"
         else:
@@ -200,7 +225,8 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
               fcont.axis.data[show_Npoint1], units)
         sp1.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
-        fftfile = "twod_fft"+data_descr+"_omega="+str(omega)+data_ext
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
+                               +str(omega)+data_ext)
 
         sp1.savefig(fftfile)
         print("... saved into: ", fftfile)
@@ -209,7 +235,8 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
               fcont.axis.data[show_Npoint2], units)
         sp2.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
-        fftfile = "twod_fft"+data_descr+"_omega="+str(-omega)+data_ext
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
+                               +str(-omega)+data_ext)
 
         sp2.savefig(fftfile)
         print("... saved into: ", fftfile) 
@@ -220,11 +247,16 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, make_movie=False):
         #plt.show()
     
     # saving containers
-    print("Saving container into: fcont"+data_descr+obj_ext)
-    fcont.save("fcont"+data_descr+obj_ext)
+    fname = os.path.join("sim_"+vib_loc,"fcont"+data_descr+obj_ext)
+    print("Saving container into: "+fname)
+    fcont.save(fname)
         
 
-
+#
+#
+#   PARAMETERS OF THE SIMULATION
+#
+#
 parms1 = [dict(HR=0.05, omega=500.0, dE=500.0, JJ=30, use_vib=True),
           dict(HR=0.05, omega=500.0, dE=500.0, JJ=0, use_vib=True)]
 
@@ -242,24 +274,55 @@ parms5 = [dict(HR=0.01, omega=700.0, dE=500.0, JJ=30, use_vib=False),
 
 parms = parms1+parms2+parms3+parms4+parms5
 
-kk = 1
+#
+#
+#   MODELS (vibrations on different molecules, different signal types)
+#
+#
+models = [dict(vib_loc="up", stype="REPH"), 
+          dict(vib_loc="down", stype="REPH"),
+          dict(vib_loc="both", stype="REPH"),
+          dict(vib_loc="up", stype="NONR"),
+          dict(vib_loc="down", stype="NONR"),
+          dict(vib_loc="both", stype="NONR")]
+
+#
+#
+#   LOOP OVER SIMULATIONS
+#
+#
+
 tA = time.time()
-print("Staring the simulation at:", tA)
-for par in parms:
-    print("Run no.", kk, "of", len(parms))
-    omega = par["omega"]
-    HR = par["HR"]
-    dE = par["dE"]
-    JJ = par["JJ"]
-    use_vib = par["use_vib"]
-    
-    print("Calculating spectra ...")
-    t1 = time.time()
-    run(omega, HR, dE, JJ, vib_loc, use_vib, make_movie)
-    t2 = time.time()
-    print("... done in",t2-t1,"sec")
-    
-    kk += 1
+ll = 1
+for model in models:
+    print("Model no.", ll, "of", len(models))
+    vib_loc = model["vib_loc"]
+    stype = model["stype"]
+    try:
+        os.makedirs("sim_"+vib_loc)
+    except FileExistsError:
+        # directory already exists
+        pass
+
+    kk = 1
+    print("Starting the simulation at:", tA)
+    for par in parms:
+        print("Run no.", kk, "of", len(parms))
+        omega = par["omega"]
+        HR = par["HR"]
+        dE = par["dE"]
+        JJ = par["JJ"]
+        use_vib = par["use_vib"]
+
+        print("Calculating spectra ...")
+        t1 = time.time()
+        run(omega, HR, dE, JJ, vib_loc, use_vib, stype=stype,
+            make_movie=make_movie)
+        t2 = time.time()
+        print("... done in",t2-t1,"sec")
+        
+        kk += 1
+    ll += 1
     
 tB = time.time()
 print("... finished in", tB-tA,"sec")

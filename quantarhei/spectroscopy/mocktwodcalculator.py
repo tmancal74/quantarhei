@@ -173,7 +173,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         return tcont
 
 
-    def calculate_one_system(self, t2, sys, H, eUt, lab):
+    def calculate_one_system(self, t2, sys, H, eUt, lab, pways=None):
         """Returns 2D spectrum at t2 for a system and evolution superoperator
         
         """
@@ -205,7 +205,10 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                                                    lab=lab)
 
         self.set_pathways(pws)
-    
+        
+        if pways is not None:
+            pways.append(pws)
+            
         twod1 = self.calculate_next()
         
         return twod1
