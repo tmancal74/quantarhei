@@ -207,7 +207,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.set_pathways(pws)
         
         if pways is not None:
-            pways.append(pws)
+            pways[str(t2)] = pws
             
         twod1 = self.calculate_next()
         

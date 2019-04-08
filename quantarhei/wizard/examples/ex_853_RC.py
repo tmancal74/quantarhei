@@ -170,14 +170,22 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     agg3.build(mult=2)
     agg3.diagonalize()
     
+    pways = dict()
+    
     for t2 in time2.data:
         print("t2 =", t2)
-        twod = msc.calculate_one_system(t2, agg3, HH, eUt, lab)
+        twod = msc.calculate_one_system(t2, agg3, HH, eUt, lab, pways=pways)
         cont.set_spectrum(twod)
     
     if make_movie:
         with qr.energy_units("1/cm"):
             cont.make_movie("mov.mp4")
+     
+    fname = os.path.join("sim_"+vib_loc, "pways.qrp")
+    qr.save_parcel(pways, fname)
+    
+    fname = os.path.join("sim_"+vib_loc, "aggregate.qrp")
+    agg3.save(fname)
         
     #
     # Window function for subsequenty FFT
@@ -190,29 +198,36 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     # Specify REPH, NONR or `total` to get different types of spectra
     #
     print("\nCalculating FFT of the 2D maps")
-    fcont = cont.fft(window=window, dtype=stype) #, dpart="real", offset=0.0)
+    #fcont = cont.fft(window=window, dtype=stype) #, dpart="real", offset=0.0)
+    
+    fcont_re = cont.fft(window=window, dtype="REPH")
+    fcont_nr = cont.fft(window=window, dtype="NONR")
+    fcont_to = cont.fft(window=window, dtype="total")
     
     show_omega = omega
     
     #
     # Have a look which frequencies we actually have
     #
-    Ndat = len(fcont.axis.data)
+    Ndat = len(fcont_re.axis.data)
     print("\nNumber of frequency points:", Ndat)
     print("In 1/cm they are:")
     with qr.energy_units("1/cm"):
         for k_i in range(Ndat):
-            print(k_i, fcont.axis.data[k_i])
+            print(k_i, fcont_re.axis.data[k_i])
     
     with qr.frequency_units("1/cm"):
-        sp1, show_Npoint1 = fcont.get_nearest(show_omega)
-        sp2, show_Npoint2 = fcont.get_nearest(-show_omega)
-    
+        sp1_re, show_Npoint1 = fcont_re.get_nearest(show_omega)
+        sp2_re, show_Npoint2 = fcont_re.get_nearest(-show_omega)
+        sp1_nr, show_Npoint1 = fcont_nr.get_nearest(show_omega)
+        sp2_nr, show_Npoint2 = fcont_nr.get_nearest(-show_omega)
+        sp1_to, show_Npoint1 = fcont_to.get_nearest(show_omega)
+        sp2_to, show_Npoint2 = fcont_to.get_nearest(-show_omega)
+        
     units = "1/cm"
     with qr.energy_units(units):
         
-        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+"_J="+str(JJ)+ \
-                     "_stype="+stype
+        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+"_J="+str(JJ)
         
         if use_vib:
             sys_char = "_vib"
@@ -220,26 +235,50 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
             sys_char = "_ele"
         data_ext = sys_char+".png"
         obj_ext = sys_char+".qrp"
-        
-        print("\nPlotting spectrum at frequency:", 
-              fcont.axis.data[show_Npoint1], units)
-        sp1.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(omega)+data_ext)
 
-        sp1.savefig(fftfile)
+
+        print("\nPlotting spectrum at frequency:", 
+              fcont_re.axis.data[show_Npoint1], units)
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
+                               +str(omega)+data_ext+"_stype=REPH")
+        sp1_re.plot(Npos_contours=10, 
+                stype="total", spart="abs")   
+        sp1_re.savefig(fftfile)
         print("... saved into: ", fftfile)
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
+                               +str(omega)+data_ext+"_stype=NONR")
+        sp1_nr.plot(Npos_contours=10, 
+                stype="total", spart="abs")   
+        sp1_nr.savefig(fftfile)
+        print("... saved into: ", fftfile)
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
+                               +str(omega)+data_ext+"_stype=tot")
+        sp1_to.plot(Npos_contours=10, 
+                stype="total", spart="abs")   
+        sp1_to.savefig(fftfile)
+        print("... saved into: ", fftfile)        
+        
         
         print("\nPlotting spectrum at frequency:", 
-              fcont.axis.data[show_Npoint2], units)
-        sp2.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
+              fcont_re.axis.data[show_Npoint2], units)
         fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(-omega)+data_ext)
-
-        sp2.savefig(fftfile)
-        print("... saved into: ", fftfile) 
+                               +str(-omega)+data_ext+"_stype=REPH")
+        sp2_re.plot(Npos_contours=10, 
+                stype="total", spart="abs")   
+        sp2_re.savefig(fftfile)
+        print("... saved into: ", fftfile)
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
+                               +str(-omega)+data_ext+"_stype=NONR")
+        sp2_nr.plot(Npos_contours=10, 
+                stype="total", spart="abs")   
+        sp2_nr.savefig(fftfile)
+        print("... saved into: ", fftfile)
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
+                               +str(-omega)+data_ext+"_stype=tot")
+        sp2_to.plot(Npos_contours=10, 
+                stype="total", spart="abs")   
+        sp2_to.savefig(fftfile)
+        print("... saved into: ", fftfile)
         
         #points = fcont.get_point_evolution(E0+dE, E0+dE, fcont.axis)
         
@@ -247,9 +286,18 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
         #plt.show()
     
     # saving containers
-    fname = os.path.join("sim_"+vib_loc,"fcont"+data_descr+obj_ext)
+    fname = os.path.join("sim_"+vib_loc,"fcont_re"+data_descr+obj_ext)
     print("Saving container into: "+fname)
-    fcont.save(fname)
+    fcont_re.save(fname)
+    fname = os.path.join("sim_"+vib_loc,"fcont_nr"+data_descr+obj_ext)
+    print("Saving container into: "+fname)
+    fcont_nr.save(fname)
+    fname = os.path.join("sim_"+vib_loc,"fcont_to"+data_descr+obj_ext)
+    print("Saving container into: "+fname)
+    fcont_to.save(fname)    
+    fname = os.path.join("sim_"+vib_loc,"cont"+data_descr+obj_ext)
+    print("Saving container into: "+fname)
+    cont.save(fname)
         
 
 #
@@ -272,19 +320,18 @@ parms4 = [dict(HR=0.01, omega=700.0, dE=500.0, JJ=30, use_vib=True),
 parms5 = [dict(HR=0.01, omega=700.0, dE=500.0, JJ=30, use_vib=False),
           dict(HR=0.01, omega=700.0, dE=500.0, JJ=0, use_vib=False)]
 
-parms = parms1+parms2+parms3+parms4+parms5
+parms_short = [dict(HR=0.01, omega=500.0, dE=500.0, JJ=30, use_vib=True)]
+
+parms = parms_short  #parms1+parms2+parms3+parms4+parms5
 
 #
 #
 #   MODELS (vibrations on different molecules, different signal types)
 #
 #
-models = [dict(vib_loc="up", stype="REPH"), 
-          dict(vib_loc="down", stype="REPH"),
-          dict(vib_loc="both", stype="REPH"),
-          dict(vib_loc="up", stype="NONR"),
-          dict(vib_loc="down", stype="NONR"),
-          dict(vib_loc="both", stype="NONR")]
+models = [dict(vib_loc="up")] #, 
+#          dict(vib_loc="down"),
+#          dict(vib_loc="both")]
 
 #
 #
@@ -297,7 +344,7 @@ ll = 1
 for model in models:
     print("Model no.", ll, "of", len(models))
     vib_loc = model["vib_loc"]
-    stype = model["stype"]
+    #stype = model["stype"]
     try:
         os.makedirs("sim_"+vib_loc)
     except FileExistsError:
@@ -316,7 +363,7 @@ for model in models:
 
         print("Calculating spectra ...")
         t1 = time.time()
-        run(omega, HR, dE, JJ, vib_loc, use_vib, stype=stype,
+        run(omega, HR, dE, JJ, vib_loc, use_vib,
             make_movie=make_movie)
         t2 = time.time()
         print("... done in",t2-t1,"sec")
