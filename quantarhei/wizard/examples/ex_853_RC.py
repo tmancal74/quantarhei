@@ -39,7 +39,7 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     dip1 = [1.5, 0.0, 0.0]
     dip2 = [-1.0, -1.0, 0.0]
     width = 100.0
-    rate = 1.0/200.0
+    rate = 1.0/50.0
     
     #
     #   Model system is a dimer of molecules
@@ -204,11 +204,11 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     fcont_nr = cont.fft(window=window, dtype="NONR")
     fcont_to = cont.fft(window=window, dtype="total")
     
-    twin = [9500, 11000, 9500, 11000]
-    with qr.energy_units("1/cm"):
-        fcont_re.trimall_to(window=twin)
-        fcont_nr.trimall_to(window=twin)
-        fcont_to.trimall_to(window=twin)
+#    twin = [9500, 11000, 9500, 11000]
+#    with qr.energy_units("1/cm"):
+#        fcont_re.trimall_to(window=twin)
+#        fcont_nr.trimall_to(window=twin)
+#        fcont_to.trimall_to(window=twin)
         
     show_omega = omega
     
