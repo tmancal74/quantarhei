@@ -204,6 +204,12 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     fcont_nr = cont.fft(window=window, dtype="NONR")
     fcont_to = cont.fft(window=window, dtype="total")
     
+    twin = [9500, 11000, 9500, 11000]
+    with qr.energy_units("1/cm"):
+        fcont_re.trimall_to(window=twin)
+        fcont_nr.trimall_to(window=twin)
+        fcont_to.trimall_to(window=twin)
+        
     show_omega = omega
     
     #
@@ -239,20 +245,20 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
 
         print("\nPlotting spectrum at frequency:", 
               fcont_re.axis.data[show_Npoint1], units)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(omega)+data_ext+"_stype=REPH")
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+                               "_stype=REPH"+"_omega="+str(omega)+data_ext)
         sp1_re.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
         sp1_re.savefig(fftfile)
         print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(omega)+data_ext+"_stype=NONR")
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+                               "_stype=NONR"+"_omega="+str(omega)+data_ext)
         sp1_nr.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
         sp1_nr.savefig(fftfile)
         print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(omega)+data_ext+"_stype=tot")
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+                               "_stype=tot"+"_omega="+str(omega)+data_ext)
         sp1_to.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
         sp1_to.savefig(fftfile)
@@ -261,20 +267,20 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
         
         print("\nPlotting spectrum at frequency:", 
               fcont_re.axis.data[show_Npoint2], units)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(-omega)+data_ext+"_stype=REPH")
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+                               "_stype=REPH"+"_omega="+str(-omega)+data_ext)
         sp2_re.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
         sp2_re.savefig(fftfile)
         print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(-omega)+data_ext+"_stype=NONR")
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+                               "_stype=NONR"+"_omega="+str(-omega)+data_ext)
         sp2_nr.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
         sp2_nr.savefig(fftfile)
         print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+"_omega="
-                               +str(-omega)+data_ext+"_stype=tot")
+        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+                               "_stype=tot"+"_omega="+str(-omega)+data_ext)
         sp2_to.plot(Npos_contours=10, 
                 stype="total", spart="abs")   
         sp2_to.savefig(fftfile)
