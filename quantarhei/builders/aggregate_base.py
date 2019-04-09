@@ -1652,7 +1652,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 FC[a,b] = numpy.real(self.fc_factor(s1, s2))
                 
                 if a != b:
-                    HH[a,b] = numpy.real(self.coupling(s1, s2)) 
+                    #HH[a,b] = numpy.real(self.coupling(s1, s2)) 
                     #HH[a,b] = self.coupling(s1, s2) 
                     HH[a,b] = self.coupling_vec(s1, s2)
             
