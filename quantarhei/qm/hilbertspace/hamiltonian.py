@@ -71,8 +71,11 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if rwa_indices[0] != 0:
             raise Exception("First element in 'rwa_indices' has to be zero")
         self.rwa_indices = rwa_indices
+        
+        Null_blocks = numpy.sum(self.dim == self.rwa_indices)
 
-        self.Nblocks = len(self.rwa_indices)
+        #self.Nblocks = len(self.rwa_indices)
+        self.Nblocks = len(self.rwa_indices) - Null_blocks
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
         
         # average energies in every block
@@ -87,6 +90,8 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             for ii in range(self.rwa_indices[block],upper):
                 en_block[block] += self.data[ii,ii]
                 k += 1
+            if k==0:
+                continue
             en_block[block] = en_block[block]/float(k)
             # set rwa_energies within the block
             for ii in range(self.rwa_indices[block],upper):
