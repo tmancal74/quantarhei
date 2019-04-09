@@ -1652,14 +1652,11 @@ class AggregateBase(UnitsManaged, Saveable):
                 FC[a,b] = numpy.real(self.fc_factor(s1, s2))
                 
                 if a != b:
-<<<<<<< HEAD
                     HH[a,b] = numpy.real(self.coupling(s1, s2)) 
-=======
                     #HH[a,b] = self.coupling(s1, s2) 
                     HH[a,b] = self.coupling_vec(s1, s2)
             
->>>>>>> 19c6485... aggregate_base: Added possibility to use multilevel monomers in an aggregate. Generalized aggregate build pocedure to allow external definition of bands for electronic states. Generalized coupling calculation and storage for interaction between multilevel monomers.
-        
+            
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
         # Hamiltonian operator
