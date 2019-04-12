@@ -398,6 +398,15 @@ class DFunction(Saveable, DataSaveable):
         pass
     
 
+    def apply_to_data(self, func):
+        """Applies a submitted function to the data
+        
+        """
+        self.data = func(self.data)
+        if self._splines_initialized:
+            self._splines_initiated = False
+
+
     #
     #
     # Fast Fourier transform

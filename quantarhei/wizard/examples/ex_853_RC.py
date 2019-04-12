@@ -13,19 +13,20 @@
 
 
 import time
+import datetime
 import os
 
-import matplotlib.pyplot as plt
+import numpy
 
 import quantarhei as qr
-from quantarhei import LabSetup
+
 from quantarhei.utils.vectors import X 
 import quantarhei.functions as func
 
 make_movie = False
 
-def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
-        make_movie=False):
+def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
+        stype=qr.signal_REPH, make_movie=False):
     """Runs a complete set of simulations for a single set of parameters
     
     
@@ -62,8 +63,11 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     with qr.energy_units("1/cm"):
         agg.set_resonance_coupling(0,1,JJ)
     
-    agg.save("agg.qrp")
-    
+    #
+    # Electronic only aggregate
+    #
+    agg_el = agg.deepcopy()
+        
     #
     # if nuclear vibrations are to be added, do it here
     #
@@ -90,18 +94,7 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
             mod2.set_nmax(1, 3)
             mod2.set_HR(1, HR)
     
-        
-    #
-    # Electronic only aggregate
-    #
-    agg_el = qr.load_parcel("agg.qrp")
-    
-    #
-    # Two aggregate objects with vibrations (will be build with and without
-    # two-exciton band)
-    #
-    agg.save("agg_vib.qrp")
-    agg3 = qr.load_parcel("agg_vib.qrp")
+    agg3 = agg.deepcopy()
     
     agg.build(mult=1)
     agg_el.build(mult=1)
@@ -112,20 +105,21 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     #
     # Laboratory setup
     #
-    lab = LabSetup()
-    lab.set_polarizations(pulse_polarizations=[X,X,X], detection_polarization=X)
+    lab = qr.LabSetup()
+    lab.set_polarizations(pulse_polarizations=[X,X,X], 
+                          detection_polarization=X)
     
     time2 = qr.TimeAxis(0.0, 100, 10.0)
     
-    cont = qr.TwoDSpectrumContainer(t2axis=time2)
+    cont = qr.TwoDResponseContainer(t2axis=time2)
     #
     # spectra will be indexed by the times in the time axis `time2`
     #
     cont.use_indexing_type(time2)
     
     #
-    # We define two-time axes, which will be FFTed and will define the omega_1 and
-    # omega_3 axes of the 2D spectrum
+    # We define two-time axes, which will be FFTed and will define 
+    # the omega_1 and omega_3 axes of the 2D spectrum
     #
     t1_N_steps = 100
     t1_time_step = 10.0
@@ -135,25 +129,27 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     t3axis = qr.TimeAxis(0.0, t3_N_steps, t3_time_step)
     
     #
-    # This calculator calculated 2D spectra from the effective width defined above
+    # This calculator calculated 2D spectra from the effective width 
     #
-    msc = qr.MockTwoDSpectrumCalculator(t1axis, time2, t3axis)
+    msc = qr.MockTwoDResponseCalculator(t1axis, time2, t3axis)
     msc.bootstrap(rwa=qr.convert(E0+(dE/2.0),"1/cm","int"), 
                   all_positive=False, shape="Gaussian")
-    
+
+    #
+    # System-bath interaction including vibrational states
+    #
     operators = []
     rates = []
     with qr.eigenbasis_of(He):
         operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
     rates.append(rate)
     
-    #
-    # System-bath interaction including vibrational states
-    #
-    sbi = qr.qm.SystemBathInteraction(sys_operators=operators,
-                                      rates=rates)
+    sbi = qr.qm.SystemBathInteraction(sys_operators=operators, rates=rates)
     sbi.set_system(agg)
     
+    #
+    # Liouville form for relaxation
+    #
     LF = qr.qm.ElectronicLindbladForm(HH, sbi, as_operators=True)
     
     #
@@ -164,18 +160,37 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     
     eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, pdeph=p_deph,
                                        mode="all")
-    eUt.set_dense_dt(100)
+    eUt.set_dense_dt(10)
+    
+    #
+    # We calculate evolution superoperator
+    #
     eUt.calculate(show_progress=True)
     
+    #
+    # Prepare aggregate with all states (including 2-EX band)
+    #
     agg3.build(mult=2)
     agg3.diagonalize()
     
     pways = dict()
     
+    olow = qr.convert(omega-100.0, "1/cm", "int")
+    ohigh = qr.convert(omega+100.0, "1/cm", "int")
+    
     for t2 in time2.data:
         print("t2 =", t2)
-        twod = msc.calculate_one_system(t2, agg3, HH, eUt, lab, pways=pways)
+        twod = msc.calculate_one_system(t2, agg3, HH, eUt, lab, pways=pways,
+                                        selection=[["omega2",[olow, ohigh]]])
+    
+        print("Number of pathways used:", len(pways[str(t2)]))
         cont.set_spectrum(twod)
+        
+#        with qr.energy_units("1/cm"):
+#            for i in range(len(pways[str(t2)])):
+#                print(pways[str(0.0)][i])
+#        
+#        raise Exception()
     
     if make_movie:
         with qr.energy_units("1/cm"):
@@ -200,9 +215,9 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     print("\nCalculating FFT of the 2D maps")
     #fcont = cont.fft(window=window, dtype=stype) #, dpart="real", offset=0.0)
     
-    fcont_re = cont.fft(window=window, dtype="REPH")
-    fcont_nr = cont.fft(window=window, dtype="NONR")
-    fcont_to = cont.fft(window=window, dtype="total")
+    fcont_re = cont.fft(window=window, dtype=qr.signal_REPH)
+    fcont_nr = cont.fft(window=window, dtype=qr.signal_NONR)
+    fcont_to = cont.fft(window=window, dtype=qr.signal_TOTL)
     
 #    twin = [9500, 11000, 9500, 11000]
 #    with qr.energy_units("1/cm"):
@@ -215,12 +230,12 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
     #
     # Have a look which frequencies we actually have
     #
-    Ndat = len(fcont_re.axis.data)
-    print("\nNumber of frequency points:", Ndat)
-    print("In 1/cm they are:")
-    with qr.energy_units("1/cm"):
-        for k_i in range(Ndat):
-            print(k_i, fcont_re.axis.data[k_i])
+#    Ndat = len(fcont_re.axis.data)
+#    print("\nNumber of frequency points:", Ndat)
+#    print("In 1/cm they are:")
+#    with qr.energy_units("1/cm"):
+#        for k_i in range(Ndat):
+#            print(k_i, fcont_re.axis.data[k_i])
     
     with qr.frequency_units("1/cm"):
         sp1_re, show_Npoint1 = fcont_re.get_nearest(show_omega)
@@ -247,20 +262,17 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
               fcont_re.axis.data[show_Npoint1], units)
         fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=REPH"+"_omega="+str(omega)+data_ext)
-        sp1_re.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
+        sp1_re.plot(Npos_contours=10, spart=qr.part_ABS)   
         sp1_re.savefig(fftfile)
         print("... saved into: ", fftfile)
         fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=NONR"+"_omega="+str(omega)+data_ext)
-        sp1_nr.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
+        sp1_nr.plot(Npos_contours=10, spart=qr.part_ABS)   
         sp1_nr.savefig(fftfile)
         print("... saved into: ", fftfile)
         fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=tot"+"_omega="+str(omega)+data_ext)
-        sp1_to.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
+        sp1_to.plot(Npos_contours=10, spart=qr.part_ABS)   
         sp1_to.savefig(fftfile)
         print("... saved into: ", fftfile)        
         
@@ -269,27 +281,26 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
               fcont_re.axis.data[show_Npoint2], units)
         fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=REPH"+"_omega="+str(-omega)+data_ext)
-        sp2_re.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
+        sp2_re.plot(Npos_contours=10, spart=qr.part_ABS)   
         sp2_re.savefig(fftfile)
         print("... saved into: ", fftfile)
         fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=NONR"+"_omega="+str(-omega)+data_ext)
-        sp2_nr.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
+        sp2_nr.plot(Npos_contours=10, spart=qr.part_ABS)   
         sp2_nr.savefig(fftfile)
         print("... saved into: ", fftfile)
         fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=tot"+"_omega="+str(-omega)+data_ext)
-        sp2_to.plot(Npos_contours=10, 
-                stype="total", spart="abs")   
+        sp2_to.plot(Npos_contours=10, spart=qr.part_ABS)   
         sp2_to.savefig(fftfile)
         print("... saved into: ", fftfile)
         
-        #points = fcont.get_point_evolution(E0+dE, E0+dE, fcont.axis)
+    Ep = qr.convert(E0+dE,"1/cm","int")
+    points = fcont_re.get_point_evolution(Ep, Ep, fcont_re.axis)
         
-        #plt.plot(fcont.axis.data, points)
-        #plt.show()
+    with qr.energy_units("1/cm"):
+        points.apply_to_data(numpy.abs)
+        points.plot()
     
     # saving containers
     fname = os.path.join("sim_"+vib_loc,"fcont_re"+data_descr+obj_ext)
@@ -311,22 +322,22 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True, stype="REPH",
 #   PARAMETERS OF THE SIMULATION
 #
 #
-parms1 = [dict(HR=0.05, omega=500.0, dE=500.0, JJ=30, use_vib=True),
-          dict(HR=0.05, omega=500.0, dE=500.0, JJ=0, use_vib=True)]
+parms1 = [dict(HR=0.05, omega=500.0, dE=520.0, JJ=30, use_vib=True),
+          dict(HR=0.05, omega=500.0, dE=520.0, JJ=0, use_vib=True)]
 
-parms2 = [dict(HR=0.01, omega=500.0, dE=500.0, JJ=30, use_vib=True),
-          dict(HR=0.01, omega=500.0, dE=500.0, JJ=0, use_vib=True)]
+parms2 = [dict(HR=0.01, omega=500.0, dE=520.0, JJ=30, use_vib=True),
+          dict(HR=0.01, omega=500.0, dE=520.0, JJ=0, use_vib=True)]
 
-parms3 = [dict(HR=0.01, omega=500.0, dE=500.0, JJ=30, use_vib=False),
-          dict(HR=0.01, omega=500.0, dE=500.0, JJ=0, use_vib=False)]
+parms3 = [dict(HR=0.01, omega=500.0, dE=520.0, JJ=30, use_vib=False),
+          dict(HR=0.01, omega=500.0, dE=520.0, JJ=0, use_vib=False)]
 
-parms4 = [dict(HR=0.01, omega=700.0, dE=500.0, JJ=30, use_vib=True),
-          dict(HR=0.01, omega=700.0, dE=500.0, JJ=0, use_vib=True)]
+parms4 = [dict(HR=0.01, omega=700.0, dE=520.0, JJ=30, use_vib=True),
+          dict(HR=0.01, omega=700.0, dE=520.0, JJ=0, use_vib=True)]
 
-parms5 = [dict(HR=0.01, omega=700.0, dE=500.0, JJ=30, use_vib=False),
-          dict(HR=0.01, omega=700.0, dE=500.0, JJ=0, use_vib=False)]
+parms5 = [dict(HR=0.01, omega=700.0, dE=520.0, JJ=30, use_vib=False),
+          dict(HR=0.01, omega=700.0, dE=520.0, JJ=0, use_vib=False)]
 
-parms_short = [dict(HR=0.01, omega=500.0, dE=500.0, JJ=30, use_vib=True)]
+parms_short = [dict(HR=0.01, omega=500.0, dE=550.0, JJ=100, use_vib=True)]
 
 parms = parms_short  #parms1+parms2+parms3+parms4+parms5
 
@@ -346,6 +357,8 @@ models = [dict(vib_loc="up")] #,
 #
 
 tA = time.time()
+at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+print("Starting simulation set at", at)
 ll = 1
 for model in models:
     print("Model no.", ll, "of", len(models))
@@ -358,7 +371,8 @@ for model in models:
         pass
 
     kk = 1
-    print("Starting the simulation at:", tA)
+    at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+    print("Starting the simulation at:", at)
     for par in parms:
         print("Run no.", kk, "of", len(parms))
         omega = par["omega"]
@@ -378,7 +392,8 @@ for model in models:
     ll += 1
     
 tB = time.time()
-print("... finished in", tB-tA,"sec")
+at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+print("\n... finished simulation set at", at, "in", tB-tA,"sec")
 
 
 """

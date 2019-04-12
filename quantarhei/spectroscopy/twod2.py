@@ -10,11 +10,15 @@ import numpy
 
 from ..core.frequency import FrequencyAxis
 from .. import COMPLEX
+from .. import signal_REPH, signal_NONR, signal_TOTL, signal_DC
+from .. import TWOD_SIGNALS
+from .. import part_REAL, part_IMAGINARY, part_ABS
 from ..core.saveable import Saveable
 from ..core.datasaveable import DataSaveable
 from ..core.dfunction import DFunction
 from ..core.valueaxis import ValueAxis
 from ..utils.types import check_numpy_array
+from .twod import TwoDSpectrum
 
 # FIXME: Check these names
 
@@ -33,9 +37,11 @@ _processes = dict(GSB=[_ptypes[0], _ptypes[1]], SE=[_ptypes[2], _ptypes[3]],
 # Types of signals --- rephasing (REPH), non-rephasing (NONR) 
 #                      and double coherence (DC)
 #
-_signals = dict(REPH=[_ptypes[1], _ptypes[2], _ptypes[4]],
-                NONR=[_ptypes[0], _ptypes[3], _ptypes[5]],
-                DC=[_ptypes[6], _ptypes[7]])
+_signals = {signal_REPH:[_ptypes[1], _ptypes[2], _ptypes[4]],
+            signal_NONR:[_ptypes[0], _ptypes[3], _ptypes[5]],
+            signal_DC:[_ptypes[6], _ptypes[7]]}
+
+_total = signal_TOTL
 
 #
 # Storage resolutions
@@ -260,7 +266,7 @@ def _signals_to_total(obj):
                 data += obj._d__data[signal]
             except KeyError:
                 pass
-                # likely the corresponding spectrum is not defined, this my be
+                # likely the corresponding spectrum is not defined, this may be
             
     else:
         data = None #numpy.zeros((1,1), dtype=COMPLEX)
@@ -385,7 +391,7 @@ def twodspectrum_dictionary(name, dtype):
                 #
                 return _pathways_to_signals(self, self.current_dtype)
                 
-            elif self.current_dtype == "total":
+            elif self.current_dtype == _total:
                 
                 #
                 # return total spectrum
@@ -421,7 +427,7 @@ def twodspectrum_dictionary(name, dtype):
                 #
                 return _types_to_signals(self, self.current_dtype)
                 
-            elif self.current_dtype == "total":
+            elif self.current_dtype == _total:
                 
                 #
                 # return total spectrum
@@ -446,7 +452,7 @@ def twodspectrum_dictionary(name, dtype):
                     
                 return ret
 
-            elif self.current_dtype == "total":
+            elif self.current_dtype == _total:
                 
                 #
                 # Return total spectrum
@@ -471,7 +477,7 @@ def twodspectrum_dictionary(name, dtype):
                     
                 return ret
             
-            elif self.current_dtype == "total":
+            elif self.current_dtype == _total:
                 
                 #
                 # return total spectrum
@@ -485,9 +491,9 @@ def twodspectrum_dictionary(name, dtype):
                 
         elif self.storage_resolution == "off":
             
-            if self.current_dtype == "total":
+            if self.current_dtype == _total:
                 try:
-                    ret = storage["total"]
+                    ret = storage[_total]
                 except KeyError:
                     ret = None
                     
@@ -580,11 +586,11 @@ def twodspectrum_dictionary(name, dtype):
             #
             elif self.storage_resolution == "off":
 
-                if self.current_dtype != "total":
+                if self.current_dtype != _total:
                     # check the current_type attribute
                     raise Exception("Wrong data type: "++self.current_dtype)
                     
-                storage["total"] = value
+                storage[_total] = value
                     
                                         
         else:
@@ -635,15 +641,15 @@ class TwoDSpectrumBase(DataSaveable):
     """
     
     # spectral types
-    stypes = ["rephasing", "non-rephasing", "nonrephasing", "total"]
+    stypes = TWOD_SIGNALS #["rephasing", "non-rephasing", "nonrephasing", "total"]
     
     # spectral parts
-    sparts = ["real", "imaginary"]
+    sparts = [part_REAL, part_IMAGINARY] #["real", "imaginary"]
     
     # to keep Liouville pathways separate?
     keep_pathways = False
     
-    dtypes = ["Tot", "Reph", "Nonr"]
+    dtypes = TWOD_SIGNALS #["Tot", "Reph", "Nonr"]
     
     # to keep stypes separate?
     keep_stypes = True
@@ -678,7 +684,7 @@ class TwoDSpectrumBase(DataSaveable):
         self.storage_initialized = False
         
         # if no dtype is specified, we return total spectrum
-        self.current_dtype = "total"  
+        self.current_dtype = signal_TOTL #"total"  
         self.current_tag = None
         self.address_length = 1
 
@@ -697,63 +703,6 @@ class TwoDSpectrumBase(DataSaveable):
         
         """
         self._allow_data_writing = False
-
-
-#    def _loadBinaryData(self, file):
-#        """Imports binary data from a file
-#        
-#        This workaround is needed because the data property of TwoDSpectrumBase
-#        is read only
-#
-#        """          
-#        if not self.storage_initialized:
-#            self.set_resolution("off")
-#            
-#        self._allow_data_writing = True
-#        super()._loadBinaryData(file)
-#        self._allow_data_writing = False
-#
-#    def _loadBinaryData_compressed(self, file):
-#        """Imports binary data from a file
-#
-#        This workaround is needed because the data property of TwoDSpectrumBase
-#        is read only
-#        
-#        """          
-#        if not self.storage_initialized:
-#            self.set_resolution("off")
-#            
-#        self._allow_data_writing = True
-#        super()._loadBinaryData_compressed(file)
-#        self._allow_data_writing = False
-#
-#    def _importDataFromText(self, file):
-#        """Imports textual data to a file
-#
-#        This workaround is needed because the data property of TwoDSpectrumBase
-#        is read only
-#
-#        """        
-#        if not self.storage_initialized:
-#            self.set_resolution("off")
-#            
-#        self._allow_data_writing = True
-#        super()._importDataFromText(file)
-#        self._allow_data_writing = False
-#
-#    def _loadMatlab(self, file):
-#        """Imports textual data to a file
-#
-#        This workaround is needed because the data property of TwoDSpectrumBase
-#        is read only
-#
-#        """        
-#        if not self.storage_initialized:
-#            self.set_resolution("off")
-#            
-#        self._allow_data_writing = True
-#        super()._loadMatlab(file)
-#        self._allow_data_writing = False
         
     def set_axis_1(self, axis):
         """Sets the x-axis of te spectrum (omega_1 axis)
@@ -774,7 +723,7 @@ class TwoDSpectrumBase(DataSaveable):
         
 
     # FIXME: to be deprecated
-    def set_data_type(self, dtype="Tot"):
+    def set_data_type(self, dtype=signal_TOTL): #"Tot"):
         """Sets the data type for this 2D spectrum
         
         Parameters
@@ -790,7 +739,7 @@ class TwoDSpectrumBase(DataSaveable):
             raise Exception("Unknown data type for TwoDSpectrum object")
 
     # FIXME: to be replaced       
-    def set_data(self, data, dtype="Tot"):
+    def set_data(self, data, dtype=signal_TOTL): #"Tot"):
         """Sets the data of the 2D spectrum
         
         Sets the object data depending on the specified type and stores the
@@ -804,9 +753,10 @@ class TwoDSpectrumBase(DataSaveable):
             Data of the spectrum, float or complex
             
         dtype : string
-            Type of the data stored. Three values are allowed, namely, `Reph`
-            for rephasing spectra, `Nonr` for non-rephasing spectra, and `Tot` 
-            for total spectrum, which is the sum of both
+            Type of the data stored. Three values are allowed: if quantarhei
+            is import as `qr` that they are qr.signal_REPH
+            for rephasing spectra, qr.signal_NONR for non-rephasing spectra,
+            and qr.signal_TOTL for total spectrum, which is the sum of both
             
         """
         if self.dtype is None:
@@ -816,13 +766,13 @@ class TwoDSpectrumBase(DataSaveable):
             if dtype != self.dtype:
                 raise Exception("Incorrect data type in TwoDSpectrum")
                 
-        if dtype == "Tot":
+        if dtype == signal_TOTL:
             self.data = data
             
-        elif dtype == "Reph":
+        elif dtype == signal_REPH:
             self.reph2D = data
             
-        elif dtype == "Nonr":        
+        elif dtype == signal_NONR:        
             self.nonr2D = data
             
         else:
@@ -830,7 +780,7 @@ class TwoDSpectrumBase(DataSaveable):
             raise Exception("Unknow type of data: "+dtype)
 
     # FIMXE: to be relaced
-    def add_data(self, data, dtype="Tot"):
+    def add_data(self, data, dtype=signal_TOTL): #"Tot"):
         
         if dtype is None:
             if dtype in self.dtypes:
@@ -839,18 +789,18 @@ class TwoDSpectrumBase(DataSaveable):
             if dtype != self.dtype:
                 raise Exception("Incorrect data type in TwoDSpectrum")
 
-        if dtype == "Tot":
+        if dtype == signal_TOTL:
             
             if self.data is None:
                 self.data = numpy.zeros(data.shape, dtype=data.dtype)
             self.data += data
             
-        elif dtype == "Reph":
+        elif dtype == signal_REPH:
             if self.reph2D is None:
                 self.reph2D = numpy.zeros(data.shape, dtype=data.dtype)
             self.reph2D += data                
             
-        elif dtype == "Nonr":
+        elif dtype == signal_NONR:
             if self.nonr2D is None:
                 self.nonr2D = numpy.zeros(data.shape, dtype=data.dtype)                
             self.nonr2D += data
@@ -1093,7 +1043,7 @@ class TwoDSpectrumBase(DataSaveable):
             storage = {}
             
             data = _signals_to_total(self)
-            storage["total"] = data
+            storage[_total] = data
             
             self._d__data = storage
         
@@ -1102,7 +1052,7 @@ class TwoDSpectrumBase(DataSaveable):
             storage = {}
             
             data = _processes_to_total(self)
-            storage["total"] = data
+            storage[_total] = data
             
             self._d__data = storage
             
@@ -1112,7 +1062,7 @@ class TwoDSpectrumBase(DataSaveable):
 
 
     # FIXME: this will become the main add_data method
-    def _add_data(self, data, resolution=None, dtype="total", tag=None):
+    def _add_data(self, data, resolution=None, dtype=_total, tag=None):
         """Adds data to this 2D spectrum
         
         This method is used when partial data are stored in this spectrum
@@ -1250,7 +1200,7 @@ class TwoDSpectrumBase(DataSaveable):
         
         elif resolution ==  "off":
             
-            if dtype == "total":
+            if dtype == _total:
                 if tag is not None:
                     raise Exception("Tag specified for storage resolutios"+
                                     " 'off'. Tag would be ignored and"+
@@ -1272,8 +1222,8 @@ class TwoDSpectrumBase(DataSaveable):
                                 +"Used data type: "+dtype)
                 
 
-
-    def _set_data(self, data, dtype="total", tag=None):
+    # FIXME: implement
+    def _set_data(self, data, dtype=_total, tag=None):
         """Sets the 2D spectrum data
         
         Depending on the storage resolution inferred from the combination
@@ -1356,11 +1306,11 @@ class TwoDSpectrumBase(DataSaveable):
         elif self.storage_resolution == "off":
             data_ex = True
             try:
-                data = self._d__data["total"]
+                data = self._d__data[_total]
             except:
                 data_ex = False
             if data_ex:
-                key = "total"
+                key = _total
                 data_dict[key] = data
             
         else:
@@ -1370,13 +1320,13 @@ class TwoDSpectrumBase(DataSaveable):
         return data_dict
 
 
-class TwoDSpectrum(TwoDSpectrumBase, Saveable):
+class TwoDResponse(TwoDSpectrumBase, Saveable):
     """This class represents a single 2D spectrum
     
     Methods
     -------
     
-    plot(fig=None, window=None, stype="total", spart="real",
+    plot(fig=None, window=None, stype=_total, spart="real",
          vmax=None, vmin_ratio=0.5, 
          colorbar=True, colorbar_loc="right",
          cmap=None, Npos_contours=10,
@@ -1609,8 +1559,28 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         return pp.calculate_from_2D(self)
     
     
+    
+    def get_TwoDSpectrum(self, dtype=None):
+        """Returns a 2D spectrum based on this response
+        
+        """
+        if dtype is None:
+            dtype = signal_TOTL
+        twod = TwoDSpectrum()
+        twod.set_axis_1(self.xaxis.copy())
+        twod.set_axis_3(self.yaxis.copy())
+        
+        twod.set_t2(self.t2)
+        
+        twod.set_data_type(dtype)
+        self.set_data_flag(dtype)
+        twod.set_data(self.d__data[:,:])
+
+        return twod
+
+
     def plot(self, fig=None, window=None, 
-             stype="total", spart="real",
+             stype=_total, spart=part_REAL,
              vmax=None, vmin_ratio=0.5, 
              colorbar=True, colorbar_loc="right",
              cmap=None, Npos_contours=10,
@@ -1631,7 +1601,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
             Specifies the plotted window in current energy units. When axes
             are x and y, the window is specified as window=[x_min,x_max,y_min,y_max]
             
-        stype : {"total", "rephasing", "non-rephasing"}
+        stype : {qr.signal_TOTL, "rephasing", "non-rephasing"}
             type of the spectrum 
             
         spart : {"real", "imaginary", "abs"}
@@ -1651,10 +1621,10 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         # 
         # What type of spectra to plot
         #
-        if stype == "total":
+        if stype == signal_TOTL:
             
             if not legacy:
-                self.set_data_flag("total")
+                self.set_data_flag(signal_TOTL)
                 spect2D = self.d__data
                 
             else:
@@ -1665,32 +1635,32 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
                 elif self.nonr2D is not None:
                     spect2D = self.nonr2D
                 
-        elif stype == "rephasing":
+        elif stype == signal_REPH:
             if not legacy:
-                self.set_data_flag("REPH")
+                self.set_data_flag(signal_REPH)
                 spect2D = self.d__data
             else:
                 spect2D = self.reph2D
                 
-        elif stype == "non-rephasing":
+        elif stype == signal_NONR:
             if not legacy:
-                self.set_data_flag("NONR")
+                self.set_data_flag(signal_NONR)
                 spect2D = self.d__data
             else:
                 spect2D = self.nonr2D     
                 
         else:
-            raise Exception("Undefined spectrum type"+stype)
+            raise Exception("Undefined spectrum type "+stype)
         
         
         #
         # What part of the spectrum to plot
         #
-        if spart == "real":
+        if spart == part_REAL:
             spect2D = numpy.real(spect2D)
-        elif spart == "imaginary":
+        elif spart == part_IMAGINARY:
             spect2D = numpy.imag(spect2D)
-        elif spart == "abs":
+        elif spart == part_ABS:
             spect2D = numpy.abs(spect2D)
         else:
             raise Exception("Undefined part of the spectrum: "+spart)
@@ -1875,9 +1845,8 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         
         """
         
-        legacy = False
-        
         if window is not None:
+
             axis = window
             w1_min = axis[0]
             w1_max = axis[1]
@@ -1915,85 +1884,31 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
                                   atype=self.yaxis.atype,
                                   time_start=self.yaxis.time_start)                
             self.yaxis = yaxis            
-            
-            if legacy:
-
-                # reconstruct data
-                if self.keep_stypes:
-                    if self.reph2D is not None:
-                        reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
-                        self.reph2D = reph2D  
-                    if self.nonr2D is not None:
-                        nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
-                        self.nonr2D = nonr2D 
-                    
-                else:
-                    if self.data is not None:
-                        data = self.data[i1_min:i1_max,i3_min:i3_max]
-                        self.data = data
-        
-            else:
                 
-                if self.storage_resolution == "pathways":
-                    for typ in _ptypes:
-                        piece_ex = True
-                        try:
-                            piece = self._d__data[typ]
-                        except:
-                            piece_ex = False
-                        if piece_ex:
-                            for tag in piece.keys():
-                                data_ex = True
-                                try:
-                                    data = piece[tag]
-                                except KeyError:
-                                    data_ex = False
-                                if data_ex:
-                                    ndata = data[i1_min:i1_max,i3_min:i3_max]
-                                    piece[tag] = ndata                       
-                        
-                elif self.storage_resolution == "types":
+            dtype_saved = self.current_dtype
+            
+            if self.storage_resolution == "pathways":
+                for typ in _ptypes:
+                    piece_ex = True
+                    try:
+                        piece = self._d__data[typ]
+                    except:
+                        piece_ex = False
+                    if piece_ex:
+                        for tag in piece.keys():
+                            data_ex = True
+                            try:
+                                data = piece[tag]
+                            except KeyError:
+                                data_ex = False
+                            if data_ex:
+                                ndata = data[i1_min:i1_max,i3_min:i3_max]
+                                piece[tag] = ndata                       
                     
-                    for typ in _ptypes:
-                        self.set_data_flag(typ)
-                        #data_ex = True
-                        #try:
-                        data = self.d__data
-                        #except KeyError:
-                        #    data_ex = False
-                        if data is not None:
-                            ndata = data[i1_min:i1_max,i3_min:i3_max]
-                            self.d__data = ndata
-                        
-                elif self.storage_resolution == "signals":
-                    
-                    for typ in _signals:
-                        self.set_data_flag(typ)
-                        #data_ex = True
-                        #try:
-                        data = self.d__data
-                        #except KeyError:
-                        #    data_ex = False
-                            
-                        if data is not None:
-                            ndata = data[i1_min:i1_max,i3_min:i3_max]
-                            self.d__data = ndata
-                        
-                elif self.storage_resolution == "processes":
-                    
-                    for typ in _processes:
-                        self.set_data_flag(typ)
-                        #data_ex = True
-                        #try:
-                        data = self.d__data
-                        #except KeyError:
-                        #    data_ex = False
-                        if data is not None:
-                            ndata = data[i1_min:i1_max,i3_min:i3_max]
-                            self.d__data = ndata
-                            
-                elif self.storage_resolution == "total":
-                    self.set_data_flag("total")
+            elif self.storage_resolution == "types":
+                
+                for typ in _ptypes:
+                    self.set_data_flag(typ)
                     #data_ex = True
                     #try:
                     data = self.d__data
@@ -2002,7 +1917,46 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
                     if data is not None:
                         ndata = data[i1_min:i1_max,i3_min:i3_max]
                         self.d__data = ndata
+                    
+            elif self.storage_resolution == "signals":
                 
+                for typ in _signals:
+                    self.set_data_flag(typ)
+                    #data_ex = True
+                    #try:
+                    data = self.d__data
+                    #except KeyError:
+                    #    data_ex = False
+                        
+                    if data is not None:
+                        ndata = data[i1_min:i1_max,i3_min:i3_max]
+                        self.d__data = ndata
+                    
+            elif self.storage_resolution == "processes":
+                
+                for typ in _processes:
+                    self.set_data_flag(typ)
+                    #data_ex = True
+                    #try:
+                    data = self.d__data
+                    #except KeyError:
+                    #    data_ex = False
+                    if data is not None:
+                        ndata = data[i1_min:i1_max,i3_min:i3_max]
+                        self.d__data = ndata
+                        
+            elif self.storage_resolution == _total:
+                self.set_data_flag(_total)
+                #data_ex = True
+                #try:
+                data = self.d__data
+                #except KeyError:
+                #    data_ex = False
+                if data is not None:
+                    ndata = data[i1_min:i1_max,i3_min:i3_max]
+                    self.d__data = ndata
+                
+            self.set_data_flag(dtype_saved)
                 
         else:
             # some automatic trimming in the future

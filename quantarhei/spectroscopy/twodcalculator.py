@@ -9,7 +9,7 @@ from ..builders.molecules import Molecule
 from ..core.time import TimeAxis
 from ..core.managers import eigenbasis_of
 from ..qm.propagators.poppropagator import PopulationPropagator
-from .twod2 import TwoDSpectrum
+from .twod2 import TwoDResponse
 
 
 try:
@@ -29,7 +29,7 @@ except:
     _have_aceto = False 
 
 
-class TwoDSpectrumCalculator:
+class TwoDResponseCalculator:
     """Calculator of the 2D spectrum
     
     
@@ -360,7 +360,7 @@ class TwoDSpectrumCalculator:
         nonr2D = numpy.fft.fftshift(ftresp)
 
 
-        onetwod = TwoDSpectrum()
+        onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
         onetwod.set_data(reph2D, dtype="Reph")

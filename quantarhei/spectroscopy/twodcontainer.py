@@ -15,18 +15,22 @@ from ..core.time import TimeAxis
 from ..core.valueaxis import ValueAxis
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
-from .twod2 import TwoDSpectrum
+#from .twod2 import TwoDResponse
+from .twod import TwoDSpectrum
 
-from ..core.managers import Manager
+from ..core.managers import Manager, energy_units
 
-from ..core.managers import energy_units
+#from ..core.managers import energy_units
 from .. import COMPLEX
 from .. import REAL
 
 from ..core.saveable import Saveable
-import quantarhei as qr
 
-class TwoDSpectrumContainer(Saveable):
+from .. import part_REAL, part_IMAGINARY, part_COMPLEX, part_ABS
+from .. import signal_TOTL #, signal_REPH, signal_NONR
+
+
+class TwoDResponseContainer(Saveable):
     """Class holding a set of TwoDSpectra
     
 
@@ -225,17 +229,11 @@ class TwoDSpectrumContainer(Saveable):
             return self.spectra[str(tag)]
 
         elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
-            if any(self._lousy_equal(tag, li, self.axis.step) 
-               for li in self.axis.data):
-
-                return self.spectra[self._which]     
-            else:
-                raise Exception("Tag not compatible with the ValueAxis")
-        
         else:
             
             raise Exception("Unknown type of indexing")
 
+        
 
     def get_nearest(self, val):
         
@@ -350,20 +348,15 @@ class TwoDSpectrumContainer(Saveable):
             Times (usually waiting t_2 times) in which spectra are taken
             
         """
-        
         vals = numpy.zeros(times.length, dtype=COMPLEX)
         k = 0
-        for t2 in times.data:
             
             sp = self.get_spectrum(t2)
-            vals[k] = sp.get_value_at(x,y)
             k +=1
             
-        return vals
 
     
     def fft(self, ffttype="complex-positive", window=None, offset=0.0,
-            dtype="total", dpart="complex", tag=None):
         """Fourier transform in t2 time
         
         This method performs FFT on the container data determined by the
@@ -408,7 +401,6 @@ class TwoDSpectrumContainer(Saveable):
                 dt = tlist[1]-tlist[0]
                 Nt = len(tlist)
                 t0 = tlist[0]
-                eff_axis = TimeAxis(t0, Nt, dt, atype="complete") # effective time axis for fft
             else:
                 raise Exception("Offset too large")
         else:
@@ -605,7 +597,6 @@ class TwoDSpectrumContainer(Saveable):
     
              
     def make_movie(self, filename, window=None,
-                   stype="total", spart="real", 
                    cmap=None, Npos_contours=10,
                    frate=20, dpi=100, start=None, end=None,
                    show_states=None, progressbar=False, vmax=None):
@@ -659,3 +650,4 @@ class TwoDSpectrumContainer(Saveable):
                 k += 1
 #                if k == 20:
 #                    return
+        

@@ -151,6 +151,57 @@ LOG_DETAIL = 7
 LOG_QUICK = 9
 
 #
+# Non-linear response signals
+#
+signal_REPH = "rephasing_2D_signal"
+signal_NONR = "nonrephasing_2D_signal"
+signal_TOTL = "total_2D_signal"
+signal_DC = "double_coherence_signal"
+
+TWOD_SIGNALS = dict(signal_REPH = "rephasing_2D_signal",
+                    signal_NONR = "nonrephasing_2D_signal",
+                    signal_TOTL = "total_2D_signal",
+                    signal_DC = "double_coherence_signal")
+
+#
+# Parts of the complex data/signal
+#
+part_REAL = "real_part"
+part_IMAGINARY = "imaginary_part"
+part_COMPLEX = "complex"
+part_ABS = "absolute_value"
+
+SIGNAL_PARTS = dict(part_REAL = "real_part",
+                    part_IMAGINARY= "imaginary_part",
+                    part_COMPLEX = "complex",
+                    part_ABS = "absolute_value")
+
+DATA_PARTS = SIGNAL_PARTS
+
+#
+# Liouville pathway types
+#
+ptype_R1g = "pathway_type_R1g"
+ptype_R2g = "pathway_type_R2g"
+ptype_R3g = "pathway_type_R3g"
+ptype_R4g = "pathway_type_R4g"
+ptype_R1f = "pathway_type_R1f*"
+ptype_R2f = "pathway_type_R2f*"
+ptype_R3f = "pathway_type_R3f"
+ptype_R4f = "pathway_type_R4f"
+
+PATHWAY_TYPES = dict(ptype_R1g = "pathway_type_R1g",
+                     ptype_R2g = "pathway_type_R2g",
+                     ptype_R3g = "pathway_type_R3g",
+                     ptype_R4g = "pathway_type_R4g",
+                     ptype_R1f = "pathway_type_R1f*",
+                     ptype_R2f = "pathway_type_R2f*",
+                     ptype_R3f = "pathway_type_R3f",
+                     ptype_R4f = "pathway_type_R4f")
+
+LIOUVILLE_PATHWAY_TYPES = PATHWAY_TYPES
+
+#
 # Builders
 #
 from .builders.modes import Mode
@@ -223,10 +274,11 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 # Fourier transform Two-Dimensional Spectra
 #
-from .spectroscopy.twod2 import TwoDSpectrum
-from .spectroscopy.twodcontainer import TwoDSpectrumContainer
-from .spectroscopy.twodcalculator import TwoDSpectrumCalculator
-from .spectroscopy.mocktwodcalculator import MockTwoDSpectrumCalculator
+from .spectroscopy.twod2 import TwoDResponse 
+from .spectroscopy.twodcontainer import TwoDResponseContainer
+from .spectroscopy.twod import TwoDSpectrum
+from .spectroscopy.twodcalculator import TwoDResponseCalculator
+from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator
 
 #
 # Pump-probe spectrum

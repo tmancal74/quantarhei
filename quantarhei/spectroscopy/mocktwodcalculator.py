@@ -2,17 +2,19 @@
 
 import numpy
 
-from .twodcalculator import TwoDSpectrumCalculator
-from .twodcontainer import TwoDSpectrumContainer
-from .twod2 import TwoDSpectrum
+from .twodcalculator import TwoDResponseCalculator
+from .twodcontainer import TwoDResponseContainer
+from .pathwayanalyzer import LiouvillePathwayAnalyzer
+from .twod2 import TwoDResponse
 from ..core.units import convert
 from .. import COMPLEX
+from .. import signal_REPH, signal_NONR
 from .lineshapes import gaussian2D
 from .lineshapes import lorentzian2D
 from ..core.managers import Manager
 from ..core.managers import energy_units
 
-class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
+class MockTwoDResponseCalculator(TwoDResponseCalculator):
     """Calculator of the 2D spectrum from LiouvillePathway objects
     
     
@@ -88,7 +90,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         
         """
         
-        onetwod = TwoDSpectrum()
+        onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")
@@ -99,9 +101,9 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             data = self.calculate_pathway(pwy, shape=self.shape)
 
             if pwy.pathway_type == "R":
-                onetwod._add_data(data, dtype="REPH")
+                onetwod._add_data(data, dtype=signal_REPH)
             elif pwy.pathway_type == "NR":
-                onetwod._add_data(data, dtype="NONR")
+                onetwod._add_data(data, dtype=signal_NONR)
             else:
                 raise Exception("Unknown pathway type")
 
@@ -110,7 +112,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         if k == 0:
             pwy = None
             data = self.calculate_pathway(pwy, shape=self.shape)
-            onetwod._add_data(data, dtype="REPH")
+            onetwod._add_data(data, dtype=signal_REPH)
             print("Warning: calculating empty 2D spectrum")
 
         onetwod.set_t2(self.t2axis.data[tc])    
@@ -123,7 +125,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         
         """
         
-        onetwod = TwoDSpectrum()
+        onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")
@@ -134,9 +136,9 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             data = self.calculate_pathway(pwy, shape=self.shape)
             
             if pwy.pathway_type == "R":
-                onetwod._add_data(data, dtype="REPH")
+                onetwod._add_data(data, dtype=signal_REPH)
             elif pwy.pathway_type == "NR":
-                onetwod._add_data(data, dtype="NONR")
+                onetwod._add_data(data, dtype=signal_NONR)
             else:
                 raise Exception("Unknown pathway type")
                 
@@ -145,18 +147,21 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         if k == 0:
             pwy = None
             data = self.calculate_pathway(pwy, shape=self.shape)
-            onetwod._add_data(data, dtype="REPH")
+            onetwod._add_data(data, dtype=signal_REPH)
 
         onetwod.set_t2(0.0)    
             
         return onetwod
 
 
-    def calculate_all_system(self, sys, H, eUt, lab, show_progress=False):
+    def calculate_all_system(self, sys, H, eUt, lab, 
+                             selection=None, show_progress=False):
         """Calculates all 2D spectra for a system and evolution superoperator
         
         """
-        tcont = TwoDSpectrumContainer(t2axis=self.t2axis)
+        self.tc = 0
+        
+        tcont = TwoDResponseContainer(t2axis=self.t2axis)
         
         kk = 1
         Nk = self.t2axis.length
@@ -165,15 +170,28 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             if show_progress:
                 print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
             
-            twod1 = self.calculate_one_system(T2, sys, H, eUt, lab)
+            pways = dict()
+            twod1 = self.calculate_one_system(T2, sys, H, eUt, lab,
+                                              selection=selection, pways=pways)
         
-            tcont.set_spectrum(twod1, tag=T2)
+            if show_progress:
+                try:
+                    print("   "+str(len(pways[str(T2)])), "pathways used")
+                except:
+                    pass
+                
+            if twod1 is not None:
+                tcont.set_spectrum(twod1, tag=T2)
+            else:
+                print("No pathways found; no spectrum calculated")
+                
             kk += 1
             
         return tcont
 
 
-    def calculate_one_system(self, t2, sys, H, eUt, lab, pways=None):
+    def calculate_one_system(self, t2, sys, H, eUt, lab, 
+                             selection=None, pways=None):
         """Returns 2D spectrum at t2 for a system and evolution superoperator
         
         """
@@ -203,7 +221,38 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                                                    "R4g"),
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab)
-
+            
+        if selection is not None:
+            
+            anl = LiouvillePathwayAnalyzer()
+            anl.pathways = pws
+            pws = anl.order_by_amplitude(replace=False)
+            
+            for rule in selection:
+                
+                if rule[0] == "omega2":
+                    interval = rule[1]
+                    anl.pathways = pws
+                    pws = anl.select_omega2(interval, replace=False)
+                    
+                if rule[0] == "order":
+                    pass
+                    
+                if rule[0] == "number":
+                    N = rule[1]
+                    if len(pws) > N:
+                        pws = pws[0:N-1]
+                        
+                if rule[0] == "percent":
+                    mx = pws[0].pref*rule[1]/100.0
+                    print(mx, numpy.abs(mx))
+                    anl.pathways = pws
+                    pws = anl.select_amplitude_GT(numpy.abs(mx))
+                        
+                    
+        if pws is None:
+            return None
+        
         self.set_pathways(pws)
         
         if pways is not None:

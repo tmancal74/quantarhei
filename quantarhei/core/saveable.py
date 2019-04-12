@@ -8,6 +8,10 @@
 
 """
 
+import os
+from tempfile import TemporaryDirectory
+import copy
+
 from .parcel import Parcel
 from .parcel import load_parcel
 
@@ -68,3 +72,31 @@ class Saveable:
         return load_parcel(filename)
         
         
+    def scopy(self):
+        """Creates a copy of the object by saving and loading it
+        
+        """
+        
+        with TemporaryDirectory() as td:
+            fname = os.path.join(td, "ssave.qrp")
+            self.save(fname)
+            
+            no = load_parcel(fname)
+            
+        return no
+    
+    
+    def deepcopy(self):
+        """Returns a deep copy of the self
+        
+        
+        """
+        return copy.deepcopy(self)
+    
+    
+    def copy(self):
+        """Returns a shallow copy of the self
+        
+        
+        """
+        return copy.copy(self)
