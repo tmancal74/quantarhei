@@ -211,6 +211,13 @@ class TwoDResponseContainer(Saveable):
             return self.spectra[self.tags[indx]]
 
 
+    def get_response(self, tag):
+        """Same as get_spectrum, but the name more sense for a response container
+        
+        """
+        return self.get_spectrum(tag)
+
+
     def get_spectrum(self, tag):
         """Returns spectrum corresponing to time t2
         
@@ -229,11 +236,56 @@ class TwoDResponseContainer(Saveable):
             return self.spectra[str(tag)]
 
         elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+            
+            with energy_units("int"):
+                if any(self._lousy_equal(tag, li, self.axis.step) 
+                   for li in self.axis.data):
+    
+                    try:
+                        return self.spectra[self._which]     
+                    except KeyError:
+                        print(self.spectra)
+                        raise Exception()      
+                else:
+                    raise Exception("Tag not compatible with the ValueAxis")
+            
         else:
             
             raise Exception("Unknown type of indexing")
 
+    
+    def set_data_flag(self, flag):
+        """Sets data flag for all spectra in the container
         
+        
+        """
+        
+        for tag in self.spectra:
+            
+            sp = self.spectra[tag]
+            sp.set_data_flag(flag)
+
+
+    def get_TwoDSpectrumContainer(self, stype=signal_TOTL):
+        """Returns a container with specific spectra
+        
+        """
+        if self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+            axis = self.axis.deepcopy()
+        
+            cont = TwoDSpectrumContainer(axis)
+        
+            for val in self.axis.data:
+                sp = self.get_spectrum(val)
+                nsp = sp.get_TwoDSpectrum(dtype=stype)
+                cont.set_spectrum(nsp, tag=val)
+                
+            return cont
+        
+        else:
+            
+            raise Exception("")
+            
 
     def get_nearest(self, val):
         
@@ -348,15 +400,43 @@ class TwoDResponseContainer(Saveable):
             Times (usually waiting t_2 times) in which spectra are taken
             
         """
+
         vals = numpy.zeros(times.length, dtype=COMPLEX)
         k = 0
+  
+        # this only acts on Frequency axis
+        with energy_units("int"):
+            tms = times.data      
+  
+        for t2 in tms:
             
             sp = self.get_spectrum(t2)
+            vals[k] = sp.get_value_at(x, y)
             k +=1
             
+        return DFunction(times, vals)
 
     
+    def global_fit_exponential(self, guess=None):
+        """Global fit of the data with exponentials
+        
+        
+        """
+        from scipy.optimize import least_squares
+        from functools import partial
+        
+        if guess is None:
+            guess = [1.0, 1.0/100.0, 0.0]
+ 
+        _exp_2D_fcion = partial(_exp_2D_data0, times=self.axis.data, cont=self)
+            
+        params = least_squares(_exp_2D_fcion, guess)           
+        
+        return params
+        
+        
     def fft(self, ffttype="complex-positive", window=None, offset=0.0,
+            dtype=None, dpart=part_COMPLEX, tag=None):
         """Fourier transform in t2 time
         
         This method performs FFT on the container data determined by the
@@ -377,8 +457,9 @@ class TwoDResponseContainer(Saveable):
         
         """
         
-        legacy = False
-        
+        if dtype is None:
+            raise Exception("Type of the data for FFT has to be specified")
+            
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             raise Exception("FFT cannot be performed for"+
                             " this type of indexing")
@@ -401,6 +482,8 @@ class TwoDResponseContainer(Saveable):
                 dt = tlist[1]-tlist[0]
                 Nt = len(tlist)
                 t0 = tlist[0]
+                # effective time axis for fft
+                eff_axis = TimeAxis(t0, Nt, dt, atype="complete") 
             else:
                 raise Exception("Offset too large")
         else:
@@ -409,6 +492,7 @@ class TwoDResponseContainer(Saveable):
         # put all data into one array
         
         #raise Exception()
+        self.set_data_flag(dtype)
         
         tags = eff_axis.data #self.axis.data
         Nos = self.length()
@@ -416,30 +500,33 @@ class TwoDResponseContainer(Saveable):
         if len(tags) <= Nos:
             tag1 = eff_axis.data[0] #self.axis.data[0]
             sp1 = self.get_spectrum(tag1)
+
+            print(tag1)
+            print(sp1)
+            print(sp1.t2)
+            print(sp1.current_dtype)
+            print(sp1.d__data)
+            print(dtype)
+
             
-            if legacy:
-                N1, N2 = sp1.data.shape
-                data = numpy.zeros((N1, N2, len(tags)), dtype=sp1.data.dtype)
-            else:
-                sp1.set_data_flag(dtype)
-                N1, N2 = sp1.d__data.shape
-                data = numpy.zeros((N1, N2, len(tags)), dtype=sp1.d__data.dtype)
+            N1, N2 = sp1.d__data.shape
+            data = numpy.zeros((N1, N2, len(tags)), dtype=sp1.d__data.dtype)
+
 
             for k_n in range(len(tags)):
                 tag = eff_axis.data[k_n] #self.axis.data[k_n]
                 
-                if legacy:
-                    spect = self.get_spectrum(tag)
-                    data[:,:,k_n] = spect.data
-                else:
-                    spect = self.get_spectrum(tag)
-                    spect.set_data_flag(dtype)
-                    if dpart == "complex":
-                        data[:,:,k_n] = spect.d__data
-                    elif dpart == "real":
-                        data[:,:,k_n] = numpy.real(spect.d__data)
-                    elif dpart == "imaginary":
-                        data[:,:,k_n] = numpy.imag(spect.d__data)
+                spect = self.get_spectrum(tag)
+                spect.set_data_flag(dtype)
+                if dpart == part_COMPLEX:
+                    data[:,:,k_n] = spect.d__data
+                elif dpart == part_REAL:
+                    data[:,:,k_n] = numpy.real(spect.d__data)
+                elif dpart == part_IMAGINARY:
+                    data[:,:,k_n] = numpy.imag(spect.d__data)
+                elif dpart == part_ABS:
+                    data[:,:,k_n] = numpy.abs(spect.d__data)
+                    
             
         else:
             raise Exception("Number of spectra not consistent"+
@@ -482,7 +569,8 @@ class TwoDResponseContainer(Saveable):
         for i_n in range(data.shape[0]):
             for j_n in range(data.shape[1]):
                 ftdata[i_n,j_n,:] = data[i_n,j_n,:]*winfce.data[Nwin-Ndat:Nwin]
-        ftdata = numpy.fft.fft(ftdata, axis=2)
+                
+        ftdata = numpy.fft.ifft(ftdata, axis=2)
         ftdata = numpy.fft.fftshift(ftdata, axes=2)
         
         # save it to a new container
@@ -495,14 +583,9 @@ class TwoDResponseContainer(Saveable):
             spect.set_axis_1(sp1.xaxis)
             spect.set_axis_3(sp1.yaxis)
             
-            if legacy:
-                spect.set_data(ftdata[:, :, k_n])
-            else:
-                spect.set_resolution("off")
-                spect._add_data(ftdata[:, :, k_n],dtype="total")
+            spect.set_data(ftdata[:, :, k_n], dtype=signal_TOTL)
 
             new_container.set_spectrum(spect, tag=tag)
-        
         
         return new_container
 
@@ -543,28 +626,18 @@ class TwoDResponseContainer(Saveable):
                 s.trim_to(window=axes)
 
     # FIXME: this is still legacy version        
-    def amax(self, spart="real"):
+    def amax(self, spart=part_REAL):
         """Returns maximum amplitude of the spectra in the container
         
         """
         
-        legacy = False
-        
-        if legacy:
-            mxs = []
-            for s in self.get_spectra():       
-                spect2D = numpy.real(s.reph2D) + numpy.real(s.nonr2D)   
-                mx = numpy.amax(spect2D)
-                mxs.append(mx)
-            return numpy.amax(numpy.array(mxs))
 
-        else:
-            mxs = []
-            for s in self.get_spectra():       
-                spect2D = numpy.real(s.d__data)   
-                mx = numpy.amax(spect2D)
-                mxs.append(mx)
-            return numpy.amax(numpy.array(mxs))
+        mxs = []
+        for s in self.get_spectra():       
+            spect2D = numpy.real(s.d__data)   
+            mx = numpy.amax(spect2D)
+            mxs.append(mx)
+        return numpy.amax(numpy.array(mxs))
         
 
     # Print iterations progress
@@ -597,6 +670,7 @@ class TwoDResponseContainer(Saveable):
     
              
     def make_movie(self, filename, window=None,
+                   stype=signal_TOTL, spart=part_REAL, 
                    cmap=None, Npos_contours=10,
                    frate=20, dpi=100, start=None, end=None,
                    show_states=None, progressbar=False, vmax=None):
@@ -650,4 +724,282 @@ class TwoDResponseContainer(Saveable):
                 k += 1
 #                if k == 20:
 #                    return
+
+
+def _exp_2D_data0(params, times=None, cont=None):
+    """Returns a residue between time dependent matrix data and a matrix
+       multipled by a sum of exponentials
+    
+    """
+    
+    if times is None:
+        raise Exception("Times have to be supplied")
+    if cont is None:
+        raise Exception("Spectra container has to be supplied")
         
+    np = len(params)
+    
+    data0 = cont.get_spectrum(0.0)
+    
+    residues = numpy.zeros((times.shape[0], data0.data.shape[0],
+                            data0.data.shape[1]), dtype=data0.dtype)
+    
+    N = times.shape[0]*data0.data.shape[0]*data0.data.shape[0]
+    
+    nexp = int((np - 1)/2)
+    
+    ii = 0
+    for t in times:
+
+        ret = 0.0
+        kp = 0
+
+        for kk in range(nexp):
+            ret += params[kp]*numpy.exp(-params[kp+1]*t)
+            kp += 2
+        ret += params[kp]
+        
+        spect = cont.get_spectrum(t)
+        
+        residues[ii,:,:] = numpy.abs(spect.data - ret*data0.data)
+        
+        ii += 1
+        
+    return residues.reshape(N)
+
+
+
+
+
+
+class TwoDSpectrumContainer(TwoDResponseContainer):
+    
+    def __init__(self, t2axis=None, dtype=signal_TOTL):
+        
+        self.t2axis = t2axis
+
+        self.axis = None
+        
+        self.itype = None
+        self.index = 0
+        self.tags = []
+        self.dtype = dtype
+            
+        self.spectra = {}
+        self._which = None
+        
+        if t2axis is not None:
+            self.use_indexing_type(itype=t2axis)
+            
+
+    def set_data_flag(self, flag):
+        """Sets data flag for all spectra in the container
+        
+        
+        """
+        
+        if flag != self.dtype:
+            raise Exception("Cannot change spectra type")
+
+            
+    def get_TwoDSpectrumContainer(self, stype=signal_TOTL):
+        """Returns a container with specific spectra
+        
+        """
+        if stype == self.dtype:
+            return self
+        else:
+            raise Exception("Cannot change spectra type in this container")
+
+           
+    # FIXME: This needs to be reimplemented
+    def get_PumpProbeSpectrumContainer(self, skip=0):
+        """Converts this container into PumpProbeSpectrumContainer
+        
+        """
+        
+        if self.dtype == signal_TOTL:
+        
+            from .pumpprobe import PumpProbeSpectrumContainer
+            
+            k = 0
+            ppc = []
+            ttc = []
+            ii = 0
+            for sp in self.get_spectra():
+                if k == 0:
+                    pp = sp.get_PumpProbeSpectrum()
+                    ppc.append(pp)
+                    ttc.append(self.axis.data[ii])
+                k += 1
+                if k > skip:
+                    k = 0
+                ii += 1
+                
+            length = len(ppc)
+            start = ppc[0].get_t2()
+            step = ppc[1].get_t2()-start
+    
+            naxis = TimeAxis(start,length,step)        
+            ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
+    
+            ii = 0
+            for sp in ppc:
+                tt = ttc[ii]
+                ppcont.set_spectrum(sp, tt)
+                ii += 1
+                
+            return ppcont  
+        
+        else:
+            
+            raise Exception("Cannot calculate Pump-probe from 2D"+
+                            " spectra of type"+self.dtype)
+            
+            
+    def fft(self, ffttype="complex-positive", window=None, offset=0.0,
+            dtype=None, dpart=part_COMPLEX, tag=None):
+        """Fourier transform in t2 time
+        
+        This method performs FFT on the container data determined by the
+        value of the `dtype` argument. The new container is created and 
+        the storage resolution of its components is set `off`. This means
+        that the container and its spectra have no idea about what data they
+        store. Even when plotting the spectra, one has to set plotting of
+        the `total` spectrum.
+        
+        Parameters
+        ----------
+        
+        ffttype : string
+            Specifies the type Fourier transform we perform
+            
+        window : DFunction
+            Windowing function for the data. Default is None
+        
+        """
+        
+        if dtype is not None:
+            if dtype != self.dtype:
+                raise Exception("Cannot change spectra type"+
+                                " in TwoDSpectrumContainer")
+                
+        if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+            raise Exception("FFT cannot be performed for"+
+                            " this type of indexing")
+
+        # even when no window function is supplied, we create one with
+        # all elements equal to one
+        if window is None:
+            winfce = DFunction(self.axis, 
+                               numpy.ones(self.axis.length, dtype=REAL))
+        else:
+            winfce = window
+             
+        if isinstance(self.axis, TimeAxis):
+            # restrict the time axis by the off-set
+            tlist = []
+            for tt in self.axis.data:
+                if tt >= offset:
+                    tlist.append(tt)
+            if len(tlist) > 1:
+                dt = tlist[1]-tlist[0]
+                Nt = len(tlist)
+                t0 = tlist[0]
+                # effective time axis for fft
+                eff_axis = TimeAxis(t0, Nt, dt, atype="complete") 
+            else:
+                raise Exception("Offset too large")
+        else:
+            eff_axis = self.axis
+            
+        # put all data into one array
+        
+        #raise Exception()
+        
+        tags = eff_axis.data #self.axis.data
+        Nos = self.length()
+
+        if len(tags) <= Nos:
+            tag1 = eff_axis.data[0] #self.axis.data[0]
+            sp1 = self.get_spectrum(tag1)
+            
+            N1, N2 = sp1.data.shape
+            data = numpy.zeros((N1, N2, len(tags)), dtype=sp1.data.dtype)
+
+
+            for k_n in range(len(tags)):
+                tag = eff_axis.data[k_n] #self.axis.data[k_n]
+                
+                spect = self.get_spectrum(tag)
+
+                if dpart == part_COMPLEX:
+                    data[:,:,k_n] = spect.data
+                elif dpart == part_REAL:
+                    data[:,:,k_n] = numpy.real(spect.data)
+                elif dpart == part_IMAGINARY:
+                    data[:,:,k_n] = numpy.imag(spect.data)
+                elif dpart == part_ABS:
+                    data[:,:,k_n] = numpy.abs(spect.data)
+                    
+            
+        else:
+            raise Exception("Number of spectra not consistent"+
+                            " with ValueAxis object")
+            
+        #
+        # FFT of the axis
+        #
+        axis = eff_axis # = self.axis            
+        
+        if isinstance(axis, TimeAxis):
+            axis.shift_to_zero()
+            new_axis = axis.get_FrequencyAxis()
+            
+        elif isinstance(axis, FrequencyAxis):
+            new_axis = axis.get_TimeAxis()
+            
+        else: 
+            # this must be ValueAxis
+
+            ftaxdata = (2.0*numpy.pi)*numpy.fft.fftfreq(axis.length,
+                                                        axis.step)
+            ftaxdata = numpy.fft.fftshift(ftaxdata)
+            
+            start = ftaxdata[0]
+            length = len(ftaxdata)
+            step = ftaxdata[1]-ftaxdata[0]
+
+            new_axis = ValueAxis(start, length, step)            
+
+        
+        #
+        # FFT of the data
+        #
+        
+        # window function
+        ftdata = numpy.zeros(data.shape, dtype=data.dtype)
+        Nwin = len(winfce.data)
+        Ndat = data.shape[2]
+        for i_n in range(data.shape[0]):
+            for j_n in range(data.shape[1]):
+                ftdata[i_n,j_n,:] = data[i_n,j_n,:]*winfce.data[Nwin-Ndat:Nwin]
+                
+        ftdata = numpy.fft.ifft(ftdata, axis=2)
+        ftdata = numpy.fft.fftshift(ftdata, axes=2)
+        
+        # save it to a new container
+        new_container = TwoDSpectrumContainer()
+        new_container.use_indexing_type(new_axis)
+
+        for k_n in range(Ndat):
+            tag = new_axis.data[k_n]
+            spect = TwoDSpectrum()
+            spect.set_axis_1(sp1.xaxis)
+            spect.set_axis_3(sp1.yaxis)
+            
+            spect.set_data(ftdata[:, :, k_n], dtype=self.dtype)
+
+            new_container.set_spectrum(spect, tag=tag)
+        
+        return new_container
