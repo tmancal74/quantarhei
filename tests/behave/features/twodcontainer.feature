@@ -1,22 +1,22 @@
 #
 #
-#  TwoDSpectrumConteiner class functionality
+#  TwoDResponseConteiner class functionality
 #
 #
 
-Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
-    TwoDSpectrum container should be able to index its content by integer values,
+Feature: TwoDResponseContainer should store TwoDSpectra index by various methods
+    TwoDResponse container should be able to index its content by integer values,
     by arbitrary ValueAxis (including TimeAxis) and by a list of strings 
     (like a dictionary). It can perform Fourier transform in its content if
     it is indexed by ValueAxis, TimeAxis of FrequencyAxis.
     
     
-    Scenario Outline: TwoDSpectrumContainer indexes by an integer number
-        Given that I have <N> TwoDSpectrum objects
-        And I have an empty TwoDSpectrum container
+    Scenario Outline: TwoDResponseContainer indexes by an integer number
+        Given that I have <N> TwoDResponse objects
+        And I have an empty TwoDResponse container
         When I set the container to accept indexing by integers
         And I add the spectra to the container one by one
-        Then TwoDSpectrum can be retrieved using the index <i>
+        Then TwoDResponse can be retrieved using the index <i>
         But when index is out of bounds, I get an exception
         
     Examples:
@@ -27,15 +27,15 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 9  |  3  |
 
 
-    Scenario Outline: TwoDSpectrumContainer indexes by ValueAxis
-        Given that I have <N> TwoDSpectrum objects
-        And I have an empty TwoDSpectrum container
+    Scenario Outline: TwoDResponseContainer indexes by ValueAxis
+        Given that I have <N> TwoDResponse objects
+        And I have an empty TwoDResponse container
         And I have a ValueAxis of lenght <N> starting from zero with certain <step>
         When I set the container to accept index by ValueAxis
         And I add the spectra to the container using values from ValueAxis
-        Then TwoDSpectrum can be retrieved using values <val> from ValueAxis
+        Then TwoDResponse can be retrieved using values <val> from ValueAxis
         But when values are out of bounds, I get an exception
-        And TwoDSpectrum can be retrieved using the index <i>
+        And TwoDResponse can be retrieved using the index <i>
         But when index is out of bounds, I get an exception
         
     Examples:
@@ -47,15 +47,15 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 15  |   2.0  |  18.0  |  20  |
     
     
-    Scenario Outline: TwoDSpectrumContainer indexes by TimeAxis
-        Given that I have <N> TwoDSpectrum objects
-        And I have an empty TwoDSpectrum container
+    Scenario Outline: TwoDResponseContainer indexes by TimeAxis
+        Given that I have <N> TwoDResponse objects
+        And I have an empty TwoDResponse container
         And I have a TimeAxis of lenght <N> starting from zero with certain <step>
         When I set the container to accept index by TimeAxis
         And I add the spectra to the container using values from TimeAxis
-        Then TwoDSpectrum can be retrieved using values <val> from TimeAxis
+        Then TwoDResponse can be retrieved using values <val> from TimeAxis
         But when values are out of bounds, I get an exception
-        And TwoDSpectrum can be retrieved using the index <i>
+        And TwoDResponse can be retrieved using the index <i>
         But when index is out of bounds, I get an exception        
         
     Examples:
@@ -67,15 +67,15 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 15  |   2.0  |  18.0  |  20  |
 
 
-    Scenario Outline: TwoDSpectrumContainer indexes by FrequencyAxis
-        Given that I have <N> TwoDSpectrum objects
-        And I have an empty TwoDSpectrum container
+    Scenario Outline: TwoDResponseContainer indexes by FrequencyAxis
+        Given that I have <N> TwoDResponse objects
+        And I have an empty TwoDResponse container
         And I have a FrequencyAxis of lenght <N> starting from zero with certain <step>
         When I set the container to accept index by FrequencyAxis
         And I add the spectra to the container using values from FrequencyAxis
-        Then TwoDSpectrum can be retrieved using values <val> from FrequencyAxis
+        Then TwoDResponse can be retrieved using values <val> from FrequencyAxis
         But when values are out of bounds, I get an exception
-        And TwoDSpectrum can be retrieved using the index <i>
+        And TwoDResponse can be retrieved using the index <i>
         But when index is out of bounds, I get an exception        
         
     Examples:
@@ -87,15 +87,15 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 15  |   2.0  |  18.0  |  20  |
     
 
-    Scenario Outline: TwoDSpectrumContainer indexes by strings
-        Given that I have <N> TwoDSpectrum objects
-        And I have an empty TwoDSpectrum container
+    Scenario Outline: TwoDResponseContainer indexes by strings
+        Given that I have <N> TwoDResponse objects
+        And I have an empty TwoDResponse container
         And I have a list of strings of lenght <N>
         When I set the container to accept index by strings
         And I add the spectra to the container using values from the list of strings
-        Then TwoDSpectrum can be retrieved using values from the list of strings
+        Then TwoDResponse can be retrieved using values from the list of strings
         But when values are not in the list of strings, I get an exception
-        And TwoDSpectrum can be retrieved using the index <i>
+        And TwoDResponse can be retrieved using the index <i>
         But when index is out of bounds, I get an exception        
         
     Examples:
@@ -107,11 +107,11 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 15  |  20  |
 
 
-    Scenario Outline: TwoDSpectrumContainer can do Fourier transform when it is indexed by ValuesAxis
-        Given that I have a TwoDSpectrumContainer containing <N> spectra indexed by ValueAxis
+    Scenario Outline: TwoDResponseContainer can do Fourier transform when it is indexed by ValuesAxis
+        Given that I have a TwoDResponseContainer containing <N> spectra indexed by ValueAxis
         When I calculate Fourier transform on the container
         Then I get correct pointwise Fourier transform of the spectra
-        And the TwoDSpectrum container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis
+        And the TwoDResponse container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis
         
     Examples:
     | N    |
@@ -120,11 +120,11 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 100  |
 
 
-    Scenario Outline: TwoDSpectrumContainer can do Fourier transform when it is indexed by TimeAxis
-        Given that I have a TwoDSpectrumContainer containing <N> spectra indexed by TimeAxis
+    Scenario Outline: TwoDResponseContainer can do Fourier transform when it is indexed by TimeAxis
+        Given that I have a TwoDResponseContainer containing <N> spectra indexed by TimeAxis
         When I calculate Fourier transform on the container
         Then I get correct pointwise Fourier transform of the spectra
-        And the TwoDSpectrum container will be indexed by FrequencyAxis which corresponds to the original TimeAxis
+        And the TwoDResponse container will be indexed by FrequencyAxis which corresponds to the original TimeAxis
         
     Examples:
     | N    |
@@ -133,11 +133,11 @@ Feature: TwoDSpectrumContainer should store TwoDSpectra index by various methods
     | 100  |
     
 
-    Scenario Outline: TwoDSpectrumContainer can do Fourier transform when it is indexed by FrequencyAxis
-        Given that I have a TwoDSpectrumContainer containing <N> spectra indexed by FrequencyAxis
+    Scenario Outline: TwoDResponseContainer can do Fourier transform when it is indexed by FrequencyAxis
+        Given that I have a TwoDResponseContainer containing <N> spectra indexed by FrequencyAxis
         When I calculate Fourier transform on the container
         Then I get correct pointwise Fourier transform of the spectra
-        And the TwoDSpectrum container will be indexed by TimeAxis which corresponds to the original FrequencyAxis
+        And the TwoDResponse container will be indexed by TimeAxis which corresponds to the original FrequencyAxis
         
     Examples:
     | N    |

@@ -174,7 +174,7 @@ class TestTwod(unittest.TestCase):
 
 
     
-    def test_TwoDSpectrumCalculator(self):
+    def test_TwoDResponseCalculator(self):
         """Testing basic functions of the TwoDSpectrumCalculator class
         
         """
@@ -183,7 +183,7 @@ class TestTwod(unittest.TestCase):
         
         t2 = qr.TimeAxis(30, 10, 10.0)
         
-        twod_calc = qr.TwoDSpectrumCalculator(t1, t2, t3)
+        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3)
         
         
             

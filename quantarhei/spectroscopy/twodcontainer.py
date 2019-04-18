@@ -132,7 +132,7 @@ class TwoDResponseContainer(Saveable):
         
         
         if self.itype == "integer":
-            self.spectra[str(self.index)] = spect
+            self.spectra[self.index] = spect
             self.index += 1
             return self.index
         
@@ -231,7 +231,11 @@ class TwoDResponseContainer(Saveable):
             
             
         """        
-        if self.itype in ["integer", "string"]:
+        if self.itype in ["integer"]:
+            
+            return self.spectra[tag]
+            
+        elif self.itype in ["string"]:
             
             return self.spectra[str(tag)]
 
@@ -382,6 +386,26 @@ class TwoDResponseContainer(Saveable):
             
         return ppcont
 
+
+    def get_integrated_area_evolution(self, times, area, dpart=part_REAL):
+        """Returns the integrated area of the 2D spectra as a function of their index
+
+        """
+        vals = numpy.zeros(times.length, dtype=COMPLEX)
+        k = 0
+  
+        # this only acts on Frequency axis
+        with energy_units("int"):
+            tms = times.data      
+  
+        for t2 in tms:
+            
+            sp = self.get_spectrum(t2)
+            vals[k] = sp.get_area_integral(area, dpart=part_REAL)
+            k +=1
+            
+        return DFunction(times, vals)        
+
     
     def get_point_evolution(self, x, y, times):
         """Tracks an evolution of a single point on the 2D spectrum
@@ -433,8 +457,9 @@ class TwoDResponseContainer(Saveable):
         params = least_squares(_exp_2D_fcion, guess)           
         
         return params
-        
-        
+
+    
+    
     def fft(self, ffttype="complex-positive", window=None, offset=0.0,
             dtype=None, dpart=part_COMPLEX, tag=None):
         """Fourier transform in t2 time
@@ -500,14 +525,6 @@ class TwoDResponseContainer(Saveable):
         if len(tags) <= Nos:
             tag1 = eff_axis.data[0] #self.axis.data[0]
             sp1 = self.get_spectrum(tag1)
-
-            print(tag1)
-            print(sp1)
-            print(sp1.t2)
-            print(sp1.current_dtype)
-            print(sp1.d__data)
-            print(dtype)
-
             
             N1, N2 = sp1.d__data.shape
             data = numpy.zeros((N1, N2, len(tags)), dtype=sp1.d__data.dtype)
@@ -634,7 +651,15 @@ class TwoDResponseContainer(Saveable):
 
         mxs = []
         for s in self.get_spectra():       
-            spect2D = numpy.real(s.d__data)   
+            #spect2D = numpy.real(s.d__data)
+            if spart == part_REAL:
+                spect2D = numpy.real(s.data)
+            elif spart == part_IMAGINARY:
+                spect2D = numpy.imag(s.data)
+            elif spart == part_ABS:
+                spect2D = numpy.abs(s.data)
+            else:
+                raise Exception("Unknow part of the spectrum:", spart)
             mx = numpy.amax(spect2D)
             mxs.append(mx)
         return numpy.amax(numpy.array(mxs))
@@ -668,54 +693,100 @@ class TwoDResponseContainer(Saveable):
         if iteration == total: 
             print()
     
+
              
     def make_movie(self, filename, window=None,
                    stype=signal_TOTL, spart=part_REAL, 
-                   cmap=None, Npos_contours=10,
-                   frate=20, dpi=100, start=None, end=None,
-                   show_states=None, progressbar=False, vmax=None):
+                   cmap=None, 
+                   Npos_contours=10,
+                   vmax=None,
+                   xlabel=None,
+                   ylabel=None,
+                   axis_label_font=None,
+                   start=None, end=None,
+                   frate=20, dpi=100, 
+                   show_states=None, 
+                   show_states_func=None,
+                   label=None,
+                   label_func=None,
+                   progressbar=False, 
+                   use_t2=True, 
+                   title="Quantarhei movie",
+                   comment="Created with Quantarhei"):
+        """Creates a movie out of the spectra in the container
+        
+        
+        Parameters
+        ----------
+        
+        Npos_contours : int
+            Nomber of positive value contours in the plot
+            
+        
+        
+        """
+        
         
         import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
         
         FFMpegWriter = manimation.writers["ffmpeg"]
 
-        metadata = dict(title="Test Movie", artist='Matplotlib',
-                comment='Movie support!')
+        metadata = dict(title=title, artist='Quantarhei',
+                comment=comment)
         writer = FFMpegWriter(fps=frate, metadata=metadata)
         
         fig = plt.figure() 
         
         spctr = self.get_spectra()
         l = len(spctr)
-        last_t2 = spctr[l-1].get_t2()
-        first_t2 = spctr[0].get_t2()
         
+        if use_t2 and (spctr[0].get_t2() < 0.0):
+            print("Warning: switching off usage of t2"
+                  +" information obtained from the spectrum object (t2 < 0)")
+            use_t2 = False
+        
+        if use_t2:
+            last_t2 = spctr[l-1].get_t2()
+            first_t2 = spctr[0].get_t2()
+        
+            if start is None:
+                start = first_t2
+            if end is None:
+                end = last_t2
+
         if vmax is None:
-            mx = self.amax()
+            mx = self.amax(spart=spart)
         else:
-            mx = vmax
-        
-        if start is None:
-            start = first_t2
-        if end is None:
-            end = last_t2
-        
+            mx = vmax        
                 
         with writer.saving(fig, filename, dpi):  
             k = 0
             # Initial call to print 0% progress
-            sp2write = self.get_spectra(start=start, end=end)
+            if use_t2:
+                sp2write = self.get_spectra(start=start, end=end)
+            else:
+                sp2write = self.get_spectra()
             l = len(sp2write)
+            
             if progressbar:
                 self._printProgressBar(0, l, prefix = 'Progress:',
                                        suffix = 'Complete', length = 50)
-            for sp in self.get_spectra(start=start, end=end):
+                                
+            for sp in sp2write: #self.get_spectra(start=start, end=end):
+                
+                if label_func is not None:
+                    (label, text_loc) = label_func(sp)
+                if show_states_func is not None:
+                    show_states = show_states_func(sp)
+
                 sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx, 
                         Npos_contours=Npos_contours,
                         stype=stype,spart=spart,
                         show_states=show_states,
-                        label="T="+str(sp.get_t2())+"fs")
+                        xlabel=xlabel, ylabel=ylabel,
+                        axis_label_font=axis_label_font,
+                        label=label, text_loc=text_loc) #"T="+str(sp.get_t2())+"fs")
                 writer.grab_frame()
                 if progressbar:
                     self._printProgressBar(k + 1, l, prefix = 'Progress:',
@@ -856,6 +927,50 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             raise Exception("Cannot calculate Pump-probe from 2D"+
                             " spectra of type"+self.dtype)
             
+    def normalize2(self, norm=1.0, each=False, dpart=part_REAL):
+        """Normalize the whole container of spectra
+        
+        Normalization of the whole container so that the maximum
+        value of the spectrum is equal to the `norm`.
+        
+        Parameters
+        ----------
+        
+        norm : float
+            Value to which we normalize the spectra
+            
+        each: bool
+            If False, we normalize the global maximum of the container, i.e.
+            a maximum accross whole spectra. if True, each spectrum is
+            normalized individually against its own maximum.
+            
+        dpart: string
+            Part of the spectrum from which the maximum is calculated, it
+            can be part_REAL, part_IMAGINARY or part_ABS. The values of these
+            constants are defined in the highest level of namespace in
+            Quantarhei.
+        
+        """
+        
+        nsp = len(self.spectra)
+        mxs = numpy.zeros(nsp, dtype=REAL)
+        ii = 0
+        for tag in self.spectra.keys():
+            sp = self.get_spectrum(tag)
+            mxs[ii] = sp.get_max_value(dpart=dpart)
+            ii += 1
+            
+        mx = numpy.amax(mxs)
+            
+        nmax = [mx]
+        for tag in self.spectra.keys():
+            sp = self.get_spectrum(tag)
+            if each:
+                nmax = [sp.get_max_value(dpart=dpart)]
+            sp.normalize2(norm, dpart=dpart, nmax=nmax)
+            
+        return nmax
+
             
     def fft(self, ffttype="complex-positive", window=None, offset=0.0,
             dtype=None, dpart=part_COMPLEX, tag=None):

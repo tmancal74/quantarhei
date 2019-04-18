@@ -108,12 +108,12 @@ om1 = qr.convert(omega-dOmega,"1/cm","int")
 om2 = qr.convert(omega+dOmega,"1/cm","int")
 
 print(" - positive frequency")
-cont1 = msc.calculate_all_system(agg, H, eUt, lab, 
+cont1 = msc.calculate_all_system(agg, eUt, lab, 
                                  selection=[["omega2",[om1, om2]],
                                             ["order"]])
 
 print(" - negative frequency")
-cont2 = msc.calculate_all_system(agg, H, eUt, lab, 
+cont2 = msc.calculate_all_system(agg, eUt, lab, 
                                  selection=[["omega2",[-om2, -om1]],
                                             ["order"]])
 

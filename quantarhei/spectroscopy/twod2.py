@@ -879,8 +879,8 @@ class TwoDSpectrumBase(DataSaveable):
         
         Initial resolution is the highest one, i.e. 'pathways'
         
-        >>> spect1 = TwoDSpectrum()
-        >>> spect2 = TwoDSpectrum()
+        >>> spect1 = TwoDResponse()
+        >>> spect2 = TwoDResponse()
         >>> spect1.storage_resolution
         'pathways'
         
@@ -1390,6 +1390,46 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
             
             # FIXME: try linear interpolation
             return self.d__data[iy, ix]
+
+
+    def get_area_integral(self, area, dpart=part_REAL):
+        """Returns an integral of a given area in the 2D spectrum
+        
+        """
+        def integral_square(x1, x2, y1, y2, data, dx, dy):
+            (n1, n2) = data.shape
+            data.reshape(n1*n2)
+            return numpy.sum(data)*dy*dy
+        
+        area_shape = area[0]
+        x1 = area[1][0]
+        x2 = area[1][1]
+        y1 = area[1][2]
+        y2 = area[1][3]
+        
+        dx = self.xaxis.step
+        dy = self.yaxis.step
+        
+        (nx1, derr) = self.xaxis.locate(x1)
+        (nx2, derr) = self.xaxis.locate(x2)
+        (ny1, derr) = self.yaxis.locate(y1)
+        (ny2, derr) = self.yaxis.locate(y2)
+        
+        if area_shape == "square":
+            int_fce = integral_square
+        else:
+            raise Exception("Unknown area type: "+area_shape)   
+            
+        data = self.data[nx1:nx2, ny1:ny2]
+        
+        if dpart == part_REAL:
+            return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
+        elif dpart == part_IMAGINARY:
+            return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
+        elif dpart == part_ABS:
+            return int_fce(x1, x2, y1, y2, numpy.abs(data))
+        else:
+            raise Exception("Unknown data part")
 
 
     def get_cut_along_x(self, y0):

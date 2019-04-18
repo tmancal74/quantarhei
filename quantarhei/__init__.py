@@ -170,11 +170,13 @@ part_REAL = "real_part"
 part_IMAGINARY = "imaginary_part"
 part_COMPLEX = "complex"
 part_ABS = "absolute_value"
+part_PHASE = "phase"
 
 SIGNAL_PARTS = dict(part_REAL = "real_part",
                     part_IMAGINARY= "imaginary_part",
                     part_COMPLEX = "complex",
-                    part_ABS = "absolute_value")
+                    part_ABS = "absolute_value",
+                    part_PHASE = "phase")
 
 DATA_PARTS = SIGNAL_PARTS
 
@@ -275,7 +277,7 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 # Fourier transform Two-Dimensional Spectra
 #
 from .spectroscopy.twod2 import TwoDResponse 
-from .spectroscopy.twodcontainer import TwoDResponseContainer
+from .spectroscopy.twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
 from .spectroscopy.twod import TwoDSpectrum
 from .spectroscopy.twodcalculator import TwoDResponseCalculator
 from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator

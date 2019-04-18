@@ -77,14 +77,14 @@ def step_given_1(context):
 #
 # When ...
 #
-@when('I create a new TwoDSpectrum object')
+@when('I create a new TwoDResponse object')
 def step_when_2(context):
     """
 
-        When I create a new TwoDSpectrum object
+        When I create a new TwoDResponse object
 
     """
-    context.twod = qr.TwoDSpectrum()
+    context.twod = qr.TwoDResponse()
 
 
 #
@@ -443,14 +443,14 @@ def step_then_8(context):
 #
 # And ...
 #
-@given('I create a new TwoDSpectrum object')
+@given('I create a new TwoDResponse object')
 def step_given_9(context):
     """
 
-        And I create a new TwoDSpectrum object
+        And I create a new TwoDResponse object
 
     """
-    context.twod = qr.TwoDSpectrum()
+    context.twod = qr.TwoDResponse()
 
 
 #

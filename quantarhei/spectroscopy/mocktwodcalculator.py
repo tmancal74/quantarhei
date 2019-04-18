@@ -15,7 +15,7 @@ from ..core.managers import Manager
 from ..core.managers import energy_units
 
 class MockTwoDResponseCalculator(TwoDResponseCalculator):
-    """Calculator of the 2D spectrum from LiouvillePathway objects
+    """Calculator of the third order non-linear response 
     
     
     This class is used to represent LiouvillePatjway objects. Lineshape is
@@ -24,7 +24,6 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     """
 
     def __init__(self, t1axis, t2axis, t3axis):
-        #t2axis = TimeAxis()
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
         self.widthy = convert(300, "1/cm", "int")
@@ -33,10 +32,9 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         
     def bootstrap(self,rwa=0.0, pathways=None, verbose=False, 
-                  shape="Gaussian", all_positive=False):
+                  shape="Gaussian"):
         
         self.shape = shape
-        self.all_positive = all_positive
         
         self.verbose = verbose
         self.rwa = Manager().convert_energy_2_internal_u(rwa)
@@ -76,13 +74,17 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         
         
     def calculate_next(self):
-
+        """Calculate next spectrum and increment t2 time
+        
+        """
         sone = self.calculate_one(self.tc)
-        #print(self.tc, sone)
         self.tc += 1
         return sone
 
     def set_next(self, tc):
+        """Set next current t2 time
+        
+        """
         self.tc = tc
         
     def calculate_one(self, tc):
@@ -94,26 +96,24 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")
-
-        k = 0        
-        for pwy in self.pathways:
-            
-            data = self.calculate_pathway(pwy, shape=self.shape)
-
-            if pwy.pathway_type == "R":
-                onetwod._add_data(data, dtype=signal_REPH)
-            elif pwy.pathway_type == "NR":
-                onetwod._add_data(data, dtype=signal_NONR)
-            else:
-                raise Exception("Unknown pathway type")
-
-            k += 1
         
-        if k == 0:
-            pwy = None
-            data = self.calculate_pathway(pwy, shape=self.shape)
-            onetwod._add_data(data, dtype=signal_REPH)
-            print("Warning: calculating empty 2D spectrum")
+        # First we fill it with zeros
+        pwy = None
+        data = self.calculate_pathway(pwy, shape=self.shape)
+        onetwod._add_data(data, dtype=signal_REPH)
+        onetwod._add_data(data, dtype=signal_NONR)
+
+        if self.pathways is not None:        
+            for pwy in self.pathways:
+                
+                data = self.calculate_pathway(pwy, shape=self.shape)
+    
+                if pwy.pathway_type == "R":
+                    onetwod._add_data(data, dtype=signal_REPH)
+                elif pwy.pathway_type == "NR":
+                    onetwod._add_data(data, dtype=signal_NONR)
+                else:
+                    raise Exception("Unknown pathway type")
 
         onetwod.set_t2(self.t2axis.data[tc])    
             
@@ -154,7 +154,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         return onetwod
 
 
-    def calculate_all_system(self, sys, H, eUt, lab, 
+    def calculate_all_system(self, sys, eUt, lab, 
                              selection=None, show_progress=False):
         """Calculates all 2D spectra for a system and evolution superoperator
         
@@ -171,7 +171,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                 print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
             
             pways = dict()
-            twod1 = self.calculate_one_system(T2, sys, H, eUt, lab,
+            twod1 = self.calculate_one_system(T2, sys, eUt, lab,
                                               selection=selection, pways=pways)
         
             if show_progress:
@@ -190,7 +190,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         return tcont
 
 
-    def calculate_one_system(self, t2, sys, H, eUt, lab, 
+    def calculate_one_system(self, t2, sys, eUt, lab, 
                              selection=None, pways=None):
         """Returns 2D spectrum at t2 for a system and evolution superoperator
         
@@ -199,6 +199,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             Uin = eUt.at(t2)
         except:
             Uin = eUt
+            
+        H = eUt.get_Hamiltonian()
     
         # FIXME: this needs to be set differently, and it mu
         rho0 = sys.get_DensityMatrix(condition_type="thermal",
@@ -250,15 +252,15 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     pws = anl.select_amplitude_GT(numpy.abs(mx))
                         
                     
-        if pws is None:
-            return None
-        
+            
         self.set_pathways(pws)
         
         if pways is not None:
             pways[str(t2)] = pws
             
-        twod1 = self.calculate_next()
+        (n2, err) = self.t2axis.locate(t2)
+        
+        twod1 = self.calculate_one(n2)
         
         return twod1
         
@@ -282,10 +284,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         
         cen1 = pathway.frequency[0]
         cen3 = pathway.frequency[noe-2]
-        if self.all_positive:
-            pref = numpy.abs(pathway.pref)
-        else:
-            pref = pathway.pref
+
+        pref = pathway.pref
             
         N1 = self.oa1.length
         N3 = self.oa3.length

@@ -7,6 +7,7 @@ from ..core.saveable import Saveable
 from ..core.dfunction import DFunction
 from ..core.valueaxis import ValueAxis
 from ..core.frequency import FrequencyAxis
+
 from .. import signal_TOTL
 from .. import TWOD_SIGNALS
 from .. import part_REAL, part_IMAGINARY, part_ABS
@@ -23,6 +24,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.dtype = None
         
         self.t2 = -1.0
+        
+        self.params = None
         
         
     def set_axis_1(self, axis):
@@ -111,6 +114,22 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """
         return self.t2
 
+
+    def log_params(self, params=None):
+        """Store custom information about the spectrum
+        
+        
+        This can be used e.g. for storage of parameters of the system for
+        which the spectrum was calculated
+        
+        """
+        self.params = params
+        
+
+    def get_log_params(self):
+        return self.params
+    
+    
     
     def get_value_at(self, x, y):
         """Returns value of the spectrum at a given coordinate
@@ -226,35 +245,114 @@ class TwoDSpectrum(DataSaveable, Saveable):
         pass
 
 
-    def get_max_value(self, part=part_REAL):
+    def get_max_value(self, dpart=part_REAL):
         """Maximum value of the real part of the spectrum
         
         
         """
-        if part == part_REAL:
+        if dpart == part_REAL:
             return numpy.amax(numpy.real(self.data))
-        elif part == part_IMAGINARY:
+        elif dpart == part_IMAGINARY:
             return numpy.amax(numpy.imag(self.data))
-        elif part == part_ABS:
+        elif dpart == part_ABS:
             return numpy.amax(numpy.abs(self.data))
         else:
             raise Exception("Unknown data part")
 
 
-    def get_min_value(self, part=part_REAL):
+    def get_min_value(self, dpart=part_REAL):
         """Minimum value of the real part of the spectrum
         
         
         """
-        if part == part_REAL:
+        if dpart == part_REAL:
             return numpy.amin(numpy.real(self.data))
-        elif part == part_IMAGINARY:
+        elif dpart == part_IMAGINARY:
             return numpy.min(numpy.imag(self.data))
-        elif part == part_ABS:
+        elif dpart == part_ABS:
             return numpy.amin(numpy.abs(self.data))
         else:
             raise Exception("Unknown data part")
+
+
+    def get_area_integral(self, area, dpart=part_REAL):
+        """Returns an integral of a given area in the 2D spectrum
+        
+        """
+        def integral_square(x1, x2, y1, y2, data, dx, dy):
+            (n1, n2) = data.shape
+            data.reshape(n1*n2)
+            return numpy.sum(data)*dy*dy
+        
+        area_shape = area[0]
+        x1 = area[1][0]
+        x2 = area[1][1]
+        y1 = area[1][2]
+        y2 = area[1][3]
+        
+        dx = self.xaxis.step
+        dy = self.yaxis.step
+        
+        (nx1, derr) = self.xaxis.locate(x1)
+        (nx2, derr) = self.xaxis.locate(x2)
+        (ny1, derr) = self.yaxis.locate(y1)
+        (ny2, derr) = self.yaxis.locate(y2)
+        
+        if area_shape == "square":
+            int_fce = integral_square
+        else:
+            raise Exception("Unknown area type: "+area_shape)   
             
+        data = self.data[nx1:nx2, ny1:ny2]
+        
+        if dpart == part_REAL:
+            return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
+        elif dpart == part_IMAGINARY:
+            return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
+        elif dpart == part_ABS:
+            return int_fce(x1, x2, y1, y2, numpy.abs(data))
+        else:
+            raise Exception("Unknown data part")
+
+
+    def normalize2(self, norm=1.0, dpart=part_REAL, nmax=None, use_max=False):
+        """Normalizes the spectrum to the given maximum.
+        
+        Normalizes the spectrum to the maximum of a given part of the spectrum.
+        Parts are real, imaginary or absolute values. Normalization is to 
+        a supplied norm. If `nmax` is not specified, `use_max` is not
+        taken into account. If `nmax` is a list-like object, the maximum
+        of the current spectrum is appended to it. If `use_max` is set to False
+        we use the first element of the list-like object `nmax` as the
+        maximum of the present data.
+        
+        
+        Parameters
+        ----------
+        
+        norm : float
+            Norm to which we normalize. Default value is 1.
+            
+        dpart : string
+            Part of the spectrum we normalize against.
+            
+        namx : list-like or None
+            If `nmax` is a list-like object, the maximum of the current 
+            spectrum is appended to it.
+            
+        use_max : bool
+            If `use_max` is set to False we use the first element of the 
+            list-like object `nmax` as the  maximum of the present data.
+        
+        
+        """           
+        mx = self.get_max_value(dpart=dpart)
+        if nmax is not None:
+            nmax.append(mx)
+            if not use_max:
+                mx = nmax[0]
+        self.data = (self.data/mx)*norm
+        
     
     def devide_by(self, val):
         """Devides the total spectrum by a value
@@ -286,13 +384,17 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
     def plot(self, fig=None, window=None, 
-             spart=part_REAL,
+             stype=None, spart=part_REAL,
              vmax=None, vmin_ratio=0.5, 
              colorbar=True, colorbar_loc="right",
              cmap=None, Npos_contours=10,
              show_states=None,
              text_loc=[0.05,0.9], fontsize="20", label=None,
-             show=True, savefig=None):
+             show=False,
+             show_diagonal=None,
+             xlabel=None,
+             ylabel=None,
+             axis_label_font=None,):
         """Plots the 2D spectrum
         
         Parameters
@@ -305,7 +407,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
             
         window : list
             Specifies the plotted window in current energy units. When axes
-            are x and y, the window is specified as window=[x_min,x_max,y_min,y_max]
+            are x and y, the window is specified as window=[x_min,x_max,
+            y_min,y_max]
             
         spart : {part_REAL, part_IMAGINARY, part_ABS}
             part of the spectrum to be plotted, constants such as part_REAL are
@@ -400,22 +503,43 @@ class TwoDSpectrum(DataSaveable, Saveable):
         hore = self.yaxis.data[i3_max-1]
         
         cm = plt.imshow(realout, extent=[self.xaxis.data[i1_min],
-                                    self.xaxis.data[i1_max-1],
-                                    self.yaxis.data[i3_min],
-                                    self.yaxis.data[i3_max-1]],
+                                         self.xaxis.data[i1_max-1],
+                                         self.yaxis.data[i3_min],
+                                         self.yaxis.data[i3_max-1]],
                    origin='lower', vmax=vmax, vmin=vmin,
                    interpolation='bilinear', cmap=cmap)  
 
         #
         # Label
         #
-        pos = text_loc
-        if label is not None:
-            label = label    
-            ax.text((prvo-levo)*pos[0]+levo,
-                (hore-dole)*pos[1]+dole,
-                label,
-                fontsize=str(fontsize))
+        if isinstance(label, str) and len(text_loc) == 2:
+            text_loc = [text_loc]
+            label = [label]
+            ln_t = 1
+            ln_l = 1
+        else:
+            try:
+                ln_t = len(text_loc)
+                ln_l = len(label)
+            except:
+                raise Exception("text_loc and label parameters must be"+
+                                " lists of the same lengths")
+
+        if ln_t != ln_l:
+            raise Exception("text_loc and label parameters have to have the"
+                            +" same number of members")
+            
+        kk = 0
+        for pos in text_loc:
+            
+            lbl = label[kk]
+            if lbl is not None:
+                ax.text((prvo-levo)*pos[0]+levo,
+                    (hore-dole)*pos[1]+dole,
+                    lbl,
+                    fontsize=str(fontsize))
+            kk += 1
+                
         
         #
         # Contours
@@ -446,7 +570,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             try:
                 plt.contour(self.xaxis.data[i1_min:i1_max],
                          self.yaxis.data[i3_min:i3_max],
-                         realout, levels=neglevels,colors="k")
+                         realout, levels=neglevels, colors="k")
                          #linewidth=1) 
             except:
                 print("Negative contour not found; not plotting")
@@ -462,21 +586,65 @@ class TwoDSpectrum(DataSaveable, Saveable):
         # Plot lines denoting positions of selected transitions
         #
         if show_states is not None:
-            for en in show_states:  
-                plt.plot([en,en],[dole,hore],'--k',linewidth=1.0)
-                plt.plot([levo,prvo],[en,en],'--k',linewidth=1.0)
+            for en in show_states:
+                try:
+                    en1 = en[0]
+                    co1 = en[1]
+                except:
+                    en1 = en
+                    co1 = '--k'
+                    
+                if en1 >= levo and en1 <= prvo:
+                    plt.plot([en1,en1],[dole,hore],co1,linewidth=1.0)
+                if en1 >= dole and en1 <= hore:
+                    plt.plot([levo,prvo],[en1,en1],co1,linewidth=1.0)
+          
+        #
+        # show diagonal line
+        #
+        if show_diagonal is not None:
+            plt.plot([levo,prvo],[dole,hore], '-k',linewidth=1.0)
+
+        #
+        # axis labels
+        #
+        if axis_label_font is not None:
+            font = axis_label_font
+        else:
+            font={'size':20}
+
+        if xlabel is None:
+            xl = ""
+        if ylabel is None:
+            yl = ""
+            
+        if xlabel is not None:
+            xl = r'$\omega$ [fs$^{-1}$]'
+
+        if isinstance(self.xaxis, FrequencyAxis):
+            units = self.xaxis.unit_repr_latex()
+            xl = r'$\omega_{1}$ ['+units+']'
+            yl = r'$\omega_{3}$ ['+units+']'
+#        if isinstance(self.axis, TimeAxis):
+#            xl = r'$t$ [fs]'
+#            yl = r'$f(t)$'
+
+        if xlabel is not None:
+            xl = xlabel
+        if ylabel is not None:
+            yl = ylabel
+
+        if xl is not None:
+            plt.xlabel(xl, **font)
+        if xl is not None:
+            plt.ylabel(yl, **font)            
+            
             
         #
         # Should the spectra be showed now?
         #
         if show:
             self.show()
-            
-        #
-        # Saving the figure
-        #
-        if savefig:
-            self.savefig(savefig)
 
             
     def show(self):
@@ -486,7 +654,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
         is called
         
         """
-        
         plt.show()
         
 

@@ -668,8 +668,8 @@ class DFunction(Saveable, DataSaveable):
              text_loc=[0.05,0.9],
              fontsize="20",
              real_only=True,
-             show=True,
-             color=None, filename="ahoj.png"):
+             show=False,
+             color=None):
         """Plotting of the DFunction's data against the ValueAxis.
         
         

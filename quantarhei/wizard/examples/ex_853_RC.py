@@ -10,8 +10,6 @@
 
 
 """
-
-
 import time
 import datetime
 import os
@@ -24,8 +22,9 @@ from quantarhei.utils.vectors import X
 import quantarhei.functions as func
 
 make_movie = False
+show_plots = True
 
-def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
+def run(omega, HR, dE, JJ, rate, vib_loc="up", use_vib=True,
         stype=qr.signal_REPH, make_movie=False):
     """Runs a complete set of simulations for a single set of parameters
     
@@ -40,8 +39,23 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
     dip1 = [1.5, 0.0, 0.0]
     dip2 = [-1.0, -1.0, 0.0]
     width = 100.0
-    rate = 1.0/50.0
+    #rate = 1.0/50.0
     
+    normalize_maps_to_maximu = False
+    trim_maps = False
+    
+    units = "1/cm"
+    with qr.energy_units(units):
+        
+        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+"_J="+str(JJ)
+        
+        if use_vib:
+            sys_char = "_vib"
+        else:
+            sys_char = "_ele"
+        data_ext = sys_char+".png"
+        obj_ext = sys_char+".qrp"
+        
     #
     #   Model system is a dimer of molecules
     #
@@ -102,6 +116,22 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
     HH = agg.get_Hamiltonian()
     He = agg_el.get_Hamiltonian()
     
+    with qr.energy_units("1/cm"):
+        with qr.eigenbasis_of(He):
+            Ep_l = He.data[1,1]
+            Ep_u = He.data[2,2]
+
+    Ep = numpy.zeros((4,2))
+    Ep[0,0] = Ep_l
+    Ep[0,1] = Ep_l
+    Ep[1,0] = Ep_l
+    Ep[1,1] = Ep_u
+    Ep[2,0] = Ep_u
+    Ep[2,1] = Ep_l
+    Ep[3,0] = Ep_u
+    Ep[3,1] = Ep_u
+
+        
     #
     # Laboratory setup
     #
@@ -111,11 +141,12 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
     
     time2 = qr.TimeAxis(0.0, 100, 10.0)
     
-    cont = qr.TwoDResponseContainer(t2axis=time2)
+    cont_p = qr.TwoDResponseContainer(t2axis=time2)
+    cont_m = qr.TwoDResponseContainer(t2axis=time2) 
     #
     # spectra will be indexed by the times in the time axis `time2`
     #
-    cont.use_indexing_type(time2)
+    cont_p.use_indexing_type(time2)
     
     #
     # We define two-time axes, which will be FFTed and will define 
@@ -132,8 +163,8 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
     # This calculator calculated 2D spectra from the effective width 
     #
     msc = qr.MockTwoDResponseCalculator(t1axis, time2, t3axis)
-    msc.bootstrap(rwa=qr.convert(E0+(dE/2.0),"1/cm","int"), 
-                  all_positive=False, shape="Gaussian")
+    with qr.energy_units("1/cm"):
+        msc.bootstrap(rwa=E0, shape="Gaussian")
 
     #
     # System-bath interaction including vibrational states
@@ -165,7 +196,7 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
     #
     # We calculate evolution superoperator
     #
-    eUt.calculate(show_progress=True)
+    eUt.calculate(show_progress=False)
     
     #
     # Prepare aggregate with all states (including 2-EX band)
@@ -174,27 +205,46 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
     agg3.diagonalize()
     
     pways = dict()
+    t2_save_pathways = [300.0]
     
-    olow = qr.convert(omega-100.0, "1/cm", "int")
-    ohigh = qr.convert(omega+100.0, "1/cm", "int")
+    olow = qr.convert(omega-30.0, "1/cm", "int")
+    ohigh = qr.convert(omega+30.0, "1/cm", "int")
     
     for t2 in time2.data:
+        
+        # this could save some memory of pathways become too big
+        pways = dict()
+        
         print("t2 =", t2)
-        twod = msc.calculate_one_system(t2, agg3, HH, eUt, lab, pways=pways,
+        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways,
                                         selection=[["omega2",[olow, ohigh]]])
     
-        print("Number of pathways used:", len(pways[str(t2)]))
-        cont.set_spectrum(twod)
+        print("Number of pathways used for omega2 =",omega,":",
+              len(pways[str(t2)]))
+
+        if t2 in t2_save_pathways:
+            pws_name = os.path.join("sim_"+vib_loc, "pws_t2="+str(t2)+
+                                    "_omega2="+str(omega)+data_descr+data_ext)
+            qr.save_parcel(pways[str(t2)], pws_name) 
+       
+        cont_p.set_spectrum(twod)
+
+        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways,
+                                        selection=[["omega2",[-ohigh, -olow]]])
+    
+        print("Number of pathways used for omega2 =",-omega,":",
+              len(pways[str(t2)]))
         
-#        with qr.energy_units("1/cm"):
-#            for i in range(len(pways[str(t2)])):
-#                print(pways[str(0.0)][i])
-#        
-#        raise Exception()
+        if t2 in t2_save_pathways:
+            pws_name = os.path.join("sim_"+vib_loc, "pws_t2="+str(t2)+
+                                    "_omega2="+str(-omega)+data_descr+data_ext)
+            qr.save_parcel(pways[str(t2)], pws_name)
+        
+        cont_m.set_spectrum(twod)
     
     if make_movie:
         with qr.energy_units("1/cm"):
-            cont.make_movie("mov.mp4")
+            cont_p.make_movie("mov.mp4")
      
     fname = os.path.join("sim_"+vib_loc, "pways.qrp")
     qr.save_parcel(pways, fname)
@@ -215,15 +265,30 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
     print("\nCalculating FFT of the 2D maps")
     #fcont = cont.fft(window=window, dtype=stype) #, dpart="real", offset=0.0)
     
-    fcont_re = cont.fft(window=window, dtype=qr.signal_REPH)
-    fcont_nr = cont.fft(window=window, dtype=qr.signal_NONR)
-    fcont_to = cont.fft(window=window, dtype=qr.signal_TOTL)
+    fcont_p_re = cont_p.fft(window=window, dtype=qr.signal_REPH)
+    fcont_p_nr = cont_p.fft(window=window, dtype=qr.signal_NONR)
+    fcont_p_to = cont_p.fft(window=window, dtype=qr.signal_TOTL)
     
-#    twin = [9500, 11000, 9500, 11000]
-#    with qr.energy_units("1/cm"):
-#        fcont_re.trimall_to(window=twin)
-#        fcont_nr.trimall_to(window=twin)
-#        fcont_to.trimall_to(window=twin)
+    if normalize_maps_to_maximu:
+        fcont_p_re.normalize2(dpart=qr.part_ABS)
+        fcont_p_nr.normalize2(dpart=qr.part_ABS)
+        fcont_p_to.normalize2(dpart=qr.part_ABS)
+    
+    fcont_m_re = cont_m.fft(window=window, dtype=qr.signal_REPH)
+    fcont_m_nr = cont_m.fft(window=window, dtype=qr.signal_NONR)
+    fcont_m_to = cont_m.fft(window=window, dtype=qr.signal_TOTL)
+
+    if normalize_maps_to_maximu:   
+        fcont_m_re.normalize2(dpart=qr.part_ABS)
+        fcont_m_nr.normalize2(dpart=qr.part_ABS)
+        fcont_m_to.normalize2(dpart=qr.part_ABS)
+   
+    if trim_maps:
+        twin = [9500, 11000, 9500, 11000]
+        with qr.energy_units("1/cm"):
+            fcont_p_re.trimall_to(window=twin)
+            fcont_p_nr.trimall_to(window=twin)
+            fcont_p_to.trimall_to(window=twin)
         
     show_omega = omega
     
@@ -238,84 +303,148 @@ def run(omega, HR, dE, JJ, vib_loc="up", use_vib=True,
 #            print(k_i, fcont_re.axis.data[k_i])
     
     with qr.frequency_units("1/cm"):
-        sp1_re, show_Npoint1 = fcont_re.get_nearest(show_omega)
-        sp2_re, show_Npoint2 = fcont_re.get_nearest(-show_omega)
-        sp1_nr, show_Npoint1 = fcont_nr.get_nearest(show_omega)
-        sp2_nr, show_Npoint2 = fcont_nr.get_nearest(-show_omega)
-        sp1_to, show_Npoint1 = fcont_to.get_nearest(show_omega)
-        sp2_to, show_Npoint2 = fcont_to.get_nearest(-show_omega)
+        sp1_p_re, show_Npoint1 = fcont_p_re.get_nearest(show_omega)
+        sp2_p_re, show_Npoint2 = fcont_p_re.get_nearest(-show_omega)
+        sp1_p_nr, show_Npoint1 = fcont_p_nr.get_nearest(show_omega)
+        sp2_p_nr, show_Npoint2 = fcont_p_nr.get_nearest(-show_omega)
+        sp1_p_to, show_Npoint1 = fcont_p_to.get_nearest(show_omega)
+        sp2_p_to, show_Npoint2 = fcont_p_to.get_nearest(-show_omega)
+        sp1_m_re, show_Npoint1 = fcont_m_re.get_nearest(show_omega)
+        sp2_m_re, show_Npoint2 = fcont_m_re.get_nearest(-show_omega)
+        sp1_m_nr, show_Npoint1 = fcont_m_nr.get_nearest(show_omega)
+        sp2_m_nr, show_Npoint2 = fcont_m_nr.get_nearest(-show_omega)
+        sp1_m_to, show_Npoint1 = fcont_m_to.get_nearest(show_omega)
+        sp2_m_to, show_Npoint2 = fcont_m_to.get_nearest(-show_omega)    
         
-    units = "1/cm"
+        
+#    units = "1/cm"
+#    with qr.energy_units(units):
+#        
+#        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+"_J="+str(JJ)
+#        
+#        if use_vib:
+#            sys_char = "_vib"
+#        else:
+#            sys_char = "_ele"
+#        data_ext = sys_char+".png"
+#        obj_ext = sys_char+".qrp"
+
     with qr.energy_units(units):
-        
-        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+"_J="+str(JJ)
-        
-        if use_vib:
-            sys_char = "_vib"
-        else:
-            sys_char = "_ele"
-        data_ext = sys_char+".png"
-        obj_ext = sys_char+".qrp"
 
 
-        print("\nPlotting spectrum at frequency:", 
-              fcont_re.axis.data[show_Npoint1], units)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+        print("\nPlotting and saving spectrum at frequency:", 
+              fcont_p_re.axis.data[show_Npoint1], units)
+        
+        fftf_1 = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=REPH"+"_omega="+str(omega)+data_ext)
-        sp1_re.plot(Npos_contours=10, spart=qr.part_ABS)   
-        sp1_re.savefig(fftfile)
-        print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+        sp1_p_re.plot(Npos_contours=10, spart=qr.part_ABS, 
+                      label="Rephasing\n $\omega="+str(omega)+
+                      "$ cm$^{-1}$", text_loc=[0.05,0.1], 
+                      show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)], 
+                      show_diagonal="-k")   
+        sp1_p_re.savefig(fftf_1)
+        print("... saved into: ", fftf_1)
+        fftf_2 = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=NONR"+"_omega="+str(omega)+data_ext)
-        sp1_nr.plot(Npos_contours=10, spart=qr.part_ABS)   
-        sp1_nr.savefig(fftfile)
-        print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+        sp1_p_nr.plot(Npos_contours=10, spart=qr.part_ABS, 
+                      label="Non-rephasing\n $\omega="+str(omega)+
+                      "$ cm$^{-1}$", text_loc=[0.05,0.1],
+                      show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
+                      show_diagonal="-k")   
+        sp1_p_nr.savefig(fftf_2)
+        print("... saved into: ", fftf_2)
+        fftf_3 = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=tot"+"_omega="+str(omega)+data_ext)
-        sp1_to.plot(Npos_contours=10, spart=qr.part_ABS)   
-        sp1_to.savefig(fftfile)
-        print("... saved into: ", fftfile)        
+        sp1_p_to.plot(Npos_contours=10, spart=qr.part_ABS, 
+                      label="Total\n $\omega="+str(omega)+
+                      "$ cm$^{-1}$", text_loc=[0.05,0.1],
+                      show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
+                      show_diagonal="-k")   
+        sp1_p_to.savefig(fftf_3)
+        print("... saved into: ", fftf_3)        
         
+        #
+        # Point evolutions at the expected peak positions
+        #
+
+        if show_plots:
+
+            for ii in range(4):        
+                points = fcont_p_re.get_point_evolution(Ep[ii,0], Ep[ii,1],
+                                                        fcont_p_re.axis)
+                points.apply_to_data(numpy.abs)
+                if ii >= 3:
+                    points.plot(show=True)
+                else:
+                    points.plot(show=False)
+            
         
-        print("\nPlotting spectrum at frequency:", 
-              fcont_re.axis.data[show_Npoint2], units)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+        print("\nPlotting and saving spectrum at frequency:", 
+              fcont_m_re.axis.data[show_Npoint2], units)
+        fftf_4 = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=REPH"+"_omega="+str(-omega)+data_ext)
-        sp2_re.plot(Npos_contours=10, spart=qr.part_ABS)   
-        sp2_re.savefig(fftfile)
-        print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+        sp2_m_re.plot(Npos_contours=10, spart=qr.part_ABS,
+                      label="Rephasing\n $\omega="+str(-omega)+
+                      "$ cm$^{-1}$", text_loc=[0.05,0.1],
+                      show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
+                      show_diagonal="-k")   
+        sp2_m_re.savefig(fftf_4)
+        print("... saved into: ", fftf_4)
+        fftf_5 = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=NONR"+"_omega="+str(-omega)+data_ext)
-        sp2_nr.plot(Npos_contours=10, spart=qr.part_ABS)   
-        sp2_nr.savefig(fftfile)
-        print("... saved into: ", fftfile)
-        fftfile = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
+        sp2_m_nr.plot(Npos_contours=10, spart=qr.part_ABS,
+                      label="Non-rephasing\n $\omega="+str(-omega)+
+                      "$ cm$^{-1}$", text_loc=[0.05,0.1],
+                      show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
+                      show_diagonal="-k")      
+        sp2_m_nr.savefig(fftf_5)
+        print("... saved into: ", fftf_5)
+        fftf_6 = os.path.join("sim_"+vib_loc, "twod_fft"+data_descr+
                                "_stype=tot"+"_omega="+str(-omega)+data_ext)
-        sp2_to.plot(Npos_contours=10, spart=qr.part_ABS)   
-        sp2_to.savefig(fftfile)
-        print("... saved into: ", fftfile)
-        
-    Ep = qr.convert(E0+dE,"1/cm","int")
-    points = fcont_re.get_point_evolution(Ep, Ep, fcont_re.axis)
-        
-    with qr.energy_units("1/cm"):
-        points.apply_to_data(numpy.abs)
-        points.plot()
+        sp2_m_to.plot(Npos_contours=10, spart=qr.part_ABS,
+                      label="Total\n $\omega="+str(-omega)+
+                      "$ cm$^{-1}$", text_loc=[0.05,0.1],
+                      show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
+                      show_diagonal="-k")      
+        sp2_m_to.savefig(fftf_6)
+        print("... saved into: ", fftf_6)
+
+        if show_plots:
+            #
+            # Point evolutions at the expected peak positions
+            #
+            for ii in range(4):        
+                points = fcont_p_re.get_point_evolution(Ep[ii,0], Ep[ii,1],
+                                                        fcont_m_re.axis)
+                points.apply_to_data(numpy.abs)
+                if ii >= 3:
+                    points.plot(show=True)
+                else:
+                    points.plot(show=False)
+                    
+            #points.apply_to_data(numpy.abs)
+            #points.plot()
+
     
     # saving containers
-    fname = os.path.join("sim_"+vib_loc,"fcont_re"+data_descr+obj_ext)
+#    fname = os.path.join("sim_"+vib_loc,"fcont_re"+data_descr+obj_ext)
+#    print("Saving container into: "+fname)
+#    fcont_p_re.save(fname)
+#    fname = os.path.join("sim_"+vib_loc,"fcont_nr"+data_descr+obj_ext)
+#    print("Saving container into: "+fname)
+#    fcont_p_nr.save(fname)
+#    fname = os.path.join("sim_"+vib_loc,"fcont_to"+data_descr+obj_ext)
+#    print("Saving container into: "+fname)
+#    fcont_p_to.save(fname)    
+    fname = os.path.join("sim_"+vib_loc,"cont_p"+data_descr+obj_ext)
     print("Saving container into: "+fname)
-    fcont_re.save(fname)
-    fname = os.path.join("sim_"+vib_loc,"fcont_nr"+data_descr+obj_ext)
+    cont_p.save(fname)
+    fname = os.path.join("sim_"+vib_loc,"cont_m"+data_descr+obj_ext)
     print("Saving container into: "+fname)
-    fcont_nr.save(fname)
-    fname = os.path.join("sim_"+vib_loc,"fcont_to"+data_descr+obj_ext)
-    print("Saving container into: "+fname)
-    fcont_to.save(fname)    
-    fname = os.path.join("sim_"+vib_loc,"cont"+data_descr+obj_ext)
-    print("Saving container into: "+fname)
-    cont.save(fname)
+    cont_m.save(fname)
         
+    return (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr)
+
 
 #
 #
@@ -337,13 +466,18 @@ parms4 = [dict(HR=0.01, omega=700.0, dE=520.0, JJ=30, use_vib=True),
 parms5 = [dict(HR=0.01, omega=700.0, dE=520.0, JJ=30, use_vib=False),
           dict(HR=0.01, omega=700.0, dE=520.0, JJ=0, use_vib=False)]
 
-parms_short = [dict(HR=0.01, omega=500.0, dE=550.0, JJ=100, use_vib=True)]
+
+
+parms_short = [dict(HR=0.01, omega=500.0, rate=1.0/500.0,
+                    use_vib=True)]
+
+
 
 parms = parms_short  #parms1+parms2+parms3+parms4+parms5
 
 #
 #
-#   MODELS (vibrations on different molecules, different signal types)
+#   MODELS (vibrations on different molecules)
 #
 #
 models = [dict(vib_loc="up")] #, 
@@ -355,6 +489,39 @@ models = [dict(vib_loc="up")] #,
 #   LOOP OVER SIMULATIONS
 #
 #
+
+
+#
+# Container for resulting 2D maps
+#
+cont_p_re = qr.TwoDSpectrumContainer()
+cont_p_re.use_indexing_type("integer")
+cont_p_nr = qr.TwoDSpectrumContainer()
+cont_p_nr.use_indexing_type("integer")
+cont_m_re = qr.TwoDSpectrumContainer()
+cont_m_re.use_indexing_type("integer")
+cont_m_nr = qr.TwoDSpectrumContainer()
+cont_m_nr.use_indexing_type("integer")
+
+#
+# Here we construct a path through parameters space
+#
+center = 500.0
+step = 2
+Ns_d = 700
+Ns_u = 500
+vax = qr.ValueAxis(center-Ns_d*step, Ns_d+Ns_u+1, step)
+
+ptns = []
+
+for val in vax.data:
+    ptns.append((100.0, val))
+
+
+E0 = 10000.0
+
+i_p_re = 0
+tags = []
 
 tA = time.time()
 at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
@@ -377,17 +544,35 @@ for model in models:
         print("Run no.", kk, "of", len(parms))
         omega = par["omega"]
         HR = par["HR"]
-        dE = par["dE"]
-        JJ = par["JJ"]
+        #dE = par["dE"]
+        #JJ = par["JJ"]
         use_vib = par["use_vib"]
+        rate = par["rate"]
 
-        print("Calculating spectra ...")
-        t1 = time.time()
-        run(omega, HR, dE, JJ, vib_loc, use_vib,
-            make_movie=make_movie)
-        t2 = time.time()
-        print("... done in",t2-t1,"sec")
+        for (JJ, dE) in ptns:
+            print("Calculating spectra ...")
+            print("JJ =", JJ)
+            print("dE =", dE)
+            t1 = time.time()
+            (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr) = \
+            run(omega, HR, dE, JJ, rate, vib_loc, use_vib,
+                make_movie=make_movie)
+            t2 = time.time()
+            print("... done in",t2-t1,"sec")
         
+            params = dict(J=JJ, dE=dE, E0=E0, omega=omega)
+            sp1_p_re.log_params(params)
+            sp1_p_nr.log_params(params)
+            sp2_m_re.log_params(params)
+            sp2_m_nr.log_params(params)
+            
+            cont_p_re.set_spectrum(sp1_p_re, tag=i_p_re)
+            cont_p_nr.set_spectrum(sp1_p_nr, tag=i_p_re)
+            cont_m_re.set_spectrum(sp2_m_re, tag=i_p_re)
+            cont_m_nr.set_spectrum(sp2_m_nr, tag=i_p_re)
+            tags.append(i_p_re)
+            i_p_re +=1
+            
         kk += 1
     ll += 1
     
@@ -395,11 +580,12 @@ tB = time.time()
 at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 print("\n... finished simulation set at", at, "in", tB-tA,"sec")
 
+cont_p_re.save("sim_up/cont_p_re.qrp")
+cont_p_nr.save("sim_up/cont_p_nr.qrp")
+cont_m_re.save("sim_up/cont_m_re.qrp")
+cont_m_nr.save("sim_up/cont_m_nr.qrp")
 
 """
-
-Rephasing and non-rephasing maps
- - mostly rephasing !!!!
  
 Update Quantarhei on server
 
