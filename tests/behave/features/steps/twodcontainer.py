@@ -131,8 +131,8 @@ def step_then_6(context):
             cont.get_spectrum_by_index(i_n)
             
         except KeyError as e:
-            print(e, "'"+str(i_n)+"'")
-            assert str(e) == "'"+str(i_n)+"'"
+            print(e, str(i_n)) # "'"+str(i_n)+"'")
+            assert str(e) == str(i_n) #"'"+str(i_n)+"'"
             
         except IndexError as e:
             print(e, "list index out of range")
@@ -603,11 +603,11 @@ def step_then_27(context):
         # time domain curve at a position in 2D spectrum 
         evol = cont.get_point_evolution(point[0], point[1], oldaxis)
         # Fourier transform of the time domain curve 
-        fevol_direct = numpy.fft.fft(evol.data)
+        fevol_direct = numpy.fft.ifft(evol.data)
         # at the same point in ffted container, we should get the same FFT 
         fevol_cont   = fft.get_point_evolution(point[0], point[1], axis)
         # assert equality
-        numpy.testing.assert_allclose(fevol_direct, fevol_cont.data)
+        numpy.testing.assert_allclose(fevol_direct, fevol_cont.data, atol=1.0e-10)
         
         
     
