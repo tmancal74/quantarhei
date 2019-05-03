@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 
-    Simulation script for the publication:
+    Simulation script 
     
-    ...
+    This script performs a set of simulations by calling the function "run"
+    specified below. Scroll down below the definition of the "run" function
+    for the simulation parameters.
 
-
+    The default version of the script runs a series of three simulations
+    (parameters Ns_d = 1 and Ns_u=1)
     
 
 
@@ -27,6 +30,8 @@ make_movie = False
 show_plots = False
 save_containers = False
 detailed_balance = True
+
+
 
 def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         stype=qr.signal_REPH, make_movie=False, save_eUt=False,
@@ -463,27 +468,14 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
 
 ###############################################################################
+###############################################################################
+###############################################################################
 #
 #   PARAMETERS OF THE SIMULATION
 #
 ###############################################################################
-    
-#parms1 = [dict(HR=0.05, omega=500.0, dE=520.0, JJ=30, use_vib=True),
-#          dict(HR=0.05, omega=500.0, dE=520.0, JJ=0, use_vib=True)]
-#
-#parms2 = [dict(HR=0.01, omega=500.0, dE=520.0, JJ=30, use_vib=True),
-#          dict(HR=0.01, omega=500.0, dE=520.0, JJ=0, use_vib=True)]
-#
-#parms3 = [dict(HR=0.01, omega=500.0, dE=520.0, JJ=30, use_vib=False),
-#          dict(HR=0.01, omega=500.0, dE=520.0, JJ=0, use_vib=False)]
-#
-#parms4 = [dict(HR=0.01, omega=700.0, dE=520.0, JJ=30, use_vib=True),
-#          dict(HR=0.01, omega=700.0, dE=520.0, JJ=0, use_vib=True)]
-#
-#parms5 = [dict(HR=0.01, omega=700.0, dE=520.0, JJ=30, use_vib=False),
-#          dict(HR=0.01, omega=700.0, dE=520.0, JJ=0, use_vib=False)]
 
-parms_short = [dict(HR=0.01, omega=500.0, rate=1.0/500.0,
+parms1 = [dict(HR=0.01, omega=500.0, rate=1.0/500.0,
                     use_vib=True)]
 
 
@@ -504,20 +496,30 @@ t2_save_pathways = [50.0, 100.0, 200.0, 300.0]
 #
 # Here we construct a path through parameters space
 #
-center = 600.0
+center = 500.0
 step = 10
-Ns_d = 0
-Ns_u = 0
+Ns_d = 1
+Ns_u = 1
+
 vax = qr.ValueAxis(center-Ns_d*step, Ns_d+Ns_u+1, step)
 
+#
+# Here we specify pairs of parameters (resonance coupling J and energy
+# gap \Delta E between the monomers). One could specify an arbitrary 
+# "pathway" in the parameters space. Below we specify a line of 
+# increasing \Delta E with constant J.
+#
 ptns = []
 
 for val in vax.data:
     ptns.append((100.0, val))
 
-E0 = 10000.0 # basis transition energy (in 1/cm)
+E0 = 10000.0 # transition energy (in 1/cm) of the reference monomer
 
 
+###############################################################################
+###############################################################################
+###############################################################################
 
 #
 # Container for resulting 2D maps
@@ -538,7 +540,7 @@ cont_m_nr.use_indexing_type("integer")
 #
 #
 
-parms = parms_short  #parms1+parms2+parms3+parms4+parms5
+parms = parms1  #parms1+parms2+parms3+parms4+parms5
 
 i_p_re = 0
 tags = []
