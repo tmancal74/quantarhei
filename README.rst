@@ -59,6 +59,17 @@ and
 
 through grants: 14-25752S (2014-2016) and 17-22160S (2017-2019)
 
+
+New in 0.0.47
+=============
+
+for users:
+ - Bug fixes
+ 
+for developers:
+
+
+
 New in 0.0.46
 =============
 
