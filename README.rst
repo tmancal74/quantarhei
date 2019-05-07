@@ -65,10 +65,11 @@ New in 0.0.47
 
 for users:
  - Bug fixes
+ - 2D spectra can be shifted in its axis by less then the frequency step (interpolated shift)
  
 for developers:
 
-
+ - 
 
 New in 0.0.46
 =============

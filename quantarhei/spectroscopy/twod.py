@@ -368,6 +368,72 @@ class TwoDSpectrum(DataSaveable, Saveable):
         
         self.data = self.data/val
 
+    
+    def _interpolate(self):
+        """Interpolate the spectrum by splines
+        
+        
+        """
+        pass
+
+
+    def shift_energy(self, dE, interpolation="linear"):
+        """Shift the spectrum in both frequency axis by certain amount
+
+        """
+
+        ndata = numpy.zeros(self.data.shape, dtype=self.data.dtype)
+        
+        if interpolation == "linear":
+            
+            data = self.data
+    
+            N1 = self.data.shape[0]
+            N2 = self.data.shape[1]
+            
+            Dx = self.xaxis.step
+            
+            A = numpy.abs(dE)
+            n = numpy.floor(A/Dx)
+            dx = A - n*Dx   # dx is positive
+            
+            s = numpy.sign(A)
+            
+            # make sure we stay within the defined array
+            if s == 1:
+                n1 = 0
+                n2 = N1 - (n+1)
+            else:
+                n1 = n+1
+                n2 = N1
+                
+            for i1 in range(n1, n2):
+                
+                ndata[i1, :] = (data[i1+s*n,:]
+                + (data[i1+s*(n+1),:] - data[i1+s*n,:])*(dx/Dx))
+            
+            # make sure we stay within the defined array
+            if s == 1:
+                n1 = 0
+                n2 = N2 - (n+1)
+            else:
+                n1 = n+1
+                n2 = N2
+    
+            for i2 in range(n1, n2):
+                
+                ndata[:, i2] = (data[:, i2+s*n]
+                + (data[:, i1+s*(n+1)] - data[:,i1+s*n])*(dx/Dx))
+                
+        elif interpolation == "spline":
+            
+            pass
+            
+        else:
+            raise Exception("Unknown interpolation type")
+            
+        self.data = ndata
+            
 
     # FIXME: implement this
     def get_PumpProbeSpectrum(self):
