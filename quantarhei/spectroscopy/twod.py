@@ -379,10 +379,22 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def shift_energy(self, dE, interpolation="linear"):
         """Shift the spectrum in both frequency axis by certain amount
+        
+        The shift is specified as the energy that has to be added to the
+        2D spectrum to shifted to its expected position. As a result
+        we have a new spectrum 
+        
+        S(E_3, E_1) = S(E_3-dE, E_1-dE)
+        
+        Because of the negative sign above, we have to change the sign of dE
+        as a first thing in the code. This is for user convenience.
 
         """
 
+        dE = -dE
+        
         ndata = numpy.zeros(self.data.shape, dtype=self.data.dtype)
+        ndata1 = numpy.zeros(self.data.shape, dtype=self.data.dtype)
         
         if interpolation == "linear":
             
@@ -394,11 +406,12 @@ class TwoDSpectrum(DataSaveable, Saveable):
             Dx = self.xaxis.step
             
             A = numpy.abs(dE)
-            n = numpy.floor(A/Dx)
+            n = int(numpy.floor(A/Dx))
             dx = A - n*Dx   # dx is positive
             
-            s = numpy.sign(A)
+            s = int(numpy.sign(dE))
             
+            # dimesion 1
             # make sure we stay within the defined array
             if s == 1:
                 n1 = 0
@@ -409,9 +422,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
                 
             for i1 in range(n1, n2):
                 
-                ndata[i1, :] = (data[i1+s*n,:]
+                ndata1[i1, :] = (data[i1+s*n,:]
                 + (data[i1+s*(n+1),:] - data[i1+s*n,:])*(dx/Dx))
             
+            # dimension 2
             # make sure we stay within the defined array
             if s == 1:
                 n1 = 0
@@ -422,8 +436,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
     
             for i2 in range(n1, n2):
                 
-                ndata[:, i2] = (data[:, i2+s*n]
-                + (data[:, i1+s*(n+1)] - data[:,i1+s*n])*(dx/Dx))
+                ndata[:, i2] = (ndata1[:, i2+s*n]
+                + (ndata1[:, i2+s*(n+1)] - ndata1[:,i2+s*n])*(dx/Dx))
                 
         elif interpolation == "spline":
             
@@ -432,7 +446,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         else:
             raise Exception("Unknown interpolation type")
             
-        self.data = ndata
+        self.data[:,:] = ndata[:,:]
             
 
     # FIXME: implement this
@@ -460,7 +474,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
              show_diagonal=None,
              xlabel=None,
              ylabel=None,
-             axis_label_font=None,):
+             axis_label_font=None):
         """Plots the 2D spectrum
         
         Parameters
@@ -578,33 +592,34 @@ class TwoDSpectrum(DataSaveable, Saveable):
         #
         # Label
         #
-        if isinstance(label, str) and len(text_loc) == 2:
-            text_loc = [text_loc]
-            label = [label]
-            ln_t = 1
-            ln_l = 1
-        else:
-            try:
-                ln_t = len(text_loc)
-                ln_l = len(label)
-            except:
-                raise Exception("text_loc and label parameters must be"+
-                                " lists of the same lengths")
-
-        if ln_t != ln_l:
-            raise Exception("text_loc and label parameters have to have the"
-                            +" same number of members")
-            
-        kk = 0
-        for pos in text_loc:
-            
-            lbl = label[kk]
-            if lbl is not None:
-                ax.text((prvo-levo)*pos[0]+levo,
-                    (hore-dole)*pos[1]+dole,
-                    lbl,
-                    fontsize=str(fontsize))
-            kk += 1
+        if label is not None:
+            if isinstance(label, str) and len(text_loc) == 2:
+                text_loc = [text_loc]
+                label = [label]
+                ln_t = 1
+                ln_l = 1
+            else:
+                try:
+                    ln_t = len(text_loc)
+                    ln_l = len(label)
+                except:
+                    raise Exception("text_loc and label parameters must be"+
+                                    " lists of the same lengths")
+    
+            if ln_t != ln_l:
+                raise Exception("text_loc and label parameters have to have the"
+                                +" same number of members")
+                
+            kk = 0
+            for pos in text_loc:
+                
+                lbl = label[kk]
+                if lbl is not None:
+                    ax.text((prvo-levo)*pos[0]+levo,
+                        (hore-dole)*pos[1]+dole,
+                        lbl,
+                        fontsize=str(fontsize))
+                kk += 1
                 
         
         #

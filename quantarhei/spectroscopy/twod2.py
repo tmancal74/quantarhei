@@ -1626,6 +1626,9 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
              cmap=None, Npos_contours=10,
              show_states=None,
              text_loc=[0.05,0.9], fontsize="20", label=None,
+             xlabel=None,
+             ylabel=None,
+             axis_label_font=None,
              show=False, savefig=None):
         """Plots the 2D spectrum
         
@@ -1787,6 +1790,42 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
                 (hore-dole)*pos[1]+dole,
                 label,
                 fontsize=str(fontsize))
+
+        #
+        # axis labels
+        #
+        if axis_label_font is not None:
+            font = axis_label_font
+        else:
+            font={'size':20}
+
+        if xlabel is None:
+            xl = ""
+        if ylabel is None:
+            yl = ""
+            
+        if xlabel is not None:
+            xl = r'$\omega$ [fs$^{-1}$]'
+
+        if isinstance(self.xaxis, FrequencyAxis):
+            units = self.xaxis.unit_repr_latex()
+            xl = r'$\omega_{1}$ ['+units+']'
+            yl = r'$\omega_{3}$ ['+units+']'
+#        if isinstance(self.axis, TimeAxis):
+#            xl = r'$t$ [fs]'
+#            yl = r'$f(t)$'
+
+        if xlabel is not None:
+            xl = xlabel
+        if ylabel is not None:
+            yl = ylabel
+
+        if xl is not None:
+            plt.xlabel(xl, **font)
+        if xl is not None:
+            plt.ylabel(yl, **font)  
+
+
         
         #
         # Contours

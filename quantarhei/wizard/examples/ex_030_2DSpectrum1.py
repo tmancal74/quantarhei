@@ -10,7 +10,8 @@ import quantarhei as qr
 
 
 _show_plots_ = True
-_movie_ = True
+_movie_ = False
+_save_2D_ = True
 
 ###############################################################################
 #
@@ -99,11 +100,11 @@ t1_axis = qr.TimeAxis(0.0, 100, 10.0)
 t3_axis = qr.TimeAxis(0.0, 100, 10.0)
 
 from quantarhei.spectroscopy.mocktwodcalculator \
-    import MockTwoDSpectrumCalculator as TwoDSpectrumCalculator
+    import MockTwoDResponseCalculator as TwoDResponseCalculator
     
 from quantarhei.spectroscopy import X
 
-calc = TwoDSpectrumCalculator(t1_axis, t2_axis, t3_axis)
+calc = TwoDResponseCalculator(t1_axis, t2_axis, t3_axis)
 with qr.energy_units("1/cm"):
     calc.bootstrap(rwa=12100.0) #qr.convert(12100.0,"1/cm","int"))
 
@@ -114,16 +115,19 @@ agg_2D.diagonalize()
 lab = qr.LabSetup()
 lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 
-tcont = calc.calculate_all_system(agg_2D, H, eUt, lab)
+tcont = calc.calculate_all_system(agg_2D, eUt, lab)
 
 T2 = 0.0
 twod = tcont.get_spectrum(T2)
+
+if _save_2D_:
+    twod.save("twod.qrp")
 
 if _show_plots_:
     plot_window = [11500,13000,11500,13000]
     with qr.energy_units("1/cm"):
         twod.plot(Npos_contours=10, window=plot_window,            
-                  stype="total", spart="real")
+                  stype=qr.signal_TOTL, spart=qr.part_REAL)
     
 if _movie_:
     with qr.energy_units("1/cm"):

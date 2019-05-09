@@ -75,8 +75,7 @@ t2axis = qr.TimeAxis(0.0, Nt2, dt2)
 
 # FIXME: TwoDResponseCalculator
 msc = qr.MockTwoDResponseCalculator(t1axis, t2axis, t3axis)
-msc.bootstrap(rwa=qr.convert(E1,"1/cm","int"), 
-              all_positive=False, shape="Gaussian")
+msc.bootstrap(rwa=qr.convert(E1,"1/cm","int"), shape="Gaussian")
 
 #
 # Laboratory setup

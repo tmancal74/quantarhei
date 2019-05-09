@@ -709,6 +709,7 @@ class TwoDResponseContainer(Saveable):
                    show_states_func=None,
                    label=None,
                    label_func=None,
+                   text_loc=None,
                    progressbar=False, 
                    use_t2=True, 
                    title="Quantarhei movie",
