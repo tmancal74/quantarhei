@@ -189,18 +189,19 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         # if the Hamiltonian is larger than eUt, we will calculate ESA
         has_ESA = True
         H1 = sys.get_Hamiltonian()
-        if H1.dim == eUt.dim:
-            has_ESA = False
+#        if H1.dim == eUt.dim:
+#            has_ESA = False
         
         # get Liouville pathways
         if has_ESA:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g", "R1f*", "R2f*"),
+                                                   "R4g", "R1f*", "R2f*",
+                                                   "R1gE", "R2gE"),
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab)
         else:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g"),
+                                                   "R4g", "R1gE", "R2gE"),
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab)
 
@@ -261,7 +262,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         else:
             dephy = pathway.dephs[3]
         
-        #print(shape, widthx, widthy)
+        if (widthx < 1e-5) or (widthy < 1e-5):
+            print("Shape, widthx, widthy:",shape, widthx, widthy)
         
         if pathway.pathway_type == "R":
 
