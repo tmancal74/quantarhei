@@ -200,6 +200,10 @@ class Manager(metaclass=Singleton):
 
         else:
             self.load_units()
+        
+        self.current_units = {"energy":"1/fs", "frequency":"1/fs",
+                                  "dipolemoment":"Debye",
+                                  "temperature":"Kelvin", "length":"A"}
 
 
         #

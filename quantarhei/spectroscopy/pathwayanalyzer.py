@@ -240,7 +240,15 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         else:
             return selected
         
-
+    def select_type(self, pathways, ptype="REPH", replace=True):
+        
+        selected = select_type(pathways, ptype)
+        if replace:
+            self.pathways = selected
+        else:
+            return selected
+    
+        return selected
 
 def max_amplitude(pathways):
     """Return the maximum of pathway prefactors
@@ -430,7 +438,31 @@ def select_sign(pathways, sign):
     
     return selected
 
- 
+
+def select_type(pathways, stype):
+    """Selects all pathways of a given type
+    
+    Parameters
+    ----------
+    
+    pathways : list
+        List of pathways to be analyzed
+        
+    stype : str
+        Type of the pathways to be selected. 
+        Possible values are "REPH", "NONR".
+        
+    """
+    di = dict(REPH="R", NONR="NR")
+    selected = []
+    
+    for pw in pathways:
+        if pw.pathway_type == di[stype]:
+            selected.append(pw)
+    
+    return selected
+    
+
 def select_by_states(pathways, states):
     """Returns one pathway which goes through a given pattern of states 
     

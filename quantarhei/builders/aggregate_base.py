@@ -66,6 +66,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self.nmono = 0         #
         self.name = name       #
         self.mult = 0          #
+        self.lab = None        #
 
         self._has_egcf_matrix = False #
         self.egcf_matrix = None
@@ -156,19 +157,7 @@ class AggregateBase(UnitsManaged, Saveable):
         self.coupling_initiated = False     #
         self.resonance_coupling = None    #
         
-        self._init_me()        
-
-
-    def _before_save(self):
-        self.manager = None
-
-
-    def _after_save(self):
-        self.manager = Manager()
-
-
-    def _after_load(self):
-        self.manager = Manager()
+        self._init_me()
         
 
     ########################################################################
@@ -177,12 +166,100 @@ class AggregateBase(UnitsManaged, Saveable):
     #
     ########################################################################
 
+    def init_coupling_indexes(self):
+        """ Set indexes for elements of the coupling matrix
+        
+        """
+        
+        self._coupling2mol = []
+        self._mol2coupling = []
+        
+        # index for coupling between mon1 init1 -> final1 and mon2 init2 -> final2 
+        # is self._mol2coupling[mon1][init1][final1-init1-1][mon2-mon1-1][init2][final2-init2-1]
+        
+        count = 0
+        for mon1 in range(self.nmono-1):
+            monomer1 = self.monomers[mon1]
+            self._mol2coupling.append([])
+            for init1 in range(monomer1.nel-1):
+                self._mol2coupling[mon1].append([])
+                for fin1 in range(init1+1,monomer1.nel):
+                    self._mol2coupling[mon1][init1].append([])
+                    for mon2 in range(mon1+1,self.nmono):
+                        self._mol2coupling[mon1][init1][fin1-init1-1].append([])
+                        monomer2 = self.monomers[mon2]
+                        for init2 in range(monomer2.nel-1):
+                            self._mol2coupling[mon1][init1][fin1-init1-1][mon2-mon1-1].append([])
+                            for fin2 in range(init2+1,monomer2.nel):
+                                self._mol2coupling[mon1][init1][fin1-init1-1][mon2-mon1-1][init2].append(count)
+                                self._coupling2mol.append(
+                                        ((mon1,init1,fin1),
+                                         (mon2,init2,fin2)))
+                                count += 1
+    
+    def init_coupling_vector(self):
+        self.init_coupling_indexes()
+        Ncoupl = len(self._coupling2mol)
+        self.resonance_coupling_vec = numpy.zeros(Ncoupl, dtype=numpy.float64)
+        
+        #TODO: add initialization flag
+        self.coupling_initiated = True
+    
+    def get_resonance_coupling_vec(self,mon1,init1,fin1,mon2,init2,fin2):
+        if mon1<mon2:
+            indx1 = mon1
+            indx4 = mon2 - mon1 -1
+        else:
+            indx1 = mon2
+            indx4 = mon1 - mon2 -1
+        
+        if init1<fin1:
+            indx2 = init1
+            indx3 = fin1 - init1 -1
+        else:
+            indx2 = fin1
+            indx3 = init1 - fin1 - 1
+        
+        if init2<fin2:
+            indx5 = init2
+            indx6 = fin2 - init2 -1
+        else:
+            indx5 = fin2
+            indx6 = init2 - fin2 - 1
+            
+#        print(mon1,init1,fin1,mon2,init2,fin2)
+#        print(indx1,indx2,indx3,indx4,indx5,indx6)
+        coupling_indx = self._mol2coupling[indx1][indx2][indx3][indx4][indx5][indx6]
+        coupling =  self.resonance_coupling_vec[coupling_indx]
+        
+        return self.convert_energy_2_current_u(coupling)
+
+    def set_coupling_by_dipole_dipole_vec(self, epsr=1.0):
+        """Sets resonance coupling by dipole-dipole interaction
+        
+        """
+        
+        if not self.coupling_initiated:
+            self.init_coupling_vector() 
+        
+        for kk in range(self.resonance_coupling_vec.size):
+            monomer1, monomer2 = self._coupling2mol[kk]
+            cc = self.dipole_dipole_coupling_multilevel(monomer1[0],
+                                monomer1[1],monomer1[2],monomer2[0],
+                                monomer2[1],monomer2[2],epsr=epsr)
+            c1 = self.convert_energy_2_internal_u(cc)
+            self.resonance_coupling_vec[kk] = c1
+                    
+
     def init_coupling_matrix(self):
         """Nullifies coupling matrix
         
         
         """
-        self.resonance_coupling = numpy.zeros((self.nmono,self.nmono),
+        nstates = 0
+        for monomer in self.monomers:
+            nstates += (monomer.nel -1)
+        self.resonance_coupling = numpy.zeros((nstates,nstates),
                                               dtype=numpy.float64) 
         self.coupling_initiated = True  
         # 
@@ -249,14 +326,37 @@ class AggregateBase(UnitsManaged, Saveable):
         #
         # TESTED
 
+    def dipole_dipole_coupling_multilevel(self, mon1, in1, fin1, mon2, in2, fin2, epsr=1.0):
+        """Calculates dipole-dipole coupling 
+        
+        """
+        if mon1 == mon2:
+            raise Exception("Only coupling between different molecules \
+            can be calculated")
+        
+        #FIXME: this works only for first excited states of two-level molecules
+        d1 = self.monomers[mon1].dmoments[in1,fin1,:]
+        r1 = self.monomers[mon1].position
+        d2 = self.monomers[mon2].dmoments[in2,fin2,:]
+        r2 = self.monomers[mon2].position 
+#        print(d1,d2,r2-r1)
+
+        val =  dipole_dipole_interaction(r1, r2, d1, d2, epsr)            
+        return self.convert_energy_2_current_u(val)
+
 
     def set_coupling_by_dipole_dipole(self, epsr=1.0):
         """Sets resonance coupling by dipole-dipole interaction
         
         """
         
-        if not self.coupling_initiated:
-            self.init_coupling_matrix() 
+#        if not self.coupling_initiated:
+#            self.init_coupling_matrix() 
+#        count = [0,0]
+#        for mon1 in self.monomers:
+#            for ll in range(kk+1,self.nmono):
+#                for ii in range(1,)
+            
         for kk in range(self.nmono):
             for ll in range(kk+1,self.nmono):
                 cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr)
@@ -491,7 +591,7 @@ class AggregateBase(UnitsManaged, Saveable):
             
             res = res*rs
             
-        return res
+        return numpy.real(res)
 
 
     def get_transition_width(self, state1, state2=None):
@@ -517,22 +617,32 @@ class AggregateBase(UnitsManaged, Saveable):
             b2 = state2.elstate.band
             
             if abs(b2-b1) == 1:
-            
                 # index of a monomer on which the transition occurs
                 exindx = self._get_exindx(state1, state2)
-                width = self.monomers[exindx].get_transition_width((0,1))
+                #TODO: Here it should not be 01 transition but for multilevel molecule appropriate transition
+                exct1 = state1.elstate.elsignature[exindx]
+                exct2 = state2.elstate.elsignature[exindx]
+                width = self.monomers[exindx].get_transition_width((exct2,exct1))
+#                print("band1 width:",state1.elstate.elsignature,state2.elstate.elsignature,exct,width)
                 #print(exindx, width)
                 return width
             
             elif abs(b2-b1) == 2:
-                
-                (indx1, indx2) = self._get_twoexindx(state1, state2)
-                #print(state1.elstate.elsignature, 
-                #      state2.elstate.elsignature, indx1, indx2)
-                width = self.monomers[indx1].get_transition_width((0,1))
-                width += self.monomers[indx2].get_transition_width((0,1))
-                #print(indx1, indx2, width)
-                return width
+                s1_signature = state1.elstate.elsignature
+                if numpy.nonzero(s1_signature)[0].size == 1:
+                    #Todo: repare _get_exindx for state from double excited block but on single molecule
+                    exindx = self._get_exindx(state1, state2)
+                    exct = state1.elstate.elsignature[exindx]
+                    width = self.monomers[exindx].get_transition_width((0,exct))
+                    return width
+                else:
+                    (indx1, indx2) = self._get_twoexindx(state1, state2)
+                    #print(state1.elstate.elsignature, 
+                    #      state2.elstate.elsignature, indx1, indx2)
+                    width = self.monomers[indx1].get_transition_width((0,1))
+                    width += self.monomers[indx2].get_transition_width((0,1))
+                    #print(indx1, indx2, width)
+                    return width
             
             else:
                 return -1.0
@@ -637,7 +747,14 @@ class AggregateBase(UnitsManaged, Saveable):
         if (exindx < 0):
             return 0.0
         
-        eldip = self.get_dipole(exindx, 0, 1)
+        # get excitation indexes
+        st1 = state1.elstate.elsignature[exindx]
+        st2 = state2.elstate.elsignature[exindx]
+        
+        if st1<st2:
+            eldip = self.get_dipole(exindx, st1, st2)
+        else:
+            eldip = self.get_dipole(exindx, st2, st1)
            
         # Franck-Condon factor between the two states
         fcfac = self.fc_factor(state1,state2)
@@ -718,10 +835,10 @@ class AggregateBase(UnitsManaged, Saveable):
         els2 = state2.elstate.elsignature  
         
         # only states in neighboring bands can be connected by dipole moment
-        b1 = state1.elstate.band
-        b2 = state2.elstate.band
-        if (abs(b1-b2) != 1):
-            return -1
+#        b1 = state1.elstate.band
+#        b2 = state2.elstate.band
+#        if (abs(b1-b2) != 1):
+#            return -1
         
         # count the number of differences
         l = 0
@@ -756,7 +873,7 @@ class AggregateBase(UnitsManaged, Saveable):
     
         
     def total_number_of_states(self, mult=1, vibgen_approx=None, Nvib=None,
-                               vibenergy_cutoff=None, save_indices=False):
+                               vibenergy_cutoff=None, save_indices=False, band_external=None):
         """ Total number of states in the aggregate
         
         Counts all states of the aggregate by iterating through them. States
@@ -770,7 +887,8 @@ class AggregateBase(UnitsManaged, Saveable):
                                     save_indices=save_indices,
                                     vibgen_approx=vibgen_approx,
                                     Nvib=Nvib, 
-                                    vibenergy_cutoff=vibenergy_cutoff):
+                                    vibenergy_cutoff=vibenergy_cutoff,
+                                    band_external=band_external):
             nret += 1
                 
         return nret
@@ -838,6 +956,148 @@ class AggregateBase(UnitsManaged, Saveable):
         """
         elstate = self.get_ElectronicState(sig=esig)
         return VibronicState(elstate, vsig) 
+    
+    
+    def coupling_vec(self, state1, state2):
+        """Coupling between two aggregate states 
+        
+        
+        Parameters
+        ----------
+        
+        state1 : {ElectronicState, VibronicState}
+            States for which coupling should be calculated
+            
+        
+        """
+        
+        #
+        # Coupling between two purely electronic states
+        #
+        if (isinstance(state1, ElectronicState) 
+           and isinstance(state2, ElectronicState)):
+                        
+            if self.nmono > 1:
+                # coupling within the bands
+                if state1.band == state2.band:
+                    els1 = state1.elstate.elsignature
+                    els2 = state1.elstate.elsignature
+                    
+                    if state1.band == 1:
+                        mon1 = numpy.nonzero(els1)[0][0]
+                        mon2 = numpy.nonzero(els2)[0][0]
+                        if mon1 == mon2:
+                            coup = 0.0
+                        else:
+                            fin1 = els1[mon1]
+                            fin2 = els2[mon2]
+                            coup = self.get_resonance_coupling_vec(
+                                                        mon1,0,fin1,mon2,0,fin2)
+
+                    else:
+                        Ns = len(els1)
+                        sites = [0,0]
+                        k = 0
+                        # count differences
+                        for i in range(Ns):
+                            if els1[i] != els2[i]:
+                                if (k == 0) or (k == 1):
+                                    sites[k] = i
+                                k += 1
+                        # if there are exactly 2 differences, the differing
+                        # two molecules are those coupled; sites[k] contains
+                        # indiced those coupled molecules
+                        if k == 2:
+                            mon1 = sites[0]
+                            mon2 = sites[1]
+                            
+                            init1 = els1[mon1]
+                            fin1 = els2[mon1]
+                            init2 = els1[mon2]
+                            fin2 = els2[mon2]
+                            
+                            coup = self.get_resonance_coupling_vec(
+                                               mon1,init1,fin1,mon2,init2,fin2)
+#                            
+#                            kk = sites[0]
+#                            ll = sites[1]
+#                            coup = self.resonance_coupling[kk,ll]   
+                        else:
+                            coup = 0.0
+                            
+                else:
+                    coup = 0.0
+    
+            else:
+                coup = 0.0
+            
+        #
+        # Coupling between two general states
+        #
+        elif (isinstance(state1, VibronicState) 
+          and isinstance(state2, VibronicState)):
+              
+            es1 = state1.elstate
+            es2 = state2.elstate
+            
+            fc = self.fc_factor(state1, state2)
+            
+            # it make sense to calculate coupling only when the number
+            # of molecules is larger than 1
+            if self.nmono > 1:
+
+                # coupling within the bands
+                if es1.band == es2.band:
+                    els1 = es1.elsignature
+                    els2 = es2.elsignature
+                    
+                    # single exciton band
+                    if es1.band == 1:
+                        mon1 = numpy.nonzero(els1)[0][0]
+                        mon2 = numpy.nonzero(els2)[0][0]
+                        if mon1 == mon2:
+                            coup = 0.0
+                        else:
+                            fin1 = els1[mon1]
+                            fin2 = els2[mon2]
+                            coup = self.get_resonance_coupling_vec(
+                                                            mon1,0,fin1,mon2,0,fin2)
+                            coup *= fc
+                    else:
+
+                        Ns = len(els1)
+                        sites = [0,0]
+                        k = 0
+                        # count differences
+                        for i in range(Ns):
+                            if els1[i] != els2[i]:
+                                if (k == 0) or (k == 1):
+                                    sites[k] = i
+                                k += 1
+                        # if there are exactly 2 differences, the differing
+                        # two molecules are those coupled; sites[k] contains
+                        # indiced those coupled molecules
+                        if k == 2:
+                            mon1 = sites[0]
+                            mon2 = sites[1]
+                            
+                            init1 = els1[mon1]
+                            fin1 = els2[mon1]
+                            init2 = els1[mon2]
+                            fin2 = els2[mon2]
+                            
+                            coup = self.get_resonance_coupling_vec(
+                                               mon1,init1,fin1,mon2,init2,fin2)
+                            coup *= fc
+                        else:
+                            coup = 0.0
+                        
+                else:
+                    coup = 0.0
+            else:
+                coup = 0.0
+            
+        return self.convert_energy_2_current_u(coup)
     
     
     def coupling(self, state1, state2):
@@ -1080,7 +1340,7 @@ class AggregateBase(UnitsManaged, Saveable):
     
     def allstates(self, mult=1, mode="LQ", all_vibronic=True, 
                   save_indices=False, vibgen_approx=None, Nvib=None,
-                  vibenergy_cutoff=None):
+                  vibenergy_cutoff=None,band_external=None):
         """ Generator of all aggregate states
         
         Iterator generating all states of the aggregate given a set
@@ -1125,11 +1385,39 @@ class AggregateBase(UnitsManaged, Saveable):
         ast = 0  # index counting all states
         ist = 0  # index counting electronic states
         
-        # run over all electronic signatures
+        # create list of electronic signatures
+        es_list = []
+        bands = []
         for ess1 in self.elsignatures(mult=mult, mode=mode):
-            
-            # generate electronic state
             es1 = self.get_ElectronicState(ess1, ist)
+            es_list.append(es1)
+            bands.append(es1.band)
+            ist +=1
+        
+        # If needed reorder according to the external band definition
+        if band_external is not None:
+            # change band for electronic system
+            for band in band_external:
+                bands[band[0]] = band[1]
+                es_list[band[0]].band = band[1]
+            new_indx = numpy.argsort(bands)
+            
+            # reorder according to bands
+            es_list = [es_list[ii] for ii in new_indx]
+            
+            
+#        
+#        ist = 0  # index counting electronic states
+        
+        # run over all electronic states
+#        for ess1 in self.elsignatures(mult=mult, mode=mode):
+        for es1 in es_list:
+#            
+#            # generate electronic state
+#            es1 = self.get_ElectronicState(ess1, ist)
+            
+            ess1 = es1.elsignature
+            ist = es1.index
             
             # loop over all vibrational signatures in electronic states
             nsig = 0
@@ -1166,7 +1454,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 # save the band to which this electronic index corresponds
                 self.which_band[ist] = numpy.sum(ess1)
             
-            ist += 1 # count electronic states
+            #ist += 1 # count electronic states
             
 
     def elstates(self, mult=1, mode="LQ", save_indices=False):
@@ -1215,7 +1503,8 @@ class AggregateBase(UnitsManaged, Saveable):
     ###########################################################################
         
     def build(self, mult=1, sbi_for_higher_ex=False,
-              vibgen_approx=None, Nvib=None, vibenergy_cutoff=None):
+              vibgen_approx=None, Nvib=None, vibenergy_cutoff=None,
+              band_external=None):
         """Builds aggregate properties
         
         Calculates Hamiltonian and transition dipole moment matrices and
@@ -1256,6 +1545,7 @@ class AggregateBase(UnitsManaged, Saveable):
         
         # total number of electronic states
         self.Nel = self.total_number_of_electronic_states(mult=mult)
+        # TODO: correct generation of the electronic signatures (ordering)
         
         # storage for indices of vibrational states 
         self.vibindices = []
@@ -1272,7 +1562,8 @@ class AggregateBase(UnitsManaged, Saveable):
         # save total number of states (including vibrational)
         self.Ntot = Ntot
         # information about the band to which a state belongs
-        self.which_band = numpy.zeros(self.Ntot, dtype=numpy.int)
+        #self.which_band = numpy.zeros(self.Ntot, dtype=numpy.int)
+        self.which_band = numpy.zeros(self.Nel, dtype=numpy.int)
         # electronic signature for every state
         self.elsigs = [None]*self.Nel
         # vibrational signature for each state
@@ -1296,20 +1587,32 @@ class AggregateBase(UnitsManaged, Saveable):
         twoex_indx = numpy.zeros((Ntot, 2), dtype=numpy.int)
         
         # Initialization of the matrix of couplings between states
-        if not self.coupling_initiated:    
-            self.init_coupling_matrix()            
+        if not self.coupling_initiated: 
+            # FIXME: Duplicate coupling_vector is more general
+            self.init_coupling_matrix() 
+            self.init_coupling_vector()
 
         Ntot = self.total_number_of_states(mult=mult, 
                                            vibgen_approx=vibgen_approx,
                                            Nvib=Nvib, save_indices=True, 
-                                           vibenergy_cutoff=vibenergy_cutoff)
+                                           vibenergy_cutoff=vibenergy_cutoff,
+                                           band_external=band_external)
+        
+        # repair band assignments for electronic states
+        if band_external is not None:
+            for ii in range(self.Ntot):
+                elindx = self.elinds[ii]
+                for newband in band_external:
+                    if elindx == newband[0]:
+                        self.which_band[elindx] = newband[1]
         
         #print(self.which_band, self.Ntot, len(self.which_band))
             
         # Set up Hamiltonian and Transition dipole moment matrices
         for a, s1 in self.allstates(mult=self.mult, 
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
-                                    vibenergy_cutoff=vibenergy_cutoff):
+                                    vibenergy_cutoff=vibenergy_cutoff,
+                                           band_external=band_external):
             
             if a == 0:
                 s0 = s1
@@ -1333,7 +1636,8 @@ class AggregateBase(UnitsManaged, Saveable):
                 # i.e. it counts molecular index
                 sig_position = 0 
                 for i_s in s1.elstate.elsignature:
-                    if i_s == 1:
+                    #if i_s == 1:
+                    if i_s != 0: # allow the doubly excited states on single molecule
                         # we save indices of electronic states and 
                         # 0 is taken by the ground state
                         twoex_indx[a, k_s] = sig_position + 1 
@@ -1343,14 +1647,31 @@ class AggregateBase(UnitsManaged, Saveable):
                 
             for b, s2 in self.allstates(mult=self.mult, 
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
-                                    vibenergy_cutoff=vibenergy_cutoff): 
+                                    vibenergy_cutoff=vibenergy_cutoff,
+                                    band_external=band_external): 
             
-                DD[a,b,:] = self.transition_dipole(s1, s2)                
-                FC[a,b] = self.fc_factor(s1, s2)
+                DD[a,b,:] = numpy.real(self.transition_dipole(s1, s2))                
+                FC[a,b] = numpy.real(self.fc_factor(s1, s2))
                 
                 if a != b:
-                    HH[a,b] = self.coupling(s1, s2) 
-        
+                    #HH[a,b] = numpy.real(self.coupling(s1, s2)) 
+                    #HH[a,b] = self.coupling(s1, s2) 
+                    HH[a,b] = self.coupling_vec(s1, s2)
+                
+                nz1 = numpy.nonzero(s1.elstate.elsignature)[0]
+                nz2 = numpy.nonzero(s2.elstate.elsignature)[0]
+                if (nz1.size == 1) and (nz2.size == 1) and (nz1 == nz2) and (a!=b):
+                    if s1.elstate.elsignature[nz1[0]] < s2.elstate.elsignature[nz2[0]]:
+                        trwidth = self.get_transition_width(s2, s1)
+                    else:
+                        trwidth = 0.0
+                        
+                    if trwidth >= 0:
+                        Wd[b,a] = numpy.sqrt(trwidth)
+                    else:
+                        Wd[b,a] = 0.0
+            
+            
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
         # Hamiltonian operator
@@ -1381,15 +1702,22 @@ class AggregateBase(UnitsManaged, Saveable):
     
         # Number of states in individual bands      
         self.Nb = numpy.zeros(self.mult+1, dtype=numpy.int)
-        for ii in range(self.mult+1):
-            self.Nb[ii] = self.number_of_states_in_band(band=ii,
-            vibgen_approx=vibgen_approx, Nvib=Nvib, 
-            vibenergy_cutoff=vibenergy_cutoff)
+#        for ii in range(self.mult+1):
+#            self.Nb[ii] = self.number_of_states_in_band(band=ii,
+#            vibgen_approx=vibgen_approx, Nvib=Nvib, 
+#            vibenergy_cutoff=vibenergy_cutoff)
+        for ii in range(self.Ntot):
+            elindex = self.elinds[ii]
+            band = self.which_band[elindex]
+            self.Nb[band] += 1
 
         # Number of electronic states in individual bands      
         self.Nbe = numpy.zeros(self.mult+1, dtype=numpy.int)
-        for ii in range(self.mult+1):
-            self.Nbe[ii] = self.number_of_electronic_states_in_band(band=ii)
+#        for ii in range(self.mult+1):
+#            self.Nbe[ii] = self.number_of_electronic_states_in_band(band=ii)
+        for ii in range(self.Nel):
+            band = self.which_band[ii]
+            self.Nbe[band] += 1
 
         # prepare RWA indices and set info for Rotating Wave Approximation
         rwa_indices = numpy.zeros(self.mult+1, numpy.int)
@@ -1465,7 +1793,9 @@ class AggregateBase(UnitsManaged, Saveable):
                     # in single exciton, two-level molecule picture, there is
                     # a single correlation function per monomer
                     # ASSUMPTION: Two-level molecules
-                    Ncf = self.nmono
+                    #Ncf = self.nmono
+                    Ncf = self.Nel - Nelg   # We construct bigger correlation 
+                                            # matrix, but fill only part
                     
                 # instantiate the EGCF matrix object
                 self.egcf_matrix = CorrelationFunctionMatrix(time, Ncf)
@@ -1473,13 +1803,21 @@ class AggregateBase(UnitsManaged, Saveable):
                 # run over all electronic states
                 for i in range(self.Nel):
                     
+                    elsig = self.elsigs[i]  # eletronic signature of state i
+                    nzr = numpy.nonzero(elsig)[0] # all nonzero elements of the
+                                                  # signature
+                    nnzr = nzr.size # number of nonzero elements in the 
+                                    # signature
+                    
                     # in single exciton band
-                    if self.which_band[i] == 1:
+                    if self.which_band[i] == 1 or nnzr==1:
                         j = i - Nelg
-                        mon = self.monomers[j]
+                        #mon = self.monomers[j]
+                        mon = self.monomers[nzr[0]]
+                        exct = elsig[nzr[0]]
                         # get correlation for a monomer
                         # ASSUMPTION: Two-level molecule
-                        cfce = mon.get_transition_environment((0,1))
+                        cfce = mon.get_transition_environment((0,exct))
                         # set correlation function into the diagonal of the
                         # EGCF matrix. Index corresponds to the monomer
                         mapi = self.egcf_matrix.set_correlation_function(cfce,
@@ -1489,18 +1827,22 @@ class AggregateBase(UnitsManaged, Saveable):
                             raise Exception("Something's wrong")
                                                 
                     # in two-exciton band
-                    elif (self.which_band[i] == 2) and sbi_for_higher_ex:
+                    elif (self.which_band[i] == 2) and sbi_for_higher_ex and nnzr!=1:
                         l = i - Nelg
                         # monomers of a two-exciton state are obtaines
                         # FIXME: is this correct???
-                        j = self.elsigs[i][0]
-                        k = self.elsigs[i][1]
-                        mon1 = self.monomers[j]
-                        mon2 = self.monomers[k]
+#                        j = self.elsigs[i][0]
+#                        k = self.elsigs[i][1]
+#                        mon1 = self.monomers[j]
+#                        mon2 = self.monomers[k]
+                        mon1 = self.monomers[nzr[0]]
+                        mon2 = self.monomers[nzr[1]]
+                        exct1 = elsig[nzr[0]]
+                        exct2 = elsig[nzr[1]]
                         # we get correlation functions of the two monomers
                         # ASSUMPTION: Two-level molecules
-                        cfce1 = mon1.get_transition_environment((0,1)) 
-                        cfce2 = mon2.get_transition_environment((0,1))
+                        cfce1 = mon1.get_transition_environment((0,exct1)) 
+                        cfce2 = mon2.get_transition_environment((0,exct2))
                         # correlation functions are added to form a two-exciton
                         # correlation function
                         cfce = cfce1 + cfce2
@@ -1529,6 +1871,8 @@ class AggregateBase(UnitsManaged, Saveable):
                     
                 self._has_system_bath_interaction = True
                 self._has_egcf_matrix = True   
+
+# TODO: Repair the following for multilevel systems
 
         # if all needed for system-bath interaction is present
         # we can construct the SystemBathInteraction object
@@ -2179,36 +2523,59 @@ class AggregateBase(UnitsManaged, Saveable):
         
         if self.mult >= 2:
             
+            Wd_tmp = self.Wd.copy()
+            WW = numpy.zeros(self.Wd.shape,dtype=qr.REAL)
+            
             N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
+
+            
+#            # all states (and 2-ex band selected)
+#            for kk1 in range(self.Nel):
+#                el1 = self.elinds[kk1]
+#                if self.which_band[el1] == 2:
+#                    # all states corresponding to electronic two-exc. state kk
+#                    for aa1 in self.vibindices[kk1]:
+#                        
+#                        # all states and (1-ex band selected)
+#                        for kk2 in range(self.Nel):
+#                            el2 = self.elinds[kk2]
+#                            if self.which_band[el2] == 1:
+#                                for aa2 in self.vibindices[kk2]:
+#                                    
+#                                    # all states and (2-ex band selected)
+#                                    for kk3 in range(self.Nel):
+#                                        el3 = self.elinds[kk3]
+#                                        if self.which_band[el3] == 2:
+#                                            for aa3 in self.vibindices[kk3]:
+#                                                st_k = self.twoex_indx[aa3,0]
+#                                                st_l = self.twoex_indx[aa3,1]
+#                                                kappa[aa2, aa1] += (
+#                                                     (delta[aa2, st_k] 
+#                                                    + delta[aa2, st_l])*
+#                                                     (SS[aa3, aa1]**2))
+#                                                print(aa2,aa1,kappa[aa2, aa1],self.elsigs[aa1],self.elsigs[aa2],self.elsigs[aa3])
             
             # all states (and 2-ex band selected)
-            for kk1 in range(self.Nel):
-                el1 = self.elinds[kk1]
-                if self.which_band[el1] == 2:
-                    # all states corresponding to electronic two-exc. state kk
-                    for aa1 in self.vibindices[kk1]:
+            for kk1_2x in range(N1b, N2b):
+                elsig1 = self.vibsigs[kk1_2x][0]
+                for kk2_2x in range(N1b, N2b):
+                    elsig2 = self.vibsigs[kk2_2x][0]
+                    for nn in range(self.nmono):
+                        if (elsig1[nn] == 0) or (elsig2[nn] == 0):
+                            continue
+                        elif (elsig1[nn] == elsig2[nn]):
+                            width = self.monomers[nn].get_transition_width((0,elsig1[nn]))
+                            # Wd is numpy.sqrt(width)
+                        else:
+                            width = self.monomers[nn].get_transition_width((elsig1[nn],elsig2[nn]))
                         
-                        # all states and (1-ex band selected)
-                        for kk2 in range(self.Nel):
-                            el2 = self.elinds[kk2]
-                            if self.which_band[el2] == 1:
-                                for aa2 in self.vibindices[kk2]:
-                                    
-                                    # all states and (2-ex band selected)
-                                    for kk3 in range(self.Nel):
-                                        el3 = self.elinds[kk3]
-                                        if self.which_band[el3] == 2:
-                                            for aa3 in self.vibindices[kk3]:
-                                                st_k = self.twoex_indx[aa3,0]
-                                                st_l = self.twoex_indx[aa3,1]
-                                                kappa[aa2, aa1] += (
-                                                     (delta[aa2, st_k] 
-                                                    + delta[aa2, st_l])*
-                                                     (SS[aa3, aa1]**2))
-                                                     
+                        WW[kk1_2x, kk2_2x] += width
+
+#                                                     
             #
             # Cross terms
             #
+#            print("Start:",self.Wd)
             for aa_2x in range(N1b, N2b):
                 for alpha in range(N1b):
                     self.Wd[aa_2x, alpha] = 0.0
@@ -2216,11 +2583,21 @@ class AggregateBase(UnitsManaged, Saveable):
                         for k_1x in range(N1b):
                             st_n = self.twoex_indx[nn_2x, 0]
                             st_m = self.twoex_indx[nn_2x, 1]
-                            #print(st_n, st_m)
-                            self.Wd[aa_2x, alpha] += \
-                                ((self.Wd[st_n, st_n]**2)*delta[st_n, k_1x] +
-                                 (self.Wd[st_m, st_m]**2)*delta[st_m, k_1x])*\
-                                 (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)   
+                            elsig_1x = self.vibsigs[k_1x][0]
+                            elsig_2x = self.vibsigs[nn_2x][0]
+#                            print(elsig_1x,elsig_2x,self.twoex_indx[nn_2x])
+                            if st_m != 0:
+                                self.Wd[aa_2x, alpha] += \
+                                  (Wd_tmp[k_1x, k_1x]**2)*\
+                                  (delta[elsig_1x[st_n-1], elsig_2x[st_n-1]] + 
+                                   delta[elsig_1x[st_m-1], elsig_2x[st_m-1]])*\
+                                   (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)  
+#                                  ((Wd_tmp[st_n, st_n]**2)*delta[st_n, k_1x] +
+#                                   (Wd_tmp[st_m, st_m]**2)*delta[st_m, k_1x])*\
+                            else:
+                                self.Wd[aa_2x, alpha] += \
+                                    Wd_tmp[nn_2x,k_1x]**2 *\
+                                    (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2) 
                                  
             self.Wd[N1b:N2b,0:N1b] = numpy.sqrt(self.Wd[N1b:N2b,0:N1b])
             #print(self.Wd[N1b:N2b,0:N1b])
@@ -2228,17 +2605,17 @@ class AggregateBase(UnitsManaged, Saveable):
             #
             # Transform line shapes for 1->2 transitions
             #
+            # Do not transform lineshapes for 1->2 on single molecule
             Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
-            Dr_a = numpy.zeros(N2b, dtype=qr.REAL)        
+            Dr_a = numpy.zeros(N2b, dtype=qr.REAL)
+#            print("Transform:",self.Wd)
             for aa in range(N1b, N2b):
                 for nn in range(N1b, N2b):
-                    st_n = self.twoex_indx[nn,0]
-                    st_m = self.twoex_indx[nn,1]
-                    Wd_a[aa] += (SS[nn, aa]**2)*\
-                                ((self.Wd[st_n, st_n]**2)*kappa[st_n, aa]
-                                +(self.Wd[st_m, st_m]**2)*kappa[st_m, aa])
+                    for mm in range(N1b, N2b):
+                        Wd_a[aa] += (SS[nn, aa]**2)*(SS[mm, aa]**2)*WW[nn, mm]
             W_aux = numpy.diag(numpy.sqrt(Wd_a))
             self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
+#            print("Between:",self.Wd)
 
         #
         # Transform line shapes for 0->1 transitions

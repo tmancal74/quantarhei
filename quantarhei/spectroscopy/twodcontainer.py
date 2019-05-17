@@ -363,7 +363,7 @@ class TwoDSpectrumContainer(Saveable):
 
     
     def fft(self, ffttype="complex-positive", window=None, offset=0.0,
-            dtype="total", tag=None):
+            dtype="total", dpart="complex", tag=None):
         """Fourier transform in t2 time
         
         This method performs FFT on the container data determined by the
@@ -442,7 +442,12 @@ class TwoDSpectrumContainer(Saveable):
                 else:
                     spect = self.get_spectrum(tag)
                     spect.set_data_flag(dtype)
-                    data[:,:,k_n] = spect.d__data
+                    if dpart == "complex":
+                        data[:,:,k_n] = spect.d__data
+                    elif dpart == "real":
+                        data[:,:,k_n] = numpy.real(spect.d__data)
+                    elif dpart == "imaginary":
+                        data[:,:,k_n] = numpy.imag(spect.d__data)
             
         else:
             raise Exception("Number of spectra not consistent"+

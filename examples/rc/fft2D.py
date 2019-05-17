@@ -962,7 +962,7 @@ window = func.Tukey(time_so, r=tukey_r, sym=False)
 # Specify REPH, NONR or `total` to get different types of spectra
 #
 print("\nCalculating FFT of the 2D maps")
-fcont = cont.fft(window=window, dtype="REPH", offset=t_offset)
+fcont = cont.fft(window=window, dtype="total", offset=t_offset)
 
 #
 # Have a look which frequencies we actually have
