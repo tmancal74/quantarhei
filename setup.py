@@ -99,7 +99,7 @@ setup(
     # have to be included in MANIFEST.in as well.
     package_data={
         'quantarhei': ['testing/resources/behave/test.feature', 
-                       'wizard/examples/data_*']
+                       'wizard/examples/data_*', 'wizard/examples/*.yaml']
     },
 
     # Although 'package_data' is the preferred approach, in some case you may

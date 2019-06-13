@@ -1,4 +1,4 @@
-|Build Status| |DocBuild Status| |Coverage|
+    |Build Status| |DocBuild Status| |Coverage|
 
 QUANTArhei: Open Quantum System Theory for Molecular Systems 
 ============================================================
@@ -66,10 +66,8 @@ New in 0.0.47
 for users:
  - Bug fixes
  - 2D spectra can be shifted in its axis by less then the frequency step (interpolated shift)
+ - New helper class Input to simplify configuration of user scripts by *.yaml or *.json files
  
-for developers:
-
- - 
 
 New in 0.0.46
 =============

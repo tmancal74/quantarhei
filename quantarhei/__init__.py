@@ -366,5 +366,8 @@ from .utils.logging import log_quick
 
 from .utils.logging import tprint
 
+from .wizard.input.input import Input
+
+
 
 
