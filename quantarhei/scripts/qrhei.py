@@ -61,6 +61,37 @@ def do_command_run(args):
     if args.script:
         scr = args.script[0]
 
+
+
+    #
+    # if the file is yaml, look into it to find the script file name
+    #
+    # get the file extension
+    extsplt = os.path.splitext(scr)
+    ext = extsplt[1]
+    
+    #
+    # Reading configuration file
+    #
+    
+    # yaml
+    if ext in [".yaml", ".yml"]:
+        INP = qr.Input(scr)
+        # see if the script name is specified, if not use the conf name + .py
+        try:
+            script = INP.script
+        except:
+            script = extsplt[0]+".py"
+        # see if path is defined, if not use local directory
+        try:
+            spath = INP.path
+        except:
+            spath = "."
+        
+        scr = os.path.join(spath, script)
+
+
+
     #
     # Greeting 
     #

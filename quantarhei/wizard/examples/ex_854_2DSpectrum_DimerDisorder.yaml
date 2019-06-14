@@ -16,8 +16,8 @@ how_many_fwhm : 2
 #
 use_default_values : False # if True, E1 and E2 will be determined 
                            # from precalculated results
-E1 : 10000.0   # 1/cm
-E2 : 9300.0    # 1/cm
+E1 : 9300.0     # 1/cm
+E2 : 10000.0    # 1/cm
 
 #
 # Directory with the precalculated results and input file of that calculation

@@ -82,7 +82,7 @@ how_many_fwhm = INP.how_many_fwhm
 #
 if INP.use_default_values:
     E1 = INP_pre.E0 #10000.0
-    E2 = INP_pre.E0 - INP_pre.center #9500.0
+    E2 = INP_pre.E0 + INP_pre.center #9500.0
 else:
     E1 = INP.E1
     E2 = INP.E2
@@ -109,8 +109,8 @@ Emin2 = E2 - de*(N1_2-1)/4.0 #
 es1 = [Emin1 + de*i for i in range(int((N1_1-1)/2)+1)]
 es2 = [Emin2 + de*i for i in range(int((N1_2-1)/2)+1)]
 
-dE_max = es1[int((N1_1-1)/2)] - es2[0]  
-dE_min = es1[0] - es2[int((N1_2-1)/2)]
+dE_max = es2[int((N1_1-1)/2)] - es1[0]  
+dE_min = es2[0] - es1[int((N1_2-1)/2)]
 
 if (dE_max > des.max) or (dE_min < des.min):
     print("dE max required:", dE_max, " --- dE max available:", des.max)
@@ -136,7 +136,7 @@ for e1 in es1:
     for e2 in es2:
         
         e_shift = e1 - Ecalc
-        DE = e1 - e2
+        DE = e2 - e1
         
         # get the spectrum with DE and shift it by e_shift
         (N_DE, err) = des.locate(DE)
