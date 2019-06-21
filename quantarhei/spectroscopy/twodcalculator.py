@@ -10,6 +10,7 @@ from ..core.time import TimeAxis
 from ..core.managers import eigenbasis_of
 from ..qm.propagators.poppropagator import PopulationPropagator
 from .twod2 import TwoDResponse
+from .. import signal_REPH, signal_NONR
 
 
 try:
@@ -109,7 +110,7 @@ class TwoDResponseCalculator:
         if self.verbose:
             print(string)
             
-    def bootstrap(self,rwa=0.0, lab=None, verbose=False):
+    def bootstrap(self, rwa=0.0, lab=None, verbose=False):
         """Sets up the environment for 2D calculation
         
         """
@@ -323,9 +324,10 @@ class TwoDResponseCalculator:
         nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
         nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
         
+        #
         # Transfer
-        
-        Utr = self.Uee[:,:,self.tc]-self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
+        #
+        Utr = self.Uee[:,:,self.tc] - self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
         self.sys.set_population_propagation_matrix(Utr) 
         
         self._vprint(" - stimulated emission with transfer")    
@@ -341,7 +343,7 @@ class TwoDResponseCalculator:
         # ESA
         nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
         nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-        
+    
         
         t2 = time.time()
         self._vprint("... calculated in "+str(t2-t1)+" sec")
@@ -363,8 +365,11 @@ class TwoDResponseCalculator:
         onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
-        onetwod.set_data(reph2D, dtype="Reph")
-        onetwod.set_data(nonr2D, dtype="Nonr")
+        onetwod.set_resolution("signals")
+        onetwod._add_data(reph2D, dtype=signal_REPH)
+        onetwod._add_data(nonr2D, dtype=signal_NONR)
+        #onetwod.set_data(reph2D, dtype="Reph")
+        #onetwod.set_data(nonr2D, dtype="Nonr")
         
         onetwod.set_t2(self.t2axis.data[tc])
         

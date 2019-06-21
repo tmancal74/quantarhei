@@ -4,5 +4,7 @@ matplotlib
 terminaltables==3.1.0
 gherkin-official
 dill
+pyyaml
+
 
 

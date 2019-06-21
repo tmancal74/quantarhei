@@ -66,7 +66,7 @@ New in 0.0.47
 for users:
  - Bug fixes
  - 2D spectra can be shifted in its axis by less then the frequency step (interpolated shift)
- - New helper class Input to simplify configuration of user scripts by *.yaml or *.json files
+ - New helper class Input to simplify configuration of user scripts by "*.yaml" or "*.json" files
  
 
 New in 0.0.46
