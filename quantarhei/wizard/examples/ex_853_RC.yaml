@@ -28,6 +28,13 @@
 # Transition energy of a reference monomer
 E0 : 10000.0  # 1/cm
 
+trimer: 
+    useit : True
+    #disorder : False
+    E2 : 9000.0
+    DE : 100.0
+    dipsp : [-1.5, 0.0, 0.0]
+
 # resonance coupling between monomer transitions  
 resonance_coupling : 100.0  # 1/cm
 
@@ -107,6 +114,9 @@ tukey_window_r      : 0.3
 #
 ###############################################################################
 
+# run only a single realization corresponding to the center of the disorder
+# distribution
+single_realization: False
 # center of the disorder in energy gap
 center : 600.0  # 1/cm
 # step of the disorder scanning 

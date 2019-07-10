@@ -30,7 +30,7 @@ from quantarhei.core.units import kB_int
 print("\n***** Calculation of material for disorder integration (dimer version) *****")
 
 input_file = "ex_853_RC.yaml"
-input_file = {'E0': 10000.0, 'resonance_coupling': 100.0, 'no_g_vib': 2, 'no_e_vib': 2, 'params': {'HR': 0.01, 'omega': 500.0, 'use_vib': True}, 'location_of_vibrations': 'up', 'append_to_dirname': '_center=600_FWHM=100', 'dip1': [1.5, 0.0, 0.0], 'dip2': [-1.0, -1.0, 0.0], 'rate': '1.0/500.0', 'temperature': 77.0, 't2_N_steps': 100, 't2_time_step': 10.0, 'fine_splitting': 10, 't1_N_steps': 100, 't1_time_step': 10.0, 't3_N_steps': 100, 't3_time_step': 10.0, 'feature_width': 100.0, 'trim_maps_to': [9900, 11500, 9000, 11500], 'omega_uncertainty': 200.0, 'tukey_window_r': 0.3, 'center': 600.0, 'step': 2.0, 'max_available_fwhm': 100.0, 'how_many_fwhm': 2, 'make_movie': False, 'show_plots': False, 'save_containers': False, 'detailed_balance': True, 't2_save_pathways': [50.0, 100.0, 200.0, 300.0], 'copy_input_file_to_results': True, '_math_allowed_in': ['E0', 'resonance_coupling', 'rate', ['params', ['HR', 'omega', 'rate']], 'center', 'step', 'max_available_fwhm', 'how_many_fwhm', 't2_save_pathways']}
+#input_file = {'E0': 10000.0, 'resonance_coupling': 100.0, 'no_g_vib': 2, 'no_e_vib': 2, 'params': {'HR': 0.01, 'omega': 500.0, 'use_vib': True}, 'location_of_vibrations': 'up', 'append_to_dirname': '_center=600_FWHM=100', 'dip1': [1.5, 0.0, 0.0], 'dip2': [-1.0, -1.0, 0.0], 'rate': '1.0/500.0', 'temperature': 77.0, 't2_N_steps': 100, 't2_time_step': 10.0, 'fine_splitting': 10, 't1_N_steps': 100, 't1_time_step': 10.0, 't3_N_steps': 100, 't3_time_step': 10.0, 'feature_width': 100.0, 'trim_maps_to': [9900, 11500, 9000, 11500], 'omega_uncertainty': 200.0, 'tukey_window_r': 0.3, 'center': 600.0, 'step': 2.0, 'max_available_fwhm': 100.0, 'how_many_fwhm': 2, 'make_movie': False, 'show_plots': False, 'save_containers': False, 'detailed_balance': True, 't2_save_pathways': [50.0, 100.0, 200.0, 300.0], 'copy_input_file_to_results': True, '_math_allowed_in': ['E0', 'resonance_coupling', 'rate', ['params', ['HR', 'omega', 'rate']], 'center', 'step', 'max_available_fwhm', 'how_many_fwhm', 't2_save_pathways']}
 INP = qr.Input(input_file, show_input=True) #, 
                #math_allowed_in =["E0", 
                #                  ["params", ["HR", "omega", "rate"]] ])
@@ -44,7 +44,7 @@ detailed_balance = INP.detailed_balance
 
 def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         stype=qr.signal_REPH, make_movie=False, save_eUt=False,
-        t2_save_pathways=[], dname=None):
+        t2_save_pathways=[], dname=None, trimer=None):
     """Runs a complete set of simulations for a single set of parameters
     
     
@@ -52,6 +52,8 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     """
     if dname is None:
         dname = "sim_"+vib_loc
+        
+    use_trimer =  trimer["useit"]
         
     #
     #  FIXED PARAMETERS
@@ -76,15 +78,37 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         data_ext = sys_char+".png"
         obj_ext = sys_char+".qrp"
         
+    raise Exception()
+    
+    # parameters of the SP
+    if use_trimer:
+        E2 = trimer["E2"]
+        epsa = (E0+E2)/2.0
+        DE = trimer["DE"]
+        J2 = 0.5*numpy.sqrt(((E0-E2)**2)-(DE**2))
+        ESP2 = epsa + DE/2.0
+        ESP1 = epsa - DE/2.0
+        
     #
     #   Model system is a dimer of molecules
     #
     with qr.energy_units("1/cm"):
-        mol1 = qr.Molecule([0.0, E0])
-        mol2 = qr.Molecule([0.0, E0+dE])
-        
-        print("Monomer 1 energy:", E0)
-        print("Monomer 2 energy:", E0+dE)
+        if not use_trimer:
+            
+            mol1 = qr.Molecule([0.0, E0])
+            mol2 = qr.Molecule([0.0, E0+dE])
+            
+            print("Monomer 1 energy:", E0)
+            print("Monomer 2 energy:", E0+dE)
+        else:
+            mol1 = qr.Molecule([0.0, ESP2])
+            mol2 = qr.Molecule([0.0, E0+dE])
+            print("Monomer 1 energy:", ESP2)
+            print("Monomer 2 energy:", E0+dE)            
+            mol3 = qr.Molecule([0.0, ESP1])
+            mol3.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
+            mol3.set_dipole(0,1, trimer["dipsp"])
+            print("Monomer 3 energy:", ESP1)
         
         mod1 = qr.Mode(omega)
         mod2 = qr.Mode(omega)
@@ -95,10 +119,16 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     mol2.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
     mol2.set_dipole(0,1, dip2)
     
-    agg = qr.Aggregate([mol1, mol2])
+    if use_trimer:
+        agg = qr.Aggregate([mol1, mol2, mol3])
+    else:
+        agg = qr.Aggregate([mol1, mol2])
     
     with qr.energy_units("1/cm"):
         agg.set_resonance_coupling(0,1,JJ)
+        if use_trimer:
+            agg.set_resonance_coupling(0,2,J2)
+            print("SP coupling:", J2)
     
     #
     # Electronic only aggregate
@@ -529,10 +559,19 @@ Ns_d = int(2.0*how_many_fwhm*max_available_fwhm/step) # 50
 Ns_u = int(2.0*how_many_fwhm*max_available_fwhm/step) # 50
 
 vax = qr.ValueAxis(center-Ns_d*step, Ns_d+Ns_u+1, step)
+trimer = INP.trimer
+use_trimer =  trimer["useit"]
+trimer_disorder = False # trimer["disorder"]
+#if use_trimer:
+#    vax2 = qr.ValueAxis(trimer["center2"]-Ns_d*step, Ns_d+Ns_u+1, step)
+    
 print("\nSummary of simulation parameters\n")
 print("Energy gap values:")
 print("Minimal gap =", vax.min)
 print("Maximum gap =", vax.max)
+#if use_trimer and trimer_disorder:
+#    print("Minimal gap (2nd dim) =", vax2.min)
+#    print("Maximum gap (2nd dim) =", vax2.max)
 print("Number of steps =", vax.length)
 
 #
@@ -543,8 +582,29 @@ print("Number of steps =", vax.length)
 #
 ptns = []
 
-for val in vax.data:
-    ptns.append((INP.resonance_coupling, val))
+single_run = INP.single_realization
+
+if single_run:
+    
+    ptns.append((INP.resonance_coupling, center, INP.trimer))
+    
+else:
+
+    if use_trimer:
+#        if trimer_disorder:
+#            for val in vax.data:
+#                for val2 in vax2.data:
+#                    ptns.append((INP.resonance_coupling, val, 
+#                                 INP.trimer, val2))
+#        else:
+        for val in vax.data:
+            ptns.append((INP.resonance_coupling, val, 
+                         INP.trimer))
+
+    else:
+        for val in vax.data:
+            ptns.append((INP.resonance_coupling, val, 
+                         INP.trimer))
 
 E0 = INP.E0 # transition energy (in 1/cm) of the reference monomer
 
@@ -615,7 +675,7 @@ for model in models:
 
         kp = 1
         Nje = len(ptns)
-        for (JJ, dE) in ptns:
+        for (JJ, dE, trimer) in ptns:
             print("\nCalculating spectra ... (",kp,"of",Nje,") [run ",kk,"of",
                   Np,"]")
             print("JJ =", JJ)
@@ -628,7 +688,7 @@ for model in models:
             (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr) = \
             run(omega, HR, dE, JJ, rate, E0, vib_loc, use_vib,
                 make_movie=make_movie, save_eUt=save_eUt, 
-                t2_save_pathways=t2_save_pathways, dname=dname)
+                t2_save_pathways=t2_save_pathways, dname=dname, trimer=trimer)
             t2 = time.time()
             gc.collect()
             print("... done in",t2-t1,"sec")

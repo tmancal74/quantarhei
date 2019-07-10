@@ -156,9 +156,22 @@ def do_command_run(args):
         
     else:
         
+        import traceback
+        
         qr.printlog(" --- output below ---", verbose=True, loglevel=0)
         # running the script within the same interpreter
-        exec(open(scr).read(), globals())
+        
+        try:
+            
+            # launch this properly, so that it gives information
+            # on the origin of exceptions
+            with open(scr,'U') as fp:
+                code = fp.read()
+            exec(compile(code, scr, "exec"), globals())
+            
+        except: # Exception: e
+            #print(str(e))
+            print(traceback.format_exc())
         
         retval = 0        
         
