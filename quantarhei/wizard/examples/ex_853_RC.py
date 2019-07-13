@@ -78,7 +78,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         data_ext = sys_char+".png"
         obj_ext = sys_char+".qrp"
         
-    raise Exception()
+    #raise Exception()
     
     # parameters of the SP
     if use_trimer:
