@@ -88,6 +88,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         J2 = 0.5*numpy.sqrt(((E0-E2)**2)-(DE**2))
         ESP2 = epsa + DE/2.0
         ESP1 = epsa - DE/2.0
+        rate_3 = trimer["rate"]
         
     #
     #   Model system is a dimer of molecules
@@ -230,7 +231,11 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         if He.data[2,2] < He.data[1,1]:
             Exception("Electronic states not orderred!")
         operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
+        if use_trimer:
+            operators.append(qr.qm.ProjectionOperator(2, 3, dim=He.dim))
     rates.append(rate)
+    if use_trimer:
+        rates.append(rate_3)
     
     # include detailed balace
     if detailed_balance:
@@ -239,7 +244,13 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             Den = (He.data[2,2] - He.data[1,1])/(kB_int*T)
             operators.append(qr.qm.ProjectionOperator(2, 1, dim=He.dim))
             thermal_fac = numpy.exp(-Den)
+            if use_trimer:
+                Den = (He.data[3,3] - He.data[2,2])/(kB_int*T)
+                operators.append(qr.qm.ProjectionOperator(3, 2, dim=He.dim))
+                thermal_fac_3 = numpy.exp(-Den)
+                
         rates.append(rate*thermal_fac)
+        rates.append(rate_3*thermal_fac_3)
         
     
     sbi = qr.qm.SystemBathInteraction(sys_operators=operators, rates=rates)

@@ -7,7 +7,7 @@
 #
 # widths of the disorder on the monomers
 #
-width_dis : [100.0, 100.0]  # cm-1
+width_dis : [1, 1]  # cm-1
 # how many FWHM to include into the integration range
 how_many_fwhm : 2
 
@@ -18,11 +18,12 @@ use_default_values : True # if True, E1 and E2 will be determined
                            # from precalculated results
 E1 : 9300.0     # 1/cm
 E2 : 10000.0    # 1/cm
+single_realization: False
 
 #
 # Directory with the precalculated results and input file of that calculation
 #
-dname : "sim_up_center=600_FWHM=100_hotovo"
+dname : "sim_up_center=600_FWHM=1"
 input_file : "ex_853_RC.yaml"
 input_file_from_results : True
 with_math_allowed_in : ["E0"]
@@ -30,7 +31,7 @@ with_math_allowed_in : ["E0"]
 #
 # Container file to load: these spectra will be integrated
 #
-container_file: "cont_m_re.qrp"
+container_file: "cont_p_re.qrp"
 
 #
 # Save figure? 

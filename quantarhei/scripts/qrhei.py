@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import sys
 import fnmatch
+import traceback
 
 import pkg_resources
 
@@ -155,8 +156,6 @@ def do_command_run(args):
         retval = p.wait()    
         
     else:
-        
-        import traceback
         
         qr.printlog(" --- output below ---", verbose=True, loglevel=0)
         # running the script within the same interpreter
@@ -321,6 +320,44 @@ def do_command_report(args):
     qr.printlog("Probing system configuration", loglevel=0)
 
     
+def do_command_file(args):
+    """Report on the content of a file 
+    
+    """
+    
+    qr.printlog("Checking file info", loglevel=0)    
+    
+    #
+    # File name
+    # 
+
+    if args.fname:
+        fname = args.fname[0]   
+        qr.printlog("File name: "+fname, loglevel=0)
+
+    try:
+        check = qr.check_parcel(fname)
+        qr.printlog("Object type: "+check["class_name"], loglevel=0)
+        if check["class_name"] == "builtins.list":
+            prcl = qr.load_parcel(fname)
+            qr.printlog("List length: "+str(len(prcl)), loglevel=0)
+            types = []
+            for el in prcl:
+                tp = type(prcl[0])
+                if tp not in types:
+                    types.append(tp)
+            qr.printlog("Element types: "+str(types), loglevel=0)
+        qr.printlog("Saved with Quantarhei version: "+check["qrversion"],
+                    loglevel=0)
+        qr.printlog("Description: "+check["comment"])
+    except:
+        qr.printlog("The file is not a Quantarhei parcel", loglevel=0)
+        #print(traceback.format_exc())
+        
+    
+
+    
+    
 def main():
     
     global parser_list
@@ -420,6 +457,18 @@ def main():
                                 "Probes Quantarhei as system configurations")
     
     parser_report.set_defaults(func=do_command_report)    
+    
+    #
+    # Subparser for command `file`
+    #
+    parser_file = subparsers.add_parser("file", help=
+                                "Shows information about files"
+                                +" created by Quantarhei")
+    
+    parser_file.add_argument("fname", metavar='fname', type=str, 
+                          help='file to be checked', nargs=1) 
+    
+    parser_file.set_defaults(func=do_command_file)     
     
     #
     # Parsing all arguments

@@ -4,12 +4,13 @@
 #  Configuration file for ex_853_RC.py example
 #
 #  Author: Tomáš Mančal
-#  Last change: June 12th, 2019 
+#  Last change: July 12th, 2019 
 #
 #
-#  The script calculates omega_2 maps from 2D spectra of a disordered dimer.
-#  Data for the dimer with various energy gaps are stored so that they can
-#  be averaged over the distribution of energy gaps
+#  The script calculates omega_2 maps from 2D spectra of a disordered dimer
+#  and trimer.
+#  Data for the dimer/trimer with various energy gaps are stored so that
+#  they can be averaged over the distribution of energy gaps
 #
 #
 ###############################################################################
@@ -29,11 +30,12 @@
 E0 : 10000.0  # 1/cm
 
 trimer: 
-    useit : False
-    #disorder : False
+    useit : True
+    #disorder : False  # there is now no disorder between the two lower levels
     E2 : 9000.0
     DE : 100.0
     dipsp : [-1.5, 0.0, 0.0]
+    rate  : 1/500.0
 
 # resonance coupling between monomer transitions  
 resonance_coupling : 100.0  # 1/cm
@@ -43,7 +45,7 @@ resonance_coupling : 100.0  # 1/cm
 no_g_vib : 2
 no_e_vib : 2
 
-# parameters of the system (group for historical reasons)
+# parameters of the system (grouped for historical reasons)
 params:
     HR      : 0.01       # Huang-Rhys factor of the vibration
     omega   : 500.0      # frequency of the vibration
@@ -56,7 +58,7 @@ location_of_vibrations : "up"  # can be "up", "down" or "both"
 # The ouput directory of the script will be called "sim_up" if the variable
 # called location_of_vibrations is set to "up". You can add more info into
 # the directory name by specifying the variable below
-append_to_dirname : "_center=600_FWHM=100"
+append_to_dirname : "_center=600_FWHM=1"
 
 # transition dipole moments of the two molecules
 dip1 : [1.5, 0.0, 0.0]
@@ -69,7 +71,7 @@ dip2 : [-1.0, -1.0, 0.0]
 ###############################################################################
 
 # relaxation rate in the dimer 
-rate                : 1.0/500.0
+rate                : 1.0/150.0
 
 # temperature for calculation of a backward rate
 temperature : 77.0  # K
@@ -118,7 +120,7 @@ tukey_window_r      : 0.3
 # distribution
 single_realization: False
 # center of the disorder in energy gap
-center : 600.0  # 1/cm
+center : 520.0  # 1/cm
 # step of the disorder scanning 
 step : 2.0  # 1/cm
 # maximum possible FWHM of the disorder
@@ -156,7 +158,8 @@ copy_input_file_to_results : True
 _math_allowed_in : ["E0", "resonance_coupling", "rate",
                     ["params",["HR","omega","rate"]],
                     "center", "step", "max_available_fwhm",
-                    "how_many_fwhm", "t2_save_pathways"]
+                    "how_many_fwhm", "t2_save_pathways",
+                    ["trimer",["rate"]]]
 
 # EOF
 ###############################################################################
