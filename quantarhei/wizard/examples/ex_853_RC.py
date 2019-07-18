@@ -58,8 +58,13 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     #
     #  FIXED PARAMETERS
     #
-    dip1 = INP.dip1 # [1.5, 0.0, 0.0]
-    dip2 = INP.dip2 # [-1.0, -1.0, 0.0]
+    if use_trimer:
+        dip1 = INP.special_pair["dip1"]
+        dip3 = INP.special_pair["dip2"]
+    else:
+        dip1 = INP.dip_P # [1.5, 0.0, 0.0]
+        
+    dip2 = INP.dip_B # [-1.0, -1.0, 0.0]
     width = INP.feature_width # 100.0
     #rate = 1.0/50.0
     
@@ -82,7 +87,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     
     # parameters of the SP
     if use_trimer:
-        E2 = trimer["E2"]
+        E2 = trimer["E_Pminus"]
         epsa = (E0+E2)/2.0
         DE = trimer["DE"]
         J2 = 0.5*numpy.sqrt(((E0-E2)**2)-(DE**2))
@@ -108,7 +113,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             print("Monomer 2 energy:", E0+dE)            
             mol3 = qr.Molecule([0.0, ESP1])
             mol3.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
-            mol3.set_dipole(0,1, trimer["dipsp"])
+            mol3.set_dipole(0,1, dip3)
             print("Monomer 3 energy:", ESP1)
         
         mod1 = qr.Mode(omega)
@@ -250,7 +255,8 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
                 thermal_fac_3 = numpy.exp(-Den)
                 
         rates.append(rate*thermal_fac)
-        rates.append(rate_3*thermal_fac_3)
+        if use_trimer:
+            rates.append(rate_3*thermal_fac_3)
         
     
     sbi = qr.qm.SystemBathInteraction(sys_operators=operators, rates=rates)
@@ -556,10 +562,18 @@ models = [dict(vib_loc=vib_loc)] #,
 #
 t2_save_pathways = INP.t2_save_pathways #[50.0, 100.0, 200.0, 300.0]
 
+trimer = INP.special_pair #INP.trimer
+
+use_trimer =  trimer["useit"]
+
 #
 # Here we construct a path through parameters space
 #
-center = INP.center #600.0
+if use_trimer:
+    center = INP.E_B - INP.special_pair["E_Pplus"]
+else:
+    center = INP.E_B - INP.E_P #600.0
+
 step = INP.step #2.0
 
 max_available_fwhm = INP.max_available_fwhm #100.0
@@ -570,8 +584,8 @@ Ns_d = int(2.0*how_many_fwhm*max_available_fwhm/step) # 50
 Ns_u = int(2.0*how_many_fwhm*max_available_fwhm/step) # 50
 
 vax = qr.ValueAxis(center-Ns_d*step, Ns_d+Ns_u+1, step)
-trimer = INP.trimer
-use_trimer =  trimer["useit"]
+
+
 trimer_disorder = False # trimer["disorder"]
 #if use_trimer:
 #    vax2 = qr.ValueAxis(trimer["center2"]-Ns_d*step, Ns_d+Ns_u+1, step)
@@ -610,14 +624,17 @@ else:
 #        else:
         for val in vax.data:
             ptns.append((INP.resonance_coupling, val, 
-                         INP.trimer))
+                         INP.special_pair))
 
     else:
         for val in vax.data:
             ptns.append((INP.resonance_coupling, val, 
-                         INP.trimer))
+                         INP.special_pair))
 
-E0 = INP.E0 # transition energy (in 1/cm) of the reference monomer
+if use_trimer:
+    E0 = INP.special_pair["E_Pplus"]
+else:
+    E0 = INP.E_P # transition energy (in 1/cm) of the reference monomer
 
 
 ###############################################################################

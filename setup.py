@@ -114,7 +114,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': ['qrhei=quantarhei.scripts.qrhei:main',
-                            'ghenerate=quantarhei.scripts.ghenerate:main'],
+                            'ghenerate=quantarhei.scripts.ghenerate:main',
+                            'qtask=quantarhei.scripts.qtask:main'],
     }
     
 )

@@ -8,7 +8,7 @@
 #
 #
 #  The script calculates omega_2 maps from 2D spectra of a disordered dimer
-#  and trimer.
+#  and trimer representing a simplified model of bacterial reaction center.
 #  Data for the dimer/trimer with various energy gaps are stored so that
 #  they can be averaged over the distribution of energy gaps
 #
@@ -27,15 +27,30 @@
 ###############################################################################
 
 # Transition energy of a reference monomer
-E0 : 10000.0  # 1/cm
+E_B : 10520.0 # 1/cm
+E_P : 10000.0 # 1/cm
 
-trimer: 
-    useit : True
-    #disorder : False  # there is now no disorder between the two lower levels
-    E2 : 9000.0
-    DE : 100.0
-    dipsp : [-1.5, 0.0, 0.0]
-    rate  : 1/500.0
+# transition dipole moments of the two molecules
+dip_P : [1.5, 0.0, 0.0]
+dip_B : [-1.0, -1.0, 0.0]
+
+#trimer: 
+#    useit : False
+#    #disorder : False  # there is now no disorder between the two lower levels
+#    E2 : 9000.0
+#    DE : 100.0
+#    dipsp : [-1.5, 0.0, 0.0]
+#    rate  : 1/500.0
+    
+special_pair:
+    useit: True
+    E_Pplus: 10000.0    # upper exciton level
+    E_Pminus: 9000.0     # lower exciton level
+    rate : 1.0/500.0     # internal relaxation rate
+    DE : 100.0           # energy difference between monomer molecules
+    dip1 : [1.5, 0.0, 0.0]  # monomer transition dipole moments
+    dip2 : [0.0, 1.0, 1.0]
+
 
 # resonance coupling between monomer transitions  
 resonance_coupling : 100.0  # 1/cm
@@ -58,11 +73,8 @@ location_of_vibrations : "up"  # can be "up", "down" or "both"
 # The ouput directory of the script will be called "sim_up" if the variable
 # called location_of_vibrations is set to "up". You can add more info into
 # the directory name by specifying the variable below
-append_to_dirname : "_center=600_FWHM=1"
+append_to_dirname : "_center=600_FWHM=a"
 
-# transition dipole moments of the two molecules
-dip1 : [1.5, 0.0, 0.0]
-dip2 : [-1.0, -1.0, 0.0]
 
 ###############################################################################
 #
@@ -155,11 +167,11 @@ copy_input_file_to_results : True
 #
 # List of possible math evaluations 
 #
-_math_allowed_in : ["E0", "resonance_coupling", "rate",
+_math_allowed_in : ["E_P", "E_B", "resonance_coupling", "rate",
                     ["params",["HR","omega","rate"]],
                     "center", "step", "max_available_fwhm",
                     "how_many_fwhm", "t2_save_pathways",
-                    ["trimer",["rate"]]]
+                    ["special_pair",["rate"]]]
 
 # EOF
 ###############################################################################
