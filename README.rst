@@ -59,17 +59,23 @@ and
 
 through grants: 14-25752S (2014-2016) and 17-22160S (2017-2019)
 
+New in 0.0.50
+=============
+
+for users:
+ - Bug fixes
+
 New in 0.0.49
 =============
 
 for users:
- - Runnable "*.yaml" configuration files
- - Better diagnostics of errors occuring while running a script by "qrhei" driver
- - New "qrhei" subcommand "file", which shows information about files saved by Quantarhei
+ - Runnable .yaml configuration files
+ - Better diagnostics of errors occuring while running a script by qrhei driver
+ - New qrhei subcommand file, which shows information about files saved by Quantarhei
  - Bug fixes
 
 for developers:
- - Started work on a script compiler "qtask"
+ - Started work on a script compiler qtask
 
 
 New in 0.0.48
