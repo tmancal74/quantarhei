@@ -63,7 +63,7 @@ New in 0.0.49
 =============
 
 for users:
- - Runnable *.yaml configuration files
+ - Runnable "*.yaml" configuration files
  - Better diagnostics of errors occuring while running a script by `qrhei` driver
  - New `qrhei` subcommand `file`, which shows information about files saved by Quantarhei
  - Bug fixes
