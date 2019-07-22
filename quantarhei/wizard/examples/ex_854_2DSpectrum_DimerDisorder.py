@@ -33,7 +33,7 @@ dname = INP.dname #"sim_up"
 #
 # Transition energy for which the spectra are calculated
 #
-Ecalc = INP_pre.E0 #10000.0
+Ecalc = INP_pre.E_P #10000.0
 calculated_width = INP_pre.max_available_fwhm
 
 
@@ -58,9 +58,9 @@ de2 = cont.get_spectrum(1).get_log_params()["dE"]
 de_step = de2 - de_min
 de_N = cont.length()
 
-print(de_min)
-print(de_step)
-print(de_N)
+print("de_min:", de_min)
+print("de_step:", de_step)
+print("de_N", de_N)
 
 #
 # These are the values of energy gap that the spectra represent
@@ -81,12 +81,17 @@ how_many_fwhm = INP.how_many_fwhm
 # Average values of the monomer energies
 #
 if INP.use_default_values:
-    E1 = INP_pre.E0 #10000.0
-    E2 = INP_pre.E0 + INP_pre.center #9500.0
+    E1 = INP_pre.E_P #10000.0
+    E2 = INP_pre.E_B # INP_pre.E_P + INP_pre.center #9500.0
+    if INP_pre.special_pair["useit"]:
+        E1 = INP_pre.special_pair["E_Pplus"]
+
 else:
     E1 = INP.E1
     E2 = INP.E2
 
+print("E1:", E1)
+print("E2:", E2)
 
 def weight(E, E0,  width):
     """Weighting function characterizing the disorder

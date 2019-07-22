@@ -134,7 +134,7 @@ single_realization: False
 # step of the disorder scanning 
 step : 2.0  # 1/cm
 # maximum possible FWHM of the disorder
-max_available_fwhm : 1.0  # 1/cm
+max_available_fwhm : 50.0  # 1/cm
 # how many FWHM we include into the scanned energy interval 
 how_many_fwhm : 2  
 

@@ -7,7 +7,7 @@
 #
 # widths of the disorder on the monomers
 #
-width_dis : [1, 1]  # cm-1
+width_dis : [1.0, 1.0]  # cm-1
 # how many FWHM to include into the integration range
 how_many_fwhm : 2
 
@@ -26,7 +26,7 @@ single_realization: False
 dname : "sim_up_center=600_FWHM=a"
 input_file : "ex_853_RC.yaml"
 input_file_from_results : True
-with_math_allowed_in : ["E0"]
+with_math_allowed_in : ["E_B", "E_P"]
 
 #
 # Container file to load: these spectra will be integrated
