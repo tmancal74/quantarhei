@@ -63,7 +63,13 @@ New in 0.0.49
 =============
 
 for users:
+ - Runnable *.yaml configuration files
+ - Better diagnostics of errors occuring while running a script by `qrhei` driver
+ - New `qrhei` subcommand `file`, which shows information about files saved by Quantarhei
  - Bug fixes
+
+for developers:
+ - Started work on a script compiler `qtask`
 
 
 New in 0.0.48
@@ -99,8 +105,6 @@ For developers:
  - many constants describing non-linear response, 2D spectra and data are defined on the highest quantarhei import level
  - All Saveable objects now have a convenience methods copy() for shallow copying, deepcopy() for deep copying and scopy() for a deep copy by saving to and loading the object from a temporary file
  
-
-
 
 New in 0.0.45
 =============

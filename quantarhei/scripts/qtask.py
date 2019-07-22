@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import traceback
 
 import quantarhei as qr
 
@@ -42,8 +43,12 @@ def do_process(args):
         fname = args.filename[0]
         print("Processing file: ", fname)
     
-        INP = qr.Input(fname)
-        code = tasks(INP.tasks, INP)
+        try:
+            INP = qr.Input(fname)
+            code = tasks(INP.tasks, INP)
+        except:
+            print(traceback.format_exc())
+            return
         
     if args.output:
         

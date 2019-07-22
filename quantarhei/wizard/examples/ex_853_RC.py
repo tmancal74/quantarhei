@@ -95,6 +95,8 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         ESP1 = epsa - DE/2.0
         rate_3 = trimer["rate"]
         
+    use_rate_3 = True
+        
     #
     #   Model system is a dimer of molecules
     #
@@ -112,9 +114,11 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             print("Monomer 1 energy:", ESP2)
             print("Monomer 2 energy:", E0+dE)            
             mol3 = qr.Molecule([0.0, ESP1])
+            print("Monomer 3 energy:", ESP1)
+            
             mol3.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
             mol3.set_dipole(0,1, dip3)
-            print("Monomer 3 energy:", ESP1)
+
         
         mod1 = qr.Mode(omega)
         mod2 = qr.Mode(omega)
@@ -175,6 +179,9 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     HH = agg.get_Hamiltonian()
     He = agg_el.get_Hamiltonian()
     
+    #with qr.energy_units("1/cm"):
+    #    print(He)
+    
     with qr.energy_units("1/cm"):
         with qr.eigenbasis_of(He):
             Ep_l = He.data[1,1]
@@ -232,32 +239,44 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     #
     operators = []
     rates = []
+
     with qr.eigenbasis_of(He):
-        if He.data[2,2] < He.data[1,1]:
+        if (He.data[2,2] < He.data[1,1]) or (He.data[3,3]>He.data[2,2]):
             Exception("Electronic states not orderred!")
-        operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
+            
+        
         if use_trimer:
+            # B-> P
             operators.append(qr.qm.ProjectionOperator(2, 3, dim=He.dim))
-    rates.append(rate)
-    if use_trimer:
-        rates.append(rate_3)
+            rates.append(rate)
+            if use_rate_3:
+                # P+->P-
+                operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
+                rates.append(rate_3)
+        else:
+            # B-> P
+            operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
+            rates.append(rate)        
     
     # include detailed balace
     if detailed_balance:
         with qr.eigenbasis_of(He):
             T = INP.temperature #77.0
-            Den = (He.data[2,2] - He.data[1,1])/(kB_int*T)
-            operators.append(qr.qm.ProjectionOperator(2, 1, dim=He.dim))
-            thermal_fac = numpy.exp(-Den)
             if use_trimer:
                 Den = (He.data[3,3] - He.data[2,2])/(kB_int*T)
                 operators.append(qr.qm.ProjectionOperator(3, 2, dim=He.dim))
-                thermal_fac_3 = numpy.exp(-Den)
-                
-        rates.append(rate*thermal_fac)
-        if use_trimer:
-            rates.append(rate_3*thermal_fac_3)
-        
+                thermal_fac = numpy.exp(-Den)
+                rates.append(rate*thermal_fac)   
+                if use_rate_3:
+                    Den = (He.data[2,2] - He.data[1,1])/(kB_int*T)
+                    operators.append(qr.qm.ProjectionOperator(2, 1, dim=He.dim))
+                    thermal_fac_3 = numpy.exp(-Den)
+                    rates.append(rate_3*thermal_fac_3)
+            else:
+                Den = (He.data[2,2] - He.data[1,1])/(kB_int*T)
+                operators.append(qr.qm.ProjectionOperator(2, 1, dim=He.dim))
+                thermal_fac = numpy.exp(-Den)
+                rates.append(rate*thermal_fac)
     
     sbi = qr.qm.SystemBathInteraction(sys_operators=operators, rates=rates)
     sbi.set_system(agg)
