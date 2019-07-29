@@ -241,20 +241,20 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     rates = []
 
     with qr.eigenbasis_of(He):
-        if (He.data[2,2] < He.data[1,1]) or (He.data[3,3]>He.data[2,2]):
+        if (He.data[2,2] < He.data[1,1]): # or (He.data[3,3]>He.data[2,2]):
             Exception("Electronic states not orderred!")
             
         
         if use_trimer:
-            # B-> P
+            # B -> P
             operators.append(qr.qm.ProjectionOperator(2, 3, dim=He.dim))
             rates.append(rate)
             if use_rate_3:
-                # P+->P-
+                # P+ -> P-
                 operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
                 rates.append(rate_3)
         else:
-            # B-> P
+            # B -> P
             operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
             rates.append(rate)        
     
