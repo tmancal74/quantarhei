@@ -18,7 +18,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     """Calculator of the third order non-linear response 
     
     
-    This class is used to represent LiouvillePatjway objects. Lineshape is
+    This class is used to represent LiouvillePathway objects. Lineshape is
     Gaussian 
     
     """

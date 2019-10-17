@@ -12,6 +12,8 @@ from .. import signal_TOTL
 from .. import TWOD_SIGNALS
 from .. import part_REAL, part_IMAGINARY, part_ABS
 
+import quantarhei as qr
+
 class TwoDSpectrum(DataSaveable, Saveable):
     
     dtypes = TWOD_SIGNALS
@@ -377,6 +379,24 @@ class TwoDSpectrum(DataSaveable, Saveable):
         pass
 
 
+    def zeropad(self, fac=1):
+        if fac == 1:
+            return
+
+        Nxa = self.xaxis.length
+        Nya = self.yaxis.length
+        
+        print("Start: ", self.xaxis.start)
+        print("Step:  ", self.xaxis.step)
+        print("end:   ", self.xaxis.step*self.xaxis.length + self.xaxis.start)
+        
+        nNxa = fac*Nxa
+        nNya = fac*Nya
+        
+        print("New length x: ", nNxa)
+        print("New length y: ", nNya)
+        
+
     def shift_energy(self, dE, interpolation="linear"):
         """Shift the spectrum in both frequency axis by certain amount
         
@@ -397,6 +417,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         ndata1 = numpy.zeros(self.data.shape, dtype=self.data.dtype)
         
         if interpolation == "linear":
+            
+            print("Shifting spectrum: linear interpolation")
             
             data = self.data
     
@@ -442,6 +464,33 @@ class TwoDSpectrum(DataSaveable, Saveable):
         elif interpolation == "spline":
             
             pass
+        
+        elif interpolation == "fft":
+            
+            print("Shifting spectrum: fft interpolation")
+            
+            # inverse FFT
+            ndata = numpy.fft.fftshift(self.data)
+            ndata1 = numpy.fft.fft2(ndata)
+            ndata = numpy.fft.fftshift(ndata1)
+
+            timex = numpy.fft.fftfreq(self.xaxis.length,
+                                                     self.xaxis.step)
+            timex = numpy.fft.fftshift(timex)
+            timey = numpy.fft.fftfreq(self.yaxis.length,
+                                                     self.yaxis.step)
+            timey = numpy.fft.fftshift(timey)
+            
+            # multiply by exponentials
+            etx = numpy.exp(1j*dE*timex)
+            ety = numpy.exp(1j*dE*timey)
+            
+            for k in range(ndata.shape[0]):
+                ndata1[k,:] = etx[k]*ndata[k,:]*ety[:]
+            
+            # back FFT
+            ndata = numpy.fft.ifft2(ndata1)
+            ndata = numpy.fft.fftshift(ndata)
             
         else:
             raise Exception("Unknown interpolation type")

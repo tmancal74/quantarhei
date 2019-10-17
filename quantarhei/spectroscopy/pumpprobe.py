@@ -64,6 +64,7 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
         
         self.t2axis = t2axis
         self.spectra = {}
+        self.itype = None
         
     def plot(self):
         
@@ -187,7 +188,8 @@ def calculate_from_2D(twod):
     dw = xaxis.step
     
     # real part of the total 2D spectrum
-    tddata = numpy.real(twod.d__data)
+    #tddata = numpy.real(twod.d__data)
+    tddata = numpy.real(twod.data)
     
     # integration over omega_1 axis
     ppdata = -numpy.sum(tddata,axis=1)*dw

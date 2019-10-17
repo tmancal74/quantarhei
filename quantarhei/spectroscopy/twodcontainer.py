@@ -7,6 +7,8 @@
     -------------
 
 """
+import numbers
+
 #import h5py
 #import matplotlib.pyplot as plt  
 import numpy
@@ -132,9 +134,17 @@ class TwoDResponseContainer(Saveable):
         
         
         if self.itype == "integer":
-            self.spectra[self.index] = spect
-            self.index += 1
-            return self.index
+            
+            if tag is None:
+                self.spectra[self.index] = spect
+                self.index += 1
+                return self.index
+            else:
+                if isinstance(tag, numbers.Integral):
+                    self.spectra[tag] = spect
+                else:
+                    raise Exception("The spectrum has to be tagged by an integer")
+                return tag
         
         elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             
@@ -377,6 +387,7 @@ class TwoDResponseContainer(Saveable):
 
         naxis = TimeAxis(start,length,step)        
         ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
+        ppcont.itype = self.itype
 
         ii = 0
         for sp in ppc:
@@ -1119,3 +1130,23 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             new_container.set_spectrum(spect, tag=tag)
         
         return new_container
+
+
+    def unitedir(self, dname):
+        
+        clist = self.loaddir(dname)
+
+        n = len(clist)
+
+        cont = clist[1]
+        
+        for k in range(1, n):
+            
+            ctn = clist[k+1]
+            
+            for tag in ctn.spectra:
+                cont.set_spectrum(ctn.spectra[tag], tag=tag)
+                
+        return cont
+
+        
