@@ -131,11 +131,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         
             # plot pump-probe spectra
             X,Y =  numpy.meshgrid(t2ax.data,freqax.data[min_ind:])
-<<<<<<< HEAD
             fig, ax = plt.subplots(figsize=(18,9))
-=======
-            fig, ax = plt.subplots()
->>>>>>> 89330667c2c37620a918169f9939b6c96ff58c8c
             
             if zero_centered:
                 p = ax.contourf(X, Y, ppspec2D.T[min_ind:], 60, cmap=plt.cm.jet, 
@@ -155,10 +151,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             
             ax.legend()
             plt.colorbar(p,ax=ax)
-<<<<<<< HEAD
             fig.savefig('PP_2D_spectra.png', format='png', dpi=1200)
-=======
->>>>>>> 89330667c2c37620a918169f9939b6c96ff58c8c
             
     def plot_slices(self,freqs,expRes=None,units="nm"):
         
@@ -174,11 +167,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             count+=1
         
         with energy_units(units):
-<<<<<<< HEAD
             fig = plt.figure(figsize=(18,9))
-=======
-            plt.figure()
->>>>>>> 89330667c2c37620a918169f9939b6c96ff58c8c
             Nsp = len(freqs)
             plt_num = numpy.arange(Nsp) + 1
             plt_num = plt_num.reshape((Nsp//3,3)).T.reshape(Nsp)
@@ -196,10 +185,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                 plt.xscale('symlog', linthreshx= (0.1))
             plt.subplots_adjust(hspace=0.6, wspace=0.6)
             plt.show()
-<<<<<<< HEAD
             fig.savefig('PP_slices_spectra.png', format='png', dpi=1200)
-=======
->>>>>>> 89330667c2c37620a918169f9939b6c96ff58c8c
             
         
     def make_movie(self, filename, axis=None,
