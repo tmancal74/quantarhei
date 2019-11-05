@@ -100,6 +100,11 @@ class SystemBathInteraction(Saveable):
                 self._set_operators(sys_operators)
                 self.CC = bath_correlation_matrix
              
+        
+            if rates is not None:
+                if len(rates) != self.N:
+                    raise Exception("Wrong number of rates specified")
+                self.rates = rates
                 
         # version with system-bath operators and rates
         elif ((sys_operators is not None) 

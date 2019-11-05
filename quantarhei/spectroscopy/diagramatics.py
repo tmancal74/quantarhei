@@ -327,6 +327,33 @@ class liouville_pathway(UnitsManaged):
         self.dmoments[self.nint,:] = \
                self.aggregate.DD[nf,ni,:]
         
+        # rescale dipoles according to the pulses
+        lab = self.aggregate.lab
+        if lab is not None:
+            if lab.has_timedomain:
+                Np = len(lab.pulse_t)
+            elif lab.has_freqdomain:
+                Np = len(lab.pulse_t)
+            else:
+                Np = 0
+            if Np >0:
+    #            print("Scaling transition dipole")
+                # if pulses defined only in time domain transfer to the frequency one
+                if not lab.has_freqdomain:
+                    self.lab.convert_to_frequency()
+    #            print("Pulses in frequeny domain")
+                if Np > self.nint and \
+                            lab.pulse_effects == "rescale_dip":
+                    # rescale dipole according to pulse intensity at transition frequency
+                    tr_energy = numpy.abs(self.energy[self.nint])
+                    pulse = lab.pulse_f[self.nint]
+    #                print("Pick pulse n.",self.nint,"Transition energy:",self.energy[self.nint])
+    #                print("Pulse at energy",self.energy[self.nint],"is",\
+    #                      numpy.real(pulse.at(tr_energy)))
+                    
+                    self.dmoments[self.nint,:] *= numpy.real(pulse.at(tr_energy))
+                
+        
         # check if the number of interactions is not larger than the order
         # of the pathway
         if self.nint < self.order:

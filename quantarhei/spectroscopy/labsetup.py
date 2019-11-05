@@ -48,6 +48,10 @@ class LabSetup:
     def __init__(self, nopulses = 3):
         
         self.number_of_pulses = nopulses
+        self.pulse_effects = "rescale_dip"  # Pulse shape effects accounted
+                                        # for by rescaling transition dipoles
+                                        # When the pulses are not defined no 
+                                        # rescaling is used.
     
         self.M4 = numpy.array([[4.0, -1.0, -1.0],
                                [-1.0, 4.0, -1.0],
@@ -315,10 +319,15 @@ class LabSetup:
                         fra = self.freqaxis
                         fwhm = par["FWHM"]
                         amp = par["amplitude"]
+                        try:
+                            freq = par["frequency"]
+                        except:
+                            freq = 0.0
                         
                         # normalized Gaussian mupliplied by amplitude
                         val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/3.14159) \
-                        *amp*numpy.exp(-4.0*numpy.log(2.0)*(fra.data/fwhm)**2)
+                        *amp*numpy.exp(-4.0*numpy.log(2.0)\
+                                       *((fra.data-freq)/fwhm)**2)
                         
                         self.pulse_f[k_p] = DFunction(fra, val) 
                         
