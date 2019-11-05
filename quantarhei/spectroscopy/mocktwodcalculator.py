@@ -21,13 +21,14 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
     
     """
 
-    def __init__(self, t1axis, t2axis, t3axis):
+    def __init__(self, t1axis, t2axis, t3axis,temp=None):
         #t2axis = TimeAxis()
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
         self.widthy = convert(300, "1/cm", "int")
         self.dephx = convert(300, "1/cm", "int")
-        self.dephy = convert(300, "1/cm", "int")        
+        self.dephy = convert(300, "1/cm", "int")   
+        self.temp = temp # Temperature
 
         
     def bootstrap(self,rwa=0.0, pathways=None, verbose=False, 
@@ -183,8 +184,14 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             Uin = eUt
     
         # FIXME: this needs to be set differently, and it mu
-        rho0 = sys.get_DensityMatrix(condition_type="thermal",
+        # density matrix stored into sys.rho0
+        #temp = sys.get_temperature()
+        if self.temp is None:
+            rho0 = sys.get_DensityMatrix(condition_type="thermal",
                                      temperature=0.0)
+        else:
+            rho0 = sys.get_DensityMatrix(condition_type="thermal",
+                                     temperature=self.temp)
         
         # if the Hamiltonian is larger than eUt, we will calculate ESA
         has_ESA = True
