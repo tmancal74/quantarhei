@@ -95,7 +95,7 @@ class ElectronicLindbladForm(LindbladForm):
         if isinstance(sbi.system, Aggregate):
             agg = sbi.system
 
-            if agg.Nel == agg.Ntot:
+            if agg.Nel == agg.Ntot or sbi.KK[0].shape[0] == agg.Ntot:
                 # if the number of electronic states corresponds to the total
                 # number of states, the aggregate is purely electronic. There
                 # is then no difference between Lindblad form and its
