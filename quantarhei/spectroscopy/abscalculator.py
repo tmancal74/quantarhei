@@ -18,10 +18,12 @@ from ..core.frequency import FrequencyAxis
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
+from ..core.managers import eigenbasis_of
+from ..core.units import convert
 
-from .abs2 import AbsSpectrum
+from .linear_spectra import LinSpectrum
 
-class AbsSpectrumCalculator(EnergyUnitsManaged):
+class LinSpectrumCalculator(EnergyUnitsManaged):
     """Linear absorption spectrum 
     
     Parameters
@@ -153,16 +155,36 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                             si,s=0).antiderivative()(ta.data)
         gt = sr + 1j*si
         return gt
+    
+    def _equilibrium_excit_populations(self, AG, temperature=300,
+                                 relaxation_hamiltonian=None):    
+        if relaxation_hamiltonian:
+            H = relaxation_hamiltonian
+        else:
+            H = AG.get_Hamiltonian()
+        with eigenbasis_of(H):
+            rho0 = AG.get_DensityMatrix(condition_type="thermal_excited_state",
+                             relaxation_theory_limit="weak_coupling",
+                             temperature=temperature,
+                             relaxation_hamiltonian=relaxation_hamiltonian)
+        return rho0
         
-    def one_transition_spectrum(self,tr):
+    def one_transition_spectrum_abs(self,tr):
         """ Calculates spectrum of one transition
         
         
         """
+        
+
         ta = tr["ta"] # TimeAxis
-        dd = tr["dd"] # transition dipole moment
+        dd = tr["dd"] # transition dipole strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        
+        # CD and fluorescence can be calculated in this step
+        # TODO if rotatory strength defined calculate also circular dichroism spectra
+        # TOOD calculate fluorescence spectra (for fluorescence there should be a switch because it should be calculated only for the first transition) 
+        
         
         if self.system._has_system_bath_coupling:
             ct = tr["ct"] # correlation function
@@ -174,7 +196,12 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         else:
             # calculate time dependent response
             at = numpy.exp(-1j*om*ta.data) 
-        
+#        plt.figure()
+#        plt.title("Absorption")
+#        plt.plot(ta.data,numpy.real(at))
+#        plt.plot(ta.data,numpy.imag(at))
+    
+                    
         if len(gg) == 1:
             gam = gg[0]
             rt = numpy.exp(gam*ta.data)
@@ -193,9 +220,114 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         # cut the center of the spectrum
         Nt = ta.length #len(ta.data)        
         return ft[Nt//2:Nt+Nt//2]
+    
+    def one_transition_spectrum_fluor(self,tr):
+        """ Calculates spectrum of one transition
+        
+        
+        """
+        
+
+        ta = tr["ta"] # TimeAxis
+        dd = tr["dd"] # transition dipole strength
+        om = tr["om"] # frequency - rwa
+        gg = tr["gg"] # natural broadening (constant or time dependent)
+        
+        # CD and fluorescence can be calculated in this step
+        # TODO if rotatory strength defined calculate also circular dichroism spectra
+        # TOOD calculate fluorescence spectra (for fluorescence there should be a switch because it should be calculated only for the first transition) 
+        
+        
+        if self.system._has_system_bath_coupling:
+            ct = tr["ct"] # correlation function
+            re = tr["re"] # reorganisation energy
+            
+            # convert correlation function to lineshape function
+            gt = self._c2g(ta,ct.data)
+            # calculate time dependent response
+            at = numpy.exp(-numpy.conjugate(gt) -1j*om*ta.data + 2j*re*ta.data)
+        else:
+            # calculate time dependent response
+            at = numpy.exp(-1j*om*ta.data) 
+#        plt.figure()
+#        plt.title("Absorption")
+#        plt.plot(ta.data,numpy.real(at))
+#        plt.plot(ta.data,numpy.imag(at))
+    
+                    
+        if len(gg) == 1:
+            gam = gg[0]
+            rt = numpy.exp(gam*ta.data)
+            at *= rt
+            #print("Constant: ", rt[20], len(at))
+        else:
+            rt = numpy.exp((gg)*ta.data)          
+            at *= rt
+            #print("Time dependent: len = ", rt[20], len(rt))
+            
+        # Fourier transform the result
+        ft = dd*numpy.fft.hfft(at)*ta.step
+        ft = numpy.fft.fftshift(ft)
+        # invert the order because hfft is a transform with -i
+        ft = numpy.flipud(ft)   
+        # cut the center of the spectrum
+        Nt = ta.length #len(ta.data)        
+        return ft[Nt//2:Nt+Nt//2]
+    
+    def one_transition_spectrum_cd(self,tr):
+        """ Calculates spectrum of one transition
+        
+        
+        """
+        
+
+        ta = tr["ta"] # TimeAxis
+        rr = tr["rr"] # transition dipole strength
+        om = tr["om"] # frequency - rwa
+        gg = tr["gg"] # natural broadening (constant or time dependent)
+        
+        # CD and fluorescence can be calculated in this step
+        # TODO if rotatory strength defined calculate also circular dichroism spectra
+        # TOOD calculate fluorescence spectra (for fluorescence there should be a switch because it should be calculated only for the first transition) 
+        
+        
+        if self.system._has_system_bath_coupling:
+            ct = tr["ct"] # correlation function
+        
+            # convert correlation function to lineshape function
+            gt = self._c2g(ta,ct.data)
+            # calculate time dependent response
+            at = numpy.exp(-gt -1j*om*ta.data)
+        else:
+            # calculate time dependent response
+            at = numpy.exp(-1j*om*ta.data) 
+#        plt.figure()
+#        plt.title("Absorption")
+#        plt.plot(ta.data,numpy.real(at))
+#        plt.plot(ta.data,numpy.imag(at))
+    
+                    
+        if len(gg) == 1:
+            gam = gg[0]
+            rt = numpy.exp(gam*ta.data)
+            at *= rt
+            #print("Constant: ", rt[20], len(at))
+        else:
+            rt = numpy.exp((gg)*ta.data)          
+            at *= rt
+            #print("Time dependent: len = ", rt[20], len(rt))
+            
+        # Fourier transform the result
+        ft = rr*numpy.fft.hfft(at)*ta.step
+        ft = numpy.fft.fftshift(ft)
+        # invert the order because hfft is a transform with -i
+        ft = numpy.flipud(ft)   
+        # cut the center of the spectrum
+        Nt = ta.length #len(ta.data)        
+        return ft[Nt//2:Nt+Nt//2]
 
         
-    def _excitonic_coft(self,SS,AG,n):
+    def _excitonic_coft_old(self,SS,AG,n):
         """ Returns energy gap correlation function data of an exciton state 
         
         """
@@ -210,8 +342,13 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         # CorrelationFunctionMatrix
         cfm = sbi.CC
         
+        # get number of monomeric basis states
+        Na = 0
+        for monomer in AG.monomers:
+            Na += monomer.nel-1
+        
         ct = numpy.zeros((Nt),dtype=numpy.complex128)
-        Na = AG.nmono
+        #Na = AG.nmono
         for kk in range(Na):
             
             #nkk = AG.monomers[kk].egcf_mapping[0]
@@ -224,8 +361,90 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                 #*AG.egcf_matrix.get_coft(nkk,nll))
             
         return ct
+    
+    def _excitonic_coft(self,SS,AG,n):
+        """ Returns energy gap correlation function data of an exciton state n
+        
+        """
+        
+        # SystemBathInteraction
+        sbi = AG.get_SystemBathInteraction()
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+            
+        c0 = AG.monomers[0].get_egcf((0,1))
+        Nt = len(c0)
+    
+        ct = numpy.zeros((Nt),dtype=numpy.complex128)
 
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for el1 in elst:
+            for el2 in elst:
+                coft = cfm.get_coft(el1-1,el2-1)
+                for kk in AG.vibindices[el1]:
+                    for ll in AG.vibindices[el2]:
+                        ct += ((SS[kk,n]**2)*(SS[ll,n]**2)*coft)
+        return ct
 
+    def _excitonic_reorg_energy(self, SS, AG, n):
+        """ Returns the reorganisation energy of an exciton state
+        """
+    
+#        c0 = AG.monomers[0].get_egcf((0,1))
+#        Nt = len(c0)
+        
+        # SystemBathInteraction
+        sbi = AG.get_SystemBathInteraction()
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+        
+        rg = 0.0
+        
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for el1 in elst:
+            reorg = cfm.get_reorganization_energy(el1-1,el1-1)
+            for kk in AG.vibindices[el1]:
+                rg += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
+        #print(SS[:,n])
+        #print(n,rg)
+        return rg    
+    
+    
+    def _excitonic_rotatory_strength(self,SS,AG,energy,n):
+        # Initialize rotatory strength
+        Rot_n = 0
+        
+        for ii in range(AG.Ntot):
+            for jj in range(ii+1,AG.Ntot):
+                Rot_n += SS[ii,n]*SS[jj,n]*AG.RR[ii,jj]
+#                print(ii,jj,SS[ii,n],SS[jj,n],AG.RR[ii,jj])
+#                
+#        
+#        # electronic states corresponding to single excited states
+#        elst = numpy.where(AG.which_band == 1)[0]
+#        for el1 in elst:
+#            # get monomer number
+#            mon_indx = numpy.nonzero(AG.elsigs[el1])[0][0]
+#            mon1 = AG.monomers[mon_indx]
+#            Ri = mon1.position
+#            for el2 in elst:
+#                if el2>el1:
+#                    mon_indx = numpy.nonzero(AG.elsigs[el2])[0][0]
+#                    mon2 = AG.monomers[mon_indx]
+#                    Rj = mon2.position
+#                    
+#                    for ii in AG.vibindices[el1]:
+#                        di = AG.vibdipoles[0,ii]
+#                        for jj in AG.vibindices[el2]:
+#                            dj = AG.vibdipoles[0,jj]
+        
+        # Scale by excitation energy:
+        Rot_n *= energy[n]
+#        print(Rot_n,energy,n)
+        return Rot_n                    
+                
         
     def _calculate_monomer(self, raw=False):
         """ Calculates the absorption spectrum of a monomer 
@@ -250,7 +469,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
 
         # calculates the one transition of the monomer        
-        data = numpy.real(self.one_transition_spectrum(tr))
+        data = numpy.real(self.one_transition_spectrum_abs(tr))
         
 
         # we only want to retain the upper half of the spectrum
@@ -265,7 +484,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             data = axis.data*data
 
         
-        spect = AbsSpectrum(axis=axis, data=data)
+        spect = LinSpectrum(axis=axis, data=data)
         
         return spect
         
@@ -288,7 +507,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             
 
         SS = HH.diagonalize() # transformed into eigenbasis
-
+        energy = numpy.diag(HH.data)
         
         # Transition dipole moment operator
         DD = self.system.get_TransitionDipoleMoment()
@@ -329,15 +548,31 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
         tr["om"] = HH.data[1,1]-HH.data[0,0]-self.rwa
         # get a transformed ct here
-        ct = self._excitonic_coft(SS,self.system,0)
+        ct = self._excitonic_coft(SS,self.system,1)
         #tr.append(ct)
         tr["ct"] = ct
+        tr["re"] = self._excitonic_reorg_energy(SS,self.system,1)
+        tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
+#        print(1,convert(HH.data[1,1]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[1,1]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
+#        print(convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+        
         self.system._has_system_bath_coupling = True
         
+        temperature = self.system.sbi.get_temperature()
+        rho_eq_exct = self._equilibrium_excit_populations(self.system,
+                                               temperature=temperature)
+        
+#        print(tr["ct"])
+#        print(max(tr["ct"]))
+#        print(self.one_transition_spectrum(tr))
+#        print(max(self.one_transition_spectrum(tr)))
         #
         # Calculates spectrum of a single transition
         #
-        data = numpy.real(self.one_transition_spectrum(tr))
+        data = numpy.real(self.one_transition_spectrum_abs(tr))
+        data_fl = rho_eq_exct.data[1, 1]*numpy.real(self.one_transition_spectrum_fluor(tr))
+        data_cd = numpy.real(self.one_transition_spectrum_cd(tr))
+#        print("Population mine:",rho_eq_exct.data[1, 1])
         
         for ii in range(2,HH.dim):
             if relaxation_tensor is not None:
@@ -349,13 +584,26 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
             tr["om"] = HH.data[ii,ii]-HH.data[0,0]-self.rwa
             #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
-            tr["ct"] = self._excitonic_coft(SS,self.system,ii-1)
+            tr["ct"] = self._excitonic_coft(SS,self.system,ii)
+            tr["re"] = self._excitonic_reorg_energy(SS,self.system,ii)
+            tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,ii)
+#            print(ii,convert(HH.data[ii,ii]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[ii,ii]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
+#            print(convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+            # conversion factor is convert rotatory strength to inverse centimeters and multiply *numpy.pi*1e-4
+            
+#            tr["ct"] = ct
+#            print(tr["ct"])
+#            print(max(tr["ct"]))
+#            print(self.one_transition_spectrum(tr))
+#            print(max(self.one_transition_spectrum(tr)))
             
             #
             # Calculates spectrum of a single transition
             #
-            data += numpy.real(self.one_transition_spectrum(tr))
-
+            data += numpy.real(self.one_transition_spectrum_abs(tr))
+            data_fl += rho_eq_exct.data[ii, ii]*numpy.real(self.one_transition_spectrum_fluor(tr))
+            data_cd += numpy.real(self.one_transition_spectrum_cd(tr))
+#            print("Population mine:",rho_eq_exct.data[ii, ii])
 
         # we only want to retain the upper half of the spectrum
         Nt = len(self.frequencyAxis.data)//2        
@@ -367,6 +615,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         # multiply the spectrum by frequency (compulsory prefactor)
         if not raw:
             data = axis.data*data
+            data_fl = axis.data*data_fl
+            data_cd =  axis.data*data_cd
         
         # transform all quantities back
         S1 = numpy.linalg.inv(SS)
@@ -376,8 +626,44 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         if relaxation_tensor is not None:
             RR.transform(S1)
 
-        spect = AbsSpectrum(axis=axis, data=data)
+        abs_spect = LinSpectrum(axis=axis, data=data)
+        fluor_spect = LinSpectrum(axis=axis, data=data_fl)
+        CD_spect = LinSpectrum(axis=axis, data=data_cd)
         
-        return spect        
+        return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect}      
 
                    
+class AbsSpectrumCalculator(LinSpectrumCalculator):
+    def __init__(self, timeaxis,
+                 system=None,
+                 dynamics="secular",
+                 relaxation_tensor=None,
+                 rate_matrix=None,
+                 effective_hamiltonian=None):
+
+        super().__init__(timeaxis,
+                 system=system,
+                 dynamics=dynamics,
+                 relaxation_tensor=relaxation_tensor,
+                 rate_matrix=rate_matrix,
+                 effective_hamiltonian=effective_hamiltonian)
+    
+    def calculate(self, raw=False):
+        with energy_units("int"):
+            if self.system is not None:
+                if isinstance(self.system,Molecule):
+                    #self._calculate_Molecule(rwa)      
+                    spect = self._calculate_monomer(raw=raw)
+                elif isinstance(self.system, Aggregate):
+                    spect = self._calculate_aggregate( 
+                                              relaxation_tensor=
+                                              self._relaxation_tensor,
+                                              rate_matrix=
+                                              self._rate_matrix,
+                                              relaxation_hamiltonian=
+                                              self._relaxation_hamiltonian,
+                                              raw=raw)["abs"]
+            else:
+                raise Exception("System to calculate spectrum for not defined")
+        
+        return spect

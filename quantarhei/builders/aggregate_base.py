@@ -272,6 +272,7 @@ class AggregateBase(UnitsManaged, Saveable):
         """
         if not self.coupling_initiated:
             self.init_coupling_matrix() 
+            self.init_coupling_vector() 
             
         coup = self.convert_energy_2_internal_u(coupling)
         
@@ -279,6 +280,122 @@ class AggregateBase(UnitsManaged, Saveable):
         self.resonance_coupling[j,i] = coup
         #
         # TESTED
+    
+    def _set_coupling_vec(self,mon1,init1,fin1,mon2,init2,fin2,coupling):
+        if not self.coupling_initiated:
+            self.init_coupling_vector() 
+        
+        if mon1<mon2:
+            indx1 = mon1
+            indx4 = mon2 - mon1 -1
+        else:
+            indx1 = mon2
+            indx4 = mon1 - mon2 -1
+        
+        if init1<fin1:
+            indx2 = init1
+            indx3 = fin1 - init1 -1
+        else:
+            indx2 = fin1
+            indx3 = init1 - fin1 - 1
+        
+        if init2<fin2:
+            indx5 = init2
+            indx6 = fin2 - init2 -1
+        else:
+            indx5 = fin2
+            indx6 = init2 - fin2 - 1
+            
+        coupling_indx = self._mol2coupling[indx1][indx2][indx3][indx4][indx5][indx6]
+        self.resonance_coupling_vec[coupling_indx] = self.convert_energy_2_internal_u(coupling)
+        
+        return 
+    
+    
+    def set_coupling_by_Hamiltonian(self,HH):
+        """ set the resonance coupling values according to given electronic
+        Hamiltonian (single exciton band is expected - without the ground state)
+        """
+        
+        # FIXME: Allow higher excited states for the monomer
+        
+        count=[0,0]
+        Nmon = len(self.monomers)
+        for mon1indx in range(Nmon):
+            mon1 = self.monomers[mon1indx]
+            for elst1 in range(1,mon1.nel): # without the ground state
+                count[1] = 0
+                for mon2indx in range(Nmon):
+                    mon2 = self.monomers[mon2indx]
+                    for elst2 in range(1,mon2.nel):
+                        if mon2indx > mon1indx:
+                            coupling = HH[count[0],count[1]]
+#                            print(count[0],count[1],coupling)
+                            self._set_coupling_vec(mon1indx,0,elst1,
+                                                   mon2indx,0,elst2,coupling)
+                        count[1] += 1 
+                count[0] += 1
+                    
+            
+    def set_resonance_coupling_vec(self, i, j, coupling):
+        """Sets resonance coupling value between two sites (between !electronic
+        states!)
+        
+        """
+        if not self.coupling_initiated:
+            self.init_coupling_vector() 
+            # TODD: Delete unnesesary
+            self.init_coupling_matrix()
+         
+        # TODD: Delete unnesesary
+        coup = self.convert_energy_2_internal_u(coupling)
+        self.resonance_coupling[i,j] = coup
+        self.resonance_coupling[j,i] = coup
+        
+        text_warning = "Trying to define coupling between states within single molecule"
+        
+        if self.nmono > 1:
+            elst1 = self.elsigs[i]
+            elst2 = self.elsigs[j]
+            if self.which_band[i] == self.which_band[j]:
+                if self.which_band[i] == 1:
+                    mon1 = numpy.nonzero(elst1)[0][0]
+                    mon2 = numpy.nonzero(elst2)[0][0]
+                    if mon1 == mon2:
+                        print(text_warning)
+                    else:
+                        fin1 = elst1[mon1]
+                        fin2 = elst2[mon2]
+                        self._set_coupling_vec(mon1,0,fin1,mon2,0,fin2,coupling)
+                else:
+                    Ns = len(elst1)
+                    sites = [0,0]
+                    k = 0
+                    # count differences
+                    for i in range(Ns):
+                        if elst1[i] != elst2[i]:
+                            if (k == 0) or (k == 1):
+                                sites[k] = i
+                            k += 1
+                    # if there are exactly 2 differences, the differing
+                    # two molecules are those coupled; sites[k] contains
+                    # indiced those coupled molecules
+                    if k == 2:
+                        mon1 = sites[0]
+                        mon2 = sites[1]
+                        
+                        init1 = elst1[mon1]
+                        fin1 = elst2[mon1]
+                        init2 = elst1[mon2]
+                        fin2 = elst2[mon2]
+                    
+                        self._set_coupling_vec(mon1,init1,fin1,mon2,init2,fin2,coupling)
+                    else:
+                        print(text_warning)
+            else:
+                print(text_warning)        
+        else:
+            print(text_warning)
  
        
     def get_resonance_coupling(self, i, j):
@@ -1574,6 +1691,8 @@ class AggregateBase(UnitsManaged, Saveable):
         HH = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         # Transition dipole moment matrix
         DD = numpy.zeros((Ntot, Ntot, 3),dtype=numpy.float64)
+        # Rotatory strength matrix
+        RR = numpy.zeros((Ntot, Ntot),dtype=numpy.float64)
         # Matrix of Franck-Condon factors
         FC = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         # Matrix of the transition widths (their square roots)
@@ -1652,6 +1771,19 @@ class AggregateBase(UnitsManaged, Saveable):
             
                 DD[a,b,:] = numpy.real(self.transition_dipole(s1, s2))                
                 FC[a,b] = numpy.real(self.fc_factor(s1, s2))
+                # FIXME: Here we assume only excitation from the lowest state (lowest vibrational state)
+                mon1=s1.get_monomer()
+                mon2=s2.get_monomer()
+#                print(mon1,mon2)
+                try:
+                    if mon1 != -1 and mon2 != -1:
+                        Ra = numpy.array(self.monomers[mon1].position,"f8")
+                        Rb = numpy.array(self.monomers[mon2].position,"f8")
+                        da = self.transition_dipole(s0, s1)
+                        db = self.transition_dipole(s0, s2)
+                        RR[a,b] = numpy.dot( (Ra - Rb), numpy.cross(da, db)) 
+                except:
+                    pass
                 
                 if a != b:
                     #HH[a,b] = numpy.real(self.coupling(s1, s2)) 
@@ -1678,6 +1810,8 @@ class AggregateBase(UnitsManaged, Saveable):
         self.HamOp = Hamiltonian(data=HH)
         # dipole moments
         self.DD = DD
+        # Oscilatory strength
+        self.RR = RR
         self.TrDMOp = TransitionDipoleMoment(data=DD) 
         # Franck-Condon factors
         self.FCf = FC
@@ -1724,6 +1858,14 @@ class AggregateBase(UnitsManaged, Saveable):
         for ii in range(self.mult):
             rwa_indices[ii+1] = rwa_indices[ii]+self.Nb[ii]
         self.HamOp.set_rwa(rwa_indices)
+        
+        engtmp = numpy.diag(self.HH)
+        self.vibenergy = engtmp.copy() # to keep site basis info also after diag.
+        self.vibdipoles = self.DD.copy() # to keep site basis info also after diag.
+        indxsorted = numpy.argsort(engtmp)
+        self.vibsigs_engsort = [None]*self.Ntot
+        for ii in range(self.Ntot):
+            self.vibsigs_engsort[ii] = self.vibsigs[indxsorted[ii]]
        
         
         #######################################################################
@@ -1741,15 +1883,20 @@ class AggregateBase(UnitsManaged, Saveable):
         # is energy gap correlation function matrix present?
         if self._has_egcf_matrix:
             
+            nmonst = 0
+            for monomer in self.monomers:
+                nmonst += monomer.nel-1
+            
             # Check the consistency of the energy gap correlation matrix
-            if self.egcf_matrix.nob != self.nmono:
+            if self.egcf_matrix.nob != nmonst:
                 raise Exception("Correlation matrix has a size different" + 
-                                " from the number of monomers")
+                                " from the number of monomeric states")
             #FIXME The aggregate having a egcf matrix does not mean the monomers
             #have egcf matrices. They could just have correlation funtions.
             for i in range(self.nmono):
                 if self.monomers[i]._is_mapped_on_egcf_matrix and \
                 not (self.monomers[i].egcf_matrix is self.egcf_matrix):
+                    # TODO: Ask about this - it would mean that every monomer has the same energy gap correlation function 
                     raise Exception("Correlation matrix in the monomer" +
                                     " has to be the same as the one of" +
                                     " the aggregate.")
@@ -1887,9 +2034,14 @@ class AggregateBase(UnitsManaged, Saveable):
             else:
                 Nop = self.Nbe[1] # we count only single excited states
 
+            # count electronic states of monomeric basis
+            nmonst = 0
+            for monomer in self.monomers:
+                nmonst += monomer.nel-1
+
             # if there are more states in the single exciton block
             # than the number of sites, it means we have vibrational states
-            if self.nmono != self.Nb[1]:
+            if nmonst != self.Nb[1]:
                 # create a projection operator for each monomer
                 # a monomer corresponds to one single excited state starting
                 # with electronic index 1 (0 is the ground state)
@@ -1898,6 +2050,8 @@ class AggregateBase(UnitsManaged, Saveable):
                     op1 = Operator(dim=self.HH.shape[0],real=True)
                     # here we make a projector on a given electronic state |i>
                     # ASSUMPTION: Oscillator is represented by its eigenstates
+# FIXME: if it should be projector on electronic states there should be elinds
+#        instead of vibindexes
                     for j in self.vibindices[i]:
                         op1.data[j,j] = 1.0
                     iops.append(op1)      
@@ -1912,7 +2066,7 @@ class AggregateBase(UnitsManaged, Saveable):
                     op1 = Operator(dim=self.HH.shape[0],real=True)
                     op1.data[i,i] = 1.0
                     iops.append(op1)
-                
+# HERE I have finished
             # we create SystemBathInteraction object
             self.sbi = SystemBathInteraction(iops,
                                 self.egcf_matrix, system=self)  

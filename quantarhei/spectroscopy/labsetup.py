@@ -111,7 +111,7 @@ class LabSetup:
             .. math::
                  
                 \\rm{shape}(\\omega) = 
-                \\frac{2}{\\Delta}\\sqrt{\\frac{4\\ln(2)}{\\pi}}
+                \\frac{2}{\\Delta}\\sqrt{\\frac{\\ln(2)}{\\pi}}
                 \\exp\\left\\{-\\frac{4\\ln(2)\\omega^2}{\\Delta^2}\\right\\}
 
             The same formulae are used for time- and frequency domain
