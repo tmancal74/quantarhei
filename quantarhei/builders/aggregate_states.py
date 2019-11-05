@@ -445,6 +445,14 @@ class VibronicState(UnitsManaged):
                 % self.elstate.aggregate.nmono)
         return out        
     
+    def get_monomer(self):
+        elsig = self.signature()[0]
+        nz = numpy.nonzero(elsig)[0]
+        if len(nz)==1:
+            monomer = nz[0]
+        else:
+            monomer = -1
+        return monomer
     
 class Coherence:
     """Class representing quantum mechanical coherence
