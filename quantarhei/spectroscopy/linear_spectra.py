@@ -17,9 +17,3 @@ class LinSpectrum(AbsSpectrumBase):
     
     """
     pass
-<<<<<<< HEAD
-     
-     
-     
-=======
->>>>>>> 89330667c2c37620a918169f9939b6c96ff58c8c
