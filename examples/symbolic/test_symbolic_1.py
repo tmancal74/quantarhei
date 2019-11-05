@@ -30,7 +30,7 @@ A     = Uged(d,T) *Uedg(a,t)*Ugde(b,t)* Uegd(c,T)
 Anorm = Uged(d,T)*Uegd(c,T)
 
 
-verbatim = False
+verbatim = True
 if verbatim:
     print(" ")
     print("Expression to evaluate: ")

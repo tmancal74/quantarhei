@@ -138,6 +138,7 @@ class TwoDResponseCalculator:
                 raise Exception("Molecule 2D not implememted")
                 
             agg = self.system
+            agg.diagonalize()
             
             #
             # hamiltonian and transition dipole moment operators
@@ -190,7 +191,7 @@ class TwoDResponseCalculator:
             
             # relaxation rate in single exciton band
             Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
-            #print(1.0/Kr)
+            #print(1.0/KK.data)
             
             self.sys.init_dephasing_rates()
             self.sys.set_relaxation_rates(1,Kr)

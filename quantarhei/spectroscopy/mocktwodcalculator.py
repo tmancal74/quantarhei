@@ -250,6 +250,19 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     print(mx, numpy.abs(mx))
                     anl.pathways = pws
                     pws = anl.select_amplitude_GT(numpy.abs(mx))
+                    
+                if rule[0] == "secular":
+                    pass
+                
+                if rule[0] == "incoherent":
+                    pws = []
+                    for ii in range(len(anl.pathways)):
+                        pw = anl.pathways[ii]
+                        states = pw.get_states()
+                        pair = states[2]
+                        if pair[0] == pair[1]:
+                            #print(ii, pair)
+                            pws.append(pw)
                         
                     
             
