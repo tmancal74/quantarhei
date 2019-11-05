@@ -78,7 +78,7 @@ class liouville_pathway(UnitsManaged):
         # current state of the pathway (during building)
         self.current = numpy.zeros(2,dtype=numpy.int16)
         self.current[0] = sinit
-        self.current[0] = sinit
+        self.current[1] = sinit
 
         # index counting the number of interactions with light
         self.nint = 0
@@ -283,7 +283,7 @@ class liouville_pathway(UnitsManaged):
         # which side is interacted on? Left or right?
         sd = (abs(side)-side)//2
         text = ["right","left"]        
-        
+
         # check if the transition start is consistent with current state
         # in the diagram
         if (self.current[sd] != ni):
@@ -309,7 +309,6 @@ class liouville_pathway(UnitsManaged):
             
         # save the current 
         self.current[sd] = nf
-        
         self.states[self.ne,0] = self.current[0]
         self.states[self.ne,1] = self.current[1]
         
