@@ -513,14 +513,23 @@ class AggregateBase(UnitsManaged, Saveable):
                 return width
             
             elif abs(b2-b1) == 2:
-                
-                (indx1, indx2) = self._get_twoexindx(state1, state2)
-                #print(state1.elstate.elsignature, 
-                #      state2.elstate.elsignature, indx1, indx2)
-                width = self.monomers[indx1].get_transition_width((0,1))
-                width += self.monomers[indx2].get_transition_width((0,1))
-                #print(indx1, indx2, width)
-                return width
+                sig1 = state1.elstate.get_signature()
+                sig2 = state2.elstate.get_signature()
+                if (2 in sig1) or (2 in sig2):
+                    exindx = self._get_exindx(state1, state2)
+                    #print("Two-ex:", exindx)
+                    # FIXME: The factor of 2 needs to be checked and justified
+                    width = \
+                    2.0*self.monomers[exindx].get_transition_width((0,1))
+                    return width
+                else:
+                    (indx1, indx2) = self._get_twoexindx(state1, state2)
+                    #print(state1.elstate.elsignature, 
+                    #      state2.elstate.elsignature, indx1, indx2)
+                    width = self.monomers[indx1].get_transition_width((0,1))
+                    width += self.monomers[indx2].get_transition_width((0,1))
+                    #print(indx1, indx2, width)
+                    return width
             
             else:
                 return -1.0
@@ -708,7 +717,7 @@ class AggregateBase(UnitsManaged, Saveable):
         # only states in neighboring bands can be connected by dipole moment
         b1 = state1.elstate.band
         b2 = state2.elstate.band
-        if (abs(b1-b2) != 1):
+        if (abs(b1-b2) != 1) and (abs(b1-b2) != 2):
             return -1
         
         # count the number of differences
@@ -828,7 +837,7 @@ class AggregateBase(UnitsManaged, Saveable):
         return VibronicState(elstate, vsig) 
     
     
-    def coupling(self, state1, state2):
+    def coupling(self, state1, state2, full=False):
         """Coupling between two aggregate states 
         
         
@@ -850,6 +859,7 @@ class AggregateBase(UnitsManaged, Saveable):
             if self.nmono > 1:
                 # coupling within the bands
                 if state1.band == state2.band:
+                    #print("Band:", state1.band)
                     
                     if state1.band == 1:
                         
@@ -883,7 +893,12 @@ class AggregateBase(UnitsManaged, Saveable):
                             coup = self.resonance_coupling[kk,ll]   
                         else:
                             coup = 0.0
-                            
+                        
+                elif state1.band + 2 == state2.band:
+                    
+                    #print(state1.elsignature, state2.elsignature)
+                    coup = 0.0
+                        
                 else:
                     coup = 0.0
     
@@ -918,6 +933,7 @@ class AggregateBase(UnitsManaged, Saveable):
                             coup = self.resonance_coupling[kk,ll]*fc
                         else:
                             coup = 0.0
+                            
                     else:
                         
                         els1 = es1.elsignature
@@ -937,9 +953,49 @@ class AggregateBase(UnitsManaged, Saveable):
                         if k == 2:
                             kk = sites[0]
                             ll = sites[1]
-                            coup = self.resonance_coupling[kk,ll]*fc    
+                            #print(kk,ll,els1,els2)
+                            ar1 = numpy.array(els1)
+                            ar2 = numpy.array(els2)
+                            df = numpy.abs(ar1-ar2)
+                            sdf = numpy.sum(df)
+                            if (sdf == 2):
+                                mx1 = numpy.max([ar1[kk],ar2[kk]])
+                                mx2 = numpy.max([ar1[ll],ar2[ll]])
+                                #print("max:",mx1,mx2)
+                                harm_fc = numpy.sqrt(numpy.real(mx1))
+                                harm_fc = harm_fc*numpy.sqrt(numpy.real(mx2))
+                                fc = fc*harm_fc
+                                #print(harm_fc)
+                                coup = self.resonance_coupling[kk,ll]*fc 
+                            else:
+                                coup = 0.0
                         else:
                             coup = 0.0
+                            
+                elif (numpy.abs(es1.band - es2.band) == 2) and full:
+                    
+                    #print(es1.elsignature, es2.elsignature)
+                    #print("Here we calculate coupling between bands")
+                    els1 = es1.elsignature
+                    els2 = es2.elsignature
+                    Ns = len(els1)
+                    sites = [0,0]
+                    k = 0
+                    # count differences
+                    for i in range(Ns):
+                        if els1[i] != els2[i]:
+                            if (k == 0) or (k == 1):
+                                sites[k] = i
+                            k += 1      
+                    # if there are exactly 2 differences, the differing
+                    # two molecules are those coupled; sites[k] contains
+                    # indiced those coupled molecules
+                    if k == 2:
+                        kk = sites[0]
+                        ll = sites[1]
+                        coup = self.resonance_coupling[kk,ll]*fc    
+                    else:
+                        coup = 0.0  
                         
                 else:
                     coup = 0.0
@@ -956,7 +1012,7 @@ class AggregateBase(UnitsManaged, Saveable):
     #
     #######################################################################
 
-    def elsignatures(self, mult=1, mode="LQ"):
+    def elsignatures(self, mult=1, mode="LQ", emax=None):
         """ Generator of electronic signatures 
         
         Here we create signature tuples of electronic states. The signature
@@ -988,7 +1044,10 @@ class AggregateBase(UnitsManaged, Saveable):
         l = len(self.monomers)
 
         # list of maximum numbers of excitations on each sites
-        omax = self.get_max_excitations()
+        if emax is None:
+            omax = self.get_max_excitations()
+        else:
+            omax = emax
         
         if mult < 0:
             raise Exception("mult must be larger than or equal to zero")
@@ -1041,7 +1100,7 @@ class AggregateBase(UnitsManaged, Saveable):
             # go through all positions from the last index on (in order 
             # to create unique signatures)
             for i in range(strt[k],l):
-                # if it is possible to add and excitation
+                # if it is possible to add an excitation
                 # make a new list and add
                 if inlist[i] < omax[i]:
                     out = inlist.copy()
@@ -1203,7 +1262,8 @@ class AggregateBase(UnitsManaged, Saveable):
     ###########################################################################
         
     def build(self, mult=1, sbi_for_higher_ex=False,
-              vibgen_approx=None, Nvib=None, vibenergy_cutoff=None):
+              vibgen_approx=None, Nvib=None, vibenergy_cutoff=None, 
+              fem_full=False):
         """Builds aggregate properties
         
         Calculates Hamiltonian and transition dipole moment matrices and
@@ -1337,7 +1397,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 FC[a,b] = numpy.real(self.fc_factor(s1, s2))
                 
                 if a != b:
-                    HH[a,b] = numpy.real(self.coupling(s1, s2)) 
+                    HH[a,b] = numpy.real(self.coupling(s1, s2, full=fem_full))
         
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
@@ -2670,7 +2730,7 @@ class AggregateBase(UnitsManaged, Saveable):
         else:
             raise Exception("Aggregate object not built")
             
-    def get_electronic_Hamiltonian(self):
+    def get_electronic_Hamiltonian(self, full=False):
         """Returns the aggregate electronic Hamiltonian
         
         In case this is a purely electronic aggregate, the output
@@ -2683,7 +2743,7 @@ class AggregateBase(UnitsManaged, Saveable):
             HH[a,a] = sta.energy()
             for (b, stb) in self.elstates(mult=self.mult):
                 if a != b:
-                    HH[a,b] = self.coupling(sta, stb) 
+                    HH[a,b] = self.coupling(sta, stb, full=full) 
         HHel = Hamiltonian(data=HH)
         
         return HHel
