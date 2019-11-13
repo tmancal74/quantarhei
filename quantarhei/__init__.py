@@ -144,11 +144,12 @@ m = Manager()
 REAL = m.get_real_type() #numpy.float64
 COMPLEX = m.get_complex_type() #numpy.complex128
 
-LOG_URGENT = 0
+LOG_URGENT = 1
 LOG_REPORT = 3
 LOG_INFO = 5
 LOG_DETAIL = 7
 LOG_QUICK = 9
+
 
 #
 # Non-linear response signals
@@ -366,8 +367,32 @@ from .utils.logging import log_quick
 
 from .utils.logging import tprint
 
+from .utils.timing import timeit
+from .utils.timing import untimeit
+from .utils.timing import finished_in
+from .utils.timing import done_in
+
 from .wizard.input.input import Input
 
 
+def exit(msg=None):
+    """Exit to the level above the script with SystemExit exception
+    
+    """
+    import sys
+    if msg is not None:
+        printlog("\n(SystemExit) Message: "+msg+"\n", loglevel=0)
+    sys.exit()
 
 
+def stop():
+    """Stop execution and leave to level above
+    
+    """
+    exit("Execution stopped")
+    
+    
+    
+def show_plot(block=True):
+    import matplotlib.pyplot as plt
+    plt.show(block=block)

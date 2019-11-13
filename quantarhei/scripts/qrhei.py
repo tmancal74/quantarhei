@@ -96,7 +96,7 @@ def do_command_run(args):
     #
     # Greeting 
     #
-    qr.printlog("Running Quantarhei (python) script file: ", scr,
+    qr.printlog("\nRunning Quantarhei (python) script file: ", scr,
                 verbose=True, loglevel=3)
         
     
@@ -127,7 +127,7 @@ def do_command_run(args):
         if nprocesses != 0:
             prl_np = nprocesses
         
-        engine = "qrhei -s "
+        engine = "qrhei run "
         
         # running MPI with proper parallel configuration
         prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "
@@ -138,26 +138,35 @@ def do_command_run(args):
             "processes (executing command below)")
             print(cmd)
             print("")
-        p = subprocess.Popen(cmd,
+            
+        try:
+            p = subprocess.Popen(cmd,
                              shell=True, stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
 
-        if not flag_silent:
-            print(" --- output below ---")
-        
-        # read and print output
-        for line in iter(p.stdout.readline, b''):
-        #for line in p.stdout.readlines():
-            ln = line.decode()
-            # line is returned with a \n character at the end 
-            # ln = ln[0:len(ln)-2]
-            print(ln, end="", flush=True)
+
+            if not flag_silent:
+                print(" --- output below ---\n")
             
-        retval = p.wait()    
-        
+            # read and print output
+            for line in iter(p.stdout.readline, b''):
+            #for line in p.stdout.readlines():
+                ln = line.decode()
+                # line is returned with a \n character at the end 
+                # ln = ln[0:len(ln)-2]
+                print(ln, end="", flush=True)
+                
+            retval = p.wait()  
+            
+        except SystemExit:
+            
+            #qr.printlog("", verbose=True, loglevel=8)
+            #qr.printlog(" --- Exited by SystemExit --- ", verbose=True, loglevel=8)
+            pass
+            
     else:
         
-        qr.printlog(" --- output below ---", verbose=True, loglevel=0)
+        qr.printlog(" --- output below ---\n", verbose=True, loglevel=0)
         # running the script within the same interpreter
         
         try:
@@ -167,6 +176,12 @@ def do_command_run(args):
             with open(scr,'U') as fp:
                 code = fp.read()
             exec(compile(code, scr, "exec"), globals())
+            
+        except SystemExit:
+        
+            #qr.printlog("", verbose=True, loglevel=8)
+            #qr.printlog(" --- Exited by SystemExit --- ", verbose=True, loglevel=8) 
+            pass
             
         except: # Exception: e
             #print(str(e))

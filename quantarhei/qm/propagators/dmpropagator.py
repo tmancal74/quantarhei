@@ -9,7 +9,7 @@
 
 import numpy
 
-from .propagations import DMPropagation
+from .dmevolution import DensityMatrixEvolution
 
    
 class DMPropagator:
@@ -39,7 +39,7 @@ class DMPropagator:
               Short exp integration
         """
         
-        pr = DMPropagation(self.timeaxis,rhoi)
+        pr = DensityMatrixEvolution(self.timeaxis,rhoi)
         rho1 = rhoi.data
         rho2 = rhoi.data
         

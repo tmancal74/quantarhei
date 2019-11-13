@@ -413,6 +413,11 @@ def select_omega2(interval, pathways, secular=True,
     return selected
 
 
+#def select_incoherent(pathways):
+#    
+#    for pway in pathways:
+        
+
 def order_by_amplitude(pthways):
     """Orders the list of pathways by pathway prefactors
     

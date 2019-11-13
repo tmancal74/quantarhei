@@ -30,7 +30,7 @@ def log_quick(*args, verbose=True, **kwargs):
     printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)
 
 
-def printlog(*args, verbose=True, loglevel=0, 
+def printlog(*args, verbose=True, loglevel=5, 
              incr_indent=0, use_indent=True, **kwargs):
     """Prints logging information
 
@@ -93,7 +93,7 @@ def printlog(*args, verbose=True, loglevel=0,
         return
     
     manager.log_indent += incr_indent
-    if loglevel < manager.verbosity:
+    if loglevel <= manager.verbosity:
 
         if manager.log_on_screen:
             if use_indent:
