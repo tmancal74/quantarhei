@@ -10,9 +10,9 @@
 """
 import argparse
 import subprocess
-from pathlib import Path
+#from pathlib import Path
 import os
-import sys
+#import sys
 import fnmatch
 import traceback
 
@@ -30,10 +30,20 @@ def do_command_run(args):
     m = qr.Manager().log_conf
     
     m.verbosity = args.verbosity
+    m.fverbosity = args.fverbosity
+    
+    if args.logtofile == "":
+        m.log_to_file = False
+    else:
+        m.log_to_file = True
+        m.log_file_name = args.logtofile
+    
+
 
     nprocesses = args.nprocesses
     flag_parallel = args.parallel
     flag_silent = args.silent
+    flag_quiet = args.quiet
     
     if args.silent:
         m.verbosity = 0
@@ -96,8 +106,10 @@ def do_command_run(args):
     #
     # Greeting 
     #
-    qr.printlog("\nRunning Quantarhei (python) script file: ", scr,
-                verbose=True, loglevel=3)
+    if not flag_quiet:
+        qr.printlog("",verbose=True, loglevel=1)
+        qr.printlog("Running Quantarhei (python) script file: ", scr,
+                    verbose=True, loglevel=1)
         
     
     #
@@ -127,17 +139,21 @@ def do_command_run(args):
         if nprocesses != 0:
             prl_np = nprocesses
         
-        engine = "qrhei run "
+        #
+        engine = "qrhei"
+        if m.log_to_file:
+            engine += " -l "+m.log_file_name
+        engine +=  " -y "+str(m.verbosity)+" -f "+str(m.fverbosity)+" run -q "
         
         # running MPI with proper parallel configuration
         prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "
         cmd = prl_cmd+engine+scr
         if not flag_silent:
-            print("System reports", cpu_count,"processors")
-            print("Starting parallel execution with",prl_np,
+            qr.printlog("System reports", cpu_count,"processors")
+            qr.printlog("Starting parallel execution with",prl_np,
             "processes (executing command below)")
-            print(cmd)
-            print("")
+            qr.printlog(">>>", cmd)
+            qr.printlog("")
             
         try:
             p = subprocess.Popen(cmd,
@@ -145,9 +161,10 @@ def do_command_run(args):
                              stderr=subprocess.STDOUT)
 
 
-            if not flag_silent:
-                print(" --- output below ---\n")
-            
+            if not flag_silent and (not flag_quiet):
+                qr.printlog(" --- output below ---\n", verbose=True,
+                            loglevel=1)
+                
             # read and print output
             for line in iter(p.stdout.readline, b''):
             #for line in p.stdout.readlines():
@@ -166,9 +183,10 @@ def do_command_run(args):
             
     else:
         
-        qr.printlog(" --- output below ---\n", verbose=True, loglevel=0)
-        # running the script within the same interpreter
+        if not flag_silent and (not flag_quiet):
+            qr.printlog(" --- output below ---\n", verbose=True, loglevel=1)
         
+        # running the script within the same interpreter
         try:
             
             # launch this properly, so that it gives information
@@ -193,12 +211,13 @@ def do_command_run(args):
     # Saying good bye
     #
     if retval == 0:
-        qr.printlog("", verbose=True, loglevel=0)
-        qr.printlog(" --- output above --- ", verbose=True, loglevel=0)
-        qr.printlog("Finished sucessfully; exit code: ", retval,
-                    verbose=True, loglevel=0)
+        if not flag_silent and (not flag_quiet):
+            qr.printlog("", verbose=True, loglevel=1)
+            qr.printlog(" --- output above --- \n", verbose=True, loglevel=1)
+            qr.printlog("Finished sucessfully; exit code: ", retval,
+                        verbose=True, loglevel=1)
     else:
-        qr.printlog("Warning, exit code: ", retval, verbose=True, loglevel=0)
+        qr.printlog("Warning, exit code: ", retval, verbose=True, loglevel=1)
         
 
 def do_command_test(args):
@@ -206,7 +225,7 @@ def do_command_test(args):
     
     """
     
-    qr.printlog("Running tests", loglevel=0)
+    qr.printlog("Running tests", loglevel=1)
 
 
 def _match_filenames(filenames, pattern, add_stars=False):
@@ -227,7 +246,7 @@ def do_command_list(args):
     global parser_list
     
     if args.examples:
-        qr.printlog("Listing available examples ...", loglevel=0)
+        qr.printlog("Listing available examples ...", loglevel=1)
     
         import quantarhei.wizard.examples as exmpl
          
@@ -240,7 +259,7 @@ def do_command_list(args):
             matching = filenames
             
         for ex in matching:
-            qr.printlog("    "+ex, loglevel=0)
+            qr.printlog("    "+ex, loglevel=1)
 
     else:
         parser_list.print_help()
@@ -261,7 +280,7 @@ def do_command_fetch(args):
         return parts[1]
     
     if args.examples:
-        qr.printlog("Fetching example(s) ...", loglevel=0)
+        qr.printlog("Fetching example(s) ...", loglevel=1)
     
         import quantarhei.wizard.examples as exmpl
          
@@ -310,10 +329,10 @@ def do_command_fetch(args):
                     with open(filename, "w") as file:
                         file.write(content.decode("utf-8"))
                     
-                    qr.printlog("    "+filename, loglevel=0)
+                    qr.printlog("    "+filename, loglevel=1)
 
         else:
-            qr.printlog("No matching examples found", loglevel=0)
+            qr.printlog("No matching examples found", loglevel=1)
 
     else:
         parser_fetch.print_help()
@@ -324,7 +343,7 @@ def do_command_config(args):
     
     """
     
-    qr.printlog("Setting configuration", loglevel=0)
+    qr.printlog("Setting configuration", loglevel=1)
 
 
 def do_command_report(args):
@@ -332,7 +351,7 @@ def do_command_report(args):
     
     """
     
-    qr.printlog("Probing system configuration", loglevel=0)
+    qr.printlog("Probing system configuration", loglevel=1)
 
     
 def do_command_file(args):
@@ -340,7 +359,7 @@ def do_command_file(args):
     
     """
     
-    qr.printlog("Checking file info", loglevel=0)    
+    qr.printlog("Checking file info", loglevel=1)    
     
     #
     # File name
@@ -348,25 +367,25 @@ def do_command_file(args):
 
     if args.fname:
         fname = args.fname[0]   
-        qr.printlog("File name: "+fname, loglevel=0)
+        qr.printlog("File name: "+fname, loglevel=1)
 
     try:
         check = qr.check_parcel(fname)
-        qr.printlog("Object type: "+check["class_name"], loglevel=0)
+        qr.printlog("Object type: "+check["class_name"], loglevel=1)
         if check["class_name"] == "builtins.list":
             prcl = qr.load_parcel(fname)
-            qr.printlog("List length: "+str(len(prcl)), loglevel=0)
+            qr.printlog("List length: "+str(len(prcl)), loglevel=1)
             types = []
             for el in prcl:
                 tp = type(prcl[0])
                 if tp not in types:
                     types.append(tp)
-            qr.printlog("Element types: "+str(types), loglevel=0)
+            qr.printlog("Element types: "+str(types), loglevel=1)
         qr.printlog("Saved with Quantarhei version: "+check["qrversion"],
-                    loglevel=0)
+                    loglevel=1)
         qr.printlog("Description: "+check["comment"])
     except:
-        qr.printlog("The file is not a Quantarhei parcel", loglevel=0)
+        qr.printlog("The file is not a Quantarhei parcel", loglevel=1)
         #print(traceback.format_exc())
         
     
@@ -395,6 +414,13 @@ def main():
                         " installation")
     parser.add_argument("-y", "--verbosity", type=int, default=5, 
                         help="defines verbosity between 0 and 10")
+    parser.add_argument("-f", "--fverbosity", type=int, default=7, 
+                        help="defines verbosity for logging into file")
+    parser.add_argument("-l", "--logtofile", nargs="?", metavar="FILENAME",
+                        type=str, default="", const="qrhei.log", 
+                        help="copy logging into a specified file")
+   
+
  
     
     #
@@ -406,6 +432,8 @@ def main():
     parser_run.add_argument("script", metavar='script', type=str, 
                           help='script file to be processed', nargs=1)
     parser_run.add_argument("-s", "--silent", action='store_true', 
+                          help="logging level set to zero")
+    parser_run.add_argument("-q", "--quiet", action='store_true', 
                           help="no output from qrhei script itself")
     parser_run.add_argument("-p", "--parallel", action='store_true', 
                           help="executes the code in parallel")
@@ -413,7 +441,8 @@ def main():
                           help="number of processes to start")
     parser_run.add_argument("-b", "--benchmark", type=int, default=0, 
                           help="run one of the predefined benchmark"
-                          +"calculations")
+                          +" calculations")
+
     
     parser_run.set_defaults(func=do_command_run)
     
@@ -496,13 +525,13 @@ def main():
     if args.info:
         qr.printlog("\n" 
                    +"qrhei: Quantarhei Package Driver\n",
-                   verbose=True, loglevel=0)
+                   verbose=True, loglevel=1)
 #                   +"\n"
 #                   +"MPI parallelization enabled: ", flag_parallel,
 #                    verbose=True, loglevel=0)
         if not args.version:
             qr.printlog("Package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=0)
+                  verbose=True, loglevel=1)
         return
             
     #
@@ -510,7 +539,7 @@ def main():
     #
     if args.version:
         qr.printlog("Quantarhei package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=0)
+                  verbose=True, loglevel=1)
         return
     
         

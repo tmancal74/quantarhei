@@ -364,6 +364,8 @@ from .utils.logging import log_report
 from .utils.logging import log_info
 from .utils.logging import log_detail
 from .utils.logging import log_quick
+from .utils.logging import log_to_file
+from .utils.logging import init_logging
 
 from .utils.logging import tprint
 

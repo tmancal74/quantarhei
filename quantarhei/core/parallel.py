@@ -151,6 +151,9 @@ def start_parallel_region():
     """
     dc = Manager().get_DistributedConfiguration()
     dc.start_parallel_region()
+    if dc.rank != 0:
+        Manager().log_conf.verbosity -= 2
+        Manager().log_conf.fverbosity -= 2
 
 
 def close_parallel_region():
@@ -162,7 +165,10 @@ def close_parallel_region():
     """    
     dc = Manager().get_DistributedConfiguration()
     dc.finish_parallel_region()
-    
+    if dc.rank != 0:
+        Manager().log_conf.verbosity += 2
+        Manager().log_conf.fverbosity += 2
+
     
 def distributed_configuration():
     """Returns the DistributedConfiguration object from the Manager
