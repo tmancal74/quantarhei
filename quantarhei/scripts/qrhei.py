@@ -10,12 +10,9 @@
 """
 import argparse
 import subprocess
-#from pathlib import Path
 import os
-#import sys
 import fnmatch
 import traceback
-
 import pkg_resources
 
 import quantarhei as qr
@@ -38,8 +35,6 @@ def do_command_run(args):
         m.log_to_file = True
         m.log_file_name = args.logtofile
     
-
-
     nprocesses = args.nprocesses
     flag_parallel = args.parallel
     flag_silent = args.silent
@@ -101,16 +96,13 @@ def do_command_run(args):
         
         scr = os.path.join(spath, script)
 
-
-
     #
     # Greeting 
     #
     if not flag_quiet:
-        qr.printlog("",verbose=True, loglevel=1)
+        qr.printlog("",verbose=True, loglevel=qr.LOG_URGENT)
         qr.printlog("Running Quantarhei (python) script file: ", scr,
-                    verbose=True, loglevel=1)
-        
+                    verbose=True, loglevel=qr.LOG_URGENT)
     
     #
     # Run serial or parallel 
@@ -148,6 +140,7 @@ def do_command_run(args):
         # running MPI with proper parallel configuration
         prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "
         cmd = prl_cmd+engine+scr
+        
         if not flag_silent:
             qr.printlog("System reports", cpu_count,"processors")
             qr.printlog("Starting parallel execution with",prl_np,
@@ -159,7 +152,6 @@ def do_command_run(args):
             p = subprocess.Popen(cmd,
                              shell=True, stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
-
 
             if not flag_silent and (not flag_quiet):
                 qr.printlog(" --- output below ---\n", verbose=True,
@@ -177,14 +169,16 @@ def do_command_run(args):
             
         except SystemExit:
             
-            #qr.printlog("", verbose=True, loglevel=8)
-            #qr.printlog(" --- Exited by SystemExit --- ", verbose=True, loglevel=8)
+            qr.printlog("", verbose=True, loglevel=qr.LOG_DETAIL)
+            qr.printlog(" --- Exited by SystemExit --- ", verbose=True,
+                        loglevel=qr.LOG_DETAIL)
             pass
             
     else:
         
         if not flag_silent and (not flag_quiet):
-            qr.printlog(" --- output below ---\n", verbose=True, loglevel=1)
+            qr.printlog(" --- output below ---\n", verbose=True, 
+                        loglevel=qr.LOG_URGENT)
         
         # running the script within the same interpreter
         try:
@@ -197,12 +191,12 @@ def do_command_run(args):
             
         except SystemExit:
         
-            #qr.printlog("", verbose=True, loglevel=8)
-            #qr.printlog(" --- Exited by SystemExit --- ", verbose=True, loglevel=8) 
-            pass
+            qr.printlog("", verbose=True, loglevel=qr.LOG_DETAIL)
+            qr.printlog(" --- Exited by SystemExit --- ", verbose=True,
+                        loglevel=qr.LOG_DETAIL) 
             
-        except: # Exception: e
-            #print(str(e))
+        except: 
+            
             print(traceback.format_exc())
         
         retval = 0        
@@ -213,11 +207,13 @@ def do_command_run(args):
     if retval == 0:
         if not flag_silent and (not flag_quiet):
             qr.printlog("", verbose=True, loglevel=1)
-            qr.printlog(" --- output above --- \n", verbose=True, loglevel=1)
+            qr.printlog(" --- output above --- \n", verbose=True, 
+                        loglevel=qr.LOG_URGENT)
             qr.printlog("Finished sucessfully; exit code: ", retval,
                         verbose=True, loglevel=1)
     else:
-        qr.printlog("Warning, exit code: ", retval, verbose=True, loglevel=1)
+        qr.printlog("Warning, exit code: ", retval, verbose=True, 
+                    loglevel=qr.LOG_URGENT)
         
 
 def do_command_test(args):
