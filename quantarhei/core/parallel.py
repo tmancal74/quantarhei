@@ -18,9 +18,9 @@ class DistributedConfiguration:
             self.have_mpi = True
         except:
             self.have_mpi = False
-            print("WARNING: MPI import failed - switching to serial.")
-            print("WARNING: If you run this with mpiexec/mpirun," 
-            + " you get independent copies of the serial program")
+            #print("WARNING: MPI import failed - switching to serial.")
+            #print("WARNING: If you run this with mpiexec/mpirun," 
+            #+ " you get independent copies of the serial program")
 
             
         if self.have_mpi:

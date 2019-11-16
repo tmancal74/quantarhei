@@ -221,8 +221,72 @@ def do_command_test(args):
     
     """
     
-    qr.printlog("Running tests", loglevel=1)
+    qr.printlog("--- Running tests ---", loglevel=qr.LOG_URGENT)
+    qr.printlog("")
+    qr.printlog("Testing parallel capabilities:", loglevel=qr.LOG_URGENT)
+    
+    #
+    # number of processors
+    #
+    cpu_count = 0
+    try:
+        import multiprocessing
+        cpu_count = multiprocessing.cpu_count()
+    except (ImportError, NotImplementedError):
+        pass
+    qr.printlog("Processor count:", cpu_count)
 
+    #
+    # mpi4py
+    #
+    have_mpi = False
+    try:
+        from mpi4py import MPI
+        have_mpi = True
+    except:
+        pass
+    qr.printlog("mpi4py installed:", have_mpi)
+
+    #
+    # MPI implementation
+    #
+    cmd = "mpirun -h"
+    mpirun = _try_cmd(cmd)
+        
+    qr.printlog("mpirun available:", mpirun)
+
+    #
+    # MPI implementation
+    #
+    cmd = "mpiexec -h"
+    mpiexec = _try_cmd(cmd)
+        
+    qr.printlog("mpiexec available:", mpiexec)
+
+
+def _try_cmd(cmd):
+    ret = False
+    try:
+        p = subprocess.Popen(cmd,
+                         shell=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
+            
+        # read and print output
+        for line in iter(p.stdout.readline, b''):
+        #for line in p.stdout.readlines():
+            ln = line.decode()
+            # line is returned with a \n character at the end 
+            # ln = ln[0:len(ln)-2]
+            #print(ln, end="", flush=True)
+            
+        retval = p.wait()
+    except:
+        pass
+    if retval == 0:
+        ret = True
+        
+    return ret
+    
 
 def _match_filenames(filenames, pattern, add_stars=False):
     
@@ -544,6 +608,3 @@ def main():
             args.func(args)
     except:
         parser.error("No arguments provided")
-
-        
-    
