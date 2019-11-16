@@ -116,7 +116,7 @@ def homochain_aggregate(self):
         couplings.append(coupling)
         k += 1
         
-    agg = Aggregate("", molecules=molecules)
+    agg = Aggregate(molecules=molecules)
     
     with energy_units("1/cm"):
         for i in range(k):
