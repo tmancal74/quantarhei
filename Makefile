@@ -11,7 +11,7 @@
 # Set this to required version or override from command line
 # Default is the current development version 
 #
-VERSION=0.0.50
+VERSION=0.0.51
 TASK=
 
 ANACONDA_BIN=anaconda3/bin
