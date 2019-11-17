@@ -59,10 +59,14 @@ and
 
 through grants: 14-25752S (2014-2016) and 17-22160S (2017-2019)
 
+
 New in 0.0.50
 =============
 
 for users:
+ - 
+ - Some improvement of the `qrhei` driver 
+ - Improved logging capabilities; standard print function can be replaced printlog function
  - Bug fixes
 
 New in 0.0.49

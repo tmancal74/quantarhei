@@ -7,6 +7,7 @@
     paver (pip install paver)
     nose (pip install nose)
     aloe (pip install aloe)
+    behave (pip install behave)
     pylint (pip install pylint)
     
     About our tests
@@ -148,46 +149,64 @@ def rm_rf(path):
     pass
     
 #
-# Standard developer tasks
+###############################################################################
 #
-       
+#      Standard developer tasks
+#
+###############################################################################
+#      
+###############################################################################
+#  Creates distribution
+###############################################################################   
 @task
 def sdist():
     sh(python+" setup.py sdist")
 
+###############################################################################
+# Installs Quantarhei from the source
+###############################################################################
 @needs('sdist')
 @task
 def inst():
     
     sh(pip+' install dist/quantarhei-'+version+'.tar.gz')
     
+#
+#  The same as above
+#
 @needs('inst')
 @task
 def install():
     pass
 
-
+###############################################################################
+#  Uninstall local installation of Quantarhei
+###############################################################################
 @needs('uninst')
 @task
 def uninstall():
     pass
 
+#
+# The same as above  
+#
 @task
 def uninst():
 	sh(pip+' uninstall -y quantarhei')
     
-##################
-# Upload to pypi #
-##################
+
+###############################################################################
+#  Upload to pypi 
+###############################################################################
 @needs('sdist')
 @task
 def upload():
 	sh('twine upload dist/quantarhei-'+version+'.tar.gz')
 
 
-############
-# Clean-up #
-############
+###############################################################################
+#  Clean-up 
+###############################################################################
 @task
 def clean():
     try:
@@ -212,38 +231,40 @@ def clean():
         print("File not present - no problem")
 
 
-################################
-# Reinstallation with clean-up #
-################################
+###############################################################################
+# Reinstallation with clean-up 
+###############################################################################
 @needs('clean','uninst', 'inst')
 @task
 def reinst():
     pass
 
-#############################################################
-# Local tests: this will reinstall Quantarhei and run tests #
-#############################################################
+###############################################################################
+# Local tests: this will reinstall Quantarhei and run tests 
+###############################################################################
 @needs('reinst')
 @task
 def local_tests():
 	sh('paver')
 
-
-####################
-# Test of plotting #
-####################
+###############################################################################
+# Test of plotting 
+###############################################################################
 @needs('matplotlib_tests')
 @task
 def plot_tests(): 
 	pass 
 
-####################
-# Update examples  #
-####################
+###############################################################################
+# Update examples  
+###############################################################################
 @task
 def update_examples():
 	sh('cd examples; python admin/make_demos.py')
 
+###############################################################################
+#
+###############################################################################
 @task
 def tasks():
 	print("")
@@ -266,9 +287,9 @@ def tasks():
 	print("git_add_upstream, git_update_master")
 	print("")
 
-############################################
+###############################################################################
 #  Helper tasks for managing pull-requests
-############################################
+###############################################################################
 
 #
 # update from master branch of the quantarhei's main repository
@@ -280,9 +301,9 @@ def git_update_master():
 	sh('git merge upstream/master')
 
 
-#
+###############################################################################
 # connect a forked local repository to the main quantarhei repository	
-#
+###############################################################################
 @task
 def git_add_upstream():
 	sh('git remote add upstream '+repository)
@@ -602,7 +623,8 @@ def pylint():
     
     path = 'quantarhei/scripts/'
     r.set_path(path)
-    r.un('ghenerate.py')
+    #r.un('ghenerate.py')
+    r.un('qrhei.py')
 
 
 ###############################################################################

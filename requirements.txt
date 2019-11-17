@@ -1,7 +1,7 @@
 scipy
 numpy>=1.14.0
 matplotlib
-terminaltables==3.1.0
+terminaltables
 gherkin-official
 dill
 pyyaml
