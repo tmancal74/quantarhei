@@ -59,6 +59,15 @@ and
 
 through grants: 14-25752S (2014-2016) and 17-22160S (2017-2019)
 
+
+New in 0.0.52
+=============
+
+for users:
+ - improved control over parallelization from command line by `qrhei` options
+ - parallelization over multiple nods
+ - Bug fixes
+
 New in 0.0.51
 =============
 

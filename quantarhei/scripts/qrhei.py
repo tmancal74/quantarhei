@@ -27,6 +27,9 @@ def do_command_run(args):
     m = qr.Manager().log_conf
     dc = qr.Manager().get_DistributedConfiguration()
     
+    #
+    # analyzing --verbosity option
+    #
     verb = args.verbosity
     try:
         vrbint = int(verb)
@@ -47,16 +50,29 @@ def do_command_run(args):
         m.verbosity -= 2
         m.fverbosity -= 2
     
+    #
+    # log into file
+    #
     m.log_to_file = args.logtofile
     
     if m.log_to_file:
         m.log_file_name = args.filename
     
+    #
+    # parallel options
+    #
     nprocesses = args.nprocesses
     flag_parallel = args.parallel
+    hostfile=""
+    if len(args.hostfile) > 0:
+        hostfile = args.hostfile
+
+    
+    #
+    # some other logging option
+    #
     flag_silent = args.silent
     flag_quiet = args.quiet
-    
     if args.silent:
         m.verbosity = 0
         
@@ -152,6 +168,9 @@ def do_command_run(args):
         
         prl_exec = "mpirun"
         prl_n = "-n"
+        prl_h = ""
+        if len(hostfile) > 0:
+            prl_h += " --hostfile "+hostfile+" "
         
         if cpu_count != 0:
             prl_np = cpu_count + nsteerer
@@ -168,7 +187,7 @@ def do_command_run(args):
         engine +=  " -y "+str(m.verbosity)+","+str(m.fverbosity)+" run -q "
         
         # running MPI with proper parallel configuration
-        prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "
+        prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "+prl_h
         cmd = prl_cmd+engine+scr
         
         if not flag_silent:
@@ -533,6 +552,9 @@ def main():
                           help="executes the code in parallel")
     parser_run.add_argument("-n", "--nprocesses", type=int, default=0,
                           help="number of processes to start")
+    parser_run.add_argument("-f", "--hostfile", metavar="HOSTFILE", 
+                            default="", help="list of available"
+                            +" host for parallel calculation")
     parser_run.add_argument("-b", "--benchmark", type=int, default=0, 
                           help="run one of the predefined benchmark"
                           +" calculations")
