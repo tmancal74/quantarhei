@@ -87,7 +87,7 @@ from paver.tasks import needs
 from paver.easy import sh
 
 
-version = "0.0.51"
+version = "0.0.52"
 
 sys_name = platform.system()
 
