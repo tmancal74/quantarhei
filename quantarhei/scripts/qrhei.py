@@ -26,18 +26,31 @@ def do_command_run(args):
     
     m = qr.Manager().log_conf
     dc = qr.Manager().get_DistributedConfiguration()
-   
-    m.verbosity = args.verbosity
-    m.fverbosity = args.fverbosity
+    
+    verb = args.verbosity
+    try:
+        vrbint = int(verb)
+        m.verbosity = vrbint
+        m.fverbosity = vrbint + 2
+    except:
+        try:
+            vrbint = verb.split(",")
+            m.verbosity = int(vrbint[0])
+            m.fverbosity = int(vrbint[1])
+        except:
+            raise Exception("Integer or two comma separated integers required"
+                            +" for -y/--verbosity option")
+
+    
+    # we set the verbosity lower for other than the leading process
     if dc.rank != 0:
         m.verbosity -= 2
         m.fverbosity -= 2
     
-    if args.logtofile == "":
-        m.log_to_file = False
-    else:
-        m.log_to_file = True
-        m.log_file_name = args.logtofile
+    m.log_to_file = args.logtofile
+    
+    if m.log_to_file:
+        m.log_file_name = args.filename
     
     nprocesses = args.nprocesses
     flag_parallel = args.parallel
@@ -151,8 +164,8 @@ def do_command_run(args):
         #
         engine = "qrhei"
         if m.log_to_file:
-            engine += " -l "+m.log_file_name
-        engine +=  " -y "+str(m.verbosity)+" -f "+str(m.fverbosity)+" run -q "
+            engine += " -lf "+m.log_file_name
+        engine +=  " -y "+str(m.verbosity)+","+str(m.fverbosity)+" run -q "
         
         # running MPI with proper parallel configuration
         prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "
@@ -493,13 +506,13 @@ def main():
     parser.add_argument("-i", "--info", action='store_true', 
                         help="shows detailed information about Quantarhei"+
                         " installation")
-    parser.add_argument("-y", "--verbosity", type=int, default=5, 
+    parser.add_argument("-y", "--verbosity", type=str, default="5", 
                         help="defines verbosity between 0 and 10")
-    parser.add_argument("-f", "--fverbosity", type=int, default=7, 
+    parser.add_argument("-f", "--filename", metavar="FILENAME",
+                        default="qrhei.log", 
                         help="defines verbosity for logging into file")
-    parser.add_argument("-l", "--logtofile", nargs="?", metavar="FILENAME",
-                        type=str, default="", const="qrhei.log", 
-                        help="copy logging into a specified file")
+    parser.add_argument("-l", "--logtofile", action='store_true', 
+                        help="copy logging into a file")
    
 
  
