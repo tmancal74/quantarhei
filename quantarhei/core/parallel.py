@@ -3,15 +3,25 @@
 
 
 """
-
+import sys
 import numpy
 
-from .managers import Manager
+
+def call_finish():
+    pass
+
 
 class DistributedConfiguration:
 
     def __init__(self, schedule=None):
 
+        self.use_steerer = False
+        if self.use_steerer:
+            nsteerer = 1
+        else:
+            nsteerer = 0
+            
+            
         self.have_mpi = False
         try:
             from mpi4py import MPI
@@ -27,7 +37,8 @@ class DistributedConfiguration:
             comm = MPI.COMM_WORLD
             self.comm = comm
             self.rank = comm.Get_rank()
-            self.size = comm.Get_size()
+            self.stearer = comm.Get_size()
+            self.size = self.stearer-nsteerer
         else:
             self.comm = None
             self.rank = 0
@@ -37,6 +48,20 @@ class DistributedConfiguration:
         self.inparallel = False
         
         self.silent = True
+        
+        
+    def stearer_loop(self):
+        """ Here we wait for stearer tasks
+        
+        """
+        for ii in range(self.size):
+            s = self.comm.recv()
+            if s == "FINISH":
+                count += 1
+                sys.exit()
+        else:
+            pass
+        
         
     def start_parallel_region(self):
         """Starts a parallel region
@@ -55,6 +80,18 @@ class DistributedConfiguration:
             
         if self.parallel_level > 0:
             self.inparallel = True
+            
+        #
+        # The process with largest rank enters a stearer loop where it
+        # will wait message until it comes
+        #
+        if self.use_steerer:
+            if self.rank == self.size:
+                self.steerer_loop()
+            else:
+                import atexit
+                atexit.register(call_finish)
+        
 
     def finish_parallel_region(self):
         """Closes a parallel region
@@ -149,8 +186,9 @@ def start_parallel_region():
     and DistributedConfiguration class
     
     """
+    from .managers import Manager
     dc = Manager().get_DistributedConfiguration()
-    dc.start_parallel_region()
+    #dc.start_parallel_region()
     if dc.rank != 0:
         Manager().log_conf.verbosity -= 2
         Manager().log_conf.fverbosity -= 2
@@ -162,9 +200,10 @@ def close_parallel_region():
     This is a clean solution without having to explicitely invoke Manager
     and DistributedConfiguration class
     
-    """    
+    """     
+    from .managers import Manager
     dc = Manager().get_DistributedConfiguration()
-    dc.finish_parallel_region()
+    #dc.finish_parallel_region()
     if dc.rank != 0:
         Manager().log_conf.verbosity += 2
         Manager().log_conf.fverbosity += 2
@@ -174,6 +213,7 @@ def distributed_configuration():
     """Returns the DistributedConfiguration object from the Manager
     
     """
+    from .managers import Manager
     return Manager().get_DistributedConfiguration()
 
     
@@ -193,7 +233,7 @@ def block_distributed_range(start, stop):
             end of the range
 
     """
-
+    from .managers import Manager
     # we share the work only in parallel_level == 1  
     config = Manager().get_DistributedConfiguration()
     if config.parallel_level==1:
@@ -225,6 +265,20 @@ def block_distributed_range(start, stop):
     else:
 
         return range(start, stop)
+
+
+def asynchronous_range(start, stop):
+    """Range distributing numbers asynchrnously among processes
+    
+    """
+    from .managers import Manager
+    config = Manager().get_DistributedConfiguration()
+    if config.parallel_level==1:   
+        pass
+    else:
+
+        return range(start, stop)
+    
 
 def _parallel_function_wrapper(func, root):
     # FIXME: return a wrapped function with parameter broadcasting
@@ -312,6 +366,9 @@ class parallel_function:
 
     
     def __init__(self, function, leader_rank=0, parallel_level=0):
+        
+        
+        from .managers import Manager
         
         # FIXME: do we have to be parallel_level aware????
         self.fce = function

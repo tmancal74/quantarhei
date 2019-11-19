@@ -25,9 +25,13 @@ def do_command_run(args):
     """
     
     m = qr.Manager().log_conf
-    
+    dc = qr.Manager().get_DistributedConfiguration()
+   
     m.verbosity = args.verbosity
     m.fverbosity = args.fverbosity
+    if dc.rank != 0:
+        m.verbosity -= 2
+        m.fverbosity -= 2
     
     if args.logtofile == "":
         m.log_to_file = False
@@ -106,10 +110,23 @@ def do_command_run(args):
     
     #
     # Run serial or parallel 
-    #
+    #   
+
         
     if flag_parallel:
         
+        #
+        # If this is set to True, we use one more processes than processor
+        # number to steer other processes
+        #
+        # Also set the corresponding flag in the parallel module
+        #
+        use_steerer = False
+        if use_steerer:
+            nsteerer = 1
+        else:
+            nsteerer = 0
+            
         #
         # get parallel configuration
         #
@@ -124,12 +141,12 @@ def do_command_run(args):
         prl_n = "-n"
         
         if cpu_count != 0:
-            prl_np = cpu_count
+            prl_np = cpu_count + nsteerer
         else:
             prl_np = 4
             
         if nprocesses != 0:
-            prl_np = nprocesses
+            prl_np = nprocesses + nsteerer
         
         #
         engine = "qrhei"
@@ -183,11 +200,13 @@ def do_command_run(args):
         # running the script within the same interpreter
         try:
             
+            
             # launch this properly, so that it gives information
             # on the origin of exceptions
             with open(scr,'U') as fp:
                 code = fp.read()
             exec(compile(code, scr, "exec"), globals())
+            
             
         except SystemExit:
         
@@ -215,6 +234,8 @@ def do_command_run(args):
         qr.printlog("Warning, exit code: ", retval, verbose=True, 
                     loglevel=qr.LOG_URGENT)
         
+    
+    
 
 def do_command_test(args):
     """Runs Quantarhei tests
