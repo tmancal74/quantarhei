@@ -49,8 +49,6 @@ class StateVectorPropagator:
         self.dt = self.Odt/self.Nref
         
         
-        
-        
     def propagate(self, psii):
         
         return self._propagate_short_exp(psii,L=4)
@@ -65,7 +63,6 @@ class StateVectorPropagator:
         """
               Short exp integration
         """
-        
         pr = StateVectorEvolution(self.timeaxis, psii)
         
         psi1 = psii.data
@@ -74,13 +71,12 @@ class StateVectorPropagator:
         HH = self.ham.data        
         
         indx = 1
-        for ii in self.timeaxis.data[1:self.Nt]:
+        for ii in range(1,self.Nt):
             
-                    
             for jj in range(0,self.Nref):
                 
                 for ll in range(1,L+1):
-                    pref = (self.dt/ll) 
+                    pref = (self.dt/ll)
                     psi1 = -1j*pref*numpy.dot(HH,psi1)
                     psi2 = psi2 + psi1
 

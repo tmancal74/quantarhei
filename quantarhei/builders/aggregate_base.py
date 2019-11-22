@@ -2271,6 +2271,7 @@ class AggregateBase(UnitsManaged, Saveable):
                                  (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)   
                                  
             self.Wd[N1b:N2b,0:N1b] = numpy.sqrt(self.Wd[N1b:N2b,0:N1b])
+            self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
             #print(self.Wd[N1b:N2b,0:N1b])
             
             #
