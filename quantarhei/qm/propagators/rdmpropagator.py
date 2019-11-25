@@ -34,9 +34,6 @@ from ...core.managers import Manager
 
 import quantarhei as qr
 
-
-def ham_matrix_in_RWA(ham):
-    pass
     
 
 class ReducedDensityMatrixPropagator(MatrixData, Saveable): 
