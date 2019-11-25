@@ -35,6 +35,10 @@ from ...core.managers import Manager
 import quantarhei as qr
 
 
+def ham_matrix_in_RWA(ham):
+    pass
+    
+
 class ReducedDensityMatrixPropagator(MatrixData, Saveable): 
     """
     
@@ -132,18 +136,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             #
             # RWA
             #
-            if self.Hamiltonian.has_rwa:
+            #ham = self.Hamiltonian
+            #if ham.has_rwa:
                 
-                self.RWA = self.Hamiltonian.rwa_indices
-                self.RWU = numpy.zeros(self.RWA.shape, dtype=self.RWA.dtype)
+                #self.RWA = self.Hamiltonian.rwa_indices
+                #self.RWU = numpy.zeros(self.RWA.shape, dtype=self.RWA.dtype)
                 
-                HH = self.Hamiltonian.data
-                shape = HH.shape
-                HOmega = numpy.zeros(shape, dtype=qr.REAL)
-                for ii in range(shape[0]):
-                    HOmega[ii,ii] = self.Hamiltonian.rwa_energies[ii]
+                #HH = ham.data
+                #shape = HH.shape
+                #HOmega = numpy.zeros(shape, dtype=qr.REAL)
+                #for ii in range(shape[0]):
+                #    HOmega[ii,ii] = ham.rwa_energies[ii]
                                     
-                self.HOmega = HOmega
+                #self.HOmega = self.ham.get_RWA_skeleton()
                 
                 #print(self.RWA)
                 #print(self.RWU)
@@ -478,7 +483,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
         
-        HH = self.Hamiltonian.data        
+        #HH = self.Hamiltonian.data
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
         
         indx = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
@@ -494,7 +506,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 rho1 = rho2    
                 
             pr.data[indx,:,:] = rho2                        
-            indx += 1             
+            indx += 1                       
+            
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
             
         return pr
  
@@ -520,7 +535,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
         
-        HH = self.Hamiltonian.data        
+        #HH = self.Hamiltonian.data  
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
+            
         RR = self.RelaxationTensor.data
             
         indx = 1
@@ -540,6 +563,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
             pr.data[indx,:,:] = rho2 
             indx += 1             
+
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
             
         return pr  
 
@@ -593,7 +619,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # RWA is applied here
         #
         if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.data  - self.HOmega
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
         else:
             HH = self.Hamiltonian.data
         
@@ -709,6 +735,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
              
         qr.log_detail("...DONE")
 
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
+            
         return pr
 
 

@@ -29,6 +29,53 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         self.data[0,:] = psii.data
 
 
+    def convert_from_RWA(self, ham, sgn=1):
+        """Converts density matrix evolution from RWA to standard repre
+        
+        
+        Parameters
+        ----------
+        
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA
+            
+        sgn : {1, -1}
+            Forward (1) or backward (-1) conversion. Default sgn=1 corresponds
+            to the function name. Backward conversion sgn=-1 is called from
+            the inverse routine.
+        """
+        
+        if (self.is_in_rwa and sgn == 1) or sgn == -1:
+            
+            HOmega = ham.get_RWA_skeleton()
+            
+            for i, t in enumerate(self.TimeAxis.data):
+                # evolution operator
+                Ut = numpy.exp(-sgn*1j*HOmega*t)
+                # revert RWA
+                rhot = numpy.dot(Ut,self.data[i,:])
+                self.data[i,:] = rhot
+                
+        if sgn == 1:
+            self.is_in_rwa = False
+
+
+    def convert_to_RWA(self, ham):
+        """Converts density matrix evolution from standard repre to RWA
+
+
+        Parameters
+        ----------
+        
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA
+            
+        """        
+        if not self.is_in_rwa:
+            self.convert_from_RWA(ham, sgn=-1)
+            self.is_in_rwa = True
+
+
     def plot(self, show=True, ptype="real"):
         
         if ptype == "real":
