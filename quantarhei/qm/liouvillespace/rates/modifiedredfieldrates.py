@@ -17,6 +17,8 @@ from ....core.units import kB_intK
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
+import quantarhei as qr
+
 class ModifiedRedfieldRateMatrix:
     """Modifield Redfield relaxation rate matrix
     
@@ -68,11 +70,25 @@ class ModifiedRedfieldRateMatrix:
             self._is_initialized = True
             
     def _set_rates(self):
-        pass
+        """
+        
+        """
+        Na = self.ham.dim
+        Nc = self.sbi.N 
+        
+        # loop over components
+        for k in range(Nc):
+
+            # correlation function
+            cf = self.sbi.CC.get_correlation_function(k,k)
+            
+        Nt = cf.axis.length
+        
+        ssModifiedRedfieldRateMatrix(Na, Nc, Nt)
 
 
-def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, Ee, SS, prt, gg, hh, cc, tt, ls,
-                                 rtol, werror, RR):
+def ssModifiedRedfieldRateMatrix(Na, Nc, Nt): #, Ee, SS, prt, gg, hh, cc, tt, ls,
+                                 #rtol, werror, RR):
     """Standard redfield rates
     
     
@@ -122,7 +138,12 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, Ee, SS, prt, gg, hh, cc, tt, ls,
         
     """
     
-
-    pass
+    print("I am called from outside")
+    
+    print(Na)
+    print(Nc)
+    print(Nt)
+    
+    qr.stop()
                     
                     
