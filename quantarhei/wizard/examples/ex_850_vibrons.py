@@ -5,16 +5,24 @@ import quantarhei as qr
 from quantarhei import printlog as print
 from quantarhei.utils.vectors import X
 
-Edelta = 100.0
-omega = 100.0
+_show_plots_ = False
 
+# energy of molecule one
+E1 = 12500.0
+# energy gap to molecule two
+Edelta = 100.0
+# coupling between the two molecules
 JJ = 30.0
 
-E1 = 12500.0
-E2 = E1 + Edelta
+# frequency of the vibrational mode
+omega = 110.0
+# Huan-Rhys factor
 HR = 0.01
-width = 200
 
+# transition width
+width = 80
+
+E2 = E1 + Edelta
 print("")
 print("Molecular dimer")
 print("E1:", E1,"1/cm")
@@ -23,7 +31,7 @@ print("E2:", E2,"1/cm (delta =",Edelta,")")
 with qr.energy_units("1/cm"):
     mol1 = qr.Molecule([0.0, E1])
     mol1.set_dipole(0,1,[1.0, 0.0, 0.0])
-    mol1.set_transition_width((0,1), 80.0)
+    mol1.set_transition_width((0,1), width)
     
     mod = qr.Mode(omega)
     mol1.add_Mode(mod)
@@ -32,7 +40,7 @@ with qr.energy_units("1/cm"):
     mod.set_HR(1, HR)
     
     mol2 = qr.Molecule([0.0, E2])
-    mol1.set_dipole(0,1,numpy.array([1.0, 1.0, 0.0])/numpy.sqrt(2.0))
+    mol2.set_dipole(0,1,numpy.array([1.0, 1.0, 0.0])/numpy.sqrt(2.0))
     mol2.set_transition_width((0,1), width)
     
     
@@ -74,19 +82,28 @@ ohigh_cm = omega+30.0
 olow = qr.convert(olow_cm, "1/cm", "int")
 ohigh = qr.convert(ohigh_cm, "1/cm", "int")
 
+sel_1 = [["omega2",[olow, ohigh]]]
+sel_2 = [["omega2",[-ohigh, -olow]]]
+#sel_1 = None
+#sel_2 = None
+
 pways = dict()
 resp_plus = calc.calculate_one_system(t2.data[0], agg, eUt, lab, pways=pways,
-                                      selection=[["omega2",[olow, ohigh]]])
+                                      selection=sel_1,
+                                      dtol=0.0001)
 
 resp_mins = calc.calculate_one_system(t2.data[0], agg, eUt, lab, pways=pways,
-                                      selection=[["omega2",[-ohigh, -olow]]])
+                                      selection=sel_2,
+                                      dtol=0.0001)
 
 with qr.energy_units("1/cm"):
     twod = resp_plus.get_TwoDSpectrum()
-    twod.plot(window=[12000,13000,12000,13000])
+    if _show_plots_:
+        twod.plot(window=[12000,13000,12000,13000])
 
-    twod = resp_mins.get_TwoDSpectrum()
-    twod.plot(window=[12000,13000,12000,13000])
+    twod = resp_mins.get_TwoDSpectrum()    
+    if _show_plots_:
+        twod.plot(window=[12000,13000,12000,13000])
     
     pw = []
     print(len(pways.keys()))
@@ -98,14 +115,16 @@ with qr.energy_units("1/cm"):
 len(pways[key])
 print("%%%%%%%%%%%%%%%%")
 
-p_way = pw[0]
+p_way = pw[5]
 calc.set_pathways([p_way])
 
 resp = calc.calculate()
 twod = resp.get_TwoDSpectrum()
-with qr.energy_units("1/cm"):
-    print(p_way)
-    twod.plot(window=[12000,13000,12000,13000])
+
+if _show_plots_:
+    with qr.energy_units("1/cm"):
+        print(p_way)
+        twod.plot(window=[12000,13000,12000,13000])
 
 s = [2,3,1]
 for ss in s:
