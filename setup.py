@@ -115,7 +115,8 @@ setup(
     entry_points={
         'console_scripts': ['qrhei=quantarhei.scripts.qrhei:main',
                             'ghenerate=quantarhei.scripts.ghenerate:main',
-                            'qtask=quantarhei.scripts.qtask:main'],
+                            'qtask=quantarhei.scripts.qtask:main',
+                            'qview=quantarhei.scripts.qview:main'],
     }
     
 )

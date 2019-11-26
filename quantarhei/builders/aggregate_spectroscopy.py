@@ -666,7 +666,7 @@ class AggregateSpectroscopy(AggregateBase):
 
     
     def liouville_pathways_3T(self, ptype="R3g", eUt=None, ham=None, t2=0.0,
-                              dtol=0.01, ptol=1.0e-3, etol=1.0e-6,
+                              dtol=0.001, ptol=1.0e-3, etol=1.0e-6,
                               verbose=0, lab=None):
         """ Generator of Liouville pathways with energy transfer
         

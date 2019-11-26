@@ -155,7 +155,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
 
     def calculate_all_system(self, sys, eUt, lab, 
-                             selection=None, show_progress=False):
+                             selection=None, show_progress=False, dtol=0.0001):
         """Calculates all 2D spectra for a system and evolution superoperator
         
         """
@@ -172,7 +172,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             
             pways = dict()
             twod1 = self.calculate_one_system(T2, sys, eUt, lab,
-                                              selection=selection, pways=pways)
+                                              selection=selection, pways=pways,
+                                              dtol=dtol)
         
             if show_progress:
                 try:
@@ -191,7 +192,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
 
     def calculate_one_system(self, t2, sys, eUt, lab, 
-                             selection=None, pways=None):
+                             selection=None, pways=None, dtol=0.0001):
         """Returns 2D spectrum at t2 for a system and evolution superoperator
         
         """
@@ -217,12 +218,12 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
                                                    "R4g", "R1f*", "R2f*"),
                                                    eUt=Uin, ham=H, t2=t2,
-                                                   lab=lab)
+                                                   lab=lab, dtol=dtol)
         else:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
                                                    "R4g"),
                                                    eUt=Uin, ham=H, t2=t2,
-                                                   lab=lab)
+                                                   lab=lab, dtol=dtol)
             
         if selection is not None:
             
@@ -325,6 +326,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         
         #print(shape, widthx, widthy)
         
+        prefk = 4.0*numpy.log(2.0)
+        
         if pathway.pathway_type == "R":
 
             reph2D = numpy.zeros((N1, N3), dtype=COMPLEX)
@@ -337,8 +340,9 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                         o1 = -self.oa1.data[i1]                    
                         
                         reph2D[:, i1] = \
-                        pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                            *numpy.exp(-((oo3-cen3)/widthy)**2)\
+                            prefk*pref*numpy.exp(
+                                    -prefk*(((o1-cen1)/widthx)**2
+                                           +((oo3-cen3)/widthy)**2))\
                             /(numpy.pi*widthx*widthy)
             
                 else:
