@@ -186,6 +186,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             plt.subplots_adjust(hspace=0.6, wspace=0.6)
             plt.show()
             fig.savefig('PP_slices_spectra.png', format='png', dpi=1200)
+        return spectra_freq
             
         
     def make_movie(self, filename, axis=None,
