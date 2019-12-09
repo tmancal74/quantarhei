@@ -116,6 +116,8 @@ class AggregateBase(UnitsManaged, Saveable):
         self.HH = None
         self.HamOp = None
         self.DD = None
+        self.MM = None
+        self.RR = None
         self.Wd = None
         self.Dr = None
         self.D2 = None
@@ -635,6 +637,13 @@ class AggregateBase(UnitsManaged, Saveable):
         nm = self.monomers[n]
         return nm.get_dipole(N,M)
     
+    def get_velocity_dipole(self, n, N, M):
+        nm = self.monomers[n]
+        return nm.get_velocity_dipole(N,M)
+    
+    def get_magnetic_dipole(self, n, N, M):
+        nm = self.monomers[n]
+        return nm.get_magnetic_dipole(N,M)
     
     #
     # Various info
@@ -877,6 +886,69 @@ class AggregateBase(UnitsManaged, Saveable):
         fcfac = self.fc_factor(state1,state2)
 
         return eldip*fcfac
+    
+    def transition_velocity_dipole(self, state1, state2):
+        """ Transition dipole moment between two states 
+        
+        Parameters
+        ----------
+        state1 : class VibronicState
+            state 1
+            
+        state2 : class VibronicState
+            state 2 
+        
+        """
+        exindx = self._get_exindx(state1, state2)
+        
+        if (exindx < 0):
+            return 0.0
+        
+        # get excitation indexes
+        st1 = state1.elstate.elsignature[exindx]
+        st2 = state2.elstate.elsignature[exindx]
+        
+        if st1<st2:
+            elvdip = self.get_velocity_dipole(exindx, st1, st2)
+        else:
+            elvdip = self.get_velocity_dipole(exindx, st2, st1)
+           
+        # Franck-Condon factor between the two states
+        fcfac = self.fc_factor(state1,state2)
+
+        return elvdip*fcfac
+    
+    def transition_magnetic(self, state1, state2):
+        """ Transition magnetic dipole moment between two states 
+        
+        Parameters
+        ----------
+        state1 : class VibronicState
+            state 1
+            
+        state2 : class VibronicState
+            state 2 
+        
+        """
+        exindx = self._get_exindx(state1, state2)
+        
+        if (exindx < 0):
+            return 0.0
+        
+        # get excitation indexes
+        st1 = state1.elstate.elsignature[exindx]
+        st2 = state2.elstate.elsignature[exindx]
+        
+        magdip = self.get_magnetic_dipole(exindx, st1, st2)
+#        if st1<st2:
+#            magdip = self.get_magnetic_dipole(exindx, st1, st2)
+#        else:
+#            magdip = self.get_magnetic_dipole(exindx, st2, st1)
+           
+        # Franck-Condon factor between the two states
+        fcfac = self.fc_factor(state1,state2)
+
+        return magdip*fcfac
 
     def _get_twoexindx(self, state1, state2):
         """ Indices of two molecule with transitions or negative number
@@ -1691,8 +1763,12 @@ class AggregateBase(UnitsManaged, Saveable):
         HH = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         # Transition dipole moment matrix
         DD = numpy.zeros((Ntot, Ntot, 3),dtype=numpy.float64)
+        # Magnetic dipole moment matrix (in coordinate system centered on the molecule)
+        MM = numpy.zeros((Ntot, Ntot, 3),dtype=numpy.complex128)
         # Rotatory strength matrix
         RR = numpy.zeros((Ntot, Ntot),dtype=numpy.float64)
+        RRv = numpy.zeros((Ntot, Ntot),dtype=numpy.float64)
+        RRm = numpy.zeros((Ntot, Ntot),dtype=numpy.float64)
         # Matrix of Franck-Condon factors
         FC = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         # Matrix of the transition widths (their square roots)
@@ -1769,7 +1845,8 @@ class AggregateBase(UnitsManaged, Saveable):
                                     vibenergy_cutoff=vibenergy_cutoff,
                                     band_external=band_external): 
             
-                DD[a,b,:] = numpy.real(self.transition_dipole(s1, s2))                
+                DD[a,b,:] = numpy.real(self.transition_dipole(s1, s2))  
+                MM[a,b,:] = self.transition_magnetic(s1, s2)
                 FC[a,b] = numpy.real(self.fc_factor(s1, s2))
                 # FIXME: Here we assume only excitation from the lowest state (lowest vibrational state)
                 mon1=s1.get_monomer()
@@ -1781,7 +1858,16 @@ class AggregateBase(UnitsManaged, Saveable):
                         Rb = numpy.array(self.monomers[mon2].position,"f8")
                         da = self.transition_dipole(s0, s1)
                         db = self.transition_dipole(s0, s2)
+                        ma = self.transition_magnetic(s0, s1)
                         RR[a,b] = numpy.dot( (Ra - Rb), numpy.cross(da, db)) 
+                        
+                        Ea = s1.energy() - s0.energy()
+                        try:
+                            dav = self.transition_velocity_dipole(s0, s1)
+                        except:
+                            dav = -1j*Ea*da
+                        RRv[a,b] = numpy.real(1j*numpy.dot(Ra, numpy.cross(dav,db)))
+                        RRm[a,b] = numpy.real(1j*numpy.dot(db,ma))
                 except:
                     pass
                 
@@ -1810,9 +1896,14 @@ class AggregateBase(UnitsManaged, Saveable):
         self.HamOp = Hamiltonian(data=HH)
         # dipole moments
         self.DD = DD
+        # dipole moments
+        self.MM = MM
         # Oscilatory strength
         self.RR = RR
+        self.RRv = RRv
+        self.RRm = RRm
         self.TrDMOp = TransitionDipoleMoment(data=DD) 
+        self.TrMMOp = TransitionDipoleMoment(data=MM)
         # Franck-Condon factors
         self.FCf = FC
         # widths 
@@ -3238,6 +3329,16 @@ class AggregateBase(UnitsManaged, Saveable):
         """
         if self._built:
             return TransitionDipoleMoment(data=self.DD)                     
+        else:
+            raise Exception("Aggregate object not built")
+            
+    
+    def get_TransitionMagneticDipoleMoment(self):
+        """Returns the aggregate transition dipole moment operator
+        
+        """
+        if self._built:
+            return TransitionDipoleMoment(data=self.MM)                     
         else:
             raise Exception("Aggregate object not built")
             
