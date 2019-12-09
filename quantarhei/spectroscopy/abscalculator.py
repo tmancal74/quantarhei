@@ -61,6 +61,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self._rate_matrix = None
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
+        self._gass_lineshape = False
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -73,7 +74,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self.rwa = 0.0
 
      
-    def bootstrap(self,rwa=0.0, lab=None):
+    def bootstrap(self,rwa=0.0, lab=None, HWHH = None):
         """
         
         """
@@ -82,6 +83,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             # sets the frequency axis for plottig
             self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
             self.frequencyAxis.data += self.rwa     
+        
+        if HWHH is not None:  
+            self._gass_lineshape = True
+            self.HWHH = self.convert_2_internal_u(HWHH)
         
         #if isinstance(self.system, Aggregate):
         #    self.system.diagonalize()
@@ -220,6 +225,33 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # cut the center of the spectrum
         Nt = ta.length #len(ta.data)        
         return ft[Nt//2:Nt+Nt//2]
+        
+    def one_transition_spectrum_gauss(self,tr):
+        """ Calculates spectrum of one transition using gaussian broadening
+        of the stick spectra. The definition is the same as for  exat tools: 
+        https://doi.org/10.1002/jcc.25118
+        
+        """
+        
+        
+        fa = tr["fa"]     # Frequency axis
+        HWHH = tr["HWHH"] # Half width at the half hight (maximum)
+        dd = tr["dd"]     # transition dipole strength
+        rr = tr["rr"]     # transition dipole strength
+        om = tr["om"]+self.rwa     # frequency
+        
+        # LineShape = lambda p, x: (x/(p[1]*np.sqrt(2*m.pi))*np.exp(-0.5*((x-p[0])/p[1])**2))
+        # broad = broad/np.sqrt(2*np.log(2))
+        sigma = HWHH/numpy.sqrt(2*numpy.log(2))
+        
+        # x = ta.data
+        
+        data = (fa.data/(sigma*numpy.sqrt(2*numpy.pi))*numpy.exp(-0.5*((fa.data-om)/sigma)**2))
+        data_abs = dd*data
+        data_CD = rr*data
+        
+        return data_abs,data_CD
+        
     
     def one_transition_spectrum_fluor(self,tr):
         """ Calculates spectrum of one transition
@@ -443,8 +475,26 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # Scale by excitation energy:
         Rot_n *= energy[n]
 #        print(Rot_n,energy,n)
-        return Rot_n                    
-                
+        return Rot_n           
+
+    def _excitonic_rotatory_strength_fullv(self,SS,AG,energy,n):
+        # Initialize rotatory strength
+        Rot_n = 0
+#        Rot_nm = 0
+#        
+#        DD_vel = self.system.DD[0].copy()
+#        for ii in range(1:DD_vel.shape[0]):
+#            DD_vel[ii] *= -self.system.HH[ii,ii]
+#        
+        for ii in range(AG.Ntot):
+            for jj in range(AG.Ntot):
+                Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
+#        
+#        for ii in range(AG.Ntot):
+#            for jj in range(AG.Ntot):
+#                Rot_nm += SS[ii,n]*SS[jj,n]*AG.RRm[ii,jj]
+        
+        return Rot_n#,Rot_nm
         
     def _calculate_monomer(self, raw=False):
         """ Calculates the absorption spectrum of a monomer 
@@ -514,8 +564,21 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # transformed into the basis of Hamiltonian eigenstates
         DD.transform(SS)         
 
+        # Frequency axis
+        # we only want to retain the upper half of the spectrum
+        Nt = len(self.frequencyAxis.data)//2        
+        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
+        st = self.frequencyAxis.data[Nt//2]
+        # we represent the Frequency axis anew
+        axis = FrequencyAxis(st,Nt,do) 
+        
         # TimeAxis
-        tr = {"ta":ta}
+        tr = {"ta":ta, "fa":axis}
+        
+        # If gaussian groadening is specified calculate also spectra
+        if self._gass_lineshape:
+            tr["HWHH"] = self.HWHH
+        
         
         if relaxation_tensor is not None:
             RR = relaxation_tensor
@@ -552,9 +615,12 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         #tr.append(ct)
         tr["ct"] = ct
         tr["re"] = self._excitonic_reorg_energy(SS,self.system,1)
-        tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
+        tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,1)
+        #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
 #        print(1,convert(HH.data[1,1]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[1,1]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
-#        print(convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+#        print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+#        rot2,rot2m = self._excitonic_rotatory_strength2(SS,self.system,energy,1)
+#        print(1,convert(rot2,"int","1/cm")*numpy.pi*1e-4,convert(rot2m,"int","1/cm")*numpy.pi*1e-4)
         
         self.system._has_system_bath_coupling = True
         
@@ -570,8 +636,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # Calculates spectrum of a single transition
         #
         data = numpy.real(self.one_transition_spectrum_abs(tr))
-        data_fl = rho_eq_exct.data[1, 1]*numpy.real(self.one_transition_spectrum_fluor(tr))
+        data_fl = numpy.real(rho_eq_exct.data[1, 1]*self.one_transition_spectrum_fluor(tr))
         data_cd = numpy.real(self.one_transition_spectrum_cd(tr))
+        if self._gass_lineshape:
+            data_gauss,data_cd_gauss = numpy.real(self.one_transition_spectrum_gauss(tr))
 #        print("Population mine:",rho_eq_exct.data[1, 1])
         
         for ii in range(2,HH.dim):
@@ -586,10 +654,13 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
             tr["ct"] = self._excitonic_coft(SS,self.system,ii)
             tr["re"] = self._excitonic_reorg_energy(SS,self.system,ii)
-            tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,ii)
+            tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,ii)
+            #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,ii)
 #            print(ii,convert(HH.data[ii,ii]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[ii,ii]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
-#            print(convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+#            print(ii,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
             # conversion factor is convert rotatory strength to inverse centimeters and multiply *numpy.pi*1e-4
+#            rot2,rot2m = self._excitonic_rotatory_strength2(SS,self.system,energy,ii)
+#            print(ii,convert(rot2,"int","1/cm")*numpy.pi*1e-4,convert(rot2m,"int","1/cm")*numpy.pi*1e-4)
             
 #            tr["ct"] = ct
 #            print(tr["ct"])
@@ -601,16 +672,15 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             # Calculates spectrum of a single transition
             #
             data += numpy.real(self.one_transition_spectrum_abs(tr))
-            data_fl += rho_eq_exct.data[ii, ii]*numpy.real(self.one_transition_spectrum_fluor(tr))
+            data_fl += numpy.real(rho_eq_exct.data[ii, ii]*self.one_transition_spectrum_fluor(tr))
             data_cd += numpy.real(self.one_transition_spectrum_cd(tr))
+            if self._gass_lineshape:
+                data_gauss_tmp,data_cd_gauss_tmp = numpy.real(self.one_transition_spectrum_gauss(tr))
+                data_gauss += data_gauss_tmp
+                data_cd_gauss += data_cd_gauss_tmp
 #            print("Population mine:",rho_eq_exct.data[ii, ii])
 
-        # we only want to retain the upper half of the spectrum
-        Nt = len(self.frequencyAxis.data)//2        
-        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
-        st = self.frequencyAxis.data[Nt//2]
-        # we represent the Frequency axis anew
-        axis = FrequencyAxis(st,Nt,do)
+        
         
         # multiply the spectrum by frequency (compulsory prefactor)
         if not raw:
@@ -629,8 +699,14 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         abs_spect = LinSpectrum(axis=axis, data=data)
         fluor_spect = LinSpectrum(axis=axis, data=data_fl)
         CD_spect = LinSpectrum(axis=axis, data=data_cd)
+        if self._gass_lineshape:
+            abs_spect_gauss = LinSpectrum(axis=axis, data=data_gauss)
+            CD_spect_gauss = LinSpectrum(axis=axis, data=data_cd_gauss)
         
-        return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect}      
+            return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
+                "abs gauss": abs_spect_gauss, "CD gauss": CD_spect_gauss} 
+        else:
+            return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect}    
 
                    
 class AbsSpectrumCalculator(LinSpectrumCalculator):
