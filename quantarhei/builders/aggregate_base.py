@@ -171,7 +171,10 @@ class AggregateBase(UnitsManaged, Saveable):
     def init_coupling_indexes(self):
         """ Set indexes for elements of the coupling matrix
         
+        index for coupling between mon1 init1 -> final1 and mon2 init2 -> final2 
+        is self._mol2coupling[mon1][init1][final1-init1-1][mon2-mon1-1][init2][final2-init2-1]        
         """
+        # FIXME: Find better way how to store couplings for multilevel molecules!
         
         self._coupling2mol = []
         self._mol2coupling = []
@@ -200,6 +203,9 @@ class AggregateBase(UnitsManaged, Saveable):
                                 count += 1
     
     def init_coupling_vector(self):
+        """ initialize coupling vector
+        """
+        
         self.init_coupling_indexes()
         Ncoupl = len(self._coupling2mol)
         self.resonance_coupling_vec = numpy.zeros(Ncoupl, dtype=numpy.float64)
@@ -208,6 +214,29 @@ class AggregateBase(UnitsManaged, Saveable):
         self.coupling_initiated = True
     
     def get_resonance_coupling_vec(self,mon1,init1,fin1,mon2,init2,fin2):
+        """ returns coupling between mon1 transition init1->fin1 and 
+        mon2 transition init2->fin2
+        
+        Parameters
+        -----------
+        mon1,mon2 : integer 
+            indexes of two monomers betweem which interaction energy is calculated
+        init1,fin1 : integer
+            index of initial and final state, respectively, of monomer 1 for 
+            electronic transition init1->fin1. Ground state is 0 first excited
+            state 1, and so on
+        init2,fin2 : integer
+            index of initial and final state, respectively, of monomer 2
+
+
+        Return
+        ---------
+        coupling : float
+            coupling between mon1 transition init1->fin1 and 
+            mon2 transition init2->fin2 in current energy units
+
+        """        
+        
         if mon1<mon2:
             indx1 = mon1
             indx4 = mon2 - mon1 -1
@@ -237,7 +266,8 @@ class AggregateBase(UnitsManaged, Saveable):
         return self.convert_energy_2_current_u(coupling)
 
     def set_coupling_by_dipole_dipole_vec(self, epsr=1.0):
-        """Sets resonance coupling by dipole-dipole interaction
+        """Sets resonance coupling by dipole-dipole interaction for multilevel
+        molecules
         
         """
         
@@ -284,6 +314,21 @@ class AggregateBase(UnitsManaged, Saveable):
         # TESTED
     
     def _set_coupling_vec(self,mon1,init1,fin1,mon2,init2,fin2,coupling):
+        """Sets resonance coupling value between two transitions. Works 
+        for multilevel molecules
+        
+        Parameters
+        -----------
+        mon1,mon2 : integer 
+            indexes of two monomers betweem which interaction energy is calculated
+        init1,fin1 : integer
+            index of initial and final state, respectively, of monomer 1 for 
+            electronic transition init1->fin1. Ground state is 0 first excited
+            state 1, and so on
+        init2,fin2 : integer
+            index of initial and final state, respectively, of monomer 2
+        
+        """
         if not self.coupling_initiated:
             self.init_coupling_vector() 
         
@@ -316,7 +361,16 @@ class AggregateBase(UnitsManaged, Saveable):
     
     def set_coupling_by_Hamiltonian(self,HH):
         """ set the resonance coupling values according to given electronic
-        Hamiltonian (single exciton band is expected - without the ground state)
+        Hamiltonian (single exciton band is expected - without the ground state).
+        Only excitations from the ground state are allowed.
+        
+        Parameters
+        -----------
+        HH : numpy.array of float
+            First exciton band hamiltonian. Only excitations from the ground
+            state are supported so far. The ordering of the hamiltonian must
+            be the same and the nomomers and its transitions. 
+        
         """
         
         # FIXME: Allow higher excited states for the monomer
@@ -342,6 +396,14 @@ class AggregateBase(UnitsManaged, Saveable):
     def set_resonance_coupling_vec(self, i, j, coupling):
         """Sets resonance coupling value between two sites (between !electronic
         states!)
+        
+        Parameters
+        ----------
+        i,j : integer
+            indexes of electronic levels (in aggregate) for which the coupling
+            is set
+        coupling : float
+            coupling between the electronic states in current energy units
         
         """
         if not self.coupling_initiated:
@@ -446,8 +508,27 @@ class AggregateBase(UnitsManaged, Saveable):
         # TESTED
 
     def dipole_dipole_coupling_multilevel(self, mon1, in1, fin1, mon2, in2, fin2, epsr=1.0):
-        """Calculates dipole-dipole coupling 
+        """Calculates dipole-dipole coupling for multilevel monomers
         
+        Parameters
+        -----------
+        mon1,mon2 : integer 
+            indexes of two monomers betweem which dipole-dipole interaction 
+            energy is calculated
+        init1,fin1 : integer
+            index of initial and final state, respectively, of monomer 1 for 
+            electronic transition init1->fin1. Ground state is 0 first excited
+            state 1, and so on
+        init2,fin2 : integer
+            index of initial and final state, respectively, of monomer 2
+        epsr : float
+            relative permitivity of the environment
+            
+            
+        Returns
+        ----------
+        val : float
+            dipole-dipole interaction energy in current energy units 
         """
         if mon1 == mon2:
             raise Exception("Only coupling between different molecules \
@@ -1154,10 +1235,13 @@ class AggregateBase(UnitsManaged, Saveable):
         Parameters
         ----------
         
-        state1 : {ElectronicState, VibronicState}
+        state1,state2 : {ElectronicState, VibronicState}
             States for which coupling should be calculated
             
-        
+        Returns
+        ---------
+        coup : float
+            Resonance coupling in current units
         """
         
         #
@@ -1714,6 +1798,29 @@ class AggregateBase(UnitsManaged, Saveable):
             
         vibge_approx: 
             Approximation used in the generation of vibrational state.
+            
+        band_external : list of integers (dimension Nx2)
+            redefinition of correspondence of individual electronic states to
+            excitonic bands, e.g. [[4,1],[5,2]] means that 4th electronic state
+            is moved to single exciton band and 5th electronic state
+            to the second exciton band (zeroth electronic state is the ground 
+            state). The mult must be high enough to allow the building the 
+            original states, e.g for 2 two level carotenoids where S2-S2 
+            interaction should mult=2 Because it is interaction between second
+            excited state and secodn excited state
+            
+        
+        NOTES:
+        --------------
+        good to check the bands before building the molecule with:
+
+    for a, s1 in aggreg.allstates(mult=mult, 
+                                    vibgen_approx=vibgen_approx, Nvib=Nvib,
+                                    vibenergy_cutoff=vibenergy_cutoff):
+         print(a,"elsign:",s1.elstate.elsignature,"vibsign:",s1.vsig,"elindex:",s1.elstate.index,"band:",s1.elstate.band)
+            
+        
+            
         
         """
         manager = Manager()
@@ -1783,7 +1890,7 @@ class AggregateBase(UnitsManaged, Saveable):
         
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated: 
-            # FIXME: Duplicate coupling_vector is more general
+            # FIXME: Duplicate. coupling_vector is more general
             self.init_coupling_matrix() 
             self.init_coupling_vector()
 
@@ -1851,7 +1958,6 @@ class AggregateBase(UnitsManaged, Saveable):
                 # FIXME: Here we assume only excitation from the lowest state (lowest vibrational state)
                 mon1=s1.get_monomer()
                 mon2=s2.get_monomer()
-#                print(mon1,mon2)
                 try:
                     if mon1 != -1 and mon2 != -1:
                         Ra = numpy.array(self.monomers[mon1].position,"f8")
