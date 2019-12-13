@@ -1725,69 +1725,40 @@ class AggregateBase(UnitsManaged, Saveable):
                     stg = self.get_VibronicState(vs_g[0],
                                                 vs_g[1])
                     stgs.append(stg)
+                
+                FcProd = numpy.zeros_like(self.FCf)
+                for i in range(FcProd.shape[0]):
+                    for j in range(FcProd.shape[1]):
+                        for i_g in range(self.Nb[0]):
+                            FcProd[i, j] += self.FCf[i_g, i]*self.FCf[j, i_g]
                     
                 if evolution:
-                    
                     if whole:
-                        #import time
-                        
-                        #t1 = time.time()
                         # loop over electronic states n, m
                         for n in range(self.Nel):
                             for i_n in self.vibindices[n]:
-                                
                                 for m in range(self.Nel):
                                     for i_m in self.vibindices[m]:
-
-                                        for i_g in range(self.Nb[0]):
-                                            
-                                            
-                                            fc_n = self.FCf[i_g, i_n]
-                                            fc_m = self.FCf[i_m, i_g]
-                                            
-                                            prod = fc_n*fc_m
-                                            
-                                            nop._data[:, n, m] += \
-                                            operator._data[:, i_n, i_m]*prod
-                                            
-                        #t2 = time.time(
-                        #print("TIME: ", t2-t1)
+                                        nop._data[:, n, m] += \
+                                            operator._data[:, i_n, i_m]*FcProd[i_n, i_m]
                         
                     else:
                         # loop over electronic states n, m
                         for n in range(self.Nel):
                             for i_n in self.vibindices[n]:
-                                
                                 for m in range(self.Nel):
                                     for i_m in self.vibindices[m]:
-                                        
-                                        for i_g in range(self.Nb[0]):
-                                            
-                                             
-                                            fc_n = self.FCf[i_g, i_n]
-                                            fc_m = self.FCf[i_m, i_g]
-                                            
-                                            contrib = \
-                                              operator._data[Nt, i_n, i_m]\
-                                              *fc_n*fc_m
-                                            nop._data[n,m] += contrib                    
+                                        nop._data[n,m] += \
+                                            operator._data[Nt, i_n, i_m]*FcProd[i_n, i_m]                
                     
                 else:
                     # loop over electronic states n, m
                     for n in range(self.Nel):
                         for i_n in self.vibindices[n]:
-                            
                             for m in range(self.Nel):
-                                for i_m in self.vibindices[m]:
-                                    
-                                    for i_g in range(self.Nb[0]):
-                                                                                    
-                                        fc_n = self.FCf[i_g, i_n]
-                                        fc_m = self.FCf[i_m, i_g]
-                                        
-                                        contrib = \
-                                        operator._data[i_n, i_m]*fc_n*fc_m
-                                        nop._data[n,m] += contrib
+                                for i_m in self.vibindices[m]:                                     
+                                    nop._data[n,m] += \
+                                        operator._data[i_n, i_m]*FcProd[i_n, i_m] 
                                 
             else:
                 raise Exception("Cannot trace over this object: "+
