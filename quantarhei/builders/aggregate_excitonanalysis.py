@@ -173,7 +173,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.diagonalize()
 
         >>> print("{0:.4f}".format(agg.get_intersite_mixing(1,2)))   
-        0.8361
+        0.8362
         
         """
         ci = self.SS[:,state1]
@@ -212,7 +212,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         --------
         
         >>> import quantarhei as qr
-        >>> import numpy
         >>> agg.set_coupling_by_dipole_dipole()
         ...
         ... # build and diagonalize
