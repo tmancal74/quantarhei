@@ -1,5 +1,5 @@
 scipy
-numpy>=1.14.0
+numpy==1.15.4
 matplotlib
 terminaltables
 gherkin-official
