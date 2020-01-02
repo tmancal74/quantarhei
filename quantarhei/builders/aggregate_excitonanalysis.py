@@ -172,8 +172,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.build()  
         >>> agg.diagonalize()
 
-        >>> print("{0:.8f}".format(agg.get_intersite_mixing(1,2)))   
-        0.83618110
+        >>> print("{0:.4f}".format(agg.get_intersite_mixing(1,2)))   
+        0.8361
         
         """
         ci = self.SS[:,state1]
@@ -212,15 +212,16 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         --------
         
         >>> import quantarhei as qr
-        >>> agg = qr.TestAggregate("dimer-2")
+        >>> import numpy
         >>> agg.set_coupling_by_dipole_dipole()
         ...
         ... # build and diagonalize
         >>> agg.build()  
         >>> agg.diagonalize() 
         ...
-        >>> agg.get_transition_dipole(0,1)
-        2.4802649722513967
+        >>> a = agg.get_transition_dipole(0,1)
+        >>> print("{0:.6f}".format(a))
+        2.480264
         
         
         """
@@ -253,12 +254,12 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.build()  
         >>> agg.diagonalize()
         ...
-        >>> print("{0:.8f}".format(agg.get_state_energy(2)))
-        2.32309466
+        >>> print("{0:.4f}".format(agg.get_state_energy(2)))
+        2.3231
         
         >>> with qr.energy_units("1/cm"):
-        ...     print("{0:.8f}".format(agg.get_state_energy(2)))
-        12332.93197055
+        ...     print("{0:.4f}".format(agg.get_state_energy(2)))
+        12332.9320
         
         
         """
