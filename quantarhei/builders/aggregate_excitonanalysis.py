@@ -212,6 +212,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         --------
         
         >>> import quantarhei as qr
+        >>> agg = qr.TestAggregate("dimer-2")
         >>> agg.set_coupling_by_dipole_dipole()
         ...
         ... # build and diagonalize
@@ -303,8 +304,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 1
         =========
         <BLANKLINE>
-        Transition energy        : 2.25417864 1/cm
-        Transition dipole moment : 2.48026497 D
+        Transition energy        : 2.25417865 1/cm
+        Transition dipole moment : 2.48026499 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -319,7 +320,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         =========
         <BLANKLINE>
         Transition energy        : 2.32309466 1/cm
-        Transition dipole moment : 5.16973503 D
+        Transition dipole moment : 5.16973501 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -330,7 +331,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
         +-------+-------------+--------------+------------------+
         <BLANKLINE>
-
         """
         
         start_at = start
