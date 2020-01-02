@@ -221,7 +221,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         ...
         >>> a = agg.get_transition_dipole(0,1)
         >>> print("{0:.6f}".format(a))
-        2.480264
+        2.480265
         
         
         """
