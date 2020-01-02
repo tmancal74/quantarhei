@@ -73,16 +73,30 @@ class ModifiedRedfieldRateMatrix:
         """
         
         """
-        Na = self.ham.dim
-        Nc = self.sbi.N 
+        sbi = self.sbi
+        ham = self.ham
         
-        # loop over components
-        for k in range(Nc):
-
-            # correlation function
-            cf = self.sbi.CC.get_correlation_function(k,k)
+        Na = ham.dim
+        Nc = sbi.N 
+         
+        timea = sbi.TimeAxis
+        Nt =  timea.length
+        
+        #Temp = sbi.get_temperature()
+        #print("Temperature: ", Temp)
+        
+        sbi.CC.create_one_integral()
+        sbi.CC.create_double_integral()
+        
+        SS = ham.diagonalize()
+        
+        sbi.CC.transform(SS)
+        
+        #print(sbi.CC._A4)
+        
+        cft = sbi.CC.get_goft_matrix() #2,2,2,2)
             
-        Nt = cf.axis.length
+        print(cft)
         
         ssModifiedRedfieldRateMatrix(Na, Nc, Nt)
 

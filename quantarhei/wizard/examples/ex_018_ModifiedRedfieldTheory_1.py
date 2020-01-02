@@ -50,49 +50,16 @@ print("""
 
 m = qr.Manager()
 m.warn_about_basis_change = False 
-
-sb_reference = qr.BasisReferenceOperator(ham.dim,
-                                      name="site basis reference")
-
-#
-# Calculation of various relaxation tensors
-#
-
-ham.protect_basis()
-with qr.eigenbasis_of(ham):
-    
-    #RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
-    #
-    #print("\nRelaxation times from the full relaxation tensor")
-    #for i in range(1, ham.dim):
-    #    for j in range(1, ham.dim):
-    #        print(i, "<-", j, ":", 1.0/numpy.real(RRT.data[i,i,j,j]))
         
-    print("\nCalculating relaxation rates")
-    
-    try: 
-        RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi)
-        print("\nRelaxation times from the rate matrix")
-    
-        for i in range(1,ham.dim):
-            for j in range(1, ham.dim):
-                print(i, "<-", j, ":", 1.0/RRM.data[i,j])
+print("\nCalculating relaxation rates")
 
-    except:
-        pass
-    
-    #print("\nComparison of the results: ratio of rates")
-    #for i in range(1, ham.dim):
-    #    for j in range(1, ham.dim):
-    #        print(i, "<-", j, ":", RRM.data[i,j]/numpy.real(RRT.data[i,i,j,j]))
+RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi)
+print("\nRelaxation times from the rate matrix")
 
-    #TDRRM = qr.qm.TDRedfieldRateMatrix(ham, sbi)
-    #print("\nRelaxation times from the rate matrix")
-    #for i in range(1,ham.dim):
-    #    for j in range(1, ham.dim):
-    #        print(i, "<-", j, ":", 1.0/TDRRM.data[time.length-1,i,j])
+for i in range(1,ham.dim):
+    for j in range(1, ham.dim):
+        print(i, "<-", j, ":", 1.0/RRM.data[i,j])
 
-ham.unprotect_basis()
 
 if False:
     with qr.eigenbasis_of(ham):
