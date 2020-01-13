@@ -64,6 +64,7 @@ New in 0.0.54
 =============
 
 for users:
+ - TwoDSpectra can be added if they are of the same type
  - 
 
 New in 0.0.53

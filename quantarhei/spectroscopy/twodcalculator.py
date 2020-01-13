@@ -388,11 +388,14 @@ class TwoDResponseCalculator:
         
         
         """            
-        from .twodcontainer import TwoDSpectrumContainer
-                   
+        #from .twodcontainer import TwoDSpectrumContainer
+        from .twodcontainer import TwoDResponseContainer
+ 
+                  
         if _have_aceto:
 
-            twods = TwoDSpectrumContainer(self.t2axis)
+            #twods = TwoDSpectrumContainer(self.t2axis)
+            twods = TwoDResponseContainer(self.t2axis)
             
             teetoos = self.t2axis.data
             for tt2 in teetoos:
@@ -406,7 +409,8 @@ class TwoDResponseCalculator:
             
             # fall back on quantarhei's own implementation
         
-            ret = TwoDSpectrumContainer()
+            #ret = TwoDSpectrumContainer()
+            ret = TwoDResponseContainer()
             
         
         return ret

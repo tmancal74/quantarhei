@@ -101,7 +101,17 @@ class TwoDSpectrum(DataSaveable, Saveable):
                             "yaxis.length = "+str(self.yaxis.length)+"\n"+
                             "data shape = "+str(data.shape))
             
+
+    def add_data(self, data): 
+        """Sets the data of the 2D spectrum
+
         
+        """
+        if self.data is None:
+            raise Exception("Data is not initialized: use set_data method.")
+        self.data += data 
+
+       
     def set_t2(self, t2):
         """Sets the t2 (waiting time) of the spectrum
         
