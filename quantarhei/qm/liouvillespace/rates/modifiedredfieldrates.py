@@ -9,15 +9,17 @@
 """  
 
 import numpy
+from scipy import integrate
 
-from ....core.implementations import implementation
-from ....core.units import cm2int
-from ....core.units import kB_intK
+from quantarhei.core.implementations import implementation
+from quantarhei.core.units import cm2int
+from quantarhei.core.units import kB_intK
 
-from ...hilbertspace.hamiltonian import Hamiltonian
-from ...liouvillespace.systembathinteraction import SystemBathInteraction
+from quantarhei.qm.hilbertspace.hamiltonian import Hamiltonian
+from quantarhei.qm.liouvillespace.systembathinteraction import SystemBathInteraction
 
 import quantarhei as qr
+import itertools as it
 
 class ModifiedRedfieldRateMatrix:
     """Modifield Redfield relaxation rate matrix
@@ -47,7 +49,7 @@ class ModifiedRedfieldRateMatrix:
     
     """
     
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham, sbi, time, initialize=True, cutoff_time=None):
         
         if not isinstance(ham,Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -64,6 +66,7 @@ class ModifiedRedfieldRateMatrix:
             
         self.ham = ham
         self.sbi = sbi
+        self.tt = time.data
         
         if initialize: 
             self._set_rates()          
@@ -73,91 +76,152 @@ class ModifiedRedfieldRateMatrix:
         """
         
         """
-        sbi = self.sbi
-        ham = self.ham
+
+        Na = self.ham.dim
+        Nc = self.sbi.N 
+        tt = self.tt
+    
+        # Eigen problem
+        hD,SS = numpy.linalg.eigh(self.ham._data) #hD=eigenvalues, SS=eigenvectors
         
-        Na = ham.dim
-        Nc = sbi.N 
-         
-        timea = sbi.TimeAxis
-        Nt =  timea.length
+        Nt = self.sbi.CC.timeAxis.length
         
-        #Temp = sbi.get_temperature()
-        #print("Temperature: ", Temp)
+        lam4 = numpy.zeros((Na-1,Na-1,Na-1,Na-1),dtype=qr.REAL)
+        #lam4 = numpy.zeros((Na,Na,Na,Na),dtype=qr.REAL)
         
-        sbi.CC.create_one_integral()
-        sbi.CC.create_double_integral()
-        
-        SS = ham.diagonalize()
-        
-        sbi.CC.transform(SS)
-        
-        #print(sbi.CC._A4)
-        
-        cft = sbi.CC.get_goft_matrix() #2,2,2,2)
+        for a in range(Na-1):
+        #for a in range(1,Na):    
+            for b in range(Na-1):
+            #for b in range(1,Na):
+                for c in range(Na-1):
+                #for c in range(1,Na):   
+                    for d in range(Na-1):
+                    #for d in range(1,Na):   
+                         lam4[a,b,c,d] = self.sbi.CC.get_reorganization_energy4(a,b,c,d)
             
-        print(cft)
+        self.sbi.CC.create_double_integral() #g(t)
+        self.sbi.CC.create_one_integral()  #g_dot(t)
+        self.sbi.CC.transform(SS)
+        #g4_1value = self.sbi.CC.get_goft4(1,2,3,4)
+        g4 = self.sbi.CC.get_goft_matrix()   #g_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
+        h4 = self.sbi.CC.get_hoft_matrix()   #g_dot_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
+        c4 = self.sbi.CC.get_coft_matrix()   #g_dotdot_{abcd}(t) = C(t) in exciton basis, dimensions (Na, Na, Na, Na, Nt-1)
         
-        ssModifiedRedfieldRateMatrix(Na, Nc, Nt)
+        rates = ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt)
+        self.rates = rates
 
-
-def ssModifiedRedfieldRateMatrix(Na, Nc, Nt): #, Ee, SS, prt, gg, hh, cc, tt, ls,
+def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, SS, prt, gg, hh, cf, tt, ls,
                                  #rtol, werror, RR):
-    """Standard redfield rates
+        """Standard redfield rates
     
     
-    Parameters
-    ----------
+        Parameters
+        ----------
     
-    Na : integer
+        Na : integer
         Rank of the rate matrix, number of excitons
         
-    Nc : integer
+        Nc : integer
         Number of components of the interaction Hamiltonian (number of sites
         or number of distinct correlation functions)
     
-    Ee : float array
+        Ee : float array
         Eigen energies of the Hamiltonian
         
-    SS : float array
+        SS : float array
         Transformation matrix 
         (components of the interaction operator in the exciton basis)
         
-    prt : integer array
+        prt : integer array
         Pointer between site index and correlation function index
     
-    gg : float array
+        gg : float array
         Line shape functions
         
-    hh : float array
+        hh : float array
         derivative of the line shape function
     
-    cc : float array
+        cf : float array
         second derivatives of the line shape functions (correlation functions)
         
-    tt : float array
+        tt : float array
         values of time
         
-    ls : float array
+        ls : float array
         reorganization energies of the sites
         
-    RR : real array
+        RR : real array
         Relaxation rate matrix (to be calculated and returned)
     
-    rtol : float array
+        rtol : float array
         tolerances
         
-    werror : integer array
+        werror : integer array
         warnings and errors
         
-    """
-    
-    print("I am called from outside")
-    
-    print(Na)
-    print(Nc)
-    print(Nt)
-    
-    qr.stop()
+        """
+        
+        print("***")
+        
+        E_0k = numpy.zeros(Na-1,dtype=numpy.float)
+        #E_0k = numpy.zeros(Na,dtype=numpy.float)
+        
+        for ii in range(Na-1):
+        #for ii in range(1,Na):
+            E_0k[ii] = hD[ii] - lam4[ii,ii,ii,ii]  
+            
+        F_k_t = numpy.zeros((Na-1,Nt-1),dtype=numpy.complex)    
+        A_k_t = numpy.zeros((Na-1,Nt-1),dtype=numpy.complex) 
+        N_kl_t = numpy.zeros((Na-1,Na-1,Nt-1),dtype=numpy.complex) 
+        
+        #F_k_t = numpy.zeros((Na,Nt-1),dtype=numpy.complex)    
+        #A_k_t = numpy.zeros((Na,Nt-1),dtype=numpy.complex) 
+        #N_kl_t = numpy.zeros((Na,Na,Nt-1),dtype=numpy.complex) 
+        
+        for a in range(Na-1):
+        #for a in range(1,Na):
+            for ti in range(Nt-1):
+                F_k_t[a,ti] = numpy.exp(-1j*(E_0k[a] - lam4[a,a,a,a])*tt[ti] - numpy.conjugate(g4[a,a,a,a,ti])) 
+                A_k_t[a,ti] = numpy.exp(-1j*(E_0k[a] + lam4[a,a,a,a])*tt[ti] - g4[a,a,a,a,ti]) 
+                                
+        for a in range(Na-1):
+        #for a in range(1,Na):
+            for b in range(Na-1):
+            #for b in range(1,Na):
+                for ti in range(Nt-1): 
+                    N_kl_t[a,b,ti] = (c4[b,a,a,b,ti] - (h4[b,a,a,a,ti] -  h4[b,a,b,b,ti] - 2j*lam4[b,a,b,b])*(h4[a,b,a,a,ti] - h4[a,b,b,b,ti] - 2j*lam4[a,b,b,b]))*numpy.exp(2*(g4[a,a,b,b,ti] + 1j*lam4[a,a,b,b]*tt[ti]))
+                  
+        f = numpy.zeros((Na-1,Na-1,Nt),dtype=numpy.complex) 
+        RR = numpy.zeros((Na-1,Na-1),dtype=numpy.complex) 
+        
+        #f = numpy.zeros((Na,Na,Nt),dtype=numpy.complex) 
+        #RR = numpy.zeros((Na,Na),dtype=numpy.complex) 
+        
+        for a in range(Na-1):
+        #for a in range(1,Na):
+            for b in range(Na-1):
+            #for b in range(1,Na):
+                for ti in range(Nt-1):
+                    f[a,b,ti] = numpy.conjugate(F_k_t[b,ti])*A_k_t[a,ti]*N_kl_t[a,b,ti]
+                    RR[a,b] = 2*numpy.real(integrate.simps(f[a,b,:],tt))
+                    
+        for a in range(Na-1):
+        #for a in range(1,Na):
+            RR[a,a] = 0
+                   
+        RR_bbaa = -numpy.sum(RR, axis = 0)
+        print('RR_bbaa is:')
+        print(RR_bbaa)
+        #RR = numpy.diag(numpy.diag(RR_bbaa)) + RR  
+        RR = numpy.diag(RR_bbaa) + RR  
+        print('diag RR_bbaa is:')
+        print(numpy.diag(RR_bbaa))
+        print('RR is:')
+        print(RR)
+                        
+        print("I am called from outside")
+        return RR
+
+        qr.stop()
                     
                     

@@ -30,7 +30,7 @@ agg = mg.get_Aggregate_with_environment(name="pentamer-1_env",
 
 
 agg.build()
-
+agg.diagonalize()
 
 sbi = agg.get_SystemBathInteraction()
 ham = agg.get_Hamiltonian()
@@ -51,15 +51,53 @@ print("""
 m = qr.Manager()
 m.warn_about_basis_change = False 
         
-print("\nCalculating relaxation rates")
+#<<<<<<< HEAD
+#sb_reference = qr.BasisReferenceOperator(ham.dim,
+#                                      name="site basis reference")
 
-RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi)
+
+#ham.protect_basis()
+with qr.eigenbasis_of(ham):
+    
+    #RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
+    #
+    #print("\nRelaxation times from the full relaxation tensor")
+    #for i in range(1, ham.dim):
+    #    for j in range(1, ham.dim):
+    #        print(i, "<-", j, ":", 1.0/numpy.real(RRT.data[i,i,j,j]))
+        
+    print("\nCalculating relaxation rates")
+    
+    #try: 
+    RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi, time)
+    #print('The modified redfield rate matrix is:')
+    #print(RRM.rates)
+    numpy.save('mod_red_rates_pentamer-1_env', RRM.rates)
+
+#except:
+    #    pass
+    
+    #print("\nComparison of the results: ratio of rates")
+    #for i in range(1, ham.dim):
+    #    for j in range(1, ham.dim):
+    #        print(i, "<-", j, ":", RRM.data[i,j]/numpy.real(RRT.data[i,i,j,j]))
+
+    #TDRRM = qr.qm.TDRedfieldRateMatrix(ham, sbi)
+    #print("\nRelaxation times from the rate matrix")
+    #for i in range(1,ham.dim):
+    #    for j in range(1, ham.dim):
+    #        print(i, "<-", j, ":", 1.0/TDRRM.data[time.length-1,i,j])
+
+#ham.unprotect_basis()
+#=======
+#RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi)
 print("\nRelaxation times from the rate matrix")
 
-for i in range(1,ham.dim):
-    for j in range(1, ham.dim):
-        print(i, "<-", j, ":", 1.0/RRM.data[i,j])
+for i in range(0,ham.dim - 1):
+    for j in range(0, ham.dim - 1):
+         print(i, "<-", j, ":", 1.0/RRM.rates[i,j])
 
+#>>>>>>> upstream/master
 
 if False:
     with qr.eigenbasis_of(ham):
@@ -93,7 +131,6 @@ if False:
     #rho_t.plot(coherences=False)
     
     
-    
     #
     #  Evolution of populations
     #
@@ -108,7 +145,7 @@ if False:
         plt.plot(time.data, pop_t[:,3],'--r')
         plt.show()
     
-    #print(RRM.data[2,3])
-    #with eigenbasis_of(ham):
-    #    print(RRT.data[2,2,3,3])
+#    #print(RRM.data[2,3])
+#    #with eigenbasis_of(ham):
+#    #    print(RRT.data[2,2,3,3])
     
