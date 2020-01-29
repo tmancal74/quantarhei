@@ -602,9 +602,11 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                     gg.append([RR.data[ii,ii]])
             tr["gg"] = gg[1]
         else:
+            
             tr["gg"] = [0.0]
         
         # get square of transition dipole moment here    #print(H_RC)
+#        print(tr["gg"])
         #tr.append(DD.dipole_strength(0,1))
         tr["dd"] = DD.dipole_strength(0,1)
         # first transition energy
@@ -643,10 +645,11 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 #        print("Population mine:",rho_eq_exct.data[1, 1])
         
         for ii in range(2,HH.dim):
-            if relaxation_tensor is not None:
+            if relaxation_tensor is not None or rate_matrix is not None:
                 tr["gg"] = gg[ii]
             else:
                 tr["gg"] = [0.0]
+#            print(tr["gg"])
             #tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
             tr["dd"] = DD.dipole_strength(0,ii)
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
