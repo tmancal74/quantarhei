@@ -6,6 +6,8 @@
 import sys
 import numpy
 
+from .. import COMPLEX
+
 
 def call_finish():
     pass
@@ -45,6 +47,10 @@ class DistributedConfiguration:
             self.size = 1
                     
         self.parallel_level = 0
+        
+        if self.size > 1:
+            self.parallel_level = 1
+            
         self.inparallel = False
         
         self.silent = True
@@ -216,7 +222,7 @@ def distributed_configuration():
     from .managers import Manager
     return Manager().get_DistributedConfiguration()
 
-    
+
 def block_distributed_range(start, stop):
     """ Creates an iterator which returns a block of indices
         
@@ -236,28 +242,12 @@ def block_distributed_range(start, stop):
     from .managers import Manager
     # we share the work only in parallel_level == 1  
     config = Manager().get_DistributedConfiguration()
+    
     if config.parallel_level==1:
-
+        
         config.inparallel_entered = True
-        whole_range = stop-start
-        per_worker = whole_range // config.size
-        remainder = whole_range % config.size
-    
-        N1_local = config.rank*per_worker
-        N2_local = N1_local+per_worker
         
-        if config.rank <= remainder:
-            if config.rank != 0:
-                N1_local += config.rank-1
-                N2_local += config.rank
-        else:
-            N1_local += remainder
-            N2_local += remainder
-        
-        rng = list()
-        rng.append(N1_local)
-        rng.append(N2_local)
-    
+        rng = _calculate_ranges(config, stop, start)
         config.range = rng
 
         return range(rng[0],rng[1])
@@ -267,8 +257,227 @@ def block_distributed_range(start, stop):
         return range(start, stop)
 
 
+def block_distributed_list(dlist, return_index=False):
+    """ Creates sublists for each process 
+        
+        Returns an iterator over a part of the list
+        Altogether the iterators span the original list.
+
+        Parameters
+        ----------
+        
+        dlist : list
+            the list to loop over
+            
+        return_index : bool
+            if True, the function returns a list of tuples, where the first
+            element is an index counting the interated list elements from 0
+
+    """
+    
+    from .managers import Manager
+    # we share the work only in parallel_level == 1  
+    config = Manager().get_DistributedConfiguration()
+        
+    if config.parallel_level==1:
+
+        config.inparallel_entered = True
+        
+        rng = _calculate_ranges_list(config, dlist)
+    
+        config.range = rng
+
+        if return_index:
+            lst = []
+            for a in range(rng[0],rng[1]):
+                lst.append((a, dlist[a]))
+            return lst
+        else:
+            return dlist[rng[0]:rng[1]]
+        
+    else:
+
+        rng = [0, len(dlist)]
+        config.range = rng
+        
+        if return_index:
+            lst = []
+            for a in range(len(dlist)):
+                lst.append((a, dlist[a]))
+            return lst            
+        else: 
+            return dlist
+    
+
+def collect_distributed_list_data(lst, containers, setter_function,
+                                  retriever_function, tags=None):
+    """Collects distributed data into a container container on rank 0 nod
+    
+    Collects the "data" properties of the objects of the 
+    data_class type into a container on the rank = 0 nod.
+       
+       
+    Parameters
+    ----------
+       
+    containers : list
+        A list of two container. Firts container is a new empty container
+        to which everything will be collected (on nod 0), the other
+        is the local container with the data to be set to nod 0
+        
+    tag_type : {int, str}
+        Type of the tag identifying data
+        
+    setter_function : function
+        Function that sets the data to the locally created class
+        based on `data` and `tag` recieved from other nods
+    
+    retriever_function : function
+        Function which retrieves the data from the container based on a tag
+    
+        
+    """
+
+    from .managers import Manager
+    # we share the work only in parallel_level == 1  
+    config = Manager().get_DistributedConfiguration()
+    
+    if config.parallel_level==1:
+     
+        
+        if config.rank == 0:
+            
+            # collect all data and tags into dictionaries
+
+            rng = config.range
+            #print(config.rank, "does not sends (already has):",rng)
+            #for a in range(rng[0],rng[1])
+            #    print(config.rank, "having", a, lst[a])
+            
+            data_shape = (1,1)
+            data_type = COMPLEX
+                            
+            for ii in range(config.size):                     
+                rng = config.ranges[ii]
+                #print("recieving from:", ii)
+                for a in range(rng[0],rng[1]):
+                    
+                    if tags is not None:
+                        tag = tags[a]
+                    else:
+                        tag = a
+                        
+                    if ii == 0:
+                        # retrieving locally calculated data
+                        data = retriever_function(containers[1], tag)
+                        # get the type and dimension for later use
+                        data_shape = data.shape
+                        data_type = data.dtype
+                    else:
+                        # recieving remotely calculated data
+                        data = numpy.zeros(data_shape, dtype=data_type)
+                        #data[0] = float(a)
+                        #print("recieving", a, "from", ii)
+                        config.comm.Recv(data, source=ii, tag=a)
+                        
+                    #print("setting", a, data)
+                    setter_function(containers[0], tag, data)
+                
+        else:
+            
+            # send the data to nod 0
+            rng = config.range
+            #print(config.rank, "sends to nod 0:", rng)
+
+            for a in range(rng[0],rng[1]):
+                # sending locally calculated data
+                if tags is not None:
+                    tag = tags[a]
+                else:
+                    tag = a
+                data = retriever_function(containers[1], tag)
+                #print("sending", a, "from", config.rank,"to 0")
+                config.comm.Send(data, dest=0, tag=a)
+                
+
+    else:
+        # if there is no parallelization, we do nothing because all data
+        # is already in the contaner
+        rng = config.range
+        for a in range(rng[0], rng[1]):
+            if tags is not None:
+                tag = tags[a]
+            else:
+                tag = a
+            data = retriever_function(containers[1], tag)
+            setter_function(containers[0], tag, data)
+        
+
+def _calculate_ranges(config, start, stop):
+    """Calculate which part of a give range should belong to which process
+
+
+    Parameters
+    ----------
+    
+    config : DistributedConfiguration 
+        object holding information about the parallel environment of quantarhei
+   
+    start : int
+        start of the integer range
+        
+    stop : int
+        end of the integer range
+    
+    """    
+
+    whole_range = stop-start
+    per_worker = whole_range // config.size
+    remainder = whole_range % config.size  
+    
+    ranges = [None]*config.size
+    for rank in range(config.size):
+        N1_local = rank*per_worker
+        N2_local = N1_local+per_worker
+    
+        if rank <= remainder:
+            if rank != 0:
+                N1_local += rank-1
+                N2_local += rank
+        else:
+            N1_local += remainder
+            N2_local += remainder
+                
+        rng = list()
+        rng.append(N1_local)
+        rng.append(N2_local)
+        ranges[rank] = rng
+        
+    config.ranges = ranges
+    return ranges[config.rank]
+
+    
+def _calculate_ranges_list(config, dlist):
+    """Calculate which part of a give list should belong to which process
+
+    Parameters
+    ----------
+    
+    config : DistributedConfiguration 
+        object holding information about the parallel environment of quantarhei
+
+    dlist : list
+        list which will be distributed
+        
+    """     
+    ln = len(dlist)
+    start = 0
+    stop = ln
+    return _calculate_ranges(config, start, stop)
+    
+
 def asynchronous_range(start, stop):
-    """Range distributing numbers asynchrnously among processes
+    """Range distributing numbers asynchronously among processes
     
     """
     from .managers import Manager

@@ -244,6 +244,8 @@ from .core.parallel import start_parallel_region
 from .core.parallel import close_parallel_region
 from .core.parallel import parallel_function
 from .core.parallel import block_distributed_range
+from .core.parallel import block_distributed_list
+from .core.parallel import collect_distributed_list_data
 
 ###############################################################################
 #                            SPECTROSCOPY
