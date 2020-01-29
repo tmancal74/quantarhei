@@ -2038,7 +2038,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 s0 = s1
 
             # diagonal Hamiltonian elements
-            HH[a,a] = s1.energy()
+            HH[a,a] = s1._energy() # for energy in current units use s1.energy()
             
             # get dephasing and width from the ground-state 
             # for each excited state
@@ -2078,14 +2078,16 @@ class AggregateBase(UnitsManaged, Saveable):
                 mon2=s2.get_monomer()
                 try:
                     if mon1 != -1 and mon2 != -1:
-                        Ra = numpy.array(self.monomers[mon1].position,"f8")
-                        Rb = numpy.array(self.monomers[mon2].position,"f8")
                         da = self.transition_dipole(s0, s1)
                         db = self.transition_dipole(s0, s2)
                         ma = self.transition_magnetic(s0, s1)
-                        RR[a,b] = numpy.dot( (Ra - Rb), numpy.cross(da, db)) 
+                        Ra = numpy.array(self.monomers[mon1].position,"f8")
+                        # alternative definition of rotatory strength
+                        #Rb = numpy.array(self.monomers[mon2].position,"f8")
+                        #RR[a,b] = numpy.dot( (Ra - Rb), numpy.cross(da, db)) 
                         
-                        Ea = s1.energy() - s0.energy()
+                        Ea = s1._energy() - s0._energy()
+                        # for energy in current units use s1.energy()
                         try:
                             dav = self.transition_velocity_dipole(s0, s1)
                         except:
