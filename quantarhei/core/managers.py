@@ -256,8 +256,8 @@ class Manager(metaclass=Singleton):
             # and save them
             self.save_implementations()  
             
-        else:
-            self.load_implementations()
+#        else:
+#            self.load_implementations()
             
             
         self.change_implementation_at_runtime = True
