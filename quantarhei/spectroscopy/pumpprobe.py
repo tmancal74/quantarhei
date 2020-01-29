@@ -2,10 +2,10 @@
 
 import numpy
 
-from .twod2 import TwoDSpectrum
-from .twodcontainer import TwoDSpectrumContainer
-from .twodcalculator import TwoDSpectrumCalculator
-from .mocktwodcalculator import MockTwoDSpectrumCalculator
+from .twod import TwoDSpectrum
+from .twodcontainer import TwoDResponseContainer
+from .twodcalculator import TwoDResponseCalculator
+from .mocktwodcalculator import MockTwoDResponseCalculator
 from ..core.dfunction import DFunction
 
 import matplotlib.pyplot as plt
@@ -56,7 +56,7 @@ class PumpProbeSpectrum(DFunction):
 
 
 
-class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
+class PumpProbeSpectrumContainer(TwoDResponseContainer):
     """Container for a set of pump-probe spectra
     
     """
@@ -64,6 +64,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         
         self.t2axis = t2axis
         self.spectra = {}
+        self.itype = None
         
     def plot(self):
         
@@ -155,7 +156,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                 k += 1
 
 
-class PumpProbeSpectrumCalculator(TwoDSpectrumCalculator):
+class PumpProbeSpectrumCalculator(TwoDResponseCalculator):
     
     def __init__(self, t1axis, t2axis, t3axis):
         pass
@@ -187,7 +188,8 @@ def calculate_from_2D(twod):
     dw = xaxis.step
     
     # real part of the total 2D spectrum
-    tddata = numpy.real(twod.d__data)
+    #tddata = numpy.real(twod.d__data)
+    tddata = numpy.real(twod.data)
     
     # integration over omega_1 axis
     ppdata = -numpy.sum(tddata,axis=1)*dw
@@ -200,7 +202,7 @@ def calculate_from_2D(twod):
     
 
 
-class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
+class MockPumpProbeSpectrumCalculator(MockTwoDResponseCalculator):
     """Effective line shape pump-probe spectrum calculator
     
     

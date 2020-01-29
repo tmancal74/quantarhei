@@ -84,6 +84,7 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         """
         return self.pathways
     
+    
     @deprecated
     def max_pref(self, pathways):
         """Return the maximum of pathway prefactors
@@ -232,17 +233,17 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
             return orderred
 
 
-    def select_sign(self, pathways, sign, replace=True):
+    def select_sign(self, sign, replace=True):
         
-        selected = select_sign(pathways, sign)
+        selected = select_sign(self.pathways, sign)
         if replace:
             self.pathways = selected
         else:
             return selected
         
-    def select_type(self, pathways, ptype="REPH", replace=True):
+    def select_type(self, ptype="REPH", replace=True):
         
-        selected = select_type(pathways, ptype)
+        selected = select_type(self.pathways, ptype)
         if replace:
             self.pathways = selected
         else:
@@ -412,6 +413,11 @@ def select_omega2(interval, pathways, secular=True,
     return selected
 
 
+#def select_incoherent(pathways):
+#    
+#    for pway in pathways:
+        
+
 def order_by_amplitude(pthways):
     """Orders the list of pathways by pathway prefactors
     
@@ -527,7 +533,8 @@ def select_by_states(pathways, states):
             return pw
         
 
-def look_for_pathways(name="pathways", ext="qrp", check=False, directory="."):
+def look_for_pathways(name="pathways", ext="qrp",
+                      check=False, directory="."):
     """Load pathways by t2
     
     """

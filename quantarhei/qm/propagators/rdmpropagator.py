@@ -34,6 +34,7 @@ from ...core.managers import Manager
 
 import quantarhei as qr
 
+    
 
 class ReducedDensityMatrixPropagator(MatrixData, Saveable): 
     """
@@ -46,7 +47,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     """
     
     def __init__(self, timeaxis=None, Ham=None, RTensor=None,
-                 Efield="", Trdip="", PDeph=None):
+                 Efield=None, Trdip=None, PDeph=None):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -116,14 +117,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             else:
                 raise Exception
     
-            if Trdip != "":            
+            if Trdip is not None:            
                 if isinstance(Trdip,Operator):
                     self.Trdip = Trdip
                     self.has_Trdip = True
                 else:
                     raise Exception
     
-            if Efield != "":
+            if Efield is not None:
                 if isinstance(Efield,numpy.ndarray):
                     self.Efield = Efield
                     self.has_Efield = True 
@@ -132,18 +133,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             #
             # RWA
             #
-            if self.Hamiltonian.has_rwa:
+            #ham = self.Hamiltonian
+            #if ham.has_rwa:
                 
-                self.RWA = self.Hamiltonian.rwa_indices
-                self.RWU = numpy.zeros(self.RWA.shape, dtype=self.RWA.dtype)
+                #self.RWA = self.Hamiltonian.rwa_indices
+                #self.RWU = numpy.zeros(self.RWA.shape, dtype=self.RWA.dtype)
                 
-                HH = self.Hamiltonian.data
-                shape = HH.shape
-                HOmega = numpy.zeros(shape, dtype=qr.REAL)
-                for ii in range(shape[0]):
-                    HOmega[ii,ii] = self.Hamiltonian.rwa_energies[ii]
+                #HH = ham.data
+                #shape = HH.shape
+                #HOmega = numpy.zeros(shape, dtype=qr.REAL)
+                #for ii in range(shape[0]):
+                #    HOmega[ii,ii] = ham.rwa_energies[ii]
                                     
-                self.HOmega = HOmega
+                #self.HOmega = self.ham.get_RWA_skeleton()
                 
                 #print(self.RWA)
                 #print(self.RWU)
@@ -365,33 +367,39 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         #######################################################################
         #
-        #    PROPAGATIONS WITH RELAXATION
+        #    PROPAGATIONS WITHOUT RELAXATION
         #
         #
         #######################################################################
         else:
-                    
-            if method == "short-exp":
-                return self.__propagate_short_exp(rhoi,L=4)
-            elif method == "short-exp-2":
-                return self.__propagate_short_exp(rhoi,L=2)
-            elif method == "short-exp-4":
-                return self.__propagate_short_exp(rhoi,L=4)
-            elif method == "short-exp-6":
-                return self.__propagate_short_exp(rhoi,L=6)            
 
-            #
-            # FIXME: These methods are not tested
-            #
-            elif method == "primitive":
-                return self.__propagate_primitive(rhoi)
-            elif method == "Runge-Kutta":
-                return self.__propagate_Runge_Kutta(rhoi)
-            elif method == "diagonalization":
-                return self.__propagate_diagonalization(rhoi)
+            if (self.has_Efield and self.has_Trdip):   
+
+                raise Exception("NOT IMPLEMENTED")
 
             else:
-                raise Exception("Unknown propagation method: "+method)
+                 
+                if method == "short-exp":
+                    return self.__propagate_short_exp(rhoi,L=4)
+                elif method == "short-exp-2":
+                    return self.__propagate_short_exp(rhoi,L=2)
+                elif method == "short-exp-4":
+                    return self.__propagate_short_exp(rhoi,L=4)
+                elif method == "short-exp-6":
+                    return self.__propagate_short_exp(rhoi,L=6)            
+    
+                #
+                # FIXME: These methods are not tested
+                #
+                elif method == "primitive":
+                    return self.__propagate_primitive(rhoi)
+                elif method == "Runge-Kutta":
+                    return self.__propagate_Runge_Kutta(rhoi)
+                elif method == "diagonalization":
+                    return self.__propagate_diagonalization(rhoi)
+    
+                else:
+                    raise Exception("Unknown propagation method: "+method)
         
             
         
@@ -478,7 +486,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
         
-        HH = self.Hamiltonian.data        
+        #HH = self.Hamiltonian.data
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
         
         indx = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
@@ -494,7 +509,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 rho1 = rho2    
                 
             pr.data[indx,:,:] = rho2                        
-            indx += 1             
+            indx += 1                       
+            
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
             
         return pr
  
@@ -520,7 +538,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
         
-        HH = self.Hamiltonian.data        
+        #HH = self.Hamiltonian.data  
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
+            
         RR = self.RelaxationTensor.data
             
         indx = 1
@@ -540,6 +566,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
             pr.data[indx,:,:] = rho2 
             indx += 1             
+
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
             
         return pr  
 
@@ -593,7 +622,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # RWA is applied here
         #
         if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.data  - self.HOmega
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
         else:
             HH = self.Hamiltonian.data
         
@@ -709,6 +738,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
              
         qr.log_detail("...DONE")
 
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
+            
         return pr
 
 
@@ -1009,8 +1041,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         rho1 = rhoi.data
         rho2 = rhoi.data
+
         
-        HH = self.Hamiltonian.data        
+        #HH = self.Hamiltonian.data  
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
+       
 
         if self.RelaxationTensor._has_cutoff_time:
             cutoff_indx = \
@@ -1055,8 +1096,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
         
-        HH = self.Hamiltonian.data  
-
+        #HH = self.Hamiltonian.data  
+        #
+        # RWA is applied here
+        #
+        # FIXME: RWA has to be applied to ralaxation tensor, too!!!!
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
+            
         if self.RelaxationTensor._has_cutoff_time:
             cutoff_indx = \
             self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
@@ -1115,17 +1165,33 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         
     def __propagate_short_exp_with_TD_relaxation_field(self,rhoi,L=4):
-        """
-              Short exp integration
-        """
+        """Short exp integration of the density matrix with external driving
         
+        
+        
+        """
+        try:
+            if self.RelaxationTensor.as_operators:
+                return self.__propagate_short_exp_with_TD_relaxation_field_operators(rhoi, L=L)
+        except:
+            raise Exception("Operator propagation failed")
+            
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
         
-        HH = self.Hamiltonian.data    
-        MU = self.Trdip.data
+        #HH = self.Hamiltonian.data    
+        MU = self.Trdip.data 
+        #
+        # RWA is applied here
+        #
+        # FIXME: RWA has to be applied to ralaxation tensor, too!!!!
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        else:
+            HH = self.Hamiltonian.data
         
         indx = 1
         for ii in self.TimeAxis.time[1:self.Nt]:
@@ -1150,13 +1216,21 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             indx += 1             
             
         return pr         
-        
-        
+
+
+    def __propagate_short_exp_with_TD_relaxation_field_operators(self, rhoi, L=4):
+        """
+
+        """
+        pass        
+
+
     def __propagate_short_exp_with_relaxation_field(self,rhoi,L=4):
         """
               Short exp integration
         """
-        
+
+            
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data

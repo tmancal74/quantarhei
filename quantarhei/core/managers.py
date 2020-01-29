@@ -303,6 +303,37 @@ class Manager(metaclass=Singleton):
         
         
         
+        #
+        # Initialization of parallel environment
+        #
+        try:
+            from .parallel import DistributedConfiguration
+            #from .parallel import start_parallel_region
+            dc = DistributedConfiguration()
+            self.parallel_conf = dc
+            dc.start_parallel_region()
+            
+            # this must be put into qrhei script !!!
+            #if dc.rank != 0:
+            #    self.log_conf.verbosity -= 2
+            #    self.log_conf.fverbosity -= 2
+            #print(dc.rank, self.log_conf.verbosity)
+        except:
+            self.parallel_conf = None
+            
+        
+    def __del__(self):
+        """Closes parallel environment if needed
+        
+        """
+        
+        if self.parallel_conf is not None:
+            #from .parallel import close_parallel_region
+            self.parallel_conf.finish_parallel_region()
+
+            
+        
+        
     def load_conf(self):
         """Loads configuration file
         

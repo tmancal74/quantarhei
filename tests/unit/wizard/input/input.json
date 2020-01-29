@@ -1,0 +1,13 @@
+
+{
+    "_comment1" : "No comments are allowed in JSON",
+    "_commnet2" : "so use YAML if you need human readable config files",
+    "ECalc" : 10000.0,
+    "width_dist" : {
+        "0" : 50.0,
+        "1" : 50.0
+    },
+    "E1" : 10000.0,
+    "E2" : 9500.0,
+    "make_movie" : false
+}

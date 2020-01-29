@@ -27,7 +27,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.46',
+    version='0.0.54',
 
     description='Quantarhei: Open Quantum System Theory for Molecular Systems',
     long_description=long_description,
@@ -83,7 +83,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['numpy','scipy','matplotlib',
-                      'dill','terminaltables','gherkin-official'],
+                      'dill','terminaltables','gherkin-official','pyyaml'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -99,7 +99,7 @@ setup(
     # have to be included in MANIFEST.in as well.
     package_data={
         'quantarhei': ['testing/resources/behave/test.feature', 
-                       'wizard/examples/data_*']
+                       'wizard/examples/data_*', 'wizard/examples/*.yaml']
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
@@ -114,7 +114,9 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': ['qrhei=quantarhei.scripts.qrhei:main',
-                            'ghenerate=quantarhei.scripts.ghenerate:main'],
+                            'ghenerate=quantarhei.scripts.ghenerate:main',
+                            'qtask=quantarhei.scripts.qtask:main',
+                            'qview=quantarhei.scripts.qview:main'],
     }
     
 )

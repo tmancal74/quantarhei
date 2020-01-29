@@ -4,8 +4,9 @@ import numpy
 
 from .superoperator import SuperOperator
 from .secular import Secular
+from ...core.saveable import Saveable
 
-class RelaxationTensor(SuperOperator, Secular):
+class RelaxationTensor(SuperOperator, Secular, Saveable):
     """Basic class representing a relaxation tensor
     
     

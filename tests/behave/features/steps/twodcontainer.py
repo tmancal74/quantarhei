@@ -22,18 +22,18 @@ import quantarhei as qr
 #
 # Given ...
 #
-@given('that I have {N} TwoDSpectrum objects')
+@given('that I have {N} TwoDResponse objects')
 def step_given_1(context, N):
     """
 
-        Given that I have {N} TwoDSpectrum objects
+        Given that I have {N} TwoDResponse objects
 
     """
     spectra = []
     ids = []
     
     for i_n in range(int(N)):
-        spec = qr.TwoDSpectrum()
+        spec = qr.TwoDResponse()
         itsid = id(spec)
         spectra.append(spec)
         ids.append(itsid)
@@ -45,14 +45,14 @@ def step_given_1(context, N):
 #
 # And ...
 #
-@given('I have an empty TwoDSpectrum container')
+@given('I have an empty TwoDResponse container')
 def step_given_2(context):
     """
 
-        And I have an empty TwoDSpectrum container
+        And I have an empty TwoDResponse container
 
     """
-    container = qr.TwoDSpectrumContainer()
+    container = qr.TwoDResponseContainer()
     context.container = container
 
 
@@ -89,11 +89,11 @@ def step_when_4(context):
 #
 # Then ...
 #
-@then('TwoDSpectrum can be retrieved using the index {i}')
+@then('TwoDResponse can be retrieved using the index {i}')
 def step_then_5(context, i):
     """
 
-        Then TwoDSpectrum can be retrieved using the index {i}
+        Then TwoDResponse can be retrieved using the index {i}
 
     """
     ids = context.ids
@@ -131,8 +131,8 @@ def step_then_6(context):
             cont.get_spectrum_by_index(i_n)
             
         except KeyError as e:
-            print(e, "'"+str(i_n)+"'")
-            assert str(e) == "'"+str(i_n)+"'"
+            print(e, str(i_n)) # "'"+str(i_n)+"'")
+            assert str(e) == str(i_n) #"'"+str(i_n)+"'"
             
         except IndexError as e:
             print(e, "list index out of range")
@@ -196,11 +196,11 @@ def step_when_9(context):
 #
 # Then ...
 #
-@then('TwoDSpectrum can be retrieved using values {val} from ValueAxis')
+@then('TwoDResponse can be retrieved using values {val} from ValueAxis')
 def step_then_10(context, val):
     """
 
-        Then TwoDSpectrum can be retrieved using values {val} from ValueAxis
+        Then TwoDResponse can be retrieved using values {val} from ValueAxis
 
     """
     cont = context.container
@@ -298,11 +298,11 @@ def step_when_14(context):
 #
 # Then ...
 #
-@then('TwoDSpectrum can be retrieved using values {val} from TimeAxis')
+@then('TwoDResponse can be retrieved using values {val} from TimeAxis')
 def step_then_15(context, val):
     """
 
-        Then TwoDSpectrum can be retrieved using values {val} from TimeAxis
+        Then TwoDResponse can be retrieved using values {val} from TimeAxis
 
     """
     cont = context.container
@@ -377,11 +377,11 @@ def step_when_18(context):
 #
 # Then ...
 #
-@then('TwoDSpectrum can be retrieved using values {val} from FrequencyAxis')
+@then('TwoDResponse can be retrieved using values {val} from FrequencyAxis')
 def step_then_19(context, val):
     """
 
-        Then TwoDSpectrum can be retrieved using values {val} from FrequencyAxis
+        Then TwoDResponse can be retrieved using values {val} from FrequencyAxis
 
     """
     cont = context.container
@@ -456,11 +456,11 @@ def step_when_22(context):
 #
 # Then ...
 #
-@then('TwoDSpectrum can be retrieved using values from the list of strings')
+@then('TwoDResponse can be retrieved using values from the list of strings')
 def step_then_23(context):
     """
 
-        Then TwoDSpectrum can be retrieved using values from the list of strings
+        Then TwoDResponse can be retrieved using values from the list of strings
 
     """
     
@@ -523,18 +523,18 @@ def _container(context, N, cls):
     xrange = qr.ValueAxis(-50.0, 100, 1.0)
     yrange = qr.ValueAxis(-50.0, 100, 1.0)
     
-    cont = qr.TwoDSpectrumContainer()
+    cont = qr.TwoDResponseContainer()
     cont.use_indexing_type(time)
     
     for k_n in range(Nn):
         tt = time.data[k_n]
         data = func(xrange.data, yrange.data, tt)
-        spect = qr.TwoDSpectrum()
+        spect = qr.TwoDResponse()
         spect.set_resolution("off")
-        spect.set_data_flag("total")
+        spect.set_data_flag(qr.signal_TOTL)
         
         #spect.set_data(data)
-        spect._add_data(data, dtype="total")
+        spect._add_data(data, dtype=qr.signal_TOTL)
         
         spect.set_axis_1(xrange)
         spect.set_axis_3(yrange)
@@ -548,11 +548,11 @@ def _container(context, N, cls):
 #
 # Given ...
 #
-@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis')
+@given('that I have a TwoDResponseContainer containing {N} spectra indexed by ValueAxis')
 def step_given_25(context, N):
     """
 
-        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by ValueAxis
+        Given that I have a TwoDResponseContainer containing {N} spectra indexed by ValueAxis
 
     """
 
@@ -571,7 +571,7 @@ def step_when_26(context):
     """
     cont = context.container
 
-    new_cont = cont.fft()
+    new_cont = cont.fft(dtype=qr.signal_TOTL)
 
     context.new_container = new_cont
 
@@ -603,11 +603,11 @@ def step_then_27(context):
         # time domain curve at a position in 2D spectrum 
         evol = cont.get_point_evolution(point[0], point[1], oldaxis)
         # Fourier transform of the time domain curve 
-        fevol_direct = numpy.fft.fft(evol)
+        fevol_direct = numpy.fft.ifft(evol.data)
         # at the same point in ffted container, we should get the same FFT 
         fevol_cont   = fft.get_point_evolution(point[0], point[1], axis)
         # assert equality
-        numpy.testing.assert_allclose(fevol_direct, fevol_cont)
+        numpy.testing.assert_allclose(fevol_direct, fevol_cont.data, atol=1.0e-10)
         
         
     
@@ -615,11 +615,11 @@ def step_then_27(context):
 #
 # And ...
 #
-@then('the TwoDSpectrum container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis')
+@then('the TwoDResponse container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis')
 def step_then_28(context):
     """
 
-        And the TwoDSpectrum container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis
+        And the TwoDResponse container will be indexed by ValueAxis with frequencies corresponding to the original ValueAxis
 
     """
     fft = context.new_container
@@ -642,11 +642,11 @@ def step_then_28(context):
 #
 # Given ...
 #
-@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by TimeAxis')
+@given('that I have a TwoDResponseContainer containing {N} spectra indexed by TimeAxis')
 def step_given_29(context, N):
     """
 
-        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by TimeAxis
+        Given that I have a TwoDResponseContainer containing {N} spectra indexed by TimeAxis
 
     """
     _container(context, N, qr.TimeAxis)
@@ -655,11 +655,11 @@ def step_given_29(context, N):
 #
 # And ...
 #
-@then('the TwoDSpectrum container will be indexed by FrequencyAxis which corresponds to the original TimeAxis')
+@then('the TwoDResponse container will be indexed by FrequencyAxis which corresponds to the original TimeAxis')
 def step_then_30(context):
     """
 
-        And the TwoDSpectrum container will be indexed by FrequencyAxis which corresponds to the original TimeAxis
+        And the TwoDResponse container will be indexed by FrequencyAxis which corresponds to the original TimeAxis
 
     """
     fft = context.new_container
@@ -674,11 +674,11 @@ def step_then_30(context):
 #
 # Given ...
 #
-@given('that I have a TwoDSpectrumContainer containing {N} spectra indexed by FrequencyAxis')
+@given('that I have a TwoDResponseContainer containing {N} spectra indexed by FrequencyAxis')
 def step_given_31(context, N):
     """
 
-        Given that I have a TwoDSpectrumContainer containing {N} spectra indexed by FrequencyAxis
+        Given that I have a TwoDResponseContainer containing {N} spectra indexed by FrequencyAxis
 
     """
     _container(context, N, qr.FrequencyAxis)
@@ -687,11 +687,11 @@ def step_given_31(context, N):
 #
 # And ...
 #
-@then('the TwoDSpectrum container will be indexed by TimeAxis which corresponds to the original FrequencyAxis')
+@then('the TwoDResponse container will be indexed by TimeAxis which corresponds to the original FrequencyAxis')
 def step_then_32(context):
     """
 
-        And the TwoDSpectrum container will be indexed by TimeAxis which corresponds to the original FrequencyAxis
+        And the TwoDResponse container will be indexed by TimeAxis which corresponds to the original FrequencyAxis
 
     """
     fft = context.new_container

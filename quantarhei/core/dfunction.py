@@ -398,6 +398,15 @@ class DFunction(Saveable, DataSaveable):
         pass
     
 
+    def apply_to_data(self, func):
+        """Applies a submitted function to the data
+        
+        """
+        self.data = func(self.data)
+        if self._splines_initialized:
+            self._splines_initiated = False
+
+
     #
     #
     # Fast Fourier transform
@@ -659,8 +668,8 @@ class DFunction(Saveable, DataSaveable):
              text_loc=[0.05,0.9],
              fontsize="20",
              real_only=True,
-             show=True,
-             color=None, filename="ahoj.png"):
+             show=False,
+             color=None):
         """Plotting of the DFunction's data against the ValueAxis.
         
         

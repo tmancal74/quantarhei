@@ -117,11 +117,11 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         cen1 = pathway.frequency[0]
         N1 = self.oa1.length
         
-        if pathway.widths[1] < 0.0:
+        if pathway.widths[1] <= 0.0:
             widthx = self.widthx
         else:
             widthx = pathway.widths[1]
-                        
+        
         if pathway.dephs[1] < 0.0:
             dephx = self.dephx
         else:
@@ -131,7 +131,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         o1 = self.oa1.data 
         
         if shape == "Gaussian":
-                               
+                              
             data[:] = pref*lineshapes.gaussian(o1, cen1, widthx)
                       #numpy.sqrt(numpy.log(2.0)/numpy.pi)\
                       #*numpy.exp(-numpy.log(2.0)*((o1-cen1)/widthx)**2) \
