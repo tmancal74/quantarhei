@@ -151,9 +151,24 @@ class Molecule(UnitsManaged, Saveable):
 
         # convert to internal_units
         #self.elenergies = self.manager.convert_energy_2_internal_u(elenergies)
-        self.elenergies = elenergies
+        energy = []
+        self.Nb = numpy.zeros(len(elenergies),dtype=numpy.int64)
+        self.which_band = []
+        for n in range(self.Nb.size):
+            if isinstance(elenergies[n],list):
+                self.Nb[n] = len(elenergies[n])
+                for ii in range(self.Nb[n]):
+                    self.which_band.append(n)
+                    energy.append(elenergies[n][ii])
+            else:
+                self.Nb[n] = 1
+                self.which_band.append(n)
+                energy.append(elenergies[n])
+        self.which_band = numpy.array(self.which_band,dtype=numpy.int64)
+        
+        self.elenergies = energy
         self.elenergies = self.convert_energy_2_internal_u(self.elenergies) #
-        self.nel = len(elenergies)    #
+        self.nel = len(self.elenergies)    #
         
         
         
