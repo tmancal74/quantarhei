@@ -5,8 +5,8 @@ import scipy
 
 from .twod2 import TwoDSpectrum
 from .twodcontainer import TwoDSpectrumContainer
-from .twodcalculator import TwoDSpectrumCalculator
-from .mocktwodcalculator import MockTwoDSpectrumCalculator
+from .twodcalculator import TwoDResponseCalculator as TwoDSpectrumCalculator
+from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
 from ..core.dfunction import DFunction
 from ..core.managers import Manager
 from ..core.managers import energy_units
