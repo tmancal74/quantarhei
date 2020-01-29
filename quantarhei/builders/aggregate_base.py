@@ -237,12 +237,14 @@ class AggregateBase(UnitsManaged, Saveable):
 
         """        
         
-        if mon1<mon2:
-            indx1 = mon1
-            indx4 = mon2 - mon1 -1
-        else:
-            indx1 = mon2
-            indx4 = mon1 - mon2 -1
+        if mon1>mon2:
+            # exchange excitations between monomers
+            mon2,mon1 = mon1,mon2
+            init2,init1 = init1,init2
+            fin2,fin1 = fin1,fin2
+        
+        indx1 = mon1
+        indx4 = mon2 - mon1 -1
         
         if init1<fin1:
             indx2 = init1
@@ -1218,6 +1220,25 @@ class AggregateBase(UnitsManaged, Saveable):
         
         """
         return ElectronicState(self, sig, index)
+    
+    def get_StateBand(self, state):
+        """Returns band of the corresponding electronic state
+        
+        Parameters
+        ----------
+        
+        state : ElectronicState
+            Aggregate electronic state.
+        
+        """
+        
+        band = 0
+        elsig = state.elsignature
+        for n in range(len(elsig)):
+            mon = self.monomers[n]
+            band += mon.which_band[elsig[n]]
+        
+        return band
 
 
     def get_VibronicState(self, esig, vsig):
@@ -1537,10 +1558,16 @@ class AggregateBase(UnitsManaged, Saveable):
         
         if mult < 0:
             raise Exception("mult must be larger than or equal to zero")
-            
+           
+        # define internal multiplicity which is dependent on the monomers
+        mult_int = mult
+        for mon in self.monomers:
+            Nexct = numpy.sum(mon.Nb[:mult+1]) - mon.Nb.size # Count extra states in the bands
+            mult_int += Nexct
+        
         mlt = 0
         # iterate over all excition multiplicities
-        while mlt <= mult:
+        while mlt <= mult_int:
             # no excitations (ground state)
             out = [0 for k in range(l)]
             # if this is the multiplicity 0, yield the ground state
@@ -1558,8 +1585,12 @@ class AggregateBase(UnitsManaged, Saveable):
                     for out_added, last in self._add_excitation(ins,strt,omax):
                         # if mlt excitation was added yield
                         if (((k == mlt) and (mode == "LQ"))
-                          or((mult == k) and (mult == mlt))): 
-                            yield tuple(out_added)
+                          or((mult_int == k) and (mult_int == mlt))): 
+                            band = 0
+                            for ii in range(len(out_added)):
+                               band += self.monomers[ii].which_band[out_added[ii]]
+                            if band<= mult:
+                               yield tuple(out_added)
                         else:
                             # make a list of all new signatures
                             nins.append(out_added)
@@ -1661,9 +1692,14 @@ class AggregateBase(UnitsManaged, Saveable):
         # create list of electronic signatures
         es_list = []
         bands = []
+
+
         for ess1 in self.elsignatures(mult=mult, mode=mode):
             es1 = self.get_ElectronicState(ess1, ist)
             es_list.append(es1)
+            if band_external is None:
+                es1.band = self.get_StateBand(es1) # this should produce right bands without external definition
+                
             bands.append(es1.band)
             ist +=1
         
@@ -1673,10 +1709,17 @@ class AggregateBase(UnitsManaged, Saveable):
             for band in band_external:
                 bands[band[0]] = band[1]
                 es_list[band[0]].band = band[1]
-            new_indx = numpy.argsort(bands)
+            new_indx = numpy.argsort(bands,kind='mergesort')
             
             # reorder according to bands
             es_list = [es_list[ii] for ii in new_indx]
+        else:
+            new_indx = numpy.argsort(bands,kind='mergesort')
+            
+            # reorder according to bands
+            es_list = [es_list[ii] for ii in new_indx]
+            bands = [bands[ii] for ii in new_indx]
+            
             
             
 #        
@@ -1684,50 +1727,57 @@ class AggregateBase(UnitsManaged, Saveable):
         
         # run over all electronic states
 #        for ess1 in self.elsignatures(mult=mult, mode=mode):
-        for es1 in es_list:
+        for nn,es1 in enumerate(es_list):
 #            
 #            # generate electronic state
 #            es1 = self.get_ElectronicState(ess1, ist)
             
             ess1 = es1.elsignature
             ist = es1.index
-            
-            # loop over all vibrational signatures in electronic states
-            nsig = 0
-            for vsig1 in es1.vsignatures(approx=vibgen_approx, N=Nvib,
-                                         vibenergy_cutoff=vibenergy_cutoff):
-                
-                # create vibronic state with a given signature
-                s1 = VibronicState(es1, vsig1)
-                                        
-                if save_indices:
-                    # save indices corresponding to vibrational sublevels
-                    # of a given electronic state
-                    self.vibindices[ist].append(ast)
-                    self.vibsigs[ast] = (ess1, vsig1)
-                    self.elinds[ast] = ist
-    
-                yield ast ,s1
-                
-                ast += 1 # count all states
-                nsig += 1 # count the number of vibrational signatures    
-            
-            # if no vibrational signatures
-            if nsig == 0:  
-                # if True return vibronic states even 
-                # for purely electronic state
-                if all_vibronic:
-                    s1 = VibronicState(es1, None)
-                else:
-                    s1 = es1
 
-            if save_indices:
-                # save electronic signatures to be searchable later
-                self.elsigs[ist] = ess1
-                # save the band to which this electronic index corresponds
-                self.which_band[ist] = numpy.sum(ess1)
-            
-            #ist += 1 # count electronic states
+            if bands[nn] <= mult:
+                # loop over all vibrational signatures in electronic states
+                nsig = 0
+                for vsig1 in es1.vsignatures(approx=vibgen_approx, N=Nvib,
+                                             vibenergy_cutoff=vibenergy_cutoff):
+                    
+                    # create vibronic state with a given signature
+                    s1 = VibronicState(es1, vsig1)
+                    s1.band = bands[nn]  
+                    #s1.elstate.band = bands[nn]                       
+                    
+                    if save_indices:
+                        # save indices corresponding to vibrational sublevels
+                        # of a given electronic state
+                        self.vibindices[ist].append(ast)
+                        self.vibsigs[ast] = (ess1, vsig1)
+                        self.elinds[ast] = ist
+    
+    
+                    yield ast ,s1
+                    
+                    ast += 1 # count all states
+                    nsig += 1 # count the number of vibrational signatures    
+                
+                # if no vibrational signatures
+                if nsig == 0:  
+                    # if True return vibronic states even 
+                    # for purely electronic state
+                    if all_vibronic:
+                        s1 = VibronicState(es1, None)
+                    else:
+                        s1 = es1
+    
+                if save_indices:
+                    # save electronic signatures to be searchable later
+                    self.elsigs[ist] = ess1
+                    # save the band to which this electronic index corresponds
+                    if band_external is None:
+                        self.which_band[ist] = bands[nn]
+                    else:
+                        self.which_band[ist] = numpy.sum(ess1)
+                
+                #ist += 1 # count electronic states
             
 
     def elstates(self, mult=1, mode="LQ", save_indices=False):
