@@ -310,7 +310,7 @@ class AggregateBase(UnitsManaged, Saveable):
             
         coup = self.convert_energy_2_internal_u(coupling)
         
-        self._set_coupling_vec(self,i,0,1,j,0,1,coup)
+        self._set_coupling_vec(i,0,1,j,0,1,coup)
         
         #self.resonance_coupling[i,j] = coup
         #self.resonance_coupling[j,i] = coup
