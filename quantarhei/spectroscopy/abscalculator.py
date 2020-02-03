@@ -546,11 +546,12 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
         gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
-        
+            
         if self.system._has_system_bath_coupling:
             # correlation function
-            ct = self.system.get_egcf((0,1))            
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama}
+            ct = self.system.get_egcf((0,1))   
+            gt = self._c2g(ta,ct.data)
+            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama}
         else:
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
 
