@@ -95,7 +95,7 @@ class ElectronicLindbladForm(LindbladForm):
         if isinstance(sbi.system, Aggregate):
             agg = sbi.system
 
-            if agg.Nel == agg.Ntot:
+            if agg.Nel == agg.Ntot or sbi.KK[0].shape[0] == agg.Ntot:
                 # if the number of electronic states corresponds to the total
                 # number of states, the aggregate is purely electronic. There
                 # is then no difference between Lindblad form and its
@@ -108,9 +108,13 @@ class ElectronicLindbladForm(LindbladForm):
                 # sbi operators have to have the same dimension as
                 # the single exciton electronic part of the aggregate
                 if agg.mult == 1:
-                    Nel1 = 1 + agg.nmono
+                    Nel1 = 1 # ground state
+                    for mon in agg.monomers:
+                        Nel1 += mon.nel-1 # Add number of excited states in monomer
                 elif (agg.mult == 2) and (agg.sbi_mult==1):
-                    Nel1 = 1 + agg.nmono 
+                    Nel1 = 1 # ground state
+                    for mon in agg.monomers:
+                        Nel1 += mon.nel-1 # Add number of excited states in monomer
                 else:
                     raise Exception("Cannot yet handle"+
                                     "the case of sbi_mult> 1")
@@ -143,7 +147,9 @@ class ElectronicLindbladForm(LindbladForm):
                                         newkk[i_vib, j_vib] = (
                                         numpy.real(agg.fc_factor(st_i, st_j))*
                                         sbi.KK[k, i_el, j_el])
-                    
+
+#                        print(k,newkk.shape)
+#                        print(newkk)
                         ops.append(newkk)
                     
                     # with the operators constructed, we create Lindblad form
