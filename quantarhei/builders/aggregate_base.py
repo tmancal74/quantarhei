@@ -1626,7 +1626,7 @@ class AggregateBase(UnitsManaged, Saveable):
         # define internal multiplicity which is dependent on the monomers
         mult_int = mult
         for mon in self.monomers:
-            Nexct = numpy.sum(mon.Nb[:mult+1]) - mon.Nb.size # Count extra states in the bands
+            Nexct = numpy.sum(mon.Nb[:mult+1]) - (mon.Nb[:mult+1]).size # Count extra states in the bands
             mult_int += Nexct
         
         mlt = 0
@@ -2573,14 +2573,16 @@ class AggregateBase(UnitsManaged, Saveable):
         
         """
         
-        Nn = self.Nb[1]  # number of monomers
+        #Nn = self.Nb[1]  # number of monomers
         esum = 0.0
-        for i in range(Nn):
-            mn = self.monomers[i] 
-            omeg = mn.get_energy(1) - mn.get_energy(0)
-            esum += omeg
+        count = 0
+        for mn in self.monomers:
+            for i in range(mn.Nb[1]):
+                omeg = mn.get_energy(i+1) - mn.get_energy(0)
+                esum += omeg
+                count += 1
 
-        return esum/Nn
+        return esum/count
         
     
     def get_RelaxationTensor(self, timeaxis,
