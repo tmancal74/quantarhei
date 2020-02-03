@@ -719,6 +719,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             data = axis.data*data
             data_fl = axis.data*data_fl
             data_cd =  axis.data*data_cd
+            #data_gauss = axis.data*data_gauss
+            #data_cd_gauss = axis.data*data_cd_gauss
         
         # transform all quantities back
         S1 = numpy.linalg.inv(SS)
