@@ -561,12 +561,13 @@ class AggregateBase(UnitsManaged, Saveable):
 #            for ll in range(kk+1,self.nmono):
 #                for ii in range(1,)
             
-        for kk in range(self.nmono):
-            for ll in range(kk+1,self.nmono):
-                cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr)
-                c1 = self.convert_energy_2_internal_u(cc)
-                self.resonance_coupling[kk,ll] = c1
-                self.resonance_coupling[ll,kk] = c1
+        self.set_coupling_by_dipole_dipole_vec(epsr=1.0)
+#        for kk in range(self.nmono):
+#            for ll in range(kk+1,self.nmono):
+#                cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr)
+#                c1 = self.convert_energy_2_internal_u(cc)
+#                self.resonance_coupling[kk,ll] = c1
+#                self.resonance_coupling[ll,kk] = c1
         #
         # TESTED
 
