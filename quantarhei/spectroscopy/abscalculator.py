@@ -195,7 +195,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             ct = tr["ct"] # correlation function
         
             # convert correlation function to lineshape function
-            gt = self._c2g(ta,ct.data)
+            #gt = self._c2g(ta,ct.data)
+            gt = tr["gt"]
             # calculate time dependent response
             at = numpy.exp(-gt -1j*om*ta.data)
         else:
@@ -275,7 +276,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             re = tr["re"] # reorganisation energy
             
             # convert correlation function to lineshape function
-            gt = self._c2g(ta,ct.data)
+            #gt = self._c2g(ta,ct.data)
+            gt = tr["gt"]
             # calculate time dependent response
             at = numpy.exp(-numpy.conjugate(gt) -1j*om*ta.data + 2j*re*ta.data)
         else:
@@ -327,7 +329,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             ct = tr["ct"] # correlation function
         
             # convert correlation function to lineshape function
-            gt = self._c2g(ta,ct.data)
+            #gt = self._c2g(ta,ct.data)
+            gt = tr["gt"]
             # calculate time dependent response
             at = numpy.exp(-gt -1j*om*ta.data)
         else:
@@ -413,18 +416,53 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         elst = numpy.where(AG.which_band == 1)[0]
         for el1 in elst:
             for el2 in elst:
-                coft = cfm.get_coft(el1-1,el2-1)
+                if cfm.cpointer[el1-1,el2-1] == 0:
+                    continue
+                coft = cfm.get_coft(el1-1,el2-1) 
                 for kk in AG.vibindices[el1]:
                     for ll in AG.vibindices[el2]:
                         ct += ((SS[kk,n]**2)*(SS[ll,n]**2)*coft)
+        return ct
+    
+    def _excitonic_coft_all(self,SS,AG):
+        """ Returns energy gap correlation function data of an exciton state n
+        
+        """
+        
+        # SystemBathInteraction
+        sbi = AG.get_SystemBathInteraction()
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+            
+        c0 = AG.monomers[0].get_egcf((0,1))
+        Nt = len(c0)
+    
+        Nst = AG.HamOp.dim
+        ct = numpy.zeros((Nst,Nt),dtype=numpy.complex128)
+
+        # electronic states corresponding to single excited states
+        import time
+        timecount = 0
+        elst = numpy.where(AG.which_band == 1)[0]
+        start = time.time()
+        for el1 in elst:
+            for el2 in elst:
+                coft = cfm.get_coft(el1-1,el2-1)
+                start2 = time.time()
+                for kk in AG.vibindices[el1]:
+                    for ll in AG.vibindices[el2]:
+                        ct[:,:] += numpy.dot(
+                         numpy.expand_dims((SS[kk,:]**2)*(SS[ll,:]**2),axis=1),
+                         numpy.expand_dims(coft,axis=0))
+                stop2 = time.time()
+                timecount += stop2 - start2
+        stop = time.time()
+        print(stop-start,stop-start - timecount)
         return ct
 
     def _excitonic_reorg_energy(self, SS, AG, n):
         """ Returns the reorganisation energy of an exciton state
         """
-    
-#        c0 = AG.monomers[0].get_egcf((0,1))
-#        Nt = len(c0)
         
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
@@ -439,8 +477,6 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             reorg = cfm.get_reorganization_energy(el1-1,el1-1)
             for kk in AG.vibindices[el1]:
                 rg += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
-        #print(SS[:,n])
-        #print(n,rg)
         return rg    
     
     
@@ -510,11 +546,12 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
         gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
-        
+            
         if self.system._has_system_bath_coupling:
             # correlation function
-            ct = self.system.get_egcf((0,1))            
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama}
+            ct = self.system.get_egcf((0,1))   
+            gt = self._c2g(ta,ct.data)
+            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama}
         else:
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
 
@@ -605,25 +642,23 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             
             tr["gg"] = [0.0]
         
-        # get square of transition dipole moment here    #print(H_RC)
-#        print(tr["gg"])
-        #tr.append(DD.dipole_strength(0,1))
+        # get square of transition dipole moment here
         tr["dd"] = DD.dipole_strength(0,1)
         # first transition energy
-        #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
         tr["om"] = HH.data[1,1]-HH.data[0,0]-self.rwa
         # get a transformed ct here
         ct = self._excitonic_coft(SS,self.system,1)
-        #tr.append(ct)
         tr["ct"] = ct
+        # calculate g(t)   
+        tr["gt"] = self._c2g(tr["ta"],tr["ct"].data)
+        # get reorganization energy
         tr["re"] = self._excitonic_reorg_energy(SS,self.system,1)
+        # get rotatory strength
         tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,1)
         #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
-#        print(1,convert(HH.data[1,1]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[1,1]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
 #        print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
-#        rot2,rot2m = self._excitonic_rotatory_strength2(SS,self.system,energy,1)
-#        print(1,convert(rot2,"int","1/cm")*numpy.pi*1e-4,convert(rot2m,"int","1/cm")*numpy.pi*1e-4)
-        
+
+
         self.system._has_system_bath_coupling = True
         
         temperature = self.system.sbi.get_temperature()
@@ -656,20 +691,15 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             tr["om"] = HH.data[ii,ii]-HH.data[0,0]-self.rwa
             #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
             tr["ct"] = self._excitonic_coft(SS,self.system,ii)
+            tr["gt"] = self._c2g(tr["ta"],tr["ct"].data)
             tr["re"] = self._excitonic_reorg_energy(SS,self.system,ii)
             tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,ii)
             #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,ii)
 #            print(ii,convert(HH.data[ii,ii]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[ii,ii]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
 #            print(ii,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
             # conversion factor is convert rotatory strength to inverse centimeters and multiply *numpy.pi*1e-4
-#            rot2,rot2m = self._excitonic_rotatory_strength2(SS,self.system,energy,ii)
-#            print(ii,convert(rot2,"int","1/cm")*numpy.pi*1e-4,convert(rot2m,"int","1/cm")*numpy.pi*1e-4)
-            
-#            tr["ct"] = ct
-#            print(tr["ct"])
-#            print(max(tr["ct"]))
-#            print(self.one_transition_spectrum(tr))
-#            print(max(self.one_transition_spectrum(tr)))
+
+
             
             #
             # Calculates spectrum of a single transition
@@ -690,6 +720,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             data = axis.data*data
             data_fl = axis.data*data_fl
             data_cd =  axis.data*data_cd
+            #data_gauss = axis.data*data_gauss
+            #data_cd_gauss = axis.data*data_cd_gauss
         
         # transform all quantities back
         S1 = numpy.linalg.inv(SS)

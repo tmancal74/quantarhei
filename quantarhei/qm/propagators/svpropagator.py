@@ -11,6 +11,7 @@ import numpy
 
 from .statevectorevolution import StateVectorEvolution
 from ..hilbertspace.evolutionoperator import EvolutionOperator
+from ... import REAL
 
    
 class StateVectorPropagator:
@@ -27,7 +28,8 @@ class StateVectorPropagator:
         
         N = self.ham.data.shape[0]
         self.N = N
-        self.data = numpy.zeros((self.Nt,N),dtype=numpy.complex64)        
+        self.data = numpy.zeros((self.Nt,N),dtype=numpy.complex64) 
+        
 
     def setDtRefinement(self, Nref):
         """
@@ -49,8 +51,6 @@ class StateVectorPropagator:
         self.dt = self.Odt/self.Nref
         
         
-        
-        
     def propagate(self, psii):
         
         return self._propagate_short_exp(psii,L=4)
@@ -65,28 +65,35 @@ class StateVectorPropagator:
         """
               Short exp integration
         """
-        
         pr = StateVectorEvolution(self.timeaxis, psii)
         
         psi1 = psii.data
         psi2 = psii.data
         
-        HH = self.ham.data        
+        #
+        # RWA is applied here
+        #
+        if self.ham.has_rwa:
+            HH = self.ham.get_RWA_data()
+        else:
+            HH = self.ham.data      
         
         indx = 1
-        for ii in self.timeaxis.data[1:self.Nt]:
+        for ii in range(1,self.Nt):
             
-                    
             for jj in range(0,self.Nref):
                 
                 for ll in range(1,L+1):
-                    pref = (self.dt/ll) 
+                    pref = (self.dt/ll)
                     psi1 = -1j*pref*numpy.dot(HH,psi1)
                     psi2 = psi2 + psi1
 
                 psi1 = psi2    
                 
             pr.data[indx,:] = psi2                        
-            indx += 1             
+            indx += 1       
+            
+        if self.ham.has_rwa:
+            pr.is_in_rwa = True
             
         return pr

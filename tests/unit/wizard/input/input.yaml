@@ -1,0 +1,9 @@
+#
+# YAML configuration file
+#
+
+ECalc: 10000.0              # transition energy of the calculation in 1/cm
+width_dist: [50.0, 50.0]    # widths of the spectra in 1/cm
+E1 : 10000.0                # transiiton energy of monomer 1 in 1/cm
+E2 : 9500.0                 # transition energy of monomer 2 in 1/cm
+make_movie : False

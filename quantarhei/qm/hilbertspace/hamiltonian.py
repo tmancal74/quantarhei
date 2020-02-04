@@ -99,8 +99,27 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         
         # we have information on RWA
         self.has_rwa = True
+
+
+    def get_RWA_skeleton(self):
+        """Returns the Hamiltonian matrix with RWA energies
         
-            
+        """
+        HH = self.data
+        shape = HH.shape[0]
+        HOmega = numpy.zeros(shape, dtype=REAL)
+        for ii in range(shape):
+            HOmega[ii] = self.rwa_energies[ii]
+        return HOmega
+
+
+    def get_RWA_data(self):
+        """Returns Hamiltonian matrix with RWA energies subtracted
+        
+        """
+        return self.data - numpy.diag(self.get_RWA_skeleton())
+
+
     def diagonalize(self, coupling_cutoff=None):
         """Diagonalizes the Hamiltonian matrix 
         

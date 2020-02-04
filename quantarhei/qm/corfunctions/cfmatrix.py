@@ -12,6 +12,7 @@ from ...core.time import TimeAxis
 
 from .correlationfunctions import c2h
 from .correlationfunctions import c2g
+from ... import REAL, COMPLEX
 
 
 class CorrelationFunctionMatrix(Saveable):
@@ -94,10 +95,10 @@ class CorrelationFunctionMatrix(Saveable):
         nof = self.nof
         
         self._A2 = numpy.zeros((nob, nob, nof+1),
-                               dtype=numpy.float64)
+                               dtype=REAL)
         if self._is_transformed:
             self._A4 = numpy.zeros((nob, nob, nob, nob, nof),
-                                   dtype=numpy.float64)
+                                   dtype=REAL)
         else:
             self._A4 = None
 
@@ -106,13 +107,13 @@ class CorrelationFunctionMatrix(Saveable):
 
         #FIXME: reorganization energies should be defined through _A2 and _A4
         # reorganization energies
-        self.lambdas = numpy.zeros(nof+1, dtype=numpy.float64)
+        self.lambdas = numpy.zeros(nof+1, dtype=REAL)
         self.where = [[]]*(nof+1)
 
         # Actual storage of functions
         # here we store correlation functions
         self._cofts = numpy.zeros((nof+1, self.timeAxis.length),
-                                  dtype=numpy.complex64)
+                                  dtype=COMPLEX)
 
         self.data = self._cofts
 
@@ -266,7 +267,7 @@ class CorrelationFunctionMatrix(Saveable):
 
     def get_coft4(self,a,b,c,d):
         if self._is_transformed:
-            ret = numpy.zeros(self.timeAxis.length)
+            ret = numpy.zeros(self.timeAxis.length, dtype=COMPLEX)
             for k in range(self.nof):
                 ret += self._A4[a,b,c,d,k]*self._cofts[k+1,:]
             return ret
@@ -292,14 +293,15 @@ class CorrelationFunctionMatrix(Saveable):
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index
-                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=numpy.complex128)
+                print(Nt)
+                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
                         ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
                         *self._cofts[k+1,it]
                 return ret
             else:
-                ret = numpy.zeros((nob,nob,nob,nob),dtype=numpy.complex128)
+                ret = numpy.zeros((nob,nob,nob,nob),dtype=COMPLEX)
                 it = self.timeAxis.nearest(t)
                 for k in range(self.nof):
                     ret += self._A4[:,:,:,:,k]*self._cofts[k+1,it]
@@ -310,7 +312,7 @@ class CorrelationFunctionMatrix(Saveable):
 
     def get_hoft4(self,a,b,c,d):
         if self._is_transformed:
-            ret = numpy.zeros(self.timeAxis.length)
+            ret = numpy.zeros(self.timeAxis.length, dtype=COMPLEX)
             for k in range(self.nof):
                 ret += self._A4[a,b,c,d,k]*self._hofts[k+1,:]
             return ret
@@ -336,14 +338,14 @@ class CorrelationFunctionMatrix(Saveable):
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index
-                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=numpy.complex128)
+                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
                         ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
                         *self._hofts[k+1,it]
                 return ret
             else:
-                ret = numpy.zeros((nob,nob,nob,nob),dtype=numpy.complex128)
+                ret = numpy.zeros((nob,nob,nob,nob),dtype=COMPLEX)
                 it = self.timeAxis.nearest(t)
                 for k in range(self.nof):
                     ret += self._A4[:,:,:,:,k]*self._hofts[k+1,it]
@@ -354,7 +356,7 @@ class CorrelationFunctionMatrix(Saveable):
 
     def get_goft4(self,a,b,c,d):
         if self._is_transformed:
-            ret = numpy.zeros(self.timeAxis.length)
+            ret = numpy.zeros(self.timeAxis.length, dtype=COMPLEX)
             for k in range(self.nof):
                 ret += self._A4[a,b,c,d,k]*self._gofts[k+1,:]
             return ret
@@ -380,14 +382,14 @@ class CorrelationFunctionMatrix(Saveable):
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index
-                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=numpy.complex128)
+                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
                         ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
                         *self._gofts[k+1,it]
                 return ret
             else:
-                ret = numpy.zeros((nob,nob,nob,nob),dtype=numpy.complex128)
+                ret = numpy.zeros((nob,nob,nob,nob),dtype=COMPLEX)
                 it = self.timeAxis.nearest(t)
                 for k in range(self.nof):
                     ret += self._A4[:,:,:,:,k]*self._gofts[k+1,it]
@@ -438,6 +440,7 @@ class CorrelationFunctionMatrix(Saveable):
             except:
                 ic = fce.axis.data[fce.axis.length-1]
 
+            ic = int(ic)
             if ic > self.max_cutoff_index:
                 self.max_cutoff_index = ic
 
@@ -472,6 +475,7 @@ class CorrelationFunctionMatrix(Saveable):
 
         for wr in where:
             self._A2[wr[0],wr[1],iof] = fce.lamb
+            #print(wr[0], wr[1], iof, fce.lamb)
 
         for loc in where:
             ii = loc[0]
@@ -495,7 +499,7 @@ class CorrelationFunctionMatrix(Saveable):
     def transform(self,SS):
         nob = self.nob
         nof = self.nof
-        self._A4 = numpy.zeros((nob,nob,nob,nob,nof))
+        self._A4 = numpy.zeros((nob,nob,nob,nob,nof), dtype=REAL)
 
         for a in range(nob):
             for b in range(nob):
@@ -506,7 +510,9 @@ class CorrelationFunctionMatrix(Saveable):
                            for n in range(nob):
                                 for m in range(nob):
                                     self._A4[a,b,c,d,k] += SS[n,a]*SS[n,b]*\
-                                    self._A2[n,m,k]*SS[m,c]*SS[m,d]
+                                    self._A2[n,m,k+1]*SS[m,c]*SS[m,d]
 
         self._is_transformed = True
-
+        #print(self._A4[1,1,1,1,0])
+        #print(self._A2[1,1,1])
+        #print(SS[:,1])

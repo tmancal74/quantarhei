@@ -180,6 +180,15 @@ class AggregateTest(unittest.TestCase):
         numpy.testing.assert_almost_equal(numpy.trace(redr._data), 1.0,
                                           decimal=2)
 
+        rho = ReducedDensityMatrix(dim=ham.dim)
+        n_part = 1./(agg.Nb[0])
+        for state_ind in range(agg.Nb[0]):
+            rho._data[state_ind, state_ind] = n_part
+
+        redr = agg.trace_over_vibrations(rho)  
+        numpy.testing.assert_almost_equal(numpy.trace(redr._data), 1.0,
+                                    decimal=7)
+
         
     def test_get_Density_Matrix_thermal(self):
         """(Aggregate) Testing the get_Densitymatrix method with `thermal` condition type

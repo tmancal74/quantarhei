@@ -77,14 +77,14 @@ def step_given_1(context):
 #
 # When ...
 #
-@when('I create a new TwoDSpectrum object')
+@when('I create a new TwoDResponse object')
 def step_when_2(context):
     """
 
-        When I create a new TwoDSpectrum object
+        When I create a new TwoDResponse object
 
     """
-    context.twod = qr.TwoDSpectrum()
+    context.twod = qr.TwoDResponse()
 
 
 #
@@ -433,7 +433,7 @@ def step_then_8(context):
         raise Exception("Unknow storage resolution: "+res)
     
 #    twod.set_resolution("processes")
-    twod.set_data_flag("total")
+    twod.set_data_flag(qr.signal_TOTL) #"total")
     
     retrieved_data = twod.d__data
     
@@ -443,14 +443,14 @@ def step_then_8(context):
 #
 # And ...
 #
-@given('I create a new TwoDSpectrum object')
+@given('I create a new TwoDResponse object')
 def step_given_9(context):
     """
 
-        And I create a new TwoDSpectrum object
+        And I create a new TwoDResponse object
 
     """
-    context.twod = qr.TwoDSpectrum()
+    context.twod = qr.TwoDResponse()
 
 
 #
@@ -678,7 +678,9 @@ def step_given_21(context):
     data_list = []
     para_list = [[1.0, 10.0], [2.0, 20.0], [0.5, 12.0],
                  [0.1, 16.0], [0.2, 8.9], [0.3, 9.0]]
-    types = ["REPH", "REPH", "REPH", "REPH", "NONR", "NONR"]
+    #types = ["REPH", "REPH", "REPH", "REPH", "NONR", "NONR"]
+    types = [qr.signal_REPH, qr.signal_REPH, qr.signal_REPH, qr.signal_REPH,
+             qr.signal_NONR,  qr.signal_NONR]
 
 
     for pars in para_list:
@@ -836,7 +838,7 @@ def step_when_27(context):
             totd += data
         k_l += 1
 
-    twod._add_data(totd, dtype="total")
+    twod._add_data(totd, dtype=qr.signal_TOTL) #"total")
 
 
 #
@@ -866,7 +868,7 @@ def step_given_28(context):
     miny = ycentr - ywidth/2.0
     maxy = ycentr + ywidth/2.0
     
-    twod.set_data_flag("total")
+    twod.set_data_flag(qr.signal_TOTL) #"total")
     shp = twod.d__data.shape
     context.shape = shp
     
@@ -885,7 +887,7 @@ def step_then_29(context):
     """
     twod = context.twod
     
-    twod.set_data_flag("total")
+    twod.set_data_flag(qr.signal_TOTL) #"total")
     tot_spect = twod.d__data
     
     shp_half = tot_spect.shape
@@ -947,7 +949,7 @@ def step_then_32(context, px, py):
     twod = context.twod
     pxn = float(px)
     pyn = float(py)
-    twod.set_data_flag("total")
+    twod.set_data_flag(qr.signal_TOTL) #"total")
     val = twod.get_value_at(pxn, pyn)
     
     

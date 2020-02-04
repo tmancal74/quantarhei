@@ -172,8 +172,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.build()  
         >>> agg.diagonalize()
 
-        >>> print("{0:.8f}".format(agg.get_intersite_mixing(1,2)))   
-        0.83618110
+        >>> print("{0:.4f}".format(agg.get_intersite_mixing(1,2)))   
+        0.8362
         
         """
         ci = self.SS[:,state1]
@@ -219,8 +219,9 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.build()  
         >>> agg.diagonalize() 
         ...
-        >>> agg.get_transition_dipole(0,1)
-        2.4802649722513967
+        >>> a = agg.get_transition_dipole(0,1)
+        >>> print("{0:.6f}".format(a))
+        2.480265
         
         
         """
@@ -253,12 +254,12 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.build()  
         >>> agg.diagonalize()
         ...
-        >>> print("{0:.8f}".format(agg.get_state_energy(2)))
-        2.32309466
+        >>> print("{0:.4f}".format(agg.get_state_energy(2)))
+        2.3231
         
         >>> with qr.energy_units("1/cm"):
-        ...     print("{0:.8f}".format(agg.get_state_energy(2)))
-        12332.93197055
+        ...     print("{0:.4f}".format(agg.get_state_energy(2)))
+        12332.9320
         
         
         """
@@ -303,8 +304,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 1
         =========
         <BLANKLINE>
-        Transition energy        : 2.25417864 1/cm
-        Transition dipole moment : 2.48026497 D
+        Transition energy        : 2.25417865 1/cm
+        Transition dipole moment : 2.48026499 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -319,7 +320,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         =========
         <BLANKLINE>
         Transition energy        : 2.32309466 1/cm
-        Transition dipole moment : 5.16973503 D
+        Transition dipole moment : 5.16973501 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -330,7 +331,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
         +-------+-------------+--------------+------------------+
         <BLANKLINE>
-
         """
         
         start_at = start

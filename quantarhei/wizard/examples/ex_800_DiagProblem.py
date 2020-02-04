@@ -19,8 +19,9 @@ agg.set_resonance_coupling(2,3,qr.convert(100.0,"1/cm","int"))
 agg.set_resonance_coupling(1,3,qr.convert(100.0,"1/cm","int"))
 agg.set_resonance_coupling(1,2,qr.convert(0.0,"1/cm","int"))
 
-qr.save_parcel(agg,"agg.qrp")
-agg2 = qr.load_parcel("agg.qrp")
+#qr.save_parcel(agg,"agg.qrp")
+#agg2 = qr.load_parcel("agg.qrp")
+agg2 = agg.deepcopy()
 agg2.build()
 
 H = agg2.get_Hamiltonian()

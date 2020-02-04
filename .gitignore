@@ -17,7 +17,8 @@ tempfile
 *.npz
 *.npy
 *.mp4
-.*.swp
+*.swp
+*.png
 *.pkl
 *.qrp
 .ipynb_checkpoints/

@@ -42,7 +42,7 @@ class Disorder:
                 
                 raise Exception("Unknown distribution")
     
-            # Update the 
+            # Update the Hamiltonian energies
             for i in range(N):
                 H._data[1+i,1+i] = self.data[1+i,1+i] + de[i]
 

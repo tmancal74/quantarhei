@@ -9,7 +9,8 @@ from ..builders.molecules import Molecule
 from ..core.time import TimeAxis
 from ..core.managers import eigenbasis_of
 from ..qm.propagators.poppropagator import PopulationPropagator
-from .twod2 import TwoDSpectrum
+from .twod2 import TwoDResponse
+from .. import signal_REPH, signal_NONR
 
 
 try:
@@ -29,7 +30,7 @@ except:
     _have_aceto = False 
 
 
-class TwoDSpectrumCalculator:
+class TwoDResponseCalculator:
     """Calculator of the 2D spectrum
     
     
@@ -109,7 +110,7 @@ class TwoDSpectrumCalculator:
         if self.verbose:
             print(string)
             
-    def bootstrap(self,rwa=0.0, lab=None, verbose=False):
+    def bootstrap(self, rwa=0.0, lab=None, verbose=False):
         """Sets up the environment for 2D calculation
         
         """
@@ -137,6 +138,7 @@ class TwoDSpectrumCalculator:
                 raise Exception("Molecule 2D not implememted")
                 
             agg = self.system
+            agg.diagonalize()
             
             #
             # hamiltonian and transition dipole moment operators
@@ -189,7 +191,7 @@ class TwoDSpectrumCalculator:
             
             # relaxation rate in single exciton band
             Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
-            #print(1.0/Kr)
+            #print(1.0/KK.data)
             
             self.sys.init_dephasing_rates()
             self.sys.set_relaxation_rates(1,Kr)
@@ -275,7 +277,8 @@ class TwoDSpectrumCalculator:
             raise Exception("So far, no 2D outside aceto")
             
         self.tc = 0
-            
+
+        
     def calculate_next(self):
 
         sone = self.calculate_one(self.tc)
@@ -323,9 +326,10 @@ class TwoDSpectrumCalculator:
         nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
         nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
         
+        #
         # Transfer
-        
-        Utr = self.Uee[:,:,self.tc]-self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
+        #
+        Utr = self.Uee[:,:,self.tc] - self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
         self.sys.set_population_propagation_matrix(Utr) 
         
         self._vprint(" - stimulated emission with transfer")    
@@ -341,7 +345,7 @@ class TwoDSpectrumCalculator:
         # ESA
         nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
         nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-        
+    
         
         t2 = time.time()
         self._vprint("... calculated in "+str(t2-t1)+" sec")
@@ -360,11 +364,14 @@ class TwoDSpectrumCalculator:
         nonr2D = numpy.fft.fftshift(ftresp)
 
 
-        onetwod = TwoDSpectrum()
+        onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
-        onetwod.set_data(reph2D, dtype="Reph")
-        onetwod.set_data(nonr2D, dtype="Nonr")
+        onetwod.set_resolution("signals")
+        onetwod._add_data(reph2D, dtype=signal_REPH)
+        onetwod._add_data(nonr2D, dtype=signal_NONR)
+        #onetwod.set_data(reph2D, dtype="Reph")
+        #onetwod.set_data(nonr2D, dtype="Nonr")
         
         onetwod.set_t2(self.t2axis.data[tc])
         
@@ -381,11 +388,14 @@ class TwoDSpectrumCalculator:
         
         
         """            
-        from .twodcontainer import TwoDSpectrumContainer
-                   
+        #from .twodcontainer import TwoDSpectrumContainer
+        from .twodcontainer import TwoDResponseContainer
+ 
+                  
         if _have_aceto:
 
-            twods = TwoDSpectrumContainer(self.t2axis)
+            #twods = TwoDSpectrumContainer(self.t2axis)
+            twods = TwoDResponseContainer(self.t2axis)
             
             teetoos = self.t2axis.data
             for tt2 in teetoos:
@@ -399,7 +409,8 @@ class TwoDSpectrumCalculator:
             
             # fall back on quantarhei's own implementation
         
-            ret = TwoDSpectrumContainer()
+            #ret = TwoDSpectrumContainer()
+            ret = TwoDResponseContainer()
             
         
         return ret

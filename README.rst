@@ -1,4 +1,4 @@
-|Build Status| |DocBuild Status| |Coverage|
+    |Build Status| |DocBuild Status| |Coverage|
 
 QUANTArhei: Open Quantum System Theory for Molecular Systems 
 ============================================================
@@ -57,17 +57,91 @@ and
 .. _GACR: http://www.gacr.cz
                                                
 
-through grants: 14-25752S (2014-2016) and 17-22160S (2017- )
+through grants: 14-25752S (2014-2016) and 17-22160S (2017-2019)
+
+
+New in 0.0.54
+=============
+
+for users:
+ - TwoDSpectra can be added if they are of the same type
+ - 
+
+New in 0.0.53
+=============
+
+for users:
+ - Improved handling of rotating wave approximation (RWA) for density matrix and the state vector
+ - Bug fixes 
+
+New in 0.0.52
+=============
+
+for users:
+ - Improved control over parallelization from command line by `qrhei` options
+ - Parallelization over multiple nods
+ - Bug fixes
+
+New in 0.0.51
+=============
+
+for users:
+ - Bug fixes
+
+New in 0.0.50
+=============
+
+for users:
+ - Some improvement of the `qrhei` driver 
+ - Improved logging capabilities; standard print function can be replaced printlog function
+ - Bug fixes
+
+New in 0.0.49
+=============
+
+for users:
+ - Runnable .yaml configuration files
+ - Better diagnostics of errors occuring while running a script by qrhei driver
+ - New qrhei subcommand file, which shows information about files saved by Quantarhei
+ - Bug fixes
+
+for developers:
+ - Started work on a script compiler qtask
+
+
+New in 0.0.48
+=============
+
+for users:
+ - Bug fixes
+
+
+New in 0.0.47
+=============
+
+for users:
+ - Bug fixes
+ - 2D spectra can be shifted in its axis by less then the frequency step (interpolated shift)
+ - New helper class Input to simplify configuration of user scripts by "*.yaml" or "*.json" files
+ 
 
 New in 0.0.46
 =============
 
 for users:
-
+ - A bug introduced in 0.0.45 in 2D spectrum calculations now fixed
+ - Most of the classes can now be copied (.copy() for a shallow copy, .deepcopy() for a deep, recursive copy)
+ - Improvements of 2D calculations with dressed states
+ - Vibronic example of 2D spectrum calculation extended
+ - Class migration:  TwoDSpectrum -> TwoDResponse; TwoDSpectrumContainer -> TwoDResponseContainer
+ - New classes TwoDSpectrum and TwoDSpectrumContainer are simpler and contain only one type of spectra
+ - Class migration: MockTwoDSpectrum -> Mocj
+ - Definitions of positive and negative frequencies in omega2-frequency maps changed to correspond to literature 
 
 For developers:
-
-
+ - many constants describing non-linear response, 2D spectra and data are defined on the highest quantarhei import level
+ - All Saveable objects now have a convenience methods copy() for shallow copying, deepcopy() for deep copying and scopy() for a deep copy by saving to and loading the object from a temporary file
+ 
 
 New in 0.0.45
 =============

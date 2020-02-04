@@ -1,0 +1,176 @@
+###############################################################################
+###############################################################################
+#
+#  Configuration file for ex_853_RC.py example
+#
+#  Author: Tomáš Mančal
+#  Last change: July 12th, 2019 
+#
+#
+#  The script calculates omega_2 maps from 2D spectra of a disordered dimer
+#  and trimer representing a simplified model of bacterial reaction center.
+#  Data for the dimer/trimer with various energy gaps are stored so that
+#  they can be averaged over the distribution of energy gaps
+#
+#
+###############################################################################
+###############################################################################
+
+#
+#           CONFIGURATION SECTION
+#
+
+###############################################################################
+#
+#  Dimer parameters
+#
+###############################################################################
+
+# Transition energy of a reference monomer
+E_B : 12300.0 # 1/cm
+E_P : 12000.0 # 1/cm
+
+# transition dipole moments of the two molecules
+dip_P : [1.0, 0.0, 0.0]
+dip_B : [0.5, 0.5, 0.0]
+
+# resonance coupling between monomer transitions  
+resonance_coupling : 100.0  # 1/cm
+
+#trimer: 
+#    useit : False
+#    #disorder : False  # there is now no disorder between the two lower levels
+#    E2 : 9000.0
+#    DE : 100.0
+#    dipsp : [-1.5, 0.0, 0.0]
+#    rate  : 1/500.0
+    
+special_pair:
+    useit: True
+    E_Pplus: 12000.0    # upper exciton level
+    E_Pminus: 11000.0     # lower exciton level
+    rate : 1.0/500.0     # internal relaxation rate
+    DE : 100.0           # energy difference between monomer molecules
+    dip1 : [1.0, 0.0, 0.0]  # monomer transition dipole moments
+    dip2 : [0.0, -1.0, 0.0]
+
+
+# number of vibrational levels in the ground and excited state
+# value 2 means states with 0 and 1 vibrational quanta
+no_g_vib : 2
+no_e_vib : 2
+
+# parameters of the system (grouped for historical reasons)
+params:
+    HR      : 0.01       # Huang-Rhys factor of the vibration
+    omega   : 500.0      # frequency of the vibration
+    use_vib : True       # should we use vibrations at all?
+    
+# on which molecule the vibrations should be placed? 
+# (low or high energy monomer or both)
+location_of_vibrations : "up"  # can be "up", "down" or "both"
+
+# The ouput directory of the script will be called "sim_up" if the variable
+# called location_of_vibrations is set to "up". You can add more info into
+# the directory name by specifying the variable below
+append_to_dirname : "_center=600_FWHM=c"
+
+
+###############################################################################
+#
+#  Excitation time evolution and energy ralaxation 
+#
+###############################################################################
+
+# relaxation rate in the dimer 
+rate                : 1.0/500.0
+
+# temperature for calculation of a backward rate
+temperature : 77.0  # K
+
+# t2 time specification
+t2_N_steps          : 100  
+t2_time_step        : 10.0  # fs
+fine_splitting      : 10    # number of steps inside the t2_time_step
+
+
+###############################################################################
+#
+#  Calculated spectra
+#
+###############################################################################
+
+# t1 time
+t1_N_steps          : 100  
+t1_time_step        : 10.0  # fs
+
+# t3 time
+t3_N_steps          : 100  
+t3_time_step        : 10.0  # fs
+
+# Gaussian width of the 2D spectrum features
+feature_width       : 100.0 # 1/cm
+
+# trim maps to this spectral region
+trim_maps_to        : [10500, 13500, 10500, 13500]  # 1/cm
+
+#
+# select only pathways which fall with +/- omega_uncertaity/2 
+#
+omega_uncertainty   : 200.0 # 1/cm
+
+# Tukey window parameter
+tukey_window_r      : 0.3
+
+###############################################################################
+#
+#  Disorder parameters
+#
+###############################################################################
+
+# run only a single realization corresponding to the center of the disorder
+# distribution
+single_realization: False
+# step of the disorder scanning 
+step : 2.0  # 1/cm
+# maximum possible FWHM of the disorder
+max_available_fwhm : 0.5  # 1/cm
+# how many FWHM we include into the scanned energy interval 
+how_many_fwhm : 2  
+
+
+###############################################################################
+#
+#  Parameters steering the simulation
+#
+###############################################################################
+
+make_movie : False
+show_plots : False
+save_containers : False
+detailed_balance : False
+
+# at which t2 values we should save all Liouville pathways
+t2_save_pathways : [50.0, 100.0, 200.0, 300.0]  # fs
+
+copy_input_file_to_results : True
+
+
+#
+#            END OD CONFIGURATION SECTION
+#
+
+###############################################################################
+###############################################################################
+#
+# List of possible math evaluations 
+#
+_math_allowed_in : ["E_P", "E_B", "resonance_coupling", "rate",
+                    ["params",["HR","omega","rate"]],
+                     "step", "max_available_fwhm",
+                    "how_many_fwhm", "t2_save_pathways",
+                    ["special_pair",["rate"]]]
+
+# EOF
+###############################################################################
+###############################################################################

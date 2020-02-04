@@ -1,0 +1,55 @@
+###############################################################################
+#
+# Parameters of disorder integration
+#
+###############################################################################
+
+#
+# widths of the disorder on the monomers
+#
+width_dis : [0.5, 0.5]  # cm-1
+# how many FWHM to include into the integration range
+how_many_fwhm : 2
+
+#
+# Average values of the monomer energies
+#
+use_default_values : True # if True, E1 and E2 will be determined 
+                           # from precalculated results
+E1 : 9300.0     # 1/cm
+E2 : 10000.0    # 1/cm
+single_realization: False
+
+#
+# Directory with the precalculated results and input file of that calculation
+#
+dname : "sim_up_center=600_FWHM=c"
+input_file : "ex_853_RC.yaml"
+input_file_from_results : True
+with_math_allowed_in : ["E_B", "E_P"]
+
+#
+# Container file to load: these spectra will be integrated
+#
+container_file: "cont_p_re.qrp"
+
+#
+# Save figure? 
+#
+save_fig: True
+fig_file : "average.png"
+
+#
+# Save TwoDSpectrum object?
+#
+save_spectrum: True
+spectrum_file: "average.qrp"
+
+
+###############################################################################
+#
+# Below we list keywords that might potentially need to be converted 
+# to float number, becasue they might contain mathematical expressions
+#
+###############################################################################
+_math_allowed_in : ["width_dis", "E1", "E2"]

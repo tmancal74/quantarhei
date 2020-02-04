@@ -19,7 +19,7 @@
 
     >>> manager = qr.Manager()
     >>> print(manager.version)
-    0.0.35
+    0.0.54
 
     The list of user level classes is provided below. Tue latest and most
     uptodate information can be obtained by viewing the source code of the 
@@ -144,11 +144,65 @@ m = Manager()
 REAL = m.get_real_type() #numpy.float64
 COMPLEX = m.get_complex_type() #numpy.complex128
 
-LOG_URGENT = 0
+LOG_URGENT = 1
 LOG_REPORT = 3
 LOG_INFO = 5
 LOG_DETAIL = 7
 LOG_QUICK = 9
+
+
+#
+# Non-linear response signals
+#
+signal_REPH = "rephasing_2D_signal"
+signal_NONR = "nonrephasing_2D_signal"
+signal_TOTL = "total_2D_signal"
+signal_DC = "double_coherence_signal"
+
+TWOD_SIGNALS = dict(signal_REPH = "rephasing_2D_signal",
+                    signal_NONR = "nonrephasing_2D_signal",
+                    signal_TOTL = "total_2D_signal",
+                    signal_DC = "double_coherence_signal")
+
+#
+# Parts of the complex data/signal
+#
+part_REAL = "real_part"
+part_IMAGINARY = "imaginary_part"
+part_COMPLEX = "complex"
+part_ABS = "absolute_value"
+part_PHASE = "phase"
+
+SIGNAL_PARTS = dict(part_REAL = "real_part",
+                    part_IMAGINARY= "imaginary_part",
+                    part_COMPLEX = "complex",
+                    part_ABS = "absolute_value",
+                    part_PHASE = "phase")
+
+DATA_PARTS = SIGNAL_PARTS
+
+#
+# Liouville pathway types
+#
+ptype_R1g = "pathway_type_R1g"
+ptype_R2g = "pathway_type_R2g"
+ptype_R3g = "pathway_type_R3g"
+ptype_R4g = "pathway_type_R4g"
+ptype_R1f = "pathway_type_R1f*"
+ptype_R2f = "pathway_type_R2f*"
+ptype_R3f = "pathway_type_R3f"
+ptype_R4f = "pathway_type_R4f"
+
+PATHWAY_TYPES = dict(ptype_R1g = "pathway_type_R1g",
+                     ptype_R2g = "pathway_type_R2g",
+                     ptype_R3g = "pathway_type_R3g",
+                     ptype_R4g = "pathway_type_R4g",
+                     ptype_R1f = "pathway_type_R1f*",
+                     ptype_R2f = "pathway_type_R2f*",
+                     ptype_R3f = "pathway_type_R3f",
+                     ptype_R4f = "pathway_type_R4f")
+
+LIOUVILLE_PATHWAY_TYPES = PATHWAY_TYPES
 
 #
 # Builders
@@ -223,10 +277,11 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 # Fourier transform Two-Dimensional Spectra
 #
-from .spectroscopy.twod2 import TwoDSpectrum
-from .spectroscopy.twodcontainer import TwoDSpectrumContainer
-from .spectroscopy.twodcalculator import TwoDSpectrumCalculator
-from .spectroscopy.mocktwodcalculator import MockTwoDSpectrumCalculator
+from .spectroscopy.twod2 import TwoDResponse 
+from .spectroscopy.twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
+from .spectroscopy.twod import TwoDSpectrum
+from .spectroscopy.twodcalculator import TwoDResponseCalculator
+from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator
 
 #
 # Pump-probe spectrum
@@ -309,8 +364,37 @@ from .utils.logging import log_report
 from .utils.logging import log_info
 from .utils.logging import log_detail
 from .utils.logging import log_quick
+from .utils.logging import log_to_file
+from .utils.logging import init_logging
 
 from .utils.logging import tprint
 
+from .utils.timing import timeit
+from .utils.timing import untimeit
+from .utils.timing import finished_in
+from .utils.timing import done_in
+
+from .wizard.input.input import Input
 
 
+def exit(msg=None):
+    """Exit to the level above the script with SystemExit exception
+    
+    """
+    import sys
+    if msg is not None:
+        printlog("\n(SystemExit) Message: "+msg+"\n", loglevel=0)
+    sys.exit()
+
+
+def stop():
+    """Stop execution and leave to level above
+    
+    """
+    exit("Execution stopped")
+    
+    
+    
+def show_plot(block=True):
+    import matplotlib.pyplot as plt
+    plt.show(block=block)

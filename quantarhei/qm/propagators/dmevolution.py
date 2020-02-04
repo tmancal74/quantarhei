@@ -15,7 +15,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
     
     data = BasisManagedComplexArray("data") 
     
-    def __init__(self, timeaxis=None, rhoi=None, name=None):
+    def __init__(self, timeaxis=None, rhoi=None, is_in_rwa=False, name=None):
         
         if timeaxis is not None:
             
@@ -32,8 +32,9 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
                 self.set_initial_condition(rhoi)
             else: 
                 self.dim = 0
-                                        
             
+        self.is_in_rwa = is_in_rwa
+                                    
             
     def set_initial_condition(self, rhoi):
         """
@@ -107,7 +108,55 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         """
         return self.TimeAxis              
                     
+    
+    def convert_from_RWA(self, ham, sgn=1):
+        """Converts density matrix evolution from RWA to standard repre
+        
+        
+        Parameters
+        ----------
+        
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA
+            
+        sgn : {1, -1}
+            Forward (1) or backward (-1) conversion. Default sgn=1 corresponds
+            to the function name. Backward conversion sgn=-1 is called from
+            the inverse routine.
+        """
+        
+        if (self.is_in_rwa and sgn == 1) or sgn == -1:
+            
+            HOmega = ham.get_RWA_skeleton()
+            
+            for i, t in enumerate(self.TimeAxis.data):
+                # evolution operator
+                Ut = numpy.exp(-sgn*1j*HOmega*t)
+                # revert RWA
+                rhot = numpy.dot(Ut,numpy.dot(self.data[i,:,:],
+                                              numpy.conj(Ut)))
+                self.data[i,:] = rhot
+                
+        if sgn == 1:
+            self.is_in_rwa = False
 
+
+    def convert_to_RWA(self, ham):
+        """Converts density matrix evolution from standard repre to RWA
+
+
+        Parameters
+        ----------
+        
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA
+            
+        """        
+        if not self.is_in_rwa:
+            self.convert_from_RWA(ham, sgn=-1)
+            self.is_in_rwa = True
+          
+    
     def plot(self, populations=True, popselection="All", trace=False,
                    coherences=True, cohselection="All", how='-',
                    axis=None, show=True):
@@ -121,7 +170,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         if how == '-':
             howi = ['-k','-r','-b','-g','-m','-y','-c']
         if how == '--':
-            howi = ['--r','--b','--g','--m','--y','--c','--k']
+            howi = ['--k','--r','--b','--g','--m','--y','--c',]
             
         N = self.data.shape[1]
 

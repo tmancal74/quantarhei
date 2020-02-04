@@ -15,9 +15,13 @@ _available_examples = ["ex_001_Molecule_Hamiltonian.py",
                        "ex_016_FoersterTheory_1.py",
                        "ex_020_EvolutionSuperOperator_1.py",
                        "ex_050_PDB_FMO1.py",
-                       "ex_800_DiagProblem.py"]
+                       "ex_800_DiagProblem.py",
+                       "ex_853_RC.py",
+                       "ex_854_2DSpectrum_DimerDisorder.py"]
 
 _available_data = ["data_050_3eni.pdb",
-                   "data_050_3eoj.pdb"]
+                   "data_050_3eoj.pdb",
+                   "ex_853_RC.yaml",
+                   "ex_854_2DSpectrum_DimerDisorder.yaml"]
 
 
