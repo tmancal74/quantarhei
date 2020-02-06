@@ -162,3 +162,51 @@ class ElectronicLindbladForm(LindbladForm):
 
             raise Exception("SystemBathInteraction has to have `system`"+
                             " attribute set to an Aggregate")
+
+
+class VibrationalDecayLindbladForm(LindbladForm):
+    """Lindblad for corresponding to purely vibrational relaxation
+
+
+    Purely vibrational relaxation defined in the site basis for an
+    oscillator mode residing on a molecule, which is a member of an aggregate
+
+
+    Parameters
+    ----------
+    
+    ham : Hamiltonian
+        Hamiltonian of the system (aggregate)
+        
+    sbi : SystemBathInteraction
+        Object describing system--bath interaction. For Lindblad form, this
+        object holds projection operators describing transitions which
+        proceeds with a given rate. Rates are also specified by ``sbi`` object.
+        In addition, ``sbi`` has to have an attribute ``system`` which holds
+        the Aggregate object of the system
+        
+    initialize: boolean
+        if True, Lindblad form will be immediately initialized
+        
+    as_operators: boolean
+        if True, the Lindblad form will be represented by operators and not
+        by a tensor
+        
+    name : str
+        Name of the VibrationalDecayLindbladForm object
+
+
+    """
+
+    def __init__(self, ham, sbi, initialize=True,
+                 as_operators=True, name=""):
+
+        if isinstance(sbi.system, Aggregate):
+            agg = sbi.system
+            
+            
+    
+        else:
+
+            raise Exception("SystemBathInteraction has to have `system`"+
+                            " attribute set to an Aggregate")

@@ -307,9 +307,48 @@ def block_distributed_list(dlist, return_index=False):
             return lst            
         else: 
             return dlist
-    
 
-def collect_distributed_list_data(lst, containers, setter_function,
+
+def block_distributed_array(array, return_index=False):
+    """
+    
+    """
+    
+    from .managers import Manager
+    # we share the work only in parallel_level == 1  
+    config = Manager().get_DistributedConfiguration()
+        
+    if config.parallel_level==1:
+
+        config.inparallel_entered = True
+        
+        rng = _calculate_ranges_array(config, array)
+    
+        config.range = rng
+        
+        if return_index:
+            lst = []
+            for a in range(array.shape[0]):
+                lst.append((a, array[a]))
+            return lst             
+        else:
+            return array[rng[0]:rng[1]]
+        
+    else:
+
+        rng = [0, array.shape[0]]
+        config.range = rng
+        
+        if return_index:
+            lst = []
+            for a in range(array.shape[0]):
+                lst.append((a, array[a]))
+            return lst            
+        else: 
+            return array
+
+
+def collect_block_distributed_data(containers, setter_function,
                                   retriever_function, tags=None):
     """Collects distributed data into a container container on rank 0 nod
     
@@ -350,9 +389,6 @@ def collect_distributed_list_data(lst, containers, setter_function,
             # collect all data and tags into dictionaries
 
             rng = config.range
-            #print(config.rank, "does not sends (already has):",rng)
-            #for a in range(rng[0],rng[1])
-            #    print(config.rank, "having", a, lst[a])
             
             data_shape = (1,1)
             data_type = COMPLEX
@@ -458,7 +494,7 @@ def _calculate_ranges(config, start, stop):
 
     
 def _calculate_ranges_list(config, dlist):
-    """Calculate which part of a give list should belong to which process
+    """Calculate which part of a given list should belong to which process
 
     Parameters
     ----------
@@ -474,7 +510,26 @@ def _calculate_ranges_list(config, dlist):
     start = 0
     stop = ln
     return _calculate_ranges(config, start, stop)
+
+
+def _calculate_ranges_array(config, array):
+    """Calculate which part of a given array should belong to which process
+
+    Parameters
+    ----------
     
+    config : DistributedConfiguration 
+        object holding information about the parallel environment of quantarhei
+
+    array : numpy.array
+        an array which will be distributed
+        
+    """     
+    ln = array.shape[0]
+    start = 0
+    stop = ln
+    return _calculate_ranges(config, start, stop)
+      
 
 def asynchronous_range(start, stop):
     """Range distributing numbers asynchronously among processes

@@ -62,6 +62,14 @@ class Operator(MatrixData, BasisManaged, Saveable):
                 self.dim = dim
 
 
+    def __add__(self, other):
+        """Addition of two operators. Returns self.
+        
+        """
+        self.data += other.data            
+        return self
+
+
     def apply(self, obj):
         """Apply the operator to vector or operator on the right
         
@@ -170,7 +178,7 @@ class SelfAdjointOperator(Operator):
     def get_diagonalization_matrix(self):
         dd, SS = numpy.linalg.eigh(self._data)
         return SS        
-        
+    
     def __str__(self):
         out  = "\nquantarhei.SelfAdjointOperator object"
         out += "\n====================================="
@@ -236,6 +244,7 @@ class ProjectionOperator(Operator):
         
         """
         return self.__mult__(other)
+
         
             
 class DensityMatrix(SelfAdjointOperator, Saveable):

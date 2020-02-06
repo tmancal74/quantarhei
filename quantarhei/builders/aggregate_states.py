@@ -7,37 +7,6 @@ from ..utils.types import Integer
 from ..core.managers import UnitsManaged, energy_units
 
 
-#class aggregate_state():
-#    """ State of an aggregate
-#    
-#    
-#    
-#    """
-#    
-#    energy = Float('energy')
-#    el_energy = Float('el_energy')
-#    vib_energy = Float('vib_energy')
-#    
-#    def __init__(self, aggregate, state_tuple):
-#        
-#        desc = state_tuple[0]
-#        
-#        self.el_descriptor = desc[0]
-#        self.vib_descriptor = desc[1:]
-#        self.vibrations = state_tuple[1]
-#        
-#        # This is temporary - numbers have to be computed
-#        self.energy = 0.0
-#        self.el_energy = 0.0
-#        self.vib_energy = 0.0
-#        
-#        self.aggregate = aggregate
-#        
-#    def aslist(self):
-#        return [self.el_descriptor,self.vib_descriptor]
-
-
-#class electronic_state(UnitsManaged):
 class ElectronicState(UnitsManaged):
     """ Represents electronic state of an aggregate 
    

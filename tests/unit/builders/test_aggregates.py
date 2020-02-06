@@ -444,4 +444,48 @@ class AggregateTest(unittest.TestCase):
         
         
         
+    def test_projection_operator_generation(self):
+        """(Aggregate) Testing projector operator generation
+        
+        """        
+        agg = self.vagg
+        
+        print("\nNumber of states:", agg.Ntot)
+        for i in range(agg.Ntot):
+            sig = agg.get_state_signature_by_index(i)
+            print(sig)
+        
+        st0a = agg.get_VibronicState((0,1),(1,0))
+        st0b = agg.get_VibronicState((0,1),(0,0))
+        st1a = agg.get_VibronicState((0,1),(1,1))
+        st1b = agg.get_VibronicState((0,1),(0,1))
+        
+        print(st0a, st0a.index)
+        print(st0b, st0b.index)
+        
+        op1 = qr.qm.ProjectionOperator(to_state=st0b.index,
+                                   from_state=st0a.index, dim=agg.Ntot)
+        op2 = qr.qm.ProjectionOperator(to_state=st1b.index,
+                                   from_state=st1a.index, dim=agg.Ntot)
+        
+        op = op1 + op2
+        
+        print(op)
+        
+        # we start with this information
+        el_state = (0,1)  # electronic state
+        site = 0          # vibration on this site
+        vib_ini = 1       # initial vibrational state
+        vib_fin = 0       # final vibrational state
+        
+        # figure out which sites have vibrations
+        
+        # what is the position of my site (verify that site has vibrations)
+        
+        # generate all vibrational signatures left and right
+        
+        # 
+        
+        
+        
         

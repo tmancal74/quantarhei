@@ -75,7 +75,7 @@ for k, a in qr.block_distributed_list(lst, return_index=True):
     cont[tags[k]] = b
 
 # here we collect the data to a single container available on the master nod
-qr.collect_distributed_list_data(lst, containers, setter, retriever, tags=tags)
+qr.collect_block_distributed_data(containers, setter, retriever, tags=tags)
 
 # printing the result
 #if config.rank == 0:
