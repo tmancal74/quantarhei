@@ -12,6 +12,7 @@ from ...builders.aggregates import Aggregate
 from .systembathinteraction import SystemBathInteraction
 from ...builders.aggregate_states import VibronicState
 from ... import REAL
+from ..hilbertspace.operators import ProjectionOperator
 
 class LindbladForm(RedfieldRelaxationTensor):
     """Lindblad form of relaxation tensor
@@ -204,9 +205,92 @@ class VibrationalDecayLindbladForm(LindbladForm):
         if isinstance(sbi.system, Aggregate):
             agg = sbi.system
             
+            orates = sbi.orates
+            osites = sbi.osites
+            Ntot = agg.Ntot
             
+            ops = []
+            rts = []
+            
+            zero = numpy.zeros((Ntot,Ntot), dtype=REAL)
+            zrs = 0
+            
+            # we loop over sites in which we want to introduce relaxation
+            k = 0
+            nops = 0
+            for site in osites:
+                
+                # rates for each site
+                rate = orates[k]
+                
+                # get max number of states for the site 
+                nmax = 5
+                
+                for nk in range(nmax):
+                    
+                    nn = float(nk+1)
+                    pair = [nk, nk+1]
+ 
+                    # projection operator for each transition
+                    op = ProjectionOperator(dim=Ntot)
+                   
+                    # loop over all a matrix of states
+                    for a, s1 in agg.all_states:
+                    
+                        sig1 = s1.signature()
+                        el1 = sig1[0]
+                        vb1 = sig1[1]
+                    
+                        for b, s2 in agg.all_states:
+                        
+                            sig2 = s2.signature()
+                            el2 = sig2[0]
+                            vb2 = sig2[1]
+                        
+                            op.data[a,b] = 0.0
+                        
+                            if ((el1 == el2) and 
+                                self._same_regardless_of_one(vb1, vb2, site)):
+                            
+                                if (vb1[site] == pair[0] 
+                                    and vb2[site] == pair[1]):
+                                    #print("site:", site, ":", pair[0],"<-",
+                                    #      pair[1],"|", sig1, "<--", sig2)
+                                
+                                    op.data[a,b] = 1.0 #numpy.sqrt(nn)
+
+                    if not numpy.array_equal(op.data, zero):
+                        ops.append(op)
+                        nops += 1
+                        rts.append(rate*numpy.sqrt(nn))
+                    else:
+                        zrs += 1
+                
+                k += 1
+                
+            #print("Number of operators: ", nops)
+            #print("Number of rates    : ", len(rts), rts)
+            #print("Number of discarted ops", zrs)
     
         else:
 
             raise Exception("SystemBathInteraction has to have `system`"+
                             " attribute set to an Aggregate")
+            
+            
+        # with the operators constructed, we create Lindblad form
+        newsbi = SystemBathInteraction(sys_operators=ops,
+                                       rates=rts,
+                                       system=sbi.system)
+        super().__init__(ham, newsbi, initialize=initialize,
+                         as_operators=as_operators, name=name)
+        
+            
+    def _same_regardless_of_one(self, a, b, k):
+        
+        if (a[:k] == b[:k]) and (a[k+1:] == b[k+1:]):
+            return True
+        
+        
+        
+        

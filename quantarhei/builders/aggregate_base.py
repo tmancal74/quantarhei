@@ -1352,12 +1352,18 @@ class AggregateBase(UnitsManaged, Saveable):
                                            Nvib=Nvib, save_indices=True, 
                                            vibenergy_cutoff=vibenergy_cutoff)
         
-        #print(self.which_band, self.Ntot, len(self.which_band))
-            
-        # Set up Hamiltonian and Transition dipole moment matrices
+        self.all_states = []
+        
         for a, s1 in self.allstates(mult=self.mult, 
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
-                                    vibenergy_cutoff=vibenergy_cutoff):
+                                    vibenergy_cutoff=vibenergy_cutoff): 
+            self.all_states.append((a, s1))
+
+            
+        # Set up Hamiltonian and Transition dipole moment matrices
+        for a, s1 in self.all_states: #self.allstates(mult=self.mult, 
+                     #               vibgen_approx=vibgen_approx, Nvib=Nvib,
+                     #               vibenergy_cutoff=vibenergy_cutoff):
             
             if a == 0:
                 s0 = s1
@@ -1389,9 +1395,9 @@ class AggregateBase(UnitsManaged, Saveable):
                     sig_position += 1    
 
                 
-            for b, s2 in self.allstates(mult=self.mult, 
-                                    vibgen_approx=vibgen_approx, Nvib=Nvib,
-                                    vibenergy_cutoff=vibenergy_cutoff): 
+            for b, s2 in self.all_states: #self.allstates(mult=self.mult, 
+                                    #vibgen_approx=vibgen_approx, Nvib=Nvib,
+                                    #vibenergy_cutoff=vibenergy_cutoff): 
             
                 DD[a,b,:] = numpy.real(self.transition_dipole(s1, s2))                
                 FC[a,b] = numpy.real(self.fc_factor(s1, s2))

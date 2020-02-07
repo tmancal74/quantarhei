@@ -217,14 +217,14 @@ class ProjectionOperator(Operator):
     """    
     def __init__(self, to_state=-1, from_state=-1, dim=0):
         # here the operator is create and it will know about basis
-        super().__init__(dim=dim, real=True)
                     
         if dim > 0:
+            super().__init__(dim=dim, real=True)
             if ((to_state >= 0) and (to_state < dim)) \
                 and ((from_state >= 0) and (from_state < dim)):
                 self.data[to_state, from_state] = 1.0
-            else:
-                raise Exception("Indices out of range")
+            #else:
+            #    raise Exception("Indices out of range")
         else:
             raise Exception("Wrong operator dimension")
             
