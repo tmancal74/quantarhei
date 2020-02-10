@@ -550,6 +550,11 @@ class AggregateBase(UnitsManaged, Saveable):
                 # this simulates bath correlation function
                 #print("0->1 :", self.Wd[Nf, Nf]**2)
                 return self.Wd[Nf, Nf]**2
+
+            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
+                # this simulates bath correlation function
+                #print("0->1 :", self.Wd[Nf, Nf]**2)
+                return self.Wd[Ni, Ni]**2
             
             # 1 exciton -> 2 exciton transitions
             elif (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
@@ -558,6 +563,14 @@ class AggregateBase(UnitsManaged, Saveable):
                         - 2.0*(self.Wd[Nf, Ni]**2))
                 #print("1->2 (", eli, elf,") :", ret, self.Wd[Nf, Ni]**2)
                 return ret
+
+            elif (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
+                # this simulates the term  g_ff + g_ee - 2Re g_fe
+                ret =  (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]**2
+                        - 2.0*(self.Wd[Nf, Ni]**2))
+                #print("1->2 (", eli, elf,") :", ret, self.Wd[Nf, Ni]**2)
+                return ret
+
             
             else:
                 print("This should not be used")
@@ -607,12 +620,20 @@ class AggregateBase(UnitsManaged, Saveable):
             if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
                 return self.Dr[Nf, Nf]**2
             
+            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
+                return self.Dr[Ni, Ni]**2
+            
             # 1 exciton -> 2 exciton band transitions
             elif (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
                 # this simulates the term  g_ff + g_ee - 2Re g_fe
                 return (self.Dr[Ni, Ni]**2 + self.Dr[Nf, Nf]
                         - 2.0*self.Dr[Nf, Ni])
-                
+ 
+            elif (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
+                # this simulates the term  g_ff + g_ee - 2Re g_fe
+                return (self.Dr[Ni, Ni]**2 + self.Dr[Nf, Nf]
+                        - 2.0*self.Dr[Nf, Ni])
+               
             else:
                 return -1.0
 
@@ -2207,30 +2228,34 @@ class AggregateBase(UnitsManaged, Saveable):
             N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
             
             # all states (and 2-ex band selected)
-            for kk1 in range(self.Nel):
-                el1 = self.elinds[kk1]
+            for el1 in range(self.Nel):
+                #el1 = self.elinds[kk1]
+                #print(el1, self.which_band[el1])
                 if self.which_band[el1] == 2:
+                    #print("Selected:", el1)
+                    #print("vibindices:", self.vibindices[el1])
                     # all states corresponding to electronic two-exc. state kk
-                    for aa1 in self.vibindices[kk1]:
-                        
+                    for aa1 in self.vibindices[el1]:
                         # all states and (1-ex band selected)
-                        for kk2 in range(self.Nel):
-                            el2 = self.elinds[kk2]
+                        for el2 in range(self.Nel):
+                            #el2 = self.elinds[kk2]
                             if self.which_band[el2] == 1:
-                                for aa2 in self.vibindices[kk2]:
-                                    
+                                #print("vibindices - in:", self.vibindices[el2])
+                                for aa2 in self.vibindices[el2]:
                                     # all states and (2-ex band selected)
-                                    for kk3 in range(self.Nel):
-                                        el3 = self.elinds[kk3]
+                                    for el3 in range(self.Nel):
+                                        #el3 = self.elinds[kk3]
                                         if self.which_band[el3] == 2:
-                                            for aa3 in self.vibindices[kk3]:
+                                            for aa3 in self.vibindices[el3]:
                                                 st_k = self.twoex_indx[aa3,0]
                                                 st_l = self.twoex_indx[aa3,1]
+                                                #print("O", aa2, st_k, aa3, st_l)
                                                 kappa[aa2, aa1] += (
                                                      (delta[aa2, st_k] 
                                                     + delta[aa2, st_l])*
                                                      (SS[aa3, aa1]**2))
-                                                     
+            
+            
             #
             # Cross terms
             #

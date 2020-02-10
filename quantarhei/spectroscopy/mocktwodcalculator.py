@@ -332,6 +332,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
             reph2D = numpy.zeros((N1, N3), dtype=COMPLEX)
             
+            
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
                 
@@ -347,6 +348,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             
                 else:
 
+                    
                     oo1 = -self.oa1.data[:]
 
                     reph2D = pref*gaussian2D(oo1, cen1, widthx,

@@ -56,6 +56,7 @@ from .liouvillespace.tdredfieldfoerster import TDRedfieldFoersterRelaxationTenso
 
 from .liouvillespace.lindbladform import LindbladForm
 from .liouvillespace.lindbladform import ElectronicLindbladForm
+from .liouvillespace.lindbladform import VibrationalDecayLindbladForm
 
 from .liouvillespace.puredephasing import PureDephasing
 from .liouvillespace.puredephasing import ElectronicPureDephasing
