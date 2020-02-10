@@ -242,9 +242,7 @@ def block_distributed_range(start, stop):
     from .managers import Manager
     # we share the work only in parallel_level == 1  
     config = Manager().get_DistributedConfiguration()
-    
-    print("Parallel level:", config.parallel_level)
-    
+        
     if config.parallel_level==1:
         
         config.inparallel_entered = True
@@ -252,7 +250,6 @@ def block_distributed_range(start, stop):
         rng = _calculate_ranges(config, start, stop)
         config.range = rng
 
-        print(config.size, config.range)
         return range(rng[0],rng[1])
         
     else:
