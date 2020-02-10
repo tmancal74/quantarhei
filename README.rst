@@ -57,15 +57,21 @@ and
 .. _GACR: http://www.gacr.cz
                                                
 
-through grants: 14-25752S (2014-2016) and 17-22160S (2017-2019)
+through grants: 14-25752S (2014-2016), 17-22160S (2017-2019) and 18-18022S (2018-2020)
 
+New in 0.0.55
+=============
+
+for users:
+ - A bug in 2D lineshapes of ESA calculated by MockTwoDSpectrumCalculator fixed
+ - Other bug fixes
 
 New in 0.0.54
 =============
 
 for users:
  - TwoDSpectra can be added if they are of the same type
- - 
+ - Bug fixes
 
 New in 0.0.53
 =============
