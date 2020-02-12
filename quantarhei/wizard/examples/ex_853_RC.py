@@ -224,7 +224,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             else:
                 mol3 = qr.Molecule([0.0, ESP1])
                 print("Monomer 3 (SP_low) energy:", ESP1)
-            mol3.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
+            mol3.set_transition_width((0,1), width)
             mol3.set_dipole(0,1, trimer["dipsp"])
 
 
