@@ -2229,32 +2229,27 @@ class AggregateBase(UnitsManaged, Saveable):
             
             # all states (and 2-ex band selected)
             for el1 in range(self.Nel):
-                #el1 = self.elinds[kk1]
-                #print(el1, self.which_band[el1])
                 if self.which_band[el1] == 2:
-                    #print("Selected:", el1)
-                    #print("vibindices:", self.vibindices[el1])
                     # all states corresponding to electronic two-exc. state kk
                     for aa1 in self.vibindices[el1]:
+                        
                         # all states and (1-ex band selected)
                         for el2 in range(self.Nel):
-                            #el2 = self.elinds[kk2]
                             if self.which_band[el2] == 1:
-                                #print("vibindices - in:", self.vibindices[el2])
                                 for aa2 in self.vibindices[el2]:
+                                    
                                     # all states and (2-ex band selected)
                                     for el3 in range(self.Nel):
-                                        #el3 = self.elinds[kk3]
                                         if self.which_band[el3] == 2:
                                             for aa3 in self.vibindices[el3]:
+                                                
                                                 st_k = self.twoex_indx[aa3,0]
                                                 st_l = self.twoex_indx[aa3,1]
-                                                #print("O", aa2, st_k, aa3, st_l)
+
                                                 kappa[aa2, aa1] += (
                                                      (delta[aa2, st_k] 
                                                     + delta[aa2, st_l])*
                                                      (SS[aa3, aa1]**2))
-            
             
             #
             # Cross terms
@@ -2274,7 +2269,6 @@ class AggregateBase(UnitsManaged, Saveable):
                                  
             self.Wd[N1b:N2b,0:N1b] = numpy.sqrt(self.Wd[N1b:N2b,0:N1b])
             self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
-            #print(self.Wd[N1b:N2b,0:N1b])
             
             #
             # Transform line shapes for 1->2 transitions
@@ -2303,11 +2297,9 @@ class AggregateBase(UnitsManaged, Saveable):
         Wd_a = numpy.sqrt(Wd_a)
         Dr_a = numpy.sqrt(Dr_a)
         
-        
         self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
         self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
-                                       
-        
+                                           
         #
         #
         # Coefficients xi_{ai} to transform pure dephasing of electronic coherence
@@ -2333,7 +2325,7 @@ class AggregateBase(UnitsManaged, Saveable):
         for a in range(Ntot):
             for b in range(Ntot):
                 dd2[a,b] = numpy.dot(self.DD[a,b,:],self.DD[a,b,:])
-        #print(dd2)
+
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
         

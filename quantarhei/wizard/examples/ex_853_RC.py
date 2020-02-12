@@ -96,12 +96,13 @@ def save_averages(cont, dname):
 
     """
 
-    (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = cont
+    (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr, av_abs) = cont
 
     name1 = "ave_p_re.qrp"
     name2 = "ave_p_nr.qrp"
     name3 = "ave_m_re.qrp"
     name4 = "ave_m_nr.qrp"
+    name5 = "ave_abs.qrp"
     fname = os.path.join(dname, name1)
     cont_p_re.save(fname)
     fname = os.path.join(dname, name2)
@@ -110,6 +111,9 @@ def save_averages(cont, dname):
     cont_m_re.save(fname)
     fname = os.path.join(dname, name4)
     cont_m_nr.save(fname)
+    fname = os.path.join(dname, name5)
+    av_abs.save(fname)
+    
 
 
 def unite_containers():
@@ -394,6 +398,22 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     p_deph = qr.qm.ElectronicPureDephasing(agg, dtype="Gaussian")
 
 
+    #
+    # Absorption spectrum
+    #
+    abscalc = qr.MockAbsSpectrumCalculator(t1axis, system=agg)
+    with qr.energy_units("1/cm"):
+        abscalc.bootstrap(rwa=E0)
+        
+    abssp = abscalc.calculate()
+ 
+    with qr.energy_units("1/cm"):
+        abssp.plot()
+    
+    #qr.show_plot()
+    #qr.stop()
+    
+
     eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, pdeph=p_deph,
                                        mode="all")
     eUt.set_dense_dt(INP.fine_splitting)
@@ -639,7 +659,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     memo = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/(1024*1024)
     print("Memory usage: ", memo, "in MB" )
 
-    return (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr)
+    return (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr, abssp)
 
 
 #qr.start_parallel_region()
@@ -866,7 +886,7 @@ for model in models:
                 else:
                     save_eUt = False
 
-                (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr) = \
+                (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr, abssp) = \
                 run(omega, HR, dE, JJ, rate, E0, vib_loc, use_vib,
                     make_movie=make_movie, save_eUt=save_eUt,
                     t2_save_pathways=t2_save_pathways, dname=dname,
@@ -898,11 +918,13 @@ for model in models:
                         av1_p_nr = sp1_p_nr.deepcopy()
                         av2_m_re = sp2_m_re.deepcopy()
                         av2_m_nr = sp2_m_nr.deepcopy()
+                        av_abs = abssp.deepcopy()
 
                         av1_p_re.data[:,:] = 0.0
                         av1_p_nr.data[:,:] = 0.0
                         av2_m_re.data[:,:] = 0.0
                         av2_m_nr.data[:,:] = 0.0
+                        av_abs.data[:] = 0.0
 
                     data_initialized = True
 
@@ -910,6 +932,7 @@ for model in models:
                 av1_p_nr.data += sp1_p_nr.data
                 av2_m_re.data += sp2_m_re.data
                 av2_m_nr.data += sp2_m_nr.data
+                av_abs += abssp.data
 
                 tags.append(i_p_re)
 
@@ -927,6 +950,7 @@ for model in models:
             av1_p_nr.data = config.reduce(av1_p_nr.data)/Nreal
             av2_m_re.data = config.reduce(av2_m_re.data)/Nreal
             av2_m_nr.data = config.reduce(av2_m_nr.data)/Nreal
+            av_abs.data = config.reduce(av_abs.data)/Nreal
             #av1_p_re.data = av1_p_re.data/Nreal
             #av1_p_nr.data = av1_p_nr.data/Nreal
             #av2_m_re.data = av2_m_re.data/Nreal
@@ -994,7 +1018,7 @@ print("\n... finished simulation set at", at, "in", tB-tA,"sec")
 
 if disorder:
     if config.rank == 0:
-        cont = (av1_p_re, av1_p_nr, av2_m_re, av2_m_nr)
+        cont = (av1_p_re, av1_p_nr, av2_m_re, av2_m_nr, av_abs)
         save_averages(cont, dname)
 
 else:

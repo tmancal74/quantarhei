@@ -103,7 +103,7 @@ t3_N_steps          : 100
 t3_time_step        : 10.0  # fs
 
 # Gaussian width of the 2D spectrum features
-feature_width       : 100.0 # 1/cm
+feature_width       : 200.0 # 1/cm
 
 # trim maps to this spectral region
 trim_maps_to        : [11000, 14000, 11000, 14000]  # 1/cm
@@ -141,7 +141,7 @@ disorder_fwhm: 100
 restart_disorder: False
 
 random_state:
-  reset: True
+  reset: False
   save: False
   file: random_state.qrp
 
