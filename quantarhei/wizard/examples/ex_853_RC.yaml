@@ -134,7 +134,6 @@ max_available_fwhm : 1.0  # 1/cm
 # how many FWHM we include into the scanned energy interval
 how_many_fwhm : 2
 
-
 disorder: True
 N_realizations: 240 
 disorder_fwhm: 100

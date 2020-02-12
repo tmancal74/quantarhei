@@ -448,7 +448,9 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
         twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
                                         selection=[["omega2",[olow, ohigh]]])
+        twod.set_data_writable()
         twod.data = twod.data*numpy.exp(-t2/tvib)
+        twod.set_data_protected()
         
         if t2 in t2_save_pathways:
             pws_name = os.path.join(dname, "pws_t2="+str(t2)+
@@ -459,8 +461,10 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
         twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
                                         selection=[["omega2",[-ohigh, -olow]]])
+        twod.set_data_writable()
         twod.data = twod.data*numpy.exp(-t2/tvib)
-
+        twod.set_data_protected()
+        
         if t2 in t2_save_pathways:
             pws_name = os.path.join(dname, "pws_t2="+str(t2)+
                                     "_omega2="+str(-omega)+data_descr+obj_ext)
@@ -932,7 +936,7 @@ for model in models:
                 av1_p_nr.data += sp1_p_nr.data
                 av2_m_re.data += sp2_m_re.data
                 av2_m_nr.data += sp2_m_nr.data
-                av_abs += abssp.data
+                av_abs.data += abssp.data
 
                 tags.append(i_p_re)
 
