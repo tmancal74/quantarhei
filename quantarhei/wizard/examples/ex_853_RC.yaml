@@ -44,7 +44,7 @@ resonance_coupling : 100.0  # 1/cm
 
 # number of vibrational levels in the ground and excited state
 # value 2 means states with 0 and 1 vibrational quanta
-no_g_vib : 2
+no_g_vib : 3
 no_e_vib : 2
 
 # parameters of the system (group for historical reasons)
@@ -52,6 +52,8 @@ params:
     HR      : 0.025       # Huang-Rhys factor of the vibration
     omega   : 570.0      # frequency of the vibration
     use_vib : True       # should we use vibrations at all?
+    
+vib_dephasing_time : 1500.0
 
 # on which molecule the vibrations should be placed?
 # (low or high energy monomer or both)
@@ -60,7 +62,7 @@ location_of_vibrations : "up"  # can be "up", "down" or "both"
 # The ouput directory of the script will be called "sim_up" if the variable
 # called location_of_vibrations is set to "up". You can add more info into
 # the directory name by specifying the variable below
-append_to_dirname : "_out_100_N=500"
+append_to_dirname : "_out_180"
 
 # transition dipole moments of the two molecules
 # in case of special pair: dip2 is the B molecules and dip1 is the higher energy
@@ -81,7 +83,7 @@ rate                : 1.0/150.0
 temperature : 77.0  # K
 
 # t2 time specification
-t2_N_steps          : 50
+t2_N_steps          : 350
 t2_time_step        : 10.0  # fs
 fine_splitting      : 10    # number of steps inside the t2_time_step
 
@@ -109,7 +111,7 @@ trim_maps_to        : [11000, 14000, 11000, 14000]  # 1/cm
 #
 # select only pathways which fall with +/- omega_uncertaity/2
 #
-omega_uncertainty   : 150.0 # 1/cm
+omega_uncertainty   : 50.0 # 1/cm
 
 # Tukey window parameter
 tukey_window_r      : 0.3
@@ -124,7 +126,7 @@ tukey_window_r      : 0.3
 # distribution
 single_realization: False
 # center of the disorder in energy gap
-center : 550.0  # 1/cm
+center : 520.0  # 1/cm
 # step of the disorder scanning
 step : 2.0  # 1/cm
 # maximum possible FWHM of the disorder
@@ -134,12 +136,12 @@ how_many_fwhm : 2
 
 
 disorder: True
-N_realizations: 1 
+N_realizations: 240 
 disorder_fwhm: 100
 restart_disorder: False
 
 random_state:
-  reset: False
+  reset: True
   save: False
   file: random_state.qrp
 

@@ -164,6 +164,8 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     dip1 = INP.dip1 # [1.5, 0.0, 0.0]
     dip2 = INP.dip2 # [-1.0, -1.0, 0.0]
     width = INP.feature_width # 100.0
+    
+    tvib = INP.vib_dephasing_time
 
     normalize_maps_to_maximu = False
     trim_maps = False
@@ -424,10 +426,10 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         # this could save some memory of pathways become too big
         pways = dict()
 
-
         twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
                                         selection=[["omega2",[olow, ohigh]]])
-
+        twod.data = twod.data*numpy.exp(-t2/tvib)
+        
         if t2 in t2_save_pathways:
             pws_name = os.path.join(dname, "pws_t2="+str(t2)+
                                     "_omega2="+str(omega)+data_descr+obj_ext)
@@ -437,6 +439,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
         twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
                                         selection=[["omega2",[-ohigh, -olow]]])
+        twod.data = twod.data*numpy.exp(-t2/tvib)
 
         if t2 in t2_save_pathways:
             pws_name = os.path.join(dname, "pws_t2="+str(t2)+
@@ -720,7 +723,6 @@ disorder = INP.disorder
 if single_run:
 
     ptns.append((INP.resonance_coupling, center, INP.trimer))
-    disorder = False
 
 #
 # Run with disorder and explicite averaging (sigle set + variations by disorder)
