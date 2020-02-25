@@ -25,8 +25,7 @@ from quantarhei.core.units import kB_int
 
 from quantarhei import printlog as print
 
-print("\n***** Calculation of material for disorder integration"+
-      " (dimer version) *****")
+print("\n***** Vibrational signatures in omega_2 maps of RC *****")
 
 input_file = "ex_853_RC.yaml"
 #input_file = {'E0': 10000.0, 'resonance_coupling': 100.0, 'no_g_vib': 2,
@@ -44,6 +43,7 @@ input_file = "ex_853_RC.yaml"
 #'copy_input_file_to_results': True, '_math_allowed_in': ['E0',
 #'resonance_coupling', 'rate', ['params', ['HR', 'omega', 'rate']],
 #'center', 'step', 'max_available_fwhm', 'how_many_fwhm', 't2_save_pathways']}
+
 INP = qr.Input(input_file, show_input=False) #,
                #math_allowed_in =["E0",
                #                  ["params", ["HR", "omega", "rate"]] ])
@@ -53,6 +53,11 @@ show_plots = INP.show_plots
 save_containers = INP.save_containers
 detailed_balance = INP.detailed_balance
 
+###############################################################################
+#
+#  Some helper routines
+#
+###############################################################################
 
 def init_containers():
     """Initialized containers
@@ -91,6 +96,7 @@ def save_containers(cont, dname):
     fname = os.path.join(dname, name4)
     cont_m_nr.savedir(fname)
 
+
 def save_averages(cont, dname):
     """Saves disorder averaged spectra
 
@@ -113,7 +119,6 @@ def save_averages(cont, dname):
     cont_m_nr.save(fname)
     fname = os.path.join(dname, name5)
     av_abs.save(fname)
-    
 
 
 def unite_containers():
@@ -196,7 +201,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         ESP1 = epsa - DE/2.0
 
     #
-    #   Model system is a dimer of molecules
+    #   Model system is a dimer or trimer of molecules
     #
     with qr.energy_units("1/cm"):
         if not use_trimer:
@@ -227,20 +232,22 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             mol3.set_transition_width((0,1), width)
             mol3.set_dipole(0,1, trimer["dipsp"])
 
+        #
+        # Molecules 1 and 2 are always present
+        #
+        
+        mol1.set_transition_width((0,1), width)
+        mol1.set_dipole(0,1, dip1)
 
-    mol1.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
-    mol1.set_dipole(0,1, dip1)
+        mol2.set_transition_width((0,1), width)
+        mol2.set_dipole(0,1, dip2)
 
-    mol2.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
-    mol2.set_dipole(0,1, dip2)
-
+    #
+    # Setting coupling between molecules
+    #
     if use_trimer:
+
         agg = qr.Aggregate([mol1, mol2, mol3])
-    else:
-        agg = qr.Aggregate([mol1, mol2])
-
-    if use_trimer:
-
         with qr.energy_units("1/cm"):
             agg.set_resonance_coupling(0,1,JJ)
             print("B - SP_high coupling:", JJ)
@@ -248,7 +255,8 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             print("SP coupling:", J2)
 
     else:
-
+        
+        agg = qr.Aggregate([mol1, mol2])
         with qr.energy_units("1/cm"):
             agg.set_resonance_coupling(0,1,JJ)
 
@@ -289,6 +297,9 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             mod2.set_nmax(1, INP.no_e_vib)
             mod2.set_HR(1, HR)
 
+    #
+    # Aggregate for 2D spectrum calculation
+    #
     agg3 = agg.deepcopy()
 
     agg.build(mult=1)
@@ -308,12 +319,17 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     t2_time_step = INP.t2_time_step
     time2 = qr.TimeAxis(0.0, t2_N_steps, t2_time_step)
 
+    #
+    # Containers for spectra
+    #
     cont_p = qr.TwoDResponseContainer(t2axis=time2)
     cont_m = qr.TwoDResponseContainer(t2axis=time2)
+    
     #
     # spectra will be indexed by the times in the time axis `time2`
     #
     cont_p.use_indexing_type(time2)
+    cont_m.use_indexing_type(time2)
 
     #
     # We define two-time axes, which will be FFTed and will define
@@ -339,9 +355,8 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     operators = []
     rates = []
 
+    print("Energy transfer rates")
     if use_trimer:
-
-        print(rate, rate_sp)
 
         with qr.eigenbasis_of(He):
             if He.data[3,3] < He.data[2,2]:
@@ -367,23 +382,27 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
                 operators.append(qr.qm.ProjectionOperator(3, 2, dim=He.dim))
                 thermal_fac = numpy.exp(-Den)
             rates.append(rate*thermal_fac)
+            
     else:
+        
         with qr.eigenbasis_of(He):
             if He.data[2,2] < He.data[1,1]:
                 Exception("Electronic states not orderred!")
             operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
         rates.append(rate)
 
-        # include detailed balace
-        if detailed_balance:
-            with qr.eigenbasis_of(He):
-                T = INP.temperature #77.0
-                Den = (He.data[2,2] - He.data[1,1])/(kB_int*T)
-                operators.append(qr.qm.ProjectionOperator(2, 1, dim=He.dim))
-                thermal_fac = numpy.exp(-Den)
-            rates.append(rate*thermal_fac)
+    # include detailed balace
+    if detailed_balance:
+        with qr.eigenbasis_of(He):
+            T = INP.temperature #77.0
+            Den = (He.data[2,2] - He.data[1,1])/(kB_int*T)
+            operators.append(qr.qm.ProjectionOperator(2, 1, dim=He.dim))
+            thermal_fac = numpy.exp(-Den)
+        rates.append(rate*thermal_fac)
 
-
+    #
+    # SystemBathInteraction describes input for Lindblad tensor construction
+    #
     sbi = qr.qm.SystemBathInteraction(sys_operators=operators, rates=rates)
     sbi.set_system(agg)
 
@@ -398,9 +417,11 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     p_deph = qr.qm.ElectronicPureDephasing(agg, dtype="Gaussian")
 
 
+    ###########################################################################
     #
-    # Absorption spectrum
+    # Calculation of absorption spectrum
     #
+    ###########################################################################
     abscalc = qr.MockAbsSpectrumCalculator(t1axis, system=agg)
     with qr.energy_units("1/cm"):
         abscalc.bootstrap(rwa=E0)
@@ -410,17 +431,16 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     with qr.energy_units("1/cm"):
         abssp.plot()
     
-    #qr.show_plot()
-    #qr.stop()
+    if INP.abs_spectrum_only:
+        print("Terminating after absorption spectrum")
+        qr.stop()
     
-
-    eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, pdeph=p_deph,
-                                       mode="all")
-    eUt.set_dense_dt(INP.fine_splitting)
-
     #
     # We calculate evolution superoperator
     #
+    eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, pdeph=p_deph,
+                                       mode="all")
+    eUt.set_dense_dt(INP.fine_splitting)
     eUt.calculate(show_progress=False)
 
     if save_eUt:
@@ -434,20 +454,33 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     agg3.build(mult=2)
     agg3.diagonalize()
 
-    pways = dict()
-
+    #
+    # omega_2 frequency window for selection
+    #
     olow_cm = omega-INP.omega_uncertainty/2.0
     ohigh_cm = omega+INP.omega_uncertainty/2.0
     olow = qr.convert(olow_cm, "1/cm", "int")
     ohigh = qr.convert(ohigh_cm, "1/cm", "int")
 
+    #
+    # Loop over t2 time
+    #
     for t2 in time2.data:
 
         # this could save some memory of pathways become too big
         pways = dict()
 
-        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
+        #
+        # Positive frequency spectrum
+        #
+        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, 
+                                        dtol=0.0001,
                                         selection=[["omega2",[olow, ohigh]]])
+        
+        #
+        # In the absence of vibrational relaxation we resort to damping all
+        # the signal with a single time constant
+        #
         twod.set_data_writable()
         twod.data = twod.data*numpy.exp(-t2/tvib)
         twod.set_data_protected()
@@ -459,8 +492,16 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
         cont_p.set_spectrum(twod)
 
-        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
+        #
+        # Negative frequency spectrum
+        #
+        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, 
+                                        dtol=0.0001,
                                         selection=[["omega2",[-ohigh, -olow]]])
+        #
+        # In the absence of vibrational relaxation we resort to damping all
+        # the signal with a single time constant
+        #
         twod.set_data_writable()
         twod.data = twod.data*numpy.exp(-t2/tvib)
         twod.set_data_protected()
@@ -471,17 +512,20 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             qr.save_parcel(pways[str(t2)], pws_name)
 
         cont_m.set_spectrum(twod)
+        
 
+    #
+    # Make movies of t2 evolution
+    #
     if make_movie:
         with qr.energy_units("1/cm"):
-            cont_p.make_movie("mov.mp4")
+            cont_p.make_movie("mov_p.mp4")
+            cont_m.make_movie("mov_m.mp4")
+
 
     #
-    # let's not save all the pathways
+    # Save the aggregate - can be used for pathway analysis
     #
-    #fname = os.path.join("sim_"+vib_loc, "pways.qrp")
-    #qr.save_parcel(pways, fname)
-
     fname = os.path.join(dname, "aggregate.qrp")
     agg3.save(fname)
 
@@ -651,6 +695,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
 
     save_containers = False
+    
     if save_containers:
         fname = os.path.join(dname,"cont_p"+data_descr+obj_ext)
         print("Saving container into: "+fname)
@@ -666,12 +711,20 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     return (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr, abssp)
 
 
-#qr.start_parallel_region()
+###############################################################################
+###############################################################################
+###############################################################################
+#
+#
+#                       HERE STARTS THE SIMULATION
+#
+#
+###############################################################################
+###############################################################################
+###############################################################################
 
 config = qr.distributed_configuration()
 
-###############################################################################
-###############################################################################
 ###############################################################################
 #
 #   PARAMETERS OF THE SIMULATION
@@ -775,7 +828,9 @@ E0 = INP.E0 # transition energy (in 1/cm) of the reference monomer
 
 
 ###############################################################################
-###############################################################################
+#
+#   END OF PARAMETERS OF THE SIMULATION
+#
 ###############################################################################
 
 #
@@ -804,9 +859,13 @@ at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 print("\nStarting simulation set at", at)
 ll = 1
 for model in models:
+    
     print("Model no.", ll, "of", len(models))
     vib_loc = model["vib_loc"]
-    #stype = model["stype"]
+    
+    #
+    # create output directory
+    #
     dname = "sim_"+vib_loc+INP.append_to_dirname
     try:
         os.makedirs(dname)
@@ -814,6 +873,9 @@ for model in models:
         # directory already exists
         pass
 
+    #
+    # Copy input file to the output directory
+    #
     if INP.copy_input_file_to_results:
         if INP._from_file:
             shutil.copy2(input_file, dname)
@@ -824,14 +886,16 @@ for model in models:
     kk = 1
     at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
     print("\nStarting the simulation at:", at)
+    
+    #
+    # Loop over different simulations
+    #
     Np = len(parms)
     for par in parms:
 
         print("Run no.", kk, "of", Np)
         omega = par["omega"]
         HR = par["HR"]
-        #dE = par["dE"]
-        #JJ = par["JJ"]
         use_vib = par["use_vib"]
         rate = par["rate"]
 
@@ -849,9 +913,6 @@ for model in models:
 
             Nreal = INP.N_realizations
 
-            #
-            # THIS MAY BE PARALLELIZED
-            #
             data_initialized = False
             disM = numpy.zeros((3,Nreal))
             sigma = INP.disorder_fwhm/(2.0*numpy.sqrt(2.0*numpy.log(2.0)))
@@ -869,6 +930,11 @@ for model in models:
             for ri in range(Nreal):
                 disM[:,ri] = sigma*numpy.random.randn(3)
 
+            ###################################################################
+            #
+            #   POSSIBLE PARALLEL CALCULATION
+            #
+            ###################################################################
             for ds in qr.block_distributed_range(0,Nreal):
                 # generating random numbers
                 disE = numpy.zeros(3,dtype=qr.REAL)
@@ -901,6 +967,9 @@ for model in models:
                 print("... done in",t2-t1,"sec")
 
                 if not data_initialized:
+                    #
+                    # Initialize data containers
+                    #
                     params = dict(J=JJ, dE=dE, E0=E0, omega=omega,
                                   delta=INP.disorder_fwhm)
                     sp1_p_re.log_params(params)
@@ -932,6 +1001,9 @@ for model in models:
 
                     data_initialized = True
 
+                #
+                # average data (locally)
+                #
                 av1_p_re.data += sp1_p_re.data
                 av1_p_nr.data += sp1_p_nr.data
                 av2_m_re.data += sp2_m_re.data
@@ -950,22 +1022,29 @@ for model in models:
                 i_p_re +=1
                 kp += 1
 
+            #
+            # Average data (globally, across parallel calculation)
+            #
             av1_p_re.data = config.reduce(av1_p_re.data)/Nreal
             av1_p_nr.data = config.reduce(av1_p_nr.data)/Nreal
             av2_m_re.data = config.reduce(av2_m_re.data)/Nreal
             av2_m_nr.data = config.reduce(av2_m_nr.data)/Nreal
             av_abs.data = config.reduce(av_abs.data)/Nreal
-            #av1_p_re.data = av1_p_re.data/Nreal
-            #av1_p_nr.data = av1_p_nr.data/Nreal
-            #av2_m_re.data = av2_m_re.data/Nreal
-            #av2_m_nr.data = av2_m_nr.data/Nreal
 
             qr.finished_in(show_stamp=True)
+
+            ###################################################################
+            #
+            #   END OF POSSIBLE PARALLEL CALCULATION
+            #
+            ###################################################################
+
 
         #
         # Loop over parameter sets
         #
         else:
+            
             for (JJ, dE, trimer) in ptns:
                 print("\nCalculating spectra ... (",kp,"of",Nje,
                       ") [run ",kk,"of",Np,"]")
@@ -1016,6 +1095,11 @@ for model in models:
         kk += 1
     ll += 1
 
+###############################################################################
+#
+#  Finalization stage
+#
+###############################################################################
 tB = time.time()
 at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 print("\n... finished simulation set at", at, "in", tB-tA,"sec")
@@ -1044,5 +1128,8 @@ else:
         # uniting the containers saved in pieces into one file each
         unite_containers()
 
-
-#qr.close_parallel_region()
+###############################################################################
+#
+#  END OF THE SCRIPT
+#
+###############################################################################

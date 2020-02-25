@@ -716,7 +716,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 raise Exception("Invalid argument: time")
 
 
-    def plot_element(self, elem, show=True):
+    def plot_element(self, elem, part="REAL", show=True):
         """Plots a selected element of the evolution superoperator
         
         
@@ -733,15 +733,52 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if (len(elem) == len(shape)-1) and (len(elem) == 4):
 
             if tl == shape[0]:
-                plt.plot(self.time.data,
-                         self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                if part == "REAL":
+                    dat1 = numpy.real(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat2 = None
+                elif part == "IMAG":
+                    dat1 = numpy.imag(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat2 = None
+                elif part == "BOTH":
+                    dat1 = numpy.real(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat2 = numpy.imag(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                else:
+                    raise Exception("Unknown data part: "+part)
+                    
+                plt.plot(self.time.data, dat1)
+                if dat2 is not None:
+                    plt.plot(self.time.data, dat2)
+                    
                 if show:
                     plt.show()
         
         else:
             print("Nothing to plot")
             
+          
+    def get_element_fft(self, elem, window=None):
+        """Returns a DFunction with the FFT of the element evolution
+        
+        """
+
+        if window is None:
+            winfce = qr.DFunction(self.axis, 
+                               numpy.ones(self.axis.length, dtype=qr.REAL))
+        else:
+            winfce = window
             
+        dat = self.data[:,elem[0],elem[1],elem[2],elem[3]]
+        
+        fdat = numpy.fft.ifft(dat*winfce.data)
+        fdat = numpy.fft.fftshift(fdat)
+        
+        time = self.time
+        freq = time.get_FrequencyAxis()
+        
+        ffce = qr.Dfunction(freq, fdat)
+        
+        return ffce
+    
 
     #
     # Calculation `progressbar`

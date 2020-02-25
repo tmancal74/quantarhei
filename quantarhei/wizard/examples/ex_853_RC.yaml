@@ -4,7 +4,7 @@
 #  Configuration file for ex_853_RC.py example
 #
 #  Author: Tomáš Mančal
-#  Last change: July 29th, 2019
+#  Last change: February 13th, 2020
 #
 #
 #  The script calculates omega_2 maps from 2D spectra of a disordered dimer.
@@ -25,7 +25,8 @@
 #
 ###############################################################################
 
-# Transition energy of a reference monomer or the upper exciton state of special pair
+# Transition energy of a reference monomer or the upper exciton state of
+# special pair
 E0 : 11900.0  # 1/cm
 
 # E2 - lower exciton state of the special pair
@@ -155,10 +156,12 @@ make_movie : False
 show_plots : False
 save_containers : False
 detailed_balance : True
+abs_spectrum_only : False
 
 # at which t2 values we should save all Liouville pathways
 t2_save_pathways : [30.0, 170.0]  # fs
 
+# if True, output dir will contain the input file use to run the simulation
 copy_input_file_to_results : True
 
 
