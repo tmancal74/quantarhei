@@ -500,9 +500,52 @@ def do_command_file(args):
     except:
         qr.printlog("The file is not a Quantarhei parcel", loglevel=1)
         #print(traceback.format_exc())
+
+        
+def do_command_script(args):
+    """Provides script management functionality
+    
+    
+    script --path
+    
+        Reports path to the quantarhei scripts
+        
+    script --set-path PATH
+    
+        Sets Quantarhei script path
+        
+    script --install SCRIPT_FILE
+    
+        Installs script to the Quantarhei script path
+        
+    script --list
+    
+        Lists available scrips
+        
+    script --history SCRIPT_NAME
+    
+        Shows the script installation history 
+        
+    script --status SCRIPT_NAME
+    
+        Shows script installation status 
+        
+    script --hash FILE
+    
+        Reports hash corresponding to the file
         
     
+    
+        
+    
+        
+    
+    """
+    global parser_script
+    
 
+    pass
+    
     
     
 def main():
@@ -629,6 +672,39 @@ def main():
                           help='file to be checked', nargs=1) 
     
     parser_file.set_defaults(func=do_command_file)     
+    
+    
+    #
+    # Subparser for command `script`
+    #
+
+    parser_script = subparsers.add_parser("script", help="Installs and manages"
+                                        +" scripts")
+
+    #parser_script.add_argument("glob", metavar='glob', type=str, 
+    #                          help='file name', nargs="?")
+    #parser_script.add_argument("-i", "--install", action='store_true',
+    #                          help="installs a script file")
+    parser_script.add_argument("-i", "--install", metavar="SCRIPT", 
+                            default="", help="installs a script file") 
+    parser_script.add_argument("-s", "--set-path", metavar="PATH", 
+                            default="", help="sets path to Quantarhei scripts")    
+    parser_script.add_argument("-p", "--path", action='store_true', 
+                          help="reports the path to Quantarhei scripts") 
+    parser_script.add_argument("-l", "--list", action='store_true', 
+                          help="lists all installed scripts")  
+    parser_script.add_argument("-y", "--history", metavar="SCRIPT", 
+                            default="", help="reports the history of an"+
+                            " installed script")
+    parser_script.add_argument("-t", "--status", metavar="SCRIPT", 
+                            default="", help="reports the status of an"+
+                            " installed script")
+    parser_script.add_argument("-a", "--hash", metavar="FILE", 
+                            default="", help="creates a hash unique to the"
+                            +" content of a file")
+    parser_script.set_defaults(func=do_command_script)    
+     
+    
     
     #
     # Parsing all arguments
