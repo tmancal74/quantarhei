@@ -304,8 +304,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 1
         =========
         <BLANKLINE>
-        Transition energy        : 11967.06802945 1/cm
-        Transition dipole moment : 2.48026497 D
+        Transition energy        : 11967.06803045 1/cm
+        Transition dipole moment : 2.48026499 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -319,8 +319,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 2
         =========
         <BLANKLINE>
-        Transition energy        : 12332.93197055 1/cm
-        Transition dipole moment : 5.16973503 D
+        Transition energy        : 12332.93196955 1/cm
+        Transition dipole moment : 5.16973501 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -330,7 +330,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
         | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
         +-------+-------------+--------------+------------------+
-        <BLANKLINE>
+        <BLANKLINE>        
         """
         
         start_at = start
