@@ -304,8 +304,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 1
         =========
         <BLANKLINE>
-        Transition energy        : 2.25417865 1/cm
-        Transition dipole moment : 2.48026499 D
+        Transition energy        : 11967.06802945 1/cm
+        Transition dipole moment : 2.48026497 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -319,8 +319,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 2
         =========
         <BLANKLINE>
-        Transition energy        : 2.32309466 1/cm
-        Transition dipole moment : 5.16973501 D
+        Transition energy        : 12332.93197055 1/cm
+        Transition dipole moment : 5.16973503 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -339,6 +339,9 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         print("Report on excitonic properties")
         print("------------------------------\n")
         N01 = self.Nb[0]+self.Nb[1]
+        if self.mult > 1:
+            N01 += self.Nb[2]
+            
         for Nst in range(N01):
             
             if stop_at is None:
@@ -346,7 +349,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                 
             if (Nst >= start_at) and (Nst <= stop_at):
                 
-                tre = self.get_state_energy(Nst) - self.get_state_energy(0)
+                with qr.energy_units("1/cm"):
+                    tre = self.get_state_energy(Nst) - self.get_state_energy(0)
                 dip = self.get_transition_dipole(0, Nst)
                 
                 if criterium is not None:

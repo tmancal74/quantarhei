@@ -762,8 +762,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
 
         if window is None:
-            winfce = qr.DFunction(self.axis, 
-                               numpy.ones(self.axis.length, dtype=qr.REAL))
+            winfce = qr.DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=qr.REAL))
         else:
             winfce = window
             
@@ -775,7 +775,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         time = self.time
         freq = time.get_FrequencyAxis()
         
-        ffce = qr.Dfunction(freq, fdat)
+        ffce = qr.DFunction(freq, fdat)
         
         return ffce
     
