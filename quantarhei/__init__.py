@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
     Quantarhei User Level Classes and Objects
     =========================================
@@ -311,6 +311,7 @@ from .qm import DensityMatrix
 from .qm import ReducedDensityMatrix
 from .qm import BasisReferenceOperator
 from .qm import Hamiltonian
+from .qm import Liouvillian
 from .qm import TransitionDipoleMoment
 from .qm import UnityOperator
 

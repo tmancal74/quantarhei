@@ -780,6 +780,43 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return ffce
     
 
+    # FIXME: In principle, we can define Greens function and return it
+    def get_fft(self, window=None, subtract_last=True):
+        """Returns Fourier transform of the whole evolution superoperator
+        
+        
+        Parameters
+        ----------
+        
+        window: DFunction or numpy array
+            Windowing function by which the data are multiplied
+            
+        subtract_last: bool
+            If True, the value at the last available time is subtracted 
+            from all times
+        
+        """
+
+        if window is None:
+            winfce = qr.DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=qr.REAL))
+        else:
+            winfce = window
+            
+        dat = self.data
+        if subtract_last:
+            dat = dat - dat[-1,:,:,:,:]
+        
+        # FIXME: Implement windowing
+        fdat = numpy.fft.ifft(dat, axis=0) #*winfce.data)
+        fdat = numpy.fft.fftshift(fdat, axes=0)
+        
+        time = self.time
+        freq = time.get_FrequencyAxis()
+        
+        return fdat, freq        
+        
+
     #
     # Calculation `progressbar`
     #

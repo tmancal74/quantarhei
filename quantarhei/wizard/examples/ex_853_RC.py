@@ -438,11 +438,14 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     #
     # We calculate evolution superoperator
     #
+    teU = time.time()
     eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, pdeph=p_deph,
                                        mode="all")
     eUt.set_dense_dt(INP.fine_splitting)
     eUt.calculate(show_progress=False)
 
+    teU2 = time.time()
+    print("eUt calculated in: ", teU2-teU)
     if save_eUt:
         eut_name = os.path.join(dname, "eUt"+
                                     "_omega2="+str(omega)+data_descr+obj_ext)
