@@ -17,6 +17,7 @@ import numpy
 from ...builders.aggregates import Aggregate
 from ...core.managers import eigenbasis_of
 from ... import REAL
+from ..qm.liouvillespace.superoperator import SuperOperator
 
 class PureDephasing: #(BasisManaged):
     
@@ -28,7 +29,21 @@ class PureDephasing: #(BasisManaged):
         self.cutoff_time=cutoff_time
         
         
+    def get_SuperOperator(self):
+        """Returns a superoperator representing the pure dephasing
+
+        The return superoperator is always time-independent, i.e. in the
+        case of "Gaussian" dephasing, only the constants are returned.
+
+        """        
+        dim = self.data.shape[0] 
+        sup = SuperOperator(dim=dim, real=True)
+        for aa in range(dim):
+            for bb in range(dim):
+                sup.data[aa,bb,aa,bb] = self.data[aa,bb]
         
+        return sup
+
         
 class ElectronicPureDephasing(PureDephasing):
     """Electronic pure dephasing for one-exciton states
