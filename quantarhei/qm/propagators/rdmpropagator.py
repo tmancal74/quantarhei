@@ -548,24 +548,63 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             HH = self.Hamiltonian.data
             
         RR = self.RelaxationTensor.data
+
+        if self.has_PDeph:
             
-        indx = 1
-        for ii in range(1, self.Nt): 
+            if self.PDeph.dtype == "Lorentzian":
+                expo = numpy.exp(-self.PDeph.data*self.dt)
+                t0 = 0.0
+            elif self.PDeph.dtype == "Gaussian":
+                expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
+                t0 = self.PDeph.data*self.dt
+
             
-            for jj in range(0, self.Nref):
+            indx = 1
+            for ii in range(1, self.Nt): 
+
+                # time at the beginning of the step
+                tNt = self.TimeAxis.data[indx-1]  
                 
-                for ll in range(1, L+1):
+                for jj in range(0, self.Nref):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                             - numpy.dot(rho1,HH)) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1)
-                             
-                             
-                    rho2 = rho2 + rho1
-                rho1 = rho2    
+                    tt = tNt + jj*self.dt  # time right now 
+ 
+                    for ll in range(1, L+1):
+                        
+                        rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                                 - numpy.dot(rho1,HH)) \
+                               + (self.dt/ll)*numpy.tensordot(RR,rho1)
+                                 
+                        rho2 = rho2 + rho1
+                        
+                    # pure dephasing is added here                        
+                    rho2 = rho2*expo*numpy.exp(-t0*tt)
+                        
+                    rho1 = rho2    
+                    
+                pr.data[indx,:,:] = rho2 
+                indx += 1   
                 
-            pr.data[indx,:,:] = rho2 
-            indx += 1             
+        else:
+            
+            indx = 1
+            for ii in range(1, self.Nt): 
+                
+                for jj in range(0, self.Nref):
+                    
+                    for ll in range(1, L+1):
+                        
+                        rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                                 - numpy.dot(rho1,HH)) \
+                               + (self.dt/ll)*numpy.tensordot(RR,rho1)
+                                 
+                                 
+                        rho2 = rho2 + rho1
+                    rho1 = rho2    
+                    
+                pr.data[indx,:,:] = rho2 
+                indx += 1   
+           
 
         if self.Hamiltonian.has_rwa:
             pr.is_in_rwa = True
