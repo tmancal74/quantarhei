@@ -17,7 +17,7 @@ import numpy
 from ...builders.aggregates import Aggregate
 from ...core.managers import eigenbasis_of
 from ... import REAL
-from ..superoperator import SuperOperator
+from ..liouvillespace.superoperator import SuperOperator
 
 class PureDephasing: #(BasisManaged):
     
