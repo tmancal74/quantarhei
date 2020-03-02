@@ -21,7 +21,7 @@ from ..liouvillespace.superoperator import SuperOperator
 
 class PureDephasing: #(BasisManaged):
     
-    dtypes = ["Lorenzian", "Gaussian"]
+    dtypes = ["Lorentzian", "Gaussian"]
     
     def __init__(self, drates=None, dtype="Lorentzian", cutoff_time=None):
         
@@ -71,7 +71,7 @@ class PureDephasing: #(BasisManaged):
         if dtype in self.dtypes:
             
             factor = 2.0*numpy.sqrt(numpy.log(2.0))
-            if dtype == "Lorenzian" and self.dtype == "Gaussian":
+            if dtype == "Lorentzian" and self.dtype == "Gaussian":
                 self.data = numpy.sqrt(self.data)*factor
                 self.dtype = dtype
             elif dtype == "Gaussian" and self.dtype == "Lorenzian":
