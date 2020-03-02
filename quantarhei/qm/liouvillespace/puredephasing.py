@@ -21,12 +21,18 @@ from ..liouvillespace.superoperator import SuperOperator
 
 class PureDephasing: #(BasisManaged):
     
+    dtypes = ["Lorenzian", "Gaussian"]
     
     def __init__(self, drates=None, dtype="Lorentzian", cutoff_time=None):
         
-        self.data=drates
-        self.dtype=dtype
-        self.cutoff_time=cutoff_time
+        if dtype in self.dtypes:
+        
+            self.data=drates
+            self.dtype=dtype
+            self.cutoff_time=cutoff_time
+            
+        else:
+            raise Exception("Unknown dephasing type")
         
         
     def get_SuperOperator(self):
@@ -45,6 +51,37 @@ class PureDephasing: #(BasisManaged):
         return sup
 
         
+    def convert_to(self, dtype=None):
+        """Converts between Lorenzian and Gaussian dephasings      
+        
+        The conversion is done approximatively, so that the FWHM of 
+        the corresponding lineshapes are the same.
+        
+        Parameters
+        ----------
+        
+        dtype: str
+            Type of PureDephasing to which one should convert. Conversion
+            factor is such that the FFT of the time evolution gives a curve
+            with the same FWHM.
+    
+        """
+        
+        
+        if dtype in self.dtypes:
+            
+            factor = 2.0*numpy.sqrt(numpy.log(2.0))
+            if dtype == "Lorenzian" and self.dtype == "Gaussian":
+                self.data = numpy.sqrt(self.data)*factor
+                self.dtype = dtype
+            elif dtype == "Gaussian" and self.dtype == "Lorenzian":
+                self.data = (self.data**2)/(factor**2)
+                self.dtype = dtype
+                
+        else:
+            raise Exception("Unknown dephasing type")
+
+    
 class ElectronicPureDephasing(PureDephasing):
     """Electronic pure dephasing for one-exciton states
     
@@ -91,7 +128,8 @@ class ElectronicPureDephasing(PureDephasing):
 
             
     def eigenbasis(self):
-        """Returns the context for the eigenbasis in which pure dephasing is defined
+        """Returns the context for the eigenbasis in which pure dephasing
+        is defined
         
         
         To be used as
