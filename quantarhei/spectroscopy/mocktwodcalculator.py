@@ -239,7 +239,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     pws = anl.select_omega2(interval, replace=False)
                     
                 if rule[0] == "order":
-                    pass
+                    anl.pathways = pws
+                    pws = anl.order_by_amplitude(replace=Falses)
                     
                 if rule[0] == "number":
                     N = rule[1]

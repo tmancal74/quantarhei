@@ -178,9 +178,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
         (ix, dist) = self.xaxis.locate(x0)
         
         ay = self.yaxis
-        vals = numpy.zeros(ay.length, dtype=self.d__data.dtype)
+        vals = numpy.zeros(ay.length, dtype=self.data.dtype)
         for ii in range(ay.length):
-            vals[ii] = self.d__data[ii, ix]
+            vals[ii] = self.data[ii, ix]
     
         return DFunction(ay, vals)   
     

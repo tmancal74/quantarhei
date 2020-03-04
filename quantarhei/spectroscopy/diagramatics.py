@@ -247,9 +247,14 @@ class liouville_pathway(UnitsManaged):
 
         outd = ("\n\nLiouville Pathway %s (type = %s) \n" %
                  (self.pathway_name, self.pathway_type))
-        outd += ("Weighting prefactor: %r \n\n" % self.pref)
+        outd += ("Weighting prefactor: %r \n" % self.pref)
+        outd += ("(in absolute value): %r \n" % numpy.abs(self.pref))
+        outd += ("Evolution factor   : %r \n" % self.evolfac)
+        outd += "\n"
         
         out = outd+out
+        
+        
         
         return out 
 
