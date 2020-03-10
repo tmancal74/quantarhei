@@ -359,7 +359,7 @@ class TwoDResponseCalculator:
 
         # KIERAN ADDED: Pads the data with zeroes and lengthens the axis accordingly
         if self.pad > 0:
-            self._vprint('padding by - ', self.pad)
+            self._vprint('padding by - ' + str(self.pad))
             t13Pad = TimeAxis(self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step)
             t13Pad.atype = 'complete'
             t13PadFreq = t13Pad.get_FrequencyAxis()
