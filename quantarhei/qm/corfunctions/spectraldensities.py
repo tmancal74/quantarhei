@@ -332,6 +332,8 @@ class SpectralDensity(DFunction, UnitsManaged):
                     (omega**3)*(numpy.exp(-numpy.abs(omega/freq[ii])**0.5))
                 # Converts the form of the spectral density to the one used in Quantarhei
                 cfce = cfce * (omega**2)
+                # Brings the reorganisation energy to the lit value of 102
+                cfce = cfce * 3.204215
                 print("Renger form of spec dens used")
 
             else:
@@ -355,10 +357,11 @@ class SpectralDensity(DFunction, UnitsManaged):
                     0.22*omega*numpy.exp(-numpy.abs(omega/omega1c))+\
                     0.78*(omega/(numpy.abs(omega)))*((omega**2)/omega2c)*numpy.exp(-numpy.abs(omega/omega2c))+\
                     0.31*((omega**3)/(omega3c**2))*numpy.exp(-numpy.abs(omega/omega3c))
-                    print('Alternate form of spec dens used')
+                cfce = cfce * 3.058187
+                print('Alternate form of spec dens used')
 
             # This brings the reorganisation energy up to the literature value of 102
-            cfce = cfce * 3.19
+            #cfce = cfce * 3.19
 
         if values is not None:
             self._make_me(self.axis, values)
