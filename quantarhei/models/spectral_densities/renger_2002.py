@@ -30,14 +30,18 @@ class renger_2002a(SpectralDensityDatabaseEntry):
         # Jang, Newton, Silbey, J Chem Phys. 2007.
         params = {"ftype": "B777",
                   "reorg": 102.0,
-                  "alternative_form": False}
+                  "alternative_form": True,
+                  "T":300,
+                  "cortime":100}
 
-        # Option of varying the paramaters of the Renger spec dens
-        # values from the paper are set by default
+        # can vary the paramaters, values from the paper are set by default
         params.update({"freq1": 0.56,
                        "freq2": 1.9,
                         's1':   0.8,
-                        's2':   0.5})
+                        's2':   0.5,
+                        'om1':  170,
+                        'om2':  34,
+                        'om3':  69,})
 
         with energy_units("1/cm"):
             sd = SpectralDensity(axis, params)
