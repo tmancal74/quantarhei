@@ -110,13 +110,14 @@ class TwoDResponseCalculator:
         if self.verbose:
             print(string)
             
-    def bootstrap(self, rwa=0.0, lab=None, verbose=False):
+    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False):
         """Sets up the environment for 2D calculation
         
         """
 
 
         self.verbose = verbose
+        self.pad = pad
     
     
         if True:
@@ -354,7 +355,39 @@ class TwoDResponseCalculator:
         #
         # Calculate corresponding 2D spectrum
         #
-        
+        onetwod = TwoDResponse()
+
+        # KIERAN ADDED: Pads the data with zeroes and lengthens the axis accordingly
+        if self.pad > 0:
+            self._vprint('padding by - ' + str(self.pad))
+            t13Pad = TimeAxis(self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step)
+            t13Pad.atype = 'complete'
+            t13PadFreq = t13Pad.get_FrequencyAxis()
+            t13PadFreq.data += self.rwa
+            t13PadFreq.start += self.rwa
+
+            onetwod.set_axis_1(t13PadFreq)
+            onetwod.set_axis_3(t13PadFreq)
+
+            # Sloping the end of the data down to 0 to there isn't a hard cutoff at the end of the data
+            from scipy import signal as sig
+            window = 20
+            tuc = sig.tukey(window * 2, 1, sym = False)
+            for k in range(len(resp_r)):
+                resp_r[len(resp_r)-window:,k] *= tuc[window:]
+                resp_r[k,len(resp_r)-window:] *= tuc[window:]
+                resp_n[len(resp_n)-window:,k] *= tuc[window:]
+                resp_n[k,len(resp_n)-window:] *= tuc[window:]
+
+            resp_r = numpy.hstack((resp_r, numpy.zeros((resp_r.shape[0], self.pad))))
+            resp_r = numpy.vstack((resp_r, numpy.zeros((self.pad, resp_r.shape[1]))))
+            resp_n = numpy.hstack((resp_n, numpy.zeros((resp_n.shape[0], self.pad))))
+            resp_n = numpy.vstack((resp_n, numpy.zeros((self.pad, resp_n.shape[1]))))
+
+        else:
+            onetwod.set_axis_1(self.oa1)
+            onetwod.set_axis_3(self.oa3)
+
         ftresp = numpy.fft.fft(resp_r,axis=1)
         ftresp = numpy.fft.ifft(ftresp,axis=0)
         reph2D = numpy.fft.fftshift(ftresp)
@@ -363,19 +396,12 @@ class TwoDResponseCalculator:
         ftresp = numpy.fft.ifft(ftresp,axis=0)*ftresp.shape[1]
         nonr2D = numpy.fft.fftshift(ftresp)
 
-
-        onetwod = TwoDResponse()
-        onetwod.set_axis_1(self.oa1)
-        onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")
         onetwod._add_data(reph2D, dtype=signal_REPH)
         onetwod._add_data(nonr2D, dtype=signal_NONR)
-        #onetwod.set_data(reph2D, dtype="Reph")
-        #onetwod.set_data(nonr2D, dtype="Nonr")
-        
+
         onetwod.set_t2(self.t2axis.data[tc])
-        
-        
+
         return onetwod
                 
                 
