@@ -19,6 +19,8 @@ import numpy
 #import scipy.integrate
 import numpy.linalg
 
+import matplotlib.pyplot as plt
+
 #import cu.oqs.cython.propagators as prop
 
 from ..hilbertspace.hamiltonian import Hamiltonian
@@ -1308,9 +1310,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         RR = self.RelaxationTensor.data        
         MU = self.Trdip.data
         
-        #pol = polarization vector
-        #MU = numpy.dot(self.Trdip.data[:,:,:], pol)
-        
         indx = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
             
@@ -1339,25 +1338,58 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
               Short exp integration
         """
 
-            
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
+ 
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            
+            # get the field corresponding to RWA
+            #print(self.Hamiltonian.rwa_energies)
+            #print(self.Hamiltonian.rwa_indices)
+            om = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]]
+            self.EField.subtract_omega(om)
+            
+            # the two complex components of the field
+            Epls = self.EField.field(sign=1)
+            Emin = self.EField.field(sign=-1)
+            self.EField.restore_omega()
+            
+            # upper and lower triagle
+            N = self.Hamiltonian.dim
+            Mu = numpy.zeros((N,N), dtype=qr.REAL)
+            for ii in range(N):
+                for jj in range(ii+1,N):
+                    Mu[ii,jj] = 1.0
+            Ml = numpy.transpose(Mu)
+            
+        else:
+            
+            HH = self.Hamiltonian.data 
+            EField = self.EField.field()
         
-        HH = self.Hamiltonian.data        
-        RR = self.RelaxationTensor.data  
-        EField = self.EField.field()
+        RR = self.RelaxationTensor.data
         
         pol = self.EField.pol
-        print(pol)
         MU = numpy.dot(self.Trdip.data[:,:,:], pol)
-        print(MU)
+        
+        #
+        # Propagation
+        #
         
         indx = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
             
-            MuE = MU*EField[indx]
+            if self.Hamiltonian.has_rwa:
+                MuE = MU*(Mu*Epls[indx]+Ml*Emin[indx])
+            else:
+                MuE = MU*EField[indx]
             
             for jj in range(0,self.Nref):
                 for ll in range(1,L+1):
@@ -1372,6 +1404,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 rho1 = rho2    
                 
             pr.data[indx,:,:] = rho2                        
-            indx += 1             
+            indx += 1
+             
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True   
             
         return pr
+

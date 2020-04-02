@@ -870,7 +870,7 @@ class EField():
         
         """
         self.saved_omega = self.omega
-        self.omega = om
+        self.omega -= om
 
 
     def restore_omega(self):
