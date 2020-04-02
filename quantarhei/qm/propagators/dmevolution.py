@@ -131,11 +131,11 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             
             for i, t in enumerate(self.TimeAxis.data):
                 # evolution operator
-                Ut = numpy.exp(-sgn*1j*HOmega*t)
+                Ut = numpy.diag(numpy.exp(-sgn*1j*HOmega*t))
                 # revert RWA
                 rhot = numpy.dot(Ut,numpy.dot(self.data[i,:,:],
                                               numpy.conj(Ut)))
-                self.data[i,:] = rhot
+                self.data[i,:,:] = rhot
                 
         if sgn == 1:
             self.is_in_rwa = False
