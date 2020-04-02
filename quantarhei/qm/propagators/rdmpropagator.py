@@ -1280,7 +1280,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         MU = self.Trdip.data
         
         indx = 1
-        for ii in self.TimeAxis.time[1:self.Nt]:
+        for ii in self.TimeAxis.data[1:self.Nt]:
             
             EE = self.Efield[indx]
             
