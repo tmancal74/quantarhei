@@ -88,6 +88,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_PDeph = False
         self.has_RTensor = False
         self.has_RWA = False
+        self.has_EField = False
         
         if not ((timeaxis is None) and (Ham is None)):
             
@@ -127,7 +128,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             if Efield is not None:
                 if isinstance(Efield,numpy.ndarray):
                     self.Efield = Efield
-                    self.has_Efield = True 
+                    self.has_Efield = True
+                    self.has_EField = False
+                else: 
+                    self.EField = Efield
+                    self.has_EField = True
+                    self.has_Efield = False                    
+
+
             
             
             #
@@ -331,6 +339,27 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         rhoi,L=6)            
                     else:
                         raise Exception("Unknown propagation method: "+method)                
+                        
+                elif (self.has_EField and self.has_Trdip):
+ 
+                    if method == "short-exp":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=4)
+                    elif method == "short-exp-2":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=2)
+                    elif method == "short-exp-4":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=4)
+                    elif method == "short-exp-6":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=6)            
+                    else:
+                        raise Exception("Unknown propagation method: "+method)
                         
                 ###############################################################
                 #
@@ -1279,6 +1308,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         RR = self.RelaxationTensor.data        
         MU = self.Trdip.data
         
+        #pol = polarization vector
+        #MU = numpy.dot(self.Trdip.data[:,:,:], pol)
+        
         indx = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
             
@@ -1292,6 +1324,49 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                            + (self.dt/ll)*numpy.tensordot(RR,rho1) \
                             + (1j*self.dt/ll)*( numpy.dot(MU,rho1) \
                              - numpy.dot(rho1,MU) )*EE                             
+                             
+                    rho2 = rho2 + rho1
+                rho1 = rho2    
+                
+            pr.data[indx,:,:] = rho2                        
+            indx += 1             
+            
+        return pr
+
+
+    def __propagate_short_exp_with_relaxation_EField(self,rhoi,L=4):
+        """
+              Short exp integration
+        """
+
+            
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+        
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+        
+        HH = self.Hamiltonian.data        
+        RR = self.RelaxationTensor.data  
+        EField = self.EField.field()
+        
+        pol = self.EField.pol
+        print(pol)
+        MU = numpy.dot(self.Trdip.data[:,:,:], pol)
+        print(MU)
+        
+        indx = 1
+        for ii in self.TimeAxis.data[1:self.Nt]:
+            
+            MuE = MU*EField[indx]
+            
+            for jj in range(0,self.Nref):
+                for ll in range(1,L+1):
+                    
+                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
+                             - numpy.dot(rho1,HH) ) \
+                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
+                            + (1j*self.dt/ll)*( numpy.dot(MuE,rho1) \
+                             - numpy.dot(rho1,MuE) )                             
                              
                     rho2 = rho2 + rho1
                 rho1 = rho2    
