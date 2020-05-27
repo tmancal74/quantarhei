@@ -110,7 +110,7 @@ class TwoDResponseCalculator:
         if self.verbose:
             print(string)
             
-    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False):
+    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False, printResp = False):
         """Sets up the environment for 2D calculation
         
         """
@@ -118,6 +118,13 @@ class TwoDResponseCalculator:
 
         self.verbose = verbose
         self.pad = pad
+        self.printResp = printResp
+
+        if self.printResp:
+            try:
+                os.mkdir(printResp)
+            except OSError:
+                print ("Creation of the directory failed, it either already exists or you didn't give a string")
     
     
         if True:
@@ -311,55 +318,85 @@ class TwoDResponseCalculator:
         self._vprint("calculating response: ")
 
         t1 = time.time()
-        
+
         self._vprint(" - ground state bleach")
         # GSB
-        nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r) 
+        nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
         nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-    
+
+        # All pathways are repeated and saved to alternative empty numpy
+        # arrays only if printResp has been defined as a string in the 
+        # bootstrap. 
+        if self.printResp:
+            resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            resp_Ngsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rgsb)
+            nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Ngsb)
+
         self._vprint(" - stimulated emission")
         # SE
-        nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
         nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-        
+        nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+
+        if self.printResp:
+            resp_Rse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            resp_Nse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rse)
+            nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nse)
+
         self._vprint(" - excited state absorption")
         # ESA
         nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
         nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-        
+
+        if self.printResp:
+            resp_Resa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            resp_Nesa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Resa)
+            nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nesa)
         #
         # Transfer
         #
         Utr = self.Uee[:,:,self.tc] - self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
-        self.sys.set_population_propagation_matrix(Utr) 
-        
-        self._vprint(" - stimulated emission with transfer")    
+        self.sys.set_population_propagation_matrix(Utr)
+
+        self._vprint(" - stimulated emission with transfer")
         # SE
-        nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
         nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-        
+        nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+
+        if self.printResp:
+            resp_Rsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rsewt)
+            nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nsewt)
+
 #                # This contributes only when No > 0
 #                nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
-#                
-    
-        self._vprint(" - excited state absorption with transfer") 
+#
+
+        self._vprint(" - excited state absorption with transfer")
         # ESA
         nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
         nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-    
-        
+
+        if self.printResp:
+            resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+            nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Resawt)
+            nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nesawt)
+
         t2 = time.time()
         self._vprint("... calculated in "+str(t2-t1)+" sec")
-
 
         #
         # Calculate corresponding 2D spectrum
         #
         onetwod = TwoDResponse()
 
-        # KIERAN ADDED: Pads the data with zeroes and lengthens the axis accordingly
         if self.pad > 0:
             self._vprint('padding by - ' + str(self.pad))
+
             t13Pad = TimeAxis(self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step)
             t13Pad.atype = 'complete'
             t13PadFreq = t13Pad.get_FrequencyAxis()
@@ -384,9 +421,33 @@ class TwoDResponseCalculator:
             resp_n = numpy.hstack((resp_n, numpy.zeros((resp_n.shape[0], self.pad))))
             resp_n = numpy.vstack((resp_n, numpy.zeros((self.pad, resp_n.shape[1]))))
 
+            # If printResp is defined in bootstrap, the responses are
+            # saved as compressed numpy arrays. Extract to get total
+            # or individual responses
+            if self.printResp:
+                numpy.savez('./'+self.printResp+'/respT'+str(int(tt2))+'.npz',
+                                        time=t13Pad.data,
+                                        rTot=resp_r, nTot=resp_n,
+                                        rGSB=resp_Rgsb, nGSB=resp_Ngsb,
+                                        rSE=resp_Rse, nSE=resp_Nse,
+                                        rESA=resp_Resa, nESA=resp_Nesa,
+                                        rSEWT=resp_Rsewt, nSEWT=resp_Nsewt,
+                                        rESAWT=resp_Resawt, nESAWT=resp_Nesawt)
+
         else:
             onetwod.set_axis_1(self.oa1)
             onetwod.set_axis_3(self.oa3)
+
+            # Alternative responses without the padding (pad = 0)
+            if self.printResp:
+                numpy.savez('./'+self.printResp+'/respT'+str(int(tt2))+'.npz',
+                                        time=t13Pad.data,
+                                        rTot=resp_r, nTot=resp_n,
+                                        rGSB=resp_Rgsb, nGSB=resp_Ngsb,
+                                        rSE=resp_Rse, nSE=resp_Nse,
+                                        rESA=resp_Resa, nESA=resp_Nesa,
+                                        rSEWT=resp_Rsewt, nSEWT=resp_Nsewt,
+                                        rESAWT=resp_Resawt, nESAWT=resp_Nesawt)
 
         ftresp = numpy.fft.fft(resp_r,axis=1)
         ftresp = numpy.fft.ifft(ftresp,axis=0)
