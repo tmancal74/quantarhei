@@ -2,6 +2,7 @@
 
 import numpy
 import time
+import os
 
 from ..utils import derived_type
 from ..builders.aggregates import Aggregate
