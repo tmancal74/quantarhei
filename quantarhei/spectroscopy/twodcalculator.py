@@ -395,6 +395,8 @@ class TwoDResponseCalculator:
         #
         onetwod = TwoDResponse()
 
+        # pad is set to 0 by default. if changed in the bootstrap,
+        # responses are padded with 0s and the time axis is lengthened
         if self.pad > 0:
             self._vprint('padding by - ' + str(self.pad))
 
