@@ -13,6 +13,7 @@ from ..qm.propagators.poppropagator import PopulationPropagator
 from .twod2 import TwoDResponse
 from .. import signal_REPH, signal_NONR
 
+import quantarhei as qr
 
 try:
 
@@ -236,6 +237,9 @@ class TwoDResponseCalculator:
             self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
                                                   corrections=3)
 
+            qr.save_parcel(Kr, "utr.qrp")
+
+
             # FIXME: Order of transfer is set by hand here - needs to be moved
             # to some reasonable place
             
@@ -355,12 +359,13 @@ class TwoDResponseCalculator:
             resp_Nesa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
             nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Resa)
             nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nesa)
+            
         #
         # Transfer
         #
         Utr = self.Uee[:,:,self.tc] - self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
         self.sys.set_population_propagation_matrix(Utr)
-
+        
         self._vprint(" - stimulated emission with transfer")
         # SE
         nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
