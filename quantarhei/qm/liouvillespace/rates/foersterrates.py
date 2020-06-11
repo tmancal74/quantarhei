@@ -75,7 +75,7 @@ class FoersterRateMatrix:
         for ii in range(1, Na):
             ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
             
-        return _reference_implementation(Na, HH, tt, gt, ll)
+        self.data = _reference_implementation(Na, HH, tt, gt, ll)
     
     
 def _reference_implementation(Na, HH, tt, gt, ll):
