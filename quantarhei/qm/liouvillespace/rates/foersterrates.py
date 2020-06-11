@@ -55,9 +55,9 @@ class FoersterRateMatrix:
             
     
     def initialize(self):
-        
-        Na = self.dim
+
         HH = self.Hamiltonian.data
+        Na = self.Hamiltonian.dim
         sbi = self.SystemBathInteraction
             
         tt = sbi.TimeAxis.data
