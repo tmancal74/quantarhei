@@ -3,7 +3,7 @@ import numpy
 
 from .redfieldtensor import RedfieldRelaxationTensor
 from .foerstertensor import FoersterRelaxationTensor
-from .foerstertensor import _reference_implementation as foerster_rates
+from .rates.foersterrates import _reference_implementation as foerster_rates
 from ..corfunctions.correlationfunctions import c2g
 from ...core.managers import Manager
 from ...core.managers import energy_units

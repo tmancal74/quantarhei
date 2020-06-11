@@ -2190,6 +2190,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
         return RR
     
+    
     def get_FoersterRateMatrix(self):
         
         pass
