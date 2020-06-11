@@ -70,7 +70,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             else:
                 cft = None
                 
-            frm = FoersterRateMatrix(self.Ham, sbi, initialize=True,
+            frm = FoersterRateMatrix(self.Hamiltonian, sbi, initialize=True,
                                      cutoff_time=cft)
  
             #tt = sbi.TimeAxis.data
