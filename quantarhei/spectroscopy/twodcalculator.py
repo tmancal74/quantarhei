@@ -197,7 +197,10 @@ class TwoDResponseCalculator:
             #
             # Relaxation rates
             #
-            KK = agg.get_RedfieldRateMatrix()
+            if not self._has_rate_matrix:
+                KK = agg.get_RedfieldRateMatrix()
+            else:
+                KK = self._rate_matrix
             
             # relaxation rate in single exciton band
             Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0

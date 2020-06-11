@@ -2189,6 +2189,10 @@ class AggregateBase(UnitsManaged, Saveable):
         ham.unprotect_basis()
 
         return RR
+    
+    def get_FoersterRateMatrix(self):
+        
+        pass
 
 
     def diagonalize(self):
