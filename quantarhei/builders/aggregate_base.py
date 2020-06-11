@@ -2193,7 +2193,15 @@ class AggregateBase(UnitsManaged, Saveable):
     
     def get_FoersterRateMatrix(self):
         
-        pass
+        from ..qm import FoersterRateMatrix
+        
+        if self._built:        
+            ham = self.get_Hamiltonian()
+            sbi = self.get_SystemBathInteraction()
+        else:
+            raise Exception()
+
+        return FoersterRateMatrix(ham, sbi)
 
 
     def diagonalize(self):

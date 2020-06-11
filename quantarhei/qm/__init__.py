@@ -38,6 +38,7 @@ from .liouvillespace.systembathinteraction_test import TestSystemBathInteraction
 from .liouvillespace.rates.redfieldrates import RedfieldRateMatrix
 from .liouvillespace.rates.tdredfieldrates import TDRedfieldRateMatrix
 from .liouvillespace.rates.modifiedredfieldrates import ModifiedRedfieldRateMatrix
+from .liouvillespace.rates.foersterrates import FoersterRateMatrix
 from .liouvillespace.rates.ratematrix import RateMatrix
 
 from .liouvillespace.relaxationtensor import RelaxationTensor
