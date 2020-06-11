@@ -79,6 +79,7 @@ class TwoDResponseCalculator:
         self._rate_matrix = None
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
+        self._has_rate_matrix = False
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
