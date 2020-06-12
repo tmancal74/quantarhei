@@ -116,12 +116,12 @@ class TwoDResponseCalculator:
             print(string)
             
     def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False, 
-                  print_resp = False, save_resp = False):
+                  write_resp = False, keep_resp = False):
         """Sets up the environment for 2D calculation
-        print_resp takes a string, creates a directory with the name of
+        write_resp takes a string, creates a directory with the name of
         the string and saves the respoonses and time axis as a npz file
         
-        save_resp saves the responses as a list of dictionaries. The 
+        keep_resp saves the responses as a list of dictionaries. The 
         list goes through the time points in t2.
         
         """
@@ -129,15 +129,15 @@ class TwoDResponseCalculator:
 
         self.verbose = verbose
         self.pad = pad
-        self.print_resp = print_resp
-        self.save_resp = save_resp
+        self.write_resp = write_resp
+        self.keep_resp = keep_resp
 
-        if self.print_resp:
+        if self.write_resp:
             try:
-                os.mkdir(print_resp)
+                os.mkdir(write_resp)
             except OSError:
-                print ("Creation of the directory failed, it either already \
-                    exists or you didn't give a string")
+                print ("Creation of the directory failed, it either already "
+                    "exists or you didn't give a string")
 
         if True:
             
@@ -426,7 +426,7 @@ class TwoDResponseCalculator:
             onetwod.set_axis_1(self.oa1)
             onetwod.set_axis_3(self.oa3)
 
-        if self.save_resp:
+        if self.keep_resp:
             resp = {
                 'time': self.t1axis.data, 'time_pad': t13Pad.data,
                 'rTot': resp_r, 'nTot': resp_n,
@@ -438,8 +438,8 @@ class TwoDResponseCalculator:
                 }
             self.responses.append(resp)
 
-        if self.print_resp:
-            numpy.savez('./'+self.print_resp+'/respT'+str(int(tt2))+'.npz',
+        if self.write_resp:
+            numpy.savez('./'+self.write_resp+'/respT'+str(int(tt2))+'.npz',
                 time = self.t1axis.data, time_pad=t13Pad.data,
                 rTot=resp_r, nTot=resp_n,
                 rGSB=resp_Rgsb, nGSB=resp_Ngsb,
