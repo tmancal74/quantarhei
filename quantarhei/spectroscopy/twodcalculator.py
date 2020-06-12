@@ -115,16 +115,29 @@ class TwoDResponseCalculator:
         if self.verbose:
             print(string)
             
-    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False, printResp = False):
+    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False, 
+                  print_resp = False, save_resp = False):
         """Sets up the environment for 2D calculation
+        print_resp takes a string, creates a directory with the name of
+        the string and saves the respoonses and time axis as a npz file
+        
+        save_resp saves the responses as a list of dictionaries. The 
+        list goes through the time points in t2.
         
         """
 
 
         self.verbose = verbose
         self.pad = pad
-        self.printResp = printResp
+        self.print_resp = print_resp
+        self.save_resp = save_resp
 
+        if self.print_resp:
+            try:
+                os.mkdir(print_resp)
+            except OSError:
+                print ("Creation of the directory failed, it either already \
+                    exists or you didn't give a string")
 
         if True:
             
@@ -237,9 +250,6 @@ class TwoDResponseCalculator:
             self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
                                                   corrections=3)
 
-            qr.save_parcel(Kr, "utr.qrp")
-
-
             # FIXME: Order of transfer is set by hand here - needs to be moved
             # to some reasonable place
             
@@ -307,10 +317,8 @@ class TwoDResponseCalculator:
         #
         # Initialize response storage
         #
-        resp_r = numpy.zeros((Nr1, Nr3), 
-                             dtype=numpy.complex128, order='F')
-        resp_n = numpy.zeros((Nr1, Nr3), 
-                             dtype=numpy.complex128, order='F')
+        resp_r = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+        resp_n = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
 
         # FIXME: on which axis we should be looking for it2 ??? 
         (it2, err) = self.t1axis.locate(tt2) 
@@ -387,10 +395,10 @@ class TwoDResponseCalculator:
 
         # pad is set to 0 by default. if changed in the bootstrap,
         # responses are padded with 0s and the time axis is lengthened
+        t13Pad = TimeAxis(self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step)
         if self.pad > 0:
             self._vprint('padding by - ' + str(self.pad))
 
-            t13Pad = TimeAxis(self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step)
             t13Pad.atype = 'complete'
             t13PadFreq = t13Pad.get_FrequencyAxis()
             t13PadFreq.data += self.rwa
@@ -418,9 +426,9 @@ class TwoDResponseCalculator:
             onetwod.set_axis_1(self.oa1)
             onetwod.set_axis_3(self.oa3)
 
-        if self.printResp:
+        if self.save_resp:
             resp = {
-                'time': self.t1axis.data,
+                'time': self.t1axis.data, 'time_pad': t13Pad.data,
                 'rTot': resp_r, 'nTot': resp_n,
                 'rGSB': resp_Rgsb, 'nGSB': resp_Ngsb,
                 'rSE': resp_Rse, 'nSE': resp_Nse,
@@ -428,11 +436,18 @@ class TwoDResponseCalculator:
                 'rSEWT': resp_Rsewt, 'nSEWT': resp_Nsewt,
                 'rESAWT': resp_Resawt, 'nESAWT': resp_Nesawt
                 }
-
-            if self.pad > 0:
-                resp.update({'time_pad': t13Pad.data})
-
             self.responses.append(resp)
+
+        if self.print_resp:
+            numpy.savez('./'+self.print_resp+'/respT'+str(int(tt2))+'.npz',
+                time = self.t1axis.data, time_pad=t13Pad.data,
+                rTot=resp_r, nTot=resp_n,
+                rGSB=resp_Rgsb, nGSB=resp_Ngsb,
+                rSE=resp_Rse, nSE=resp_Nse,
+                rESA=resp_Resa, nESA=resp_Nesa,
+                rSEWT=resp_Rsewt, nSEWT=resp_Nsewt,
+                rESAWT=resp_Resawt, nESAWT=resp_Nesawt)
+
 
         ftresp = numpy.fft.fft(resp_r,axis=1)
         ftresp = numpy.fft.ifft(ftresp,axis=0)
