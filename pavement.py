@@ -337,6 +337,10 @@ def matplotlib_tests():
 #
 ###############################################################################
 
+cover_flags = '--cover-package=quantarhei '
+covr = ' --with-coverage '
+nose_test_dir = 'tests/unit/wizard/examples/ '
+
 #
 # TASK: examples
 #
@@ -345,7 +349,7 @@ def examples():
     """Tests if Quantarhei examples run correctly
     
     """
-    sh('nosetests  -vs tests/unit/wizard/examples/')
+    sh('nosetests  -vs '+covr+cover_flags+nose_test_dir)
 
     
 ###############################################################################
@@ -353,6 +357,8 @@ def examples():
 # Unit tests
 #
 ###############################################################################
+
+nose_test_dir = 'tests/unit'
 
 #
 # TASK: unit_tests_vs
@@ -362,7 +368,7 @@ def unit_tests_vs():
     """Performs verbose units tests printing output but without coverage 
     
     """
-    sh('nosetests -vs tests/unit')
+    sh('nosetests -vs '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_v
@@ -372,7 +378,7 @@ def unit_tests_v():
     """Performs verbose units tests capturing output but without coverage 
     
     """
-    sh('nosetests -v tests/unit')
+    sh('nosetests -v '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_cov_vs
@@ -382,7 +388,7 @@ def unit_tests_cov_vs():
     """Performs verbose units tests without capturing output and with coverage 
     
     """
-    sh('nosetests  --with-coverage -vs tests/unit')    
+    sh('nosetests -vs '+covr+cover_flags+nose_test_dir)    
 
 #
 # TASK: unit_tests_cov_v
@@ -392,7 +398,7 @@ def unit_tests_cov_v():
     """Performs verbose units tests capturing output and with coverage 
     
     """
-    sh('nosetests  --with-coverage -v tests/unit')     
+    sh('nosetests -v '+covr+cover_flags+nose_test_dir)     
 
 
 ###############################################################################
@@ -403,7 +409,6 @@ def unit_tests_cov_v():
 
 # Doc tests with coverage
 cmdd = 'nosetests --with-doctest'
-covr = ' --with-coverage'
 
 # Directories to test
 dirs = ['core', 'builders', 'qm/corfunctions', 'spectroscopy',
@@ -429,7 +434,7 @@ def doc_tests_cov_vs():
         paver doc_tests_cov_vs
         
     """
-    tcmd = cmdd+covr+' -vs '
+    tcmd = cmdd+covr+' -vs '+cover_flags
     _run_tests(tcmd, mods, dirs)
     
     
@@ -449,7 +454,7 @@ def doc_tests_cov_v():
         paver doc_tests_cov_v
         
     """
-    tcmd = cmdd+covr+' -v '
+    tcmd = cmdd+covr+' -v '+cover_flags
     _run_tests(tcmd, mods, dirs)
 
 #
@@ -469,7 +474,7 @@ def doc_tests_vs():
         paver doc_tests_vs
         
     """
-    tcmd = cmdd+' -vs '
+    tcmd = cmdd+' -vs '+cover_flags
     _run_tests(tcmd, mods, dirs)
 
 #
@@ -488,7 +493,7 @@ def doc_tests_v():
         paver doc_tests_v
         
     """
-    tcmd = cmdd+' -v '
+    tcmd = cmdd+' -v '+cover_flags
     _run_tests(tcmd, mods, dirs) 
 
 
@@ -512,21 +517,24 @@ def _run_tests(tcmd, dirs, mods):
 #   Aloe tests
 #
 ###############################################################################
+
+aloe_test_dir = 'tests/bdd'
+
 @task
 def aloe_tests_vs():
-    sh("aloe -vs -a !in_development tests/bdd")
+    sh("aloe -vs -a !in_development "+cover_flags+aloe_test_dir)
 
 @task
 def aloe_tests_v():
-    sh("aloe -v -a !in_development tests/bdd")
+    sh("aloe -v -a !in_development "+cover_flags+aloe_test_dir)
     
 @task
 def aloe_tests_cov_vs():
-    sh('aloe --with-coverage -vs -a !in_development tests/bdd')
+    sh("aloe --with-coverage -vs -a !in_development "+cover_flags+aloe_test_dir)
 
 @task
 def aloe_tests_cov_v():
-    sh('aloe --with-coverage -v -a !in_development tests/bdd')
+    sh('aloe --with-coverage -v -a !in_development '+cover_flags+aloe_test_dir)
 
 
 ###############################################################################

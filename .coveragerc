@@ -1,9 +1,9 @@
 [run]
-source=quantarhei
-omit=
+include = ./quantarhei/*
+source = quantarhei
+omit =
    ./tests/*
    ./quantarhei/*
 
 [report]
 precision=2
-
