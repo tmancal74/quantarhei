@@ -2,12 +2,7 @@
 parallel = True
 source = quantarhei
 omit =
-   ./tests/*
-exclude_lines =
-   assert False
-   raise NotImplementedError
-   if __name__ == .__main__.:
-   def __repr__
+   ./tests/*_
 
 [report]
 precision=2
