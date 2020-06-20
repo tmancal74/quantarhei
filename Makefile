@@ -17,8 +17,8 @@ TASK=
 ANACONDA_BIN=anaconda3/bin
 
 
-PIP=${HOME}/${ANACONDA_BIN}/pip
-PYTHON=${HOME}/${ANACONDA_BIN}/python
+PIP=pip #${HOME}/${ANACONDA_BIN}/pip
+PYTHON=python3 #${HOME}/${ANACONDA_BIN}/python
 
 REPOSITORY=https://github.com/tmancal74/quantarhei
 
@@ -31,7 +31,7 @@ install: inst
 
 # PAVER
 inst: sdist
-	${PIP} install `ls dist/quantarhei-${VERSION}*`
+	${PYTHON} -m ${PIP} install `ls dist/quantarhei-${VERSION}*`
 
 
 ################
@@ -48,7 +48,7 @@ uninstall: uninst
 
 
 uninst: 
-	${PIP} uninstall -y quantarhei
+	${PYTHON} -m ${PIP} uninstall -y quantarhei
 
 
 ##################
@@ -67,6 +67,9 @@ clean:
 	rm -rf result_images
 	rm -rf qrconf.py quantarhei/qrconf.py
 	rm -rf coverage.xml
+	rm -rf env
+	rm -rf coverage
+	rm -rf htmlcov
 
 
 ################################
@@ -81,6 +84,18 @@ reinst: clean uninst inst
 local_tests: reinst
 	paver  ${TASK}
 
+####################################################
+# Create a virtual environment for package testing #
+####################################################
+env:
+	( \
+		rm -rf env/; \
+		${PYTHON} -m venv env; \
+		. env/bin/activate; \
+		${PYTHON} -m ${PIP} install --no-cache -r requirements.txt; \
+		${PYTHON} -m ${PIP} install --no-cache -r requirements_devel.txt; \
+	)
+
 
 #############################################
 # Test of the install version of quantarhei #
@@ -88,6 +103,12 @@ local_tests: reinst
 test: 
 	paver
 	
+
+testenv:
+	( \
+		. env/bin/activate; \
+		paver; \
+	)
 
 ####################
 # Test of plotting #

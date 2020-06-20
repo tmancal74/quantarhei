@@ -80,11 +80,8 @@ class Manager(metaclass=Singleton):
     """ Main package Manager
 
     """
-    
 
-
-    #version = "0.0.11"
-    version = pkg_resources.require("quantarhei")[0].version
+    version = "0.0.57"
 
     # hard wired unit options
     allowed_utypes = ["energy",
