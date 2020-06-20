@@ -1,9 +1,13 @@
 [run]
-include = ./quantarhei/*
+parallel = True
 source = quantarhei
 omit =
    ./tests/*
-   ./quantarhei/*
+exclude_lines =
+   assert False
+   raise NotImplementedError
+   if __name__ == .__main__.:
+   def __repr__
 
 [report]
 precision=2

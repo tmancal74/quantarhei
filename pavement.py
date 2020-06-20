@@ -330,6 +330,15 @@ def matplotlib_tests():
     """
     sh('cd tests/matplotlib; ./tests.py; cd ..')
 
+#
+# TASK: remove .coverage
+#
+@task
+def coverage_erase():
+    """ Remove coverage from previous build
+
+    """
+    sh('coverage erase')
 
 ###############################################################################
 #    
@@ -338,7 +347,7 @@ def matplotlib_tests():
 ###############################################################################
 
 cover_flags = '--cover-package=quantarhei '
-covr = ' --with-coverage '
+covr = ' --with-coverage ' 
 nose_test_dir = 'tests/unit/wizard/examples/ '
 
 #
@@ -349,7 +358,7 @@ def examples():
     """Tests if Quantarhei examples run correctly
     
     """
-    sh('nosetests  -vs '+covr+cover_flags+nose_test_dir)
+    sh('coverage run -m nose  -vs '+covr+cover_flags+nose_test_dir)
 
     
 ###############################################################################
@@ -368,7 +377,7 @@ def unit_tests_vs():
     """Performs verbose units tests printing output but without coverage 
     
     """
-    sh('nosetests -vs '+cover_flags+nose_test_dir)
+    sh('coverage run -m nose -vs '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_v
@@ -378,7 +387,7 @@ def unit_tests_v():
     """Performs verbose units tests capturing output but without coverage 
     
     """
-    sh('nosetests -v '+cover_flags+nose_test_dir)
+    sh('coverage run -m nose -v '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_cov_vs
@@ -388,7 +397,7 @@ def unit_tests_cov_vs():
     """Performs verbose units tests without capturing output and with coverage 
     
     """
-    sh('nosetests -vs '+covr+cover_flags+nose_test_dir)    
+    sh('coverage run -m nose -vs '+covr+cover_flags+nose_test_dir)    
 
 #
 # TASK: unit_tests_cov_v
@@ -398,7 +407,7 @@ def unit_tests_cov_v():
     """Performs verbose units tests capturing output and with coverage 
     
     """
-    sh('nosetests -v '+covr+cover_flags+nose_test_dir)     
+    sh('coverage run -m nose -v '+covr+cover_flags+nose_test_dir)     
 
 
 ###############################################################################
@@ -408,7 +417,7 @@ def unit_tests_cov_v():
 ###############################################################################
 
 # Doc tests with coverage
-cmdd = 'nosetests --with-doctest'
+cmdd = 'coverage run -m nose --with-doctest'
 
 # Directories to test
 dirs = ['core', 'builders', 'qm/corfunctions', 'spectroscopy',
@@ -734,7 +743,8 @@ def default():
 #
 # This is called when paver is run without any task
 #
-@needs('unit_tests_cov_v',
+@needs('coverage_erase',
+       'unit_tests_cov_v',
        'doc_tests_cov_v',
        'aloe_tests_cov_v',
        'behave')
@@ -748,7 +758,8 @@ def test():
 #
 # Verbose version of the default tests
 #
-@needs('unit_tests_cov_vs',
+@needs('coverage_erase',
+       'unit_tests_cov_vs',
        'doc_tests_cov_vs',
        'aloe_tests_cov_vs')
 @task
