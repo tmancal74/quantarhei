@@ -17,6 +17,7 @@ from ..utils import derived_type
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..core.time import TimeAxis
+from ..core.frequency import FrequencyAxis
 
 
 import matplotlib.pyplot as plt
@@ -115,7 +116,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         return numpy.amin(numpy.array(mxs))   
 
 
-    def plot2D(self, axis = None, units = "nm", zero_centered = True):
+    def plot2D(self, axis = None, units = "nm", zero_centered = True, lines = None):
         
         t2ax = self.t2axis
         freqax = self.spectra[t2ax.data[0]].axis
@@ -139,6 +140,10 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             else:
                 p = ax.contourf(X, Y, ppspec2D.T[min_ind:], 60, cmap=plt.cm.jet, 
                                 vmin=ppspec2D.min(), vmax=ppspec2D.max())
+            
+            if isinstance(lines,list):
+                for line_freq in lines:
+                    plt.plot(t2ax.data,numpy.ones(t2ax.length)*line_freq,"w",linewidth=2)
             
             if axis is not None:
                 ax.axes.set_ylim(axis[1][0],axis[1][1])   
@@ -324,12 +329,21 @@ class PumpProbeSpectrumCalculator():
         self.pathways = pathways
         
         with energy_units("int"):
-            atype = self.t3axis.atype
-            self.t3axis.atype = 'complete'
-            self.oa3 = self.t3axis.get_FrequencyAxis() 
-            self.oa3.data += self.rwa
-            self.oa3.start += self.rwa
-            self.t3axis.atype = atype        
+            #atype = self.t3axis.atype
+            #self.t3axis.atype = 'complete'
+            #self.oa3 = self.t3axis.get_FrequencyAxis() 
+            #self.oa3.data += self.rwa
+            #self.oa3.start += self.rwa
+            #self.t3axis.atype = atype  
+            
+            # we only want to retain the upper half of the spectrum
+            freq = self.t3axis.get_FrequencyAxis()
+            freq.data += self.rwa 
+            Nt = len(freq.data)//2        
+            do = freq.data[1]-freq.data[0]
+            st = freq.data[Nt//2]
+            # we represent the Frequency axis anew
+            self.oa3 = FrequencyAxis(st,Nt,do)      
         
         self.tc = 0
         self.lab = lab
@@ -391,12 +405,12 @@ class PumpProbeSpectrumCalculator():
                                                    "R4g", "R1f*", "R2f*",
                                                    "R1f*E","R1f*E"), 
                                                    #"R1gE", "R2gE"),
-                                                   eUt=Uin, ham=H, t2=t2,
+                                                   eUt=eUt, ham=H, t2=t2,
                                                    lab=lab)
         else:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
                                                    "R4g", "R1f*E","R1f*E"), 
-                                                   eUt=Uin, ham=H, t2=t2,
+                                                   eUt=eUt, ham=H, t2=t2,
                                                    lab=lab)
 
         self.set_pathways(pws)
