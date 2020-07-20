@@ -74,7 +74,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self.rwa = 0.0
 
      
-    def bootstrap(self,rwa=0.0, lab=None, HWHH = None):
+    def bootstrap(self,rwa=0.0, lab=None, HWHH = None, axis=None):
         """
         
         """
@@ -87,6 +87,18 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         if HWHH is not None:  
             self._gass_lineshape = True
             self.HWHH = self.convert_2_internal_u(HWHH)
+        
+        if axis is not None:
+            if axis=="x":
+                self.ld_axis = numpy.array([1.0,0.0,0.0],dtype="f8")   
+            elif axis=="y":
+                self.axis = numpy.array([0.0,1.0,0.0],dtype="f8")
+            elif axis=="z":
+                self.ld_axis = numpy.array([0.0,0.0,1.0],dtype="f8")
+            else:
+                self.ld_axis = axis/numpy.linalg.norm(axis)
+        else:
+            self.ld_axis = numpy.array([0.0,0.0,1.0],dtype="f8")
         
         #if isinstance(self.system, Aggregate):
         #    self.system.diagonalize()
@@ -192,7 +204,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         
         
         if self.system._has_system_bath_coupling:
-            ct = tr["ct"] # correlation function
+#            ct = tr["ct"] # correlation function
         
             # convert correlation function to lineshape function
             #gt = self._c2g(ta,ct.data)
@@ -226,6 +238,50 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # cut the center of the spectrum
         Nt = ta.length #len(ta.data)        
         return ft[Nt//2:Nt+Nt//2]
+    
+    def one_transition_spectrum_ld(self,tr):
+        """ Calculates spectrum of one transition
+        
+        
+        """
+        
+
+        ta = tr["ta"] # TimeAxis
+        ld = tr["ld"] # linear dichroism strength
+        om = tr["om"] # frequency - rwa
+        gg = tr["gg"] # natural broadening (constant or time dependent)
+        
+        if self.system._has_system_bath_coupling:
+#            ct = tr["ct"] # correlation function
+        
+            # convert correlation function to lineshape function
+            #gt = self._c2g(ta,ct.data)
+            gt = tr["gt"]
+            # calculate time dependent response
+            at = numpy.exp(-gt -1j*om*ta.data)
+        else:
+            # calculate time dependent response
+            at = numpy.exp(-1j*om*ta.data) 
+    
+                    
+        if len(gg) == 1:
+            gam = gg[0]
+            rt = numpy.exp(gam*ta.data)
+            at *= rt
+            #print("Constant: ", rt[20], len(at))
+        else:
+            rt = numpy.exp((gg)*ta.data)          
+            at *= rt
+            #print("Time dependent: len = ", rt[20], len(rt))
+            
+        # Fourier transform the result
+        ft = ld*numpy.fft.hfft(at)*ta.step
+        ft = numpy.fft.fftshift(ft)
+        # invert the order because hfft is a transform with -i
+        ft = numpy.flipud(ft)   
+        # cut the center of the spectrum
+        Nt = ta.length #len(ta.data)        
+        return ft[Nt//2:Nt+Nt//2]
         
     def one_transition_spectrum_gauss(self,tr):
         """ Calculates spectrum of one transition using gaussian broadening
@@ -239,6 +295,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         HWHH = tr["HWHH"] # Half width at the half hight (maximum)
         dd = tr["dd"]     # transition dipole strength
         rr = tr["rr"]     # transition dipole strength
+        ld = tr["ld"]     # linear dichroism strength
         om = tr["om"]+self.rwa     # frequency
         
         # LineShape = lambda p, x: (x/(p[1]*np.sqrt(2*m.pi))*np.exp(-0.5*((x-p[0])/p[1])**2))
@@ -250,8 +307,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         data = (fa.data/(sigma*numpy.sqrt(2*numpy.pi))*numpy.exp(-0.5*((fa.data-om)/sigma)**2))
         data_abs = dd*data
         data_CD = rr*data
+        data_LD = ld*data
         
-        return data_abs,data_CD
+        return data_abs,data_CD, data_LD
         
     
     def one_transition_spectrum_fluor(self,tr):
@@ -272,7 +330,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         
         
         if self.system._has_system_bath_coupling:
-            ct = tr["ct"] # correlation function
+#            ct = tr["ct"] # correlation function
             re = tr["re"] # reorganisation energy
             
             # convert correlation function to lineshape function
@@ -326,7 +384,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         
         
         if self.system._has_system_bath_coupling:
-            ct = tr["ct"] # correlation function
+#            ct = tr["ct"] # correlation function
         
             # convert correlation function to lineshape function
             #gt = self._c2g(ta,ct.data)
@@ -633,10 +691,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             gg = []
             if isinstance(RR, TimeDependent):
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:,ii,ii])
+                    gg.append(RR.data[:,ii,ii]/2.0)
             else:
                 for ii in range(HH.dim):
-                    gg.append([RR.data[ii,ii]])
+                    gg.append([RR.data[ii,ii]/2.0])
             tr["gg"] = gg[1]
         else:
             
@@ -657,7 +715,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,1)
         #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
 #        print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
-
+        dip = DD.data[0,1]
+        tr["ld"] = (3*(numpy.dot(dip,self.ld_axis))**2 - tr["dd"]) # *3/2
+        #tr["ld"] = 3*(DD.  # *3/2
+        
 
         self.system._has_system_bath_coupling = True
         
@@ -675,9 +736,18 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         data = numpy.real(self.one_transition_spectrum_abs(tr))
         data_fl = numpy.real(rho_eq_exct.data[1, 1]*self.one_transition_spectrum_fluor(tr))
         data_cd = numpy.real(self.one_transition_spectrum_cd(tr))
+        data_ld = numpy.real(self.one_transition_spectrum_ld(tr))
         if self._gass_lineshape:
-            data_gauss,data_cd_gauss = numpy.real(self.one_transition_spectrum_gauss(tr))
+            data_gauss,data_cd_gauss,data_ld_gauss = numpy.real(self.one_transition_spectrum_gauss(tr))
 #        print("Population mine:",rho_eq_exct.data[1, 1])
+
+        # FOR THE VIBRONIC SYSTEM THE SPECTRA HAVE TO BE SUMED THROUGH THE GROUND STATES (VIBRONIC)
+        for jj in range(1,min(1,self.system.Nb[0])): # sum over the ground states
+            tr["dd"] = DD.dipole_strength(jj,1)
+            # first transition energy
+            tr["om"] = HH.data[1,1]-HH.data[jj,jj]-self.rwa
+            data_fl += numpy.real(rho_eq_exct.data[1, 1]*self.one_transition_spectrum_fluor(tr))
+            
         
         for ii in range(2,HH.dim):
             if relaxation_tensor is not None or rate_matrix is not None:
@@ -694,6 +764,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             tr["gt"] = self._c2g(tr["ta"],tr["ct"].data)
             tr["re"] = self._excitonic_reorg_energy(SS,self.system,ii)
             tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,ii)
+            dip = DD.data[0,ii]
+            tr["ld"] = (3*(numpy.dot(dip,self.ld_axis))**2 - tr["dd"]) # *3/2
             #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,ii)
 #            print(ii,convert(HH.data[ii,ii]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[ii,ii]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
 #            print(ii,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
@@ -707,11 +779,20 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             data += numpy.real(self.one_transition_spectrum_abs(tr))
             data_fl += numpy.real(rho_eq_exct.data[ii, ii]*self.one_transition_spectrum_fluor(tr))
             data_cd += numpy.real(self.one_transition_spectrum_cd(tr))
+            data_ld += numpy.real(self.one_transition_spectrum_ld(tr))
             if self._gass_lineshape:
-                data_gauss_tmp,data_cd_gauss_tmp = numpy.real(self.one_transition_spectrum_gauss(tr))
+                data_gauss_tmp,data_cd_gauss_tmp, data_ld_gauss_tmp = numpy.real(self.one_transition_spectrum_gauss(tr))
                 data_gauss += data_gauss_tmp
                 data_cd_gauss += data_cd_gauss_tmp
+                data_ld_gauss += data_ld_gauss_tmp
 #            print("Population mine:",rho_eq_exct.data[ii, ii])
+
+            # FOR THE VIBRONIC SYSTEM THE SPECTRA HAVE TO BE SUMED THROUGH THE GROUND STATES (VIBRONIC)
+            for jj in range(1,min(ii,self.system.Nb[0])): # sum over the ground states
+                tr["dd"] = DD.dipole_strength(jj,ii)
+                # first transition energy
+                tr["om"] = HH.data[ii,ii]-HH.data[jj,jj]-self.rwa
+                data_fl += numpy.real(rho_eq_exct.data[ii, ii]*self.one_transition_spectrum_fluor(tr))
 
         
         
@@ -720,6 +801,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             data = axis.data*data
             data_fl = axis.data*data_fl
             data_cd =  axis.data*data_cd
+            data_ld = axis.data*data_ld
             #data_gauss = axis.data*data_gauss
             #data_cd_gauss = axis.data*data_cd_gauss
         
@@ -734,14 +816,18 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         abs_spect = LinSpectrum(axis=axis, data=data)
         fluor_spect = LinSpectrum(axis=axis, data=data_fl)
         CD_spect = LinSpectrum(axis=axis, data=data_cd)
+        LD_spect = LinSpectrum(axis=axis, data=data_ld)
         if self._gass_lineshape:
             abs_spect_gauss = LinSpectrum(axis=axis, data=data_gauss)
             CD_spect_gauss = LinSpectrum(axis=axis, data=data_cd_gauss)
+            LD_spect_gauss = LinSpectrum(axis=axis, data=data_ld_gauss)
         
             return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
-                "abs gauss": abs_spect_gauss, "CD gauss": CD_spect_gauss} 
+                    "LD": LD_spect, "LD gauss": LD_spect_gauss,
+                    "abs gauss": abs_spect_gauss, "CD gauss": CD_spect_gauss} 
         else:
-            return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect}    
+            return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
+                    "LD":  LD_spect}    
 
                    
 class AbsSpectrumCalculator(LinSpectrumCalculator):

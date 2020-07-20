@@ -237,6 +237,9 @@ class AggregateBase(UnitsManaged, Saveable):
 
         """        
         
+        if mon1 == mon2:
+            return 0.0
+        
         if mon1>mon2:
             # exchange excitations between monomers
             mon2,mon1 = mon1,mon2
@@ -336,12 +339,19 @@ class AggregateBase(UnitsManaged, Saveable):
         if not self.coupling_initiated:
             self.init_coupling_vector() 
         
-        if mon1<mon2:
-            indx1 = mon1
-            indx4 = mon2 - mon1 -1
-        else:
-            indx1 = mon2
-            indx4 = mon1 - mon2 -1
+        if mon1 == mon2:
+            print("Trying to set couling between states within the same " +\
+                  "molecule. This coupling is set to zero!")
+            return
+            
+        if mon1>mon2:
+            # exchange excitations between monomers
+            mon2,mon1 = mon1,mon2
+            init2,init1 = init1,init2
+            fin2,fin1 = fin1,fin2
+        
+        indx1 = mon1
+        indx4 = mon2 - mon1 -1
         
         if init1<fin1:
             indx2 = init1
@@ -2915,7 +2925,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
         
     #FIXME: There must be a general theory here
-    def get_RedfieldRateMatrix(self):
+    def get_RedfieldRateMatrix(self,corr_mat=None):
         
         from ..qm import RedfieldRateMatrix
         from ..core.managers import eigenbasis_of
@@ -2928,7 +2938,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
         ham.protect_basis()
         with eigenbasis_of(ham):
-            RR = RedfieldRateMatrix(ham, sbi)
+            RR = RedfieldRateMatrix(ham, sbi,corr_mat=corr_mat)
         ham.unprotect_basis()
         
         return RR
