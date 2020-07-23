@@ -126,6 +126,13 @@ def _reference_implementation(Na, HH, tt, gt, ll):
                 ea = HH[a,a] # acceptor
                 KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
                                                   ed, ea, ll[b])
+    #
+    # depopulation rates
+    #
+    Kaa = 0.0
+    for a in range(Na):
+        Kaa = numpy.sum(KK[:,a])
+        KK[a,a] = -Kaa
    
     return KK
 

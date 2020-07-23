@@ -31,6 +31,7 @@ cover/
 env/
 .coverage
 coverage.xml
+.coverage.*
 
 quantarhei_theory/
 quantarhei_theory.pdf
