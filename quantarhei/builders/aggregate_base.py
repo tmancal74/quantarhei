@@ -1426,6 +1426,12 @@ class AggregateBase(UnitsManaged, Saveable):
                 if a != b:
                     HH[a,b] = numpy.real(self.coupling(s1, s2, full=fem_full))
 
+        #
+        ###3
+        #
+        #print("Hamiltonian:")
+        #print(HH)        
+
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
         # Hamiltonian operator
@@ -1444,6 +1450,12 @@ class AggregateBase(UnitsManaged, Saveable):
         self.Wd = Wd
         # dephasings
         self.Dr = Dr
+
+        #
+        ###3
+        #
+        #print("Wd:")
+        #print(self.Wd) 
 
         # composition of two-ex states
         # first index of state a is twoex_indx[0, a]
@@ -2042,7 +2054,8 @@ class AggregateBase(UnitsManaged, Saveable):
             # create a corresponding propagator
             #
             ham1 = Hamiltonian(data=ham.data.copy())
-            ham1.subtract_cutoff_coupling(coupling_cutoff)
+            #ham1.subtract_cutoff_coupling(coupling_cutoff)
+            ham1.remove_cutoff_coupling(coupling_cutoff)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham1
@@ -2212,6 +2225,12 @@ class AggregateBase(UnitsManaged, Saveable):
         if self._diagonalized:
             return
 
+        #
+        ###3
+        #
+        #for i in range(self.HH.shape[0]):
+        #    print(self.HH[i,i])
+
         ee,SS = numpy.linalg.eigh(self.HH)
 
         self.HD = ee
@@ -2220,103 +2239,192 @@ class AggregateBase(UnitsManaged, Saveable):
 
         self.HH = numpy.dot(self.S1,numpy.dot(self.HH,self.SS))
 
+        have_vibs = False
 
-        #
-        # some quantities to be precalculated for two-ex lineshape
-        # 1->2 has to be trasformed first because we need untransformed 0->1
-        # for such a transformation
-        #
-        N1b = self.Nb[0]+self.Nb[1]
+        if not have_vibs: 
+
+            ######################################################################
+            #  CASE OF NO VIBRATIONAL MODES
+            ######################################################################
+    
+            #
+            # some quantities to be precalculated for two-ex lineshape
+            # 1->2 has to be trasformed first because we need untransformed 0->1
+            # for such a transformation
+            #
+            N1b = self.Nb[0]+self.Nb[1]
+    
+    
+            #  \kappa_{nA} =
+            #  \sum_{K}(\delta_{nk}+\delta_{nl})*|\langle A | K\rangle|^2
+            #
+            #  where K is a two-exc. state K = (k,l), A is a two-ex. state
+            #  and n is a single exciton state
+            #
+            #  Below aa1 = A, aa2 = n, aa3 = K, st_k = k and st_l = l
+            #
+            kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
+            # Kronecker delta over all states
+            delta = operator_factory(self.Ntot).unity_operator()
+    
+            if self.mult >= 2:
+    
+                N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
+    
+                # all states (and 2-ex band selected)
+                for el1 in range(self.Nel):
+                    if self.which_band[el1] == 2:
+                        # all states corresponding to electronic two-exc. state kk
+                        for aa1 in self.vibindices[el1]:
+    
+                            # all states and (1-ex band selected)
+                            for el2 in range(self.Nel):
+                                if self.which_band[el2] == 1:
+                                    for aa2 in self.vibindices[el2]:
+    
+                                        # all states and (2-ex band selected)
+                                        for el3 in range(self.Nel):
+                                            if self.which_band[el3] == 2:
+                                                for aa3 in self.vibindices[el3]:
+    
+                                                    st_k = self.twoex_indx[aa3,0]
+                                                    st_l = self.twoex_indx[aa3,1]
+    
+                                                    kappa[aa2, aa1] += (
+                                                         (delta[aa2, st_k]
+                                                        + delta[aa2, st_l])*
+                                                         (SS[aa3, aa1]**2))
+    
+                #
+                # Cross terms
+                #
+                for aa_2x in range(N1b, N2b):
+                    for alpha in range(N1b):
+                        self.Wd[aa_2x, alpha] = 0.0
+                        for nn_2x in range(N1b, N2b):
+                            for k_1x in range(N1b):
+                                st_n = self.twoex_indx[nn_2x, 0]
+                                st_m = self.twoex_indx[nn_2x, 1]
+                                #print(st_n, st_m)
+                                self.Wd[aa_2x, alpha] += \
+                                    ((self.Wd[st_n, st_n]**2)*delta[st_n, k_1x] +
+                                     (self.Wd[st_m, st_m]**2)*delta[st_m, k_1x])*\
+                                     (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)
+    
+                self.Wd[N1b:N2b,0:N1b] = numpy.sqrt(self.Wd[N1b:N2b,0:N1b])
+                self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
+    
+                #
+                # Transform line shapes for 1->2 transitions
+                #
+                Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
+                Dr_a = numpy.zeros(N2b, dtype=qr.REAL)
+                
+                # Wd_b = numpy.zeros(N2b, dtype=qr.REAL)
+                # for aa in range(N1b, N2b):
+                #     for nn in range(N1b, N2b):
+                #         #st_n = self.twoex_indx[nn,0]
+                #         #st_m = self.twoex_indx[nn,1]
+                #         nn0 = self.twoex_indx[nn,0]
+                #         nn1 = self.twoex_indx[nn,1]
+                #         print(aa, (nn0,nn1))
+                #         for mm in range(N1b, N2b):
+                #         #Wd_a[aa] += (SS[nn, aa]**2)*\
+                #         #            ((self.Wd[st_n, st_n]**2)*kappa[st_n, aa]
+                #         #            +(self.Wd[st_m, st_m]**2)*kappa[st_m, aa])
+                #             mm0 = self.twoex_indx[mm,0]
+                #             mm1 = self.twoex_indx[mm,1]
+                #             Wd_b[aa] += (SS[aa,nn]**2)*(SS[aa,mm]**2)*(
+                #                 self.Wd[nn0,nn0]*(delta[nn0,mm0]+delta[nn0,mm1])
+                #               + self.Wd[nn1,nn1]*(delta[nn1,mm0]+delta[nn1,mm1])
+                #               )
+    
+                for aa in range(N1b, N2b):
+                    for nn in range(N1b, N2b):
+                        st_n = self.twoex_indx[nn,0]
+                        st_m = self.twoex_indx[nn,1]
+                        Wd_a[aa] += (SS[nn, aa]**2)*\
+                                    ((self.Wd[st_n, st_n]**2)*kappa[st_n, aa]
+                                    +(self.Wd[st_m, st_m]**2)*kappa[st_m, aa])
+                             
+                        
+                W_aux = numpy.diag(numpy.sqrt(Wd_a))
+                #W_aux = numpy.diag(numpy.sqrt(Wd_b))
+                self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
+    
+            #
+            # Transform line shapes for 0->1 transitions
+            #
+            Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
+            Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
+            for ii in range(N1b):
+                for nn in range(N1b):
+                    Wd_a[ii] += (self.Wd[nn,nn]**2)*abs(SS[ii,nn])**4
+                    Dr_a[ii] += (self.Dr[nn,nn]**2)*abs(SS[ii,nn])**4
+            Wd_a = numpy.sqrt(Wd_a)
+            Dr_a = numpy.sqrt(Dr_a)
+    
+            self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
+            self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
+            
+            
+            #
+            ###3
+            #
+            #print("========")
+            #for k in range(N1b):
+            #    print(Wd_a[k])
+    
+            #raise Exception()
+
+        else:
 
 
-        #  \kappa_{nA} =
-        #  \sum_{K}(\delta_{nk}+\delta_{nl})*|\langle A | K\rangle|^2
-        #
-        #  where K is a two-exc. state K = (k,l), A is a two-ex. state
-        #  and n is a single exciton state
-        #
-        #  Below aa1 = A, aa2 = n, aa3 = K, st_k = k and st_l = l
-        #
-        kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
-        # Kronecker delta over all states
-        delta = operator_factory(self.Ntot).unity_operator()
+            ######################################################################
+            # CASE OF VIBRATIONAL MODES
+            ######################################################################
 
-        if self.mult >= 2:
-
-            N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
-
-            # all states (and 2-ex band selected)
-            for el1 in range(self.Nel):
-                if self.which_band[el1] == 2:
-                    # all states corresponding to electronic two-exc. state kk
-                    for aa1 in self.vibindices[el1]:
-
-                        # all states and (1-ex band selected)
-                        for el2 in range(self.Nel):
-                            if self.which_band[el2] == 1:
-                                for aa2 in self.vibindices[el2]:
-
-                                    # all states and (2-ex band selected)
-                                    for el3 in range(self.Nel):
-                                        if self.which_band[el3] == 2:
-                                            for aa3 in self.vibindices[el3]:
-
-                                                st_k = self.twoex_indx[aa3,0]
-                                                st_l = self.twoex_indx[aa3,1]
-
-                                                kappa[aa2, aa1] += (
-                                                     (delta[aa2, st_k]
-                                                    + delta[aa2, st_l])*
-                                                     (SS[aa3, aa1]**2))
+            N1b = self.Nb[0]+self.Nb[1]            
 
             #
-            # Cross terms
+            # Transform line shapes for 0->1 transitions
             #
-            for aa_2x in range(N1b, N2b):
-                for alpha in range(N1b):
-                    self.Wd[aa_2x, alpha] = 0.0
-                    for nn_2x in range(N1b, N2b):
-                        for k_1x in range(N1b):
-                            st_n = self.twoex_indx[nn_2x, 0]
-                            st_m = self.twoex_indx[nn_2x, 1]
-                            #print(st_n, st_m)
-                            self.Wd[aa_2x, alpha] += \
-                                ((self.Wd[st_n, st_n]**2)*delta[st_n, k_1x] +
-                                 (self.Wd[st_m, st_m]**2)*delta[st_m, k_1x])*\
-                                 (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)
+            Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
+            Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
+            
+            for aa in range(N1b):
+                for ii in range(self.Nel):
+                    el2 = self.elinds[ii]
+                    print(aa, ii, "elinds", el2)
+                    if self.which_band[el2] == 1:
+                        
+                        for ialph in self.vibindices[ii]:
+                            print(aa, ii, ialph)
+                            
+            raise Exception()
+            
+            # loop over all states in the 1-ex band
+            kap = numpy.zeros((N1b, Nel1b), dtype=qr.REAL)
+            for aa in range(N1b):
+                kaux = numpy.zeros(Nel1b, dtype=qr.REAL)
+                for ni in range(N1b):
+                    nn = get_n(mi)
+                    ii = get_i(ni)
+                    kaux[nn] += numpy.abs(SS[aa,ni])**2
+                    
+                for nn in range(Nel1b):
+                    kap[aa,nn] = kaux[nn]
+                    
+                    Wd_a[aa] += (kap[aa,nn]**2)*(self.Wd[nn,nn]**2)    
+                    Dr_a[aa] += (kap[aa,nn]**2)*(self.Dr[nn,nn]**2)
+                    
+            Wd_a = numpy.sqrt(Wd_a)
+            Dr_a = numpy.sqrt(Dr_a)
+    
+            self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
+            self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
 
-            self.Wd[N1b:N2b,0:N1b] = numpy.sqrt(self.Wd[N1b:N2b,0:N1b])
-            self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
 
-            #
-            # Transform line shapes for 1->2 transitions
-            #
-            Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
-            Dr_a = numpy.zeros(N2b, dtype=qr.REAL)
-            for aa in range(N1b, N2b):
-                for nn in range(N1b, N2b):
-                    st_n = self.twoex_indx[nn,0]
-                    st_m = self.twoex_indx[nn,1]
-                    Wd_a[aa] += (SS[nn, aa]**2)*\
-                                ((self.Wd[st_n, st_n]**2)*kappa[st_n, aa]
-                                +(self.Wd[st_m, st_m]**2)*kappa[st_m, aa])
-            W_aux = numpy.diag(numpy.sqrt(Wd_a))
-            self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
-
-        #
-        # Transform line shapes for 0->1 transitions
-        #
-        Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
-        Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
-        for ii in range(N1b):
-            for nn in range(N1b):
-                Wd_a[ii] += (self.Wd[nn,nn]**2)*abs(SS[ii,nn])**4
-                Dr_a[ii] += (self.Dr[nn,nn]**2)*abs(SS[ii,nn])**4
-        Wd_a = numpy.sqrt(Wd_a)
-        Dr_a = numpy.sqrt(Dr_a)
-
-        self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
-        self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
 
         #
         #
