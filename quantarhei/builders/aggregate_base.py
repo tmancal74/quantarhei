@@ -2245,7 +2245,12 @@ class AggregateBase(UnitsManaged, Saveable):
         have_vibs = False
         if len(self.vibindices[0]) > 1:
              have_vibs = True
-             
+ 
+        # Kronecker delta over all states
+        delta = operator_factory(self.Ntot).unity_operator()  
+          
+        have_vibs = True
+        
         if not have_vibs: 
 
             ######################################################################
@@ -2269,8 +2274,7 @@ class AggregateBase(UnitsManaged, Saveable):
             #  Below aa1 = A, aa2 = n, aa3 = K, st_k = k and st_l = l
             #
             kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
-            # Kronecker delta over all states
-            delta = operator_factory(self.Ntot).unity_operator()
+
     
             if self.mult >= 2:
     
@@ -2324,25 +2328,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 #
                 Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
                 Dr_a = numpy.zeros(N2b, dtype=qr.REAL)
-                
-                # Wd_b = numpy.zeros(N2b, dtype=qr.REAL)
-                # for aa in range(N1b, N2b):
-                #     for nn in range(N1b, N2b):
-                #         #st_n = self.twoex_indx[nn,0]
-                #         #st_m = self.twoex_indx[nn,1]
-                #         nn0 = self.twoex_indx[nn,0]
-                #         nn1 = self.twoex_indx[nn,1]
-                #         print(aa, (nn0,nn1))
-                #         for mm in range(N1b, N2b):
-                #         #Wd_a[aa] += (SS[nn, aa]**2)*\
-                #         #            ((self.Wd[st_n, st_n]**2)*kappa[st_n, aa]
-                #         #            +(self.Wd[st_m, st_m]**2)*kappa[st_m, aa])
-                #             mm0 = self.twoex_indx[mm,0]
-                #             mm1 = self.twoex_indx[mm,1]
-                #             Wd_b[aa] += (SS[aa,nn]**2)*(SS[aa,mm]**2)*(
-                #                 self.Wd[nn0,nn0]*(delta[nn0,mm0]+delta[nn0,mm1])
-                #               + self.Wd[nn1,nn1]*(delta[nn1,mm0]+delta[nn1,mm1])
-                #               )
+
     
                 for aa in range(N1b, N2b):
                     for nn in range(N1b, N2b):
@@ -2382,6 +2368,8 @@ class AggregateBase(UnitsManaged, Saveable):
     
             #raise Exception()
 
+            #print(self.Wd)
+
         else:
 
 
@@ -2392,59 +2380,25 @@ class AggregateBase(UnitsManaged, Saveable):
             N1b = self.Nb[0]+self.Nb[1]            
 
 
-            kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
-            # Kronecker delta over all states
-            delta = operator_factory(self.Ntot).unity_operator()
-    
-            if self.mult >= 2:
-    
-                N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
-    
-                # all states (and 2-ex band selected)
-                for el1 in range(self.Nel):
-                    if self.which_band[el1] == 2:
-                        # all states corresponding to electronic two-exc. state kk
-                        for aa1 in self.vibindices[el1]:
-    
-                            # all states and (1-ex band selected)
-                            for el2 in range(self.Nel):
-                                if self.which_band[el2] == 1:
-                                    for aa2 in self.vibindices[el2]:
-    
-                                        # all states and (2-ex band selected)
-                                        for el3 in range(self.Nel):
-                                            if self.which_band[el3] == 2:
-                                                for aa3 in self.vibindices[el3]:
-    
-                                                    st_k = self.twoex_indx[aa3,0]
-                                                    st_l = self.twoex_indx[aa3,1]
-    
-                                                    kappa[aa2, aa1] += (
-                                                         (delta[aa2, st_k]
-                                                        + delta[aa2, st_l])*
-                                                         (SS[aa3, aa1]**2))
-
-
-
-
-
-
-
             #
             # Transform line shapes for 0->1 transitions
             #
             Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
             Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
-            Wd_in = numpy.zeros(self.Nel)
             
+            Nel = 1 + self.nmono
             
-            for ii in range(self.Nel):
+            Wd_in = numpy.zeros(Nel, dtype=qr.REAL)
+            
+            Wd_ini = self.Wd.copy()
+            
+            for ii in range(Nel):
                 for k in self.vibindices[ii]:
-                    Wd_in[ii] = self.Wd[k,k]
+                    Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
                     #print("***", self.Wd[k,k], self.Hs[k,k])
             
             #Nvib1el = len(self.vibindices[0])
-            kap = numpy.zeros((N1b, self.Nel), dtype=qr.REAL)
+            kap = numpy.zeros((N1b, Nel), dtype=qr.REAL)
             
             # loop over all states in the 1-ex band
             for aa in range(N1b):
@@ -2453,7 +2407,7 @@ class AggregateBase(UnitsManaged, Saveable):
                     
                     # loop over electronic states in the 1-ex band
                     st = 0  # counts the total index of the state
-                    for ii in range(self.Nel):
+                    for ii in range(Nel):
                         #if self.which_band[ii] == 1:
                          if True:   
                             # loop over substructure of vib states
@@ -2468,7 +2422,7 @@ class AggregateBase(UnitsManaged, Saveable):
             # loop over all states in the 1-ex band
 
             for aa in range(N1b):                    
-                for nn in range(self.Nel):
+                for nn in range(Nel):
                     
                     Wd_a[aa] += (kap[aa,nn]**2)*(Wd_in[nn]**2)    
                     Dr_a[aa] += (kap[aa,nn]**2)*(self.Dr[nn,nn]**2)
@@ -2479,15 +2433,96 @@ class AggregateBase(UnitsManaged, Saveable):
     
             self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
             self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
-
-            N2el = int(self.Nel*(self.Nel-1)/2)
-            kap2 = numpy.zeros((N1b, self.Nel), dtype=qr.REAL)
-
-
+            
+            #print("First version")
             #print(self.Wd)
-            #print(kap**2)
-            #print(Wd_in**2)
-            #raise Exception()
+
+            if self.mult >= 2:
+                
+                Nel = self.Nel
+                N2b = self.Ntot
+                
+                Wd_b = numpy.zeros(N1b, dtype=qr.REAL)
+                
+                Dr_a = numpy.zeros(N2b, dtype=qr.REAL)
+                Wd_in = numpy.zeros(Nel)
+                
+                
+                for ii in range(Nel):
+                    for k in self.vibindices[ii]:
+                        Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
+                    
+                kap2 = numpy.zeros((N2b, Nel), dtype=qr.REAL)
+                # loop over all states in the 1-ex band
+                for aa in range(N2b):
+                    ela = self.elinds[aa]
+                    #if self.which_band[ela] == 1:
+                    if True: 
+                        # loop over electronic states in the 1-ex band
+                        st = 0  # counts the total index of the state
+                        for ii in range(Nel):
+                            #if self.which_band[ii] == 1:
+                            #print("el. state: ", ii)
+                            if True:   
+                                # loop over substructure of vib states
+                                for ialph in self.vibindices[ii]:
+                                    #print(aa, st, "(", ii, ialph,")")
+                                    kap2[aa, ii] += numpy.abs(SS[st,aa])**2
+                                    st += 1
+                            
+                for aa in range(N1b):                    
+                    for nn in range(Nel):
+                    
+                        Wd_b[aa] += (kap2[aa,nn]**2)*(Wd_in[nn]**2)    
+                        Dr_a[aa] += (kap2[aa,nn]**2)*(self.Dr[nn,nn]**2)               
+                
+                Wd_b = numpy.sqrt(Wd_b)
+                
+                #
+                # Single exciton band
+                #
+                self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_b)  
+                
+                
+                Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
+
+                for aa in range(N1b, N2b):
+                    for bb in range(N1b, N2b):
+                        
+                        for nn in range(Nel):
+                            vind = self.vibindices[nn]
+                            nni = vind[0]
+                            for mm in range(Nel):
+                                vind = self.vibindices[mm]
+                                mmi = vind[0]
+                                n = self.twoex_indx[nni,0]
+                                m = self.twoex_indx[nni,1]
+                                k = self.twoex_indx[mmi,0]
+                                l = self.twoex_indx[mmi,1]
+                                #print(n,m,k,l)
+                        
+                                Wd_c[aa,bb] += ((Wd_in[n]**2)*(delta[n,k]+delta[n,l])
+                                               +(Wd_in[m]**2)*(delta[m,k]+delta[m,l]))\
+                                              *kap2[aa,nn]*kap2[bb,mm]
+
+                W_cc = numpy.zeros(Wd_c.shape[0], dtype=qr.REAL)
+                for k in range(N2b):
+                    W_cc[k] = Wd_c[k,k]
+                W_aux = numpy.diag(numpy.sqrt(W_cc))
+                #W_aux = numpy.diag(numpy.sqrt(Wd_b))
+                
+                #
+                #  Two-exciton band
+                #
+                self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
+
+                #print("Second version")
+                #print(self.Wd)
+                #raise Exception()
+                
+                
+                
+                
 
         #
         #
