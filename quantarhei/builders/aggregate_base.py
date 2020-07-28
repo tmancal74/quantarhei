@@ -2492,14 +2492,13 @@ class AggregateBase(UnitsManaged, Saveable):
                         for nn in range(Nel):
                             vind = self.vibindices[nn]
                             nni = vind[0]
+                            n = self.twoex_indx[nni,0]
+                            m = self.twoex_indx[nni,1]
                             for mm in range(Nel):
                                 vind = self.vibindices[mm]
                                 mmi = vind[0]
-                                n = self.twoex_indx[nni,0]
-                                m = self.twoex_indx[nni,1]
                                 k = self.twoex_indx[mmi,0]
                                 l = self.twoex_indx[mmi,1]
-                                #print(n,m,k,l)
                         
                                 Wd_c[aa,bb] += ((Wd_in[n]**2)*(delta[n,k]+delta[n,l])
                                                +(Wd_in[m]**2)*(delta[m,k]+delta[m,l]))\
@@ -2520,9 +2519,29 @@ class AggregateBase(UnitsManaged, Saveable):
                 #print(self.Wd)
                 #raise Exception()
                 
+                Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
                 
+                for aa in range(N1b, N2b):
+                    for bb in range(N1b):
+                        
+                        for nn in range(Nel):
+                            vind = self.vibindices[nn]
+                            nni = vind[0]
+                            n = self.twoex_indx[nni,0]
+                            m = self.twoex_indx[nni,1]
+                            for k in range(1+self.nmono):
+                                Wd_c[aa,bb] += ((Wd_in[n]**2)*delta[n,k] 
+                                               +(Wd_in[m]**2)*delta[m,k]) \
+                                              *kap2[aa,nn]*kap2[bb,k] 
+                    
+                W_aux = numpy.sqrt(Wd_c)
                 
+                self.Wd[N1b:N2b,0:N1b] = W_aux[N1b:N2b,0:N1b]
+                self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
                 
+                #print(self.Wd)
+                #qr.save_parcel(self.Wd, "save.qrp")
+                #raise Exception()
 
         #
         #

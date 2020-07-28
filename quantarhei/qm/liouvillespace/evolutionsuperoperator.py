@@ -424,6 +424,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                                                     self.dense_time.step,
                                                     Nt,
                                                     show_progress) 
+            
+            
             #
             # repeat propagation over the longer interval
             #
@@ -438,8 +440,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """Single elemental step of propagation with the dense time step
         
         """
-        
-        dim = self.ham.dim
+        dim = self.ham.dim        
         one_step_time = TimeAxis(t0, 2, self.dense_time.step)
         prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
                                               RTensor=self.relt, 
@@ -452,8 +453,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             for m in range(dim):
                 rhonm0.data[n,m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                Ut1[:,:,n,m] = rhot.data[1,:,:]
                 rhonm0.data[n,m] = 0.0
+                
         return Ut1
 
 
@@ -490,13 +492,13 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         This step is componsed of Ndense time steps
         
         """
-        
         Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt,
                                            show_progress=show_progress)
         #
         # propagation to the end of the first interval
         #
-        Udt = Ut1
+        Udt = numpy.zeros(Ut1.shape, dtype=COMPLEX)
+        Udt[:,:,:,:] = Ut1[:,:,:,:]
         for ti in range(2, self.dense_time.length):
             Udt = numpy.tensordot(Ut1, Udt)
         return Udt
@@ -513,7 +515,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         for ti in range(2, Nt):
             if show_progress:
                 print("Self propagation: ", ti, "of", Nt)            
-           
             self.data[ti,:,:,:,:] = \
                 numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])        
 
