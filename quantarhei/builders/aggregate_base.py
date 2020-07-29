@@ -1396,7 +1396,9 @@ class AggregateBase(UnitsManaged, Saveable):
             # for each excited state
             elind = self.elinds[a]
             if (self.which_band[elind] == 1) or (self.which_band[elind] == 2):
-                Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0))
+                
+                Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0)) 
+                
                 Dr[a,a] = numpy.sqrt(self.get_transition_dephasing(s1, s0))
 
             # save composition of twice excited states
@@ -2249,7 +2251,7 @@ class AggregateBase(UnitsManaged, Saveable):
         # Kronecker delta over all states
         delta = operator_factory(self.Ntot).unity_operator()  
           
-        have_vibs = True
+        #have_vibs = True
         
         if not have_vibs: 
 
@@ -2389,13 +2391,16 @@ class AggregateBase(UnitsManaged, Saveable):
             Nel = 1 + self.nmono
             
             Wd_in = numpy.zeros(Nel, dtype=qr.REAL)
+            Dr_in = numpy.zeros(Nel, dtype=qr.REAL)
             
             Wd_ini = self.Wd.copy()
+            Dr_ini = self.Dr.copy()
             
             for ii in range(Nel):
                 for k in self.vibindices[ii]:
                     Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
                     #print("***", self.Wd[k,k], self.Hs[k,k])
+                    Dr_in[ii] = Dr_ini[k,k]
             
             #Nvib1el = len(self.vibindices[0])
             kap = numpy.zeros((N1b, Nel), dtype=qr.REAL)
@@ -2425,7 +2430,7 @@ class AggregateBase(UnitsManaged, Saveable):
                 for nn in range(Nel):
                     
                     Wd_a[aa] += (kap[aa,nn]**2)*(Wd_in[nn]**2)    
-                    Dr_a[aa] += (kap[aa,nn]**2)*(self.Dr[nn,nn]**2)
+                    Dr_a[aa] += (kap[aa,nn]**2)*(Dr_in[nn]**2)
                     
                     
             Wd_a = numpy.sqrt(Wd_a)
@@ -2444,13 +2449,15 @@ class AggregateBase(UnitsManaged, Saveable):
                 
                 Wd_b = numpy.zeros(N1b, dtype=qr.REAL)
                 
-                Dr_a = numpy.zeros(N2b, dtype=qr.REAL)
+                Dr_b = numpy.zeros(N1b, dtype=qr.REAL)
                 Wd_in = numpy.zeros(Nel)
+                Dr_in = numpy.zeros(Nel)
                 
                 
                 for ii in range(Nel):
                     for k in self.vibindices[ii]:
                         Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
+                        Dr_in[ii] = Dr_ini[k,k]
                     
                 kap2 = numpy.zeros((N2b, Nel), dtype=qr.REAL)
                 # loop over all states in the 1-ex band
@@ -2474,14 +2481,16 @@ class AggregateBase(UnitsManaged, Saveable):
                     for nn in range(Nel):
                     
                         Wd_b[aa] += (kap2[aa,nn]**2)*(Wd_in[nn]**2)    
-                        Dr_a[aa] += (kap2[aa,nn]**2)*(self.Dr[nn,nn]**2)               
+                        Dr_b[aa] += (kap2[aa,nn]**2)*(Dr_in[nn]**2)               
                 
                 Wd_b = numpy.sqrt(Wd_b)
+                Dr_b = numpy.sqrt(Dr_b)
                 
                 #
                 # Single exciton band
                 #
-                self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_b)  
+                self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_b)
+                self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_b)
                 
                 
                 Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
@@ -2539,9 +2548,6 @@ class AggregateBase(UnitsManaged, Saveable):
                 self.Wd[N1b:N2b,0:N1b] = W_aux[N1b:N2b,0:N1b]
                 self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
                 
-                #print(self.Wd)
-                #qr.save_parcel(self.Wd, "save.qrp")
-                #raise Exception()
 
         #
         #
@@ -2550,11 +2556,14 @@ class AggregateBase(UnitsManaged, Saveable):
         #
         # all states and (1-ex band selected)
         for aa in range(N1b):
+            
             for ii in range(self.Nel):
-                el2 = self.elinds[ii]
-                if self.which_band[el2] == 1:
+                #el2 = self.elinds[ii]
+                if self.which_band[ii] == 1:
                     for ialph in self.vibindices[ii]:
-                        self.Xi[aa, ii] += SS[aa, ialph]**2
+                        self.Xi[aa, ii] += SS[ialph,aa]**2
+                        
+
 
         #
         # Transform transition dipole moments

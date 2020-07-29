@@ -159,7 +159,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
     
     def plot(self, populations=True, popselection="All", trace=False,
                    coherences=True, cohselection="All", how='-',
-                   axis=None, show=True):
+                   axis=None, show=True, legend=False, start=1):
         """
             Plots selected data.
             Return figure so that it can be manipulated
@@ -173,15 +173,19 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             howi = ['--k','--r','--b','--g','--m','--y','--c',]
             
         N = self.data.shape[1]
+        #print("Plotting", N, "states")
+        leg = []
 
         if populations:
-            for ii in range(1,N):
+            for ii in range(start,N):
                 kk = ii
                 while kk > 6:
                     kk = kk - 7
                 plt.plot(self.TimeAxis.data,
                          numpy.real(self.data[:,ii,ii]),howi[kk])
+                leg.append(str(ii))
                 
+        
         if trace:
             trc = numpy.zeros(self.TimeAxis.length, dtype=numpy.float64)
             for ti in range(self.TimeAxis.length):
@@ -192,14 +196,15 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         
         if coherences:
             kk = 0
-            for ii in range(0,N):
+            for ii in range(N):
                 for jj in range(ii+1,N):
-                    if (ii != 0):
+                    if (ii >= start):
                         kk += 1
                         if kk > 6:
                             kk = kk - 7
                         plt.plot(self.TimeAxis.data,numpy.real(
                                     self.data[:,ii,jj]),howi[kk]) #how)
+                        leg.append(str(ii)+"-"+str(jj))
                 
         ii = 0
         ss = numpy.zeros((self.TimeAxis.length),dtype=numpy.complex64)
@@ -210,7 +215,11 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
                 ii +=1
         
             plt.plot(self.TimeAxis.time,numpy.real(ss),'-k')
-        
+ 
+
+        if legend:
+            plt.legend(leg)
+            
         if axis is not None:
             plt.axis(axis)
 

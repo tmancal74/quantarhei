@@ -403,3 +403,7 @@ def stop():
 def show_plot(block=True):
     import matplotlib.pyplot as plt
     plt.show(block=block)
+    
+def savefig(fname):
+    import matplotlib.pyplot as plt
+    plt.savefig(fname)    

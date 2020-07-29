@@ -70,7 +70,8 @@ class PureDephasing: #(BasisManaged):
         
         if dtype in self.dtypes:
             
-            factor = 2.0*numpy.sqrt(numpy.log(2.0))
+            #factor = 2.0*numpy.sqrt(numpy.log(2.0))
+            factor = numpy.sqrt(numpy.log(2.0))
             if dtype == "Lorentzian" and self.dtype == "Gaussian":
                 self.data = numpy.sqrt(self.data)*factor
                 self.dtype = dtype
@@ -113,8 +114,9 @@ class ElectronicPureDephasing(PureDephasing):
             widths = numpy.zeros(Nel, dtype=REAL)
             for ii in range(Nel):
                 if ii > 0:
-                    widths[ii] = self.system.monomers[ii
-                                      -1].get_transition_width((0,1))
+                    widths[ii] = (((self.system.monomers[ii
+                                      -1].get_transition_width((0,1)))**2)/
+                                  (8.0*numpy.log(2.0)))
                 
             self.system.diagonalize()
             
