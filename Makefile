@@ -11,7 +11,7 @@
 # Set this to required version or override from command line
 # Default is the current development version 
 #
-VERSION=0.0.57
+VERSION=0.0.59
 TASK=
 
 ANACONDA_BIN=anaconda3/bin
@@ -19,6 +19,8 @@ ANACONDA_BIN=anaconda3/bin
 
 PIP=pip #${HOME}/${ANACONDA_BIN}/pip
 PYTHON=python3 #${HOME}/${ANACONDA_BIN}/python
+ACTIVATE=activate
+
 
 REPOSITORY=https://github.com/tmancal74/quantarhei
 
@@ -91,7 +93,7 @@ env:
 	( \
 		rm -rf env/; \
 		${PYTHON} -m venv env; \
-		. env/bin/activate; \
+		${ACTIVATE}; \
 		${PYTHON} -m ${PIP} install --no-cache -r requirements.txt; \
 		${PYTHON} -m ${PIP} install --no-cache -r requirements_devel.txt; \
 	)
@@ -106,7 +108,7 @@ test:
 
 testenv:
 	( \
-		. env/bin/activate; \
+		${ACTIVATE} \
 		paver; \
 	)
 
