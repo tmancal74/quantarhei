@@ -192,7 +192,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
 
     def calculate_one_system(self, t2, sys, eUt, lab, 
-                             selection=None, pways=None, dtol=0.0001):
+                             selection=None, pways=None, dtol=1.0e-12):
         """Returns 2D spectrum at t2 for a system and evolution superoperator
         
         """
@@ -213,6 +213,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         if H1.dim == eUt.dim:
             has_ESA = False
         
+        #print(has_ESA)
         # get Liouville pathways
         if has_ESA:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
@@ -224,6 +225,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                                                    "R4g"),
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab, dtol=dtol)
+            
+        #print("Number of pathways:", len(pws))
             
         if selection is not None:
             
@@ -240,7 +243,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     
                 if rule[0] == "order":
                     anl.pathways = pws
-                    pws = anl.order_by_amplitude(replace=Falses)
+                    pws = anl.order_by_amplitude(replace=False)
                     
                 if rule[0] == "number":
                     N = rule[1]
