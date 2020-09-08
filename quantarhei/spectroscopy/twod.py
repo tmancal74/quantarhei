@@ -327,6 +327,44 @@ class TwoDSpectrum(DataSaveable, Saveable):
             raise Exception("Unknown data part")
 
 
+    def get_area_max(self, area, dpart=part_REAL):
+        """Returns a max value in a given area in the 2D spectrum
+        
+        """
+        def find_in_square(x1, x2, y1, y2, data, dx, dy):
+            return numpy.amax(data)
+        
+        area_shape = area[0]
+        x1 = area[1][0]
+        x2 = area[1][1]
+        y1 = area[1][2]
+        y2 = area[1][3]
+        
+        dx = self.xaxis.step
+        dy = self.yaxis.step
+        
+        (nx1, derr) = self.xaxis.locate(x1)
+        (nx2, derr) = self.xaxis.locate(x2)
+        (ny1, derr) = self.yaxis.locate(y1)
+        (ny2, derr) = self.yaxis.locate(y2)
+        
+        if area_shape == "square":
+            int_fce = find_in_square
+        else:
+            raise Exception("Unknown area type: "+area_shape)   
+            
+        data = self.data[ny1:ny2, nx1:nx2]
+        
+        if dpart == part_REAL:
+            return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
+        elif dpart == part_IMAGINARY:
+            return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
+        elif dpart == part_ABS:
+            return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
+        else:
+            raise Exception("Unknown data part")
+
+
     def normalize2(self, norm=1.0, dpart=part_REAL, nmax=None, use_max=False):
         """Normalizes the spectrum to the given maximum.
         
@@ -522,7 +560,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return pp.calculate_from_2D(self)
 
 
-    def plot(self, fig=None, window=None, 
+        def plot(self, fig=None, window=None, 
              stype=None, spart=part_REAL,
              vmax=None, vmin_ratio=0.5, 
              colorbar=True, colorbar_loc="right",
