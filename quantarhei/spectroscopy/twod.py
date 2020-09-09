@@ -401,7 +401,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
             nmax.append(mx)
             if not use_max:
                 mx = nmax[0]
-        self.data = (self.data/mx)*norm
+        if mx != 0.0:
+            self.data = (self.data/mx)*norm
         
     
     def devide_by(self, val):
@@ -560,7 +561,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return pp.calculate_from_2D(self)
 
 
-        def plot(self, fig=None, window=None, 
+    def plot(self, fig=None, window=None, 
              stype=None, spart=part_REAL,
              vmax=None, vmin_ratio=0.5, 
              colorbar=True, colorbar_loc="right",
