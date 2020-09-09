@@ -2,7 +2,6 @@ scipy
 numpy
 matplotlib
 terminaltables
-gherkin-official
 dill
 pyyaml
 
