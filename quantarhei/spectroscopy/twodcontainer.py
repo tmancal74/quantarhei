@@ -754,8 +754,8 @@ class TwoDResponseContainer(Saveable):
         l = len(spctr)
         
         if use_t2 and (spctr[0].get_t2() < 0.0):
-            print("Warning: switching off usage of t2"
-                  +" information obtained from the spectrum object (t2 < 0)")
+            #print("Warning: switching off usage of t2"
+            #      +" information obtained from the spectrum object (t2 < 0)")
             use_t2 = False
         
         if use_t2:

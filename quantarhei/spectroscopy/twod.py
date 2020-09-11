@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import warnings
+
 import numpy
 import matplotlib.pyplot as plt
 
@@ -725,13 +727,16 @@ class TwoDSpectrum(DataSaveable, Saveable):
         #
         
         # positive contours are always plotted
+        warnings.filterwarnings("error")
+        
         try:
             plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
                      realout, levels=poslevels, colors="k")
                      #linewidth=1)
         except:
-            print("No positive contours found; not plotted")
+            pass
+            #print("No positive contours found; not plotted")
               
         # other contours only if we do not plot absolute values
         if spart != "abs":
@@ -742,7 +747,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
                          realout, levels=[0],colors="b")
                          #linewidth=1)
             except:
-                print("Zero contour not found; not plotting")
+                pass
+                #print("Zero contour not found; not plotting")
         
         
             # negative contours
@@ -752,7 +758,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
                          realout, levels=neglevels, colors="k")
                          #linewidth=1) 
             except:
-                print("Negative contour not found; not plotting")
+                pass
+                #print("Negative contour not found; not plotting")
+        
+        warnings.resetwarnings()
         
         #
         # Color bar presence
