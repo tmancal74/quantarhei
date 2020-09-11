@@ -18,7 +18,7 @@
     >>> agg.diagonalize()
     >>> #
     >>> # Create a report on expantions of state with index `1`
-    >>> agg.report_on_expansion(1)
+    >>> agg.report_on_expansion(state=1)
     +-------+-------------+--------------+------------------+
     | index | squares     | coefficients | state signatures |
     +-------+-------------+--------------+------------------+
