@@ -101,7 +101,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.build()  
         >>> agg.diagonalize()
         ...
-        >>> agg.report_on_expansion(1)
+        >>> agg.report_on_expansion(state=1)
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
