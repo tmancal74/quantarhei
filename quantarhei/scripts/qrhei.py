@@ -116,6 +116,7 @@ def do_command_run(args):
     # yaml
     if ext in [".yaml", ".yml"]:
         INP = qr.Input(scr)
+        input_file = scr
         # see if the script name is specified, if not use the conf name + .py
         try:
             script = INP.script
@@ -231,13 +232,14 @@ def do_command_run(args):
         
         # running the script within the same interpreter
         try:
-            
-            
+
             # launch this properly, so that it gives information
             # on the origin of exceptions
             with open(scr,'U') as fp:
                 code = fp.read()
-            exec(compile(code, scr, "exec"), globals())
+                glbs = globals()
+                glbs.update(dict(_input_file_=input_file))
+            exec(compile(code, scr, "exec"), glbs)
             
             
         except SystemExit:

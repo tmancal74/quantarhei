@@ -392,18 +392,64 @@ def exit(msg=None):
     sys.exit()
 
 
-def stop():
+def stop(msg=None):
     """Stop execution and leave to level above
     
     """
+
     exit("Execution stopped")
     
     
     
 def show_plot(block=True):
+    """Shows current plot
+    
+    This function is used to avoid explicit import of matplotlib
+    """
     import matplotlib.pyplot as plt
     plt.show(block=block)
-    
+
+
+
 def savefig(fname):
+    """Saves current plot to a file
+    
+    This function is used to avoid explicit import of matplotlib
+    """
     import matplotlib.pyplot as plt
     plt.savefig(fname)    
+
+
+def assert_version(check, vno):
+    """Throws an exception if the condition is not satisfied
+    
+    """
+    from packaging import version
+    
+    def ext():
+        exit("Version requirement not satisfied.")
+
+    if check == ">=":
+        if not (version.parse(Manager().version) >= version.parse(vno)):
+            ext()
+            
+    elif check == "==":
+         if not (version.parse(Manager().version) == version.parse(vno)):
+            ext()
+            
+    elif check == "<=":
+        if not (version.parse(Manager().version) <= version.parse(vno)):
+            ext()
+
+    elif check == ">":
+        if not (version.parse(Manager().version) == version.parse(vno)):
+            ext()
+            
+    elif check == "<=":
+        if not (version.parse(Manager().version) >= version.parse(vno)):
+            ext()
+            
+    else:
+        raise Exception("Unknown comparison operator `"+check+"`")
+        
+    
