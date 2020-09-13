@@ -59,6 +59,15 @@ and
 
 through grants: 14-25752S (2014-2016), 17-22160S (2017-2019) and 18-18022S (2018-2020)
 
+New in 0.0.62
+=============
+
+for users:
+ - _input_file_ variable defined in scripts run through qrhei run command
+ - assert_version() function defined
+ - bug fixes
+
+
 New in 0.0.61
 =============
 

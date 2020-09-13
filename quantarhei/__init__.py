@@ -19,7 +19,7 @@
 
     >>> manager = qr.Manager()
     >>> print(manager.version)
-    0.0.54
+    0.0.62
 
     The list of user level classes is provided below. Tue latest and most
     uptodate information can be obtained by viewing the source code of the 
