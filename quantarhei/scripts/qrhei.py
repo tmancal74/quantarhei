@@ -101,6 +101,12 @@ def do_command_run(args):
         scr = args.script[0]
 
 
+    #
+    # Input file name  (-i option)
+    #
+    if args.inputfile:
+        input_file = args.inputfile
+
 
     #
     # if the file is yaml, look into it to find the script file name
@@ -116,7 +122,10 @@ def do_command_run(args):
     # yaml
     if ext in [".yaml", ".yml"]:
         INP = qr.Input(scr)
+        
+        # this overrides the -i option 
         input_file = scr
+        
         # see if the script name is specified, if not use the conf name + .py
         try:
             script = INP.script
@@ -185,7 +194,8 @@ def do_command_run(args):
         engine = "qrhei"
         if m.log_to_file:
             engine += " -lf "+m.log_file_name
-        engine +=  " -y "+str(m.verbosity)+","+str(m.fverbosity)+" run -q "
+        engine += " -y "+str(m.verbosity)+","+str(m.fverbosity)+" run -q"
+        engine += " -i "+input_file+" "
         
         # running MPI with proper parallel configuration
         prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "+prl_h
@@ -239,6 +249,7 @@ def do_command_run(args):
                 code = fp.read()
                 glbs = globals()
                 glbs.update(dict(_input_file_=input_file))
+                    
             exec(compile(code, scr, "exec"), glbs)
             
             
@@ -603,6 +614,9 @@ def main():
     parser_run.add_argument("-b", "--benchmark", type=int, default=0, 
                           help="run one of the predefined benchmark"
                           +" calculations")
+    parser_run.add_argument("-i", "--inputfile", type=str, 
+                          default="input.yaml", help="input file for the "
+                          +"script")
 
     
     parser_run.set_defaults(func=do_command_run)
