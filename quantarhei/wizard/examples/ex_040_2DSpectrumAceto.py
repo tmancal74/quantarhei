@@ -11,12 +11,16 @@ import quantarhei as qr
 from quantarhei import printlog as print
 from quantarhei.spectroscopy import X
 
+import matplotlib
+matplotlib.rcParams['text.usetex'] = True
+
+qr.assert_version(">","0.0.62")
 
 print()
 qr.timeit("Starting dimer simulation ...", show_stamp=True)
 
-_show_plots_ =  True
-_movie_ = False
+_show_plots_ = True 
+_movie_ = False 
 _save_2D_ = False
 
 ###############################################################################
@@ -25,7 +29,14 @@ _save_2D_ = False
 #
 ###############################################################################
 
-t_axis = qr.TimeAxis(0.0, 150, 10.0)
+Nt2 = 50
+dt2 = 20
+Npad = 0
+
+Nt = Nt2
+dt = dt2
+
+t_axis = qr.TimeAxis(0.0, Nt2, dt2)
 
 with qr.energy_units("1/cm"):
     # two two-level molecules
@@ -87,7 +98,7 @@ with qr.energy_units("1/cm"):
 ###############################################################################
 
 # time span of the excited state evolution (later t2 time of the 2D spectrum)
-t2_axis = qr.TimeAxis(0.0, 30, 50.0)
+t2_axis = qr.TimeAxis(0.0, Nt2, dt2)
 
 # Lindblad relaxation operator
 with qr.eigenbasis_of(H):
@@ -121,8 +132,8 @@ if False:
 
 # time axes of the propagation in t1 and t3 times
 
-t1_axis = qr.TimeAxis(0.0, 150, 10.0)
-t3_axis = qr.TimeAxis(0.0, 150, 10.0)
+t1_axis = qr.TimeAxis(0.0, Nt, dt)
+t3_axis = qr.TimeAxis(0.0, Nt, dt)
 
 agg_2D.build(mult=2)
 agg_2D.diagonalize()
@@ -142,17 +153,18 @@ lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 #calc = TwoDResponseCalculator(t1_axis, t2_axis, t3_axis)
 calc = qr.TwoDResponseCalculator(t1_axis, t2_axis, t3_axis, system=agg_2D)
 with qr.energy_units("1/cm"):
-    calc.bootstrap(rwa=12100.0) #, pad=1000) 
+    calc.bootstrap(rwa=12100.0, pad=Npad) 
 
 #calc.bootstrap(rwa=qr.convert(12100.0,"1/cm","int"), pad=1000)
 
+print("Calculating", Nt2,"spectra")
 tcont = calc.calculate()
+qr.done_in(True) 
 
 tcont = tcont.get_TwoDSpectrumContainer()
 
-
-T2 = 990.0
-twod = tcont.get_spectrum(150.0)
+T2 = 3*dt2
+twod = tcont.get_spectrum(T2)
 
 ### short test of addition of data
 twod1 = twod
@@ -167,15 +179,20 @@ if _save_2D_:
 if _show_plots_:
     plot_window = [11500,13000,11500,13000]
     with qr.energy_units("1/cm"):
-        twod.plot(Npos_contours=10, window=plot_window,            
+        twod.plot(Npos_contours=10, #indow=plot_window,            
                   stype=qr.signal_TOTL, spart=qr.part_REAL)
+    qr.show_plot()
     
 if _movie_:
+    def label_func(sp):
+        """Function returning label for each frame
+        """
+        return (r'$t_{2}='+str(sp.get_t2())+r'$ fs', [0.5,0.8])
+
+    plot_window = [11500, 13000, 11500, 13000]
     with qr.energy_units("1/cm"):
-        tcont.make_movie("twod.mp4", window=plot_window)
-
-
-qr.finished_in(True)   
+        tcont.make_movie("twod.mp4", window=plot_window, label_func=label_func)
+ 
  
 qr.stop() 
 
