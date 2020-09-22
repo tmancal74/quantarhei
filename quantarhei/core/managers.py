@@ -1106,5 +1106,3 @@ def set_current_units(units=None):
             else:
                 raise Exception("Unknown units type %s" % utype)
         
-        
-        

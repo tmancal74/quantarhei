@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 """
 
-    Calculation of 2D spectra with effective lineshapes 
+    Calculation of 2D spectra with lineshape functions
 
 
 """
 import copy
 import quantarhei as qr
 
+from quantarhei import printlog as print
+from quantarhei.spectroscopy import X
 
-_show_plots_ = True
+
+print()
+qr.timeit("Starting dimer simulation ...", show_stamp=True)
+
+_show_plots_ =  True
 _movie_ = False
-_save_2D_ = True
+_save_2D_ = False
 
 ###############################################################################
 #
@@ -19,14 +25,32 @@ _save_2D_ = True
 #
 ###############################################################################
 
+t_axis = qr.TimeAxis(0.0, 150, 10.0)
+
 with qr.energy_units("1/cm"):
     # two two-level molecules
     m1 = qr.Molecule([0.0, 12000.0])
     m2 = qr.Molecule([0.0, 12300.0])
+
     
-    # transitions will have Gaussian lineshape with a width specified here
-    m1.set_transition_width((0,1), 150.0) 
-    m2.set_transition_width((0,1), 150.0)
+    #  correlation functions the environment
+    #
+    cfce_params1 = dict(ftype="OverdampedBrownian",
+                   reorg=40.0,
+                   cortime=100.0,
+                   T=100, matsubara=20)
+    cfce_params2 = dict(ftype="OverdampedBrownian",
+                   reorg=40.0,
+                   cortime=100.0,
+                   T=100, matsubara=20)
+    
+
+    cfce1 = qr.CorrelationFunction(t_axis, cfce_params1)
+    cfce2 = qr.CorrelationFunction(t_axis, cfce_params2)
+    
+    m1.set_transition_environment((0,1), cfce1)
+    m2.set_transition_environment((0,1), cfce2)
+    
 
 # we create an aggregate from the two molecules
 agg = qr.Aggregate(molecules=[m1, m2])
@@ -63,7 +87,7 @@ with qr.energy_units("1/cm"):
 ###############################################################################
 
 # time span of the excited state evolution (later t2 time of the 2D spectrum)
-t2_axis = qr.TimeAxis(0.0, 100, 10.0)
+t2_axis = qr.TimeAxis(0.0, 30, 50.0)
 
 # Lindblad relaxation operator
 with qr.eigenbasis_of(H):
@@ -80,13 +104,14 @@ eUt.set_dense_dt(10)
 
 eUt.calculate()
 
-if _show_plots_:
+#if _show_plots_:
+if False:
     with qr.eigenbasis_of(H):
         eUt.plot_element((2,2,2,2), show=False)
         eUt.plot_element((1,1,1,1), show=False)
         eUt.plot_element((1,1,2,2))
         eUt.plot_element((1,2,1,2))
-    
+   
     
 ###############################################################################
 #
@@ -96,17 +121,8 @@ if _show_plots_:
 
 # time axes of the propagation in t1 and t3 times
 
-t1_axis = qr.TimeAxis(0.0, 100, 10.0)
-t3_axis = qr.TimeAxis(0.0, 100, 10.0)
-
-from quantarhei.spectroscopy.mocktwodcalculator \
-    import MockTwoDResponseCalculator as TwoDResponseCalculator
-    
-from quantarhei.spectroscopy import X
-
-calc = TwoDResponseCalculator(t1_axis, t2_axis, t3_axis)
-with qr.energy_units("1/cm"):
-    calc.bootstrap(rwa=12100.0) #qr.convert(12100.0,"1/cm","int"))
+t1_axis = qr.TimeAxis(0.0, 150, 10.0)
+t3_axis = qr.TimeAxis(0.0, 150, 10.0)
 
 agg_2D.build(mult=2)
 agg_2D.diagonalize()
@@ -115,13 +131,28 @@ agg_2D.diagonalize()
 lab = qr.LabSetup()
 lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 
-tcont = calc.calculate_all_system(agg_2D, eUt, lab)
+#
+#
+#
+#
+#
+#from quantarhei.spectroscopy.mocktwodcalculator \
+#    import MockTwoDResponseCalculator as TwoDResponseCalculator
+#
+#calc = TwoDResponseCalculator(t1_axis, t2_axis, t3_axis)
+calc = qr.TwoDResponseCalculator(t1_axis, t2_axis, t3_axis, system=agg_2D)
+with qr.energy_units("1/cm"):
+    calc.bootstrap(rwa=12100.0) #, pad=1000) 
+
+#calc.bootstrap(rwa=qr.convert(12100.0,"1/cm","int"), pad=1000)
+
+tcont = calc.calculate()
 
 tcont = tcont.get_TwoDSpectrumContainer()
 
 
 T2 = 990.0
-twod = tcont.get_spectrum(T2)
+twod = tcont.get_spectrum(150.0)
 
 ### short test of addition of data
 twod1 = twod
@@ -142,6 +173,11 @@ if _show_plots_:
 if _movie_:
     with qr.energy_units("1/cm"):
         tcont.make_movie("twod.mp4", window=plot_window)
+
+
+qr.finished_in(True)   
+ 
+qr.stop() 
 
 
 ###############################################################################
