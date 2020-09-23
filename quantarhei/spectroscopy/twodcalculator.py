@@ -287,7 +287,7 @@ class TwoDResponseCalculator:
               self.oa1 = self.t1axis.get_FrequencyAxis() 
               self.oa1.data += self.rwa
               self.oa1.start += self.rwa
-              print(self.oa1.start, self.oa1.data[0])
+              #print(self.oa1.start, self.oa1.data[0])
               self.t1axis.atype = atype
         
               atype = self.t3axis.atype
@@ -295,7 +295,7 @@ class TwoDResponseCalculator:
               self.oa3 = self.t3axis.get_FrequencyAxis() 
               self.oa3.data += self.rwa
               self.oa3.start += self.rwa
-              print(self.oa3.start, self.oa3.data[0])
+              #print(self.oa3.start, self.oa3.data[0])
               self.t3axis.atype = atype
             
           else:
