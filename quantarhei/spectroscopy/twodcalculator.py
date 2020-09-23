@@ -281,10 +281,6 @@ class TwoDResponseCalculator:
               self.rmin = 0.0001
               self.t1s = self.t1axis.data 
               self.t3s = self.t3axis.data
-    
-              print("***")
-              print(self.rwa)
-
            
               atype = self.t1axis.atype
               self.t1axis.atype = 'complete'
