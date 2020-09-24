@@ -51,6 +51,7 @@ def main():
     parser.add_argument("-i", "--info", action='store_true', 
                         help="shows detailed information about Quantarhei"+
                         " installation")
+    
     parser.set_defaults(func=do_launch)   
     
     #
