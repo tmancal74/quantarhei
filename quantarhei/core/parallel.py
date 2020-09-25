@@ -52,6 +52,7 @@ class DistributedConfiguration:
         #    self.parallel_level = 1
             
         self.inparallel = False
+        self.parallel_region = 0
         
         self.silent = True
         
@@ -97,6 +98,9 @@ class DistributedConfiguration:
             else:
                 import atexit
                 atexit.register(call_finish)
+                
+        # this counting is independent of whether we have MPI
+        self.parallel_region += 1
         
 
     def finish_parallel_region(self):
@@ -114,6 +118,7 @@ class DistributedConfiguration:
         if self.parallel_level < 0:
             raise Exception()
             
+        self.parallel_region -= 1
         
     def print_info(self):
         if self.rank == 0:
@@ -140,7 +145,11 @@ class DistributedConfiguration:
         on the process with rank = 0
 
         """ 
-        # only in parallel_level == 1 we share the work
+
+        if self.parallel_region < 1:
+            raise Exception("This code has to be run from a declared parallel_region")
+ 
+         # only in parallel_level == 1 we share the work
         if self.parallel_level != 1:
             return A
 
@@ -163,7 +172,10 @@ class DistributedConfiguration:
         processes.
 
         """ 
-
+        
+        if self.parallel_region < 1:
+            raise Exception("This code has to be run from a declared parallel_region")
+        
         # only in parallel_level == 1 we share the work
         if self.parallel_level != 1:
             return 
@@ -181,7 +193,9 @@ class DistributedConfiguration:
     def bcast(self, value, root=0):
         #if self.parallel_level != 1:
         #    return value
-            
+        if self.parallel_region < 1:
+            raise Exception("This code has to be run from a declared parallel_region")
+        
         return self.comm.bcast(value, root=root)
 
             
@@ -239,9 +253,13 @@ def block_distributed_range(start, stop):
             end of the range
 
     """
+    
     from .managers import Manager
     # we share the work only in parallel_level == 1  
     config = Manager().get_DistributedConfiguration()
+
+    if config.parallel_region < 1:
+        raise Exception("This code has to be run from a declared parallel_region")
         
     if config.parallel_level==1:
         
@@ -278,7 +296,10 @@ def block_distributed_list(dlist, return_index=False):
     from .managers import Manager
     # we share the work only in parallel_level == 1  
     config = Manager().get_DistributedConfiguration()
-        
+ 
+    if config.parallel_region < 1:
+        raise Exception("This code has to be run from a declared parallel_region")
+ 
     if config.parallel_level==1:
 
         config.inparallel_entered = True
@@ -317,7 +338,10 @@ def block_distributed_array(array, return_index=False):
     from .managers import Manager
     # we share the work only in parallel_level == 1  
     config = Manager().get_DistributedConfiguration()
-        
+
+    if config.parallel_region < 1:
+        raise Exception("This code has to be run from a declared parallel_region")
+    
     if config.parallel_level==1:
 
         config.inparallel_entered = True
@@ -380,6 +404,9 @@ def collect_block_distributed_data(containers, setter_function,
     from .managers import Manager
     # we share the work only in parallel_level == 1  
     config = Manager().get_DistributedConfiguration()
+
+    if config.parallel_region < 1:
+        raise Exception("This code has to be run from a declared parallel_region")
     
     if config.parallel_level==1:
      
@@ -537,6 +564,10 @@ def asynchronous_range(start, stop):
     """
     from .managers import Manager
     config = Manager().get_DistributedConfiguration()
+    
+    if config.parallel_region < 1:
+        raise Exception("This code has to be run from a declared parallel_region")    
+    
     if config.parallel_level==1:   
         pass
     else:
@@ -640,7 +671,8 @@ class parallel_function:
         
         manager = Manager()
         self.dc = manager.get_DistributedConfiguration()
-
+        if self.dc.parallel_region < 1:
+            raise Exception("This code has to be run from a declared parallel_region")
     
     def __enter__(self):
         """All except of the leader are put on hold
