@@ -48,8 +48,8 @@ class DistributedConfiguration:
                     
         self.parallel_level = 0
         
-        if self.size > 1:
-            self.parallel_level = 1
+        #if self.size > 1:
+        #    self.parallel_level = 1
             
         self.inparallel = False
         
@@ -350,7 +350,7 @@ def block_distributed_array(array, return_index=False):
 
 def collect_block_distributed_data(containers, setter_function,
                                   retriever_function, tags=None):
-    """Collects distributed data into a container container on rank 0 nod
+    """Collects distributed data into a container on rank 0 nod
     
     Collects the "data" properties of the objects of the 
     data_class type into a container on the rank = 0 nod.
@@ -580,7 +580,7 @@ class parallel_function:
     Examples
     --------
 
-#    These examples, when tested, will be run serial mode and the test will
+#    These examples, when tested, will be run in serial mode and the test will
 #    only confirm that the serial version works
 #    
 #    
