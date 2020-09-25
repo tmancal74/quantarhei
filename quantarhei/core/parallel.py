@@ -558,6 +558,105 @@ def _calculate_ranges_array(config, array):
     return _calculate_ranges(config, start, stop)
       
 
+import threading
+
+_sentinel = object()
+
+def _send_to_other_by_MPI(config, i, dest, finish=False):
+    
+    to_send = numpy.zeros(2, dtype=int)
+    to_send[0] = i
+    if finish:
+        to_send[1] = 1
+    else:
+        to_send[1] = 0
+        
+    # send it
+    config.comm.Send(to_send, dest=dest)
+
+
+def _receive_from_MPI(config, source):
+    
+    # receive it
+    data = numpy.zeros(2, dtype=int)
+    config.comm.Recv(data, source=source)
+    
+    if data[1] == 1:
+        return None
+    else:
+        return data[0]
+
+
+
+class RangeDistributor(threading.Thread):
+    
+    def __init__(self, start, stop, queue, config):
+        threading.Thread.__init__(self)
+        self.threadID = 0
+        self.name = "Range Distributor"
+        self.counter = 0
+        self.strt = start
+        self.stop = stop
+        
+        self.queue = queue
+        self.config = config
+    
+    def run(self):
+        
+        nproc = self.config.size
+        
+        l = 0
+        for val in range(self.strt, self.stop):
+            
+            #print("In loop:", val)
+            
+            if l == 0:
+                # send to rank 0 via a queue
+                #print("putting", val, "into queue")
+                self.queue.put(val)
+            else:
+                # send to others via MPI
+                #print("sending", val, "by MPI")
+                _send_to_other_by_MPI(self.config, val, l)
+            
+            l += 1
+            if l >= nproc:
+                l = 0
+                
+        for k in range(nproc):
+            
+            if l == 0:
+                #print("Putting finish signal to queue")
+                # send finish signal to rank 0 via a queue
+                self.queue.put(_sentinel)
+            else:
+                #print("Sending finish signal by MPI")
+                # send finish signal to others via MPI
+                _send_to_other_by_MPI(self.config, 0, l, finish=True)
+            
+            l += 1
+            if l >= nproc:
+                l = 0           
+        
+        
+def _get_next_from_thread(queue):
+
+    val = queue.get()
+        
+    if val is _sentinel:
+        
+        return None
+
+    return val
+
+    
+def _get_next_from_MPI(config, source):
+    
+    # receive value through MPI
+    return _receive_from_MPI(config, source)
+
+
+
 def asynchronous_range(start, stop):
     """Range distributing numbers asynchronously among processes
     
@@ -568,12 +667,52 @@ def asynchronous_range(start, stop):
     if config.parallel_region < 1:
         raise Exception("This code has to be run from a declared parallel_region")    
     
-    if config.parallel_level==1:   
-        pass
+    if config.parallel_level==1:  
+        
+        from queue import Queue
+        q = Queue()
+        
+        if config.rank == 0:
+            
+            # start a separate thread which will devide job between processes
+            # including the present one
+            rd = RangeDistributor(start, stop, q, config)
+            rd.start()
+            
+        not_done = True
+        while not_done:
+            
+            if config.rank == 0:
+                
+                next_val = _get_next_from_thread(q)
+            
+            else:
+                
+                next_val = _get_next_from_MPI(config, 0)
+                
+            #print("Got: ", next_val, "in", config.rank)
+            if next_val is not None:
+                #print("Yielding", next_val, "in", config.rank)
+                yield next_val
+        
+            else:
+                not_done = False
+        
+        if config.rank == 0:
+            
+            # at the end of the work, the Thread rejoins the main process
+            rd.join()
+            
+            
+    
     else:
 
-        return range(start, stop)
+        # serial implementation of the same
+        for aa in range(start, stop):
+            yield aa
     
+
+
 
 def _parallel_function_wrapper(func, root):
     # FIXME: return a wrapped function with parameter broadcasting
