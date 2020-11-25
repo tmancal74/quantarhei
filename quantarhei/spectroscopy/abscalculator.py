@@ -261,6 +261,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         ld = tr["ld"] # linear dichroism strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         if self.system._has_system_bath_coupling:
 #            ct = tr["ct"] # correlation function
@@ -284,6 +286,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             rt = numpy.exp((gg)*ta.data)          
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
+            
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
             
         # Fourier transform the result
         ft = ld*numpy.fft.hfft(at)*ta.step
@@ -334,6 +340,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         dd = tr["dd"] # transition dipole strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         # CD and fluorescence can be calculated in this step
         # TODO if rotatory strength defined calculate also circular dichroism spectra
@@ -368,6 +376,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
             
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
+            
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.step
         ft = numpy.fft.fftshift(ft)
@@ -388,6 +400,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         rr = tr["rr"] # transition dipole strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         # CD and fluorescence can be calculated in this step
         # TODO if rotatory strength defined calculate also circular dichroism spectra
@@ -420,6 +434,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             rt = numpy.exp((gg)*ta.data)          
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
+            
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
             
         # Fourier transform the result
         ft = rr*numpy.fft.hfft(at)*ta.step
