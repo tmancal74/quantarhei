@@ -62,6 +62,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
         self._gass_lineshape = False
+        self._gauss_broad = False
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -74,7 +75,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self.rwa = 0.0
 
      
-    def bootstrap(self,rwa=0.0, lab=None, HWHH = None, axis=None):
+    def bootstrap(self,rwa=0.0, lab=None, HWHH = None, axis=None, gauss=None):
         """
         
         """
@@ -87,6 +88,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         if HWHH is not None:  
             self._gass_lineshape = True
             self.HWHH = self.convert_2_internal_u(HWHH)
+        
+        if gauss is not None: 
+            self._gauss_broad = True
+            self.gauss = self.convert_2_internal_u(gauss)
         
         if axis is not None:
             if axis=="x":
@@ -197,6 +202,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         dd = tr["dd"] # transition dipole strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         # CD and fluorescence can be calculated in this step
         # TODO if rotatory strength defined calculate also circular dichroism spectra
@@ -229,6 +236,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             rt = numpy.exp((gg)*ta.data)          
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
+            
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
             
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.step
@@ -609,9 +620,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             # correlation function
             ct = self.system.get_egcf((0,1))   
             gt = self._c2g(ta,ct.data)
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama}
+            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama,"fwhm":0.0}
         else:
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
+            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
 
         # calculates the one transition of the monomer        
         data = numpy.real(self.one_transition_spectrum_abs(tr))
@@ -668,12 +679,14 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         axis = FrequencyAxis(st,Nt,do) 
         
         # TimeAxis
-        tr = {"ta":ta, "fa":axis}
+        tr = {"ta":ta, "fa":axis, "fwhm": 0}
         
         # If gaussian groadening is specified calculate also spectra
         if self._gass_lineshape:
             tr["HWHH"] = self.HWHH
         
+        if self._gauss_broad:
+            tr["fwhm"] = self.gauss
         
         if relaxation_tensor is not None:
             RR = relaxation_tensor
