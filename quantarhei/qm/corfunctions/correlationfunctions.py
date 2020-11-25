@@ -663,7 +663,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             if fa is not None:
                 if numpy.all(numpy.isclose(fa.data, frequencies.data, 1e-5)):
-                    time = ta
+                    #time = ta
+                    pass
                 else:
                     raise Exception("The provided FrequencyAxis does not "
                                     + "have the same data as the Fourier "

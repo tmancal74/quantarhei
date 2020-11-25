@@ -35,6 +35,7 @@ class PumpProbeSpectrum(DFunction):
     def __init__(self):
         self.t2 = -1.0
         self.data = None
+        self._has_imag = False
         
     def set_axis(self, axis):
         self.xaxis = axis
