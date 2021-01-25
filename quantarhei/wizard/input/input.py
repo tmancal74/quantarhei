@@ -8,7 +8,7 @@ import re
 
 #
 # The code below is here to test against arbitrary code execution during
-# evaluation of math expressions in yaml confuguration files
+# evaluation of math expressions in yaml configuration files
 #
 def ahoj(a):
     import numpy
@@ -144,6 +144,8 @@ class Input(object):
                     val = self.string_2_float_prop(val)
                     setattr(self, cnv, val)
            
+        self.find_usecases()    
+           
         if show_input:
             print("\nInput file summary:\n")
             print(self.data)
@@ -192,5 +194,51 @@ class Input(object):
         
         yaml.dump(self.data, open(filename, "w"), default_flow_style=False)
                 
+
+    def find_usecases(self):
+        """Finds replacements for values defined in the input file
+    
+        This function deplaces values of some input parameters by the values
+        predefined in the "define_usecases" construct.
+    
+        Parameters
+        ----------
+    
+        inpt: input
+            The input object constructed from the configuration file.
+    
+        """
+        defined_usecases = self.define_usecases["usecases"]
+        definitions = self.define_usecases["definitions"]
+        du_Number = len(defined_usecases)
+        print()
+        print("Found", du_Number, "defined usecase(s)")
+        for duname in defined_usecases:
+            #print("Usecase", "'"+duname+"'","has possible values:")
+            defs = definitions[duname]["values"]
+            vars = definitions[duname]["variables"]
+            cass = definitions[duname]["cases"]
+            for df in defs:
+                #print(df,":")
+                kk = 0
+                for var in vars:
+                    #print(var, "=", cass[df][kk])
+                    kk += 1
+    
+            try:
+                usecase_value = getattr(self, duname)
+            except:
+                usecase_value = None
+    
+            if usecase_value is not None:
+                print()
+                print("Replacing for usecase:", duname)
+                print("with the value of:", usecase_value)
+                kk = 0
+                for var in vars:
+                    print(var, "=", cass[usecase_value][kk])
+                    setattr(self, var, cass[usecase_value][kk])
+                    kk += 1
+    
 
 
