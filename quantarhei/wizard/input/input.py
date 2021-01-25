@@ -208,11 +208,15 @@ class Input(object):
             The input object constructed from the configuration file.
     
         """
-        defined_usecases = self.define_usecases["usecases"]
-        definitions = self.define_usecases["definitions"]
-        du_Number = len(defined_usecases)
-        print()
-        print("Found", du_Number, "defined usecase(s)")
+        try:
+            defined_usecases = self.define_usecases["usecases"]
+            definitions = self.define_usecases["definitions"]
+            du_Number = len(defined_usecases)
+            print()
+            print("Found", du_Number, "defined usecase(s)")
+        except:
+            defined_usecases = []
+        
         for duname in defined_usecases:
             #print("Usecase", "'"+duname+"'","has possible values:")
             defs = definitions[duname]["values"]
