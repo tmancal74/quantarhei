@@ -109,6 +109,12 @@ def do_command_run(args):
 
 
     #
+    # Driver for MPI (-d option)
+    #
+    if args.driver:
+        driver_name = args.driver
+
+    #
     # if the file is yaml, look into it to find the script file name
     #
     # get the file extension
@@ -176,7 +182,7 @@ def do_command_run(args):
         except (ImportError, NotImplementedError):
             pass        
         
-        prl_exec = "mpirun"
+        prl_exec = driver_name
         prl_n = "-n"
         prl_h = ""
         if len(hostfile) > 0:
@@ -608,6 +614,9 @@ def main():
                           help="executes the code in parallel")
     parser_run.add_argument("-n", "--nprocesses", type=int, default=0,
                           help="number of processes to start")
+    parser_run.add_argument("-d", "--driver", type=str, 
+                          default="mpirun", help="driver command, e.g."
+                          +" for MPI.")
     parser_run.add_argument("-f", "--hostfile", metavar="HOSTFILE", 
                             default="", help="list of available"
                             +" host for parallel calculation")
