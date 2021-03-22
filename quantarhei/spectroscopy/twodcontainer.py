@@ -710,7 +710,7 @@ class TwoDResponseContainer(Saveable):
                    stype=signal_TOTL, spart=part_REAL, 
                    cmap=None, 
                    Npos_contours=10,
-                   vmax=None,
+                   vmax=None, vmin_ratio=0.5,
                    xlabel=None,
                    ylabel=None,
                    axis_label_font=None,
@@ -792,7 +792,8 @@ class TwoDResponseContainer(Saveable):
                 if show_states_func is not None:
                     show_states = show_states_func(sp)
 
-                sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx, 
+                sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx,
+                        vmin_ratio=vmin_ratio,
                         Npos_contours=Npos_contours,
                         stype=stype,spart=spart,
                         show_states=show_states,

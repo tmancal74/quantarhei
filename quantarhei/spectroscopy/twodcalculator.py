@@ -451,14 +451,20 @@ class TwoDResponseCalculator:
                 rSEWT=resp_Rsewt, nSEWT=resp_Nsewt,
                 rESAWT=resp_Resawt, nESAWT=resp_Nesawt)
 
-
-        ftresp = numpy.fft.fft(resp_r,axis=1)
-        ftresp = numpy.fft.ifft(ftresp,axis=0)
+        # FIXME: This only applies when 
+        resp_r[:,0] = resp_r[:,0]*0.5
+        resp_n[:,0] = resp_n[:,0]*0.5
+        resp_r[0,:] = resp_r[0,:]*0.5
+        resp_n[0,:] = resp_n[0,:]*0.5       
+        
+        ftresp = numpy.fft.fft(resp_r,axis=1)   # \omega_1
+        ftresp = numpy.fft.ifft(ftresp,axis=0)  # \omega_3        
         reph2D = numpy.fft.fftshift(ftresp)
         
-        ftresp = numpy.fft.ifft(resp_n,axis=1)
-        ftresp = numpy.fft.ifft(ftresp,axis=0)*ftresp.shape[1]
+        ftresp = numpy.fft.ifft(resp_n,axis=1)*ftresp.shape[1]  # \omega_1
+        ftresp = numpy.fft.ifft(ftresp,axis=0)                  # \omega_3
         nonr2D = numpy.fft.fftshift(ftresp)
+
 
         onetwod.set_resolution("signals")
         onetwod._add_data(reph2D, dtype=signal_REPH)
