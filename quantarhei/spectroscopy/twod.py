@@ -329,12 +329,19 @@ class TwoDSpectrum(DataSaveable, Saveable):
             raise Exception("Unknown data part")
 
 
-    def get_area_max(self, area, dpart=part_REAL):
+    def get_area_max(self, area, dpart=part_REAL, loc=None):
         """Returns a max value in a given area in the 2D spectrum
         
         """
         def find_in_square(x1, x2, y1, y2, data, dx, dy):
             return numpy.amax(data)
+        
+        def loc_in_square(x1, x2, y1, y2, data, dx, dy):
+            loc = numpy.unravel_index(numpy.argmax(data),
+                                      data.shape)
+            x = x1 + loc[1]*dx
+            y = y1 + loc[0]*dy
+            return (x,y)
         
         area_shape = area[0]
         x1 = area[1][0]
@@ -349,6 +356,11 @@ class TwoDSpectrum(DataSaveable, Saveable):
         (nx2, derr) = self.xaxis.locate(x2)
         (ny1, derr) = self.yaxis.locate(y1)
         (ny2, derr) = self.yaxis.locate(y2)
+
+        x1 = self.xaxis.data[nx1]
+        x2 = self.xaxis.data[nx2]
+        y1 = self.yaxis.data[ny1]
+        y2 = self.yaxis.data[ny2]
         
         if area_shape == "square":
             int_fce = find_in_square
@@ -358,6 +370,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         data = self.data[ny1:ny2, nx1:nx2]
         
         if dpart == part_REAL:
+            if loc is not None:
+                loc.append(loc_in_square(x1, x2, y1, y2, data, dx, dy))
             return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
         elif dpart == part_IMAGINARY:
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
@@ -849,7 +863,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """Saves the fige of the plot into a file
         
         """
-        plt.savefig(filename)
+        plt.savefig(filename, bbox_inches="tight")
             
 
     def trim_to(self, window=None):
