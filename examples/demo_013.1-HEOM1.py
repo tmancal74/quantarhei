@@ -19,7 +19,7 @@ print(
   
 *******************************************************************************
   
-  This script should use Quantarhei package ver. 0.0.45 or newer
+  This script should use Quantarhei package ver. 0.0.45 and older
   
 """)
 print("  Current version of Quantarhei:", qr.Manager().version)
@@ -34,7 +34,7 @@ _show_plots_ = True
 _repeate_ = True
 
 # fit selected decays to assign decay time
-_fit_ = False
+_fit_ = True
 
 ###############################################################################
 #
@@ -190,6 +190,7 @@ for J in Js:
             plt.show()
     # population decay in site basis
     pop_s[:] = numpy.real(rhot.data[:,2,2])    
+    
     
     #
     # Plotting density matrix in site basis
