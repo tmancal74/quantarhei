@@ -77,7 +77,8 @@ class AggregateBase(UnitsManaged, Saveable):
         
         self.coupling_initiated = False #
         self.resonance_coupling = None
-        
+        self._has_velocity_dipoles = False       
+ 
         if molecules is not None:
             for m in molecules:
                 self.add_Molecule(m)
@@ -2093,7 +2094,7 @@ class AggregateBase(UnitsManaged, Saveable):
                     if mon1 != -1 and mon2 != -1:
                         da = self.transition_dipole(s0, s1)
                         db = self.transition_dipole(s0, s2)
-                        ma = self.transition_magnetic(s0, s1)
+                        mb = self.transition_magnetic(s0, s2)
                         Ra = numpy.array(self.monomers[mon1].position,"f8")
                         # alternative definition of rotatory strength
                         #Rb = numpy.array(self.monomers[mon2].position,"f8")
@@ -2103,10 +2104,12 @@ class AggregateBase(UnitsManaged, Saveable):
                         # for energy in current units use s1.energy()
                         try:
                             dav = self.transition_velocity_dipole(s0, s1)
+                            self._has_velocity_dipoles = True
                         except:
                             dav = -1j*Ea*da
                         RRv[a,b] = numpy.real(1j*numpy.dot(Ra, numpy.cross(dav,db)))
-                        RRm[a,b] = numpy.real(1j*numpy.dot(db,ma))
+                        RR[a,b] = numpy.dot(Ra, numpy.cross(da, db)) 
+                        RRm[a,b] = numpy.real(numpy.dot(dav,mb))
                 except:
                     pass
                 

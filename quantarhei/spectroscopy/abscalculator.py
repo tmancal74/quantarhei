@@ -62,6 +62,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
         self._gass_lineshape = False
+        self._gauss_broad = False
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -74,7 +75,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self.rwa = 0.0
 
      
-    def bootstrap(self,rwa=0.0, lab=None, HWHH = None, axis=None):
+    def bootstrap(self,rwa=0.0, lab=None, HWHH = None, axis=None, gauss=None):
         """
         
         """
@@ -87,6 +88,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         if HWHH is not None:  
             self._gass_lineshape = True
             self.HWHH = self.convert_2_internal_u(HWHH)
+        
+        if gauss is not None: 
+            self._gauss_broad = True
+            self.gauss = self.convert_2_internal_u(gauss)
         
         if axis is not None:
             if axis=="x":
@@ -197,6 +202,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         dd = tr["dd"] # transition dipole strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         # CD and fluorescence can be calculated in this step
         # TODO if rotatory strength defined calculate also circular dichroism spectra
@@ -230,6 +237,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
             
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
+            
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.step
         ft = numpy.fft.fftshift(ft)
@@ -250,6 +261,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         ld = tr["ld"] # linear dichroism strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         if self.system._has_system_bath_coupling:
 #            ct = tr["ct"] # correlation function
@@ -273,6 +286,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             rt = numpy.exp((gg)*ta.data)          
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
+            
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
             
         # Fourier transform the result
         ft = ld*numpy.fft.hfft(at)*ta.step
@@ -323,6 +340,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         dd = tr["dd"] # transition dipole strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         # CD and fluorescence can be calculated in this step
         # TODO if rotatory strength defined calculate also circular dichroism spectra
@@ -357,6 +376,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
             
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
+            
         # Fourier transform the result
         ft = dd*numpy.fft.hfft(at)*ta.step
         ft = numpy.fft.fftshift(ft)
@@ -377,6 +400,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         rr = tr["rr"] # transition dipole strength
         om = tr["om"] # frequency - rwa
         gg = tr["gg"] # natural broadening (constant or time dependent)
+        fwhm = tr["fwhm"] # Additional gaussian broadening of the spectra
+        sgm = fwhm/(2*numpy.sqrt(2*numpy.log(2)))
         
         # CD and fluorescence can be calculated in this step
         # TODO if rotatory strength defined calculate also circular dichroism spectra
@@ -409,6 +434,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             rt = numpy.exp((gg)*ta.data)          
             at *= rt
             #print("Time dependent: len = ", rt[20], len(rt))
+            
+        if fwhm!=0.0:
+            gauss = numpy.exp(-2*(numpy.pi**2)*(sgm**2)*(ta.data**2))
+            at *= gauss
             
         # Fourier transform the result
         ft = rr*numpy.fft.hfft(at)*ta.step
@@ -579,10 +608,19 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 #        DD_vel = self.system.DD[0].copy()
 #        for ii in range(1:DD_vel.shape[0]):
 #            DD_vel[ii] *= -self.system.HH[ii,ii]
-#        
-        for ii in range(AG.Ntot):
-            for jj in range(AG.Ntot):
-                Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
+#       
+
+        if AG._has_velocity_dipoles:
+            Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n]
+        else:
+            #Rot_n = energy[n]*numpy.dot(SS[:,n],numpy.dot(AG.RR+AG.RRm,SS[:,n]))
+            Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRv,SS[:,n]))
+        #Rot_n = energy[n]*numpy.dot(SS[:,n],numpy.dot(AG.RR+AG.RRm,SS[:,n]))
+      
+       # Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n]
+       # for ii in range(AG.Ntot):
+       #     for jj in range(AG.Ntot):
+       #         Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
 #        
 #        for ii in range(AG.Ntot):
 #            for jj in range(AG.Ntot):
@@ -609,9 +647,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             # correlation function
             ct = self.system.get_egcf((0,1))   
             gt = self._c2g(ta,ct.data)
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama}
+            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama,"fwhm":0.0}
         else:
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
+            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
 
         # calculates the one transition of the monomer        
         data = numpy.real(self.one_transition_spectrum_abs(tr))
@@ -668,12 +706,14 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         axis = FrequencyAxis(st,Nt,do) 
         
         # TimeAxis
-        tr = {"ta":ta, "fa":axis}
+        tr = {"ta":ta, "fa":axis, "fwhm": 0}
         
         # If gaussian groadening is specified calculate also spectra
         if self._gass_lineshape:
             tr["HWHH"] = self.HWHH
         
+        if self._gauss_broad:
+            tr["fwhm"] = self.gauss
         
         if relaxation_tensor is not None:
             RR = relaxation_tensor
@@ -714,7 +754,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # get rotatory strength
         tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,1)
         #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
-#        print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+ #       print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
         dip = DD.data[0,1]
         tr["ld"] = (3*(numpy.dot(dip,self.ld_axis))**2 - tr["dd"]) # *3/2
         #tr["ld"] = 3*(DD.  # *3/2
