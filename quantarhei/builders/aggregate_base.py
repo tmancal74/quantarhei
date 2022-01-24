@@ -2106,6 +2106,7 @@ class AggregateBase(UnitsManaged, Saveable):
                         except:
                             dav = -1j*Ea*da
                         RRv[a,b] = numpy.real(1j*numpy.dot(Ra, numpy.cross(dav,db)))
+                        RR[a,b] = numpy.dot(Ra, numpy.cross(da, db))
                         RRm[a,b] = numpy.real(1j*numpy.dot(db,ma))
                 except:
                     pass

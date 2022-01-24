@@ -608,10 +608,14 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 #        DD_vel = self.system.DD[0].copy()
 #        for ii in range(1:DD_vel.shape[0]):
 #            DD_vel[ii] *= -self.system.HH[ii,ii]
-#        
-        for ii in range(AG.Ntot):
-            for jj in range(AG.Ntot):
-                Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
+#       
+
+
+        Rot_n = energy[n]*numpy.dot(SS[:,n],numpy.dot(AG.RR,SS[:,n]))
+#        for ii in range(AG.Ntot):
+#            for jj in range(AG.Ntot):
+#                Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
+
 #        
 #        for ii in range(AG.Ntot):
 #            for jj in range(AG.Ntot):
@@ -745,7 +749,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # get rotatory strength
         tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,1)
         #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
-#        print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+        #print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
         dip = DD.data[0,1]
         tr["ld"] = (3*(numpy.dot(dip,self.ld_axis))**2 - tr["dd"]) # *3/2
         #tr["ld"] = 3*(DD.  # *3/2
