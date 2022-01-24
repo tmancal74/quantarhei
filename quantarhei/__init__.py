@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
     Quantarhei User Level Classes and Objects
     =========================================
@@ -19,7 +19,7 @@
 
     >>> manager = qr.Manager()
     >>> print(manager.version)
-    0.0.54
+    0.0.63
 
     The list of user level classes is provided below. Tue latest and most
     uptodate information can be obtained by viewing the source code of the 
@@ -244,6 +244,10 @@ from .core.parallel import start_parallel_region
 from .core.parallel import close_parallel_region
 from .core.parallel import parallel_function
 from .core.parallel import block_distributed_range
+from .core.parallel import block_distributed_list
+from .core.parallel import block_distributed_array
+from .core.parallel import collect_block_distributed_data
+from .core.parallel import asynchronous_range
 
 ###############################################################################
 #                            SPECTROSCOPY
@@ -294,6 +298,7 @@ from .spectroscopy.pumpprobe import MockPumpProbeSpectrumCalculator
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
 from .spectroscopy.labsetup import LabSetup
+from .spectroscopy.labsetup import EField
 
 ###############################################################################
 #                           QUANTUM MECHANICS
@@ -308,6 +313,7 @@ from .qm import DensityMatrix
 from .qm import ReducedDensityMatrix
 from .qm import BasisReferenceOperator
 from .qm import Hamiltonian
+from .qm import Liouvillian
 from .qm import TransitionDipoleMoment
 from .qm import UnityOperator
 
@@ -387,14 +393,64 @@ def exit(msg=None):
     sys.exit()
 
 
-def stop():
+def stop(msg=None):
     """Stop execution and leave to level above
     
     """
+
     exit("Execution stopped")
     
     
     
 def show_plot(block=True):
+    """Shows current plot
+    
+    This function is used to avoid explicit import of matplotlib
+    """
     import matplotlib.pyplot as plt
     plt.show(block=block)
+
+
+
+def savefig(fname):
+    """Saves current plot to a file
+    
+    This function is used to avoid explicit import of matplotlib
+    """
+    import matplotlib.pyplot as plt
+    plt.savefig(fname)    
+
+
+def assert_version(check, vno):
+    """Throws an exception if the condition is not satisfied
+    
+    """
+    from packaging import version
+    
+    def ext():
+        exit("Version requirement not satisfied.")
+
+    if check == ">=":
+        if not (version.parse(Manager().version) >= version.parse(vno)):
+            ext()
+            
+    elif check == "==":
+         if not (version.parse(Manager().version) == version.parse(vno)):
+            ext()
+            
+    elif check == "<=":
+        if not (version.parse(Manager().version) <= version.parse(vno)):
+            ext()
+
+    elif check == ">":
+        if not (version.parse(Manager().version) == version.parse(vno)):
+            ext()
+            
+    elif check == "<=":
+        if not (version.parse(Manager().version) >= version.parse(vno)):
+            ext()
+            
+    else:
+        raise Exception("Unknown comparison operator `"+check+"`")
+        
+    

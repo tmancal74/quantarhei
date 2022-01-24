@@ -1,9 +1,8 @@
 [run]
-source=quantarhei
-omit=
-   ./tests/*
-   ./quantarhei/*
+parallel = True
+source = quantarhei
+omit =
+   ./tests/*_
 
 [report]
 precision=2
-

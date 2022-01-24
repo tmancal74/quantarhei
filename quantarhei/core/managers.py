@@ -80,11 +80,8 @@ class Manager(metaclass=Singleton):
     """ Main package Manager
 
     """
-    
 
-
-    #version = "0.0.11"
-    version = pkg_resources.require("quantarhei")[0].version
+    version = "0.0.64"
 
     # hard wired unit options
     allowed_utypes = ["energy",
@@ -1112,6 +1109,4 @@ def set_current_units(units=None):
                 manager.set_current_units(utype,manager.internal_units[utype])
             else:
                 raise Exception("Unknown units type %s" % utype)
-        
-        
         

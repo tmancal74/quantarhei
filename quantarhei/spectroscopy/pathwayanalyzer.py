@@ -84,6 +84,12 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         """
         return self.pathways
     
+    def get_number_of_pathways(self):
+        """Returns the number of available pathways
+        
+        """
+        return(len(self.pathways))
+    
     
     @deprecated
     def max_pref(self, pathways):
@@ -272,7 +278,6 @@ def max_amplitude(pathways):
         position of the pathway with the maximum prefactor
     
     """
-    
     pmax = 0.0
     k = 0
     rec = -1
@@ -379,9 +384,6 @@ def select_omega2(interval, pathways, secular=True,
         if ne > 4:
             # check previous frequency (feeding)
             om2_2 =  pway.get_interval_frequency(ne-4)
-            #print("om2 = ", om2)
-            #print("before = ", om2_2)
-            #print("diff   = ", numpy.abs(om2-om2_2), "(tol: ", tolerance, ")")
         
             if secular:
                 # case with feeding frequency small

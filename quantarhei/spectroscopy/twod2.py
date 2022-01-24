@@ -626,7 +626,7 @@ def twod_data_wrapper(dtype):
                 raise TypeError(
                 'Value must be either a list or numpy.array')
         else:  
-            raise Exception("`data` property if for reading only")
+            raise Exception("`data` property is for reading only")
         
     return prop
 

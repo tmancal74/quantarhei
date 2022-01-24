@@ -668,7 +668,7 @@ class AggregateSpectroscopy(AggregateBase):
 
     
     def liouville_pathways_3T(self, ptype="R3g", eUt=None, ham=None, t2=0.0,
-                              dtol=0.001, ptol=1.0e-3, etol=1.0e-6,
+                              dtol=1.0e-12, ptol=1.0e-3, etol=1.0e-6,
                               verbose=0, lab=None):
         """ Generator of Liouville pathways with energy transfer
         
@@ -1526,7 +1526,13 @@ def generate_R4g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
                 
                 if verbose > 1: 
                     print("Excited state: ", i2e, "of", len(nes))
+                    
+                    #if i2e == 4:
+                    #    print("Changing verbosity to 10")
+                    #    verbose = 10
+                        
 
+                #print(self.D2[i2e,i1g], dip_tol, self.D2[i2e,i1g] > dip_tol)
                 if self.D2[i2e,i1g] > dip_tol:
 
                     for i3g in ngs:
@@ -1605,6 +1611,10 @@ def generate_R4g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
                                     lp.build()
                                     lst.append(lp)
                                     k += 1
+                #if verbose == 10:
+                #    print("////")
+                #    qr.stop()                    
+                    
 
 def generate_R1f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
     

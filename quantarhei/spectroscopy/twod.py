@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import warnings
+
 import numpy
 import matplotlib.pyplot as plt
 
@@ -178,9 +180,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
         (ix, dist) = self.xaxis.locate(x0)
         
         ay = self.yaxis
-        vals = numpy.zeros(ay.length, dtype=self.d__data.dtype)
+        vals = numpy.zeros(ay.length, dtype=self.data.dtype)
         for ii in range(ay.length):
-            vals[ii] = self.d__data[ii, ix]
+            vals[ii] = self.data[ii, ix]
     
         return DFunction(ay, vals)   
     
@@ -327,6 +329,58 @@ class TwoDSpectrum(DataSaveable, Saveable):
             raise Exception("Unknown data part")
 
 
+    def get_area_max(self, area, dpart=part_REAL, loc=None):
+        """Returns a max value in a given area in the 2D spectrum
+        
+        """
+        def find_in_square(x1, x2, y1, y2, data, dx, dy):
+            return numpy.amax(data)
+        
+        def loc_in_square(x1, x2, y1, y2, data, dx, dy):
+            loc = numpy.unravel_index(numpy.argmax(data),
+                                      data.shape)
+            x = x1 + loc[1]*dx
+            y = y1 + loc[0]*dy
+            return (x,y)
+        
+        area_shape = area[0]
+        x1 = area[1][0]
+        x2 = area[1][1]
+        y1 = area[1][2]
+        y2 = area[1][3]
+        
+        dx = self.xaxis.step
+        dy = self.yaxis.step
+        
+        (nx1, derr) = self.xaxis.locate(x1)
+        (nx2, derr) = self.xaxis.locate(x2)
+        (ny1, derr) = self.yaxis.locate(y1)
+        (ny2, derr) = self.yaxis.locate(y2)
+
+        x1 = self.xaxis.data[nx1]
+        x2 = self.xaxis.data[nx2]
+        y1 = self.yaxis.data[ny1]
+        y2 = self.yaxis.data[ny2]
+        
+        if area_shape == "square":
+            int_fce = find_in_square
+        else:
+            raise Exception("Unknown area type: "+area_shape)   
+            
+        data = self.data[ny1:ny2, nx1:nx2]
+        
+        if dpart == part_REAL:
+            if loc is not None:
+                loc.append(loc_in_square(x1, x2, y1, y2, data, dx, dy))
+            return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
+        elif dpart == part_IMAGINARY:
+            return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
+        elif dpart == part_ABS:
+            return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
+        else:
+            raise Exception("Unknown data part")
+
+
     def normalize2(self, norm=1.0, dpart=part_REAL, nmax=None, use_max=False):
         """Normalizes the spectrum to the given maximum.
         
@@ -363,7 +417,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
             nmax.append(mx)
             if not use_max:
                 mx = nmax[0]
-        self.data = (self.data/mx)*norm
+        if mx != 0.0:
+            self.data = (self.data/mx)*norm
         
     
     def devide_by(self, val):
@@ -686,13 +741,16 @@ class TwoDSpectrum(DataSaveable, Saveable):
         #
         
         # positive contours are always plotted
+        warnings.filterwarnings("error")
+        
         try:
             plt.contour(self.xaxis.data[i1_min:i1_max],
                      self.yaxis.data[i3_min:i3_max],
                      realout, levels=poslevels, colors="k")
                      #linewidth=1)
         except:
-            print("No positive contours found; not plotted")
+            pass
+            #print("No positive contours found; not plotted")
               
         # other contours only if we do not plot absolute values
         if spart != "abs":
@@ -703,7 +761,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
                          realout, levels=[0],colors="b")
                          #linewidth=1)
             except:
-                print("Zero contour not found; not plotting")
+                pass
+                #print("Zero contour not found; not plotting")
         
         
             # negative contours
@@ -713,7 +772,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
                          realout, levels=neglevels, colors="k")
                          #linewidth=1) 
             except:
-                print("Negative contour not found; not plotting")
+                pass
+                #print("Negative contour not found; not plotting")
+        
+        warnings.resetwarnings()
         
         #
         # Color bar presence
@@ -801,7 +863,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """Saves the fige of the plot into a file
         
         """
-        plt.savefig(filename)
+        plt.savefig(filename, bbox_inches="tight")
             
 
     def trim_to(self, window=None):
