@@ -173,6 +173,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
 #                        raise Exception("Dictionary of parameters does not contain "
 #                                        +" `ftype` key")                    
         
+                    ftype = prms["ftype"]
+        
                     if ftype == "OverdampedBrownian-HighTemperature":
             
                         self._make_overdamped_brownian_ht(prms) #, values=values)
