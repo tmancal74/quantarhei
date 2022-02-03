@@ -402,15 +402,17 @@ class PumpProbeSpectrumCalculator():
         
         # get Liouville pathways
         if has_ESA:
-            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g", "R1f*", "R2f*",
-                                                   "R1f*E","R1f*E"), 
+            pws = sys.liouville_pathways_3T(ptype=(
+                                                   "R1g", "R2g",        # SE
+                                                   "R3g","R4g",         # GSB
+                                                   "R1f*", "R2f*",      # ESA
+                                                   "R1f*E","R2f*E"),    # Pathways with relaxation to the ground state
                                                    #"R1gE", "R2gE"),
                                                    eUt=eUt, ham=H, t2=t2,
                                                    lab=lab)
         else:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g", "R1f*E","R1f*E"), 
+                                                   "R4g", "R1f*E","R2f*E"), 
                                                    eUt=eUt, ham=H, t2=t2,
                                                    lab=lab)
 
@@ -768,9 +770,25 @@ class PumpProbeSpectrumCalculator():
         # Mixed sigle-double excited state correlation functions
         for el1 in elst:
             for el2 in elstd:
-                equal = numpy.where(AG.elsigs[el1] == AG.elsigs[el2])[0]
-                if equal.size == 1:
-                    coft = cfm.get_coft(el1-1,el1-1) # DFunction(cfm.timeAxis,)
+                #equal = numpy.where(AG.elsigs[el1] == AG.elsigs[el2])[0]
+                #if equal.size == 1:
+                    #coft = cfm.get_coft(el1-1,el1-1) # DFunction(cfm.timeAxis,)
+                    #goft = DFunction(cfm.timeAxis,self._c2g(cfm.timeAxis,coft))
+                    #goft_t3tau = goft.at(self.t3axis.data + tau)
+                    #for kk in AG.vibindices[el1]:
+                        #for ll in AG.vibindices[el2]:
+                            #for n in range(AG.Nb[0], AG.Nb[0]+AG.Nb[1]):
+                                #for m in range(numpy.sum(AG.Nb[0:2]), numpy.sum(AG.Nb[0:3])):
+                                    #gt3tau[n,m] += ((SS[kk,n]**2)*(SS[ll,m]**2)*goft_t3tau)
+                if el1 in AG.twoex_indx[el2]:
+                    if AG.twoex_indx[el2,0] == el1:
+                        el_exct = AG.twoex_indx[el2,0]
+                        coft = cfm.get_coft(el_exct-1,el_exct-1) # DFunction(cfm.timeAxis,)
+                    elif AG.twoex_indx[el2,1] == el1:
+                        el_exct = AG.twoex_indx[el2,1]
+                        coft = cfm.get_coft(el_exct-1,el_exct-1) # DFunction(cfm.timeAxis,)
+                    #else:
+                        #coft = cfm.get_coft(el1-1,el1-1) # DFunction(cfm.timeAxis,)
                     goft = DFunction(cfm.timeAxis,self._c2g(cfm.timeAxis,coft))
                     goft_t3tau = goft.at(self.t3axis.data + tau)
                     for kk in AG.vibindices[el1]:
@@ -897,6 +915,17 @@ class PumpProbeSpectrumCalculator():
                     Ek = pwy.states[-2][1]
                     Ej = pwy.states[1][0]
                     
+#                    ######### TEST  ###########
+#                    sbi = self.system.get_SystemBathInteraction()
+#                    # CorrelationFunctionMatrix
+#                    cfm = sbi.CC
+#                    coft = cfm.get_coft(0,0)
+#                    goft1 = DFunction(cfm.timeAxis,self._c2g(cfm.timeAxis,coft))
+#                    coft = cfm.get_coft(1,1)
+#                    goft2 = DFunction(cfm.timeAxis,self._c2g(cfm.timeAxis,coft))
+#                    ###########################
+                    
+                    
                     ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
                     
                     if 0:   # Safer (smaller numerical errors), but slower
@@ -912,18 +941,25 @@ class PumpProbeSpectrumCalculator():
                                     + gt3tau[Fl,Ej] - numpy.conj(gt3tau[Fl,Ek]))
                     ft -= gt1 + gt2 + gt3
                     
-#                    gt2 = self._c2g(self.t3axis,
-#                                    ct3tau[Ej,Ej] - numpy.conj(ct3tau[Ej,Ek])
-#                                    - ct3tau[Fl,Ej] + numpy.conj(ct3tau[Fl,Ek]))
-#                                    
-#                    gt3 = self._c2g(self.t3axis,
-#                                    numpy.conj(ct3tau[Ek,Ek]) - ct3tau[Ek,Ej]
-#                                    + ct3tau[Fl,Ej] - numpy.conj(ct3tau[Fl,Ek]))
-#
-#
-#                    ft -= gt1 + gt2[0] + gt3
-##                    ft2 = -gt3s[Fl,Fl,:] - numpy.conj(gt3s[Ek,Ek,:]) - 1j*om*self.t3axis.data - 1j*omtau*tau
-##                    print(tau,convert(pwy.frequency[-2],"int","nm"),convert(pwy.frequency[-2],"int","1/cm"),numpy.isclose(ft,ft2).all())
+#                    if tau == 0.0:
+#                        print(Ej,Ek,Fl)
+#                        
+#                        ft2 = (goft1.data[:ft.size] - SS[1,2]**2*numpy.conj(goft1.data[:ft.size])) * SS[2,2]**2
+#                        ft2 += (goft2.data[:ft.size] - SS[2,2]**2*numpy.conj(goft2.data[:ft.size])) * SS[1,2]**2
+#                        print("real:",numpy.isclose(numpy.real(gt1 + gt2 + gt3),numpy.real(ft2)))
+#                        print("imag:",numpy.isclose(numpy.imag(gt1 + gt2 + gt3),numpy.imag(ft2)))
+#                        if Ej==2 and Ek==2:
+#                            print("real:",numpy.real(gt1 + gt2 + gt3))
+#                            print("real:",numpy.real(ft2))
+#                            print("imag:",numpy.imag(gt1 + gt2 + gt3))
+#                            print("imag:",numpy.imag(ft2))
+#                            print(gt2)
+#                            print(gt3tau.shape)
+#                            print(goft2.data.size)
+#                            print(ft.size)
+#                            print(om)
+
+
                     ppspec += pref*numpy.exp(ft)
 
 #        end = time.time()
