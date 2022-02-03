@@ -73,6 +73,8 @@ class LabSetup:
         self.pulse_t = [None]*nopulses
         self.pulse_f = [None]*nopulses
         
+        self.dscaling = None
+        
         self.omega = None
         
                         

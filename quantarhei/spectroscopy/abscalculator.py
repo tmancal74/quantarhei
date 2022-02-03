@@ -641,7 +641,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # dipole^2
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
-        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
+        gama = [0.0] #[-1.0/self.system.get_electronic_natural_lifetime(1)]
             
         if self.system._has_system_bath_coupling:
             # correlation function
