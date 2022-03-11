@@ -269,7 +269,8 @@ class PumpProbeSpectrumCalculator():
                  dynamics="secular",
                  relaxation_tensor=None,
                  rate_matrix=None,
-                 effective_hamiltonian=None):
+                 effective_hamiltonian=None,
+                 separate_relax_pwy=True):
             
             
         self.t2axis = t2axis
@@ -280,6 +281,9 @@ class PumpProbeSpectrumCalculator():
         
         #FIXME: properties to be protected
         self.dynamics = dynamics
+        
+        # whether to treat differently pwy with jumps or not
+        self._separate_relax = separate_relax_pwy 
         
         # unprotected properties
         self.data = None
@@ -862,14 +866,17 @@ class PumpProbeSpectrumCalculator():
             
             if pwy.pathway_name not in ["R1f*", "R2f*"]:
 #                pass
-                if _is_relax and _is_jump: # Pathways with relaxation
+                if _is_relax and _is_jump and self._separate_relax: # Pathways with relaxation
                     n = pwy.states[-2][0]
                     #print(om,n,pwy.states[2],pwy.relaxations[0],pwy.pathway_name)
                     ppspec += pref*numpy.exp(-gt3s[n,n] - 1j*om*self.t3axis.data)
                 
                 else:   # Pathways without relaxation                    
                     if pwy.pathway_name in ["R1g","R2g"]: # Stimulated emission
-                        state = pwy.states[1]
+                        if _is_relax:
+                            state = pwy.states[-3]
+                        else:
+                            state = pwy.states[1]
                         ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
 #                        coft = (ct3tau[state[0],state[0]] 
 #                                 - numpy.conj(ct3tau[state[0],state[1]])
@@ -898,7 +905,7 @@ class PumpProbeSpectrumCalculator():
                         ft -= gt3s[n,n]
                         ppspec += pref*numpy.exp(ft)
             else:
-                if _is_relax and _is_jump: # Pathways with relaxation
+                if _is_relax and _is_jump and self._separate_relax: # Pathways with relaxation
                     # Ecxited state absorption
                     n = pwy.states[-2][0]
                     m = pwy.states[-2][1]
@@ -910,10 +917,12 @@ class PumpProbeSpectrumCalculator():
                     
                 else:   # Pathways without relaxation
                     # Ecxited state absorption
-                    pass
                     Fl = pwy.states[-2][0]
                     Ek = pwy.states[-2][1]
-                    Ej = pwy.states[1][0]
+                    if _is_relax:
+                        Ej = pwy.states[-3][0]
+                    else:
+                        Ej = pwy.states[1][0]
                     
 #                    ######### TEST  ###########
 #                    sbi = self.system.get_SystemBathInteraction()
