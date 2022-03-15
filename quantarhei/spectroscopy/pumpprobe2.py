@@ -3,9 +3,7 @@
 import numpy
 import scipy
 
-from .twod2 import TwoDSpectrum
 from .twodcontainer import TwoDSpectrumContainer
-from .twodcalculator import TwoDResponseCalculator as TwoDSpectrumCalculator
 from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
 from ..core.dfunction import DFunction
 from ..core.managers import Manager
@@ -356,7 +354,49 @@ class PumpProbeSpectrumCalculator():
     
     def set_pathways(self, pathways):
         self.pathways = pathways
+    
+    def calculate_all_system_approx(self, sys, rdmt, lab, show_progress=False):
+        """Calculates all 2D spectra for a system and reduced density matrix
+           evolution. The approach assumes no diiference between pathways with
+           jumps and without the jumps.
         
+        """
+        
+        # Check if the magic angle polarization is used
+        if not numpy.isclose(lab.F4eM4[1:],[0,0],atol=1e-6).all():
+            message = "Lab is not set to the magic angle polarization which is" +\
+            "the only supported measurement setting for this calculation. Set " +\
+            "polarization angle between first two pulses and the last two to" +\
+            "54.7356103 deg. and repeat the calculation."
+            raise IOError(message)
+        
+        tcont = PumpProbeSpectrumContainer(t2axis=self.t2axis)
+        
+        kk = 0
+        Nk = self.t2axis.length
+        
+        rdm0 = rdmt.data[0,:,:].copy()
+        
+        printProgressBar(kk,Nk,prefix="     - Progress:",suffix= "Complete", length = 50)
+        
+
+        for T2 in self.t2axis.data:
+            
+            if show_progress:
+                print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
+            
+            rdm = rdmt.data[kk,:,:].copy()
+            ppspec1 = self.calculate_pathways_rdm(rdm0, rdm, T2,lab)
+            
+            tcont.set_spectrum(ppspec1, tag=T2)
+            
+            kk += 1
+            printProgressBar(kk,Nk,prefix="     - Progress:",suffix= "Complete", length = 50)
+            
+        
+        return tcont
+        
+    
     def calculate_all_system(self, sys, eUt, lab, show_progress=False):
         """Calculates all 2D spectra for a system and evolution superoperator
         
@@ -862,7 +902,10 @@ class PumpProbeSpectrumCalculator():
             
             om = pwy.frequency[-2] - self.rwa
             pref = pwy.pref
-            omtau = pwy.frequency[1]
+            if _is_relax:
+                omtau = pwy.frequency[-3]
+            else:
+                omtau = pwy.frequency[1]
             
             if pwy.pathway_name not in ["R1f*", "R2f*"]:
 #                pass
@@ -990,6 +1033,136 @@ class PumpProbeSpectrumCalculator():
         data = self.oa3.data*data
         
         return data
+    
+    def calculate_pathways_rdm(self, rdm0, rdm, tau, lab, ptol=1.0e-6):
+        """Calculate the shape of a Liouville pathway
+            so far implemented only for electronic 
+            aggregate.
+        """
+
+        onepp = PumpProbeSpectrum()
+        onepp.set_axis(self.oa3) 
+
+        SS  = self.system.SS.copy()
+        
+        # precalculate single excited state correlation functions
+        if self.goft_matrix is not None:
+            gt3s = self.goft_matrix
+        else:
+            gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0)
+        gt3tau = self._SE_excitonic_gofts(SS,self.system, tau = tau)
+
+        # initialize the spectra
+        ppspec = numpy.zeros(self.t3axis.length,dtype=numpy.complex128)
+        
+        # Compute the spectra
+        # Make sure that the aggregate was diagonalized or we are working in 
+        # the eigenbais => self.system.DD[nf,ni,:] would be proper transition
+        # dipoles between eigenstates. 
+        dim = self.system.Nb[1] + self.system.Nb[0]
+        
+        # GSB (Ground state bleach)
+        for jj in range(1,dim):
+            pref_GSB = lab.F4eM4[0]
+            pref_GSB *= 2 # There are two pathways leading to the same results R3 and R4 (therefore twice)
+            pref_GSB *= numpy.sum(numpy.diag(rdm0)) # The GSB signal is dependent only on the last state
+                                                          # => prefactor can be computed as a sum before
+            pref_GSB *= numpy.dot(self.system.DD[jj,0,:],self.system.DD[jj,0,:])
+            
+            om = self.system.HH[jj,jj]-self.system.HH[0,0] - self.rwa
+            omtau = 0 # during the t2 time bra and ket both in the ground state
+            
+            ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
+
+            ft -= gt3s[jj,jj]
+            ppspec += pref_GSB*numpy.exp(ft)
+            
+        # SE
+        for ii in range(1,dim):
+           
+            om = self.system.HH[ii,ii]-self.system.HH[0,0] - self.rwa
+            
+            for jj in range(1,dim):
+                if rdm[ii,jj] < ptol:
+                    continue
+
+                state = [ii,jj]
+                omtau = self.system.HH[ii,ii]-self.system.HH[jj,jj]
+                
+                pref_SE = lab.F4eM4[0]
+                pref_SE *= 2 # There are two pathways leading to the same results R1 and R2 (therefore twice)
+                pref_SE *= rdm[ii,jj] # It should include excitation weighted by evolution
+                pref_SE *= numpy.dot(self.system.DD[ii,0,:],self.system.DD[jj,0,:])
+   
+                ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
+
+                gt1 = gt3tau[state[0],state[0]] - numpy.conj(gt3tau[state[0],state[1]])
+                gt2 = numpy.conj(gt3tau[state[1],state[1],0]) - gt3tau[state[0],state[1],0]
+                gt3 = numpy.conj(gt3s[state[1],state[0]])
+                ft -= gt1 + gt2 + gt3
+                
+                ppspec += pref_SE*numpy.exp(ft)
+        
+        # ESA
+        for ii in range(1,dim):
+            for jj in range(1,dim):
+                if numpy.abs(rdm[ii,jj]) < ptol:
+                    continue
+                
+                for ll in range(dim,self.system.Ntot): 
+                    
+                    # Ek Ek      =   jj jj
+                    # Fl Ek      =   ll jj
+                    # Ei Ek      =   ii jj
+                    
+                    om = self.system.HH[ll,ll]-self.system.HH[jj,jj] - self.rwa
+                    omtau = self.system.HH[ii,ii]-self.system.HH[jj,jj]
+                    
+                    pref_ESA = lab.F4eM4[0]
+                    pref_ESA *= 2 # There are two pathways leading to the same results R1* and R2* (therefore twice)
+                    pref_ESA *= rdm[ii,jj] # It should include excitation weighted by evolution
+                    pref_ESA *= numpy.dot(self.system.DD[ll,ii,:],self.system.DD[jj,ll,:])
+                    
+                    
+                    Fl = ll
+                    Ek = jj
+                    Ej = ii
+                    
+                    ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
+                    
+                    gt1 = gt3s[Fl,Fl] - gt3s[Fl,Ek] + gt3s[Ej,Ek] - gt3s[Ej,Fl]
+                        
+                    gt2 = (gt3tau[Ej,Ej,0] - numpy.conj(gt3tau[Ej,Ek,0])
+                                    - gt3tau[Fl,Ej,0] + numpy.conj(gt3tau[Fl,Ek,0]))
+                                    
+                    gt3 = (numpy.conj(gt3tau[Ek,Ek]) - gt3tau[Ek,Ej]
+                                    + gt3tau[Fl,Ej] - numpy.conj(gt3tau[Fl,Ek]))
+                    ft -= gt1 + gt2 + gt3
+                    
+                    ppspec -= pref_ESA*numpy.exp(ft)
+                
+        
+        ppspec = -ppspec
+        
+        
+        # Fourier transform the result
+        ft = numpy.fft.hfft(ppspec)*self.t3axis.step
+        ft = numpy.fft.fftshift(ft)
+        # invert the order because hfft is a transform with -i
+        ft = numpy.flipud(ft)   
+        # cut the center of the spectrum
+        Nt = self.t3axis.length #len(ta.data)        
+        
+        data = numpy.real(ft[Nt//2:Nt+Nt//2])
+
+        data = self.oa3.data*data
+        
+        
+                
+        onepp._add_data(data)
+        onepp.set_t2(tau) 
+                
+        return onepp
 
 def calculate_from_2D(twod):
     """Calculates pump-probe spectrum from 2D spectrum
