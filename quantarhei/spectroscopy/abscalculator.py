@@ -766,6 +766,20 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         rho_eq_exct = self._equilibrium_excit_populations(self.system,
                                                temperature=temperature)
         
+        #eng = numpy.zeros(HH.dim-1)
+        #rho_eq_exct = numpy.zeros(HH.dim)
+        #for ii in range(1,HH.dim):
+            #reorg = self._excitonic_reorg_energy(SS,self.system,ii)
+            #eng[ii-1] = HH.data[ii,ii]-HH.data[0,0]-self.rwa - reorg
+        
+        ## now get equlibrium population on energy levels
+        #for ii in range(1,min(10,HH.dim)):
+            #rho_eq_exct[ii] = numpy.exp(-eng[ii-1]/kB_intK/temperature)
+        #rho_eq_exct/=numpy.sum(rho_eq_exct)
+        #rho_eq_exct = numpy.diag(rho_eq_exct)
+        
+        
+        
 #        print(tr["ct"])
 #        print(max(tr["ct"]))
 #        print(self.one_transition_spectrum(tr))
