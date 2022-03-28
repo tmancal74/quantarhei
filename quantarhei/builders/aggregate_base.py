@@ -2558,8 +2558,58 @@ class AggregateBase(UnitsManaged, Saveable):
                         mapi = self.egcf_matrix.set_correlation_function(cfce,
                                                                      [(l,l)])
 
-                        # FIXME: cross-correlation between double excitons
+                       # FIXME: cross-correlation between double excitons
                         # needs to be handled.
+                        for k in range(self.Nel):
+                            
+                            # Index for the correlation functions (without the ground states)
+                            m = k - Nelg
+                            
+                            # find which monomer(s) is(are) excited
+                            elsig2 = self.elsigs[k]  # eletronic signature of state i
+                            nzr2 = numpy.nonzero(elsig2)[0]
+                            nnzr2 = nzr2.size
+                            
+                            if self.which_band[k] == 1:
+                                # The cross correlation function will be the one with common index
+                                
+                                # which monomer excited
+                                mon2 = self.monomers[nzr2[0]]
+                                # to which state it is excited
+                                exct2 = elsig2[nzr2[0]]
+                                
+                                if k in self.twoex_indx[i]:
+                                    #print("Singlse:",l,m)
+                                    cfce = mon2.get_transition_environment((0,exct2))
+                                    mapi = self.egcf_matrix.set_correlation_function(cfce,
+                                                                     [(l,m)])
+                                    mapi = self.egcf_matrix.set_correlation_function(cfce,
+                                                                     [(m,l)])
+                                    
+                            if (self.which_band[k] == 2) and  (nnzr2!=1) and (i!=k):
+                                mon21 = self.monomers[nzr2[0]]
+                                mon22 = self.monomers[nzr2[1]]
+                                exct21 = elsig2[nzr2[0]]
+                                exct22 = elsig2[nzr2[1]]
+                                
+                                elexcit1 = self.twoex_indx[i]
+                                elexcit2 = self.twoex_indx[k]
+                                
+                                if elexcit1[0] == elexcit2[0] or elexcit1[1] == elexcit2[0]:
+                                    cfce = mon21.get_transition_environment((0,exct21))
+                                    #print("Double:",l,m,"mon:",nzr2[0],"0->",exct21,"|",cfce.data[0:10])
+                                elif elexcit1[0] == elexcit2[1] or elexcit1[1] == elexcit2[1]:
+                                    cfce = mon22.get_transition_environment((0,exct22))
+                                    #print("Double:",l,m,"mon:",nzr2[1],"0->",exct22,"|",cfce.data[0:10])
+                                
+                                #print("Double:",l,m,"mon:",)
+                                
+                                mapi = self.egcf_matrix.set_correlation_function(cfce,
+                                                                     [(l,m)])
+                                    
+                                
+                        
+                        
 
                         if mapi <= 0:
                             raise Exception("Something's wrong")
