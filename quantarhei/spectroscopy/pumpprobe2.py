@@ -1294,7 +1294,7 @@ class PumpProbeSpectrumCalculator():
                     Fl = ll
                     Ek = ii   
 
-                    ft = - 1j*om*self.t3axis.data + 2*1j*( reorg_exct_sd[ii,ll] - reorg_exct[ii])*self.t3axis.data 
+                    ft = - 1j*om*self.t3axis.data + 2*1j*( reorg_exct_sd[Ek,Fl] - reorg_exct[Ek])*self.t3axis.data 
                     ft -= gt3s[Ek,Ek] + gt3s[Fl,Fl] - 2*gt3s[Fl,Ek]
                         
                     ppspec -= pref_ESA*numpy.exp(ft)
