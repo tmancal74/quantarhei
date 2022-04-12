@@ -2,6 +2,7 @@
 
 import numpy
 import scipy
+import copy
 
 from .twodcontainer import TwoDSpectrumContainer
 from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
@@ -275,7 +276,7 @@ class PumpProbeSpectrumCalculator():
         self.t3axis = t3axis
         
         if system is not None:
-            self.system = system
+            self.system = copy.deepcopy(system)
         
         #FIXME: properties to be protected
         self.dynamics = dynamics
@@ -290,6 +291,8 @@ class PumpProbeSpectrumCalculator():
         self._rate_matrix = None
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
+        self._is_adiabatic = False
+        self._adiabatic_noBath = False
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -299,6 +302,7 @@ class PumpProbeSpectrumCalculator():
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
         self.goft_matrix = None
+        self.reorg_matrix = None
         
         # after bootstrap information
         self.lab = None
@@ -310,7 +314,7 @@ class PumpProbeSpectrumCalculator():
         
         self.tc = 0
     
-    def bootstrap(self, rwa=0.0, pathways=None, lab=None, verbose=False):
+    def bootstrap(self, rwa=0.0, pathways=None, lab=None, verbose=False, adiabatic=None):
         """Sets up the environment for pump-probe calculation
         
         """
@@ -330,6 +334,15 @@ class PumpProbeSpectrumCalculator():
         self.verbose = verbose
         self.rwa = Manager().convert_energy_2_internal_u(rwa)
         self.pathways = pathways
+        
+        if adiabatic is not None:
+            if adiabatic != False:
+                self._is_adiabatic = True
+            else:
+                self._is_adiabatic = False
+            
+            if (adiabatic == "SubtractBath") or (adiabatic == "NoBath"):
+                self._adiabatic_noBath = True
         
         with energy_units("int"):
             #atype = self.t3axis.atype
@@ -354,6 +367,99 @@ class PumpProbeSpectrumCalculator():
     
     def set_pathways(self, pathways):
         self.pathways = pathways
+        
+    def bath_reorg(self,cfm,indx):
+        coft = cfm.cfuncs[cfm.get_index_by_where((indx,indx))]
+        reorg_bath = 0.0
+        for parm in coft.params:
+            if parm['ftype'] == 'OverdampedBrownian':
+                reorg_bath += parm['reorg']
+        return reorg_bath
+    
+    def _excitonic_reorg_diag(self, SS, subtract_bath=True):
+        """ Returns the reorganisation energy of an exciton state
+        """
+
+        # SystemBathInteraction
+        sbi = self.system.get_SystemBathInteraction()
+        AG = self.system
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+
+        reorg_exct = numpy.zeros(AG.Ntot)
+
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for n in range(1,AG.Nb[1]+1):
+            for el1 in elst:
+                
+                if subtract_bath:
+                    reorgB = self.bath_reorg(cfm,el1-1)
+                else:
+                    reorgB = 0.0
+                
+                reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
+                for kk in AG.vibindices[el1]:
+                    reorg_exct[n] += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
+                                
+        elst_dbl1 = numpy.where(AG.which_band == 2)[0]
+        elst_dbl2 = numpy.where(AG.which_band == 2)[0]
+        for n in range(AG.Nb[0]+AG.Nb[1],AG.Ntot):
+            for el1 in elst_dbl1:
+                for el2 in elst_dbl2:
+
+                    if subtract_bath:
+                        reorgB = self.bath_reorg(cfm,el1-1)
+                    else:
+                        reorgB = 0.0
+
+                    reorg = cfm.get_reorganization_energy(el1-1,el2-1) - reorgB
+                    
+                    for kk in AG.vibindices[el1]:
+                        for ll in AG.vibindices[el2]:
+                            reorg_exct[n] += ((SS[kk,n]**2)*(SS[ll,n]**2)*reorg)
+    
+        return reorg_exct
+    
+    def _site_reorg_diag(self, subtract_bath=True):
+        """ Returns the reorganisation energy of an exciton state
+        """
+
+        # SystemBathInteraction
+        sbi = self.system.get_SystemBathInteraction()
+        AG = self.system
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+
+        reorg_site = numpy.zeros(AG.Ntot)
+
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for el1 in elst:
+            
+            if subtract_bath:
+                reorgB = self.bath_reorg(cfm,el1-1)
+            else:
+                reorgB = 0.0
+            
+            reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
+            for kk in AG.vibindices[el1]:
+                reorg_site[kk] += reorg
+                                
+        elst_dbl1 = numpy.where(AG.which_band == 2)[0]
+        for el1 in elst_dbl1:
+            
+            if subtract_bath:
+                reorgB = self.bath_reorg(cfm,el1-1)
+            else:
+                reorgB = 0.0
+
+            reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
+            
+            for kk in AG.vibindices[el1]:
+                reorg_site[kk] += reorg
+    
+        return reorg_site
     
     def calculate_all_system_approx(self, sys, rdmt, lab, show_progress=False,approx=None,spec=["Full"]):
         """Calculates all 2D spectra for a system and reduced density matrix
@@ -369,6 +475,33 @@ class PumpProbeSpectrumCalculator():
             "polarization angle between first two pulses and the last two to" +\
             "54.7356103 deg. and repeat the calculation."
             raise IOError(message)
+
+        self.system = copy.deepcopy(sys)
+        
+        if self.system._diagonalized and self._is_adiabatic:
+            raise Warning("Not possible to use adiabatic eigenstate with diagonalized afggregate")
+        
+        if self._is_adiabatic:
+            SS = numpy.identity(self.system.Ntot)
+            reorg_site = self._site_reorg_diag(subtract_bath=True)
+            #reorg_site = self._excitonic_reorg_diag(SS, subtract_bath=self._adiabatic_noBath)
+            #print("site reorg :",numpy.isclose(reorg_site2,reorg_site).all())
+            #print("site reorg2:",reorg_site2==reorg_site)
+            for kk in range(self.system.Ntot):              
+                self.system.HH[kk,kk] -= reorg_site[kk]
+        
+        if not self.system._diagonalized:
+            self.system.diagonalize()
+            
+        if self._is_adiabatic:
+            # get exciton reorganization energy
+            reorg_excit = self._excitonic_reorg_diag(self.system.SS, subtract_bath=self._adiabatic_noBath)
+            #reorg_excit = self._site2excit_reorg(reorg_site,self.system.SS)
+            
+            # shift the diagonal of the exciton hamiltonian
+            for ii in range(self.system.Ntot):
+                self.system.HH[ii,ii] += reorg_excit[ii]
+
         
         tcont = PumpProbeSpectrumContainer(t2axis=self.t2axis)
         
@@ -761,7 +894,7 @@ class PumpProbeSpectrumCalculator():
             
         return gt3,gt3tau
     
-    def _SE_excitonic_gofts(self,SS,AG,tau = 0):
+    def _SE_excitonic_gofts(self,SS,AG,tau = 0,_diag_double_only=False):
         """ Returns energy gap correlation function data of an exciton state n
         
         """
@@ -811,11 +944,15 @@ class PumpProbeSpectrumCalculator():
                 for kk in AG.vibindices[el1]:
                     for ll in AG.vibindices[el2]:
                         for n in range(numpy.sum(AG.Nb[0:2]), numpy.sum(AG.Nb[0:3])):
-                            for m in range(n, numpy.sum(AG.Nb[0:3])):
-                                gt3tau[n,m] += ((SS[kk,n]**2)*(SS[ll,m]**2)*goft_t3tau)
-        for n in range(numpy.sum(AG.Nb[0:2]), numpy.sum(AG.Nb[0:3])):
-            for m in range(n+1, numpy.sum(AG.Nb[0:3])):
-                gt3tau[m,n] += gt3tau[n,m]
+                            if _diag_double_only:
+                                gt3tau[n,n] += ((SS[kk,n]**2)*(SS[ll,n]**2)*goft_t3tau)
+                            else:
+                                for m in range(n, numpy.sum(AG.Nb[0:3])):
+                                    gt3tau[n,m] += ((SS[kk,n]**2)*(SS[ll,m]**2)*goft_t3tau)
+        if not _diag_double_only:
+            for n in range(numpy.sum(AG.Nb[0:2]), numpy.sum(AG.Nb[0:3])):
+                for m in range(n+1, numpy.sum(AG.Nb[0:3])):
+                    gt3tau[m,n] += gt3tau[n,m]
         
         # Mixed sigle-double excited state correlation functions
         for el1 in elst:
@@ -911,9 +1048,9 @@ class PumpProbeSpectrumCalculator():
         if self.goft_matrix is not None:
             gt3s = self.goft_matrix
         else:
-            gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0)
+            gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0,_diag_double_only=True)
             self.goft_matrix = gt3s
-        gt3tau = self._SE_excitonic_gofts(SS,self.system, tau = tau)
+        gt3tau = self._SE_excitonic_gofts(SS,self.system, tau = tau,_diag_double_only=True)
 #        end = time.time()
 #        print("Calculation of coft:", end - start)
         
@@ -1091,9 +1228,9 @@ class PumpProbeSpectrumCalculator():
         if self.goft_matrix is not None:
             gt3s = self.goft_matrix
         else:
-            gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0)
+            gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0,_diag_double_only=True)
             self.goft_matrix = gt3s
-        gt3tau = self._SE_excitonic_gofts(SS,self.system, tau = tau)
+        gt3tau = self._SE_excitonic_gofts(SS,self.system, tau = tau,_diag_double_only=True)
 
         # initialize the spectra
         ppspec = numpy.zeros(self.t3axis.length,dtype=numpy.complex128)
@@ -1226,9 +1363,15 @@ class PumpProbeSpectrumCalculator():
         if self.goft_matrix is not None:
             gt3s = self.goft_matrix
         else:
-            gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0)
+            gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0,_diag_double_only=True)
             self.goft_matrix = gt3s
-        reorg_exct,reorg_exct_sd = self. _excitonic_reorg_energy(SS, self.system)
+            
+        if self.reorg_matrix is not None:
+            reorg_exct = self.reorg_matrix[0]
+            reorg_exct_sd = self.reorg_matrix[1]
+        else:
+            reorg_exct,reorg_exct_sd = self._excitonic_reorg_energy(SS, self.system)
+            self.reorg_matrix = [reorg_exct,reorg_exct_sd]
 
         # initialize the spectra
         ppspec = numpy.zeros(self.t3axis.length,dtype=numpy.complex128)
