@@ -3242,7 +3242,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
         return FoersterRateMatrix(ham, sbi)
 
-        def _bath_reorg(self,cfm,indx):
+    def _bath_reorg(self,cfm,indx):
         coft = cfm.cfuncs[cfm.get_index_by_where((indx,indx))]
         reorg_bath = 0.0
         for parm in coft.params:
