@@ -2882,7 +2882,8 @@ class AggregateBase(UnitsManaged, Saveable):
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
                        recalculate=True,
-                       as_operators=False):
+                       as_operators=False,
+                       adiabatic=None):
         """Returns a relaxation tensor corresponding to the aggregate
 
 
@@ -2961,6 +2962,13 @@ class AggregateBase(UnitsManaged, Saveable):
 
 
         if relaxation_theory in theories["standard_Redfield"]:
+            
+            # When adiabatic hamiltonian is used
+            val,SS = self._get_exciton_prop(adiabatic=adiabatic) # adiabatic="NoBath"
+            SS1 = numpy.linalg.inv(SS)
+            HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1)) 
+            
+            ham=Hamiltonian(data=HH_new)
 
             if time_dependent:
 
@@ -3234,6 +3242,132 @@ class AggregateBase(UnitsManaged, Saveable):
 
         return FoersterRateMatrix(ham, sbi)
 
+        def _bath_reorg(self,cfm,indx):
+        coft = cfm.cfuncs[cfm.get_index_by_where((indx,indx))]
+        reorg_bath = 0.0
+        for parm in coft.params:
+            if parm['ftype'] == 'OverdampedBrownian':
+                reorg_bath += parm['reorg']
+        return reorg_bath
+    
+    
+    def _site_reorg_diag(self, subtract_bath=True):
+        """ Returns the reorganisation energy of an exciton state
+        """
+
+        # SystemBathInteraction
+        sbi = self.get_SystemBathInteraction()
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+
+        reorg_site = numpy.zeros(self.Ntot)
+
+        # electronic states corresponding to single excited states
+        elst = numpy.where(self.which_band == 1)[0]
+        for el1 in elst:
+            
+            if subtract_bath:
+                reorgB = self._bath_reorg(cfm,el1-1)
+            else:
+                reorgB = 0.0
+            
+            reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
+            for kk in self.vibindices[el1]:
+                reorg_site[kk] += reorg
+                                
+        elst_dbl1 = numpy.where(self.which_band == 2)[0]
+        for el1 in elst_dbl1:
+            
+            if subtract_bath:
+                reorgB = self._bath_reorg(cfm,el1-1)
+            else:
+                reorgB = 0.0
+
+            reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
+            
+            for kk in self.vibindices[el1]:
+                reorg_site[kk] += reorg
+        return reorg_site
+                
+    def _excitonic_reorg_diag(self, SS, subtract_bath=True):
+        """ Returns the reorganisation energy of an exciton state
+        """
+
+        # SystemBathInteraction
+        sbi = self.get_SystemBathInteraction()
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+
+        reorg_exct = numpy.zeros(self.Ntot)
+
+        # electronic states corresponding to single excited states
+        elst = numpy.where(self.which_band == 1)[0]
+        for n in range(1,self.Nb[1]+1):
+            for el1 in elst:
+                
+                if subtract_bath:
+                    reorgB = self._bath_reorg(cfm,el1-1)
+                else:
+                    reorgB = 0.0
+                
+                reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
+                for kk in self.vibindices[el1]:
+                    reorg_exct[n] += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
+                                
+        elst_dbl1 = numpy.where(self.which_band == 2)[0]
+        elst_dbl2 = numpy.where(self.which_band == 2)[0]
+        for n in range(self.Nb[0]+self.Nb[1],self.Ntot):
+            for el1 in elst_dbl1:
+                for el2 in elst_dbl2:
+
+                    if subtract_bath:
+                        reorgB = self._bath_reorg(cfm,el1-1)
+                    else:
+                        reorgB = 0.0
+
+                    reorg = cfm.get_reorganization_energy(el1-1,el2-1) - reorgB
+                    
+                    for kk in self.vibindices[el1]:
+                        for ll in self.vibindices[el2]:
+                            reorg_exct[n] += ((SS[kk,n]**2)*(SS[ll,n]**2)*reorg)
+    
+        return reorg_exct
+    
+    def _get_exciton_prop(self,adiabatic=None):
+        
+        is_adiabatic = False
+        adiabatic_noBath = False
+        
+        HH = self.HH.copy()
+        
+        if self._diagonalized:
+            raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
+        
+        if adiabatic is not None:
+            if adiabatic != False:
+                is_adiabatic = True
+            else:
+                is_adiabatic = False
+            
+            if (adiabatic == "SubtractBath") or (adiabatic == "NoBath"):
+                adiabatic_noBath = True
+        
+        if is_adiabatic:
+            reorg_site = self._site_reorg_diag(subtract_bath=adiabatic_noBath)
+            
+            for kk in range(self.Ntot):              
+                HH[kk,kk] -= reorg_site[kk]
+            
+            val,SS = numpy.linalg.eigh(HH)
+            
+            reorg_excit = self._excitonic_reorg_diag(SS, subtract_bath=adiabatic_noBath)
+            
+            val += reorg_excit
+        else:
+            val,SS = numpy.linalg.eigh(HH)
+            
+        return val,SS
+    
 
     def diagonalize(self):
         """Transforms some internal quantities into diagonal basis

@@ -99,7 +99,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             self.gauss = self.convert_2_internal_u(gauss)
         
         if adiabatic is not None:
-            self._is_adiabatic = True
+            if adiabatic == False:
+                self._is_adiabatic = False
+            else:
+                self._is_adiabatic = True
             
             if (adiabatic == "SubtractBath") or (adiabatic == "NoBath"):
                 self._adiabatic_noBath = True
