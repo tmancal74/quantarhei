@@ -482,8 +482,8 @@ class PumpProbeSpectrumCalculator():
             raise Warning("Not possible to use adiabatic eigenstate with diagonalized afggregate")
         
         if self._is_adiabatic:
-            SS = numpy.identity(self.system.Ntot)
-            reorg_site = self._site_reorg_diag(subtract_bath=True)
+            #SS = numpy.identity(self.system.Ntot)
+            reorg_site = self._site_reorg_diag(subtract_bath=self._adiabatic_noBath)
             #reorg_site = self._excitonic_reorg_diag(SS, subtract_bath=self._adiabatic_noBath)
             #print("site reorg :",numpy.isclose(reorg_site2,reorg_site).all())
             #print("site reorg2:",reorg_site2==reorg_site)

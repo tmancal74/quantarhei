@@ -852,7 +852,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                 eng[ii-1] = HH.data[ii,ii]-HH.data[0,0]-self.rwa - reorg
             
             # now get equlibrium population on energy levels
-            for ii in range(1,min(10,HH.dim)):
+            for ii in range(1,min(14,HH.dim)):
                 rho_eq_exct[ii] = numpy.exp(-eng[ii-1]/kB_intK/temperature)
             rho_eq_exct/=numpy.sum(rho_eq_exct)
             rho_eq_exct = numpy.diag(rho_eq_exct)
