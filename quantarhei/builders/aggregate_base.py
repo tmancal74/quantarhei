@@ -3333,12 +3333,15 @@ class AggregateBase(UnitsManaged, Saveable):
     
         return reorg_exct
     
-    def _get_exciton_prop(self,adiabatic=None):
+    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
         
         is_adiabatic = False
         adiabatic_noBath = False
         
-        HH = self.HH.copy()
+        if HH is None:
+            HH = self.HH.copy()
+        else:
+            HH = HH_in.copy()
         
         if self._diagonalized:
             raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
