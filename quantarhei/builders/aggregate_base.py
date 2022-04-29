@@ -3338,7 +3338,7 @@ class AggregateBase(UnitsManaged, Saveable):
         is_adiabatic = False
         adiabatic_noBath = False
         
-        if HH is None:
+        if HH_in is None:
             HH = self.HH.copy()
         else:
             HH = HH_in.copy()
