@@ -2928,7 +2928,7 @@ class AggregateBase(UnitsManaged, Saveable):
         from ..core.managers import eigenbasis_of
 
         if self._built:
-            ham = self.get_Hamiltonian()
+            ham = copy.deepcopy(self.get_Hamiltonian())
             sbi = self.get_SystemBathInteraction()
         else:
             raise Exception()
@@ -3043,10 +3043,22 @@ class AggregateBase(UnitsManaged, Saveable):
 
         elif relaxation_theory in theories["combined_RedfieldFoerster"]:
 
+            ham.subtract_cutoff_coupling(coupling_cutoff)
+
+            # When adiabatic hamiltonian is used
+            val,SS = self._get_exciton_prop(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath"
+            SS1 = numpy.linalg.inv(SS)
+            HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1)) 
+            
+            ham._data[:,:] = HH_new.copy()
+            
+            #ham2 = Hamiltonian(data=HH_new)
+            #ham2.JR = ham.JR.copy()
+
             if time_dependent:
 
                 # Time dependent combined tensor
-                ham.subtract_cutoff_coupling(coupling_cutoff)
+                
                 ham.protect_basis()
                 with eigenbasis_of(ham):
                     relaxT = \
@@ -3056,12 +3068,10 @@ class AggregateBase(UnitsManaged, Saveable):
                     if secular_relaxation:
                         relaxT.secularize()
                 ham.unprotect_basis()
-                ham.recover_cutoff_coupling()
 
             else:
 
                 # Time independent combined tensor
-                ham.subtract_cutoff_coupling(coupling_cutoff)
                 ham.protect_basis()
                 with eigenbasis_of(ham):
                     relaxT = \
@@ -3074,21 +3084,22 @@ class AggregateBase(UnitsManaged, Saveable):
                     #print("Last line of the context", Manager().get_current_basis())
                 #print("Left context", Manager().get_current_basis())
                 ham.unprotect_basis()
-                ham.recover_cutoff_coupling()
+                
+            #ham.recover_cutoff_coupling()
 
             #
             # create a corresponding propagator
             #
-            ham1 = Hamiltonian(data=ham.data.copy())
+            #ham1 = Hamiltonian(data=ham.data.copy())
             #ham1.subtract_cutoff_coupling(coupling_cutoff)
-            ham1.remove_cutoff_coupling(coupling_cutoff)
+            #ham1.remove_cutoff_coupling(coupling_cutoff)
 
             self.RelaxationTensor = relaxT
-            self.RelaxationHamiltonian = ham1
+            self.RelaxationHamiltonian = ham
             self._has_relaxation_tensor = True
             self._relaxation_theory = "combined_RedfieldFoerster"
 
-            return relaxT, ham1
+            return relaxT, ham
 
         elif relaxation_theory in theories["combined_WeakStrong"]:
 
