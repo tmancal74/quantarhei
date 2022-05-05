@@ -20,6 +20,7 @@ Issues:
 """
 
 import numpy
+from copy import deepcopy
 #import h5py
 
 from ..core.managers import UnitsManaged
@@ -2928,7 +2929,7 @@ class AggregateBase(UnitsManaged, Saveable):
         from ..core.managers import eigenbasis_of
 
         if self._built:
-            ham = copy.deepcopy(self.get_Hamiltonian())
+            ham = deepcopy(self.get_Hamiltonian())
             sbi = self.get_SystemBathInteraction()
         else:
             raise Exception()
