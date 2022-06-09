@@ -2316,6 +2316,8 @@ class AggregateBase(UnitsManaged, Saveable):
                         RRv[a,b] = numpy.real(1j*numpy.dot(Ra, numpy.cross(dav,db)))
                         RR[a,b] = numpy.dot(Ra, numpy.cross(da, db)) 
                         RRm[a,b] = numpy.real(numpy.dot(dav,mb))
+                        
+                        
                 except:
                     pass
                 
@@ -2357,6 +2359,8 @@ class AggregateBase(UnitsManaged, Saveable):
         self.RR = RR
         self.RRv = RRv
         self.RRm = RRm
+        
+        #print("RR",self.RR,"RRv",self.RRv,"RRm",self.RRm,"RRm+RRv",self.RRm+self.RRv)
        
         # FIXME: make this on-demand (if poissible)
         trdata = numpy.zeros((DD.shape[0],DD.shape[1],DD.shape[2]),dtype=qr.REAL)

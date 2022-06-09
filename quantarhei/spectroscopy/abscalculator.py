@@ -632,6 +632,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 #        for ii in range(1:DD_vel.shape[0]):
 #            DD_vel[ii] *= -self.system.HH[ii,ii]
 #       
+#        print("Rot1:",numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n])
+#        print("Rot2:",numpy.dot(SS[:,n],numpy.dot(AG.RRv,SS[:,n])))
 
         if AG._has_velocity_dipoles:
             Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n]
