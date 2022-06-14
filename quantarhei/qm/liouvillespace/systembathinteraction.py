@@ -43,6 +43,14 @@ class SystemBathInteraction(Saveable):
         is exponential. The type "Gaussian" results in a Gaussian dephasing
         and corresponds to the term -\gamma t \rho_{ab} on the right hand 
         side of the rate equation.
+
+    osites : list, array
+        List or array of site indices on which the oscillators reside. The 
+        indices can repeat, indicating several modes on a single site.
+        
+    orates : array
+        Oscillator decay rates. This rates corresponds to the dephasing
+        rate of the oscillations in a harmonic oscillator
         
     system : {Molecule, Aggregate}
         Molecule or Aggregate object in which the system--bath interaction 
@@ -52,7 +60,8 @@ class SystemBathInteraction(Saveable):
     """
 
     def __init__(self, sys_operators=None, bath_correlation_matrix=None,
-                 rates=None, drates=None, dtype="Lorentzian", system=None):
+                 rates=None, drates=None, dtype="Lorentzian", osites=None,
+                 orates=None, system=None):
 
         # information about aggregate is needed when dealing with 
         # multiple excitons
@@ -63,8 +72,10 @@ class SystemBathInteraction(Saveable):
         self.KK = None
         self.CC = None
         self.TimeAxis = None
-        self.rates = None
+        self.drates = None
         self.N = 0
+        self.osites = None
+        self.orates = None
         self.sbitype = "Linear_Coupling"
         
         # version with bath correlation functions
@@ -145,6 +156,18 @@ class SystemBathInteraction(Saveable):
             self.set_system(system)
             self.CC = None
             
+        elif ((sys_operators is None) and (orates is not None)):
+            
+            self.sbitype = "Vibrational_Lindblad_Form"
+            
+            if len(orates) != len(osites):
+                raise Exception("`orates` and `osites` arguments must"+
+                                " have the same lengths")
+                
+            self.set_system(system)
+            self.CC = None
+            self.orates = orates
+            self.osites = osites
             
     
     def set_system(self, system):
@@ -204,9 +227,11 @@ class SystemBathInteraction(Saveable):
         if self.sbitype != "Linear_Coupling":
             raise Exception("Correlation functions only defined for "+
                             "linear microscopic system-bath coupling")
-            
+        
+        #print("Returning coft" )
+        
         if self.system is None:
-            
+            #print("Returning coft without the system" )
             return self.CC.get_coft(n,m)
             
         else:
@@ -220,8 +245,8 @@ class SystemBathInteraction(Saveable):
                 #print(bn,"::",n,m)
                 return self.CC._cofts[0,:]
                 
-            elif ((bn == 1) and (bm == 1)):
-                #print(bn,"::",n-1,m-1)
+            elif ((bn >= 1) and (bm >= 1)):
+                #print(bn,bm,"::",n-1,m-1)
                 
                 return self.CC.get_coft(n-1,m-1)
                 
@@ -271,7 +296,8 @@ class SystemBathInteraction(Saveable):
         
         """
         
-        if self.sbitype == "Lindblad_Form":
+        if (self.sbitype == "Lindblad_Form" or
+            self.sbitype == "Vibrational_Lindblad_Form"):
             return False
         else:
             try:
@@ -298,7 +324,8 @@ class SystemBathInteraction(Saveable):
         or a correlation function of the site (when i = j)
         
         """
-        if self.sbitype == "Lindblad_Form":
+        if (self.sbitype == "Lindblad_Form" or
+            self.sbitype == "Vibrational_Lindblad_Form"):
             return None
         else:
             if j is None:
@@ -308,7 +335,8 @@ class SystemBathInteraction(Saveable):
 
     def get_correlation_time(self, i, j=None):
         
-        if self.sbitype == "Lindblad_Form":
+        if (self.sbitype == "Lindblad_Form" or
+            self.sbitype == "Vibrational_Lindblad_Form"):
             return None
         else:
             if j is None:
@@ -319,7 +347,8 @@ class SystemBathInteraction(Saveable):
     def get_sbitype(self):
         """Returns the type of SystemBathInteraction 
         
-        Options are `Lindblad_Form` and `Linear_Coupling`
+        Options are `Lindblad_Form`, `Vibrational_Lindblad_Form`
+        and `Linear_Coupling`
          
         """
         return self.sbitype

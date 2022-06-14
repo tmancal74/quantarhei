@@ -40,7 +40,7 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
     
     # loop over components
 
-    dc = distributed_configuration() # Manager().get_DistributedConfiguration()
+    #dc = distributed_configuration() # Manager().get_DistributedConfiguration()
     
     #
     #  SERIAL VERSION
@@ -55,8 +55,8 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
                     
     
     # FIXME: parallelization ignores werror
-    dc.allreduce(RR, operation="sum")        
-    close_parallel_region()
+    #dc.allreduce(RR, operation="sum")        
+    #close_parallel_region()
     
     #
     #  END PARALLELIZED

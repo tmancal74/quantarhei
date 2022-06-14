@@ -424,6 +424,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                                                     self.dense_time.step,
                                                     Nt,
                                                     show_progress) 
+            
+            
             #
             # repeat propagation over the longer interval
             #
@@ -438,8 +440,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """Single elemental step of propagation with the dense time step
         
         """
-        
-        dim = self.ham.dim
+        dim = self.ham.dim        
         one_step_time = TimeAxis(t0, 2, self.dense_time.step)
         prop = ReducedDensityMatrixPropagator(one_step_time, self.ham, 
                                               RTensor=self.relt, 
@@ -452,8 +453,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             for m in range(dim):
                 rhonm0.data[n,m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
+                Ut1[:,:,n,m] = rhot.data[1,:,:]
                 rhonm0.data[n,m] = 0.0
+                
         return Ut1
 
 
@@ -490,13 +492,13 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         This step is componsed of Ndense time steps
         
         """
-        
         Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt,
                                            show_progress=show_progress)
         #
         # propagation to the end of the first interval
         #
-        Udt = Ut1
+        Udt = numpy.zeros(Ut1.shape, dtype=COMPLEX)
+        Udt[:,:,:,:] = Ut1[:,:,:,:]
         for ti in range(2, self.dense_time.length):
             Udt = numpy.tensordot(Ut1, Udt)
         return Udt
@@ -513,7 +515,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         for ti in range(2, Nt):
             if show_progress:
                 print("Self propagation: ", ti, "of", Nt)            
-           
             self.data[ti,:,:,:,:] = \
                 numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])        
 
@@ -716,7 +717,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 raise Exception("Invalid argument: time")
 
 
-    def plot_element(self, elem, show=True):
+    def plot_element(self, elem, part="REAL", show=True):
         """Plots a selected element of the evolution superoperator
         
         
@@ -733,15 +734,89 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if (len(elem) == len(shape)-1) and (len(elem) == 4):
 
             if tl == shape[0]:
-                plt.plot(self.time.data,
-                         self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                if part == "REAL":
+                    dat1 = numpy.real(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat2 = None
+                elif part == "IMAG":
+                    dat1 = numpy.imag(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat2 = None
+                elif part == "BOTH":
+                    dat1 = numpy.real(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat2 = numpy.imag(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                else:
+                    raise Exception("Unknown data part: "+part)
+                    
+                plt.plot(self.time.data, dat1)
+                if dat2 is not None:
+                    plt.plot(self.time.data, dat2)
+                    
                 if show:
                     plt.show()
         
         else:
             print("Nothing to plot")
             
+          
+    def get_element_fft(self, elem, window=None):
+        """Returns a DFunction with the FFT of the element evolution
+        
+        """
+
+        if window is None:
+            winfce = qr.DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=qr.REAL))
+        else:
+            winfce = window
             
+        dat = self.data[:,elem[0],elem[1],elem[2],elem[3]]
+        
+        fdat = numpy.fft.ifft(dat*winfce.data)
+        fdat = numpy.fft.fftshift(fdat)
+        
+        time = self.time
+        freq = time.get_FrequencyAxis()
+        
+        ffce = qr.DFunction(freq, fdat)
+        
+        return ffce
+    
+
+    # FIXME: In principle, we can define Greens function and return it
+    def get_fft(self, window=None, subtract_last=True):
+        """Returns Fourier transform of the whole evolution superoperator
+        
+        
+        Parameters
+        ----------
+        
+        window: DFunction or numpy array
+            Windowing function by which the data are multiplied
+            
+        subtract_last: bool
+            If True, the value at the last available time is subtracted 
+            from all times
+        
+        """
+
+        if window is None:
+            winfce = qr.DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=qr.REAL))
+        else:
+            winfce = window
+            
+        dat = self.data
+        if subtract_last:
+            dat = dat - dat[-1,:,:,:,:]
+        
+        # FIXME: Implement windowing
+        fdat = numpy.fft.ifft(dat, axis=0) #*winfce.data)
+        fdat = numpy.fft.fftshift(fdat, axes=0)
+        
+        time = self.time
+        freq = time.get_FrequencyAxis()
+        
+        return fdat, freq        
+        
 
     #
     # Calculation `progressbar`

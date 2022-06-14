@@ -1,13 +1,13 @@
 
 .spyderproject
 .spyproject
+.vscode
 __pycache__
 
 build
 dist
 quantarhei.egg-info
 .DS_Store
-.coverage
 tempfile
 *~
 *.lyx~
@@ -26,8 +26,12 @@ tempfile
 result_images
 qrconf.py
 docs/sphinx/_build/
+htmlcov/
+cover/
+env/
 .coverage
 coverage.xml
+.coverage.*
 
 quantarhei_theory/
 quantarhei_theory.pdf

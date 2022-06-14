@@ -10,10 +10,10 @@
 import numpy
 
 from ....core.implementations import implementation
-from ....core.parallel import block_distributed_range
-from ....core.parallel import start_parallel_region
-from ....core.parallel import close_parallel_region
-from ....core.parallel import distributed_configuration
+#from ....core.parallel import block_distributed_range
+#from ....core.parallel import start_parallel_region
+#from ....core.parallel import close_parallel_region
+#from ....core.parallel import distributed_configuration
 from ....core.units import cm2int
 from ....core.units import kB_intK
 from ....core.managers import Manager

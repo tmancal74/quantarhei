@@ -184,7 +184,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             # dephasing rates 
             for nn in range(self.dim):    
                 for mm in range(nn+1,self.dim):
-                    self._data[nn,mm,nn,mm] = -(self._data[nn,nn,nn,nn]
+                    self._data[nn,mm,nn,mm] = (self._data[nn,nn,nn,nn]
                                               +self._data[mm,mm,mm,mm])/2.0
                     self._data[mm,nn,mm,nn] = self._data[nn,mm,nn,mm] 
 
@@ -201,7 +201,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             # dephasing rates 
             for nn in range(self.dim):    
                 for mm in range(nn+1,self.dim):
-                    self._data[:,nn,mm,nn,mm] = -(self._data[:,nn,nn,nn,nn]
+                    self._data[:,nn,mm,nn,mm] = (self._data[:,nn,nn,nn,nn]
                                               +self._data[:,mm,mm,mm,mm])/2.0
                     self._data[:,mm,nn,mm,nn] = self._data[:,nn,mm,nn,mm] 
             

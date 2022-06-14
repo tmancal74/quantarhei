@@ -83,7 +83,8 @@ class Viewer(Frame):
 
 def main():
     import sys
-    root = Tk()
-    root.title("Open file")
-    Viewer().mainloop()
+    #root = Tk()
+    #root.title("Open file")
+    #Viewer().mainloop()
+    pass
 

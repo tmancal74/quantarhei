@@ -8,6 +8,7 @@
 """
 import numpy
 import scipy
+import copy
 
 from ..utils import derived_type
 from ..builders import Molecule 
@@ -19,7 +20,7 @@ from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
 from ..core.managers import eigenbasis_of
-from ..core.units import convert
+from ..core.units import convert,kB_intK
 
 from .linear_spectra import LinSpectrum
 
@@ -63,6 +64,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self._has_relaxation_tensor = False
         self._gass_lineshape = False
         self._gauss_broad = False
+        self._is_adiabatic = False
+        self._adiabatic_noBath = False
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -72,10 +75,12 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
             
+        self._pop_fluor = "vertical"
+            
         self.rwa = 0.0
 
      
-    def bootstrap(self,rwa=0.0, lab=None, HWHH = None, axis=None, gauss=None):
+    def bootstrap(self,rwa=0.0, lab=None, HWHH = None, axis=None, gauss=None, adiabatic=None, fluor=None):
         """
         
         """
@@ -92,6 +97,24 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         if gauss is not None: 
             self._gauss_broad = True
             self.gauss = self.convert_2_internal_u(gauss)
+        
+        if adiabatic is not None:
+            if adiabatic == False:
+                self._is_adiabatic = False
+            else:
+                self._is_adiabatic = True
+            
+            if (adiabatic == "SubtractBath") or (adiabatic == "NoBath"):
+                self._adiabatic_noBath = True
+        
+        if fluor is not None:
+            if fluor=="vertical":
+                self._pop_fluor = "vertical"
+            elif fluor=="adiabatic":
+                self._pop_fluor = "adiabatic"
+            else:
+                raise Warning("fluor keyword value unknown. Allowed values are vertical or adiabatic.")
+            
         
         if axis is not None:
             if axis=="x":
@@ -608,16 +631,67 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 #        DD_vel = self.system.DD[0].copy()
 #        for ii in range(1:DD_vel.shape[0]):
 #            DD_vel[ii] *= -self.system.HH[ii,ii]
-#        
-        for ii in range(AG.Ntot):
-            for jj in range(AG.Ntot):
-                Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
+#       
+#        print("Rot1:",numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n])
+#        print("Rot2:",numpy.dot(SS[:,n],numpy.dot(AG.RRv,SS[:,n])))
+
+        if AG._has_velocity_dipoles:
+            Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n]
+        else:
+            #Rot_n = energy[n]*numpy.dot(SS[:,n],numpy.dot(AG.RR+AG.RRm,SS[:,n]))
+            Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRv,SS[:,n]))
+        #Rot_n = energy[n]*numpy.dot(SS[:,n],numpy.dot(AG.RR+AG.RRm,SS[:,n]))
+      
+       # Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n]
+       # for ii in range(AG.Ntot):
+       #     for jj in range(AG.Ntot):
+       #         Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
 #        
 #        for ii in range(AG.Ntot):
 #            for jj in range(AG.Ntot):
 #                Rot_nm += SS[ii,n]*SS[jj,n]*AG.RRm[ii,jj]
         
         return Rot_n#,Rot_nm
+    
+    def _subtract_site_reorg(self,AG,Hin,subtract_bath=True):
+        # Subtract the reorganisation energy from the sites
+        
+        sbi = AG.get_SystemBathInteraction()
+        # CorrelationFunctionMatrix
+        cfm = sbi.CC
+        
+        reorg_site = numpy.zeros(Hin.dim)
+        
+        HH = copy.deepcopy(Hin)
+        
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for el1 in elst:
+            reorg = cfm.get_reorganization_energy(el1-1,el1-1)
+            reorg_bath = 0.0
+            
+            if subtract_bath:
+                coft = cfm.cfuncs[cfm.get_index_by_where((el1-1,el1-1))]
+                for parm in coft.params:
+                    if parm['ftype'] == 'OverdampedBrownian':
+                        reorg_bath += parm['reorg']
+            
+            for kk in AG.vibindices[el1]:
+                reorg_site[kk] = reorg-reorg_bath
+                
+                HH._data[kk,kk] -= reorg_site[kk]
+        
+        return HH,reorg_site
+    
+    def _site2excit_reorg(self,reorg_site,SS):
+        # Get exciton reorganization energy from the site one
+        
+        reorg_exct = numpy.zeros(SS.shape[1])
+        
+        for n in range(SS.shape[1]):
+            reorg_exct[n] = numpy.dot(SS[:,n]**4,reorg_site)
+                
+        return reorg_exct
         
     def _calculate_monomer(self, raw=False):
         """ Calculates the absorption spectrum of a monomer 
@@ -632,7 +706,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # dipole^2
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
-        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
+        gama = [0.0] #[-1.0/self.system.get_electronic_natural_lifetime(1)]
             
         if self.system._has_system_bath_coupling:
             # correlation function
@@ -700,9 +774,22 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         else:
             HH = relaxation_hamiltonian
             
+        if self._is_adiabatic:
+            # subtract site reorganisation energy from the sites
+            HH,reorg_site = self._subtract_site_reorg(self.system,HH,subtract_bath=self._adiabatic_noBath)
+            
 
         SS = HH.diagonalize() # transformed into eigenbasis
         energy = numpy.diag(HH.data)
+        
+        if self._is_adiabatic:
+            # get exciton reorganization energy
+            reorg_excit = self._site2excit_reorg(reorg_site,SS)
+            
+            # shift the diagonal of the exciton hamiltonian
+            for ii in range(HH.dim):
+                HH._data[ii,ii] += reorg_excit[ii]
+        
         
         # Transition dipole moment operator
         DD = self.system.get_TransitionDipoleMoment()
@@ -766,7 +853,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # get rotatory strength
         tr["rr"] = self._excitonic_rotatory_strength_fullv(SS,self.system,energy,1)
         #tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
-#        print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
+ #       print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
         dip = DD.data[0,1]
         tr["ld"] = (3*(numpy.dot(dip,self.ld_axis))**2 - tr["dd"]) # *3/2
         #tr["ld"] = 3*(DD.  # *3/2
@@ -775,8 +862,26 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self.system._has_system_bath_coupling = True
         
         temperature = self.system.sbi.get_temperature()
-        rho_eq_exct = self._equilibrium_excit_populations(self.system,
-                                               temperature=temperature)
+        
+        
+        if self._pop_fluor=="vertical":
+            rho_eq_exct = self._equilibrium_excit_populations(self.system,
+                                                temperature=temperature)
+        elif self._pop_fluor=="adiabatic":
+            eng = numpy.zeros(HH.dim-1)
+            rho_eq_exct = numpy.zeros(HH.dim)
+            for ii in range(1,HH.dim):
+                reorg = self._excitonic_reorg_energy(SS,self.system,ii)
+                eng[ii-1] = HH.data[ii,ii]-HH.data[0,0]-self.rwa - reorg
+            
+            # now get equlibrium population on energy levels
+            for ii in range(1,min(14,HH.dim)):
+                rho_eq_exct[ii] = numpy.exp(-eng[ii-1]/kB_intK/temperature)
+            rho_eq_exct/=numpy.sum(rho_eq_exct)
+            rho_eq_exct = numpy.diag(rho_eq_exct)
+        else:
+            raise Warning("Unknown method for computing excited state equilibrium populations")
+        
         
 #        print(tr["ct"])
 #        print(max(tr["ct"]))

@@ -710,7 +710,7 @@ class TwoDResponseContainer(Saveable):
                    stype=signal_TOTL, spart=part_REAL, 
                    cmap=None, 
                    Npos_contours=10,
-                   vmax=None,
+                   vmax=None, vmin_ratio=0.5,
                    xlabel=None,
                    ylabel=None,
                    axis_label_font=None,
@@ -754,8 +754,8 @@ class TwoDResponseContainer(Saveable):
         l = len(spctr)
         
         if use_t2 and (spctr[0].get_t2() < 0.0):
-            print("Warning: switching off usage of t2"
-                  +" information obtained from the spectrum object (t2 < 0)")
+            #print("Warning: switching off usage of t2"
+            #      +" information obtained from the spectrum object (t2 < 0)")
             use_t2 = False
         
         if use_t2:
@@ -792,7 +792,8 @@ class TwoDResponseContainer(Saveable):
                 if show_states_func is not None:
                     show_states = show_states_func(sp)
 
-                sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx, 
+                sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx,
+                        vmin_ratio=vmin_ratio,
                         Npos_contours=Npos_contours,
                         stype=stype,spart=spart,
                         show_states=show_states,

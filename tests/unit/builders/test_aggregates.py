@@ -444,4 +444,32 @@ class AggregateTest(unittest.TestCase):
         
         
         
+    def test_projection_operator_generation(self):
+        """(Aggregate) Testing projector operator generation
+        
+        """        
+        agg = self.vagg
+        
+        T1 = 800.0
+        T2 = 1500.0
+        
+        # figure out which sites have vibrations
+        
+        # what is the position of my site (verify that site has vibrations)
+        
+        # generate all vibrational signatures left and right
+        orates = [1.0/T1, 1.0/T2]
+        sbi = qr.qm.SystemBathInteraction(osites=[0,1], orates=orates,
+                                          system=agg)
+        # 
+        from quantarhei.qm.liouvillespace.lindbladform import \
+        VibrationalDecayLindbladForm
+        
+        ham = agg.get_Hamiltonian()
+        
+        vlf = VibrationalDecayLindbladForm(ham, sbi)
+        
+        self.assertEqual(T1, numpy.sqrt(3.0)/(2.0*numpy.max(vlf.Lm[2,:,:])))
+        self.assertEqual(T2, numpy.sqrt(3.0)/(2.0*numpy.max(vlf.Lm[5,:,:])))        
+        
         

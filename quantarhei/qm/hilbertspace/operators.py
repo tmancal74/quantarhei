@@ -62,6 +62,14 @@ class Operator(MatrixData, BasisManaged, Saveable):
                 self.dim = dim
 
 
+    def __add__(self, other):
+        """Addition of two operators. Returns self.
+        
+        """
+        self.data += other.data            
+        return self
+
+
     def apply(self, obj):
         """Apply the operator to vector or operator on the right
         
@@ -170,7 +178,7 @@ class SelfAdjointOperator(Operator):
     def get_diagonalization_matrix(self):
         dd, SS = numpy.linalg.eigh(self._data)
         return SS        
-        
+    
     def __str__(self):
         out  = "\nquantarhei.SelfAdjointOperator object"
         out += "\n====================================="
@@ -209,14 +217,14 @@ class ProjectionOperator(Operator):
     """    
     def __init__(self, to_state=-1, from_state=-1, dim=0):
         # here the operator is create and it will know about basis
-        super().__init__(dim=dim, real=True)
                     
         if dim > 0:
+            super().__init__(dim=dim, real=True)
             if ((to_state >= 0) and (to_state < dim)) \
                 and ((from_state >= 0) and (from_state < dim)):
                 self.data[to_state, from_state] = 1.0
-            else:
-                raise Exception("Indices out of range")
+            #else:
+            #    raise Exception("Indices out of range")
         else:
             raise Exception("Wrong operator dimension")
             
@@ -236,6 +244,7 @@ class ProjectionOperator(Operator):
         
         """
         return self.__mult__(other)
+
         
             
 class DensityMatrix(SelfAdjointOperator, Saveable):

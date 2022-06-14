@@ -101,6 +101,18 @@ def do_command_run(args):
         scr = args.script[0]
 
 
+    #
+    # Input file name  (-i option)
+    #
+    if args.inputfile:
+        input_file = args.inputfile
+
+
+    #
+    # Driver for MPI (-d option)
+    #
+    if args.driver:
+        driver_name = args.driver
 
     #
     # if the file is yaml, look into it to find the script file name
@@ -116,6 +128,10 @@ def do_command_run(args):
     # yaml
     if ext in [".yaml", ".yml"]:
         INP = qr.Input(scr)
+        
+        # this overrides the -i option 
+        input_file = scr
+        
         # see if the script name is specified, if not use the conf name + .py
         try:
             script = INP.script
@@ -166,7 +182,7 @@ def do_command_run(args):
         except (ImportError, NotImplementedError):
             pass        
         
-        prl_exec = "mpirun"
+        prl_exec = driver_name
         prl_n = "-n"
         prl_h = ""
         if len(hostfile) > 0:
@@ -184,7 +200,8 @@ def do_command_run(args):
         engine = "qrhei"
         if m.log_to_file:
             engine += " -lf "+m.log_file_name
-        engine +=  " -y "+str(m.verbosity)+","+str(m.fverbosity)+" run -q "
+        engine += " -y "+str(m.verbosity)+","+str(m.fverbosity)+" run -q"
+        engine += " -i "+input_file+" "
         
         # running MPI with proper parallel configuration
         prl_cmd = prl_exec+" "+prl_n+" "+str(prl_np)+" "+prl_h
@@ -231,13 +248,15 @@ def do_command_run(args):
         
         # running the script within the same interpreter
         try:
-            
-            
+
             # launch this properly, so that it gives information
             # on the origin of exceptions
             with open(scr,'U') as fp:
                 code = fp.read()
-            exec(compile(code, scr, "exec"), globals())
+                glbs = globals()
+                glbs.update(dict(_input_file_=input_file))
+                    
+            exec(compile(code, scr, "exec"), glbs)
             
             
         except SystemExit:
@@ -500,9 +519,52 @@ def do_command_file(args):
     except:
         qr.printlog("The file is not a Quantarhei parcel", loglevel=1)
         #print(traceback.format_exc())
+
+        
+def do_command_script(args):
+    """Provides script management functionality
+    
+    
+    script --path
+    
+        Reports path to the quantarhei scripts
+        
+    script --set-path PATH
+    
+        Sets Quantarhei script path
+        
+    script --install SCRIPT_FILE
+    
+        Installs script to the Quantarhei script path
+        
+    script --list
+    
+        Lists available scrips
+        
+    script --history SCRIPT_NAME
+    
+        Shows the script installation history 
+        
+    script --status SCRIPT_NAME
+    
+        Shows script installation status 
+        
+    script --hash FILE
+    
+        Reports hash corresponding to the file
         
     
+    
+        
+    
+        
+    
+    """
+    global parser_script
+    
 
+    pass
+    
     
     
 def main():
@@ -552,12 +614,18 @@ def main():
                           help="executes the code in parallel")
     parser_run.add_argument("-n", "--nprocesses", type=int, default=0,
                           help="number of processes to start")
+    parser_run.add_argument("-d", "--driver", type=str, 
+                          default="mpirun", help="driver command, e.g."
+                          +" for MPI.")
     parser_run.add_argument("-f", "--hostfile", metavar="HOSTFILE", 
                             default="", help="list of available"
                             +" host for parallel calculation")
     parser_run.add_argument("-b", "--benchmark", type=int, default=0, 
                           help="run one of the predefined benchmark"
                           +" calculations")
+    parser_run.add_argument("-i", "--inputfile", type=str, 
+                          default="input.yaml", help="input file for the "
+                          +"script")
 
     
     parser_run.set_defaults(func=do_command_run)
@@ -629,6 +697,39 @@ def main():
                           help='file to be checked', nargs=1) 
     
     parser_file.set_defaults(func=do_command_file)     
+    
+    
+    #
+    # Subparser for command `script`
+    #
+
+    parser_script = subparsers.add_parser("script", help="Installs and manages"
+                                        +" scripts")
+
+    #parser_script.add_argument("glob", metavar='glob', type=str, 
+    #                          help='file name', nargs="?")
+    #parser_script.add_argument("-i", "--install", action='store_true',
+    #                          help="installs a script file")
+    parser_script.add_argument("-i", "--install", metavar="SCRIPT", 
+                            default="", help="installs a script file") 
+    parser_script.add_argument("-s", "--set-path", metavar="PATH", 
+                            default="", help="sets path to Quantarhei scripts")    
+    parser_script.add_argument("-p", "--path", action='store_true', 
+                          help="reports the path to Quantarhei scripts") 
+    parser_script.add_argument("-l", "--list", action='store_true', 
+                          help="lists all installed scripts")  
+    parser_script.add_argument("-y", "--history", metavar="SCRIPT", 
+                            default="", help="reports the history of an"+
+                            " installed script")
+    parser_script.add_argument("-t", "--status", metavar="SCRIPT", 
+                            default="", help="reports the status of an"+
+                            " installed script")
+    parser_script.add_argument("-a", "--hash", metavar="FILE", 
+                            default="", help="creates a hash unique to the"
+                            +" content of a file")
+    parser_script.set_defaults(func=do_command_script)    
+     
+    
     
     #
     # Parsing all arguments

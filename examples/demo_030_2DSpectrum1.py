@@ -117,8 +117,18 @@ lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 
 tcont = calc.calculate_all_system(agg_2D, eUt, lab)
 
-T2 = 0.0
+tcont = tcont.get_TwoDSpectrumContainer()
+
+
+T2 = 990.0
 twod = tcont.get_spectrum(T2)
+
+### short test of addition of data
+twod1 = twod
+twod2 = tcont.get_spectrum(0.0)
+
+#twod.add_data(twod2.data)
+### end of the test
 
 if _save_2D_:
     twod.save("twod.qrp")

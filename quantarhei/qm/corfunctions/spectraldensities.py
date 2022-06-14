@@ -313,61 +313,62 @@ class SpectralDensity(DFunction, UnitsManaged):
     # (See Kell et al, 2013, J. Phys. Chem. B.) 
     def _make_B777(self, params, values=None):
         
-        try:
-            omega1 = params["freq1"]
-            omega2 = params["freq2"]
-            s = [params['s1'], params['s2']]
-
-        except:
-            omega1 = convert(0.56, "1/cm", "int")
-            omega2 = convert(1.9, "1/cm", "int")
-            s = [0.8, 0.5]
-        
-        lamb = params["reorg"]
-        freq = [omega1, omega2]
-
         with energy_units("int"):
             omega = self.axis.data
-            cropped_omega = omega
-            cfce_renger=0
-            for ii in range(2):
-        # Cropped_omega**2 converts the form of spec dens to same as alt form
-                cfce_renger = cfce_renger + (cropped_omega**2)\
-                *(s[ii]/(numpy.math.factorial(7) * 2*(freq[ii]**4)))*\
-                (cropped_omega**3)\
-                *(numpy.exp(-numpy.abs(cropped_omega/freq[ii])**0.5))
+            cfce=0
 
-        # Takes alternative from as default but can be edited in params
-        if "alternative_form" not in params or params["alternative_form"]:
-            #This form is taken from Jang, Newton, Silbey, J Chem Phys. 2007.
-            #It gives a polynomial form of the B777 spectral density
-            print('\nJang used\n')
-            omega1c = convert(170, "1/cm", "int")
-            omega2c = convert(34, "1/cm", "int")
-            omega3c = convert(69, "1/cm", "int")
+            if not params["alternative_form"]:
 
-            with energy_units("int"):
-                # (omega/(numpy.abs(omega))) in the second term ensures
-                # proper treatment of -ve frequencies
-                omega = self.axis.data
-                cfce_jang = \
-                0.22*omega*numpy.exp(-numpy.abs(omega/omega1c))+\
-                0.78*(omega/(numpy.abs(omega)))*((omega**2)/omega2c)*numpy.exp\
-                                                  (-numpy.abs(omega/omega2c))+\
-                0.31*((omega**3)/(omega3c**2))*numpy.\
-                                                 exp(-numpy.abs(omega/omega3c))
+                try:
+                    ss = [params['s1'], params['s2']]
+                    freq = [params["freq1"], params["freq2"]]
+                except:
+                    ss = [0.8, 0.5]
+                    freq = [convert(0.56, "1/cm", "int"), convert(1.9, "1/cm", "int")]
 
-            if values is not None:
-                self._make_me(self.axis, values)
+                for ii in range(2):
+                    cfce = cfce+\
+                    (ss[ii]/(numpy.math.factorial(7)*2*(freq[ii]**4)))*\
+                    (omega**3)*(numpy.exp(-numpy.abs(omega/freq[ii])**0.5))
+                # Converts the form of the spectral density to the one used in Quantarhei
+                cfce = cfce * (omega**2)
+                # Brings the reorganisation energy to the lit value of 102
+                cfce = cfce * 3.204215
+                print("Renger form of spec dens used")
+
             else:
-                self._make_me(self.axis, cfce_jang)
+
+                #This form is taken from Jang, Newton, Silbey, J Chem Phys. 2007.
+                #It gives a polynomial form of the B777 spectral density
+                try: 
+                    omega1c = convert(params['om1'], "1/cm", "int")
+                    omega2c = convert(params['om2'], "1/cm", "int")
+                    omega3c = convert(params['om3'], "1/cm", "int")
+                except:
+                    omega1c = convert(170, "1/cm", "int")
+                    omega2c = convert(34, "1/cm", "int")
+                    omega3c = convert(69, "1/cm", "int")
+
+                with energy_units("int"):
+                    # (omega/(numpy.abs(omega))) in the second term ensures
+                    # proper treatment of -ve frequencies
+                    omega = self.axis.data
+                    cfce = \
+                    0.22*omega*numpy.exp(-numpy.abs(omega/omega1c))+\
+                    0.78*(omega/(numpy.abs(omega)))*((omega**2)/omega2c)*numpy.exp(-numpy.abs(omega/omega2c))+\
+                    0.31*((omega**3)/(omega3c**2))*numpy.exp(-numpy.abs(omega/omega3c))
+                cfce = cfce * 3.058187
+                print('Alternate form of spec dens used')
+
+            # This brings the reorganisation energy up to the literature value of 102
+            #cfce = cfce * 3.19
+
+        if values is not None:
+            self._make_me(self.axis, values)
         else:
-            if values is not None:
-                self._make_me(self.axis, values)
-            else:
-                self._make_me(self.axis, cfce_renger)
+            self._make_me(self.axis, cfce)
 
-        self.lamb = lamb            
+        self.lamb = params["reorg"]            
         self.lim_omega = numpy.zeros(2)
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 0.0
@@ -567,7 +568,8 @@ class SpectralDensity(DFunction, UnitsManaged):
         """
         import scipy.interpolate as interp
 
-        integr = self.data/self.axis.data
+        #integr = self.data/self.axis.data
+        integr = numpy.divide(self.data, self.axis.data, out=numpy.zeros_like(self.data), where=self.axis.data!=0)
         uvspl = interp.UnivariateSpline(self.axis.data, integr, s=0)
         integ = uvspl.integral(0.0, self.axis.max)/numpy.pi
 

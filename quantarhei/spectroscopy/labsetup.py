@@ -73,6 +73,8 @@ class LabSetup:
         self.pulse_t = [None]*nopulses
         self.pulse_f = [None]*nopulses
         
+        self.dscaling = None
+        
         self.omega = None
         
                         
@@ -843,3 +845,84 @@ class LabSetup:
  
 class labsetup(LabSetup):
     pass
+
+
+
+class EField():
+    """Class representing electric field of a laser pulse
+    
+    
+    """
+    
+    def __init__(self, time, omega=0.0, polar=[1.0, 0.0, 0.0], 
+                 ftype="Gaussian", params=None):
+        
+        self.time = time
+        # FIXME: energy conversion
+        self.omega = omega
+        self.pol = polar
+        
+        if ftype=="Gaussian":
+            
+            self.ftype=ftype
+            self.Emax = params["Emax"]
+            # FIXME: energy conversion
+            self.fwhm = params["fwhm"]
+            self.tc = params["tc"]
+            
+            self.envelop = self.Emax*numpy.sqrt(numpy.log(2.0)/numpy.pi)\
+                     *numpy.exp(-numpy.log(2.0)*((self.time.data
+                                -self.tc)/self.fwhm)**2) \
+                     /self.fwhm
+
+
+    def subtract_omega(self, om):
+        """
+        
+        """
+        self.saved_omega = self.omega
+        self.omega -= om
+
+
+    def restore_omega(self):
+        """
+        
+        """
+        self.omega = self.saved_omega
+
+
+    def field_i(self, sign, i):
+        """Field at index i
+        
+        """
+        if sign is None:
+            return self.envelop[i]*numpy.cos(self.omega*self.time.data[i])
+        
+        if sign == 1:
+            return 0.5*self.envelop[i]* \
+                   numpy.exp(1j*self.omega*self.time.data[i])        
+        elif sign == -1:
+            return 0.5*numpy.conj(self.envelop[i])* \
+                   numpy.exp(-1j*self.omega*self.time.data[i]) 
+        else:
+            raise Exception("Unknown field component")
+    
+    
+    def field(self, sign=None):
+        """Field in an array
+        
+        """
+        if sign is None:
+            return self.envelop*numpy.cos(self.omega*self.time.data)
+        
+        if sign == 1:
+            return 0.5*self.envelop*numpy.exp(1j*self.omega*self.time.data)
+        elif sign == -1:
+            return 0.5*numpy.conj(self.envelop) \
+                   *numpy.exp(-1j*self.omega*self.time.data)
+        else:
+            raise Exception("Unknown field component")
+                   
+
+
+

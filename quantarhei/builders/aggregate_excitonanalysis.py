@@ -18,7 +18,7 @@
     >>> agg.diagonalize()
     >>> #
     >>> # Create a report on expantions of state with index `1`
-    >>> agg.report_on_expansion(1)
+    >>> agg.report_on_expansion(state=1)
     +-------+-------------+--------------+------------------+
     | index | squares     | coefficients | state signatures |
     +-------+-------------+--------------+------------------+
@@ -78,7 +78,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         return indx, coefs, sqrs
         
         
-    def report_on_expansion(self, state=0, N=5):
+    def report_on_expansion(self, file=None, state=0, N=5):
         """Prints a short report on the composition of an exciton state
 
         Parameters
@@ -101,7 +101,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> agg.build()  
         >>> agg.diagonalize()
         ...
-        >>> agg.report_on_expansion(1)
+        >>> agg.report_on_expansion(state=1)
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
         +-------+-------------+--------------+------------------+
@@ -137,7 +137,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             #print(imax, "\t", coef,"\t", sta)
             
         table = AsciiTable(table_data)
-        print(table.table)
+        print(table.table, file=file)
 
 
     def get_intersite_mixing(self, state1=0, state2=0):
@@ -269,7 +269,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             raise Exception("Aggregate has to be diagonalized")
 
 
-    def exciton_report(self, start=1, stop=None, Nrep=5, criterium=None):
+    def exciton_report(self, file=None, start=1, stop=None, Nrep=5, criterium=None):
         """Prints a report on excitonic properties of the aggregate
         
         Parameters
@@ -304,7 +304,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 1
         =========
         <BLANKLINE>
-        Transition energy        : 2.25417865 1/cm
+        Transition energy        : 11967.06803045 1/cm
         Transition dipole moment : 2.48026499 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
@@ -319,7 +319,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         Exciton 2
         =========
         <BLANKLINE>
-        Transition energy        : 2.32309466 1/cm
+        Transition energy        : 12332.93196955 1/cm
         Transition dipole moment : 5.16973501 D
         +-------+-------------+--------------+------------------+
         | index | squares     | coefficients | state signatures |
@@ -330,15 +330,19 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
         | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
         +-------+-------------+--------------+------------------+
-        <BLANKLINE>
+        <BLANKLINE>        
         """
         
         start_at = start
         stop_at = stop
         
-        print("Report on excitonic properties")
-        print("------------------------------\n")
+        
+        print("Report on excitonic properties", file=file)
+        print("------------------------------\n", file=file)
         N01 = self.Nb[0]+self.Nb[1]
+        if self.mult > 1:
+            N01 += self.Nb[2]
+            
         for Nst in range(N01):
             
             if stop_at is None:
@@ -346,7 +350,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                 
             if (Nst >= start_at) and (Nst <= stop_at):
                 
-                tre = self.get_state_energy(Nst) - self.get_state_energy(0)
+                with qr.energy_units("1/cm"):
+                    tre = self.get_state_energy(Nst) - self.get_state_energy(0)
                 dip = self.get_transition_dipole(0, Nst)
                 
                 if criterium is not None:
@@ -359,16 +364,16 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     txt = "Exciton "+str(Nst)
                     Nlength = len(txt)
                     line = "="*Nlength
-                    print(txt)
-                    print(line)
-                    print("")
+                    print(txt, file=file)
+                    print(line, file=file)
+                    print("", file=file)
                     with qr.energy_units("1/cm"):
                         print("Transition energy        "+
-                              ": {:.8f} 1/cm".format(tre))
+                              ": {:.8f} 1/cm".format(tre), file=file)
                         print("Transition dipole moment "+
-                              ": {:.8f} D".format(dip))
-                    self.report_on_expansion(Nst, N=Nrep)
-                    print("")
+                              ": {:.8f} D".format(dip), file=file)
+                    self.report_on_expansion(file=file, state=Nst, N=Nrep)
+                    print("", file=file)
 
 
     #

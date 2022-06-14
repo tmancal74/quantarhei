@@ -19,6 +19,8 @@ import numpy
 #import scipy.integrate
 import numpy.linalg
 
+import matplotlib.pyplot as plt
+
 #import cu.oqs.cython.propagators as prop
 
 from ..hilbertspace.hamiltonian import Hamiltonian
@@ -88,6 +90,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_PDeph = False
         self.has_RTensor = False
         self.has_RWA = False
+        self.has_EField = False
         
         if not ((timeaxis is None) and (Ham is None)):
             
@@ -127,7 +130,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             if Efield is not None:
                 if isinstance(Efield,numpy.ndarray):
                     self.Efield = Efield
-                    self.has_Efield = True 
+                    self.has_Efield = True
+                    self.has_EField = False
+                else: 
+                    self.EField = Efield
+                    self.has_EField = True
+                    self.has_Efield = False                    
+
+
             
             
             #
@@ -331,6 +341,27 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         rhoi,L=6)            
                     else:
                         raise Exception("Unknown propagation method: "+method)                
+                        
+                elif (self.has_EField and self.has_Trdip):
+ 
+                    if method == "short-exp":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=4)
+                    elif method == "short-exp-2":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=2)
+                    elif method == "short-exp-4":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=4)
+                    elif method == "short-exp-6":
+                        return \
+                        self.__propagate_short_exp_with_relaxation_EField(
+                        rhoi,L=6)            
+                    else:
+                        raise Exception("Unknown propagation method: "+method)
                         
                 ###############################################################
                 #
@@ -548,24 +579,63 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             HH = self.Hamiltonian.data
             
         RR = self.RelaxationTensor.data
+
+        if self.has_PDeph:
             
-        indx = 1
-        for ii in range(1, self.Nt): 
+            if self.PDeph.dtype == "Lorentzian":
+                expo = numpy.exp(-self.PDeph.data*self.dt)
+                t0 = 0.0
+            elif self.PDeph.dtype == "Gaussian":
+                expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
+                t0 = self.PDeph.data*self.dt
+
             
-            for jj in range(0, self.Nref):
+            indx = 1
+            for ii in range(1, self.Nt): 
+
+                # time at the beginning of the step
+                tNt = self.TimeAxis.data[indx-1]  
                 
-                for ll in range(1, L+1):
+                for jj in range(0, self.Nref):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                             - numpy.dot(rho1,HH)) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1)
-                             
-                             
-                    rho2 = rho2 + rho1
-                rho1 = rho2    
+                    tt = tNt + jj*self.dt  # time right now 
+ 
+                    for ll in range(1, L+1):
+                        
+                        rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                                 - numpy.dot(rho1,HH)) \
+                               + (self.dt/ll)*numpy.tensordot(RR,rho1)
+                                 
+                        rho2 = rho2 + rho1
+                        
+                    # pure dephasing is added here                        
+                    rho2 = rho2*expo*numpy.exp(-t0*tt)
+                        
+                    rho1 = rho2    
+                    
+                pr.data[indx,:,:] = rho2 
+                indx += 1   
                 
-            pr.data[indx,:,:] = rho2 
-            indx += 1             
+        else:
+            
+            indx = 1
+            for ii in range(1, self.Nt): 
+                
+                for jj in range(0, self.Nref):
+                    
+                    for ll in range(1, L+1):
+                        
+                        rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                                                 - numpy.dot(rho1,HH)) \
+                               + (self.dt/ll)*numpy.tensordot(RR,rho1)
+                                 
+                                 
+                        rho2 = rho2 + rho1
+                    rho1 = rho2    
+                    
+                pr.data[indx,:,:] = rho2 
+                indx += 1   
+           
 
         if self.Hamiltonian.has_rwa:
             pr.is_in_rwa = True
@@ -1241,7 +1311,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         MU = self.Trdip.data
         
         indx = 1
-        for ii in self.TimeAxis.time[1:self.Nt]:
+        for ii in self.TimeAxis.data[1:self.Nt]:
             
             EE = self.Efield[indx]
             
@@ -1261,3 +1331,83 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             indx += 1             
             
         return pr
+
+
+    def __propagate_short_exp_with_relaxation_EField(self,rhoi,L=4):
+        """
+              Short exp integration
+        """
+
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+        
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+ 
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            
+            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            
+            # get the field corresponding to RWA
+            #print(self.Hamiltonian.rwa_energies)
+            #print(self.Hamiltonian.rwa_indices)
+            om = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]]
+            self.EField.subtract_omega(om)
+            
+            # the two complex components of the field
+            Epls = self.EField.field(sign=1)
+            Emin = self.EField.field(sign=-1)
+            self.EField.restore_omega()
+            
+            # upper and lower triagle
+            N = self.Hamiltonian.dim
+            Mu = numpy.zeros((N,N), dtype=qr.REAL)
+            for ii in range(N):
+                for jj in range(ii+1,N):
+                    Mu[ii,jj] = 1.0
+            Ml = numpy.transpose(Mu)
+            
+        else:
+            
+            HH = self.Hamiltonian.data 
+            EField = self.EField.field()
+        
+        RR = self.RelaxationTensor.data
+        
+        pol = self.EField.pol
+        MU = numpy.dot(self.Trdip.data[:,:,:], pol)
+        
+        #
+        # Propagation
+        #
+        
+        indx = 1
+        for ii in self.TimeAxis.data[1:self.Nt]:
+            
+            if self.Hamiltonian.has_rwa:
+                MuE = MU*(Mu*Epls[indx]+Ml*Emin[indx])
+            else:
+                MuE = MU*EField[indx]
+            
+            for jj in range(0,self.Nref):
+                for ll in range(1,L+1):
+                    
+                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
+                             - numpy.dot(rho1,HH) ) \
+                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
+                            + (1j*self.dt/ll)*( numpy.dot(MuE,rho1) \
+                             - numpy.dot(rho1,MuE) )                             
+                             
+                    rho2 = rho2 + rho1
+                rho1 = rho2    
+                
+            pr.data[indx,:,:] = rho2                        
+            indx += 1
+             
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True   
+            
+        return pr
+
