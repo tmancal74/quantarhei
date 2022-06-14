@@ -716,9 +716,6 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         else:
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
 
-        if self._gass_lineshape:
-            tr["HWHH"] = self.HWHH
-        
         if self._gauss_broad:
             tr["fwhm"] = self.gauss
 
@@ -745,12 +742,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             else:
                 tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
             
-            if self._gass_lineshape:
-                tr["HWHH"] = self.HWHH
-            
             if self._gauss_broad:
                 tr["fwhm"] = self.gauss
-            
+                
             data += numpy.real(self.one_transition_spectrum_abs(tr))
 
         # we only want to retain the upper half of the spectrum
