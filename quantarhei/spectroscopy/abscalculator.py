@@ -706,7 +706,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # dipole^2
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
-        gama = [0.0] #[-1.0/self.system.get_electronic_natural_lifetime(1)]
+        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
             
         if self.system._has_system_bath_coupling:
             # correlation function
@@ -716,9 +716,42 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         else:
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
 
+        if self._gass_lineshape:
+            tr["HWHH"] = self.HWHH
+        
+        if self._gauss_broad:
+            tr["fwhm"] = self.gauss
+
         # calculates the one transition of the monomer        
         data = numpy.real(self.one_transition_spectrum_abs(tr))
         
+        
+        for ii in range(2,self.system.Nb[1]+1):
+            
+            # transition frequency
+            om = self.system.elenergies[ii]-self.system.elenergies[0]
+            # transition dipole moment
+            dm = self.system.dmoments[0,ii,:]
+            # dipole^2
+            dd = numpy.dot(dm,dm)
+            # natural life-time from the dipole moment
+            gama = [-1.0/self.system.get_electronic_natural_lifetime(ii)]
+            
+            if self.system._has_system_bath_coupling:
+                # correlation function
+                ct = self.system.get_egcf((0,ii))   
+                gt = self._c2g(ta,ct.data)
+                tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama,"fwhm":0.0}
+            else:
+                tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
+            
+            if self._gass_lineshape:
+                tr["HWHH"] = self.HWHH
+            
+            if self._gauss_broad:
+                tr["fwhm"] = self.gauss
+            
+            data += numpy.real(self.one_transition_spectrum_abs(tr))
 
         # we only want to retain the upper half of the spectrum
         Nt = len(self.frequencyAxis.data)//2        
