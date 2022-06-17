@@ -1778,6 +1778,7 @@ class AggregateBase(UnitsManaged, Saveable):
                         for i_g in range(self.Nb[0]):
                             FcProd[i, j] += self.FCf[i_g, i]*self.FCf[j, i_g]
 
+
                 if evolution:
                     if whole:
                         # loop over electronic states n, m
