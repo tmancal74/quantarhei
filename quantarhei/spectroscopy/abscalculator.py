@@ -723,6 +723,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         tr["re"] = reorg
 
+        if self._gauss_broad:
+            tr["fwhm"] = self.gauss
+
         # calculates the one transition of the monomer        
         data = numpy.real(self.one_transition_spectrum_abs(tr))
         data_fl = numpy.real(self.one_transition_spectrum_fluor(tr))
@@ -750,6 +753,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             if self._gauss_broad: 
                 tr["fwhm"] = self.gauss
             
+            if self._gauss_broad:
+                tr["fwhm"] = self.gauss
+                
             data += numpy.real(self.one_transition_spectrum_abs(tr))
 
         # we only want to retain the upper half of the spectrum
