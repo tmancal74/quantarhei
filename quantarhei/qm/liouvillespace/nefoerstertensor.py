@@ -5,15 +5,16 @@ import scipy.interpolate as interp
 
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
-from .foerstertensor import FoersterRelaxationTensor
-from ..corfunctions.correlationfunctions import c2g
+from .tdfoerstertensor import TDFoersterRelaxationTensor
+from ..corfunctions.correlationfunctions import c2g, c2h
 from ...core.managers import energy_units
 
-from ...core.time import TimeDependent
+#from ...core.time import TimeDependent
 
-class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
+class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory
     
+    Non-equilibrium version
     
     
     """
@@ -21,7 +22,6 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
         
         super().__init__(ham, sbi, initialize, cutoff_time)
 
-        
     def initialize(self):
         
         tt = self.SystemBathInteraction.TimeAxis.data
@@ -47,13 +47,29 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             # SBI is defined with "sites"
             for ii in range(1, Na):
                 gt[ii,:] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
+
+            # correlation function integral
+            ht = numpy.zeros((Na, sbi.TimeAxis.length),
+                             dtype=numpy.complex64)
+    
+            # SBI is defined with "sites"
+            for ii in range(1, Na):
+                ht[ii,:] = c2h(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
+                
+            # correlation functions
+            ct = numpy.zeros((Na, sbi.TimeAxis.length),
+                             dtype=numpy.complex64) 
+            
+            # SBI is defined with "sites"
+            for ii in range(1, Na):
+                ct[ii,:] = sbi.CC.get_coft(ii-1,ii-1)
             
             # reorganization energies
             ll = numpy.zeros(Na)
             for ii in range(1, Na):
                 ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
                         
-            KK = _td_reference_implementation(Na, Nt, HH, tt, gt, ll)
+            KK = _ne_reference_implementation(Na, Nt, HH, tt, ct, ht, gt, ll)
    
             #
             # Transfer rates
@@ -70,30 +86,9 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             
             # additional pure dephasing 
             self.add_dephasing()
-           
-def add_dephasing(self):
 
-    # line shape function derivatives
-    sbi = self.SystemBathInteraction
-    Na = self.dim
-    
-    ht = numpy.zeros((Na, sbi.TimeAxis.length),
-                     dtype=numpy.complex64)
-    
-    sbi.CC.create_one_integral()
 
-    for ii in range(1, Na):
-       ht[ii,:] = sbi.CC.get_hoft(ii-1,ii-1)
-    
-                    
-    for aa in range(self.dim):
-        for bb in range(self.dim):
-            if aa != bb:
-                self.data[:,aa,bb,aa,bb] -= (ht[aa,:]+ht[bb,:])
-     
-    
-            
-def _td_fintegral(tt, gtd, gta, ed, ea, ld):
+def _ne_fintegral(tt, gtd, gta, ed, ea, ld):
         """Time dependent Foerster integral
         
         
@@ -142,7 +137,9 @@ def _td_fintegral(tt, gtd, gta, ed, ea, ld):
         
         return ret
 
-def _td_reference_implementation(Na, Nt, HH, tt, gt, ll):
+
+
+def _ne_reference_implementation(Na, Nt, HH, tt, ct, ht, gt, ll):
                                          
         #
         # Rates between states a and b
@@ -153,8 +150,8 @@ def _td_reference_implementation(Na, Nt, HH, tt, gt, ll):
                 if a != b:
                     ed = HH[b,b] # donor
                     ea = HH[a,a] # acceptor
-                    KK[:,a,b] = (HH[a,b]**2)*_td_fintegral(tt, gt[a,:],
+                    KK[:,a,b] = (HH[a,b]**2)*_ne_fintegral(tt, gt[a,:],
                                                            gt[b,:],
                                                            ed, ea, ll[b])
    
-        return KK        
+        return KK  

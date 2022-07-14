@@ -460,6 +460,9 @@ class AggregateBase(UnitsManaged, Saveable):
 
             # difference in shifts
             shft = smod1.shift - smod2.shift
+            
+            #print("Shift: ", shft)
+            
             # quantum numbers
             qn1 = inx1[kk]
             qn2 = inx2[kk]
@@ -472,9 +475,21 @@ class AggregateBase(UnitsManaged, Saveable):
 
             if not self.FC.lookup(shft):
                 fc = self.ops.shift_operator(shft)[:20,:20]
+                
+                # correction for the second state
+                if False:
+                    n2 = numpy.abs(fc[0,0])**2 + numpy.abs(fc[0,1])**2
+                    fc[0,0] = fc[0,0]/numpy.sqrt(n2)
+                    fc[1,1] = fc[0,0]
+                    fc[0,1] = fc[0,1]/numpy.sqrt(n2)
+                    fc[1,0] = -fc[0,1]
+                
+                
+                
                 self.FC.add(shft,fc)
 
             ii = self.FC.index(shft)
+            #print(self.FC.get(ii)[0:2,0:2])
             rs = self.FC.get(ii)[qn1,qn2]
 
             res = res*rs
@@ -1773,11 +1788,16 @@ class AggregateBase(UnitsManaged, Saveable):
                     stgs.append(stg)
 
                 FcProd = numpy.zeros_like(self.FCf)
+                #self.FCf[1,3] = self.FCf[0,2]
+                #self.FCf[3,1] = self.FCf[2,0]
                 for i in range(FcProd.shape[0]):
                     for j in range(FcProd.shape[1]):
                         for i_g in range(self.Nb[0]):
                             FcProd[i, j] += self.FCf[i_g, i]*self.FCf[j, i_g]
 
+                #print(self.FCf)
+                #print(self.FCf.shape)
+                #qr.stop()
 
                 if evolution:
                     if whole:
@@ -1799,6 +1819,7 @@ class AggregateBase(UnitsManaged, Saveable):
                                             operator._data[Nt, i_n, i_m]*FcProd[i_n, i_m]
 
                 else:
+                    #print("TRANSFORMING")
                     # loop over electronic states n, m
                     for n in range(self.Nel):
                         for i_n in self.vibindices[n]:
@@ -1815,6 +1836,38 @@ class AggregateBase(UnitsManaged, Saveable):
 
         else:
             raise Exception("Incompatible operator")
+
+
+    def cast_to_vibronic(self, KK):
+        """Casts an electronic operator to a vibronic basis
+        
+        """
+        agg = self
+        
+        newkk = numpy.zeros((agg.Ntot, agg.Ntot), 
+                            dtype=numpy.float64)
+        # populate the operator
+        for i_el in range(agg.Nel):
+            for i_vib in agg.vibindices[i_el]:
+                
+                vs_i = agg.vibsigs[i_vib]
+                st_i = agg.get_VibronicState(vs_i[0], vs_i[1])
+                
+                for j_el in range(agg.Nel):
+                    for j_vib in agg.vibindices[j_el]:
+                
+                        vs_j = agg.vibsigs[j_vib]
+                        st_j = agg.get_VibronicState(vs_j[0],
+                                                     vs_j[1])
+                
+                        # electronic transition operator
+                        # dressed in Franck-Condon factors
+                        newkk[i_vib, j_vib] = (
+                        numpy.real(agg.fc_factor(st_i, st_j))*KK[i_el, j_el]
+                        )
+                    
+        return newkk
+
 
 
     def convert_to_DensityMatrix(self, psi, trace_over_vibrations=True):

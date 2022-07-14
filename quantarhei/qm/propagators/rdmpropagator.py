@@ -1133,7 +1133,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         indxR = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
 
-            RR = self.RelaxationTensor.data[indxR,:,:]        
+            RR = self.RelaxationTensor.data[indxR,:,:]  
             
             for jj in range(0,self.Nref):
                 for ll in range(1,L+1):
