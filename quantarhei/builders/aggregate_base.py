@@ -2693,7 +2693,7 @@ class AggregateBase(UnitsManaged, Saveable):
             # we specify the basis from outside. This allows to choose
             # canonical equilibrium in arbitrary basis
             for i in range(start, dim):
-                ens[i-start] = HH[i,i] - subtract[i-start]
+                ens[i-start] = numpy.real(HH[i,i] - subtract[i-start])
 
             ne = numpy.exp(-ens/kBT)
             sne = numpy.sum(ne)

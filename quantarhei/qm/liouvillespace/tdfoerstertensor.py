@@ -70,26 +70,27 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             
             # additional pure dephasing 
             self.add_dephasing()
+            
            
-def add_dephasing(self):
+    def add_dephasing(self):
 
-    # line shape function derivatives
-    sbi = self.SystemBathInteraction
-    Na = self.dim
+        # line shape function derivatives
+        sbi = self.SystemBathInteraction
+        Na = self.dim
+        
+        ht = numpy.zeros((Na, sbi.TimeAxis.length),
+                         dtype=numpy.complex64)
+        
+        sbi.CC.create_one_integral()
     
-    ht = numpy.zeros((Na, sbi.TimeAxis.length),
-                     dtype=numpy.complex64)
-    
-    sbi.CC.create_one_integral()
-
-    for ii in range(1, Na):
-       ht[ii,:] = sbi.CC.get_hoft(ii-1,ii-1)
-    
-                    
-    for aa in range(self.dim):
-        for bb in range(self.dim):
-            if aa != bb:
-                self.data[:,aa,bb,aa,bb] -= (ht[aa,:]+ht[bb,:])
+        for ii in range(1, Na):
+           ht[ii,:] = sbi.CC.get_hoft(ii-1,ii-1)
+        
+                        
+        for aa in range(self.dim):
+            for bb in range(self.dim):
+                if aa != bb:
+                    self.data[:,aa,bb,aa,bb] -= (ht[aa,:]+ht[bb,:])
      
     
             
