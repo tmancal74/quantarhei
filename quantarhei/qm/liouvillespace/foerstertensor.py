@@ -6,8 +6,8 @@ from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .relaxationtensor import RelaxationTensor
 from .rates.foersterrates import FoersterRateMatrix
-#from ..corfunctions.correlationfunctions import c2g
 from ...core.managers import energy_units
+from ... import COMPLEX
 
 class FoersterRelaxationTensor(RelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory
@@ -17,7 +17,6 @@ class FoersterRelaxationTensor(RelaxationTensor):
     """
     def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
-        #super().__init__()
         self._initialize_basis()
         
         if not isinstance(ham, Hamiltonian):
@@ -56,13 +55,12 @@ class FoersterRelaxationTensor(RelaxationTensor):
         # Tensor data
         #
         Na = self.dim
-        self.data = numpy.zeros((Na,Na,Na,Na),dtype=numpy.complex128)
+        self.data = numpy.zeros((Na,Na,Na,Na),dtype=COMPLEX)
         
         
         with energy_units("int"):
             
-            # Hamiltonian matrix
-            #HH = self.Hamiltonian.data
+            HH = self.Hamiltonian
             sbi = self.SystemBathInteraction             
             
             if self._has_cutoff_time:
@@ -70,27 +68,8 @@ class FoersterRelaxationTensor(RelaxationTensor):
             else:
                 cft = None
                 
-            frm = FoersterRateMatrix(self.Hamiltonian, sbi, initialize=True,
+            frm = FoersterRateMatrix(HH, sbi, initialize=True,
                                      cutoff_time=cft)
- 
-            #tt = sbi.TimeAxis.data
-            
-            # line shape functions
-            #gt = numpy.zeros((Na, sbi.TimeAxis.length),
-            #                 dtype=numpy.complex64)
-    
-            # SBI is defined with "sites"
-            #for ii in range(1, Na):
-            #    gt[ii,:] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
-            
-            # reorganization energies
-            #ll = numpy.zeros(Na)
-            #for ii in range(1, Na):
-            #    ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
-                
-            #KK = _reference_implementation(Na, HH, tt, gt, ll)
-   
-            KK = frm.data
     
             #
             # Transfer rates
@@ -98,13 +77,9 @@ class FoersterRelaxationTensor(RelaxationTensor):
             for aa in range(self.dim):
                 for bb in range(self.dim):
                     if aa != bb:
-                        self.data[aa,aa,bb,bb] = KK[aa,bb]
+                        self.data[aa,aa,bb,bb] = frm.data[aa,bb]
                 
             #  
             # calculate dephasing rates and depopulation rates
             #
             self.updateStructure()
-        
-        
-
-

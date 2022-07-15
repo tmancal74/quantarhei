@@ -50,6 +50,7 @@ from .liouvillespace.tdredfieldtensor import TDRedfieldRelaxationTensor
 # Relaxation tensors (strong SB theory)
 from .liouvillespace.foerstertensor import FoersterRelaxationTensor
 from .liouvillespace.tdfoerstertensor import TDFoersterRelaxationTensor
+from .liouvillespace.nefoerstertensor import NEFoersterRelaxationTensor
 
 # Combined theories
 from .liouvillespace.redfieldfoerster import RedfieldFoersterRelaxationTensor

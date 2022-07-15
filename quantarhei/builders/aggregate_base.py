@@ -1958,6 +1958,7 @@ class AggregateBase(UnitsManaged, Saveable):
         from ..qm import TDRedfieldRelaxationTensor
         from ..qm import FoersterRelaxationTensor
         from ..qm import TDFoersterRelaxationTensor
+        from ..qm import NEFoersterRelaxationTensor
         from ..qm import RedfieldFoersterRelaxationTensor
         from ..qm import TDRedfieldFoersterRelaxationTensor
         from ..qm import LindbladForm
@@ -2068,6 +2069,41 @@ class AggregateBase(UnitsManaged, Saveable):
             self.RelaxationHamiltonian = ham_0
             self._has_relaxation_tensor = True
             self._relaxation_theory = "standard_Foerster"
+
+            return relaxT, ham_0
+
+        elif relaxation_theory in theories["noneq_Foerster"]:
+
+            if time_dependent:
+
+                # Time dependent standard Foerster
+                relaxT = NEFoersterRelaxationTensor(ham, sbi)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                for i in range(ham.dim):
+                    dat[i,i] = ham._data[i,i]
+                ham_0 = Hamiltonian(data=dat)
+
+            else:
+
+                # Fixme Check that it makes sense to have here the time-independent theory !!!
+                # Time independent standard Foerster
+
+                #
+                # This is done strictly in site basis
+                #
+
+                relaxT = FoersterRelaxationTensor(ham, sbi)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                for i in range(ham.dim):
+                    dat[i,i] = ham._data[i,i]
+                ham_0 = Hamiltonian(data=dat)
+
+            # The Hamiltonian for propagation is the one without
+            # resonance coupling
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham_0
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "noneq_Foerster"
 
             return relaxT, ham_0
 
