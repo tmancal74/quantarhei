@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-_show_plots_ = False
+_show_plots_ = True
 
 import time
 
