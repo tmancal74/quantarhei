@@ -21,15 +21,29 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         
         """
         super().__init__(ham, sbi, initialize, cutoff_time)
+        
 
 
     def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):
         """ Overloaded implementation method replacing integration kernel
         
         """
+        
+        self.Iterm = _initial_term(Na, Nt, HH, tt, gt, ll)
+        self.has_Iterm = True
+        
         return _td_reference_implementation(Na, Nt, HH, tt,
                                             gt, ll, _ne_fintegral)
     
+
+
+def _initial_term(Na, Nt, HH, tt, gt, ll):
+    """ Inhomogeneous (initial condition) term 
+        of the non-equilibrium Foerster theory
+        
+    """
+    return numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+
 
 def _kernel_at_t(ti, tt, gtd, gta, ed, ea, ld):
     """ Two-time kernel to be integrated 

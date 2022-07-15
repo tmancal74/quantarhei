@@ -33,6 +33,7 @@ from ..hilbertspace.operators import ReducedDensityMatrix, DensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
 from ...core.managers import Manager
+from ... import REAL
 
 import quantarhei as qr
 
@@ -48,7 +49,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     
     """
     
-    def __init__(self, timeaxis=None, Ham=None, RTensor=None,
+    def __init__(self, timeaxis=None, Ham=None, RTensor=None, Iterm=None,
                  Efield=None, Trdip=None, PDeph=None):
         """
         
@@ -89,6 +90,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_Efield = False
         self.has_PDeph = False
         self.has_RTensor = False
+        self.has_Iterm = False
         self.has_RWA = False
         self.has_EField = False
         
@@ -137,28 +139,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     self.has_EField = True
                     self.has_Efield = False                    
 
-
-            
-            
-            #
-            # RWA
-            #
-            #ham = self.Hamiltonian
-            #if ham.has_rwa:
-                
-                #self.RWA = self.Hamiltonian.rwa_indices
-                #self.RWU = numpy.zeros(self.RWA.shape, dtype=self.RWA.dtype)
-                
-                #HH = ham.data
-                #shape = HH.shape
-                #HOmega = numpy.zeros(shape, dtype=qr.REAL)
-                #for ii in range(shape[0]):
-                #    HOmega[ii,ii] = ham.rwa_energies[ii]
-                                    
-                #self.HOmega = self.ham.get_RWA_skeleton()
-                
-                #print(self.RWA)
-                #print(self.RWU)
             
             #
             # Pure dephasing also counts as relaxation
@@ -167,6 +147,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 self.PDeph = PDeph
                 self.has_PDeph = True
                 self.has_relaxation = True
+                
+            if Iterm is not None:
+                self.Iterm = Iterm
+                self.has_Iterm = True
             
             
             self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
@@ -1099,11 +1083,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     def __propagate_short_exp_with_TD_relaxation(self,rhoi,L=4):
         """
               Short exp integration
+              
+              This is the propagator used with the Time-dependent relaxation
+              tensors
+              
+              
         """
 
         try:
             if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_with_TDrel_operators(rhoi, L=L)
+                return self.__propagate_short_exp_with_TDrel_operators(rhoi,
+                                                                       L=L)
         except:
             raise Exception("Operator propagation failed")
         
@@ -1112,17 +1102,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
 
-        
-        #HH = self.Hamiltonian.data  
         #
         # RWA is applied here
         #
         if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            HH = self.Hamiltonian.get_RWA_data()
         else:
             HH = self.Hamiltonian.data
        
-
+        #
+        # set cut-off index by the tensor cut-off time
+        #
         if self.RelaxationTensor._has_cutoff_time:
             cutoff_indx = \
             self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
@@ -1131,25 +1121,41 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         indx = 1
         indxR = 1
+        
+        # check if the relaxation tensor requires inhomogeneous term
+        try:
+            self.has_Iterm = self.RelaxationTensor.has_Iterm
+        except:
+            self.has_Iterm = False
+            
+        #
+        # Propagate with time-dependent relaxation tensor and inhomogeneous
+        # term if there is one.
+        #
         for ii in self.TimeAxis.data[1:self.Nt]:
 
-            RR = self.RelaxationTensor.data[indxR,:,:]  
+            RR = self.RelaxationTensor.data[indxR,:,:,:,:]
+            if self.has_Iterm:
+                IR = self.RelaxationTensor.Iterm[indxR,:,:]
+            else:
+                IR = 0.0
             
             for jj in range(0,self.Nref):
                 for ll in range(1,L+1):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1)
-                             
+                    rho1 =  (self.dt/ll)*(numpy.tensordot(RR,rho1) \
+                       - 1j*(numpy.dot(HH,rho1)- numpy.dot(rho1,HH)) + IR)
                              
                     rho2 = rho2 + rho1
                 rho1 = rho2    
                 
             pr.data[indx,:,:] = rho2
             
+            #
+            # We respect the tensor cut-off
+            #
             indx += 1
-            if indxR < cutoff_indx-1:                      
+            if indxR < cutoff_indx - 1:                      
                 indxR += 1             
             
         return pr     

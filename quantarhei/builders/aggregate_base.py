@@ -2125,6 +2125,10 @@ class AggregateBase(UnitsManaged, Saveable):
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
+                
+                # this type of theory has an inhomogeneous term
+                self.Iterm = relaxT.Iterm
+                self.has_Iterm = True
 
             else:
 
