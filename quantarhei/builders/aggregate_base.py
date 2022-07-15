@@ -1956,6 +1956,8 @@ class AggregateBase(UnitsManaged, Saveable):
 
         from ..qm import RedfieldRelaxationTensor
         from ..qm import TDRedfieldRelaxationTensor
+        from ..qm import ModRedfieldRelaxationTensor
+        from ..qm import TDModRedfieldRelaxationTensor
         from ..qm import FoersterRelaxationTensor
         from ..qm import TDFoersterRelaxationTensor
         from ..qm import NEFoersterRelaxationTensor
@@ -1981,6 +1983,8 @@ class AggregateBase(UnitsManaged, Saveable):
         theories["standard_Foerster"] = ["standard_Foerster","stF","Foerster"]
         theories["combined_RedfieldFoerster"] = ["combined_RedfieldFoerster",
                                                  "cRF","Redfield-Foerster"]
+        theories["noneq_Foerster"] = ["noneq_Foerster", "neF"]
+        
         #
         # Future
         #
@@ -1989,7 +1993,6 @@ class AggregateBase(UnitsManaged, Saveable):
                                                "nemR"]
         theories["generalized_Foerster"] = ["generalized_Foerster", "gF",
                                             "multichromophoric_Foerster"]
-        theories["noneq_Foerster"] = ["noneq_Foerster", "neF"]
         theories["combined_WeakStrong"] = ["combined_WeakStrong", "cWS"]
         theories["Lindblad_form"] = ["Lindblad_form", "Lf"]
         theories["electronic_Lindblad"] = ["electronic_Lindblad", "eLf"]
@@ -2037,6 +2040,46 @@ class AggregateBase(UnitsManaged, Saveable):
             self._relaxation_theory = "standard_Redfield"
 
             return relaxT, ham
+
+        elif relaxation_theory in theories["modified_Redfield"]:
+
+            if time_dependent:
+
+                # Time dependent standard Refield
+
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = TDModRedfieldRelaxationTensor(ham, sbi,
+                                        cutoff_time=relaxation_cutoff_time,
+                                        as_operators=as_operators)
+                    if secular_relaxation:
+                        relaxT.secularize()
+                ham.unprotect_basis()
+
+            else:
+
+                # Time independent standard Refield
+
+
+                ham.protect_basis()
+
+                with eigenbasis_of(ham):
+                    relaxT = ModRedfieldRelaxationTensor(ham, sbi,
+                                                    as_operators=as_operators)
+
+                    if secular_relaxation:
+                        relaxT.secularize()
+
+                ham.unprotect_basis()
+
+
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "modified_Redfield"
+
+            return relaxT, ham
+
 
         elif relaxation_theory in theories["standard_Foerster"]:
 
