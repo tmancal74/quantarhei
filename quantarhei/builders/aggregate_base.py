@@ -218,7 +218,7 @@ class AggregateBase(UnitsManaged, Saveable):
         # TESTED
 
 
-    def dipole_dipole_coupling(self, kk, ll, epsr=1.0):
+    def dipole_dipole_coupling(self, kk, ll, epsr=1.0, delta=1.0e-5):
         """Calculates dipole-dipole coupling
 
         """
@@ -232,13 +232,16 @@ class AggregateBase(UnitsManaged, Saveable):
         d2 = self.monomers[ll].dmoments[0,1,:]
         r2 = self.monomers[ll].position
 
+        if numpy.sqrt(numpy.dot(r1-r2, r1-r2)) < delta:
+            raise Exception()
+
         val =  dipole_dipole_interaction(r1, r2, d1, d2, epsr)
         return self.convert_energy_2_current_u(val)
         #
         # TESTED
 
 
-    def set_coupling_by_dipole_dipole(self, epsr=1.0):
+    def set_coupling_by_dipole_dipole(self, epsr=1.0, delta=1.0e-5):
         """Sets resonance coupling by dipole-dipole interaction
 
         """
@@ -247,7 +250,12 @@ class AggregateBase(UnitsManaged, Saveable):
             self.init_coupling_matrix()
         for kk in range(self.nmono):
             for ll in range(kk+1,self.nmono):
-                cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr)
+                try:
+                    cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr,
+                                                     delta=delta)
+                except:
+                    cc = 0.0
+                    
                 c1 = self.convert_energy_2_internal_u(cc)
                 self.resonance_coupling[kk,ll] = c1
                 self.resonance_coupling[ll,kk] = c1
@@ -1915,6 +1923,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
     def get_RelaxationTensor(self, timeaxis,
                        relaxation_theory=None,
+                       as_convolution_kernel=False,
                        time_dependent=False,
                        secular_relaxation=False,
                        relaxation_cutoff_time=None,
@@ -2120,14 +2129,16 @@ class AggregateBase(UnitsManaged, Saveable):
             if time_dependent:
 
                 # Time dependent standard Foerster
-                relaxT = NEFoersterRelaxationTensor(ham, sbi)
+                relaxT = NEFoersterRelaxationTensor(ham, sbi, 
+                                            as_kernel=as_convolution_kernel)
                 dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
-                for i in range(ham.dim):
-                    dat[i,i] = ham._data[i,i]
+                
+                #for i in range(ham.dim):
+                #    dat[i,i] = ham._data[i,i]
+                
                 ham_0 = Hamiltonian(data=dat)
                 
                 # this type of theory has an inhomogeneous term
-                self.Iterm = relaxT.Iterm
                 self.has_Iterm = True
 
             else:
@@ -2290,6 +2301,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
     def get_ReducedDensityMatrixPropagator(self, timeaxis,
                        relaxation_theory=None,
+                       time_nonlocal=False,
                        time_dependent=False,
                        secular_relaxation=False,
                        relaxation_cutoff_time=None,
@@ -2309,6 +2321,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
         relaxT, ham = self.get_RelaxationTensor(timeaxis,
                        relaxation_theory=relaxation_theory,
+                       as_convolution_kernel=time_nonlocal,
                        time_dependent=time_dependent,
                        secular_relaxation=secular_relaxation,
                        relaxation_cutoff_time=relaxation_cutoff_time,
@@ -2316,9 +2329,14 @@ class AggregateBase(UnitsManaged, Saveable):
                        recalculate=recalculate,
                        as_operators=as_operators)
 
-        with eigenbasis_of(ham):
-            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
-
+        if time_nonlocal:
+            # here we create time non-local propagator
+            prop = None
+            stop()
+        else:
+            # FIXME: is the eigenbases needed???
+            with eigenbasis_of(ham):
+                prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
 
         return prop
 

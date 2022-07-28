@@ -1123,10 +1123,16 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         indxR = 1
         
         # check if the relaxation tensor requires inhomogeneous term
+        
         try:
             self.has_Iterm = self.RelaxationTensor.has_Iterm
         except:
+            print(self, "This tensor does not support has_Iterm")
             self.has_Iterm = False
+            
+        if self.has_Iterm:
+            self.RelaxationTensor.initial_term(rhoi)
+            
             
         #
         # Propagate with time-dependent relaxation tensor and inhomogeneous
@@ -1139,6 +1145,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 IR = self.RelaxationTensor.Iterm[indxR,:,:]
             else:
                 IR = 0.0
+                
+            #print(IR, self.has_Iterm)
             
             for jj in range(0,self.Nref):
                 for ll in range(1,L+1):
