@@ -706,7 +706,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # dipole^2
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
-        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
+        gama = [0.0] #[-1.0/self.system.get_electronic_natural_lifetime(1)]
+        sbi = self.system.get_SystemBathInteraction(self.TimeAxis)
+        reorg = sbi.CC.get_reorganization_energy(0,0)
             
         if self.system._has_system_bath_coupling:
             # correlation function
@@ -715,13 +717,19 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama,"fwhm":0.0}
         else:
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
+    
+        if self._gauss_broad:
+            tr["fwhm"] = self.gauss
+
+        tr["re"] = reorg
 
         if self._gauss_broad:
             tr["fwhm"] = self.gauss
 
         # calculates the one transition of the monomer        
         data = numpy.real(self.one_transition_spectrum_abs(tr))
-        
+        data_fl = numpy.real(self.one_transition_spectrum_fluor(tr))
+
         
         for ii in range(2,self.system.Nb[1]+1):
             
@@ -732,7 +740,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             # dipole^2
             dd = numpy.dot(dm,dm)
             # natural life-time from the dipole moment
-            gama = [-1.0/self.system.get_electronic_natural_lifetime(ii)]
+            gama = [0.0] #[-1.0/self.system.get_electronic_natural_lifetime(ii)]
             
             if self.system._has_system_bath_coupling:
                 # correlation function
@@ -741,6 +749,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                 tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gt":gt,"gg":gama,"fwhm":0.0}
             else:
                 tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama,"fwhm":0.0}
+
+            if self._gauss_broad: 
+                tr["fwhm"] = self.gauss
             
             if self._gauss_broad:
                 tr["fwhm"] = self.gauss
@@ -757,11 +768,13 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # multiply the spectrum by frequency (compulsory prefactor)
         if not raw:
             data = axis.data*data
+            data_fl = (axis.data**3)*data_fl
 
         
-        spect = LinSpectrum(axis=axis, data=data)
+        spect_abs = LinSpectrum(axis=axis, data=data)
+        fluor_spect = LinSpectrum(axis=axis, data=data_fl)
         
-        return spect
+        return {"abs": spect_abs, "fluor": fluor_spect}
         
         
     def _calculate_aggregate(self, relaxation_tensor=None,
