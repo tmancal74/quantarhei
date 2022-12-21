@@ -3674,69 +3674,66 @@ class AggregateBase(UnitsManaged, Saveable):
             
             #raise IOError("Diagonalization of the transition width with vibronic states and multilevel molecules not yet implemented")
             
-            #######################################################################
-            ## CASE OF VIBRATIONAL MODES
-            #######################################################################
+            ######################################################################
+            # CASE OF VIBRATIONAL MODES
+            ######################################################################     
 
-            #N1b = self.Nb[0]+self.Nb[1]            
-
-
-            ##
-            ## Transform line shapes for 0->1 transitions
-            ##
-            #Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
-            #Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
+            #
+            # Transform line shapes for 0->1 transitions
+            #
+            Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
+            Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
             
-            #Nel = 1 + self.nmono
+            Nel = self.Nbe[0] + self.Nbe[1]  # GS + singly excited states 
             
-            #Wd_in = numpy.zeros(Nel, dtype=qr.REAL)
-            #Dr_in = numpy.zeros(Nel, dtype=qr.REAL)
+            Wd_in = numpy.zeros(Nel, dtype=qr.REAL)
+            Dr_in = numpy.zeros(Nel, dtype=qr.REAL)
             
-            #Wd_ini = self.Wd.copy()
-            #Dr_ini = self.Dr.copy()
+            Wd_ini = self.Wd.copy()
+            Dr_ini = self.Dr.copy()
             
-            #for ii in range(Nel):
-                #for k in self.vibindices[ii]:
-                    #Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
-                    ##print("***", self.Wd[k,k], self.Hs[k,k])
-                    #Dr_in[ii] = Dr_ini[k,k]
+            for ii in range(Nel):
+                for k in self.vibindices[ii]:
+                    Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
+                    #print("***", self.Wd[k,k], self.Hs[k,k])
+                    Dr_in[ii] = Dr_ini[k,k]
             
-            ##Nvib1el = len(self.vibindices[0])
-            #kap = numpy.zeros((N1b, Nel), dtype=qr.REAL)
+            #Nvib1el = len(self.vibindices[0])
+            kap = numpy.zeros((N1b, Nel), dtype=qr.REAL)
             
-            ## loop over all states in the 1-ex band
-            #for aa in range(N1b):
-                #ela = self.elinds[aa]
-                #if self.which_band[ela] == 1:
+            # loop over all states in the 1-ex band
+            for aa in range(N1b):
+                ela = self.elinds[aa]
+                if self.which_band[ela] == 1:
                     
-                    ## loop over electronic states in the 1-ex band
-                    #st = 0  # counts the total index of the state
-                    #for ii in range(Nel):
-                        ##if self.which_band[ii] == 1:
-                         #if True:   
-                            ## loop over substructure of vib states
-                            #for ialph in self.vibindices[ii]:
-                                ##print(aa, st, "(", ii, ialph,")")
-                                #kap[aa, ii] += numpy.abs(SS[st,aa])**2
-                                #st += 1
-                        ##else:
-                        ##    for ialph in self.vibindices[ii]:
-                        ##        st += 1
+                    # loop over electronic states in the 1-ex band
+                    st = 0  # counts the total index of the state
+                    for ii in range(Nel):
+                        #if self.which_band[ii] == 1:
+                        if True:   
+                            # loop over substructure of vib states
+                            for ialph in self.vibindices[ii]:        #for aa1 in self.vibindices[el1]:
+                                #print(aa, st, "(", ii, ialph,")")
+                                kap[aa, ii] += numpy.abs(SS[st,aa])**2
+                                st += 1
+                        #else:
+                        #    for ialph in self.vibindices[ii]:
+                        #        st += 1
             
-            ## loop over all states in the 1-ex band
+            # loop over all states in the 1-ex band
 
-            #for aa in range(N1b):                    
-                #for nn in range(Nel):
+            for aa in range(N1b):                    
+                for nn in range(Nel):
                     
-                    #Wd_a[aa] += (kap[aa,nn]**2)*(Wd_in[nn]**2)    
-                    #Dr_a[aa] += (kap[aa,nn]**2)*(Dr_in[nn]**2)
+                    Wd_a[aa] += (kap[aa,nn]**2)*(Wd_in[nn]**2)    
+                    Dr_a[aa] += (kap[aa,nn]**2)*(Dr_in[nn]**2)
                     
                     
-            #Wd_a = numpy.sqrt(Wd_a)
-            #Dr_a = numpy.sqrt(Dr_a)
+            Wd_a = numpy.sqrt(Wd_a)
+            Dr_a = numpy.sqrt(Dr_a)
     
-            #self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
-            #self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
+            self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
+            self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
             
             ##print("First version")
             ##print(self.Wd)
