@@ -46,10 +46,13 @@ from .liouvillespace.relaxationtensor import RelaxationTensor
 # Relaxation tensors (weak SB theory)
 from .liouvillespace.redfieldtensor import RedfieldRelaxationTensor
 from .liouvillespace.tdredfieldtensor import TDRedfieldRelaxationTensor
-
+# Relaxation tensors (mixed theory)
+from .liouvillespace.modredfieldtensor import ModRedfieldRelaxationTensor
+from .liouvillespace.tdmodredfieldtensor import TDModRedfieldRelaxationTensor
 # Relaxation tensors (strong SB theory)
 from .liouvillespace.foerstertensor import FoersterRelaxationTensor
 from .liouvillespace.tdfoerstertensor import TDFoersterRelaxationTensor
+from .liouvillespace.nefoerstertensor import NEFoersterRelaxationTensor
 
 # Combined theories
 from .liouvillespace.redfieldfoerster import RedfieldFoersterRelaxationTensor

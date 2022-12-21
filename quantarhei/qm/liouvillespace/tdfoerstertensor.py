@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy
+#import matplotlib.pyplot as plt
 import scipy.interpolate as interp
 
-from ..hilbertspace.hamiltonian import Hamiltonian
-from ..liouvillespace.systembathinteraction import SystemBathInteraction
+#from ..hilbertspace.hamiltonian import Hamiltonian
+#from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .foerstertensor import FoersterRelaxationTensor
 from ..corfunctions.correlationfunctions import c2g
 from ...core.managers import energy_units
@@ -12,6 +13,8 @@ from ...core.time import TimeDependent
 
 class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
     """Weak resonance coupling relaxation tensor by Foerster theory
+    
+    Time-dependent version
     
     
     
@@ -52,7 +55,7 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             for ii in range(1, Na):
                 ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
                         
-            KK = _td_reference_implementation(Na, Nt, HH, tt, gt, ll)
+            KK = self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
    
             #
             # Transfer rates
@@ -65,10 +68,56 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             #  
             # calculate dephasing rates and depopulation rates
             #
-            self.updateStructure()        
+            self.updateStructure() 
+            
+            # additional pure dephasing 
+            self.add_dephasing()
+            
+           
+    def add_dephasing(self):
+
+        # line shape function derivatives
+        sbi = self.SystemBathInteraction
+        Na = self.dim
         
+        ht = numpy.zeros((Na, sbi.TimeAxis.length),
+                         dtype=numpy.complex64)
+        
+        sbi.CC.create_one_integral()
+    
+        for ii in range(1, Na):
+           ht[ii,:] = sbi.CC.get_hoft(ii-1,ii-1)
+        
+                        
+        for aa in range(self.dim):
+            for bb in range(self.dim):
+                if aa != bb:
+                    self.data[:,aa,bb,aa,bb] -= (ht[aa,:]+ht[bb,:])
+
+        
+    def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):
+        return _td_reference_implementation(Na, Nt, HH, tt,
+                                            gt, ll, _td_fintegral)
+                                             
+
+
+def _td_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
+                                     
+    #
+    # Rates between states a and b
+    # 
+    KK = numpy.zeros((Nt,Na,Na), dtype=numpy.float64)
+    for a in range(Na):
+        for b in range(Na):
+            if a != b:
+                ed = HH[b,b] # donor
+                ea = HH[a,a] # acceptor
+                KK[:,a,b] = (HH[a,b]**2)*fce(tt, gt[a,:], gt[b,:],
+                                             ed, ea, ll[b])
+   
+    return KK     
             
-            
+    
 def _td_fintegral(tt, gtd, gta, ed, ea, ld):
         """Time dependent Foerster integral
         
@@ -99,9 +148,6 @@ def _td_fintegral(tt, gtd, gta, ed, ea, ld):
             The value of the Foerster integral            
         
         """
-        #fl = numpy.exp(-gtd +1j*(ed-2.0*ld)*tm.data)
-        #ab = numpy.exp(-gta -1j*ea*tm.data)
-        #prod = ab*fl
 
         prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tt)
         
@@ -117,20 +163,4 @@ def _td_fintegral(tt, gtd, gta, ed, ea, ld):
         ret = 2.0*numpy.real(hoft)
         
         return ret
-
-def _td_reference_implementation(Na, Nt, HH, tt, gt, ll):
-                                         
-        #
-        # Rates between states a and b
-        # 
-        KK = numpy.zeros((Nt,Na,Na), dtype=numpy.float64)
-        for a in range(Na):
-            for b in range(Na):
-                if a != b:
-                    ed = HH[b,b] # donor
-                    ea = HH[a,a] # acceptor
-                    KK[:,a,b] = (HH[a,b]**2)*_td_fintegral(tt, gt[a,:],
-                                                           gt[b,:],
-                                                           ed, ea, ll[b])
-   
-        return KK        
+       

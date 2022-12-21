@@ -159,7 +159,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
     
     def plot(self, populations=True, popselection="All", trace=False,
                    coherences=True, cohselection="All", how='-',
-                   axis=None, show=True, legend=False, start=1):
+                   axis=None, show=True, legend=False, start=1, shiftcolor=0):
         """
             Plots selected data.
             Return figure so that it can be manipulated
@@ -171,6 +171,8 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             howi = ['-k','-r','-b','-g','-m','-y','-c']
         if how == '--':
             howi = ['--k','--r','--b','--g','--m','--y','--c',]
+            
+        howi = numpy.roll(howi, -shiftcolor)
             
         N = self.data.shape[1]
         #print("Plotting", N, "states")
@@ -204,6 +206,8 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
                             kk = kk - 7
                         plt.plot(self.TimeAxis.data,numpy.real(
                                     self.data[:,ii,jj]),howi[kk]) #how)
+                        plt.plot(self.TimeAxis.data,numpy.imag(
+                                    self.data[:,ii,jj]),"-"+howi[kk])
                         leg.append(str(ii)+"-"+str(jj))
                 
         ii = 0

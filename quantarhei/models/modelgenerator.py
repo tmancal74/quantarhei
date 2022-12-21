@@ -28,6 +28,24 @@ class ModelGenerator():
         if name == "dimer-1":
             agg = Aggregate(name=name)
             
+            with energy_units("1/cm"):
+
+                m1 = Molecule(name="Mol 1", elenergies=[0.0, 10100.0])
+                m2 = Molecule(name="Mol 2", elenergies=[0.0, 10050.0])
+
+                m1.position = [0.0, 0.0, 0.0]
+                m2.position = [15.0, 0.0, 0.0]
+
+                m1.set_dipole(0,1,[5.8, 0.0, 0.0])
+                m2.set_dipole(0,1,[5.8, 0.0, 0.0])
+ 
+                agg.add_Molecule(m1)
+                agg.add_Molecule(m2)
+
+                self.molecules = [m1, m2]
+                
+                agg.set_coupling_by_dipole_dipole()
+            
         elif name == "trimer-1":
             agg = Aggregate(name=name)
             
@@ -108,7 +126,22 @@ class ModelGenerator():
         if name == "dimer-1_env":
             agg = self.get_Aggregate(name="dimer-1") 
             agg.name = name
-            
+
+            if timeaxis is None:
+                time = TimeAxis(0, 5000, 1.0)
+            else:
+                time = timeaxis    
+                
+            with energy_units("1/cm"):
+                params = dict(ftype="OverdampedBrownian", reorg=100,
+                              cortime=100, T=300)
+                print(time)
+                cf = CorrelationFunction(time, params)
+
+            m1 = self.molecules[0]
+            m1.set_transition_environment((0,1), cf)
+            m2 = self.molecules[1]
+            m2.set_transition_environment((0,1), cf)
             
         elif name == "trimer-1_env":
             agg = self.get_Aggregate(name="trimer-1")
