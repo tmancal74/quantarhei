@@ -283,7 +283,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         #else:
         if True:
             
-            cfce = (lamb/(ctime*numpy.tan(1.0/(2.0*kBT*ctime))))\
+            cfce = (lamb/ctime)*(1.0/numpy.tan(1.0/(2.0*kBT*ctime)))\
                 *numpy.exp(-time/ctime) \
                 - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime)
 
@@ -317,8 +317,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
         #    
         #else:
         if True:
-            cfce = 2.0*lamb*kBT*(numpy.exp(-time/ctime)
-                                 - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
+            cfce = (2.0*lamb*kBT)*numpy.exp(-time/ctime) \
+                                 - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime)
 
         # this is a call to the function inherited from DFunction class 
         self._add_me(self.axis, cfce)

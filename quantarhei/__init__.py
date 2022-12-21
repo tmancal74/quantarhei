@@ -380,6 +380,8 @@ from .utils.timing import untimeit
 from .utils.timing import finished_in
 from .utils.timing import done_in
 
+from .utils.paver import execute_paver
+
 from .wizard.input.input import Input
 
 

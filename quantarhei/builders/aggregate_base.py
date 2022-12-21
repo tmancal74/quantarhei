@@ -53,6 +53,7 @@ from ..core.managers import Manager
 from ..core.saveable import Saveable
 
 import quantarhei as qr
+import warnings
 
 
 class AggregateBase(UnitsManaged, Saveable):
@@ -526,7 +527,7 @@ class AggregateBase(UnitsManaged, Saveable):
         # TESTED
 
 
-    def dipole_dipole_coupling(self, kk, ll, epsr=1.0):
+    def dipole_dipole_coupling(self, kk, ll, epsr=1.0, delta=1.0e-5):
         """Calculates dipole-dipole coupling
 
         """
@@ -539,6 +540,9 @@ class AggregateBase(UnitsManaged, Saveable):
         r1 = self.monomers[kk].position
         d2 = self.monomers[ll].dmoments[0,1,:]
         r2 = self.monomers[ll].position
+
+        if numpy.sqrt(numpy.dot(r1-r2, r1-r2)) < delta:
+            raise Exception()
 
         val =  dipole_dipole_interaction(r1, r2, d1, d2, epsr)
         return self.convert_energy_2_current_u(val)
@@ -583,7 +587,7 @@ class AggregateBase(UnitsManaged, Saveable):
         return self.convert_energy_2_current_u(val)
 
 
-    def set_coupling_by_dipole_dipole(self, epsr=1.0):
+    def set_coupling_by_dipole_dipole(self, epsr=1.0, delta=1.0e-5):
         """Sets resonance coupling by dipole-dipole interaction
 
         """
@@ -596,7 +600,11 @@ class AggregateBase(UnitsManaged, Saveable):
 #            self.init_coupling_matrix()
 #        for kk in range(self.nmono):
 #            for ll in range(kk+1,self.nmono):
-#                cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr)
+#                try:
+#                    cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr,
+#                                                    delta=delta)
+#                except:
+#                    cc = 0.0
 #                c1 = self.convert_energy_2_internal_u(cc)
 #                self.resonance_coupling[kk,ll] = c1
 #                self.resonance_coupling[ll,kk] = c1
@@ -817,6 +825,9 @@ class AggregateBase(UnitsManaged, Saveable):
 
             # difference in shifts
             shft = smod1.shift - smod2.shift
+            
+            #print("Shift: ", shft)
+            
             # quantum numbers
             qn1 = inx1[kk]
             qn2 = inx2[kk]
@@ -829,9 +840,21 @@ class AggregateBase(UnitsManaged, Saveable):
 
             if not self.FC.lookup(shft):
                 fc = self.ops.shift_operator(shft)[:20,:20]
+                
+                # correction for the second state
+                if False:
+                    n2 = numpy.abs(fc[0,0])**2 + numpy.abs(fc[0,1])**2
+                    fc[0,0] = fc[0,0]/numpy.sqrt(n2)
+                    fc[1,1] = fc[0,0]
+                    fc[0,1] = fc[0,1]/numpy.sqrt(n2)
+                    fc[1,0] = -fc[0,1]
+                
+                
+                
                 self.FC.add(shft,fc)
 
             ii = self.FC.index(shft)
+            #print(self.FC.get(ii)[0:2,0:2])
             rs = self.FC.get(ii)[qn1,qn2]
 
             res = res*rs
@@ -2792,10 +2815,16 @@ class AggregateBase(UnitsManaged, Saveable):
                     stgs.append(stg)
 
                 FcProd = numpy.zeros_like(self.FCf)
+                #self.FCf[1,3] = self.FCf[0,2]
+                #self.FCf[3,1] = self.FCf[2,0]
                 for i in range(FcProd.shape[0]):
                     for j in range(FcProd.shape[1]):
                         for i_g in range(self.Nb[0]):
                             FcProd[i, j] += self.FCf[i_g, i]*self.FCf[j, i_g]
+
+                #print(self.FCf)
+                #print(self.FCf.shape)
+                #qr.stop()
 
                 if evolution:
                     if whole:
@@ -2817,6 +2846,7 @@ class AggregateBase(UnitsManaged, Saveable):
                                             operator._data[Nt, i_n, i_m]*FcProd[i_n, i_m]
 
                 else:
+                    #print("TRANSFORMING")
                     # loop over electronic states n, m
                     for n in range(self.Nel):
                         for i_n in self.vibindices[n]:
@@ -2833,6 +2863,38 @@ class AggregateBase(UnitsManaged, Saveable):
 
         else:
             raise Exception("Incompatible operator")
+
+
+    def cast_to_vibronic(self, KK):
+        """Casts an electronic operator to a vibronic basis
+        
+        """
+        agg = self
+        
+        newkk = numpy.zeros((agg.Ntot, agg.Ntot), 
+                            dtype=numpy.float64)
+        # populate the operator
+        for i_el in range(agg.Nel):
+            for i_vib in agg.vibindices[i_el]:
+                
+                vs_i = agg.vibsigs[i_vib]
+                st_i = agg.get_VibronicState(vs_i[0], vs_i[1])
+                
+                for j_el in range(agg.Nel):
+                    for j_vib in agg.vibindices[j_el]:
+                
+                        vs_j = agg.vibsigs[j_vib]
+                        st_j = agg.get_VibronicState(vs_j[0],
+                                                     vs_j[1])
+                
+                        # electronic transition operator
+                        # dressed in Franck-Condon factors
+                        newkk[i_vib, j_vib] = (
+                        numpy.real(agg.fc_factor(st_i, st_j))*KK[i_el, j_el]
+                        )
+                    
+        return newkk
+
 
 
     def convert_to_DensityMatrix(self, psi, trace_over_vibrations=True):
@@ -2882,6 +2944,7 @@ class AggregateBase(UnitsManaged, Saveable):
     
     def get_RelaxationTensor(self, timeaxis,
                        relaxation_theory=None,
+                       as_convolution_kernel=False,
                        time_dependent=False,
                        secular_relaxation=False,
                        relaxation_cutoff_time=None,
@@ -2924,8 +2987,11 @@ class AggregateBase(UnitsManaged, Saveable):
 
         from ..qm import RedfieldRelaxationTensor
         from ..qm import TDRedfieldRelaxationTensor
+        from ..qm import ModRedfieldRelaxationTensor
+        from ..qm import TDModRedfieldRelaxationTensor
         from ..qm import FoersterRelaxationTensor
         from ..qm import TDFoersterRelaxationTensor
+        from ..qm import NEFoersterRelaxationTensor
         from ..qm import RedfieldFoersterRelaxationTensor
         from ..qm import TDRedfieldFoersterRelaxationTensor
         from ..qm import LindbladForm
@@ -2948,6 +3014,8 @@ class AggregateBase(UnitsManaged, Saveable):
         theories["standard_Foerster"] = ["standard_Foerster","stF","Foerster"]
         theories["combined_RedfieldFoerster"] = ["combined_RedfieldFoerster",
                                                  "cRF","Redfield-Foerster"]
+        theories["noneq_Foerster"] = ["noneq_Foerster", "neF"]
+        
         #
         # Future
         #
@@ -2956,7 +3024,6 @@ class AggregateBase(UnitsManaged, Saveable):
                                                "nemR"]
         theories["generalized_Foerster"] = ["generalized_Foerster", "gF",
                                             "multichromophoric_Foerster"]
-        theories["noneq_Foerster"] = ["noneq_Foerster", "neF"]
         theories["combined_WeakStrong"] = ["combined_WeakStrong", "cWS"]
         theories["Lindblad_form"] = ["Lindblad_form", "Lf"]
         theories["electronic_Lindblad"] = ["electronic_Lindblad", "eLf"]
@@ -3012,6 +3079,46 @@ class AggregateBase(UnitsManaged, Saveable):
 
             return relaxT, ham
 
+        elif relaxation_theory in theories["modified_Redfield"]:
+
+            if time_dependent:
+
+                # Time dependent standard Refield
+
+                ham.protect_basis()
+                with eigenbasis_of(ham):
+                    relaxT = TDModRedfieldRelaxationTensor(ham, sbi,
+                                        cutoff_time=relaxation_cutoff_time,
+                                        as_operators=as_operators)
+                    if secular_relaxation:
+                        relaxT.secularize()
+                ham.unprotect_basis()
+
+            else:
+
+                # Time independent standard Refield
+
+
+                ham.protect_basis()
+
+                with eigenbasis_of(ham):
+                    relaxT = ModRedfieldRelaxationTensor(ham, sbi,
+                                                    as_operators=as_operators)
+
+                    if secular_relaxation:
+                        relaxT.secularize()
+
+                ham.unprotect_basis()
+
+
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "modified_Redfield"
+
+            return relaxT, ham
+
+
         elif relaxation_theory in theories["standard_Foerster"]:
 
             if time_dependent:
@@ -3043,6 +3150,47 @@ class AggregateBase(UnitsManaged, Saveable):
             self.RelaxationHamiltonian = ham_0
             self._has_relaxation_tensor = True
             self._relaxation_theory = "standard_Foerster"
+
+            return relaxT, ham_0
+
+        elif relaxation_theory in theories["noneq_Foerster"]:
+
+            if time_dependent:
+
+                # Time dependent standard Foerster
+                relaxT = NEFoersterRelaxationTensor(ham, sbi, 
+                                            as_kernel=as_convolution_kernel)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                
+                #for i in range(ham.dim):
+                #    dat[i,i] = ham._data[i,i]
+                
+                ham_0 = Hamiltonian(data=dat)
+                
+                # this type of theory has an inhomogeneous term
+                self.has_Iterm = True
+
+            else:
+
+                # Fixme Check that it makes sense to have here the time-independent theory !!!
+                # Time independent standard Foerster
+
+                #
+                # This is done strictly in site basis
+                #
+
+                relaxT = FoersterRelaxationTensor(ham, sbi)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                for i in range(ham.dim):
+                    dat[i,i] = ham._data[i,i]
+                ham_0 = Hamiltonian(data=dat)
+
+            # The Hamiltonian for propagation is the one without
+            # resonance coupling
+            self.RelaxationTensor = relaxT
+            self.RelaxationHamiltonian = ham_0
+            self._has_relaxation_tensor = True
+            self._relaxation_theory = "noneq_Foerster"
 
             return relaxT, ham_0
 
@@ -3193,6 +3341,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
     def get_ReducedDensityMatrixPropagator(self, timeaxis,
                        relaxation_theory=None,
+                       time_nonlocal=False,
                        time_dependent=False,
                        secular_relaxation=False,
                        relaxation_cutoff_time=None,
@@ -3212,6 +3361,7 @@ class AggregateBase(UnitsManaged, Saveable):
 
         relaxT, ham = self.get_RelaxationTensor(timeaxis,
                        relaxation_theory=relaxation_theory,
+                       as_convolution_kernel=time_nonlocal,
                        time_dependent=time_dependent,
                        secular_relaxation=secular_relaxation,
                        relaxation_cutoff_time=relaxation_cutoff_time,
@@ -3219,9 +3369,14 @@ class AggregateBase(UnitsManaged, Saveable):
                        recalculate=recalculate,
                        as_operators=as_operators)
 
-        with eigenbasis_of(ham):
-            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
-
+        if time_nonlocal:
+            # here we create time non-local propagator
+            prop = None
+            stop()
+        else:
+            # FIXME: is the eigenbases needed???
+            with eigenbasis_of(ham):
+                prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
 
         return prop
 
@@ -3673,179 +3828,186 @@ class AggregateBase(UnitsManaged, Saveable):
             # The rest should be uncommented and reviewed for the multilevel systems
             
             #raise IOError("Diagonalization of the transition width with vibronic states and multilevel molecules not yet implemented")
+            # Check for the double excited state on single molecule
+            for n in range(N1b,Ntot):
+                if self.twoex_indx[n,1] == 0:
+                    text = "State {:} is double excited state on single molecule.".format(n) +\
+                    " For this state transition width transformation is not defined." +\
+                    " Correct the diagonalization rutine in aggregate_base!!! "
+                    warnings.warn(text)
             
-            #######################################################################
-            ## CASE OF VIBRATIONAL MODES
-            #######################################################################
+            ######################################################################
+            # CASE OF VIBRATIONAL MODES
+            ######################################################################     
 
-            #N1b = self.Nb[0]+self.Nb[1]            
+            #
+            # Transform line shapes for 0->1 transitions
+            #
+            Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
+            Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
+            
+            Nel = self.Nbe[0] + self.Nbe[1]  # GS + singly excited states 
+            
+            Wd_in = numpy.zeros(Nel, dtype=qr.REAL)
+            Dr_in = numpy.zeros(Nel, dtype=qr.REAL)
+            
+            Wd_ini = self.Wd.copy()
+            Dr_ini = self.Dr.copy()
+            
+            for ii in range(Nel):
+                for k in self.vibindices[ii]:
+                    Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
+                    #print("***", self.Wd[k,k], self.Hs[k,k])
+                    Dr_in[ii] = Dr_ini[k,k]
+            
+            #Nvib1el = len(self.vibindices[0])
+            kap = numpy.zeros((N1b, Nel), dtype=qr.REAL)
+            
+            # loop over all states in the 1-ex band
+            for aa in range(N1b):
+                ela = self.elinds[aa]
+                if self.which_band[ela] == 1:
+                    
+                    # loop over electronic states in the 1-ex band
+                    st = 0  # counts the total index of the state
+                    for ii in range(Nel):
+                        #if self.which_band[ii] == 1:
+                        if True:   
+                            # loop over substructure of vib states
+                            for ialph in self.vibindices[ii]:        #for aa1 in self.vibindices[el1]:
+                                #print(aa, st, "(", ii, ialph,")")
+                                kap[aa, ii] += numpy.abs(SS[st,aa])**2
+                                st += 1
+                        #else:
+                        #    for ialph in self.vibindices[ii]:
+                        #        st += 1
+            
+            # loop over all states in the 1-ex band
 
-
-            ##
-            ## Transform line shapes for 0->1 transitions
-            ##
-            #Wd_a = numpy.zeros(N1b, dtype=qr.REAL)
-            #Dr_a = numpy.zeros(N1b, dtype=qr.REAL)
-            
-            #Nel = 1 + self.nmono
-            
-            #Wd_in = numpy.zeros(Nel, dtype=qr.REAL)
-            #Dr_in = numpy.zeros(Nel, dtype=qr.REAL)
-            
-            #Wd_ini = self.Wd.copy()
-            #Dr_ini = self.Dr.copy()
-            
-            #for ii in range(Nel):
-                #for k in self.vibindices[ii]:
-                    #Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
-                    ##print("***", self.Wd[k,k], self.Hs[k,k])
-                    #Dr_in[ii] = Dr_ini[k,k]
-            
-            ##Nvib1el = len(self.vibindices[0])
-            #kap = numpy.zeros((N1b, Nel), dtype=qr.REAL)
-            
-            ## loop over all states in the 1-ex band
-            #for aa in range(N1b):
-                #ela = self.elinds[aa]
-                #if self.which_band[ela] == 1:
+            for aa in range(N1b):                    
+                for nn in range(Nel):
                     
-                    ## loop over electronic states in the 1-ex band
-                    #st = 0  # counts the total index of the state
-                    #for ii in range(Nel):
-                        ##if self.which_band[ii] == 1:
-                         #if True:   
-                            ## loop over substructure of vib states
-                            #for ialph in self.vibindices[ii]:
-                                ##print(aa, st, "(", ii, ialph,")")
-                                #kap[aa, ii] += numpy.abs(SS[st,aa])**2
-                                #st += 1
-                        ##else:
-                        ##    for ialph in self.vibindices[ii]:
-                        ##        st += 1
-            
-            ## loop over all states in the 1-ex band
-
-            #for aa in range(N1b):                    
-                #for nn in range(Nel):
-                    
-                    #Wd_a[aa] += (kap[aa,nn]**2)*(Wd_in[nn]**2)    
-                    #Dr_a[aa] += (kap[aa,nn]**2)*(Dr_in[nn]**2)
+                    Wd_a[aa] += (kap[aa,nn]**2)*(Wd_in[nn]**2)    
+                    Dr_a[aa] += (kap[aa,nn]**2)*(Dr_in[nn]**2)
                     
                     
-            #Wd_a = numpy.sqrt(Wd_a)
-            #Dr_a = numpy.sqrt(Dr_a)
+            Wd_a = numpy.sqrt(Wd_a)
+            Dr_a = numpy.sqrt(Dr_a)
     
-            #self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
-            #self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
+            self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_a)
+            self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_a)
             
             ##print("First version")
             ##print(self.Wd)
 
-            #if self.mult >= 2:
+            if self.mult >= 2:
                 
-                #Nel = self.Nel
-                #N2b = self.Ntot
+                Nel = self.Nel
+                N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
                 
-                #Wd_b = numpy.zeros(N1b, dtype=qr.REAL)
+                Wd_b = numpy.zeros(N1b, dtype=qr.REAL)
                 
-                #Dr_b = numpy.zeros(N1b, dtype=qr.REAL)
-                #Wd_in = numpy.zeros(Nel)
-                #Dr_in = numpy.zeros(Nel)
+                Dr_b = numpy.zeros(N1b, dtype=qr.REAL)
+                Wd_in = numpy.zeros(Nel)
+                Dr_in = numpy.zeros(Nel)
                 
                 
-                #for ii in range(Nel):
-                    #for k in self.vibindices[ii]:
-                        #Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
-                        #Dr_in[ii] = Dr_ini[k,k]
+                for ii in range(Nel):
+                    for k in self.vibindices[ii]:
+                        Wd_in[ii] = Wd_ini[k,k] #self.Wd[k,k]
+                        Dr_in[ii] = Dr_ini[k,k]
                     
-                #kap2 = numpy.zeros((N2b, Nel), dtype=qr.REAL)
-                ## loop over all states in the 1-ex band
-                #for aa in range(N2b):
-                    #ela = self.elinds[aa]
-                    ##if self.which_band[ela] == 1:
-                    #if True: 
-                        ## loop over electronic states in the 1-ex band
-                        #st = 0  # counts the total index of the state
-                        #for ii in range(Nel):
-                            ##if self.which_band[ii] == 1:
-                            ##print("el. state: ", ii)
-                            #if True:   
-                                ## loop over substructure of vib states
-                                #for ialph in self.vibindices[ii]:
-                                    ##print(aa, st, "(", ii, ialph,")")
-                                    #kap2[aa, ii] += numpy.abs(SS[st,aa])**2
-                                    #st += 1
+                kap2 = numpy.zeros((N2b, Nel), dtype=qr.REAL)
+                # loop over all states in the 1-ex band
+                for aa in range(N2b):
+                    ela = self.elinds[aa]
+                    #if self.which_band[ela] == 1:
+                    if True: 
+                        # loop over electronic states in the 1-ex band
+                        st = 0  # counts the total index of the state
+                        for ii in range(Nel):
+                            #if self.which_band[ii] == 1:
+                            #print("el. state: ", ii)
+                            if True:   
+                                # loop over substructure of vib states
+                                for ialph in self.vibindices[ii]:
+                                    #print(aa, st, "(", ii, ialph,")")
+                                    kap2[aa, ii] += numpy.abs(SS[st,aa])**2
+                                    st += 1
                             
-                #for aa in range(N1b):                    
-                    #for nn in range(Nel):
+                for aa in range(N1b):                    
+                    for nn in range(Nel):
                     
-                        #Wd_b[aa] += (kap2[aa,nn]**2)*(Wd_in[nn]**2)    
-                        #Dr_b[aa] += (kap2[aa,nn]**2)*(Dr_in[nn]**2)               
+                        Wd_b[aa] += (kap2[aa,nn]**2)*(Wd_in[nn]**2)    
+                        Dr_b[aa] += (kap2[aa,nn]**2)*(Dr_in[nn]**2)               
                 
-                #Wd_b = numpy.sqrt(Wd_b)
-                #Dr_b = numpy.sqrt(Dr_b)
+                Wd_b = numpy.sqrt(Wd_b)
+                Dr_b = numpy.sqrt(Dr_b)
                 
-                ##
-                ## Single exciton band
-                ##
-                #self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_b)
-                #self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_b)
+                #
+                # Single exciton band
+                #
+                self.Wd[0:N1b,0:N1b] = numpy.diag(Wd_b)
+                self.Dr[0:N1b,0:N1b] = numpy.diag(Dr_b)
                 
                 
-                #Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
+                Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
 
-                #for aa in range(N1b, N2b):
-                    #for bb in range(N1b, N2b):
+                for aa in range(N1b, N2b):
+                    for bb in range(N1b, N2b):
                         
-                        #for nn in range(Nel):
-                            #vind = self.vibindices[nn]
-                            #nni = vind[0]
-                            #n = self.twoex_indx[nni,0]
-                            #m = self.twoex_indx[nni,1]
-                            #for mm in range(Nel):
-                                #vind = self.vibindices[mm]
-                                #mmi = vind[0]
-                                #k = self.twoex_indx[mmi,0]
-                                #l = self.twoex_indx[mmi,1]
+                        for nn in range(Nel):
+                            
+                            vind = self.vibindices[nn]
+                            nni = vind[0]
+                            n = self.twoex_indx[nni,0]
+                            m = self.twoex_indx[nni,1]
+                            
+                            
+                            for mm in range(Nel):
+                                vind = self.vibindices[mm]
+                                mmi = vind[0]
+                                k = self.twoex_indx[mmi,0]
+                                l = self.twoex_indx[mmi,1]
                         
-                                #Wd_c[aa,bb] += ((Wd_in[n]**2)*(delta[n,k]+delta[n,l])
-                                               #+(Wd_in[m]**2)*(delta[m,k]+delta[m,l]))\
-                                              #*kap2[aa,nn]*kap2[bb,mm]
+                                Wd_c[aa,bb] += ((Wd_in[n]**2)*(delta[n,k]+delta[n,l])
+                                              +(Wd_in[m]**2)*(delta[m,k]+delta[m,l]))\
+                                              *kap2[aa,nn]*kap2[bb,mm]
 
-                #W_cc = numpy.zeros(Wd_c.shape[0], dtype=qr.REAL)
-                #for k in range(N2b):
-                    #W_cc[k] = Wd_c[k,k]
-                #W_aux = numpy.diag(numpy.sqrt(W_cc))
-                ##W_aux = numpy.diag(numpy.sqrt(Wd_b))
+                W_cc = numpy.zeros(Wd_c.shape[0], dtype=qr.REAL)
+                for k in range(N2b):
+                    W_cc[k] = Wd_c[k,k]
+                W_aux = numpy.diag(numpy.sqrt(W_cc))
+                #W_aux = numpy.diag(numpy.sqrt(Wd_b))
                 
-                ##
-                ##  Two-exciton band
-                ##
-                #self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
+                #
+                #  Two-exciton band
+                #
+                self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
 
-                ##print("Second version")
-                ##print(self.Wd)
-                ##raise Exception()
+                #print("Second version")
+                #print(self.Wd)
+                #raise Exception()
                 
-                #Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
+                Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
                 
-                #for aa in range(N1b, N2b):
-                    #for bb in range(N1b):
+                for aa in range(N1b, N2b):
+                    for bb in range(N1b):
                         
-                        #for nn in range(Nel):
-                            #vind = self.vibindices[nn]
-                            #nni = vind[0]
-                            #n = self.twoex_indx[nni,0]
-                            #m = self.twoex_indx[nni,1]
-                            #for k in range(1+self.nmono):
-                                #Wd_c[aa,bb] += ((Wd_in[n]**2)*delta[n,k] 
-                                               #+(Wd_in[m]**2)*delta[m,k]) \
-                                              #*kap2[aa,nn]*kap2[bb,k] 
+                        for nn in range(Nel):
+                            vind = self.vibindices[nn]
+                            nni = vind[0]
+                            n = self.twoex_indx[nni,0]
+                            m = self.twoex_indx[nni,1]
+                            for k in range(1+self.nmono):
+                                Wd_c[aa,bb] += ((Wd_in[n]**2)*delta[n,k] 
+                                              +(Wd_in[m]**2)*delta[m,k]) \
+                                              *kap2[aa,nn]*kap2[bb,k] 
                     
-                #W_aux = numpy.sqrt(Wd_c)
+                W_aux = numpy.sqrt(Wd_c)
                 
-                #self.Wd[N1b:N2b,0:N1b] = W_aux[N1b:N2b,0:N1b]
-                #self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
+                self.Wd[N1b:N2b,0:N1b] = W_aux[N1b:N2b,0:N1b]
+                self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
     
     
 #>>>>>>> 54a40cc55cdedf86bf04a5d705227fe69461d408
@@ -3942,7 +4104,7 @@ class AggregateBase(UnitsManaged, Saveable):
             # we specify the basis from outside. This allows to choose
             # canonical equilibrium in arbitrary basis
             for i in range(start, dim):
-                ens[i-start] = HH[i,i] - subtract[i-start]
+                ens[i-start] = numpy.real(HH[i,i] - subtract[i-start])
 
             ne = numpy.exp(-ens/kBT)
             sne = numpy.sum(ne)

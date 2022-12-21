@@ -7,7 +7,7 @@
     -------------
     
 """
-import time
+#import time
 import numpy
 import scipy
 
@@ -19,7 +19,7 @@ from ...core.managers import  energy_units
 from ...core.parallel import block_distributed_range
 from ...core.parallel import start_parallel_region, close_parallel_region
 from ...core.parallel import distributed_configuration
-from ...core.managers import BasisManaged
+#from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 
 import quantarhei as qr
