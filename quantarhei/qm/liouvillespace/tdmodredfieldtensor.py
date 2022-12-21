@@ -9,7 +9,7 @@ from .rates.foersterrates import FoersterRateMatrix
 from ...core.managers import energy_units
 from ... import COMPLEX
 
-class FoersterRelaxationTensor(RelaxationTensor):
+class TDModRedfieldRelaxationTensor(RelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory
     
     
@@ -83,3 +83,6 @@ class FoersterRelaxationTensor(RelaxationTensor):
             # calculate dephasing rates and depopulation rates
             #
             self.updateStructure()
+
+
+

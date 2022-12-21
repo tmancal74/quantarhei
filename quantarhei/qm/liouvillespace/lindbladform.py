@@ -127,30 +127,36 @@ class ElectronicLindbladForm(LindbladForm):
                     Nop = sbi.KK.shape[0]
                     ops = []
                     for k in range(Nop):
-                        newkk = numpy.zeros((agg.Ntot, agg.Ntot), 
-                                            dtype=numpy.float64)
-                        # populate the operator
-                        for i_el in range(agg.Nel):
-                            for i_vib in agg.vibindices[i_el]:
-                                
-                                vs_i = agg.vibsigs[i_vib]
-                                st_i = agg.get_VibronicState(vs_i[0], vs_i[1])
-                                
-                                for j_el in range(agg.Nel):
-                                    for j_vib in agg.vibindices[j_el]:
-                                
-                                        vs_j = agg.vibsigs[j_vib]
-                                        st_j = agg.get_VibronicState(vs_j[0],
-                                                                     vs_j[1])
-                                
-                                        # electronic transition operator
-                                        # dressed in Franck-Condon factors
-                                        newkk[i_vib, j_vib] = (
-                                        numpy.real(agg.fc_factor(st_i, st_j))*
-                                        sbi.KK[k, i_el, j_el])
+                        if False:
+                            newkk = numpy.zeros((agg.Ntot, agg.Ntot), 
+                                                dtype=numpy.float64)
+                            # populate the operator
+                            for i_el in range(agg.Nel):
+                                for i_vib in agg.vibindices[i_el]:
+                                    
+                                    vs_i = agg.vibsigs[i_vib]
+                                    st_i = agg.get_VibronicState(vs_i[0], vs_i[1])
+                                    
+                                    for j_el in range(agg.Nel):
+                                        for j_vib in agg.vibindices[j_el]:
+                                    
+                                            vs_j = agg.vibsigs[j_vib]
+                                            st_j = agg.get_VibronicState(vs_j[0],
+                                                                         vs_j[1])
+                                    
+                                            # electronic transition operator
+                                            # dressed in Franck-Condon factors
+                                            newkk[i_vib, j_vib] = (
+                                            numpy.real(agg.fc_factor(st_i, st_j))*
+                                            sbi.KK[k, i_el, j_el])
+
+                        else:
+                            KK = sbi.KK[k,:,:]
+                            newkk = agg.cast_to_vibronic(KK)
 
 #                        print(k,newkk.shape)
 #                        print(newkk)
+                        
                         ops.append(newkk)
                     
                     # with the operators constructed, we create Lindblad form
@@ -169,6 +175,34 @@ class ElectronicLindbladForm(LindbladForm):
 
             raise Exception("SystemBathInteraction has to have `system`"+
                             " attribute set to an Aggregate")
+            
+    def cast_to_vibronic(agg, KK):
+        newkk = numpy.zeros((agg.Ntot, agg.Ntot), 
+                            dtype=numpy.float64)
+
+        # populate the operator
+        for i_el in range(agg.Nel):
+            for i_vib in agg.vibindices[i_el]:
+                
+                vs_i = agg.vibsigs[i_vib]
+                st_i = agg.get_VibronicState(vs_i[0], vs_i[1])
+                
+                for j_el in range(agg.Nel):
+                    for j_vib in agg.vibindices[j_el]:
+                
+                        vs_j = agg.vibsigs[j_vib]
+                        st_j = agg.get_VibronicState(vs_j[0],
+                                                     vs_j[1])
+                
+                        # electronic transition operator
+                        # dressed in Franck-Condon factors
+                        newkk[i_vib, j_vib] = (
+                        numpy.real(agg.fc_factor(st_i, st_j))*KK[i_el, j_el]
+                        )
+                    
+        return newkk
+        
+        
 
 
 class VibrationalDecayLindbladForm(LindbladForm):
