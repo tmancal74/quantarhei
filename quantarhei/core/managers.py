@@ -197,6 +197,10 @@ class Manager(metaclass=Singleton):
 
         else:
             self.load_units()
+        
+        self.current_units = {"energy":"1/fs", "frequency":"1/fs",
+                                  "dipolemoment":"Debye",
+                                  "temperature":"Kelvin", "length":"A"}
 
 
         #
@@ -249,8 +253,8 @@ class Manager(metaclass=Singleton):
             # and save them
             self.save_implementations()  
             
-        else:
-            self.load_implementations()
+#        else:
+#            self.load_implementations()
             
             
         self.change_implementation_at_runtime = True

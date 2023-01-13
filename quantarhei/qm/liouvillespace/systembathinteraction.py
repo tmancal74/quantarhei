@@ -111,6 +111,11 @@ class SystemBathInteraction(Saveable):
                 self._set_operators(sys_operators)
                 self.CC = bath_correlation_matrix
              
+        
+            if rates is not None:
+                if len(rates) != self.N:
+                    raise Exception("Wrong number of rates specified")
+                self.rates = rates
                 
         # version with system-bath operators and rates
         elif ((sys_operators is not None) 
@@ -222,9 +227,11 @@ class SystemBathInteraction(Saveable):
         if self.sbitype != "Linear_Coupling":
             raise Exception("Correlation functions only defined for "+
                             "linear microscopic system-bath coupling")
-            
+        
+        #print("Returning coft" )
+        
         if self.system is None:
-            
+            #print("Returning coft without the system" )
             return self.CC.get_coft(n,m)
             
         else:
@@ -238,8 +245,8 @@ class SystemBathInteraction(Saveable):
                 #print(bn,"::",n,m)
                 return self.CC._cofts[0,:]
                 
-            elif ((bn == 1) and (bm == 1)):
-                #print(bn,"::",n-1,m-1)
+            elif ((bn >= 1) and (bm >= 1)):
+                #print(bn,bm,"::",n-1,m-1)
                 
                 return self.CC.get_coft(n-1,m-1)
                 
