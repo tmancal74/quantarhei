@@ -2625,15 +2625,19 @@ class AggregateBase(UnitsManaged, Saveable):
                                 
                                 if elexcit1[0] == elexcit2[0] or elexcit1[1] == elexcit2[0]:
                                     cfce = mon21.get_transition_environment((0,exct21))
+                                    mapi = self.egcf_matrix.set_correlation_function(cfce,[(l,m)])
                                     #print("Double:",l,m,"mon:",nzr2[0],"0->",exct21,"|",cfce.data[0:10])
                                 elif elexcit1[0] == elexcit2[1] or elexcit1[1] == elexcit2[1]:
                                     cfce = mon22.get_transition_environment((0,exct22))
+                                    mapi = self.egcf_matrix.set_correlation_function(cfce,[(l,m)])
                                     #print("Double:",l,m,"mon:",nzr2[1],"0->",exct22,"|",cfce.data[0:10])
                                 
                                 #print("Double:",l,m,"mon:",)
                                 
-                                mapi = self.egcf_matrix.set_correlation_function(cfce,
-                                                                     [(l,m)])
+                                #TODO:
+                                # Add else:
+                                #           cfce = 0
+                                #     mapi = self.egcf_matrix.set_correlation_function(cfce,[(l,m)])
                                     
                                 
                         
