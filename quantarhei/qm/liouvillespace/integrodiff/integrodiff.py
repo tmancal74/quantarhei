@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import types
 import numpy
+
 
 from ...propagators.dmevolution import ReducedDensityMatrixEvolution
 from ...liouvillespace.liouvillian import Liouvillian
@@ -61,17 +63,36 @@ class IntegrodiffPropagator:
         self.ham = ham
         self.kernel = kernel
         
+        self.kernel_is_tdependent = False
+        if isinstance(self.kernel, types.FunctionType):
+            # kernel is updatable
+            self.kernel_is_tdependent = True
+        
+        self._kernel = self.kernel  # we make the _kernel same as kernel if 
+                                    # the kernel does not depend on time
+                                    # independently
+                                    
+        if self.kernel_is_tdependent:
+            # get the kernel at t=0.0
+            self._kernel = self.kernel(0.0)
+            
+        
         if cutoff_time > 0 and cutoff_time <= \
-                               self.kernel.shape[0]*timeaxis.step:
+                               self._kernel.shape[0]*timeaxis.step:
             self.kernel_cutoff = min(int(cutoff_time/timeaxis.step),
-                                     self.kernel.shape[0])
-        elif self.kernel is not None:
-            self.kernel_cutoff = self.kernel.shape[0]
+                                     self._kernel.shape[0])
+        elif self._kernel is not None:
+            self.kernel_cutoff = self._kernel.shape[0]
         else:
             self.kernel_cutoff = -1
             
         self.inhom = inhom
-        self.fft = fft
+        
+        if self.kernel_is_tdependent:
+            self.fft = False
+        else:
+            self.fft = fft
+            
         
         if self.fft:
 
@@ -103,7 +124,7 @@ class IntegrodiffPropagator:
             # Liouvillian
             LL = Liouvillian(self.ham).data
             
-            if self.kernel is not None:
+            if self._kernel is not None:
                 with_kernel = True
             else:
                 with_kernel = False
@@ -112,7 +133,7 @@ class IntegrodiffPropagator:
                 
                 # if kernel is present, we use it for calculation
                 MM = numpy.zeros((tlen, N1, N1, N1, N1), dtype=COMPLEX)
-                MM[:self.timeaxis.length,:,:,:,:] = self.kernel
+                MM[:self.timeaxis.length,:,:,:,:] = self._kernel
                 
                 # we renormalize the kernel by a e^{-gam*t} decay
                 for tm in range(len(tt)):
@@ -200,20 +221,48 @@ class IntegrodiffPropagator:
             dt = self.timeaxis.step
             indx = 1
             
-            for ii in range(1,self.timeaxis.length):
-            
-                for jj in range(0, self.Nref):
-                    
-                    for ll in range(1, L+1):
+            if self._kernel is None:
+                
+                #   
+                # Propagation without kernel
+                #
+                for ii in range(1,self.timeaxis.length):
+                
+                    for jj in range(0, self.Nref):
                         
-                        rho1 = (dt/ll)* \
-                               self._right_hand_side(ii, rho1, rhot)
-                                 
-                        rho2 = rho2 + rho1
-                    rho1 = rho2    
+                        for ll in range(1, L+1):
+                            
+                            rho1 = (dt/ll)* \
+                                   self._no_kernel_rhs(ii, rho1, rhot)
+                                     
+                            rho2 = rho2 + rho1
+                        rho1 = rho2    
+                        
+                    rhot.data[indx,:,:] = rho2                        
+                    indx += 1                             
+                
+            else:
+            
+                #
+                # Propagation with the kernel
+                #
+                for ii in range(1,self.timeaxis.length):
+                
+                    for jj in range(0, self.Nref):
+                        
+                        for ll in range(1, L+1):
+                            
+                            rho1 = (dt/ll)* \
+                                   self._right_hand_side(ii, rho1, rhot)
+                                     
+                            rho2 = rho2 + rho1
+                        rho1 = rho2    
+                        
+                    rhot.data[indx,:,:] = rho2   
+                   
+                    indx += 1  
                     
-                rhot.data[indx,:,:] = rho2                        
-                indx += 1             
+                    #print(indx, ii)
             
             return rhot
         
@@ -226,19 +275,31 @@ class IntegrodiffPropagator:
         """
         dim = rhot.data.shape[1]
         
+        
+        #self.kernel_cutoff = self._kernel.shape[0]
+        
         if tn == self.last_tn:
+            
             rho = self.last_int
+            
         else:
+            
+            if self.kernel_is_tdependent:
+                # updating the kernel if it depends on t independently
+                self._kernel = self.kernel(tn)
+                
             rho = numpy.zeros((dim, dim), dtype=COMPLEX)
             self.last_int = numpy.zeros((dim, dim), dtype=COMPLEX)
-            for nn in range(1, self.kernel_cutoff):
+            
+            for nn in range(1, min(tn+1, self.kernel_cutoff)):
                 nr = tn - nn
                 rho += self.timeaxis.step* \
-                   numpy.tensordot(self.kernel[nn,:,:,:,:],rhot.data[nr,:,:])
+                   numpy.tensordot(self._kernel[nn,:,:,:,:],rhot.data[nr,:,:])
+            
             self.last_int[:,:] = rho
             
         rho += \
-        self.timeaxis.step*numpy.tensordot(self.kernel[0,:,:,:,:],rho_in)
+            self.timeaxis.step*numpy.tensordot(self._kernel[0,:,:,:,:],rho_in)
         
         self.last_tn = tn
         
@@ -246,13 +307,56 @@ class IntegrodiffPropagator:
 
 
     def _right_hand_side(self, tn, rho, rhot):
+        """ Right-hand side of the master equation 
         
+        """
         ham = self.ham.data
         drho = -1j*(numpy.dot(ham, rho) - numpy.dot(rho, ham))
-        #drho = numpy.tensordot(self.kernel, rho)
         drho += -self._convolution_with_kernel(tn, rho, rhot)
         
         return drho
+
+
+    def _no_kernel_rhs(self, tn, rho, rhot):
+        """ Right-hand side of the master equation without the kernel 
+        
+        """
+        #M0 = self.kernel
+        
+        ham = self.ham.data
+        drho = -1j*(numpy.dot(ham, rho) - numpy.dot(rho, ham))
+        #drho += -self.timeaxis.stop*M0*numpy.sum(rhot.data[:,:,:],axis=0)
+        
+        return drho
+        
+    
+    def check_solution(self, rhot):
+        """Masures the difference between the right- and left-hand-side 
+           of the equation
+        
+        """
+        N1 = self.ham.dim
+        diff = numpy.zeros((self.timeaxis.length, N1, N1),
+                           dtype=COMPLEX)
+        for tn in range(self.timeaxis.length):
+            
+            # time derivative
+            if tn == 0:
+                lhs = (rhot.data[tn+1]-rhot.data[tn])/self.timeaxis.step
+            elif tn == self.timeaxis.length-1:
+                lhs = (rhot.data[tn]-rhot.data[tn-1])/self.timeaxis.step
+            else:
+                lhs = (rhot.data[tn+1]-rhot.data[tn-1])/ \
+                      (2.0*self.timeaxis.step)
+                     
+            # right-hand-side
+            rho = rhot.data[tn, :,:]
+            rhs = self._right_hand_side(tn, rho, rhot)
+            
+            diff[tn, :,:] = lhs - rhs
+        
+        return diff
+    
 
         
              

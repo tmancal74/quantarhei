@@ -39,3 +39,5 @@ ghen/
 .eggs/
 
 *.swp
+log
+

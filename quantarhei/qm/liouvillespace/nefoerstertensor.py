@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import scipy.interpolate as interp
 
 from ..corfunctions.correlationfunctions import c2g
@@ -29,10 +29,17 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         
   
     def initialize(self):
+        """Initilization of the tensor data or its kernel
+        
+        
+        """
         
         tt = self.SystemBathInteraction.TimeAxis.data
         Nt = len(tt)
         
+        #
+        # At the moment we work exclusively with the non-secular theory
+        #
         self.nsc = True
         
         
@@ -58,19 +65,37 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
             for ii in range(1, Na):
                 gt[ii,:] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
                 
-
-            
             # reorganization energies
             ll = numpy.zeros(Na)
             for ii in range(1, Na):
                 ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
 
 
+            #
+            # Non-secular theory
+            #
             if self.nsc:
-                self.data =  \
-                    self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
+                
+                if not self.as_kernel:
+                    #
+                    # here we return the time dependent rate tensor
+                    #
+                    self.data =  \
+                      self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
+                      
+                else:
+                    #
+                    # here we have a function returning the kernel
+                    # as a function of time
+                    #
+                    self.kernel = \
+                      self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
 
+            #
+            # Secular theory
+            #
             else:
+                
                 KK = self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
                 for a in range(Na):
                     for b in range(Na):
@@ -83,12 +108,22 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
     def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):
-        """ Overloaded implementation method replacing integration kernel
+        """ Overloaded implementation method replacing the standard kernel
+        corresponding to the nonrmal Redfield with its non-equilibrium
+        version
         
         """
         
+        #
+        # Non-secular implementartion
+        #
         if self.nsc:
+            
+            #
+            # Initial term 
+            #
             self._initial_term_pre_nsc(Na, Nt, HH, tt, gt, ll)
+            
             #
             # Here we calculate the time-dependent non-secular tensor
             #
@@ -100,20 +135,24 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
             # on demand for any value of propagation time t
             #
             else:
-                return _nsc_reference_implementation(Na, Nt, HH, tt,
-                                                gt, ll, _nsc_fkernel)
+                return _nsc_kernel_implementation(Na, Nt, HH, tt,
+                                                 gt, ll, _nsc_kernel_at_t)
+            
+        #
+        # Secular implementation
+        #
         else:
+            #
+            # Initial term 
+            #
             self._initial_term_pre(Na, Nt, HH, tt, gt, ll)
+            
+            #
+            # Here we calculate the time-dependent non-secular tensor
+            #
             return _td_reference_implementation(Na, Nt, HH, tt,
                                             gt, ll, _ne_fintegral)
     
-
-    def get_kernel_tensor(self, ti):
-        """Return the relaxation tensor kernel at a time given by the index ti
-        
-        """
-        pass
-
 
 
     def _initial_term_pre(self, Na, Nt, HH, tt, gt, ll):
@@ -134,7 +173,6 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         
         self.II = II
         self.has_Iterm = True
-
 
 
     def initial_term(self, rhoi):
@@ -164,7 +202,6 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
             
         """
         II = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
-        
         JJ = HH.data
         
         for aa in range(Na):
@@ -213,6 +250,7 @@ def _kernel_at_t(ti, tt, gtd, gta, ed, ea, ld):
         *numpy.exp(2.0*1j*numpy.imag(gtd[ti]))
         
     return prod
+
 
 
 def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
@@ -264,6 +302,7 @@ def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
     return prod
 
 
+
 def _integrate_kernel(tt, fce):
     """ Spline integration of a complex function
     
@@ -276,6 +315,7 @@ def _integrate_kernel(tt, fce):
                            pimag, s=0).antiderivative()(tt)
     inte = splr + 1j*spli
     return inte        
+
 
 
 def _integrate_kernel_to_t(ti, tt, fce, margin=10):
@@ -398,15 +438,19 @@ def _ne_fintegral(tt, gtd, gta, ed, ea, ld):
 
 
 def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
-                                     
+    """Relaxation tensor including all non-secular terms
+    
+    
+    """
+    
     #
     # Rates between states a and b
     # 
     KK = numpy.zeros((Nt,Na,Na,Na,Na), dtype=COMPLEX)
     fKK = numpy.zeros((Nt,Na,Na,Na,Na), dtype=COMPLEX)
-    #fR = numpy.zeros((Nt,Na,Na,Na), dtype=COMPLEX)
     RR = numpy.zeros((Nt,Na,Na), dtype=COMPLEX)
     
+    # resonance coupling matrix
     JJ = numpy.zeros(HH.shape, dtype=REAL)
     JJ[:,:] = HH[:,:]
     for ii in range(Na):
@@ -434,10 +478,8 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
     #
     for a in range(Na):
         for b in range(Na):
-            #b = a
             for c in range(Na):
                 for d in range(Na):
-                    #d = c
                     KK[:,a,b,c,d] += JJ[a,c]*JJ[d,b]*fKK[:, a, b, c, d] \
                         + numpy.conj(JJ[b,d]*JJ[c,a]*fKK[:, b, a, d, c])
                     if b == d:
@@ -447,6 +489,30 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
 
                         
     return KK  
+
+
+
+def _nsc_kernel_implementation(Na, Nt, HH, tt, gt, ll, fce):
+    """Here we return a function that returns integration kernel 
+    
+    We use the implementation that we normally calcultes the relaxation
+    tensor, i.e. it uses the intergated kernel. Here we submit it a function
+    which returns the kernel at time characterized by index ti, rather than
+    the integrated kernel.
+    
+    """
+    
+    def fkernel(ti):
+        
+        def fce2(tt, aa, bb, cc, dd, HH, gt):
+            """Closure of the kernel to fix the time """
+            return fce(ti, tt, aa, bb, cc, dd, HH, gt)
+        
+        KK = _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce2)
+        return KK
+    
+    return fkernel
+
 
 
 def _nsc_fintegral(tt, a, b, c, d, HH, gt):
@@ -502,3 +568,5 @@ def _nsc_fintegral(tt, a, b, c, d, HH, gt):
     return hoft
     
  
+
+    
