@@ -342,8 +342,8 @@ class Mode(UnitsManaged, Saveable):
         Exception: Makes no sense to set HR in the ground state
         
         """
-        if N==0:
-            raise Exception("Makes no sense to set HR in the ground state")
+        #if N==0:
+        #    raise Exception("Makes no sense to set HR in the ground state")
             
         sh = numpy.sqrt(2.0*hr)
         self.set_shift(N, sh)

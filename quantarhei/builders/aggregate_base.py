@@ -177,7 +177,8 @@ class AggregateBase(UnitsManaged, Saveable):
         # TESTED
 
 
-    def set_resonance_coupling(self, i, j, coupling):
+    def set_resonance_coupling(self, i, j, coupling, mode_linear=None,
+                                           mode_shift=None):
         """Sets resonance coupling value between two sites
 
         """
@@ -190,6 +191,20 @@ class AggregateBase(UnitsManaged, Saveable):
         self.resonance_coupling[j,i] = coup
         #
         # TESTED
+        
+        
+        #
+        # Coordinate dependence of the resonance coupling
+        #
+        # this is a temporary solution
+        self.mode_linear = mode_linear
+        if mode_linear is not None:
+            self.mode_shift = len(mode_linear)*[0.0]
+            self.has_mode_dependence = True
+        if mode_shift is not None:
+            self.mode_shift = mode_shift
+        
+            
 
 
     def get_resonance_coupling(self, i, j):

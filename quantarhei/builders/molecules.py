@@ -204,6 +204,8 @@ class Molecule(UnitsManaged, Saveable):
         self.model = None
         self.data = None
         self._data_type = None
+        
+        self._diabatic_initialized = False
 
         
     def get_name(self):
@@ -458,6 +460,9 @@ class Molecule(UnitsManaged, Saveable):
 
             
     def set_dipole(self, N, M, vec):
+        """Sets transition dipole moment to electronic elevels
+        
+        """
         if N == M:
             raise Exception("M must not be equal to N")
         try:
@@ -728,6 +733,133 @@ class Molecule(UnitsManaged, Saveable):
         return True
 
      
+    def set_diabatic_coupling(self, element, factor, shifts=None):
+        """Sets off-diagobal elements of the diabatic potential matrix 
+        
+        """
+        # FIXME: we ignore shifts for now
+        Nm = self.get_number_of_modes()
+        faclength = len(factor[1])
+        
+        # energy conversion
+        val = self.convert_energy_2_internal_u(factor[0])
+        factor[0] = val
+        
+        if  faclength != Nm:
+            raise Exception("Expected "+str(Nm)+
+                            " mode, found "+str(faclength)+".")
+        
+        if not self._diabatic_initialized:
+            
+            Ne = self.nel
+            
+            self.diabatic_matrix = []
+            for ii in range(Ne):
+                self.diabatic_matrix.append([])
+                for jj in range(Ne):
+                    self.diabatic_matrix[ii].append([])
+            
+            self._diabatic_initialized = True
+        
+        self.diabatic_matrix[element[0]][element[1]].append(factor)
+        self.diabatic_matrix[element[1]][element[0]].append(factor)
+
+
+    def get_potential_1D(self, mode, points):
+        
+        HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
+        
+        if mode == 0:
+            
+            md = self.modes[mode]
+            pot = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
+            pot0 = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
+            kk = 0
+            for pt in points:
+                
+                for ii in range(self.nel):
+                    for jj in range(self.nel):
+                        
+                        if (ii==jj):
+                            HH[ii,jj] = self.elenergies[ii] \
+                                + (md.get_energy(ii)/2.0)* \
+                                    (pt-md.get_shift(ii))**2
+                            pot0[kk,ii] = HH[ii,jj]
+                            
+                        else:
+                            with qr.energy_units("int"):
+                                val = self.get_diabatic_coupling((ii,jj))
+                                if len(val) > 0:
+                                    HH[ii,jj] = val[0]*pt
+                
+                (en, ss) = numpy.linalg.eigh(HH)
+                pot[kk,:] = en
+                kk += 1
+               
+            return (pot, pot0)
+                
+        else:
+            raise Exception("Multiple modes not implemented, yet.")
+            
+            
+    def plot_potential_1D(self, mode, points, nonint=True, states=None,
+                          energies=True, show=True):
+        
+        import matplotlib.pyplot as plt
+        
+        pot, pot0 = self.get_potential_1D(mode, points)
+        
+        if states is None:
+            sts = []
+            for ii in range(self.nel):
+                sts.append(ii)
+        else:
+            sts = states
+            
+        for ss in sts:
+            plt.plot(points, pot[:,ss])
+            if nonint:
+                plt.plot(points,pot0[:,ss],"--")
+           
+        if energies:
+            HH = self.get_Hamiltonian()
+            with qr.eigenbasis_of(HH):
+                for ii in range(HH.dim):
+                    enr = HH.data[ii,ii]*numpy.ones(len(points), dtype=qr.REAL)
+                    plt.plot(points, enr, "-k")
+            if nonint:
+                for ii in range(HH.dim):
+                    enr = HH.data[ii,ii]*numpy.ones(len(points), dtype=qr.REAL)
+                    plt.plot(points, enr, "--b")
+            
+        if show:
+            plt.show()
+                
+
+
+    def get_diabatic_coupling(self, element, order=1):
+        """Returns list of coupling descriptors
+             
+        """
+        if self._diabatic_initialized:
+            # FIXME: only first factor used
+            factor = self.diabatic_matrix[element[0]][element[1]]
+            if len(factor) > 0:
+                factor = factor[0]
+                val = self.convert_energy_2_current_u(factor[0])
+                return  [val, factor[1]]
+            else:
+                return []
+        else:
+            return []
+    
+    
+    def get_diabatic_shifts(self, order=1):
+        
+        raise Exception("Shifts not implemented")
+
+
+
     def set_adiabatic_coupling(self,state1,state2,coupl):
         """Sets adiabatic coupling between two states
         
@@ -794,6 +926,7 @@ class Molecule(UnitsManaged, Saveable):
             if self.nmod > 0:
                 # loop over modes
                 for j in range(self.nmod):
+                    
                     # FIXME: enable more than one mode
                     if j > 0: # limits the number of modes to 1
                         raise Exception("Not yet implemented") 
@@ -863,8 +996,48 @@ class Molecule(UnitsManaged, Saveable):
                         ham[lb[i]:ub[i],lb[j]:ub[j]] = hj
                         ham[lb[j]:ub[j],lb[i]:ub[i]] = hj.T
                         
+                        
+        #
+        # diabatic coupling matrix
+        #
+        if self._diabatic_initialized:
+            for i in range(self.nel):
+                for j in range(self.nel):
+                    if i != j:
+                        
+                        coups = self.diabatic_matrix[i][j]
+                        
+                        # FIXME
+                        # we accept only the first element of the record
+                        if len(coups) > 0:
+                            rec = coups[0]
+                            val = rec[0]
+                            modes = rec[1]
+                        
+                            # FIXME
+                            # we work with one mode only
+                            if len(modes) == 1:
+                                
+                                # FIXME
+                                # we allow ony linear dependence
+                                if modes[0] == 1:
+                                    n = 0
+                                    for a in range(lb[i],ub[i]):
+                                        m = 0
+                                        for b in range(lb[j],ub[j]):
+                                            if n == m+1:
+                                                ham[a,b] = \
+                                                    val*numpy.sqrt(n/2.0)
+                                            if n == m-1:
+                                                ham[a,b] = \
+                                                    val*numpy.sqrt((n+1)/2.0)
+                                        
+                                            m += 1
+                                        n += 1
+                        
             
         return Hamiltonian(data=ham)
+    
         
     def _sub_matrix_bounds(self,ldim):
         lbound = 0
@@ -921,7 +1094,7 @@ class Molecule(UnitsManaged, Saveable):
         for k in range(1,self.nel):
             # FIXME: all just for one mode
             
-            # get dipome moment vector
+            # get dipole moment vector
             dp = self.dmoments[0,k,:]
  
             dd = numpy.zeros((ldim[0],ldim[k]),dtype=numpy.float)        
