@@ -168,7 +168,7 @@ class operator_factory(Saveable):
         
         The definition differs by the factor of :math:`\\sqrt{2}` from what
         is usually used in literature, but for applications in molecular
-        physics, this definition seems to be more reasoble.
+        physics, this definition seems to be more reasonable.
             
         
         

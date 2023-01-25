@@ -206,6 +206,7 @@ class Molecule(UnitsManaged, Saveable):
         self._data_type = None
         
         self._diabatic_initialized = False
+        
 
         
     def get_name(self):
@@ -766,6 +767,9 @@ class Molecule(UnitsManaged, Saveable):
 
 
     def get_potential_1D(self, mode, points):
+        """Returns the one dimensional adiabatic potentials
+        
+        """
         
         HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
         
@@ -788,7 +792,7 @@ class Molecule(UnitsManaged, Saveable):
                             
                         else:
                             with qr.energy_units("int"):
-                                val = self.get_diabatic_coupling((ii,jj))
+                                val = self.get_diabatic_coupling((ii,jj))[0]
                                 if len(val) > 0:
                                     HH[ii,jj] = val[0]*pt
                 
@@ -804,6 +808,9 @@ class Molecule(UnitsManaged, Saveable):
             
     def plot_potential_1D(self, mode, points, nonint=True, states=None,
                           energies=True, show=True):
+        """Plots the potentials
+        
+        """
         
         import matplotlib.pyplot as plt
         
@@ -837,17 +844,20 @@ class Molecule(UnitsManaged, Saveable):
                 
 
 
-    def get_diabatic_coupling(self, element, order=1):
+    def get_diabatic_coupling(self, element):
         """Returns list of coupling descriptors
              
         """
         if self._diabatic_initialized:
             # FIXME: only first factor used
             factor = self.diabatic_matrix[element[0]][element[1]]
+            ven = []
             if len(factor) > 0:
-                factor = factor[0]
-                val = self.convert_energy_2_current_u(factor[0])
-                return  [val, factor[1]]
+                for fc in factor:
+                    fcv = fc[0]
+                    val = self.convert_energy_2_current_u(fcv)
+                    ven.append([val, fc[1]])
+                return  ven
             else:
                 return []
         else:
@@ -894,8 +904,81 @@ class Molecule(UnitsManaged, Saveable):
                 
         return self._nat_lifetime[N]
            
+    def overlap_other(self, tpl1, tpl2, k):
+        dif = 0
+        for i in range(len(tpl1)):
+            if i != k:
+                dif += numpy.abs(tpl1[i]-tpl2[i])
+                
+        if dif == 0:
+            return 1.0
+        else:
+            return 0.0
+        
+        
+    def _test_Hamiltonian(self, state1, state2):
+        
+        n = state1[0]
+        m = state2[0]
+        
+        vibn = state1[1]
+        vibm = state2[1]
+        
+        def overlap_all(tpl1, tpl2):
+            dif = 0
+            for i in range(len(tpl1)):
+                dif += numpy.abs(tpl1[i]-tpl2[i])
+                    
+            if dif == 0:
+                return 1.0
+            else:
+                return 0.0     
+            
+        of = operator_factory()
+        
+        ret = 0.0
+        
+        if n == m:
+            
+            ret += self.elenergies[n]*overlap_all(vibn,vibm)
+            
+            for kk in range(self.nmod):
+                mod = self.modes[kk]
+                nmax = mod.get_nmax(n)
+                ome = mod.get_energy(n)
+                shift = mod.get_shift(n)
+                fc = numpy.real(of.shift_operator(shift)[:nmax,:nmax])
+                cont = 0.0
+                a = vibn[kk]
+                b = vibm[kk]
+                for ll in range(nmax):
+                    cont += ll*fc[a,ll]*fc[b,ll]
+                    
+                ret += ome*cont*self.overlap_other(vibn,vibm,kk)
+            
+        else:
+            
+            cdefs = self.diabatic_matrix[n][m]
+            
+            for cdef in cdefs:
+                
+                val = cdef[0]
+                cmod = cdef[1]
+                for kk in range(self.nmod):
+                    ovrl = self.overlap_other(vibn,vibm,kk)
+                    if cmod[kk] == 1:
+                        n = vibn[kk]
+                        m = vibm[kk]  
+                        if n == m + 1:
+                            ret += val*numpy.sqrt(n/2.0)*ovrl
+                        elif n == m - 1:
+                            ret += val*numpy.sqrt(m/2.0)*ovrl
+            
+        return ret
+    
+    
            
-    def get_Hamiltonian(self):
+    def get_Hamiltonian(self, multi=True):
         """Returns the Hamiltonian of the Molecule object
         
         
@@ -919,6 +1002,171 @@ class Molecule(UnitsManaged, Saveable):
         lham = [None]*self.nel  
         # list of Hamiltonian dimensions
         ldim = [None]*self.nel
+    
+    
+        if multi:
+            
+            # create vibrational signatures for each electronic state
+            vsignatures = []
+            for kk in range(self.nel):
+                vibmax = []
+                for mk in range(self.nmod):
+                    vibmax.append(self.modes[mk].get_nmax(kk))
+
+                signatures = numpy.ndindex(tuple(vibmax))
+                vsignatures.append(signatures)
+    
+            # the list of vibrational signatures 
+            self.vibsignatures = vsignatures
+    
+    
+            # list o signatures of all states
+            self.all_states = []
+            ks = 0
+            ke = 0
+            for vsig_it in vsignatures:
+                for vsig in vsig_it:
+                    elvibstate = tuple([ke, vsig])
+                    self.all_states.append(elvibstate)
+                    ks += 1
+                ke += 1
+                    
+            # total number of states
+            self.totstates = ks
+              
+            #
+            # building the Hamiltonian
+            #
+            ham = numpy.zeros((ks,ks), dtype=qr.REAL)
+            
+            #
+            # for each state and mode, we create vibrational Hamiltonian
+            #
+            hh_components = []
+            # loop over electronic states
+            for i in range(self.nel):
+                el_state = []
+                hh_components.append(el_state)
+                if self.nmod > 0:
+                    # loop over modes
+                    for j in range(self.nmod):
+                        
+                        # number of vibrational states in this electronic state
+                        Nvib = self.modes[j].get_nmax(i)
+                    
+                        # shift of the PES
+                        dd = self.modes[j].get_shift(i)
+                        en = self.modes[j].get_energy(i)
+     
+                        # create the Hamiltonian
+                        of = operator_factory(N=Nvib)
+                        aa = of.anihilation_operator()
+                        ad = of.creation_operator()
+                        ones = of.unity_operator()    
+                    
+                        hh = en*(numpy.dot(ad,aa) 
+                                 - (dd/numpy.sqrt(2.0))*(ad+aa)
+                                 + dd*dd*ones/2.0)   
+                        
+                        el_state.append(hh)
+                    
+                # if there are no modes
+                else:
+                    hh = numpy.zeros((1,1),dtype=numpy.float)
+                    hh[0,0] = self.elenergies[i]
+                    
+                    #lham[i] = hh
+                    #ldim[i] = 1      
+                    el_state.append(hh)
+                    
+            # we prepare material for each coupling element
+            
+ 
+            # case - NO MODES
+            
+
+                
+            
+            
+            # case - AT LEAST ONE MODE
+            
+            # loop over all states
+            ks1 = 0
+            for st1 in self.all_states:
+                n = st1[0]
+                vibn = st1[1]
+                
+                # loop over all stataes
+                ks2 = 0
+                for st2 in self.all_states:
+                    m = st2[0]
+                    vibm = st2[1]
+                    
+                    #
+                    # electronic states
+                    #
+                    if n == m:
+                        
+                        el_state = hh_components[n]
+                        
+                        # electronic part of the energy
+                        if ks1 == ks2:
+                            ham[ks1, ks2] += self.elenergies[n]
+                    
+                        for k in range(self.nmod):
+                            overl = self.overlap_other(vibn,vibm,k)
+                            hh = el_state[k]
+                            kn = vibn[k]
+                            km = vibm[k]
+                            ham[ks1, ks2] += hh[kn,km]*overl
+                            
+                         
+                    # couplings
+                    else:
+                        
+                        if self._diabatic_initialized:
+                            dmx = self.diabatic_matrix[n][m]
+                            # number of defined couplings
+                            Ncoup = len(dmx)
+                            if Ncoup > 0:
+                                # loop over the coupling definitions
+                                for nc in range(Ncoup):
+                                    modc = dmx[nc]
+                                    val = modc[0]   # coupling constant
+                                    coors = modc[1] # which modes contribute
+                                    # loop over modes
+                                    for ci in range(self.nmod):
+                                        
+                                        # other modes than ci have to be
+                                        # in the same states 
+                                        overl = self.overlap_other(vibn,
+                                                                   vibm,ci)
+                                        # FIXME:
+                                        # this prevents bilinear coupling
+                                        if overl == 1.0:
+                                            
+                                            # FIXME: we only allow linear
+                                            #        contribution
+                                            if coors[ci] == 1:
+                                                if vibn[ci] == vibm[ci]+1:
+                                                    ham[ks1, ks2] += \
+                                                    val*numpy.sqrt(vibn[ci]/2.0)
+                                                elif vibn[ci] == vibm[ci]-1:
+                                                    ham[ks1, ks2] += \
+                                                    val*numpy.sqrt(vibm[ci]/2.0)
+                        
+                    
+                    ks2 += 1
+                    
+                ks1 += 1
+    
+            return Hamiltonian(data=ham)
+    
+    
+        #
+        # old single mode version
+        #
+    
     
         # loop over electronic states
         for i in range(self.nel):
