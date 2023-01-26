@@ -140,7 +140,7 @@ class Molecule(UnitsManaged, Saveable):
         # monomer name
         if name is None:
             # FIXME: generate unique name
-            self.name = "xxx"
+            self.name = ""
         else:
             self.name = name  #
             
@@ -155,9 +155,8 @@ class Molecule(UnitsManaged, Saveable):
         self.nel = len(elenergies)    #
         
         
-        
         # FIXME: check the order of energies (increasing order has 
-        # to be enforced) no vibrational modes is a defauls
+        # to be enforced) no vibrational modes is a default
         self.nmod = 0
         self.modes = []  
         
@@ -188,13 +187,16 @@ class Molecule(UnitsManaged, Saveable):
         self.egcf = self.triangle.get_empty_list()
         self._has_egcf_matrix = False
         
+        #
         self._adiabatic_initialized = False
-        
+ 
+        # we can specify diabatic coupling matrix
+        self._diabatic_initialized = False
+
         # 
         # We can have an environment at each mode and each electronic state
         #
         self._mode_env_initialized = False
-        
         
         self._is_mapped_on_egcf_matrix = False
         
@@ -204,8 +206,6 @@ class Molecule(UnitsManaged, Saveable):
         self.model = None
         self.data = None
         self._data_type = None
-        
-        self._diabatic_initialized = False
         
 
         
@@ -452,25 +452,96 @@ class Molecule(UnitsManaged, Saveable):
         """
         return len(self.modes)
 
+
+    def set_dipole(self, N, M, vec=None):
+        """Sets transition dipole moment for an electronic transition
         
-    def get_dipole(self, N, M):
+        
+        There are two ways how to use this function:
+            
+            1) recommended
+                
+                set_dipole((0,1),[1.0, 0.0, 0.0])
+                
+                here N represents a transition by a tuple, M is the dipole
+                
+            2) deprecated (used in earlier versions of quantarhei)
+                
+                set_dipole(0,1,[1.0, 0.0, 0.0])
+                
+                here the transition is characterized by two integers
+                and the last arguments is the vector
+                
+        
+        
+        Examples
+        --------
+ 
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+        >>> m.get_dipole((0,1))
+        [1.0 0.0 0.0]       
+        
+        """
+        if vec is None:
+            n = N[0]
+            m = N[1]
+            vc = M
+        else:
+            n = N
+            m = M
+            vc = vec
+            
+        if n == m:
+            raise Exception("M must not be equal to N")
         try:
-            return self.dmoments[N, M, :]
+            self.dmoments[n, m, :] = vc
+            self.dmoments[m, n, :] = numpy.conj(vc)
+        except:
+            raise Exception()
+            
+        
+    def get_dipole(self, N, M=None):
+        """Returns the dipole vector for a given electronic transition
+        
+        There are two ways how to use this function:
+            
+            1) recommended
+                
+                get_dipole((0,1),[1.0, 0.0, 0.0])
+                
+                here N represents a transition by a tuple, M is the dipole
+                
+            2) deprecated (used in earlier versions of quantarhei)
+                
+                get_dipole(0,1,[1.0, 0.0, 0.0])
+                
+                here the transition is characterized by two integers
+                and the last arguments is the vector        
+                
+        
+        Examples
+        --------
+        
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+        >>> m.get_dipole((0,1))
+        [1.0 0.0 0.0]
+        
+        
+        """
+        if M is None:
+            n = N[0]
+            m = N[1]
+        else:
+            n = N
+            m = M
+            
+        try:
+            return self.dmoments[n, m, :]
         except:
             raise Exception()
 
-            
-    def set_dipole(self, N, M, vec):
-        """Sets transition dipole moment to electronic elevels
-        
-        """
-        if N == M:
-            raise Exception("M must not be equal to N")
-        try:
-            self.dmoments[N, M, :] = vec
-            self.dmoments[M, N, :] = numpy.conj(vec)
-        except:
-            raise Exception()  
 
             
     def set_transition_width(self, transition, width):
@@ -766,55 +837,103 @@ class Molecule(UnitsManaged, Saveable):
         self.diabatic_matrix[element[1]][element[0]].append(factor)
 
 
-    def get_potential_1D(self, mode, points):
+    def get_potential_1D(self, mode, points, other_modes=None):
         """Returns the one dimensional adiabatic potentials
         
         """
         
         HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
         
-        if mode == 0:
+        if other_modes is None:
+            other_modes = [0.0]*self.nmod
             
-            md = self.modes[mode]
-            pot = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
-            pot0 = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
-            kk = 0
-            for pt in points:
-                
-                for ii in range(self.nel):
-                    for jj in range(self.nel):
+        if len(other_modes) != self.nmod:
+            raise Exception("Argument 'other_modes' has to have the lenth"+
+                            " equal to the number of modes")
+            
+        #md = self.modes[mode]
+        pot = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
+        pot0 = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
+        kk = 0
+        for pt in points:
+            
+            for ii in range(self.nel):
+                for jj in range(self.nel):
+                    
+                    HH[ii,jj] = 0.0
+                    
+                    if (ii==jj):
                         
-                        if (ii==jj):
-                            HH[ii,jj] = self.elenergies[ii] \
-                                + (md.get_energy(ii)/2.0)* \
-                                    (pt-md.get_shift(ii))**2
-                            pot0[kk,ii] = HH[ii,jj]
+                        HH[ii,jj] = self.elenergies[ii]
+                        
+                        km = 0
+                        # loop over modes
+                        for md in self.modes:
                             
-                        else:
-                            with qr.energy_units("int"):
-                                val = self.get_diabatic_coupling((ii,jj))[0]
-                                if len(val) > 0:
-                                    HH[ii,jj] = val[0]*pt
+                            if km == mode:
+                                qq = pt
+                            else:
+                                qq = other_modes[km]
+                                
+                            HH[ii,ii] += (md.get_energy(ii)/2.0)* \
+                                         (qq-md.get_shift(ii))**2
+                                         
+                            km += 1
+                            
+                        pot0[kk,ii] = HH[ii,ii]
+                        
+                    else:
+                        
+                        with qr.energy_units("int"):
+                            coup = self.get_diabatic_coupling((ii,jj))
+                            lc = len(coup)
+                            
+                            if lc > 0:
+                                # loop over couplings
+                                for ll in range(lc):
+                                    val = coup[ll]
+
+                                    if len(val) > 0:
+                                        
+                                        # loop over modes
+                                        for lm in range(self.nmod):
+                                            # we use linear contribution only
+                                            if val[1][lm]==1:
+                                                #print("added mode", lm)
+                                                #print("to coupling", ii,jj)
+                                                if lm == mode:
+                                                    # the plotted mode is added
+                                                    HH[ii,jj] += val[0]*pt
+
+                                                else:
+                                                    # modes that are not 
+                                                    # plotted contribute with 
+                                                    # the value specified with
+                                                    # 'other_modes' list
+                                                    HH[ii,jj] += \
+                                                       val[0]*other_modes[lm]
+
+
+            (en, ss) = numpy.linalg.eigh(HH)
+            pot[kk,:] = en
+            kk += 1
+           
+        return (pot, pot0)
                 
-                (en, ss) = numpy.linalg.eigh(HH)
-                pot[kk,:] = en
-                kk += 1
-               
-            return (pot, pot0)
-                
-        else:
-            raise Exception("Multiple modes not implemented, yet.")
             
             
-    def plot_potential_1D(self, mode, points, nonint=True, states=None,
-                          energies=True, show=True):
+    def plot_potential_1D(self, mode, points, other_modes=None, 
+                          nonint=True, states=None,
+                          energies=True, show=True,
+                          ylims=None):
         """Plots the potentials
         
         """
         
         import matplotlib.pyplot as plt
         
-        pot, pot0 = self.get_potential_1D(mode, points)
+        pot, pot0 = self.get_potential_1D(mode, points, 
+                                          other_modes=other_modes)
         
         if states is None:
             sts = []
@@ -839,9 +958,84 @@ class Molecule(UnitsManaged, Saveable):
                     enr = HH.data[ii,ii]*numpy.ones(len(points), dtype=qr.REAL)
                     plt.plot(points, enr, "--b")
             
+        if ylims is not None:
+            plt.ylim(ylims[0],ylims[1])
         if show:
             plt.show()
                 
+
+    def plot_stick_spectrum(self, xlims=[0.0,1.0], ylims=None, 
+                            show_zero_coupling=False, show=True):
+        """Plots the stick spectrum of the molecule 
+        
+        """
+            
+        import matplotlib.pyplot as plt
+        
+        HH = self.get_Hamiltonian()
+        dip = self.get_TransitionDipoleMoment()
+        
+        
+        with qr.eigenbasis_of(HH):
+            y1 = (dip.data[0,:,0]**2+dip.data[0,:,1]**2+dip.data[0,:,2]**2)/3.0
+            x1 = numpy.diag(HH.data)
+    
+        plt.stem(x1,y1,markerfmt=' ', linefmt='-r')
+    
+        if show_zero_coupling:
+            y0 = (dip.data[0,:,0]**2+dip.data[0,:,1]**2+dip.data[0,:,2]**2)/3.0
+            x0 = numpy.diag(HH.data)
+    
+            plt.stem(x0,y0,markerfmt=' ', linefmt="-b")
+            
+        plt.xlim(xlims[0],xlims[1])
+        if show:
+            plt.show()
+
+
+    def plot_dressed_sticks(self, dfce=None, xlims=[0,1], nsteps=1000,
+                            show_zero_coupling=False, show=True):
+        """Plots a stick spectrum dessed by a supplied function
+        
+        
+        """
+
+        import matplotlib.pyplot as plt        
+
+        if dfce is None:
+            raise Exception("Dressing function must be defined")
+        
+        HH = self.get_Hamiltonian()
+        dip = self.get_TransitionDipoleMoment()
+ 
+        dx = (xlims[1]-xlims[0])/nsteps
+        xe = numpy.array([xlims[0] + i*dx for i in range(nsteps)])
+        sp1 = numpy.zeros(len(xe), dtype=qr.REAL)
+        
+        with qr.eigenbasis_of(HH):
+            y1 = (dip.data[0,:,0]**2+dip.data[0,:,1]**2+dip.data[0,:,2]**2)/3.0
+            x1 = numpy.diag(HH.data)  
+            
+        for kk in range(HH.dim):
+            sp1 += y1[kk]*dfce(xe, x1[kk])
+
+        plt.plot(xe, sp1, "-r")
+    
+        if show_zero_coupling:
+            y0 = (dip.data[0,:,0]**2+dip.data[0,:,1]**2+dip.data[0,:,2]**2)/3.0
+            x0 = numpy.diag(HH.data)
+            sp0 = numpy.zeros(len(xe), dtype=qr.REAL)
+        
+            for kk in range(HH.dim):
+                sp0 += y0[kk]*dfce(xe, x0[kk])
+            
+            plt.plot(xe, sp0, "-b")
+        
+        
+        plt.xlim(xlims[0],xlims[1])
+        if show:
+            plt.show()
+
 
 
     def get_diabatic_coupling(self, element):
@@ -867,6 +1061,9 @@ class Molecule(UnitsManaged, Saveable):
     def get_diabatic_shifts(self, order=1):
         
         raise Exception("Shifts not implemented")
+
+
+
 
 
 
@@ -915,6 +1112,17 @@ class Molecule(UnitsManaged, Saveable):
         else:
             return 0.0
         
+
+    def overlap_all(self, tpl1, tpl2):
+        dif = 0
+        for i in range(len(tpl1)):
+            dif += numpy.abs(tpl1[i]-tpl2[i])
+                
+        if dif == 0:
+            return 1.0
+        else:
+            return 0.0 
+
         
     def _test_Hamiltonian(self, state1, state2):
         
@@ -923,16 +1131,6 @@ class Molecule(UnitsManaged, Saveable):
         
         vibn = state1[1]
         vibm = state2[1]
-        
-        def overlap_all(tpl1, tpl2):
-            dif = 0
-            for i in range(len(tpl1)):
-                dif += numpy.abs(tpl1[i]-tpl2[i])
-                    
-            if dif == 0:
-                return 1.0
-            else:
-                return 0.0     
             
         of = operator_factory()
         
@@ -940,7 +1138,7 @@ class Molecule(UnitsManaged, Saveable):
         
         if n == m:
             
-            ret += self.elenergies[n]*overlap_all(vibn,vibm)
+            ret += self.elenergies[n]*self.overlap_all(vibn,vibm)
             
             for kk in range(self.nmod):
                 mod = self.modes[kk]
@@ -997,12 +1195,7 @@ class Molecule(UnitsManaged, Saveable):
          [ 0.  0.  1.  0.]
          [ 0.  0.  0.  2.]]
         
-        """
-        # list of vibrational Hamiltonians
-        lham = [None]*self.nel  
-        # list of Hamiltonian dimensions
-        ldim = [None]*self.nel
-    
+        """    
     
         if multi:
             
@@ -1066,7 +1259,7 @@ class Molecule(UnitsManaged, Saveable):
                     
                         hh = en*(numpy.dot(ad,aa) 
                                  - (dd/numpy.sqrt(2.0))*(ad+aa)
-                                 + dd*dd*ones/2.0)   
+                                 + dd*dd*ones/2.0) + (en/2.0)*ones  
                         
                         el_state.append(hh)
                     
@@ -1075,15 +1268,12 @@ class Molecule(UnitsManaged, Saveable):
                     hh = numpy.zeros((1,1),dtype=numpy.float)
                     hh[0,0] = self.elenergies[i]
                     
-                    #lham[i] = hh
-                    #ldim[i] = 1      
+    
                     el_state.append(hh)
-                    
-            # we prepare material for each coupling element
             
  
             # case - NO MODES
-            
+            # FIXME: faster code for the no modes case
 
                 
             
@@ -1120,8 +1310,9 @@ class Molecule(UnitsManaged, Saveable):
                             km = vibm[k]
                             ham[ks1, ks2] += hh[kn,km]*overl
                             
-                         
-                    # couplings
+                    #   
+                    # coupling elements
+                    #
                     else:
                         
                         if self._diabatic_initialized:
@@ -1141,7 +1332,7 @@ class Molecule(UnitsManaged, Saveable):
                                         # in the same states 
                                         overl = self.overlap_other(vibn,
                                                                    vibm,ci)
-                                        # FIXME:
+                                        # FIXME: bilinear coupling
                                         # this prevents bilinear coupling
                                         if overl == 1.0:
                                             
@@ -1150,23 +1341,31 @@ class Molecule(UnitsManaged, Saveable):
                                             if coors[ci] == 1:
                                                 if vibn[ci] == vibm[ci]+1:
                                                     ham[ks1, ks2] += \
-                                                    val*numpy.sqrt(vibn[ci]/2.0)
+                                                  val*numpy.sqrt(vibn[ci]/2.0)
                                                 elif vibn[ci] == vibm[ci]-1:
                                                     ham[ks1, ks2] += \
-                                                    val*numpy.sqrt(vibm[ci]/2.0)
+                                                  val*numpy.sqrt(vibm[ci]/2.0)
                         
                     
                     ks2 += 1
                     
                 ks1 += 1
     
-            return Hamiltonian(data=ham)
+            with qr.energy_units("int"):
+                HH = Hamiltonian(data=ham)
+                
+            return HH
     
     
-        #
-        # old single mode version
-        #
-    
+###############################################################################
+# old single mode version - will be removed in future
+###############################################################################
+   
+
+        # list of vibrational Hamiltonians
+        lham = [None]*self.nel  
+        # list of Hamiltonian dimensions
+        ldim = [None]*self.nel    
     
         # loop over electronic states
         for i in range(self.nel):
@@ -1301,6 +1500,12 @@ class Molecule(UnitsManaged, Saveable):
         return lb,ub
         
     def _ham_dimension(self):
+        """Returns internal information about the dimension of the Hamiltonian
+        
+        Works only for one mode per molecule.
+        Will be removed when multi mode molecule is fully implemented
+        
+        """
 
         # list of Hamiltonian dimensions
         ldim = [None]*self.nel
@@ -1326,9 +1531,46 @@ class Molecule(UnitsManaged, Saveable):
 
         return totdim, ldim        
                
+    
         
-    def get_TransitionDipoleMoment(self):
+    def get_TransitionDipoleMoment(self, multi=True):
+        """Returns the transition dipole moment operator
+        
+        """
 
+        if multi:
+            
+            totdim = self.totstates
+
+            # This will be the operator data
+            dip = numpy.zeros((totdim,totdim,3),dtype=qr.REAL)  
+            
+            ks1 = 0
+            for st1 in self.all_states:
+                n = st1[0]
+                vibn = st1[1]
+                
+                ks2 = 0
+                for st2 in self.all_states:
+                    m = st2[0]
+                    vibm = st2[1]  
+                    
+                    dp = self.dmoments[n,m,:]
+                    ovrl = self.overlap_all(vibn,vibm)
+                    
+                    if ovrl > 0.0:
+                        dip[ks1, ks2,:] = dp
+                    
+                    ks2 += 1
+                    
+                ks1 += 1
+                
+            
+            return TransitionDipoleMoment(data=dip)
+
+        #
+        # older single mode version
+        #
 
         totdim,ldim = self._ham_dimension()
 
