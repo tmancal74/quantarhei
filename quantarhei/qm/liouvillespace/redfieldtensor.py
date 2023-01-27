@@ -246,11 +246,16 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #
         multi_ex = False
         
-        # figure out if the aggregate specifies more than one exciton band
+        # figure out if the aggregate or molecule specifies more than
+        # one exciton band
         if sbi.aggregate is not None:
             agg = sbi.aggregate
             if agg.mult > 1:
                 multi_ex = True 
+        elif sbi.molecule is not None:
+            mol = sbi.molecule
+            if mol.mult > 1:
+                multi_ex = True
         
         #
         # shorten the interval of integration if a cut-off time is set

@@ -207,6 +207,13 @@ class Molecule(UnitsManaged, Saveable):
         self.data = None
         self._data_type = None
         
+        # how many optical bands the molecule has
+        # the band is defined as a set of states separated from 
+        # another band by optical frequency.
+        # Currently we always have just ONE band, although we might have
+        # more states in it
+        self.mult = 1
+        
 
         
     def get_name(self):
@@ -837,82 +844,85 @@ class Molecule(UnitsManaged, Saveable):
         self.diabatic_matrix[element[1]][element[0]].append(factor)
 
 
-    def get_potential_1D(self, mode, points, other_modes=None):
-        """Returns the one dimensional adiabatic potentials
+    def _fill_hmatrix(self, HH, en0, coorval):
+        """Creates Hamiltonian matrix for given values of the coordinates
         
         """
         
-        HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
+        for ii in range(self.nel):
+            for jj in range(self.nel):
+                
+                HH[ii,jj] = 0.0
+                
+                if (ii==jj):
+                    
+                    HH[ii,jj] = self.elenergies[ii]
+                    
+                    km = 0
+                    # loop over modes
+                    for md in self.modes:
+                        
+                        qq = coorval[km]
+                            
+                        HH[ii,ii] += (md.get_energy(ii)/2.0)* \
+                                     (qq-md.get_shift(ii))**2
+                                     
+                        km += 1
+                        
+                    en0[ii] = HH[ii,ii]
+                    
+                else:
+                    
+                    with qr.energy_units("int"):
+                        coup = self.get_diabatic_coupling((ii,jj))
+                        lc = len(coup)
+                        
+                        if lc > 0:
+                            # loop over couplings
+                            for ll in range(lc):
+                                val = coup[ll]
+
+                                if len(val) > 0:
+                                    
+                                    # loop over modes
+                                    for lm in range(self.nmod):
+                                        qq = coorval[lm]
+                                        # we use linear contribution only
+                                        if val[1][lm]==1:
+                                            
+                                            HH[ii,jj] += val[0]*qq
+ 
+
+    def get_potential_1D(self, mode, points, other_modes=None):
+        """Returns the one dimensional diabatic potentials
+        
+        """
         
         if other_modes is None:
+            # default value for other than the plotted mode
             other_modes = [0.0]*self.nmod
             
         if len(other_modes) != self.nmod:
             raise Exception("Argument 'other_modes' has to have the lenth"+
                             " equal to the number of modes")
             
-        #md = self.modes[mode]
+        coorval = numpy.zeros(self.nmod)
+        HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
         pot = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
         pot0 = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
+        
+        
+        # loop over a single coordinate
         kk = 0
         for pt in points:
             
-            for ii in range(self.nel):
-                for jj in range(self.nel):
-                    
-                    HH[ii,jj] = 0.0
-                    
-                    if (ii==jj):
-                        
-                        HH[ii,jj] = self.elenergies[ii]
-                        
-                        km = 0
-                        # loop over modes
-                        for md in self.modes:
-                            
-                            if km == mode:
-                                qq = pt
-                            else:
-                                qq = other_modes[km]
-                                
-                            HH[ii,ii] += (md.get_energy(ii)/2.0)* \
-                                         (qq-md.get_shift(ii))**2
-                                         
-                            km += 1
-                            
-                        pot0[kk,ii] = HH[ii,ii]
-                        
-                    else:
-                        
-                        with qr.energy_units("int"):
-                            coup = self.get_diabatic_coupling((ii,jj))
-                            lc = len(coup)
-                            
-                            if lc > 0:
-                                # loop over couplings
-                                for ll in range(lc):
-                                    val = coup[ll]
-
-                                    if len(val) > 0:
-                                        
-                                        # loop over modes
-                                        for lm in range(self.nmod):
-                                            # we use linear contribution only
-                                            if val[1][lm]==1:
-                                                #print("added mode", lm)
-                                                #print("to coupling", ii,jj)
-                                                if lm == mode:
-                                                    # the plotted mode is added
-                                                    HH[ii,jj] += val[0]*pt
-
-                                                else:
-                                                    # modes that are not 
-                                                    # plotted contribute with 
-                                                    # the value specified with
-                                                    # 'other_modes' list
-                                                    HH[ii,jj] += \
-                                                       val[0]*other_modes[lm]
-
+            for ii in range(self.nmod):
+                if ii == mode:
+                    coorval[ii] = pt
+                else:
+                    coorval[ii] = other_modes[ii]
+            
+            self._fill_hmatrix(HH, pot0[kk,:], coorval)
 
             (en, ss) = numpy.linalg.eigh(HH)
             pot[kk,:] = en
@@ -920,8 +930,52 @@ class Molecule(UnitsManaged, Saveable):
            
         return (pot, pot0)
                 
+           
+    def get_potential_2D(self, modes, points, other_modes=None):
+        """Returns the two dimensional diabatic potentials
+        
+        """
+        if other_modes is None:
+            # default value for other than the plotted mode
+            other_modes = [0.0]*self.nmod
             
+        if len(other_modes) != self.nmod:
+            raise Exception("Argument 'other_modes' has to have the lenth"+
+                            " equal to the number of modes")
             
+        coorval = numpy.zeros(self.nmod)
+        HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
+        pot = numpy.zeros((len(points[0]),len(points[1]),self.nel),
+                          dtype=qr.REAL)
+        pot0 = numpy.zeros((len(points[0]),len(points[1]),self.nel),
+                          dtype=qr.REAL)
+        
+        # loop over two coordinates
+        k1 = 0
+        for pt1 in points[0]:
+            k2 = 0
+            for pt2 in points[1]:
+                
+                for ii in range(self.nmod):
+                    if ii == modes[0]:
+                        coorval[ii] = pt1
+                    elif ii == modes[1]:
+                        coorval[ii] = pt2
+                    else:
+                        coorval[ii] = other_modes[ii]   
+                        
+                self._fill_hmatrix(HH, pot0[k1,k2,:], coorval)
+                    
+                (en, ss) = numpy.linalg.eigh(HH)
+                pot[k1,k2,:] = en
+                
+                k2 += 1
+            k1 += 1                    
+                    
+        return (pot, pot0)
+           
+
+
     def plot_potential_1D(self, mode, points, other_modes=None, 
                           nonint=True, states=None,
                           energies=True, show=True,
@@ -1518,11 +1572,11 @@ class Molecule(UnitsManaged, Saveable):
             # loop over modes
             for j in range(self.nmod):
                 # FIXME: enable more than one mode
-                if j > 0: # limits the number of modes to 1
-                    raise Exception("Not yet implemented") 
+                #if j > 0: # limits the number of modes to 1
+                #    raise Exception("Not yet implemented") 
                     
                 # number of vibrational states in this electronic state
-                Nvib = self.modes[j].get_nmax(i)
+                Nvib = Nvib*self.modes[j].get_nmax(i)
                 
             ldim[i] = Nvib
             
@@ -1604,7 +1658,7 @@ class Molecule(UnitsManaged, Saveable):
         return TransitionDipoleMoment(data=dip) 
     
     
-    def get_SystemBathInteraction(self,timeAxis):
+    def get_SystemBathInteraction(self, timeAxis):
         """Returns a SystemBathInteraction object of the molecule 
 
 
@@ -1676,10 +1730,7 @@ class Molecule(UnitsManaged, Saveable):
         for i in range(nof):
             el = cf.get_element(i)
             wr = where[el]
-#            print(wr)
-#            for w in wr:
-#                char = d[w[0]]
-#                print("fce ",el, " is a bath no.", w[0]," of ",char)
+
             cfm.set_correlation_function(el,wr,i+1)
 
         #
@@ -1687,6 +1738,8 @@ class Molecule(UnitsManaged, Saveable):
         # 
 
         sys_operators = []
+        
+
         totdim,ldim = self._ham_dimension()
         # 
         # First, transition fluctuations.
@@ -1706,35 +1759,40 @@ class Molecule(UnitsManaged, Saveable):
                                numpy.ones(ldim[state],dtype=numpy.float))
             
             sys_operators.append(KK)
-            
-        #
-        # Linear coupling with oscillators corresponding to a given
-        # electronic state 
-        # FIXME: works only for one oscillator
-        for n in range(ntr,nob):
-            KK = numpy.zeros((totdim,totdim),dtype=numpy.float)
-            
-            state = d[n][1]
-            mod   = d[n][0]
-            
-            # prepare coordinate q = (a^+ + a)/sqrt(2)
-            shift = self.modes[mod].get_shift(state)
-            of = operator_factory(N=ldim[state])
-            aa = of.anihilation_operator()
-            ad = of.creation_operator()
-            ones = of.unity_operator()
-            
-            q = (aa + ad)/numpy.sqrt(2.0) - shift*ones
-            
-            states_before = 0
-            for k in range(state):
-                states_before += ldim[k]
-            states_inc = states_before +ldim[state]
-            # fill with shifted coordinate
-            KK[states_before:states_inc,
-               states_before:states_inc] = q
-                           
-            sys_operators.append(KK)
+                
+
+          
+        # FIXME: we will skip this for the time being
+        # FIXME: this must be implemented for multi-mode case
+        if False:
+            #
+            # Linear coupling with oscillators corresponding to a given
+            # electronic state 
+            # FIXME: works only for one oscillator
+            for n in range(ntr,nob):
+                KK = numpy.zeros((totdim,totdim),dtype=numpy.float)
+                
+                state = d[n][1]
+                mod   = d[n][0]
+                
+                # prepare coordinate q = (a^+ + a)/sqrt(2)
+                shift = self.modes[mod].get_shift(state)
+                of = operator_factory(N=ldim[state])
+                aa = of.anihilation_operator()
+                ad = of.creation_operator()
+                ones = of.unity_operator()
+                
+                q = (aa + ad)/numpy.sqrt(2.0) - shift*ones
+                
+                states_before = 0
+                for k in range(state):
+                    states_before += ldim[k]
+                states_inc = states_before +ldim[state]
+                # fill with shifted coordinate
+                KK[states_before:states_inc,
+                   states_before:states_inc] = q
+                               
+                sys_operators.append(KK)
         
         return SystemBathInteraction(sys_operators,cfm)
         
