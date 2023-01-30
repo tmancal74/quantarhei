@@ -77,6 +77,7 @@ from ..utils import Integer
 
 from ..core.managers import UnitsManaged, Manager
 from ..core.managers import eigenbasis_of
+from ..core.managers import energy_units
 
 from . import Mode
 
@@ -96,12 +97,15 @@ from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
 from ..qm import ReducedDensityMatrix
 
 from ..core.saveable import Saveable
+from .opensystem import OpenSystem
 
-import quantarhei as qr
+from .. import REAL
+
+#import quantarhei as qr
 
  
     
-class Molecule(UnitsManaged, Saveable):
+class Molecule(UnitsManaged, Saveable, OpenSystem):
     """Multi-level molecule (monomer)
 
 
@@ -135,6 +139,7 @@ class Molecule(UnitsManaged, Saveable):
     
     def __init__(self,  elenergies=[0.0,1.0], name=None): #,dmoments):
     
+        OpenSystem.__init__(self)
         #self.manager = Manager()
         
         # monomer name
@@ -389,8 +394,8 @@ class Molecule(UnitsManaged, Saveable):
             
         Examples
         --------
-        
-        >>> mode = qr.Mode()
+    
+        >>> mode = Mode()
         >>> mol = Molecule([0.0, 2.0])
         >>> print(mol.get_number_of_modes())
         0
@@ -568,10 +573,10 @@ class Molecule(UnitsManaged, Saveable):
             
             
         """
-        cwidth = qr.Manager().convert_energy_2_internal_u(width)
+        cwidth = Manager().convert_energy_2_internal_u(width)
         if self.widths is None:
             N = self.elenergies.shape[0]
-            self.widths = numpy.zeros((N, N), dtype=qr.REAL)
+            self.widths = numpy.zeros((N, N), dtype=REAL)
         self.widths[transition[0], transition[1]] = cwidth
         self.widths[transition[1], transition[0]] = cwidth
 
@@ -614,7 +619,7 @@ class Molecule(UnitsManaged, Saveable):
         """        
         if self.dephs is None:
             N = self.elenergies.shape[0]
-            self.dephs = numpy.zeros((N, N), dtype=qr.REAL)
+            self.dephs = numpy.zeros((N, N), dtype=REAL)
         self.dephs[transition[0], transition[1]] = deph
         self.dephs[transition[1], transition[0]] = deph
 
@@ -879,7 +884,7 @@ class Molecule(UnitsManaged, Saveable):
                     
                 else:
                     
-                    with qr.energy_units("int"):
+                    with energy_units("int"):
                         coup = self.get_diabatic_coupling((ii,jj))
                         lc = len(coup)
                         
@@ -913,9 +918,9 @@ class Molecule(UnitsManaged, Saveable):
                             " equal to the number of modes")
             
         coorval = numpy.zeros(self.nmod)
-        HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
-        pot = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
-        pot0 = numpy.zeros((len(points),self.nel), dtype=qr.REAL)
+        HH = numpy.zeros((self.nel, self.nel), dtype=REAL)
+        pot = numpy.zeros((len(points),self.nel), dtype=REAL)
+        pot0 = numpy.zeros((len(points),self.nel), dtype=REAL)
         
         
         # loop over a single coordinate
@@ -950,11 +955,11 @@ class Molecule(UnitsManaged, Saveable):
                             " equal to the number of modes")
             
         coorval = numpy.zeros(self.nmod)
-        HH = numpy.zeros((self.nel, self.nel), dtype=qr.REAL)
+        HH = numpy.zeros((self.nel, self.nel), dtype=REAL)
         pot = numpy.zeros((len(points[0]),len(points[1]),self.nel),
-                          dtype=qr.REAL)
+                          dtype=REAL)
         pot0 = numpy.zeros((len(points[0]),len(points[1]),self.nel),
-                          dtype=qr.REAL)
+                          dtype=REAL)
         
         # loop over two coordinates
         k1 = 0
@@ -1009,13 +1014,13 @@ class Molecule(UnitsManaged, Saveable):
            
         if energies:
             HH = self.get_Hamiltonian()
-            with qr.eigenbasis_of(HH):
+            with eigenbasis_of(HH):
                 for ii in range(HH.dim):
-                    enr = HH.data[ii,ii]*numpy.ones(len(points), dtype=qr.REAL)
+                    enr = HH.data[ii,ii]*numpy.ones(len(points), dtype=REAL)
                     plt.plot(points, enr, "-k")
             if nonint:
                 for ii in range(HH.dim):
-                    enr = HH.data[ii,ii]*numpy.ones(len(points), dtype=qr.REAL)
+                    enr = HH.data[ii,ii]*numpy.ones(len(points), dtype=REAL)
                     plt.plot(points, enr, "--b")
             
         if ylims is not None:
@@ -1036,7 +1041,7 @@ class Molecule(UnitsManaged, Saveable):
         dip = self.get_TransitionDipoleMoment()
         
         
-        with qr.eigenbasis_of(HH):
+        with eigenbasis_of(HH):
             y1 = (dip.data[0,:,0]**2+dip.data[0,:,1]**2+dip.data[0,:,2]**2)/3.0
             x1 = numpy.diag(HH.data)
     
@@ -1070,9 +1075,9 @@ class Molecule(UnitsManaged, Saveable):
  
         dx = (xlims[1]-xlims[0])/nsteps
         xe = numpy.array([xlims[0] + i*dx for i in range(nsteps)])
-        sp1 = numpy.zeros(len(xe), dtype=qr.REAL)
+        sp1 = numpy.zeros(len(xe), dtype=REAL)
         
-        with qr.eigenbasis_of(HH):
+        with eigenbasis_of(HH):
             y1 = (dip.data[0,:,0]**2+dip.data[0,:,1]**2+dip.data[0,:,2]**2)/3.0
             x1 = numpy.diag(HH.data)  
             
@@ -1084,7 +1089,7 @@ class Molecule(UnitsManaged, Saveable):
         if show_zero_coupling:
             y0 = (dip.data[0,:,0]**2+dip.data[0,:,1]**2+dip.data[0,:,2]**2)/3.0
             x0 = numpy.diag(HH.data)
-            sp0 = numpy.zeros(len(xe), dtype=qr.REAL)
+            sp0 = numpy.zeros(len(xe), dtype=REAL)
         
             for kk in range(HH.dim):
                 sp0 += y0[kk]*dfce(xe, x0[kk])
@@ -1290,7 +1295,7 @@ class Molecule(UnitsManaged, Saveable):
             #
             # building the Hamiltonian
             #
-            ham = numpy.zeros((ks,ks), dtype=qr.REAL)
+            ham = numpy.zeros((ks,ks), dtype=REAL)
             
             #
             # for each state and mode, we create vibrational Hamiltonian
@@ -1411,7 +1416,7 @@ class Molecule(UnitsManaged, Saveable):
                     
                 ks1 += 1
     
-            with qr.energy_units("int"):
+            with energy_units("int"):
                 HH = Hamiltonian(data=ham)
                 
             return HH
@@ -1607,7 +1612,7 @@ class Molecule(UnitsManaged, Saveable):
                 totdim = HH.dim
 
             # This will be the operator data
-            dip = numpy.zeros((totdim,totdim,3),dtype=qr.REAL)  
+            dip = numpy.zeros((totdim,totdim,3),dtype=REAL)  
             
             ks1 = 0
             for st1 in self.all_states:

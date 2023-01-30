@@ -3,7 +3,6 @@ import numpy
 
 
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
-import quantarhei as qr
 
 
 class OpenSystem:
@@ -470,7 +469,7 @@ class OpenSystem:
         if time_nonlocal:
             # here we create time non-local propagator
             prop = None
-            qr.stop()
+            raise Exception()
         else:
             # FIXME: is the eigenbases needed???
             with eigenbasis_of(ham):
