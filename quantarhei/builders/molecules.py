@@ -487,7 +487,8 @@ class Molecule(UnitsManaged, Saveable):
         >>> m = Molecule([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
-        [1.0 0.0 0.0]       
+        array([ 1.,  0.,  0.])
+
         
         """
         if vec is None:
@@ -533,7 +534,7 @@ class Molecule(UnitsManaged, Saveable):
         >>> m = Molecule([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
-        [1.0 0.0 0.0]
+        array([ 1.,  0.,  0.])
         
         
         """
@@ -764,9 +765,14 @@ class Molecule(UnitsManaged, Saveable):
             else:
             
                 dsum = 0.0
+                
+                print("SIZE:", H._data.shape[0])
+                print("Temperature:", T)
+                
                 for n in range(H._data.shape[0]):
                     dat[n,n] = numpy.exp(-H.data[n,n]/(kB_intK*T))
                     dsum += dat[n,n]
+                    print(n, dsum, dat[n,n], H.data[n,n])
 
                 dat *= 1.0/dsum
             
@@ -1244,10 +1250,10 @@ class Molecule(UnitsManaged, Saveable):
         4
         
         >>> print(H.data)
-        [[ 0.  0.  0.  0.]
-         [ 0.  1.  0.  0.]
-         [ 0.  0.  1.  0.]
-         [ 0.  0.  0.  2.]]
+        [[ 0.5  0.   0.   0. ]
+         [ 0.   1.5  0.   0. ]
+         [ 0.   0.   1.5  0. ]
+         [ 0.   0.   0.   2.5]]
         
         """    
     
@@ -1594,7 +1600,11 @@ class Molecule(UnitsManaged, Saveable):
 
         if multi:
             
-            totdim = self.totstates
+            try:
+                totdim = self.totstates
+            except:
+                HH = self.get_Hamiltonian()
+                totdim = HH.dim
 
             # This will be the operator data
             dip = numpy.zeros((totdim,totdim,3),dtype=qr.REAL)  

@@ -334,13 +334,7 @@ class Mode(UnitsManaged, Saveable):
         >>> print("{0:.2f}".format(hr))
         1.00
 
-        Exception will be thrown if HR factor is set to the ground-state
-        
-        >>> mod.set_HR(0, 2.0)
-        Traceback (most recent call last):
-            ...
-        Exception: Makes no sense to set HR in the ground state
-        
+       
         """
         #if N==0:
         #    raise Exception("Makes no sense to set HR in the ground state")

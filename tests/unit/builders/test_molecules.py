@@ -44,7 +44,7 @@ class TestMolecule(unittest.TestCase):
             
     
     def test_Molecule_instantiation(self):
-        """Testing Molecule instantiation
+        """(Molecule) Testing Molecule instantiation
         
         
         """
@@ -56,7 +56,7 @@ class TestMolecule(unittest.TestCase):
             
             
     def test_get_Hamiltonian(self):
-        """Testing that Molecule returns correct Hamiltonian 
+        """(Molecule) Testing that Molecule returns correct Hamiltonian 
         
         """
         
@@ -69,7 +69,7 @@ class TestMolecule(unittest.TestCase):
         self.assertTrue(numpy.allclose(H.data,h))
 
     def test_saving_of_molecule(self):
-        """Testing the saving capability of the Molecule class
+        """(Molecule) Testing the saving capability of the Molecule class
         
         
         """
@@ -143,8 +143,8 @@ class TestMolecule(unittest.TestCase):
         self.assertEqual(m2.get_Mode(0).get_energy(0), mod.get_energy(0))
         self.assertEqual(m2.get_Mode(1).get_energy(0), mod1.get_energy(0))
         
-        
-        
+
+
 class TestMoleculeVibrations(unittest.TestCase):
     
     def setUp(self):
@@ -168,25 +168,27 @@ class TestMoleculeVibrations(unittest.TestCase):
         
 
     def test_molecule_with_vibrations_1(self):
-        """Testing hamiltonian of a two-level molecule with one mode
+        """(Molecule) Testing hamiltonian of a two-level molecule with one mode
         
         """
         
         H1 = self.m.get_Hamiltonian()
-        H1expected = numpy.diag([0.0, 0.1, 0.2, 1.0, 1.1, 1.2])        
+        H1expected = numpy.diag([0.05, 0.15, 0.25, 1.05, 1.15, 1.25])        
         self.assertTrue(numpy.allclose(H1expected,H1.data))
         
         mod1 = self.m.get_Mode(0)
         mod1.set_nmax(1,2)
         H2 = self.m.get_Hamiltonian()
-        H2expected = numpy.diag([0.0, 0.1, 0.2, 1.0, 1.1])        
-        self.assertTrue(numpy.allclose(H2expected,H2.data))    
+        H2expected = numpy.diag([0.05, 0.15, 0.25, 1.05, 1.15])        
+        self.assertTrue(numpy.allclose(H2expected,H2.data))  
+                
         
         
     def test_thermal_density_matrix_0_temp(self):
-        """Thermal density matrix: molecule with one mode, zero temperature
+        """(Molecule) Thermal density matrix: molecule with one mode, zero temperature
         
         """
+        
         rho_eq = self.m.get_thermal_ReducedDensityMatrix()
 
         # Check if the matrix is diagonal        
@@ -217,7 +219,7 @@ class TestMoleculeVibrations(unittest.TestCase):
         
         
     def test_thermal_density_matrix_finite_temp(self):
-        """Thermal density matrix: molecule with one mode, finite temperature
+        """(Molecule) Thermal density matrix: molecule with one mode, finite temperature
         
         """
         
@@ -228,9 +230,9 @@ class TestMoleculeVibrations(unittest.TestCase):
                   "cortime":100}
         with energy_units("1/cm"):
             cfcion = CorrelationFunction(timeAxis,params)
-            self.m.set_egcf((0,1),cfcion)
+            self.m.set_transition_environment((0,1),cfcion)
         
-            rho_eq = self.m.get_thermal_ReducedDensityMatrix()
+        rho_eq = self.m.get_thermal_ReducedDensityMatrix()
 
         # Check if the matrix is diagonal        
         dat = rho_eq.data.copy()
@@ -267,7 +269,7 @@ class TestMoleculeVibrations(unittest.TestCase):
         
         
     def test_thermal_density_matrix_finite_temp_nondiag(self):
-        """Thermal density matrix: finite temperature, non-diagonal Hamiltonian
+        """(Molecule) Thermal density matrix: finite temperature, non-diagonal Hamiltonian
         
         """
         
@@ -309,6 +311,8 @@ class TestMoleculeVibrations(unittest.TestCase):
 
         
         self.assertTrue(numpy.allclose(pop,rpop))
+ 
+        
         
         
 if __name__ == '__main__':

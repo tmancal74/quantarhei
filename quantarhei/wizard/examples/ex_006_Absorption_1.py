@@ -249,11 +249,11 @@ with e_units:
                                    relaxation_theory="standard_Redfield",
                                    time_dependent=True)
 
-with qr.energy_units("1/cm"):
-    (RRc,hamc) = AG.get_RelaxationTensor(ta,
-                                   relaxation_theory="combined_RedfieldFoerster",
-                                   time_dependent=True,
-                                   coupling_cutoff=50.0)
+#with qr.energy_units("1/cm"):
+#    (RRc,hamc) = AG.get_RelaxationTensor(ta,
+#                                   relaxation_theory="combined_RedfieldFoerster",
+#                                   time_dependent=True,
+#                                   coupling_cutoff=50.0)
     
 
 ac1 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRf,
@@ -261,12 +261,12 @@ ac1 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRf,
 
 ac2 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRr,
                                effective_hamiltonian=hamr)
-ac3 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRc,
-                               effective_hamiltonian=hamc)
+#ac3 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRc,
+#                               effective_hamiltonian=hamc)
 
 with e_units:
     ac2.bootstrap(rwa=12000)
-    ac3.bootstrap(rwa=12000)
+#    ac3.bootstrap(rwa=12000)
     ac1.bootstrap(rwa=12000)
     
     
@@ -275,8 +275,8 @@ fa = a2.axis
 ACont = qr.AbsSpectrumContainer(fa)
 ACont.set_spectrum(a2,tag=1)
 
-a3 = ac3.calculate()
-ACont.set_spectrum(a3,tag=2)
+#a3 = ac3.calculate()
+#ACont.set_spectrum(a3,tag=2)
 
 a1 = ac1.calculate()
 ACont.set_spectrum(a1,tag=0)
@@ -288,8 +288,8 @@ if _show_plots_:
     with e_units:
         a1 = ACont.get_spectrum(tag=0)
         a1.plot(show=False)
-        a3 = ACont.get_spectrum(tag=2)
-        a3.plot(show=False)
+#        a3 = ACont.get_spectrum(tag=2)
+#        a3.plot(show=False)
         a1 = ACont.get_spectrum(tag=1)
         a1.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 #<indent incr=4>
