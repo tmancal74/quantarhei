@@ -113,7 +113,7 @@ class OpenSystem:
 
         if self._built:
             ham = self.get_Hamiltonian()
-            sbi = self.get_SystemBathInteraction()
+            sbi = self.get_SystemBathInteraction(timeaxis)
         else:
             raise Exception()
 

@@ -219,6 +219,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # more states in it
         self.mult = 1
         
+        self._built = True
+        
 
         
     def get_name(self):
