@@ -84,11 +84,13 @@ from . import Mode
 from ..core.triangle import triangle
 from ..core.unique import unique_list
 from ..core.unique import unique_array
+from ..core.dfunction import DFunction
 
 from ..core.units import kB_intK, eps0_int, c_int
 
 from ..qm import Hamiltonian
 from ..qm import TransitionDipoleMoment
+from ..qm import SelfAdjointOperator
 from ..qm.oscillators.ho import operator_factory
 
 from ..qm import SystemBathInteraction
@@ -1693,14 +1695,58 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             # FIXME: This method is not implemented yet
             dip = dip.get_dipole_projection(polarization)
             
-        rho0 = self.get_thermal_ReducedDensityMatrix()
+        with energy_units("int"):
+            rho0 = self.get_thermal_ReducedDensityMatrix()
         
-        if condition == "delta":
+        
+        if isinstance(condition, str):
+            cond = condition
+            
+        else:
+            cond = condition[0]
+
+        
+        if cond == "delta":
             
             rdi = numpy.dot(dip.data,numpy.dot(rho0.data,dip.data))
             rhoi = ReducedDensityMatrix(data=rdi)
             
             return rhoi
+
+        elif cond == "pulse_spectrum":
+            
+            spectrum = condition[1]
+            
+            HH = self.get_Hamiltonian()
+            
+            if isinstance(spectrum, DFunction):
+                
+                dat = numpy.zeros((HH.dim,HH.dim), dtype=REAL)
+                with eigenbasis_of(HH):
+                    
+                    for ii in range(HH.dim):
+                        for jj in range(ii):
+                            # frequency will always be >= 0.0
+                            freque = HH.data[ii,ii] - HH.data[jj,jj]
+                            if ((spectrum.axis.max > freque) 
+                                and (spectrum.axis.min < freque)):
+                                weight = numpy.sqrt(spectrum.at(freque))
+                            else:
+                                weight = 0.0
+                            
+                            dat[ii,jj] = weight*dip.data[ii,jj]
+                            dat[jj,ii] = dat[ii,jj]
+                            
+                    dip = SelfAdjointOperator(data=dat)        
+                    rdi = numpy.dot(dip.data,numpy.dot(rho0.data,dip.data))
+                    rhoi = ReducedDensityMatrix(data=rdi)
+                            
+                return rhoi
+            
+            else:
+                
+                raise Exception("Spectrum must be specified through"+
+                                " a DFunction object")
 
         else:
             print("Excitation condition:", condition)
