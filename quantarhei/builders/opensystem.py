@@ -113,7 +113,7 @@ class OpenSystem:
 
         if self._built:
             ham = self.get_Hamiltonian()
-            sbi = self.get_SystemBathInteraction(timeaxis)
+            sbi = self.get_SystemBathInteraction()
         else:
             raise Exception()
 
@@ -465,6 +465,7 @@ class OpenSystem:
                        coupling_cutoff=coupling_cutoff,
                        recalculate=recalculate,
                        as_operators=as_operators)
+        
 
         if time_nonlocal:
             # here we create time non-local propagator
