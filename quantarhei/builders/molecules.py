@@ -219,8 +219,20 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # more states in it
         self.mult = 1
         
-        self._built = True
+        self.build()
         
+
+    def build(self):
+        """Building routine for the molecule
+        
+        
+        Unlike with the Aggregate, it is not compulsory to call build()
+        before we start using the Molecule
+        
+        """
+        
+        self.Nel = self.nel
+        self._built = True
 
         
     def get_name(self):
@@ -773,13 +785,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             
                 dsum = 0.0
                 
-                print("SIZE:", H._data.shape[0])
-                print("Temperature:", T)
-                
                 for n in range(H._data.shape[0]):
                     dat[n,n] = numpy.exp(-H.data[n,n]/(kB_intK*T))
                     dsum += dat[n,n]
-                    print(n, dsum, dat[n,n], H.data[n,n])
 
                 dat *= 1.0/dsum
             
@@ -1168,7 +1176,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 
         return self._nat_lifetime[N]
            
-    def overlap_other(self, tpl1, tpl2, k):
+    def _overlap_other(self, tpl1, tpl2, k):
         dif = 0
         for i in range(len(tpl1)):
             if i != k:
@@ -1180,7 +1188,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             return 0.0
         
 
-    def overlap_all(self, tpl1, tpl2):
+    def _overlap_all(self, tpl1, tpl2):
         dif = 0
         for i in range(len(tpl1)):
             dif += numpy.abs(tpl1[i]-tpl2[i])
@@ -1205,7 +1213,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         
         if n == m:
             
-            ret += self.elenergies[n]*self.overlap_all(vibn,vibm)
+            ret += self.elenergies[n]*self._overlap_all(vibn,vibm)
             
             for kk in range(self.nmod):
                 mod = self.modes[kk]
@@ -1219,7 +1227,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 for ll in range(nmax):
                     cont += ll*fc[a,ll]*fc[b,ll]
                     
-                ret += ome*cont*self.overlap_other(vibn,vibm,kk)
+                ret += ome*cont*self._overlap_other(vibn,vibm,kk)
             
         else:
             
@@ -1230,7 +1238,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 val = cdef[0]
                 cmod = cdef[1]
                 for kk in range(self.nmod):
-                    ovrl = self.overlap_other(vibn,vibm,kk)
+                    ovrl = self._overlap_other(vibn,vibm,kk)
                     if cmod[kk] == 1:
                         n = vibn[kk]
                         m = vibm[kk]  
@@ -1371,7 +1379,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                             ham[ks1, ks2] += self.elenergies[n]
                     
                         for k in range(self.nmod):
-                            overl = self.overlap_other(vibn,vibm,k)
+                            overl = self._overlap_other(vibn,vibm,k)
                             hh = el_state[k]
                             kn = vibn[k]
                             km = vibm[k]
@@ -1397,7 +1405,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                                         
                                         # other modes than ci have to be
                                         # in the same states 
-                                        overl = self.overlap_other(vibn,
+                                        overl = self._overlap_other(vibn,
                                                                    vibm,ci)
                                         # FIXME: bilinear coupling
                                         # this prevents bilinear coupling
@@ -1627,7 +1635,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     vibm = st2[1]  
                     
                     dp = self.dmoments[n,m,:]
-                    ovrl = self.overlap_all(vibn,vibm)
+                    ovrl = self._overlap_all(vibn,vibm)
                     
                     if ovrl > 0.0:
                         dip[ks1, ks2,:] = dp
@@ -1674,6 +1682,30 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             
         return TransitionDipoleMoment(data=dip) 
     
+    
+    def get_excited_density_matrix(self, condition="delta", polarization=None):
+        """Returns the density matrix corresponding to excitation condition"""
+        
+        dip = self.get_TransitionDipoleMoment()
+        if polarization is None:
+            dip = dip.get_dipole_length_operator()
+        else:
+            # FIXME: This method is not implemented yet
+            dip = dip.get_dipole_projection(polarization)
+            
+        rho0 = self.get_thermal_ReducedDensityMatrix()
+        
+        if condition == "delta":
+            
+            rdi = numpy.dot(dip.data,numpy.dot(rho0.data,dip.data))
+            rhoi = ReducedDensityMatrix(data=rdi)
+            
+            return rhoi
+
+        else:
+            print("Excitation condition:", condition)
+            raise Exception("Excition condition not implemented.")
+            
     
     def get_SystemBathInteraction(self, timeAxis):
         """Returns a SystemBathInteraction object of the molecule 
