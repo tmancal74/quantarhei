@@ -1753,7 +1753,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             raise Exception("Excition condition not implemented.")
             
     
-    def get_SystemBathInteraction(self, timeAxis):
+    def get_SystemBathInteraction(self): #, timeAxis):
         """Returns a SystemBathInteraction object of the molecule 
 
 
@@ -1821,10 +1821,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 
         # number of different baths nob = number of transition environments +
         # number of mode environments
-        cfm = CorrelationFunctionMatrix(timeAxis,nob,nof)
+        cfm = None #
         for i in range(nof):
             el = cf.get_element(i)
             wr = where[el]
+            
+            if cfm is None:
+                timeAxis = el.axis
+                cfm = CorrelationFunctionMatrix(timeAxis,nob,nof)
 
             cfm.set_correlation_function(el,wr,i+1)
 

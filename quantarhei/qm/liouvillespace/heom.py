@@ -520,7 +520,11 @@ class KTHierarchyPropagator:
             for ii in range(shape[0]):
                 HOmega[ii,ii] = self.hy.ham.rwa_energies[ii]
                                 
-            self.HOmega = HOmega        
+            self.HOmega = HOmega    
+            
+        else:
+            
+            raise Exception("Hamiltonian does not have RWA.")
     
     
     def propagate(self, rhoi, L=4, report_hierarchy=False,

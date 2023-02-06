@@ -512,3 +512,11 @@ class OpenSystem:
         return FoersterRateMatrix(ham, sbi)
 
     
+
+    def get_KTHierarchy(self, depth=2):
+        
+        pass
+    
+    def get_KTHierarchyPropagator(self, depth=2):
+        
+        pass
