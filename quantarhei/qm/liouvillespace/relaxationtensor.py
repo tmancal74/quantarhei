@@ -19,6 +19,9 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         self._data_initialized = False
         self.name = ""
         self.as_operators = False
+        
+        self.Iterm = None
+        self.has_Iterm = False
 
  
     def _initialize_basis(self):

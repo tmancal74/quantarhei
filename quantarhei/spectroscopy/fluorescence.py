@@ -806,7 +806,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         if self.system._has_system_bath_coupling:
             # correlation function
             ct = self.system.get_egcf((0,1))   
-            sbi = self.system.get_SystemBathInteraction(ta)
+            sbi = self.system.get_SystemBathInteraction() #(ta)
             re = sbi.CC.get_reorganization_energy(0,0)
             tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama, "re":re}
         else:

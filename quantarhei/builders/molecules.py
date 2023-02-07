@@ -84,19 +84,17 @@ from . import Mode
 from ..core.triangle import triangle
 from ..core.unique import unique_list
 from ..core.unique import unique_array
-from ..core.dfunction import DFunction
 
-from ..core.units import kB_intK, eps0_int, c_int
+
+from ..core.units import eps0_int, c_int
 
 from ..qm import Hamiltonian
 from ..qm import TransitionDipoleMoment
-from ..qm import SelfAdjointOperator
+
 from ..qm.oscillators.ho import operator_factory
 
 from ..qm import SystemBathInteraction
 from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
-
-from ..qm import ReducedDensityMatrix
 
 from ..core.saveable import Saveable
 from .opensystem import OpenSystem
@@ -772,31 +770,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return self._nat_lifetime[N]
     
         
-    def get_thermal_ReducedDensityMatrix(self):
-        
-        H = self.get_Hamiltonian() 
-        T = self.get_temperature()
-        dat = numpy.zeros(H._data.shape,dtype=numpy.complex)
-        
-        with eigenbasis_of(H):
-            
-            if numpy.abs(T) < 1.0e-10:
-                dat[0,0] = 1.0
-            
-            else:
-            
-                dsum = 0.0
-                
-                for n in range(H._data.shape[0]):
-                    dat[n,n] = numpy.exp(-H.data[n,n]/(kB_intK*T))
-                    dsum += dat[n,n]
-
-                dat *= 1.0/dsum
-            
-            rdm = ReducedDensityMatrix(data=dat)
-                
-        
-        return rdm        
+      
         
         
     def get_temperature(self):
@@ -1431,6 +1405,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             with energy_units("int"):
                 HH = Hamiltonian(data=ham)
                 
+                # set information about Rotating Wave Approximation
+                
             return HH
     
     
@@ -1685,73 +1661,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return TransitionDipoleMoment(data=dip) 
     
     
-    def get_excited_density_matrix(self, condition="delta", polarization=None):
-        """Returns the density matrix corresponding to excitation condition"""
-        
-        dip = self.get_TransitionDipoleMoment()
-        if polarization is None:
-            dip = dip.get_dipole_length_operator()
-        else:
-            # FIXME: This method is not implemented yet
-            dip = dip.get_dipole_projection(polarization)
-            
-        with energy_units("int"):
-            rho0 = self.get_thermal_ReducedDensityMatrix()
-        
-        
-        if isinstance(condition, str):
-            cond = condition
-            
-        else:
-            cond = condition[0]
-
-        
-        if cond == "delta":
-            
-            rdi = numpy.dot(dip.data,numpy.dot(rho0.data,dip.data))
-            rhoi = ReducedDensityMatrix(data=rdi)
-            
-            return rhoi
-
-        elif cond == "pulse_spectrum":
-            
-            spectrum = condition[1]
-            
-            HH = self.get_Hamiltonian()
-            
-            if isinstance(spectrum, DFunction):
-                
-                dat = numpy.zeros((HH.dim,HH.dim), dtype=REAL)
-                with eigenbasis_of(HH):
-                    
-                    for ii in range(HH.dim):
-                        for jj in range(ii):
-                            # frequency will always be >= 0.0
-                            freque = HH.data[ii,ii] - HH.data[jj,jj]
-                            if ((spectrum.axis.max > freque) 
-                                and (spectrum.axis.min < freque)):
-                                weight = numpy.sqrt(spectrum.at(freque))
-                            else:
-                                weight = 0.0
-                            
-                            dat[ii,jj] = weight*dip.data[ii,jj]
-                            dat[jj,ii] = dat[ii,jj]
-                            
-                    dip = SelfAdjointOperator(data=dat)        
-                    rdi = numpy.dot(dip.data,numpy.dot(rho0.data,dip.data))
-                    rhoi = ReducedDensityMatrix(data=rdi)
-                            
-                return rhoi
-            
-            else:
-                
-                raise Exception("Spectrum must be specified through"+
-                                " a DFunction object")
-
-        else:
-            print("Excitation condition:", condition)
-            raise Exception("Excition condition not implemented.")
-            
+           
     
     def get_SystemBathInteraction(self): #, timeAxis):
         """Returns a SystemBathInteraction object of the molecule 

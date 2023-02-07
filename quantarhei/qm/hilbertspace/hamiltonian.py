@@ -2,6 +2,7 @@
 
 from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged
+from ...core.managers import energy_units
 from ...core.managers import EnergyUnitsManaged
 from ...utils.types import ManagedRealArray
 from .operators import Operator
@@ -70,27 +71,28 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         if rwa_indices[0] != 0:
             raise Exception("First element in 'rwa_indices' has to be zero")
-        self.rwa_indices = rwa_indices
+        self.rwa_indices = numpy.array(rwa_indices, dtype=numpy.int)
 
         self.Nblocks = len(self.rwa_indices)
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
         
         # average energies in every block
-        en_block = numpy.zeros(self.Nblocks, dtype=REAL)
-        for block in range(self.Nblocks):
-            if block < self.Nblocks-1:
-                upper = self.rwa_indices[block+1]
-            else:
-                upper = self.data.shape[0]
-            k = 0
-            # calculate average energy in the block
-            for ii in range(self.rwa_indices[block],upper):
-                en_block[block] += self.data[ii,ii]
-                k += 1
-            en_block[block] = en_block[block]/float(k)
-            # set rwa_energies within the block
-            for ii in range(self.rwa_indices[block],upper):
-                self.rwa_energies[ii] = en_block[block]            
+        with energy_units("int"):
+            en_block = numpy.zeros(self.Nblocks, dtype=REAL)
+            for block in range(self.Nblocks):
+                if block < self.Nblocks-1:
+                    upper = self.rwa_indices[block+1]
+                else:
+                    upper = self.data.shape[0]
+                k = 0
+                # calculate average energy in the block
+                for ii in range(self.rwa_indices[block],upper):
+                    en_block[block] += self.data[ii,ii]
+                    k += 1
+                en_block[block] = en_block[block]/float(k)
+                # set rwa_energies within the block
+                for ii in range(self.rwa_indices[block],upper):
+                    self.rwa_energies[ii] = en_block[block]            
         
         # we have information on RWA
         self.has_rwa = True
@@ -104,7 +106,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         shape = HH.shape[0]
         HOmega = numpy.zeros(shape, dtype=REAL)
         for ii in range(shape):
-            HOmega[ii] = self.rwa_energies[ii]
+            HOmega[ii] = self.convert_2_current_u(self.rwa_energies[ii])
         return HOmega
 
 

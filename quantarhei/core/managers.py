@@ -109,7 +109,7 @@ class Manager(metaclass=Singleton):
                    "THz":"THz",
                    "eV":"eV",
                    "1/fs":"1/fs",
-                   "int":"2pi/fs",
+                   "int":"1/fs",
                    "meV":"meV",
                    "nm":"nm",    
                    "Ha":"Ha",
@@ -559,7 +559,7 @@ class Manager(metaclass=Singleton):
             i_val = x*val
             
             cu = self.current_units["energy"] 
-            if cu != "2pi/fs":
+            if cu != "1/fs":
                 y = conversion_facs_energy[units] 
                 return i_val/y
                 
@@ -845,7 +845,7 @@ class UnitsManaged(Managed):
 class EnergyUnitsManaged(Managed):
     
     utype = "energy"
-    units = "2pi/fs"    
+    units = "1/fs"    
     
     def convert_2_internal_u(self,val):
         return self.manager.convert_energy_2_internal_u(val)

@@ -128,6 +128,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 self._implementation(ham, sbi)   
                 
 
+        self.Iterm = None
+        self.has_Iterm = False
+
+
     def apply(self, oper, copy=True):
         """Applies the relaxation tensor on a superoperator
         
