@@ -170,7 +170,7 @@ class SystemBathInteraction(Saveable):
         
         """
         from ...builders.aggregates import Aggregate
-        from ...builders.molecules import Molecule    
+        from ...builders.molecules import Molecule  
         
         if system is not None:
             if isinstance(system, Aggregate):
@@ -178,10 +178,15 @@ class SystemBathInteraction(Saveable):
                 self.molecule = None
                 self.system = self.aggregate
 
-            if isinstance(system, Molecule):
+            elif isinstance(system, Molecule):
                 self.aggregate = None
                 self.molecule = system
                 self.system = self.molecule
+                
+            else:
+                raise Exception("Unknown system type")
+                
+                
 
 
     def _set_operators(self, sys_operators):

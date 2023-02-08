@@ -585,3 +585,22 @@ class Mode(UnitsManaged, Saveable):
         
         """
         return self.submodes[N]
+    
+    
+    def set_mode_environment(self, corfce):
+        """Set linear interaction with a bosonic environment
+        
+        
+        """
+        
+        self.egcf = corfce
+        
+    def get_mode_environment(self):
+        """Returns interaction of this mode with a bosonic bath
+        
+        """
+        return self.egcf
+    
+    
+        
+        

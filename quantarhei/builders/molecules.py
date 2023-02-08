@@ -1283,14 +1283,36 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             #
             ham = numpy.zeros((ks,ks), dtype=REAL)
             
+            
+            
+            
+            # FIXME: creation of the coordinate operators will go to 
+            # the place where SystemBathInteraction is created
+            #
+            # coordinate operator for each mode
+            #
+            coor_ops = []
+            for kk in range(self.nel):
+                in_state = []
+                coor_ops.append(in_state)
+                for ii in range(self.nmod):
+                    coor = numpy.zeros((ks,ks), dtype=REAL)
+                    in_state.append(coor)
+                    #print("State:", kk," - mode:", ii, coor.shape)
+                    
+                    
+                
             #
             # for each state and mode, we create vibrational Hamiltonian
             #
             hh_components = []
+            qq_components = []
             # loop over electronic states
             for i in range(self.nel):
                 el_state = []
+                qq_state = []
                 hh_components.append(el_state)
+                qq_components.append(qq_state)
                 if self.nmod > 0:
                     # loop over modes
                     for j in range(self.nmod):
@@ -1308,11 +1330,15 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                         ad = of.creation_operator()
                         ones = of.unity_operator()    
                     
+                        qq = (1.0/numpy.sqrt(2.0))*(ad+aa)
+                        
                         hh = en*(numpy.dot(ad,aa) 
-                                 - (dd/numpy.sqrt(2.0))*(ad+aa)
-                                 + dd*dd*ones/2.0) + (en/2.0)*ones  
+                                 - dd*qq
+                                 + dd*dd*ones/2.0) + (en/2.0)*ones
                         
                         el_state.append(hh)
+                        qq_state.append(qq)
+                       
                     
                 # if there are no modes
                 else:
@@ -1321,7 +1347,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     
     
                     el_state.append(hh)
-            
+                    
+                    
  
             # case - NO MODES
             # FIXME: faster code for the no modes case
@@ -1349,6 +1376,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     if n == m:
                         
                         el_state = hh_components[n]
+                        qq_state = qq_components[n]
                         
                         # electronic part of the energy
                         if ks1 == ks2:
@@ -1356,10 +1384,18 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     
                         for k in range(self.nmod):
                             overl = self._overlap_other(vibn,vibm,k)
+                            
                             hh = el_state[k]
                             kn = vibn[k]
                             km = vibm[k]
                             ham[ks1, ks2] += hh[kn,km]*overl
+                            
+                            #
+                            # coordinate operators
+                            #
+                            qq = qq_state[k]
+                            coor = coor_ops[n][k]
+                            coor[ks1, ks2] += qq[kn,km]*overl
                             
                     #   
                     # coupling elements
@@ -1402,6 +1438,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     
                 ks1 += 1
     
+            #
+            # here we store all the coordinate operators
+            #
+            self.coor_operators = coor_ops
+            
             with energy_units("int"):
                 HH = Hamiltonian(data=ham)
                 
@@ -1728,6 +1769,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         # number of different instances of correlation functions
         nof = cf.get_number_of_unique_elements()
+        
                 
         # number of different baths nob = number of transition environments +
         # number of mode environments
@@ -1770,6 +1812,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             sys_operators.append(KK)
                 
 
+        coor_ops = self.coor_operators
+        
+        print("Number of mode environments:", nmd)
+        print(len(coor_ops))
           
         # FIXME: we will skip this for the time being
         # FIXME: this must be implemented for multi-mode case
