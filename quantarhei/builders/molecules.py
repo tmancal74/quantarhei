@@ -1344,7 +1344,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     
                 # if there are no modes
                 else:
-                    hh = numpy.zeros((1,1),dtype=numpy.float)
+                    hh = numpy.zeros((1,1),dtype=REAL)
                     hh[0,0] = self.elenergies[i]
                     
     
@@ -1494,7 +1494,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 ldim[i] = hh.shape[0]
                 
             else:
-                hh = numpy.zeros((1,1),dtype=numpy.float)
+                hh = numpy.zeros((1,1),dtype=REAL)
                 hh[0,0] = self.elenergies[i]
                 lham[i] = hh
                 ldim[i] = 1
@@ -1503,7 +1503,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         totdim = numpy.sum(ldim)
         
         # this will be the Hamiltonian data
-        ham = numpy.zeros((totdim,totdim),dtype=numpy.float)
+        ham = numpy.zeros((totdim,totdim),dtype=REAL)
         
         #
         # electronically diagonal part
@@ -1531,7 +1531,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 for j in range(i+1,self.nel):
                     if self._has_adiabatic[self.triangle.locate(i,j)]:
                         J = self.get_adiabatic_coupling(i,j)
-                        hj = numpy.zeros((ldim[i],ldim[j]),dtype=numpy.float)
+                        hj = numpy.zeros((ldim[i],ldim[j]),dtype=REAL)
                         # FIXME: this works only if the frequencies
                         # of the oscillators are the same
                         for k in range(min([ldim[i],ldim[j]])):
@@ -1675,7 +1675,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         totdim,ldim = self._ham_dimension()
 
         # This will be the operator data
-        dip = numpy.zeros((totdim,totdim,3),dtype=numpy.float) 
+        dip = numpy.zeros((totdim,totdim,3),dtype=REAL) 
         
         lb,ub = self._sub_matrix_bounds(ldim)
         
@@ -1687,7 +1687,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             # get dipole moment vector
             dp = self.dmoments[0,k,:]
  
-            dd = numpy.zeros((ldim[0],ldim[k]),dtype=numpy.float)        
+            dd = numpy.zeros((ldim[0],ldim[k]),dtype=REAL)        
         
             # now we run through the vibrational states of the groundstate
             # and of the excited state. Vibrational states we use are
@@ -1799,7 +1799,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # First, transition fluctuations.
         # We need to find projector on a given excited electronic state
         for n in range(ntr):
-            KK = numpy.zeros((totdim,totdim),dtype=numpy.float)
+            KK = numpy.zeros((totdim,totdim),dtype=REAL)
 
             state = d[n]
 
@@ -1810,7 +1810,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             # fill 1 on diagonal corresponding to an electronic state "state"
             KK[states_before:states_inc,
                states_before:states_inc] = numpy.diag(
-                               numpy.ones(ldim[state],dtype=numpy.float))
+                               numpy.ones(ldim[state],dtype=REAL))
             
             sys_operators.append(KK)
                 
@@ -1844,7 +1844,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             # electronic state 
             # FIXME: works only for one oscillator
             for n in range(ntr,nob):
-                KK = numpy.zeros((totdim,totdim),dtype=numpy.float)
+                KK = numpy.zeros((totdim,totdim),dtype=REAL)
                 
                 state = d[n][1]
                 mod   = d[n][0]
