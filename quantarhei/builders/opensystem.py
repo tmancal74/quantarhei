@@ -12,6 +12,7 @@ from ..qm import ReducedDensityMatrix
 from ..core.dfunction import DFunction
 from ..core.units import kB_intK
 from .. import REAL
+from .. import COMPLEX
 
 class OpenSystem:
     """The class representing a general open quantum system
@@ -239,7 +240,7 @@ class OpenSystem:
 
                 # Time dependent standard Foerster
                 relaxT = TDFoersterRelaxationTensor(ham, sbi)
-                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=REAL)
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
@@ -253,7 +254,7 @@ class OpenSystem:
                 #
 
                 relaxT = FoersterRelaxationTensor(ham, sbi)
-                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=REAL)
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
@@ -274,7 +275,7 @@ class OpenSystem:
                 # Time dependent standard Foerster
                 relaxT = NEFoersterRelaxationTensor(ham, sbi, 
                                             as_kernel=as_convolution_kernel)
-                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=REAL)
                 
                 #for i in range(ham.dim):
                 #    dat[i,i] = ham._data[i,i]
@@ -295,7 +296,7 @@ class OpenSystem:
                 #
 
                 relaxT = FoersterRelaxationTensor(ham, sbi)
-                dat = numpy.zeros((ham.dim,ham.dim),dtype=numpy.float64)
+                dat = numpy.zeros((ham.dim,ham.dim),dtype=REAL)
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
@@ -416,7 +417,7 @@ class OpenSystem:
 
                         eKK = sbi.KK
                         vKK = numpy.zeros((eKK.shape[0], ham.dim, ham.dim),
-                                          dtype=numpy.float64)
+                                          dtype=REAL)
 
                         # use eKK to calculate vKK
 
@@ -629,7 +630,7 @@ class OpenSystem:
         
         H = self.get_Hamiltonian() 
         T = self.get_temperature()
-        dat = numpy.zeros(H._data.shape,dtype=numpy.complex)
+        dat = numpy.zeros(H._data.shape,dtype=COMPLEX)
         
         with eigenbasis_of(H):
             

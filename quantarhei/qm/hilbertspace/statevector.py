@@ -11,6 +11,7 @@ import numpy
 
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
+from ... import REAL
 
 class StateVector(BasisManaged):
     """Represents a quantum mechanical state vector
@@ -28,7 +29,7 @@ class StateVector(BasisManaged):
     2
 
 
-    >>> vec = numpy.zeros((1,3), dtype=numpy.float)
+    >>> vec = numpy.zeros((1,3), dtype=REAL)
     >>> psi = StateVector(data=vec)
     Traceback (most recent call last):
     ...
@@ -67,7 +68,7 @@ class StateVector(BasisManaged):
             # check and save dim
             if dim is not None:
                 self.dim = dim
-                self.data = numpy.zeros(dim, dtype=numpy.float)
+                self.data = numpy.zeros(dim, dtype=REAL)
                 self._initialized = True
 
 
