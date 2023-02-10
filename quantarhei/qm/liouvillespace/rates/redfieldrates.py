@@ -17,7 +17,7 @@ from ....core.units import kB_intK
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
-from ... import REAL
+from .... import REAL
 
    
 class RedfieldRateMatrix:
