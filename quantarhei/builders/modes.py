@@ -93,6 +93,8 @@ class Mode(UnitsManaged, Saveable):
         self.monomer_set = False
         # no electronic states set or asigned
         self.nel = 0
+        
+        self.has_mode_environment = False 
 
         
     def set_Molecule(self, monomer):
@@ -594,11 +596,16 @@ class Mode(UnitsManaged, Saveable):
         """
         
         self.egcf = corfce
+        self.has_mode_environment = True
         
     def get_mode_environment(self):
         """Returns interaction of this mode with a bosonic bath
         
         """
+        
+        if not self.has_mode_environment:
+            return None
+        
         return self.egcf
     
     

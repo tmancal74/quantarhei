@@ -1330,13 +1330,15 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                         ad = of.creation_operator()
                         ones = of.unity_operator()    
                     
-                        qq = (1.0/numpy.sqrt(2.0))*(ad+aa)
+                        qq = (1.0/numpy.sqrt(2.0))*(ad+aa) 
                         
                         hh = en*(numpy.dot(ad,aa) 
                                  - dd*qq
                                  + dd*dd*ones/2.0) + (en/2.0)*ones
                         
                         el_state.append(hh)
+                        
+                        qq = qq - dd*ones
                         qq_state.append(qq)
                        
                     
@@ -1747,7 +1749,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         
         #
         # Look for linear environmental interactions with vibrational modes
-        #           
+        # 
+                  
         for i in range(self.nmod):
             for j in range(self.nel):
                 eg = self.get_mode_environment(i,j)
@@ -1816,6 +1819,22 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         
         print("Number of mode environments:", nmd)
         print(len(coor_ops))
+        
+        
+        for ii in range(self.nmod):
+            mod = self.modes[ii]
+            
+            # if the mode has environment, we set corresponding operators
+            if mod.has_mode_environment:
+                for nn in range(self.nel):
+                    cop = coor_ops[nn][ii]
+                    sys_operators.append(cop)
+                
+                    # get correlation function corresponding to 
+                    # the system-bath interaction
+                    cf = mod.get_mode_environment()
+                    print(cf)
+        
           
         # FIXME: we will skip this for the time being
         # FIXME: this must be implemented for multi-mode case
