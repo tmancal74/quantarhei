@@ -202,7 +202,7 @@ class BasisReferenceOperator(SelfAdjointOperator):
     def __init__(self, dim=None, name=""):
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
-        series = numpy.array([i for i in range(dim)], dtype=numpy.float64)
+        series = numpy.array([i for i in range(dim)], dtype=REAL)
         data = numpy.diag(series)
         super().__init__(dim=dim,data=data,name=name)
     
@@ -269,7 +269,7 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         
         """
         # using self.data to allow transformation of the basis
-        pvec = numpy.zeros(self.data.shape[0],dtype=numpy.float)
+        pvec = numpy.zeros(self.data.shape[0],dtype=REAL)
         # using self._data because transformations are irrelevant 
         for n in range(self._data.shape[0]):
             # using self._data because any transformation needed was already
@@ -284,7 +284,7 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         """
         # using .data to allow transformation 
         dd = dmoment.data
-        etimesd = numpy.zeros((dd.shape[0],dd.shape[1]),dtype=numpy.float)
+        etimesd = numpy.zeros((dd.shape[0],dd.shape[1]),dtype=REAL)
         for i in range(3):
             etimesd += dd[:,:,i]*epolarization[i]
             

@@ -176,7 +176,7 @@ class ValueAxis(Saveable):
         """
 
         # nearest smaller neighbor index
-        nsni = numpy.int(numpy.floor((val-self.start)/self.step))
+        nsni = int(numpy.floor((val-self.start)/self.step))
 
         # if n0 is within bounds calculate distance
         # from the lower neighbor
@@ -205,7 +205,7 @@ class ValueAxis(Saveable):
         """
 
         # nearest smaller neighbor index
-        nsni = numpy.int(numpy.floor((val-self.start)/self.step))
+        nsni = int(numpy.floor((val-self.start)/self.step))
 
 
         if (nsni >= 0) and (nsni < self.length):
