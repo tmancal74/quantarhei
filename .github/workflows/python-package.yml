@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+env:
+    CODECOV_TOKEN=34f2053d-7aa9-4b0c-b776-92d852e597ca
+
+
 jobs:
   build:
 
@@ -35,3 +39,13 @@ jobs:
         paver inst
         paver test
 
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        env_vars: OS,PYTHON
+        fail_ci_if_error: true
+        files: .coverage
+        flags: unittests
+        name: codecov-umbrella
+        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
