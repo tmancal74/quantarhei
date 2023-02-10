@@ -159,14 +159,14 @@ class KTHierarchy:
         #
         
         # indices where the levels start
-        self.levels = numpy.zeros(depth+1, dtype=numpy.int)
+        self.levels = numpy.zeros(depth+1, dtype=int)
         # lengths of the levels
-        self.levlengths = numpy.zeros(depth+1, dtype=numpy.int)
+        self.levlengths = numpy.zeros(depth+1, dtype=int)
         # indices
         self.hinds = self._convert_2_matrix(indxs)
         
-        self.nm1 = numpy.zeros((self.hsize, self.nbath), dtype=numpy.int)
-        self.np1 = numpy.zeros((self.hsize, self.nbath), dtype=numpy.int)
+        self.nm1 = numpy.zeros((self.hsize, self.nbath), dtype=int)
+        self.np1 = numpy.zeros((self.hsize, self.nbath), dtype=int)
         self._make_nmp1()
         
         self.Gamma = numpy.zeros(self.hsize, dtype=REAL)
@@ -310,7 +310,7 @@ class KTHierarchy:
             lvl +=1
             start = start+lngth
             
-        mat = numpy.zeros((hsize, self.nbath), dtype=numpy.int)
+        mat = numpy.zeros((hsize, self.nbath), dtype=int)
         ii = 0
         for level in indxs:
             for inds in level:
@@ -330,11 +330,11 @@ class KTHierarchy:
         
         for nn in range(self.hsize):
             for kk in range(self.nbath):
-                indxm = numpy.zeros(self.nbath, dtype=numpy.int)
+                indxm = numpy.zeros(self.nbath, dtype=int)
                 indxm[:] = self.hinds[nn,:]
                 indxm[kk] -= 1
 
-                indxp = numpy.zeros(self.nbath, dtype=numpy.int)
+                indxp = numpy.zeros(self.nbath, dtype=int)
                 indxp[:] = self.hinds[nn,:]
                 indxp[kk] += 1
                 
