@@ -1384,7 +1384,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # save total number of states (including vibrational)
         self.Ntot = Ntot
         # information about the band to which a state belongs
-        self.which_band = numpy.zeros(self.Ntot, dtype=numpy.int)
+        self.which_band = numpy.zeros(self.Ntot, dtype=int)
         # electronic signature for every state
         self.elsigs = [None]*self.Nel
         # vibrational signature for each state
