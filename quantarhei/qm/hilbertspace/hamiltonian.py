@@ -71,7 +71,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         if rwa_indices[0] != 0:
             raise Exception("First element in 'rwa_indices' has to be zero")
-        self.rwa_indices = numpy.array(rwa_indices, dtype=numpy.int)
+        self.rwa_indices = numpy.array(rwa_indices, dtype=int)
 
         self.Nblocks = len(self.rwa_indices)
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
@@ -151,7 +151,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             self.remove_cutoff_coupling(coupling_cutoff)
             # diagonalize the strong coupling part
             dd,SS = numpy.linalg.eigh(self.data)
-            self.data = numpy.zeros(self.data.shape,dtype=numpy.float64)
+            self.data = numpy.zeros(self.data.shape,dtype=REAL)
             for ii in range(0,self.data.shape[0]):
                 self.data[ii,ii] = dd[ii]
             # transform the remainder of couling correspondingly
@@ -196,7 +196,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if coupling_cutoff < 0.0:
             raise Exception("Coupling cutoff value must be positive")
             
-        JR = numpy.zeros((self.dim,self.dim),dtype=numpy.float64)
+        JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
         # go through all couplings and remove small ones
         for ii in range(self.dim):
             for jj in range(ii+1,self.dim):
@@ -243,7 +243,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 
             coupcut = self.convert_2_internal_u(coupling_cutoff)
                 
-            JR = numpy.zeros((self.dim,self.dim),dtype=numpy.float64)
+            JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
             # go through all couplings and remove small ones
             for ii in range(self.dim):
                 for jj in range(ii+1,self.dim):
