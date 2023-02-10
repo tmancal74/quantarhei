@@ -15,6 +15,7 @@ import numpy
 
 from quantarhei import Molecule
 from quantarhei.qm import ReducedDensityMatrix
+from quantarhei import REAL
 
 class TestReducedDensityMatrix(unittest.TestCase):
     """Tests for the Manager class
@@ -38,7 +39,7 @@ class TestReducedDensityMatrix(unittest.TestCase):
 
         
         
-        rho_exp = numpy.zeros((3,3),dtype=numpy.float)
+        rho_exp = numpy.zeros((3,3),dtype=REAL)
         rho_exp[0,0] = 1.0
         
         self.assertTrue(numpy.allclose(self.rho_eq._data,rho_exp))
