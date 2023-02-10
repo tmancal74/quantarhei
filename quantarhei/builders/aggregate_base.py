@@ -1390,7 +1390,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # vibrational signature for each state
         self.vibsigs = [None]*self.Ntot
         # FIXME: what is this???
-        self.elinds = numpy.zeros(self.Ntot, dtype=numpy.int)
+        self.elinds = numpy.zeros(self.Ntot, dtype=int)
         # Hamiltonian matrix
         HH = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         # Transition dipole moment matrix
@@ -1405,7 +1405,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.Xi = numpy.zeros((Ntot, self.Nel), dtype=REAL)
 
         # electronic indices if twice excited state (zero for all other states)
-        twoex_indx = numpy.zeros((Ntot, 2), dtype=numpy.int)
+        twoex_indx = numpy.zeros((Ntot, 2), dtype=int)
 
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:
@@ -1517,19 +1517,19 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.D2_max = numpy.max(dd2)
 
         # Number of states in individual bands
-        self.Nb = numpy.zeros(self.mult+1, dtype=numpy.int)
+        self.Nb = numpy.zeros(self.mult+1, dtype=int)
         for ii in range(self.mult+1):
             self.Nb[ii] = self.number_of_states_in_band(band=ii,
             vibgen_approx=vibgen_approx, Nvib=Nvib,
             vibenergy_cutoff=vibenergy_cutoff)
 
         # Number of electronic states in individual bands
-        self.Nbe = numpy.zeros(self.mult+1, dtype=numpy.int)
+        self.Nbe = numpy.zeros(self.mult+1, dtype=int)
         for ii in range(self.mult+1):
             self.Nbe[ii] = self.number_of_electronic_states_in_band(band=ii)
 
         # prepare RWA indices and set info for Rotating Wave Approximation
-        rwa_indices = numpy.zeros(self.mult+1, numpy.int)
+        rwa_indices = numpy.zeros(self.mult+1, int)
         for ii in range(self.mult):
             rwa_indices[ii+1] = rwa_indices[ii]+self.Nb[ii]
         self.HamOp.set_rwa(rwa_indices)
