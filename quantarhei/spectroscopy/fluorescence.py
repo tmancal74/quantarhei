@@ -794,6 +794,12 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         
         """
         ta = self.TimeAxis
+        
+        
+        # FIXME: transition frequencies have to be calculate from the full
+        #        Hamiltonian
+        
+        HH = self.get_Hamiltonian()
         # transition frequency
         om = self.system.elenergies[1]-self.system.elenergies[0]
         # transition dipole moment
