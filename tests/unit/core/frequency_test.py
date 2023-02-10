@@ -62,7 +62,7 @@ class TestFrequencyAxis(unittest.TestCase):
         with energy_units("1/cm"):
 
             val = 10000.0
-            nsni = numpy.int(numpy.floor((val-wa.start)/wa.step))
+            nsni = int(numpy.floor((val-wa.start)/wa.step))
 
             i1 = wa.locate(10000.0)
             self.assertEqual(nsni, i1[0])

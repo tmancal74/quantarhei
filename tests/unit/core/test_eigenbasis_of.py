@@ -15,6 +15,7 @@ import unittest
 import numpy
 
 from quantarhei import eigenbasis_of
+from quantarhei import REAL
 from .test_BasisManaged import BasisManagedObject
     
         
@@ -158,7 +159,7 @@ class TestEigenbasisOf(unittest.TestCase):
         d_copy_tr4 = numpy.dot(Sd1,numpy.dot(d_copy_tr3,Sd))
 
 
-        A4 = numpy.zeros((2,2),dtype=numpy.float)
+        A4 = numpy.zeros((2,2),dtype=REAL)
         A4[0,0] = -1.0
         A4[1,1] = 2.0
         
@@ -168,7 +169,7 @@ class TestEigenbasisOf(unittest.TestCase):
         A0 = numpy.dot(Sh,numpy.dot(A1,Sh1))
 
 
-        B2 = numpy.zeros((2,2),dtype=numpy.float)
+        B2 = numpy.zeros((2,2),dtype=REAL)
         B2[0,0] = -1.0
         B2[1,1] = 2.0
         

@@ -23,6 +23,7 @@ from quantarhei import eigenbasis_of, energy_units
 
 
 from quantarhei.core.units import kB_intK
+from quantarhei import REAL
 
 class TestMolecule(unittest.TestCase):
     """Tests for the Manager class
@@ -62,7 +63,7 @@ class TestMolecule(unittest.TestCase):
         
         H = self.m.get_Hamiltonian()
 
-        h = numpy.zeros((3,3),dtype=numpy.float)
+        h = numpy.zeros((3,3),dtype=REAL)
         h[1,1] = 1.0
         h[2,2] = 2.0
         
@@ -195,7 +196,7 @@ class TestMoleculeVibrations(unittest.TestCase):
         dat = rho_eq.data.copy()
         for i in range(dat.shape[0]):
             dat[i,i] = 0.0
-        zer = numpy.zeros(dat.shape,dtype=numpy.float)
+        zer = numpy.zeros(dat.shape,dtype=REAL)
         self.assertTrue(numpy.allclose(dat,zer))
         
         # Check if diagonal is a thermal population
@@ -238,7 +239,7 @@ class TestMoleculeVibrations(unittest.TestCase):
         dat = rho_eq.data.copy()
         for i in range(dat.shape[0]):
             dat[i,i] = 0.0
-        zer = numpy.zeros(dat.shape,dtype=numpy.float)
+        zer = numpy.zeros(dat.shape,dtype=REAL)
         self.assertTrue(numpy.allclose(dat,zer))
         
         # Check if diagonal is a thermal population
