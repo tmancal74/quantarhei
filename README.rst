@@ -409,7 +409,7 @@ For developers:
    :alt: Documentation Status
    
 .. |Build Status| image:: https://github.com/tmancal74/quantarhei/actions/workflows/python-package.yml/badge.svg
-   :target: https://travis-ci.com/tmancal74/quantarhei
+   :target: https://github.com/tmancal74/quantarhei
    :alt: Build Status
  
 .. |Coverage| image:: https://img.shields.io/codecov/c/github/tmancal74/quantarhei.svg
