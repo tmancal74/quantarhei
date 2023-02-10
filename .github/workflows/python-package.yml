@@ -9,9 +9,6 @@ on:
   pull_request:
     branches: [ "master" ]
 
-env:
-    CODECOV_TOKEN=34f2053d-7aa9-4b0c-b776-92d852e597ca
-
 
 jobs:
   build:
