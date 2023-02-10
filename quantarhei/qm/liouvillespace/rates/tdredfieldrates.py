@@ -17,6 +17,8 @@ from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
 from ....core.time import TimeDependent
+from .... import REAL
+from .... import COMPLEX
 
    
 class TDRedfieldRateMatrix(TimeDependent):
@@ -114,7 +116,7 @@ class TDRedfieldRateMatrix(TimeDependent):
                 Om[a,b] = hD[a] - hD[b]
                 
         # calculate values of the spectral density at frequencies
-        cc = numpy.zeros((Nt,Nk,Na,Na),dtype=numpy.complex)
+        cc = numpy.zeros((Nt,Nk,Na,Na),dtype=COMPLEX)
         
         # loop over components
         for k in range(Nk):
@@ -174,7 +176,7 @@ class TDRedfieldRateMatrix(TimeDependent):
 def ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol, warning, error):
     
     # output relaxatio rate matrix
-    RR = numpy.zeros((Nt,Na,Na),dtype=numpy.float)
+    RR = numpy.zeros((Nt,Na,Na),dtype=REAL)
     
     # real part of FT correlation function = 2Re of the half FT of 
     # the correlation function - no factor of 2 here!
