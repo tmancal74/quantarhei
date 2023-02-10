@@ -408,7 +408,7 @@ For developers:
    :target: http://quantarhei.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
    
-.. |Build Status| image:: https://github.com/tmancal74/quantarhei/actions/workflows/Quantarhei/badge.svg
+.. |Build Status| image:: https://github.com/tmancal74/quantarhei/actions/workflows/python-package.yml/badge.svg
    :target: https://travis-ci.com/tmancal74/quantarhei
    :alt: Build Status
  
