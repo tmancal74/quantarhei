@@ -98,12 +98,15 @@ class TestExamples(unittest.TestCase):
       
 def do_the_work(efiles):
 
+    import traceback
+    
     for efile in efiles:
         resource_path = '/'.join(('wizard', 'examples', efile))
         filename = pkg_resources.resource_filename("quantarhei", resource_path)
         try:
             exec(open(filename).read())
         except:
+            traceback.print_exc()
             raise Exception("Example "+efile+" failed")
         
         
