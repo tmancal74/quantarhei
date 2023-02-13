@@ -123,6 +123,7 @@ if sys_name != "Windows":
     ii = 0
     for line in p.stdout.readlines():
         behave_bin = str(line.decode())
+        behave_bin = behave_bin.strip()
         ii += 1
     if ii != 1:
         raise Exception("Don't know where `behave` is")
@@ -225,10 +226,10 @@ def clean():
         sh(delfile+'qrconf.py quantarhei/qrconf.py')
     except:
         print("File not present - no problem")
-    try:        
-        sh(delfile+'coverage.xml')
-    except:
-        print("File not present - no problem")
+    #try:        
+    #    sh(delfile+'coverage.xml')
+    #except:
+    #    print("File not present - no problem")
 
 
 ###############################################################################
@@ -566,9 +567,8 @@ def aloe_tests_cov_v():
 ###############################################################################
 @task
 def behave():
-    with cd(os.path.join('tests', 'behave', 'features')):
-        sh("coverage run "+behave_bin) # $(which behave)")
-
+    path = os.path.join('.','tests', 'behave', 'features')
+    sh("coverage run "+behave_bin+" "+path)
 
 ###############################################################################
 #
@@ -760,8 +760,7 @@ def default():
        'unit_tests_cov_v',
        'doc_tests_cov_v',
        'aloe_tests_cov_v',
-       'behave',
-       'coverage_combine')
+       'behave')
 @task
 def test():
     """Default paver task
