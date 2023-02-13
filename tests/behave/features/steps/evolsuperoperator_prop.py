@@ -320,8 +320,8 @@ def step_given_11(context):
     context.H = HH
     
     # define and calculate evolution superoperator
-    U = qr.qm.EvolutionSuperOperator(time, ham=HH, relt=RR)
-    U.calculate()
+    U = qr.qm.EvolutionSuperOperator(ham=HH, relt=RR)
+    #U.calculate()
     
     context.U = U
     

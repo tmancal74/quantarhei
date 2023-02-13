@@ -338,7 +338,19 @@ def coverage_erase():
     """ Remove coverage from previous build
 
     """
-    sh('coverage erase')
+    sh('rm -f .coverage.unit; coverage erase')
+
+
+#
+# TASK: combine coverage reports
+#
+@task
+def coverage_combine():
+    """ Combines all coverage reports into one
+    
+    """
+    sh('cp .coverage .coverage.unit; coverage combine ./tests/behave/features/.coverage ./.coverage.loc')
+    
 
 ###############################################################################
 #    
@@ -407,7 +419,8 @@ def unit_tests_cov_v():
     """Performs verbose units tests capturing output and with coverage 
     
     """
-    sh('coverage run -m nose -v '+covr+cover_flags+nose_test_dir)     
+    sh('coverage run -m nose -v '+covr+cover_flags+nose_test_dir+'; cp .coverage .coverage.unit')
+ 
 
 
 ###############################################################################
@@ -554,7 +567,7 @@ def aloe_tests_cov_v():
 @task
 def behave():
     with cd(os.path.join('tests', 'behave', 'features')):
-        sh("coverage run "+behave_bin) # $(which behave)")
+        sh("coverage run --data-file=behave.xml "+behave_bin) # $(which behave)")
 
 
 ###############################################################################
@@ -743,11 +756,13 @@ def default():
 #
 # This is called when paver is run without any task
 #
+#@needs('coverage_erase',
+#       'unit_tests_cov_v',
+#       'doc_tests_cov_v',
+#       'aloe_tests_cov_v',
+#       'behave')
 @needs('coverage_erase',
-       'unit_tests_cov_v',
-       'doc_tests_cov_v',
-       'aloe_tests_cov_v',
-       'behave')
+       'unit_tests_cov_v')
 @task
 def test():
     """Default paver task
