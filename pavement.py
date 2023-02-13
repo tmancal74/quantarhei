@@ -567,7 +567,7 @@ def aloe_tests_cov_v():
 @task
 def behave():
     with cd(os.path.join('tests', 'behave', 'features')):
-        sh("coverage run --data-file=behave.xml "+behave_bin) # $(which behave)")
+        sh("coverage run "+behave_bin) # $(which behave)")
 
 
 ###############################################################################
@@ -722,7 +722,7 @@ def codecov():
     """Uploads the results of `coverage` command on the codecov.io server
     
     """
-    sh('codecov --token=34f2053d-7aa9-4b0c-b776-92d852e597ca')
+    sh('codecov --token=1d501d6b-b32d-44c2-8253-8b12ef3c8cc9')
 
 
 ###############################################################################
