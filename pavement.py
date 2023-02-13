@@ -765,7 +765,8 @@ def default():
        'unit_tests_cov_v',
        'doc_tests_cov_v',
        'aloe_tests_cov_v',
-       'behave')
+       'behave',
+       'coverage_combine')
 @task
 def test():
     """Default paver task
