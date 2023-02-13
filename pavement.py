@@ -762,6 +762,8 @@ def default():
 #       'aloe_tests_cov_v',
 #       'behave')
 @needs('coverage_erase',
+       'unit_tests_cov_v',
+       'doc_tests_cov_v',
        'aloe_tests_cov_v')
 @task
 def test():
