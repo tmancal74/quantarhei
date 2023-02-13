@@ -97,13 +97,15 @@ class TestExamples(unittest.TestCase):
 def do_the_work(efiles):
 
     import traceback
+    import subprocess
     
     for efile in efiles:
         resource_path = path.join('wizard', 'examples', efile)
         #filename = pkg_resources.resource_filename("quantarhei", resource_path)
         filename = path.join("quantarhei", resource_path)
         try:
-            exec(open(filename).read())
+            #exec(open(filename).read())
+            subprocess.call("coverage run "+filename+" >test.log", shell=True)
         except:
             traceback.print_exc()
             raise Exception("Example "+efile+" failed")

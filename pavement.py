@@ -226,10 +226,10 @@ def clean():
         sh(delfile+'qrconf.py quantarhei/qrconf.py')
     except:
         print("File not present - no problem")
-    #try:        
-    #    sh(delfile+'coverage.xml')
-    #except:
-    #    print("File not present - no problem")
+    try:        
+        sh(delfile+'test.log')
+    except:
+        print("File not present - no problem")
 
 
 ###############################################################################
