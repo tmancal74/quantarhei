@@ -339,7 +339,7 @@ def coverage_erase():
     """ Remove coverage from previous build
 
     """
-    sh('rm -f .coverage.unit; coverage erase')
+    sh('coverage erase')
 
 
 #
@@ -350,7 +350,7 @@ def coverage_combine():
     """ Combines all coverage reports into one
     
     """
-    sh('coverage combine --append ./tests/behave/features/.coverage')
+    sh('coverage combine --append')
     
 
 ###############################################################################
@@ -390,7 +390,7 @@ def unit_tests_vs():
     """Performs verbose units tests printing output but without coverage 
     
     """
-    sh('coverage run -m nose -vs '+cover_flags+nose_test_dir)
+    sh('nosetests -vs '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_v
@@ -400,7 +400,7 @@ def unit_tests_v():
     """Performs verbose units tests capturing output but without coverage 
     
     """
-    sh('coverage run -m nose -v '+cover_flags+nose_test_dir)
+    sh('nosetests -v '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_cov_vs
@@ -410,7 +410,7 @@ def unit_tests_cov_vs():
     """Performs verbose units tests without capturing output and with coverage 
     
     """
-    sh('coverage run -m nose -vs '+covr+cover_flags+nose_test_dir)    
+    sh('nosetests -vs '+covr+cover_flags+nose_test_dir)    
 
 #
 # TASK: unit_tests_cov_v
@@ -420,7 +420,7 @@ def unit_tests_cov_v():
     """Performs verbose units tests capturing output and with coverage 
     
     """
-    sh('coverage run -m nose -v '+covr+cover_flags+nose_test_dir+'; cp .coverage .coverage.unit')
+    sh('nosetests -v '+covr+cover_flags+nose_test_dir)
  
 
 
@@ -431,7 +431,7 @@ def unit_tests_cov_v():
 ###############################################################################
 
 # Doc tests with coverage
-cmdd = 'coverage run -m nose --with-doctest'
+cmdd = 'nosetests --with-doctest'
 
 # Directories to test
 dirs = ['core', 'builders', 'qm/corfunctions', 'spectroscopy',
@@ -762,6 +762,9 @@ def default():
 #       'aloe_tests_cov_v',
 #       'behave')
 @needs('coverage_erase',
+       'unit_tests_cov_v',
+       'doc_tests_cov_v',
+       'aloe_tests_cov_v',
        'behave')
 @task
 def test():

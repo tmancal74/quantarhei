@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pkg_resources
 import unittest
+import os.path as path
 
 
 
@@ -56,7 +57,6 @@ class TestExamples(unittest.TestCase):
                   "ex_015_RedfieldTheory_2.py",
                   "ex_016_FoersterTheory_1.py"
                  ]
-           
         
         do_the_work(efiles)
         
@@ -68,7 +68,6 @@ class TestExamples(unittest.TestCase):
         efiles = [
                   "ex_020_EvolutionSuperOperator_1.py"
                  ]
-           
         
         do_the_work(efiles)
  
@@ -92,7 +91,6 @@ class TestExamples(unittest.TestCase):
         efiles = [
                   "ex_800_DiagProblem.py"
                  ]
-           
         
         do_the_work(efiles)
       
@@ -101,8 +99,9 @@ def do_the_work(efiles):
     import traceback
     
     for efile in efiles:
-        resource_path = '/'.join(('wizard', 'examples', efile))
-        filename = pkg_resources.resource_filename("quantarhei", resource_path)
+        resource_path = path.join('wizard', 'examples', efile)
+        #filename = pkg_resources.resource_filename("quantarhei", resource_path)
+        filename = path.join("quantarhei", resource_path)
         try:
             exec(open(filename).read())
         except:
