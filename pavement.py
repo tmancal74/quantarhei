@@ -349,7 +349,7 @@ def coverage_combine():
     """ Combines all coverage reports into one
     
     """
-    sh('cp .coverage .coverage.unit; coverage combine ./tests/behave/features/.coverage ./.coverage.loc')
+    sh('coverage combine --append ./tests/behave/features/.coverage')
     
 
 ###############################################################################
@@ -756,15 +756,12 @@ def default():
 #
 # This is called when paver is run without any task
 #
-#@needs('coverage_erase',
-#       'unit_tests_cov_v',
-#       'doc_tests_cov_v',
-#       'aloe_tests_cov_v',
-#       'behave')
 @needs('coverage_erase',
        'unit_tests_cov_v',
        'doc_tests_cov_v',
-       'aloe_tests_cov_v')
+       'aloe_tests_cov_v',
+       'behave',
+       'coverage_combine')
 @task
 def test():
     """Default paver task
