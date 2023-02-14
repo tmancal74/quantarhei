@@ -19,6 +19,7 @@ from quantarhei.qm.hilbertspace.hamiltonian import Hamiltonian
 from quantarhei.qm.liouvillespace.systembathinteraction import SystemBathInteraction
 
 from quantarhei import REAL
+from quantarhei import COMPLEX
 
 import itertools as it
 
@@ -173,13 +174,13 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, S
         #for ii in range(1,Na):
             E_0k[ii] = hD[ii] - lam4[ii,ii,ii,ii]  
             
-        F_k_t = numpy.zeros((Na-1,Nt-1),dtype=numpy.complex)    
-        A_k_t = numpy.zeros((Na-1,Nt-1),dtype=numpy.complex) 
-        N_kl_t = numpy.zeros((Na-1,Na-1,Nt-1),dtype=numpy.complex) 
+        F_k_t = numpy.zeros((Na-1,Nt-1),dtype=COMPLEX)    
+        A_k_t = numpy.zeros((Na-1,Nt-1),dtype=COMPLEX) 
+        N_kl_t = numpy.zeros((Na-1,Na-1,Nt-1),dtype=COMPLEX) 
         
-        #F_k_t = numpy.zeros((Na,Nt-1),dtype=numpy.complex)    
-        #A_k_t = numpy.zeros((Na,Nt-1),dtype=numpy.complex) 
-        #N_kl_t = numpy.zeros((Na,Na,Nt-1),dtype=numpy.complex) 
+        #F_k_t = numpy.zeros((Na,Nt-1),dtype=COMPLEX)    
+        #A_k_t = numpy.zeros((Na,Nt-1),dtype=COMPLEX) 
+        #N_kl_t = numpy.zeros((Na,Na,Nt-1),dtype=COMPLEX) 
         
         for a in range(Na-1):
         #for a in range(1,Na):
@@ -194,11 +195,11 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, S
                 for ti in range(Nt-1): 
                     N_kl_t[a,b,ti] = (c4[b,a,a,b,ti] - (h4[b,a,a,a,ti] -  h4[b,a,b,b,ti] - 2j*lam4[b,a,b,b])*(h4[a,b,a,a,ti] - h4[a,b,b,b,ti] - 2j*lam4[a,b,b,b]))*numpy.exp(2*(g4[a,a,b,b,ti] + 1j*lam4[a,a,b,b]*tt[ti]))
                   
-        f = numpy.zeros((Na-1,Na-1,Nt),dtype=numpy.complex) 
-        RR = numpy.zeros((Na-1,Na-1),dtype=numpy.complex) 
+        f = numpy.zeros((Na-1,Na-1,Nt),dtype=COMPLEX) 
+        RR = numpy.zeros((Na-1,Na-1),dtype=COMPLEX) 
         
-        #f = numpy.zeros((Na,Na,Nt),dtype=numpy.complex) 
-        #RR = numpy.zeros((Na,Na),dtype=numpy.complex) 
+        #f = numpy.zeros((Na,Na,Nt),dtype=COMPLEX) 
+        #RR = numpy.zeros((Na,Na),dtype=COMPLEX) 
         
         for a in range(Na-1):
         #for a in range(1,Na):
