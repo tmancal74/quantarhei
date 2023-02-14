@@ -89,6 +89,8 @@ class ModifiedRedfieldRateMatrix:
         lam4 = numpy.zeros((Na-1,Na-1,Na-1,Na-1),dtype=qr.REAL)
         #lam4 = numpy.zeros((Na,Na,Na,Na),dtype=qr.REAL)
         
+        self.sbi.CC.transform(SS)
+        
         for a in range(Na-1):
         #for a in range(1,Na):    
             for b in range(Na-1):
@@ -101,7 +103,7 @@ class ModifiedRedfieldRateMatrix:
             
         self.sbi.CC.create_double_integral() #g(t)
         self.sbi.CC.create_one_integral()  #g_dot(t)
-        self.sbi.CC.transform(SS)
+
         #g4_1value = self.sbi.CC.get_goft4(1,2,3,4)
         g4 = self.sbi.CC.get_goft_matrix()   #g_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
         h4 = self.sbi.CC.get_hoft_matrix()   #g_dot_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)

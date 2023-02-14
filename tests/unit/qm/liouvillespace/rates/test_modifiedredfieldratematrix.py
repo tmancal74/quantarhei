@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 
+
 import unittest
-import numpy
+#import numpy
 
 from quantarhei import TimeAxis
 from quantarhei import energy_units
+from quantarhei import eigenbasis_of
 from quantarhei import CorrelationFunction
-from quantarhei.qm.corfunctions import CorrelationFunctionMatrix 
+#from quantarhei.qm.corfunctions import CorrelationFunctionMatrix 
 from quantarhei.qm import SystemBathInteraction
 from quantarhei import Hamiltonian
 from quantarhei.qm import Operator
-from quantarhei.qm import TDRedfieldRateMatrix
+from quantarhei.qm import ModifiedRedfieldRateMatrix as RedfieldRateMatrix
+from quantarhei import Molecule
+from quantarhei import Aggregate
 from quantarhei import REAL
 
-class TestRedfieldRateMatrix(unittest.TestCase):
+class TestModifiedRedfieldRateMatrix(unittest.TestCase):
     """Tests for the RateMatrix class
     
     
@@ -32,61 +36,68 @@ class TestRedfieldRateMatrix(unittest.TestCase):
                       
             cf1 = CorrelationFunction(time,params)
 
-                    
-        cm1 = CorrelationFunctionMatrix(time,2,1)
-        cm1.set_correlation_function(cf1,[(0,0),(1,1)])
  
+        m1 = Molecule([0.0, 1.0])
+        m2 = Molecule([0.0, 1.0])
           
-        K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
-        K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
+        agg = Aggregate(molecules=[m1, m2])
+        m1.set_transition_environment((0,1), cf1)
+        m2.set_transition_environment((0,1), cf1)
 
+        with energy_units("1/cm"):        
+            agg.set_resonance_coupling(0,1, 100.0)
             
-        KK11 = Operator(data=K11)
-        KK21 = Operator(data=K21)
- 
+        agg.build(mult=1)
         
-        self.sbi1 = SystemBathInteraction([KK11,KK21],cm1) 
+        self.agg = agg
+
+        self.sbi1 = agg.get_SystemBathInteraction() 
+        
         
         with energy_units("1/cm"):
             h1 = [[0.0, 100.0],[100.0, 0.0]]
             self.H1 = Hamiltonian(data=h1)
             
         self.sbi2 = SystemBathInteraction()
+        
+        
        
         
         
-    def test_create_TDRedfieldRateMatrix(self):
-        """(RedfieldRateMatrix) Testing creation 
+    def test_create_ModifiedRedfieldRateMatrix(self):
+        """(ModifiedRedfieldRateMatrix) Testing creation 
         
         """
         op = Operator(dim=self.H1.dim)
         
         # testing wrong Hamiltonian
         with self.assertRaises(Exception) as context:
-            RR = TDRedfieldRateMatrix(op,self.sbi1)
+            RR = RedfieldRateMatrix(op,self.sbi1,self.sbi1.TimeAxis)
             
         self.assertTrue("First argument must be a Hamiltonian"
                         in str(context.exception))
         
+        
         # testing wrong SBI
         with self.assertRaises(Exception) as context:
-            RR = TDRedfieldRateMatrix(self.H1,op)
+            RR = RedfieldRateMatrix(self.H1,op,self.sbi1.TimeAxis)
 
         #self.assertTrue("Second argument must be a SystemBathInteraction"
         #                in str(context.exception))
         
-        # testing cutoff time
-        RR = TDRedfieldRateMatrix(self.H1, self.sbi1, cutoff_time=100.0)
+        # testing initialization
+        RR = RedfieldRateMatrix(self.H1, self.sbi1, self.sbi1.TimeAxis,
+                                initialize=False, cutoff_time=100.0)
         
         self.assertTrue(RR._has_cutoff_time)
         self.assertTrue(RR.cutoff_time == 100.0)
         
-        # testing empty SBI
-        with self.assertRaises(Exception) as context:
-            RR = TDRedfieldRateMatrix(self.H1, self.sbi2)
-            
-        #self.assertTrue("No system bath intraction components present"
-        #                in str(context.exception))
-        
+        # testing that calculation works
+        HH = self.agg.get_Hamiltonian()
+        sbi = self.agg.get_SystemBathInteraction()
+        HH.protect_basis()
+        with eigenbasis_of(HH):
+            RR = RedfieldRateMatrix(HH, sbi, sbi.TimeAxis)  
+        HH.unprotect_basis()
         
         
