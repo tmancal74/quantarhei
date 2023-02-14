@@ -19,6 +19,7 @@ from quantarhei.qm.hilbertspace.hamiltonian import Hamiltonian
 from quantarhei.qm.liouvillespace.systembathinteraction import SystemBathInteraction
 
 from quantarhei import REAL
+from quantarhei import stop
 import itertools as it
 
 class ModifiedRedfieldRateMatrix:
@@ -165,8 +166,8 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, S
         
         print("***")
         
-        E_0k = numpy.zeros(Na-1,dtype=numpy.float)
-        #E_0k = numpy.zeros(Na,dtype=numpy.float)
+        E_0k = numpy.zeros(Na-1,dtype=REAL)
+        #E_0k = numpy.zeros(Na,dtype=REAL)
         
         for ii in range(Na-1):
         #for ii in range(1,Na):
