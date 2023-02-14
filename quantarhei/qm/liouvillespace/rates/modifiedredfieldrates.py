@@ -18,7 +18,7 @@ from quantarhei.core.units import kB_intK
 from quantarhei.qm.hilbertspace.hamiltonian import Hamiltonian
 from quantarhei.qm.liouvillespace.systembathinteraction import SystemBathInteraction
 
-import quantarhei as qr
+from quantarhei import REAL
 import itertools as it
 
 class ModifiedRedfieldRateMatrix:
@@ -86,8 +86,8 @@ class ModifiedRedfieldRateMatrix:
         
         Nt = self.sbi.CC.timeAxis.length
         
-        lam4 = numpy.zeros((Na-1,Na-1,Na-1,Na-1),dtype=qr.REAL)
-        #lam4 = numpy.zeros((Na,Na,Na,Na),dtype=qr.REAL)
+        lam4 = numpy.zeros((Na-1,Na-1,Na-1,Na-1),dtype=REAL)
+        #lam4 = numpy.zeros((Na,Na,Na,Na),dtype=REAL)
         
         self.sbi.CC.transform(SS)
         
@@ -224,6 +224,6 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, S
         print("I am called from outside")
         return RR
 
-        qr.stop()
+        stop()
                     
                     
