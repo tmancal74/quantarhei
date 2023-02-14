@@ -19,7 +19,7 @@ from quantarhei.qm.hilbertspace.hamiltonian import Hamiltonian
 from quantarhei.qm.liouvillespace.systembathinteraction import SystemBathInteraction
 
 from quantarhei import REAL
-from quantarhei import stop
+
 import itertools as it
 
 class ModifiedRedfieldRateMatrix:
@@ -225,6 +225,5 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, S
         print("I am called from outside")
         return RR
 
-        stop()
                     
                     
