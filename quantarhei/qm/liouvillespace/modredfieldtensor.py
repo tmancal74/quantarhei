@@ -5,12 +5,13 @@ import numpy
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .relaxationtensor import RelaxationTensor
-from .rates.foersterrates import FoersterRateMatrix
+from .rates.modifiedredfieldrates import ModifiedRedfieldRateMatrix
 from ...core.managers import energy_units
+from ...core.managers import eigenbasis_of
 from ... import COMPLEX
 
 class ModRedfieldRelaxationTensor(RelaxationTensor):
-    """Weak resonance coupling relaxation tensor by Foerster theory
+    """Modified Redfield Theory
     
     
     
@@ -63,25 +64,28 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             HH = self.Hamiltonian
             sbi = self.SystemBathInteraction             
             
-            if self._has_cutoff_time:
-                cft = self.cut_off_time
-            else:
-                cft = None
+            HH.protect_basis()
+            with eigenbasis_of(HH):
+                if self._has_cutoff_time:
+                    cft = self.cut_off_time
+                else:
+                    cft = None
                 
-            frm = FoersterRateMatrix(HH, sbi, initialize=True,
-                                     cutoff_time=cft)
+                frm = ModifiedRedfieldRateMatrix(HH, sbi, sbi.TimeAxis,
+                                                 initialize=True,
+                                                 cutoff_time=cft)
     
-            #
-            # Transfer rates
-            #                                                          
-            for aa in range(self.dim):
-                for bb in range(self.dim):
-                    if aa != bb:
-                        self.data[aa,aa,bb,bb] = frm.data[aa,bb]
-                
-            #  
-            # calculate dephasing rates and depopulation rates
-            #
-            self.updateStructure()
-
+                #
+                # Transfer rates
+                #                                                          
+                for aa in range(self.dim):
+                    for bb in range(self.dim):
+                        if aa != bb:
+                            self.data[aa,aa,bb,bb] = frm.data[aa,bb]
+                    
+                #  
+                # calculate dephasing rates and depopulation rates
+                #
+                self.updateStructure()
+            HH.unprotect_basis()
 

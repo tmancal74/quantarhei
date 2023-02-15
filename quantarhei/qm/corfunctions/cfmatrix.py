@@ -292,8 +292,7 @@ class CorrelationFunctionMatrix(Saveable):
         nob = self.nob
         if self._is_transformed:
             if t is None:
-                Nt = self.max_cutoff_index
-                print(Nt)
+                Nt = self.max_cutoff_index + 1
                 ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
@@ -337,7 +336,7 @@ class CorrelationFunctionMatrix(Saveable):
         nob = self.nob
         if self._is_transformed:
             if t is None:
-                Nt = self.max_cutoff_index
+                Nt = self.max_cutoff_index + 1
                 ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
@@ -381,7 +380,7 @@ class CorrelationFunctionMatrix(Saveable):
         nob = self.nob
         if self._is_transformed:
             if t is None:
-                Nt = self.max_cutoff_index
+                Nt = self.max_cutoff_index + 1
                 ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):

@@ -48,58 +48,40 @@ print("""
 *******************************************************************************
 """)
 
-m = qr.Manager()
-m.warn_about_basis_change = False 
+#m = qr.Manager()
+#m.warn_about_basis_change = False 
         
-#<<<<<<< HEAD
-#sb_reference = qr.BasisReferenceOperator(ham.dim,
-#                                      name="site basis reference")
-
 
 #ham.protect_basis()
-with qr.eigenbasis_of(ham):
-    
-    #RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
-    #
-    #print("\nRelaxation times from the full relaxation tensor")
-    #for i in range(1, ham.dim):
-    #    for j in range(1, ham.dim):
-    #        print(i, "<-", j, ":", 1.0/numpy.real(RRT.data[i,i,j,j]))
+#with qr.eigenbasis_of(ham):
+if True:
         
     print("\nCalculating relaxation rates")
     
-    #try: 
     RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi, time)
-    #print('The modified redfield rate matrix is:')
-    #print(RRM.rates)
-    numpy.save('mod_red_rates_pentamer-1_env', RRM.rates)
+    RRT = qr.qm.ModRedfieldRelaxationTensor(ham, sbi)
 
-#except:
-    #    pass
-    
-    #print("\nComparison of the results: ratio of rates")
-    #for i in range(1, ham.dim):
-    #    for j in range(1, ham.dim):
-    #        print(i, "<-", j, ":", RRM.data[i,j]/numpy.real(RRT.data[i,i,j,j]))
-
-    #TDRRM = qr.qm.TDRedfieldRateMatrix(ham, sbi)
-    #print("\nRelaxation times from the rate matrix")
-    #for i in range(1,ham.dim):
-    #    for j in range(1, ham.dim):
-    #        print(i, "<-", j, ":", 1.0/TDRRM.data[time.length-1,i,j])
-
+    #numpy.save('mod_red_rates_pentamer-1_env', RRM.rates)
 #ham.unprotect_basis()
-#=======
-#RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi)
+
 print("\nRelaxation times from the rate matrix")
 
-for i in range(0,ham.dim - 1):
-    for j in range(0, ham.dim - 1):
-         print(i, "<-", j, ":", 1.0/RRM.rates[i,j])
+#with qr.eigenbasis_of(ham):
+if True:
+    for i in range(1,ham.dim-1):
+        for j in range(1,ham.dim-1):
+            #if numpy.abs(RRM.rates[i,j]) > 1.0e-10:
+            print(i, "<-", j, ":", 1.0/numpy.real(RRM.data[i,j])) 
+                      #, 1.0/numpy.real(RRT.data[i,i,j,j]), numpy.real(RRT.data[i,j,j,j]))
+            
+            #else:
+            #    print(i, "<-", j, ": inf")
 
-#>>>>>>> upstream/master
 
-if False:
+
+
+
+if _show_plots_:
     with qr.eigenbasis_of(ham):
         
         #
@@ -111,15 +93,7 @@ if False:
         rho_i = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
         rho_i.data[3,3] = 1.0
        
-        # FIXME: unprotecting does not work correctly
-        #RRT.unprotect_basis()
-        
-        with qr.eigenbasis_of(sb_reference):
-            print(" Relaxation time site basis: ", 1.0/RRT.data[1,1,2,2])
-    
-        RRT.secularize()
-        print(" Relaxation time exciton basis: ", 1.0/RRT.data[1,1,2,2])
-        rho_t = prop.propagate(rho_i, name="Redfield evolution")
+        rho_t = prop.propagate(rho_i, name="ModifiedRedfield evolution")
     
         if _show_plots_:
             rho_t.plot(coherences=False)
@@ -127,14 +101,11 @@ if False:
         rho_i1 = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
         rho_i1.data[3,3] = 1.0   
     
- 
-    #rho_t.plot(coherences=False)
-    
     
     #
     #  Evolution of populations
     #
-    
+    """
     prop = qr.PopulationPropagator(time, RRM)
     p0 = [i for i in range(ham.dim)]
     p0[3] = 1.0
@@ -144,8 +115,5 @@ if False:
         import matplotlib.pyplot as plt
         plt.plot(time.data, pop_t[:,3],'--r')
         plt.show()
-    
-#    #print(RRM.data[2,3])
-#    #with eigenbasis_of(ham):
-#    #    print(RRT.data[2,2,3,3])
+    """
     
