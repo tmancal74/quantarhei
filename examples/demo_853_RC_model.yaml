@@ -1,0 +1,109 @@
+###############################################################################
+#
+#  Simulation imput file
+#
+#
+#
+#  Should be used in conjunction with the script: ex_853_RC.py
+#  and a configuration file: conf.yaml
+#
+###############################################################################
+
+#
+# all energies in cm^-1, dipole moments in Debyes, and time in fs
+#
+
+
+#
+# temperature in K
+#
+temperature: 300
+detailed_balance : True
+
+#
+# Molecular aggregate to be simulated
+#
+aggregate:
+
+    #
+    # monomer_B represents B band (one molecule of it) of the RC
+    #
+    monomer_B: 
+        energy: 12000.0
+        tdip: [0.0, 1.0, 0.0]
+        twidth: 100.0
+        
+        # vibrational mode can reside on the B molecule
+        vibmode:
+            omega: 570.0
+            HR: 0.01
+            deph_time: 1500.0
+            n_g: 2   # use this number of states in electronic ground state
+            n_e: 3   # use this number of states in electronic excited state
+            
+    #
+    # part_S represents special pair. Use either `special_pair` or `monomer_P`
+    # values to simulate a trimer or dimer model 
+    #
+    part_S: special_pair
+    
+
+#
+# Represents the special pair of the RC by two interacting monomers
+#
+special_pair:
+
+    # if definition is `excitonic` we state excitonic energies
+    # i.e. the values of `P_plus`, `P_minus` and `site_energy_gap` are used
+    # if definition is `site`, we use local energy definitions from `P_M`
+    # and `P_L`
+    definition: excitonic    
+
+    P_plus: 
+        energy: 11300.0
+    P_minus:
+        energy: 11200.0
+        
+    # site energy gap is used together with energies of P_plus and P_minus, and
+    # the P_P_coupling, to determine site energies
+    site_energy_gap: 0.0
+       
+    # site energies are not used when excitonic definition is preferred. but
+    # transition dipole moments and transition widths are always used 
+    P_M:
+        energy: 11300.0
+        tdip: [0.0, 1.0, 1.0]
+        twidth: 200.0
+        
+    P_L:
+        energy: 11200.0
+        tdip: [0.0, 1.0, 1.0]
+        twidth: 200.0
+        
+    # coupling between molecules in the special pair
+    P_P_coupling: 450.0 
+        
+    # rate of energy transfer between the special pair excitonic states
+    P_P_rate: 1.0/50.0
+    
+#
+# Monomer which may replace special pair, e.g. for testing purposes
+#
+monomer_P:
+    energy: 11500.0
+    tdip: [1.0, 0.3, 0.8]
+    twidth: 200.0
+    
+# coupling between the B molecule and its neighboring special pair molecule
+B_P_coupling: 100.0            
+      
+# energy transfer rate between the B states and the P_plus state      
+B_P_plus_rate: 1.0/150.0   
+            
+###############################################################################
+#
+#  End of input file
+#
+###############################################################################    
+         
+    

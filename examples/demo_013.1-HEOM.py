@@ -19,7 +19,7 @@ print(
   
 *******************************************************************************
   
-  This script should use Quantarhei package ver. 0.0.45 or newer
+  This script should use Quantarhei package ver. 0.0.45 and older
   
 """)
 print("  Current version of Quantarhei:", qr.Manager().version)
@@ -34,7 +34,7 @@ _show_plots_ = True
 _repeate_ = True
 
 # fit selected decays to assign decay time
-_fit_ = False
+_fit_ = True
 
 ###############################################################################
 #
@@ -44,8 +44,8 @@ _fit_ = False
 
 # values of resonance coupling in cm^-1
 if _repeate_:
-    Js = [5.0, 10.0] #, 20.0, 30.0, 40.0 , 50.0, 
-          #5.0, 100.0, 150.0, 200.0, 250.0, 300.0]
+    Js = [5.0, 10.0, 20.0, 30.0, 40.0 , 50.0, 
+          75.0, 100.0, 150.0, 200.0, 250.0, 300.0]
     #Js = [50.0, 100.0, 150.]
     #Js_nonzero = Js[1:]
 else:

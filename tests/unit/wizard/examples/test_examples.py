@@ -55,7 +55,8 @@ class TestExamples(unittest.TestCase):
                   "ex_013_HEOM.py",
                   "ex_014_HEOM_rates.py",
                   "ex_015_RedfieldTheory_2.py",
-                  "ex_016_FoersterTheory_1.py"
+                  "ex_016_FoersterTheory_1.py",
+                  "ex_018_ModifiedRefieldTheory_1.py"
                  ]
         
         do_the_work(efiles)

@@ -25,25 +25,11 @@ from quantarhei.core.units import kB_int
 
 from quantarhei import printlog as print
 
-print("\n***** Calculation of material for disorder integration"+
-      " (dimer version) *****")
+print("\n***** Rc Simulation Script"+
+      " *****")
 
 input_file = "ex_853_RC.yaml"
-#input_file = {'E0': 10000.0, 'resonance_coupling': 100.0, 'no_g_vib': 2,
-#'no_e_vib': 2, 'params': {'HR': 0.01, 'omega': 500.0, 'use_vib': True},
-#'location_of_vibrations': 'up', 'append_to_dirname': '_center=600_FWHM=100',
-#'dip1': [1.5, 0.0, 0.0], 'dip2': [-1.0, -1.0, 0.0], 'rate': '1.0/500.0',
-#'temperature': 77.0, 't2_N_steps': 100, 't2_time_step': 10.0,
-#'fine_splitting': 10, 't1_N_steps': 100, 't1_time_step': 10.0,
-#'t3_N_steps': 100, 't3_time_step': 10.0, 'feature_width': 100.0,
-#'trim_maps_to': [9900, 11500, 9000, 11500], 'omega_uncertainty': 200.0,
-#'tukey_window_r': 0.3, 'center': 600.0, 'step': 2.0,
-#'max_available_fwhm': 100.0, 'how_many_fwhm': 2, 'make_movie': False,
-#'show_plots': False, 'save_containers': False, 'detailed_balance': True,
-#'t2_save_pathways': [50.0, 100.0, 200.0, 300.0],
-#'copy_input_file_to_results': True, '_math_allowed_in': ['E0',
-#'resonance_coupling', 'rate', ['params', ['HR', 'omega', 'rate']],
-#'center', 'step', 'max_available_fwhm', 'how_many_fwhm', 't2_save_pathways']}
+
 INP = qr.Input(input_file, show_input=False) #,
                #math_allowed_in =["E0",
                #                  ["params", ["HR", "omega", "rate"]] ])
@@ -71,17 +57,17 @@ def init_containers():
     return (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr)
 
 
-def save_containers(cont, dname):
+def save_containers(cont, dname, node=0):
     """Saves the content of containers
 
     """
 
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = cont
 
-    name1 = "cont_p_re"
-    name2 = "cont_p_nr"
-    name3 = "cont_m_re"
-    name4 = "cont_m_nr"
+    name1 = "cont_p_re_"+str(node)
+    name2 = "cont_p_nr_"+str(node)
+    name3 = "cont_m_re_"+str(node)
+    name4 = "cont_m_nr_"+str(node)
     fname = os.path.join(dname, name1)
     cont_p_re.savedir(fname)
     fname = os.path.join(dname, name2)
@@ -112,16 +98,16 @@ def save_averages(cont, dname):
     cont_m_nr.save(fname)
 
 
-def unite_containers():
+def unite_containers(node=0):
     """Collects container parts from the directory to make a single container
 
     """
 
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = init_containers()
-    name1 = "cont_p_re"
-    name2 = "cont_p_nr"
-    name3 = "cont_m_re"
-    name4 = "cont_m_nr"
+    name1 = "cont_p_re_"+str(node)
+    name2 = "cont_p_nr_"+str(node)
+    name3 = "cont_m_re_"+str(node)
+    name4 = "cont_m_nr_"+str(node)
     fname1 = os.path.join(dname, name1)
     cont_p_re = cont_p_re.unitedir(fname1)
     cont_p_re.save(fname1+".qrp")
@@ -134,6 +120,7 @@ def unite_containers():
     fname4 = os.path.join(dname, name4)
     cont_m_nr = cont_m_nr.unitedir(fname4)
     cont_m_nr.save(fname4+".qrp")
+
 
 
 ################################################################################
@@ -164,6 +151,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     dip1 = INP.dip1 # [1.5, 0.0, 0.0]
     dip2 = INP.dip2 # [-1.0, -1.0, 0.0]
     width = INP.feature_width # 100.0
+    width2 = INP.feature_width2
 
     normalize_maps_to_maximu = False
     trim_maps = False
@@ -171,7 +159,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     units = "1/cm"
     with qr.energy_units(units):
 
-        data_descr = "_dO="+str(dE-omega)+"_HR="+str(HR)+"_J="+str(JJ)
+        data_descr = "_dO="+str(dE)+"_omega="+str(omega)+"_HR="+str(HR)+"_J="+str(JJ)
 
         if use_vib:
             sys_char = "_vib"
@@ -193,6 +181,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     #   Model system is a dimer of molecules
     #
     with qr.energy_units("1/cm"):
+
         if not use_trimer:
 
             mol1 = qr.Molecule([0.0, E0])
@@ -202,6 +191,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             print("Monomer 2 energy:", E0+dE)
 
         else:
+
             if disE is not None:
                 mol1 = qr.Molecule([0.0, ESP2+disE[0]])
                 mol2 = qr.Molecule([0.0, E0+dE+disE[1]])
@@ -218,15 +208,15 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             else:
                 mol3 = qr.Molecule([0.0, ESP1])
                 print("Monomer 3 (SP_low) energy:", ESP1)
-            mol3.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
+            mol3.set_transition_width((0,1), width2)
             mol3.set_dipole(0,1, trimer["dipsp"])
 
 
-    mol1.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
-    mol1.set_dipole(0,1, dip1)
+        mol1.set_transition_width((0,1), width2)
+        mol1.set_dipole(0,1, dip1)
 
-    mol2.set_transition_width((0,1), qr.convert(width, "1/cm", "int"))
-    mol2.set_dipole(0,1, dip2)
+        mol2.set_transition_width((0,1), width)
+        mol2.set_dipole(0,1, dip2)
 
     if use_trimer:
         agg = qr.Aggregate([mol1, mol2, mol3])
@@ -335,7 +325,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
     if use_trimer:
 
-        print(rate, rate_sp)
+        print("Relaxation rates: ", rate, rate_sp)
 
         with qr.eigenbasis_of(He):
             if He.data[3,3] < He.data[2,2]:
@@ -361,12 +351,12 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
                 operators.append(qr.qm.ProjectionOperator(3, 2, dim=He.dim))
                 thermal_fac = numpy.exp(-Den)
             rates.append(rate*thermal_fac)
-    else:
-        with qr.eigenbasis_of(He):
-            if He.data[2,2] < He.data[1,1]:
-                Exception("Electronic states not orderred!")
-            operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
-        rates.append(rate)
+        else:
+            with qr.eigenbasis_of(He):
+                if He.data[2,2] < He.data[1,1]:
+                    Exception("Electronic states not orderred!")
+                operators.append(qr.qm.ProjectionOperator(1, 2, dim=He.dim))
+            rates.append(rate)
 
         # include detailed balace
         if detailed_balance:
@@ -376,7 +366,6 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
                 operators.append(qr.qm.ProjectionOperator(2, 1, dim=He.dim))
                 thermal_fac = numpy.exp(-Den)
             rates.append(rate*thermal_fac)
-
 
     sbi = qr.qm.SystemBathInteraction(sys_operators=operators, rates=rates)
     sbi.set_system(agg)
@@ -391,6 +380,9 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     #
     p_deph = qr.qm.ElectronicPureDephasing(agg, dtype="Gaussian")
 
+    # we simplify calculations by converting dephasing to
+    # corresponding Lorentzian form
+    p_deph.convert_to("Lorentzian")
 
     eUt = qr.qm.EvolutionSuperOperator(time2, HH, relt=LF, pdeph=p_deph,
                                        mode="all")
@@ -401,6 +393,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     #
     eUt.calculate(show_progress=False)
 
+    # save the evolution operator
     if save_eUt:
         eut_name = os.path.join(dname, "eUt"+
                                     "_omega2="+str(omega)+data_descr+obj_ext)
@@ -424,9 +417,23 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         # this could save some memory of pathways become too big
         pways = dict()
 
+        print("T2 =", t2)
 
-        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
+        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways,
+                                        dtol=1.0e-12,
                                         selection=[["omega2",[olow, ohigh]]])
+        pws = pways[str(t2)]
+        npa = len(pws)
+        print(" p:", npa)
+        has_R = False
+        has_NR = False
+        for pw in pws:
+            if pw.pathway_type == "NR":
+                has_NR = True
+            elif pw.pathway_type == "R":
+                has_R = True
+
+        print(" R:", has_R, ", NR:", has_NR)
 
         if t2 in t2_save_pathways:
             pws_name = os.path.join(dname, "pws_t2="+str(t2)+
@@ -435,8 +442,22 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
         cont_p.set_spectrum(twod)
 
-        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways, dtol=0.0001,
+        twod = msc.calculate_one_system(t2, agg3, eUt, lab, pways=pways,
+                                        dtol=1.0e-12,
                                         selection=[["omega2",[-ohigh, -olow]]])
+
+        pws = pways[str(t2)]
+        npa = len(pws)
+        print(" m:", npa)
+        has_R = False
+        has_NR = False
+        for pw in pws:
+            if pw.pathway_type == "NR":
+                has_NR = True
+            elif pw.pathway_type == "R":
+                has_R = True
+
+        print(" R:", has_R, ", NR:", has_NR)
 
         if t2 in t2_save_pathways:
             pws_name = os.path.join(dname, "pws_t2="+str(t2)+
@@ -445,18 +466,17 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
         cont_m.set_spectrum(twod)
 
+
     if make_movie:
         with qr.energy_units("1/cm"):
             cont_p.make_movie("mov.mp4")
 
     #
-    # let's not save all the pathways
+    # Save aggregate when a single calculation is done
     #
-    #fname = os.path.join("sim_"+vib_loc, "pways.qrp")
-    #qr.save_parcel(pways, fname)
-
-    fname = os.path.join(dname, "aggregate.qrp")
-    agg3.save(fname)
+    if save_eUt:
+        fname = os.path.join(dname, "aggregate.qrp")
+        agg3.save(fname)
 
     #
     # Window function for subsequenty FFT
@@ -624,6 +644,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
 
     save_containers = False
+
     if save_containers:
         fname = os.path.join(dname,"cont_p"+data_descr+obj_ext)
         print("Saving container into: "+fname)
@@ -720,7 +741,6 @@ disorder = INP.disorder
 if single_run:
 
     ptns.append((INP.resonance_coupling, center, INP.trimer))
-    disorder = False
 
 #
 # Run with disorder and explicite averaging (sigle set + variations by disorder)
@@ -843,6 +863,10 @@ for model in models:
             for ri in range(Nreal):
                 disM[:,ri] = sigma*numpy.random.randn(3)
 
+
+            #
+            # PARALLEL (if ON) LOOP OVER DISORDER
+            #
             for ds in qr.block_distributed_range(0,Nreal):
                 # generating random numbers
                 disE = numpy.zeros(3,dtype=qr.REAL)
@@ -859,6 +883,8 @@ for model in models:
                 print("Disorder in energies: ", disE)
 
                 t1 = time.time()
+
+                # only save the propagator if we calculate a single realization
                 if (Nreal == 1):
                     save_eUt = True
                 else:
@@ -911,13 +937,6 @@ for model in models:
 
                 tags.append(i_p_re)
 
-                #
-                # COLLECT PARALLEL RESULTS AND SAVE THEM BY THE LEADING NOD
-                #
-                #print("Saving intermediate results; cleaning memory")
-                #cont = (av1_p_re, av1_p_nr, av2_m_re, av2_m_nr)
-                #save_averages(cont, dname)
-
                 i_p_re +=1
                 kp += 1
 
@@ -925,10 +944,6 @@ for model in models:
             av1_p_nr.data = config.reduce(av1_p_nr.data)/Nreal
             av2_m_re.data = config.reduce(av2_m_re.data)/Nreal
             av2_m_nr.data = config.reduce(av2_m_nr.data)/Nreal
-            #av1_p_re.data = av1_p_re.data/Nreal
-            #av1_p_nr.data = av1_p_nr.data/Nreal
-            #av2_m_re.data = av2_m_re.data/Nreal
-            #av2_m_nr.data = av2_m_nr.data/Nreal
 
             qr.finished_in(show_stamp=True)
 
@@ -936,11 +951,17 @@ for model in models:
         # Loop over parameter sets
         #
         else:
-            for (JJ, dE, trimer) in ptns:
+
+            #
+            # PARALLEL (if ON) LOOP OVER PARAMETER RANGE
+            #
+            for (JJ, dE, trimer) in qr.block_distributed_list(ptns):
+
                 print("\nCalculating spectra ... (",kp,"of",Nje,
                       ") [run ",kk,"of",Np,"]")
                 print("JJ =", JJ)
                 print("dE =", dE)
+
                 t1 = time.time()
                 if Nje == 1:
                     save_eUt = True
@@ -971,11 +992,12 @@ for model in models:
 
                 n_save += 1
                 if not save_it_at_the_end:
+
                     if numpy.mod(n_save,10) == 0:
                         # we save and release containers after some time
                         print("Saving intermediate results; cleaning memory")
                         cont = (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr)
-                        save_containers(cont, dname)
+                        save_containers(cont, dname, node=config.rank)
                         (cont_p_re, cont_p_nr,
                         cont_m_re, cont_m_nr) = init_containers()
 
@@ -997,22 +1019,23 @@ if disorder:
 
 else:
     if save_it_at_the_end:
-        fname = os.path.join(dname, "cont_p_re.qrp")
+        rank = config.rank
+        fname = os.path.join(dname, "cont_p_re_"+str(rank)+".qrp")
         cont_p_re.save(fname)
-        fname = os.path.join(dname, "cont_p_nr.qrp")
+        fname = os.path.join(dname, "cont_p_nr_"+str(rank)+".qrp")
         cont_p_nr.save(fname)
-        fname = os.path.join(dname, "cont_m_re.qrp")
+        fname = os.path.join(dname, "cont_m_re_"+str(rank)+".qrp")
         cont_m_re.save(fname)
-        fname = os.path.join(dname, "cont_m_nr.qrp")
+        fname = os.path.join(dname, "cont_m_nr_"+str(rank)+".qrp")
         cont_m_nr.save(fname)
 
     else:
         # saving the rest of containers
         cont = (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr)
-        save_containers(cont, dname)
+        save_containers(cont, dname, node=config.rank)
 
         # uniting the containers saved in pieces into one file each
-        unite_containers()
+        unite_containers(node=config.rank)
 
 
 #qr.close_parallel_region()
