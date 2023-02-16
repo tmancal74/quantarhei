@@ -327,6 +327,26 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             CorrelationFunction object 
             
             
+        Example
+        -------
+        
+        >>> from ..qm.corfunctions import CorrelationFunction
+        >>> from .. import TimeAxis 
+        >>> ta = TimeAxis(0.0,1000,1.0)
+        >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
+        >>> cf = CorrelationFunction(ta, params)
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_transition_environment((0,1), cf)
+        >>> print(m._has_system_bath_coupling)
+        True
+        
+        When the environment is already set, the next attempt is refused
+        >>> m.set_transition_environment((0,1), cf)
+        Traceback (most recent call last):
+        ...
+        Exception: Correlation function already speficied for this monomer
+
+        
         """
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped \
@@ -348,6 +368,39 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                             " for this monomer")
                
     def unset_transition_environment(self, transition):
+        """Unsets correlation function from a transition on this monomer
+        
+        This is needed if the environment is to be replaced
+        
+        Parameters
+        ----------
+        transition : tuple
+            A tuple describing a transition in the molecule, e.g. (0,1) is
+            a transition from the ground state to the first excited state.
+ 
+        Example
+        -------
+        
+        >>> from ..qm.corfunctions import CorrelationFunction
+        >>> from .. import TimeAxis 
+        >>> ta = TimeAxis(0.0,1000,1.0)
+        >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
+        >>> cf = CorrelationFunction(ta, params)
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_transition_environment((0,1), cf)
+        >>> print(m._has_system_bath_coupling)
+        True
+        
+        >>> m.unset_transition_environment((0,1))
+        >>> print(m._has_system_bath_coupling)
+        False
+        
+        When the environment is already set, the next attempt is refused
+        >>> m.set_transition_environment((0,1), cf)
+        >>> print(m._has_system_bath_coupling)
+        True
+            
+        """
         
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped \
@@ -360,7 +413,16 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                                            
             self._has_egcf[self.triangle.locate(transition[0],
                                                 transition[1])] = False
+
+        # check if there is any environment left
+        tflag = False
+        for rpl in self._has_egcf:
+            if rpl:
+                tflag = True
         
+        self._has_system_bath_coupling = tflag
+
+
     #@deprecated
     def set_egcf(self, transition, egcf):
         self.set_transition_environment(transition, egcf)
@@ -780,9 +842,20 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         takes the temperature from one of the energy gaps. If no 
         environment (correlation function) is assigned to this 
         molecule, we assume zero temperature.
+            
+        Examples
+        --------
+        
+        >>> import quantarhei as qr
+        >>> mol = qr.TestMolecule("two-levels-1-mode")
+        >>> mol.get_temperature()
+        0.0
+        
+        >>> 
         
         
         """
+        
         if self.check_temperature_consistent():
         
             try:
