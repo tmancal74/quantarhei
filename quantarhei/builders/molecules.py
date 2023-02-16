@@ -821,7 +821,41 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     def get_electronic_natural_lifetime(self, N, epsilon_r=1.0):
         """Returns natural lifetime of a given electronic state
         
-        """            
+        
+        Examplex
+        --------
+        
+        Molecule where transition dipole was not set does not calculate lifetime
+        
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.get_electronic_natural_lifetime(1)
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'Molecule' object has no attribute '_saved_epsilon_r'
+        
+        
+        Setting transition dipole moment allows calculation of the lifetime
+        
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_dipole((0,1), [5.0, 0.0, 0.0])
+        >>> print(m.get_electronic_natural_lifetime(1))
+        852431568.119
+
+        The value is recalculated only when relative permitivity is changed
+
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_dipole((0,1), [5.0, 0.0, 0.0])
+        >>> tl1 = m.get_electronic_natural_lifetime(1)
+        >>> m.set_dipole((0,1), [2.0, 0.0, 0.0]) 
+        >>> tl2 = m.get_electronic_natural_lifetime(1)
+        >>> tl3 = m.get_electronic_natural_lifetime(1, epsilon_r=2.0)
+        >>> (tl2 == tl1) and (tl2 != tl3)
+        True
+        
+        
+        """     
+        
+        
         if not self._has_nat_lifetime[N]:
             self.set_electronic_natural_lifetime(N,epsilon_r=epsilon_r)
             
@@ -831,9 +865,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return self._nat_lifetime[N]
     
-        
-      
-        
         
     def get_temperature(self):
         """Returns temperature of the molecule
@@ -846,13 +877,25 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         Examples
         --------
         
+        Default temperature is 0 K
+        
+        
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mol.get_temperature()
         0.0
         
-        >>> 
-        
+        Molecule gets its temperature from the environment
+
+        >>> from ..qm.corfunctions import CorrelationFunction
+        >>> from .. import TimeAxis 
+        >>> ta = TimeAxis(0.0,1000,1.0)
+        >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
+        >>> cf = CorrelationFunction(ta, params)
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_transition_environment((0,1), cf)
+        >>> print(m.get_temperature())
+        300
         
         """
         
@@ -871,17 +914,62 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         else:
             
             raise Exception("Molecular environment has"+
-            "an inconsisten temperature")
+            " an inconsisten temperature")
         
         
     def check_temperature_consistent(self):
         """Checks that the temperature is the same for all components
-        
-        """
-        #FIXME: implement the check
-        return True
+ 
+    
+        Examples
+        --------
 
-     
+        Isolated molecule has always consistent temperature
+        
+        >>> m = Molecule([0.0, 1.0, 1.2])
+        >>> print(m.check_temperature_consistent())
+        True
+        
+
+        >>> from ..qm.corfunctions import CorrelationFunction
+        >>> from .. import TimeAxis 
+        >>> ta = TimeAxis(0.0,1000,1.0)
+        >>> params1 = dict(ftype="OverdampedBrownian",
+        ...                reorg=20,cortime=100,T=300)
+        >>> params2 = dict(ftype="OverdampedBrownian",
+        ...                reorg=20,cortime=100,T=200)
+        >>> cf1 = CorrelationFunction(ta, params1)
+        >>> cf2 = CorrelationFunction(ta, params2)
+        >>> m.set_transition_environment((0,1), cf1)
+        >>> m.set_transition_environment((0,2), cf2)
+        >>> print(m.get_temperature())
+        Traceback (most recent call last):
+        ...
+        Exception: Molecular environment has an inconsisten temperature
+
+                
+        """
+        
+        if self._has_system_bath_coupling:
+            
+            
+            T = -10.0
+            for bath in self.egcf:
+                
+                if bath is not None:
+                    if T < 0.0:
+                        T = bath.get_temperature()
+                    elif T != bath.get_temperature():
+                        return False
+                
+            return True
+        
+        else: 
+            
+            return True
+
+
+   
     def set_diabatic_coupling(self, element, factor, shifts=None):
         """Sets off-diagobal elements of the diabatic potential matrix 
         
@@ -912,6 +1000,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         
         self.diabatic_matrix[element[0]][element[1]].append(factor)
         self.diabatic_matrix[element[1]][element[0]].append(factor)
+
 
 
     def _fill_hmatrix(self, HH, en0, coorval):
