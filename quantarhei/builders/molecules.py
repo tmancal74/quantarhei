@@ -498,14 +498,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                                            
             self._has_egcf[self.triangle.locate(transition[0],
                                                 transition[1])] = False
-
-        # check if there is any environment left
-        tflag = False
-        for rpl in self._has_egcf:
-            if rpl:
-                tflag = True
         
-        self._has_system_bath_coupling = tflag
+        self._has_system_bath_coupling = False
 
 
     #@deprecated

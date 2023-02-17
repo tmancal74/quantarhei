@@ -26,7 +26,7 @@ from quantarhei.core.units import kB_intK
 from quantarhei import REAL
 
 class TestMolecule(unittest.TestCase):
-    """Tests for the Manager class
+    """Basic tests for the Molecule class
     
     
     """
@@ -312,10 +312,95 @@ class TestMoleculeVibrations(unittest.TestCase):
 
         
         self.assertTrue(numpy.allclose(pop,rpop))
- 
+      
+
+class TestMoleculeMultiVibrations(unittest.TestCase):
+
+    
+    def setUp(self):
         
+        import quantarhei as qr
         
+        Ng = 1  # number of vibrational states per mode in the electronic ground state
+        Ne = 3  # number of vibrational states per mode in the first electronic excited state
+        Nf = 3  # number of vibrational states per mode in the second electronic excited state
         
+        # use or not the second mode
+        second_mode = False
+        
+        with qr.energy_units("1/cm"):
+        
+            # three state molecule
+            m1 = qr.Molecule([0.0, 12000.0, 14500.0])
+        
+            # transition dipole moment
+            m1.set_dipole((0,1), [0.0, 3.0, 0.0])  # Qy transition
+            m1.set_dipole((0,2), [1.5, 0.0, 0.0])  # Qx transition
+        
+            # first vibrational mode
+            mod1 = qr.Mode(1200.0)
+            m1.add_Mode(mod1)
+            mod1.set_nmax(0,Ng)  # set number of states in the electronic ground state
+            mod1.set_nmax(1,Ne)  #     state 1
+            mod1.set_nmax(2,Nf)  #     state 2
+        
+            mod1.set_HR(1,0.1)   # Huang-Rhys factor of the mode in state 1
+            mod1.set_HR(2,0.2)  #.    state 2
+        
+            # second mode is optional
+            if second_mode:
+        
+                mod2 = qr.Mode(1200.0)
+                m1.add_Mode(mod2)
+                mod2.set_nmax(0,Ng)
+                mod2.set_nmax(1,Ne)
+                mod2.set_nmax(2,Nf)
+                mod2.set_HR(1,0.1)
+                mod2.set_HR(2,0.2)
+
+                
+            if second_mode:
+                #  alpha*Q_1 - beta*Q_2
+                alpha = 400.0
+                beta = 400.0
+                m1.set_diabatic_coupling((1, 2), [alpha, [1,0]])
+                m1.set_diabatic_coupling((1, 2), [-beta, [0,1]])
+            else:
+                # alpha*Q_1
+                alpha = 800.0
+                m1.set_diabatic_coupling((1,2), [alpha, [1]])
+
+        cfce_params1 = dict(ftype="OverdampedBrownian",
+                           reorg=30.0,
+                           cortime=50.0,
+                           T=300,matsubara=100)
+        
+        ta = qr.TimeAxis(0.0, 1000, 1.0)
+        
+        with qr.energy_units("1/cm"):
+            cfce = qr.CorrelationFunction(ta, cfce_params1)
+        
+        m1.set_transition_environment((0,1), cfce)
+        m1.set_transition_environment((0,2), cfce)
+
+        
+        self.m1 = m1
+       
+    def test_Hamiltonian_etc(self):
+        """(Molecule) Testing multimode Molecule 
+        
+        """
+
+        m1 = self.m1
+        
+
+        HH = m1.get_Hamiltonian()
+        dip = m1.get_TransitionDipoleMoment()      
+        sbi = m1.get_SystemBathInteraction()
+        
+        self.assertTrue(True)
+
+
 if __name__ == '__main__':
     unittest.main()
 
