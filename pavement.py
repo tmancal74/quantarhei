@@ -87,7 +87,20 @@ from paver.tasks import needs
 from paver.easy import sh
 
 
+""" The project version has to be set here and then in the following files:
+    
+    Makefile
+    docs/sphinx/conf.py
+    quantarhei/core/managers.py
+    setup.py
+  
+    Ideally it would be all updated base on the present file by calling:
+    
+    > paver version-update
+    
+"""
 version = "0.0.66"
+
 
 sys_name = platform.system()
 
