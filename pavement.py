@@ -87,7 +87,7 @@ from paver.tasks import needs
 from paver.easy import sh
 
 
-version = "0.0.65"
+version = "0.0.66"
 
 sys_name = platform.system()
 
@@ -787,3 +787,5 @@ def verbose():
     
     """
     pass
+
+
