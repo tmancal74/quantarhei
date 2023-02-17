@@ -48,11 +48,10 @@ Current status of |Qrhei|
 
 |Qrhei|_'s source code is available from `Github`_, source and binary bundles
 for easy installation can be found on `Pypi`_ and `Anaconda Cloud`_. Latest
-builds are tested on `Travis CI`_ and the st coverage is measured 
+builds are tested on `Github`_ and the test coverage is measured 
 by `coverage` package and displayed on `Codecov`_
 Documentation for |Qrhei|_ can be found on `Readthedocs`_. Also the documentaion
-is build from the source code. Besides that we have some
-interactive examples installed on `Crosscompute`_. 
+is build from the source code.  
 |Qrhei|_ is an Open Source software published under the MIT license, which is
 short and very non-restrictive.
 At present we are in the alpha stage of the development. Our interim goal is 
@@ -103,10 +102,8 @@ Indices and tables
 .. _Qrhei: http://github.com/tmancal74/quantarhei
 
 .. _`Github`: http://github.com/tmancal74/quantarhei
-.. _`Travis CI`: https://travis-ci.com/tmancal74/quantarhei
 .. _`Readthedocs`: http://quantarhei.readthedocs.io/en/latest/
 .. _`Pypi`: https://pypi.org/project/quantarhei/
 .. _`Anaconda Cloud`: https://anaconda.org/tmancal74/quantarhei
-.. _`Crosscompute`:
 .. _`Codecov`: https://codecov.io/gh/tmancal74/quantarhei
 .. _`Github Wiki page`: https://github.com/tmancal74/quantarhei/wiki/Quantarhei-0.1
