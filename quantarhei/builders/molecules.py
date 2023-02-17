@@ -283,6 +283,55 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         position : int
             Position in the CorrelationFunctionMatrix corresponding
             to the monomer. 
+            
+            
+            
+        Examples
+        --------
+
+        A set of three monomers
+ 
+        >>> en1 = [0.0,12100] #*cm2int]
+        >>> en2 = [0.0,12000] #*cm2int]
+        >>> with energy_units("1/cm"):
+        ...     m1 = Molecule(en1)
+        ...     m2 = Molecule(en1)
+        ...     m3 = Molecule(en2)
+
+        Bath correlation functions to describe molecular environment
+        
+        >>> from .. import TimeAxis
+        >>> from .. import CorrelationFunction        
+        >>> time = TimeAxis(0.0, 2000, 1.0) # in fs
+        >>> temperature = 300.0 # in Kelvins
+        >>> cfce_params1 = dict(ftype="OverdampedBrownian",
+        ...           reorg=30.0,
+        ...           cortime=60.0,
+        ...           T=temperature)
+        >>> cfce_params2 = dict(ftype="OverdampedBrownian",
+        ...           reorg=30.0,
+        ...           cortime=60.0,
+        ...           T=temperature)
+        >>> with energy_units("1/cm"):
+        ...    cf1 = CorrelationFunction(time,cfce_params1)
+        ...    cf2 = CorrelationFunction(time,cfce_params2)
+        
+        Environment of the molecules is collected to a matrix. A smaller
+        number of correlation functions can be assigned to a large
+        number of "sites".
+        
+        >>> cm = CorrelationFunctionMatrix(time,3)
+        >>> ic1 = cm.set_correlation_function(cf1,[(0,0),(2,2)])
+        >>> ic2 = cm.set_correlation_function(cf2,[(1,1)])
+
+        The sites of the in the matrix are assigned to molecules. 
+        
+        >>> m1.set_egcf_mapping((0,1), cm, 0)
+        >>> m2.set_egcf_mapping((0,1), cm, 1)
+        >>> m3.set_egcf_mapping((0,1), cm, 2)
+        
+
+       
         """
         
         if not (self._has_egcf[self.triangle.locate(transition[0],
@@ -341,6 +390,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         True
         
         When the environment is already set, the next attempt is refused
+        
         >>> m.set_transition_environment((0,1), cf)
         Traceback (most recent call last):
         ...
@@ -395,7 +445,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> print(m._has_system_bath_coupling)
         False
         
-        When the environment is already set, the next attempt is refused
+        When the environment is unset, the next attempt to set is succesful
+        
         >>> m.set_transition_environment((0,1), cf)
         >>> print(m._has_system_bath_coupling)
         True
@@ -430,6 +481,46 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             
     def get_transition_environment(self, transition):
         """Returns energy gap correlation function of a monomer
+        
+        Parameters
+        ----------
+        transition : tuple
+            A tuple describing a transition in the molecule, e.g. (0,1) is
+            a transition from the ground state to the first excited state.
+ 
+    
+        Example
+        -------
+        
+
+        >>> m = Molecule([0.0, 1.0])
+        
+        Environment of the transition has to be set first
+        
+        >>> cc = m.get_transition_environment((0,1))
+        Traceback (most recent call last):
+            ...
+        Exception: No environment set for the transition
+
+
+        Environment is characterized by the bath correlation function
+        
+        >>> from ..qm.corfunctions import CorrelationFunction
+        >>> from .. import TimeAxis 
+        >>> ta = TimeAxis(0.0,1000,1.0)
+        >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
+        >>> cf = CorrelationFunction(ta, params)        
+        >>> m.set_transition_environment((0,1), cf)
+        >>> cc = m.get_transition_environment((0,1))
+        >>> cc == cf
+        True
+        
+        When non-existent transition is tried, exception is raised
+        
+        >>> cc = m.get_transition_environment((0,2))
+        Traceback (most recent call last):
+            ...        
+        Exception: Index out of range
         
         
         """
