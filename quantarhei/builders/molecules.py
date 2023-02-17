@@ -1422,7 +1422,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         return self.adiabatic_coupling[self.triangle.locate(state1,state2)]
         
-         
+
+
+
     def get_electronic_natural_linewidth(self,N):
         """Returns natural linewidth of a given electronic state
         
@@ -1455,56 +1457,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         else:
             return 0.0 
 
-        
-    def _test_Hamiltonian(self, state1, state2):
-        
-        n = state1[0]
-        m = state2[0]
-        
-        vibn = state1[1]
-        vibm = state2[1]
-            
-        of = operator_factory()
-        
-        ret = 0.0
-        
-        if n == m:
-            
-            ret += self.elenergies[n]*self._overlap_all(vibn,vibm)
-            
-            for kk in range(self.nmod):
-                mod = self.modes[kk]
-                nmax = mod.get_nmax(n)
-                ome = mod.get_energy(n)
-                shift = mod.get_shift(n)
-                fc = numpy.real(of.shift_operator(shift)[:nmax,:nmax])
-                cont = 0.0
-                a = vibn[kk]
-                b = vibm[kk]
-                for ll in range(nmax):
-                    cont += ll*fc[a,ll]*fc[b,ll]
-                    
-                ret += ome*cont*self._overlap_other(vibn,vibm,kk)
-            
-        else:
-            
-            cdefs = self.diabatic_matrix[n][m]
-            
-            for cdef in cdefs:
-                
-                val = cdef[0]
-                cmod = cdef[1]
-                for kk in range(self.nmod):
-                    ovrl = self._overlap_other(vibn,vibm,kk)
-                    if cmod[kk] == 1:
-                        n = vibn[kk]
-                        m = vibm[kk]  
-                        if n == m + 1:
-                            ret += val*numpy.sqrt(n/2.0)*ovrl
-                        elif n == m - 1:
-                            ret += val*numpy.sqrt(m/2.0)*ovrl
-            
-        return ret
     
     
            
@@ -1733,12 +1685,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 
             return HH
     
-    
+  
 ###############################################################################
 # old single mode version - will be removed in future
 ###############################################################################
    
-
+        """
         # list of vibrational Hamiltonians
         lham = [None]*self.nel  
         # list of Hamiltonian dimensions
@@ -1861,7 +1813,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                         
             
         return Hamiltonian(data=ham)
-    
+    """   
         
     def _sub_matrix_bounds(self,ldim):
         lbound = 0
@@ -1952,7 +1904,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         #
         # older single mode version
         #
-
+        """
         totdim,ldim = self._ham_dimension()
 
         # This will be the operator data
@@ -1984,7 +1936,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             
         return TransitionDipoleMoment(data=dip) 
     
-    
+        """
            
     
     def get_SystemBathInteraction(self): #, timeAxis):
