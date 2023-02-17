@@ -9,8 +9,6 @@
 name: Upload Quantarhei to Pypi
 
 on: push
-  release:
-    types: [published]
 
 permissions:
   contents: read
