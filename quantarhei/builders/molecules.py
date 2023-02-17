@@ -291,7 +291,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         A set of three monomers
  
-        >>> en1 = [0.0,12100] #*cm2int]
+        >>> en1 = [0.0,12100, 13000] #*cm2int]
         >>> en2 = [0.0,12000] #*cm2int]
         >>> with energy_units("1/cm"):
         ...     m1 = Molecule(en1)
@@ -330,8 +330,19 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m2.set_egcf_mapping((0,1), cm, 1)
         >>> m3.set_egcf_mapping((0,1), cm, 2)
         
-
-       
+        The environment cannot be set twice
+        
+        >>> m1.set_egcf_mapping((0,1), cm, 2)
+        Traceback (most recent call last):
+            ...
+        Exception: Monomer has a correlation function already
+        
+        >>> m1.set_egcf_mapping((0,2), cm, 2)
+        >>> m1.set_egcf_mapping((0,2), cm, 2)
+        Traceback (most recent call last):
+            ...
+        Exception: Monomer has a correlation function already
+        
         """
         
         if not (self._has_egcf[self.triangle.locate(transition[0],
@@ -341,22 +352,16 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 
                 self.egcf_matrix = correlation_matrix
                 self.egcf_transitions = []
-                self.egcf_transitions.append(transition)
                 self.egcf_mapping = []
-                self.egcf_mapping.append(position)
-                self._is_mapped_on_egcf_matrix = True
-                self._has_system_bath_coupling = True
+
                 
-            else:
-                
-                if self.egcf_matrix is correlation_matrix:
-                    
-                    if self.egcf_transitions.count(transition) > 0:
-                        raise Exception("Correlation function already \
-                         assigned to the transition")
-                    else:
-                        self.egcf_transitions.append(transition)
-                        self.egcf_mapping.append(position)                        
+            self.egcf_transitions.append(transition)
+            self.egcf_mapping.append(position)
+            self._has_egcf[self.triangle.locate(transition[0],
+                                                transition[1])] = True
+
+            self._is_mapped_on_egcf_matrix = True
+            self._has_system_bath_coupling = True
 
         else:
             
@@ -396,11 +401,25 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         ...
         Exception: Correlation function already speficied for this monomer
 
+
+        The environment cannot be set when the molecule is mapped on 
+        a correlation function matrix
+
+        >>> cf1 = CorrelationFunction(ta, params)
+        >>> cm = CorrelationFunctionMatrix(ta,1)
+        >>> ic1 = cm.set_correlation_function(cf1,[(0,0)])
+        >>> m1 = Molecule([0.0, 1.0])
+        >>> m1.set_egcf_mapping((0,1), cm, 0)
+        >>> m1.set_transition_environment((0,1), cf1)
+        Traceback (most recent call last):
+            ...
+        Exception: This monomer is mapped on a CorrelationFunctionMatrix
+        
         
         """
         if self._is_mapped_on_egcf_matrix:
-            raise Exception("This monomer is mapped \
-            on a CorrelationFunctionMatrix")
+            raise Exception("This monomer is mapped" 
+                            + " on a CorrelationFunctionMatrix")
 
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
@@ -450,12 +469,27 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m.set_transition_environment((0,1), cf)
         >>> print(m._has_system_bath_coupling)
         True
+
+
+        The environment cannot be unset when the molecule is mapped on 
+        a correlation function matrix
+
+        >>> cf1 = CorrelationFunction(ta, params)
+        >>> cm = CorrelationFunctionMatrix(ta,1)
+        >>> ic1 = cm.set_correlation_function(cf1,[(0,0)])
+        >>> m1 = Molecule([0.0, 1.0])
+        >>> m1.set_egcf_mapping((0,1), cm, 0)
+        >>> m1.unset_transition_environment((0,1))
+        Traceback (most recent call last):
+            ...
+        Exception: This monomer is mapped on a CorrelationFunctionMatrix
+
             
         """
         
         if self._is_mapped_on_egcf_matrix:
-            raise Exception("This monomer is mapped \
-            on a CorrelationFunctionMatrix")  
+            raise Exception("This monomer is mapped" 
+                            + " on a CorrelationFunctionMatrix") 
              
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
 
