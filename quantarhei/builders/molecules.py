@@ -2335,6 +2335,7 @@ def generate_1orderP_sec(self, lst,
                         if verbose > 5:
                             print(" * Generating P1", i1g, i2e)
 
+                        # FIXME: what should be here???
                         lp = \
                         diag.liouville_pathway("NR",
                                                i1g,
