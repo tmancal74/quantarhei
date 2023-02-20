@@ -9,6 +9,7 @@ import numpy
 
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis
+from ...core.managers import Manager
 
 from .correlationfunctions import c2h
 from .correlationfunctions import c2g
@@ -211,9 +212,12 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def get_reorganization_energy(self,n,m):
-        """Returns reorganization energie in the site basis """
+        """Returns reorganization energie in the site basis 
+        """
         #FIXME: should this use _A2  ????
-        return self.lambdas[self.cpointer[n,m]]
+        man = Manager()
+        return man.convert_energy_2_current_u(
+                            self.lambdas[self.cpointer[n,m]])
 
 
     def get_correlation_time(self,n,m):
@@ -235,7 +239,7 @@ class CorrelationFunctionMatrix(Saveable):
                 lm += self._A4[a,b,c,d,k]
             return lm
         else:
-            raise Exception()
+            raise Exception("Correlation function matrix is not initialized.")
 
 
     def get_coft(self,n,m):
@@ -494,11 +498,24 @@ class CorrelationFunctionMatrix(Saveable):
         for ii in range(self.nof+1):
             self._hofts[ii,:] = c2h(self.timeAxis,self._cofts[ii,:])
 
+
     def create_double_integral(self):
         self._gofts = numpy.zeros((self.nof+1,self.timeAxis.length),
                                   dtype=numpy.complex128)
         for ii in range(self.nof+1):
             self._gofts[ii,:] = c2g(self.timeAxis,self._cofts[ii,:])
+
+
+
+    def init_site_mapping(self):
+        """Initializes the internals to allow four-index correlation functions
+        
+        """
+        
+        nos = self.nob + 1
+        one = numpy.eye(nos, dtype=REAL)
+        
+        self.transform(one)
 
 
     def transform(self, SS):
