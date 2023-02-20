@@ -16,8 +16,16 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
     
     
     """
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham, sbi, initialize=True, cutoff_time=None,
+                 as_operators=False):
         
+        if as_operators:
+            import warnings
+            warnings.warn("Modiefied Redfield Tensor does not have "
+                          +"operator form: using tensor form.")
+            as_operators = False
+            
+            
         self._initialize_basis()
         
         if not isinstance(ham, Hamiltonian):
@@ -64,17 +72,19 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             HH = self.Hamiltonian
             sbi = self.SystemBathInteraction             
             
-            HH.protect_basis()
-            with eigenbasis_of(HH):
+            #HH.protect_basis()
+            #with eigenbasis_of(HH):
+            if True:
                 if self._has_cutoff_time:
                     cft = self.cut_off_time
                 else:
                     cft = None
                 
-                frm = ModifiedRedfieldRateMatrix(HH, sbi, sbi.TimeAxis,
+                frm = ModifiedRedfieldRateMatrix(HH, sbi, # sbi.TimeAxis,
                                                  initialize=True,
                                                  cutoff_time=cft)
     
+            with eigenbasis_of(HH):
                 #
                 # Transfer rates
                 #                                                          
@@ -87,5 +97,6 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
                 # calculate dephasing rates and depopulation rates
                 #
                 self.updateStructure()
-            HH.unprotect_basis()
+                
+            #HH.unprotect_basis()
 

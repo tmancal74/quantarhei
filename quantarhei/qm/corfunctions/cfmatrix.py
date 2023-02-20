@@ -46,6 +46,9 @@ class CorrelationFunctionMatrix(Saveable):
         # Number of functions in the set
         self.nof = nof
 
+        # Number of system states (not all states are coupled
+        #                          to the bath explicitely)
+        
         # Pointer pointing from position in the matrix
         # to the list of functions
         self.cpointer = numpy.zeros((nob,nob),dtype=numpy.int32)
@@ -93,11 +96,12 @@ class CorrelationFunctionMatrix(Saveable):
         """
         nob = self.nob
         nof = self.nof
+        nos = nob + 1 
         
-        self._A2 = numpy.zeros((nob, nob, nof+1),
+        self._A2 = numpy.zeros((nos, nos, nof+1),
                                dtype=REAL)
         if self._is_transformed:
-            self._A4 = numpy.zeros((nob, nob, nob, nob, nof),
+            self._A4 = numpy.zeros((nos, nos, nos, nos, nof),
                                    dtype=REAL)
         else:
             self._A4 = None
@@ -208,11 +212,13 @@ class CorrelationFunctionMatrix(Saveable):
 
     def get_reorganization_energy(self,n,m):
         """Returns reorganization energie in the site basis """
-        #FIXME: should this should use _A2  ????
+        #FIXME: should this use _A2  ????
         return self.lambdas[self.cpointer[n,m]]
+
 
     def get_correlation_time(self,n,m):
         return self.get_correlation_function(n,m).params[0]["cortime"]
+
 
     def get_reorganization_energy4(self,a,b,c,d):
         """Returns reorganization energy in the transformed basis
@@ -289,18 +295,18 @@ class CorrelationFunctionMatrix(Saveable):
 
 
         """
-        nob = self.nob
+        nos = self.nob + 1
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index + 1
-                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
+                ret = numpy.zeros((nos,nos,nos,nos,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
                         ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
                         *self._cofts[k+1,it]
                 return ret
             else:
-                ret = numpy.zeros((nob,nob,nob,nob),dtype=COMPLEX)
+                ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
                 it = self.timeAxis.nearest(t)
                 for k in range(self.nof):
                     ret += self._A4[:,:,:,:,k]*self._cofts[k+1,it]
@@ -333,18 +339,18 @@ class CorrelationFunctionMatrix(Saveable):
 
 
         """
-        nob = self.nob
+        nos = self.nob + 1
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index + 1
-                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
+                ret = numpy.zeros((nos,nos,nos,nos,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
                         ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
                         *self._hofts[k+1,it]
                 return ret
             else:
-                ret = numpy.zeros((nob,nob,nob,nob),dtype=COMPLEX)
+                ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
                 it = self.timeAxis.nearest(t)
                 for k in range(self.nof):
                     ret += self._A4[:,:,:,:,k]*self._hofts[k+1,it]
@@ -377,18 +383,18 @@ class CorrelationFunctionMatrix(Saveable):
 
 
         """
-        nob = self.nob
+        nos = self.nob + 1
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index + 1
-                ret = numpy.zeros((nob,nob,nob,nob,Nt),dtype=COMPLEX)
+                ret = numpy.zeros((nos,nos,nos,nos,Nt),dtype=COMPLEX)
                 for k in range(self.nof):
                     for it in range(Nt):
                         ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
                         *self._gofts[k+1,it]
                 return ret
             else:
-                ret = numpy.zeros((nob,nob,nob,nob),dtype=COMPLEX)
+                ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
                 it = self.timeAxis.nearest(t)
                 for k in range(self.nof):
                     ret += self._A4[:,:,:,:,k]*self._gofts[k+1,it]
@@ -495,21 +501,29 @@ class CorrelationFunctionMatrix(Saveable):
             self._gofts[ii,:] = c2g(self.timeAxis,self._cofts[ii,:])
 
 
-    def transform(self,SS):
-        nob = self.nob
+    def transform(self, SS):
+           
+        # FIXME: This must go somewhere alse. It is system dependent
+        
+        # system size is by one larger than the number of sites (excitonic system)
+        nos = self.nob + 1
         nof = self.nof
-        self._A4 = numpy.zeros((nob,nob,nob,nob,nof), dtype=REAL)
+        
+        self._A4 = numpy.zeros((nos,nos,nos,nos,nof), dtype=REAL)
 
-        for a in range(nob):
-            for b in range(nob):
-                for c in range(nob):
-                    for d in range(nob):
+
+        print("A2 size:", self._A2.shape)
+
+        for a in range(nos):
+            for b in range(nos):
+                for c in range(nos):
+                    for d in range(nos):
                         for k in range(nof):
 
-                           for n in range(nob):
-                                for m in range(nob):
+                           for n in range(1,nos):
+                                for m in range(1,nos):
                                     self._A4[a,b,c,d,k] += SS[n,a]*SS[n,b]*\
-                                    self._A2[n,m,k+1]*SS[m,c]*SS[m,d]
+                                    self._A2[n-1,m-1,k+1]*SS[m,c]*SS[m,d]
 
         self._is_transformed = True
         #print(self._A4[1,1,1,1,0])

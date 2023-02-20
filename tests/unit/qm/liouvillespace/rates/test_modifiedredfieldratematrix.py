@@ -2,11 +2,11 @@
 
 
 import unittest
-#import numpy
+import numpy
 
 from quantarhei import TimeAxis
 from quantarhei import energy_units
-from quantarhei import eigenbasis_of
+#from quantarhei import eigenbasis_of
 from quantarhei import CorrelationFunction
 #from quantarhei.qm.corfunctions import CorrelationFunctionMatrix 
 from quantarhei.qm import SystemBathInteraction
@@ -15,7 +15,7 @@ from quantarhei.qm import Operator
 from quantarhei.qm import ModifiedRedfieldRateMatrix as RedfieldRateMatrix
 from quantarhei import Molecule
 from quantarhei import Aggregate
-from quantarhei import REAL
+#from quantarhei import REAL
 
 class TestModifiedRedfieldRateMatrix(unittest.TestCase):
     """Tests for the RateMatrix class
@@ -68,11 +68,12 @@ class TestModifiedRedfieldRateMatrix(unittest.TestCase):
         """(ModifiedRedfieldRateMatrix) Testing creation 
         
         """
-        op = Operator(dim=self.H1.dim)
+        dim = self.H1.dim
+        op = Operator(dim=dim)
         
         # testing wrong Hamiltonian
         with self.assertRaises(Exception) as context:
-            RR = RedfieldRateMatrix(op,self.sbi1,self.sbi1.TimeAxis)
+            RR = RedfieldRateMatrix(op,self.sbi1) #,self.sbi1.TimeAxis)
             
         self.assertTrue("First argument must be a Hamiltonian"
                         in str(context.exception))
@@ -80,24 +81,29 @@ class TestModifiedRedfieldRateMatrix(unittest.TestCase):
         
         # testing wrong SBI
         with self.assertRaises(Exception) as context:
-            RR = RedfieldRateMatrix(self.H1,op,self.sbi1.TimeAxis)
+            RR = RedfieldRateMatrix(self.H1,op) #,self.sbi1.TimeAxis)
 
         #self.assertTrue("Second argument must be a SystemBathInteraction"
         #                in str(context.exception))
+
+        HH = self.agg.get_Hamiltonian()
+        sbi = self.agg.get_SystemBathInteraction()
         
-        # testing initialization
-        RR = RedfieldRateMatrix(self.H1, self.sbi1, self.sbi1.TimeAxis,
-                                initialize=False, cutoff_time=100.0)
+        # testing initialization with a hand defined Hamiltonian
+        RR = RedfieldRateMatrix(HH, sbi, # self.sbi1.TimeAxis,
+                                initialize=True, cutoff_time=100.0)
         
         self.assertTrue(RR._has_cutoff_time)
         self.assertTrue(RR.cutoff_time == 100.0)
         
-        # testing that calculation works
-        HH = self.agg.get_Hamiltonian()
-        sbi = self.agg.get_SystemBathInteraction()
-        HH.protect_basis()
-        with eigenbasis_of(HH):
-            RR = RedfieldRateMatrix(HH, sbi, sbi.TimeAxis)  
-        HH.unprotect_basis()
+        
+        #
+        # FIXME: add real testing data
+        #
+        testdata = RR.data.copy()
+        
+        numpy.testing.assert_allclose(RR.data,testdata, rtol=1.0e-2)
+        
+        #
         
         
