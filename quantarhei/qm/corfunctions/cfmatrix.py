@@ -511,9 +511,6 @@ class CorrelationFunctionMatrix(Saveable):
         
         self._A4 = numpy.zeros((nos,nos,nos,nos,nof), dtype=REAL)
 
-
-        print("A2 size:", self._A2.shape)
-
         for a in range(nos):
             for b in range(nos):
                 for c in range(nos):
