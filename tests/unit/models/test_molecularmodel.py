@@ -16,6 +16,11 @@ import unittest
 #legacy = False
 #import tempfile
 from quantarhei.models.molecularmodel import MolecularModel
+from quantarhei.models.chlorophylls import ChlorophyllA
+from quantarhei.models.chlorophylls import ChlorophyllB
+from quantarhei.models.bacteriopheophytins import BacterioPheophytin
+from quantarhei.models.bacteriochlorophylls import BacterioChlorophyll
+
 #from quantarhei import TimeAxis
         
 
@@ -42,4 +47,41 @@ class TestModelGenerator(unittest.TestCase):
         mmod = MolecularModel()
         
         self.assertTrue(mmod.nstate==2)
+        
+
+
+    def testing_chlorophyllA(self):
+        """(ChlorophyllA) Testing initialization of the class
+        
+        """    
+        chlA = ChlorophyllA()
+        
+        self.assertTrue(chlA.pdbname=="CLA")
+        
+        
+    def testing_chlorophyllB(self):
+        """(ChlorophyllB) Testing initialization of the class
+        
+        """    
+        chlB = ChlorophyllB()
+        
+        self.assertTrue(chlB.pdbname=="CHL")        
+        
+    def testing_bacterioPheo(self):
+        """(BacterioPheophytin) Testing initialization of the class
+        
+        """    
+        mol = BacterioPheophytin()
+        
+        self.assertTrue(mol.pdbname=="BPH") 
+        
+    def testing_bacterioChlo(self):
+        """(BacterioChlorophyll) Testing initialization of the class
+        
+        """    
+        mol = BacterioChlorophyll()
+        
+        self.assertTrue(mol.pdbname=="BCL") 
+
+        
         
