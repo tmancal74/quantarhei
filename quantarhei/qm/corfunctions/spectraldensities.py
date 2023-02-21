@@ -355,7 +355,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                     omega = self.axis.data
                     cfce = \
                     0.22*omega*numpy.exp(-numpy.abs(omega/omega1c))+\
-                    0.78*(omega/(numpy.abs(omega)))*((omega**2)/omega2c)*numpy.exp(-numpy.abs(omega/omega2c))+\
+                    0.78*numpy.sign(omega)*((omega**2)/omega2c)*numpy.exp(-numpy.abs(omega/omega2c))+\
                     0.31*((omega**3)/(omega3c**2))*numpy.exp(-numpy.abs(omega/omega3c))
                 cfce = cfce * 3.058187
                 print('Alternate form of spec dens used')
