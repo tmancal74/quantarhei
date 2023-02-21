@@ -78,7 +78,7 @@ class TestModRedfield(unittest.TestCase):
 
     
     def test_comparison_of_rates(self):
-        """Testing that Redfield tensor and rate matrix are compatible
+        """(REDFIELD) Testing that Redfield tensor and rate matrix are compatible
         
         
         """ 

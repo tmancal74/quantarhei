@@ -12,8 +12,6 @@ import numpy
 from scipy import integrate
 
 #from quantarhei.core.implementations import implementation
-#from quantarhei.core.units import cm2int
-#from quantarhei.core.units import kB_intK
 
 from quantarhei.qm.hilbertspace.hamiltonian import Hamiltonian
 from quantarhei.qm.liouvillespace.systembathinteraction \
@@ -69,7 +67,6 @@ class ModifiedRedfieldRateMatrix:
             
         self.ham = ham
         self.sbi = sbi
-        self.tt = sbi.TimeAxis.data #time.data
         
         if initialize: 
             self._set_rates()          
@@ -88,25 +85,30 @@ class ModifiedRedfieldRateMatrix:
         Na = self.ham.dim
         Nc = self.sbi.N 
         
+        # this is the system for which we calculate rates (OpenSystem) 
+        sys = self.sbi.system
+        
         # The size of the Hamiltonian must be by 1 larger than
         # the number of sites - this is the excitonic situation
         if Na != Nc + 1:
             raise Exception("Modified Redfield is implemented for "
                             +"single exciton systems only")        
         
-        tt = self.tt
+        tt = self.sbi.TimeAxis.data
+        Nt = self.sbi.CC.timeAxis.length
     
         # Eigen problem 
         hD,SS = numpy.linalg.eigh(self.ham._data) 
         
-        Nt = self.sbi.CC.timeAxis.length
-        
-        lam4 = numpy.zeros((Na,Na,Na,Na),dtype=REAL)
-        
-
+        # 
+        # THIS WILL BE DONE ON THE OPEN SYSTEM
+        #
         self.sbi.CC.transform(SS)
         
-        
+        #
+        # HIDE THIS INTO: get_reorganization_energy_matrix()
+        #
+        lam4 = numpy.zeros((Na,Na,Na,Na),dtype=REAL)
         for a in range(Na):
             for b in range(Na):
                 for c in range(Na):
@@ -114,21 +116,29 @@ class ModifiedRedfieldRateMatrix:
                         lam4[a,b,c,d] = \
                              self.sbi.CC.get_reorganization_energy4(a,b,
                                                                     c,d)
-            
+        
+        #
+        #  THESE CALLS HAVE TO BE DONE AUTOMATICALY BEFORE get_Xoft_matrix()
+        #
         self.sbi.CC.create_double_integral() #g(t)
         self.sbi.CC.create_one_integral()  #g_dot(t)
-
-        #g4_1value = self.sbi.CC.get_goft4(1,2,3,4)
         
-        g4 = self.sbi.CC.get_goft_matrix()   #g_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
-        h4 = self.sbi.CC.get_hoft_matrix()   #g_dot_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
-        c4 = self.sbi.CC.get_coft_matrix()   #g_dotdot_{abcd}(t) = C(t) in exciton basis, dimensions (Na, Na, Na, Na, Nt-1)
+        # g_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
+        g4 = self.sbi.CC.get_goft_matrix()
+        
+        # g_dot_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
+        h4 = self.sbi.CC.get_hoft_matrix()  
+        
+        # g_dotdot_{abcd}(t) = C(t) in exciton basis, 
+        # dimensions (Na, Na, Na, Na, Nt-1)
+        c4 = self.sbi.CC.get_coft_matrix()   
 
 
         rates = ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD,
                                              lam4, g4, h4, c4, tt)
         
         self.data = rates
+
 
 def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): 
                                  #rtol, werror, RR):
@@ -211,16 +221,14 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt):
         RR = numpy.zeros((Na,Na),dtype=COMPLEX) 
         
         for a in range(Na):
-        #for a in range(1,Na):
             for b in range(Na):
-            #for b in range(1,Na):
+
                 for ti in range(Nt):
                     f[a,b,ti] = (numpy.conjugate(F_k_t[b,ti])
                                  *A_k_t[a,ti]*N_kl_t[a,b,ti])
                     RR[a,b] = 2*numpy.real(integrate.simps(f[a,b,:],tt))
                     
         for a in range(Na):
-        #for a in range(1,Na):
             RR[a,a] = 0
                    
         RR_bbaa = -numpy.sum(RR, axis = 0)

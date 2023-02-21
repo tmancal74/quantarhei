@@ -55,9 +55,6 @@ class CorrelationFunctionMatrix(Saveable):
         self.cpointer = numpy.zeros((nob,nob),dtype=numpy.int32)
         self.cpointer[:,:] = 0
 
-        self._A2 = None
-        self._A4 = None
-
         # empty list for functions
         self.cfuncs = None
 
@@ -85,9 +82,18 @@ class CorrelationFunctionMatrix(Saveable):
         self._has_cutoff_time = False
         self.max_cutoff_index = 0
 
+
+        # 
+        #  THIS WILL BE TRANSPLATED TO OPEN SYSTEMS
+        #
+
         #FIXME: implement transformation of the matrix
         self._is_transformed = False
-
+        self._A2 = None
+        self._A4 = None
+        
+        
+        
         self._initiate_storage()
 
 
@@ -97,15 +103,6 @@ class CorrelationFunctionMatrix(Saveable):
         """
         nob = self.nob
         nof = self.nof
-        nos = nob + 1 
-        
-        self._A2 = numpy.zeros((nos, nos, nof+1),
-                               dtype=REAL)
-        if self._is_transformed:
-            self._A4 = numpy.zeros((nos, nos, nos, nos, nof),
-                                   dtype=REAL)
-        else:
-            self._A4 = None
 
         # empty list for functions
         self.cfuncs = [None]*(nof+1)
@@ -122,6 +119,20 @@ class CorrelationFunctionMatrix(Saveable):
 
         self.data = self._cofts
 
+        #
+        # THIS WILL BE TRANSPLANTED TO OPEN SYSTEMS
+        #
+        
+        nos = nob + 1 
+        
+        self._A2 = numpy.zeros((nos, nos, nof+1),
+                               dtype=REAL)
+        if self._is_transformed:
+            self._A4 = numpy.zeros((nos, nos, nos, nos, nof),
+                                   dtype=REAL)
+        else:
+            self._A4 = None
+
 
     def _update_nof_storage(self):
         """Updates the storage of functions in the matrix
@@ -133,9 +144,15 @@ class CorrelationFunctionMatrix(Saveable):
         nof = self.nof
 
         # save all values
+        
+        #
+        #  THIS WILL bE TRANSPLANTED TO OPEN SYSTEMS
+        #
         save_A2 = self._A2
         if self._is_transformed:
             save_A4 = self._A4
+            
+            
         save_cfunc = self.cfuncs
         save_lambdas = self.lambdas
         save_where = self.where
@@ -148,9 +165,16 @@ class CorrelationFunctionMatrix(Saveable):
         self._initiate_storage()
 
         # refill
+        
+        #
+        #  THIS WILL BE TRANSPLANTED TO OPEN SYSTEM
+        #
         self._A2[:,:,0:nof+1] = save_A2
         if self._is_transformed:
             self._A4[:,:,:,:,0:nof] = save_A4
+            
+
+
         for i in range(nof+1):
             self.cfuncs[i] = save_cfunc[i]
             self.lambdas[i] = save_lambdas[i]
@@ -465,7 +489,9 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def get_index_by_where(self, where):
-
+        """Get the index of the correlation function corresponding a tuple where
+        
+        """
         ret = -1
         for i in range(self.nof+1):
             if where in self.where[i]:
@@ -475,6 +501,9 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def _update_where(self, iof, fce, where):
+        """Updates the location information for a correlation function
+        
+        """
 
         for loc in where:
             if loc in self.where[iof]:
@@ -493,6 +522,9 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def create_one_integral(self):
+        """Calculates a time integral of all correlation functions
+        
+        """
         self._hofts = numpy.zeros((self.nof+1,self.timeAxis.length),
                                   dtype=numpy.complex128)
         for ii in range(self.nof+1):
@@ -500,6 +532,9 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def create_double_integral(self):
+        """Calculates a double time integral of all correlation functions
+        
+        """
         self._gofts = numpy.zeros((self.nof+1,self.timeAxis.length),
                                   dtype=numpy.complex128)
         for ii in range(self.nof+1):
@@ -519,7 +554,11 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def transform(self, SS):
-           
+        """Transform the system-bath interaction characteristics
+        
+        
+        """
+        
         # FIXME: This must go somewhere alse. It is system dependent
         
         # system size is by one larger than the number of sites (excitonic system)
@@ -540,6 +579,4 @@ class CorrelationFunctionMatrix(Saveable):
                                     self._A2[n-1,m-1,k+1]*SS[m,c]*SS[m,d]
 
         self._is_transformed = True
-        #print(self._A4[1,1,1,1,0])
-        #print(self._A2[1,1,1])
-        #print(SS[:,1])
+
