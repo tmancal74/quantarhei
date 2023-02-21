@@ -2046,60 +2046,30 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                                numpy.ones(ldim[state],dtype=REAL))
             
             sys_operators.append(KK)
-                
 
+        
+        #
+        #  FIXME: mode environments must be hadled through Mode class
+        #
+        #
+        #  Add mode interaction operators 
+        #
         coor_ops = self.coor_operators
-        
-        print("Number of mode environments:", nmd)
-        print(len(coor_ops))
-        
-        
-        for ii in range(self.nmod):
-            mod = self.modes[ii]
+        if self._mode_env_initialized:
             
-            # if the mode has environment, we set corresponding operators
-            if mod.has_mode_environment:
+            for ii in range(self.nmod):
+                
+                #mod = self.modes[ii]
+                
+                # if the mode has environment, we set corresponding operators
                 for nn in range(self.nel):
-                    cop = coor_ops[nn][ii]
-                    sys_operators.append(cop)
+                    if self._has_mode_env[ii,nn]:
+                        cop = coor_ops[nn][ii]
+                        sys_operators.append(cop)
                 
-                    # get correlation function corresponding to 
-                    # the system-bath interaction
-                    cf = mod.get_mode_environment()
-                    print(cf)
-        
-          
-        # FIXME: we will skip this for the time being
-        # FIXME: this must be implemented for multi-mode case
-        if False:
-            #
-            # Linear coupling with oscillators corresponding to a given
-            # electronic state 
-            # FIXME: works only for one oscillator
-            for n in range(ntr,nob):
-                KK = numpy.zeros((totdim,totdim),dtype=REAL)
-                
-                state = d[n][1]
-                mod   = d[n][0]
-                
-                # prepare coordinate q = (a^+ + a)/sqrt(2)
-                shift = self.modes[mod].get_shift(state)
-                of = operator_factory(N=ldim[state])
-                aa = of.anihilation_operator()
-                ad = of.creation_operator()
-                ones = of.unity_operator()
-                
-                q = (aa + ad)/numpy.sqrt(2.0) - shift*ones
-                
-                states_before = 0
-                for k in range(state):
-                    states_before += ldim[k]
-                states_inc = states_before +ldim[state]
-                # fill with shifted coordinate
-                KK[states_before:states_inc,
-                   states_before:states_inc] = q
-                               
-                sys_operators.append(KK)
+                        # get correlation function corresponding to 
+                        # the system-bath interaction
+                        cf = self._mode_env.get_element(ii, nn)
         
         return SystemBathInteraction(sys_operators,cfm)
         
@@ -2126,11 +2096,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         
         if corfunc is None:
-            return
+            raise Exception("Correlation function not specified.")
             
         if not self._mode_env_initialized:
             self._has_mode_env = numpy.zeros((self.nmod,self.nel),
-                                             dtype=numpy.bool)
+                                             dtype=bool)
             self._mode_env = unique_array(self.nmod,self.nel)
             self._mode_env_initialized = True
             

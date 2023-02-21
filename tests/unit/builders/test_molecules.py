@@ -203,7 +203,7 @@ class TestMoleculeVibrations(unittest.TestCase):
         pop = numpy.zeros(dat.shape[0])
         # get temperature from the molecule
         T = self.m.get_temperature()
-        self.assertEquals(T,0.0)        
+        self.assertEqual(T,0.0)        
         
         # get density matrix
         rho = self.m.get_thermal_ReducedDensityMatrix()
@@ -326,7 +326,7 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         Nf = 3  # number of vibrational states per mode in the second electronic excited state
         
         # use or not the second mode
-        second_mode = False
+        second_mode = True
         
         with qr.energy_units("1/cm"):
         
@@ -370,6 +370,8 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
                 alpha = 800.0
                 m1.set_diabatic_coupling((1,2), [alpha, [1]])
 
+        m2 = m1.deepcopy()
+
         cfce_params1 = dict(ftype="OverdampedBrownian",
                            reorg=30.0,
                            cortime=50.0,
@@ -380,11 +382,32 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         with qr.energy_units("1/cm"):
             cfce = qr.CorrelationFunction(ta, cfce_params1)
         
+        with qr.energy_units("1/cm"):
+            self.menv = qr.CorrelationFunction(ta, cfce_params1)        
+        
+        
         m1.set_transition_environment((0,1), cfce)
         m1.set_transition_environment((0,2), cfce)
 
-        
+        self.m2 = m2
         self.m1 = m1
+        
+        
+        
+        # a very simple molecule to test mode relaxation
+        N3_g = 3
+        N3_e = 3
+        with qr.energy_units("1/cm"):
+            m3 = qr.Molecule([0.0, 10000.0])
+            mod3 = qr.Mode(300.0)
+            m3.add_Mode(mod3)
+            mod3.set_nmax(0,N3_g)
+            mod3.set_nmax(1,N3_e)
+            mod3.set_HR(1,0.1)
+        
+        self.N3 = N3_g + N3_e
+        self.m3 = m3
+        
        
     def test_Hamiltonian_etc(self):
         """(Molecule) Testing multimode Molecule 
@@ -403,7 +426,72 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
 
 
 
+    def test_mode_environment(self):
+        """(Molecule) Testing mode environment 
+        
+        """
+        
+        m2 = self.m2
+        
+        # correlation function must be specified
+        with self.assertRaises(Exception) as context:
+            m2.set_mode_environment(0, 0)
+            
+        self.assertTrue("Correlation function not specified." 
+                        in str(context.exception))
+        
+        # this molecule only has modes 0 and 1, i.e. 2 modes
+        with self.assertRaises(Exception) as context:
+            
+            m2.set_mode_environment(2, corfunc=self.menv)
 
+        # mode environments expected in shape (2,3)
+        self.assertTrue(m2._has_mode_env.shape == (2,3))
+
+        # this is how the setting should work
+        m2.set_mode_environment(0, 1, corfunc=self.menv)
+        
+        # we can retrieve the correlation function
+        menv = m2.get_mode_environment(0, 1)
+        self.assertIs(menv, self.menv)
+        
+
+
+
+    def test_mode_relaxation_one_no_coupling(self):
+        """(Molecule) Testing mode relaxation, zero diabatic coupling 
+        
+        """
+        
+        expected = {(0,1):213.157173558, 
+                    (1,2):106.578586779,
+                    (3,4):159.116760287,
+                    (4,5):49.3298076331}
+        
+        m3 = self.m3
+        m3.set_mode_environment(0, 1, corfunc=self.menv)
+        m3.set_mode_environment(0, 0, corfunc=self.menv)
+
+        HH = m3.get_Hamiltonian()
+        
+        self.assertEqual(HH.dim, self.N3)
+        
+        sbi = m3.get_SystemBathInteraction()
+        
+        time = sbi.TimeAxis
+        RT, ham = m3.get_RelaxationTensor(time,relaxation_theory="stR")
+        
+        #for ii in range(ham.dim):
+        #    for jj in range(ii+1,ham.dim):
+        #        if numpy.abs(numpy.real(RT.data[ii,ii,jj,jj])) > 1.0e-10:
+        #            print(ii,jj, 1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+        
+        for key in expected.keys():
+            ii = key[0]
+            jj = key[1]
+            self.assertAlmostEqual(expected[key],
+                                   1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+            
 
 if __name__ == '__main__':
     unittest.main()

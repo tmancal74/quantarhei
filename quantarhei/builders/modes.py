@@ -597,7 +597,8 @@ class Mode(UnitsManaged, Saveable):
         
         self.egcf = corfce
         self.has_mode_environment = True
-        
+
+
     def get_mode_environment(self):
         """Returns interaction of this mode with a bosonic bath
         
