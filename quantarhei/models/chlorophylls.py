@@ -8,36 +8,23 @@ Created on Thu Sep 14 13:50:05 2017
 # -*- coding: utf-8 -*-
 
 from ..core.units import cm2int
-from ..core.managers import EnergyUnitsManaged
 from .molecularmodel import MolecularModel
 from ..builders import pdb
 from ..utils.vectors import normalize2
 
-class ChlorophyllA(MolecularModel, EnergyUnitsManaged):
+class ChlorophyllA(MolecularModel):
     
     def __init__(self, model_type=None, dp_length=4.582):
         super().__init__(model_type=model_type)
         
         self.pdbname = "CLA"
-        
-        self.default_energies[1] = 15200.0*cm2int
-        #These values are taken from Muh, Lindorfer, et al. Physical Chemistry Chemical Physics, 2014. Chla: 4.58, Chlb 3.83: 
-        self.default_dipole_lengths[0,1] = dp_length
-        self.default_dipole_lengths[1,0] = dp_length
-        
-    def set_default_energies(self, elenergies):
-        k = 0
-        for en in elenergies:
-            self.default_energies[k] = self.convert_2_internal_u(en)
-            k += 1
-            
-        
-    def set_default_dipole_length(self,transition, val):
-        self.default_dipole_lengths[transition[0],transition[1]] = val
-        self.default_dipole_lengths[transition[1],transition[0]] = val
-        
        
-    
+        self.set_default_energies([0.0, 15200.0*cm2int])
+        # These values are taken from Muh, Lindorfer, et al. 
+        # Physical Chemistry Chemical Physics, 2014. Chla: 4.58, Chlb 3.83:
+        
+        self.set_default_dipole_length((0,1), dp_length)
+        
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
         """ Returns transition dipole moment vector
         
@@ -144,28 +131,17 @@ class ChlorophyllA(MolecularModel, EnergyUnitsManaged):
             return data_type
         
         
-class ChlorophyllB(MolecularModel, EnergyUnitsManaged):
+class ChlorophyllB(MolecularModel):
     
     def __init__(self, model_type=None, dp_length=3.834):
         super().__init__(model_type=model_type)
         
         self.pdbname = "CHL"
         
-        self.default_energies[1] = 15700.0*cm2int
+        self.set_default_energies([0.0, 15700.0*cm2int])
         #These values are taken from Muh, Lindorfer, et al. Physical Chemistry Chemical Physics, 2014
-        self.default_dipole_lengths[0,1] = dp_length
-        self.default_dipole_lengths[1,0] = dp_length
         
-    def set_default_energies(self, elenergies):
-        k = 0
-        for en in elenergies:
-            self.default_energies[k] = self.convert_2_internal_u(en)
-            k += 1
-            
-        
-    def set_default_dipole_length(self,transition, val):
-        self.default_dipole_lengths[transition[0],transition[1]] = val
-        self.default_dipole_lengths[transition[1],transition[0]] = val
+        self.set_default_dipole_length((0,1), dp_length)
         
        
     

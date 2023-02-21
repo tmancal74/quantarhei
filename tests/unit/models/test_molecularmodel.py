@@ -46,6 +46,9 @@ class TestModelGenerator(unittest.TestCase):
 
         mmod = MolecularModel()
         
+        mmod.set_default_energies([0.0, 1.0])
+        mmod.set_default_dipole_length((0,1), 3.5)
+        
         self.assertTrue(mmod.nstate==2)
         
 
