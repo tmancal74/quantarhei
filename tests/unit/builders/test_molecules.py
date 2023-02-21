@@ -380,10 +380,10 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         ta = qr.TimeAxis(0.0, 1000, 1.0)
         
         with qr.energy_units("1/cm"):
-            cfce = qr.CorrelationFunction(ta, cfce_params1)
+            cfce = CorrelationFunction(ta, cfce_params1)
         
         with qr.energy_units("1/cm"):
-            self.menv = qr.CorrelationFunction(ta, cfce_params1)        
+            self.menv = CorrelationFunction(ta, cfce_params1)        
         
         
         m1.set_transition_environment((0,1), cfce)
@@ -398,8 +398,8 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         N3_g = 3
         N3_e = 3
         with qr.energy_units("1/cm"):
-            m3 = qr.Molecule([0.0, 10000.0])
-            mod3 = qr.Mode(300.0)
+            m3 = Molecule([0.0, 10000.0])
+            mod3 = Mode(300.0)
             m3.add_Mode(mod3)
             mod3.set_nmax(0,N3_g)
             mod3.set_nmax(1,N3_e)
@@ -424,6 +424,33 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         self.assertTrue(True)
 
 
+    def test_potentials(self):
+        """(Molecule) Testing multimode Molecule 
+        
+        """
+
+        exp1 = numpy.array([ 0.45207638,  2.92411307,  3.59543216], 
+                           dtype=REAL)
+        exp2 = numpy.array([ 0.45207638,  2.9598406,  3.55970463], 
+                           dtype=REAL)
+        
+        m1 = self.m1
+
+        dq = 0.1
+        points = [ii*dq - 3.0 for ii in range(60)]
+        pots = m1.get_potential_1D(0, points)
+        
+        pI = numpy.array(pots[0][10], dtype=REAL)
+        p0 = numpy.array(pots[1][10], dtype=REAL)
+
+        #print("Coupled   :", pI)
+        #print("Un-coupled:", p0)
+        
+        numpy.testing.assert_allclose(exp1, pI)
+        numpy.testing.assert_allclose(exp2, p0)
+
+        pots = m1.get_potential_1D(1, points)
+        
 
 
     def test_mode_environment(self):
