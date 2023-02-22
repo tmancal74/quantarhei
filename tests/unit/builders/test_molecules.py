@@ -383,7 +383,8 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
             cfce = CorrelationFunction(ta, cfce_params1)
         
         with qr.energy_units("1/cm"):
-            self.menv = CorrelationFunction(ta, cfce_params1)        
+            self.menv = CorrelationFunction(ta, cfce_params1)  
+            self.menv2 = CorrelationFunction(ta, cfce_params1) 
         
         
         m1.set_transition_environment((0,1), cfce)
@@ -394,7 +395,7 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         
         
         
-        # a very simple molecule to test mode relaxation
+        # a very simple molecule to test one mode relaxation
         N3_g = 3
         N3_e = 3
         with qr.energy_units("1/cm"):
@@ -407,8 +408,82 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         
         self.N3 = N3_g + N3_e
         self.m3 = m3
+
+        # a very simple molecule to test two mode relaxation
+        N3_g = 3
+        N3_e = 3
+        with qr.energy_units("1/cm"):
+            m3 = Molecule([0.0, 10000.0])
+            mod3 = Mode(300.0)
+            m3.add_Mode(mod3)
+            mod3.set_nmax(0,N3_g)
+            mod3.set_nmax(1,N3_e)
+            mod3.set_HR(1,0.1)
+            mod4 = Mode(200.0)
+            m3.add_Mode(mod4)
+            mod4.set_nmax(0,N3_g)
+            mod4.set_nmax(1,N3_e)
+            mod4.set_HR(1,0.1) 
+            
+        self.N4 = N3_g**2 + N3_e**2
+        self.m4 = m3
         
-       
+        # a tree state molecule to test two mode relaxation
+        N3_g = 3
+        N3_e = 3
+        N3_f = 2
+        with qr.energy_units("1/cm"):
+            m5 = Molecule([0.0, 10000.0, 11000.0])
+            mod3 = Mode(300.0)
+            m5.add_Mode(mod3)
+            mod3.set_nmax(0,N3_g)
+            mod3.set_nmax(1,N3_e)
+            mod3.set_nmax(2,N3_f)
+            mod3.set_HR(1,0.1)
+            mod3.set_HR(2,0.1)
+            mod4 = Mode(200.0)
+            m5.add_Mode(mod4)
+            mod4.set_nmax(0,N3_g)
+            mod4.set_nmax(1,N3_e)
+            mod4.set_nmax(2,N3_f)
+            mod4.set_HR(1,0.1) 
+            mod4.set_HR(2,0.1)
+            
+        self.N5 = N3_g**2 + N3_e**2 + N3_f**2
+        self.m5 = m5
+        
+        # a tree state molecule to test two mode relaxation
+        N3_g = 1
+        N3_e = 3
+        N3_f = 2
+        with qr.energy_units("1/cm"):
+            m6 = Molecule([0.0, 10000.0, 11000.0])
+            mod3 = Mode(800.0)
+            m6.add_Mode(mod3)
+            mod3.set_nmax(0,N3_g)
+            mod3.set_nmax(1,N3_e)
+            mod3.set_nmax(2,N3_f)
+            mod3.set_HR(1,0.1)
+            mod3.set_HR(2,0.2)
+            mod4 = Mode(1200.0)
+            m6.add_Mode(mod4)
+            mod4.set_nmax(0,N3_g)
+            mod4.set_nmax(1,N3_e)
+            mod4.set_nmax(2,N3_f)
+            mod4.set_HR(1,0.1) 
+            mod4.set_HR(2,0.2)
+        
+            alpha = 400.0
+            beta = 400.0
+            m6.set_diabatic_coupling((1, 2), [alpha, [1,0]])
+            m6.set_diabatic_coupling((1, 2), [-beta, [0,1]])
+
+        m6.set_transition_environment((0,1), cfce)
+        m6.set_transition_environment((0,2), cfce)
+        
+        self.m6 = m6
+
+
     def test_Hamiltonian_etc(self):
         """(Molecule) Testing multimode Molecule 
         
@@ -449,8 +524,9 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         numpy.testing.assert_allclose(exp1, pI)
         numpy.testing.assert_allclose(exp2, p0)
 
-        pots = m1.get_potential_1D(1, points)
+        pots = m1.get_potential_2D([1,1], [points, points])
         
+        # FIXME: Assertions for 2D potential
 
 
     def test_mode_environment(self):
@@ -518,6 +594,253 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
             jj = key[1]
             self.assertAlmostEqual(expected[key],
                                    1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+
+
+    def test_mode_relaxation_two_no_coupling(self):
+        """(Molecule) Testing mode relaxation, zero diabatic coupling 
+        
+        """
+
+        expected = {(0, 3): 213.157173558,
+                    (1, 4): 213.157173558,
+                    (2, 5): 213.157173558,
+                    (3, 6): 106.578586779,
+                    (4, 7): 106.578586779,
+                    (5, 8): 106.578586779,
+                    (9, 12): 159.116760287,
+                    (10, 13): 159.116760287,
+                    (11, 14): 159.116760287,
+                    (12, 15): 49.3298076331,
+                    (13, 16): 49.3298076331,
+                    (14, 17): 49.3298076331}  
+        
+        m3 = self.m4
+        m3.set_mode_environment(0, 1, corfunc=self.menv)
+        m3.set_mode_environment(0, 0, corfunc=self.menv)
+
+        HH = m3.get_Hamiltonian()
+        
+        self.assertEqual(HH.dim, self.N4)
+        
+        sbi = m3.get_SystemBathInteraction()
+        
+        time = sbi.TimeAxis
+        RT, ham = m3.get_RelaxationTensor(time,relaxation_theory="stR")
+        
+        #for ii in range(ham.dim):
+        #    for jj in range(ii+1,ham.dim):
+        #        if numpy.abs(numpy.real(RT.data[ii,ii,jj,jj])) > 1.0e-10:
+        #            print(ii,jj, 1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+        
+        for key in expected.keys():
+            ii = key[0]
+            jj = key[1]
+            self.assertAlmostEqual(expected[key],
+                                   1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+
+
+
+
+
+    def test_mode_relaxation_two_with_coupling(self):
+        """(Molecule) Testing two mode relaxation, non-zero diabatic coupling 
+        
+        """
+
+        expected = {(0, 1): 131.232945781,
+                    (0, 3): 213.157173558,
+                    (1, 2): 65.6164728903,
+                    (1, 4): 213.157173558,
+                    (2, 5): 213.157173558,
+                    (3, 4): 131.232945781,
+                    (3, 6): 106.578586779,
+                    (4, 5): 65.6164728903,
+                    (4, 7): 106.578586779,
+                    (5, 8): 106.578586779,
+                    (6, 7): 131.232945781,
+                    (7, 8): 65.6164728903,
+                    (9, 10): 113.383896941,
+                    (9, 12): 159.116760287,
+                    (10, 11): 42.4682638296,
+                    (10, 13): 159.116760287,
+                    (11, 14): 159.116760287,
+                    (12, 13): 113.383896941,
+                    (12, 15): 49.3298076331,
+                    (13, 14): 42.4682638296,
+                    (13, 16): 49.3298076331,
+                    (14, 17): 49.3298076331,
+                    (15, 16): 113.383896941,
+                    (16, 17): 42.4682638296,
+                    (18, 19): 90.1537254783,
+                    (18, 20): 107.689726039,
+                    (19, 21): 107.689726039,
+                    (20, 21): 90.1537254783}
+       
+        m3 = self.m5
+        
+        m3.set_mode_environment(0, 0, corfunc=self.menv)
+        m3.set_mode_environment(0, 1, corfunc=self.menv)
+        m3.set_mode_environment(0, 2, corfunc=self.menv)
+
+        m3.set_mode_environment(1, 0, corfunc=self.menv2)
+        m3.set_mode_environment(1, 1, corfunc=self.menv2)
+        m3.set_mode_environment(1, 2, corfunc=self.menv2)
+
+        HH = m3.get_Hamiltonian()
+        
+        self.assertEqual(HH.dim, self.N5)
+        
+        sbi = m3.get_SystemBathInteraction()
+        
+        time = sbi.TimeAxis
+        RT, ham = m3.get_RelaxationTensor(time,relaxation_theory="stR")
+        
+        #for ii in range(ham.dim):
+        #    for jj in range(ii+1,ham.dim):
+        #        if numpy.abs(numpy.real(RT.data[ii,ii,jj,jj])) > 1.0e-10:
+        #            print(ii,jj, 1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+        
+        for key in expected.keys():
+            ii = key[0]
+            jj = key[1]
+            self.assertAlmostEqual(expected[key],
+                                   1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+
+
+
+    def test_mode_relaxation_two_with_coupling_and_transition_env(self):
+        """(Molecule) Testing combined two mode relaxation, non-zero diabatic coupling 
+        
+        """
+        
+        expstring = """
+            1 2 727.645664866
+            1 3 1300.41161036
+            1 4 2474.51923893
+            1 5 9161.77892604
+            1 6 51848.5444547
+            1 7 62770.0671089
+            1 8 26666.9361527
+            1 9 687779.302323
+            1 10 69253.9271796
+            1 11 509238.207123
+            1 12 119099.317925
+            1 13 42496794.0566
+            2 3 914.750041535
+            2 4 1526.70840275
+            2 5 1078.43320489
+            2 6 2143.06568258
+            2 7 9028.60190128
+            2 8 2565.27593516
+            2 9 115320.662808
+            2 10 9045.38022805
+            2 11 139005.643117
+            2 12 77328.6259544
+            2 13 13228559.0343
+            3 4 490.340998427
+            3 5 2811.83460894
+            3 6 913.812554187
+            3 7 1930.01035984
+            3 8 6014.56629185
+            3 9 76761.2479553
+            3 10 5449.82294567
+            3 11 359601.262571
+            3 12 77857.0113772
+            3 13 7281029.05953
+            4 5 337.676107267
+            4 6 2777.89919921
+            4 7 2746.13285431
+            4 8 1865.48084417
+            4 9 8405.09148975
+            4 10 3054.19511958
+            4 11 25327.2909135
+            4 12 49397.5978727
+            4 13 504390.461369
+            5 6 1222.2979835
+            5 7 2386.5635631
+            5 8 743.318986105
+            5 9 2204.69485916
+            5 10 11519.6914091
+            5 11 28250.3318315
+            5 12 7596.8066054
+            5 13 920883.606458
+            6 7 936.617525216
+            6 8 3359.84870285
+            6 9 1223.21613167
+            6 10 2655.49448677
+            6 11 1316.928777
+            6 12 4470.69910839
+            6 13 1699441.53152
+            7 8 563.566950268
+            7 9 3292.6695198
+            7 10 478.739335017
+            7 11 1574.10334706
+            7 12 9123.06660703
+            7 13 131043.878527
+            8 9 538.568721881
+            8 10 2625.23430172
+            8 11 3821.24277384
+            8 12 3788.2346337
+            8 13 53299.0795067
+            9 10 1773.62388926
+            9 11 629.599551003
+            9 12 761.554383221
+            9 13 1360.51316022
+            10 11 301.561416614
+            10 12 2082.45868179
+            10 13 27716.6326621
+            11 12 430.144460517
+            11 13 916.561339635
+            12 13 763.200670786
+        
+        """
+        expected = {}
+        for line in expstring.splitlines():
+            rel = line.strip()
+            if len(rel) > 0:
+                nmbrs = rel.split(" ")
+                tpl = (int(nmbrs[0]), int(nmbrs[1]))
+                val = float(nmbrs[2])
+                expected[tpl] = val
+            
+        m3 = self.m6
+        
+        m3.set_mode_environment(0, 0, corfunc=self.menv)
+        m3.set_mode_environment(0, 1, corfunc=self.menv2)
+        m3.set_mode_environment(0, 2, corfunc=self.menv)
+
+        m3.set_mode_environment(1, 0, corfunc=self.menv2)
+        m3.set_mode_environment(1, 1, corfunc=self.menv)
+        m3.set_mode_environment(1, 2, corfunc=self.menv2)
+
+        HH = m3.get_Hamiltonian()
+        
+        self.assertEqual(HH.dim, 14)
+        
+        sbi = m3.get_SystemBathInteraction()
+
+        time = sbi.TimeAxis
+        RT, ham = m3.get_RelaxationTensor(time,relaxation_theory="stR")
+        
+        
+        with eigenbasis_of(ham):
+        #    rmax = 0.0
+        #    for ii in range(ham.dim):
+        #        for jj in range(ii+1,ham.dim):
+        #            rate = numpy.abs(numpy.real(RT.data[ii,ii,jj,jj]))
+        #            if rate > rmax:
+        #                rmax = rate
+        #            if rate > 1.0e-10:
+        #                print(ii,jj, 1.0/numpy.real(RT.data[ii,ii,jj,jj]))
+                        
+        #print("Max rate:", rmax, 1.0/rmax)
+            for key in expected.keys():
+                ii = key[0]
+                jj = key[1]
+                self.assertAlmostEqual(expected[key],
+                                       1.0/numpy.real(RT.data[ii,ii,jj,jj]),
+                                       places=4)
+
             
 
 if __name__ == '__main__':

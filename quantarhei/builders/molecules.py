@@ -1968,17 +1968,16 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                                               # the baths
                     else:
                         where[eg] = [(nob,nob)]
-                    # for each bath, save the state of the traprint(mols_c2)
-                    # nsition g -> j
+                    # for each bath, save the state of the 
+                    # transition g -> j
                     d[nob] = j
-                        
+                    
                     nob += 1
                     # save eg to unique list
                     cf.append(eg)
             
         # number of transition bath
         ntr = nob
-
         
         #
         # Look for linear environmental interactions with vibrational modes
@@ -2001,17 +2000,17 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     cf.append(eg)
         
         # number of mode environments
-        nmd = nob - ntr
+        #nmd = nob - ntr
 
         # number of different instances of correlation functions
         nof = cf.get_number_of_unique_elements()
         
-                
         # number of different baths nob = number of transition environments +
         # number of mode environments
         cfm = None #
+        uq = cf.get_unique_elements()
         for i in range(nof):
-            el = cf.get_element(i)
+            el = uq[i] #cf.get_element(i)
             wr = where[el]
             
             if cfm is None:
@@ -2071,7 +2070,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                         # the system-bath interaction
                         cf = self._mode_env.get_element(ii, nn)
         
-        return SystemBathInteraction(sys_operators,cfm)
+        sbi = SystemBathInteraction(sys_operators,cfm)
+        
+        return sbi
         
     
     def set_mode_environment(self, mode=0, elstate=0, corfunc=None):
