@@ -85,17 +85,23 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         #    self.system.diagonalize()
                     
         
-    def calculate(self, raw=False):
+    def calculate(self, raw=False, from_dynamics=False):
         """ Calculates the absorption spectrum 
         
         
         """
         
         with energy_units("int"):
+            
             if self.system is not None:
+                
                 if isinstance(self.system,Molecule):
-                    #self._calculate_Molecule(rwa)      
-                    spect = self._calculate_monomer(raw=raw)
+                    #self._calculate_Molecule(rwa) 
+                    if from_dynamics:
+                        spect = self._calculate_monomer_from_dynamics()
+                    else:
+                        spect = self._calculate_monomer(raw=raw)
+                        
                 elif isinstance(self.system, Aggregate):
                     spect = self._calculate_aggregate( 
                                               relaxation_tensor=
@@ -110,6 +116,13 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         return spect
     
+
+    def set_propagator(self, prop):
+        """Sets the propagator for later calculations of spectra
+        
+        """
+        self.prop = prop
+
 
     def _calculateMolecule(self,rwa):
         
@@ -268,8 +281,24 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         spect = AbsSpectrum(axis=axis, data=data)
         
         return spect
+
+    
+    def _calculate_monomer_from_dynamics(self):
+        """Calculates the absorption spectrum of a molecule from its dynamics
         
+        """
         
+        # the propagator to propagate optical coherences
+        prop = self.prop
+        
+        # the spectrum will be calculate for this system
+        system = self.system
+    
+        time = prop.TimeAxis
+    
+        return "to be calculated"
+
+
     def _calculate_aggregate(self, relaxation_tensor=None,
                              relaxation_hamiltonian=None, rate_matrix=None,
                              raw=False):

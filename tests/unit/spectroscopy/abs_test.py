@@ -50,6 +50,8 @@ class TestAbs(unittest.TestCase):
             cf = CorrelationFunction(time, params)
             mol1.set_transition_environment((0,1),cf)
             
+            self.mol1 = mol1
+            
             abs_calc = AbsSpectrumCalculator(time, system=mol1)
             abs_calc.bootstrap(rwa=12000)
             
@@ -156,5 +158,29 @@ class TestAbs(unittest.TestCase):
 #        
 #        numpy.testing.assert_array_almost_equal(p, [1.0, 11000.0, 100.0])
 
+
+    def test_of_molecular_absorption(self):
+        """(AbsSpectrum) Testing absorption spectrum of a molecule
+        
+        """
+        mol1 = self.mol1
+
+        time = TimeAxis(0.0,1000,1.0)
+        abs_calc = AbsSpectrumCalculator(time, system=mol1)
+        abs_calc.bootstrap(rwa=12000)
+        
+        prop = mol1.get_ReducedDensityMatrixPropagator(time, 
+                                                relaxation_theory="stR",
+                                                time_dependent=True)
+        
+        abs_calc.set_propagator(prop)
+            
+        abs1 = abs_calc.calculate(from_dynamics=True)        
+        
+        print("Spectrum:", abs1)
+        
+        #raise Exception("STOP HERE")
+        
+        
         
         
