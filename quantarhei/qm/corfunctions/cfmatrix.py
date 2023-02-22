@@ -541,7 +541,11 @@ class CorrelationFunctionMatrix(Saveable):
             self._gofts[ii,:] = c2g(self.timeAxis,self._cofts[ii,:])
 
 
-
+    #
+    #
+    #   TO BE TRANSPLANTED TO OPEN SYSTEMS
+    #  
+    #
     def init_site_mapping(self):
         """Initializes the internals to allow four-index correlation functions
         
@@ -553,6 +557,11 @@ class CorrelationFunctionMatrix(Saveable):
         self.transform(one)
 
 
+    #
+    #
+    #   TO BE TRANSPLANTED TO OPEN SYSTEMS
+    #  
+    #
     def transform(self, SS):
         """Transform the system-bath interaction characteristics
         

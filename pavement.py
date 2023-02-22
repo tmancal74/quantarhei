@@ -448,7 +448,7 @@ cmdd = 'nosetests --with-doctest'
 
 # Directories to test
 dirs = ['core', 'builders', 'qm/corfunctions', 'spectroscopy',
-        'qm/liouvillespace']
+        'qm/liouvillespace',  'functions']  #'qm/propagators',
 
 # Specific modules to test
 mods = ['qm/propagators/poppropagator.py']
