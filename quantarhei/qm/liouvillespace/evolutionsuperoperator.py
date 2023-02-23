@@ -386,10 +386,11 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         Nt = self.time.length
         
         self._initialize_data()
-            
-        if show_progress:
-            print("Calculating evolution superoperator ")
-        self._init_progress()
+         
+        # FIXME: to be deleted
+        #if show_progress:
+        #    print("Calculating evolution superoperator ")
+        #self._init_progress()
         
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
@@ -408,9 +409,10 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 
                 self.data[ti,:,:,:,:] = \
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
-                    
-                if show_progress:
-                    print("propagation: ", ti, "of", Nt)            
+                 
+                # FIXME: to be deleted    
+                #if show_progress:
+                #    print("propagation: ", ti, "of", Nt)            
                 
         else:
             
@@ -421,22 +423,20 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             self.data[1,:,:,:,:] = self._one_step_with_dense_TimeIndep(t0,
                                                     self.dense_time.length,
-                                                    self.dense_time.step,
-                                                    Nt,
-                                                    show_progress) 
-            
+                                                    self.dense_time.step,Nt)
+                                                     
             
             #
             # repeat propagation over the longer interval
             #
-            self._calculate_remainig_using_first_interval(Nt,
-                                                          show_progress)
+            self._calculate_remainig_using_first_interval(Nt)
 
-        if show_progress:
-            print("...done")
+        # FIXME: to be deleted
+        #if show_progress:
+        #    print("...done")
             
             
-    def _elemental_step_TimeIndep(self, t0, dens_dt, Nt, show_progress=False):
+    def _elemental_step_TimeIndep(self, t0, dens_dt, Nt):
         """Single elemental step of propagation with the dense time step
         
         """
@@ -448,8 +448,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
-            if show_progress:
-                self._progress(Nt, dim, 0, n, 0)
+            # FIXME: to be deleted
+            #if show_progress:
+            #    self._progress(Nt, dim, 0, n, 0)
             for m in range(dim):
                 rhonm0.data[n,m] = 1.0
                 rhot = prop.propagate(rhonm0)
@@ -485,15 +486,13 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Ut1
 
 
-    def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt,
-                                     show_progress=False):
+    def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt):
         """One step of propagation over the standard time step
         
         This step is componsed of Ndense time steps
         
         """
-        Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt,
-                                           show_progress=show_progress)
+        Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt)
         #
         # propagation to the end of the first interval
         #
@@ -504,8 +503,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Udt
 
         
-    def _calculate_remainig_using_first_interval(self, Nt,
-                                                 show_progress=False):
+    def _calculate_remainig_using_first_interval(self, Nt):
         """Calculate the rest of the superoperator with known first interval
         
         
@@ -513,8 +511,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         Udt = self.data[1,:,:,:,:]
         
         for ti in range(2, Nt):
-            if show_progress:
-                print("Self propagation: ", ti, "of", Nt)            
+            # FIXME: to be deleted
+            #if show_progress:
+            #    print("Self propagation: ", ti, "of", Nt)            
             self.data[ti,:,:,:,:] = \
                 numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])        
 
@@ -573,8 +572,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
                 self.Udt = self._one_step_with_dense_TimeIndep(t0,
                                                     self.dense_time.length,
-                                                    self.dense_time.step, Nt,
-                                                    show_progress=False) 
+                                                    self.dense_time.step, Nt) 
                 
                 if save:
                     self.data[1,:,:,:,:] = self.Udt[:,:,:,:]
@@ -822,46 +820,46 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     # Calculation `progressbar`
     #
 
-    def _estimate_remaining_loops(self, Nt, dim, ti, n, m):
-        return (dim-n)*dim 
+    # def _estimate_remaining_loops(self, Nt, dim, ti, n, m):
+    #     return (dim-n)*dim 
         
     
-    def _init_progress(self):
-        self.ccount = 0
-        self.strtime = time.time()
-        self.oldtime = self.strtime
-        self.remlast = 0
+    # def _init_progress(self):
+    #     self.ccount = 0
+    #     self.strtime = time.time()
+    #     self.oldtime = self.strtime
+    #     self.remlast = 0
         
         
-    def _progress(self, Nt, dim, ti, n, m):
+    # def _progress(self, Nt, dim, ti, n, m):
         
-        curtime = time.time()
-        #dt = curtime - self.oldtime
-        Dt = curtime - self.strtime
-        self.oldtime = curtime
-        self.ccount += 1
+    #     curtime = time.time()
+    #     #dt = curtime - self.oldtime
+    #     Dt = curtime - self.strtime
+    #     self.oldtime = curtime
+    #     self.ccount += 1
          
-        dt_past = Dt/(self.ccount*dim)
+    #     dt_past = Dt/(self.ccount*dim)
         
-        remloops = self._estimate_remaining_loops(Nt, dim, ti, n, m)
+    #     remloops = self._estimate_remaining_loops(Nt, dim, ti, n, m)
         
-        remtime = int(remloops*(dt_past))
+    #     remtime = int(remloops*(dt_past))
         
-        txt1 = "Propagation cycle "+str(ti)+" of "+str(Nt)+ \
-               " : ("+str(n)+" of "+str(dim)+")"
-        if True:
-        #if remtime <= self.remlast:
-            txt2 = " : remaining time "+str(remtime)+" sec"
-        #else:
-        #    txt2 = " : remaining time ... calculating"
-        tlen1 = len(txt1)
-        tlen2 = len(txt2)
+    #     txt1 = "Propagation cycle "+str(ti)+" of "+str(Nt)+ \
+    #            " : ("+str(n)+" of "+str(dim)+")"
+    #     if True:
+    #     #if remtime <= self.remlast:
+    #         txt2 = " : remaining time "+str(remtime)+" sec"
+    #     #else:
+    #     #    txt2 = " : remaining time ... calculating"
+    #     tlen1 = len(txt1)
+    #     tlen2 = len(txt2)
         
-        rem = 65 - tlen1 - tlen2
-        txt = "\r"+txt1+(" "*rem)+txt2
-        print(txt, end="\r")
+    #     rem = 65 - tlen1 - tlen2
+    #     txt = "\r"+txt1+(" "*rem)+txt2
+    #     print(txt, end="\r")
         
-        self.remlast = remtime
+    #     self.remlast = remtime
 
 
     def __str__(self):
