@@ -219,6 +219,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # more states in it
         self.mult = 1
         
+        # here we will store the Hamiltonian, once it is constructed
+        self.HH = None
+        
         self.build()
         
 
@@ -1460,12 +1463,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     
     
            
-    def get_Hamiltonian(self, multi=True):
+    def get_Hamiltonian(self, multi=True, recalculate=False):
         """Returns the Hamiltonian of the Molecule object
         
         
         Examples
         --------
+        
+        After the molecule is created, its Hamiltonian can be obtained
         
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
@@ -1479,7 +1484,35 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
          [ 0.   0.   1.5  0. ]
          [ 0.   0.   0.   2.5]]
         
+        
+        The Hamiltonian is stored, and next time it is retrieved
+        we obtain the same object.
+        
+        >>> print(H.has_rwa)
+        False
+        
+        We can manipulate with the Hamiltonian in between retrievals
+        >>> H.set_rwa([0,1])
+        >>> print(H.has_rwa)
+        True
+        
+        The Hamiltonian the obtain the second time is affected by the changes
+        performed outside the Molecule class
+        
+        >>> H1 = mol.get_Hamiltonian()
+        >>> print(H1.has_rwa)
+        True
+        
+        The newly obtained Hamiltonina IS the Hamiltonian obtained earlier.
+        
+        >>> H1 is H
+        True
+        
         """    
+    
+        if (self.HH is not None) and (not recalculate):
+            
+            return self.HH
     
         if multi:
             
@@ -1678,12 +1711,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             #
             self.coor_operators = coor_ops
             
-            with energy_units("int"):
-                HH = Hamiltonian(data=ham)
+            if (self.HH is None) or recalculate:
+                with energy_units("int"):
+                    HH = Hamiltonian(data=ham)
+                self.HH = HH  
                 
                 # set information about Rotating Wave Approximation
                 
-            return HH
+            return self.HH
     
   
 ###############################################################################

@@ -179,7 +179,7 @@ class TestMoleculeVibrations(unittest.TestCase):
         
         mod1 = self.m.get_Mode(0)
         mod1.set_nmax(1,2)
-        H2 = self.m.get_Hamiltonian()
+        H2 = self.m.get_Hamiltonian(recalculate=True)
         H2expected = numpy.diag([0.05, 0.15, 0.25, 1.05, 1.15])        
         self.assertTrue(numpy.allclose(H2expected,H2.data))  
                 

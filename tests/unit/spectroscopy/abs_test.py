@@ -172,6 +172,7 @@ class TestAbs(unittest.TestCase):
         prop = mol1.get_ReducedDensityMatrixPropagator(time, 
                                                 relaxation_theory="stR",
                                                 time_dependent=True)
+        prop.setDtRefinement(10)
         
         abs_calc.set_propagator(prop)
             

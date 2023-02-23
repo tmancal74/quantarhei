@@ -104,7 +104,7 @@
         plt.show()
         
         
-    We may want to calculate the evolotion superoperator with a step larger
+    We may want to calculate the evolution superoperator with a step larger
     than the one which we specified for evaluation of bath correlation
     functions (In this example we use predefined  SystemBathInteraction object
     which holds this information). Our time axis is too dense for our needs.

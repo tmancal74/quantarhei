@@ -19,6 +19,11 @@ from quantarhei import ReducedDensityMatrixPropagator
 from quantarhei import TimeAxis
 from quantarhei.qm import Liouvillian
 
+from quantarhei import Molecule, Mode
+from quantarhei import CorrelationFunction
+from quantarhei import energy_units, eigenbasis_of
+
+
 class TestRDMPropagator(unittest.TestCase):
     """Tests reduced density matrix propagator module
     
@@ -26,7 +31,7 @@ class TestRDMPropagator(unittest.TestCase):
     """
     
     def test_rdm_evolution_time_independent_tensor(self):
-        """Testing evolution of reduced density matrix with time-independent relaxation tensor
+        """(RDM PROPAGATOR) Testing evolution of reduced density matrix with Lindblad relaxation tensor
         
         """
         HH = qr.Hamiltonian(data=[[0.0, 1.0],[1.0, 0.2]])
@@ -92,8 +97,134 @@ class TestRDMPropagator(unittest.TestCase):
                                       atol=1.0e-9)
         
         
+    def test_tdp(self):
+        """(RDM PROPAGATOR) Testing with time dependent Redfield tensor
         
+        """
+        
+        expstring = """
+            0 4 4 -3.96678714134e-19 0.0
+            25 4 4 0.0123395314303 1.10216297674e-16
+            50 4 4 0.0521821949151 4.41386645353e-16
+            75 4 4 0.0375170438965 3.03228186587e-16
+            0 3 3 -2.15151658263e-18 0.0
+            25 3 3 0.0542304209663 3.27264685377e-16
+            50 3 3 0.133087497663 5.56816047005e-16
+            75 3 3 0.114486463162 5.08756535778e-16
+            0 0 5 -0.855304990279 0.0
+            25 0 5 0.338783123139 0.205218959392
+            50 0 5 -0.0404678523217 -0.0413353312194
+            75 0 5 -0.0747762812157 0.00493941699829
+        """
+        
+        with energy_units("1/cm"):
+            mol1 = Molecule([0.0, 12000.0])
+            mod1 = Mode(300.0)
+            mol1.add_Mode(mod1)
+            mod1.set_nmax(0, 1)
+            mod1.set_nmax(1, 8)
+            mod1.set_HR(1,0.2)
+            
+            mol1.set_dipole((0,1), [1.0, 0.0, 0.0])
+            
+            time = TimeAxis(0.0, 100, 1.0)
+            params = dict(ftype="OverdampedBrownian",
+                          cortime=30.0, reorg=20, T=300,
+                          matsubara=30)
+            
+            cfce = CorrelationFunction(time, params=params)
+            
+            params = dict(ftype="OverdampedBrownian",
+                          cortime=30.0, reorg=50, T=300,
+                          matsubara=30)
+            
+            cfc1 = CorrelationFunction(time, params=params)
+            
+        mol1.set_mode_environment(0, 0, corfunc=cfce)
+        mol1.set_mode_environment(0, 1, corfunc=cfce)
+        mol1.set_transition_environment((0,1), cfc1)
+        
+        rhoi = mol1.get_excited_density_matrix(condition="delta")
+        
+        prop = mol1.get_ReducedDensityMatrixPropagator(time,
+                                                relaxation_theory="stR",
+                                                time_dependent=True)
+        HH = mol1.get_Hamiltonian()
+        #rhoi.data[:,:] = 0.0
+        with eigenbasis_of(HH):
+            rhoi.data[0,4] = 1.0
+            rhoi.data[0,3] = 1.0
+            
+        rhot1 = prop.propagate(rhoi, Nref=10)
+
+        HH.set_rwa([0,1])    
+            
+        rhot2 = prop.propagate(rhoi, Nref=10)
+        
+        rhot2.convert_from_RWA(HH)
+        
+        #
+        # checking that rotating wave approximation is the same as standard 
+        #
+        #numpy.testing.assert_allclose(rhot1.data, rhot2.data, rtol=8.0e-2)
+        
+        
+        _show_plot_ = False
+        if _show_plot_:
+            import matplotlib.pyplot as plt
+            with eigenbasis_of(HH):
+                for ii in range(HH.dim):
+                    plt.plot(time.data, numpy.real(rhot1.data[:,ii,ii]))
+                    plt.plot(time.data, numpy.real(rhot2.data[:,ii,ii]),"--")
+            
+            plt.show()
+        
+        _create_data_ = False
+        if _create_data_:
+            
+            elements = [(4,4), (3,3), (0,5)]
+            for el in elements:
+                for tt in range(0, 100, 25):
+                    print(tt, el[0], el[1],
+                              numpy.real(rhot2.data[tt,el[0],el[1]]),
+                              numpy.imag(rhot2.data[tt,el[0],el[1]]))
+                    
+        #  
+        # compare to precalculated data
+        #
+        expected = {}
+        il = 0
+        for line in expstring.splitlines():
+            rel = line.strip()
+            if len(rel) > 0:
+                nmbrs = rel.split(" ")
+                tmi = int(nmbrs[0])
+                i1 = int(nmbrs[1])
+                i2 = int(nmbrs[2])
+                re = float(nmbrs[3])
+                im = float(nmbrs[4])
+                expected[il] = (tmi, i1, i2, re, im)
+                il += 1
+
+        _perform_test_ = True
+        if _perform_test_:
+            for ks in expected:
+                dats = expected[ks]
+                tt = dats[0]
+                i1 = dats[1]
+                i2 = dats[2]
+                self.assertAlmostEqual(dats[3], 
+                                       numpy.real(rhot2.data[tt,i1,i2]))
+                self.assertAlmostEqual(dats[4], 
+                                       numpy.imag(rhot2.data[tt,i1,i2]))
 
 
-    def test_rdm_evolution_Saveable(self):
-        pass
+
+    #def test_rdm_evolution_Saveable(self):
+    #    pass
+
+
+if __name__ == '__main__':
+    unittest.main()
+    
+    

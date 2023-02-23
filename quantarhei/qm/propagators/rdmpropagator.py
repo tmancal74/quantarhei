@@ -187,7 +187,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.dt = self.Odt/self.Nref
         
         
-    def propagate(self, rhoi, method="short-exp", mdata=None, name=""):
+    def propagate(self, rhoi, method="short-exp", mdata=None, name="", Nref=1):
         """
         
         >>> T0   = 0
@@ -221,6 +221,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # FIXME: Remove this
         #
         self.propagation_name = name
+        
+        if Nref > 1:
+            self.setDtRefinement(Nref)
         
         #
         # Testing if the object submitted is density matrix
@@ -372,10 +375,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     #
                     elif method == "primitive":
                         return self.__propagate_primitive_with_relaxation(rhoi)
-                    elif method == "Runge-Kutta":
-                        return self.__propagate_Runge_Kutta(rhoi)
-                    elif method == "diagonalization":
-                        return self.__propagate_diagonalization(rhoi)
 
                     else:
                         raise Exception("Unknown propagation method: "+method)   
@@ -408,10 +407,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 #
                 elif method == "primitive":
                     return self.__propagate_primitive(rhoi)
-                elif method == "Runge-Kutta":
-                    return self.__propagate_Runge_Kutta(rhoi)
-                elif method == "diagonalization":
-                    return self.__propagate_diagonalization(rhoi)
     
                 else:
                     raise Exception("Unknown propagation method: "+method)
@@ -475,20 +470,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             indx += 1            
             
         return pr
-        
-        
-    def __propagate_Runge_Kutta(self, rhoi):
-        """Runge-Kutta integration of equation of motion
-              
-        NOT IMPLEMENTED
-        
-        """
-        indx = 0
-        for ii in self.timeaxis: 
-
-            self.rho[:,:,indx] = rhoi            
-            
-            indx += 1  
  
 
     def __propagate_short_exp(self, rhoi, L=4):
@@ -1164,14 +1145,21 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             #
             indx += 1
             if indxR < cutoff_indx - 1:                      
-                indxR += 1             
+                indxR += 1  
+                
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
             
         return pr     
 
 
     def __propagate_short_exp_with_TDrel_operators(self, rhoi, L=4):
         """
-              Short exp integration
+            Short exp integration with time-dependent relaxation tensor
+              
+            The tensor is in operator form.
+            
+            
         """
 
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
@@ -1239,13 +1227,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             indx += 1             
             if indxR < cutoff_indx-1:                      
                 indxR += 1             
+
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
+
             
         return pr
-        
-        
-    def __propagate_diagonalization(self,rhoi):
-        pass
-        
         
         
     def __propagate_short_exp_with_TD_relaxation_field(self,rhoi,L=4):
@@ -1298,6 +1285,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
             pr.data[indx,:,:] = rho2                        
             indx += 1             
+
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
+
             
         return pr         
 
