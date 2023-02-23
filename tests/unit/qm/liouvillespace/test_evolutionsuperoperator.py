@@ -11,7 +11,11 @@ import numpy
 
 *******************************************************************************
 """
-
+from quantarhei import TimeAxis
+from quantarhei import Molecule, Mode
+from quantarhei import CorrelationFunction
+from quantarhei import energy_units, eigenbasis_of
+from quantarhei import EvolutionSuperOperator
 
 class TestEvSupOp(unittest.TestCase):
     """Tests for the EvolutionSuperOperator class
@@ -26,6 +30,77 @@ class TestEvSupOp(unittest.TestCase):
         
         self.verbose = verbose
                   
+        
+        
+    def test_block_calculation(self):
+        """(EvolutionSuperOperator) Test block propagation with Redfield tensor
+        
+        """
+        
+        with energy_units("1/cm"):
+            mol1 = Molecule([0.0, 12000.0])
+            mod1 = Mode(300.0)
+            mol1.add_Mode(mod1)
+            mod1.set_nmax(0, 1)
+            mod1.set_nmax(1, 8)
+            mod1.set_HR(1,0.2)
+            
+            mol1.set_dipole((0,1), [1.0, 0.0, 0.0])
+            
+            time = TimeAxis(0.0, 1000, 1.0)
+            params = dict(ftype="OverdampedBrownian",
+                          cortime=30.0, reorg=20, T=300,
+                          matsubara=30)
+            
+            cfce = CorrelationFunction(time, params=params)
+            
+            params = dict(ftype="OverdampedBrownian",
+                          cortime=30.0, reorg=50, T=300,
+                          matsubara=30)
+            
+            cfc1 = CorrelationFunction(time, params=params)
+            
+        mol1.set_mode_environment(0, 0, corfunc=cfce)
+        mol1.set_mode_environment(0, 1, corfunc=cfce)
+        mol1.set_transition_environment((0,1), cfc1)
+    
+       
+        (RT, HH) = mol1.get_RelaxationTensor(time, relaxation_theory="stR",
+                                       time_dependent=False)
+        
+        H1 = mol1.get_Hamiltonian()
+        
+        # want to make sure that Molecule returns the right Hamiltonian
+        self.assertIs(H1, HH)
+        
+        HH.set_rwa([0,1])
+        
+        time_eop = TimeAxis(0.0, 100, 10.0)
+        
+        #
+        # 1) HOW ARE DIFFERENT TIME AXES HANDLED?
+        # 2) Time dependent Redfield gives different results with different axes
+        # 3) Is RWA handled correctly in EvolutionSuperOperator ? 
+        # 4) We have to add is_in_rwa property and convert_to and from RWA
+        #
+        
+        UU = EvolutionSuperOperator(time=time_eop, ham=HH, relt=RT)
+        UU.set_dense_dt(10)
+
+        UU.calculate() #show_progress=True)
+        
+        
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            
+            with eigenbasis_of(HH):
+                plt.plot(time_eop.data, numpy.real(UU.data[:, 2,2,2,2]))
+                plt.plot(time_eop.data, numpy.real(UU.data[:, 3,3,3,3]))
+                plt.plot(time_eop.data, numpy.real(UU.data[:, 2,3,2,3]))
+                plt.plot(time_eop.data, numpy.real(UU.data[:, 2,0,2,0]))
+            
+            plt.show()
         
         
     def test_redfield_dynamics_comp(self):
@@ -305,3 +380,10 @@ class TestEvSupOp(unittest.TestCase):
                                           rtol=5.0e-2,
                                           atol=1.0e-3)
                 
+
+
+if __name__ == '__main__':
+    unittest.main()
+    
+    
+    
