@@ -101,6 +101,14 @@ class TestEvSupOp(unittest.TestCase):
                 plt.plot(time_eop.data, numpy.real(UU.data[:, 2,0,2,0]))
             
             plt.show()
+
+
+        U1 = EvolutionSuperOperator(time=time_eop, ham=HH, 
+                                    relt=RT, block=(0,1))
+        U1.set_dense_dt(10)
+        
+        U1.calculate()
+
         
         
     def test_redfield_dynamics_comp(self):

@@ -184,7 +184,6 @@
 """
 
 # standard library imports
-import time
 import numbers
 
 # dependencies imports
@@ -228,10 +227,19 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         points of the evolution are stored, or it can be "jit" = just in (one)
         time. In the "jit" mode, only the "present" time of the evolution
         operator is stored.
+        
+    block: tuple
+        Evolution Superoperator is usually defined on the Liouville space
+        derived from the complete system's Hilbert space. We can specify 
+        a smaller block section of elements in the Liouville space, to limit
+        the size of the calculation. Typical situation is calculate
+        only the optical coherence block neede for the calculation of 
+        absorption spectra.
     
     """
     
-    def __init__(self, time=None, ham=None, relt=None, pdeph=None, mode="all"):
+    def __init__(self, time=None, ham=None, relt=None, 
+                 pdeph=None, mode="all", block=None):
         super().__init__()
         
         self.time = time
@@ -247,12 +255,29 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         self.dense_time = None
         self.set_dense_dt(1)
+        
+        #
+        # define the size of the data
+        #
+        Nt = self.time.length
+        
+        # if bock is not defined (default), we use the full size
+        if block is None:   
+            N1 = self.dim
+            N2 = self.dim
+            
+        elif block == (0,1):
+            N1 = self.dim
+            N2 = self.dim
+        
+        else:
+            raise Exception("Unknown block type")
+            
+            self.ham.rwa_indices
             
         if (self.time is not None) and (self.mode == "all"):
             
-            self.data = numpy.zeros((self.time.length, self.dim, self.dim,
-                                     self.dim, self.dim),
-                                     dtype=qr.COMPLEX)
+            self.data = numpy.zeros((Nt, N1, N2, N1, N2), dtype=qr.COMPLEX)
             #
             # zero time value (unity superoperator)
             #
@@ -387,10 +412,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         self._initialize_data()
          
-        # FIXME: to be deleted
-        #if show_progress:
-        #    print("Calculating evolution superoperator ")
-        #self._init_progress()
         
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
@@ -409,10 +430,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 
                 self.data[ti,:,:,:,:] = \
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
-                 
-                # FIXME: to be deleted    
-                #if show_progress:
-                #    print("propagation: ", ti, "of", Nt)            
+                             
                 
         else:
             
@@ -431,10 +449,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             #
             self._calculate_remainig_using_first_interval(Nt)
 
-        # FIXME: to be deleted
-        #if show_progress:
-        #    print("...done")
-            
             
     def _elemental_step_TimeIndep(self, t0, dens_dt, Nt):
         """Single elemental step of propagation with the dense time step
@@ -448,9 +462,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
-            # FIXME: to be deleted
-            #if show_progress:
-            #    self._progress(Nt, dim, 0, n, 0)
             for m in range(dim):
                 rhonm0.data[n,m] = 1.0
                 rhot = prop.propagate(rhonm0)
@@ -511,9 +522,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         Udt = self.data[1,:,:,:,:]
         
         for ti in range(2, Nt):
-            # FIXME: to be deleted
-            #if show_progress:
-            #    print("Self propagation: ", ti, "of", Nt)            
+           
             self.data[ti,:,:,:,:] = \
                 numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])        
 
@@ -815,51 +824,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         return fdat, freq        
         
-
-    #
-    # Calculation `progressbar`
-    #
-
-    # def _estimate_remaining_loops(self, Nt, dim, ti, n, m):
-    #     return (dim-n)*dim 
-        
-    
-    # def _init_progress(self):
-    #     self.ccount = 0
-    #     self.strtime = time.time()
-    #     self.oldtime = self.strtime
-    #     self.remlast = 0
-        
-        
-    # def _progress(self, Nt, dim, ti, n, m):
-        
-    #     curtime = time.time()
-    #     #dt = curtime - self.oldtime
-    #     Dt = curtime - self.strtime
-    #     self.oldtime = curtime
-    #     self.ccount += 1
-         
-    #     dt_past = Dt/(self.ccount*dim)
-        
-    #     remloops = self._estimate_remaining_loops(Nt, dim, ti, n, m)
-        
-    #     remtime = int(remloops*(dt_past))
-        
-    #     txt1 = "Propagation cycle "+str(ti)+" of "+str(Nt)+ \
-    #            " : ("+str(n)+" of "+str(dim)+")"
-    #     if True:
-    #     #if remtime <= self.remlast:
-    #         txt2 = " : remaining time "+str(remtime)+" sec"
-    #     #else:
-    #     #    txt2 = " : remaining time ... calculating"
-    #     tlen1 = len(txt1)
-    #     tlen2 = len(txt2)
-        
-    #     rem = 65 - tlen1 - tlen2
-    #     txt = "\r"+txt1+(" "*rem)+txt2
-    #     print(txt, end="\r")
-        
-    #     self.remlast = remtime
 
 
     def __str__(self):
