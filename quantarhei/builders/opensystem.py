@@ -482,8 +482,8 @@ class OpenSystem:
             raise Exception()
         else:
             # FIXME: is the eigenbases needed???
-            with eigenbasis_of(ham):
-                prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
+            #with eigenbasis_of(ham):
+            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
 
         return prop
 

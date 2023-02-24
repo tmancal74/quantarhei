@@ -22,7 +22,8 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
     def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
         super().__init__(ham, sbi, initialize, cutoff_time)
-
+        
+        self.is_time_dependent = True
         
     def initialize(self):
         
@@ -33,6 +34,7 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
         #
         Na = self.dim
         self.data = numpy.zeros((Nt,Na,Na,Na,Na),dtype=numpy.complex128)
+        
         
         with energy_units("int"):
 

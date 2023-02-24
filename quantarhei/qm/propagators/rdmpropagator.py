@@ -357,6 +357,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 ###############################################################                    
                 else:
 
+                    #
+                    #  Section used by Time-independent Redfield and similar
+                    #
+
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=4)
@@ -516,8 +520,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     def __propagate_short_exp_with_relaxation(self, rhoi, L=4):
         """Integration by short exponentional expansion
         
-        Integration by expanding exponential to Lth order
+        Integration by expanding exponential to Lth order. Time independent
+        relaxation tensor
               
+        
+        ***** VERIFIED ROUTINE *****
               
         """
         
@@ -533,18 +540,25 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         rho1 = rhoi.data
         rho2 = rhoi.data
-        
-        #HH = self.Hamiltonian.data  
+         
         #
         # RWA is applied here
         #
         if self.Hamiltonian.has_rwa:
+            #bdiag = numpy.diag(self.Hamiltonian.data)
             HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            #adiag = numpy.diag(HH)
+            #for ii in range(self.Hamiltonian.dim):
+            #    print(ii, bdiag[ii], adiag[ii])
+            #raise Exception("STOP HERE")
         else:
             HH = self.Hamiltonian.data
             
         RR = self.RelaxationTensor.data
 
+        #
+        #  Propagation with aditional pure dephasing
+        #
         if self.has_PDeph:
             
             if self.PDeph.dtype == "Lorentzian":
@@ -580,7 +594,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     
                 pr.data[indx,:,:] = rho2 
                 indx += 1   
-                
+        #
+        #  Standard propagation with Hamiltonian and relaxation
+        #        
         else:
             
             indx = 1
@@ -600,7 +616,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     
                 pr.data[indx,:,:] = rho2 
                 indx += 1   
-           
 
         if self.Hamiltonian.has_rwa:
             pr.is_in_rwa = True

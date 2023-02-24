@@ -12,6 +12,8 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
     
     """
     
+    is_time_dependent = False
+    
     def __init__(self):
         
         self._initialize_basis()
@@ -22,6 +24,8 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         
         self.Iterm = None
         self.has_Iterm = False
+        
+        
 
  
     def _initialize_basis(self):

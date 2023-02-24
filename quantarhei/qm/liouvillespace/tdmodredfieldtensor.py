@@ -47,7 +47,9 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor):
             
         else:
             self._data_initialized = False
-            
+        
+        self.is_time_dependent = True
+        
 
     def initialize(self):
         
@@ -84,5 +86,5 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor):
             #
             self.updateStructure()
 
-
+        
 

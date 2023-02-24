@@ -247,11 +247,15 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.relt = relt
         self.mode = mode
         self.pdeph = pdeph
+        self.block = block
         
         try:
             self.dim = ham.dim
         except:
             self.dim = 1
+
+        # keeps track of RWA
+        self.is_in_rwa = False
         
         self.dense_time = None
         self.set_dense_dt(1)
@@ -262,11 +266,11 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         Nt = self.time.length
         
         # if bock is not defined (default), we use the full size
-        if block is None:   
+        if self.block is None:   
             N1 = self.dim
             N2 = self.dim
             
-        elif block == (0,1):
+        elif self.block == (0,1):
             N1 = self.dim
             N2 = self.dim
         
@@ -431,6 +435,12 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 self.data[ti,:,:,:,:] = \
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
                              
+        elif self.relt.is_time_dependent:
+            
+            #
+            # Time dependent relaxation tensor requires a complete calculation
+            #
+            self._all_steps_time_dep()
                 
         else:
             
@@ -448,6 +458,11 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # repeat propagation over the longer interval
             #
             self._calculate_remainig_using_first_interval(Nt)
+            
+        
+        if self.ham.has_rwa:
+            # evolution was calculated in RWA
+            self.is_in_rwa = True
 
             
     def _elemental_step_TimeIndep(self, t0, dens_dt, Nt):
@@ -495,6 +510,34 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 rhonm0.data[n,m] = 0.0
                 #self.now += 1
         return Ut1
+
+
+    def _all_steps_time_dep(self):
+        """Calculates a complete evolution superoperator
+        
+        """
+        
+        dim = self.dim
+        time = self.time
+        
+        prop = ReducedDensityMatrixPropagator(time, self.ham,
+                                              RTensor=self.relt)
+        
+        prop.setDtRefinement(self.dense_time.length-1)
+        
+        #print(time.length, time.step, self.dense_time.length-1)
+        
+        rhonm0 = ReducedDensityMatrix(dim=dim)
+
+        for n in range(dim):
+            for m in range(dim):
+                rhonm0.data[n,m] = 1.0
+                rhot = prop.propagate(rhonm0)
+                self.data[:,:,:,n,m] = rhot.data[:,:,:]
+                #if n != m:
+                #    self.data[:,:,:,m,n] = numpy.conj()
+                rhonm0.data[n,m] = 0.0
+            
 
 
     def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt):
@@ -824,6 +867,66 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         return fdat, freq        
         
+
+    def convert_from_RWA(self, ham=None, sgn=1):
+        """Converts evolution superoperator from RWA to standard repre
+        
+        
+        Parameters
+        ----------
+        
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA. If none is
+            specified, internal Hamiltonian is used. This is the most
+            natural use of this function.
+            
+        sgn : {1, -1}
+            Forward (1) or backward (-1) conversion. Default sgn=1 corresponds
+            to the function name. Backward conversion sgn=-1 is called from
+            the inverse routine.
+        """
+        
+        if ham is None:
+            ham = self.ham
+            
+        if (self.is_in_rwa and sgn == 1) or sgn == -1:
+            
+            HOmega = ham.get_RWA_skeleton()
+            
+            for i, t in enumerate(self.time.data):
+                # evolution operator
+                Ut = numpy.diag(numpy.diag(numpy.exp(-sgn*1j*HOmega*t)))
+                Uc = numpy.conj(Ut)
+                
+                # revert RWA
+                dim = self.ham.dim
+                for aa in range(dim):
+                    for bb in range(dim):
+
+                        self.data[i,aa,bb,:,:] = \
+                            Ut[aa]*Uc[bb]*self.data[i,aa,bb,:,:]
+
+                
+        if sgn == 1:
+            self.is_in_rwa = False
+
+
+    def convert_to_RWA(self, ham):
+        """Converts evolution superoperator from standard repre to RWA
+
+
+        Parameters
+        ----------
+        
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA
+            
+        """        
+        if not self.is_in_rwa:
+            self.convert_from_RWA(ham, sgn=-1)
+            self.is_in_rwa = True
+            
+
 
 
     def __str__(self):

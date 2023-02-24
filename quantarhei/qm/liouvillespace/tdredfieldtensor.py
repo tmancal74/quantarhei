@@ -6,8 +6,7 @@ from .redfieldtensor import RedfieldRelaxationTensor
 from ...core.time import TimeDependent
 
 class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
-    
-    
+
     
     def _implementation(self, ham, sbi):
         """ Reference implementation, completely in Python
@@ -160,6 +159,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 self._data_initialized = True
 
         self._is_initialized = True
+        self.is_time_dependent = True
 
     
     def _convert_operators_2_tensor(self, Km, Lm, Ld):
