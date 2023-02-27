@@ -59,6 +59,15 @@ and
 
 through grants: 14-25752S (2014-2016), 17-22160S (2017-2019) and 18-18022S (2018-2020)
 
+
+New in 0.0.66
+=============
+
+for users:
+ - Quantarhei starts enforcing usage of 'energy_units' context with some function. When energy values are set, it will be compulsary to use the 'energy_units' context manager. The introduction of this feature may take several Quantarhei versions.
+ - bug fixes
+
+
 New in 0.0.65
 =============
 
