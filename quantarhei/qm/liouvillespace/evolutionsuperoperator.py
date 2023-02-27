@@ -196,14 +196,13 @@ from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.time import TimeAxis
 from ...core.saveable import Saveable
 
+
 from .superoperator import SuperOperator
 from ...core.time import TimeDependent
 from ... import COMPLEX
 from ... import REAL
 import matplotlib.pyplot as plt
 
-#import quantarhei as qr
-from ...core.managers import Manager
 from ...core.dfunction import DFunction
 
 
@@ -400,7 +399,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     self.data[i,j,i,j] = 1.0
         
         
-
     def calculate(self, show_progress=False):
         """Calculates the data of the evolution superoperator
         
@@ -412,14 +410,16 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             When set True, reports on its progress and elapsed time
         
         
+        This function MUST NOT be called from within an eigenbasis_of context
+        
         """
         
         #
         #  FIXME: This functionality should be achieved by a decorator
         #
-        if Manager()._in_eigenbasis_of_context:
-            raise Exception("This function MUST be called outside"+
-                            " a basis context")
+        #if Manager()._in_eigenbasis_of_context:
+        #    raise Exception("This function MUST be called outside"+
+        #                    " a basis context")
         
         if self.mode != "all":
             raise Exception("This method (calculate()) can be used only"+

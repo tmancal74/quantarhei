@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from functools import wraps
-import os
+#import os
+
+from .managers import Manager
    
    
 def deprecated(func):
@@ -11,4 +13,24 @@ def deprecated(func):
     return wrapper
     
     
-    
+
+def prevent_basis_context(func):
+    @wraps(func)
+    def wrapper(*arg,**kwargs):
+        m = Manager()
+        if m._in_eigenbasis_of_context and m._enforce_contexts:
+            raise Exception("This function MUST NOT be called"+
+                            " from within an 'eigenbasis_of' context.")
+        return func(*arg,**kwargs)
+    return wrapper        
+
+
+def enforce_basis_context(func):
+    @wraps(func)
+    def wrapper(*arg,**kwargs):
+        m = Manager()
+        if (not m._in_eigenbasis_of_context) and m._enforce_contexts:
+            raise Exception("This function MUST be called"+
+                            " from within an 'eigenbasis_of' context.")
+        return func(*arg,**kwargs)
+    return wrapper 

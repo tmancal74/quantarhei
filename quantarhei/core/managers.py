@@ -175,6 +175,7 @@ class Manager(metaclass=Singleton):
         #
         # Flags for all contexts which are enforced or prevented by functions
         #
+        self._enforce_contexts = True
         self._in_eigenbasis_of_context = False
         self._in_energy_units_context = False
 
