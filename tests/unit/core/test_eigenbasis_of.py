@@ -60,7 +60,6 @@ class TestEigenbasisOf(unittest.TestCase):
         self.assertTrue(numpy.allclose(self.H.data,self.h_copy))
         
         
-        
     def test_of_many_contexts_single_var(self):
         """Testing single operator in nested basis management contexts
         
@@ -76,6 +75,7 @@ class TestEigenbasisOf(unittest.TestCase):
         h_copy_tr2 = numpy.dot(Sb1,numpy.dot(h_copy_tr1,Sb))   
         
         with eigenbasis_of(self.H):
+            
             # in context 1
             #print("In 1",self.H.manager.get_current_basis())
             self.assertTrue(numpy.allclose(self.H.data,h_copy_tr1))
@@ -87,7 +87,7 @@ class TestEigenbasisOf(unittest.TestCase):
             # in context 1
             #print("Out 2 in 1",self.H.manager.get_current_basis())
             self.assertTrue(numpy.allclose(self.H.data,h_copy_tr1))
-        
+            
         # outside contexts
         #print("Out 1",self.H.manager.get_current_basis())
         self.assertTrue(numpy.allclose(self.H.data,self.h_copy))

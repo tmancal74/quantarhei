@@ -169,7 +169,7 @@ class TestRDMPropagator(unittest.TestCase):
         #numpy.testing.assert_allclose(rhot1.data, rhot2.data, rtol=8.0e-2)
         
         
-        _show_plot_ = True
+        _show_plot_ = False
         if _show_plot_:
             import matplotlib.pyplot as plt
             with eigenbasis_of(HH):

@@ -199,9 +199,13 @@ from ...core.saveable import Saveable
 from .superoperator import SuperOperator
 from ...core.time import TimeDependent
 from ... import COMPLEX
+from ... import REAL
 import matplotlib.pyplot as plt
 
-import quantarhei as qr
+#import quantarhei as qr
+from ...core.managers import Manager
+from ...core.dfunction import DFunction
+
 
 #from ...utils.types import BasisManagedComplexArray
 
@@ -281,7 +285,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             
         if (self.time is not None) and (self.mode == "all"):
             
-            self.data = numpy.zeros((Nt, N1, N2, N1, N2), dtype=qr.COMPLEX)
+            self.data = numpy.zeros((Nt, N1, N2, N1, N2), dtype=COMPLEX)
             #
             # zero time value (unity superoperator)
             #
@@ -293,7 +297,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         else:
             
             self.data = numpy.zeros((self.dim, self.dim, self.dim, self.dim),
-                                dtype=qr.COMPLEX) 
+                                dtype=COMPLEX) 
             #
             # zero time value (unity superoperator)
             #
@@ -370,7 +374,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             Nt = self.time.length                    
             self.data = numpy.zeros((Nt, self.dim, self.dim,
                                          self.dim, self.dim),
-                                         dtype=qr.COMPLEX)
+                                         dtype=COMPLEX)
             #
             # zero time value (unity superoperator)
             #
@@ -385,7 +389,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             if self.dim != self.data.shape[0]:
                 self.data = numpy.zeros((self.dim, self.dim,
                                          self.dim, self.dim),
-                                         dtype=qr.COMPLEX)
+                                         dtype=COMPLEX)
 
             #
             # zero time value (unity superoperator)
@@ -409,6 +413,14 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         
         """
+        
+        #
+        #  FIXME: This functionality should be achieved by a decorator
+        #
+        if Manager()._in_eigenbasis_of_context:
+            raise Exception("This function MUST be called outside"+
+                            " a basis context")
+        
         if self.mode != "all":
             raise Exception("This method (calculate()) can be used only"+
                             " with mode='all'")
@@ -843,8 +855,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
 
         if window is None:
-            winfce = qr.DFunction(self.time, 
-                               numpy.ones(self.time.length, dtype=qr.REAL))
+            winfce = DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=REAL))
         else:
             winfce = window
             
@@ -856,7 +868,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         time = self.time
         freq = time.get_FrequencyAxis()
         
-        ffce = qr.DFunction(freq, fdat)
+        ffce = DFunction(freq, fdat)
         
         return ffce
     
@@ -879,8 +891,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
 
         if window is None:
-            winfce = qr.DFunction(self.time, 
-                               numpy.ones(self.time.length, dtype=qr.REAL))
+            winfce = DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=REAL))
         else:
             winfce = window
             

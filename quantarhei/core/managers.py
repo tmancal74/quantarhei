@@ -1082,8 +1082,11 @@ class eigenbasis_of(basis_context_manager):
             
         del self.manager.basis_registered[bb]
 
-        self.manager._in_eigenbasis_of_context = True
+        
+        if len(self.manager.basis_stack) == 1:
+            self.manager._in_eigenbasis_of_context = False
 
+        
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")        
             
