@@ -381,4 +381,18 @@ class ValueAxis(Saveable):
         
         return ret
     
+    def __str__(self):
+        """String representation of the ValueAxis object
+        
+        """
+        
+        out  = "\nquantarhei.ValueAxis object" 
+        out += "\n=========================="
+        out += "\nstart = "+str(self.start)
+        out += "\nlength = "+str(self.length)
+        out += "\nstep = "+str(self.step)
+
+            
+        return out    
+    
     

@@ -172,6 +172,11 @@ class Manager(metaclass=Singleton):
                 
         self.current_basis_operator = None
 
+        #
+        # Flags for all contexts which are enforced or prevented by functions
+        #
+        self._in_eigenbasis_of_context = False
+        self._in_energy_units_context = False
 
 
 
@@ -1012,6 +1017,8 @@ class eigenbasis_of(basis_context_manager):
         
     def __enter__(self):
 
+        self.manager._in_eigenbasis_of_context = True
+        
         if self.manager.warn_about_basis_change:
             print("\nQr >>> Entering basis context manager ...")
             
@@ -1074,6 +1081,8 @@ class eigenbasis_of(basis_context_manager):
         self.manager.remove_current_basis_operator()
             
         del self.manager.basis_registered[bb]
+
+        self.manager._in_eigenbasis_of_context = True
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")        

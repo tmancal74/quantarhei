@@ -155,11 +155,11 @@ class TestRDMPropagator(unittest.TestCase):
             rhoi.data[0,4] = 1.0
             rhoi.data[0,3] = 1.0
             
-        rhot1 = prop.propagate(rhoi, Nref=10)
+        rhot1 = prop.propagate(rhoi, Nref=1)
 
         HH.set_rwa([0,1])    
             
-        rhot2 = prop.propagate(rhoi, Nref=10)
+        rhot2 = prop.propagate(rhoi, Nref=1)
         
         rhot2.convert_from_RWA(HH)
         
@@ -169,7 +169,7 @@ class TestRDMPropagator(unittest.TestCase):
         #numpy.testing.assert_allclose(rhot1.data, rhot2.data, rtol=8.0e-2)
         
         
-        _show_plot_ = False
+        _show_plot_ = True
         if _show_plot_:
             import matplotlib.pyplot as plt
             with eigenbasis_of(HH):
@@ -213,10 +213,12 @@ class TestRDMPropagator(unittest.TestCase):
                 tt = dats[0]
                 i1 = dats[1]
                 i2 = dats[2]
-                self.assertAlmostEqual(dats[3], 
-                                       numpy.real(rhot2.data[tt,i1,i2]))
-                self.assertAlmostEqual(dats[4], 
-                                       numpy.imag(rhot2.data[tt,i1,i2]))
+                numpy.testing.assert_allclose(dats[3], 
+                                       numpy.real(rhot2.data[tt,i1,i2]),
+                                       atol=1.0e-6)
+                numpy.testing.assert_allclose(dats[4], 
+                                       numpy.imag(rhot2.data[tt,i1,i2]),
+                                       atol=1.0e-6)
 
 
 

@@ -519,11 +519,41 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         
         dim = self.dim
         time = self.time
+
+        # time axis of the relaxation operator
+        systime = self.relt.SystemBathInteraction.TimeAxis
+        
+        if not time.is_subset_of(systime):
+            
+            raise Exception("Incompatible time axes"+
+                            " (RelaxationTensor vs. EvolutionSuperOperator)")
+            
+        # # requested number of refinement steps
+        # if self.dense_time is not None:
+        #     Nref_req = self.dense_time.length-1
+        # else:
+        #     Nref_req = 1
+        
+        # if Nref_max % Nref_req == 0:
+            
+        #     stride = Nref_max//Nref_req
+            
+        # else:
+        #     print("System has a timestep  :", systime.step, "fs")
+        #     print("Propagation timestep is:", time.step, "fs")
+        #     print("ERROR:", Nref_req,"steps of", systime.step,"fs do not fit"+
+        #           " neatly into a step of", time.step,"fs")
+        #     raise Exception("Incompatible number of refinement steps")
+        
+        
+        # print("A stride over system time:", stride)
+        
         
         prop = ReducedDensityMatrixPropagator(time, self.ham,
                                               RTensor=self.relt)
         
-        prop.setDtRefinement(self.dense_time.length-1)
+        Nref = self.dense_time.length-1
+        prop.setDtRefinement(Nref)
         
         #print(time.length, time.step, self.dense_time.length-1)
         

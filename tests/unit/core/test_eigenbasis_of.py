@@ -16,6 +16,7 @@ import numpy
 
 from quantarhei import eigenbasis_of
 from quantarhei import REAL
+from quantarhei import Manager
 from .test_BasisManaged import BasisManagedObject
     
         
@@ -53,6 +54,8 @@ class TestEigenbasisOf(unittest.TestCase):
         
         with eigenbasis_of(self.H):
             self.assertTrue(numpy.allclose(self.H.data,h_copy_tr))
+            
+            self.assertTrue(Manager()._in_eigenbasis_of_context)
         
         self.assertTrue(numpy.allclose(self.H.data,self.h_copy))
         

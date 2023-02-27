@@ -1113,7 +1113,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             cutoff_indx = \
             self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
         else:
-            cutoff_indx = self.TimeAxis.length
+            sbi = self.RelaxationTensor.SystemBathInteraction
+            cutoff_indx = sbi.TimeAxis.length
             
         indx = 1
         indxR = 1
@@ -1134,24 +1135,46 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # Propagate with time-dependent relaxation tensor and inhomogeneous
         # term if there is one.
         #
-        for ii in self.TimeAxis.data[1:self.Nt]:
-
-            RR = self.RelaxationTensor.data[indxR,:,:,:,:]
-            if self.has_Iterm:
-                IR = self.RelaxationTensor.Iterm[indxR,:,:]
-            else:
-                IR = 0.0
-                
-            #print(IR, self.has_Iterm)
+        sysstep = self.RelaxationTensor.SystemBathInteraction.TimeAxis.step
+        Nref_max = round(self.TimeAxis.step/sysstep)
+        Nref_req = self.Nref
+        
+        if Nref_max % Nref_req == 0:
             
-            for jj in range(0,self.Nref):
+            stride = Nref_max//Nref_req
+            
+        else:
+            time = self.TimeAxis
+            print("Relaxation tensor has a timestep  :", sysstep, "fs")
+            print("Propagation timestep is:", time.step, "fs")
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+                  " neatly into a step of", time.step,"fs")
+            raise Exception("Incompatible number of refinement steps")
+            
+        IR = 0.0 
+        dt = sysstep*stride
+        for ii in self.TimeAxis.data[1:self.Nt]:
+            
+            for jj in range(self.Nref):
+                
+                
+                RR = self.RelaxationTensor.data[indxR,:,:,:,:]
+                if self.has_Iterm:
+                    IR = self.RelaxationTensor.Iterm[indxR,:,:]                           
+                
                 for ll in range(1,L+1):
                     
-                    rho1 =  (self.dt/ll)*(numpy.tensordot(RR,rho1) \
+                    rho1 =  (dt/ll)*(numpy.tensordot(RR,rho1) \
                        - 1j*(numpy.dot(HH,rho1)- numpy.dot(rho1,HH)) + IR)
                              
                     rho2 = rho2 + rho1
                 rho1 = rho2    
+
+                if indxR < cutoff_indx - 1:                      
+                    indxR += stride
+                else:
+                    indxR = cutoff_indx
+
                 
             pr.data[indx,:,:] = rho2
             
@@ -1159,8 +1182,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             # We respect the tensor cut-off
             #
             indx += 1
-            if indxR < cutoff_indx - 1:                      
-                indxR += 1  
+  
                 
         if self.Hamiltonian.has_rwa:
             pr.is_in_rwa = True

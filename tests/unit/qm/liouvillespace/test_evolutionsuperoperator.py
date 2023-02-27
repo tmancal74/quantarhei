@@ -490,9 +490,9 @@ class TestEvSupOp(unittest.TestCase):
         #
         # calculation of evolution superoperator
         #
-        time_eop = TimeAxis(0.0, 1000, 1.0)
+        time_eop = TimeAxis(0.0, 100, 10.0)
         UUi = EvolutionSuperOperator(time=time_eop, ham=HH, relt=RTi)
-        UUi.set_dense_dt(1)
+        UUi.set_dense_dt(10)
         self.assertFalse(UUi.is_in_rwa)
 
         UUi.calculate()
@@ -563,7 +563,7 @@ class TestEvSupOp(unittest.TestCase):
                 plt.plot(time_eop.data, 
                          numpy.real(UUi.data[:, 0, n2, 0, n2]),"-b")
                 plt.plot(time.data, numpy.real(rhot_a.data[:, 0, n2]),"--")
-                plt.plot(time.data, numpy.real(saved_data[1, :]),"-k")
+                #plt.plot(time.data, numpy.real(saved_data[1, :]),"-k")
                 # plt.plot(time_eop.data, numpy.real(UU.data[:, 2,2,2,2]))
                 # plt.plot(time_eop.data, numpy.real(UU.data[:, 3,3,3,3]))
                 # plt.plot(time_eop.data, numpy.real(UU.data[:, 2,3,2,3]))
