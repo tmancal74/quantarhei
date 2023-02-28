@@ -831,6 +831,33 @@ class LabSetup:
         """
         return self.omega[k]
     
+    
+    def get_field(self, k, rwa=0.0):
+        """Returns an EField object corresponding to the k-th field
+        
+        """
+
+        ef = EField(self.timeaxis,omega=self.omega[k],polar=self.e[k,:],
+                    ftype="Data", data=self.pulse_t[k].data)
+        ef.subtract_omega(rwa)
+        
+        return ef
+    
+    
+    def get_fields(self, rwa=0.0):
+        """Retruns a list of EField objects for the lab's pulses
+        
+        """
+        
+        fields = []*self.number_of_pulses
+        for kk in range(self.number_of_pulses):
+            
+            ff = self.get_field(kk, rwa=rwa)
+            fields[kk] = ff
+            
+        return fields
+    
+    
  
 class labsetup(LabSetup):
     pass
@@ -844,7 +871,7 @@ class EField():
     """
     
     def __init__(self, time, omega=0.0, polar=[1.0, 0.0, 0.0], 
-                 ftype="Gaussian", params=None):
+                 ftype="Gaussian", params=None, data=None):
         
         self.time = time
         # FIXME: energy conversion
@@ -853,6 +880,10 @@ class EField():
         
         if ftype=="Gaussian":
             
+            if data is None:
+                raise Exception("Data have to be provided"+
+                                " for data defined EField")
+                
             self.ftype=ftype
             self.Emax = params["Emax"]
             # FIXME: energy conversion
@@ -863,6 +894,16 @@ class EField():
                      *numpy.exp(-numpy.log(2.0)*((self.time.data
                                 -self.tc)/self.fwhm)**2) \
                      /self.fwhm
+
+        elif ftype=="Data":
+            
+            if data is None:
+                raise Exception("Data have to be provided"+
+                                " for data defined EField")
+
+            self.ftype = ftype
+            self.envelop = data
+
 
 
     def subtract_omega(self, om):
