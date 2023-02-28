@@ -279,7 +279,10 @@ class TestMoleculeVibrations(unittest.TestCase):
                   "T":300.0,
                   "reorg":30,
                   "cortime":100}
-        cfcion = CorrelationFunction(timeAxis,params)
+        
+        with energy_units("int"):
+            cfcion = CorrelationFunction(timeAxis,params)
+            
         self.m2.set_egcf((0,1),cfcion)
         self.m2.set_egcf((0,2),cfcion)
         

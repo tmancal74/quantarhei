@@ -391,7 +391,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> from .. import TimeAxis 
         >>> ta = TimeAxis(0.0,1000,1.0)
         >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
-        >>> cf = CorrelationFunction(ta, params)
+        >>> with energy_units("1/cm"):
+        ...     cf = CorrelationFunction(ta, params)
         >>> m = Molecule([0.0, 1.0])
         >>> m.set_transition_environment((0,1), cf)
         >>> print(m._has_system_bath_coupling)
@@ -408,7 +409,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         The environment cannot be set when the molecule is mapped on 
         a correlation function matrix
 
-        >>> cf1 = CorrelationFunction(ta, params)
+        >>> with energy_units("1/cm"):
+        ...     cf1 = CorrelationFunction(ta, params)
         >>> cm = CorrelationFunctionMatrix(ta,1)
         >>> ic1 = cm.set_correlation_function(cf1,[(0,0)])
         >>> m1 = Molecule([0.0, 1.0])
@@ -457,7 +459,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> from .. import TimeAxis 
         >>> ta = TimeAxis(0.0,1000,1.0)
         >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
-        >>> cf = CorrelationFunction(ta, params)
+        >>> with energy_units("1/cm"):
+        ...     cf = CorrelationFunction(ta, params)
         >>> m = Molecule([0.0, 1.0])
         >>> m.set_transition_environment((0,1), cf)
         >>> print(m._has_system_bath_coupling)
@@ -477,7 +480,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         The environment cannot be unset when the molecule is mapped on 
         a correlation function matrix
 
-        >>> cf1 = CorrelationFunction(ta, params)
+        >>> with energy_units("1/cm"):
+        ...     cf1 = CorrelationFunction(ta, params)
         >>> cm = CorrelationFunctionMatrix(ta,1)
         >>> ic1 = cm.set_correlation_function(cf1,[(0,0)])
         >>> m1 = Molecule([0.0, 1.0])
@@ -540,7 +544,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> from .. import TimeAxis 
         >>> ta = TimeAxis(0.0,1000,1.0)
         >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
-        >>> cf = CorrelationFunction(ta, params)        
+        >>> with energy_units("1/cm"):
+        ...     cf = CorrelationFunction(ta, params)        
         >>> m.set_transition_environment((0,1), cf)
         >>> cc = m.get_transition_environment((0,1))
         >>> cc == cf
@@ -1013,7 +1018,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> from .. import TimeAxis 
         >>> ta = TimeAxis(0.0,1000,1.0)
         >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
-        >>> cf = CorrelationFunction(ta, params)
+        >>> with energy_units("1/cm"):
+        ...     cf = CorrelationFunction(ta, params)
         >>> m = Molecule([0.0, 1.0])
         >>> m.set_transition_environment((0,1), cf)
         >>> print(m.get_temperature())
@@ -1060,8 +1066,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         ...                reorg=20,cortime=100,T=300)
         >>> params2 = dict(ftype="OverdampedBrownian",
         ...                reorg=20,cortime=100,T=200)
-        >>> cf1 = CorrelationFunction(ta, params1)
-        >>> cf2 = CorrelationFunction(ta, params2)
+        >>> with energy_units("1/cm"):
+        ...     cf1 = CorrelationFunction(ta, params1)
+        ...     cf2 = CorrelationFunction(ta, params2)
         >>> m.set_transition_environment((0,1), cf1)
         >>> m.set_transition_environment((0,2), cf2)
         >>> print(m.get_temperature())

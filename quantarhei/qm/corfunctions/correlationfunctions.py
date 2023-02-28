@@ -53,6 +53,7 @@ from ...core.managers import UnitsManaged
 from ...core.managers import energy_units
 from ...core.time import TimeAxis
 from ...core.frequency import FrequencyAxis
+from ...core.wrappers import enforce_energy_units_context
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
@@ -91,6 +92,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
     energy_params = ("reorg", "omega", "freq", "fcp", "g_FWHM", "l_FWHM",\
                      "freq1", "freq2", "gamma")
 
+    @enforce_energy_units_context
     def __init__(self, axis=None, params=None , values=None):
         super().__init__()
         
@@ -98,6 +100,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             # FIXME: values might also need handling according to specified 
             # energy units
+            #self.energy_units = self.manager.get_current_units("energy")
     
             # handle axis (it can be TimeAxis or FrequencyAxis)
             if not isinstance(axis, TimeAxis):
@@ -499,8 +502,10 @@ class CorrelationFunction(DFunction, UnitsManaged):
         t1 = self.axis
         t2 = other.axis
         if t1 == t2:
-                      
-            f = CorrelationFunction(t1, params=self.params)
+             
+            with energy_units("int"):
+                f = CorrelationFunction(t1, params=self.params)
+            #f = self.deepcopy()
             f.add_to_data(other)
             
         else:
@@ -549,7 +554,10 @@ class CorrelationFunction(DFunction, UnitsManaged):
         
         """
         if self == other:
-            ocor = CorrelationFunction(other.axis,other.params)
+            #print(other.energy_units)
+            #print(other.params)
+            with energy_units("int"): #other.energy_units):
+                ocor = CorrelationFunction(other.axis,other.params)
         else:
             ocor = other
             
@@ -640,8 +648,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Creates a copy of the current correlation function
 
         """
-        #with energy_units(self.energy_units):
-        cfce = CorrelationFunction(self.axis, self.params)
+        with energy_units("int"):
+            cfce = CorrelationFunction(self.axis, self.params)
         return cfce
 
 

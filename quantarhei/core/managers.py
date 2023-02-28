@@ -177,7 +177,9 @@ class Manager(metaclass=Singleton):
         #
         self._enforce_contexts = True
         self._in_eigenbasis_of_context = False
+        self._in_eb_count = 0
         self._in_energy_units_context = False
+        self._in_eu_count = 0
 
 
 
@@ -949,9 +951,14 @@ class energy_units(units_context_manager):
         # save current energy units
         self.units_backup = self.manager.get_current_units("energy")
         self.manager.set_current_units(self.utype,self.units)
+        self.manager._in_energy_units_context = True
+        self.manager._in_eu_count += 1
         
     def __exit__(self,ext_ty,exc_val,tb):
         self.manager.set_current_units("energy",self.units_backup)
+        self.manager._in_eu_count -= 1
+        if self.manager._in_eu_count == 0:
+            self.manager._in_energy_units_context = False
         
         
 class frequency_units(energy_units):
