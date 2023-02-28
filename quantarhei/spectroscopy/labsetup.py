@@ -70,6 +70,8 @@ class LabSetup:
         self.pulse_f = [None]*nopulses
         
         self.omega = None
+        self.pulse_centers = None
+        self.phases = None
         
                         
 
@@ -286,6 +288,18 @@ class LabSetup:
         else:
             raise Exception("Wrong axis paramater")
 
+
+        if self.pulse_centers is None:
+            print("Use 'set_pulse_arrival_times' function before this function.")
+            raise Exception("Pulse arrival times have to specified before "+
+                            "the pulse shape is set.")
+
+        if self.phases is None:
+            print("Use 'set_pulse_phases' function before this function.")
+            raise Exception("Pulse phases have to specified before "+
+                            "the pulse shape is set.")
+
+
         if len(params) == self.number_of_pulses:
         
             k_p = 0
@@ -367,7 +381,7 @@ class LabSetup:
             raise Exception(text)
             
 
-    def set_polarizations(self, pulse_polarizations=(X, X, X), 
+    def set_pulse_polarizations(self, pulse_polarizations=(X, X, X), 
                          detection_polarization=X):
         """Sets polarizations of the experimental pulses
         
@@ -389,7 +403,7 @@ class LabSetup:
         
         >>> import quantarhei as qr
         >>> lab = LabSetup()
-        >>> lab.set_polarizations(pulse_polarizations=(qr.utils.vectors.X,
+        >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
         ...                                            qr.utils.vectors.Y,
         ...                                            qr.utils.vectors.Z))
         >>> print(lab.e[0,:])
@@ -400,7 +414,7 @@ class LabSetup:
         [ 0.  0.  1.]
         
         
-        >>> lab.set_polarizations(pulse_polarizations=(qr.utils.vectors.X,
+        >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
         ...                                            qr.utils.vectors.Y)) 
         Traceback (most recent call last):
             ...
@@ -441,7 +455,7 @@ class LabSetup:
         
         >>> import quantarhei as qr
         >>> lab = LabSetup()
-        >>> lab.set_polarizations(pulse_polarizations=(qr.utils.vectors.X,
+        >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
         ...                                            qr.utils.vectors.Y,
         ...                                            qr.utils.vectors.Z))
         >>> pols = lab.get_pulse_polarizations()
@@ -465,7 +479,7 @@ class LabSetup:
         
         >>> import quantarhei as qr
         >>> lab = LabSetup()
-        >>> lab.set_polarizations(pulse_polarizations=(qr.utils.vectors.X,
+        >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
         ...                                            qr.utils.vectors.Y,
         ...                                            qr.utils.vectors.Z))
         >>> detpol = lab.get_detection_polarization()
@@ -830,6 +844,150 @@ class LabSetup:
             
         """
         return self.omega[k]
+    
+    
+    def set_pulse_arrival_times(self, times):
+        """Sets the arrival time (i.e. centers) of the pulses
+ 
+        Parameters
+        ----------
+        
+        times : array of floats
+            Arrival times (centers) of the pulses
+        
+        Examples
+        --------
+        
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
+        >>> print(lab.pulse_centers)
+        [1.0, 20.0, 100.0]
+        
+        Situation which throws an exception
+
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_arrival_times([1.0, 2.0, 1.0, 6.0])       
+        Traceback (most recent call last):
+            ...
+        Exception: Wrong number of arrival times: 3 required
+ 
+        """
+        if len(times) == self.number_of_pulses:
+            
+            self.pulse_centers = times
+            
+        else:
+            raise Exception("Wrong number of arrival times: "+
+                            str(self.number_of_pulses)+" required")        
+        
+
+    def get_pulse_arrival_times(self):
+        """Returns frequency of the pulse with index k
+        
+           
+        Examples
+        --------
+        
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
+        >>> print(lab.get_pulse_arrival_times())
+        [1.0, 20.0, 100.0]
+            
+        """
+        return self.pulse_centers
+
+
+    def get_pulse_arrival_time(self, k):
+        """Returns frequency of the pulse with index k
+        
+        Parameters
+        ----------
+        
+        k : int
+            Pulse index
+           
+        Examples
+        --------
+        
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
+        >>> print(lab.get_pulse_arrival_time(1))
+        20.0
+            
+        """
+        return self.pulse_centers[k]
+
+
+    def set_pulse_phases(self, phases):
+        """Sets the phases of the individual pulses 
+ 
+        Parameters
+        ----------
+        
+        phases : array of floats
+            Phases of the pulses
+        
+        Examples
+        --------
+        
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
+        >>> print(lab.phases)
+        [1.0, 3.14, -1.0]
+        
+        Situation which throws an exception
+
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_phases([1.0, 2.0, 1.0, 6.0])       
+        Traceback (most recent call last):
+            ...
+        Exception: Wrong number of phases: 3 required
+ 
+        """
+        if len(phases) == self.number_of_pulses:
+            
+            self.phases = phases
+            
+        else:
+            raise Exception("Wrong number of phases: "+
+                            str(self.number_of_pulses)+" required") 
+
+
+    def get_pulse_phases(self):
+        """Returns frequency of the pulse with index k
+        
+           
+        Examples
+        --------
+        
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
+        >>> print(lab.get_pulse_phases())
+        [1.0, 3.14, -1.0]
+            
+        """
+        return self.phases
+
+
+    def get_pulse_phase(self, k):
+        """Returns frequency of the pulse with index k
+        
+        Parameters
+        ----------
+        
+        k : int
+            Pulse index
+           
+        Examples
+        --------
+        
+        >>> lab = LabSetup()
+        >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
+        >>> print(lab.get_pulse_phase(1))
+        3.14
+            
+        """
+        return self.phases[k]
     
     
     def get_field(self, k, rwa=0.0):
