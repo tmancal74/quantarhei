@@ -135,6 +135,8 @@ class LabSetup:
         
         >>> pulse2 = dict(ptype="Gaussian", FWHM=150, amplitude=1.0)
         >>> params = (pulse2, pulse2, pulse2)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])  # these settings are compulsory
         >>> lab.set_pulse_shapes(time, params)
         
         Testing the pulse shape
@@ -153,6 +155,8 @@ class LabSetup:
             time = qr.TimeAxis(-500.0, 1000, 1.0, atype="complete")
             pulse2 = dict(ptype="Gaussian", FWHM=150.0, amplitude=1.0)
             params = (pulse2, pulse2, pulse2)
+            lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            lab.set_pulse_phases([0.0, 0.0, 0.0])
             lab.set_pulse_shapes(time, params)
             
             dfc = lab.get_pulse_envelop(1, time.data)
@@ -170,6 +174,8 @@ class LabSetup:
         
         >>> pulse1 = dict(ptype="numeric", function=pls)
         >>> params = (pulse1, pulse1, pulse1)
+        >>> lab2.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab2.set_pulse_phases([0.0, 0.0, 0.0])
         >>> lab2.set_pulse_shapes(time, params)
         
         Testing the pulse shape
@@ -187,6 +193,8 @@ class LabSetup:
         ... 
         >>> pulse2 = dict(ptype="Gaussian", FWHM=800, amplitude=1.0)
         >>> params = (pulse2, pulse2, pulse2)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])
         >>> lab.set_pulse_shapes(freq, params)
         
         Testing the pulse shape
@@ -211,6 +219,8 @@ class LabSetup:
             freq = qr.FrequencyAxis(-2500, 1000, 5.0)
             pulse2 = dict(ptype="Gaussian", FWHM=800.0, amplitude=1.0)
             params = (pulse2, pulse2, pulse2)
+            lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            ab.set_pulse_phases([0.0, 0.0, 0.0])
             lab.set_pulse_shapes(freq, params)
             
             freq2 = qr.FrequencyAxis(-1000, 100, 20.0)
@@ -232,6 +242,8 @@ class LabSetup:
         
         >>> pulse1 = dict(ptype="numeric", function=pls)
         >>> params = (pulse1, pulse1, pulse1)
+        >>> lab2.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab2.set_pulse_phases([0.0, 0.0, 0.0])
         >>> lab2.set_pulse_shapes(freq, params)
         
         Testing the pulse shape
@@ -504,6 +516,8 @@ class LabSetup:
         >>> freq = qr.FrequencyAxis(-100, 200, 1.0) # atype="complete" is default
         >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
         >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])
         >>> lab.set_pulse_shapes(freq, params)
         >>> lab.convert_to_time()
         >>> # plot the original and the FT pulses
@@ -521,6 +535,8 @@ class LabSetup:
             freq = qr.FrequencyAxis(-100,200,1.0)
             pulse = dict(ptype="Gaussian", FWHM=5, amplitude=1.0)
             params = (pulse, pulse, pulse)
+            lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            lab.set_pulse_phases([0.0, 0.0, 0.0])
             lab.set_pulse_shapes(freq, params)
             lab.convert_to_time()
             
@@ -539,6 +555,8 @@ class LabSetup:
         >>> freq = qr.FrequencyAxis(-100,200,1.0) # atype="complete" is default
         >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
         >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])        
         >>> lab.set_pulse_shapes(freq, params)
         >>> freq_vals_1 = lab.get_pulse_spectrum(2, freq.data)
         >>> lab.convert_to_time()
@@ -558,6 +576,8 @@ class LabSetup:
         >>> time = qr.TimeAxis(-100,200,1.0, atype="complete")
         >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
         >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])        
         >>> lab.set_pulse_shapes(time, params)  
         >>> time_vals_1 = lab.get_pulse_envelop(2, time.data)
         >>> lab.convert_to_frequency()        
@@ -616,6 +636,8 @@ class LabSetup:
         >>> time = qr.TimeAxis(-100,200,1.0, atype="complete")
         >>> pulse = dict(ptype="Gaussian", FWHM=20, amplitude=1.0)
         >>> params = (pulse, pulse, pulse)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])
         >>> lab.set_pulse_shapes(time, params)
         >>> lab.convert_to_frequency()
         >>> # plot the original and the FT pulses
@@ -633,6 +655,8 @@ class LabSetup:
             time = qr.TimeAxis(-100,200,1.0, atype="complete")
             pulse = dict(ptype="Gaussian", FWHM=5, amplitude=1.0)
             params = (pulse, pulse, pulse)
+            lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            lab.set_pulse_phases([0.0, 0.0, 0.0])
             lab.set_pulse_shapes(time, params)
             lab.convert_to_frequency()
             
@@ -698,6 +722,8 @@ class LabSetup:
         >>> time = qr.TimeAxis(-100, 200, 1.0, atype="complete")
         >>> pulse2 = dict(ptype="Gaussian", FWHM=30.0, amplitude=1.0)
         >>> params = (pulse2, pulse2, pulse2)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])
         >>> lab.set_pulse_shapes(time, params)
         >>> dfc = lab.get_pulse_envelop(1, [-50.0, -30.0, 2.0, 30.0])
         >>> print(dfc)
@@ -713,6 +739,8 @@ class LabSetup:
             time = qr.TimeAxis(-500.0, 1000, 1.0, atype="complete")
             pulse2 = dict(ptype="Gaussian", FWHM=150.0, amplitude=1.0)
             params = (pulse2, pulse2, pulse2)
+            lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            lab.set_pulse_phases([0.0, 0.0, 0.0])
             lab.set_pulse_shapes(time, params)
             
             pls = lab.pulse_t[2]
@@ -720,6 +748,8 @@ class LabSetup:
             
             pulse1 = dict(ptype="numeric", function=pls)
             params = (pulse1, pulse1, pulse1)
+            lab2.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            lab2.set_pulse_phases([0.0, 0.0, 0.0])
             lab2.set_pulse_shapes(time, params)
             
             dfc = lab2.get_pulse_envelop(1, time.data)
@@ -752,6 +782,8 @@ class LabSetup:
         >>> freq = qr.FrequencyAxis(-2500, 1000, 5.0)
         >>> pulse2 = dict(ptype="Gaussian", FWHM=800.0, amplitude=1.0)
         >>> params = (pulse2, pulse2, pulse2)
+        >>> lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+        >>> lab.set_pulse_phases([0.0, 0.0, 0.0])
         >>> lab.set_pulse_shapes(freq, params)
         >>> dfc = lab.get_pulse_spectrum(1, [600.0, 700.0, 800.0, 900.0])
         >>> print(dfc)
@@ -769,6 +801,8 @@ class LabSetup:
             freq = qr.FrequencyAxis(-2500, 1000, 5.0)
             pulse2 = dict(ptype="Gaussian", FWHM=800.0, amplitude=1.0)
             params = (pulse2, pulse2, pulse2)
+            lab.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            lab.set_pulse_phases([0.0, 0.0, 0.0])
             lab.set_pulse_shapes(freq, params)
             
             pls = lab.pulse_f[2]
@@ -776,6 +810,8 @@ class LabSetup:
             
             pulse1 = dict(ptype="numeric", function=pls)
             params = (pulse1, pulse1, pulse1)
+            lab2.set_pulse_arrival_times([0.0, 0.0, 0.0])
+            lab2.set_pulse_phases([0.0, 0.0, 0.0])
             lab2.set_pulse_shapes(freq, params)
             
             dfc = lab2.get_pulse_spectrum(1, freq.data)
