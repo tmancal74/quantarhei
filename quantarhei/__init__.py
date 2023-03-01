@@ -298,7 +298,7 @@ from .spectroscopy.pumpprobe import MockPumpProbeSpectrumCalculator
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
 from .spectroscopy.labsetup import LabSetup
-from .spectroscopy.labsetup import EField
+from .spectroscopy.labsetup import LabField
 
 ###############################################################################
 #                           QUANTUM MECHANICS

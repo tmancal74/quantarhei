@@ -10,6 +10,11 @@ from quantarhei.utils.vectors import X
 from quantarhei.utils.vectors import Y
 from quantarhei.utils.vectors import Z
 
+from quantarhei import Molecule
+from quantarhei import Aggregate
+from quantarhei import energy_units
+from quantarhei import ReducedDensityMatrixPropagator
+
 
 class TestLabSetup(unittest.TestCase):
     """Test of the laboratory setup 
@@ -31,7 +36,7 @@ class TestLabSetup(unittest.TestCase):
         
         # on a time axis starting at a specified time, with a certain number of steps
         # and a step size
-        time = qr.TimeAxis(-500.0, 1000, 1.0, atype="complete")
+        time = qr.TimeAxis(-500.0, 1500, 1.0, atype="complete")
 
         # pulse shapes are specified below
         pulse2 = dict(ptype="Gaussian", FWHM=150, amplitude=1.0)
@@ -62,6 +67,22 @@ class TestLabSetup(unittest.TestCase):
         self.lab = lab
         self.time = time
 
+        with energy_units("1/cm"):
+            m1 = Molecule([0.0, 10000.0])
+            m1.set_dipole((0,1), [1.0, 0.0, 0.0])
+            m2 = Molecule([0.0, 10000.0])
+            m2.set_dipole((0,1), [1.0, 0.0, 0.0])
+            
+            agg = Aggregate(molecules=[m1, m2])
+        
+            agg.set_resonance_coupling(0,1, 200.0)
+            
+        agg.build()
+        
+        
+        self.agg = agg
+
+
     
     def test_lab_pulse_setters(self):
         """(LabSetup) Testing LabSetup pulse properties setters
@@ -70,27 +91,77 @@ class TestLabSetup(unittest.TestCase):
         lab = self.lab
         time = self.time
 
-
+        fields = lab.get_labfields()
         
-
-    def test_get_field(self):
-        """ (LabSetup) Testing get_field with rwa 
-        """
-
+        fld = lab.get_labfield(1)
+        
+        self.assertTrue(fld.om == fields[1].om)
+        self.assertTrue(fld.phi == fields[1].phi)
+        
+        
         _plot_ = self._plot_
-        lab = self.lab
-        time = self.time
-        
-        numpy.testing.assert_array_equal(lab.e[0,:], X)
-        numpy.testing.assert_array_equal(lab.e[1,:], Y)
-        
-        Ef = lab.get_field(2, rwa=0.9)
-        ed = Ef.field()
         
         if _plot_:
+            
+            fields[2].set_rwa(0.9)
+            fields[2].phi = numpy.pi
 
-            plt.plot(time.data, ed)
+            fld = fields[2].get_field()
+            plt.plot(time.data, numpy.real(fld))
             plt.show()
+            
+            fields[2].tc = 300.0
+
+            fld = fields[2].get_field()
+            plt.plot(time.data, numpy.real(fld))
+            plt.show()
+            
+
+    def test_dm_propagation_with_fields(self):
+        """(LabSetup) Time evolution with explicit electric field
+        
+        """
+        from quantarhei.qm import LindbladForm, SystemBathInteraction
+        from quantarhei.qm import Operator
+        
+        lab = self.lab
+        time = self.time
+        agg = self.agg
+
+
+        
+        HH = agg.get_Hamiltonian()
+        DD = agg.get_TransitionDipoleMoment()
+        
+        ops = []
+        KK = Operator(dim=HH.dim)
+        KK.data[1,2] = 1.0
+        ops.append(KK)
+        rates = []
+        rates.append(1.0/100.0)
+        
+        SBI = SystemBathInteraction(sys_operators=ops, rates=rates, system=agg)
+        
+        LT = LindbladForm(HH, SBI, as_operators=False)
+        print(LT.data[1,1,2,2], 1.0/100.0)
+        print(LT.data[1,2,1,2], 1.0/200.0)
+        
+        ef = lab.get_labfield(0)
+        
+        rhoi = agg.get_thermal_ReducedDensityMatrix()
+        
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              Efield=ef, Trdip=DD, 
+                                              RTensor=LT)
+        
+        
+        #
+        # propagation has to be reimplemented with LabFields
+        #
+        #rhot = prop.propagate(rhoi)
+        
+        
+        #raise Exception("STOP HERE")
         
 
 

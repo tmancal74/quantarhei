@@ -9,6 +9,7 @@ import numpy
 
 from ...core.saveable import Saveable
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
+from ... import REAL
 
 class SystemBathInteraction(Saveable):
     """Describes interaction of an open quantum system with its environment
@@ -199,8 +200,8 @@ class SystemBathInteraction(Saveable):
         # Get its dimension 
         dim = KK.data.shape[0]
             
-        self.KK = numpy.zeros((self.N, dim, dim), dtype=numpy.float64)
-        self.KK[0,:,:] = KK.data       
+        self.KK = numpy.zeros((self.N, dim, dim), dtype=REAL)
+        self.KK[0,:,:] = numpy.real(KK.data)       
         
         # Save other operators and check their dimensions 
         for ii in range(1,self.N):

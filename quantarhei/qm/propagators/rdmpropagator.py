@@ -1396,11 +1396,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             #print(self.Hamiltonian.rwa_energies)
             #print(self.Hamiltonian.rwa_indices)
             om = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]]
+            
             self.EField.subtract_omega(om)
             
             # the two complex components of the field
             Epls = self.EField.field(sign=1)
             Emin = self.EField.field(sign=-1)
+            
             self.EField.restore_omega()
             
             # upper and lower triagle

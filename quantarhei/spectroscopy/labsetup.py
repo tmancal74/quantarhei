@@ -14,13 +14,14 @@
 """
 
 import numpy
-
+from functools import partial
 
 from ..utils import Integer
 from ..utils.vectors import X
 from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
+from .. import REAL
 
 class LabSetup:
     """Laboratory set-up for non-linear spectroscopy
@@ -58,8 +59,8 @@ class LabSetup:
                         
         self.F4eM4 = None
         self.e = None
-        self.has_polarizations = False
         
+        self.has_polarizations = False
         self.has_freqdomain = False
         self.has_timedomain = False
 
@@ -73,7 +74,20 @@ class LabSetup:
         self.pulse_centers = None
         self.phases = None
         
-                        
+        self.saved_params = None
+        
+    
+    def reset_pulse_shape(self):
+        """Recalculates the pulse shapes 
+        
+        """
+
+        if self.saved_params is not None:
+            self.set_pulse_shapes(self.timeaxis, self.saved_params)
+        else:
+            raise Exception("Pulse shapes must be set firts.")
+            
+        
 
     def set_pulse_shapes(self, axis, params):
         """Sets the pulse properties
@@ -306,13 +320,10 @@ class LabSetup:
             raise Exception("Pulse arrival times have to specified before "+
                             "the pulse shape is set.")
 
-        if self.phases is None:
-            print("Use 'set_pulse_phases' function before this function.")
-            raise Exception("Pulse phases have to specified before "+
-                            "the pulse shape is set.")
-
 
         if len(params) == self.number_of_pulses:
+        
+            self.saved_params = params    
         
             k_p = 0
             for par in params:
@@ -327,9 +338,13 @@ class LabSetup:
                         fwhm = par["FWHM"]
                         amp = par["amplitude"]
                         
+                        tc = self.pulse_centers[k_p]
+                        
                         # normalized Gaussian mupliplied by amplitude
-                        val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/3.14159) \
-                        *amp*numpy.exp(-4.0*numpy.log(2.0)*(tma.data/fwhm)**2)
+                        lfc = 4.0*numpy.log(2.0)
+                        pi = numpy.pi
+                        val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/pi) \
+                        *amp*numpy.exp(-lfc*((tma.data-tc)/fwhm)**2)
                         
                         self.pulse_t[k_p] = DFunction(tma, val)
                     
@@ -727,7 +742,7 @@ class LabSetup:
         >>> lab.set_pulse_shapes(time, params)
         >>> dfc = lab.get_pulse_envelop(1, [-50.0, -30.0, 2.0, 30.0])
         >>> print(dfc)
-        [  1.41569269e-05   1.95716182e-03   3.09310793e-02   1.95716182e-03]
+        [  1.41569209e-05   1.95716100e-03   3.09310662e-02   1.95716100e-03]
         
         .. plot::
             :include-source:
@@ -839,7 +854,7 @@ class LabSetup:
         >>> lab = LabSetup()
         >>> lab.set_pulse_frequencies([1.0, 2.0, 1.0])
         >>> print(lab.omega)
-        [1.0, 2.0, 1.0]
+        [ 1.  2.  1.]
         
         Situation which throws an exception
 
@@ -854,7 +869,7 @@ class LabSetup:
         # FIXME: energe unit control has to be in place
         if len(omegas) == self.number_of_pulses:
             
-            self.omega = omegas
+            self.omega = numpy.array(omegas, dtype=REAL)
             
         else:
             raise Exception("Wrong number of frequencies: "+
@@ -1026,126 +1041,438 @@ class LabSetup:
         return self.phases[k]
     
     
-    def get_field(self, k, rwa=0.0):
-        """Returns an EField object corresponding to the k-th field
+    # def get_field(self, k, rwa=0.0):
+    #     """Returns an EField object corresponding to the k-th field
         
-        """
+    #     """
 
-        ef = EField(self.timeaxis,omega=self.omega[k],polar=self.e[k,:],
-                    ftype="Data", data=self.pulse_t[k].data)
-        ef.subtract_omega(rwa)
+    #     ef = EField(self,omega=self.omega[k],polar=self.e[k,:],
+    #                 ftype="Data", data=self.pulse_t[k].data)
+    #     ef.subtract_frequency(rwa)
         
-        return ef
+    #     return ef
     
     
-    def get_fields(self, rwa=0.0):
+    # def get_fields(self, rwa=0.0):
+    #     """Retruns a list of EField objects for the lab's pulses
+        
+    #     """
+        
+    #     fields = [None]*self.number_of_pulses
+    #     for kk in range(self.number_of_pulses):
+            
+    #         ff = self.get_field(kk, rwa=rwa)
+    #         fields[kk] = ff
+            
+    #     return fields
+    
+    def get_labfield(self, k):
+        return LabField(self, k)
+
+        
+
+    def get_labfields(self):
         """Retruns a list of EField objects for the lab's pulses
         
         """
         
-        fields = []*self.number_of_pulses
+        fields = [None]*self.number_of_pulses
+        
         for kk in range(self.number_of_pulses):
             
-            ff = self.get_field(kk, rwa=rwa)
+            ff = self.get_labfield(kk)
             fields[kk] = ff
             
         return fields
     
     
+    def set_rwa(self, om):
+        
+        self.save_omega = numpy.zeros((self.number_of_pulses), dtype=REAL)
+        
+        self.save_omega[:] = self.omega[:]
+        self.omega[:] -= om
+        
+    def restore_rwa(self):
+        
+        self.omega[:] = self.save_omega[:] 
+
  
 class labsetup(LabSetup):
     pass
 
 
-
-class EField():
-    """Class representing electric field of a laser pulse
-    
+def _labattr(name, target, flag=None):
+    """Pointer to a field attribute of the LabSep object
     
     """
     
-    def __init__(self, time, omega=0.0, polar=[1.0, 0.0, 0.0], 
-                 ftype="Gaussian", params=None, data=None):
+    storage_name = target
+    access_flag = flag
+    
+    @property
+    def prop(self):
+        at = getattr(self.labsetup,storage_name)
+        return at[self.index]
+    
+    @prop.setter
+    def prop(self,value):  
+        at = getattr(self.labsetup,storage_name)
+        if access_flag is not None:
+            setattr(self, access_flag, True)
+        at[self.index] = value
         
-        self.time = time
-        # FIXME: energy conversion
-        self.omega = omega
-        self.pol = polar
+    return prop
+
+def _labarray(name, target):
+    """Pointer to a field array attribute of the LabSep object
+    
+    """
+    
+    storage_name = target
+    
+    @property
+    def prop(self):
+        at = getattr(self.labsetup,storage_name)
+        return at[self.index,:]
+    
+    @prop.setter
+    def prop(self,value):  
+        at = getattr(self.labsetup,storage_name)  
+        at[self.index,:] = value
         
-        if ftype=="Gaussian":
-            
-            if data is None:
-                raise Exception("Data have to be provided"+
-                                " for data defined EField")
+    return prop
+
+
+class LabField():
+    """Class representing electric field of a laser pulse defined in LabSetup
+
+
+    Objects of this class are linked to their "mother" object of the LubSetup
+    type. Their properties can be changed locally, with an effect on the
+    LabSetup, or globally from the LabSetup with an effect on the EField
+    objects.
+
+
+    Examples
+    --------
+    
+    >>> lab = LabSetup(nopulses=3)
+    >>> time = TimeAxis(-500.0, 1000, 1.0, atype="complete")
+    >>> pulse2 = dict(ptype="Gaussian", FWHM=150, amplitude=1.0)  
+    >>> params = (pulse2, pulse2, pulse2)
+    >>> lab.set_pulse_polarizations(pulse_polarizations=(X,X,X),
+    ...                             detection_polarization=X)
+    >>> lab.set_pulse_arrival_times([0.0, 0.0, 100.0])
+    >>> lab.set_pulse_frequencies([1.0, 1.0, 1.0])
+    >>> lab.set_pulse_phases([0.0, 1.0, 0.0])    
+    >>> lab.set_pulse_shapes(time, params) 
+    
+    >>> lf = LabField(lab, 2)
+    >>> print(lf.get_phase() == lab.phases[2])
+    True
+    
+    >>> lf.set_phase(3.14)
+    >>> print(lf.get_phase() == lab.phases[2])
+    True
+    
+    >>> lab.phases[2] = 6.28
+    >>> print(lf.get_phase() == lab.phases[2])
+    True
+    
+    >>> print(lf.get_center() == lab.pulse_centers[2])
+    True
+    
+    >>> lf.set_center(12.0)
+    >>> print(lab.pulse_centers[2])
+    12.0
+    
+    >>> print(lf.get_frequency() == lab.omega[2])
+    True
+    
+    >>> lf.set_frequency(12.0)
+    >>> print(lab.omega[2])
+    12.0
+    
+    >>> lf.get_polarization()
+    array([ 1.,  0.,  0.])
+    
+    >>> lab.e[2,:] = [0.0, 1.0, 0.0]
+    >>> lf.get_polarization()
+    array([ 0.,  1.,  0.])
+    
+    >>> lf.set_polarization([0.0, 0.0, 1.0])
+    >>> lab.e[2,:]
+    array([ 0.,  0.,  1.])
+    
+    
+    # we also have some quick access attributes
+    
+    >>> print(lf.phi)
+    6.28
+    
+    >>> lf.phi = 1.2
+    >>> lf.phi
+    1.2
+
+    >>> print(lf.phi == lab.phases[2])
+    True
+
+    >>> print(lf.tc)
+    12.0
+    
+    >>> lf._center_changed
+    False
+    
+    >>> lf.tc = 10.0
+    >>> lf.tc
+    10.0
+    
+    >> lf._center_changed
+    True
+
+    >>> print(lf.tc == lab.pulse_centers[2])
+    True
+
+
+    >>> print(lf.om)
+    12.0
+    
+    >>> lf.om = 10.0
+    >>> lf.om
+    10.0
+
+    >>> print(lf.om == lab.omega[2])
+    True
+
+
+    >>> lf.pol
+    array([ 0.,  0.,  1.])
+    
+    >>> lab.e[2,:] = [0.0, 1.0, 0.0]
+    >>> lf.pol
+    array([ 0.,  1.,  0.])
+    
+    >>> lf.pol = [0.0, 0.0, 1.0]
+    >>> lab.e[2,:]
+    array([ 0.,  0.,  1.])
+
+ 
+    """
+    
+    
+    phi = _labattr("phi","phases")
+    tc = _labattr("tc", "pulse_centers", flag="_center_changed")
+    om = _labattr("om", "omega")
+    pol = _labarray("pol", "e")
+    
+    
+    def __init__(self, labsetup, k):
+        
+        self.labsetup = labsetup
+        self.index = k
+        self._center_changed = False
+    
+    def get_phase(self):
+        return self.labsetup.phases[self.index]
+    
+    def set_phase(self, val):
+        self.labsetup.phases[self.index] = val
+        
+    def get_center(self):
+        return self.labsetup.pulse_centers[self.index]
+
+    def set_center(self, val):
+        self.labsetup.pulse_centers[self.index] = val
+        
+    def get_frequency(self):
+        return self.labsetup.omega[self.index]
+
+    def set_frequency(self, val):
+        self.labsetup.omega[self.index] = val
+        
+    def get_polarization(self):
+        return self.labsetup.e[self.index,:]
+    
+    def set_polarization(self, pol):
+        self.labsetup.e[self.index,:] = pol
+        
+        
+    def get_field(self, time=None):
+        """Returns the electric field of the pulses
+        
+        """
+        if self._center_changed:
+            # recalculate pulses
+            self.labsetup.reset_pulse_shape()
+        
+        if time is None:
+            tt = self.labsetup.timeaxis.data
+            env = self.labsetup.pulse_t[self.index].data
+            om = self.om
+            phi = self.phi
+            fld = env*numpy.exp(-1j*om*tt)*numpy.exp(1j*phi)
+            return fld
+        
+        else:
+            return self.labsetup.pulse_t[self.index].at(time)
+
+
+    def get_time_axis(self):
+        return self.labsetup.timeaxis 
+    
+    
+    def set_rwa(self, om):
+        
+        self.labsetup.set_rwa(om)
+        
+    def restore_rwa(self):
+        
+        self.labsetup.restore_rwa()
+        
+
+
+# class EField():
+#     """Class representing electric field of a laser pulse
+    
+    
+    
+#     """
+    
+#     def __init__(self, time, omega=0.0, polar=[1.0, 0.0, 0.0], 
+#                  ftype="Gaussian", params=None, data=None):
+        
+#         self.time = time
+        
+#         # FIXME: energy conversion
+#         self.omega = omega
+#         self.pol = polar
+        
+#         self.saved_omega = None
+        
+#         if ftype=="Gaussian":
                 
-            self.ftype=ftype
-            self.Emax = params["Emax"]
-            # FIXME: energy conversion
-            self.fwhm = params["fwhm"]
-            self.tc = params["tc"]
+#             self.ftype=ftype
+#             self.Emax = params["Emax"]
+#             # FIXME: energy conversion
+#             self.fwhm = params["fwhm"]
+#             self.tc = params["tc"]
             
-            self.envelop = self.Emax*numpy.sqrt(numpy.log(2.0)/numpy.pi)\
-                     *numpy.exp(-numpy.log(2.0)*((self.time.data
-                                -self.tc)/self.fwhm)**2) \
-                     /self.fwhm
+#             self.envelop = self.Emax*numpy.sqrt(numpy.log(2.0)/numpy.pi)\
+#                      *numpy.exp(-numpy.log(2.0)*((self.time.data
+#                                 -self.tc)/self.fwhm)**2) \
+#                      /self.fwhm
 
-        elif ftype=="Data":
+#         elif ftype=="Data":
             
-            if data is None:
-                raise Exception("Data have to be provided"+
-                                " for data defined EField")
+#             if data is None:
+#                 raise Exception("Data have to be provided"+
+#                                 " for data defined EField")
 
-            self.ftype = ftype
-            self.envelop = data
+#             self.ftype = ftype
+#             self.envelop = data
 
 
 
-    def subtract_omega(self, om):
-        """
+#     def subtract_frequency(self, om):
+#         """Subtracts a given frequency from the field frequency
         
-        """
-        self.saved_omega = self.omega
-        self.omega -= om
-
-
-    def restore_omega(self):
-        """
         
-        """
-        self.omega = self.saved_omega
+#         Examples
+#         --------
+        
+#         >>> time = TimeAxis(0.0, 1000, 1.0)
+#         >>> params = dict(Emax=1.0, fwhm=50.0, tc=200.0)
+#         >>> ef = EField(time, omega=10.0, polar=[1.0, 0.0, 0.0],
+#         ...             params=params)
+#         >>> ef.subtract_frequency(9.0)
+#         >>> print(ef.omega)
+#         1.0
+        
+#         # frequency cannot be subtracted twice
+        
+#         >>> ef.subtract_frequency(1.0)
+#         Traceback (most recent call last):
+#             ...
+#         Exception: Frekvency already subtracted, restore first.
+        
+#         # we can restore it
+#         >>> ef.restore_frequency()
+#         >>> print(ef.omega)
+#         10.0
+        
+#         # and subtract again
+#         >>> ef.subtract_frequency(1.0)
+#         >>> print(ef.omega)
+#         9.0
+        
+        
+#         """
+#         if self.saved_omega is not None:
+#             raise Exception("Frekvency already subtracted, restore first.")
+            
+#         self.saved_omega = self.omega
+#         self.omega -= om
 
 
-    def field_i(self, sign, i):
-        """Field at index i
+#     def restore_frequency(self):
+#         """Restored the original pulse frequency
+
+
+#         Examples
+#         --------
         
-        """
-        if sign is None:
-            return self.envelop[i]*numpy.cos(self.omega*self.time.data[i])
+#         >>> time = TimeAxis(0.0, 1000, 1.0)
+#         >>> params = dict(Emax=1.0, fwhm=50.0, tc=200.0)
+#         >>> ef = EField(time, omega=10.0, polar=[1.0, 0.0, 0.0],
+#         ...             params=params)
+#         >>> ef.subtract_frequency(9.0)
+#         >>> print(ef.omega)
+#         1.0
+
+#         >>> ef.restore_frequency()
+#         >>> print(ef.omega)
+#         10.0
         
-        if sign == 1:
-            return 0.5*self.envelop[i]* \
-                   numpy.exp(1j*self.omega*self.time.data[i])        
-        elif sign == -1:
-            return 0.5*numpy.conj(self.envelop[i])* \
-                   numpy.exp(-1j*self.omega*self.time.data[i]) 
-        else:
-            raise Exception("Unknown field component")
+#         """
+#         if self.saved_omega is None:
+#             raise Exception("No information to restore frequency.")
+            
+#         self.omega = self.saved_omega
+#         self.saved_omega = None
+
+
+#     def field_i(self, sign, i):
+#         """Field at index i
+        
+#         """
+#         if sign is None:
+#             return self.envelop[i]*numpy.cos(self.omega*self.time.data[i])
+        
+#         if sign == 1:
+#             return 0.5*self.envelop[i]* \
+#                    numpy.exp(1j*self.omega*self.time.data[i])        
+#         elif sign == -1:
+#             return 0.5*numpy.conj(self.envelop[i])* \
+#                    numpy.exp(-1j*self.omega*self.time.data[i]) 
+#         else:
+#             raise Exception("Unknown field component")
     
     
-    def field(self, sign=None):
-        """Field in an array
+#     def field(self, sign=None):
+#         """Field in an array
         
-        """
-        if sign is None:
-            return self.envelop*numpy.cos(self.omega*self.time.data)
+#         """
+#         if sign is None:
+#             return self.envelop*numpy.cos(self.omega*self.time.data)
         
-        if sign == 1:
-            return 0.5*self.envelop*numpy.exp(1j*self.omega*self.time.data)
-        elif sign == -1:
-            return 0.5*numpy.conj(self.envelop) \
-                   *numpy.exp(-1j*self.omega*self.time.data)
-        else:
-            raise Exception("Unknown field component")
+#         if sign == 1:
+#             return 0.5*self.envelop*numpy.exp(1j*self.omega*self.time.data)
+#         elif sign == -1:
+#             return 0.5*numpy.conj(self.envelop) \
+#                    *numpy.exp(-1j*self.omega*self.time.data)
+#         else:
+#             raise Exception("Unknown field component")
                    
 
 

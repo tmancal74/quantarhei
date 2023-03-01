@@ -2567,6 +2567,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         if not self._built:
             raise Exception()
 
+        if self.sbi is None:
+            return 0.0
+        
         return self.sbi.CC.get_temperature()
         #
         # TESTED
