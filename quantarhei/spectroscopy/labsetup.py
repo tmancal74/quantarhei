@@ -70,9 +70,12 @@ class LabSetup:
         self.pulse_t = [None]*nopulses
         self.pulse_f = [None]*nopulses
         
-        self.omega = None
-        self.pulse_centers = None
-        self.phases = None
+        self._field_set = False
+        
+        self.omega = numpy.zeros(nopulses, dtype=REAL)
+        self.pulse_centers = numpy.zeros(nopulses, dtype=REAL)
+        self.phases = numpy.zeros(nopulses, dtype=REAL)
+        self.e = numpy.zeros((nopulses,3), dtype=REAL)
         
         self.saved_params = None
         
@@ -401,6 +404,8 @@ class LabSetup:
                 self.has_timedomain = True
             elif self.axis_type == "frequency":
                 self.has_freqdomain = True
+                
+            self._field_set = True
                 
         else:
             text = "set_pulses requires "+str(self.number_of_pulses) \
@@ -1144,6 +1149,35 @@ def _labarray(name, target):
     return prop
 
 
+def _fieldprop(name, flag):
+    """Property returning field values over time
+    
+    """
+    
+    @property 
+    def prop(self):
+        if getattr(self.labsetup, flag):
+            return self.get_field()
+        else:
+            raise Exception("The property '"+name+"' is not initialited.")
+    
+    @prop.setter
+    def prop(self, value):
+        raise Exception("The property '"+name+"' is protected"+
+                        " and cannot be set.")
+        
+    return prop        
+    
+        
+def _get_example_lab():
+    """Returns a LabSetup instance for doctests
+    
+    """
+    lab = LabSetup(nopulses=3)
+    
+    return lab
+    
+
 class LabField():
     """Class representing electric field of a laser pulse defined in LabSetup
 
@@ -1157,16 +1191,62 @@ class LabField():
     Examples
     --------
     
+    Only the number of pulses has to be specified when LabSetup is created.
+    
     >>> lab = LabSetup(nopulses=3)
-    >>> time = TimeAxis(-500.0, 1000, 1.0, atype="complete")
+    
+    We can ask for a LabField object right away, even before field parameters
+    are set.
+    
+    >>> lf = LabField(lab, 1)
+
+    This object has all parameters "empty"
+    
+    >>> lf.pol
+    array([ 0.,  0.,  0.])
+    
+    >>> lf.om
+    0.0
+    
+    >>> lf.tc
+    0.0
+    
+    >> lf.phi
+    0.0
+    
+    The 'field' property, however, refuses to return values
+    
+    >>> print(lf.field)
+    Traceback (most recent call last):
+        ...
+    Exception: The property 'field' is not initialited.
+    
+    Nor it can be set
+    
+    >>> lf.field = 10.0
+    Traceback (most recent call last):
+        ...
+    Exception: The property 'field' is protected and cannot be set.
+    
+    The LabField properties will be initialited through the LabSetup object.
+    The only rule to follow is that arrival times of the pulses have to be
+    specified before the pulse shape.
+        
+    >>> lab.set_pulse_arrival_times([0.0, 0.0, 100.0])
+    
+    >>> time = TimeAxis(-500.0, 1000, 1.0, atype="complete")    
     >>> pulse2 = dict(ptype="Gaussian", FWHM=150, amplitude=1.0)  
-    >>> params = (pulse2, pulse2, pulse2)
+    >>> params = (pulse2, pulse2, pulse2)    
+    >>> lab.set_pulse_shapes(time, params) 
+
+    Everything else can be set before we ask for the field's time dependence.
+    The LabField object can be created even 
+
     >>> lab.set_pulse_polarizations(pulse_polarizations=(X,X,X),
     ...                             detection_polarization=X)
-    >>> lab.set_pulse_arrival_times([0.0, 0.0, 100.0])
     >>> lab.set_pulse_frequencies([1.0, 1.0, 1.0])
     >>> lab.set_pulse_phases([0.0, 1.0, 0.0])    
-    >>> lab.set_pulse_shapes(time, params) 
+
     
     >>> lf = LabField(lab, 2)
     >>> print(lf.get_phase() == lab.phases[2])
@@ -1258,6 +1338,18 @@ class LabField():
     array([ 0.,  0.,  1.])
 
  
+    Most importantly, we can access the field values 
+    
+    >>> fld = lf.field
+    >>> fld.shape
+    (1000,)
+    
+    and this property cannot be directly changed.
+    >>> lf.field = 10.0
+    Traceback (most recent call last):
+        ...
+    Exception: The property 'field' is protected and cannot be set.
+
     """
     
     
@@ -1265,6 +1357,7 @@ class LabField():
     tc = _labattr("tc", "pulse_centers", flag="_center_changed")
     om = _labattr("om", "omega")
     pol = _labarray("pol", "e")
+    field = _fieldprop("field","_field_set")
     
     
     def __init__(self, labsetup, k):
