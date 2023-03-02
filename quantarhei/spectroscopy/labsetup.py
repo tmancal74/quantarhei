@@ -74,6 +74,7 @@ class LabSetup:
         
         self.omega = numpy.zeros(nopulses, dtype=REAL)
         self.pulse_centers = numpy.zeros(nopulses, dtype=REAL)
+        self._centers_set = False
         self.phases = numpy.zeros(nopulses, dtype=REAL)
         self.e = numpy.zeros((nopulses,3), dtype=REAL)
         
@@ -318,7 +319,7 @@ class LabSetup:
             raise Exception("Wrong axis paramater")
 
 
-        if self.pulse_centers is None:
+        if not self._centers_set:
             print("Use 'set_pulse_arrival_times' function before this function.")
             raise Exception("Pulse arrival times have to specified before "+
                             "the pulse shape is set.")
@@ -931,6 +932,7 @@ class LabSetup:
         if len(times) == self.number_of_pulses:
             
             self.pulse_centers = times
+            self._centers_set = True
             
         else:
             raise Exception("Wrong number of arrival times: "+
