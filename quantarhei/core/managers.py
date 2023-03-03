@@ -345,7 +345,7 @@ class Manager(metaclass=Singleton):
         
         
     def _read_uconf(self):
-        """Reads used defined local config file
+        """Reads user defined local config file
         
         From Stackoverflow recipe:
             https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
@@ -365,7 +365,7 @@ class Manager(metaclass=Singleton):
                 
         else:
             if cfile.exists():
-                raise Exception("Configuration file "+fpath+" seems to exits"+
+                raise Exception("Configuration file "+fpath+" seems to exist"+
                                 " but it is not a file")
             else:
                 print("Warning: Configuration file "+fpath+" does not exit")
