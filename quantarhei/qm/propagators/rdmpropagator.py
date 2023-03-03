@@ -73,17 +73,18 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         The constructor accepts only numpy.ndarray object, so the
         following code will fail, because it submits normal Python arrays.         
         
-        >>> pr = RDMPropagator([[0.0, 0.0],[0.0, 1.0]],[0,1,2,3,4,5])
+        >>> pr = ReducedDensityMatrixPropagator([[0.0, 0.0],
+        ...                                     [0.0, 1.0]],[0,1,2,3,4,5])
         Traceback (most recent call last):
             ...
-        Exception
+        Exception: TimeAxis expected here.
         
         The correct way to construct the propagator is the following:
 
         >>> h = numpy.array([[0.0, 0.0],[0.0,1.0]])
         >>> HH = Hamiltonian(data=h)
         >>> times = TimeAxis(0,1000,1)
-        >>> pr = RDMPropagator(HH,times)
+        >>> pr = ReducedDensityMatrixPropagator(times,HH)
         
         """
         self.has_Trdip = False
@@ -194,9 +195,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         have dt = 10 in the TimeAxis, but we want to calculate with
         dt = 1
         
-        >>> HH = numpy.array([[0.0, 0.0],[0.0,1.0]])
-        >>> times = numpy.linspace(0,1000,10)
-        >>> pr = RDMPropagator(HH,times)
+        >>> HH = Hamiltonian(data=numpy.array([[0.0, 0.0],[0.0,1.0]]))
+        >>> times = TimeAxis(0,1000,10.0)
+        >>> pr = ReducedDensityMatrixPropagator(times, HH)
         >>> pr.setDtRefinement(10)
         
         """
@@ -217,26 +218,25 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         ...               [0.0, 0.0, 0.0],
         ...               [0.0, 0.0, 0.0]]
 
-        >>> Hamiltonian = [[0.0, 0.1, 0.0],
+        >>> Ham_matrix = [[0.0, 0.1, 0.0],
         ...                [0.1, 0.0, 0.1],
         ...                [0.0, 0.1, 0.1]]        
         
-        >>> HH = numpy.array(Hamiltonian)
-        >>> times = numpy.linspace(T0,Tmax,(Tmax-T0)/dt+1)
+        >>> HH = Hamiltonian(data=Ham_matrix)
+        >>> times = TimeAxis(T0,Tmax,dt)
         
-        >>> pr = RDMPropagator(HH,times)
+        >>> pr = ReducedDensityMatrixPropagator(times, HH)
         >>> pr.setDtRefinement(Nref)
 
-        >>> rhoi = numpy.array(initial_dm)  
-        >>> pr.propagate(rhoi,method="primitive")
+        >>> rhoi = ReducedDensityMatrix(data=numpy.array(initial_dm))  
+        >>> rhot=pr.propagate(rhoi)
         
         Refinement of the time-step can also be set when calling 
         the propagate() method.
         
-        >>> pr = RDMPropagator(HH,times)
-        >>> rhoi = numpy.array(initial_dm)  
+        >>> pr = ReducedDensityMatrixPropagator(times, HH) 
 
-        >>> pr.propagate(rhoi,method="primitive", Nref=Nref)       
+        >>> rhot=pr.propagate(rhoi, Nref=Nref)       
         """
         
         if Nref > 1:

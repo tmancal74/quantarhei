@@ -195,7 +195,7 @@ class TestRDMPropagatorUsage(unittest.TestCase):
 
         
         
-    def test_prop_init_const(self):
+    def test_prop_init_tdep(self):
         """(RDMPropagator) Testing initialization of a propagator (time-dep. R)
         
         """
@@ -280,3 +280,8 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         #     rhot = prop.propagate(rhoi, method="short-exp-8")
         # self.assertTrue("Unknown propagation method:"
         #                 in str(context.exception))         
+        
+        
+        
+if __name__ == '__main__':
+    unittest.main()

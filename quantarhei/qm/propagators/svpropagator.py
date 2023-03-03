@@ -11,7 +11,8 @@ import numpy
 
 from .statevectorevolution import StateVectorEvolution
 from ..hilbertspace.evolutionoperator import EvolutionOperator
-from ... import REAL
+#from ... import REAL
+
 
    
 class StateVectorPropagator:
@@ -41,9 +42,10 @@ class StateVectorPropagator:
         have dt = 10 in the TimeAxis, but we want to calculate with
         dt = 1
         
-        >>> HH = numpy.array([[0.0, 0.0],[0.0,1.0]])
-        >>> times = numpy.linspace(0,1000,10)
-        >>> pr = StateVectorPropagator(HH,times)
+        >>> from quantarhei import Hamiltonian, TimeAxis
+        >>> HH = Hamiltonian(data=numpy.array([[0.0, 0.0],[0.0,1.0]]))
+        >>> times = TimeAxis(0,1000,10.0)
+        >>> pr = StateVectorPropagator(times,HH)
         >>> pr.setDtRefinement(10)
         
         """

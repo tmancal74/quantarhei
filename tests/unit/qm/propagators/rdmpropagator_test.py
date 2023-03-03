@@ -31,7 +31,7 @@ class TestRDMPropagator(unittest.TestCase):
     """
     
     def test_rdm_evolution_time_independent_tensor(self):
-        """(RDM PROPAGATOR) Testing evolution of reduced density matrix with Lindblad relaxation tensor
+        """(RDMPropagator) Testing evolution of reduced density matrix with Lindblad relaxation tensor
         
         """
         HH = qr.Hamiltonian(data=[[0.0, 1.0],[1.0, 0.2]])
@@ -98,7 +98,7 @@ class TestRDMPropagator(unittest.TestCase):
         
         
     def test_tdp(self):
-        """(RDM PROPAGATOR) Testing with time dependent Redfield tensor
+        """(RDMPropagator) Testing with time dependent Redfield tensor
         
         """
         
