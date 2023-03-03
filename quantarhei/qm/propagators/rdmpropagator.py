@@ -99,20 +99,22 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             #
             # Hamiltonian and TimeAxis are required
             #
-            if isinstance(Ham,Hamiltonian):
-                self.Hamiltonian = Ham
-            else:
-                raise Exception
-            
-            if isinstance(timeaxis,TimeAxis):
+            if isinstance(timeaxis, TimeAxis):
                 self.TimeAxis = timeaxis
             else:
-                raise Exception
+                raise Exception("TimeAxis expected here.")
+
+            if isinstance(Ham, Hamiltonian):
+                self.Hamiltonian = Ham
+            elif Ham is None:
+                raise Exception("Hamiltonian is required.")
+            else:
+                raise Exception("Hamiltonian represented by a wrong type.")
             
             #
             # RelaxationTensor is not requited
             #
-            if isinstance(RTensor,RelaxationTensor):
+            if isinstance(RTensor, RelaxationTensor):
                 self.RelaxationTensor = RTensor
                 self.has_RTensor = True
                 self.has_relaxation = True
@@ -120,17 +122,23 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 self.has_RTensor = False
                 self.has_relaxation = False
             else:
-                raise Exception
-    
+                raise Exception("RelaxationTensor or None expected here.")
+            
+            #
+            # TransitionDipoleMoment is not required
+            #
             if Trdip is not None:            
-                if isinstance(Trdip,Operator):
+                if isinstance(Trdip, Operator):
                     self.Trdip = Trdip
                     self.has_Trdip = True
                 else:
-                    raise Exception
-    
+                    raise Exception("Operator or None expected here.")
+
+            #
+            # Driving field is not required
+            #    
             if Efield is not None:
-                if isinstance(Efield,numpy.ndarray):
+                if isinstance(Efield, numpy.ndarray):
                     self.Efield = Efield
                     self.has_Efield = True
                     self.has_EField = False
@@ -138,19 +146,24 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     self.EField = Efield
                     self.has_EField = True
                     self.has_Efield = False                    
-
             
             #
-            # Pure dephasing also counts as relaxation
+            # Pure dephasing also counts as relaxation; not required
             #
             if PDeph is not None:
                 self.PDeph = PDeph
                 self.has_PDeph = True
                 self.has_relaxation = True
-                
+            
+            #
+            # Initial term is not required; has to come with relaxation
+            #
             if Iterm is not None:
-                self.Iterm = Iterm
-                self.has_Iterm = True
+                if self.has_relaxation:
+                    self.Iterm = Iterm
+                    self.has_Iterm = True
+                else:
+                    raise Exception("RelaxationTensor has to be set first.")
             
             
             self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
@@ -162,9 +175,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             N = self.Hamiltonian.data.shape[0]
             self.N = N
             self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
-            self.propagation_name = ""
         
             self.verbose = Manager().log_conf.verbose
+            
+        else:
+            
+            raise Exception("TimeAxis and Hamiltonian are required to"+
+                            " initialize the propagator.")
 
         
     def setDtRefinement(self, Nref):
@@ -187,7 +204,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.dt = self.Odt/self.Nref
         
         
-    def propagate(self, rhoi, method="short-exp", mdata=None, name="", Nref=1):
+    def propagate(self, rhoi, method="short-exp", mdata=None, Nref=1):
         """
         
         >>> T0   = 0
@@ -211,16 +228,16 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         >>> pr.setDtRefinement(Nref)
 
         >>> rhoi = numpy.array(initial_dm)  
-
         >>> pr.propagate(rhoi,method="primitive")
         
+        Refinement of the time-step can also be set when calling 
+        the propagate() method.
         
+        >>> pr = RDMPropagator(HH,times)
+        >>> rhoi = numpy.array(initial_dm)  
+
+        >>> pr.propagate(rhoi,method="primitive", Nref=Nref)       
         """
-        
-        #
-        # FIXME: Remove this
-        #
-        self.propagation_name = name
         
         if Nref > 1:
             self.setDtRefinement(Nref)
@@ -374,12 +391,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=6)            
 
-                    #
-                    # FIXME: These methods are untested
-                    #
-                    elif method == "primitive":
-                        return self.__propagate_primitive_with_relaxation(rhoi)
-
                     else:
                         raise Exception("Unknown propagation method: "+method)   
             
@@ -406,74 +417,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 elif method == "short-exp-6":
                     return self.__propagate_short_exp(rhoi,L=6)            
     
-                #
-                # FIXME: These methods are not tested
-                #
-                elif method == "primitive":
-                    return self.__propagate_primitive(rhoi)
-    
                 else:
                     raise Exception("Unknown propagation method: "+method)
         
-            
-        
-    def __propagate_primitive(self, rhoi):
-        """Primitive integration of equantion of motion
-        
-        This is of no other than perhaps pedagogical value
-        
-        """
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
-
-        rhoPrim = rhoi.data
-        HH = self.Hamiltonian.data  
-        
-        
-        indx = 0
-        for ii in self.TimeAxis.time: 
-
-            for jj in range(0,self.Nref):   
-                
-                drho  = -1j*(  numpy.dot(HH,rhoPrim) \
-                             - numpy.dot(rhoPrim,HH) )
-                             
-                rhoPrim = rhoPrim + drho*self.dt
-
-            pr.data[indx,:,:] = rhoPrim            
-            
-            indx += 1            
-            
-        return pr
-
-        
-    def __propagate_primitive_with_relaxation(self, rhoi):
-        """Primitive integration of equantion of motion with relaxation
-        
-        This is of no other than perhaps pedagogical value
-        
-        """
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
-       
-        rhoPrim = rhoi.data
-        HH = self.Hamiltonian.data        
-        RR = self.RelaxationTensor.data        
-        
-        indx = 0
-        for ii in self.TimeAxis.data: 
-
-            for jj in range(0,self.Nref):   
-                
-                drho  = -1j*(  numpy.dot(HH,rhoPrim) \
-                             - numpy.dot(rhoPrim,HH) ) \
-                        + numpy.tensordot(RR,rhoPrim)
-                             
-                rhoPrim = rhoPrim + drho*self.dt
-
-            pr.data[indx,:,:] = rhoPrim            
-            
-            indx += 1            
-            
-        return pr
  
 
     def __propagate_short_exp(self, rhoi, L=4):
@@ -535,8 +481,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             raise Exception("Operator propagation failed")
         
         
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
-                                           name=self.propagation_name)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
