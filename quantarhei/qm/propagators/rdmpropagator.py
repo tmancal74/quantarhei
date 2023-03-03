@@ -1350,12 +1350,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         Rotating wabe approximation is not considered.
         
         """
-            
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         # we forbid the refinement of the time step
         if self.Nref != 1:
             raise Exception("Cannot propagation with refined time-step.")
+            
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -1368,7 +1368,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         #
         MU = self.Trdip.data[:,:,0]
         
-        EE = self.Efield
+        EE = self.Efield    
         
         indx = 1
         for tt in self.TimeAxis.data[1:self.Nt]:
@@ -1395,12 +1395,27 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def __propagate_short_exp_with_relaxation_EField(self,rhoi,L=4):
-        """
-              Short exp integration
-        """
+        """Short exponential integration with relaxation and EField like object
 
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+        Propagates the system defined by Hamiltonian and the relaxation
+        tensor under the influence of an electric field defined by
+        the LabField or EField object. The relaxation tensor must be 
+        independent of time.
         
+        The EField carries the information on the field polarization, and 
+        this information is used. 
+        
+        Rotating wabe approximation is considered if defined by the Hamiltonian
+        object.
+
+        """
+        
+        # we forbid the refinement of the time step
+        if self.Nref != 1:
+            raise Exception("Cannot propagation with refined time-step.")
+            
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+            
         rho1 = rhoi.data
         rho2 = rhoi.data
  
@@ -1409,8 +1424,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         #
         if self.Hamiltonian.has_rwa:
             
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
-            #HH = self.Hamiltonian.data
+            HH = self.Hamiltonian.get_RWA_data() 
             
             # get the field corresponding to RWA
             om = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]]
@@ -1420,8 +1434,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             # the two complex components of the field
             Epls = self.EField.field_p
             Emin = self.EField.field_m
-            
-            EField = self.EField.field
             
             self.EField.restore_rwa()
             
@@ -1456,17 +1468,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             else:
                 MuE = MU*EField[indx]
             
-            for jj in range(0,self.Nref):
-                for ll in range(1,L+1):
-                    
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                            + (1j*self.dt/ll)*( numpy.dot(MuE,rho1) \
-                             - numpy.dot(rho1,MuE) )                             
-                             
-                    rho2 = rho2 + rho1
-                rho1 = rho2    
+            #for jj in range(0,self.Nref):
+            for ll in range(1,L+1):
+                
+                rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
+                         - numpy.dot(rho1,HH) ) \
+                       + (self.dt/ll)*numpy.tensordot(RR,rho1) \
+                        + (1j*self.dt/ll)*( numpy.dot(MuE,rho1) \
+                         - numpy.dot(rho1,MuE) )                             
+                         
+                rho2 = rho2 + rho1
+            rho1 = rho2  
+                
+            # for jj loop would end here
                 
             pr.data[indx,:,:] = rho2                        
             indx += 1
