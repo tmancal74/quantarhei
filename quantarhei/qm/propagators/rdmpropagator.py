@@ -607,8 +607,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # legacy version
         #
 
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
-                                           name=self.propagation_name)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -1144,8 +1143,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         """
 
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
-                                           name=self.propagation_name)
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data

@@ -71,8 +71,7 @@ print("...done")
 #
 print("Propagating density matrix:")  
 t1 = time.time() 
-rho_t1 = prop_Redfield.propagate(rho_i1,
-                                 name="Redfield evolution from aggregate")
+rho_t1 = prop_Redfield.propagate(rho_i1)
 t2 = time.time()
 print("...done in", t2-t1, "sec")
 
