@@ -73,6 +73,7 @@ class LabSetup:
         self._field_set = False
         
         self.omega = numpy.zeros(nopulses, dtype=REAL)
+        self.saved_omega = None
         self.pulse_centers = numpy.zeros(nopulses, dtype=REAL)
         self._centers_set = False
         self.phases = numpy.zeros(nopulses, dtype=REAL)
@@ -1095,14 +1096,17 @@ class LabSetup:
     
     def set_rwa(self, om):
         
-        self.save_omega = numpy.zeros((self.number_of_pulses), dtype=REAL)
+        self.saved_omega = numpy.zeros((self.number_of_pulses), dtype=REAL)
         
-        self.save_omega[:] = self.omega[:]
+        self.saved_omega[:] = self.omega[:]
         self.omega[:] -= om
         
     def restore_rwa(self):
         
-        self.omega[:] = self.save_omega[:] 
+        if self.saved_omega is None:
+            raise Exception("RWA has to be set first")
+            
+        self.omega[:] = self.saved_omega[:] 
 
  
 class labsetup(LabSetup):
@@ -1151,15 +1155,24 @@ def _labarray(name, target):
     return prop
 
 
-def _fieldprop(name, flag):
+def _fieldprop(name, flag, sign):
     """Property returning field values over time
     
     """
+    cmplx_sign = sign
     
     @property 
     def prop(self):
         if getattr(self.labsetup, flag):
-            return self.get_field()
+            if cmplx_sign == 1:
+                return self.get_field()
+            elif cmplx_sign == -1:
+                return numpy.conj(self.get_field())
+            elif cmplx_sign == 0:
+                fld = self.get_field()
+                return fld + numpy.conj(fld)
+            else:
+                raise Exception("Only signs of -1, 0 and 1 are allowed.")
         else:
             raise Exception("The property '"+name+"' is not initialited.")
     
@@ -1359,14 +1372,16 @@ class LabField():
     tc = _labattr("tc", "pulse_centers", flag="_center_changed")
     om = _labattr("om", "omega")
     pol = _labarray("pol", "e")
-    field = _fieldprop("field","_field_set")
-    
+    field_p = _fieldprop("field_p","_field_set", 1)
+    field_m = _fieldprop("field_p","_field_set", -1)
+    field = _fieldprop("field","_field_set", 0)
     
     def __init__(self, labsetup, k):
         
         self.labsetup = labsetup
         self.index = k
         self._center_changed = False
+
     
     def get_phase(self):
         return self.labsetup.phases[self.index]
@@ -1393,7 +1408,7 @@ class LabField():
         self.labsetup.e[self.index,:] = pol
         
         
-    def get_field(self, time=None):
+    def get_field(self, time=None, sign=1):
         """Returns the electric field of the pulses
         
         """
@@ -1406,7 +1421,7 @@ class LabField():
             env = self.labsetup.pulse_t[self.index].data
             om = self.om
             phi = self.phi
-            fld = env*numpy.exp(-1j*om*tt)*numpy.exp(1j*phi)
+            fld = env*numpy.exp(-1j*sign*om*tt)*numpy.exp(1j*sign*phi)
             return fld
         
         else:

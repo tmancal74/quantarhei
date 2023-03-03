@@ -1338,36 +1338,55 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def __propagate_short_exp_with_relaxation_field(self,rhoi,L=4):
+        """Short exponential integration with relaxation and array field
+        
+        Propagates the system defined by Hamiltonian and the relaxation
+        tensor under the influence of an electric field defined as 
+        a real-valued array. The relaxation tensor must be independent
+        of time.
+        
+        It is implicitly assumed that the field is X-polarized.
+        
+        Rotating wabe approximation is not considered.
+        
         """
-              Short exp integration
-        """
-
             
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+        
+        # we forbid the refinement of the time step
+        if self.Nref != 1:
+            raise Exception("Cannot propagation with refined time-step.")
         
         rho1 = rhoi.data
         rho2 = rhoi.data
         
         HH = self.Hamiltonian.data        
-        RR = self.RelaxationTensor.data        
-        MU = self.Trdip.data
+        RR = self.RelaxationTensor.data   
+        
+        #
+        # We do not have an information on polarization - we take X as default
+        #
+        MU = self.Trdip.data[:,:,0]
+        
+        EE = self.Efield
         
         indx = 1
-        for ii in self.TimeAxis.data[1:self.Nt]:
+        for tt in self.TimeAxis.data[1:self.Nt]:
             
-            EE = self.Efield[indx]
+            #for jj in range(0,self.Nref):
+                
+            for ll in range(1,L+1):
+                
+                rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
+                         - numpy.dot(rho1,HH) ) \
+                       + (self.dt/ll)*numpy.tensordot(RR,rho1) \
+                        + (1j*self.dt/ll)*( numpy.dot(MU,rho1) \
+                         - numpy.dot(rho1,MU) )*EE[indx]                             
+                         
+                rho2 = rho2 + rho1
+            rho1 = rho2   
             
-            for jj in range(0,self.Nref):
-                for ll in range(1,L+1):
-                    
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                            + (1j*self.dt/ll)*( numpy.dot(MU,rho1) \
-                             - numpy.dot(rho1,MU) )*EE                             
-                             
-                    rho2 = rho2 + rho1
-                rho1 = rho2    
+            # the for jj loop would end here
                 
             pr.data[indx,:,:] = rho2                        
             indx += 1             
@@ -1391,19 +1410,20 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         if self.Hamiltonian.has_rwa:
             
             HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            #HH = self.Hamiltonian.data
             
             # get the field corresponding to RWA
-            #print(self.Hamiltonian.rwa_energies)
-            #print(self.Hamiltonian.rwa_indices)
             om = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]]
             
-            self.EField.subtract_omega(om)
+            self.EField.set_rwa(om)
             
             # the two complex components of the field
-            Epls = self.EField.field(sign=1)
-            Emin = self.EField.field(sign=-1)
+            Epls = self.EField.field_p
+            Emin = self.EField.field_m
             
-            self.EField.restore_omega()
+            EField = self.EField.field
+            
+            self.EField.restore_rwa()
             
             # upper and lower triagle
             N = self.Hamiltonian.dim
@@ -1412,11 +1432,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 for jj in range(ii+1,N):
                     Mu[ii,jj] = 1.0
             Ml = numpy.transpose(Mu)
+                   
             
         else:
             
             HH = self.Hamiltonian.data 
-            EField = self.EField.field()
+            EField = self.EField.field
         
         RR = self.RelaxationTensor.data
         
@@ -1431,7 +1452,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         for ii in self.TimeAxis.data[1:self.Nt]:
             
             if self.Hamiltonian.has_rwa:
-                MuE = MU*(Mu*Epls[indx]+Ml*Emin[indx])
+                MuE = MU*(Ml*Epls[indx]+Mu*Emin[indx])
             else:
                 MuE = MU*EField[indx]
             
