@@ -131,6 +131,47 @@ class DFunction(Saveable, DataSaveable):
 
     y : numpy.ndarray
         Array of the function values
+        
+        
+    Examples
+    --------
+    
+    How not to create the DFunction:
+        
+    First argument of the DFunction must be a ValueAxis
+    
+    >>> x1 = numpy.array([0.0, 1.0, 2.0], dtype=REAL)
+    >>> y1 = numpy.array([0.0, 12.0, 24.0], dtype=REAL)
+    >>> f = DFunction(x=x1, y=y1)
+    Traceback (most recent call last):
+        ...
+    Exception: First argument has to be of a ValueAxis type
+    
+    Second argument must by a numpy array
+
+    >>> x1 = ValueAxis(0.0, 2, 1.0)  
+    >>> y1 = [0.0, 12.0, 24.0]
+    >>> f = DFunction(x=x1, y=y1)
+    Traceback (most recent call last):
+        ...
+    Exception: Second argument has to be one-dimensional numpy.ndarray
+    
+    The two arguments have to have the same size (number of elements)
+
+    >>> x1 = ValueAxis(0.0, 2, 1.0)  
+    >>> y1 = numpy.array([0.0, 12.0, 24.0, 36.0], dtype=REAL)
+    >>> f = DFunction(x=x1, y=y1)
+    Traceback (most recent call last):
+        ...
+    Exception: Wrong number of elements in 1D numpy.ndarray
+
+    >>> x1 = ValueAxis(0.0, 2, 1.0)  
+    >>> y1 = numpy.array([[0.0, 12.0, 24.0], [36.0, 48.0, 60.0]], dtype=REAL)
+    >>> f = DFunction(x=x1, y=y1)
+    Traceback (most recent call last):
+        ...
+    Exception: Second argument has to be one-dimensional numpy.ndarray
+    
 
     """
 
@@ -235,6 +276,44 @@ class DFunction(Saveable, DataSaveable):
     def change_axis(self, axis):
         """Replaces the axis object with a compatible one, zero pads or trims the values
         
+        
+        Examples
+        --------
+        
+        
+        >>> time = TimeAxis(0.0, 1000, 1.0)
+        >>> vals = numpy.cos(2.0*numpy.pi*time.data/500.0)
+        >>> fce = DFunction(time, vals)
+        >>> print("%.4f" % fce.at(914.0))
+        0.4707
+        
+        >>> time2 = TimeAxis(0.0, 900, 1.0)
+        >>> fce.change_axis(time2)
+        >>> print("%.4f" % fce.at(914.0))
+        Traceback (most recent call last):
+            ...
+        Exception: Value out of bounds
+        
+        >>> print("%.4f" % fce.at(814.0))
+        -0.6937
+        
+        Zero-padding
+        
+        >>> time3 = TimeAxis(0.0, 1000, 1.0)
+        >>> fce.change_axis(time3)  
+        >>> print("%.4f" % fce.at(814.0))
+        -0.6937
+        
+        >>> print("%.4f" % fce.at(914.0))
+        0.0000
+        
+        >>> time4 = TimeAxis(0.0, 100, 10.0)        
+        >>> fce.change_axis(time4)
+        Traceback (most recent call last):
+            ...
+        Exception: Incompatible axis
+
+
         """
         if self.axis.is_equal_to(axis):
             # simple replacement
@@ -282,6 +361,31 @@ class DFunction(Saveable, DataSaveable):
         approx : string {"default","linear","spline"}
             Type of interpolation
 
+
+        Examples
+        --------
+        
+        >>> time = TimeAxis(0.0, 100, 10.0)
+        >>> vals = numpy.cos(2.0*numpy.pi*time.data/300.0)
+        >>> fce = DFunction(time, vals)
+        >>> print("%.8f" % fce.at(213.4))
+        -0.23949089
+        
+        >>> print("%.8f" % fce.at(213.4, approx="linear"))
+        -0.23949089
+        
+        >>> print("%.8f" % fce.at(213.4, approx="spline"))
+        -0.24056615
+        
+        >>> print("%.8f" % numpy.cos(2.0*numpy.pi*213.4/300.0))
+        -0.24056687
+        
+        Once the splines are initialized, they become default
+        >>> print("%.8f" % fce.at(213.4))
+        -0.24056615
+        
+        
+        
         """
 
         if approx not in self.allowed_interp_types:
@@ -400,6 +504,10 @@ class DFunction(Saveable, DataSaveable):
 
     def apply_to_data(self, func):
         """Applies a submitted function to the data
+        
+        
+        
+        
         
         """
         self.data = func(self.data)
