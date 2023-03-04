@@ -3,31 +3,155 @@
     Pure dephasing Tensor
     
     
+    We create this class intentionally as not basis managed. Pure dephasing
+    must be applied only while working in the correct basis!    
+    
+    
     Class Details
     -------------
+    
+    
+    
+    
+    
+    Examples
+    --------
+    
+    >>> from quantarhei import energy_units
+    >>> from quantarhei import Molecule
+    
+    >>> d_rates = [[0.0, 1.0/100.0], [1.0/100.0, 0.0]]
+    >>> pd = PureDephasing(d_rates)
+    >>> print(pd.data)
+    [[ 0.    0.01]
+     [ 0.01  0.  ]]
+    
+    >>> with energy_units("1/cm"):
+    ...     mol1 = Molecule([0.0, 12000.0])
+    ...     mol2 = Molecule([0.0, 12100.0])
+    ...     agg = Aggregate(molecules=[mol1, mol2])
+    ...     agg.set_resonance_coupling(0,1,100.0)
+    >>> agg.build()
+    >>> pd = PureDephasing(drates=d_rates, system=agg)
+    Traceback (most recent call last):
+        ...
+    Exception: Incompatible dimension of the rate matrix: system has dimension = 3
+    
+    
+    >>> d_rates = [[0.0, 0.0, 0.0],[0.0, 0.0, 1.0/100.0], [0.0, 0.0, 0.0]]
+    >>> pd = PureDephasing(drates=d_rates, system=agg)
+    >>> pd.data[1,2] == d_rates[1][2]
+    True
+    
+    >>> print(pd.data[1,2])
+    0.01
+    
+    
+    >>> pd = PureDephasing(system=agg)
+    Traceback (most recent call last):
+        ... 
+    Exception: Dephasing rates must be specified.
+    
+    >>> pd = PureDephasing(drates=d_rates, system=1.0)
+    Traceback (most recent call last):
+        ...    
+    Exception: Non-Aggregate systems not implemented yet.
+    
+    >>> pd = PureDephasing(drates=d_rates, system=agg)
+    >>> HH = agg.get_Hamiltonian()
+    >>> with pd.eigenbasis:
+    ...     print(numpy.max(numpy.abs(HH.data
+    ...                   -numpy.diag(numpy.diag(HH.data))))<1.0e-15)
+    True
+    
+    >>> pd.eigenbasis = None
+    Traceback (most recent call last):
+        ...
+    Exception: The property 'eigenbasis' is protected and cannot be set.
     
 """
 
 #
-# We create this intentionally as not basis managed. It must be applied
-# only while working in the correct basis!
+
 #
 import numpy
 
 from ...builders.aggregates import Aggregate
+#from ...builders.molecules import Molecule
 from ...core.managers import eigenbasis_of
 from ... import REAL
 from ..liouvillespace.superoperator import SuperOperator
+from ...qm.hilbertspace.operators import Operator
+
+
+def _eigenb():
+    """Pointer to eigenbasis property
+    
+    """
+    
+    @property
+    def prop(self):
+        return self._eigenbasis()
+ 
+    @prop.setter
+    def prop(self, value):
+        raise Exception("The property 'eigenbasis' is protected"+
+                        " and cannot be set.")   
+ 
+    return prop
+
+
+
 
 class PureDephasing: #(BasisManaged):
     
     dtypes = ["Lorentzian", "Gaussian"]
     
-    def __init__(self, drates=None, dtype="Lorentzian", cutoff_time=None):
-        
+    eigenbasis = _eigenb()
+    
+    def __init__(self, drates=None, dtype="Lorentzian", system=None, 
+                 cutoff_time=None):
+
+        if drates is None:
+            raise Exception("Dephasing rates must be specified.")
+           
+        self.data=numpy.array(drates, dtype=REAL)    
+
+        if system is not None:
+            
+            self.system = system 
+            
+            
+            self.system_is_aggregate = False
+            self.system_is_molecule = False
+            
+            if isinstance(self.system, Aggregate):
+                
+                self.system_is_aggregate = True
+                
+            # FIXME: we have a circular reference problem with Molecule
+            #if isinstance(self.system, Molecule):
+            #    
+            #    self.system_is_molecule = True
+                
+            else:
+                
+                raise Exception("Non-Aggregate systems not implemented yet.")
+
+            HH = self.system.get_Hamiltonian()
+            if (HH.dim != self.data.shape[0]):
+                raise Exception("Incompatible dimension of the rate matrix:"
+                                +" system has dimension = "+str(HH.dim))
+       
+        else:
+            
+            self.system = None
+
+
         if dtype in self.dtypes:
         
-            self.data=drates
+            
+            self.dim = self.data.shape[0]
             self.dtype=dtype
             self.cutoff_time=cutoff_time
             
@@ -82,6 +206,32 @@ class PureDephasing: #(BasisManaged):
         else:
             raise Exception("Unknown dephasing type")
 
+
+    def _eigenbasis(self):
+        """Returns the context for the eigenbasis in which pure dephasing
+        is defined
+        
+        
+        To be used as
+        
+        pd = PureDephasing(sys)
+        with pd.eigenbasis:
+            ...
+        
+        """
+        if self.system is not None:
+            
+            ham = self.system.get_Hamiltonian()
+            return eigenbasis_of(ham)
+        
+        else:
+            
+            op = Operator(dim=self.dim)
+            return eigenbasis_of(op)
+            
+            
+
+
     
 class ElectronicPureDephasing(PureDephasing):
     """Electronic pure dephasing for one-exciton states
@@ -91,19 +241,14 @@ class ElectronicPureDephasing(PureDephasing):
     def __init__(self, system, drates=None, dtype="Lorentzian",
                  cutoff_time=None):
         
-        super().__init__(drates, dtype, cutoff_time)
-        
-        self.system = system
-        self.system_is_aggregate = False
-        
-        if isinstance(self.system, Aggregate):
-            
-            self.system_is_aggregate = True
-            
+        if drates is None:
+            HH = system.get_Hamiltonian()
+            dim = HH.dim
+            rates = numpy.zeros((dim, dim), dtype=REAL)
         else:
-            
-            raise Exception("Non-Aggregate systems not implemented yet")
-            
+            rates = drates
+        super().__init__(rates, dtype, system, cutoff_time)
+        
             
         if self.system_is_aggregate:
             
@@ -129,18 +274,5 @@ class ElectronicPureDephasing(PureDephasing):
                         widths[ii]*(Xi[aa,ii]**2 - Xi[bb,ii]**2)**2
 
             
-    def eigenbasis(self):
-        """Returns the context for the eigenbasis in which pure dephasing
-        is defined
-        
-        
-        To be used as
-        
-        pd = PureDephasing(sys)
-        with pd.eigenbasis:
-            ...
-        
-        """
-        ham = self.system.get_Hamiltonian()
-        return eigenbasis_of(ham)
+
             
