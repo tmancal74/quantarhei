@@ -15,12 +15,13 @@ from ..builders import Aggregate
 from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 
-from ...qm.liouvillespace.operators import ReducedDensityMatrix
+from ..qm.hilbertspace.operators import ReducedDensityMatrix
 
 
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
+from ..core.dfunction import DFunction
 
 from .abs2 import AbsSpectrum
 from .. import COMPLEX
@@ -102,7 +103,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                 if isinstance(self.system,Molecule):
                     #self._calculate_Molecule(rwa) 
                     if from_dynamics:
-                        spect = self._calculate_monomer_from_dynamics()
+                        spect = self._calculate_monomer_from_dynamics(raw=raw)
                     else:
                         spect = self._calculate_monomer(raw=raw)
                         
@@ -203,6 +204,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             #print("Time dependent: len = ", rt[20], len(rt))
             
         # Fourier transform the result
+        
         ft = dd*numpy.fft.hfft(at)*ta.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
@@ -287,31 +289,69 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         return spect
 
     
-    def _calculate_monomer_from_dynamics(self):
+    def _calculate_monomer_from_dynamics(self, raw=False):
         """Calculates the absorption spectrum of a molecule from its dynamics
         
         """
-        
-        # the propagator to propagate optical coherences
-        prop = self.prop
+
+        #
+        # Frequency axis
+        #
+        # we only want to retain the upper half of the spectrum
+        Nt = len(self.frequencyAxis.data)//2        
+        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
+        st = self.frequencyAxis.data[Nt//2]
+        # we represent the Frequency axis anew
+        axis = FrequencyAxis(st,Nt,do)
         
         # the spectrum will be calculate for this system
         system = self.system
         HH = system.get_Hamiltonian()
-        
+        if not HH.has_rwa:
+            HH.set_rwa([0,1])
+            #raise Exception("Hamiltonian has to define"+
+            #                " Rotating Wave Approximation")
+
+        # transition dipole moment
+        DD = system.get_TransitionDipoleMoment()
+        dvec = DD.data[0,1,:]
+        dd = numpy.dot(dvec,dvec)
+
+        # the propagator to propagate optical coherences
+        prop = self.prop
+        # FIXME: time axis must be consistent with other usage of the calculator
         time = prop.TimeAxis
-        
-        freq = time.get_FrequencyAxis()
-        data = numpy.zeros(1, dtype=COMPLEX)
         
         # we will loop over transitions
         rhoi = ReducedDensityMatrix(dim=HH.dim)
-        rhoi.data[1,0] = 1.0
-        rhot = prop.propagate(rhoi)
+        #
+        # Time dependent data
+        #
+        at = numpy.zeros(time.length, dtype=COMPLEX)
+        for ii in range(1):
         
-        data[:] = rhot.data[:,1,0,1,0]
-
-        spect = AbsSpectrum(axis=freq, data=data)
+            rhoi.data[1,0] = 1.0
+            rhot = prop.propagate(rhoi)
+            at += rhot.data[:,1,0]
+        
+        #
+        # Fourier transform of the time-dependent result
+        #
+        ft = dd*numpy.fft.hfft(at)*time.step
+        ft = numpy.fft.fftshift(ft)
+        # invert the order because hfft is a transform with -i
+        ft = numpy.flipud(ft)   
+        # cut the center of the spectrum
+        Nt = time.length #len(ta.data)        
+        data = ft[Nt//2:Nt+Nt//2]
+       
+        #
+        # multiply the response by \omega
+        #
+        if not raw:
+            data = axis.data*data
+        
+        spect = AbsSpectrum(axis=axis, data=data)
         
         return spect
 

@@ -17,9 +17,10 @@ import tempfile
 from quantarhei.spectroscopy.abs import AbsSpectrumBase, AbsSpectrumDifference
 from quantarhei import FrequencyAxis
 from quantarhei import energy_units
+from quantarhei import convert
 
 from quantarhei import AbsSpectrum, AbsSpectrumCalculator
-from quantarhei import Molecule, CorrelationFunction, TimeAxis
+from quantarhei import Molecule, CorrelationFunction, TimeAxis, Aggregate
 
 class TestAbs(unittest.TestCase):
     """Tests for the abs package
@@ -43,8 +44,8 @@ class TestAbs(unittest.TestCase):
         
         time = TimeAxis(0.0,1000,1.0)
         with energy_units("1/cm"):
-            mol1 = Molecule(elenergies=[0.0, 12000.0])
-            params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100,
+            mol1 = Molecule(elenergies=[0.0, 10000.0])
+            params = dict(ftype="OverdampedBrownian", reorg=20, cortime=30,
                           T=300)
             mol1.set_dipole(0,1,[0.0, 1.0, 0.0])
             cf = CorrelationFunction(time, params)
@@ -53,7 +54,7 @@ class TestAbs(unittest.TestCase):
             self.mol1 = mol1
             
             abs_calc = AbsSpectrumCalculator(time, system=mol1)
-            abs_calc.bootstrap(rwa=12000)
+            abs_calc.bootstrap(rwa=10000)
             
         abs1 = abs_calc.calculate()
         
@@ -164,24 +165,46 @@ class TestAbs(unittest.TestCase):
         
         """
         mol1 = self.mol1
-
-        time = TimeAxis(0.0,1000,1.0)
+        time = mol1.get_transition_environment((0,1)).axis
+                      
+        with energy_units("1/cm"):
+            # data for comparison
+            x = self.abs1.axis.data
+            y = self.abs1.data
+        
+                                               
         abs_calc = AbsSpectrumCalculator(time, system=mol1)
-        abs_calc.bootstrap(rwa=12000)
+        
+        # FIXME: RWA does not work correctly yet
+        with energy_units("1/cm"):
+            abs_calc.bootstrap(rwa=10000)
         
         prop = mol1.get_ReducedDensityMatrixPropagator(time, 
                                                 relaxation_theory="stR",
                                                 time_dependent=True)
-        prop.setDtRefinement(10)
+        #prop.setDtRefinement(10)
         
         abs_calc.set_propagator(prop)
-            
-        abs1 = abs_calc.calculate(from_dynamics=True)        
+        abs1 = abs_calc.calculate(from_dynamics=True)   
         
-        print("Spectrum:", abs1)
+        with energy_units("1/cm"):
+            x1 = abs1.axis.data
+            y1 = abs1.data 
         
-        #raise Exception("STOP HERE")
+        diff = numpy.max(numpy.abs(y1-y))
+        rdiff = diff/numpy.max(numpy.abs(y))
+        
+        self.assertTrue(rdiff < 0.01)
+        
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            plt.plot(x,y,"-b")
+            plt.plot(x1,y1,"--r")
+            plt.show() 
         
         
-        
+
+if __name__ == '__main__':
+    unittest.main()        
         

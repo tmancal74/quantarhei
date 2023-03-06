@@ -8,7 +8,6 @@ from ...core.saveable import Saveable
 from ...utils.types import BasisManagedComplexArray
 from ...core.managers import BasisManaged
 from .statevector import StateVector
-from ...qm.liouvillespace.operators import ReducedDensityMatrix
 from ... import COMPLEX, REAL
 
 
