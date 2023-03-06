@@ -95,6 +95,12 @@
     >>> print(numpy.allclose(fi.at(13.2,approx="spline"),\
     (numpy.sin(13.2/10.0) + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))
     True
+    
+    Only "linear" and "spline" approximations are available
+    >>> fval = fi.at(11.2, approx="quadratic")
+    Traceback (most recent call last):
+        ...
+    Exception: Unknown interpolation type
 
 
     Class Details
@@ -286,6 +292,11 @@ class DFunction(Saveable, DataSaveable):
         >>> fce = DFunction(time, vals)
         >>> print("%.4f" % fce.at(914.0))
         0.4707
+        
+        >>> time1 = TimeAxis(0.0, 1000, 1.0)
+        >>> fce.change_axis(time1)
+        >>> fce.axis == time1
+        True
         
         >>> time2 = TimeAxis(0.0, 900, 1.0)
         >>> fce.change_axis(time2)
@@ -487,6 +498,14 @@ class DFunction(Saveable, DataSaveable):
     def __add__(self, other):
         """Adding two DFunctions together
         
+        
+        >>> t1 = TimeAxis(0.0, 10, 0.001)
+        >>> t2 = TimeAxis(0.0, 10, 0.001)
+        >>> f1 = DFunction(t1, numpy.cos(t1.data))
+        >>> f2 = DFunction(t2, numpy.sin(t1.data))
+        >>> f = f1 + f2
+        >>> numpy.testing.assert_allclose(f.data, numpy.sin((t1.data))+numpy.cos(t1.data))
+        
         """
         f = DFunction(self.axis, self.data.copy())
         
@@ -504,10 +523,6 @@ class DFunction(Saveable, DataSaveable):
 
     def apply_to_data(self, func):
         """Applies a submitted function to the data
-        
-        
-        
-        
         
         """
         self.data = func(self.data)
