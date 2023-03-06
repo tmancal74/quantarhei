@@ -501,10 +501,20 @@ class DFunction(Saveable, DataSaveable):
         
         >>> t1 = TimeAxis(0.0, 10, 0.001)
         >>> t2 = TimeAxis(0.0, 10, 0.001)
+        >>> t1 == t2
+        True
+        
         >>> f1 = DFunction(t1, numpy.cos(t1.data))
         >>> f2 = DFunction(t2, numpy.sin(t1.data))
         >>> f = f1 + f2
         >>> numpy.testing.assert_allclose(f.data, numpy.sin((t1.data))+numpy.cos(t1.data))
+        
+        >>> t3 = TimeAxis(0.0, 12, 0.001)
+        >>> f1.change_axis(t3)
+        >>> f = f1 + f2
+        Traceback (most recent call last):
+            ...
+        Exception: axis attribute of both functions has to be identical
         
         """
         f = DFunction(self.axis, self.data.copy())
@@ -517,12 +527,27 @@ class DFunction(Saveable, DataSaveable):
             
         return f
     
-    def add_to_data(self, other):
-        pass
+    #def add_to_data(self, other):
+    #    pass
     
 
     def apply_to_data(self, func):
         """Applies a submitted function to the data
+        
+        
+        >>> x = TimeAxis(0.0, 314, 0.001)
+        >>> f1 = DFunction(x, x.data)
+        >>> f2 = DFunction(x, numpy.cos(x.data))
+        >>> f1.data[100] == f2.data[100]
+        False
+        
+        >>> f1.apply_to_data(numpy.cos)
+        >>> f1.data[100] == f2.data[100]
+        True
+        
+        >>> f1.data[160] == f2.data[160]
+        True
+        
         
         """
         self.data = func(self.data)
@@ -538,6 +563,50 @@ class DFunction(Saveable, DataSaveable):
 
     def get_Fourier_transform(self, window=None):
         """Returns Fourier transform of the DFunction
+
+
+
+        >>> t = TimeAxis(0.0, 200, 1.0)
+        
+        The default type of TimeAxis is "upper-half"
+        
+        >>> print(t.atype)
+        upper-half
+        
+        We create a function with this TimeAxis
+        
+        >>> f = DFunction(t, numpy.exp(((t.data-50.0)**2)/(30.0**2)))
+        >>> F = f.get_Fourier_transform()
+
+        When TimeAxis is the "upper-half" it is assumed that only half
+        of the function is specified. The "lower-half" corresponds to
+        a complex conjugated function, and FT is real.
+        
+        >>> rmax = numpy.max(numpy.abs(numpy.real(F.data)))
+        >>> imax = numpy.max(numpy.abs(numpy.imag(F.data))) 
+        >>> imax/rmax < 1.0e-15
+        True
+        
+        >>>
+        
+        The same with "complete" gives a complex result
+        
+        >>> t = TimeAxis(0.0, 200, 1.0, atype="complete")
+        >>> f = DFunction(t, numpy.exp(((t.data-50.0)**2)/(30.0**2)))
+        >>> F = f.get_Fourier_transform()        
+
+        >>> rmax = numpy.max(numpy.abs(numpy.real(F.data)))
+        >>> imax = numpy.max(numpy.abs(numpy.imag(F.data))) 
+        >>> imax/rmax  < 1.0e-15
+        False
+        
+        
+        >>> f.axis.atype="lower-half"
+        >>> F = f.get_Fourier_transform()
+        Traceback (most recent call last):
+            ...
+        Exception: Unknown time axis type
+        
 
         """
 
@@ -602,7 +671,7 @@ class DFunction(Saveable, DataSaveable):
 
 
         else:
-            pass
+            raise Exception("Function must have TimeAxis or FrequencyAxis.")
 
 
         return F
@@ -610,6 +679,16 @@ class DFunction(Saveable, DataSaveable):
 
     def get_inverse_Fourier_transform(self):
         """Returns inverse Fourier transform of the DFunction
+
+
+
+        >>> t = TimeAxis(-100.0, 200, 1.0)
+        >>> f = DFunction(t, numpy.exp((t.data**2)/(30.0**2)))
+        >>> F = f.get_Fourier_transform()
+
+        >>> fn = F.get_inverse_Fourier_transform()
+        >>> numpy.testing.assert_allclose(numpy.real(fn.data[100]), f.data[100])
+        
 
         """
 
