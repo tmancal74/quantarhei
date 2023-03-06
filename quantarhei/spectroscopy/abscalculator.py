@@ -15,11 +15,15 @@ from ..builders import Aggregate
 from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 
+from ...qm.liouvillespace.operators import ReducedDensityMatrix
+
+
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
 
 from .abs2 import AbsSpectrum
+from .. import COMPLEX
 
 class AbsSpectrumCalculator(EnergyUnitsManaged):
     """Linear absorption spectrum 
@@ -293,10 +297,23 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         # the spectrum will be calculate for this system
         system = self.system
-    
+        HH = system.get_Hamiltonian()
+        
         time = prop.TimeAxis
-    
-        return "to be calculated"
+        
+        freq = time.get_FrequencyAxis()
+        data = numpy.zeros(1, dtype=COMPLEX)
+        
+        # we will loop over transitions
+        rhoi = ReducedDensityMatrix(dim=HH.dim)
+        rhoi.data[1,0] = 1.0
+        rhot = prop.propagate(rhoi)
+        
+        data[:] = rhot.data[:,1,0,1,0]
+
+        spect = AbsSpectrum(axis=freq, data=data)
+        
+        return spect
 
 
     def _calculate_aggregate(self, relaxation_tensor=None,

@@ -575,7 +575,7 @@ class DFunction(Saveable, DataSaveable):
         
         We create a function with this TimeAxis
         
-        >>> f = DFunction(t, numpy.exp(((t.data-50.0)**2)/(30.0**2)))
+        >>> f = DFunction(t, numpy.exp(((-t.data-50.0)**2)/(30.0**2)))
         >>> F = f.get_Fourier_transform()
 
         When TimeAxis is the "upper-half" it is assumed that only half
@@ -592,7 +592,7 @@ class DFunction(Saveable, DataSaveable):
         The same with "complete" gives a complex result
         
         >>> t = TimeAxis(0.0, 200, 1.0, atype="complete")
-        >>> f = DFunction(t, numpy.exp(((t.data-50.0)**2)/(30.0**2)))
+        >>> f = DFunction(t, numpy.exp((-(t.data-50.0)**2)/(30.0**2)))
         >>> F = f.get_Fourier_transform()        
 
         >>> rmax = numpy.max(numpy.abs(numpy.real(F.data)))
@@ -681,14 +681,23 @@ class DFunction(Saveable, DataSaveable):
         """Returns inverse Fourier transform of the DFunction
 
 
-
+        >>> import quantarhei as qr
+        
         >>> t = TimeAxis(-100.0, 200, 1.0)
-        >>> f = DFunction(t, numpy.exp((t.data**2)/(30.0**2)))
+        >>> f = DFunction(t, numpy.exp(-(t.data**2)/(30.0**2)))
         >>> F = f.get_Fourier_transform()
 
         >>> fn = F.get_inverse_Fourier_transform()
         >>> numpy.testing.assert_allclose(numpy.real(fn.data[100]), f.data[100])
         
+
+        >>> dw = qr.convert(5.0,"1/cm","int")
+        >>> w = FrequencyAxis(0.0, 100, dw) #t.get_FrequencyAxis()
+        >>> delt = qr.convert(30.0,"1/cm","int")
+        >>> F = DFunction(w, numpy.exp((w.data**2)/(delt**2)))
+        >>> f = F.get_inverse_Fourier_transform()
+        >>> isinstance(f.axis, TimeAxis)
+        True
 
         """
 
@@ -763,6 +772,16 @@ class DFunction(Saveable, DataSaveable):
     def fit_exponential(self, guess=None):
         """Exponential fit of the function
         
+        
+        Examples
+        --------
+        
+        >>> t = TimeAxis(0.0, 100, 1.0)
+        >>> f = DFunction(t, 2.3*numpy.exp(-(t.data)/(10.0))+0.32)
+        >>> popt = f.fit_exponential()
+        >>> print(popt)
+        [ 2.3   0.1   0.32]
+        
         """
         from scipy.optimize import curve_fit
         
@@ -775,9 +794,9 @@ class DFunction(Saveable, DataSaveable):
         return popt
         
 
-    def fit_gaussian(self, N=1, guess=None, plot=False, Nsvf=251):
-        from scipy.signal import savgol_filter
-        from scipy.interpolate import UnivariateSpline
+    def fit_gaussian(self, N=1, guess=None, Nsvf=251):
+        #from scipy.signal import savgol_filter
+        #from scipy.interpolate import UnivariateSpline
         """Performs a Gaussian fit of the spectrum based on an initial guess
         
         
@@ -787,6 +806,18 @@ class DFunction(Saveable, DataSaveable):
         Nsvf : int
             Length of the Savitzky-Golay filter window (odd integer)
             
+
+
+        Examples
+        --------
+        
+        >>> t = TimeAxis(0.0, 100, 1.0)
+        >>> f = DFunction(t, 2.3*numpy.exp(-(4.0*numpy.log(2.0))*((t.data-30.0)**2)/(10.0**2))+0.32)
+        >>> popt = f.fit_gaussian(guess=[1.0, 33.0, 5.0, 0.5])
+        >>> print(popt)
+        [  2.3   30.    10.     0.32]
+
+
             
         """
         x = self.axis.data
@@ -796,37 +827,37 @@ class DFunction(Saveable, DataSaveable):
             
             raise Exception("Guess is required at this time")
             # FIXME: create a reasonable guess
-            guess = [1.0, 11000.0, 300.0, 0.2,
-                     11800, 400, 0.2, 12500, 300]
+            # guess = [1.0, 11000.0, 300.0, 0.2,
+            #          11800, 400, 0.2, 12500, 300]
             
-            #
-            # Find local maxima and guess their parameters
-            #
+            # #
+            # # Find local maxima and guess their parameters
+            # #
 
-            # Fit with a given number of Gaussian functions
+            # # Fit with a given number of Gaussian functions
             
-            if not self._splines_initialized:
-                self._set_splines()
+            # if not self._splines_initialized:
+            #     self._set_splines()
             
-            # get first derivative and smooth it
-            der = self._spline_r.derivative()
-            y1 = der(x)
-            y1sm = savgol_filter(y1,Nsvf,polyorder=3)
+            # # get first derivative and smooth it
+            # der = self._spline_r.derivative()
+            # y1 = der(x)
+            # y1sm = savgol_filter(y1,Nsvf,polyorder=3)
         
-            # get second derivative and smooth it
-            y1sm_spl_der = UnivariateSpline(x,y1sm,s=0).derivative()(x)
-            y2sm = savgol_filter(y1sm_spl_der,Nsvf,polyorder=3)
+            # # get second derivative and smooth it
+            # y1sm_spl_der = UnivariateSpline(x,y1sm,s=0).derivative()(x)
+            # y2sm = savgol_filter(y1sm_spl_der,Nsvf,polyorder=3)
         
-            # find positions of optima by looking for zeros of y1sm
+            # # find positions of optima by looking for zeros of y1sm
         
         
-            # isolate maxima by looking at the value of y2sm
+            # # isolate maxima by looking at the value of y2sm
         
 
-            #plt.plot(x, der(x))
-            #plt.plot(x, y1sm)
-            plt.plot(x, y2sm)
-            plt.show()
+            # #plt.plot(x, der(x))
+            # #plt.plot(x, y1sm)
+            # plt.plot(x, y2sm)
+            # plt.show()
         
         
         
@@ -837,18 +868,18 @@ class DFunction(Saveable, DataSaveable):
         from scipy.optimize import curve_fit            
         popt, pcov = curve_fit(funcf, x, y, p0=guess)
         
-        if plot:
+        # if plot:
         
-            plt.plot(x,y)
-            plt.plot(x,_n_gaussians(x, N, *popt))
-            for i in range(N):
-                a = popt[3*i]
-                print(i, a)
-                b = popt[3*i+1]
-                c = popt[3*i+2]
-                y = _gaussian(x, a, b, c)
-                plt.plot(x, y,'-r')
-            plt.show()
+        #     plt.plot(x,y)
+        #     plt.plot(x,_n_gaussians(x, N, *popt))
+        #     for i in range(N):
+        #         a = popt[3*i]
+        #         print(i, a)
+        #         b = popt[3*i+1]
+        #         c = popt[3*i+2]
+        #         y = _gaussian(x, a, b, c)
+        #         plt.plot(x, y,'-r')
+        #     plt.show()
         
         # FIXME: Create a readable report
         
