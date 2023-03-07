@@ -527,9 +527,6 @@ class DFunction(Saveable, DataSaveable):
             
         return f
     
-    #def add_to_data(self, other):
-    #    pass
-    
 
     def apply_to_data(self, func):
         """Applies a submitted function to the data
