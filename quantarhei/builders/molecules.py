@@ -4,9 +4,9 @@
     The molecule is defined by the vector of energies of its states
     and by the transition dipole moments between allowed transitions.
 
-    >>> m = Molecule([0.0, 1.0], "Alphonso")
-    >>> print("Hi, my name is", m.get_name()+"!")
-    Hi, my name is Alphonso!
+    >>> m = Molecule([0.0, 1.0])
+    >>> print(m.Nel)
+    2
 
 
     Information about the molecule can be obtained simply by printing it
@@ -15,7 +15,7 @@
     <BLANKLINE>
     quantarhei.Molecule object
     ==========================
-       name = Alphonso  
+       name =   
        position = None
        number of electronic states = 2
        # State properties
@@ -73,7 +73,6 @@ import numpy
 
 from ..utils import array_property
 from ..utils import Integer
-#from ..utils import check_numpy_array
 
 from ..core.managers import UnitsManaged, Manager
 from ..core.managers import eigenbasis_of
@@ -100,8 +99,6 @@ from ..core.saveable import Saveable
 from .opensystem import OpenSystem
 
 from .. import REAL
-
-#import quantarhei as qr
 
  
     
@@ -222,6 +219,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # here we will store the Hamiltonian, once it is constructed
         self.HH = None
         
+        self.el_rwa_indices = None
+        self.has_rwa = False
+        
         self.build()
         
 
@@ -237,34 +237,137 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.Nel = self.nel
         self._built = True
 
+    #
+    # I am systematically removing any "naming" in Quantarhei
+    #
         
-    def get_name(self):
-        """Returns the name of the molecule
+    # def get_name(self):
+    #     """Returns the name of the molecule
         
-        Examples
-        --------
+    #     Examples
+    #     --------
         
-        >>> m = Molecule([0.0, 1.0], name="Jane")
-        >>> m.get_name()
-        'Jane'
+    #     >>> m = Molecule([0.0, 1.0], name="Jane")
+    #     >>> m.get_name()
+    #     'Jane'
         
-        """
-        return self.name
+    #     """
+    #     return self.name
 
         
-    def set_name(self, name):
-        """Sets the name of the Molecule object
+    # def set_name(self, name):
+    #     """Sets the name of the Molecule object
+        
+    #     Examples
+    #     --------
+        
+    #     >>> m = Molecule([0.0, 1.0])
+    #     >>> m.set_name("Jane")
+    #     >>> print(m.get_name())
+    #     Jane
+        
+    #     """
+    #     self.name = name
+        
+    def set_electronic_rwa(self, rwa_indices):
+        """Sets which electronic states belong to different blocks
+        
+        Setting the indices of blocks should allow the construction
+        of Rotating Wave Approximation for the Hamiltonian. This in turn
+        is used for the calculations of optical spectra.
+        
         
         Examples
         --------
         
-        >>> m = Molecule([0.0, 1.0])
-        >>> m.set_name("Jane")
-        >>> print(m.get_name())
-        Jane
+        >>> with energy_units("1/cm"):
+        ...     mol1 = Molecule([0.0, 10000.0])
+        >>> mol1.set_electronic_rwa([0, 1])
+        >>> H = mol1.get_Hamiltonian()
+        >>> H.has_rwa
+        True
+        
+        
+        >>> with energy_units("1/cm"):
+        ...     mol2 = Molecule([0.0, 10000.0, 10500.0, 20000.0])
+
+        >>> with energy_units("1/cm"):
+        ...     mod2 = Mode(frequency=200.0)
+        ...     mol2.add_Mode(mod2) 
+        >>> mod2.set_nmax(0, 5)
+        >>> mod2.set_nmax(1, 4)
+        >>> mod2.set_nmax(2, 5)
+        >>> mod2.set_nmax(3, 3)
+                   
+        >>> mol2.set_electronic_rwa([0, 1, 3])
+        >>> H = mol2.get_Hamiltonian()
+        >>> H.has_rwa
+        True
+        
+        >>> print(H.rwa_indices)
+        [ 0  5 14]
         
         """
-        self.name = name
+        
+        self.el_rwa_indices = rwa_indices
+        if rwa_indices is not None:
+            self.has_rwa = True
+        else:
+            self.has_rwa = False
+        
+        if self.HH is not None:
+            vib_rwa_indices = self._calculate_rwa_indices(rwa_indices)
+            self.HH.set_rwa(vib_rwa_indices)
+            
+        
+        
+    def _calculate_rwa_indices(self, el_rwa_indices):
+        """Extends the rwa_indices by vibrational states if necessary
+        
+        """
+        if self.nmod == 0:
+            # if there are no modes, than we can use 
+            # electronic rwa_indices directly
+            rwa_indices = el_rwa_indices
+
+        else:
+            # if modes are present, we get the number of vib states
+            # in each block
+            
+            rwa_indices=[None]*len(el_rwa_indices)
+            
+            ib = 0 # block index
+            rwa_indices[ib] = 0
+            
+            ib += 1  
+            next_el_index = el_rwa_indices[ib] # next is the start of the 
+            count = 0
+            
+            # loop over electronic states
+            for kk in range(self.nel):
+                
+                inst_c = 1 # at leat one state per electronic state
+
+                # if this is the start of the new block
+                if kk == next_el_index:
+                    
+                    rwa_indices[ib] = rwa_indices[ib-1] + count
+                    
+                    ib += 1 # next block
+                    if ib < len(el_rwa_indices):
+                        next_el_index = el_rwa_indices[ib]
+                    else:
+                        next_el_index = self.nel + 1
+                    count = 0 # reset the count of states
+
+                # number of states in an electronic state
+                for mk in range(self.nmod):  # over all modes
+                    # number of vib. states
+                    inst_c = inst_c*self.modes[mk].get_nmax(kk)
+                    
+                count += inst_c
+            
+        return rwa_indices
         
         
     def set_egcf_mapping(self, transition, correlation_matrix, position):
@@ -1721,6 +1824,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             if (self.HH is None) or recalculate:
                 with energy_units("int"):
                     HH = Hamiltonian(data=ham)
+                    
+                    if self.has_rwa:
+                        # set Hamiltonian to RWA
+                        vib_rwa_indices = \
+                            self._calculate_rwa_indices(self.el_rwa_indices)
+
+                        HH.set_rwa(vib_rwa_indices)
+                    
                 self.HH = HH  
                 
                 # set information about Rotating Wave Approximation
