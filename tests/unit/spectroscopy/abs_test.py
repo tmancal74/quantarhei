@@ -21,7 +21,7 @@ from quantarhei import energy_units
 
 from quantarhei import AbsSpectrum, AbsSpectrumCalculator
 from quantarhei import Molecule, CorrelationFunction, TimeAxis
-#from quantarhei import Aggregate
+from quantarhei import Aggregate
 
 class TestAbs(unittest.TestCase):
     """Tests for the abs package
@@ -46,7 +46,7 @@ class TestAbs(unittest.TestCase):
         time = TimeAxis(0.0,1000,1.0)
         with energy_units("1/cm"):
             mol1 = Molecule(elenergies=[0.0, 10000.0])
-            params = dict(ftype="OverdampedBrownian", reorg=20, cortime=30,
+            params = dict(ftype="OverdampedBrownian", reorg=30, cortime=100,
                           T=300)
             mol1.set_dipole(0,1,[0.0, 1.0, 0.0])
             cf = CorrelationFunction(time, params)
@@ -60,6 +60,23 @@ class TestAbs(unittest.TestCase):
         abs1 = abs_calc.calculate()
         
         self.abs1 = abs1
+        
+        with energy_units("1/cm"):
+            mol2 = Molecule(elenergies=[0.0, 10000.0])
+            mol2.set_dipole(0,1,[1.0, 0.0, 0.0])
+            mol2.set_transition_environment((0,1), cf)
+            
+        agg = Aggregate(molecules=[mol1, mol2])
+        agc = Aggregate(molecules=[mol1, mol2])
+        
+        with energy_units("1/cm"):
+            agg.set_resonance_coupling(0,1,0.0)
+            agc.set_resonance_coupling(0,1,300.0)
+        
+        agg.build()
+        agc.build()
+        self.agg0 = agg
+        self.agg = agc
         
         
     def _spectral_shape(self, f, par):
@@ -164,28 +181,25 @@ class TestAbs(unittest.TestCase):
     def test_of_molecular_absorption(self):
         """(AbsSpectrum) Testing absorption spectrum of a molecule
         
+        
         """
         mol1 = self.mol1
+        mol1.set_electronic_rwa([0, 1])
         time = mol1.get_transition_environment((0,1)).axis
                       
         with energy_units("1/cm"):
             # data for comparison
             x = self.abs1.axis.data
-            y = self.abs1.data/3.0
-        
+            y = self.abs1.data/3.0        
                                                
         abs_calc = AbsSpectrumCalculator(time, system=mol1)
         
-        # FIXME: RWA does not work correctly yet
-        with energy_units("1/cm"):
-            abs_calc.bootstrap(rwa=10000)
-        
+
         prop = mol1.get_ReducedDensityMatrixPropagator(time, 
                                                 relaxation_theory="stR",
                                                 time_dependent=True)
-        #prop.setDtRefinement(10)
-        
-        abs_calc.set_propagator(prop)
+                
+        abs_calc.bootstrap(prop=prop)
         abs1 = abs_calc.calculate(from_dynamics=True)   
         
         with energy_units("1/cm"):
@@ -204,7 +218,71 @@ class TestAbs(unittest.TestCase):
             plt.plot(x1,y1,"--r")
             plt.show() 
         
+ 
+    def test_of_aggregate_absorption(self):
+        """(AbsSpectrum) Testing absorption spectrum of an aggregate
         
+        
+        """
+        mol1 = self.mol1
+        agg = self.agg0
+        agc = self.agg
+        
+        time = mol1.get_transition_environment((0,1)).axis
+                      
+        with energy_units("1/cm"):
+            # data for comparison
+            x = self.abs1.axis.data
+            y = self.abs1.data/3.0
+                                                
+        abs_calc = AbsSpectrumCalculator(time, system=agg)
+        
+        prop = agg.get_ReducedDensityMatrixPropagator(time, 
+                                                relaxation_theory="stR",
+                                                time_dependent=True)
+
+        abs_calc.bootstrap(prop=prop)
+        
+        abs1 = abs_calc.calculate(from_dynamics=True)   
+        
+        with energy_units("1/cm"):
+            x1 = abs1.axis.data
+            y1 = abs1.data/2.0   # we divide by 2, becuase there are 2
+                                 # molecules in the aggregate
+        
+        diff = numpy.max(numpy.abs(y1-y))
+        rdiff = diff/numpy.max(numpy.abs(y))
+        
+        self.assertTrue(rdiff < 0.01)
+        
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            plt.plot(x,y,"-b")
+            plt.plot(x1,y1,"--r")
+            plt.show() 
+        
+        abs_calc = AbsSpectrumCalculator(time, system=agc)
+        
+        prop = agc.get_ReducedDensityMatrixPropagator(time, 
+                                                relaxation_theory="stR",
+                                                time_dependent=True)
+        
+        abs_calc.bootstrap(prop=prop)
+        abs1 = abs_calc.calculate(from_dynamics=True)   
+        
+        with energy_units("1/cm"):
+            x1 = abs1.axis.data
+            y1 = abs1.data   
+
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            plt.plot(x,y,"-b")
+            plt.plot(x1,y1,"--r")
+            plt.show()     
+            
+
 
 if __name__ == '__main__':
     unittest.main()        

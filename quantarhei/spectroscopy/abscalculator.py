@@ -26,6 +26,71 @@ from ..core.dfunction import DFunction
 from .abs2 import AbsSpectrum
 from .. import COMPLEX
 
+
+
+def _spect_from_dyn(time, HH, DD, prop, rhoeq, secular=False):
+    """Calculation of the first order signal field.
+    
+
+    Parameters
+    ----------
+    time : TimeAxis
+        Time axis on which the spectrum is calculated
+    HH : Hamiltonian
+        Hamiltonian of the system
+    DD : TransitionDipoleMoment
+        Transition dipole moment operator
+    prop : ReducedDensityMatrixPropagator
+        Propagator of the density matrix
+    rhoeq : ReducedDensityMatrix
+        Equilibrium reduced density matrix 
+    secular : bool, optional
+        Should secular approximation be used? The default is False.
+
+    Returns
+    -------
+    at : numpy.array, COMPLEX
+        Time dependent signal field.
+
+    """
+    # we will loop over transitions
+    rhoi = ReducedDensityMatrix(dim=HH.dim)
+    #
+    # Time dependent data
+    #
+    at = numpy.zeros(time.length, dtype=COMPLEX)
+    # transitions to loop over
+    # ig represents all states in the ground state block
+    for ig in range(HH.rwa_indices[1]):
+        if len(HH.rwa_indices) <= 2:
+            Nfin = HH.dim
+        else:
+            Nfin = HH.rwa_indices[2]
+        for ie in range(HH.rwa_indices[1], Nfin):
+            rhoi.data[:,:] = 0.0
+            rhoi.data[ie,ig] = rhoeq.data[ig,ig]
+            dvec_1 = DD.data[ie,ig,:]
+            dd = numpy.dot(dvec_1,dvec_1)  
+            
+            rhot = prop.propagate(rhoi)
+            
+            if secular:
+                at += (dd/3.0)*rhot.data[:,ie,ig]
+            else:
+                #
+                # non-secular loops over all coherences
+                #
+                for jg in range(HH.rwa_indices[1]):
+                    for je in range(HH.rwa_indices[1], Nfin):        
+                        dvec_2 = DD.data[je,jg,:]
+                        d12 = numpy.dot(dvec_2,dvec_1)
+                        at += (d12/3.0)*rhot.data[:,je,jg]  
+                        
+        return at
+
+
+
+
 class AbsSpectrumCalculator(EnergyUnitsManaged):
     """Linear absorption spectrum 
     
@@ -76,18 +141,34 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         self.rwa = 0.0
 
      
-    def bootstrap(self,rwa=0.0, lab=None):
-        """
+    def bootstrap(self, rwa=0.0, prop=None, lab=None):
+        """This function sets some additional information before calculation
+        
+        
         
         """
-        self.rwa = self.convert_2_internal_u(rwa)
+        
+        self.prop = prop
+        
+        if self.prop is None:
+            
+            self.rwa = self.convert_2_internal_u(rwa)
+            
+        else:
+            
+            HH = self.system.get_Hamiltonian()
+            if not HH.has_rwa:
+                HH.set_rwa([0, 1])
+            HR = HH.get_RWA_skeleton()
+            Ne = HH.rwa_indices[1]
+            self.rwa = self.convert_2_internal_u(HR[Ne])
+            
         with energy_units("int"):
             # sets the frequency axis for plottig
             self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
             self.frequencyAxis.data += self.rwa     
-        
-        #if isinstance(self.system, Aggregate):
-        #    self.system.diagonalize()
+            
+
                     
         
     def calculate(self, raw=False, from_dynamics=False):
@@ -100,43 +181,37 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             
             if self.system is not None:
                 
-                if isinstance(self.system,Molecule):
+                if from_dynamics:
+                    
+                    spect = self._calculate_abs_from_dynamics(raw=raw)
+            
+                elif isinstance(self.system,Molecule):
                     #self._calculate_Molecule(rwa) 
-                    if from_dynamics:
-                        spect = self._calculate_monomer_from_dynamics(raw=raw)
-                    else:
-                        spect = self._calculate_monomer(raw=raw)
+                    spect = self._calculate_monomer(raw=raw)
                         
                 elif isinstance(self.system, Aggregate):
                     spect = self._calculate_aggregate( 
-                                              relaxation_tensor=
-                                              self._relaxation_tensor,
-                                              rate_matrix=
-                                              self._rate_matrix,
-                                              relaxation_hamiltonian=
-                                              self._relaxation_hamiltonian,
-                                              raw=raw)
+                                            relaxation_tensor=
+                                            self._relaxation_tensor,
+                                            rate_matrix=
+                                            self._rate_matrix,
+                                            relaxation_hamiltonian=
+                                            self._relaxation_hamiltonian,
+                                            raw=raw)
             else:
                 raise Exception("System to calculate spectrum for not defined")
         
         return spect
     
 
-    def set_propagator(self, prop):
-        """Sets the propagator for later calculations of spectra
+    # def _calculateMolecule(self,rwa):
         
-        """
-        self.prop = prop
+    #     if self.system._has_system_bath_coupling:
+    #         raise Exception("Not yet implemented")
+    #     else: 
+    #         # calculating stick spectra  
 
-
-    def _calculateMolecule(self,rwa):
-        
-        if self.system._has_system_bath_coupling:
-            raise Exception("Not yet implemented")
-        else: 
-            # calculating stick spectra  
-
-            stick_width = 1.0/0.1
+    #         stick_width = 1.0/0.1
             
             
     def _c2g(self,timeaxis,coft):
@@ -171,6 +246,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                             si,s=0).antiderivative()(ta.data)
         gt = sr + 1j*si
         return gt
+
         
     def one_transition_spectrum(self,tr):
         """ Calculates spectrum of one transition
@@ -244,7 +320,6 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             
         return ct
 
-
         
     def _calculate_monomer(self, raw=False):
         """ Calculates the absorption spectrum of a monomer 
@@ -283,13 +358,12 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         if not raw:
             data = axis.data*data
 
-        
         spect = AbsSpectrum(axis=axis, data=data)
         
         return spect
 
     
-    def _calculate_monomer_from_dynamics(self, raw=False):
+    def _calculate_abs_from_dynamics(self, raw=False):
         """Calculates the absorption spectrum of a molecule from its dynamics
         
         """
@@ -308,9 +382,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         system = self.system
         HH = system.get_Hamiltonian()
         if not HH.has_rwa:
-            HH.set_rwa([0,1])
-            #raise Exception("Hamiltonian has to define"+
-            #                " Rotating Wave Approximation")
+            raise Exception("Hamiltonian has to define"+
+                            " Rotating Wave Approximation")
 
         # transition dipole moment
         DD = system.get_TransitionDipoleMoment()
@@ -322,41 +395,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         # FIXME: time axis must be consistent with other usage of the calculator
         time = prop.TimeAxis
         
-        
         secular = False
-        
-        # we will loop over transitions
-        rhoi = ReducedDensityMatrix(dim=HH.dim)
-        #
-        # Time dependent data
-        #
-        at = numpy.zeros(time.length, dtype=COMPLEX)
-        # transitions to loop over
-        # ig represents all states in the ground state block
-        for ig in range(HH.rwa_indices[1]):
-            if len(HH.rwa_indices) <= 2:
-                Nfin = HH.dim
-            else:
-                Nfin = HH.rwa_indices[2]
-            for ie in range(HH.rwa_indices[1], Nfin):
-                rhoi.data[:,:] = 0.0
-                rhoi.data[ie,ig] = rhoeq.data[ig,ig]
-                dvec_1 = DD.data[ie,ig,:]
-                dd = numpy.dot(dvec_1,dvec_1)  
-                
-                rhot = prop.propagate(rhoi)
-                if secular:
-                    at += (dd/3.0)*rhot.data[:,ie,ig]
-                else:
-                    #
-                    # non-secular loops over all coherences
-                    #
-                    for jg in range(HH.rwa_indices[1]):
-                        for je in range(HH.rwa_indices[1], Nfin):        
-                            dvec_2 = DD.data[je,jg,:]
-                            d12 = numpy.dot(dvec_2,dvec_1)
-                            at += (d12/3.0)*rhot.data[:,je,jg]                            
-                            
+                              
+        at = _spect_from_dyn(time, HH, DD, prop, rhoeq, secular)
 
         #
         # Fourier transform of the time-dependent result
@@ -489,5 +530,3 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         spect = AbsSpectrum(axis=axis, data=data)
         
         return spect        
-
-                   
