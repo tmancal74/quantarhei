@@ -171,7 +171,7 @@ class TestAbs(unittest.TestCase):
         with energy_units("1/cm"):
             # data for comparison
             x = self.abs1.axis.data
-            y = self.abs1.data
+            y = self.abs1.data/3.0
         
                                                
         abs_calc = AbsSpectrumCalculator(time, system=mol1)

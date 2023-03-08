@@ -314,13 +314,16 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
 
         # transition dipole moment
         DD = system.get_TransitionDipoleMoment()
-        dvec = DD.data[0,1,:]
-        dd = numpy.dot(dvec,dvec)
+        
+        rhoeq = system.get_thermal_ReducedDensityMatrix()
 
         # the propagator to propagate optical coherences
         prop = self.prop
         # FIXME: time axis must be consistent with other usage of the calculator
         time = prop.TimeAxis
+        
+        
+        secular = False
         
         # we will loop over transitions
         rhoi = ReducedDensityMatrix(dim=HH.dim)
@@ -328,16 +331,37 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         # Time dependent data
         #
         at = numpy.zeros(time.length, dtype=COMPLEX)
-        for ii in range(1):
-        
-            rhoi.data[1,0] = 1.0
-            rhot = prop.propagate(rhoi)
-            at += rhot.data[:,1,0]
-        
+        # transitions to loop over
+        # ig represents all states in the ground state block
+        for ig in range(HH.rwa_indices[1]):
+            if len(HH.rwa_indices) <= 2:
+                Nfin = HH.dim
+            else:
+                Nfin = HH.rwa_indices[2]
+            for ie in range(HH.rwa_indices[1], Nfin):
+                rhoi.data[:,:] = 0.0
+                rhoi.data[ie,ig] = rhoeq.data[ig,ig]
+                dvec_1 = DD.data[ie,ig,:]
+                dd = numpy.dot(dvec_1,dvec_1)  
+                
+                rhot = prop.propagate(rhoi)
+                if secular:
+                    at += (dd/3.0)*rhot.data[:,ie,ig]
+                else:
+                    #
+                    # non-secular loops over all coherences
+                    #
+                    for jg in range(HH.rwa_indices[1]):
+                        for je in range(HH.rwa_indices[1], Nfin):        
+                            dvec_2 = DD.data[je,jg,:]
+                            d12 = numpy.dot(dvec_2,dvec_1)
+                            at += (d12/3.0)*rhot.data[:,je,jg]                            
+                            
+
         #
         # Fourier transform of the time-dependent result
         #
-        ft = dd*numpy.fft.hfft(at)*time.step
+        ft = numpy.fft.hfft(at)*time.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
         ft = numpy.flipud(ft)   
