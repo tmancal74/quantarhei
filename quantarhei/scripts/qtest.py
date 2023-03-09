@@ -28,7 +28,7 @@ def main():
                         unit=["spectroscopy/abs_test.py", 
                               "spectroscopy/abs2_test.py"])
     testlist_prop = dict(doctest=["qm/propagators/rdmpropagator.py"],
-                         unit=[])
+                         unit=["qm/propagators/rdmpropagator_test.py"])
     
     testdef = dict(abscalc=testlist_abs, propag=testlist_prop)
     

@@ -23,6 +23,8 @@ from quantarhei import Molecule, Mode
 from quantarhei import CorrelationFunction
 from quantarhei import energy_units, eigenbasis_of
 
+from quantarhei import LabSetup, convert
+from quantarhei import ReducedDensityMatrix
 
 class TestRDMPropagator(unittest.TestCase):
     """Tests reduced density matrix propagator module
@@ -224,6 +226,76 @@ class TestRDMPropagator(unittest.TestCase):
 
     #def test_rdm_evolution_Saveable(self):
     #    pass
+
+
+    def test_rdm_field(self):
+        """(RDMPropagator) Propagation with external field
+        
+        """
+        
+        with energy_units("1/cm"):
+            mol1 = Molecule([0.0, 12000.0])
+            mol1.set_dipole((0,1), [1.0, 0.0, 0.0])
+            time = TimeAxis(0.0, 100, 1.0, atype="complete")
+            params = dict(ftype="OverdampedBrownian",
+                          cortime=30.0, reorg=20, T=300,
+                          matsubara=30)
+            
+            cfce = CorrelationFunction(time, params=params)
+            mol1.set_transition_environment((0,1), cfce)
+
+        HH = mol1.get_Hamiltonian()
+        DD = mol1.get_TransitionDipoleMoment()
+        
+        dd = DD.data[1,:,:]
+           
+        with self.assertRaises(Exception) as context:
+            prop = ReducedDensityMatrixPropagator(time, Ham=HH, Trdip=dd)
+        
+        self.assertTrue("Operator or None expected here."
+                        in str(context.exception))
+            
+        lab = LabSetup(nopulses=3)
+        om = convert(12000.0, "1/cm", "int")
+        omegas = [om, om, om]
+        lab.set_pulse_frequencies(omegas)
+        lab.set_pulse_arrival_times([100.0, 100.0, 100.0])
+        lab.set_pulse_polarizations([[1.0, 0.0, 0.0],[1.0, 0.0, 0.0],
+                                     [1.0, 0.0, 0.0]])
+        prms = dict(ptype="Gaussian", FWHM=50.0, amplitude=1.0)
+        lab.set_pulse_shapes(time, params=[prms, prms, prms])
+        
+        f1 = lab.get_labfield(0)
+        
+        prop = ReducedDensityMatrixPropagator(time, Ham=HH,
+                                              Trdip=DD, Efield=f1.field)
+        
+        rhoi = ReducedDensityMatrix(dim=HH.dim)
+        rhoi.data[0,0] = 1.0
+        
+        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi) #, method="short-exp-4")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))
+        
+        HH.set_rwa([0, 1])
+        
+        prop = ReducedDensityMatrixPropagator(time, Ham=HH)
+        rhoi = ReducedDensityMatrix(dim=HH.dim)
+        rhoi.data[:,:] = 0.5
+
+        rhot = prop.propagate(rhoi, method="short-exp-4")  
+        rhot = prop.propagate(rhoi, method="short-exp-2")
+        rhot = prop.propagate(rhoi, method="short-exp-6")
+        rhot.convert_from_RWA(HH)
+        
+
+        # import matplotlib.pyplot as plt
+        
+        # plt.plot(time.data, rhot.data[:,0,1])
+        # plt.show()
+        
 
 
 if __name__ == '__main__':
