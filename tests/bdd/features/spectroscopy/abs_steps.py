@@ -211,4 +211,20 @@ def compare_absorption_with_file(self, file):
 
     print("comparing absorption with file ", file)
     abs_data = read_n_columns(file,2)
+    
+    #
+    # Generate comparison files
+    #
+    write_the_file = False
+    if write_the_file:
+        with open(file+"_new", "w") as f:
+            for ii in range(world.abs.shape[0]):
+                print("%.15e %.15e" % (world.abs[ii,0], world.abs[ii,1]), file=f)
+            
+    # import matplotlib.pyplot as plt
+    
+    # plt.plot(abs_data[:,0], abs_data[:,1])
+    # plt.plot(world.abs[:,0], world.abs[:,1],"--")
+    # plt.show()
+
     numpy.testing.assert_allclose(abs_data,world.abs,rtol=1.0e-5)

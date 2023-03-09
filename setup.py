@@ -118,7 +118,8 @@ setup(
                             'ghenerate=quantarhei.scripts.ghenerate:main',
                             'qtask=quantarhei.scripts.qtask:main',
                             'qview=quantarhei.scripts.qview:main',
-                            'qlaunch=quantarhei.scripts.qlaunch:main'],
+                            'qlaunch=quantarhei.scripts.qlaunch:main',
+                            'qtest=quantarhei.scripts.qtest:main'],
     }
     
 )

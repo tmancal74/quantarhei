@@ -14,81 +14,12 @@ from ..builders import Molecule
 from ..builders import Aggregate
 from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
-
-from ..qm.hilbertspace.operators import ReducedDensityMatrix
-
-
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
-from ..core.dfunction import DFunction
-
+from ..qm.hilbertspace.operators import ReducedDensityMatrix
 from .abs2 import AbsSpectrum
 from .. import COMPLEX
-
-
-
-def _spect_from_dyn(time, HH, DD, prop, rhoeq, secular=False):
-    """Calculation of the first order signal field.
-    
-
-    Parameters
-    ----------
-    time : TimeAxis
-        Time axis on which the spectrum is calculated
-    HH : Hamiltonian
-        Hamiltonian of the system
-    DD : TransitionDipoleMoment
-        Transition dipole moment operator
-    prop : ReducedDensityMatrixPropagator
-        Propagator of the density matrix
-    rhoeq : ReducedDensityMatrix
-        Equilibrium reduced density matrix 
-    secular : bool, optional
-        Should secular approximation be used? The default is False.
-
-    Returns
-    -------
-    at : numpy.array, COMPLEX
-        Time dependent signal field.
-
-    """
-    # we will loop over transitions
-    rhoi = ReducedDensityMatrix(dim=HH.dim)
-    #
-    # Time dependent data
-    #
-    at = numpy.zeros(time.length, dtype=COMPLEX)
-    # transitions to loop over
-    # ig represents all states in the ground state block
-    for ig in range(HH.rwa_indices[1]):
-        if len(HH.rwa_indices) <= 2:
-            Nfin = HH.dim
-        else:
-            Nfin = HH.rwa_indices[2]
-        for ie in range(HH.rwa_indices[1], Nfin):
-            rhoi.data[:,:] = 0.0
-            rhoi.data[ie,ig] = rhoeq.data[ig,ig]
-            dvec_1 = DD.data[ie,ig,:]
-            dd = numpy.dot(dvec_1,dvec_1)  
-            
-            rhot = prop.propagate(rhoi)
-            
-            if secular:
-                at += (dd/3.0)*rhot.data[:,ie,ig]
-            else:
-                #
-                # non-secular loops over all coherences
-                #
-                for jg in range(HH.rwa_indices[1]):
-                    for je in range(HH.rwa_indices[1], Nfin):        
-                        dvec_2 = DD.data[je,jg,:]
-                        d12 = numpy.dot(dvec_2,dvec_1)
-                        at += (d12/3.0)*rhot.data[:,je,jg]  
-                        
-        return at
-
-
 
 
 class AbsSpectrumCalculator(EnergyUnitsManaged):
@@ -103,6 +34,60 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         System for which the absorption spectrum will be calculated.
         
         
+    Examples
+    --------
+
+    Calcutor has to be created using a Molecule or Aggregate
+
+    >>> time = TimeAxis(0.0, 1000, 1.0)
+    >>> absc = AbsSpectrumCalculator(time)
+    Traceback (most recent call last):
+        ...
+    TypeError: system must be of type [<class 'quantarhei.builders.molecules.Molecule'>, <class 'quantarhei.builders.aggregates.Aggregate'>]
+    
+    >>> with energy_units("1/cm"):
+    ...     mol = Molecule([0.0, 10000.0])
+    >>> absc = AbsSpectrumCalculator(time, mol)
+    
+    The method bootstrap() must be called before calculate()
+    
+    >>> abs = absc.calculate() 
+    Traceback (most recent call last):
+        ...    
+    Exception: Calculator must be bootstrapped first: call bootstrap() method of this object.
+    
+    
+    Molecule does not provide RWA information automatically
+    
+    >>> HH = mol.get_Hamiltonian()
+    >>> HH.has_rwa
+    False
+    
+    Setting the RWA frequency can be therefore done explicitely
+    
+    >>> absc.bootstrap(rwa=1.0)
+    >>> print(absc.rwa)
+    1.0
+    
+    When RWA is specified for the Hamiltonian
+    
+    >>> HH.set_rwa([0, 1])
+    
+    setting RWA explicitely in bootstrap() is ignored. The value from the 
+    Molecule is used.
+    
+    >>> absc.bootstrap(rwa=1.1)
+    >>> print("%5.5f" % absc.rwa)
+    1.88365
+
+    RWA can be set by the Molecule
+    
+    >>> with energy_units("1/cm"):
+    ...     mol = Molecule([0.0, 10000.0])
+    >>> absc = AbsSpectrumCalculator(time, mol)
+    >>> mol.set_electronic_rwa([0, 1])
+    >>> absc.bootstrap()
+    
     """
 
     TimeAxis = derived_type("TimeAxis",TimeAxis)
@@ -119,12 +104,12 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         self.TimeAxis = timeaxis
         self.system = system
         
-        #FIXME: properties to be protected
-        self.dynamics = dynamics
-        
+        if dynamics in ["secular", "non-secular"]:
+            self.dynamics = dynamics
+        else:
+            raise Exception("Unknown type of dynamics: "+str(dynamics))
+                    
         # unprotected properties
-        #self.data = None
-        
         self._relaxation_tensor = None
         self._rate_matrix = None
         self._relaxation_hamiltonian = None
@@ -139,43 +124,62 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             self._has_rate_matrix = True
             
         self.rwa = 0.0
+        self.prop_has_rwa = False
+        
+        self.bootstrapped = False
 
      
     def bootstrap(self, rwa=0.0, prop=None, lab=None):
         """This function sets some additional information before calculation
         
         
+        >>> time = TimeAxis(0.0, 1000, 1.0)
+        >>> with energy_units("1/cm"):
+        ...     mol = Molecule([0.0, 10000.0])
+        >>> absc = AbsSpectrumCalculator(time, mol)  
         
+        >>> absc.bootstrap()
+        Traceback (most recent call last):
+            ...
+        Exception: RWA not set by system nor explicitely.
         """
         
         self.prop = prop
         
-        if self.prop is None:
-            
-            self.rwa = self.convert_2_internal_u(rwa)
-            
-        else:
-            
-            HH = self.system.get_Hamiltonian()
-            if not HH.has_rwa:
-                HH.set_rwa([0, 1])
+        HH = self.system.get_Hamiltonian()
+        if HH.has_rwa:
+            # if HH has RWA, the 'rwa' argument is ignored
             HR = HH.get_RWA_skeleton()
             Ne = HH.rwa_indices[1]
             self.rwa = self.convert_2_internal_u(HR[Ne])
+            self.prop_has_rwa = True  # Propagator is in RWA
+        else:
+            if rwa > 0.0:
+                self.rwa = self.convert_2_internal_u(rwa)
+            else:
+                raise Exception("RWA not set by system nor explicitely.")
+
+        #self.rwa = self.convert_2_internal_u(rwa)
             
         with energy_units("int"):
             # sets the frequency axis for plottig
             self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
+            
+            # it must be shifted by rwa value
             self.frequencyAxis.data += self.rwa     
             
+        self.bootstrapped = True
 
-                    
-        
+                            
     def calculate(self, raw=False, from_dynamics=False):
         """ Calculates the absorption spectrum 
         
         
         """
+        
+        if not self.bootstrapped:
+            raise Exception("Calculator must be bootstrapped first: "+
+                            "call bootstrap() method of this object.")
         
         with energy_units("int"):
             
@@ -185,7 +189,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                     
                     spect = self._calculate_abs_from_dynamics(raw=raw)
             
-                elif isinstance(self.system,Molecule):
+                elif isinstance(self.system, Molecule):
                     #self._calculate_Molecule(rwa) 
                     spect = self._calculate_monomer(raw=raw)
                         
@@ -202,50 +206,6 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                 raise Exception("System to calculate spectrum for not defined")
         
         return spect
-    
-
-    # def _calculateMolecule(self,rwa):
-        
-    #     if self.system._has_system_bath_coupling:
-    #         raise Exception("Not yet implemented")
-    #     else: 
-    #         # calculating stick spectra  
-
-    #         stick_width = 1.0/0.1
-            
-            
-    def _c2g(self,timeaxis,coft):
-        """ Converts correlation function to lineshape function
-        
-        Explicit numerical double integration of the correlation
-        function to form a lineshape function.
-
-        Parameters
-        ----------
-
-        timeaxis : cu.oqs.time.TimeAxis
-            TimeAxis of the correlation function
-            
-        coft : complex numpy array
-            Values of correlation function given at points specified
-            in the TimeAxis object
-            
-        
-        """
-        
-        ta = timeaxis
-        rr = numpy.real(coft)
-        ri = numpy.imag(coft)
-        sr = scipy.interpolate.UnivariateSpline(ta.data,
-                            rr,s=0).antiderivative()(ta.data)
-        sr = scipy.interpolate.UnivariateSpline(ta.data,
-                            sr,s=0).antiderivative()(ta.data)
-        si = scipy.interpolate.UnivariateSpline(ta.data,
-                            ri,s=0).antiderivative()(ta.data)
-        si = scipy.interpolate.UnivariateSpline(ta.data,
-                            si,s=0).antiderivative()(ta.data)
-        gt = sr + 1j*si
-        return gt
 
         
     def one_transition_spectrum(self,tr):
@@ -262,7 +222,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             ct = tr["ct"] # correlation function
         
             # convert correlation function to lineshape function
-            gt = self._c2g(ta,ct.data)
+            gt = _c2g(ta,ct.data)
             # calculate time dependent response
             at = numpy.exp(-gt -1j*om*ta.data)
         else:
@@ -437,10 +397,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         else:
             HH = relaxation_hamiltonian
             
-
         SS = HH.diagonalize() # transformed into eigenbasis
 
-        
         # Transition dipole moment operator
         DD = self.system.get_TransitionDipoleMoment()
         # transformed into the basis of Hamiltonian eigenstates
@@ -530,3 +488,98 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         spect = AbsSpectrum(axis=axis, data=data)
         
         return spect        
+
+
+def _spect_from_dyn(time, HH, DD, prop, rhoeq, secular=False):
+    """Calculation of the first order signal field.
+    
+
+    Parameters
+    ----------
+    time : TimeAxis
+        Time axis on which the spectrum is calculated
+    HH : Hamiltonian
+        Hamiltonian of the system
+    DD : TransitionDipoleMoment
+        Transition dipole moment operator
+    prop : ReducedDensityMatrixPropagator
+        Propagator of the density matrix
+    rhoeq : ReducedDensityMatrix
+        Equilibrium reduced density matrix 
+    secular : bool, optional
+        Should secular approximation be used? The default is False.
+
+    Returns
+    -------
+    at : numpy.array, COMPLEX
+        Time dependent signal field.
+
+    """
+    # we will loop over transitions
+    rhoi = ReducedDensityMatrix(dim=HH.dim)
+    #
+    # Time dependent data
+    #
+    at = numpy.zeros(time.length, dtype=COMPLEX)
+    # transitions to loop over
+    # ig represents all states in the ground state block
+    for ig in range(HH.rwa_indices[1]):
+        if len(HH.rwa_indices) <= 2:
+            Nfin = HH.dim
+        else:
+            Nfin = HH.rwa_indices[2]
+        for ie in range(HH.rwa_indices[1], Nfin):
+            rhoi.data[:,:] = 0.0
+            rhoi.data[ie,ig] = rhoeq.data[ig,ig]
+            dvec_1 = DD.data[ie,ig,:]
+            dd = numpy.dot(dvec_1,dvec_1)  
+            
+            rhot = prop.propagate(rhoi)
+            
+            if secular:
+                at += (dd/3.0)*rhot.data[:,ie,ig]
+            else:
+                #
+                # non-secular loops over all coherences
+                #
+                for jg in range(HH.rwa_indices[1]):
+                    for je in range(HH.rwa_indices[1], Nfin):        
+                        dvec_2 = DD.data[je,jg,:]
+                        d12 = numpy.dot(dvec_2,dvec_1)
+                        at += (d12/3.0)*rhot.data[:,je,jg]  
+                        
+        return at
+
+
+def _c2g(timeaxis, coft):
+    """ Converts correlation function to lineshape function
+    
+    Explicit numerical double integration of the correlation
+    function to form a lineshape function.
+
+    Parameters
+    ----------
+
+    timeaxis : TimeAxis
+        TimeAxis of the correlation function
+        
+    coft : complex numpy array
+        Values of correlation function given at points specified
+        in the TimeAxis object
+        
+    
+    """
+    
+    ta = timeaxis
+    rr = numpy.real(coft)
+    ri = numpy.imag(coft)
+    sr = scipy.interpolate.UnivariateSpline(ta.data,
+                        rr,s=0).antiderivative()(ta.data)
+    sr = scipy.interpolate.UnivariateSpline(ta.data,
+                        sr,s=0).antiderivative()(ta.data)
+    si = scipy.interpolate.UnivariateSpline(ta.data,
+                        ri,s=0).antiderivative()(ta.data)
+    si = scipy.interpolate.UnivariateSpline(ta.data,
+                        si,s=0).antiderivative()(ta.data)
+    gt = sr + 1j*si
+    return gt
