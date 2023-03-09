@@ -228,8 +228,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         the propagate() method.
         
         >>> pr = ReducedDensityMatrixPropagator(times, HH) 
-
-        >>> rhot=pr.propagate(rhoi, Nref=Nref)       
+        >>> rhot=pr.propagate(rhoi, Nref=Nref) 
+        
+        First argument must be ReducedDensityMatrix
+        
+        >>> rhot = pr.propagate(initial_dm)
+        Traceback (most recent call last):
+            ...
+        Exception: First argument has be of the ReducedDensityMatrix type
         """
         
         if Nref > 1:
@@ -241,7 +247,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         if not (isinstance(rhoi, ReducedDensityMatrix) 
              or isinstance(rhoi, DensityMatrix)):
             raise Exception("First argument has be of"+
-            "the ReducedDensityMatrix type")
+            " the ReducedDensityMatrix type")
               
         #######################################################################
         #

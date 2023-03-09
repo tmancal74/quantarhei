@@ -24,11 +24,13 @@ def main():
     #
     # FIXME: test definition will go to a file
     #
-    testlist = dict(doctest=["spectroscopy/abscalculator.py"], 
-                 unit=["spectroscopy/abs_test.py", 
-                       "spectroscopy/abs2_test.py"])
+    testlist_abs = dict(doctest=["spectroscopy/abscalculator.py"], 
+                        unit=["spectroscopy/abs_test.py", 
+                              "spectroscopy/abs2_test.py"])
+    testlist_prop = dict(doctest=["qm/propagators/rdmpropagator.py"],
+                         unit=[])
     
-    testdef = dict(abscalc=testlist)
+    testdef = dict(abscalc=testlist_abs, propag=testlist_prop)
     
     #
     #
@@ -38,7 +40,7 @@ def main():
     print("qtest script: Running limited functionality test.")
     print("-------------------------------------------------\n")
      
-    testname = "abscalc"
+    testname = "propag"
     
     tests = testdef[testname]
     
