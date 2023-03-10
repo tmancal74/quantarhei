@@ -5,7 +5,7 @@ import unittest
 import numpy
 import matplotlib.pyplot as plt
 
-import quantarhei as qr
+#import quantarhei as qr
 from quantarhei.utils.vectors import X
 from quantarhei.utils.vectors import Y
 from quantarhei.utils.vectors import Z
@@ -16,6 +16,10 @@ from quantarhei import energy_units
 from quantarhei import ReducedDensityMatrixPropagator
 from quantarhei import convert
 from quantarhei import eigenbasis_of
+from quantarhei import CorrelationFunction
+from quantarhei import TimeAxis
+from quantarhei import LabSetup
+from quantarhei.qm.liouvillespace.relaxationtensor import RelaxationTensor
 
 class TestLabSetup(unittest.TestCase):
     """Test of the laboratory setup 
@@ -33,12 +37,12 @@ class TestLabSetup(unittest.TestCase):
         ################################################################################
         
         # three pulses will be used
-        lab = qr.LabSetup(nopulses=3)
+        lab = LabSetup(nopulses=3)
         
         # on a time axis starting at a specified time, with a certain number of steps
         # and a step size
         Nfr = 10
-        time = qr.TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
 
         # pulse shapes are specified below
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
@@ -83,8 +87,30 @@ class TestLabSetup(unittest.TestCase):
             
         agg.build()
         
+ 
+        time_r = TimeAxis(0.0, 1000, 1.0)
+        with energy_units("1/cm"):
+            m1 = Molecule([0.0, 10000.0-Om])
+            m1.set_dipole((0,1), [1.0, 0.0, 0.0])
+            m2 = Molecule([0.0, 10000.0-Om])
+            m2.set_dipole((0,1), [0.0, 0.0, 0.0])
+            
+            agg2 = Aggregate(molecules=[m1, m2])
+            
+            params = dict(ftype="OverdampedBrownian", T=300.0, reorg=30.0,
+                          cortime=30.0, matsubara=30)
+            cf = CorrelationFunction(time_r, params)
+        
+            agg2.set_resonance_coupling(0,1, 200.0)
+
+        m1.set_transition_environment((0,1), cf)
+        m2.set_transition_environment((0,1), cf)
+            
+        agg2.build()
         
         self.agg = agg
+        self.aggB = agg2  # aggregate with bath
+        self.time_r = time_r
 
 
     
@@ -142,8 +168,6 @@ class TestLabSetup(unittest.TestCase):
         KK = Operator(dim=HH.dim)
         with eigenbasis_of(HH):
             KK.data[1,2] = 1.0
-            print(HH.data[1,1], HH.data[2,2])
-            print(DD.data[0,1,0],DD.data[0,2,0])
             
         ops.append(KK)
         rates = []
@@ -153,18 +177,23 @@ class TestLabSetup(unittest.TestCase):
         
         LT = LindbladForm(HH, SBI, as_operators=False)
 
-        with eigenbasis_of(HH):
-            print(LT.data[1,1,2,2])
         
         ef = lab.get_labfield(0)
         
         rhoi = agg.get_thermal_ReducedDensityMatrix()
         
+        
+        #######################################################################
+        #
+        # Relaxation time-independent + LabField
+        #
+        #######################################################################
         prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
                                               Efield=ef, Trdip=DD, 
                                               RTensor=LT)
         
         
+        #
         #
         # propagation has to be reimplemented with LabFields
         #
@@ -174,6 +203,12 @@ class TestLabSetup(unittest.TestCase):
         
         ef1 = ef.field
         
+        #######################################################################
+        #
+        # Relaxation time-independent + field as an array
+        #
+        #######################################################################
+
         prop2 = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
                                               Efield=ef1, Trdip=DD, 
                                               RTensor=LT)
@@ -185,7 +220,6 @@ class TestLabSetup(unittest.TestCase):
         rhot2 = prop2.propagate(rhoi)
         self.assertFalse(rhot2.is_in_rwa)
   
-    
         _plot_ = self._plot_
         
         if _plot_:
@@ -215,7 +249,30 @@ class TestLabSetup(unittest.TestCase):
                             
             plt.show()
             
+        aggB = self.aggB
+        time_r = self.time_r
+        HH = aggB.get_Hamiltonian()
+        DD = aggB.get_TransitionDipoleMoment()
+        (RT, ham) = aggB.get_RelaxationTensor(time_r, relaxation_theory="stR",
+                                              time_dependent=False)
+        
+        propB = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                               Efield=ef1, Trdip=DD, 
+                                               RTensor=RT)
+        
+        rhotB = propB.propagate(rhoi)
+        self.assertFalse(rhot2.is_in_rwa)
+        
+        _plot_ = False
+        if _plot_:
+            with eigenbasis_of(HH):            
+
+                plt.plot(time.data,numpy.real(rhotB.data[:,1,1]),"-b")
+                plt.plot(time.data,numpy.real(rhotB.data[:,2,2]),"-r")     
+                
+            plt.show()
             
+        
 
 if __name__ == '__main__':
     unittest.main()

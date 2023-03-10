@@ -948,46 +948,106 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         rho1 = rhoi.data
         rho2 = rhoi.data
-        
-        #HH = self.Hamiltonian.data    
-        MU = self.Trdip.data 
+
         #
         # RWA is applied here
         #
-        # FIXME: RWA has to be applied to ralaxation tensor, too!!!!
-        #
         if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            HH = self.Hamiltonian.get_RWA_data()
         else:
             HH = self.Hamiltonian.data
-        
-        indx = 1
-        for ii in self.TimeAxis.time[1:self.Nt]:
 
-            RR = self.RelaxationTensor.data[indx,:,:]        
-            EE = self.Efield[indx]
+        #
+        # We do not have an information on polarization - we take X as default
+        #
+        MU = self.Trdip.data[:,:,0]
+        
+        EE = self.Efield
+        
+        #
+        # set cut-off index by the tensor cut-off time
+        #
+        if self.RelaxationTensor._has_cutoff_time:
+            cutoff_indx = \
+            self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
+        else:
+            sbi = self.RelaxationTensor.SystemBathInteraction
+            cutoff_indx = sbi.TimeAxis.length
             
-            for jj in range(0,self.Nref):
+        indx = 1
+        indxR = 1
+        
+        # check if the relaxation tensor requires inhomogeneous term
+        
+        try:
+            self.has_Iterm = self.RelaxationTensor.has_Iterm
+        except:
+            print(self, "This tensor does not support has_Iterm")
+            self.has_Iterm = False
+            
+        if self.has_Iterm:
+            self.RelaxationTensor.initial_term(rhoi)
+            
+            
+        #
+        # Propagate with time-dependent relaxation tensor and inhomogeneous
+        # term if there is one.
+        #
+        sysstep = self.RelaxationTensor.SystemBathInteraction.TimeAxis.step
+        Nref_max = round(self.TimeAxis.step/sysstep)
+        Nref_req = self.Nref
+        
+        if Nref_max % Nref_req == 0:
+            
+            stride = Nref_max//Nref_req
+            
+        else:
+            time = self.TimeAxis
+            print("Relaxation tensor has a timestep  :", sysstep, "fs")
+            print("Propagation timestep is:", time.step, "fs")
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+                  " neatly into a step of", time.step,"fs")
+            raise Exception("Incompatible number of refinement steps")
+            
+        IR = 0.0 
+        dt = sysstep*stride
+        for ii in self.TimeAxis.data[1:self.Nt]:
+            
+            for jj in range(self.Nref):
+                
+                
+                RR = self.RelaxationTensor.data[indxR,:,:,:,:]
+                if self.has_Iterm:
+                    IR = self.RelaxationTensor.Iterm[indxR,:,:]                           
+                
                 for ll in range(1,L+1):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                            + (1j*self.dt/ll)*( numpy.dot(MU,rho1) \
-                             - numpy.dot(rho1,MU) )*EE
-                             
+                    rho1 = (dt/ll)*(numpy.tensordot(RR,rho1) 
+                         - 1j*(numpy.dot(HH,rho1)-numpy.dot(rho1,HH)) + IR
+                         + 1j*(numpy.dot(MU,rho1)-numpy.dot(rho1,MU))*EE[indx])
                              
                     rho2 = rho2 + rho1
                 rho1 = rho2    
-                
-            pr.data[indx,:,:] = rho2                        
-            indx += 1             
 
+                if indxR < cutoff_indx - 1:                      
+                    indxR += stride
+                else:
+                    indxR = cutoff_indx
+
+                
+            pr.data[indx,:,:] = rho2
+            
+            #
+            # We respect the tensor cut-off
+            #
+            indx += 1
+  
+                
         if self.Hamiltonian.has_rwa:
             pr.is_in_rwa = True
-
             
-        return pr         
+        return pr     
+
 
 
     def __propagate_short_exp_TDrelax_field_oper(self, rhoi, L=4):

@@ -30,7 +30,11 @@ def main():
     testlist_prop = dict(doctest=["qm/propagators/rdmpropagator.py"],
                          unit=["qm/propagators/rdmpropagator_test.py"])
     
-    testdef = dict(abscalc=testlist_abs, propag=testlist_prop)
+    testlist_lab = dict(doctest=[],
+                        unit=["spectroscopy/test_labsetup.py"])
+    
+    testdef = dict(abscalc=testlist_abs, propag=testlist_prop,
+                   labsetup=testlist_lab)
     
     #
     #
@@ -40,7 +44,7 @@ def main():
     print("qtest script: Running limited functionality test.")
     print("-------------------------------------------------\n")
      
-    testname = "propag"
+    testname = "labsetup"
     
     tests = testdef[testname]
     

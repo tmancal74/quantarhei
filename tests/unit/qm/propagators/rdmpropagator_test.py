@@ -285,9 +285,15 @@ class TestRDMPropagator(unittest.TestCase):
         rhoi = ReducedDensityMatrix(dim=HH.dim)
         rhoi.data[:,:] = 0.5
 
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="runge-kutta")
+        self.assertTrue("Unknown propagation method"
+                        in str(context.exception))            
+
         rhot = prop.propagate(rhoi, method="short-exp-4")  
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-6")
+        
         rhot.convert_from_RWA(HH)
         
 
