@@ -237,6 +237,7 @@ class TestRDMPropagatorUsage(unittest.TestCase):
 
         print("\n+++ 2")
 
+        rhot = prop.propagate(rhoi)
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
         rhot = prop.propagate(rhoi, method="short-exp-6")
@@ -259,6 +260,7 @@ class TestRDMPropagatorUsage(unittest.TestCase):
 
         print("\n+++ 3")
 
+        rhot = prop.propagate(rhoi)
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
         rhot = prop.propagate(rhoi, method="short-exp-6")

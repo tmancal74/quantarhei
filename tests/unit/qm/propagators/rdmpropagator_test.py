@@ -285,7 +285,23 @@ class TestRDMPropagator(unittest.TestCase):
         self.assertTrue("NOT IMPLEMENTED"
                         in str(context.exception))
         
-        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-2")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-4")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-6")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="runge-kutta")
+        self.assertTrue("Unknown propagation method"
+                        in str(context.exception))        
         
         #
         # No relaxation, field as object
@@ -303,7 +319,23 @@ class TestRDMPropagator(unittest.TestCase):
             rhot = prop.propagate(rhoi) #, method="short-exp-4")
         self.assertTrue("NOT IMPLEMENTED"
                         in str(context.exception))        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-2")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-4")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-6")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))
         
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="runge-kutta")
+        self.assertTrue("Unknown propagation method"
+                        in str(context.exception))
         
         
         #

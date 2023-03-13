@@ -933,14 +933,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         else:
             cutoff_indx = self.TimeAxis.length
 
-        try:
-            Km = self.RelaxationTensor.Km
-            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
-            Nm = Km.shape[0]
-            for m in range(Nm):
-                Kd[m, :, :] = numpy.transpose(Km[m, :, :])
-        except:
-            raise Exception("Tensor is not in operator form")
+        Km = self.RelaxationTensor.Km
+        Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
+        Nm = Km.shape[0]
+        for m in range(Nm):
+            Kd[m, :, :] = numpy.transpose(Km[m, :, :])
                         
         indx = 1
         indxR = 1
