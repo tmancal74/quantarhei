@@ -47,7 +47,7 @@ def main():
      
     testname = "propag"
     
-    which = ["unit", "doc"]
+    which = ["unit"] #, "doc"]
     
     tests = testdef[testname]
     

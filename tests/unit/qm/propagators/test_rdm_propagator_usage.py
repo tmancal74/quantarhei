@@ -57,6 +57,9 @@ class TestRDMPropagatorUsage(unittest.TestCase):
                                           rates=rates)
         LL = qr.qm.LindbladForm(HH, sbi)
         LL.convert_2_tensor()
+        
+        L1 = qr.qm.LindbladForm(HH, sbi)
+        
         Nt = 500
         dt = 1.0
         time = TimeAxis(0.0, Nt, dt,atype="complete")
@@ -79,6 +82,7 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         self.HH = HH
         self.DD = DD
         self.LL = LL
+        self.L1 = L1
         self.time = time
         self.lab = lab
         self.Efield = Efield
@@ -93,6 +97,7 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         time = self.time
         HH = self.HH
         LL = self.LL
+        L1 = self.L1
         Efield = self.Efield
         DD = self.DD
         agg = self.agg
@@ -144,6 +149,8 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         
         rhoi = agg.get_thermal_ReducedDensityMatrix()
         
+        print("\n+++ 11")
+        
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
         rhot = prop.propagate(rhoi, method="short-exp-6")
@@ -162,6 +169,8 @@ class TestRDMPropagatorUsage(unittest.TestCase):
                                               Trdip=DD)
         
         rhoi = agg.get_thermal_ReducedDensityMatrix()
+
+        print("\n+++ 10")
         
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
@@ -172,6 +181,49 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))
         
+
+
+        #
+        # Call all predefined methods with EField object
+        #
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=L1, Efield=Efield,
+                                              Trdip=DD)
+        
+        rhoi = agg.get_thermal_ReducedDensityMatrix()
+        
+        print("\n+++ 13")
+        
+        rhot = prop.propagate(rhoi, method="short-exp-2")
+        rhot = prop.propagate(rhoi, method="short-exp-4")
+        rhot = prop.propagate(rhoi, method="short-exp-6")
+        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-8")
+        self.assertTrue("Unknown propagation method:"
+                        in str(context.exception))    
+        
+ 
+        #
+        # Call all predefined methods with field as an array
+        #
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=L1, Efield=Efield.field,
+                                              Trdip=DD)
+        
+        rhoi = agg.get_thermal_ReducedDensityMatrix()
+
+        print("\n+++ 12")
+        
+        rhot = prop.propagate(rhoi, method="short-exp-2")
+        rhot = prop.propagate(rhoi, method="short-exp-4")
+        rhot = prop.propagate(rhoi, method="short-exp-6")
+        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-8")
+        self.assertTrue("Unknown propagation method:"
+                        in str(context.exception))
+
         
         #
         # Call relaxation without field; all methods
@@ -183,6 +235,8 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         rhoi = ReducedDensityMatrix(dim=HH.dim)
         rhoi.data[2,2] = 1.0
 
+        print("\n+++ 2")
+
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
         rhot = prop.propagate(rhoi, method="short-exp-6")
@@ -192,6 +246,28 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))        
         
+
+        #
+        # Call relaxation without field; all methods
+        #
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=L1, Efield=None,
+                                              Trdip=DD)        
+        
+        rhoi = ReducedDensityMatrix(dim=HH.dim)
+        rhoi.data[2,2] = 1.0
+
+        print("\n+++ 3")
+
+        rhot = prop.propagate(rhoi, method="short-exp-2")
+        rhot = prop.propagate(rhoi, method="short-exp-4")
+        rhot = prop.propagate(rhoi, method="short-exp-6")
+        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-8")
+        self.assertTrue("Unknown propagation method:"
+                        in str(context.exception))        
+
 
         
         
@@ -233,6 +309,8 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         rhoi = ReducedDensityMatrix(dim=HH.dim)
         rhoi.data[2,2] = 1.0
 
+        print("\n+++ 4")
+
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
         rhot = prop.propagate(rhoi, method="short-exp-6")
@@ -255,12 +333,29 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
                                               RTensor=RR, Efield=None,
                                               Trdip=DD)        
+
+        print("\n+++ 5")
         
         rhoi = ReducedDensityMatrix(dim=HH.dim)
         rhoi.data[2,2] = 1.0
         rhot = prop.propagate(rhoi, method="short-exp-4")
+        
+        #
+        # Now the same with cutoff-time
+        # 
+        RR.set_cutoff_time(300.0)
+        #
+        # Call time-dependent operator form relaxation without field
+        #
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=RR, Efield=None,
+                                              Trdip=DD)        
+        
+        rhoi = ReducedDensityMatrix(dim=HH.dim)
+        rhoi.data[2,2] = 1.0
+        rhot = prop.propagate(rhoi, method="short-exp-4")        
+        
 
-     
 
         #
         # Call time-dependent relaxation with field; all methods
@@ -270,6 +365,8 @@ class TestRDMPropagatorUsage(unittest.TestCase):
                                               Trdip=DD)        
         
         rhoi = agg.get_thermal_ReducedDensityMatrix()
+
+        print("\n+++ 9")
 
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
@@ -285,21 +382,98 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         # Call time-dependent relaxation with field ; as an array
         # all methods
         #
-        # prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
-        #                                       RTensor=RR, Efield=Efield.field,
-        #                                       Trdip=DD)        
         
-        # rhoi = agg.get_thermal_ReducedDensityMatrix()
+        RR, ham = agg.get_RelaxationTensor(time, relaxation_theory="stR",
+                                           time_dependent=True, 
+                                           as_operators=False)        
+        
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=RR, 
+                                              Efield=Efield,
+                                              Trdip=DD)        
+        
+        rhoi = agg.get_thermal_ReducedDensityMatrix()
 
-        # rhot = prop.propagate(rhoi, method="short-exp-2")
-        # rhot = prop.propagate(rhoi, method="short-exp-4")
-        # rhot = prop.propagate(rhoi, method="short-exp-6")
+        print("\n+++ 8")
+
+        rhot = prop.propagate(rhoi, method="short-exp-2")
+        rhot = prop.propagate(rhoi, method="short-exp-4")
+        rhot = prop.propagate(rhoi, method="short-exp-6")
         
-        # with self.assertRaises(Exception) as context:
-        #     rhot = prop.propagate(rhoi, method="short-exp-8")
-        # self.assertTrue("Unknown propagation method:"
-        #                 in str(context.exception))         
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-8")
+        self.assertTrue("Unknown propagation method:"
+                        in str(context.exception))         
         
+
+
+        #
+        # Call time-dependent relaxation with field; all methods
+        #
+        RR, ham = agg.get_RelaxationTensor(time, relaxation_theory="stR",
+                                           time_dependent=True, 
+                                           as_operators=True)                
+        
+        
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=RR, 
+                                              Efield=Efield.field,
+                                              Trdip=DD)        
+        
+        rhoi = agg.get_thermal_ReducedDensityMatrix()
+
+        print("\n+++ 7")
+
+        rhot = prop.propagate(rhoi, method="short-exp-2")
+        rhot = prop.propagate(rhoi, method="short-exp-4")
+        rhot = prop.propagate(rhoi, method="short-exp-6")
+        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-8")
+        self.assertTrue("Unknown propagation method:"
+                        in str(context.exception))        
+
+
+        #
+        # Call time-dependent relaxation with field ; as an array
+        # all methods
+        #
+        
+        RR, ham = agg.get_RelaxationTensor(time, relaxation_theory="stR",
+                                           time_dependent=True, 
+                                           as_operators=False)        
+        
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=RR, 
+                                              Efield=Efield.field,
+                                              Trdip=DD)        
+        
+        rhoi = agg.get_thermal_ReducedDensityMatrix()
+
+        print("\n+++ 6")
+
+        rhot = prop.propagate(rhoi, method="short-exp-2")
+        rhot = prop.propagate(rhoi, method="short-exp-4")
+        rhot = prop.propagate(rhoi, method="short-exp-6")
+        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi, method="short-exp-8")
+        self.assertTrue("Unknown propagation method:"
+                        in str(context.exception))         
+
+    
+    
+        
+        _show_plot_ = False
+        
+        if _show_plot_:
+            
+            import matplotlib.pyplot as plt
+                
+            plt.plot(time.data, numpy.real(rhot.data[:, 1, 1]))
+            plt.show()
+            
+            
         
         
 if __name__ == '__main__':

@@ -208,7 +208,16 @@ from .valueaxis import ValueAxis
 from .managers import energy_units
 
 class TimeDependent:
-    pass
+    
+    _has_cutoff_time = False
+    cutoff_time = None
+    
+    def set_cutoff_time(self, time):
+        self.cutoff_time = time
+        self._has_cutoff_time = True
+        
+    
+    
 
 class TimeAxis(ValueAxis):
     """ Class representing time in time dependent calculations.

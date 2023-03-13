@@ -267,6 +267,12 @@ class TestRDMPropagator(unittest.TestCase):
         
         f1 = lab.get_labfield(0)
         
+        
+        #
+        # No relaxation, field as array
+        #
+        print("\n+++ 14")
+        
         prop = ReducedDensityMatrixPropagator(time, Ham=HH,
                                               Trdip=DD, Efield=f1.field)
         
@@ -279,6 +285,32 @@ class TestRDMPropagator(unittest.TestCase):
         self.assertTrue("NOT IMPLEMENTED"
                         in str(context.exception))
         
+        
+        
+        #
+        # No relaxation, field as object
+        #
+        
+        print("\n+++ 15")
+        prop = ReducedDensityMatrixPropagator(time, Ham=HH,
+                                              Trdip=DD, Efield=f1)
+        
+        rhoi = ReducedDensityMatrix(dim=HH.dim)
+        rhoi.data[0,0] = 1.0
+        
+        
+        with self.assertRaises(Exception) as context:
+            rhot = prop.propagate(rhoi) #, method="short-exp-4")
+        self.assertTrue("NOT IMPLEMENTED"
+                        in str(context.exception))        
+        
+        
+        
+        #
+        # No field, no relaxation
+        #
+        
+        print("\n+++ 1")
         HH.set_rwa([0, 1])
         
         prop = ReducedDensityMatrixPropagator(time, Ham=HH)
