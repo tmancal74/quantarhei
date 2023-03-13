@@ -425,6 +425,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """Short expansion of an exponention to integrate equations of motion
         
         
+        Propagation with Hamiltonian only
+        
+        
         """
         
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
@@ -468,17 +471,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         Integration by expanding exponential to Lth order. Time independent
         relaxation tensor
               
-        
-        ***** VERIFIED ROUTINE *****
-              
         """
         
-        try:
-            if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_with_rel_operators(rhoi, L=L)
-        except:
-            raise Exception("Operator propagation failed")
-        
+        if self.RelaxationTensor.as_operators:
+            return self.__propagate_short_exp_with_rel_operators(rhoi, L=L)
+
         
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
@@ -574,37 +571,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
               
             
         """
-        # mana = Manager()
-        # save_pytorch = None
-        
-        # legacy = mana.gen_conf.legacy_relaxation
-        
-        # if mana.num_conf.gpu_acceleration:
-        #     save_pytorch = mana.num_conf.enable_pytorch
-        #     mana.num_conf.enable_pytorch = True
-            
-        # if mana.num_conf.enable_pytorch and (not legacy):
-        #     ret =  self._propagate_SExp_RTOp_ReSymK_Re_pytorch(rhoi,
-        #                                 self.Hamiltonian,
-        #                                 self.RelaxationTensor,
-        #                                 self.dt, 
-        #                                 use_gpu=mana.num_conf.gpu_acceleration,
-        #                                 L=L)
-            
-        #     if save_pytorch is not None:
-        #         mana.num_conf.enable_pytorch = save_pytorch
-                
-        #     return ret
-        
-        # elif not legacy:
-        #     return self._propagate_SExp_RTOp_ReSymK_Re_numpy(rhoi,
-        #                                          self.Hamiltonian,
-        #                                          self.RelaxationTensor,
-        #                                          self.dt, L=L)
-        
-        #
-        # legacy version
-        #
 
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
@@ -624,16 +590,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                      verbose=self.verbose)
         qr.log_detail("Using complex numpy implementation")
         
-        try:
-            Km = self.RelaxationTensor.Km # real
-            Lm = self.RelaxationTensor.Lm # complex
-            Ld = self.RelaxationTensor.Ld # complex - get by transposition
-            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
-            Nm = Km.shape[0]
-            for m in range(Nm):
+        Km = self.RelaxationTensor.Km # real
+        Lm = self.RelaxationTensor.Lm # complex
+        Ld = self.RelaxationTensor.Ld # complex - get by transposition
+        Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
+        Nm = Km.shape[0]
+        for m in range(Nm):
                 Kd[m, :, :] = numpy.transpose(Km[m, :, :])
-        except:
-            raise Exception("Tensor is not in operator form")
             
         indx = 1
 
@@ -747,12 +710,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
               
         """
 
-        try:
-            if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_with_TDrel_operators(rhoi,
+        if self.RelaxationTensor.as_operators:
+            return self.__propagate_short_exp_with_TDrel_operators(rhoi,
                                                                        L=L)
-        except:
-            raise Exception("Operator propagation failed")
         
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
@@ -860,6 +820,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
         """
 
+        print("5) SHORT-EXP: with rtime-dep elaxation in form of operators")
+
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         rho1 = rhoi.data
@@ -938,12 +900,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         
         """
-        try:
-            if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_TDrelax_field_oper(rhoi, L=L)
-        except:
-            raise Exception("Operator propagation failed")
+        if self.RelaxationTensor.as_operators:
+            return self.__propagate_short_exp_TDrelax_field_oper(rhoi, L=L)
+
             
+        print("6) SHORT-EXP: with time-dep. relaxation and field as an array")    
+        
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
@@ -1054,7 +1016,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """
 
         """
-        pass        
+        print("7) SHORT-EXP: with time-dep. relaxation as operators and field as an array")    
 
 
     def __propagate_short_exp_with_relaxation_field(self,rhoi,L=4):

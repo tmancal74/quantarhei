@@ -6,7 +6,7 @@ import shlex
 
 def run_unit_test(toexec):
 
-    cmd = "nosetests -v "
+    cmd = "nosetests --nocapture -v "
     return subprocess.call(shlex.split(cmd+toexec))
 
 def run_doc_test(toexec):
@@ -28,7 +28,8 @@ def main():
                         unit=["spectroscopy/abs_test.py", 
                               "spectroscopy/abs2_test.py"])
     testlist_prop = dict(doctest=["qm/propagators/rdmpropagator.py"],
-                         unit=["qm/propagators/rdmpropagator_test.py"])
+                         unit=["qm/propagators/rdmpropagator_test.py",
+                               "qm/propagators/test_rdm_propagator_usage.py"])
     
     testlist_lab = dict(doctest=[],
                         unit=["spectroscopy/test_labsetup.py"])
@@ -44,7 +45,9 @@ def main():
     print("qtest script: Running limited functionality test.")
     print("-------------------------------------------------\n")
      
-    testname = "labsetup"
+    testname = "propag"
+    
+    which = ["unit", "doc"]
     
     tests = testdef[testname]
     
@@ -52,25 +55,27 @@ def main():
     
     failures = 0
     
-    for file in tests["doctest"]:
-        
-        toexec = os.path.join(docpath,file)
-        print("\n*** Running doc tests:", toexec)
-        if run_doc_test(toexec) == 0:
-            print("\n... doc tests finished 0K") 
-        else:
-            failures += 1
+    if "doc" in which:
+        for file in tests["doctest"]:
+            
+            toexec = os.path.join(docpath,file)
+            print("\n*** Running doc tests:", toexec)
+            if run_doc_test(toexec) == 0:
+                print("\n... doc tests finished 0K") 
+            else:
+                failures += 1
     
     if failures == 0:
         
-        for file in tests["unit"]:
-            
-            toexec = os.path.join(unitpath, file)
-            print("\n*** Running unit tests:", toexec)
-            if run_unit_test(toexec) == 0:
-                print("\n... unit tests finished 0K")
-            else:
-                failures += 1
+        if "unit" in which:
+            for file in tests["unit"]:
+                
+                toexec = os.path.join(unitpath, file)
+                print("\n*** Running unit tests:", toexec)
+                if run_unit_test(toexec) == 0:
+                    print("\n... unit tests finished 0K")
+                else:
+                    failures += 1
     
     if failures == 0:
         print("\n *** ALL TESTS FINISHED OK ***\n")

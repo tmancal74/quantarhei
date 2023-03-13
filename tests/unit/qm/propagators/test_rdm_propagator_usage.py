@@ -241,7 +241,26 @@ class TestRDMPropagatorUsage(unittest.TestCase):
             rhot = prop.propagate(rhoi, method="short-exp-8")
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))
-            
+
+
+        RR, ham = agg.get_RelaxationTensor(time, relaxation_theory="stR",
+                                           time_dependent=True, 
+                                           as_operators=True)
+        
+        
+        
+        #
+        # Call time-dependent operator form relaxation without field
+        #
+        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
+                                              RTensor=RR, Efield=None,
+                                              Trdip=DD)        
+        
+        rhoi = ReducedDensityMatrix(dim=HH.dim)
+        rhoi.data[2,2] = 1.0
+        rhot = prop.propagate(rhoi, method="short-exp-4")
+
+     
 
         #
         # Call time-dependent relaxation with field; all methods

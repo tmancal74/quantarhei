@@ -7,6 +7,10 @@ from ...core.time import TimeDependent
 
 class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
+    # FIXME: mimick the time-independent case
+    Lm = None  # we isolate the operators defined by inheritance as time-independent
+    Ld = None
+    Km = None
     
     def _implementation(self, ham, sbi):
         """ Reference implementation, completely in Python
@@ -231,7 +235,6 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         else:
             S1 = inv
         dim = SS.shape[0]
-        
 
         if not self._data_initialized:
             for tt in range(self.Nt):
@@ -279,3 +282,5 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                             if not (((ii == jj) and (kk == ll)) 
                                 or ((ii == kk) and (jj == ll))) :
                                     self.data[:,ii,jj,kk,ll] = 0
+                                    
+                                    
