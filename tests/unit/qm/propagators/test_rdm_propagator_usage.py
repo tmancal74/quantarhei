@@ -160,7 +160,15 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))    
         
- 
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            
+            plt.plot(time.data, rhot.data[:,2,2])
+            plt.show()
+
+    
+    
         #
         # Call all predefined methods with field as an array
         #
@@ -171,17 +179,24 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         rhoi = agg.get_thermal_ReducedDensityMatrix()
 
         print("\n+++ 10")
-        
+        import time as tm
+        t1 = tm.time()
         rhot = prop.propagate(rhoi, method="short-exp-2")
         rhot = prop.propagate(rhoi, method="short-exp-4")
         rhot = prop.propagate(rhoi, method="short-exp-6")
+        t2 = tm.time()
         
         with self.assertRaises(Exception) as context:
             rhot = prop.propagate(rhoi, method="short-exp-8")
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))
-        
-
+        print("Duration:", t2-t1,"s.")
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            
+            plt.plot(time.data, rhot.data[:,2,2])
+            plt.show()
 
         #
         # Call all predefined methods with EField object
@@ -270,6 +285,12 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))        
 
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            
+            plt.plot(time.data, rhot.data[:,2,2])
+            plt.show()
 
         
         
@@ -357,7 +378,12 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         rhoi.data[2,2] = 1.0
         rhot = prop.propagate(rhoi, method="short-exp-4")        
         
-
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            
+            plt.plot(time.data, rhot.data[:,2,2])
+            plt.show()
 
         #
         # Call time-dependent relaxation with field; all methods
@@ -407,6 +433,14 @@ class TestRDMPropagatorUsage(unittest.TestCase):
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))         
         
+
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            
+            plt.plot(time.data, rhot.data[:,2,2])
+            plt.show()
+
 
 
         #
@@ -462,9 +496,6 @@ class TestRDMPropagatorUsage(unittest.TestCase):
             rhot = prop.propagate(rhoi, method="short-exp-8")
         self.assertTrue("Unknown propagation method:"
                         in str(context.exception))         
-
-    
-    
         
         _show_plot_ = False
         

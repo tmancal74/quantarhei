@@ -360,11 +360,12 @@ class TestRDMPropagator(unittest.TestCase):
         
         rhot.convert_from_RWA(HH)
         
-
-        # import matplotlib.pyplot as plt
-        
-        # plt.plot(time.data, rhot.data[:,0,1])
-        # plt.show()
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            
+            plt.plot(time.data, rhot.data[:,0,1])
+            plt.show()
         
 
 
