@@ -2258,8 +2258,20 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             self._mode_env = unique_array(self.nmod,self.nel)
             self._mode_env_initialized = True
             
-        self._mode_env.set_element(mode,elstate,corfunc)
-        self._has_mode_env[mode,elstate] = True
+        if isinstance(elstate, int):
+            self._mode_env.set_element(mode,elstate,corfunc)
+            self._has_mode_env[mode,elstate] = True
+            
+        #
+        # if elstate is set to "ALL" we give the same environmemnt to all
+        # electronic states
+        #
+        elif elstate == "all" or elstate == "ALL":
+            for kk in range(self.nel):
+               self._mode_env.set_element(mode,kk,corfunc)
+               self._has_mode_env[mode,kk] = True
+        else:
+            raise Exception("Unknown elstate.")
         
         
     def get_mode_environment(self,mode,elstate):
@@ -2494,6 +2506,8 @@ def generate_1orderP_sec(self, lst,
                     lp.build()
                     lst.append(lp)
                     k += 1
+
+
 
 def PiMolecule(Molecule):
     
