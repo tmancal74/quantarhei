@@ -357,7 +357,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         secular = False
                               
-        at = _spect_from_dyn(time, HH, DD, prop, rhoeq, secular)
+        at = _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular)
 
         #
         # Fourier transform of the time-dependent result
@@ -549,6 +549,48 @@ def _spect_from_dyn(time, HH, DD, prop, rhoeq, secular=False):
                         at += (d12/3.0)*rhot.data[:,je,jg]  
                         
         return at
+
+
+def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
+    """Calculation of the first order signal field.
+    
+    Calculation in a single propagation
+
+    Parameters
+    ----------
+    time : TimeAxis
+        Time axis on which the spectrum is calculated
+    HH : Hamiltonian
+        Hamiltonian of the system
+    DD : TransitionDipoleMoment
+        Transition dipole moment operator
+    prop : ReducedDensityMatrixPropagator
+        Propagator of the density matrix
+    rhoeq : ReducedDensityMatrix
+        Equilibrium reduced density matrix 
+    secular : bool, optional
+        Should secular approximation be used? The default is False.
+
+    Returns
+    -------
+    at : numpy.array, COMPLEX
+        Time dependent signal field.
+
+    """    
+    rhoi = ReducedDensityMatrix(dim=HH.dim)
+    #
+    # Time dependent data
+    #
+    at = numpy.zeros(time.length, dtype=COMPLEX)
+    
+    for ig in range(HH.rwa_indices[1]):
+        for dd in range(3):
+            rhoi.data = numpy.dot(DD.data[:,:,dd],rhoeq.data)/3.0
+            rhot = prop.propagate(rhoi)
+            for ii in range(time.length):
+                at[ii] += numpy.dot(DD.data[ig,:,dd],rhot.data[ii,:,ig])
+
+    return at
 
 
 def _c2g(timeaxis, coft):
