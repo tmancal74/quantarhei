@@ -1589,10 +1589,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         4
         
         >>> print(H.data)
-        [[ 0.5  0.   0.   0. ]
-         [ 0.   1.5  0.   0. ]
-         [ 0.   0.   1.5  0. ]
-         [ 0.   0.   0.   2.5]]
+        [[ 0.  0.  0.  0.]
+         [ 0.  1.  0.  0.]
+         [ 0.  0.  1.  0.]
+         [ 0.  0.  0.  2.]]
         
         
         The Hamiltonian is stored, and next time it is retrieved
@@ -1824,6 +1824,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             if (self.HH is None) or recalculate:
                 with energy_units("int"):
                     HH = Hamiltonian(data=ham)
+                    
+                    # set ground state energy to zero
+                    with eigenbasis_of(HH):
+                        e00 = HH.data[0,0]
+                        
+                    HH.data -= numpy.eye(HH.dim)*e00
                     
                     if self.has_rwa:
                         # set Hamiltonian to RWA

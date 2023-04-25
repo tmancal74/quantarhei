@@ -150,8 +150,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         if HH.has_rwa:
             # if HH has RWA, the 'rwa' argument is ignored
             HR = HH.get_RWA_skeleton()
+            Ng = HH.rwa_indices[0]
             Ne = HH.rwa_indices[1]
-            self.rwa = self.convert_2_internal_u(HR[Ne])
+            self.rwa = self.convert_2_internal_u(HR[Ne]-HR[Ng])
             self.prop_has_rwa = True  # Propagator is in RWA
         else:
             if rwa > 0.0:
@@ -171,7 +172,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         self.bootstrapped = True
 
                             
-    def calculate(self, raw=False, from_dynamics=False):
+    def calculate(self, raw=False, from_dynamics=False, alt=False):
         """ Calculates the absorption spectrum 
         
         
@@ -187,7 +188,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                 
                 if from_dynamics:
                     
-                    spect = self._calculate_abs_from_dynamics(raw=raw)
+                    # alt = True is for testing only
+                    spect = self._calculate_abs_from_dynamics(raw=raw,
+                                                              alt=alt)
             
                 elif isinstance(self.system, Molecule):
                     #self._calculate_Molecule(rwa) 
@@ -323,7 +326,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         return spect
 
     
-    def _calculate_abs_from_dynamics(self, raw=False):
+    def _calculate_abs_from_dynamics(self, raw=False, alt=False):
         """Calculates the absorption spectrum of a molecule from its dynamics
         
         """
@@ -345,6 +348,12 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             raise Exception("Hamiltonian has to define"+
                             " Rotating Wave Approximation")
 
+
+        #with energy_units("1/cm"):
+        #    print("Skeleton")
+        #    print(numpy.diag(HH.get_RWA_skeleton()))
+        #    print(HH.get_RWA_data())
+
         # transition dipole moment
         DD = system.get_TransitionDipoleMoment()
         
@@ -356,8 +365,16 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         time = prop.TimeAxis
         
         secular = False
-                              
-        at = _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular)
+                 
+        if alt:
+            
+            at = _spect_from_dyn(time, HH, DD, prop, rhoeq, secular)
+            
+        else:
+            
+            at = _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular)
+
+        
 
         #
         # Fourier transform of the time-dependent result
@@ -583,12 +600,18 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
     #
     at = numpy.zeros(time.length, dtype=COMPLEX)
     
-    for ig in range(HH.rwa_indices[1]):
-        for dd in range(3):
-            rhoi.data = numpy.dot(DD.data[:,:,dd],rhoeq.data)/3.0
-            rhot = prop.propagate(rhoi)
-            for ii in range(time.length):
+    count = 0
+    
+    for dd in range(3):
+        rhoi.data = numpy.dot(DD.data[:,:,dd],rhoeq.data)/3.0
+        rhot = prop.propagate(rhoi)
+        count += 1
+        for ii in range(time.length):
+            for ig in range(HH.rwa_indices[1]):
                 at[ii] += numpy.dot(DD.data[ig,:,dd],rhot.data[ii,:,ig])
+
+
+    #print("Počet běhů:", count)
 
     return at
 
