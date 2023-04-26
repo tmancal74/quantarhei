@@ -244,14 +244,20 @@ class TestAbs(unittest.TestCase):
                                                  time_dependent=True)
                  
         abs_calc.bootstrap(prop=prop)
-        #ham = mol2.get_Hamiltonian()
+        ham = mol2.get_Hamiltonian()
         #with energy_units("1/cm"):
         #    with eigenbasis_of(ham):
         #        print("ham.dat")
         #        print(numpy.diag(ham.data))
                 
         #print("****************")
-        abs2 = abs_calc.calculate(from_dynamics=True)  
+
+        # we test that calculate cannot be called within a basis context        
+        with self.assertRaises(Exception) as exp:
+            with eigenbasis_of(ham):
+                abs2 = abs_calc.calculate(from_dynamics=True)  
+             
+        abs2 = abs_calc.calculate(from_dynamics=True)
         #print("****************")
 
         with energy_units("1/cm"):

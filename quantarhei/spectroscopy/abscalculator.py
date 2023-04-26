@@ -17,6 +17,9 @@ from ..core.frequency import FrequencyAxis
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
+
+from ..core.wrappers import prevent_basis_context
+
 from ..qm.hilbertspace.operators import ReducedDensityMatrix
 from .abs2 import AbsSpectrum
 from .. import COMPLEX
@@ -171,7 +174,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             
         self.bootstrapped = True
 
-                            
+    @prevent_basis_context                        
     def calculate(self, raw=False, from_dynamics=False, alt=False):
         """ Calculates the absorption spectrum 
         
