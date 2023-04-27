@@ -22,7 +22,7 @@ from ..core.wrappers import prevent_basis_context
 
 from ..qm.hilbertspace.operators import ReducedDensityMatrix
 from .abs2 import AbsSpectrum
-from .. import COMPLEX
+from .. import COMPLEX, REAL
 
 
 class AbsSpectrumCalculator(EnergyUnitsManaged):
@@ -602,19 +602,16 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
     # Time dependent data
     #
     at = numpy.zeros(time.length, dtype=COMPLEX)
+        
+    deff = numpy.sqrt(numpy.einsum("ijn,ijn->ij", DD.data,DD.data,
+                                   dtype=REAL))
+ 
+    # excitation by an effective dipole
+    rhoi.data = numpy.dot(deff,rhoeq.data)/3.0
     
-    count = 0
-    
-    for dd in range(3):
-        rhoi.data = numpy.dot(DD.data[:,:,dd],rhoeq.data)/3.0
-        rhot = prop.propagate(rhoi)
-        count += 1
-        for ii in range(time.length):
-            for ig in range(HH.rwa_indices[1]):
-                at[ii] += numpy.dot(DD.data[ig,:,dd],rhot.data[ii,:,ig])
-
-
-    #print("Počet běhů:", count)
+    rhot = prop.propagate(rhoi)
+    for ig in range(HH.rwa_indices[1]):
+        at += numpy.einsum("j,kj->k",deff[ig,:],rhot.data[:,:,ig])
 
     return at
 

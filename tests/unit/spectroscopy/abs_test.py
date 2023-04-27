@@ -252,18 +252,27 @@ class TestAbs(unittest.TestCase):
                 
         #print("****************")
 
-        # we test that calculate cannot be called within a basis context        
+        #
+        # we test that calculate cannot be called within a basis context   
+        #
         with self.assertRaises(Exception) as exp:
             with eigenbasis_of(ham):
                 abs2 = abs_calc.calculate(from_dynamics=True)  
              
         abs2 = abs_calc.calculate(from_dynamics=True)
+        abs3 = abs_calc.calculate(from_dynamics=True, alt=True)
         #print("****************")
+
 
         with energy_units("1/cm"):
             x1 = abs2.axis.data
             y1 = abs2.data
-            
+            y = abs3.data
+
+        diff = numpy.max(numpy.abs(y1-y))
+        rdiff = diff/numpy.max(numpy.abs(y))
+        self.assertTrue(rdiff < 0.01)
+        
         _plot_ = False
         if _plot_:
             import matplotlib.pyplot as plt
@@ -271,7 +280,9 @@ class TestAbs(unittest.TestCase):
             plt.plot(x1,y1,"--r")
             plt.show() 
             
- 
+            #raise Exception()
+            
+    
     def test_of_aggregate_absorption(self):
         """(AbsSpectrum) Testing absorption spectrum of an aggregate
         
