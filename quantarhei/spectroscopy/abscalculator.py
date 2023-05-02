@@ -603,15 +603,17 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
     #
     at = numpy.zeros(time.length, dtype=COMPLEX)
         
-    deff = numpy.sqrt(numpy.einsum("ijn,ijn->ij", DD.data,DD.data,
-                                   dtype=REAL))
+    #deff = numpy.sqrt(numpy.einsum("ijn,ijn->ij", DD.data,DD.data,
+    #                               dtype=REAL))
  
-    # excitation by an effective dipole
-    rhoi.data = numpy.dot(deff,rhoeq.data)/3.0
-    
-    rhot = prop.propagate(rhoi)
-    for ig in range(HH.rwa_indices[1]):
-        at += numpy.einsum("j,kj->k",deff[ig,:],rhot.data[:,:,ig])
+    for kk in range(3):
+        deff = DD.data[:,:,kk]
+        # excitation by an effective dipole
+        rhoi.data = numpy.dot(deff,rhoeq.data)/3.0
+        
+        rhot = prop.propagate(rhoi)
+        for ig in range(HH.rwa_indices[1]):
+            at += numpy.einsum("j,kj->k",deff[ig,:],rhot.data[:,:,ig])
 
     return at
 
