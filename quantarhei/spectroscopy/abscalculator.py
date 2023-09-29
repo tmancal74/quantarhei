@@ -17,9 +17,12 @@ from ..core.frequency import FrequencyAxis
 from ..core.managers import energy_units
 from ..core.managers import EnergyUnitsManaged
 from ..core.time import TimeDependent
+
+from ..core.wrappers import prevent_basis_context
+
 from ..qm.hilbertspace.operators import ReducedDensityMatrix
 from .abs2 import AbsSpectrum
-from .. import COMPLEX
+from .. import COMPLEX, REAL
 
 
 class AbsSpectrumCalculator(EnergyUnitsManaged):
@@ -150,8 +153,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         if HH.has_rwa:
             # if HH has RWA, the 'rwa' argument is ignored
             HR = HH.get_RWA_skeleton()
+            Ng = HH.rwa_indices[0]
             Ne = HH.rwa_indices[1]
-            self.rwa = self.convert_2_internal_u(HR[Ne])
+            self.rwa = self.convert_2_internal_u(HR[Ne]-HR[Ng])
             self.prop_has_rwa = True  # Propagator is in RWA
         else:
             if rwa > 0.0:
@@ -170,8 +174,8 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             
         self.bootstrapped = True
 
-                            
-    def calculate(self, raw=False, from_dynamics=False):
+    @prevent_basis_context                        
+    def calculate(self, raw=False, from_dynamics=False, alt=False):
         """ Calculates the absorption spectrum 
         
         
@@ -187,7 +191,9 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                 
                 if from_dynamics:
                     
-                    spect = self._calculate_abs_from_dynamics(raw=raw)
+                    # alt = True is for testing only
+                    spect = self._calculate_abs_from_dynamics(raw=raw,
+                                                              alt=alt)
             
                 elif isinstance(self.system, Molecule):
                     #self._calculate_Molecule(rwa) 
@@ -323,7 +329,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         return spect
 
     
-    def _calculate_abs_from_dynamics(self, raw=False):
+    def _calculate_abs_from_dynamics(self, raw=False, alt=False):
         """Calculates the absorption spectrum of a molecule from its dynamics
         
         """
@@ -345,6 +351,12 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             raise Exception("Hamiltonian has to define"+
                             " Rotating Wave Approximation")
 
+
+        #with energy_units("1/cm"):
+        #    print("Skeleton")
+        #    print(numpy.diag(HH.get_RWA_skeleton()))
+        #    print(HH.get_RWA_data())
+
         # transition dipole moment
         DD = system.get_TransitionDipoleMoment()
         
@@ -356,8 +368,16 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         time = prop.TimeAxis
         
         secular = False
-                              
-        at = _spect_from_dyn(time, HH, DD, prop, rhoeq, secular)
+                 
+        if alt:
+            
+            at = _spect_from_dyn(time, HH, DD, prop, rhoeq, secular)
+            
+        else:
+            
+            at = _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular)
+
+        
 
         #
         # Fourier transform of the time-dependent result
@@ -549,6 +569,53 @@ def _spect_from_dyn(time, HH, DD, prop, rhoeq, secular=False):
                         at += (d12/3.0)*rhot.data[:,je,jg]  
                         
         return at
+
+
+def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
+    """Calculation of the first order signal field.
+    
+    Calculation in a single propagation
+
+    Parameters
+    ----------
+    time : TimeAxis
+        Time axis on which the spectrum is calculated
+    HH : Hamiltonian
+        Hamiltonian of the system
+    DD : TransitionDipoleMoment
+        Transition dipole moment operator
+    prop : ReducedDensityMatrixPropagator
+        Propagator of the density matrix
+    rhoeq : ReducedDensityMatrix
+        Equilibrium reduced density matrix 
+    secular : bool, optional
+        Should secular approximation be used? The default is False.
+
+    Returns
+    -------
+    at : numpy.array, COMPLEX
+        Time dependent signal field.
+
+    """    
+    rhoi = ReducedDensityMatrix(dim=HH.dim)
+    #
+    # Time dependent data
+    #
+    at = numpy.zeros(time.length, dtype=COMPLEX)
+        
+    #deff = numpy.sqrt(numpy.einsum("ijn,ijn->ij", DD.data,DD.data,
+    #                               dtype=REAL))
+ 
+    for kk in range(3):
+        deff = DD.data[:,:,kk]
+        # excitation by an effective dipole
+        rhoi.data = numpy.dot(deff,rhoeq.data)/3.0
+        
+        rhot = prop.propagate(rhoi)
+        for ig in range(HH.rwa_indices[1]):
+            at += numpy.einsum("j,kj->k",deff[ig,:],rhot.data[:,:,ig])
+
+    return at
 
 
 def _c2g(timeaxis, coft):

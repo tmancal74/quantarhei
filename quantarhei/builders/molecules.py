@@ -1589,10 +1589,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         4
         
         >>> print(H.data)
-        [[ 0.5  0.   0.   0. ]
-         [ 0.   1.5  0.   0. ]
-         [ 0.   0.   1.5  0. ]
-         [ 0.   0.   0.   2.5]]
+        [[ 0.  0.  0.  0.]
+         [ 0.  1.  0.  0.]
+         [ 0.  0.  1.  0.]
+         [ 0.  0.  0.  2.]]
         
         
         The Hamiltonian is stored, and next time it is retrieved
@@ -1824,6 +1824,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             if (self.HH is None) or recalculate:
                 with energy_units("int"):
                     HH = Hamiltonian(data=ham)
+                    
+                    # set ground state energy to zero
+                    with eigenbasis_of(HH):
+                        e00 = HH.data[0,0]
+                        
+                    HH.data -= numpy.eye(HH.dim)*e00
                     
                     if self.has_rwa:
                         # set Hamiltonian to RWA
@@ -2258,8 +2264,20 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             self._mode_env = unique_array(self.nmod,self.nel)
             self._mode_env_initialized = True
             
-        self._mode_env.set_element(mode,elstate,corfunc)
-        self._has_mode_env[mode,elstate] = True
+        if isinstance(elstate, int):
+            self._mode_env.set_element(mode,elstate,corfunc)
+            self._has_mode_env[mode,elstate] = True
+            
+        #
+        # if elstate is set to "ALL" we give the same environmemnt to all
+        # electronic states
+        #
+        elif elstate == "all" or elstate == "ALL":
+            for kk in range(self.nel):
+               self._mode_env.set_element(mode,kk,corfunc)
+               self._has_mode_env[mode,kk] = True
+        else:
+            raise Exception("Unknown elstate.")
         
         
     def get_mode_environment(self,mode,elstate):
@@ -2494,6 +2512,8 @@ def generate_1orderP_sec(self, lst,
                     lp.build()
                     lst.append(lp)
                     k += 1
+
+
 
 def PiMolecule(Molecule):
     

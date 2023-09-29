@@ -400,6 +400,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0*ctime) 
         
+
+
+
     def _make_B777(self, params, values=None):
         from .spectraldensities import SpectralDensity
         
@@ -1039,3 +1042,118 @@ def h2g(timeaxis, coft):
         in the TimeAxis object
     """
     return c2h(timeaxis, coft)
+
+
+def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
+                                           Nmax=5, HR=0.01, silent=True):
+    """ Scales reorganization energy of the system-bath interaction
+
+    Returns a bath correlation function with reorganization energy called
+    such that it achieves a required relaxation time between the first
+    vibrationally excited and the ground state of an oscillator with a
+    given frequency.
+
+    Parameters
+    ----------
+
+    time: TimeAxis
+        The time axis on which the correlation function is defined
+
+    params: dictionary
+        A dictionary of the correlation function parameters. Requires
+        the "reorg" item.
+
+    omega: float
+        Frequency/energy of the oscillator
+
+    target_time: float
+        The requested relaxation time in fs
+
+    Nmax: int
+        The mumber of harmonic oscillator levels used for the calculation
+        Default is 5.
+
+    HR: float
+        Huang-Rhys factor to be used in the calculation. Default is 0.1.
+
+    silent: bool
+        If silent is not True, some info about internal calculations
+        is printed.
+        
+    
+    Examples
+    --------
+   
+    
+    >>> omega = 200.0
+    >>> target_time = 100.0
+
+    Defining correltion function and time axis
+
+    >>> time = TimeAxis(0.0, 1000, 1.0)
+    >>> params = dict(ftype="OverdampedBrownian", T=300, cortime=30.0,
+    ...          reorg=100.0, matsubara=30)
+    
+    >>> with energy_units("1/cm"):
+    ...     cf = oscillator_scalled_CorrelationFunction(time, params, omega,
+    ...                                            target_time, Nmax=7, HR=0.3)
+    >>> print("%10.5f" % params["reorg"])
+      32.97806
+    
+
+    """
+    
+    #from ..qm.corfunctions import CorrelationFunction
+    from ...builders.molecules import Molecule
+    from ...builders.modes import Mode
+    from ...core.managers import eigenbasis_of
+
+    Nmx = Nmax
+    cf = CorrelationFunction(time, params)
+
+    with energy_units("1/cm"):
+        mol = Molecule([0.0, 10000.0])
+
+    mol.set_electronic_rwa([0, 1])
+    md = Mode(omega)
+
+    mol.add_Mode(md)
+
+    md.set_HR(1, HR)
+    md.set_nmax(0,Nmx)
+    md.set_nmax(1,Nmx)
+
+    #mol.set_mode_environment(mode=0, elstate=0, corfunc=cf)
+    #mol.set_mode_environment(mode=0, elstate=1, corfunc=cf)
+
+    mol.set_mode_environment(mode=0, elstate="ALL", corfunc=cf)
+
+    mol.set_transition_environment((0,1), cf)
+
+    #HH = mol.get_Hamiltonian()
+    #sbi = mol.get_SystemBathInteraction()
+
+    time = cf.axis
+    RR, ham = mol.get_RelaxationTensor(time, relaxation_theory="stR",
+                                       as_operators=False)
+
+    ref_time = 1.0/numpy.real(RR.data[0,0,1,1])
+    #print("Ref. time:", ref_time)
+    ratio = ref_time/target_time
+    #print("Ratio:", ratio)
+
+    orig_reorg = params["reorg"]
+    reorg = ratio*orig_reorg
+    params["reorg"] = reorg
+
+    cfn = CorrelationFunction(time, params)
+
+    if not silent:
+        with eigenbasis_of(ham):
+            print("Original time (S0):",
+                  1.0/numpy.real(RR.data[0,0,1,1]))
+            print("Original time (S1):",
+                  1.0/numpy.real(RR.data[Nmx,Nmx,Nmx+1,Nmx+1]))
+
+    return cfn
+

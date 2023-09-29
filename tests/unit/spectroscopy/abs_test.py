@@ -16,12 +16,12 @@ import tempfile
 
 from quantarhei.spectroscopy.abs2 import AbsSpectrumBase #, AbsSpectrumDifference
 from quantarhei import FrequencyAxis
-from quantarhei import energy_units
+from quantarhei import energy_units, eigenbasis_of
 #from quantarhei import convert
 
 from quantarhei import AbsSpectrum, AbsSpectrumCalculator
 from quantarhei import Molecule, CorrelationFunction, TimeAxis
-from quantarhei import Aggregate
+from quantarhei import Aggregate, Mode
 
 class TestAbs(unittest.TestCase):
     """Tests for the abs package
@@ -56,6 +56,22 @@ class TestAbs(unittest.TestCase):
             
             abs_calc = AbsSpectrumCalculator(time, system=mol1)
             abs_calc.bootstrap(rwa=10000)
+
+            mol3 = Molecule(elenergies=[0.0, 10000.0])
+            params = dict(ftype="OverdampedBrownian", reorg=30, cortime=100,
+                          T=300)
+            mol3.set_dipole(0,1,[0.0, 1.0, 0.0])
+            cf = CorrelationFunction(time, params)
+            mol3.set_transition_environment((0,1),cf)
+
+            self.mol3 = mol3
+            
+            if True:
+                mod = Mode(frequency=1000.0)
+                mol3.add_Mode(mod)
+                mod.set_nmax(0, 1)
+                mod.set_nmax(1, 4)
+                mod.set_HR(1, 0.1)
             
         abs1 = abs_calc.calculate()
         
@@ -217,8 +233,56 @@ class TestAbs(unittest.TestCase):
             plt.plot(x,y,"-b")
             plt.plot(x1,y1,"--r")
             plt.show() 
+
+        mol2 = self.mol3
+        mol2.set_electronic_rwa([0, 1])        
+        abs_calc = AbsSpectrumCalculator(time, system=mol2)
+         
         
- 
+        prop = mol2.get_ReducedDensityMatrixPropagator(time, 
+                                                 relaxation_theory="stR",
+                                                 time_dependent=True)
+                 
+        abs_calc.bootstrap(prop=prop)
+        ham = mol2.get_Hamiltonian()
+        #with energy_units("1/cm"):
+        #    with eigenbasis_of(ham):
+        #        print("ham.dat")
+        #        print(numpy.diag(ham.data))
+                
+        #print("****************")
+
+        #
+        # we test that calculate cannot be called within a basis context   
+        #
+        with self.assertRaises(Exception) as exp:
+            with eigenbasis_of(ham):
+                abs2 = abs_calc.calculate(from_dynamics=True)  
+             
+        abs2 = abs_calc.calculate(from_dynamics=True)
+        abs3 = abs_calc.calculate(from_dynamics=True, alt=True)
+        #print("****************")
+
+
+        with energy_units("1/cm"):
+            x1 = abs2.axis.data
+            y1 = abs2.data
+            y = abs3.data
+
+        diff = numpy.max(numpy.abs(y1-y))
+        rdiff = diff/numpy.max(numpy.abs(y))
+        self.assertTrue(rdiff < 0.01)
+        
+        _plot_ = False
+        if _plot_:
+            import matplotlib.pyplot as plt
+            #plt.plot(x,y,"-b")
+            plt.plot(x1,y1,"--r")
+            plt.show() 
+            
+            #raise Exception()
+            
+    
     def test_of_aggregate_absorption(self):
         """(AbsSpectrum) Testing absorption spectrum of an aggregate
         

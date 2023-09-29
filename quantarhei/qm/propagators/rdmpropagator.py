@@ -1000,7 +1000,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             
             
         """
-        import time
+
         debug("(5)")
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
@@ -1032,8 +1032,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         
         indx = 1
         indxR = 1
-        print("TEST")
-        t1 = time.time()
+
         for ii in range(1, self.Nt): 
 
             Lm = self.RelaxationTensor.Lm[indxR,:,:,:]
@@ -1068,8 +1067,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             indx += 1             
             if indxR < cutoff_indx-1:                      
                 indxR += 1             
-        t2 = time.time()
-        print("Duration:", t2-t1, "s")
+
         if self.Hamiltonian.has_rwa:
             pr.is_in_rwa = True
 
