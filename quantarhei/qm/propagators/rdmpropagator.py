@@ -30,6 +30,8 @@ from ...core.managers import Manager
 
 import quantarhei as qr
 
+import matplotlib.pyplot as plt
+
     
 _show_debug = False
 def debug(msg):
@@ -1450,13 +1452,36 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             # get the field corresponding to RWA
             om = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]]
             
-            self.EField.set_rwa(om)
+            try:
+                Nfields = len(self.EField)
+            except:
+                Nfields = 1
+            
+            
+            if Nfields > 1:
+                
+                # rotating wave frequency is set to all of the fields globally
+                self.EField[0].set_rwa(om)
+
+            else:
+                self.EField.set_rwa(om)
+            
             
             # the two complex components of the field
-            Epls = self.EField.field_p
-            Emin = self.EField.field_m
-            
-            self.EField.restore_rwa()
+            if Nfields > 1:
+                Epls = []
+                Emin = []
+                for kk in range(Nfields):
+                    Epls.append(self.EField[kk].field_p)
+                    Emin.append(self.EField[kk].field_m)                
+            else:
+                Epls = self.EField.field_p
+                Emin = self.EField.field_m
+ 
+            if Nfields > 1:
+                self.EField[0].restore_rwa()
+            else:            
+                self.EField.restore_rwa()
             
             # upper and lower triagle
             N = self.Hamiltonian.dim
@@ -1474,8 +1499,16 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         RR = self.RelaxationTensor.data
         
-        pol = self.EField.pol
-        MU = numpy.dot(self.Trdip.data[:,:,:], pol)
+        if Nfields > 1:
+
+            MU = []
+            for kk in range(Nfields):
+                pol = self.EField[kk].pol
+
+                MU.append(numpy.dot(self.Trdip.data[:,:,:], pol))
+        else:
+            pol = self.EField.pol
+            MU = numpy.dot(self.Trdip.data[:,:,:], pol)
         
         #
         # Propagation
@@ -1488,21 +1521,29 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 IR = self.RelaxationTensor.Iterm[indx,:,:] 
                 
             if self.Hamiltonian.has_rwa:
-                MuE = MU*(Ml*Epls[indx]+Mu*Emin[indx])
+                if Nfields > 1:
+                    MuE = []
+                    for kk in range(Nfields):
+                        MuE.append(MU[kk]*(Ml*Epls[kk][indx]+Mu*Emin[kk][indx]))
+                else:
+                    MuE = [MU*(Ml*Epls[indx]+Mu*Emin[indx])]
             else:
-                MuE = MU*EField[indx]
+                if Nfields > 1:
+                    MuE = []
+                    for kk in range(Nfields):
+                        MuE.append(MU[kk]*EField[kk][indx])
+                else:
+                    MuE = [MU*EField[indx]]
             
             #for jj in range(0,self.Nref):
             for ll in range(1,L+1):
                 
                 rhoY = -_COM(HH, ll, self.dt, rho1)
                 _TTI(rhoY, RR, IR, ll, self.dt, rho1)
-                rhoY += _COM(MuE, ll, self.dt, rho1)
-                       #  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                       #   - numpy.dot(rho1,HH) ) \
-                       # + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                       #  + (1j*self.dt/ll)*( numpy.dot(MuE,rho1) \
-                       #   - numpy.dot(rho1,MuE) )                             
+                
+                for jj in range(Nfields):
+                    rhoY += _COM(MuE[jj], ll, self.dt, rho1)
+                             
                 rho1 = rhoY
                 
                 rho2 = rho2 + rho1

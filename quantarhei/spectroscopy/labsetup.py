@@ -21,7 +21,7 @@ from ..utils.vectors import X
 from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
-from .. import REAL
+from .. import REAL, COMPLEX
 
 class LabSetup:
     """Laboratory set-up for non-linear spectroscopy
@@ -1107,6 +1107,28 @@ class LabSetup:
             raise Exception("RWA has to be set first")
             
         self.omega[:] = self.saved_omega[:] 
+        
+        
+    def get_field(self):
+        """Returns the total field of the lab
+        
+        """
+        #N = t.shape[0]
+        
+        #fld = numpy.zeros(N, dtype=COMPLEX)
+        flds = self.get_labfields()
+        
+        kk = 0
+        for fl in flds:
+            if kk == 0:
+                fld = fl.get_field()
+            else:
+                fld += fl.get_field()
+            kk += 1
+            
+        return fld
+        
+        
 
  
 class labsetup(LabSetup):
@@ -1197,7 +1219,7 @@ class LabField():
     """Class representing electric field of a laser pulse defined in LabSetup
 
 
-    Objects of this class are linked to their "mother" object of the LubSetup
+    Objects of this class are linked to their "mother" object of the LabSetup
     type. Their properties can be changed locally, with an effect on the
     LabSetup, or globally from the LabSetup with an effect on the EField
     objects.
