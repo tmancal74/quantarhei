@@ -50,7 +50,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     """
     
     def __init__(self, timeaxis=None, Ham=None, RTensor=None, Iterm=None,
-                 Efield=None, Trdip=None, PDeph=None):
+                 Efield=None, Trdip=None, PDeph=None, NonHerm=None):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -94,6 +94,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_Iterm = False
         self.has_RWA = False
         self.has_EField = False
+        self.has_NonHerm = False
         
         if not ((timeaxis is None) and (Ham is None)):
             
@@ -166,6 +167,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 else:
                     raise Exception("RelaxationTensor has to be set first.")
             
+            if NonHerm is not None:
+                self.has_NonHerm = True
+                self.NonHerm = NonHerm
             
             self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
             self.dt = self.Odt
@@ -495,7 +499,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 
                 for ll in range(1,L+1):
                    
-                    rho1 = -_COM(HH, ll, self.dt, rho1)
+                    rho1 = -_COM(HH, ll, self.dt, rho1, 
+                                 has_NonHerm=self.has_NonHerm)
                              
                     rho2 = rho2 + rho1
                 rho1 = rho2    
@@ -550,7 +555,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         if self.Hamiltonian.has_rwa:
             HH = self.Hamiltonian.get_RWA_data()
         else:
-            HH = self.Hamiltonian.data            
+            HH = self.Hamiltonian.data
+
+
+        if self.has_NonHerm:
+            HH = HH + 1j*self.NonHerm
+            
         return HH
 
 
@@ -1603,7 +1613,7 @@ def _OTI(rhoY, Km, Kd, Lm, Ld, ll, dt, rho1):
        )
 
             
-def _COM(HH, ll, dt, rho1):
+def _COM(HH, ll, dt, rho1, has_NonHerm=False):
     """Commutator with the a given operator (e.g. Hamiltonian)
     
     Parameters
@@ -1626,7 +1636,11 @@ def _COM(HH, ll, dt, rho1):
     
     
     """
-    ret = (1j*dt/ll)*(numpy.dot(HH,rho1) - numpy.dot(rho1,HH))
+    if has_NonHerm:
+        H2 = numpy.conj(numpy.transpose(HH))
+    else:
+        H2 = HH
+    ret = (1j*dt/ll)*(numpy.dot(HH,rho1) - numpy.dot(rho1,H2))
     return ret
 
 
