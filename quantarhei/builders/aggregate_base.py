@@ -1327,7 +1327,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def build(self, mult=1, sbi_for_higher_ex=False,
               vibgen_approx=None, Nvib=None, vibenergy_cutoff=None,
-              fem_full=False):
+              fem_full=False, el_blocks=False):
         """Builds aggregate properties
 
         Calculates Hamiltonian and transition dipole moment matrices and
@@ -1422,6 +1422,15 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                     vibgen_approx=vibgen_approx, Nvib=Nvib,
                                     vibenergy_cutoff=vibenergy_cutoff):
             self.all_states.append((a, s1))
+
+        if el_blocks:
+            self.electronic_blocks = dict()
+            for sig in self.elsigs:
+                self.electronic_blocks[sig] = "ciao"
+            
+            
+            print("AHOJ !!!!!!!!!!!!!!!!!")
+            print(self.electronic_blocks)
 
 
         # Set up Hamiltonian and Transition dipole moment matrices
@@ -1737,6 +1746,233 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     ###########################################################################
 
+    def convert_to_ground_vibbasis(self, operator, Nt=None):
+        """Converts an operator to a ground state vibrational basis repre
+        
+        Default representation in Quantarhei is that with a specific shifted
+        vibrational basis in each electronic state. Here we convert to a
+        representation where there is a single basis used for all vibrational
+        states regardless of elecrtronic state
+        
+
+        The conversion MUST be done in site basis. Only in site basis
+        we can distinguish the vibrational states properly
+
+        """   
+        n_indices = 2
+        evolution = False
+        whole = False
+        if operator.dim == self.Ntot:
+
+            if isinstance(operator, ReducedDensityMatrix) or \
+               isinstance(operator, DensityMatrix):
+
+                nop = ReducedDensityMatrix(dim=self.Ntot)
+
+
+            elif isinstance(operator, Hamiltonian):
+                
+                nop = Hamiltonian(dim=self.Ntot)
+                nop1 = Hamiltonian(dim=self.Nel)
+                
+                
+            elif isinstance(operator, TransitionDipoleMoment):
+                
+                nop = TransitionDipoleMoment(dim=self.Ntot)
+                n_indices = 3
+
+
+            elif isinstance(operator, ReducedDensityMatrixEvolution) or \
+               isinstance(operator, DensityMatrixEvolution):
+
+                if Nt is not None:
+                    nop = ReducedDensityMatrix(dim=self.Ntot)
+                    evolution = True
+                    whole = False
+                else:
+                    nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
+                    rhoi = ReducedDensityMatrix(dim=self.Ntotl)
+                    # we set zero initial condition, because this initialized
+                    # the data storage
+                    nop.set_initial_condition(rhoi)
+                    evolution = True
+                    whole = True
+
+            else:
+                raise Exception("Operation not implemented for this type: "+
+                                operator.__class__.__name__)    
+  
+            # FIXME: This limitation might not be necessary
+            # in the ground states of all monomers, there must be the same
+            # or greater number of levels than in the excited state
+
+            # over all monomers
+            for k in range(self.nmono):
+                mono = self.monomers[k]
+                # over all modes
+                n_mod = mono.get_number_of_modes()
+                for i in range(n_mod):
+                    mod = mono.get_Mode(i)
+                    n_g = mod.get_nmax(0)
+                    # over all excited states
+                    # FIXME: this should be mono.Nel as in Aggregate
+                    for j in range(mono.nel):
+                        if (j > 0):
+                            n_e = mod.get_nmax(j)
+                            if n_e > n_g:
+                                raise Exception("Number of levels"+
+                    " in the excited state of a molecule has to be \n"+
+                    "the same or smaller than in the ground state") 
+                                
+            #
+            # ground state vibrational states
+            #
+            stgs = []
+            for i_g in self.vibindices[0]:
+                vs_g = self.vibsigs[i_g]
+                stg = self.get_VibronicState(vs_g[0],
+                                            vs_g[1])
+                stgs.append(stg)    
+    
+            if n_indices == 2:
+
+                # convert to representation by ground-state oscillator
+
+                # # FIXME: This limitation might not be necessary
+                # # in the ground states of all monomers, there must be the same
+                # # or greater number of levels than in the excited state
+
+                # # over all monomers
+                # for k in range(self.nmono):
+                #     mono = self.monomers[k]
+                #     # over all modes
+                #     n_mod = mono.get_number_of_modes()
+                #     for i in range(n_mod):
+                #         mod = mono.get_Mode(i)
+                #         n_g = mod.get_nmax(0)
+                #         # over all excited states
+                #         # FIXME: this should be mono.Nel as in Aggregate
+                #         for j in range(mono.nel):
+                #             if (j > 0):
+                #                 n_e = mod.get_nmax(j)
+                #                 if n_e > n_g:
+                #                     raise Exception("Number of levels"+
+                #         " in the excited state of a molecule has to be \n"+
+                #         "the same or smaller than in the ground state")
+
+
+                # do the conversion
+
+                #print("TRANSFORMING")
+                # loop over electronic states n, m
+                for n in range(self.Nel):
+                    i_ng = -1
+                    for i_n in self.vibindices[n]:
+                        i_ng += 1
+                        for m in range(self.Nel):
+                            i_mg = -1
+                            for i_m in self.vibindices[m]:
+                                i_mg += 1
+                                nop._data[i_n,i_m] = 0.0
+                                for j_n in self.vibindices[n]:
+                                    for j_m in self.vibindices[m]:
+                                        nop._data[i_n,i_m] += \
+                                        self.FCf[i_ng, j_n]*\
+                                        operator._data[j_n, j_m]*\
+                                        self.FCf[j_m, i_mg]
+
+                return nop #, nop1
+            
+            elif n_indices == 3:
+
+                # do the conversion
+
+                #print("TRANSFORMING")
+                # loop over 3D
+                for a in range(3):
+                    # loop over electronic states n, m
+                    for n in range(self.Nel):
+                        i_ng = -1
+                        for i_n in self.vibindices[n]:
+                            i_ng += 1
+                            for m in range(self.Nel):
+                                i_mg = -1
+                                for i_m in self.vibindices[m]:
+                                    i_mg += 1
+                                    nop._data[i_n,i_m,a] = 0.0
+                                    for j_n in self.vibindices[n]:
+                                        for j_m in self.vibindices[m]:
+                                            nop._data[i_n,i_m] += \
+                                            self.FCf[i_ng, j_n]*\
+                                            operator._data[j_n, j_m, a]*\
+                                            self.FCf[j_m, i_mg]
+                                            
+                return nop
+            
+
+            else:
+                raise Exception("Incompatible operator")
+
+
+    def trace_converted(self, operator, Nt=None):
+        
+        n_indices = 2
+        evolution = False
+        whole = False
+
+        if operator.dim == self.Ntot:
+
+            if isinstance(operator, ReducedDensityMatrix) or \
+               isinstance(operator, DensityMatrix):
+
+                nop = ReducedDensityMatrix(dim=self.Nel)
+
+
+            elif isinstance(operator, Hamiltonian):
+                
+                nop = Hamiltonian(dim=self.Nel)
+
+
+            elif isinstance(operator, ReducedDensityMatrixEvolution) or \
+               isinstance(operator, DensityMatrixEvolution):
+
+                if Nt is not None:
+                    nop = ReducedDensityMatrix(dim=self.Nel)
+                    evolution = True
+                    whole = False
+                else:
+                    nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
+                    rhoi = ReducedDensityMatrix(dim=self.Nel)
+                    # we set zero initial condition, because this initialized
+                    # the data storage
+                    nop.set_initial_condition(rhoi)
+                    evolution = True
+                    whole = True
+
+            else:
+                raise Exception("Operation not implemented for this type: "+
+                                operator.__class__.__name__)
+
+            if n_indices == 2:
+        
+
+                for n in range(self.Nel):
+                    i_ng = -1
+                    for i_n in self.vibindices[n]:
+                        i_ng += 1
+                        for m in range(self.Nel):
+                            i_mg = -1
+                            for i_m in self.vibindices[m]:
+                                i_mg += 1
+                                if i_ng == i_mg:
+                                    nop._data[n,m] += \
+                                        operator._data[i_n, i_m]
+                return nop
+
+            else:
+                raise Exception("Incompatible operator")
+                
+
     def trace_over_vibrations(self, operator, Nt=None):
         """Average an operator over vibrational degrees of freedom
 
@@ -1754,6 +1990,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                isinstance(operator, DensityMatrix):
 
                 nop = ReducedDensityMatrix(dim=self.Nel)
+
+
+            elif isinstance(operator, Hamiltonian):
+                
+                nop = Hamiltonian(dim=self.Nel)
 
 
             elif isinstance(operator, ReducedDensityMatrixEvolution) or \
@@ -2375,7 +2616,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def _impulsive_population(self, relaxation_theory_limit="weak_coupling",
-                              temperature=0.0):
+                              temperature=0.0, DD=None):
         """Impulsive excitation of the density matrix from ground state
 
         """
@@ -2385,7 +2626,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                             temperature=temperature)
         rho0 = rho.data
 
-        DD = self.TrDMOp.data
+        if DD is None:
+            DD = self.TrDMOp.data
 
         # abs value of the transition dipole moment
         dabs = numpy.sqrt(DD[:,:,0]**2 + \
@@ -2396,10 +2638,62 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return rho0
 
 
+    def get_StateVector(self, condition_type=None, DD=None):
+        """Returns state vector accordoing to specified conditions
+
+        Parameters
+        ----------
+
+        condition_type : str
+            Type of the initial condition. If None, the property sv0, which
+            was presumably calculated in the past, is returned.  
+            
+            
+        Condition types
+        ---------------
+
+        impulsive_excitation
+            Excitation by ultrabroad laser pulse
+
+        """
+        # aggregate must be built before we call this method
+        if not self._built:
+            raise Exception("Aggregate must be built before"
+                            +" get_StateVector can be invoked.")
+            
+        # if no condition is specified, it is understood that we return
+        # internal sv0, which was calculated sometime in the past
+        if condition_type is None:
+            return StateVector(data=self.sv0)
+
+
+        elif condition_type == "impulsive_excitation":
+
+            if DD is None:
+                DD = self.TrDMOp.data
+
+            # abs value of the transition dipole moment
+            dabs = numpy.sqrt(DD[:,:,0]**2 + \
+                          DD[:,:,1]**2 + DD[:,:,2]**2)   
+                
+            sv0 = numpy.zeros(self.Ntot, dtype=COMPLEX)
+            
+            # zero temperature
+            sv0[0] = 1.0
+            
+            self.sv0 = numpy.dot(dabs,sv0)
+            
+            return StateVector(data=self.sv0)
+
+        else:
+            raise Exception("Unknown condition type")
+
+            
+
     def get_DensityMatrix(self, condition_type=None,
                                 relaxation_theory_limit="weak_coupling",
                                 temperature=None,
-                                relaxation_hamiltonian=None):
+                                relaxation_hamiltonian=None, DD=None):
         """Returns density matrix according to specified condition
 
         Returs density matrix to be used e.g. as initial condition for
@@ -2427,6 +2721,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             Hamiltonian according to which we form thermal equilibrium. In case
             of `strong_coupling`, no reorganization energies are subtracted -
             we assume that the supplied energies are already void of them.
+            
+        DD : real array
+            Submit your own transition dipole moment matrix (for x, y and z)
 
         Condition types
         ---------------
@@ -2467,7 +2764,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         elif condition_type == "impulsive_excitation":
             rho0 = self._impulsive_population(
                               relaxation_theory_limit=relaxation_theory_limit,
-                              temperature=temperature)
+                              temperature=temperature, DD=DD)
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
