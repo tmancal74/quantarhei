@@ -27,6 +27,7 @@ from ..hilbertspace.operators import ReducedDensityMatrix, DensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
 from ...core.managers import Manager
+from ...spectroscopy.labsetup import LabSetup
 
 import quantarhei as qr
 
@@ -141,6 +142,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             if Efield is not None:
                 if isinstance(Efield, numpy.ndarray):
                     self.Efield = Efield
+                    self.has_Efield = True
+                    self.has_EField = False
+                elif isinstance(Efield, LabSetup):
+                    print("****************!!!!")
+                    fl = []
+                    for ii in range(3):
+                        fl.append(Efield.get_labfield(ii))
+                    self.Efield = fl
                     self.has_Efield = True
                     self.has_EField = False
                 else: 
