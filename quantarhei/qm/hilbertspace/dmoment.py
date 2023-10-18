@@ -2,6 +2,7 @@
 
 from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged
+from ... import REAL
 
 import numpy
 #import scipy
@@ -19,7 +20,10 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
             if cb != 0:
                 self.manager.register_with_basis(cb,self) 
     
-            self._data = data
+            if data is None:
+                self._data = numpy.zeros((dim,dim,3), dtype=REAL)  
+            else:
+                self._data = data
             self.dim = self._data.shape[0] 
             
             if not self.check_selfadjoint():
