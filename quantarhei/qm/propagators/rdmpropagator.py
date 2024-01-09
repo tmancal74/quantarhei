@@ -647,7 +647,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     for ll in range(1, L+1):
 
                         rhoY = -_COM(HH, ll, self.dt, rho1)
-                        _TTI(rhoY, RR, IR, ll, self.dt, rho1)
+                        _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
                         
                         rho1 = rhoY                        
                         rho2 = rho2 + rho1
@@ -676,7 +676,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     for ll in range(1, L+1):
                         
                         rhoY = -_COM(HH, ll, self.dt, rho1)
-                        _TTI(rhoY, RR, IR, ll, self.dt, rho1)
+                        _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
                         
                         rho1 = rhoY                                 
                         rho2 = rho2 + rho1
@@ -905,6 +905,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
               
               
         """
+
     
 
         if self.RelaxationTensor.as_operators:
@@ -917,11 +918,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho1 = rhoi.data
         rho2 = rhoi.data
 
+
         #
         # RWA is applied here
         #
         if self.Hamiltonian.has_rwa:
             HH = self.Hamiltonian.get_RWA_data()
+
         else:
             HH = self.Hamiltonian.data
        
@@ -984,7 +987,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 for ll in range(1,L+1):
                     
                     rhoY = -_COM(HH, ll, dt, rho1)
-                    _TTI(rhoY, RR, IR, ll, dt, rho1)
+                    _TTI(rhoY, RR, IR, ll, dt, rho1, L=L)
                     # rho1 =  (dt/ll)*(numpy.tensordot(RR,rho1) \
                     #    - 1j*(numpy.dot(HH,rho1)- numpy.dot(rho1,HH)) + IR)
                     rho1 = rhoY      
@@ -1186,7 +1189,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 for ll in range(1,L+1):
                     
                     rhoY = -_COM(HH, ll, dt, rho1)
-                    _TTI(rhoY, RR, IR, ll, dt, rho1)
+                    _TTI(rhoY, RR, IR, ll, dt, rho1, L=L)
                     rhoY += _COM(MuE, ll, dt, rho1)
                     # rho1 = (dt/ll)*(numpy.tensordot(RR,rho1) 
                     #      - 1j*(numpy.dot(HH,rho1)-numpy.dot(rho1,HH)) + IR
@@ -1317,7 +1320,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 for ll in range(1,L+1):
                     
                     rhoY = -_COM(HH, ll, dt, rho1)
-                    _TTI(rhoY, RR, IR, ll, dt, rho1)
+                    _TTI(rhoY, RR, IR, ll, dt, rho1, L=L)
                     rhoY += _COM(MuE, ll, dt, rho1) 
                     # rho1 = (dt/ll)*(numpy.tensordot(RR,rho1) 
                     #      - 1j*(numpy.dot(HH,rho1)-numpy.dot(rho1,HH)) + IR
@@ -1406,7 +1409,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             for ll in range(1,L+1):
                 
                 rhoY =  -_COM(HH, ll, self.dt, rho1)
-                _TTI(rhoY,RR, IR, ll, self.dt, rho1)
+                _TTI(rhoY,RR, IR, ll, self.dt, rho1, L=L)
                 rhoY += _COM(MuE, ll, self.dt, rho1)
                        # - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
                        #   - numpy.dot(rho1,HH) ) \
@@ -1441,7 +1444,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         The EField carries the information on the field polarization, and 
         this information is used. 
         
-        Rotating wabe approximation is considered if defined by the Hamiltonian
+        Rotating wave approximation is considered if defined by the Hamiltonian
         object.
 
         """
@@ -1556,7 +1559,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             for ll in range(1,L+1):
                 
                 rhoY = -_COM(HH, ll, self.dt, rho1)
-                _TTI(rhoY, RR, IR, ll, self.dt, rho1)
+                _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
                 
                 for jj in range(Nfields):
                     rhoY += _COM(MuE[jj], ll, self.dt, rho1)
@@ -1653,7 +1656,7 @@ def _COM(HH, ll, dt, rho1, has_NonHerm=False):
     return ret
 
 
-def _TTI(rhoY, RR, IR, ll, dt, rho1):
+def _TTI(rhoY, RR, IR, ll, dt, rho1, L=4):
     """ Tensor form of the Time Indendent relaxation tensor
 
     Parameters
@@ -1674,5 +1677,5 @@ def _TTI(rhoY, RR, IR, ll, dt, rho1):
     None.
 
     """
-    rhoY += (dt/ll)*(numpy.tensordot(RR,rho1) + IR)
+    rhoY += (dt/ll)*(numpy.tensordot(RR,rho1)) + dt*IR/numpy.real(L)
 

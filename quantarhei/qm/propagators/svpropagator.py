@@ -153,10 +153,6 @@ class StateVectorPropagator:
         Nvib[0] = 2
         Nvib[1] = 2
         Nvib[2] = 2
-        
-        print(psii.data.shape[0], numpy.sum(Nvib))
-        
-        raise Exception()
 
         # we create larger vectors (size + no of electronic states),
         # store the normalization constants and normalized state vectors

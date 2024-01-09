@@ -244,6 +244,7 @@ class OpenSystem:
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
+                ham_0.set_rwa(ham.rwa_indices)
 
             else:
 
@@ -253,11 +254,13 @@ class OpenSystem:
                 # This is done strictly in site basis
                 #
 
-                relaxT = FoersterRelaxationTensor(ham, sbi)
+                relaxT = FoersterRelaxationTensor(ham, sbi, 
+                                                  pure_dephasing=True)
                 dat = numpy.zeros((ham.dim,ham.dim),dtype=REAL)
                 for i in range(ham.dim):
                     dat[i,i] = ham._data[i,i]
                 ham_0 = Hamiltonian(data=dat)
+                ham_0.set_rwa(ham.rwa_indices)
 
             # The Hamiltonian for propagation is the one without
             # resonance coupling
@@ -272,9 +275,12 @@ class OpenSystem:
 
             if time_dependent:
 
+
                 # Time dependent standard Foerster
                 relaxT = NEFoersterRelaxationTensor(ham, sbi, 
                                             as_kernel=as_convolution_kernel)
+                
+                
                 dat = numpy.zeros((ham.dim,ham.dim),dtype=REAL)
                 
                 #for i in range(ham.dim):

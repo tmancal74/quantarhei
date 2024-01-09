@@ -241,33 +241,33 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     # I am systematically removing any "naming" in Quantarhei
     #
         
-    # def get_name(self):
-    #     """Returns the name of the molecule
+    def get_name(self):
+        """Returns the name of the molecule
         
-    #     Examples
-    #     --------
+        Examples
+        --------
         
-    #     >>> m = Molecule([0.0, 1.0], name="Jane")
-    #     >>> m.get_name()
-    #     'Jane'
+        >>> m = Molecule([0.0, 1.0], name="Jane")
+        >>> m.get_name()
+        'Jane'
         
-    #     """
-    #     return self.name
+        """
+        return self.name
 
         
-    # def set_name(self, name):
-    #     """Sets the name of the Molecule object
+    def set_name(self, name):
+        """Sets the name of the Molecule object
         
-    #     Examples
-    #     --------
+        Examples
+        --------
         
-    #     >>> m = Molecule([0.0, 1.0])
-    #     >>> m.set_name("Jane")
-    #     >>> print(m.get_name())
-    #     Jane
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_name("Jane")
+        >>> print(m.get_name())
+        Jane
         
-    #     """
-    #     self.name = name
+        """
+        self.name = name
         
     def set_electronic_rwa(self, rwa_indices):
         """Sets which electronic states belong to different blocks

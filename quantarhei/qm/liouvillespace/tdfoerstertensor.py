@@ -77,6 +77,7 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             
            
     def add_dephasing(self):
+       
 
         # line shape function derivatives
         sbi = self.SystemBathInteraction
@@ -94,7 +95,9 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
         for aa in range(self.dim):
             for bb in range(self.dim):
                 if aa != bb:
+ 
                     self.data[:,aa,bb,aa,bb] -= (ht[aa,:]+ht[bb,:])
+
 
         
     def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):

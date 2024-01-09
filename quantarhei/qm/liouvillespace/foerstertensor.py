@@ -15,7 +15,8 @@ class FoersterRelaxationTensor(RelaxationTensor):
     
     
     """
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham, sbi, initialize=True, cutoff_time=None, 
+                 pure_dephasing=False):
         
         self._initialize_basis()
         
@@ -29,6 +30,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
         self._is_initialized = False
         self._has_cutoff_time = False
         self.as_operators = False
+        self.pure_dephasing = pure_dephasing
         
         if cutoff_time is not None:
             self.cutoff_time = cutoff_time
@@ -83,3 +85,31 @@ class FoersterRelaxationTensor(RelaxationTensor):
             # calculate dephasing rates and depopulation rates
             #
             self.updateStructure()
+
+            if self.pure_dephasing:
+                # additional pure dephasing 
+                self.add_dephasing()
+               
+          
+    def add_dephasing(self):
+      
+
+        # line shape function derivatives
+        sbi = self.SystemBathInteraction
+        Na = self.dim
+        Nt = sbi.TimeAxis.length
+        
+        ht = numpy.zeros((Na, Nt),
+                         dtype=numpy.complex64)
+        
+        sbi.CC.create_one_integral()
+    
+        for ii in range(1, Na):
+           ht[ii,:] = sbi.CC.get_hoft(ii-1,ii-1)
+        
+                        
+        for aa in range(self.dim):
+            for bb in range(self.dim):
+                if aa != bb:
+ 
+                    self.data[aa,bb,aa,bb] -= (ht[aa,Nt-1]+ht[bb,Nt-1])

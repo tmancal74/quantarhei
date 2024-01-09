@@ -198,7 +198,7 @@ class Input(object):
     def find_usecases(self):
         """Finds replacements for values defined in the input file
     
-        This function deplaces values of some input parameters by the values
+        This function replaces values of some input parameters by the values
         predefined in the "define_usecases" construct.
     
         Parameters

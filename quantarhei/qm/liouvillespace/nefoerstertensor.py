@@ -9,6 +9,8 @@ from .tdfoerstertensor import TDFoersterRelaxationTensor
 from .tdfoerstertensor import _td_reference_implementation
 from ... import COMPLEX, REAL
 
+import time
+
 
 class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory
@@ -33,6 +35,8 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         
         
         """
+        
+        print("START INIT")
         
         tt = self.SystemBathInteraction.TimeAxis.data
         Nt = len(tt)
@@ -80,16 +84,22 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
                     #
                     # here we return the time dependent rate tensor
                     #
+
                     self.data =  \
                       self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
+
                       
                 else:
                     #
                     # here we have a function returning the kernel
                     # as a function of time
                     #
+
                     self.kernel = \
                       self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
+
+
+                self.add_dephasing()
 
             #
             # Secular theory
@@ -104,12 +114,14 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
                             
                 self.updateStructure()
                 self.add_dephasing()
+                
+        print("... DONE")
     
 
 
     def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):
         """ Overloaded implementation method replacing the standard kernel
-        corresponding to the nonrmal Redfield with its non-equilibrium
+        corresponding to the normal Redfield with its non-equilibrium
         version
         
         """
@@ -170,6 +182,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
                     II[:,aa,mm] = 2.0*JJ[aa,mm]*numpy.imag( \
                                   numpy.exp(-1j*(JJ[mm,mm]-JJ[aa,aa])*tt) \
                                   *numpy.exp(-numpy.conj(gt[aa,:])-gt[mm,:])) 
+  
         
         self.II = II
         self.has_Iterm = True
@@ -201,15 +214,25 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
             with known initial condition
             
         """
-        II = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+        II = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
         JJ = HH.data
+        EE = numpy.eye(Na,Na)
         
         for aa in range(Na):
             for bb in range(Na):
-                bb != aa
-                II[:,aa,bb] += \
-                    JJ[aa,bb]*numpy.exp(-1j*(JJ[bb,bb]-JJ[aa,aa])*tt) \
-                             *numpy.exp(-numpy.conj(gt[aa,:])-gt[bb,:]) 
+                for nn in range(Na):
+                    for mm in range(Na):
+                        if aa != nn:
+                            II[:,aa,bb,nn,mm] += \
+                            JJ[aa,nn]*EE[mm,bb] \
+                                *numpy.exp(-1j*(JJ[nn,nn]-JJ[bb,bb])*tt) \
+                             *numpy.exp(-numpy.conj(gt[bb,:])-gt[nn,:]) 
+                        if mm != bb:
+                            II[:,aa,bb,nn,mm] += \
+                           -JJ[mm,bb]*EE[nn,aa] \
+                               *numpy.exp(-1j*(JJ[aa,aa]-JJ[mm,mm])*tt) \
+                             *numpy.exp(-numpy.conj(gt[mm,:])-gt[aa,:])   
+                             
         
         self.II = II
         self.has_Iterm = True 
@@ -220,15 +243,20 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         """ Inhomogeneous (initial condition) term 
             of the effective non-secular non-equilibrium Foerster theory
             
-        """        
-        II = numpy.zeros(self.II.shape, dtype=COMPLEX)
+        """  
         Na = self.II.shape[1]
+        Nt = self.II.shape[0]
+        II = numpy.zeros((Nt,Na,Na), dtype=COMPLEX)
         
         for aa in range(Na):
             for bb in range(Na):
-                for cc in range(Na):
-                    II[:,aa,bb] += -1j*self.II[:,aa,cc]*rhoi.data[cc,bb] \
-                                   +1j*rhoi.data[aa,cc]*self.II[:,cc,bb]
+                for nn in range(Na):
+                    for mm in range(Na):
+                        II[:,aa,bb] += \
+                            -1j*self.II[:,aa,bb,nn,mm]*rhoi.data[nn,mm]
+                                       
+        
+        print("Calculated II")
         
         self.Iterm = II
         self.has_Iterm = True
@@ -339,6 +367,8 @@ def _integrate_kernel_to_t(ti, tt, fce, margin=10):
     ti_eff = max(ti_min, ti) + 1
     fce_ti = fce[0:ti_eff]
     tt_ti = tt[0:ti_eff]
+    
+    return numpy.sum(fce_ti)*(tt_ti[1]-tt_ti[0])
 
     preal = numpy.real(fce_ti)
     pimag = numpy.imag(fce_ti)
@@ -427,6 +457,7 @@ def _ne_fintegral(tt, gtd, gta, ed, ea, ld):
         # the kernel is integrated by splines
         #
         #inte = _integrate_kernel(tt, prod)
+        
         inte = _integrate_kernel_to_t(ti, tt, prod)
 
         hoft[ti] = inte[ti]
@@ -450,21 +481,31 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
     fKK = numpy.zeros((Nt,Na,Na,Na,Na), dtype=COMPLEX)
     RR = numpy.zeros((Nt,Na,Na), dtype=COMPLEX)
     
+    
     # resonance coupling matrix
     JJ = numpy.zeros(HH.shape, dtype=REAL)
     JJ[:,:] = HH[:,:]
     for ii in range(Na):
         JJ[ii,ii] = 0.0
     
+    print("Reference implementation ...")
+    t1 = time.time()
+    
+    print("INTEGRALS")
+    t1I = time.time()
     #
     # Integrals
     #
     for a in range(Na):
         for b in range(Na):
+            print(a,b,"of",Na,Na)
             for c in range(Na):
                 for d in range(Na):
                     fKK[:,a,b,c,d] = fce(tt, d, b, a, c, HH, gt)
 
+    t2I = time.time()
+    print("... INTEGRALS in", t2I-t1I,"sec")
+    print("OPERATORS")
     #
     # Operator part of the non-eq. Foerster
     #
@@ -473,6 +514,7 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
             for c in range(Na):
                 RR[:,a,b] -= JJ[a,c]*JJ[c,b]*fKK[:,c,c,b,a] 
                
+    print("TENSOR")
     #
     # Tensor elements
     #
@@ -487,8 +529,12 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
                     if a == c:
                         KK[:,a,b,c,d] += numpy.conj(RR[:,b,d])
 
+    t2 = time.time()
+    print("...done in", t2-t1,"sec")
                         
-    return KK  
+    return KK
+
+    #return numpy.zeros((Nt,Na,Na,Na,Na), dtype=COMPLEX)
 
 
 
@@ -556,6 +602,7 @@ def _nsc_fintegral(tt, a, b, c, d, HH, gt):
         # Here we calculate two-time integration kernel 
         #
         prod = _nsc_kernel_at_t(ti, tt, a, b, c, d, HH, gt)
+        
 
         #
         # the kernel is integrated by splines
@@ -563,7 +610,7 @@ def _nsc_fintegral(tt, a, b, c, d, HH, gt):
         #inte = _integrate_kernel(tt, prod)
         inte = _integrate_kernel_to_t(ti, tt, prod)
 
-        hoft[ti] = inte[ti]
+        hoft[ti] = inte #[ti]
 
     return hoft
     
