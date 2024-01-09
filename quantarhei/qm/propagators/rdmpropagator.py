@@ -946,7 +946,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         try:
             self.has_Iterm = self.RelaxationTensor.has_Iterm
         except:
-            print(self, "This tensor does not support has_Iterm")
+            print("Warning: This relaxation tensor does not support has_Iterm")
             self.has_Iterm = False
             
         if self.has_Iterm:

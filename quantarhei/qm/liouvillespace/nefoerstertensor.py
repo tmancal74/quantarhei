@@ -3,11 +3,13 @@ import numpy
 #import matplotlib.pyplot as plt
 import scipy.interpolate as interp
 
+
 from ..corfunctions.correlationfunctions import c2g
 from ...core.managers import energy_units
 from .tdfoerstertensor import TDFoersterRelaxationTensor
 from .tdfoerstertensor import _td_reference_implementation
 from ... import COMPLEX, REAL
+
 
 import time
 
@@ -36,7 +38,6 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         
         """
         
-        print("START INIT")
         
         tt = self.SystemBathInteraction.TimeAxis.data
         Nt = len(tt)
@@ -114,8 +115,6 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
                             
                 self.updateStructure()
                 self.add_dephasing()
-                
-        print("... DONE")
     
 
 
@@ -256,8 +255,6 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
                             -1j*self.II[:,aa,bb,nn,mm]*rhoi.data[nn,mm]
                                        
         
-        print("Calculated II")
-        
         self.Iterm = II
         self.has_Iterm = True
         
@@ -278,7 +275,6 @@ def _kernel_at_t(ti, tt, gtd, gta, ed, ea, ld):
         *numpy.exp(2.0*1j*numpy.imag(gtd[ti]))
         
     return prod
-
 
 
 def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
@@ -488,24 +484,20 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
     for ii in range(Na):
         JJ[ii,ii] = 0.0
     
-    print("Reference implementation ...")
     t1 = time.time()
     
-    print("INTEGRALS")
     t1I = time.time()
     #
     # Integrals
     #
     for a in range(Na):
         for b in range(Na):
-            print(a,b,"of",Na,Na)
             for c in range(Na):
                 for d in range(Na):
                     fKK[:,a,b,c,d] = fce(tt, d, b, a, c, HH, gt)
 
     t2I = time.time()
-    print("... INTEGRALS in", t2I-t1I,"sec")
-    print("OPERATORS")
+
     #
     # Operator part of the non-eq. Foerster
     #
@@ -514,7 +506,6 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
             for c in range(Na):
                 RR[:,a,b] -= JJ[a,c]*JJ[c,b]*fKK[:,c,c,b,a] 
                
-    print("TENSOR")
     #
     # Tensor elements
     #
@@ -530,7 +521,6 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
                         KK[:,a,b,c,d] += numpy.conj(RR[:,b,d])
 
     t2 = time.time()
-    print("...done in", t2-t1,"sec")
                         
     return KK
 
@@ -558,7 +548,6 @@ def _nsc_kernel_implementation(Na, Nt, HH, tt, gt, ll, fce):
         return KK
     
     return fkernel
-
 
 
 def _nsc_fintegral(tt, a, b, c, d, HH, gt):

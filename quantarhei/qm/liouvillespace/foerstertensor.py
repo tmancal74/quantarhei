@@ -31,6 +31,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
         self._has_cutoff_time = False
         self.as_operators = False
         self.pure_dephasing = pure_dephasing
+        self.has_Iterm = False
         
         if cutoff_time is not None:
             self.cutoff_time = cutoff_time
