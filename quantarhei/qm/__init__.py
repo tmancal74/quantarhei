@@ -4,6 +4,7 @@
 #   HILBERT SPACE STATES
 #
 from .hilbertspace.statevector import StateVector
+from .hilbertspace.oqsstatevector import OQSStateVector
 
 #
 #   LIOUVILLE SPACE STATES

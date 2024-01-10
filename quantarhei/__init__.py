@@ -306,9 +306,13 @@ from .spectroscopy.labsetup import LabField
 
 
 #
-# Operators
+# State vectors
 #
 from .qm import StateVector
+from .qm import OQSStateVector
+#
+# Operators
+#
 from .qm import DensityMatrix
 from .qm import ReducedDensityMatrix
 from .qm import BasisReferenceOperator
