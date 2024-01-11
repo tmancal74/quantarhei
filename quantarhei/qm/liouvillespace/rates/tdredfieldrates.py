@@ -55,7 +55,7 @@ class TDRedfieldRateMatrix(TimeDependent):
             raise Exception("First argument must be a Hamiltonian")
             
         if not isinstance(sbi,SystemBathInteraction):
-            raise Exception
+            raise Exception("Second argument must be a SystemBathInteraction")
             
         self._is_initialized = False            
         self._has_cutoff_time = False

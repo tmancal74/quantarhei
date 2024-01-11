@@ -326,12 +326,14 @@ from .qm import UnityOperator
 #
 from .qm.propagators.poppropagator import PopulationPropagator
 from .qm.propagators.svpropagator import StateVectorPropagator
+from .qm import OQSStateVectorPropagator
 from .qm import ReducedDensityMatrixPropagator
 
 #
 # Evolutions (time-dependent operators)
 #
 from .qm.propagators.statevectorevolution import StateVectorEvolution
+from .qm import OQSStateVectorEvolution
 from .qm import DensityMatrixEvolution
 from .qm import ReducedDensityMatrixEvolution
 

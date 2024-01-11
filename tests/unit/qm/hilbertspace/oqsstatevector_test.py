@@ -14,6 +14,7 @@ import unittest
 
 from quantarhei import OQSStateVector
 from quantarhei import REAL
+import quantarhei as qr
 
 class TestOQSStateVector(unittest.TestCase):
     """Tests for the statevector package
@@ -60,6 +61,27 @@ class TestOQSStateVector(unittest.TestCase):
         
         self.assertAlmostEqual(psi.norm(), numpy.sqrt(0.1**2 + 4.0))
         self.assertAlmostEqual(psi.puredot(psi), psi.norm()**2)
+        
+        
+        
+    def test_evolution(self):
+        
+        import numpy
+        
+        KK = numpy.array([[-1.0/200.0, 1.0/200.], 
+                          [1.0/200.0, -1.0/200.0]],
+                         dtype=REAL)
+        
+        timea = qr.TimeAxis(0.0, 1000, 1.0)
+        
+        prop = qr.OQSStateVectorPropagator(timea, KK)
+        
+        psii = qr.OQSStateVector(data=[numpy.sqrt(0.1),
+                                       numpy.sqrt(0.9)])
+        
+        
+        
+        psit = prop.propagate(psii)
         
         
       

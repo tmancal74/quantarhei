@@ -80,11 +80,13 @@ from .liouvillespace.supopunity import SOpUnity
 #
 from .propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from .propagators.svpropagator import StateVectorPropagator
+from .propagators.oqssvpropagator import OQSStateVectorPropagator
 
 #
 #  TIME EVOLUTIONS
 #
 from .propagators.statevectorevolution import StateVectorEvolution
+from .propagators.oqssvevolution import OQSStateVectorEvolution
 from .propagators.dmevolution import DensityMatrixEvolution
 from .propagators.dmevolution import ReducedDensityMatrixEvolution
 
