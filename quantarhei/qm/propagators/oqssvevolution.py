@@ -34,6 +34,13 @@ class OQSStateVectorEvolution:
         self.data[0,:] = psii.data 
         
         
+    def get_norm(self):
+        """Time dependent norm of the state vector 
+        
+        """
+        return numpy.sum(self.data*self.data, axis=1)
+        
+    
     def get_ReducedDensityMatrixEvolution(self, decoherence=False):
         """ Returns the corresponding reduced density matrix
         
