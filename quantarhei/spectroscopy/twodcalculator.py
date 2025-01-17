@@ -28,8 +28,10 @@ except:
     # quantarhei.implementations.aceto module
     #
     #raise Exception("Aceto not available")
-    #from ..implementations.aceto import nr3td            
-    _have_aceto = False 
+    from ..implementations.aceto import nr3td  
+    from ..implementations.aceto.band_system import band_system 
+    from ..implementations.aceto.lab_settings import lab_settings         
+    _have_aceto = False
 
 
 class TwoDResponseCalculator:
@@ -316,13 +318,30 @@ class TwoDResponseCalculator:
 
         tt2 = self.t2axis.data[tc]        
         Nr1 = self.t1axis.length
-        Nr3 = self.t3axis.length        
+        Nr3 = self.t3axis.length   
+        
         #
         # Initialize response storage
         #
-        resp_r = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
-        resp_n = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
-
+        if _have_aceto:
+            order = 'F'
+        else:
+            order = 'C'
+            
+        resp_r = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_n = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Ngsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Rse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Nse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Resa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Nesa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Rsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        
+        
         # FIXME: on which axis we should be looking for it2 ??? 
         (it2, err) = self.t1axis.locate(tt2) 
         self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
@@ -338,24 +357,19 @@ class TwoDResponseCalculator:
         self._vprint(" - ground state bleach")
         # GSB
 
-        resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
-        resp_Ngsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
+
         nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rgsb)
         nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Ngsb)
 
         self._vprint(" - stimulated emission")
         # SE
 
-        resp_Rse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
-        resp_Nse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
         nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rse)
         nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nse)
 
         self._vprint(" - excited state absorption")
         # ESA
 
-        resp_Resa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
-        resp_Nesa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
         nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Resa)
         nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nesa)
         
@@ -368,8 +382,6 @@ class TwoDResponseCalculator:
         self._vprint(" - stimulated emission with transfer")
         # SE
 
-        resp_Rsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
-        resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
         nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rsewt)
         nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nsewt)
 
@@ -380,8 +392,6 @@ class TwoDResponseCalculator:
         self._vprint(" - excited state absorption with transfer")
         # ESA
 
-        resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
-        resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order='F')
         nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Resawt)
         nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nesawt)
 
@@ -504,10 +514,19 @@ class TwoDResponseCalculator:
         else:
             
             # fall back on quantarhei's own implementation
-        
-            #ret = TwoDSpectrumContainer()
-            ret = TwoDResponseContainer()
+
+            twods = TwoDResponseContainer(self.t2axis)
             
+            teetoos = self.t2axis.data
+            for tt2 in teetoos:
+
+                onetwod = self.calculate_next()
+                twods.set_spectrum(onetwod)   
+            
+            return twods
+        
+        #ret = TwoDSpectrumContainer()
+        ret = TwoDResponseContainer()
         
         return ret
     
