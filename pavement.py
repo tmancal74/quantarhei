@@ -99,7 +99,7 @@ from paver.easy import sh
     > paver version-update
     
 """
-version = "0.0.66"
+version = "0.0.67"
 
 
 sys_name = platform.system()

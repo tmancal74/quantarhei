@@ -41,9 +41,9 @@ class CumulantExpr(QExpr):
     def evaluate(self,large=False):
         expr = self.expand()
         expr = expr.getOrder(2)
-        print(expr)
+        #print(expr)
         C = expr.simplify()
-        print(C)
+        #print(C)
         if large:
             C = C._make_positive(large)
             C = C._expand_in_large(large)
