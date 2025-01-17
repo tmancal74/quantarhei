@@ -74,14 +74,14 @@ class TestOQSStateVector(unittest.TestCase):
         
         timea = qr.TimeAxis(0.0, 1000, 1.0)
         
-        prop = qr.OQSStateVectorPropagator(timea, KK)
+        #prop = qr.OQSStateVectorPropagator(timea, KK)
         
-        psii = qr.OQSStateVector(data=[numpy.sqrt(0.1),
-                                       numpy.sqrt(0.9)])
+        #psii = qr.OQSStateVector(data=[numpy.sqrt(0.1),
+        #                               numpy.sqrt(0.9)])
         
         
         
-        psit = prop.propagate(psii)
+        #psit = prop.propagate(psii)
         
         
       

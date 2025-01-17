@@ -70,8 +70,11 @@ class CorrelationFunctionMatrix(Saveable):
 
         # here we store their first integrals
         self._hofts = None
+        self._has_hofts = False
+        
         # here we store their second integrals
         self._gofts = None
+        self._has_gofts = False
 
         self.data = None
 
@@ -326,12 +329,21 @@ class CorrelationFunctionMatrix(Saveable):
         nos = self.nob + 1
         if self._is_transformed:
             if t is None:
+                
                 Nt = self.max_cutoff_index + 1
+                
+                # FIXME: some consistent treatment of the cutoff time is needed  
+                Nt = self._cofts.shape[1]
+                
                 ret = numpy.zeros((nos,nos,nos,nos,Nt),dtype=COMPLEX)
-                for k in range(self.nof):
+                #for k in range(self.nof):
+                for k in range(self.nob):
                     for it in range(Nt):
-                        ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
-                        *self._cofts[k+1,it]
+                        #ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
+                        #*self._cofts[k+1,it]
+                        ret[:,:,:,:,it] += self._C4[:,:,:,:,k]\
+                            *self._cofts[self.cpointer[k,k],it]
+
                 return ret
             else:
                 ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
@@ -371,11 +383,18 @@ class CorrelationFunctionMatrix(Saveable):
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index + 1
+                
+                # FIXME: some consistent treatment of the cutoff time is needed  
+                Nt = self._cofts.shape[1]
+                              
                 ret = numpy.zeros((nos,nos,nos,nos,Nt),dtype=COMPLEX)
-                for k in range(self.nof):
+                #for k in range(self.nof):
+                for k in range(self.nob):
                     for it in range(Nt):
-                        ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
-                        *self._hofts[k+1,it]
+                        #ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
+                        #*self._hofts[k+1,it]
+                        ret[:,:,:,:,it] += self._C4[:,:,:,:,k]\
+                            *self._hofts[self.cpointer[k,k],it]
                 return ret
             else:
                 ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
@@ -388,6 +407,9 @@ class CorrelationFunctionMatrix(Saveable):
 
 
     def get_goft4(self,a,b,c,d):
+        """Returns the matrix of the goft functions
+        
+        """
         if self._is_transformed:
             ret = numpy.zeros(self.timeAxis.length, dtype=COMPLEX)
             for k in range(self.nof):
@@ -415,11 +437,18 @@ class CorrelationFunctionMatrix(Saveable):
         if self._is_transformed:
             if t is None:
                 Nt = self.max_cutoff_index + 1
+                
+                # FIXME: some consistent treatment of the cutoff time is needed
+                Nt = self._cofts.shape[1]
+                
                 ret = numpy.zeros((nos,nos,nos,nos,Nt),dtype=COMPLEX)
-                for k in range(self.nof):
+                #for k in range(self.nof):
+                for k in range(self.nob):
                     for it in range(Nt):
-                        ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
-                        *self._gofts[k+1,it]
+                        ret[:,:,:,:,it] += self._C4[:,:,:,:,k]\
+                            *self._gofts[self.cpointer[k,k],it]
+                        #ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
+                        #*self._gofts[k+1,it]
                 return ret
             else:
                 ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
@@ -525,20 +554,24 @@ class CorrelationFunctionMatrix(Saveable):
         """Calculates a time integral of all correlation functions
         
         """
-        self._hofts = numpy.zeros((self.nof+1,self.timeAxis.length),
+        if not self._has_hofts:
+            self._hofts = numpy.zeros((self.nof+1,self.timeAxis.length),
                                   dtype=numpy.complex128)
-        for ii in range(self.nof+1):
-            self._hofts[ii,:] = c2h(self.timeAxis,self._cofts[ii,:])
+            for ii in range(self.nof+1):
+                self._hofts[ii,:] = c2h(self.timeAxis,self._cofts[ii,:])
+            self._has_hofts = True
 
 
     def create_double_integral(self):
         """Calculates a double time integral of all correlation functions
         
         """
-        self._gofts = numpy.zeros((self.nof+1,self.timeAxis.length),
-                                  dtype=numpy.complex128)
-        for ii in range(self.nof+1):
-            self._gofts[ii,:] = c2g(self.timeAxis,self._cofts[ii,:])
+        if not self._has_gofts:
+            self._gofts = numpy.zeros((self.nof+1,self.timeAxis.length),
+                                      dtype=numpy.complex128)
+            for ii in range(self.nof+1):
+                self._gofts[ii,:] = c2g(self.timeAxis,self._cofts[ii,:])
+            self._has_gofts = True
 
 
     #
@@ -575,17 +608,23 @@ class CorrelationFunctionMatrix(Saveable):
         nof = self.nof
         
         self._A4 = numpy.zeros((nos,nos,nos,nos,nof), dtype=REAL)
+        self._C4 = numpy.zeros((nos,nos,nos,nos,nos), dtype=REAL)
 
         for a in range(nos):
             for b in range(nos):
                 for c in range(nos):
                     for d in range(nos):
+                        for n in range(nos):
+                            self._C4[a,b,c,d,n] = \
+                                SS[n,a]*SS[n,b]*SS[n,c]*SS[n,d]
+                            
                         for k in range(nof):
 
                            for n in range(1,nos):
                                 for m in range(1,nos):
                                     self._A4[a,b,c,d,k] += SS[n,a]*SS[n,b]*\
                                     self._A2[n-1,m-1,k+1]*SS[m,c]*SS[m,d]
+                                
 
         self._is_transformed = True
 
