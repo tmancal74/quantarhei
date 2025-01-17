@@ -32,7 +32,7 @@ m = Symbol('m')
 n = Symbol('n')
 t1 = Symbol('t1')
 
-A = Uged(n,T)*Uedg(n,tau)*ExpdV(a,tau,x)*Ugde(m,tau)*ExpdV(b,0,y)*Uegd(n,T)
+A = Uged(n,T)*Uedg(n,tau)*ExpdV(a,tau,x)*Ugde(m,tau)*ExpdV(b,t1,y)*Uegd(n,T)
 
 Anorm = Uged(n,T)*Uegd(n,T)  
 
@@ -69,9 +69,11 @@ norm = norm.evaluate(large=T)
 #expr = D._getExpr()
 print("Norm: ", norm)
 
-expr = (expr-norm).subs(t1,0).simplify()
+#expr = (expr-norm).subs(t1,0).simplify()
+expr = (expr-norm).simplify()
+expr = expr.subs(t1,0).simplify()
 
-info = False
+info = True
 
 """ 
 Test of cumulant expansion method
@@ -87,9 +89,11 @@ if info:
     
     print("Analyzing the cumulant exponent and sorting parameters")
     print(" ")
-    terms = collect(expr,[x,y],evaluate=False)
+    terms = collect(expr,[x,y,x**2,y**2],evaluate=False)
+    print("Terms:")
+    print(terms)
+    print("")
     print("   1:")
-
     A1 = sympify(terms[S.One])
     print(A1)
     print("   x:")
@@ -104,9 +108,9 @@ if info:
     Axy1 = collect(Ax1,y,evaluate=False)
     Axy = sympify(Axy1[y])
     print(Axy)
-    print("x**2:")
-    Ax2 = sympify(terms[x**2])
-    print(Ax2)
+    #print("x**2:")
+    #Ax2 = sympify(terms[x**2])
+    #print(Ax2)
     print(" ")
     print(" ")
 
