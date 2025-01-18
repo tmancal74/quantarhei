@@ -19,7 +19,10 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     
     
     This class is used to represent LiouvillePathway objects. Lineshape is
-    Gaussian 
+    Gaussian.
+    
+    The response is calculated with effective lineshapes directly in frequency
+    domain.
     
     """
 
