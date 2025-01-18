@@ -24,14 +24,12 @@ try:
     
 except:
     #
-    # FIXME: There should be an optional warning and a fall back onto
-    # quantarhei.implementations.aceto module
     #
     #raise Exception("Aceto not available")
     from ..implementations.aceto import nr3td  
     from ..implementations.aceto.band_system import band_system 
     from ..implementations.aceto.lab_settings import lab_settings         
-    _have_aceto = False
+    _have_aceto = True # we assume we have Python implementation
 
 
 class TwoDResponseCalculator:
@@ -54,11 +52,11 @@ class TwoDResponseCalculator:
     
     system = derived_type("system",[Molecule,Aggregate])
     
-    def __init__(self, t1axis, t2axis, t3axis,
-                 system=None,
-                 dynamics="secular",
-                 relaxation_tensor=None,
-                 rate_matrix=None,
+    _has_responses = False
+    _has_system = False
+    
+    def __init__(self, t1axis, t2axis, t3axis, system=None, responses=None,
+                 dynamics="secular", relaxation_tensor=None, rate_matrix=None,
                  effective_hamiltonian=None):
             
             
@@ -70,6 +68,11 @@ class TwoDResponseCalculator:
         
         if system is not None:
             self.system = system
+            self._has_system = Trie
+            
+        if responses is not None:
+            self.responses = responses
+            self._has_responses = True
         
         #FIXME: properties to be protected
         self.dynamics = dynamics
@@ -92,10 +95,11 @@ class TwoDResponseCalculator:
         if rate_matrix is not None:
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
-            
-        #self._have_aceto = False
+
         
+        #
         # after bootstrap information
+        #
         self.sys = None
         self.lab = None
         self.t1s = None
@@ -116,9 +120,10 @@ class TwoDResponseCalculator:
         """
         if self.verbose:
             print(string)
-            
+
+
     def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False, 
-                  write_resp = False, keep_resp = False):
+                  write_resp=False, keep_resp=False):
         """Sets up the environment for 2D calculation
         write_resp takes a string, creates a directory with the name of
         the string and saves the respoonses and time axis as a npz file
@@ -128,7 +133,6 @@ class TwoDResponseCalculator:
         
         """
 
-
         self.verbose = verbose
         self.pad = pad
         self.write_resp = write_resp
@@ -137,188 +141,192 @@ class TwoDResponseCalculator:
 
         with qr.energy_units("int"):
 
-          if self.write_resp:
-              try:
-                  os.mkdir(write_resp)
-              except OSError:
-                  print ("Creation of the directory failed, it either already "
-                      "exists or you didn't give a string")
+            if self.write_resp:
+                try:
+                    os.mkdir(write_resp)
+                except OSError:
+                    print ("Creation of the directory failed, "+
+                           "it either already exists "+
+                           "or you didn't give a string")
     
-          if True:
               
-              # calculate 2D spectrum using aceto library
-    
-              ###############################################################################
-              #
-              # Create band_system from quantarhei classes
-              #
-              ###############################################################################
+            # calculate 2D spectrum using aceto library
               
-              if isinstance(self.system, Aggregate):
-              
-                  pass
-              
-              else:
-                  
-                  raise Exception("Molecule 2D not implememted")
-                  
-              agg = self.system
-              agg.diagonalize()
-              
-              #
-              # hamiltonian and transition dipole moment operators
-              #
-              H = agg.get_Hamiltonian()
-              D = agg.get_TransitionDipoleMoment()
-              
-              #
-              # Construct band_system object
-              #
-              Nb = 3
-              Ns = numpy.zeros(Nb, dtype=numpy.int)
-              Ns[0] = 1
-              Ns[1] = agg.nmono
-              Ns[2] = Ns[1]*(Ns[1]-1)/2
-              self.sys = band_system(Nb, Ns)
-              
-              
-              #
-              # Set energies
-              #
-              en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
-              #if True:
-              with eigenbasis_of(H):
-                  for i in range(self.sys.Ne):
-                      en[i] = H.data[i,i]
-                  self.sys.set_energies(en)
-              
-                  #
-                  # Set transition dipole moments
-                  #
-                  dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
-                  def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
-                                  (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
-              
-                  dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
-                  deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
-                  
-                  for i in range(3):
-                      dge[i,:,:] = dge_wr[:,:,i]
-                      deff[i,:,:] = def_wr[:,:,i]
-                  self.sys.set_dipoles(0,1,dge)
-                  self.sys.set_dipoles(1,2,deff)
-              
-              
-              #
-              # Relaxation rates
-              #
-              if not self._has_rate_matrix:
-                  KK = agg.get_RedfieldRateMatrix()
-              else:
-                  KK = self._rate_matrix
-              
-              # relaxation rate in single exciton band
-              Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
-              #print(1.0/KK.data)
-              
-              self.sys.init_dephasing_rates()
-              self.sys.set_relaxation_rates(1,Kr)
-              
-              
-              #
-              # Lineshape functions
-              #
-              sbi = agg.get_SystemBathInteraction()
-              cfm = sbi.CC
-              cfm.create_double_integral()
-              
-              
-              #
-              # Transformation matrices
-              #
-              SS = H.diagonalize()
-              SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
-              SS2 = SS[Ns[1]+1:,Ns[1]+1:]
-              H.undiagonalize()
-              
-              self.sys.set_gofts(cfm._gofts)    # line shape functions
-              self.sys.set_sitep(cfm.cpointer)  # pointer to sites
-              self.sys.set_transcoef(1,SS1)  # matrix of transformation coefficients  
-              self.sys.set_transcoef(2,SS2)  # matrix of transformation coefficients  
-    
-              #
-              # Finding population evolution matrix
-              #
-              
-              prop = PopulationPropagator(self.t1axis, Kr)
-        #      Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
-        #                                            corrections=True)
-              self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
-                                                    corrections=3)
-    
-              # FIXME: Order of transfer is set by hand here - needs to be moved
-              # to some reasonable place
-              
-              #Ucor = Uee
-              self.Uc0 = cor[0]
-              
-              #for ko in range(No+1):
-              #    print("Subtracting ", ko)
-              #    Ucor[:,:,tc] -= cor[ko]
-    
-              #
-              # define lab settings
-              #
-              if lab is None:
-                  self.lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
-                  X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
-                  self.lab.set_laser_polarizations(X,X,X,X)
-              else:
-                  self.lab = lab
-              
-              #
-              # Other parameters
-              #
-              #dt = self.t1axis.step
-              self.rmin = 0.0001
-              self.t1s = self.t1axis.data 
-              self.t3s = self.t3axis.data
-           
-              atype = self.t1axis.atype
-              self.t1axis.atype = 'complete'
-              self.oa1 = self.t1axis.get_FrequencyAxis() 
-              self.oa1.data += self.rwa
-              self.oa1.start += self.rwa
-              #print(self.oa1.start, self.oa1.data[0])
-              self.t1axis.atype = atype
-        
-              atype = self.t3axis.atype
-              self.t3axis.atype = 'complete'
-              self.oa3 = self.t3axis.get_FrequencyAxis() 
-              self.oa3.data += self.rwa
-              self.oa3.start += self.rwa
-              #print(self.oa3.start, self.oa3.data[0])
-              self.t3axis.atype = atype
+            ###############################################################
+            #
+            # Create band_system from quantarhei classes
+            #
+            ###############################################################
             
-          else:
+            if isinstance(self.system, Aggregate):
             
-            raise Exception("So far, no 2D outside aceto")
+                pass
             
-          self.tc = 0
+            else:
+                
+                raise Exception("Molecule 2D not implememted")
+                
+            agg = self.system
+            agg.diagonalize()
+            
+            #
+            # hamiltonian and transition dipole moment operators
+            #
+            H = agg.get_Hamiltonian()
+            D = agg.get_TransitionDipoleMoment()
+            
+            #
+            # Construct band_system object
+            #
+            Nb = 3
+            Ns = numpy.zeros(Nb, dtype=numpy.int)
+            Ns[0] = 1
+            Ns[1] = agg.nmono
+            Ns[2] = Ns[1]*(Ns[1]-1)/2
+            self.sys = band_system(Nb, Ns)
+            
+            
+            #
+            # Set energies
+            #
+            en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
+            #if True:
+            with eigenbasis_of(H):
+                for i in range(self.sys.Ne):
+                    en[i] = H.data[i,i]
+                self.sys.set_energies(en)
+            
+                #
+                # Set transition dipole moments
+                #
+                dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
+                def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
+                                (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
+            
+                dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
+                deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
+                
+                for i in range(3):
+                    dge[i,:,:] = dge_wr[:,:,i]
+                    deff[i,:,:] = def_wr[:,:,i]
+                self.sys.set_dipoles(0,1,dge)
+                self.sys.set_dipoles(1,2,deff)
+            
+            
+            #
+            # Relaxation rates
+            #
+            if not self._has_rate_matrix:
+                KK = agg.get_RedfieldRateMatrix()
+            else:
+                KK = self._rate_matrix
+            
+            # relaxation rate in single exciton band
+            Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
+            #print(1.0/KK.data)
+            
+            self.sys.init_dephasing_rates()
+            self.sys.set_relaxation_rates(1,Kr)
+            
+            
+            #
+            # Lineshape functions
+            #
+            sbi = agg.get_SystemBathInteraction()
+            cfm = sbi.CC
+            cfm.create_double_integral()
+            
+            
+            #
+            # Transformation matrices
+            #
+            SS = H.diagonalize()
+            SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
+            SS2 = SS[Ns[1]+1:,Ns[1]+1:]
+            H.undiagonalize()
+            
+            self.sys.set_gofts(cfm._gofts)    # line shape functions
+            self.sys.set_sitep(cfm.cpointer)  # pointer to sites
+            # matrix of transformation coefficients
+            self.sys.set_transcoef(1,SS1)  
+            # matrix of transformation coefficients
+            self.sys.set_transcoef(2,SS2)    
+              
+            #
+            # Finding population evolution matrix
+            #
+            prop = PopulationPropagator(self.t1axis, Kr)
+            #Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
+            #                                     corrections=True)
+            self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
+                                                  corrections=3)
+              
+            # FIXME: Order of transfer is set by hand here 
+            # - needs to be moved to some reasonable place
+            
+            #Ucor = Uee
+            self.Uc0 = cor[0]
+              
+            #
+            # define lab settings
+            #
+            if lab is None:
+                self.lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
+                X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
+                self.lab.set_laser_polarizations(X,X,X,X)
+            else:
+                self.lab = lab
+            
+            #
+            # Other parameters
+            #
+            #dt = self.t1axis.step
+            self.rmin = 0.0001
+            self.t1s = self.t1axis.data 
+            self.t3s = self.t3axis.data
+             
+            atype = self.t1axis.atype
+            self.t1axis.atype = 'complete'
+            self.oa1 = self.t1axis.get_FrequencyAxis() 
+            self.oa1.data += self.rwa
+            self.oa1.start += self.rwa
+            #print(self.oa1.start, self.oa1.data[0])
+            self.t1axis.atype = atype
+              
+            atype = self.t3axis.atype
+            self.t3axis.atype = 'complete'
+            self.oa3 = self.t3axis.get_FrequencyAxis() 
+            self.oa3.data += self.rwa
+            self.oa3.start += self.rwa
+            #print(self.oa3.start, self.oa3.data[0])
+            self.t3axis.atype = atype
+            
+            
+            self.tc = 0
 
         
     def calculate_next(self):
-
+        """ Calculate next population time of a 2D spectrum
+        
+        """
         sone = self.calculate_one(self.tc)
         self.tc += 1
         return sone
     
         
     def calculate_one(self, tc):
-
+        """ Calculate one population time
+        
+        
+        """
         tt2 = self.t2axis.data[tc]        
         Nr1 = self.t1axis.length
         Nr3 = self.t3axis.length   
+        
+        # FIXME: on which axis we should be looking for it2 ??? 
+        (it2, err) = self.t1axis.locate(tt2) 
+        self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
+        #tc = it2        
         
         #
         # Initialize response storage
@@ -328,75 +336,88 @@ class TwoDResponseCalculator:
         else:
             order = 'C'
             
-        resp_r = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_n = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Ngsb = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Rse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Nse = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Resa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Nesa = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Rsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
-        resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order=order)
+        ntype = numpy.complex128
         
+        resp_r = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_n = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Ngsb = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Rse = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Nse = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Resa = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Nesa = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Rsewt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         
-        # FIXME: on which axis we should be looking for it2 ??? 
-        (it2, err) = self.t1axis.locate(tt2) 
-        self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
-        #tc = it2
     
-        #
-        # calcute response
-        #
-        self._vprint("calculating response: ")
-
-        t1 = time.time()
-
-        self._vprint(" - ground state bleach")
-        # GSB
-
-
-        nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rgsb)
-        nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Ngsb)
-
-        self._vprint(" - stimulated emission")
-        # SE
-
-        nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rse)
-        nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nse)
-
-        self._vprint(" - excited state absorption")
-        # ESA
-
-        nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Resa)
-        nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nesa)
-        
-        #
-        # Transfer
-        #
-        Utr = self.Uee[:,:,self.tc] - self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
-        self.sys.set_population_propagation_matrix(Utr)
-        
-        self._vprint(" - stimulated emission with transfer")
-        # SE
-
-        nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Rsewt)
-        nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nsewt)
-
-#                # This contributes only when No > 0
-#                nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
-#
-
-        self._vprint(" - excited state absorption with transfer")
-        # ESA
-
-        nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Resawt)
-        nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_Nesawt)
-
-        t2 = time.time()
-        self._vprint("... calculated in "+str(t2-t1)+" sec")
+        if _have_aceto:
+            #
+            # calcute response
+            #
+            self._vprint("calculating response: ")
+    
+            t1 = time.time()
+    
+            self._vprint(" - ground state bleach")
+            # GSB
+            nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, 
+                          self.rwa, self.rmin, resp_Rgsb)
+            nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, 
+                          self.rwa, self.rmin, resp_Ngsb)
+    
+            self._vprint(" - stimulated emission")
+            # SE
+            nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, 
+                          self.rwa, self.rmin, resp_Rse)
+            nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, 
+                          self.rwa, self.rmin, resp_Nse)
+    
+            self._vprint(" - excited state absorption")
+            # ESA
+            nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, 
+                           self.rwa, self.rmin, resp_Resa)
+            nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, 
+                           self.rwa, self.rmin, resp_Nesa)
+            
+            #
+            # Transfer
+            #
+            Utr = self.Uee[:,:,self.tc] - self.Uc0[:,:,self.tc] 
+                                      # -Uc1[:,:,tc]-Uc2[:,:,tc] etc.
+            self.sys.set_population_propagation_matrix(Utr)
+            
+            self._vprint(" - stimulated emission with transfer")
+            # SE
+            nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
+                                self.rwa, self.rmin, resp_Rsewt)
+            nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
+                                self.rwa, self.rmin, resp_Nsewt)
+    
+            ## This contributes only when No > 0
+            #nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
+            #
+    
+            self._vprint(" - excited state absorption with transfer")
+            # ESA
+            nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
+                                 self.rwa, self.rmin, resp_Resawt)
+            nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
+                                 self.rwa, self.rmin, resp_Nesawt)
+    
+            t2 = time.time()
+            self._vprint("... calculated in "+str(t2-t1)+" sec")
+            
+            
+        elif self._has_responses:
+            
+            pass
+            
+        else:
+            
+            raise Exception("Calculation method not implemented")
+            
 
         resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
         resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
@@ -406,9 +427,10 @@ class TwoDResponseCalculator:
         #
         onetwod = TwoDResponse()
 
-        # pad is set to 0 by default. if changed in the bootstrap,
+        # pad is set to 0 by default. If changed in the bootstrap,
         # responses are padded with 0s and the time axis is lengthened
-        t13Pad = TimeAxis(self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step)
+        t13Pad = TimeAxis(self.t1axis.start, self.t1axis.length + self.pad,
+                          self.t1axis.step)
         if self.pad > 0:
             self._vprint('padding by - ' + str(self.pad))
 
@@ -420,7 +442,8 @@ class TwoDResponseCalculator:
             onetwod.set_axis_1(t13PadFreq)
             onetwod.set_axis_3(t13PadFreq)
 
-            # Sloping the end of the data down to 0 to there isn't a hard cutoff at the end of the data
+            # Sloping the end of the data down to 0 so there isn't a hard
+            # cutoff at the end of the data
             from scipy import signal as sig
             window = 20
             tuc = sig.tukey(window * 2, 1, sym = False)
@@ -430,10 +453,14 @@ class TwoDResponseCalculator:
                 resp_n[len(resp_n)-window:,k] *= tuc[window:]
                 resp_n[k,len(resp_n)-window:] *= tuc[window:]
 
-            resp_r = numpy.hstack((resp_r, numpy.zeros((resp_r.shape[0], self.pad))))
-            resp_r = numpy.vstack((resp_r, numpy.zeros((self.pad, resp_r.shape[1]))))
-            resp_n = numpy.hstack((resp_n, numpy.zeros((resp_n.shape[0], self.pad))))
-            resp_n = numpy.vstack((resp_n, numpy.zeros((self.pad, resp_n.shape[1]))))
+            resp_r = numpy.hstack((resp_r, 
+                                   numpy.zeros((resp_r.shape[0], self.pad))))
+            resp_r = numpy.vstack((resp_r, 
+                                   numpy.zeros((self.pad, resp_r.shape[1]))))
+            resp_n = numpy.hstack((resp_n, 
+                                   numpy.zeros((resp_n.shape[0], self.pad))))
+            resp_n = numpy.vstack((resp_n, 
+                                   numpy.zeros((self.pad, resp_n.shape[1]))))
 
         else:
             onetwod.set_axis_1(self.oa1)
@@ -482,8 +509,7 @@ class TwoDResponseCalculator:
 
         onetwod.set_t2(self.t2axis.data[tc])
 
-        return onetwod
-                
+        return onetwod            
                 
             
     def calculate(self):
@@ -494,7 +520,7 @@ class TwoDResponseCalculator:
         
         
         """            
-        #from .twodcontainer import TwoDSpectrumContainer
+        # FIXME: we will later use only one branch below
         from .twodcontainer import TwoDResponseContainer
  
                   
@@ -524,11 +550,7 @@ class TwoDResponseCalculator:
                 twods.set_spectrum(onetwod)   
             
             return twods
-        
-        #ret = TwoDSpectrumContainer()
-        ret = TwoDResponseContainer()
-        
-        return ret
+
     
     
 
