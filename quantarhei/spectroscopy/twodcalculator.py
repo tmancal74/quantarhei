@@ -419,12 +419,12 @@ class TwoDResponseCalculator:
                 if resp.rtype == "R":
                     resp_r += resp.calculate_matrix(self.lab, None, it2, 
                                                     self.t1s, self.t3s, 
-                                                    self.rwa, self.rmin)
+                                                    self.rwa)
                     
                 elif resp.rtype == "NR":
                     resp_n += resp.calculate_matrix(self.lab, None, it2, 
                                                     self.t1s, self.t3s, 
-                                                    self.rwa, self.rmin)
+                                                    self.rwa)
                     
             
         else:

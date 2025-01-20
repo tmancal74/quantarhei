@@ -7,7 +7,7 @@
 """
 #import numpy
 
-import aceto.nr3td_fic as nr3td_fic
+#import aceto.nr3td_fic as nr3td_fic
     
 
 #
