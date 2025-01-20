@@ -411,8 +411,21 @@ class TwoDResponseCalculator:
             
             
         elif self._has_responses:
-            
-            pass
+            #
+            # Calculation from predefined non-linear responses
+            #
+            for resp in self.responses:
+                
+                if resp.rtype == "R":
+                    resp_r += resp.calculate_matrix(self.lab, None, it2, 
+                                                    self.t1s, self.t3s, 
+                                                    self.rwa, self.rmin)
+                    
+                elif resp.rtype == "NR":
+                    resp_n += resp.calculate_matrix(self.lab, None, it2, 
+                                                    self.t1s, self.t3s, 
+                                                    self.rwa, self.rmin)
+                    
             
         else:
             
