@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import numpy
+
+
 """
 
 
@@ -87,7 +90,7 @@ class ResponseFunction(LiouvillePathway):
     
     """
     
-    def calculate_matrix(lab, sys, it2, t1s, t3s, rwa, rmin):
+    def calculate_matrix(self, lab, sys, it2, t1s, t3s, rwa):
         """Calculates the matrix of response values in t1 and t3 times
         
         
@@ -118,13 +121,14 @@ class ResponseFunction(LiouvillePathway):
         """
         
         # create the dipole factor
-        dip = 0.0
+        dip = 1.0
         
         # construct the phase factors in t1 and t3
-        et1 = 1.0
-        et3 = 1.0
+        et13 = numpy.outer(numpy.exp(1j*rwa*t1s),numpy.exp(1j*rwa*t3s))
         
-        pass
+        t2 = t1s[it2]   # t2 time is taken from the t1 list
+        
+        return dip*self.func(t2,t1s,t3s,et13)
         
     
     def set_evaluation_function (self, func):
