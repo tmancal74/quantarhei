@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
-
+from ..core.managers import Manager 
 
 """
 
@@ -31,6 +31,7 @@ class LiouvillePathway:
         
         self.ptype = ptype
         
+        self.sign = 1.0
         #
         # Determine the response type 
         # Types are:
@@ -39,9 +40,25 @@ class LiouvillePathway:
         #
         if ptype == "R2g":
             self.rtype = "R"
+        elif ptype == "R1g":
+            self.rtype = "NR"
+        elif ptype == "R3g":
+            self.rtype = "R"
+        elif ptype == "R4g":
+            self.rtype = "NR"
+        elif ptype == "R1f":
+            self.rtype = "R"
+            self.sign = -1.0
+        elif ptype == "R2f":
+            self.rtype = "NR"
+            self.sign = -1.0
         else:
             # unknown response type
-            self.rtpye = "U"
+            self.rtype = "U"
+            
+        self._frequencies_set = False
+        self._rwa_set = False
+        
             
             
     def set_dipoles(self, d1, d2=None, d3=None, d4=None):
@@ -69,14 +86,73 @@ class LiouvillePathway:
         pass
         
     
-    def set_frequencies(self, omega1, omega2):
+    def set_frequencies(self, omega1, omega3):
         """Sets the frequencies of the response 
         
         
         """
-        pass
+        
+        if self._frequencies_set:
+            raise Exception("Frequencies of are already set.")
+            
+        self._omega1 = Manager().convert_energy_2_internal_u(omega1) 
+        self._omega3 = Manager().convert_energy_2_internal_u(omega3)
+        
+        self._frequencies_set = True
     
     
+    def get_frequencies(self):
+        """Returns the two main frequencies of the response
+        
+        """
+        
+        if self._frequencies_set:
+            fr = (Manager().convert_energy_2_current_u(self._omega1),
+                  Manager().convert_energy_2_current_u(self._omega3))
+        
+            return fr
+        else:
+            raise Exception("Frequencies not set.")
+    
+    
+    def set_rwa(self, rwa):
+        """Sets the RWA frequency
+        
+        """
+        
+        if not self._frequencies_set:
+            raise Exception("Frequencies must be set before setting RWA.")
+            
+        if not self._rwa_set:
+            self._rwa = Manager().convert_energy_2_internal_u(rwa)
+            self._omega1 = self._omega1 - self._rwa
+            self._omega3 = self._omega3 - self._rwa
+            
+        else:
+            raise Exception("RWA cannot be set twice. Reset first.")
+            
+        self._rwa_set = True
+
+
+    def reset_rwa(self):
+        """Resets the RWA setting
+        
+
+        """
+        if self._frequencies_set and self._rwa_set:
+            self._omega1 = self._omega1 + self._rwa
+            self._omega3 = self._omega3 + self._rwa   
+            
+            self._rwa = 0.0
+            self._rwa_set = False
+        
+        
+    def get_rwa(self):
+        """Returns the RWA frequency
+        
+        
+        """
+        return Manager().convert_energy_2_internal_u(self._rwa)
 
             
             
@@ -90,7 +166,7 @@ class ResponseFunction(LiouvillePathway):
     
     """
     
-    def calculate_matrix(self, lab, sys, it2, t1s, t3s, rwa):
+    def calculate_matrix(self, lab, sys, t2, t1s, t3s, rwa):
         """Calculates the matrix of response values in t1 and t3 times
         
         
@@ -104,8 +180,8 @@ class ResponseFunction(LiouvillePathway):
             that this response is defined as a stand alone. Its dipole factors
             and frequencies are defined by its constructor.
             
-        it2 : integer
-            Integer representing the t2 time
+        t2 : real
+            The t2 time
             
         t1s : 
             
@@ -121,14 +197,19 @@ class ResponseFunction(LiouvillePathway):
         """
         
         # create the dipole factor
-        dip = 1.0
+        dip = self.sign*1.0
         
         # construct the phase factors in t1 and t3
-        et13 = numpy.outer(numpy.exp(1j*rwa*t1s),numpy.exp(1j*rwa*t3s))
+        if self.rtype == "R":
+            et13 = numpy.outer(numpy.exp(-1j*self._omega3*t3s),
+                               numpy.exp(1j*self._omega1*t1s))
+        elif self.rtype == "NR":
+            et13 = numpy.outer(numpy.exp(-1j*self._omega3*t3s),
+                               numpy.exp(-1j*self._omega1*t1s))            
         
-        t2 = t1s[it2]   # t2 time is taken from the t1 list
+    
         
-        return dip*self.func(t2,t1s,t3s,et13)
+        return dip*self.func(t2, t3s, t1s, *self.args)*et13
         
     
     def set_evaluation_function (self, func):
@@ -141,8 +222,16 @@ class ResponseFunction(LiouvillePathway):
     def set_auxliary_arguments(self, args):
         """Sets additional arguments and their values for evaluation calls
         
+        
+        Parameters:
+        -----------
+        
+        args : tuple
+            A tuple of arguments that will be passed to the function after
+            the expected standard arguments
+            
         """
         
-        pass    
+        self.args = args    
         
         

@@ -68,11 +68,15 @@ class TwoDResponseCalculator:
         
         if system is not None:
             self.system = system
-            self._has_system = Trie
+            self._has_system = True
+        else:
+            self._has_system = False
             
         if responses is not None:
-            self.responses = responses
+            self.resp_fcions = responses
             self._has_responses = True
+        else:
+            self._has_responses = False
         
         #FIXME: properties to be protected
         self.dynamics = dynamics
@@ -158,115 +162,126 @@ class TwoDResponseCalculator:
             #
             ###############################################################
             
-            if isinstance(self.system, Aggregate):
+            if self._has_system:
             
-                pass
-            
-            else:
+                if isinstance(self.system, Aggregate):
                 
-                raise Exception("Molecule 2D not implememted")
+                    pass
                 
-            agg = self.system
-            agg.diagonalize()
-            
-            #
-            # hamiltonian and transition dipole moment operators
-            #
-            H = agg.get_Hamiltonian()
-            D = agg.get_TransitionDipoleMoment()
-            
-            #
-            # Construct band_system object
-            #
-            Nb = 3
-            Ns = numpy.zeros(Nb, dtype=numpy.int)
-            Ns[0] = 1
-            Ns[1] = agg.nmono
-            Ns[2] = Ns[1]*(Ns[1]-1)/2
-            self.sys = band_system(Nb, Ns)
-            
-            
-            #
-            # Set energies
-            #
-            en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
-            #if True:
-            with eigenbasis_of(H):
-                for i in range(self.sys.Ne):
-                    en[i] = H.data[i,i]
-                self.sys.set_energies(en)
-            
+                else:
+                    
+                    raise Exception("Molecule 2D not implememted")
+                    
+                agg = self.system
+                agg.diagonalize()
+                
                 #
-                # Set transition dipole moments
+                # hamiltonian and transition dipole moment operators
                 #
-                dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
-                def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
-                                (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
-            
-                dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
-                deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
+                H = agg.get_Hamiltonian()
+                D = agg.get_TransitionDipoleMoment()
                 
-                for i in range(3):
-                    dge[i,:,:] = dge_wr[:,:,i]
-                    deff[i,:,:] = def_wr[:,:,i]
-                self.sys.set_dipoles(0,1,dge)
-                self.sys.set_dipoles(1,2,deff)
-            
-            
+                #
+                # Construct band_system object
+                #
+                Nb = 3
+                Ns = numpy.zeros(Nb, dtype=numpy.int)
+                Ns[0] = 1
+                Ns[1] = agg.nmono
+                Ns[2] = Ns[1]*(Ns[1]-1)/2
+                self.sys = band_system(Nb, Ns)
+                
+                
+                #
+                # Set energies
+                #
+                en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
+                #if True:
+                with eigenbasis_of(H):
+                    for i in range(self.sys.Ne):
+                        en[i] = H.data[i,i]
+                    self.sys.set_energies(en)
+                
+                    #
+                    # Set transition dipole moments
+                    #
+                    dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
+                    def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
+                                    (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
+                
+                    dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
+                    deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
+                    
+                    for i in range(3):
+                        dge[i,:,:] = dge_wr[:,:,i]
+                        deff[i,:,:] = def_wr[:,:,i]
+                    self.sys.set_dipoles(0,1,dge)
+                    self.sys.set_dipoles(1,2,deff)
+                
+                
+                #
+                # Relaxation rates
+                #
+                if not self._has_rate_matrix:
+                    KK = agg.get_RedfieldRateMatrix()
+                else:
+                    KK = self._rate_matrix
+                
+                # relaxation rate in single exciton band
+                Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
+                #print(1.0/KK.data)
+                
+                self.sys.init_dephasing_rates()
+                self.sys.set_relaxation_rates(1,Kr)
+                
+                
+                #
+                # Lineshape functions
+                #
+                sbi = agg.get_SystemBathInteraction()
+                cfm = sbi.CC
+                cfm.create_double_integral()
+                
+                
+                #
+                # Transformation matrices
+                #
+                SS = H.diagonalize()
+                SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
+                SS2 = SS[Ns[1]+1:,Ns[1]+1:]
+                H.undiagonalize()
+                
+                self.sys.set_gofts(cfm._gofts)    # line shape functions
+                self.sys.set_sitep(cfm.cpointer)  # pointer to sites
+                # matrix of transformation coefficients
+                self.sys.set_transcoef(1,SS1)  
+                # matrix of transformation coefficients
+                self.sys.set_transcoef(2,SS2)    
+                  
+                #
+                # Finding population evolution matrix
+                #
+                prop = PopulationPropagator(self.t1axis, Kr)
+                #Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
+                #                                     corrections=True)
+                self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
+                                                      corrections=3)
+                  
+                # FIXME: Order of transfer is set by hand here 
+                # - needs to be moved to some reasonable place
+                
+                #Ucor = Uee
+                self.Uc0 = cor[0]
+             
             #
-            # Relaxation rates
+            # bootstrap responses
             #
-            if not self._has_rate_matrix:
-                KK = agg.get_RedfieldRateMatrix()
-            else:
-                KK = self._rate_matrix
-            
-            # relaxation rate in single exciton band
-            Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
-            #print(1.0/KK.data)
-            
-            self.sys.init_dephasing_rates()
-            self.sys.set_relaxation_rates(1,Kr)
-            
-            
-            #
-            # Lineshape functions
-            #
-            sbi = agg.get_SystemBathInteraction()
-            cfm = sbi.CC
-            cfm.create_double_integral()
-            
-            
-            #
-            # Transformation matrices
-            #
-            SS = H.diagonalize()
-            SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
-            SS2 = SS[Ns[1]+1:,Ns[1]+1:]
-            H.undiagonalize()
-            
-            self.sys.set_gofts(cfm._gofts)    # line shape functions
-            self.sys.set_sitep(cfm.cpointer)  # pointer to sites
-            # matrix of transformation coefficients
-            self.sys.set_transcoef(1,SS1)  
-            # matrix of transformation coefficients
-            self.sys.set_transcoef(2,SS2)    
-              
-            #
-            # Finding population evolution matrix
-            #
-            prop = PopulationPropagator(self.t1axis, Kr)
-            #Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
-            #                                     corrections=True)
-            self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
-                                                  corrections=3)
-              
-            # FIXME: Order of transfer is set by hand here 
-            # - needs to be moved to some reasonable place
-            
-            #Ucor = Uee
-            self.Uc0 = cor[0]
-              
+            if self._has_responses:
+                
+                for rsp in self.resp_fcions:
+                    rsp.set_rwa(self.rwa)
+                    
+             
             #
             # define lab settings
             #
@@ -331,7 +346,7 @@ class TwoDResponseCalculator:
         #
         # Initialize response storage
         #
-        if _have_aceto:
+        if _have_aceto and self._has_system:
             order = 'F'
         else:
             order = 'C'
@@ -352,7 +367,7 @@ class TwoDResponseCalculator:
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         
     
-        if _have_aceto:
+        if _have_aceto and self._has_system:
             #
             # calcute response
             #
@@ -414,17 +429,22 @@ class TwoDResponseCalculator:
             #
             # Calculation from predefined non-linear responses
             #
-            for resp in self.responses:
+                
+            for resp in self.resp_fcions:
                 
                 if resp.rtype == "R":
-                    resp_r += resp.calculate_matrix(self.lab, None, it2, 
-                                                    self.t1s, self.t3s, 
-                                                    self.rwa)
                     
+                    resp_Rgsb += resp.calculate_matrix(self.lab, None, tt2, 
+                                                       self.t1s, self.t3s, 
+                                                       self.rwa)
+
                 elif resp.rtype == "NR":
-                    resp_n += resp.calculate_matrix(self.lab, None, it2, 
-                                                    self.t1s, self.t3s, 
-                                                    self.rwa)
+                    resp_Ngsb += resp.calculate_matrix(self.lab, None, tt2, 
+                                                       self.t1s, self.t3s, 
+                                                       self.rwa)
+                else:
+                    
+                    raise Exception("Unknown response type")
                     
             
         else:
@@ -537,7 +557,7 @@ class TwoDResponseCalculator:
         from .twodcontainer import TwoDResponseContainer
  
                   
-        if _have_aceto:
+        if _have_aceto and self._has_system:
 
             #twods = TwoDSpectrumContainer(self.t2axis)
             twods = TwoDResponseContainer(self.t2axis)
@@ -550,7 +570,7 @@ class TwoDResponseCalculator:
             
             return twods
         
-        else:
+        elif self._has_responses:
             
             # fall back on quantarhei's own implementation
 
