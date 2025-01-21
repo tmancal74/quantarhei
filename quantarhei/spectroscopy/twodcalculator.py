@@ -577,8 +577,9 @@ class TwoDResponseCalculator:
             twods = TwoDResponseContainer(self.t2axis)
             
             teetoos = self.t2axis.data
+ 
             for tt2 in teetoos:
-
+  
                 onetwod = self.calculate_next()
                 twods.set_spectrum(onetwod)   
             

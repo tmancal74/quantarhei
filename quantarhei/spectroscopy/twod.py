@@ -638,7 +638,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             w1_max = axis[1]
             w3_min = axis[2]
             w3_max = axis[3]
-
+            
             (i1_min, dist) = self.xaxis.locate(w1_min)
             (i1_max, dist) = self.xaxis.locate(w1_max)
 
@@ -650,7 +650,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             i1_max = self.xaxis.length
             i3_min = 0
             i3_max = self.yaxis.length
-            
+
     
         #
         # Plotting with given units on axes
