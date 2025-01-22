@@ -59,6 +59,8 @@ class LiouvillePathway:
         self._frequencies_set = False
         self._rwa_set = False
         
+        self.F4n = numpy.zeros(3)
+        
             
             
     def set_dipoles(self, d1, d2=None, d3=None, d4=None):
@@ -83,7 +85,26 @@ class LiouvillePathway:
             it is set to the value of the first transition dipole moment.  
             
         """
-        pass
+        d = numpy.zeros((4,3), dtype=float)
+        
+        d[0,:] = d1
+        if d2 is None:
+            d[1,:] = d1
+        else:
+            d[1,:] = d2
+        if d3 is None:
+            d[2,:] = d1
+        else:
+            d[2,:] = d3
+        if d4 is None:
+            d[3,:] = d1
+        else:
+            d[3,:] = d4
+        
+        self.F4n[0] = numpy.dot(d[3,:],d[2,:])*numpy.dot(d[1,:],d[0,:])
+        self.F4n[1] = numpy.dot(d[3,:],d[1,:])*numpy.dot(d[2,:],d[0,:])
+        self.F4n[2] = numpy.dot(d[3,:],d[0,:])*numpy.dot(d[2,:],d[1,:]) 
+        self.dd = d
         
     
     def set_frequencies(self, omega1, omega3):
@@ -197,7 +218,7 @@ class ResponseFunction(LiouvillePathway):
         """
         
         # create the dipole factor
-        dip = self.sign*1.0
+        dip = self.sign*numpy.dot(lab.F4eM4,self.F4n)
         
         # construct the phase factors in t1 and t3
         if self.rtype == "R":
