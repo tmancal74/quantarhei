@@ -350,6 +350,7 @@ from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 # System-bath interaction
 #
 from .qm.corfunctions import CorrelationFunction
+from .qm.corfunctions import LineshapeFunction
 from .qm.corfunctions import SpectralDensity
 from .qm.corfunctions.correlationfunctions import oscillator_scalled_CorrelationFunction
 

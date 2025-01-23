@@ -118,14 +118,14 @@ class TwoDResponseCalculator:
         self.tc = 0
         
        
-    def _vprint(self, string):
+    def _vprint(self, *args, **kwargs):
         """Prints a string if the self.verbose attribute is True
         
         """
         if self.verbose:
-            print(string)
+            print(*args, **kwargs)
 
-
+            
     def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False, 
                   write_resp=False, keep_resp=False):
         """Sets up the environment for 2D calculation
@@ -334,13 +334,15 @@ class TwoDResponseCalculator:
         
         
         """
-        tt2 = self.t2axis.data[tc]        
+        tt2 = self.t2axis.data[tc]  
+        Nt2 = self.t2axis.length
         Nr1 = self.t1axis.length
         Nr3 = self.t3axis.length   
         
         # FIXME: on which axis we should be looking for it2 ??? 
-        (it2, err) = self.t1axis.locate(tt2) 
-        self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
+        (it2, err) = self.t2axis.locate(tt2) 
+        self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)
+                     +" of "+str(Nt2)+")", end="\r")
         #tc = it2        
         
         #
@@ -559,14 +561,20 @@ class TwoDResponseCalculator:
                   
         if _have_aceto and self._has_system:
 
-            #twods = TwoDSpectrumContainer(self.t2axis)
             twods = TwoDResponseContainer(self.t2axis)
             
             teetoos = self.t2axis.data
+            
+            kk = 0
+            Nk = teetoos.shape[0]
+            
             for tt2 in teetoos:
 
+
+                self._vprint_r(" Calculating t2 =", tt2, "fs (",kk,"of",Nk,")")
                 onetwod = self.calculate_next()
                 twods.set_spectrum(onetwod)   
+                kk += 1
             
             return twods
         
@@ -578,13 +586,16 @@ class TwoDResponseCalculator:
             
             teetoos = self.t2axis.data
  
+            kk = 0
+            Nk = teetoos.shape[0]
             for tt2 in teetoos:
-  
+
                 onetwod = self.calculate_next()
-                twods.set_spectrum(onetwod)   
+                twods.set_spectrum(onetwod) 
+                kk += 1
             
             return twods
-
-    
-    
-
+        
+        else: 
+            
+            raise Exception("2D calculation in this mode not implemented.")
