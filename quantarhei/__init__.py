@@ -357,6 +357,8 @@ from .qm.corfunctions.correlationfunctions import oscillator_scalled_Correlation
 from .qm.liouvillespace.heom import KTHierarchy
 from .qm.liouvillespace.heom import KTHierarchyPropagator
 
+from .symbolic.cumulant import evaluate_cumulant
+
 ###############################################################################
 # Convenience functions
 ###############################################################################

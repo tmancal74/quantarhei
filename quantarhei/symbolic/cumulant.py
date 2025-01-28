@@ -306,3 +306,36 @@ class lam(Function):
 
     def _eval_is_real(self):
         return True
+
+"""High level cumulant evaluation function """
+def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
+                      lang = None, arrays=None):
+    """
+    
+    """
+
+    from .lang import python_code
+    from .lang import fortran_code
+
+    A = cuml.rewrite(gg)
+    expr = CumulantExpr(A)
+    expr = expr.evaluate()
+    
+    for tt in positive_times:
+        expr = CumulantExpr(expr)._make_positive(tt)    
+        
+    #a = leading_index[0]
+    if leading_index is not None:
+        D = expr._leading_index(leading_index)
+        expr = D._getExpr()
+        
+    if lang is None:
+        ss = expr
+    elif lang == "Fortran":
+        ss = fortran_code(expr.__str__())
+    elif lang == "Python":
+        ss = python_code(expr.__str__(),arrays=arrays)
+    else:
+        raise Exception("Unknown language")
+    
+    return ss
