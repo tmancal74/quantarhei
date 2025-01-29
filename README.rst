@@ -66,6 +66,9 @@ for users:
  - bug fixes
  - evaluate_cumulant function to evaluate cumulant expressions
  - new scheme to calculate non-linear response for user defined response functions
+ - ResponseFunction object to enable the functionality above
+ - LineshapeFunction as a separate object based on CorrelationFunction
+ 
  
 
 New in 0.0.67
