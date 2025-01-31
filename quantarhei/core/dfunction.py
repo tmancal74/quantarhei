@@ -182,8 +182,14 @@ class DFunction(Saveable, DataSaveable):
     """
 
     allowed_interp_types = ("linear", "spline", "default")
-
+    
     def __init__(self, x=None, y=None):
+        
+        self._loc_init__(x,y)
+
+
+
+    def _loc_init__(self, x=None, y=None):
 
 
         self._has_imag = None
@@ -337,7 +343,7 @@ class DFunction(Saveable, DataSaveable):
             for ii in range(axis.length):
                 ndata[ii] = self.at(axis.data[ii])
                 
-            self.__init__(x=axis, y=ndata)
+            self._loc_init__(x=axis, y=ndata)
                 
         elif self.axis.is_subsection_of(axis):
             # we zero pad the values
@@ -349,7 +355,7 @@ class DFunction(Saveable, DataSaveable):
                 else:
                     ndata[ii] = 0.0
                 
-            self.__init__(x=axis, y=ndata)
+            self._loc_init__(x=axis, y=ndata)
         
         else:
             raise Exception("Incompatible axis")
@@ -412,6 +418,20 @@ class DFunction(Saveable, DataSaveable):
             return self._get_linear_approx(x)
         elif approx == "spline":
             return self._get_spline_approx(x)
+
+
+    def as_spline_function(self):
+        """Returns this function as a normal function of one argument 
+        
+        """
+        if not self._splines_initialized:
+            self._set_splines()   
+            
+        def func(t):
+            return self.at(t)
+        
+        return func
+
 
     #
     #

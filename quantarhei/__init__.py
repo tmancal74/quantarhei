@@ -350,11 +350,14 @@ from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 # System-bath interaction
 #
 from .qm.corfunctions import CorrelationFunction
+from .qm.corfunctions import LineshapeFunction
 from .qm.corfunctions import SpectralDensity
 from .qm.corfunctions.correlationfunctions import oscillator_scalled_CorrelationFunction
 
 from .qm.liouvillespace.heom import KTHierarchy
 from .qm.liouvillespace.heom import KTHierarchyPropagator
+
+from .symbolic.cumulant import evaluate_cumulant
 
 ###############################################################################
 # Convenience functions

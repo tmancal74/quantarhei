@@ -725,6 +725,29 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return eftcf
 
 
+class LineshapeFunction(DFunction, UnitsManaged):
+    """
+    
+    """
+    
+    @enforce_energy_units_context
+    def __init__(self, axis=None, params=None, values=None, lfactor=1):
+        self.lfactor = lfactor
+        self.axis = axis
+        self.params = params
+        self.values = values
+        
+        tt = TimeAxis(axis.start, lfactor*axis.length, axis.step)
+        cf = CorrelationFunction(axis=tt, params=params, values=values)
+        
+        gg = c2g(tt, cf.data)
+        
+        super().__init__(tt, gg)
+        
+        
+
+
+
 class FTCorrelationFunction(DFunction, UnitsManaged):
     """Fourier transform of the correlation function
 
@@ -1048,7 +1071,7 @@ def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
                                            Nmax=5, HR=0.01, silent=True):
     """ Scales reorganization energy of the system-bath interaction
 
-    Returns a bath correlation function with reorganization energy called
+    Returns a bath correlation function with reorganization energy scalled
     such that it achieves a required relaxation time between the first
     vibrationally excited and the ground state of an oscillator with a
     given frequency.
