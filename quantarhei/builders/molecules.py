@@ -1976,8 +1976,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         
     def _sub_matrix_bounds(self,ldim):
         lbound = 0
-        ub = numpy.zeros(self.nel,dtype=numpy.int)
-        lb = numpy.zeros(self.nel,dtype=numpy.int)
+        ub = numpy.zeros(self.nel,dtype=int)
+        lb = numpy.zeros(self.nel,dtype=int)
         # loop over electronic states
         for i in range(self.nel):
             ubound = lbound + ldim[i]
