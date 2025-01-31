@@ -272,17 +272,17 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         cfm = sbi.CC
         
         ct = numpy.zeros((Nt),dtype=numpy.complex128)
-        Na = AG.nmono
-        for kk in range(Na):
-            
-            #nkk = AG.monomers[kk].egcf_mapping[0]
-            
-            for ll in range(Na):
-            
-                #nll = AG.monomers[ll].egcf_mapping[0]
-                
-                ct += ((SS[kk+1,n+1]**2)*(SS[ll+1,n+1]**2)*cfm.get_coft(kk,ll))
-                #*AG.egcf_matrix.get_coft(nkk,nll))
+        
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for el1 in elst:
+            for el2 in elst:
+                if cfm.cpointer[el1-1,el2-1] == 0:
+                    continue
+                coft = cfm.get_coft(el1-1,el2-1) 
+                for kk in AG.vibindices[el1]:
+                    for ll in AG.vibindices[el2]:
+                        ct += ((SS[kk,n]**2)*(SS[ll,n]**2)*coft)
             
         return ct
 
@@ -458,7 +458,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
         tr["om"] = HH.data[1,1]-HH.data[0,0]-self.rwa
         # get a transformed ct here
-        ct = self._excitonic_coft(SS,self.system,0)
+        ct = self._excitonic_coft(SS,self.system,1)
         #tr.append(ct)
         tr["ct"] = ct
         self.system._has_system_bath_coupling = True
@@ -478,7 +478,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
             tr["om"] = HH.data[ii,ii]-HH.data[0,0]-self.rwa
             #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
-            tr["ct"] = self._excitonic_coft(SS,self.system,ii-1)
+            tr["ct"] = self._excitonic_coft(SS,self.system,ii)
             
             #
             # Calculates spectrum of a single transition

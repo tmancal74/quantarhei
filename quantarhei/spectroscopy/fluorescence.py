@@ -755,38 +755,38 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         cfm = sbi.CC
         
         ct = numpy.zeros((Nt),dtype=numpy.complex128)
-        Na = AG.nmono
-        for kk in range(Na):
-            
-            #nkk = AG.monomers[kk].egcf_mapping[0]
-            
-            for ll in range(Na):
-            
-                #nll = AG.monomers[ll].egcf_mapping[0]
-                
-                ct += ((SS[kk+1,n+1]**2)*(SS[ll+1,n+1]**2)*cfm.get_coft(kk,ll))
-                #*AG.egcf_matrix.get_coft(nkk,nll))
+        
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for el1 in elst:
+            for el2 in elst:
+                if cfm.cpointer[el1-1,el2-1] == 0:
+                    continue
+                coft = cfm.get_coft(el1-1,el2-1) 
+                for kk in AG.vibindices[el1]:
+                    for ll in AG.vibindices[el2]:
+                        ct += ((SS[kk,n]**2)*(SS[ll,n]**2)*coft)
             
         return ct
     
     def _excitonic_reorg_energy(self, SS, AG, n):
         """ Returns the reorganisation energy of an exciton state
         """
-    
-        c0 = AG.monomers[0].get_egcf((0,1))
-        Nt = len(c0)
         
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
         cfm = sbi.CC
         
-        reorg = numpy.zeros((Nt),dtype=numpy.complex128)
-        Na = AG.nmono
-        for kk in range(Na):
-            reorg += ((SS[kk+1,n+1]**2)*(SS[kk+1,n+1]**2)*cfm.get_reorganization_energy(kk,kk))
+        rg = 0.0
         
-        return reorg    
+        # electronic states corresponding to single excited states
+        elst = numpy.where(AG.which_band == 1)[0]
+        for el1 in elst:
+            reorg = cfm.get_reorganization_energy(el1-1,el1-1)
+            for kk in AG.vibindices[el1]:
+                rg += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
+        return rg    
         
     def _calculate_monomer(self):
         """ Calculates the fluorescence spectrum of a monomer 
@@ -892,12 +892,12 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
         tr["om"] = HH.data[1,1]-HH.data[0,0]-self.rwa
         # get a transformed ct here
-        ct = self._excitonic_coft(SS,self.system,0)
+        ct = self._excitonic_coft(SS,self.system,1)
         #tr.append(ct)
         tr["ct"] = ct
         self.system._has_system_bath_coupling = True
         
-        re = self._excitonic_reorg_energy(SS,self.system,0)
+        re = self._excitonic_reorg_energy(SS,self.system,1)
         tr["re"] = re
         rho_eq = self._equilibrium_populations(self.system,
                                                temperature=self.temperature)
@@ -905,6 +905,13 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         # Calculates spectrum of a single transition
         #
         data = rho_eq.data[1, 1]*numpy.real(self.one_transition_spectrum(tr))
+        
+        # FOR THE VIBRONIC SYSTEM THE SPECTRA HAVE TO BE SUMED THROUGH THE GROUND STATES (VIBRONIC)
+        for jj in range(1,min(1,self.system.Nb[0])): # sum over the ground states
+            tr["dd"] = DD.dipole_strength(jj,1)
+            # first transition energy
+            tr["om"] = HH.data[1,1]-HH.data[jj,jj]-self.rwa
+            data += rho_eq.data[1, 1]*self.one_transition_spectrum_fluor(tr)
         
         for ii in range(2,HH.dim):
             if relaxation_tensor is not None:
@@ -918,14 +925,21 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
             #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
             tr["om"] = HH.data[ii,ii]-HH.data[0,0]-self.rwa
             #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
-            tr["ct"] = self._excitonic_coft(SS,self.system,ii-1)
-            tr["re"] = self._excitonic_reorg_energy(SS,self.system,ii-1)            
+            tr["ct"] = self._excitonic_coft(SS,self.system,ii)
+            tr["re"] = self._excitonic_reorg_energy(SS,self.system,ii)            
 
             
             #
             # Calculates spectrum of a single transition
             #
             data += rho_eq.data[ii, ii]*numpy.real(self.one_transition_spectrum(tr))
+            
+            # FOR THE VIBRONIC SYSTEM THE SPECTRA HAVE TO BE SUMED THROUGH THE GROUND STATES (VIBRONIC)
+            for jj in range(1,min(ii,self.system.Nb[0])): # sum over the ground states
+                tr["dd"] = DD.dipole_strength(jj,ii)
+                # first transition energy
+                tr["om"] = HH.data[ii,ii]-HH.data[jj,jj]-self.rwa
+                data += rho_eq.data[ii, ii]*self.one_transition_spectrum(tr)
 
 
         # we only want to retain the upper half of the spectrum
