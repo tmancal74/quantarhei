@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import numpy
-from numba import njit
+#from numba import njit
 
 from .oqssvevolution import OQSStateVectorEvolution
 from quantarhei.qm import TDRedfieldRateMatrix
