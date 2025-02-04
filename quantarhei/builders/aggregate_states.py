@@ -141,7 +141,7 @@ class ElectronicState(UnitsManaged):
             
         ret = []
         N = len(tup)
-        zer = numpy.zeros(N,dtype=numpy.int)
+        zer = numpy.zeros(N,dtype=int)
         ret.append(tuple(zer))
         # single particles
         
@@ -172,7 +172,7 @@ class ElectronicState(UnitsManaged):
         if ecut is not None:
             vec = self.convert_energy_2_internal_u(ecut)
 
-        two = numpy.zeros(len(tup), dtype=numpy.int)
+        two = numpy.zeros(len(tup), dtype=int)
         two[:] = 2
         for i in range(len(two)):
             if two[i] > tup[i] + 1:
@@ -213,7 +213,7 @@ class ElectronicState(UnitsManaged):
         if N is None:
             raise Exception("Number of states to be used must be defined")
             
-        two = numpy.zeros(len(tup), dtype=numpy.int)
+        two = numpy.zeros(len(tup), dtype=int)
         two[:] = N + 1
         shp = tuple(two)
         
@@ -241,7 +241,7 @@ class ElectronicState(UnitsManaged):
         if ecut is not None:
             vec = self.convert_energy_2_internal_u(ecut)
 
-        two = numpy.zeros(len(tup), dtype=numpy.int)
+        two = numpy.zeros(len(tup), dtype=int)
         two[:] = N + 1
 
         for i in range(len(two)):
