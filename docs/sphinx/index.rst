@@ -17,8 +17,9 @@ Quanta.
 In "Quantarhei" the last four letter ("rhei") should be written in Greek,
 i.e. (using LateX convention) "\\rho \\epsilon \\iota".
 
-This page is meant be the complete source of documentation
-for |Qrhei|_ package. We describe |Qrhei|_'s main features and 
+This page is meant to be the complete source of documentation
+for the |Qrhei|_ package. As the documentation project progresses, we will 
+describe |Qrhei|_'s main features and 
 the philosophy behind them, together with a complete description of its
 functionality and content.
 
@@ -30,11 +31,11 @@ better by inspecting the source code, but, in a better case, you learn something
 usefull from how open quantum systems' problems are solved in |Qrhei|_.
 In a worse case, you will be motivated to fix |Qrhei|_'s deficiencies. 
 
-There two types of deficiencies that one can expect in |Qrhei|_ - a mild one:
+There are two types of deficiencies that one can expect in |Qrhei|_ - a mild one:
 things work well but programming style is terrible, or things are not
 implemented in a general enough manner. In this case you are most welcome
-to fix the code. Make sure that your improvement passes all automatic tests.
-Here we provide a detailed description of the classes provided by |Qrhei|_.
+to fix the code. Make sure that your improvement is equipped with tests and that 
+the coded passes all existing automatic tests.
 
 A more serious defficiency is when you find that something is really
 implemented wrongly. The best approach then is to write an alternative
@@ -57,7 +58,7 @@ short and very non-restrictive.
 At present we are in the alpha stage of the development. Our interim goal is 
 version 0.1.0, for which we are developing a definition (see our `Github Wiki
 page`_)
-We expect our package to run on more than the most current version of Python,
+We expect our package to run on the most current version of Python,
 but at the moment we do not explicitely test it.
 When installing from Anaconda Clound (recommended) the package supports
 all major platforms.
