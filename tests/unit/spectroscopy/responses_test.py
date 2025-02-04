@@ -87,15 +87,18 @@ class TestResponses(unittest.TestCase):
         
         
         # FIXME: create a laboratory object
-        lab = None
+        lab = qr.LabSetup()
+        lab.set_pulse_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
         
         # FIXME: create a reasonable molecule with everything needed
         sys = qr.Molecule([0.0, 1.0])
+        sys.set_dipole(0,1,[1.0, 0.8, 0.8])
+
         
         mx = resp.calculate_matrix(lab, sys, 10, t1.data, t3.data, rwa)
 
 
-        print("shape =", mx.shape)
+        #print("shape =", mx.shape)
         
         #with assert_raises(Exception):      
         #    twodB.data = data2
