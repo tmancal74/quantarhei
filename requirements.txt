@@ -4,6 +4,8 @@ matplotlib
 terminaltables
 dill
 pyyaml
+sympy
+
 
 
 
