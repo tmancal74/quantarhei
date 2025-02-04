@@ -8,6 +8,7 @@ from quantarhei.qm import TDRedfieldRateMatrix
 import quantarhei as qr
 
 
+
 class OQSStateVectorPropagator():
     
     
@@ -36,10 +37,11 @@ class OQSStateVectorPropagator():
         have dt = 10 in the TimeAxis, but we want to calculate with
         dt = 1
         
-        >>> KK =numpy.array([[0.0, 0.0],[0.0,1.0]], dtype=float)
-        >>> times = TimeAxis(0,1000,10.0)
-        >>> pr = OQSStateVectorPropagator(times, KK)
-        >>> pr.setDtRefinement(10)
+       # >>> from quantarhei import TimeAxis
+       # >>> KK =numpy.array([[0.0, 0.0],[0.0,1.0]], dtype=float)
+       # >>> times = TimeAxis(0,1000,10.0)
+       # >>> pr = OQSStateVectorPropagator(times, KK)
+       # >>> pr.setDtRefinement(10)
         
         """
         self.Nref = Nref
