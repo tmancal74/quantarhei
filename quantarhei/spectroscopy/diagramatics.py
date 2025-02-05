@@ -53,7 +53,7 @@ class liouville_pathway(UnitsManaged):
             raise Exception("aggregate has to be specified")
             
         # initial state of the pathway
-        self.sinit = numpy.zeros(2,dtype=numpy.int16)
+        self.sinit = numpy.zeros(2,dtype=int)
         self.sinit[0] = sinit
         self.sinit[1] = sinit
         
@@ -76,7 +76,7 @@ class liouville_pathway(UnitsManaged):
         self.aggregate = aggregate 
 
         # current state of the pathway (during building)
-        self.current = numpy.zeros(2,dtype=numpy.int16)
+        self.current = numpy.zeros(2,dtype=int)
         self.current[0] = sinit
         self.current[0] = sinit
 
@@ -90,15 +90,15 @@ class liouville_pathway(UnitsManaged):
         self.ne = 0
 
         # light induced transitions
-        self.transitions = numpy.zeros((order+1,2), dtype=numpy.int)
+        self.transitions = numpy.zeros((order+1,2), dtype=int)
         
         # relaxation induced transitions
         self.relaxations = [None]*relax_order
         
         # sides from which the transitions occurred
-        self.sides = numpy.zeros(order+1,dtype=numpy.int16)
+        self.sides = numpy.zeros(order+1,dtype=int)
         
-        self.states = numpy.zeros((1+order+relax_order,2),dtype=numpy.int)
+        self.states = numpy.zeros((1+order+relax_order,2),dtype=int)
         
         # transition dipole moments associated with the transition
         self.dmoments = numpy.zeros((order+1,3))

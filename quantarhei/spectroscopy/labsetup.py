@@ -1132,7 +1132,14 @@ class LabSetup:
 
  
 class labsetup(LabSetup):
+    """labsetup is just a different name for the class LabSetup.
+    
+    All details about usage of the labsetup can be found in the documentation
+    of the LabSetup
+    
+    """
     pass
+
 
 
 def _labattr(name, target, flag=None):

@@ -447,7 +447,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 self.data[ti,:,:,:,:] = \
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
                              
-        elif self.relt.is_time_dependent:
+        elif (self.relt is not None) and self.relt.is_time_dependent:
             
             #
             # Time dependent relaxation tensor requires a complete calculation
