@@ -441,6 +441,7 @@ class TwoDResponseCalculator:
                                                        self.rwa)
 
                 elif resp.rtype == "NR":
+                    
                     resp_Ngsb += resp.calculate_matrix(self.lab, None, tt2, 
                                                        self.t1s, self.t3s, 
                                                        self.rwa)
@@ -479,7 +480,7 @@ class TwoDResponseCalculator:
 
             # Sloping the end of the data down to 0 so there isn't a hard
             # cutoff at the end of the data
-            from scipy import signal as sig
+            from scipy.signal import windows as sig
             window = 20
             tuc = sig.tukey(window * 2, 1, sym = False)
             for k in range(len(resp_r)):
@@ -580,7 +581,7 @@ class TwoDResponseCalculator:
         
         elif self._has_responses:
             
-            # fall back on quantarhei's own implementation
+            # calculate user defined responses
 
             twods = TwoDResponseContainer(self.t2axis)
             

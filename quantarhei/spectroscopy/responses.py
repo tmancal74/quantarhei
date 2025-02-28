@@ -217,18 +217,22 @@ class ResponseFunction(LiouvillePathway):
         
         """
         
+        om3 = self._omega3
+        om1 = self._omega1
+        
+        
         # create the dipole factor
         dip = self.sign*numpy.dot(lab.F4eM4,self.F4n)
         
         # construct the phase factors in t1 and t3
         if self.rtype == "R":
-            et13 = numpy.outer(numpy.exp(-1j*self._omega3*t3s),
-                               numpy.exp(1j*self._omega1*t1s))
+            et13 = numpy.outer(numpy.exp(-1j*om3*t3s),
+                               numpy.exp(1j*om1*t1s))
         elif self.rtype == "NR":
-            et13 = numpy.outer(numpy.exp(-1j*self._omega3*t3s),
-                               numpy.exp(-1j*self._omega1*t1s))            
+            et13 = numpy.outer(numpy.exp(-1j*om3*t3s),
+                               numpy.exp(-1j*om1*t1s))            
         
-    
+        
         
         return dip*self.func(t2, t3s, t1s, *self.args)*et13
         
