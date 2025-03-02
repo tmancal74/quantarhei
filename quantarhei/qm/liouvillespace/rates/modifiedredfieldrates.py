@@ -10,7 +10,8 @@
 import time
 
 import numpy
-from scipy import integrate
+
+from scipy.integrate import simpson as simps 
 
 #from quantarhei.core.implementations import implementation
 
@@ -279,8 +280,8 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt):
             for b in range(Na):
                 f1[a,b,:] = (numpy.conjugate(F_k_t[b,:])
                             *A_k_t[a,:]*N_kl_t[a,b,:])
-                #RR[a,b] = 2.0*numpy.real(integrate.simps(f[a,b,:],tt))
-                RR[a,b] = 2.0*numpy.real(integrate.simps(f1[a,b,:],tt))
+
+                RR[a,b] = 2.0*numpy.real(simps(f1[a,b,:],tt))
  
                   
         #print(RR-RR1)
@@ -334,7 +335,7 @@ def ssModifiedRRM(Na, Nt, en, ln, SS, tt, ct, ht, gt, method="ModifiedRedfield")
                 Fl[:] = 0.0
                 Nn[:] = 0.0
                 f[a,b,:] = Ab[:]*Fl[:]*Nn[:]
-                RR[a,b] = 2.0*numpy.real(integrate.simps(f[a,b,:],tt))
+                RR[a,b] = 2.0*numpy.real(simps(f[a,b,:],tt))
         
     
     elif method == "Redfield":

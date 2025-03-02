@@ -52,7 +52,7 @@ class SuperOperator(BasisManaged):
     >>> print(So.data is None)
     Traceback (most recent call last):
         ...
-    AttributeError: 'SuperOperator' object has no attribute '_data'
+    AttributeError: 'SuperOperator' object has no attribute '_data'. Did you mean: 'data'?
     
     
     Creating with `dim` arguments creates a zero superoperator
@@ -184,7 +184,13 @@ class SuperOperator(BasisManaged):
         if copy:
             import copy
             oper_ven = copy.copy(oper)
-            oper_ven.data = numpy.tensordot(self.data, oper.data)
+            try:
+                # if oper is Quantarhei operator
+                oper_ven.data = numpy.tensordot(self.data, oper.data)
+            except:
+                # if oper is numpy array
+                oper_ven = numpy.tensordot(self.data, oper)
+                
             return oper_ven
         else:
             oper.data = numpy.tensordot(self.data, oper.data)

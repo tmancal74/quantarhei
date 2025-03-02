@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-import scipy.signal as signal
+import scipy.signal.windows as signal
 
 from .. import DFunction
 
