@@ -778,7 +778,8 @@ def default():
 #       'coverage_combine')
 @needs('coverage_erase',
        'unit_tests_cov_v',
-       'doc_tests_cov_v')
+       'doc_tests_cov_v',
+       'behave')
 @task
 def test():
     """Default paver task
