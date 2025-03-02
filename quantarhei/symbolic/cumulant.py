@@ -455,7 +455,6 @@ class GFInitiator:
         self.t2 = -1.0
         self.t1s = t1s
         self.t3s = t3s
-        self.gg = gdict
 
         self.gg_t1 = dict()
         self.gg_t2 = dict()
@@ -464,8 +463,25 @@ class GFInitiator:
         self.gg_t1_t3 = dict() 
         self.gg_t2_t3 = dict() 
         self.gg_t1_t2_t3 = dict()
+        
+        self.set_lineshape_functions(gdict)
 
 
+    def set_lineshape_functions(self, gdict):
+        """Sets the lineshape functions.
+        
+        Parameters:
+        gdict (dict): A dictionary containing lineshape functions.
+
+        Raises:
+        TypeError: If gdict is not a dictionary.
+        """
+        if not isinstance(gdict, dict):
+            raise TypeError(f"Expected a dictionary, but got {type(gdict).__name__}")
+
+        self.gg = gdict
+        
+        
     def set_t2(self, t2):
         """Sets the waiting time t2 and precalculates values of the response functions
         

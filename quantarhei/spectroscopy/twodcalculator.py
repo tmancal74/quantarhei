@@ -320,6 +320,13 @@ class TwoDResponseCalculator:
             self.tc = 0
 
         
+    def reset_t2_time(self):
+        """Resets the population time of the calculations
+        
+        """
+        self.tc = 0
+        
+
     def calculate_next(self):
         """ Calculate next population time of a 2D spectrum
         
@@ -334,7 +341,17 @@ class TwoDResponseCalculator:
         
         
         """
-        tt2 = self.t2axis.data[tc]  
+        
+        try:
+            tt2 = self.t2axis.data[tc]  
+        except:
+            print("Time axis error:\n"+
+                  "  perhaps tc =", tc, " (representing t2 population time) is outside range?")
+            print("You can reset automatic calculation along the population time axes by calling:")
+            print("> twodcalc.reset_t2_time() ")
+            print("where 'twodcalc' is the TwoDResponseCalculator object.")
+        
+        
         Nt2 = self.t2axis.length
         Nr1 = self.t1axis.length
         Nr3 = self.t3axis.length   
@@ -600,3 +617,22 @@ class TwoDResponseCalculator:
         else: 
             
             raise Exception("2D calculation in this mode not implemented.")
+
+
+    def reset_evaluation_functions(self, fcions):
+        """Resets the evaluation functions used by the reseponse functions
+        
+        
+        
+        
+        """
+        
+        if self._has_responses:
+            
+            for rsp, fce in zip(self.resp_fcions, fcions):
+                rsp.set_evaluation_function(fce)
+                print(rsp)
+            
+        else:
+            raise Exception("Calculatore has no responses defined.")
+            
