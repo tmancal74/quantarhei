@@ -453,16 +453,17 @@ class GFInitiator:
     def __init__(self, t1s, t3s, gdict):
 
         self.t2 = -1.0
+        self.t3 = -1.0
         self.t1s = t1s
         self.t3s = t3s
 
-        self.gg_t1 = dict()
-        self.gg_t2 = dict()
-        self.gg_t3 = dict()
-        self.gg_t1_t2 = dict()
-        self.gg_t1_t3 = dict() 
-        self.gg_t2_t3 = dict() 
-        self.gg_t1_t2_t3 = dict()
+        #self.gg_t1 = dict()
+        #self.gg_t2 = dict()
+        #self.gg_t3 = dict()
+        #self.gg_t1_t2 = dict()
+        #self.gg_t1_t3 = dict() 
+        #self.gg_t2_t3 = dict() 
+        #self.gg_t1_t2_t3 = dict()
         
         self.set_lineshape_functions(gdict)
 
@@ -507,8 +508,7 @@ class GFInitiator:
                 self.gg_t2_t3[key] = self.eval_gg_t2_tn(key, t2, self.t1s, self.t3s, zero=1)
                 self.gg_t1_t3[key] = self.eval_gg_t1_t2_t3(key, self.t1s, 0.0, self.t3s)
                 self.gg_t1_t2_t3[key] = self.eval_gg_t1_t2_t3(key, self.t1s, t2, self.t3s)
-
-
+            
 
 
     def eval_gg_t2_tn(self, key, t2, t1, t3, zero=0):
@@ -532,15 +532,20 @@ class GFInitiator:
         N1 = t1.shape[0]
         N3 = t3.shape[0]
         gg = self.gg[key]
-        ret = numpy.zeros((N1, N3), dtype=complex)
+        #ret = numpy.zeros((N1, N3), dtype=complex)
         if zero == 3:
-            for ii in range(N3):
-                ret[:, ii] = gg(t2 + t1[:])
+            #for ii in range(N3):
+            #    ret[:, ii] = gg(t2 + t1[:])
+            A = gg(t2 + t1[:])
+            ret = numpy.broadcast_to(A[:,numpy.newaxis],(N1, N3))
         elif zero == 1:
-            for ii in range(N1):
-                ret[ii, :] = gg(t2 + t3[:])
+            #for ii in range(N1):
+            #    ret[ii, :] = gg(t2 + t3[:])
+            A = gg(t2 + t3[:])
+            ret = numpy.broadcast_to(A[numpy.newaxis,:],(N1, N3))
 
         return ret
+
 
     def eval_gg_t1_t2_t3(self, key, t1, t2, t3):
         """Lineshape function g(t1 + t2 + t3)
@@ -550,9 +555,14 @@ class GFInitiator:
         N1 = t1.shape[0]
         N3 = t3.shape[0]
         gg = self.gg[key]
-        ret = numpy.zeros((N1, N3), dtype=complex)
-        for ii in range(N1):
-            ret[ii,:] = gg(t2 + t1[ii] + t3)
+        #ret = numpy.zeros((N1, N3), dtype=complex)
+        #for ii in range(N1):
+        #    ret[ii,:] = gg(t2 + t1[ii] + t3)
+            
+        tt = numpy.broadcast_to(t1[:,numpy.newaxis],(N1,N3)) \
+            +numpy.broadcast_to(t3[numpy.newaxis,:],(N1,N3))
+
+        ret = gg(t2 + tt)
 
         return ret
 

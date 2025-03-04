@@ -233,8 +233,9 @@ class ResponseFunction(LiouvillePathway):
                                numpy.exp(-1j*om1*t1s))            
         
         
+        val = self.func(t2, t3s, t1s, *self.args)
         
-        return dip*self.func(t2, t3s, t1s, *self.args)*et13
+        return dip*val*et13
         
     
     def set_evaluation_function (self, func):
