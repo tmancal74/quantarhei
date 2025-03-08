@@ -732,15 +732,64 @@ class LineshapeFunction(DFunction, UnitsManaged):
     
     @enforce_energy_units_context
     def __init__(self, axis=None, params=None, values=None, lfactor=1):
+        """
+        
+        Currently we do not use 'values'
+
+        Parameters
+        ----------
+        axis : TYPE, optional
+            DESCRIPTION. The default is None.
+        params : TYPE, optional
+            DESCRIPTION. The default is None.
+        values : TYPE, optional
+            DESCRIPTION. The default is None.
+        lfactor : TYPE, optional
+            DESCRIPTION. The default is 1.
+
+        Raises
+        ------
+        Exception
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """    
+    
         self.lfactor = lfactor
         self.axis = axis
         self.params = params
         self.values = values
         
-        tt = TimeAxis(axis.start, lfactor*axis.length, axis.step)
-        cf = CorrelationFunction(axis=tt, params=params, values=values)
+        if params is None:
+            raise Exception("Argument 'params' must not be None")
+            
+        # FIXME: This does not work, we need something else to distinguish 
+        try:
+            N = len(params)
+        except:
+            N = 1
         
-        gg = c2g(tt, cf.data)
+        print(N)
+        
+        if N == 1:
+            tt = TimeAxis(axis.start, lfactor*axis.length, axis.step)
+            cf = CorrelationFunction(axis=tt, params=params, values=values)
+            gg = c2g(tt, cf.data)
+        else:
+            k = 0
+            for prm in params:
+                tt = TimeAxis(axis.start, lfactor*axis.length, axis.step)
+                cf = CorrelationFunction(axis=tt, params=prm, values=values)
+                if k == 0:
+                    cf_out = cf
+                else:
+                    cf_out.__iadd__(cf)
+                k += 1
+            gg = c2g(tt, cf_out.data)
+        
         
         super().__init__(tt, gg)
         
