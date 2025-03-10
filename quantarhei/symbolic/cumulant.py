@@ -376,6 +376,8 @@ def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
     
 #     return ss
 
+import sympy as sp
+
 def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
     """ Transforms the sympy cumulant evaluation into a matrix Python code
     
@@ -389,7 +391,7 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
     - conj_func: The function name for complex conjugation (default: "numpy.conj")
     
     """
-    import sympy as sp
+    import re
     
     # Define conjugate function dynamically
     conjugate = sp.conjugate  # Allows flexible handling of conjugation
@@ -416,10 +418,16 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
         time_arg = args[2]
 
         if isinstance(time_arg, sp.Add):  # If it's a sum, extract terms
-            time_vars.extend(sorted([str(term) for term in time_arg.args]))  # Sort for consistency
-        else:  # Otherwise, it's a single time variable
-            time_vars.append(str(time_arg))
-
+            terms = [str(term) for term in time_arg.args]
+        else:
+            terms = [str(time_arg)]
+        
+        # Convert negative time variables by replacing '-' with 'm' without an underscore
+        time_vars = [term.replace('-', 'm') if term.startswith('-') else term for term in terms]
+        
+        # Sort time variables based on the integer within their names
+        time_vars.sort(key=lambda var: int(re.search(r'\d+', var).group()))
+        
         # Construct the formatted time string
         time_str = "_".join(time_vars) if time_vars else "0"
 
@@ -429,7 +437,6 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
     # Apply transformation recursively to sub-expressions
     return expr.replace(lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate}, 
                         lambda subexpr: transform_to_Python_vec(subexpr, target_name, conj_func))
-
 
 
 class GFInitiator:
