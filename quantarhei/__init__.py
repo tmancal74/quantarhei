@@ -354,6 +354,12 @@ from .qm.corfunctions import LineshapeFunction
 from .qm.corfunctions import SpectralDensity
 from .qm.corfunctions.correlationfunctions import oscillator_scalled_CorrelationFunction
 
+#
+# LINESHAPE FUNCTIONS
+#
+from .qm.corfunctions import FunctionStorage
+
+
 from .qm.liouvillespace.heom import KTHierarchy
 from .qm.liouvillespace.heom import KTHierarchyPropagator
 

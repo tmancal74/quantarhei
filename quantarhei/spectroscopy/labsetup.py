@@ -101,7 +101,7 @@ class LabSetup:
         if self.saved_params is not None:
             self.set_pulse_shapes(self.timeaxis, self.saved_params)
         else:
-            raise Exception("Pulse shapes must be set firts.")
+            raise Exception("Pulse shapes must be set first.")
             
         
 
@@ -424,7 +424,8 @@ class LabSetup:
             text = "set_pulses requires "+str(self.number_of_pulses) \
                     +" parameter sets"
             raise Exception(text)
-            
+    
+    
 
     def set_pulse_polarizations(self, pulse_polarizations=(X, X, X), 
                          detection_polarization=X):
@@ -1521,7 +1522,7 @@ class LabField():
             om = self.om
             phi = self.phi
             delay_phi = self.delay_phi
-            print(phi, delay_phi)
+            #print(phi, delay_phi)
             fld = env*numpy.exp(-1j*sign*om*tt)*numpy.exp(1j*sign*phi) \
                      *numpy.exp(1j*sign*delay_phi)
             return fld
@@ -1537,10 +1538,42 @@ class LabField():
     def set_rwa(self, om):
         
         self.labsetup.set_rwa(om)
+        
 
     def restore_rwa(self):
         
         self.labsetup.restore_rwa()
         
+
+    def as_spline_function(self):
+        """Returns the spline represention of this field
+        
+        """
+        df = DFunction(self.labsetup.timeaxis, self.get_field())
+        return df.as_spline_function()
+        
+            
+    def get_pulse_envelop(self, tt):
+
+        #tma = self.timeaxis
+        if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
+            fwhm = self.labsetup.saved_params[self.index]["FWHM"]
+            amp = self.labsetup.saved_params[self.index]["amplitude"]
+            
+            #tc = self.pulse_centers[k_p]
+            
+            # normalized Gaussian mupliplied by amplitude
+            lfc = 4.0*numpy.log(2.0)
+            pi = numpy.pi
+            val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/pi) \
+            *amp*numpy.exp(-lfc*(tt/fwhm)**2) 
+            
+            return val
+        
+        else:
+            
+            raise Exception()
+            
+            
 
 
