@@ -766,13 +766,15 @@ class LineshapeFunction(DFunction, UnitsManaged):
         if params is None:
             raise Exception("Argument 'params' must not be None")
             
-        # FIXME: This does not work, we need something else to distinguish 
+        # FIXME: This DOES NOT WORK!!!, we need something else to distinguish 
         try:
             N = len(params)
         except:
             N = 1
         
-        print(N)
+        #print(N, params)
+        
+        N = 1
         
         if N == 1:
             tt = TimeAxis(axis.start, lfactor*axis.length, axis.step)
