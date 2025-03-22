@@ -220,13 +220,17 @@ class FunctionStorage:
         # data size in MB
         #print(self.data_dim)
         #print(numpy.dtype(self.dtype))
-        self.data_size = self.data_dim*numpy.dtype(self.dtype).itemsize/(1024*1024)
+        self.data_size = \
+            self.data_dim*numpy.dtype(self.dtype).itemsize/(1024*1024)
         self.size_units = "MB"
 
         #
         # Here the data are stored
         #
         self.data = numpy.zeros(self.data_dim, dtype=self.dtype)
+        
+        # 2D view of the data for fast access
+        self._data2d = self.data.reshape((self.N, self.data_stride))
 
         #
         # Here the g(t) functions are stored
@@ -317,22 +321,40 @@ class FunctionStorage:
 
 
         """
+        
         if isinstance(index, tuple):
             
             if len(index) == 2:
                 
                 i, j = index
-                start = self.mapping[i]*self.data_stride
                 
-                if isinstance(j,int):
-                    sta = start + self.start[j]
-                    end = start + self.end[j]
+                # if i is an integer, we return one array
+                if isinstance(i, int):
+                
+                    start = self.mapping[i]*self.data_stride
                     
-                else:
-                    sta = start + self.start_dic[j]
-                    end = start + self.end_dic[j]
+                    if isinstance(j,int):
+                        sta = start + self.start[j]
+                        end = start + self.end[j]
+                        
+                    else:
+                        sta = start + self.start_dic[j]
+                        end = start + self.end_dic[j]
+                        
+                    return self.data[sta:end]
+                
+                # if i is a slice :, we return a view an all arrays
+                elif isinstance(i, slice) and i == slice(None):
                     
-                return self.data[sta:end]
+                    if isinstance(j,int):
+                        sta = self.start[j]
+                        end = self.end[j]
+                        
+                    else:
+                        sta = self.start_dic[j]
+                        end = self.end_dic[j]
+                        
+                    return self._data2d[i, sta:end]                   
             
             else:
                 raise Exception()
@@ -552,10 +574,24 @@ class FastFunctionStorage(FunctionStorage):
     
     def __getitem__(self, index):
         i, j = index
-        start = self.mapping[i]*self.data_stride
-        sta = start + self.start[j]
-        end = start + self.end[j]
-        return self.data[sta:end]
+        
+        # if the index is integer
+        if isinstance(i, int):
+            start = self.mapping[i]*self.data_stride
+            sta = start + self.start[j]
+            end = start + self.end[j]
+            return self.data[sta:end]
+        
+        # i is a slice :
+        elif isinstance(i, slice) and i == slice(None):
+            sta = self.start[j]
+            end = self.end[j]
+            return self._data2d[i, sta:end]
+        
+        else:
+            raise Exception("Integer or slice : required as a first index")
+            
+
 
 
 

@@ -267,6 +267,7 @@ class gg(Function):
                 return S.Zero
         #if not (a is b):
         #    return S.Zero
+        
 """ First derivative of gg """
 class g21(Function):
     nargs = (1,2,3)
@@ -437,6 +438,55 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
     # Apply transformation recursively to sub-expressions
     return expr.replace(lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate}, 
                         lambda subexpr: transform_to_Python_vec(subexpr, target_name, conj_func))
+
+
+from sympy import Add, Symbol, Function
+#from quantarhei.symbolic.cumulant import gg
+
+def transform_to_einsum(expr, participation_matrix=None, index=0):
+    """ Transforms the cumulant result into a Numpy einsum form
+
+    """
+
+    einsum = Function("np.einsum")
+    
+    result_terms = []
+
+    if participation_matrix is not None:
+        if isinstance(participation_matrix, str):
+            MM = participation_matrix
+            use_exciton = True
+        else:
+            raise Exception("String expected here")
+    else:
+        use_exciton = False
+
+    for term in Add.make_args(expr):
+        coeff = 1
+        func = term
+
+        if isinstance(term, Mul):
+            coeff, func = term.as_coeff_Mul()
+
+        if isinstance(func, gg) and func.func.__name__ == "gg":
+            a, b, t = func.args
+            t_str = str(t).replace(" ", "")
+
+            
+            if use_exciton:
+                gg_part = Symbol(f'gg[:,"{t_str}"]')
+                M_part = Symbol(f'{MM}[{a},{b},:]')
+                einsum_string = Symbol('"i,ij"')  # key fix: Symbol with quotes
+                einsum_term = einsum(einsum_string, M_part, gg_part)
+            else:
+                einsum_term = Symbol(f'gg[{index},"{t_str}"]')
+                
+            transformed = coeff * einsum_term
+            result_terms.append(transformed)
+        else:
+            result_terms.append(term)
+
+    return Add(*result_terms)
 
 
 class GFInitiator:

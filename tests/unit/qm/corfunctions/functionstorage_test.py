@@ -8,6 +8,8 @@ import numpy.testing as npt
 from quantarhei import TimeAxis
 from quantarhei import FunctionStorage
 
+from quantarhei import FastFunctionStorage
+
 class TestFunctionStorage(unittest.TestCase):
     """Tests the FunctionStorage functionality
     
@@ -26,6 +28,8 @@ class TestFunctionStorage(unittest.TestCase):
         # FIXME: Check the dimensionality of the storage 
         # - it must be consistent with the self.configuration
         gg = FunctionStorage(7, (t1,t3), show_config=False, config=None)
+        
+        gf = FastFunctionStorage(7, (t1,t3), show_config=False, config=None)
 
         def goft_gamma(t):
             return t/100.0
@@ -40,7 +44,13 @@ class TestFunctionStorage(unittest.TestCase):
         gg.set_goft(3, func=goft_delta)
         gg.set_goft(12, func=goft_gamma)
         gg.set_goft(0, func=goft_delta)
-        
+ 
+        gf.set_goft(1, func=goft_gamma)
+        gf.set_goft([4,2], func=goft_delta)
+        gf.set_goft(3, func=goft_delta)
+        gf.set_goft(12, func=goft_gamma)
+        gf.set_goft(0, func=goft_delta)        
+ 
         # FIXME: This does not work
         #gg.set_goft([5,14], func=goft_even)
         
@@ -55,6 +65,7 @@ class TestFunctionStorage(unittest.TestCase):
         # Creating data
         #
         gg.create_data(reset=dict(t2=5.0))
+        gf.create_data(reset=dict(t2=5.0))
         
         print("DATA SIZE: ", gg.data_size, "MB")
         
@@ -63,13 +74,60 @@ class TestFunctionStorage(unittest.TestCase):
             
             print("\n0D, t2")
             t2 = 5.0
+            
+            # test against the function
             ggt2 = gg[kk,"t2"]
             npt.assert_allclose(ggt2, list_fce[kk](t2))
+            
+            # test index
+            g_int = gg[kk,0]
+            npt.assert_allclose(ggt2, g_int)
+            
+            # test the slice notation
+            ggt2 = gg[:,"t2"]
+            g_int = gg[:,0]
+            npt.assert_allclose(ggt2, g_int)
+            
+            #
+            # test fast version
+            
+            # test index
+            ggt2 = gg[kk,"t2"]
+            g_int = gf[kk,0]
+            npt.assert_allclose(ggt2, g_int)
+            
+            # test the slice notation
+            ggt2 = gg[:,"t2"]
+            g_int = gf[:,0]
+            npt.assert_allclose(ggt2, g_int)            
+            
             print("OK")
             
             print("\n1D, t1")
             ggt1 = gg[kk,"t1"]
             npt.assert_allclose(ggt1, list_fce[kk](t1.data))
+            
+            g_int = gg[kk,1]
+            npt.assert_allclose(ggt1, g_int)
+
+            # test the slice notation
+            ggt1 = gg[:,"t1"]
+            g_int = gg[:,1]
+            npt.assert_allclose(ggt1, g_int)
+            
+            #
+            # test fast version
+            
+            # test index
+            ggt2 = gg[kk,"t1"]
+            g_int = gf[kk,1]
+            npt.assert_allclose(ggt2, g_int)
+            
+            # test the slice notation
+            ggt2 = gg[:,"t1"]
+            g_int = gf[:,1]
+            npt.assert_allclose(ggt2, g_int)            
+            
             print("OK")
             
             print("\n1D, t3")

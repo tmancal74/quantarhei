@@ -358,6 +358,7 @@ from .qm.corfunctions.correlationfunctions import oscillator_scalled_Correlation
 # LINESHAPE FUNCTIONS
 #
 from .qm.corfunctions import FunctionStorage
+from .qm.corfunctions import FastFunctionStorage
 
 
 from .qm.liouvillespace.heom import KTHierarchy
