@@ -302,6 +302,8 @@ from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 from .spectroscopy.labsetup import LabSetup
 from .spectroscopy.labsetup import LabField
 
+from .spectroscopy.dsfeynman import DSFeynmanDiagram
+
 ###############################################################################
 #                           QUANTUM MECHANICS
 ###############################################################################
