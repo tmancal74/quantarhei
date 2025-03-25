@@ -409,53 +409,54 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
                         lambda subexpr: transform_to_Python_vec(subexpr, target_name, conj_func))
 
 
-from sympy import Add, Symbol, Function
+
+#import sympy as sp
 #from quantarhei.symbolic.cumulant import gg
 
-def transform_to_einsum(expr, participation_matrix=None, index=0):
-    """ Transforms the cumulant result into a Numpy einsum form
+def transform_to_einsum_expr(expr, participation_matrix=None, index=0):
+    """Transforms a SymPy expression with gg(a,b,t) into numpy einsum form.
 
+    Handles:
+    - gg(a,b,t) → np.einsum(...) if matrix is given
+    - gg(a,b,t) → gg[index,"t"] if matrix is None
+    - conjugate(gg(...)) → np.conj(...)
+    - Works recursively
     """
 
-    einsum = Function("np.einsum")
-    
-    result_terms = []
+    conjugate = sp.conjugate
+    einsum = sp.Function("np.einsum")
+    np_conj = sp.Function("np.conj")
 
-    if participation_matrix is not None:
-        if isinstance(participation_matrix, str):
-            MM = participation_matrix
-            use_exciton = True
+    use_exciton = participation_matrix is not None
+    MM = participation_matrix if use_exciton else None
+
+    def convert_gg(a, b, t):
+        t_str = str(t).replace(" ", "")
+        if use_exciton:
+            gg_part = sp.Symbol(f'gg[:,"{t_str}"]')
+            M_part = sp.Symbol(f'{MM}[{a},{b},:]')
+            einsum_string = sp.Symbol('"i,ij"')
+            return einsum(einsum_string, M_part, gg_part)
         else:
-            raise Exception("String expected here")
-    else:
-        use_exciton = False
+            return sp.Symbol(f'gg[{index},"{t_str}"]')
 
-    for term in Add.make_args(expr):
-        coeff = 1
-        func = term
+    # Handle conjugate(gg(...))
+    if isinstance(expr, sp.Basic) and expr.func == conjugate:
+        inner = expr.args[0]
+        transformed_inner = transform_to_einsum_expr(inner, participation_matrix, index)
+        return np_conj(transformed_inner)
 
-        if isinstance(term, Mul):
-            coeff, func = term.as_coeff_Mul()
+    # Handle gg(a, b, t)
+    if isinstance(expr, sp.Basic) and expr.func == gg:
+        a, b, t = expr.args
+        return convert_gg(a, b, t)
 
-        if isinstance(func, gg) and func.func.__name__ == "gg":
-            a, b, t = func.args
-            t_str = str(t).replace(" ", "")
+    # Recursively apply transformation to sub-expressions
+    return expr.replace(
+        lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate},
+        lambda subexpr: transform_to_einsum_expr(subexpr, participation_matrix, index)
+    )
 
-            
-            if use_exciton:
-                gg_part = Symbol(f'gg[:,"{t_str}"]')
-                M_part = Symbol(f'{MM}[{a},{b},:]')
-                einsum_string = Symbol('"i,ij"')  # key fix: Symbol with quotes
-                einsum_term = einsum(einsum_string, M_part, gg_part)
-            else:
-                einsum_term = Symbol(f'gg[{index},"{t_str}"]')
-                
-            transformed = coeff * einsum_term
-            result_terms.append(transformed)
-        else:
-            result_terms.append(term)
-
-    return Add(*result_terms)
 
 
 class GFInitiator:
@@ -647,12 +648,19 @@ class Uop:
         if self.is_unity():
             return "1"
             
-        txt_left = "U"+self.state
+        if self.state == "g":
+            txt_left = "U"+self.state
+        else:
+            txt_left = "Ue"
         if self.dagger == -1:
             txt_left += "d"
         txt_left +="("
 
-        txt = ""
+        if self.state == "g":
+            txt = ""
+        else:
+            txt = self.state+","
+            
         tk = 0
         nk = len(self.times)
         assgn = 0
@@ -933,3 +941,6 @@ class UopEater:
                 outtext += txt
             return outtext
 
+    def cumulant_expansion(self):
+        pass
+    
