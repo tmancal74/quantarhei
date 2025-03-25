@@ -303,6 +303,13 @@ from .spectroscopy.labsetup import LabSetup
 from .spectroscopy.labsetup import LabField
 
 from .spectroscopy.dsfeynman import DSFeynmanDiagram
+from .spectroscopy.dsfeynman import R1g_Diagram
+from .spectroscopy.dsfeynman import R2g_Diagram
+from .spectroscopy.dsfeynman import R3g_Diagram
+from .spectroscopy.dsfeynman import R4g_Diagram
+from .spectroscopy.dsfeynman import R1f_Diagram
+from .spectroscopy.dsfeynman import R2f_Diagram
+
 
 ###############################################################################
 #                           QUANTUM MECHANICS

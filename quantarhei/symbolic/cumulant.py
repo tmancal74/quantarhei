@@ -344,38 +344,7 @@ def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
     return ss
 
 
-# def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
-#                       lang = None, arrays=None):
-#     """
-    
-#     """
 
-#     from quantarhei.symbolic.cumulant import CumulantExpr
-#     from quantarhei.symbolic.lang import python_code
-#     from quantarhei.symbolic.lang import fortran_code
-
-#     A = cuml.rewrite(gg)
-#     expr = CumulantExpr(A)
-#     expr = expr.evaluate()
-    
-#     for tt in positive_times:
-#         expr = CumulantExpr(expr)._make_positive(tt)    
-        
-#     #a = leading_index[0]
-#     if leading_index is not None:
-#         D = expr._leading_index(leading_index)
-#         expr = D._getExpr()
-        
-#     if lang is None:
-#         ss = expr
-#     elif lang == "Fortran":
-#         ss = fortran_code(expr.__str__())
-#     elif lang == "Python":
-#         ss = python_code(expr.__str__(),arrays=arrays)
-#     else:
-#         raise Exception("Unknown language")
-    
-#     return ss
 
 import sympy as sp
 
@@ -622,4 +591,345 @@ class GFInitiator:
         ret = gg(t2 + tt)
 
         return ret
+
+#
+#
+#  Evolution operators for cummulant evaluation of Feynman diagrams
+#
+#
+
+class Uop:
+    
+
+    def __init__(self,state="g", times=dict(t1=1, t2=0, t3=0), negative=None, dagger=False):
+        self.state=state
+        self.times = {}
+        if dagger:
+            self.dagger = -1
+        else:
+            self.dagger = 1
+        
+        try:
+            for key in times:
+                self.times[key]=1
+        except:
+            raise Exception("'times' argument has to be a dictionary")
+
+        if negative is not None:
+            try:
+                for key in negative:
+                    self.times[key]=-1
+            except:
+                raise Exception("'negative' argument has to be a dictionary")     
+
+    
+    def is_unity(self):
+        """Returns True of the operator represents unity operator
+
+        """
+        tot = 0
+        for tm in self.times:
+            tot += numpy.abs(self.times[tm])
+           
+        if tot == 0:
+            return True
+        else:
+            return False
+        
+            
+            
+    def __str__(self):
+        """String representation of the evolution operator
+
+
+        """
+
+        if self.is_unity():
+            return "1"
+            
+        txt_left = "U"+self.state
+        if self.dagger == -1:
+            txt_left += "d"
+        txt_left +="("
+
+        txt = ""
+        tk = 0
+        nk = len(self.times)
+        assgn = 0
+        
+        for tm in self.times:
+
+            txtl = ""
+            if numpy.abs(self.times[tm]) == 1:
+                txtl += tm
+                assgn += 1
+            elif numpy.abs(self.times[tm]) > 1:
+                txtl +=str(numpy.abs(self.times[tm]))+tm
+                assgn += 1
+
+            if self.times[tm] < 0:
+                txt += "-"+txtl
+            elif (self.times[tm] > 0) and (assgn > 1):
+                txt += "+"+txtl
+            else:
+                txt += txtl
+                
+            #if tk < nk - 1:
+            #    if self.times[tm] > 0:
+            #        if assgn >= 1:
+            #            txt += "+"
+
+            tk += 1
+            
+        return txt_left+txt+")"
+        
+
+    
+    def merge(self, u):
+        """Merge two operators of the same type
+
+        """
+        
+        
+        if self.state != u.state:
+            raise Exception("Cannot merge "+self.state+" with "+u.state)
+
+        new_times = {}
+        sgn = self.dagger*u.dagger
+        for tm in self.times:
+            new_times[tm] = self.times[tm]
+            
+        for tm in u.times:
+            if tm in new_times:
+                new_times[tm] = new_times[tm] + sgn*u.times[tm] 
+            else:
+                new_times[tm] = sgn*u.times[tm]
+                
+        self.times = new_times
+
+
+    def add(self, u):
+        """Add two operators and return  new entity
+
+        """
+        import copy
+
+        cp = copy.copy(self)
+        cp.merge(u)
+
+        return cp
+
+    def dagger_bool(self):
+        """Returns bool value of the dagger property
+
+        """
+        if self.dagger == -1:
+            return True
+        elif self.dagger == 1:
+            return False
+        else:
+            raise Exception("'dagger' property must be +/- 1")
+
+
+
+class UopEater:
+    """Evolution operator product processor
+
+    """
+
+    def __init__(self):
+    
+        self.eaten = False
+        
+
+    def _create_pair(self, ee):
+        import copy
+        
+        u_out = Uop(ee, [], dagger=not self.uop_current.dagger_bool())
+        u_out.times = copy.copy(self.uop_current.times)
+
+        #
+        # we add the pair of the "g" and excited operators to the list
+        #
+        self.out_list.append(self.uop_current)
+        self.out_list.append(u_out)
+
+        #
+        # we create a further operator to compensate for the one we added
+        # before. We will set it as the current operator and continue 
+        # the procedure
+        #
+        u_new = Uop(ee, [], dagger=self.uop_current.dagger_bool())
+        u_new.times = copy.copy(self.uop_current.times)
+        self.uop_current = u_new
+
+
+        
+    def eat(self, u_list):
+        import copy
+
+        self.in_list = u_list
+        self.out_list = []
+
+        # start
+        self.pointer = 0
+        self.uop_current = self.in_list[self.pointer]
+        self.uop_next = None
+
+
+        # look for next
+        loopi = 0
+        while self.next():
+            loopi += 1
+            
+            if self.uop_current.state == self.uop_next.state:
+                #
+                # if the next one has the same state, we merge
+                #
+                self.uop_current.merge(self.uop_next)
+                self.pointer += 1
+                
+            else:
+                #
+                # if the next one has a different state, the next step depends
+                # on the stage of analysis
+                #
+
+                #
+                # If the current operator is "g", the next one is excited, 
+                # and one only needs to make sure it has the same time argument
+                #
+                if self.uop_current.state == "g":
+                    
+                    #
+                    # we create a new operator with the same time and the required index
+                    #
+                    ee = self.uop_next.state
+                    """
+                    u_out = Uop(ee, [], dagger=not self.uop_current.dagger_bool())
+                    u_out.times = copy.copy(self.uop_current.times)
+
+                    #
+                    # we add the pair of the "g" and excited operators to the list
+                    #
+                    self.out_list.append(self.uop_current)
+                    self.out_list.append(u_out)
+
+                    #
+                    # we create a further operator to compensate for the one we added
+                    # before. We will set it as the current operator and continue 
+                    # the procedure
+                    #
+                    u_new = Uop(ee, [], dagger=self.uop_current.dagger_bool())
+                    u_new.times = copy.copy(self.uop_current.times)
+                    self.uop_current = u_new
+                    """
+                    self._create_pair(ee)
+                    # we have created a new operator which is now set as uop_current
+                    # we have to attack the sa,e operator in the in_list
+                    # Therefore we revert the pointer
+
+
+                #
+                # If the current operator corresponds to excited state, the next one can be 
+                # both ground and excited state, and the two situations require different handling
+                #
+                else:
+
+                    #
+                    # If the next one is "g", we create a g with times corresponding to the current
+                    # operator, we save it with the current one, and we set as current an operator
+                    # which compensates for the newly created operator. If the next one is another
+                    # excited operator, we have to insert ground state operator.
+                    #
+                    ee = "g"
+                    self._create_pair(ee)
+
+            
+            
+        # if nothing found, we are at the end of the list
+        if not self.uop_current.is_unity():
+            self.out_list.append(self.uop_current)
+
+        self.eaten = True
+        
+        return self.out_list
+        
+            
+    def next(self):
+        
+        if self.pointer + 1 <= len(self.in_list)-1:
+            self.uop_next = self.in_list[self.pointer + 1]
+            return True
+
+        else:
+            return False
+
+    
+    def spit_pairs(self):
+        """
+
+        """
+        if self.eaten:
+            
+            pairs = []
+            count = 0
+            for op in self.out_list:
+                if count == 0:
+                    pair = [op]
+                    count += 1
+                elif count == 1:
+                    pair.append(op)
+                    count -=1
+                    pairs.append(pair)
+                else:
+                    raise Exception("This cannot happen")
+    
+            return pairs
+
+
+    def spit_coherence_GF(self):
+
+        if self.eaten:
+            
+            pairs = self.spit_pairs()
+            N = len(pairs)
+            outtext = ""
+            k = 0
+            for pair in pairs:
+                
+                txt = "U"
+                sti = ""
+                if pair[0].state == "g":
+                    txt += "g"
+                else:
+                    txt += "e"
+                    sti += pair[0].state
+                if pair[0].dagger_bool():
+                    txt += "d"
+                if pair[1].state == "g":
+                    txt += "g"
+                else:
+                    txt += "e"
+                    sti += pair[1].state
+                if pair[1].dagger_bool():
+                    txt += "d"
+                txt +="("+sti+","
+                kk = 0
+                for tm in pair[0].times:
+                    if pair[0].times[tm] != 0:
+                        if pair[0].times[tm] < 0:
+                            sgn = "-"
+                            txt += sgn+str(tm)
+                        if kk == 0:
+                            txt += str(tm)
+                        else:
+                            txt +="+"+str(tm)
+                        kk += 1
+                txt +=")"
+                k += 1
+                if k < N:
+                    txt +="*"
+                outtext += txt
+            return outtext
 

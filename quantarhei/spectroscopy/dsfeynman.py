@@ -114,3 +114,158 @@ class DSFeynmanDiagram():
         print(self)
         print("Light interaction count:", self.count)   
 
+
+class R1g_Diagram(DSFeynmanDiagram):
+    """R1g diagram
+
+    Diagram of R1g type
+    
+    
+          | g      g |
+      <---|----------|
+          | a      g |
+          |----------|--->
+          | a      b |
+          |----------|<---
+          | a      g |
+      --->|----------|
+          | g      g |
+
+    """
+    
+    def __init__(self, states=["a","b"]):
+        super().__init__(ptype="R1g")
+        self.add_arrow("left", "--->", to=states[0])
+        self.add_arrow("right", "<---", to=states[1])
+        self.add_arrow("right", "--->", "g" )
+        self.finish()
+
+
+
+class R2g_Diagram(DSFeynmanDiagram):
+    """R2g diagram
+
+    Diagram of R2g type
+    
+    
+          | g      g |
+      <---|----------|
+          | b      g |
+          |----------|--->
+          | b      a |
+      --->|----------|
+          | g      a |
+          |----------|<---
+          | g      g |
+
+    """
+
+    def __init__(self, states=["a","b"]):
+        super().__init__(ptype="R2g")
+        self.add_arrow("right", "<---", to=states[0])
+        self.add_arrow("left", "--->", to=states[1])
+        self.add_arrow("right", "--->", "g" )
+        self.finish()
+
+
+class R3g_Diagram(DSFeynmanDiagram):
+    """R3g diagram
+
+    Diagram of R3g type
+    
+    
+          | g      g |
+      <---|----------|
+          | b      g |
+      --->|----------|
+          | g      g |
+          |----------|--->
+          | g      a |
+          |----------|<---
+          | g      g |
+
+    """
+
+    def __init__(self, states=["a","b"]):
+        super().__init__(ptype="R3g")
+        self.add_arrow("right", "<---", to=states[0])
+        self.add_arrow("right", "--->", to="g")
+        self.add_arrow("left", "--->", to=states[1])
+        self.finish()
+    
+
+class R4g_Diagram(DSFeynmanDiagram):
+    """R4g diagram
+
+    Diagram of R4g type
+    
+    
+          | g      g |
+      <---|----------|
+          | b      g |
+      --->|----------|
+          | g      g |
+      <---|----------|
+          | a      g |
+      --->|----------|
+          | g      g |
+
+    """
+
+    def __init__(self, states=["a","b"]):
+        super().__init__(ptype="R4g")
+        self.add_arrow("left", "--->", to=states[0])
+        self.add_arrow("left", "<---", to="g")
+        self.add_arrow("left", "--->", to=states[1])
+        self.finish()
+
+
+class R1f_Diagram(DSFeynmanDiagram):
+    """R1f diagram
+
+    Diagram of R1f type
+    
+    
+          | b      b |
+      <---|----------|
+          | f      b |
+      --->|----------|
+          | a      b |
+          |----------|<---
+          | a      g |
+      --->|----------|
+          | g      g |
+
+    """
+
+    def __init__(self, states=["a","b","f"]):
+        super().__init__(ptype="R1f")
+        self.add_arrow("left", "--->", to=states[0])
+        self.add_arrow("right","<---", to=states[1])
+        self.add_arrow("left", "--->", to=states[2])
+        self.finish(end="b")
+        
+
+class R2f_Diagram(DSFeynmanDiagram):
+    """R2f diagram
+
+    Diagram of R2f type
+    
+          | a      a |
+      <---|----------|
+          | f      a |
+      --->|----------|
+          | b      a |
+      --->|----------|
+          | g      a |
+          |----------|<---
+          | g      g |
+          
+    """
+
+    def __init__(self, states=["a","b","f"]):
+        super().__init__(ptype="R2f")
+        self.add_arrow("right", "<---", to=states[0])
+        self.add_arrow("left","--->", to=states[1])
+        self.add_arrow("left", "--->", to=states[2])
+        self.finish(end="a")
