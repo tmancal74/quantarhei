@@ -409,19 +409,28 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
                         lambda subexpr: transform_to_Python_vec(subexpr, target_name, conj_func))
 
 
-
-#import sympy as sp
-#from quantarhei.symbolic.cumulant import gg
-
-def transform_to_einsum_expr(expr, participation_matrix=None, index=0):
+def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimensions=None):
     """Transforms a SymPy expression with gg(a,b,t) into numpy einsum form.
 
-    Handles:
-    - gg(a,b,t) → np.einsum(...) if matrix is given
-    - gg(a,b,t) → gg[index,"t"] if matrix is None
-    - conjugate(gg(...)) → np.conj(...)
-    - Works recursively
+    Generalized to arbitrary number of time axes with shape and einsum alignment.
+
+    Parameters:
+    - expr: sympy expression containing gg(a,b,t) terms
+    - participation_matrix: if provided, einsum over M[a,b,:]; otherwise use gg[index,"..."]
+    - index: default index if no matrix is used
+    - dimensions: dict mapping time symbols to axes (0,1,2,...), or -1 for scalar
+
+    Example:
+        dimensions = {
+            "t1": 0,
+            "t2": -1,
+            "t3": 1,
+            "t4": -1,
+            "t5": 2
+        }
     """
+
+    import sympy as sp
 
     conjugate = sp.conjugate
     einsum = sp.Function("np.einsum")
@@ -430,20 +439,73 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0):
     use_exciton = participation_matrix is not None
     MM = participation_matrix if use_exciton else None
 
+    def get_time_str(t_expr):
+        return str(sp.simplify(t_expr)).replace(" ", "")
+
+    def parse_axes(t_expr):
+        """Return a set of active axes for a time expression."""
+        if dimensions is None:
+            return set()
+        axes = set()
+        simplified = sp.simplify(t_expr)
+        keys = simplified.args if isinstance(simplified, sp.Add) else [simplified]
+        for key in keys:
+            dim = dimensions.get(str(key), None)
+            if dim is not None and dim >= 0:
+                axes.add(dim)
+        return axes
+
+    def build_reshape_string(axes):
+        """Convert axis set to reshape string based on all used dimensions."""
+        if dimensions is None:
+            return ""
+
+        max_axis = max((v for v in dimensions.values() if v >= 0), default=-1)
+        full_shape = []
+
+        if not axes:  # scalar case
+            return "[" + ",".join(["None"] * (max_axis + 1)) + "]"
+
+        for i in range(max_axis + 1):
+            if i in axes:
+                full_shape.append(":")
+            else:
+                full_shape.append("None")
+
+        return "[" + ",".join(full_shape) + "]"
+
+    def get_einsum_string(reshape):
+        """Produce einsum string, assuming first axis of gg is i (summation index)."""
+        reshape_clean = reshape.replace(" ", "").strip("[]")
+        if not reshape_clean:
+            return '"i,ij"'  # fallback
+
+        num_dims = reshape_clean.count(":")
+        if num_dims == 0:
+            return '"i,i"'  # scalar case
+
+        index_labels = "jklmnopqrstuvwxyz"  # we start with j since i is the contraction
+        rhs_indices = "i" + index_labels[:num_dims]  # e.g., ijk
+        return f'"i,{rhs_indices}"'
+
     def convert_gg(a, b, t):
-        t_str = str(t).replace(" ", "")
+        t_str = get_time_str(t)
+        axes = parse_axes(t)
+        reshape = build_reshape_string(axes)
+
         if use_exciton:
             gg_part = sp.Symbol(f'gg[:,"{t_str}"]')
             M_part = sp.Symbol(f'{MM}[{a},{b},:]')
-            einsum_string = sp.Symbol('"i,ij"')
-            return einsum(einsum_string, M_part, gg_part)
+            einsum_string = get_einsum_string(reshape)
+            einsum_expr = einsum(sp.Symbol(einsum_string), M_part, gg_part)
+            return sp.Symbol(f'({einsum_expr}){reshape}') if reshape else einsum_expr
         else:
-            return sp.Symbol(f'gg[{index},"{t_str}"]')
+            return sp.Symbol(f'gg[{index},"{t_str}"]{reshape}')
 
     # Handle conjugate(gg(...))
     if isinstance(expr, sp.Basic) and expr.func == conjugate:
         inner = expr.args[0]
-        transformed_inner = transform_to_einsum_expr(inner, participation_matrix, index)
+        transformed_inner = transform_to_einsum_expr(inner, participation_matrix, index, dimensions)
         return np_conj(transformed_inner)
 
     # Handle gg(a, b, t)
@@ -451,12 +513,11 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0):
         a, b, t = expr.args
         return convert_gg(a, b, t)
 
-    # Recursively apply transformation to sub-expressions
+    # Recursively apply to subexpressions
     return expr.replace(
         lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate},
-        lambda subexpr: transform_to_einsum_expr(subexpr, participation_matrix, index)
+        lambda subexpr: transform_to_einsum_expr(subexpr, participation_matrix, index, dimensions)
     )
-
 
 
 class GFInitiator:
