@@ -67,6 +67,69 @@ class DSFeynmanDiagram():
             raise Exception("An unfinisged diagram: finish() method has to be called first")
 
 
+    # def get_phase_factor(self, dimensions=None):
+    #     """Returns the phase factor for the present diagram
+        
+    #     """
+    #     fact = "-"
+    #     Nst = len(self.states)
+
+    #     for sec in self.states:
+
+    #         if sec > 0 and sec < Nst-1:
+    #             st = self.states[sec]
+    #             fact += "1j*(En["+st[0]+"]-En["+st[1]+"])"
+    #             if dimensions is None:
+    #                 tm = "t"+str(sec)
+    #                 fact += "*"+tm+" " 
+    #             else:
+    #                 tm = list(dimensions.keys())[sec-1]
+    #                 fact += "*"+tm+" "
+    #             if sec < Nst - 2:
+    #                 fact += "-"
+            
+    #     return fact
+    
+    def get_phase_factor(self, dimensions=None):
+        """Returns the phase factor for the present diagram, with reshaped time symbols if provided."""
+    
+        fact = "-"
+        Nst = len(self.states)
+    
+        def reshape_time_symbol(tname):
+            """Return reshaped time variable like t1[:,None] or t2[None,None]"""
+            if dimensions is None:
+                return tname
+    
+            axis = dimensions.get(tname, None)
+            if axis == 0:
+                return f"{tname}[:,None]"
+            elif axis == 1:
+                return f"{tname}[None,:]"
+            elif axis == -1:
+                return f"{tname}[None,None]"
+            else:
+                raise ValueError(f"Unsupported or missing axis for time variable '{tname}' in dimensions.")
+    
+        for sec in range(1, Nst - 1):
+            st = self.states[sec]
+            fact += "1j*(En["+st[0]+"]-En["+st[1]+"])"
+            
+            if dimensions is None:
+                tm = "t"+str(sec)
+                fact += "*"+tm+" "
+            else:
+                # Get time name by index
+                tm = list(dimensions.keys())[sec - 1]
+                tm_reshaped = reshape_time_symbol(tm)
+                fact += "*"+tm_reshaped+" "
+    
+            if sec < Nst - 2:
+                fact += "-"
+    
+        return fact        
+
+
     def evolution_operators(self, operators=False):
         """Returns evolution operators corresponding to the diagram
         

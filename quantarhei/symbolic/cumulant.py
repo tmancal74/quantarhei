@@ -6,6 +6,8 @@ from sympy import S
 from sympy import Function, Wild, Mul, Pow
 from sympy import sympify
 
+import sympy as sp
+
 import numpy
 
 
@@ -344,10 +346,6 @@ def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
     return ss
 
 
-
-
-import sympy as sp
-
 def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
     """ Transforms the sympy cumulant evaluation into a matrix Python code
     
@@ -514,10 +512,13 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
         return convert_gg(a, b, t)
 
     # Recursively apply to subexpressions
-    return expr.replace(
+    ret = expr.replace(
         lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate},
         lambda subexpr: transform_to_einsum_expr(subexpr, participation_matrix, index, dimensions)
     )
+    
+    return ret
+
 
 
 class GFInitiator:
