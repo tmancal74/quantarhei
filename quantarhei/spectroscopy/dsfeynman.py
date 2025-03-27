@@ -304,6 +304,7 @@ t3 = sp.Symbol("t3")
         #       This factor must be constructed based on the cumulant expression if possible. If not,
         #       we need to submit some information on it separately.
         if participation_matrix is not None:
+            prt = participation_matrix
             out = transform_to_einsum_expr(cme,
                                 participation_matrix=participation_matrix,
                                 dimensions=dims)
@@ -318,8 +319,8 @@ t3 = sp.Symbol("t3")
             
             fcode = _format_code(3, out_str)
 
-            prt = "MM"
-            fstr = "\ndef "+self.diag_name+"(t2, t1, t3, system, gg):"
+            #prt = "MM"
+            fstr = "\ndef "+self.diag_name+"(t2, t1, t3, system):"
             
             fstr += \
 '''
@@ -337,8 +338,9 @@ t3 = sp.Symbol("t3")
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
         
-    gg : quantarhie's FunctionStorage
-        An object storing the values of the line shape function
+    system : aggregate or molecule class
+        An object storing all information about the system including 
+        the values of the line shape functions.
     
     
     """'''
@@ -347,11 +349,13 @@ t3 = sp.Symbol("t3")
             
             fstr += "\n"
             # FIXME: Molecule and Aggregate has to have something like this
+            
+            fstr += "\n    gg = system.get_lineshape_functions()"
+            # FIXME: FunctionStorage should be able to return this
             if participation_matrix is not None:
-                fstr += "\n    Mx = system.get_participation()"
-                # FIXME: FunctionStorage should be able to return this
-                fstr += "\n    "+prt+" = gg.sum_participation(Mx)"
-                # FIXME: make sure something like this can be obtained from aggregate and molecule
+                fstr += "\n    # Mx = system.get_participation()"
+                fstr += "\n    "+prt+" = system.get_weighted_participation()"
+            # FIXME: make sure something like this can be obtained from aggregate and molecule
             fstr += "\n    En = system.get_eigenstate_energies()"
             fstr += "\n    g = 1  # ground state index"
             fstr += "\n    gg.create_data(reset={'t2':t2})"
