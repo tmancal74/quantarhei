@@ -565,7 +565,50 @@ class FunctionStorage:
             """
             return len(self.mapping)
 
+
+    def get_number_of_functions(self):
+        """ Returns the number of different stored functions
         
+        """
+        return numpy.max(self.mapping)+1
+
+
+    def get_number_of_sites(self):
+        """ Returns the number of assigned sites
+        
+        """
+        return (self.mapping >= 0).sum()
+        
+
+    def get_mapping_matrix(self):
+        """ Returns a matrix that maps site index on the function index
+        
+
+        M[n,i] equals 1 if the site n has the correlation function stored
+        at the position i in the storage
+
+        Returns
+        -------
+        Mapping matrix
+        
+
+        """
+
+        Nstore = self.get_number_of_functions()
+        Nsites = self.get_number_of_sites()
+
+        if Nsites != len(self.mapping):
+            raise Exception("Mapping has to be complete."
+                        +" All of its elements have to be set without gaps.")
+            
+        mtrx = numpy.zeros((Nsites,Nstore), dtype=numpy.int32)
+        for ii in range(Nsites):
+            jj_ind = self.mapping[ii]
+            mtrx[ii,jj_ind] = 1.0
+                
+        return mtrx
+        
+
 
 class FastFunctionStorage(FunctionStorage):
     """ Function storage with no overhead retrieval

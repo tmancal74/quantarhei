@@ -2,6 +2,7 @@
 
 from ..symbolic.cumulant import Uop
 from ..symbolic.cumulant import UopEater
+from ..symbolic.cumulant import transform_to_einsum_expr
 
 class DSFeynmanDiagram():
     """ Double-sided Feynman diagrams
@@ -20,6 +21,10 @@ class DSFeynmanDiagram():
         
         self.states[self.pointer] = ["g", "g"]
         self.add_states_line()
+        
+        self.dimensions = {"t1":0, "t2":-1, "t3":1}
+        
+        self.diag_name = None
 
 
     def add_states_line(self):
@@ -67,28 +72,13 @@ class DSFeynmanDiagram():
             raise Exception("An unfinisged diagram: finish() method has to be called first")
 
 
-    # def get_phase_factor(self, dimensions=None):
-    #     """Returns the phase factor for the present diagram
+    def get_time_dimensions(self):
+        """ Returns a dictionary describing the required representation 
+        of the response as a matrix of times. 
         
-    #     """
-    #     fact = "-"
-    #     Nst = len(self.states)
+        """
+        return self.dimensions
 
-    #     for sec in self.states:
-
-    #         if sec > 0 and sec < Nst-1:
-    #             st = self.states[sec]
-    #             fact += "1j*(En["+st[0]+"]-En["+st[1]+"])"
-    #             if dimensions is None:
-    #                 tm = "t"+str(sec)
-    #                 fact += "*"+tm+" " 
-    #             else:
-    #                 tm = list(dimensions.keys())[sec-1]
-    #                 fact += "*"+tm+" "
-    #             if sec < Nst - 2:
-    #                 fact += "-"
-            
-    #     return fact
     
     def get_phase_factor(self, dimensions=None):
         """Returns the phase factor for the present diagram, with reshaped time symbols if provided."""
@@ -295,6 +285,170 @@ t3 = sp.Symbol("t3")
         print("Light interaction count:", self.count)   
 
 
+    def get_vectorized_code(self, function=True, participation_matrix=None):
+        """ Return the code that evaluates the response function
+        
+        """
+        
+        dims = self.dimensions
+        phfac = self.get_phase_factor(dimensions=dims)
+        #print("\n ... phase factor:", phfac)
+
+        coh = self.coherence_GF()
+        #print("\n ... in coherence Green's functions:", coh)
+
+        cme = self.get_cumulant_expression()
+        #print("\nCumulants:\n", cme)
+
+        # TASK: the expression with participation_matrix must include a correct energy phase factor
+        #       This factor must be constructed based on the cumulant expression if possible. If not,
+        #       we need to submit some information on it separately.
+        if participation_matrix is not None:
+            out = transform_to_einsum_expr(cme,
+                                participation_matrix=participation_matrix,
+                                dimensions=dims)
+        else:
+            out = transform_to_einsum_expr(cme,
+                                       participation_matrix=None,
+                                       dimensions=dims)
+            
+        out_str = str(out)+" "+phfac
+        
+        if function:
+            
+            fcode = _format_code(3, out_str)
+            
+            if participation_matrix is not None:
+                prt = participation_matrix
+                fstr = "\ndef "+self.diag_name+"(t1, t2, t3, En, " \
+                                        +prt+", gg):"
+                                        
+            else:
+                prt = "MM"
+                fstr = "\ndef "+self.diag_name+"(t1, t2, t3, En, MM, gg):"
+            
+            fstr += \
+'''
+    """ Returns a matrix of the respose function values for given t1 and t3 
+    
+    Parameters:
+    -----------
+    
+    t1 : numpy.array
+        Array of t1 times (must be the same as the t1 axis of the gg object)
+        
+    t2 : float
+        Value of the t2 (waiting) time of the response
+        
+    t3 : numpy.array
+        Array of t3 times (must be the same as the t3 axis of the gg object)
+        
+    En : numpy.array
+        Array of state energies, including the ground state 
+        
+    '''+prt+''' : numpy.array
+        Participation matrix reflecting the storage mapping
+        
+    gg : quantarhie's FunctionStorage
+        An object storing the values of the line shape function
+    
+    
+    """'''
+            
+            fstr += "\n    import numpy as np"
+            
+            # FIXME: reset times must be read from somewhere
+            fstr += "\n"
+            fstr += "\n    g = 1  # ground state index"
+            fstr += "\n    gg.create_data(reset={'t2':t2})"
+            fstr += "\n"
+            fstr += "\n    Ne = En.shape[0]"
+            fstr += "\n    ret = numpy.zeros((len(t1),len(t3)), dtype=COMPLEX)"
+            
+            # FIXME: Here we have to allow diffent number of loops
+            fstr += "\n    for a in range(Ne):"
+            fstr += "\n        for b in range(Ne):"
+            fstr += "\n"
+            fstr += "\n            ret += \\\n"
+            fstr += fcode
+            fstr += "\n"
+            fstr += "\n    return ret"
+            
+            return fstr
+            
+        return out_str
+    
+
+def _format_code(N, code_string):
+    """
+    Formats a long Python expression string into a properly indented, multiline expression
+    wrapped inside numpy.exp(...), with line breaks only at top-level '+' and '-' operators.
+
+    Parameters:
+    - N: number of 4-space indents
+    - code_string: expression to wrap and format
+
+    Returns:
+    - A formatted string ready for Python code
+    """
+    indent = " " * (4 * N)
+    inner_indent = indent + "    "
+
+    def smart_split(expr):
+        parts = []
+        current = ""
+        depth = 0
+        in_quote = False
+        quote_char = ""
+
+        i = 0
+        while i < len(expr):
+            char = expr[i]
+
+            # Handle quotes to avoid splitting inside strings
+            if char in {"'", '"'}:
+                if in_quote and char == quote_char:
+                    in_quote = False
+                    quote_char = ""
+                elif not in_quote:
+                    in_quote = True
+                    quote_char = char
+
+            if not in_quote:
+                if char in "([{":
+                    depth += 1
+                elif char in ")]}":
+                    depth -= 1
+
+                # Split at top-level + or - signs (skip unary - at start)
+                if depth == 0 and i > 0 and expr[i-1] != "e" and char in "+-":
+                    parts.append(current.strip())
+                    current = char
+                    i += 1
+                    continue
+
+            current += char
+            i += 1
+
+        if current.strip():
+            parts.append(current.strip())
+        return parts
+
+    # Remove line breaks from input
+    code_string = code_string.replace("\n", "")
+    parts = smart_split(code_string)
+
+    if not parts:
+        return indent + "np.exp(0)"
+
+    # Construct formatted output
+    formatted = indent + "np.exp(\n"
+    for part in parts:
+        formatted += inner_indent + part + "\n"
+    formatted += indent + ")"
+    return formatted
+
+
 class R1g_Diagram(DSFeynmanDiagram):
     """R1g diagram
 
@@ -319,6 +473,8 @@ class R1g_Diagram(DSFeynmanDiagram):
         self.add_arrow("right", "<---", to=states[1])
         self.add_arrow("right", "--->", "g" )
         self.finish()
+        
+        self.diag_name="R1g"
 
 
 
@@ -346,6 +502,8 @@ class R2g_Diagram(DSFeynmanDiagram):
         self.add_arrow("left", "--->", to=states[1])
         self.add_arrow("right", "--->", "g" )
         self.finish()
+
+        self.diag_name="R2g"
 
 
 class R3g_Diagram(DSFeynmanDiagram):
