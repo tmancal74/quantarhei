@@ -317,15 +317,9 @@ t3 = sp.Symbol("t3")
         if function:
             
             fcode = _format_code(3, out_str)
-            
-            if participation_matrix is not None:
-                prt = participation_matrix
-                fstr = "\ndef "+self.diag_name+"(t1, t2, t3, En, " \
-                                        +prt+", gg):"
-                                        
-            else:
-                prt = "MM"
-                fstr = "\ndef "+self.diag_name+"(t1, t2, t3, En, MM, gg):"
+
+            prt = "MM"
+            fstr = "\ndef "+self.diag_name+"(t2, t1, t3, system, gg):"
             
             fstr += \
 '''
@@ -343,12 +337,6 @@ t3 = sp.Symbol("t3")
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
         
-    En : numpy.array
-        Array of state energies, including the ground state 
-        
-    '''+prt+''' : numpy.array
-        Participation matrix reflecting the storage mapping
-        
     gg : quantarhie's FunctionStorage
         An object storing the values of the line shape function
     
@@ -357,8 +345,14 @@ t3 = sp.Symbol("t3")
             
             fstr += "\n    import numpy as np"
             
-            # FIXME: reset times must be read from somewhere
             fstr += "\n"
+            # FIXME: Molecule and Aggregate has to have something like this
+            if participation_matrix is not None:
+                fstr += "\n    Mx = system.get_participation()"
+                # FIXME: FunctionStorage should be able to return this
+                fstr += "\n    "+prt+" = gg.sum_participation(Mx)"
+                # FIXME: make sure something like this can be obtained from aggregate and molecule
+            fstr += "\n    En = system.get_eigenstate_energies()"
             fstr += "\n    g = 1  # ground state index"
             fstr += "\n    gg.create_data(reset={'t2':t2})"
             fstr += "\n"
