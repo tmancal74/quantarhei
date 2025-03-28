@@ -40,6 +40,13 @@ class OpenSystem:
         self.Nel = 0
         self.Ntot = 0
         
+        self.WPM = None # weighted participation matrix (for spectroscopy)
+        self._has_wpm = False
+        
+
+    def diagonalize(self):
+        
+        pass
 
 
     def get_Hamiltonian(self):
@@ -52,6 +59,47 @@ class OpenSystem:
         
         return None
 
+
+    def get_lineshape_functions(self):
+        """Returns lineshape functions defined for this system
+        
+        """
+        sbi = self.get_SystemBathInteraction()
+        return sbi.get_goft_storage()
+
+
+    def get_weighted_participation(self):
+        """Returns a participation matrix weighted by the mapping onto g(t) storage
+        
+        
+        """
+        
+        if self._has_wpm:
+            return self.WPM
+        
+        # mapping of the function storage
+        gg = self.get_lineshape_functions()
+        mpx = gg.get_mapping_matrix()
+        
+        # transformation matrix
+        ss = self.SS
+
+        self.WPM = numpy.einsum("na,nb,ni->abi",ss[1:,1:]**2,ss[1:,1:]**2,mpx) 
+        self._has_wpm = True               
+        
+        return self.WPM
+
+
+    def get_eigenstate_energies(self):
+        """Returns the energies of the system's eigenstates
+        
+        """
+        self.diagonalize()
+        
+        return self.HD
+        
+    
+        
 
     def get_SystemBathInteraction(self):
         """Returns the system-bath interaction definition

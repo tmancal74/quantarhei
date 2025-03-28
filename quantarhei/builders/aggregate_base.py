@@ -2965,7 +2965,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         # aggregate must be built before we call this method
         if not self._built:
-            raise Exception()
+            raise Exception("Aggregate must be built before this call.")
 
         if (self.sbi is not None) and self._has_system_bath_interaction:
             return True
@@ -2979,7 +2979,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         if self._built:
             return self.sbi
         else:
-            raise Exception("Aggregate object not built")
+            raise Exception("Aggregate object not built.")
 
 
     def set_SystemBathInteraction(self, sbi):

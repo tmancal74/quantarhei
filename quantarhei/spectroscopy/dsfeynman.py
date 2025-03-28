@@ -245,6 +245,7 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         code_symbols = """
 a = sp.Symbol("a")
 b = sp.Symbol("b")
+f = sp.Symbol("f")
 
 t1 = sp.Symbol("t1")
 t2 = sp.Symbol("t2")
@@ -605,3 +606,6 @@ class R2f_Diagram(DSFeynmanDiagram):
         self.add_arrow("left","--->", to=states[1])
         self.add_arrow("left", "--->", to=states[2])
         self.finish(end="a")
+
+        self.diag_name="R2f"
+        

@@ -9,6 +9,9 @@ import numpy
 
 from ...core.saveable import Saveable
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
+from ...qm.corfunctions.functionstorage import FunctionStorage
+from ...qm.corfunctions.correlationfunctions import c2g
+from ...core.dfunction import DFunction
 from ... import REAL
 
 class SystemBathInteraction(Saveable):
@@ -16,7 +19,13 @@ class SystemBathInteraction(Saveable):
     
     Stores the system--bath interaction operator in form of a set of operators
     on the Hilbert space of the system and correlation functions of 
-    the operator on the bath Hilbert space.
+    the operator on the bath Hilbert space,
+    
+    OR
+    
+    It stores various relaxation and dephasing rates, to represent e.g. the 
+    Linblad form.
+    
     
     Parameters
     ----------
@@ -71,7 +80,8 @@ class SystemBathInteraction(Saveable):
         self.system = None
         self.rates = None
         self.KK = None
-        self.CC = None
+        self.CC = None # correlation function matrix
+        self.GG = None # lineshape function storage
         self.TimeAxis = None
         self.drates = None
         self.N = 0
@@ -79,7 +89,11 @@ class SystemBathInteraction(Saveable):
         self.orates = None
         self.sbitype = "Linear_Coupling"
         
+        self._has_gg_storage = False
+        
+        #
         # version with bath correlation functions
+        #
         if ((sys_operators is not None) 
             and (bath_correlation_matrix is not None)):
             
@@ -112,8 +126,9 @@ class SystemBathInteraction(Saveable):
                 self._set_operators(sys_operators)
                 self.CC = bath_correlation_matrix
              
-                
-        # version with system-bath operators and rates
+        #      
+        # version with system-bath operators and rates Lindblad form
+        #
         elif ((sys_operators is not None) 
             and (rates is not None)):
             
@@ -136,6 +151,9 @@ class SystemBathInteraction(Saveable):
                     raise Exception("Wrong number of rates specified")
                 self.rates = rates
 
+        #
+        # version with phenomenological pure dephasing
+        #
         elif ((sys_operators is None) and (drates is not None)):
             
             self.sbitype = "Pure_Dephasing"
@@ -152,6 +170,9 @@ class SystemBathInteraction(Saveable):
             self.set_system(system)
             self.CC = None
             
+        #
+        # version with Lindblad form for vibrational modes
+        #
         elif ((sys_operators is None) and (orates is not None)):
             
             self.sbitype = "Vibrational_Lindblad_Form"
@@ -187,8 +208,6 @@ class SystemBathInteraction(Saveable):
             else:
                 raise Exception("Unknown system type")
                 
-                
-
 
     def _set_operators(self, sys_operators):
         """Sets the system part of the interaction
@@ -239,16 +258,24 @@ class SystemBathInteraction(Saveable):
             bn = self.system.which_band[n]
             bm = self.system.which_band[m]
             
+            # Ground state
             if ((bn == 0) and (bm == 0)):
                 
-                #print(bn,"::",n,m)
+                #
+                # This returns zero correlation function, which is consistent
+                #
                 return self.CC._cofts[0,:]
                 
+            # First excited state band
             elif ((bn == 1) and (bm == 1)):
-                #print(bn,"::",n-1,m-1)
                 
+                #
+                # First band starts with n=1, but the correlation functions
+                # are stored by site index which starts with 0
+                #
                 return self.CC.get_coft(n-1,m-1)
                 
+            # other bands return zero correlation function now
             else:
                 
                 return self.CC._cofts[0,:]
@@ -288,6 +315,65 @@ class SystemBathInteraction(Saveable):
             
         else:
             return self.CC._cofts[0,:]
+
+
+    def get_goft_storage(self, config=None):
+        """Returns a lineshape function storage based on correlation functions
+        
+        The function calculates g(t) fuctions based on the correlation 
+        functions specified in this object. This call fails if correlation
+        functions are not specified.
+        
+        Parameters
+        ----------
+        
+        config : dict
+            Dictionary of the FunctionStorage configuration. If None submitted
+            it wil produced g(t) for a standard 3rd order response calculation.
+        
+        """
+        
+        if self._has_gg_storage:
+            return self.GG
+        
+        # number of functions
+        Nf = self.CC.nof
+        
+        # number of sites
+        Nb = self.CC.nob
+
+        # we define storgare for lineshape functions with prescribed config
+        gg = FunctionStorage(Nb, 
+                             timeaxis=[self.TimeAxis, self.TimeAxis],
+                             config=config)
+        
+        # create functions to update storage
+        fcions = {}
+        for kk in range(Nb):
+            ii = self.CC.get_index_by_where((kk,kk))
+            if ii not in fcions:
+                # correlation function in discrete representation
+                cf = self.get_coft(kk+1, kk+1) 
+                # integration into g(t)
+                gf = c2g(self.TimeAxis.data, cf)
+                # make it into spline function
+                df = DFunction(self.TimeAxis, gf)
+                gfunc = df.as_spline_function()
+                # save for later
+                fcions[ii] = gfunc
+                
+            # set a function for a give site
+            gg.set_goft(kk, func=fcions[ii])    
+            
+        # make checks
+        if Nf != gg.get_number_of_functions():
+            raise Exception("Number of functions did not"
+                            +" conserve in g(t) calculation")
+        
+        self.GG = gg
+        self._has_gg_storage = True
+        
+        return gg
 
 
     def has_temperature(self):
