@@ -60,6 +60,16 @@ class OpenSystem:
         return None
 
 
+    def get_RWA_suggestion(self):
+        """Returns average transition energy
+
+        Average transition energy of the monomer as a suggestion for
+        RWA frequency
+
+        """
+        return None
+
+
     def get_lineshape_functions(self):
         """Returns lineshape functions defined for this system
         
@@ -73,6 +83,7 @@ class OpenSystem:
         
         
         """
+        self.diagonalize()
         
         if self._has_wpm:
             return self.WPM
