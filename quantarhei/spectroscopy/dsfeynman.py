@@ -136,6 +136,8 @@ class DSFeynmanDiagram():
 
         self._check_finished()
             
+        symbols = set()
+        
         kk = 0
         Uops = ""
         Uops_list = []
@@ -145,13 +147,14 @@ class DSFeynmanDiagram():
                 sts = self.states[key]
                 rightstate = sts[1]
                 
+                symbols.add(rightstate)
+                
                 times = dict()
-                if kk == 1:  
-                    times["t1"] = 1
-                elif kk == 2:
-                    times["t2"] = 1 
-                elif kk == 3:
-                    times["t3"] = 1 
+                if kk < 4:  
+                    tms = "t"+str(kk)
+                    times[tms] = 1 
+                    symbols.add(tms)
+                    
                 else:
                     raise Exception("Unknown time for evolution operator")
                     
@@ -172,18 +175,20 @@ class DSFeynmanDiagram():
         kk = 0
         rUop = ""
         rUops_list = []
+
         for key in self.states:
              if kk > 0 and kk < self.count+1:
                 sts = self.states[key]
                 leftstate = sts[0]
                 
+                symbols.add(leftstate)
+                
                 times = dict()
-                if kk == 1:  
-                    times["t1"] = 1
-                elif kk == 2:
-                    times["t2"] = 1 
-                elif kk == 3:
-                    times["t3"] = 1 
+                if kk < 4: 
+                    tms = "t"+str(kk)
+                    times[tms] = 1
+                    symbols.add(tms)
+
                 else:
                     raise Exception("Unknown time for evolution operator")                
                 
@@ -206,6 +211,8 @@ class DSFeynmanDiagram():
 
         Uops += "*"+rUop
         Uops_list.extend(rUops_list)
+        
+        self.symbols = symbols
         
         if operators:
             return Uops_list
@@ -241,18 +248,16 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
 """
 
         codes.append(code_import)
-
-        code_symbols = """
-a = sp.Symbol("a")
-b = sp.Symbol("b")
-f = sp.Symbol("f")
-
-t1 = sp.Symbol("t1")
-t2 = sp.Symbol("t2")
-t3 = sp.Symbol("t3")
-
-"""
+        
         outs = self.coherence_GF()
+
+        #
+        # FIXME: symbols have to be generated automatically
+        #
+        code_symbols = ""
+        for sms in self.symbols:
+            code_symbols += sms+" = sp.Symbol('"+sms+"')\n" 
+        code_symbols += "\n"
     
         code1 = code_symbols+"A_cum = "+outs
         codes.append(code1)
@@ -286,7 +291,7 @@ t3 = sp.Symbol("t3")
         print("Light interaction count:", self.count)   
 
 
-    def get_vectorized_code(self, function=True, participation_matrix=None):
+    def get_vectorized_code(self, function=True, participation_matrix=True):
         """ Return the code that evaluates the response function
         
         """
@@ -295,19 +300,17 @@ t3 = sp.Symbol("t3")
         phfac = self.get_phase_factor(dimensions=dims)
         #print("\n ... phase factor:", phfac)
 
-        coh = self.coherence_GF()
+        #coh = self.coherence_GF()
         #print("\n ... in coherence Green's functions:", coh)
 
         cme = self.get_cumulant_expression()
         #print("\nCumulants:\n", cme)
 
-        # TASK: the expression with participation_matrix must include a correct energy phase factor
-        #       This factor must be constructed based on the cumulant expression if possible. If not,
-        #       we need to submit some information on it separately.
-        if participation_matrix is not None:
-            prt = participation_matrix
+
+        if participation_matrix:
+
             out = transform_to_einsum_expr(cme,
-                                participation_matrix=participation_matrix,
+                                participation_matrix="MM",
                                 dimensions=dims)
         else:
             out = transform_to_einsum_expr(cme,
@@ -349,14 +352,13 @@ t3 = sp.Symbol("t3")
             fstr += "\n    import numpy as np"
             
             fstr += "\n"
-            # FIXME: Molecule and Aggregate has to have something like this
             
             fstr += "\n    gg = system.get_lineshape_functions()"
-            # FIXME: FunctionStorage should be able to return this
-            if participation_matrix is not None:
+
+            if participation_matrix:
                 fstr += "\n    # Mx = system.get_participation()"
-                fstr += "\n    "+prt+" = system.get_weighted_participation()"
-            # FIXME: make sure something like this can be obtained from aggregate and molecule
+                fstr += "\n    MM = system.get_weighted_participation()"
+
             fstr += "\n    En = system.get_eigenstate_energies()"
             fstr += "\n    g = 1  # ground state index"
             fstr += "\n    gg.create_data(reset={'t2':t2})"
@@ -448,6 +450,22 @@ def _format_code(N, code_string):
     return formatted
 
 
+
+###############################################################################
+#
+#
+#    STANDARD DIAGRAMS
+#
+#
+###############################################################################
+
+#
+#
+#    Non-relaxing secular pathways
+#
+#
+
+
 class R1g_Diagram(DSFeynmanDiagram):
     """R1g diagram
 
@@ -529,7 +547,8 @@ class R3g_Diagram(DSFeynmanDiagram):
         self.add_arrow("right", "--->", to="g")
         self.add_arrow("left", "--->", to=states[1])
         self.finish()
-    
+        
+        self.diag_name="R3g"    
 
 class R4g_Diagram(DSFeynmanDiagram):
     """R4g diagram
@@ -555,7 +574,8 @@ class R4g_Diagram(DSFeynmanDiagram):
         self.add_arrow("left", "<---", to="g")
         self.add_arrow("left", "--->", to=states[1])
         self.finish()
-
+        
+        self.diag_name="R4g"
 
 class R1f_Diagram(DSFeynmanDiagram):
     """R1f diagram
@@ -581,7 +601,8 @@ class R1f_Diagram(DSFeynmanDiagram):
         self.add_arrow("right","<---", to=states[1])
         self.add_arrow("left", "--->", to=states[2])
         self.finish(end="b")
-        
+
+        self.diag_name="R1f"        
 
 class R2f_Diagram(DSFeynmanDiagram):
     """R2f diagram
