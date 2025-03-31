@@ -39,20 +39,25 @@ def R1g(t2, t1, t3, lab, system):
     F4 = system.get_F4d('abba')
     dfac = np.einsum('i,abi->ab',lab.F4eM4,F4)
 
-    ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
-    for a in range(Ne):
-        for b in range(Ne):
-
+    Nt1 = len(t1)
+    Nt3 = len(t3)
+    
+    ret = np.zeros((Nt1,Nt3), dtype=COMPLEX)
+    for aa in range(1,Ne):
+        a = aa - 1
+        for bb in range(1,Ne):
+            b = bb - 1
             ret += dfac[a,b]* \
               np.exp(
                 -(np.einsum("i,ij", MM[b,a,:], gg[:,"t1"]))[:,None]
                 + (np.einsum("i,ij", MM[b,a,:], gg[:,"t1+t2"]))[:,None]
-                - (np.einsum("i,ijk", MM[a,a,:], gg[:,"t1+t2+t3"]))[:,:]
-                - np.conj((np.einsum("i,i", MM[b,b,:], gg[:,"t2"]))[None,None])
+                - (np.einsum("i,ij", MM[a,a,:],
+                             gg[:,"t1+t2+t3"]).reshape(Nt1, Nt3))[:,:]
+                - np.conj((np.einsum("i,i", MM[b,b,:], gg[:,"t2"][0]))[None,None])
                 + np.conj((np.einsum("i,ij", MM[a,b,:], gg[:,"t2+t3"]))[None,:])
                 - np.conj((np.einsum("i,ij", MM[a,b,:], gg[:,"t3"]))[None,:])
                 -1j*(En[a]-En[g])*t1[:,None]
-                -1j*(En[a]-En[b])*t2[None,None]
+                -1j*(En[a]-En[b])*t2
                 -1j*(En[a]-En[g])*t3[None,:]
             )
 
