@@ -55,7 +55,7 @@ class NonLinearResponse:
             
         
         """
-        return self.func(t2, self.t1, self.t3, self.lab, self.system)
+        return self.func(t2, self.t1s.data, self.t3s.data, self.lab, self.sys)
 
 
 

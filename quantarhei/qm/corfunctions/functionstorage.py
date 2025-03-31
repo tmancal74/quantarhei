@@ -7,7 +7,8 @@ from ...core.time import TimeAxis
 
 
 class FunctionStorage:
-    """Data storage for discrete representation of correlation functions and lineshape functions
+    """Data storage for discrete representation of correlation functions
+    and lineshape functions.
 
 
     Parameters
@@ -21,7 +22,8 @@ class FunctionStorage:
     
     import numpy 
     
-    def __init__(self, N=1, timeaxis=None, dtype=numpy.complex64, show_config=False, config=None):
+    def __init__(self, N=1, timeaxis=None, dtype=numpy.complex64,
+                 show_config=False, config=None):
 
         #
         # Storage configuration

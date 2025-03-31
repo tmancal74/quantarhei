@@ -26,3 +26,10 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
     def __init__(self, modes=None, name=""):
         
         pass
+    
+    
+    
+    
+    def build(self):
+        
+        pass
