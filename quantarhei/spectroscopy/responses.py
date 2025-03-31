@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy
-from ..core.managers import Manager 
+from ..core.managers import Manager
+from .response_implementations import get_implementation
 
 """
     This packege contains two methodologies for calculating non-linear
@@ -31,13 +32,12 @@ class NonLinearResponse:
         
         # which response to calculate; the function to calculate the respose
         self.diag = diagram 
+        self.func = get_implementation(self.diag)
         
         # what times to calculate for
         self.t1s = t1s
         self.t2s = t2s
         self.t3s = t3s
-        
-        # calculate dipole averaging 
         
         # devise a way to pass it to the response calculation
     
@@ -55,7 +55,7 @@ class NonLinearResponse:
             
         
         """
-        pass
+        return self.func(t2, self.t1, self.t3, self.lab, self.system)
 
 
 

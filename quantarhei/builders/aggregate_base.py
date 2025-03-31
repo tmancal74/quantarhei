@@ -1479,12 +1479,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                 if a != b:
                     HH[a,b] = numpy.real(self.coupling(s1, s2, full=fem_full))
-
-        #
-        ###3
-        #
-        #print("Hamiltonian:")
-        #print(HH)        
+    
 
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
@@ -1492,6 +1487,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.HamOp = Hamiltonian(data=HH)
         # dipole moments
         self.DD = DD
+        
+        # this is implemented in OpenSystem class
+        self.build_dipole_moments()
 
         # FIXME: make this on-demand (if poissible)
         trdata = numpy.zeros((DD.shape[0],DD.shape[1],DD.shape[2]),dtype=REAL)
@@ -1505,11 +1503,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # dephasings
         self.Dr = Dr
 
-        #
-        ###3
-        #
-        #print("Wd:")
-        #print(self.Wd) 
 
         # composition of two-ex states
         # first index of state a is twoex_indx[0, a]

@@ -110,6 +110,123 @@ class OpenSystem:
         return self.HD
         
     
+    def build_dipole_moments(self):
+        """Builds information about transition dipole moments need for spectra
+        
+        
+        We assume that self.DD stores the transition dipole moments between
+        relevant states of the system. 
+        
+        Products of transition dipole moments are stored in 
+        
+        self.DSps 
+        
+        which is a dictionary. The keys are the following:
+            
+            "ng" : products of the transition dipole moments from ground state
+        
+        """
+        # mutual scalar products of the transition dipole moments
+        self.DSps = {}
+        # FIXME: Here all transitions are for 0 - we need to generalize
+        DSp01 = numpy.einsum("ik,jk->ij", self.DD[:,0,:], self.DD[:,0,:])
+        self.DSps["ng"] = DSp01
+        # FIXME: needs generalization for 2 exciton states
+        self.DSps["Mn"] = 0.0
+        self.DSps["Mnmg"] = 0.0
+        
+
+    def get_F4d(self, which="bbaa"):
+        """Get vector of transition dipole moments for 4 wave-mixing 
+        
+        F4 is one of the vectors/matrices needed for orientational average
+        of the third order non-linear signal.
+        
+        Parameters
+        ----------
+        
+        i1, i2, i3, i4 : int
+            Indeces of the acting transition dipole moments. The first is i1
+            
+        """
+        
+        Dab_0101 = self.DSps["ng"]
+        
+        # FIXME: check for the existence of the second excited band
+        Dab_1201 = self.DSps["Mnmg"]
+        Dab_1212 = self.DSps["Mn"]
+        
+        # FIXME: Number of states in the first electronic excited band
+        N1b = self.Ntot
+        # FIXME: Number of states in the second electronic excited band
+        N2b = 1
+        
+        def _setF4_1(F4, x1, x2, x3, x4):
+            F4[0] = Dab_0101[x4,x3]*Dab_0101[x2,x1]
+            F4[1] = Dab_0101[x4,x2]*Dab_0101[x3,x1]
+            F4[2] = Dab_0101[x4,x1]*Dab_0101[x3,x2]            
+
+        def _setF4_2(F4, x1, x2, x3, x4):
+            F4[0] = Dab_1212[x4,x3]*Dab_0101[x2,x1]
+            F4[1] = Dab_1201[x4,x2]*Dab_1201[x3,x1]
+            F4[2] = Dab_1201[x4,x1]*Dab_1201[x3,x2]
+            
+        if which == "abba":
+            F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
+            for aa in range(N1b):
+                x1 = aa
+                x4 = aa
+                for bb in range(N1b):
+                    x3 = bb
+                    x2 = bb
+                    _setF4_1(F4[aa,bb,:], x1, x2, x3, x4)    
+            
+        elif which == "baba":
+            F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
+            for aa in range(N1b):
+                x1 = aa
+                x3 = aa
+                for bb in range(N1b):
+                    x2 = bb
+                    x4 = bb
+                    _setF4_1(F4[aa,bb,:], x1, x2, x3, x4) 
+                    
+        elif which == "bbaa":
+            
+            F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
+            for aa in range(N1b):
+                x1 = aa
+                x2 = aa
+                for bb in range(N1b):
+                    x3 = bb
+                    x4 = bb
+                    _setF4_1(F4[aa,bb,:], x1, x2, x3, x4)
+                    
+        elif which == "fbfaba":
+            F4 = numpy.zeros((N2b,N1b,N1b,3), dtype=REAL)
+            for aa in range(N1b):
+                x1 = aa
+                for bb in range(N1b):
+                    x2 = bb
+                    for ff in range(N2b):
+                        x3 = 0
+                        x4 = 0
+                        #_setF4_2(F4[ff,aa,bb,:], x1, x2, x3, x4) 
+                        
+                    
+        elif which == "fafbba":
+            F4 = numpy.zeros((N2b,N1b,N1b,3), dtype=REAL)    
+            for aa in range(N1b):
+                x1 = aa
+                for bb in range(N1b):
+                    x2 = bb
+                    for ff in range(N2b):
+                        x3 = 0
+                        x4 = 0
+                        #_setF4_2(F4[ff,aa,bb,:], x1, x2, x3, x4) 
+                        
+                    
+        return F4
         
 
     def get_SystemBathInteraction(self):

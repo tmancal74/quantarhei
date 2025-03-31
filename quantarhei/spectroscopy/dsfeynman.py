@@ -16,8 +16,15 @@ class DSFeynmanDiagram():
         self.pointer = 0
         self._pic_rep = "\n"
         self.finished = False
+        
+        self.light_transitions = {}
+        self.ltcount = 0
 
-        self.type = ptype
+        if ptype in ["R1g", "R2g", "R3g", "R4g",
+                     "R1f", "R2f", "R3f", "R4f"]:
+            self.type = ptype
+        else:
+            raise Exception("Unknown diagram type.")
         
         self.states[self.pointer] = ["g", "g"]
         self.add_states_line()
@@ -39,6 +46,9 @@ class DSFeynmanDiagram():
         self.pointer += 1
         if side == "left":
             self.states[self.pointer] = [to, self.states[self.pointer-1][1]]
+            self.light_transitions[self.ltcount] = \
+                (self.states[self.pointer-1][0], to)
+            self.ltcount += 1
             if dir == "--->":
                 self._pic_rep = "  --->|----------|\n"+self._pic_rep
             elif dir == "<---":
@@ -46,6 +56,9 @@ class DSFeynmanDiagram():
                 
         elif side == "right":
             self.states[self.pointer] = [self.states[self.pointer-1][0],to]
+            self.light_transitions[self.ltcount] = \
+                (self.states[self.pointer-1][1], to)
+            self.ltcount += 1
             if dir == "<---":
                 self._pic_rep = "      |----------|<---\n"+self._pic_rep
             elif dir == "--->":
@@ -288,8 +301,49 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         self._check_finished()
         print("\nDiagram of",self.type,"type\n")
         print(self)
-        print("Light interaction count:", self.count)   
+        print("Light interaction count:", self.count) 
+        print("Transitions:", self.light_transitions)
+              
+              
+    def _dipole_arrangement(self, ground='g'):
+        """Returns a string characterizing order of light transitions
+        
+        """
+        
+        d = self.light_transitions
+        letters = []
+    
+        for key in sorted(d.keys()):
+            a, b = d[key]
+    
+            if a == ground and b != ground:
+                letters.append(b)
+            elif b == ground and a != ground:
+                letters.append(a)
+            elif a != ground and b != ground:
+                pair = ''.join(sorted([a, b], reverse=True))
+                letters.append(f'{pair}')
+            # If both are 'g', you can choose to skip or raise an error
+            # else: pass
 
+        return ''.join(reversed(letters))
+
+
+    def _loops(self, Nloop, states, sizes):
+        """Creates loop code
+        
+        """
+        
+        tab = "    "
+        outstr = ""
+        ctab = ""
+        for kk in range(Nloop):
+            ctab += tab
+            outstr += "\n"+ctab+"for "+states[kk]+" in range(" \
+            +sizes[kk]+"):"
+            
+        return outstr, ctab
+            
 
     def get_vectorized_code(self, function=True, participation_matrix=True):
         """ Return the code that evaluates the response function
@@ -321,10 +375,23 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         
         if function:
             
-            fcode = _format_code(3, out_str)
+            if self.type in ["R1f", "R2f", "R3f", "R4f"]:
+                Ntab = 4
+                Nloop = 3
+                dfac_code = "dfac[a,b,f]"
+                einsum_str = "i,abfi->abf"
+                Nf_code = "\n    Nf = 1\n"
+            else:
+                Ntab = 3
+                Nloop = 2
+                dfac_code = "dfac[a,b]"
+                einsum_str = "i,abi->ab"
+                Nf_code = "\n"
+                
+            fcode = _format_code(Ntab, out_str)
 
             #prt = "MM"
-            fstr = "\ndef "+self.diag_name+"(t2, t1, t3, system):"
+            fstr = "\ndef "+self.diag_name+"(t2, t1, t3, lab, system):"
             
             fstr += \
 '''
@@ -350,7 +417,6 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
     """'''
             
             fstr += "\n    import numpy as np"
-            
             fstr += "\n"
             
             fstr += "\n    gg = system.get_lineshape_functions()"
@@ -360,17 +426,29 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
                 fstr += "\n    MM = system.get_weighted_participation()"
 
             fstr += "\n    En = system.get_eigenstate_energies()"
+            fstr += "\n    rwa = system.get_RWA_suggestion()"
             fstr += "\n    g = 1  # ground state index"
             fstr += "\n    gg.create_data(reset={'t2':t2})"
             fstr += "\n"
             fstr += "\n    Ne = En.shape[0]"
-            fstr += "\n    ret = numpy.zeros((len(t1),len(t3)), dtype=COMPLEX)"
+            fstr += Nf_code
+            
+            dip_type = self._dipole_arrangement()
+            
+            fstr += "\n    # dipole arrangemenent type: "+dip_type
+            fstr += "\n    F4 = system.get_F4d('"+dip_type+"')"
+            fstr += "\n    dfac = np.einsum('"+einsum_str+"',lab.F4eM4,F4)"
+            fstr += "\n"
+            fstr += "\n    ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)"
             
             # FIXME: Here we have to allow diffent number of loops
-            fstr += "\n    for a in range(Ne):"
-            fstr += "\n        for b in range(Ne):"
+            lcode, ctab = self._loops(Nloop, ["a", "b", "f"],
+                                             ["Ne", "Ne", "Nf"])
+            fstr += lcode
+            #fstr += "\n    for a in range(Ne):"
+            #fstr += "\n        for b in range(Ne):"
             fstr += "\n"
-            fstr += "\n            ret += \\\n"
+            fstr += "\n"+ctab+"    ret += "+dfac_code+"* \\\n"
             fstr += fcode
             fstr += "\n"
             fstr += "\n    return ret"
