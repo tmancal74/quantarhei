@@ -13,6 +13,11 @@ from ..qm.propagators.poppropagator import PopulationPropagator
 from .twod2 import TwoDResponse
 from .. import signal_REPH, signal_NONR
 
+from ..spectroscopy.responses import NonLinearResponse
+
+# deprecated class
+from ..spectroscopy.responses import LiouvillePathway
+
 import quantarhei as qr
 
 try:
@@ -451,20 +456,38 @@ class TwoDResponseCalculator:
                 
             for resp in self.resp_fcions:
                 
-                if resp.rtype == "R":
+                if isinstance(resp, NonLinearResponse):
                     
-                    resp_Rgsb += resp.calculate_matrix(self.lab, None, tt2, 
-                                                       self.t1s, self.t3s, 
-                                                       self.rwa)
-
-                elif resp.rtype == "NR":
                     
-                    resp_Ngsb += resp.calculate_matrix(self.lab, None, tt2, 
-                                                       self.t1s, self.t3s, 
-                                                       self.rwa)
-                else:
-                    
-                    raise Exception("Unknown response type")
+                    if resp.rtype == "R":
+                        
+                        resp_Rgsb += resp.calculate_matrix(tt2)
+    
+                    elif resp.rtype == "NR":
+                        
+                        resp_Ngsb += resp.calculate_matrix(tt2)
+                        
+                    else:
+                        
+                        raise Exception("Unknown response type")
+                
+                
+                elif isinstance(resp, LiouvillePathway):
+                
+                    if resp.rtype == "R":
+                        
+                        resp_Rgsb += resp.calculate_matrix(self.lab, None, tt2, 
+                                                           self.t1s, self.t3s, 
+                                                           self.rwa)
+    
+                    elif resp.rtype == "NR":
+                        
+                        resp_Ngsb += resp.calculate_matrix(self.lab, None, tt2, 
+                                                           self.t1s, self.t3s, 
+                                                           self.rwa)
+                    else:
+                        
+                        raise Exception("Unknown response type")
                     
             
         else:
@@ -472,6 +495,10 @@ class TwoDResponseCalculator:
             raise Exception("Calculation method not implemented")
             
 
+        # only for Aceto we need the sum 
+        #
+        # FIXME: discontinue Aceto and remove the sum (and the code above)
+        #
         resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
         resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
 

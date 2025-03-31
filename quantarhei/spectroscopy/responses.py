@@ -3,13 +3,70 @@ import numpy
 from ..core.managers import Manager 
 
 """
-
+    This packege contains two methodologies for calculating non-linear
+    response. The one based on the LiouvillPathway class is now deprecated.
+    
+    The new methodology is based on NonLinearResponse class
 
 
 
 
 
 """
+class NonLinearResponse:
+    """Non-linear response function 
+    
+    
+    
+    
+    """
+    
+    def __init__(self, lab, system, diagram, t1s, t2s, t3s):
+        
+        # info about pulse polarizations
+        self.lab = lab
+        
+        # info about energies, dipolemoments and rwa 
+        self.sys = system
+        
+        # which response to calculate; the function to calculate the respose
+        self.diag = diagram 
+        
+        # what times to calculate for
+        self.t1s = t1s
+        self.t2s = t2s
+        self.t3s = t3s
+        
+        # calculate dipole averaging 
+        
+        # devise a way to pass it to the response calculation
+    
+    
+    def calculate_matrix(self, t2): 
+        """Calculates the matrix of response values in t1 and t3 times
+        
+        
+        Parameters
+        ----------
+        
+        t2 : float
+            Waiting time for which the response is calculated
+            
+            
+        
+        """
+        pass
+
+
+
+
+
+###############################################################################
+#
+#   DEPRECATED CODE BELOW
+#
+###############################################################################
+
 
 class LiouvillePathway:
     """
