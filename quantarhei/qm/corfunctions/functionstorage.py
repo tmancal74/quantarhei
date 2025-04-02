@@ -144,7 +144,7 @@ class FunctionStorage:
         self.N = N 
 
         # The max value of the index identifying the stored functions for the user
-        self.Nmax = self.N
+        self.Nmax = self.N - 1
 
         # One or more time axes on which the functions should be represented
         if timeaxis is None:
@@ -178,6 +178,35 @@ class FunctionStorage:
         # in the tuple define).
         #self.time_index = {"t2":-1,"t1":0,"t1+t2":0, "t3":1,"t2+t3":1,"t1+t3":(0,1),"t1+t2+t3":(0,1)}
         self.time_index = time_index
+        
+        reshapes = dict()
+        for dms in self.time_index:
+            val = self.time_index[dms]
+            if isinstance(val, int):
+                if val == -1:
+                    reshapes[dms] = ""
+                else:
+                    reshapes[dms] = [self.dim[val]]
+
+            else:
+                rlist = []
+                dcount = 0
+                kl = 0
+                for kk, dims in enumerate(val):
+
+                    if dims >= 0:
+
+                        rlist.append(self.dim[dims])
+                        dcount += 1
+                        kl += 1
+                
+                reshapes[dms] = rlist
+
+        self.reshapes_dic = reshapes
+        self.reshapes = []
+        for key in self.reshapes_dic:
+            self.reshapes.append(self.reshapes_dic[key])
+            
 
         # The number of time arguments
         self.Nt = len(self.time_index)
@@ -274,7 +303,7 @@ class FunctionStorage:
         # Mapping between the actual stored functions and the index representing
         # the functions for the outside world.
         #
-        self.mapping = numpy.zeros(self.Nmax,dtype=numpy.int32)
+        self.mapping = numpy.zeros(self.Nmax+1,dtype=numpy.int32)
         for kk in range(self.N):
             self.mapping[kk] = -1
 
@@ -342,8 +371,16 @@ class FunctionStorage:
                     else:
                         sta = start + self.start_dic[j]
                         end = start + self.end_dic[j]
-                        
-                    return self.data[sta:end]
+                    
+                    if sta + 1 == end:
+                        return self.data[sta]
+                    else:
+                        if isinstance(j,int):
+                            tpl = self.reshapes[j]
+                        else:
+                            tpl = self.reshapes_dic[j]
+                            
+                        return self.data[sta:end].reshape(tpl)
                 
                 # if i is a slice :, we return a view an all arrays
                 elif isinstance(i, slice) and i == slice(None):
@@ -356,7 +393,15 @@ class FunctionStorage:
                         sta = self.start_dic[j]
                         end = self.end_dic[j]
                         
-                    return self._data2d[i, sta:end]                   
+                    if sta + 1 == end:
+                        return self._data2d[i, sta]
+                    else:
+                        if isinstance(j,int):
+                            tpl = [self._data2d.shape[0]]+self.reshapes[j]
+                        else:
+                            tpl = [self._data2d.shape[0]]+self.reshapes_dic[j]
+                            
+                        return self._data2d[i, sta:end].reshape(tpl)                   
             
             else:
                 raise Exception()
@@ -377,7 +422,6 @@ class FunctionStorage:
         if not isinstance(N, (int, list, tuple, numpy.ndarray)):
             raise Exception("Argument N has to be an integer or an array (list, tuple) of integers")
 
-        # FIXME: This has to work for arbitrary storage dimension
         #
         # Check the consistency of the submitted time axes
         #
@@ -453,7 +497,8 @@ class FunctionStorage:
             mapping = numpy.zeros(nn+1,dtype=numpy.int32)
             mapping[:] = -1
             # copy earlier values
-            mapping[:self.Nmax] = self.mapping
+            print(nn, self.Nmax, mapping.shape, self.mapping.shape)
+            mapping[:self.Nmax+1] = self.mapping
             # set new Nmax
             self.Nmax = nn
             # make larger variables the object properties
