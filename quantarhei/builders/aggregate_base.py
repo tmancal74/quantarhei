@@ -1487,9 +1487,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.HamOp = Hamiltonian(data=HH)
         # dipole moments
         self.DD = DD
-        
-        # this is implemented in OpenSystem class
-        self.build_dipole_moments()
 
         # FIXME: make this on-demand (if poissible)
         trdata = numpy.zeros((DD.shape[0],DD.shape[1],DD.shape[2]),dtype=REAL)
@@ -1536,6 +1533,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             rwa_indices[ii+1] = rwa_indices[ii]+self.Nb[ii]
         self.HamOp.set_rwa(rwa_indices)
 
+        # this is implemented in OpenSystem class
+        self.build_dipole_moments()
 
         #######################################################################
         #

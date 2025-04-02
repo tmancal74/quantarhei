@@ -47,7 +47,7 @@ def R1g(t2, t1, t3, lab, system):
             for bb in band1:
                 b = bb - 1
     
-                ret += dfac[aa,bb]* \
+                ret += dfac[a,b]* \
                 np.exp(
                     -(np.einsum("i,ij", MM[b,a,:], gg[:,"t1"]))[:,None]
                     + (np.einsum("i,ij", MM[b,a,:], gg[:,"t1+t2"]))[:,None]
@@ -109,7 +109,7 @@ def R2g(t2, t1, t3, lab, system):
             for bb in band1:  
                 b = bb - 1
     
-                ret += dfac[aa,bb]* \
+                ret += dfac[a,b]* \
                 np.exp(
                     (np.einsum("i,i", MM[a,b,:], gg[:,"t2"]))[None,None]
                     - (np.einsum("i,ij", MM[b,b,:], gg[:,"t2+t3"]))[None,:]
@@ -170,7 +170,7 @@ def R3g(t2, t1, t3, lab, system):
             for bb in band1:
                 b = bb - 1
     
-                ret += dfac[aa,bb]* \
+                ret += dfac[a,b]* \
                 np.exp(
                     -(np.einsum("i,ij", MM[b,b,:], gg[:,"t3"]))[None,:]
                     + np.conj((np.einsum("i,i", MM[b,a,:], gg[:,"t2"]))[None,None])
@@ -231,7 +231,7 @@ def R4g(t2, t1, t3, lab, system):
             for bb in band1:
                 b = bb - 1
     
-                ret += dfac[aa,bb]* \
+                ret += dfac[a,b]* \
                 np.exp(
                     -(np.einsum("i,i", MM[b,a,:], gg[:,"t2"]))[None,None]
                     - (np.einsum("i,ij", MM[a,a,:], gg[:,"t1"]))[:,None]
@@ -284,18 +284,18 @@ def R1f(t2, t1, t3, lab, system):
 
     # dipole arrangemenent type: fbfaba
     F4 = system.get_F4d('fbfaba')
-    dfac = np.einsum('i,abfi->abf',lab.F4eM4,F4)
+    dfac = np.einsum('i,fabi->fab',lab.F4eM4,F4)
     
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
     for g in band0:
         for aa in band1:
-            a = aa - 1
+            a = aa - band0[-1]
             for bb in band1:
-                b = bb - 1
+                b = bb - band1[-1]
                 for ff in band2:
-                    f = ff - 1 
+                    f = ff - band1[-1] 
         
-                    ret += dfac[aa,bb,ff]* \
+                    ret += dfac[f,a,b]* \
                     np.exp(
                         -(np.einsum("i,ij", MM[a,a,:], gg[:,"t1+t2"]))[:,None]
                         - (np.einsum("i,ij", MM[b,a,:], gg[:,"t1"]))[:,None]

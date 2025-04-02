@@ -157,14 +157,23 @@ class OpenSystem:
             "ng" : products of the transition dipole moments from ground state
         
         """
+        Nb0 = self.Nb[0]
+        Nb1 = self.Nb[1]+Nb0
+        Nb2 = self.Nb[2]+Nb1
         # mutual scalar products of the transition dipole moments
         self.DSps = {}
         # FIXME: Here all transitions are for 0 - we need to generalize
-        DSp01 = numpy.einsum("ik,jk->ij", self.DD[:,0,:], self.DD[:,0,:])
-        self.DSps["ng"] = DSp01
+        DSp01 = numpy.einsum("ik,jk->ij", self.DD[Nb0:Nb1,0,:],
+                                          self.DD[Nb0:Nb1,0,:])
+        self.DSps["10"] = DSp01
         # FIXME: needs generalization for 2 exciton states
-        self.DSps["Mn"] = 0.0
-        self.DSps["Mnmg"] = 0.0
+        DSp21 = numpy.einsum("ijk,lk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
+                                            self.DD[Nb0:Nb1,0,:])
+        self.DSps["2110"] = DSp21
+        
+        DSp22 = numpy.einsum("ijk,ilk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
+                                             self.DD[Nb1:Nb2,Nb0:Nb1,:])
+        self.DSps["22"] = DSp22
         
 
     def get_F4d(self, which="bbaa"):
@@ -181,14 +190,15 @@ class OpenSystem:
             
         """
         
-        Dab_0101 = self.DSps["ng"]
+        Dab_0101 = self.DSps["10"]
         
         # FIXME: check for the existence of the second excited band
-        Dab_1201 = self.DSps["Mnmg"]
-        Dab_1212 = self.DSps["Mn"]
+        Dab_1201 = self.DSps["2110"]
+        Dab_1212 = self.DSps["22"]
         
         # FIXME: Number of states in the first electronic excited band
-        N1b = self.Ntot
+        N1b = self.Nb[1]
+        N2b = self.Nb[2]
         # FIXME: Number of states in the second electronic excited band
         N2b = 1
         
@@ -197,10 +207,10 @@ class OpenSystem:
             F4[1] = Dab_0101[x4,x2]*Dab_0101[x3,x1]
             F4[2] = Dab_0101[x4,x1]*Dab_0101[x3,x2]            
 
-        def _setF4_2(F4, x1, x2, x3, x4):
-            F4[0] = Dab_1212[x4,x3]*Dab_0101[x2,x1]
-            F4[1] = Dab_1201[x4,x2]*Dab_1201[x3,x1]
-            F4[2] = Dab_1201[x4,x1]*Dab_1201[x3,x2]
+        def _setF4_2(F4, x1, x2, ff, x3, x4):
+            F4[0] = Dab_1212[ff,x4,x3]*Dab_0101[x2,x1]
+            F4[1] = Dab_1201[ff,x4,x2]*Dab_1201[ff,x3,x1]
+            F4[2] = Dab_1201[ff,x4,x1]*Dab_1201[ff,x3,x2]
             
         if which == "abba":
             F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
@@ -240,11 +250,7 @@ class OpenSystem:
                 for bb in range(N1b):
                     x2 = bb
                     for ff in range(N2b):
-                        x3 = 0
-                        x4 = 0
-                        #_setF4_2(F4[ff,aa,bb,:], x1, x2, x3, x4) 
-                        raise Exception("Implement 2ex orient avaraging")
-                        
+                        _setF4_2(F4[ff,aa,bb,:], x1, x2, ff, x1, x2) 
                     
         elif which == "fafbba":
             F4 = numpy.zeros((N2b,N1b,N1b,3), dtype=REAL)    
@@ -253,11 +259,7 @@ class OpenSystem:
                 for bb in range(N1b):
                     x2 = bb
                     for ff in range(N2b):
-                        x3 = 0
-                        x4 = 0
-                        #_setF4_2(F4[ff,aa,bb,:], x1, x2, x3, x4) 
-                        raise Exception("Implement 2ex orient avaraging")
-                        
+                        _setF4_2(F4[ff,aa,bb,:], x1, x2, ff, x2, x1) 
                     
         return F4
         
