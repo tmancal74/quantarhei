@@ -342,8 +342,9 @@ class SystemBathInteraction(Saveable):
         # number of sites
         Nb = self.CC.nob
 
-        # we define storgare for lineshape functions with prescribed config
-        gg = FunctionStorage(Nb, 
+        # we define storage for lineshape functions with prescribed config
+        # FIXME: orinally I had Nb here, but that is wrong. Nf also does not work
+        gg = FunctionStorage(Nf, 
                              timeaxis=[self.TimeAxis, self.TimeAxis],
                              config=config)
         
