@@ -31,7 +31,12 @@ class NonLinearResponse:
         self.sys = system
         
         # which response to calculate; the function to calculate the respose
-        self.diag = diagram 
+        self.diag = diagram
+        if self.diag in ["R1g","R4g"]:
+            self.rtype = "NR"
+        elif self.diag in ["R2g", "R3g", "R1f"]:
+            self.rtype = "R"
+            
         self.func = get_implementation(self.diag)
         
         # what times to calculate for
@@ -58,6 +63,12 @@ class NonLinearResponse:
         return self.func(t2, self.t1s.data, self.t3s.data, self.lab, self.sys)
 
 
+    def set_rwa(self, rwa):
+        """Sets rotating wave approximation frequency
+        
+        """
+        pass  # rwa is set through the system class, at least for now
+        
 
 
 

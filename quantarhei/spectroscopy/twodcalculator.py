@@ -458,7 +458,6 @@ class TwoDResponseCalculator:
                 
                 if isinstance(resp, NonLinearResponse):
                     
-                    
                     if resp.rtype == "R":
                         
                         resp_Rgsb += resp.calculate_matrix(tt2)

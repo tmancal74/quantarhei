@@ -2880,6 +2880,25 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return tuple(lst)
 
 
+    def get_band(self, band=1):
+        """Indices of states in a given excitonic band.
+         
+         This is an implementation of a method from OpenSystem class
+        
+        
+         Returns indices of all states in the excitonic band
+         with number of excitons equal to `band`
+        
+         Parameters
+         ----------
+        
+         band : int
+             Specifies which band should be returned.
+        
+        """       
+        return self.get_excitonic_band(band=band)
+
+
     def get_excitonic_band(self, band=1):
         """Indices of states in a given excitonic band.
 

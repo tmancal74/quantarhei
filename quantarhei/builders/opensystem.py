@@ -40,6 +40,8 @@ class OpenSystem:
         self.Nel = 0
         self.Ntot = 0
         
+        self.mult = 0
+        
         self.WPM = None # weighted participation matrix (for spectroscopy)
         self._has_wpm = False
         
@@ -59,6 +61,13 @@ class OpenSystem:
         
         return None
 
+
+    def get_band(self, band=1):
+        """Returns indices of all states in a given band
+        
+        """
+        pass
+    
 
     def get_RWA_suggestion(self):
         """Returns average transition energy
@@ -95,7 +104,29 @@ class OpenSystem:
         # transformation matrix
         ss = self.SS
 
-        self.WPM = numpy.einsum("na,nb,ni->abi",ss[1:,1:]**2,ss[1:,1:]**2,mpx) 
+        # number of states in different bands are used to calculate
+        # participation matrix
+        Ng = self.Nb[0]
+        Ne1 = self.Nb[1] + Ng
+        
+        if self.mult > 1:
+            Ne2 = self.Nb[2] + Ne1
+
+        if self.mult == 1:
+            self.WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
+                                                ss[Ng:Ne1,Ng:Ne1]**2,mpx) 
+        
+        elif self.mult == 2:
+            # version including higher excited state band (2 excitons etc.)
+            #self.WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne2,Ng:Ne2]**2,
+            #                                    ss[Ng:Ne2,Ng:Ne2]**2,mpx)
+            self.WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
+                                                ss[Ng:Ne1,Ng:Ne1]**2,mpx)
+            
+        else:
+            raise Exception("Participation matrix not implemented for"+
+                            "multiplicity higher than mult=2.")
+        
         self._has_wpm = True               
         
         return self.WPM
@@ -212,6 +243,7 @@ class OpenSystem:
                         x3 = 0
                         x4 = 0
                         #_setF4_2(F4[ff,aa,bb,:], x1, x2, x3, x4) 
+                        raise Exception("Implement 2ex orient avaraging")
                         
                     
         elif which == "fafbba":
@@ -224,6 +256,7 @@ class OpenSystem:
                         x3 = 0
                         x4 = 0
                         #_setF4_2(F4[ff,aa,bb,:], x1, x2, x3, x4) 
+                        raise Exception("Implement 2ex orient avaraging")
                         
                     
         return F4
