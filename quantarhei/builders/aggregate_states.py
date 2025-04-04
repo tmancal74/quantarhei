@@ -88,6 +88,25 @@ class ElectronicState(UnitsManaged):
         return self.elsignature
 
 
+    def signature(self):
+        return self.get_signature()
+    
+    
+    def get_excited_sites(self):
+        """Returns a list of excited sites corresponding to this state
+        
+        
+        """
+        sgntr = self.elsignature
+        sites = []
+        count = 0
+        for vl in sgntr:
+            if vl == 1:
+                sites.append(count)
+            count += 1
+        return sites
+                
+
     def energy(self, vsig=None):
         """ Returns energy of the state (electronic + vibrational)
         
@@ -370,6 +389,21 @@ class VibronicState(UnitsManaged):
         
         """
         return self.vsig
+
+
+    def get_excited_sites(self):
+        """Returns a list of excited sites corresponding to this state
+        
+        
+        """
+        sgntr = self.elstate.elsignature
+        sites = []
+        count = 0
+        for vl in sgntr:
+            if vl == 1:
+                sites.append(count)
+            count += 1
+        return sites
 
 
     def energy(self):

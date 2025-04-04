@@ -497,7 +497,7 @@ class FunctionStorage:
             mapping = numpy.zeros(nn+1,dtype=numpy.int32)
             mapping[:] = -1
             # copy earlier values
-            print(nn, self.Nmax, mapping.shape, self.mapping.shape)
+            #print(nn, self.Nmax, mapping.shape, self.mapping.shape)
             mapping[:self.Nmax+1] = self.mapping
             # set new Nmax
             self.Nmax = nn

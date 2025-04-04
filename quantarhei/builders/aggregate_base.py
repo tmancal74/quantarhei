@@ -525,6 +525,116 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return res
 
 
+    def map_egcf_to_states(self, mpx):
+        """Maps the participation matrix on g(t) functions storage
+        
+        This should work for a simple mapping matrix and first excited band.
+        Specialized mapping such as those for 2 exciton states is implemented
+        in classes that inherite from here.
+        
+        """
+
+        ss = self.SS
+        Ng = self.Nb[0]
+        Ne1 = self.Nb[1] + Ng
+        
+        def _nonzero(vec):
+            """Returns a possition in the vector on which value == 1 is found
+            
+            """
+            for kk, vl in enumerate(vec):
+                if vl == 1:
+                    return  kk
+        
+        if self.mult > 1:
+            Ne2 = self.Nb[2] + Ne1
+        
+        if self.mult == 1:
+            #
+            # This works only for aggregate without vibrations
+            # FIXME: generalize to vibrations
+            WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
+                                               ss[Ng:Ne1,Ng:Ne1]**2,mpx) 
+        
+        elif self.mult == 2:
+        
+            WPM = numpy.zeros((Ne2-Ng,Ne2-Ng,mpx.shape[1]), dtype=REAL)
+            # version including higher excited state band ( excitons etc.)
+            Del = numpy.zeros((Ne2-Ng,Ne1-Ng), dtype=REAL)
+            for kk, state in self.allstates(mult=2):
+                sts = state.get_excited_sites()
+
+                # single exciton states 
+                if len(sts) == 1:
+                    Del[kk-1,kk-1] = 1.0
+                    
+                # two-exciton states
+                elif len(sts) == 2:
+                    
+                    # sites
+                    for ii in range(Ne1):
+                        if ii in sts:
+                            Del[kk-1,ii] = 1.0
+                    # here two-site states
+                    for ii in range(Ne2):
+                        pass
+            
+
+            WPM[:(Ne2-Ng),:(Ne1-Ng),:] = numpy.einsum("Mk,AM,ak,ki->Aai", Del,
+                                                    ss[Ng:Ne2,Ng:Ne2],
+                                                    ss[Ng:Ne1,Ng:Ne1],mpx)
+            WPM[2,2,0] = 1.0
+            WPM[2,2,1] = 1.0
+            
+            print(WPM.shape)
+            #stop 
+            
+            """
+            # we assume that the mapping is onto sites and we construct
+            # two-exiciton mapping here. In this mapping we count
+            # how many times a given correlation function ocurs in a give
+            # double-exciton. 
+            mpx2 = numpy.zeros((Ne2-Ng,mpx.shape[1]),dtype=numpy.int32)
+            mpx2[:(Ne1-Ng),:mpx.shape[1]] = mpx
+            for kk, state in self.allstates(mult=2):
+                #estate = state.get_ElectronicState()
+                if kk >= Ne1:
+                    #print(kk, state.signature(), state.get_excited_sites())
+                    sts = state.get_excited_sites()
+                    f_index_st0 = _nonzero(mpx[sts[0],:])
+                    f_index_st1 = _nonzero(mpx[sts[1],:])
+                                    
+                    # we add one to the correlation function whose
+                    # index we found
+                    mpx2[kk-Ng, f_index_st0] += 1
+                    mpx2[kk-Ng, f_index_st1] += 1
+                    
+            print("mpx2:")
+            print(mpx2)
+            
+            #WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne2,Ng:Ne2]**2,
+            #                                   ss[Ng:Ne2,Ng:Ne2]**2,mpx2)  
+            WPM = numpy.einsum("na,nb->ab",ss[Ng:Ne2,Ng:Ne2]**2,
+                                               ss[Ng:Ne2,Ng:Ne2]**2) 
+            
+            print(WPM)
+ 
+
+            print(WPM[2,0,0])
+            print(WPM[2,0,1])
+            
+            print(WPM[2,1,0])
+            print(WPM[2,1,1])
+            """
+            
+            
+        else:
+            raise Exception("Participation matrix not implemented for"+
+                            "multiplicity higher than mult=2.")
+            
+        return WPM
+
+
     def get_transition_width(self, state1, state2=None):
         """Returns phenomenological width of a given transition
 

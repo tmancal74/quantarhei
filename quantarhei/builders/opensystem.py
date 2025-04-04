@@ -25,8 +25,6 @@ class OpenSystem:
     
     """
     
-
-
     def __init__(self):
         
         self._built = False
@@ -47,8 +45,14 @@ class OpenSystem:
         
 
     def diagonalize(self):
+        """Diagonalizes the Hamltonian of the system 
         
-        pass
+        
+        The routine calculates eigenenergies, transformation matrix and
+        other properties of the system to be used in other calculations.
+        
+        """
+        raise Exception("diagonalize() is not implemented.")
 
 
     def get_Hamiltonian(self):
@@ -58,15 +62,14 @@ class OpenSystem:
         This is a method to be implemented by the particular system
         
         """
-        
-        return None
+        raise Exception("get_Hamiltonian() is not implemented.")
 
 
     def get_band(self, band=1):
         """Returns indices of all states in a given band
         
         """
-        pass
+        raise Exception("get_band() is not implemented.")
     
 
     def get_RWA_suggestion(self):
@@ -76,7 +79,7 @@ class OpenSystem:
         RWA frequency
 
         """
-        return None
+        raise Exception("get_RWA_suggestion() is not implemented.")
 
 
     def get_lineshape_functions(self):
@@ -86,6 +89,29 @@ class OpenSystem:
         sbi = self.get_SystemBathInteraction()
         return sbi.get_goft_storage()
 
+
+    def map_lineshape_to_states(self, mpx):
+        """Maps the participation matrix on g(t) functions storage
+        
+        This should work for a simple mapping matrix and first excited band.
+        Specialized mapping such as those for 2 exciton states is implemented
+        in classes that inherite from here.
+        
+        """
+
+        ss = self.SS
+        Ng = self.Nb[0]
+        Ne1 = self.Nb[1] + Ng
+        
+        if self.mult > 1:
+            raise Exception("Participation matrix not implemented for"+
+                            "multiplicity higher than mult=1.")
+
+        WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
+                                           ss[Ng:Ne1,Ng:Ne1]**2,mpx) 
+            
+        return WPM
+    
 
     def get_weighted_participation(self):
         """Returns a participation matrix weighted by the mapping onto g(t) storage
@@ -101,33 +127,24 @@ class OpenSystem:
         gg = self.get_lineshape_functions()
         mpx = gg.get_mapping_matrix()
         
-        # transformation matrix
-        ss = self.SS
-
-        # number of states in different bands are used to calculate
-        # participation matrix
-        Ng = self.Nb[0]
-        Ne1 = self.Nb[1] + Ng
-        
-        if self.mult > 1:
-            Ne2 = self.Nb[2] + Ne1
-
-        if self.mult == 1:
-            self.WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
-                                                ss[Ng:Ne1,Ng:Ne1]**2,mpx) 
-        
-        elif self.mult == 2:
-            # version including higher excited state band (2 excitons etc.)
-            #self.WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne2,Ng:Ne2]**2,
-            #                                    ss[Ng:Ne2,Ng:Ne2]**2,mpx)
-            self.WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
-                                                ss[Ng:Ne1,Ng:Ne1]**2,mpx)
-            
-        else:
-            raise Exception("Participation matrix not implemented for"+
-                            "multiplicity higher than mult=2.")
-        
+        # here we get the mapping of energy gap correlation functions to states
+        self.WPM = self.map_egcf_to_states(mpx)
         self._has_wpm = True               
+        
+        MM = self.WPM 
+        
+        # here we make some tests
+        coupling_is_zero = True
+        
+        if coupling_is_zero and self.mult == 2:
+                
+            print("0,0 = ", MM[0,0,:], ": should be [1, 0]")
+            print("0,1 = ", MM[0,1,:], ": should be 0")
+            print("1,0 = ", MM[1,0,:], ": should be 0")
+            print("1,1 = ", MM[1,1,:], ": should be [0, 1]")
+            print("2,0 = ", MM[2,0,:], ": should be [1, 0]")
+            print("2,1 = ", MM[2,1,:], ": should be [0, 1]")
+            print("2,2 = ", MM[2,2,:], ": should be [1, 1]")
         
         return self.WPM
 
@@ -159,21 +176,26 @@ class OpenSystem:
         """
         Nb0 = self.Nb[0]
         Nb1 = self.Nb[1]+Nb0
-        Nb2 = self.Nb[2]+Nb1
+        if self.mult > 1:
+            Nb2 = self.Nb[2]+Nb1
+            
         # mutual scalar products of the transition dipole moments
         self.DSps = {}
+        
         # FIXME: Here all transitions are for 0 - we need to generalize
         DSp01 = numpy.einsum("ik,jk->ij", self.DD[Nb0:Nb1,0,:],
                                           self.DD[Nb0:Nb1,0,:])
         self.DSps["10"] = DSp01
-        # FIXME: needs generalization for 2 exciton states
-        DSp21 = numpy.einsum("ijk,lk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
-                                            self.DD[Nb0:Nb1,0,:])
-        self.DSps["2110"] = DSp21
         
-        DSp22 = numpy.einsum("ijk,ilk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
-                                             self.DD[Nb1:Nb2,Nb0:Nb1,:])
-        self.DSps["22"] = DSp22
+        if self.mult > 1:
+
+            # FIXME: also here the ground state transitions have to be generalized
+            DSp21 = numpy.einsum("ijk,lk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
+                                                self.DD[Nb0:Nb1,0,:])
+            self.DSps["2110"] = DSp21
+            DSp22 = numpy.einsum("ijk,ilk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
+                                                 self.DD[Nb1:Nb2,Nb0:Nb1,:])
+            self.DSps["22"] = DSp22
         
 
     def get_F4d(self, which="bbaa"):
@@ -185,33 +207,33 @@ class OpenSystem:
         Parameters
         ----------
         
-        i1, i2, i3, i4 : int
-            Indeces of the acting transition dipole moments. The first is i1
+        which : string
+            A string characterizing the type of dipole moment product
             
         """
         
-        Dab_0101 = self.DSps["10"]
-        
-        # FIXME: check for the existence of the second excited band
-        Dab_1201 = self.DSps["2110"]
-        Dab_1212 = self.DSps["22"]
-        
-        # FIXME: Number of states in the first electronic excited band
-        N1b = self.Nb[1]
-        N2b = self.Nb[2]
-        # FIXME: Number of states in the second electronic excited band
-        N2b = 1
-        
-        def _setF4_1(F4, x1, x2, x3, x4):
-            F4[0] = Dab_0101[x4,x3]*Dab_0101[x2,x1]
-            F4[1] = Dab_0101[x4,x2]*Dab_0101[x3,x1]
-            F4[2] = Dab_0101[x4,x1]*Dab_0101[x3,x2]            
-
         def _setF4_2(F4, x1, x2, ff, x3, x4):
             F4[0] = Dab_1212[ff,x4,x3]*Dab_0101[x2,x1]
             F4[1] = Dab_1201[ff,x4,x2]*Dab_1201[ff,x3,x1]
             F4[2] = Dab_1201[ff,x4,x1]*Dab_1201[ff,x3,x2]
+        
+        def _setF4_1(F4, x1, x2, x3, x4):
+            F4[0] = Dab_0101[x4,x3]*Dab_0101[x2,x1]
+            F4[1] = Dab_0101[x4,x2]*Dab_0101[x3,x1]
+            F4[2] = Dab_0101[x4,x1]*Dab_0101[x3,x2] 
             
+            
+        Dab_0101 = self.DSps["10"]
+        
+        # Number of states in the first electronic excited band
+        N1b = self.Nb[1]
+        
+        if self.mult > 1:
+            # number of states in the second excited state band
+            N2b = self.Nb[2]
+            Dab_1201 = self.DSps["2110"]
+            Dab_1212 = self.DSps["22"]
+    
         if which == "abba":
             F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
             for aa in range(N1b):

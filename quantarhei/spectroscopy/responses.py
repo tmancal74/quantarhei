@@ -32,7 +32,7 @@ class NonLinearResponse:
         
         # which response to calculate; the function to calculate the respose
         self.diag = diagram
-        if self.diag in ["R1g","R4g"]:
+        if self.diag in ["R1g","R4g", "R2f"]:
             self.rtype = "NR"
         elif self.diag in ["R2g", "R3g", "R1f"]:
             self.rtype = "R"
