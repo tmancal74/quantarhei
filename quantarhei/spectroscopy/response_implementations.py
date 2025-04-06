@@ -31,7 +31,7 @@ def R1g(t2, t1, t3, lab, system):
     En = system.get_eigenstate_energies()
     rwa = system.get_RWA_suggestion()
     #g = 0  # ground state index
-    gg.create_data(reset={'t2':t2})
+    gg.create_data(reset={'t2':t2}) 
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)

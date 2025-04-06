@@ -557,37 +557,30 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                                ss[Ng:Ne1,Ng:Ne1]**2,mpx) 
         
         elif self.mult == 2:
-        
-            WPM = numpy.zeros((Ne2-Ng,Ne2-Ng,mpx.shape[1]), dtype=REAL)
+            
             # version including higher excited state band ( excitons etc.)
-            Del = numpy.zeros((Ne2-Ng,Ne1-Ng), dtype=REAL)
-            for kk, state in self.allstates(mult=2):
-                sts = state.get_excited_sites()
-
-                # single exciton states 
-                if len(sts) == 1:
-                    Del[kk-1,kk-1] = 1.0
-                    
-                # two-exciton states
-                elif len(sts) == 2:
-                    
-                    # sites
-                    for ii in range(Ne1):
-                        if ii in sts:
-                            Del[kk-1,ii] = 1.0
-                    # here two-site states
-                    for ii in range(Ne2):
-                        pass
+            Del = numpy.zeros((Ne2-Ng,Ne2-Ng,mpx.shape[1]), dtype=REAL)
             
+            # looping over the states    
+            for ii, state1 in self.allstates(mult=self.mult):
+                for jj, state2 in self. allstates(mult=self.mult):
+                    
+                    sts = state1.get_shared_sites(state2)
+                    
+                    Del[ii-Ng,jj-Ng,:] = numpy.einsum("ij->j", mpx[sts[:],:])
+                    
+                    #if len(sts) == 1:
+                    #    # one site is shared
+                    #    Del[ii-Ng,jj-Ng,:] = mpx[sts[0],:]
+                    #    
+                    #elif len(sts) == 2:
+                    #    # two sites shared (for two-excitons states are equal)
+                    #    Del[ii-Ng,jj-Ng,:] = mpx[sts[0],:] + mpx[sts[1],:]
 
-            WPM[:(Ne2-Ng),:(Ne1-Ng),:] = numpy.einsum("Mk,AM,ak,ki->Aai", Del,
-                                                    ss[Ng:Ne2,Ng:Ne2],
-                                                    ss[Ng:Ne1,Ng:Ne1],mpx)
-            WPM[2,2,0] = 1.0
-            WPM[2,2,1] = 1.0
-            
-            print(WPM.shape)
-            #stop 
+
+            WPM = numpy.einsum("nmk,an,bm->abk", Del,
+                                                 ss[Ng:Ne2,Ng:Ne2]**2,
+                                                 ss[Ng:Ne2,Ng:Ne2]**2)
             
             """
             # we assume that the mapping is onto sites and we construct

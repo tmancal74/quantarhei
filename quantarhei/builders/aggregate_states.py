@@ -105,7 +105,26 @@ class ElectronicState(UnitsManaged):
                 sites.append(count)
             count += 1
         return sites
-                
+
+ 
+    def get_shared_sites(self, state):
+        """Returns a touple of sites shared by the two states
+        
+        
+        """
+        sig1 = self.elsignature
+        sig2 = state.elsignature
+        
+        # take a product of the signatures
+        combined = numpy.array(sig1)*numpy.array(sig2)
+        
+        sites = []
+        for ii, ex in enumerate(combined):
+            if ex > 0:
+                sites.append(ii)
+
+        return sites               
+
 
     def energy(self, vsig=None):
         """ Returns energy of the state (electronic + vibrational)
@@ -390,6 +409,25 @@ class VibronicState(UnitsManaged):
         """
         return self.vsig
 
+
+    def get_shared_sites(self, state):
+        """Returns a touple of sites shared by the two states
+        
+        
+        """
+        sig1 = self.elstate.elsignature
+        sig2 = state.elstate.elsignature
+        
+        # take a product of the signatures
+        combined = numpy.array(sig1)*numpy.array(sig2)
+        
+        sites = []
+        for ii, ex in enumerate(combined):
+            if ex > 0:
+                sites.append(ii)
+
+        return sites
+    
 
     def get_excited_sites(self):
         """Returns a list of excited sites corresponding to this state

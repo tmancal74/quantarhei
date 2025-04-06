@@ -131,21 +131,6 @@ class OpenSystem:
         self.WPM = self.map_egcf_to_states(mpx)
         self._has_wpm = True               
         
-        MM = self.WPM 
-        
-        # here we make some tests
-        coupling_is_zero = True
-        
-        if coupling_is_zero and self.mult == 2:
-                
-            print("0,0 = ", MM[0,0,:], ": should be [1, 0]")
-            print("0,1 = ", MM[0,1,:], ": should be 0")
-            print("1,0 = ", MM[1,0,:], ": should be 0")
-            print("1,1 = ", MM[1,1,:], ": should be [0, 1]")
-            print("2,0 = ", MM[2,0,:], ": should be [1, 0]")
-            print("2,1 = ", MM[2,1,:], ": should be [0, 1]")
-            print("2,2 = ", MM[2,2,:], ": should be [1, 1]")
-        
         return self.WPM
 
 
