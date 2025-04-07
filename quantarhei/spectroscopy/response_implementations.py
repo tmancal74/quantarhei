@@ -60,7 +60,7 @@ def R1g(t2, t1, t3, lab, system):
                     -1j*(En[aa]-En[g]-rwa)*t3[None,:]
                 )
 
-    return ret
+    return np.transpose(ret)
            
                 
 
@@ -122,7 +122,7 @@ def R2g(t2, t1, t3, lab, system):
                     -1j*(En[bb]-En[g]-rwa)*t3[None,:]
                 )
     
-    return ret                
+    return np.transpose(ret)                
 
 
 def R3g(t2, t1, t3, lab, system):
@@ -183,7 +183,7 @@ def R3g(t2, t1, t3, lab, system):
                     -1j*(En[bb]-En[g]-rwa)*t3[None,:]
                 )
 
-    return ret 
+    return np.transpose(ret) 
                 
 
 def R4g(t2, t1, t3, lab, system):
@@ -244,7 +244,7 @@ def R4g(t2, t1, t3, lab, system):
                     -1j*(En[bb]-En[g]-rwa)*t3[None,:]
                 )
 
-    return ret             
+    return np.transpose(ret)             
 
 
 def R1f(t2, t1, t3, lab, system):
@@ -319,7 +319,7 @@ def R1f(t2, t1, t3, lab, system):
                         -1j*(En[ff]-En[bb]-rwa)*t3[None,:]
                     )
     
-    return ret
+    return np.transpose(ret)
 
 
 def R2f(t2, t1, t3, lab, system):
@@ -395,7 +395,7 @@ def R2f(t2, t1, t3, lab, system):
                         -1j*(En[ff]-En[aa]-rwa)*t3[None,:]
                 )
 
-    return ret
+    return np.transpose(ret)
 
 
 dc = dict()
