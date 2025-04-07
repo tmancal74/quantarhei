@@ -159,10 +159,15 @@ class OpenSystem:
             "ng" : products of the transition dipole moments from ground state
         
         """
+        
+        return 
+    
         Nb0 = self.Nb[0]
         Nb1 = self.Nb[1]+Nb0
         if self.mult > 1:
             Nb2 = self.Nb[2]+Nb1
+            
+        print("COMP: ", Nb2, self.Ntot)
             
         # mutual scalar products of the transition dipole moments
         self.DSps = {}
@@ -181,6 +186,14 @@ class OpenSystem:
             DSp22 = numpy.einsum("ijk,ilk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
                                                  self.DD[Nb1:Nb2,Nb0:Nb1,:])
             self.DSps["22"] = DSp22
+            
+            
+            
+        # new version (check if the size of this is not too big)
+        
+        self.Dprod = numpy.einsum("ijn,kln->ijkl", self.DD,self.DD)
+        
+        print("Size: ", self.Ntot**4)
         
 
     def get_F4d(self, which="bbaa"):
@@ -197,76 +210,66 @@ class OpenSystem:
             
         """
         
-        def _setF4_2(F4, x1, x2, ff, x3, x4):
-            F4[0] = Dab_1212[ff,x4,x3]*Dab_0101[x2,x1]
-            F4[1] = Dab_1201[ff,x4,x2]*Dab_1201[ff,x3,x1]
-            F4[2] = Dab_1201[ff,x4,x1]*Dab_1201[ff,x3,x2]
+        def DD(aa,bb):
+            return numpy.dot(self.DD[aa[1],aa[0]],self.DD[bb[1],bb[0]])
         
-        def _setF4_1(F4, x1, x2, x3, x4):
-            F4[0] = Dab_0101[x4,x3]*Dab_0101[x2,x1]
-            F4[1] = Dab_0101[x4,x2]*Dab_0101[x3,x1]
-            F4[2] = Dab_0101[x4,x1]*Dab_0101[x3,x2] 
-            
-            
-        Dab_0101 = self.DSps["10"]
+        def _setF4(F4, x1, x2, x3, x4):
+            F4[0] = DD(x4,x3)*DD(x2,x1)
+            F4[1] = DD(x4,x2)*DD(x3,x1)
+            F4[2] = DD(x4,x1)*DD(x3,x2) 
         
-        # Number of states in the first electronic excited band
-        N1b = self.Nb[1]
-        
+        gg = 0
+        Ng = self.Nb[0]
+        band1 = self.get_band(1)
+        N1b = self.Nb[1] 
         if self.mult > 1:
-            # number of states in the second excited state band
+            band2 = self.get_band(2)
             N2b = self.Nb[2]
-            Dab_1201 = self.DSps["2110"]
-            Dab_1212 = self.DSps["22"]
-    
+            
         if which == "abba":
             F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
-            for aa in range(N1b):
-                x1 = aa
-                x4 = aa
-                for bb in range(N1b):
-                    x3 = bb
-                    x2 = bb
-                    _setF4_1(F4[aa,bb,:], x1, x2, x3, x4)    
+            for aa in band1:
+                a = aa - Ng
+                for bb in band1:
+                    b = bb - Ng
+                    _setF4(F4[a,b,:],(aa,gg),(bb,gg),(bb,gg),(aa,gg))
+                    
             
         elif which == "baba":
             F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
-            for aa in range(N1b):
-                x1 = aa
-                x3 = aa
-                for bb in range(N1b):
-                    x2 = bb
-                    x4 = bb
-                    _setF4_1(F4[aa,bb,:], x1, x2, x3, x4) 
+            for aa in band1:
+                a = aa - Ng
+                for bb in band1:
+                    b = bb - Ng
+                    _setF4(F4[a,b],(aa,gg),(bb,gg),(aa,gg),(bb,gg))
                     
         elif which == "bbaa":
-            
             F4 = numpy.zeros((N1b,N1b,3), dtype=REAL)
-            for aa in range(N1b):
-                x1 = aa
-                x2 = aa
-                for bb in range(N1b):
-                    x3 = bb
-                    x4 = bb
-                    _setF4_1(F4[aa,bb,:], x1, x2, x3, x4)
+            for aa in band1:
+                a = aa - Ng
+                for bb in band1:
+                    b = bb - Ng
+                    _setF4(F4[a,b,:],(aa,gg),(aa,gg),(bb,gg),(bb,gg))
                     
         elif which == "fbfaba":
             F4 = numpy.zeros((N2b,N1b,N1b,3), dtype=REAL)
-            for aa in range(N1b):
-                x1 = aa
-                for bb in range(N1b):
-                    x2 = bb
-                    for ff in range(N2b):
-                        _setF4_2(F4[ff,aa,bb,:], x1, x2, ff, x1, x2) 
+            for aa in band1:
+                a = aa - Ng
+                for bb in band1:
+                    b = bb - 1
+                    for ff in band2:
+                        f = ff - Ng - N1b
+                        _setF4(F4[f,a,b,:],(aa,gg),(bb,gg),(ff,aa),(ff,bb))
                     
         elif which == "fafbba":
             F4 = numpy.zeros((N2b,N1b,N1b,3), dtype=REAL)    
-            for aa in range(N1b):
-                x1 = aa
-                for bb in range(N1b):
-                    x2 = bb
-                    for ff in range(N2b):
-                        _setF4_2(F4[ff,aa,bb,:], x1, x2, ff, x2, x1) 
+            for aa in band1:
+                a = aa - Ng
+                for bb in band1:
+                    b = bb - Ng
+                    for ff in band2:
+                        f = ff - Ng - N1b
+                        _setF4(F4[f,a,b,:], (aa,gg), (bb,gg), (ff,bb), (ff,aa)) 
                     
         return F4
         

@@ -46,7 +46,7 @@ def R1g(t2, t1, t3, lab, system):
             a = aa - 1
             for bb in band1:
                 b = bb - 1
-    
+                    
                 ret += dfac[a,b]* \
                 np.exp(
                     -(np.einsum("i,ij", MM[b,a,:], gg[:,"t1"]))[:,None]
@@ -108,7 +108,7 @@ def R2g(t2, t1, t3, lab, system):
             a = aa - 1
             for bb in band1:  
                 b = bb - 1
-    
+                
                 ret += dfac[a,b]* \
                 np.exp(
                     (np.einsum("i,i", MM[a,b,:], gg[:,"t2"]))[None,None]
@@ -153,7 +153,7 @@ def R3g(t2, t1, t3, lab, system):
     MM = system.get_weighted_participation()
     En = system.get_eigenstate_energies()
     rwa = system.get_RWA_suggestion()
-    g = 0  # ground state index
+    #g = 0  # ground state index
     gg.create_data(reset={'t2':t2})
 
     band1 = system.get_band(1)
@@ -169,7 +169,7 @@ def R3g(t2, t1, t3, lab, system):
             a = aa - 1
             for bb in band1:
                 b = bb - 1
-    
+  
                 ret += dfac[a,b]* \
                 np.exp(
                     -(np.einsum("i,ij", MM[b,b,:], gg[:,"t3"]))[None,:]
@@ -214,7 +214,7 @@ def R4g(t2, t1, t3, lab, system):
     MM = system.get_weighted_participation()
     En = system.get_eigenstate_energies()
     rwa = system.get_RWA_suggestion()
-    g = 0  # ground state index
+    #g = 0  # ground state index
     gg.create_data(reset={'t2':t2})
 
     band1 = system.get_band(1)
@@ -230,7 +230,7 @@ def R4g(t2, t1, t3, lab, system):
             a = aa - 1
             for bb in band1:
                 b = bb - 1
-    
+
                 ret += dfac[a,b]* \
                 np.exp(
                     -(np.einsum("i,i", MM[b,a,:], gg[:,"t2"]))[None,None]
