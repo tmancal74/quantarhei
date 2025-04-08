@@ -2,7 +2,7 @@
 from .. import COMPLEX
 
 
-def R1g(t2, t1, t3, lab, system):
+def R1g(t2, t1, t3, lab, system, evol, KK):
     """ Returns a matrix of the respose function values for given t1 and t3 
     
     Parameters:
@@ -35,6 +35,10 @@ def R1g(t2, t1, t3, lab, system):
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
+    
+    Ut2 = evol[1]
+    Ut1 = evol[0]
+    Ut3 = evol[2]
 
     # dipole arrangemenent type: abba
     F4 = system.get_F4d('abba')
@@ -47,7 +51,8 @@ def R1g(t2, t1, t3, lab, system):
             for bb in band1:
                 b = bb - 1
                     
-                ret += dfac[a,b]* \
+                ret += dfac[a,b]*Ut2[a]*Ut2[b]* \
+                    Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                 np.exp(
                     -(np.einsum("i,ij", MM[b,a,:], gg[:,"t1"]))[:,None]
                     + (np.einsum("i,ij", MM[b,a,:], gg[:,"t1+t2"]))[:,None]
@@ -64,7 +69,7 @@ def R1g(t2, t1, t3, lab, system):
            
                 
 
-def R2g(t2, t1, t3, lab, system):
+def R2g(t2, t1, t3, lab, system, evol, KK):
     """ Returns a matrix of the respose function values for given t1 and t3 
     
     Parameters:
@@ -98,6 +103,10 @@ def R2g(t2, t1, t3, lab, system):
     band1 = system.get_band(1)
     band0 = system.get_band(0)
     
+    Ut2 = evol[1]
+    Ut1 = evol[0]
+    Ut3 = evol[2]
+    
     # dipole arrangemenent type: baba
     F4 = system.get_F4d('baba')
     dfac = np.einsum('i,abi->ab',lab.F4eM4,F4)
@@ -109,7 +118,8 @@ def R2g(t2, t1, t3, lab, system):
             for bb in band1:  
                 b = bb - 1
                 
-                ret += dfac[a,b]* \
+                ret += dfac[a,b]*Ut2[a]*Ut2[b]* \
+                    Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                 np.exp(
                     (np.einsum("i,i", MM[a,b,:], gg[:,"t2"]))[None,None]
                     - (np.einsum("i,ij", MM[b,b,:], gg[:,"t2+t3"]))[None,:]
@@ -125,7 +135,7 @@ def R2g(t2, t1, t3, lab, system):
     return np.transpose(ret)                
 
 
-def R3g(t2, t1, t3, lab, system):
+def R3g(t2, t1, t3, lab, system, evol, KK):
     """ Returns a matrix of the respose function values for given t1 and t3 
     
     Parameters:
@@ -158,6 +168,10 @@ def R3g(t2, t1, t3, lab, system):
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
+    
+    Ut2 = evol[1]
+    Ut1 = evol[0]
+    Ut3 = evol[2]
 
     # dipole arrangemenent type: bbaa
     F4 = system.get_F4d('bbaa')
@@ -171,6 +185,7 @@ def R3g(t2, t1, t3, lab, system):
                 b = bb - 1
   
                 ret += dfac[a,b]* \
+                    Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                 np.exp(
                     -(np.einsum("i,ij", MM[b,b,:], gg[:,"t3"]))[None,:]
                     + np.conj((np.einsum("i,i", MM[b,a,:], gg[:,"t2"]))[None,None])
@@ -186,7 +201,7 @@ def R3g(t2, t1, t3, lab, system):
     return np.transpose(ret) 
                 
 
-def R4g(t2, t1, t3, lab, system):
+def R4g(t2, t1, t3, lab, system, evol, KK):
     """ Returns a matrix of the respose function values for given t1 and t3 
     
     Parameters:
@@ -219,6 +234,10 @@ def R4g(t2, t1, t3, lab, system):
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
+    
+    Ut2 = evol[1]
+    Ut1 = evol[0]
+    Ut3 = evol[2]
 
     # dipole arrangemenent type: bbaa
     F4 = system.get_F4d('bbaa')
@@ -232,6 +251,7 @@ def R4g(t2, t1, t3, lab, system):
                 b = bb - 1
 
                 ret += dfac[a,b]* \
+                    Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                 np.exp(
                     -(np.einsum("i,i", MM[b,a,:], gg[:,"t2"]))[None,None]
                     - (np.einsum("i,ij", MM[a,a,:], gg[:,"t1"]))[:,None]
@@ -247,7 +267,7 @@ def R4g(t2, t1, t3, lab, system):
     return np.transpose(ret)             
 
 
-def R1f(t2, t1, t3, lab, system):
+def R1f(t2, t1, t3, lab, system, evol, KK):
     """ Returns a matrix of the respose function values for given t1 and t3 
     
     Parameters:
@@ -285,6 +305,10 @@ def R1f(t2, t1, t3, lab, system):
     N0 = system.Nb[0]
     N1 = system.Nb[1]
     
+    Ut2 = evol[1]
+    Ut1 = evol[0]
+    Ut3 = evol[2]
+    
     # dipole arrangemenent type: fbfaba
     F4 = system.get_F4d('fbfaba')
     dfac = np.einsum('i,fabi->fab',lab.F4eM4,F4)
@@ -299,7 +323,8 @@ def R1f(t2, t1, t3, lab, system):
                 for bb in band1:
                     b = bb - N0
 
-                    ret += -1.0*dfac[f,a,b]* \
+                    ret += -1.0*dfac[f,a,b]*Ut2[a]*Ut2[b]* \
+                                            Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                     np.exp(
                         -(np.einsum("i,ij", MM[a,a,:], gg[:,"t1+t2"]))[:,None]
                         - (np.einsum("i,ij", MM[b,a,:], gg[:,"t1"]))[:,None]
@@ -322,7 +347,7 @@ def R1f(t2, t1, t3, lab, system):
     return np.transpose(ret)
 
 
-def R2f(t2, t1, t3, lab, system):
+def R2f(t2, t1, t3, lab, system, evol, KK):
     """ Returns a matrix of the respose function values for given t1 and t3 
     
     Parameters:
@@ -359,6 +384,10 @@ def R2f(t2, t1, t3, lab, system):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
+    
+    Ut2 = evol[1]
+    Ut1 = evol[0]
+    Ut3 = evol[2]
 
     # dipole arrangemenent type: fafbba
     F4 = system.get_F4d('fafbba')
@@ -375,7 +404,8 @@ def R2f(t2, t1, t3, lab, system):
                 for bb in band1:
                     b = bb - N0
     
-                    ret += -1.0*dfac[f,a,b]* \
+                    ret += -1.0*dfac[f,a,b]*Ut2[a]*Ut2[b]* \
+                                            Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                         np.exp(
                         -(np.einsum("i,i", MM[b,b,:], gg[:,"t2"]))[None,None]
                         + (np.einsum("i,i", MM[p,b,:], gg[:,"t2"]))[None,None]

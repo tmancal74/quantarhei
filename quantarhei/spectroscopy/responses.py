@@ -2,6 +2,7 @@
 import numpy
 from ..core.managers import Manager
 from .response_implementations import get_implementation
+from .. import REAL
 
 """
     This packege contains two methodologies for calculating non-linear
@@ -44,7 +45,9 @@ class NonLinearResponse:
         self.t2s = t2s
         self.t3s = t3s
         
-        # devise a way to pass it to the response calculation
+        # setting zero rates for the case they are not set from outside
+        KK = numpy.zeros((system.Nb[1],system.Nb[1]),dtype=REAL)
+        self.set_rate_matrix(KK)
     
     
     def calculate_matrix(self, t2): 
@@ -60,7 +63,19 @@ class NonLinearResponse:
             
         
         """
-        return self.func(t2, self.t1s.data, self.t3s.data, self.lab, self.sys)
+        
+        # identify the index of the present t2 time
+        out = self.t2s.locate(t2)
+        t2i = out[0]
+        
+        # population decay factors at t2
+        U0t2 = self.U0_t2[:,t2i]
+        
+        return self.func(t2, self.t1s.data,
+                             self.t3s.data, 
+                             self.lab, self.sys, 
+                             (self.U0_t1,U0t2,self.U0_t3),
+                             self.KK)
 
 
     def set_rwa(self, rwa):
@@ -70,6 +85,36 @@ class NonLinearResponse:
         pass  # rwa is set through the system class, at least for now
         
 
+
+    def set_rate_matrix(self, KK):
+        """Sets the rate matrix and the corresponding evolution coefficients
+        
+        """
+        if KK.shape[0] == KK.shape[1]:
+            self.KK = KK
+            self.U0_t2 = numpy.zeros((KK.shape[0], self.t2s.length),
+                                  dtype=REAL)
+            self.U0_t1 = numpy.zeros((KK.shape[0], self.t1s.length),
+                                  dtype=REAL)
+            self.U0_t3 = numpy.zeros((KK.shape[0], self.t3s.length),
+                                  dtype=REAL)
+            
+        else:
+            raise Exception("Square matrix must be submitted")
+                    
+        if len(KK.shape) == 2:
+            # time independent rate matrix
+            for aa in range(KK.shape[0]):
+                if KK[aa,aa] <= 0.0:
+                    self.U0_t2[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t2s.data)
+                    self.U0_t1[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
+                    self.U0_t3[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
+                else:
+                    raise Exception("Depopulation rate must be negative.")
+                    
+        if len(KK.shape) == 3:
+            # time dependent rate matrix
+            pass
 
 
 ###############################################################################

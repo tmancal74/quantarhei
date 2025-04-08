@@ -194,8 +194,15 @@ class TwoDResponseCalculator:
                 Ns[0] = 1
                 Ns[1] = agg.nmono
                 Ns[2] = Ns[1]*(Ns[1]-1)/2
-                self.sys = band_system(Nb, Ns)
                 
+
+#
+# This is the part that uses ACETO library - soon to be abandoned
+#
+                    # FIXME: DO I NEED THIS????
+#
+###############################################################################
+                self.sys = band_system(Nb, Ns)
                 
                 #
                 # Set energies
@@ -207,6 +214,8 @@ class TwoDResponseCalculator:
                         en[i] = H.data[i,i]
                     self.sys.set_energies(en)
                 
+                
+               
                     #
                     # Set transition dipole moments
                     #
@@ -222,7 +231,8 @@ class TwoDResponseCalculator:
                         deff[i,:,:] = def_wr[:,:,i]
                     self.sys.set_dipoles(0,1,dge)
                     self.sys.set_dipoles(1,2,deff)
-                
+###############################################################################
+#              
                 
                 #
                 # Relaxation rates
@@ -236,9 +246,18 @@ class TwoDResponseCalculator:
                 Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
                 #print(1.0/KK.data)
                 
+                # FIXM: we need also 2 exciton rates
+                
+#
+# ACETO code ##################################################################
+#
+
                 self.sys.init_dephasing_rates()
                 self.sys.set_relaxation_rates(1,Kr)
-                
+
+#
+###############################################################################
+#                
                 
                 #
                 # Lineshape functions
@@ -247,6 +266,10 @@ class TwoDResponseCalculator:
                 cfm = sbi.CC
                 cfm.create_double_integral()
                 
+                
+#
+# ACETO code ##################################################################
+#
                 
                 #
                 # Transformation matrices
@@ -262,6 +285,10 @@ class TwoDResponseCalculator:
                 self.sys.set_transcoef(1,SS1)  
                 # matrix of transformation coefficients
                 self.sys.set_transcoef(2,SS2)    
+                
+#
+###############################################################################
+#
                   
                 #
                 # Finding population evolution matrix
@@ -285,6 +312,13 @@ class TwoDResponseCalculator:
                 
                 for rsp in self.resp_fcions:
                     rsp.set_rwa(self.rwa)
+                    
+            elif self._has_system:
+                
+                # FIXME: create responses from system
+                
+                pass
+                # FIXME: set _has_responses to True after they are calculated
                     
              
             #
@@ -364,8 +398,7 @@ class TwoDResponseCalculator:
         # FIXME: on which axis we should be looking for it2 ??? 
         (it2, err) = self.t2axis.locate(tt2) 
         self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)
-                     +" of "+str(Nt2)+")", end="\r")
-        #tc = it2        
+                     +" of "+str(Nt2)+")", end="\r")      
         
         #
         # Initialize response storage
@@ -376,6 +409,10 @@ class TwoDResponseCalculator:
             order = 'C'
             
         ntype = numpy.complex128
+        
+        
+        # FIXME:  Fix the axis of time
+        # the order of axis is wrong. 2D code works only if it is Nr3, Nr1
         
         resp_r = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_n = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
@@ -613,7 +650,6 @@ class TwoDResponseCalculator:
             Nk = teetoos.shape[0]
             
             for tt2 in teetoos:
-
 
                 self._vprint_r(" Calculating t2 =", tt2, "fs (",kk,"of",Nk,")")
                 onetwod = self.calculate_next()
