@@ -270,6 +270,16 @@ class OpenSystem:
                     for ff in band2:
                         f = ff - Ng - N1b
                         _setF4(F4[f,a,b,:], (aa,gg), (bb,gg), (ff,bb), (ff,aa)) 
+                        
+        elif which == "fbfbaa":
+            F4 = numpy.zeros((N2b,N1b,N1b,3), dtype=REAL)    
+            for aa in band1:
+                a = aa - Ng
+                for bb in band1:
+                    b = bb - Ng
+                    for ff in band2:
+                        f = ff - Ng - N1b
+                        _setF4(F4[f,a,b,:], (aa,gg), (aa,gg), (ff,bb), (ff,bb)) 
                     
         return F4
         

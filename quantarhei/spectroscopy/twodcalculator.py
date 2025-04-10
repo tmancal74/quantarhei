@@ -289,7 +289,12 @@ class TwoDResponseCalculator:
 #
 ###############################################################################
 #
-                  
+             
+
+#
+#  This section will also be removed - It goes to the new Response class
+#        
+
                 #
                 # Finding population evolution matrix
                 #
@@ -304,6 +309,8 @@ class TwoDResponseCalculator:
                 
                 #Ucor = Uee
                 self.Uc0 = cor[0]
+                
+###############################################################################
              
             #
             # bootstrap responses

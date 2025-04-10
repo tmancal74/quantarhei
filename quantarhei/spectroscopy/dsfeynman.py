@@ -12,6 +12,11 @@ class DSFeynmanDiagram():
     
     def __init__(self, ptype="non-defined"):
 
+        
+        ptype_simple = ["R1g", "R2g", "R3g", "R4g",
+                        "R1f", "R2f", "R3f", "R4f"]
+        ptype_relax = ["R1g_RL0", "R2g_RL0","R1f_L0", "R2f_RL0"]
+        
         self.states = {}
         self.pointer = 0
         self._pic_rep = "\n"
@@ -20,8 +25,7 @@ class DSFeynmanDiagram():
         self.light_transitions = {}
         self.ltcount = 0
 
-        if ptype in ["R1g", "R2g", "R3g", "R4g",
-                     "R1f", "R2f", "R3f", "R4f"]:
+        if ptype in ptype_simple + ptype_relax:
             self.type = ptype
         else:
             raise Exception("Unknown diagram type.")
@@ -29,7 +33,10 @@ class DSFeynmanDiagram():
         self.states[self.pointer] = ["g", "g"]
         self.add_states_line()
         
-        self.dimensions = {"t1":0, "t2":-1, "t3":1}
+        if self.type in ptype_simple:
+            self.dimensions = {"t1":0, "t2":-1, "t3":1}
+        elif self.type in ptype_relax:
+            self.dimensions = {"t1":0, "t2":-1, "t3":-1, "t4":1}
         
         self.diag_name = None
 
@@ -67,6 +74,19 @@ class DSFeynmanDiagram():
         self.add_states_line()
 
 
+    def add_trans(self, to="b"): 
+        """Add a non-radiative transition 
+        
+        """
+        self.pointer += 1
+        self.states[self.pointer] = [to,to]
+        self.light_transitions[self.ltcount] = \
+            (to, to)
+        self.ltcount += 1
+        self._pic_rep = "      |..........|\n"+self._pic_rep
+        self.add_states_line()
+        
+        
     def finish(self, end="g"):
         """Finishes the diagram with a given state
 
@@ -163,7 +183,7 @@ class DSFeynmanDiagram():
                 symbols.add(rightstate)
                 
                 times = dict()
-                if kk < 4:  
+                if kk <= len(self.dimensions): #4:  
                     tms = "t"+str(kk)
                     times[tms] = 1 
                     symbols.add(tms)
@@ -197,7 +217,7 @@ class DSFeynmanDiagram():
                 symbols.add(leftstate)
                 
                 times = dict()
-                if kk < 4: 
+                if kk <= len(self.dimensions): # 4: 
                     tms = "t"+str(kk)
                     times[tms] = 1
                     symbols.add(tms)
@@ -570,6 +590,37 @@ class R1g_Diagram(DSFeynmanDiagram):
         self.finish()
         
         self.diag_name="R1g"
+
+
+class R1g_R_Diagram(DSFeynmanDiagram):
+    """R1g diagram
+
+    Diagram of R1g type
+    
+    
+          | g      g |
+      <---|----------|
+          | b      g |
+          |----------|--->
+          | b      b |
+          |..........|
+          | a      a |
+          |----------|<---
+          | a      g |
+      --->|----------|
+          | g      g |
+
+    """
+    
+    def __init__(self, states=["a","b"]):
+        super().__init__(ptype="R1g_RL0")
+        self.add_arrow("left", "--->", to=states[0])
+        self.add_arrow("right", "<---", to=states[0])
+        self.add_trans(to=states[1])
+        self.add_arrow("right", "--->", "g" )
+        self.finish()
+    
+        self.diag_name="R1g_R"
 
 
 

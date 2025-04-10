@@ -312,6 +312,8 @@ from .spectroscopy.dsfeynman import R3g_Diagram
 from .spectroscopy.dsfeynman import R4g_Diagram
 from .spectroscopy.dsfeynman import R1f_Diagram
 from .spectroscopy.dsfeynman import R2f_Diagram
+from .spectroscopy.dsfeynman import R1g_R_Diagram
+
 
 
 ###############################################################################

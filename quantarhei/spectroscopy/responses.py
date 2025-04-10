@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy
 from ..core.managers import Manager
+from ..qm.propagators.poppropagator import PopulationPropagator
 from .response_implementations import get_implementation
 from .. import REAL
 
@@ -33,9 +34,9 @@ class NonLinearResponse:
         
         # which response to calculate; the function to calculate the respose
         self.diag = diagram
-        if self.diag in ["R1g","R4g", "R1f"]:
+        if self.diag in ["R1g","R4g", "R1f", "R1g_RL0", "R1f_RL0"]:
             self.rtype = "NR"
-        elif self.diag in ["R2g", "R3g", "R2f"]:
+        elif self.diag in ["R2g", "R3g", "R2f", "R2g_RL0", "R2f_RL0"]:
             self.rtype = "R"
             
         self.func = get_implementation(self.diag)
@@ -74,7 +75,7 @@ class NonLinearResponse:
         return self.func(t2, self.t1s.data,
                              self.t3s.data, 
                              self.lab, self.sys, 
-                             (self.U0_t1,U0t2,self.U0_t3),
+                             (self.U0_t1,self.U0_t3,U0t2, self.Uee[:,:,t2i]),
                              self.KK)
 
 
@@ -83,7 +84,6 @@ class NonLinearResponse:
         
         """
         pass  # rwa is set through the system class, at least for now
-        
 
 
     def set_rate_matrix(self, KK):
@@ -110,8 +110,22 @@ class NonLinearResponse:
                     self.U0_t1[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
                     self.U0_t3[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
                 else:
-                    raise Exception("Depopulation rate must be negative.")
+                    raise Exception("Depopulation rate must be negative.")              
                     
+            #
+            # Finding population evolution matrix
+            #
+            
+            # FIXME: Make sure it works with all t2s 
+            prop = PopulationPropagator(self.t2s, self.KK)
+
+
+            self.Uee, cor = prop.get_PropagationMatrix(self.t2s,
+                                                  corrections=0)
+              
+            self.U1_t2 = cor[0]
+              
+            
         if len(KK.shape) == 3:
             # time dependent rate matrix
             pass
