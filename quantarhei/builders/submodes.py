@@ -15,7 +15,7 @@ from ..core.managers import UnitsManaged
 
 from ..core.saveable import Saveable
 
-from .opensystem import OpenSystem
+#from .opensystem import OpenSystem
 from ..qm.hilbertspace.hamiltonian import Hamiltonian 
 from .. import REAL
 
@@ -60,7 +60,7 @@ class SubMode(UnitsManaged, Saveable):
         
 
 
-class HarmonicMode(SubMode, OpenSystem):
+class HarmonicMode(SubMode): #, OpenSystem):
     """Renaming the SubMode to be used as a standalone Harmonic oscillator mode"""
 
     def __init__(self, omega=1.0, shift=0.0, nmax=2):
@@ -102,7 +102,7 @@ class HarmonicMode(SubMode, OpenSystem):
 
 
 
-class UnharmonicMode(HarmonicMode):
+class AnharmonicMode(HarmonicMode):
     """
     
     
@@ -119,28 +119,18 @@ class UnharmonicMode(HarmonicMode):
         # unharmonicity
         self.xi = 0.0
         self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
-        self.dom = self.omega0 - self.omega
-        
+        self.dom = self.om0 - self.omega
 
-    def set_unharmonicity(self, xi):
+
+    def set_anharmonicity(self, xi):
         """Sets the ocillator anharmonicity
         
         """
-        if self.mtype == "harmonic":
-            raise Exception("No anharmonicity can be set for Harmonic oscillator")
-        
-        if not self.monomer_set: 
-            self.xi = xi
-            if self.nel == 0:
+        self.xi = xi
+        # corresponding harmonic frequency
+        self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
+        self.dom = self.om0 - self.omega
 
-                # corresponding harmonic frequency
-                self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
-                self.dom = self.omega0 - self.omega
-
-            else:
-                raise Exception("Mode must be stand alone, i.e. not associated with a molecule")
-        else:
-            raise Exception("Mode must be stand alone, i.e. not associated with a molecule")    
         
     
     def get_anharmonicity(self, dom=None):
@@ -174,13 +164,10 @@ class UnharmonicMode(HarmonicMode):
 
         # energy levels are known exactly
         for nn in range(N):
-            HH[nn,nn] = self.omega*(nn + 0.5) - self.omega*self.xi*((nn + 0.5)**2)
-
-
-
-
-
-        HH -= HH[0,0]
+            HH[nn,nn] = self.om0*(nn + 0.5) - self.om0*self.xi*((nn + 0.5)**2)
+            if nn == 0:
+                hzer = HH[0,0]
+            HH[nn,nn] -= hzer
         
         self.HH = HH
 
