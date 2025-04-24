@@ -1509,6 +1509,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         # electronic indices if twice excited state (zero for all other states)
         twoex_indx = numpy.zeros((Ntot, 2), dtype=int)
+        
+        # two-exciton state index by pair of single excitations
+        twoex_state = numpy.zeros((self.nmono,self.nmono), dtype=int)
+
 
         # Initialization of the matrix of couplings between states
         if not self.coupling_initiated:
@@ -1571,6 +1575,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         twoex_indx[a, k_s] = sig_position + 1
                         k_s += 1
                     sig_position += 1
+                    
+                if (twoex_indx[a,0]-1>=0) and (twoex_indx[a,1]-1>=0):
+                    twoex_state[twoex_indx[a,0]-1,twoex_indx[a,1]-1] = a
+                    twoex_state[twoex_indx[a,1]-1,twoex_indx[a,0]-1] = a    
+
+            self.twoex_state = twoex_state
 
 
             for b, s2 in self.all_states: #self.allstates(mult=self.mult,
@@ -1582,7 +1592,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                 if a != b:
                     HH[a,b] = numpy.real(self.coupling(s1, s2, full=fem_full))
-    
+
 
         # Storing Hamiltonian and dipole moment matrices
         self.HH = HH
@@ -1635,9 +1645,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         for ii in range(self.mult):
             rwa_indices[ii+1] = rwa_indices[ii]+self.Nb[ii]
         self.HamOp.set_rwa(rwa_indices)
-
-        # this is implemented in OpenSystem class
-        self.build_dipole_moments()
 
         #######################################################################
         #

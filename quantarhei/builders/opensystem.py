@@ -141,60 +141,7 @@ class OpenSystem:
         self.diagonalize()
         
         return self.HD
-        
-    
-    def build_dipole_moments(self):
-        """Builds information about transition dipole moments need for spectra
-        
-        
-        We assume that self.DD stores the transition dipole moments between
-        relevant states of the system. 
-        
-        Products of transition dipole moments are stored in 
-        
-        self.DSps 
-        
-        which is a dictionary. The keys are the following:
-            
-            "ng" : products of the transition dipole moments from ground state
-        
-        """
-        
-        return 
-    
-        Nb0 = self.Nb[0]
-        Nb1 = self.Nb[1]+Nb0
-        if self.mult > 1:
-            Nb2 = self.Nb[2]+Nb1
-            
-        print("COMP: ", Nb2, self.Ntot)
-            
-        # mutual scalar products of the transition dipole moments
-        self.DSps = {}
-        
-        # FIXME: Here all transitions are for 0 - we need to generalize
-        DSp01 = numpy.einsum("ik,jk->ij", self.DD[Nb0:Nb1,0,:],
-                                          self.DD[Nb0:Nb1,0,:])
-        self.DSps["10"] = DSp01
-        
-        if self.mult > 1:
 
-            # FIXME: also here the ground state transitions have to be generalized
-            DSp21 = numpy.einsum("ijk,lk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
-                                                self.DD[Nb0:Nb1,0,:])
-            self.DSps["2110"] = DSp21
-            DSp22 = numpy.einsum("ijk,ilk->ijl", self.DD[Nb1:Nb2,Nb0:Nb1,:],
-                                                 self.DD[Nb1:Nb2,Nb0:Nb1,:])
-            self.DSps["22"] = DSp22
-            
-            
-            
-        # new version (check if the size of this is not too big)
-        
-        self.Dprod = numpy.einsum("ijn,kln->ijkl", self.DD,self.DD)
-        
-        print("Size: ", self.Ntot**4)
-        
 
     def get_F4d(self, which="bbaa"):
         """Get vector of transition dipole moments for 4 wave-mixing 

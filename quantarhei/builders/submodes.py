@@ -6,6 +6,7 @@
     
     
 """
+import numpy
 
 from ..utils import Float
 from ..utils import Integer
@@ -13,6 +14,10 @@ from ..utils import Integer
 from ..core.managers import UnitsManaged
 
 from ..core.saveable import Saveable
+
+from .opensystem import OpenSystem
+from ..qm.hilbertspace.hamiltonian import Hamiltonian 
+from .. import REAL
 
 class SubMode(UnitsManaged, Saveable):
     """ Instance of a vibrational mode relative to a give electronic state 
@@ -53,3 +58,132 @@ class SubMode(UnitsManaged, Saveable):
         self.shift = shift
         self.nmax  = nmax
         
+
+
+class HarmonicMode(SubMode, OpenSystem):
+    """Renaming the SubMode to be used as a standalone Harmonic oscillator mode"""
+
+    def __init__(self, omega=1.0, shift=0.0, nmax=2):
+        super().__init__(omega=omega, shift=shift, nmax=nmax)
+        self._built = False
+
+
+    def build(self, nmax=None):
+        """Building all necessary quantities """
+
+        # if provided, we reset nmax
+        if nmax is not None:
+            self.nmax = nmax
+
+        N = self.nmax
+        HH = numpy.zeros((N,N), dtype=REAL)
+
+        for nn in range(N):
+            HH[nn,nn] = self.omega*(nn + 0.5)
+
+        HH -= HH[0,0]
+        
+        self.HH = HH
+
+        self.HamOp = Hamiltonian(data=HH)
+
+        self._built = True
+
+
+    def get_Hamiltonian(self):
+        """Returns the system Hamiltonian 
+        
+        """
+        if self._built:
+            return self.HamOp
+        else:
+            raise Exception("The Mode has to be built first.")
+        
+
+
+
+class UnharmonicMode(HarmonicMode):
+    """
+    
+    
+    
+    """
+    def __init__(self, omega=1.0, shift=0.0, nmax=2):
+        """
+        
+        In this case, omega is the difference between levels 1 and 0
+
+        """
+        super().__init__(omega=omega, shift=shift, nmax=nmax)
+
+        # unharmonicity
+        self.xi = 0.0
+        self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
+        self.dom = self.omega0 - self.omega
+        
+
+    def set_unharmonicity(self, xi):
+        """Sets the ocillator anharmonicity
+        
+        """
+        if self.mtype == "harmonic":
+            raise Exception("No anharmonicity can be set for Harmonic oscillator")
+        
+        if not self.monomer_set: 
+            self.xi = xi
+            if self.nel == 0:
+
+                # corresponding harmonic frequency
+                self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
+                self.dom = self.omega0 - self.omega
+
+            else:
+                raise Exception("Mode must be stand alone, i.e. not associated with a molecule")
+        else:
+            raise Exception("Mode must be stand alone, i.e. not associated with a molecule")    
+        
+    
+    def get_anharmonicity(self, dom=None):
+        """Returns the ahnarmonicity set previously, or calculates anharmonicity from frequency difference
+        
+        """
+        if dom is None:
+            return self.xi 
+        else:
+
+            dom_int = self.convert_energy_2_internal_u(dom)
+
+            return dom_int/(2.0*(self.omega + dom_int))
+        
+
+         
+
+
+    def build(self, nmax=None, xi=None):
+        """Building all necessary quantities """
+
+        # if provided, we reset nmax
+        if nmax is not None:
+            self.nmax = nmax
+
+        if xi is not None:
+            self.set_unharmonicity(xi)
+
+        N = self.nmax
+        HH = numpy.zeros((N,N), dtype=REAL)
+
+        # energy levels are known exactly
+        for nn in range(N):
+            HH[nn,nn] = self.omega*(nn + 0.5) - self.omega*self.xi*((nn + 0.5)**2)
+
+
+
+
+
+        HH -= HH[0,0]
+        
+        self.HH = HH
+
+        self.HamOp = Hamiltonian(data=HH)
+
+        self._built = True

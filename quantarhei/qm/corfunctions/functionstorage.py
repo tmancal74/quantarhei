@@ -654,7 +654,20 @@ class FunctionStorage:
             mtrx[ii,jj_ind] = 1.0
                 
         return mtrx
+
         
+    def get_reorganization_energies(self):
+        """Returns the estimate of the reoganization energies of the stored functions
+        
+        """
+        index = (slice(None,None,None),"t1")
+        igg = -numpy.imag(self.__getitem__(index))
+        tal = self.ta[0].length - 1
+        print("t1_max = ", self.ta[0].data[tal])
+        lam = igg[:,tal]/self.ta[0].data[tal]
+        
+        return lam
+            
 
 
 class FastFunctionStorage(FunctionStorage):

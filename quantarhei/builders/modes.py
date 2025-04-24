@@ -33,11 +33,13 @@ from ..core.wrappers import deprecated
 from ..core.saveable import Saveable
 
 from .submodes import SubMode
+
+from .opensystem import OpenSystem
         
         
 # Mode is UnitsManaged with components of different dimensions
 # Mode is not BasisManaged
-class Mode(UnitsManaged, Saveable):
+class Mode(UnitsManaged, Saveable, OpenSystem):
     """ Vibrational mode
     
         
@@ -96,7 +98,45 @@ class Mode(UnitsManaged, Saveable):
         
         self.has_mode_environment = False 
 
+#
+#      MODE (possibly anharmonic) AS AN OPEN QUANTUM SYSTEM
+#
+
+    def set_unharmonicity(self, xi):
+        """Sets the ocillator anharmonicity
         
+        """
+        if self.mtype == "harmonic":
+            raise Exception("No anharmonicity can be set for Harmonic oscillator")
+        
+        if not self.monomer_set: 
+            self.xi = xi
+            if self.nel == 0:
+
+                # corresponding harmonic frequency
+                self.om0 = self.submodes[0].omega*(1.0/(1.0-2.0*self.xi))
+
+            else:
+                raise Exception("Mode must be stand alone, i.e. not associated with a molecule")
+        else:
+            raise Exception("Mode must be stand alone, i.e. not associated with a molecule")    
+        
+         
+
+    def get_Hamiltonian(self):
+        """Returns the system Hamiltonian 
+        
+        
+        This is a method to be implemented by the particular system
+        
+        """
+        raise Exception("get_Hamiltonian() is not implemented.")
+    
+
+#
+#   MODE AS A PART OF A MOLECULE
+#
+
     def set_Molecule(self, monomer):
         """Assigns this mode to a given monomer.
         

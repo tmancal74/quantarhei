@@ -34,9 +34,9 @@ class NonLinearResponse:
         
         # which response to calculate; the function to calculate the respose
         self.diag = diagram
-        if self.diag in ["R1g","R4g", "R1f", "R1g_RL0", "R1f_RL0"]:
+        if self.diag in ["R1g","R4g", "R1f", "R1g_scM0g", "R1f_scM0g", "R1f_scM0e"]:
             self.rtype = "NR"
-        elif self.diag in ["R2g", "R3g", "R2f", "R2g_RL0", "R2f_RL0"]:
+        elif self.diag in ["R2g", "R3g", "R2f", "R2g_scM0g", "R2f_scM0g", "R2f_scM0e"]:
             self.rtype = "R"
             
         self.func = get_implementation(self.diag)
@@ -92,26 +92,46 @@ class NonLinearResponse:
         """
         if KK.shape[0] == KK.shape[1]:
             self.KK = KK
+            
             self.U0_t2 = numpy.zeros((KK.shape[0], self.t2s.length),
                                   dtype=REAL)
             self.U0_t1 = numpy.zeros((KK.shape[0], self.t1s.length),
                                   dtype=REAL)
             self.U0_t3 = numpy.zeros((KK.shape[0], self.t3s.length),
-                                  dtype=REAL)
+                                  dtype=REAL)  
             
+            if KK.shape[0] != self.sys.Ntot: 
+                if self.sys.mult == 2:
+                    self.U0fe_t3 = numpy.zeros((self.sys.Nb[2], 
+                                                KK.shape[0], self.t3s.length),
+                                                dtype=REAL)
+                else:
+                    raise Exception("Relaxation matrix has a wrong size: "
+                                    +str(KK.shape[0]))                    
+                    
+
         else:
             raise Exception("Square matrix must be submitted")
-                    
+         
+        # time independent rate matrix
         if len(KK.shape) == 2:
-            # time independent rate matrix
+            
+            #
+            # Relaxation caused dephasing for single excitons
+            #
             for aa in range(KK.shape[0]):
                 if KK[aa,aa] <= 0.0:
                     self.U0_t2[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t2s.data)
-                    self.U0_t1[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
-                    self.U0_t3[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
+                    self.U0_t1[aa,:] = 1.0 #numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
+                    self.U0_t3[aa,:] = 1.0 #numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
                 else:
                     raise Exception("Depopulation rate must be negative.")              
+               
+            #
+            # Relaxation caused dephasing for double-excitons
+            #
                     
+               
             #
             # Finding population evolution matrix
             #
