@@ -17,6 +17,9 @@ from ..core.saveable import Saveable
 
 #from .opensystem import OpenSystem
 from ..qm.hilbertspace.hamiltonian import Hamiltonian 
+from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
+from ..qm.oscillators.ho import operator_factory
+
 from .. import REAL
 
 class SubMode(UnitsManaged, Saveable):
@@ -76,6 +79,10 @@ class HarmonicMode(SubMode): #, OpenSystem):
             self.nmax = nmax
 
         N = self.nmax
+
+        #
+        # Hamiltonian
+        #
         HH = numpy.zeros((N,N), dtype=REAL)
 
         for nn in range(N):
@@ -86,6 +93,26 @@ class HarmonicMode(SubMode): #, OpenSystem):
         self.HH = HH
 
         self.HamOp = Hamiltonian(data=HH)
+
+        #
+        # Dipole moment
+        #
+        DD = numpy.zeros((N,N,3), dtype=REAL)
+
+        ofac = operator_factory()
+        ad = ofac.creation_operator()
+        aa = ofac.anihilation_operator()
+        
+        # FIXME: In what units we define transition dipole moment?
+        dip = (ad + aa)/numpy.sqrt(2.0) 
+
+        DD[:,:,0] = dip[:N,:N]
+        self.DD = DD
+
+        # FIXME: make this on-demand (if poissible)
+        trdata = numpy.zeros((DD.shape[0],DD.shape[1],DD.shape[2]),dtype=REAL)
+        trdata[:,:,:] = DD[:,:,:]
+        self.TrDMOp = TransitionDipoleMoment(data=trdata)
 
         self._built = True
 
@@ -98,7 +125,15 @@ class HarmonicMode(SubMode): #, OpenSystem):
             return self.HamOp
         else:
             raise Exception("The Mode has to be built first.")
-        
+
+    def get_TransitionDipoleMoment(self):
+        """Returns the aggregate transition dipole moment operator
+
+        """
+        if self._built:
+            return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
+        else:
+            raise Exception("The Mode has to be built first.")       
 
 
 
@@ -121,6 +156,8 @@ class AnharmonicMode(HarmonicMode):
         self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
         self.dom = self.om0 - self.omega
 
+        self._diagonalized = True
+
 
     def set_anharmonicity(self, xi):
         """Sets the ocillator anharmonicity
@@ -131,8 +168,7 @@ class AnharmonicMode(HarmonicMode):
         self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
         self.dom = self.om0 - self.omega
 
-        
-    
+
     def get_anharmonicity(self, dom=None):
         """Returns the ahnarmonicity set previously, or calculates anharmonicity from frequency difference
         
@@ -140,14 +176,9 @@ class AnharmonicMode(HarmonicMode):
         if dom is None:
             return self.xi 
         else:
-
             dom_int = self.convert_energy_2_internal_u(dom)
-
             return dom_int/(2.0*(self.omega + dom_int))
         
-
-         
-
 
     def build(self, nmax=None, xi=None):
         """Building all necessary quantities """
@@ -160,6 +191,10 @@ class AnharmonicMode(HarmonicMode):
             self.set_unharmonicity(xi)
 
         N = self.nmax
+
+        #
+        #  Hamiltonian
+        #
         HH = numpy.zeros((N,N), dtype=REAL)
 
         # energy levels are known exactly
@@ -173,4 +208,20 @@ class AnharmonicMode(HarmonicMode):
 
         self.HamOp = Hamiltonian(data=HH)
 
+        #
+        #  Dipole moment 
+        #
+
+
         self._built = True
+
+
+    def diagonalize(self):
+        """This problem is diagonal from the begining
+        
+        """
+        if self._diagonalized:
+            return
+        
+        self._diagonalized = True
+
