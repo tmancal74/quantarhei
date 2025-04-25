@@ -15,6 +15,7 @@ from ..core.managers import UnitsManaged
 
 from ..core.saveable import Saveable
 
+# FIXME: fix the circular imports so that we can have oscillators as OpenSystems
 #from .opensystem import OpenSystem
 from ..qm.hilbertspace.hamiltonian import Hamiltonian 
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
@@ -64,7 +65,12 @@ class SubMode(UnitsManaged, Saveable):
 
 
 class HarmonicMode(SubMode): #, OpenSystem):
-    """Renaming the SubMode to be used as a standalone Harmonic oscillator mode"""
+    """Renaming the SubMode to be used as a standalone Harmonic oscillator mode
+    
+    
+       PES shift is always 0 (will be implemented later)
+
+    """
 
     def __init__(self, omega=1.0, shift=0.0, nmax=2):
         super().__init__(omega=omega, shift=shift, nmax=nmax)
@@ -104,6 +110,18 @@ class HarmonicMode(SubMode): #, OpenSystem):
         self._setup_dipole_moment(N, ad, aa)
 
         self._built = True
+        self._diagonalized = True
+
+
+    def diagonalize(self):
+        """This problem is diagonal from the begining
+        
+        """
+        if self._diagonalized:
+            return
+        
+
+        self._diagonalized = True
 
 
     def _setup_dipole_moment(self, N, ad, aa, ss=None, pfac=1.0):
@@ -135,6 +153,7 @@ class HarmonicMode(SubMode): #, OpenSystem):
             return self.HamOp
         else:
             raise Exception("The Mode has to be built first.")
+
 
     def get_TransitionDipoleMoment(self):
         """Returns the aggregate transition dipole moment operator
@@ -244,6 +263,9 @@ class AnharmonicMode(HarmonicMode):
 
         hd, SS = numpy.linalg.eigh(hm)
 
+        # saving transformation coefficients
+        self.SS = SS[:N,:N]
+
         HM = numpy.zeros((N,N), dtype=REAL)
         HM[:,:] = numpy.real(numpy.diag(hd[:N]))
 
@@ -261,14 +283,7 @@ class AnharmonicMode(HarmonicMode):
         self._setup_dipole_moment(N, ad, aa, ss=SS)
 
         self._built = True
-
-
-    def diagonalize(self):
-        """This problem is diagonal from the begining
-        
-        """
-        if self._diagonalized:
-            return
-        
+        # this system is prepared in its eigenstate basis
         self._diagonalized = True
+
 
