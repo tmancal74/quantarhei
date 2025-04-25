@@ -80,15 +80,19 @@ class HarmonicMode(SubMode): #, OpenSystem):
 
         N = self.nmax
 
+        ofac = operator_factory()
+        ad = ofac.creation_operator()
+        aa = ofac.anihilation_operator()
+
         #
         # Hamiltonian
         #
+        EE = ofac.unity_operator()
+        hh = self.omega*(numpy.dot(ad,aa) + EE*0.5)
         HH = numpy.zeros((N,N), dtype=REAL)
+        HH[:,:] = hh[:N,:N]
 
-        for nn in range(N):
-            HH[nn,nn] = self.omega*(nn + 0.5)
-
-        HH -= HH[0,0]
+        HH -= HH[0,0]*EE[:N,:N]
         
         self.HH = HH
 
@@ -97,24 +101,30 @@ class HarmonicMode(SubMode): #, OpenSystem):
         #
         # Dipole moment
         #
-        DD = numpy.zeros((N,N,3), dtype=REAL)
+        self._setup_dipole_moment(N, ad, aa)
 
-        ofac = operator_factory()
-        ad = ofac.creation_operator()
-        aa = ofac.anihilation_operator()
+        self._built = True
+
+
+    def _setup_dipole_moment(self, N, ad, aa, ss=None, pfac=1.0):
+
+        DD = numpy.zeros((N,N,3), dtype=REAL)
         
         # FIXME: In what units we define transition dipole moment?
-        dip = (ad + aa)/numpy.sqrt(2.0) 
+        dip = pfac*(ad + aa)/numpy.sqrt(2.0) 
 
-        DD[:,:,0] = dip[:N,:N]
+        # transform if needed
+        if ss is not None:
+            s1 = numpy.linalg.inv(ss)
+            dip = numpy.dot(s1, numpy.dot(dip,ss))
+
+        DD[:,:,0] = numpy.real(dip[:N,:N])
         self.DD = DD
 
         # FIXME: make this on-demand (if poissible)
         trdata = numpy.zeros((DD.shape[0],DD.shape[1],DD.shape[2]),dtype=REAL)
         trdata[:,:,:] = DD[:,:,:]
         self.TrDMOp = TransitionDipoleMoment(data=trdata)
-
-        self._built = True
 
 
     def get_Hamiltonian(self):
@@ -193,7 +203,7 @@ class AnharmonicMode(HarmonicMode):
         N = self.nmax
 
         #
-        #  Hamiltonian
+        #  Exact Hamiltonian
         #
         HH = numpy.zeros((N,N), dtype=REAL)
 
@@ -203,15 +213,52 @@ class AnharmonicMode(HarmonicMode):
             if nn == 0:
                 hzer = HH[0,0]
             HH[nn,nn] -= hzer
-        
-        self.HH = HH
 
-        self.HamOp = Hamiltonian(data=HH)
+        # saving the exact Hamiltonian (this line will be removed later)
+        self.HamOp_ex = Hamiltonian(data=HH)
+
+        #
+        # Morse by diagonalization
+        # 
+        ofac = operator_factory()
+        ad = ofac.creation_operator()
+        aa = ofac.anihilation_operator()
+        EE = ofac.unity_operator()
+        qq = (ad + aa)/numpy.sqrt(2.0)
+        pp = 1j*(ad - aa)/numpy.sqrt(2.0)
+
+        hm = (self.omega/2.0)*(numpy.dot(pp,pp) + numpy.dot(qq,qq))
+
+        # potential
+        earg = numpy.sqrt(2.0*self.xi)*qq 
+        de, ss = numpy.linalg.eigh(earg)
+
+        # e^{-a q}
+        e_argd = numpy.dot(ss, numpy.dot(numpy.diag(numpy.exp(-de)), numpy.linalg.inv(ss)))
+        # 1 - e^{-a q}
+        sqrtV = EE - e_argd
+        # De*(1- e^{-a q})
+        V_morse = (self.om0/(4.0*self.xi))*numpy.dot(sqrtV,sqrtV)
+
+        hm = (self.om0/2.0)*numpy.dot(pp,pp) + V_morse
+
+        hd, SS = numpy.linalg.eigh(hm)
+
+        HM = numpy.zeros((N,N), dtype=REAL)
+        HM[:,:] = numpy.real(numpy.diag(hd[:N]))
+
+        hzer = HM[0,0]
+        for nn in range(N):
+            HM[nn,nn] -= hzer
+
+        self.HH = HM
+
+        self.HamOp = Hamiltonian(data=HM)
 
         #
         #  Dipole moment 
         #
-
+        self._setup_dipole_moment(N, ad, aa, ss=SS)
 
         self._built = True
 
