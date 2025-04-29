@@ -103,6 +103,8 @@ class HarmonicMode(SubMode): #, OpenSystem):
         self.HH = HH
 
         self.HamOp = Hamiltonian(data=HH)
+        rind = numpy.array([n for n in range(N)], dtype=int)
+        self.HamOp.set_rwa(rwa_indices=rind)
 
         #
         # Dipole moment
@@ -276,7 +278,9 @@ class AnharmonicMode(HarmonicMode):
         self.HH = HM
 
         self.HamOp = Hamiltonian(data=HM)
-
+        rind = numpy.array([n for n in range(N)], dtype=int)
+        self.HamOp.set_rwa(rwa_indices=rind)
+        
         #
         #  Dipole moment 
         #

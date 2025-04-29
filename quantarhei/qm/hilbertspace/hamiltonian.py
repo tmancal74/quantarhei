@@ -326,7 +326,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             out += "\nBlock average energies:"
             for k in range(self.Nblocks):
                 out += "\n "+str(k)+" : "\
-                +str(self.rwa_energies[self.rwa_indices[k]])
+                +str(self.convert_2_current_u(self.rwa_energies[self.rwa_indices[k]]))
         out += "\ndata = \n"
         out += str(self.data)
         return out

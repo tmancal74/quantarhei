@@ -22,6 +22,7 @@ from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
 from .. import REAL, COMPLEX
+from .. import Manager
 
 class LabSetup:
     """Laboratory set-up for non-linear spectroscopy
@@ -885,10 +886,10 @@ class LabSetup:
         
         """
         
-        # FIXME: energe unit control has to be in place
+        # FIXME: energy unit control has to be in place
         if len(omegas) == self.number_of_pulses:
             
-            self.omega = numpy.array(omegas, dtype=REAL)
+            self.omega = Manager().convert_energy_2_internal_u(numpy.array(omegas, dtype=REAL))
             
         else:
             raise Exception("Wrong number of frequencies: "+
@@ -1554,6 +1555,10 @@ class LabField():
         
             
     def get_pulse_envelop(self, tt):
+        """Returns the envelop values
+        
+        
+        """
 
         #tma = self.timeaxis
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
@@ -1575,5 +1580,30 @@ class LabField():
             raise Exception()
             
             
+    def get_pulse_envelop_function(self):
+        """Return a function to be called later
+        
+        
+        """
+
+        if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
+            fwhm = self.labsetup.saved_params[self.index]["FWHM"]
+            amp = self.labsetup.saved_params[self.index]["amplitude"]
+            lfc = 4.0*numpy.log(2.0)
+            pi = numpy.pi
+
+            def env(tt):
+
+                val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/pi) \
+                    *amp*numpy.exp(-lfc*(tt/fwhm)**2) 
+            
+                return val
+
+            return env
+        
+        else:
+
+            raise Exception()  
+
 
 

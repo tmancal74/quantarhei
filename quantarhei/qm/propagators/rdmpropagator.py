@@ -1369,7 +1369,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         It is implicitly assumed that the field is X-polarized.
         
-        Rotating wabe approximation is not considered.
+        Rotating wave approximation is not considered.
         
         """
         if self.RelaxationTensor.as_operators:
@@ -1388,15 +1388,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         rho2 = rhoi.data
         
         HH = self.Hamiltonian.data        
-        RR = self.RelaxationTensor.data   
-        
+        RR = self.RelaxationTensor.data  
+    
         #
         # We do not have an information on polarization - we take X as default
         #
         MU = self.Trdip.data[:,:,0]
-        
-        EE = self.Efield    
-        
+
+        MU_u = numpy.triu(MU,k=1)
+        MU_l = numpy.tril(MU,k=-1)
+
+        EEp = self.Efield    # E field must be a complex possitive frequency part
+        EEm = numpy.conj(EEp)
+
         IR = 0.0
         indx = 1
         for tt in self.TimeAxis.data[1:self.Nt]:
@@ -1404,13 +1408,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             #for jj in range(0,self.Nref):
             if self.has_Iterm:
                 IR = self.RelaxationTensor.Iterm[indx,:,:]
-            MuE = MU*EE[indx]
+            MuE_u = MU_u*EEm[indx]
+            MuE_l = MU_l*EEp[indx]
             
             for ll in range(1,L+1):
                 
                 rhoY =  -_COM(HH, ll, self.dt, rho1)
                 _TTI(rhoY,RR, IR, ll, self.dt, rho1, L=L)
-                rhoY += _COM(MuE, ll, self.dt, rho1)
+                rhoY += _COM(MuE_u, ll, self.dt, rho1)
+                rhoY += _COM(MuE_l, ll, self.dt, rho1)
                        # - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
                        #   - numpy.dot(rho1,HH) ) \
                        # + (self.dt/ll)*numpy.tensordot(RR,rho1) \
