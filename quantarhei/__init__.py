@@ -216,6 +216,7 @@ from .builders.aggregates import Aggregate
 from .builders.aggregate_test import TestAggregate
 from .builders.pdb import PDBFile
 from .builders.disorder import Disorder
+from .builders.opensystem import OpenSystem
 
 #
 # Core classes
