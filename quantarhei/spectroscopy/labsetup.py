@@ -888,7 +888,7 @@ class LabSetup:
         
         # FIXME: energy unit control has to be in place
         if len(omegas) == self.number_of_pulses:
-            
+
             self.omega = Manager().convert_energy_2_internal_u(numpy.array(omegas, dtype=REAL))
             
         else:
@@ -1141,6 +1141,25 @@ class LabSetup:
             
         return fld
         
+
+    def get_field_derivative(self):
+        """ Returns the time derivative of the total field
+
+        """
+
+        flds = self.get_labfields()
+        
+        kk = 0
+        for fl in flds:
+
+            if kk == 0:
+                fld_d = fl.get_field_derivative()
+            else:
+                fld_d += fl.get_field_derivative()
+            
+            kk += 1
+            
+        return fld_d        
         
 
  

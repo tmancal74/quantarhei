@@ -1359,17 +1359,28 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
 
-    def __propagate_short_exp_with_relaxation_field(self,rhoi,L=4):
+    def __propagate_short_exp_with_relaxation_field(self, rhoi, L=4):
         """Short exponential integration with relaxation and array field
         
-        Propagates the system defined by Hamiltonian and the relaxation
+        Propagates the system defined by the Hamiltonian and the relaxation
         tensor under the influence of an electric field defined as 
-        a real-valued array. The relaxation tensor must be independent
-        of time.
-        
-        It is implicitly assumed that the field is X-polarized.
-        
-        Rotating wave approximation is not considered.
+        a complex-valued array. The array corresponds to the positive frequency
+        component of the field.
+
+        Algorith datails
+        ----------------
+        Polarization: It is implicitly assumed that the field is X-polarized (to be generalized)
+        Rotating wave approximation: RWA is not considered (to be fixed)
+        Relaxation tensor: The relaxation tensor must be independent of time.
+
+        Parameters
+        ----------
+
+        rhoi : DensityMatrix
+            Initial reduced density matrix
+
+        L : int
+            Order of expansion of the exponential in the propagation
         
         """
         if self.RelaxationTensor.as_operators:
@@ -1382,48 +1393,60 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         if self.Nref != 1:
             raise Exception("Cannot propagation with refined time-step.")
             
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+        # here the dynamics will be stored
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
-        rho1 = rhoi.data
-        rho2 = rhoi.data
-        
+        # Hamiltonian and the relaxation tensor
         HH = self.Hamiltonian.data        
         RR = self.RelaxationTensor.data  
     
         #
         # We do not have an information on polarization - we take X as default
         #
-        MU = self.Trdip.data[:,:,0]
+        X = 0
+        # Upper and lower triangle of the transition dipole moment operator
+        MU_u = numpy.triu(self.Trdip.data[:,:,X],k=1)
+        MU_l = numpy.tril(self.Trdip.data[:,:,X],k=-1)
 
-        MU_u = numpy.triu(MU,k=1)
-        MU_l = numpy.tril(MU,k=-1)
-
+        # positive and negative frequency component of the field
         EEp = self.Efield    # E field must be a complex possitive frequency part
         EEm = numpy.conj(EEp)
 
+        # auxiliary density matrices
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+
+        #
+        # Propagation loop
+        #
         IR = 0.0
         indx = 1
         for tt in self.TimeAxis.data[1:self.Nt]:
             
+            #
+            #  Time step refinement loop (disabled temporarily) 
+            #
             #for jj in range(0,self.Nref):
+
+            # Initial term
             if self.has_Iterm:
                 IR = self.RelaxationTensor.Iterm[indx,:,:]
+
+            # field-multiplicated transition dipole moment 
             MuE_u = MU_u*EEm[indx]
             MuE_l = MU_l*EEp[indx]
             
+            # expansion of the exponential
             for ll in range(1,L+1):
                 
                 rhoY =  -_COM(HH, ll, self.dt, rho1)
-                _TTI(rhoY,RR, IR, ll, self.dt, rho1, L=L)
+                _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
                 rhoY += _COM(MuE_u, ll, self.dt, rho1)
-                rhoY += _COM(MuE_l, ll, self.dt, rho1)
-                       # - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                       #   - numpy.dot(rho1,HH) ) \
-                       # + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                       #  + (1j*self.dt/ll)*( numpy.dot(MU,rho1) \
-                       #   - numpy.dot(rho1,MU) )*EE[indx]                             
+                rhoY += _COM(MuE_l, ll, self.dt, rho1)  
+
                 rho1 = rhoY        
                 rho2 = rho2 + rho1
+
             rho1 = rho2   
             
             # the for jj loop would end here
