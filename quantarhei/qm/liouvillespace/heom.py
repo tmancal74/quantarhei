@@ -691,6 +691,10 @@ class KTHierarchyPropagator:
         
 
 class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
+    """If QuTip is installed, this class provides the solution of the HEOM
+    
+    
+    """
 
     def __init__(self, timeaxis, hierarchy):
 
