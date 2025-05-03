@@ -237,7 +237,22 @@ class SystemBathInteraction(Saveable):
                 raise Exception("sys_operators tuple (the first argument)"
                 + " has to contain cu.oqs.hilbertspace.Operator")
 
+
+    def get_time_axis(self):
+        """Returns the time axis of the storred correlation functions
         
+        """
+        return self.TimeAxis
+        
+    
+    def get_correlation_function(self, where):
+        """Returns the bath correlation function object defined by a pair of sites (tuple)
+         
+        """
+
+        return self.CC.get_correlation_function(where[0],where[1])
+
+
     def get_coft(self, n, m):
         """Returns bath correlation function corresponding to sites n and m
 

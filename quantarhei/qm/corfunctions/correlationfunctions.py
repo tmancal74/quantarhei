@@ -632,7 +632,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Returns correlation time associated with the first component 
         of the bath correlation function
         """
-        return self.params[0]["ctime"]
+        return self.params[0]["cortime"]
 
     def measure_reorganization_energy(self):
         """Calculates the reorganization energy of the correlation function

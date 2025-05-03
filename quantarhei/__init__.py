@@ -339,6 +339,7 @@ from .qm import Hamiltonian
 from .qm import Liouvillian
 from .qm import TransitionDipoleMoment
 from .qm import UnityOperator
+from .qm import ProjectionOperator
 
 #
 # Propagators
@@ -367,8 +368,10 @@ from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 # System-bath interaction
 #
 from .qm.corfunctions import CorrelationFunction
+from .qm.corfunctions import CorrelationFunctionMatrix
 from .qm.corfunctions import LineshapeFunction
 from .qm.corfunctions import SpectralDensity
+from .qm import SystemBathInteraction
 from .qm.corfunctions.correlationfunctions import oscillator_scalled_CorrelationFunction
 
 #
@@ -380,6 +383,7 @@ from .qm.corfunctions import FastFunctionStorage
 
 from .qm.liouvillespace.heom import KTHierarchy
 from .qm.liouvillespace.heom import KTHierarchyPropagator
+from .qm.liouvillespace.heom import QuTip_KTHierarchyPropagator
 
 from .symbolic.cumulant import evaluate_cumulant
 

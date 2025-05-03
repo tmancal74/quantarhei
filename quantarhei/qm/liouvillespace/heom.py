@@ -689,3 +689,21 @@ class KTHierarchyPropagator:
 
     
         
+
+class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
+
+    def propagate(self, rhoi, options={}, report_hierarchy=False):
+        """Propagates the Kubo-Tanimura Hierarchy using QuTip implementation
+        
+        """
+        from ...implementations.qutip.qutip_heom import run_simulation
+        #rhot = DensityMatrixEvolution(timeaxis=self.timeaxis, rhoi=rhoi)
+
+        ham = self.hy.ham
+        sbi = self.hy.sbi
+
+        hparams = dict(hierarchy_level=self.hy.depth, number_of_exponentials=0)
+
+        rhot = run_simulation(ham, sbi, hparams, rhoi)
+
+        return rhot 
