@@ -692,18 +692,43 @@ class KTHierarchyPropagator:
 
 class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
 
-    def propagate(self, rhoi, options={}, report_hierarchy=False):
+    def __init__(self, timeaxis, hierarchy):
+
+        super().__init__(timeaxis, hierarchy)
+        self._is_prepared = False
+
+
+    def propagate(self, rhoi, options=None, report_hierarchy=False):
         """Propagates the Kubo-Tanimura Hierarchy using QuTip implementation
         
         """
         from ...implementations.qutip.qutip_heom import run_simulation
-        #rhot = DensityMatrixEvolution(timeaxis=self.timeaxis, rhoi=rhoi)
+        from ...implementations.qutip.qutip_heom import prepare_simulation
 
         ham = self.hy.ham
         sbi = self.hy.sbi
+        depth = self.hy.depth
 
-        hparams = dict(hierarchy_level=self.hy.depth, number_of_exponentials=0)
+        if options is None:
 
-        rhot = run_simulation(ham, sbi, hparams, rhoi)
+            loc_options = {
+            "nsteps": 5000,
+            "store_states": True,
+            "rtol": 1e-12,
+            "atol": 1e-12,
+            "min_step": 1e-18,
+            "method": "vern9",
+            "progress_bar": "enhanced"
+            }
+
+        else:
+
+            loc_options = options
+
+        if not self._is_prepared:
+            self.qutip_data = prepare_simulation(ham, sbi, depth)
+            self._is_prepared = True
+
+            rhot = run_simulation(self, rhoi, options=loc_options)
 
         return rhot 

@@ -70,12 +70,9 @@ fmo_ham = numpy.array([
 
 """
 
+def prepare_simulation(Ham, sbi, depth):
 
-def run_simulation(Ham, sbi, heom_params, rhoi):
-
-    timea = sbi.get_time_axis()
-
-    id = int(time.time())
+    qutip_data = dict(depth=depth)
 
     # number of states 
     Ngr = 1
@@ -91,79 +88,24 @@ def run_simulation(Ham, sbi, heom_params, rhoi):
     Hsys = Qobj(hdata) # cm^-1
     T_qr = sbi.get_temperature() #300 # from cfce
 
-    # eigen energies and eigen states
-    eigenenergies, ekets = Hsys.eigenstates()
-
-
-    NC = heom_params["hierarchy_level"] #4 # max hierarchy level
-    Nk = heom_params["number_of_exponentials"] # 0 # bath exponential terms (0 = single correlation term) + we can add terminator
-
-    Nt = timea.length 
-    end_fs = timea.data[Nt-1]
-
-    t_slices = Nt #1000 # at which time points to evaluate (how many)
-    end_time_ps = end_fs / 1000 # 0.5
-
-    xlims = [0, end_time_ps * 1000]   # in femto seconds
-    ylims = [0, 1]
-    tlist = np.linspace(0, end_time_ps * 1e-12 * 2*np.pi*3e10, t_slices) # 1e-12 s -> cm^-1
-
-    # describing initial condition 
-    """
-    onesover7 = np.ones((7, 7))/7
-    diagonly = False
-    # ones in sites
-    a = Qobj(onesover7)
-    # into exc
-    b = a.transform(ekets, False)
-        # delete non dia
-    c = None
-    if (diagonly == True):
-        c = Qobj(np.diag(b.diag()))
-    else:
-        # no delete of non dia - keep full
-        c = b
-    # back into site
-    d = c.transform(ekets, True)
-
-    rho0 = d
-    """
-
-    # initial excitation on site 1
-    rho0 = Qobj(rhoi.data) #basis(Ndim, 1) * basis(Ndim, 1).dag()
-
-    # describe what to put in graphs
-    POPSONLY = True
-    COHERENCESONLY = not POPSONLY
-
-    """
-    cfce = sbi.get_correlation_function((0,0))
-    with qr.energy_units("1/cm"):
-        lam_qr = cfce.get_reorganization_energy() # from cfce
-
-    gamma_qr = 1.0/cfce.get_correlation_time() # from cfce
-    print("Corelation function parameters: ", T_qr, lam_qr, gamma_qr)
-    """
-
     Q_list = []
     baths = []
 
     Ltot = liouvillian(Hsys)
+    Nk = 0 # bath exponential terms (0 = single correlation term) + we can add terminator
 
     for m in range(Nex):
 
+        #
         # projector
-        Q = basis(Ndim, m+Ngr) * basis(Ndim, m+Ngr).dag()
-
-        # FIXME: Get it from SBI here
-        Qm = np.zeros((Ndim, Ndim), dtype=qr.REAL)
-        Qm[m+Ngr, m+Ngr] = 1.0
-        Qalt = Qobj(Qm)
-
+        #
+        #Q = basis(Ndim, m+Ngr) * basis(Ndim, m+Ngr).dag()
+        Qalt = Qobj(sbi.KK[m,:,:])
         Q_list.append(Qalt)
 
+        #
         # bath correlation function 
-
+        #
         cfce = sbi.get_correlation_function((m,m))
         with qr.energy_units("1/cm"):
             lam_qr = cfce.get_reorganization_energy() # from cfce
@@ -175,37 +117,141 @@ def run_simulation(Ham, sbi, heom_params, rhoi):
 
         baths.append(
             DrudeLorentzBath(
-                Q, lam=lam, gamma=gamma, T=T, Nk=Nk,
+                Qalt, lam=lam, gamma=gamma, T=T, Nk=Nk,
                 tag=str(m)
             )
         )
         _, terminator = baths[-1].terminator()
         Ltot += terminator
 
+    qutip_data["Ltot"] = Ltot
+    qutip_data["baths"] = baths
+
+    return qutip_data
+
+
+def run_simulation(kthprop, rhoi, options=None):
+
+    timea = kthprop.hy.sbi.get_time_axis()
 
     # numerical options 
-    options = {
-        "nsteps": 5000,
-        "store_states": True,
-        "rtol": 1e-12,
-        "atol": 1e-12,
-        "min_step": 1e-18,
-        "method": "vern9",
-        "progress_bar": "enhanced",
-    }
+    if options is None:
 
+        # default options
+        loc_options = {
+            "nsteps": 5000,
+            "store_states": True,
+            "rtol": 1e-12,
+            "atol": 1e-12,
+            "min_step": 1e-18,
+            "method": "vern9",
+            "progress_bar": "enhanced",
+        }
 
-    with timer("RHS construction time"):
-        HEOMMats = HEOMSolver(Ltot, baths, NC, options=options)
+    else:
 
-    with timer("ODE solver time"):
-        output = HEOMMats.run(rho0, tlist)
+        loc_options = options
+
+    NC = kthprop.qutip_data["depth"]
+    Ltot = kthprop.qutip_data["Ltot"]
+    baths = kthprop.qutip_data["baths"]
+
+    # initial excitation on site 1
+    rho0 = Qobj(rhoi.data) #basis(Ndim, 1) * basis(Ndim, 1).dag()
+
+    Nt = timea.length 
+    end_fs = timea.data[Nt-1]
+
+    t_slices = Nt #1000 # at which time points to evaluate (how many)
+    end_time_ps = end_fs / 1000 # 0.5
+
+    # times to calculate
+    tlist = np.linspace(0, end_time_ps * 1e-12 * 2*np.pi*3e10, t_slices) # 1e-12 s -> cm^-1
+
+    """
+
+    NC = depth #4 # max hierarchy level
+
+    # number of states 
+    Ngr = 1
+    Ndim = Ham.dim
+    Nex = Ndim  - Ngr  # This has to be checked when we use aggregate
+
+    with qr.energy_units("1/cm"):
+        hdata = Ham.data
+
+    #
+    # Use Quantarhei data
+    #
+    Hsys = Qobj(hdata) # cm^-1
+    T_qr = sbi.get_temperature() #300 # from cfce
+ 
+    Nt = timea.length 
+    end_fs = timea.data[Nt-1]
+
+    t_slices = Nt #1000 # at which time points to evaluate (how many)
+    end_time_ps = end_fs / 1000 # 0.5
+
+    # times to calculate
+    tlist = np.linspace(0, end_time_ps * 1e-12 * 2*np.pi*3e10, t_slices) # 1e-12 s -> cm^-1
+
+    # initial excitation on site 1
+    rho0 = Qobj(rhoi.data) #basis(Ndim, 1) * basis(Ndim, 1).dag()
+
+    Q_list = []
+    baths = []
+
+    Ltot = liouvillian(Hsys)
+    Nk = 0 # bath exponential terms (0 = single correlation term) + we can add terminator
+
+    for m in range(Nex):
+
+        #
+        # projector
+        #
+        #Q = basis(Ndim, m+Ngr) * basis(Ndim, m+Ngr).dag()
+        Qalt = Qobj(sbi.KK[m,:,:])
+        Q_list.append(Qalt)
+
+        #
+        # bath correlation function 
+        #
+        cfce = sbi.get_correlation_function((m,m))
+        with qr.energy_units("1/cm"):
+            lam_qr = cfce.get_reorganization_energy() # from cfce
+        gamma_qr = 1.0/cfce.get_correlation_time() # from cfce
+
+        T = T_qr * 0.6949 # K -> cm^-1
+        gamma = gamma_qr * (1e15/ (2*np.pi*3e10))  # fs^-1 -> cm^-1
+        lam = lam_qr # cm^-1
+
+        baths.append(
+            DrudeLorentzBath(
+                Qalt, lam=lam, gamma=gamma, T=T, Nk=Nk,
+                tag=str(m)
+            )
+        )
+        _, terminator = baths[-1].terminator()
+        Ltot += terminator
+ 
+    """    
+
+    #with timer("RHS construction time"):
+    HEOMMats = HEOMSolver(Ltot, baths, NC, options=loc_options)
+
+    #with timer("ODE solver time"):
+    output = HEOMMats.run(rho0, tlist)
 
     rho_t = qr.DensityMatrixEvolution(timeaxis=timea, rhoi=rhoi)
     for t in range(t_slices):
         rho_t.data[t,:,:] = output.states[t][:,:]
 
     return rho_t
+
+
+
+
+
 
     #
     # CONSTRUCTING EVOLUTION SUPEROPERATOR
@@ -237,6 +283,9 @@ def run_simulation(Ham, sbi, heom_params, rhoi):
     #
     #   TRANSFORMATIONS
     #
+
+    # eigen energies and eigen states
+    eigenenergies, ekets = Hsys.eigenstates()
 
     # make transformation matrices
     vs = []
@@ -304,6 +353,15 @@ def run_simulation(Ham, sbi, heom_params, rhoi):
     #    PLOTTING
     #
 
+    
+    id = int(time.time())
+
+    # describe what to put in graphs
+    POPSONLY = True
+    COHERENCESONLY = not POPSONLY
+
+    xlims = [0, end_time_ps * 1000]   # in femto seconds
+    ylims = [0, 1]
     colors = ['r', 'g', 'b', 'y', 'c', 'm', 'k']
 
     if True:
