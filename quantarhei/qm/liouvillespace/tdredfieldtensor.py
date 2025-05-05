@@ -68,6 +68,9 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             # and the length corresponds to the length of the time axis
             length = ta.length
 
+        # time step
+        dt = ta.step
+
         #
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
@@ -103,6 +106,8 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         # \Lambda_m operator
         #
         
+        integrate_fast = True
+
         # Integrals of correlation functions from the set 
         Lm = numpy.zeros((Nt, Nb, Na, Na), dtype=numpy.complex128)
         for ms in range(Nb):
@@ -114,7 +119,8 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 # or a cross-correlation function of sites ns and ms
                 
                 #FIXME: reaching correct correlation function is a nightmare!!!
-                rc1 = sbi.CC.get_coft(ms, ns) 
+                # rc1 = sbi.CC.get_coft(ms, ns) 
+                rc1 = sbi.get_coft(ms, ns)
                 
                 for a in range(Na):
                     for b in range(Na):
@@ -123,18 +129,24 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                         eexp = numpy.exp(-1.0j*Om[a,b]*tm) 
                         rc = rc1[0:length]*eexp
                         
-                        # spline integration instead of FFT
-                        rr = numpy.real(rc)
-                        ri = numpy.imag(rc)
-                        sr = scipy.interpolate.UnivariateSpline(tm,
-                                    rr, s=0).antiderivative()(tm)
-                        si = scipy.interpolate.UnivariateSpline(tm,
-                                    ri, s=0).antiderivative()(tm)
-                                
-                        # we take the last value (integral to infinity)
-                        # #### cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
-                        cc_mnab = (sr + 1.0j*si)
+                        if not integrate_fast: 
+                            # spline integration instead of FFT
+                            rr = numpy.real(rc)
+                            ri = numpy.imag(rc)
+                            sr = scipy.interpolate.UnivariateSpline(tm,
+                                        rr, s=0).antiderivative()(tm)
+                            si = scipy.interpolate.UnivariateSpline(tm,
+                                        ri, s=0).antiderivative()(tm)
+                                    
+                            # we take the last value (integral to infinity)
+                            # #### cc_mnab = (sr[length-1] + 1.0j*si[length-1]) 
+                            cc_mnab = (sr + 1.0j*si)
                         
+                        else:
+
+                            # Simpson rule integration is enough?
+                            cc_mnab = _integrate(rc, dt)
+
                         # \Lambda_m operators
                         Lm[:,ms,a,b] += cc_mnab*Km[ns,a,b] 
              
@@ -283,4 +295,27 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                                 or ((ii == kk) and (jj == ll))) :
                                     self.data[:,ii,jj,kk,ll] = 0
                                     
-                                    
+
+
+def _integrate(f, dt):
+    """Cummulative simpson rule for integration (even number of points also handled)
+    
+    """
+    N = len(f)
+    if N < 2:
+        raise ValueError("Need at least two points for integration")
+    
+    F = np.zeros_like(f)
+    
+    # Integrate in blocks of 2 intervals (3 points) using Simpson's rule
+    last = N - 1 if N % 2 == 1 else N - 2  # leave out last interval if N is even
+    
+    for i in range(2, last + 1, 2):
+        F[i] = F[i - 2] + (dt / 3) * (f[i - 2] + 4 * f[i - 1] + f[i])
+        F[i - 1] = (F[i - 2] + F[i]) / 2  # midpoint estimate
+
+    # Handle last interval with trapezoidal rule if needed
+    if N % 2 == 0:
+        F[-1] = F[-2] + 0.5 * dt * (f[-2] + f[-1])
+    
+    return F
