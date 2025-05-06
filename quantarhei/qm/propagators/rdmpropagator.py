@@ -1057,8 +1057,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         for ii in range(1, self.Nt): 
 
-            Lm = self.RelaxationTensor.Lm[indxR,:,:,:]
-            Ld = self.RelaxationTensor.Ld[indxR,:,:,:]
+            Lm = self.RelaxationTensor.Lm[:,:,:,indxR]
+            Ld = self.RelaxationTensor.Ld[:,:,:,indxR]
        
             for jj in range(0, self.Nref):
                 
@@ -1647,10 +1647,10 @@ def _OTI(rhoY, Km, Kd, Lm, Ld, ll, dt, rho1):
     for mm in range(Nm):
         
        rhoY += (dt/ll)*(
-        numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
-       +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
-       -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
-       -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+        numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[:,:,mm]))
+       +numpy.dot(Lm[:,:,mm],numpy.dot(rho1, Kd[mm,:,:]))
+       -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[:,:,mm]), rho1)
+       -numpy.dot(rho1, numpy.dot(Ld[:,:,mm],Km[mm,:,:]))
        )
 
             
