@@ -391,7 +391,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             for ms in range(Nb):
                 ns = ms
                 #print("two-ex", ns, ":")
-                rc1 = sbi.get_coft(ms, ns)
+                rc1 = sbi.get_coft(ms+1, ns+1)
                 rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
                 cc_mnab = _integrate_last_axis(rc, dt)
                 Lm[:,:,Nb + ms] = numpy.einsum("ij,ij->ij",cc_mnab[:,:,-1],Km[Nb + ms,:,:])

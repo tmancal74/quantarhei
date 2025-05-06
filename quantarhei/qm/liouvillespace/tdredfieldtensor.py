@@ -158,7 +158,10 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 
                 # correlation function of site ns (if ns == ms)
                 # or a cross-correlation function of sites ns and ms
-                rc1 = sbi.get_coft(ms, ns)
+                # ms counts baths and it starts from 0, but the excited states are counted from 1
+                rc1 = sbi.get_coft(ms+1, ns+1)
+
+                print("MAX:", ms, numpy.max(numpy.abs(rc1)) )
                 rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
 
                 cc_mnab = _integrate_last_axis(rc, dt)
@@ -168,7 +171,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             for ms in range(Nb):
                 ns = ms
                 #print("two-ex", ns, ":")
-                rc1 = sbi.get_coft(ms, ns)
+                rc1 = sbi.get_coft(ms+1, ns+1)
                 rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
                 cc_mnab = _integrate_last_axis(rc, dt)
                 Lm[:,:,Nb + ms,:] = numpy.einsum("ijt,ij->ijt",cc_mnab,Km[Nb + ms,:,:])
