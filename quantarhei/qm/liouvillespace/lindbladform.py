@@ -40,13 +40,13 @@ class LindbladForm(RedfieldRelaxationTensor):
         else:
             Nb = sbi.N
 
-        llm = numpy.zeros((Nb, Na, Na), dtype=REAL)
-        lld = numpy.zeros((Nb, Na, Na), dtype=REAL)
+        llm = numpy.zeros((Na, Na, Nb), dtype=REAL)
+        lld = numpy.zeros((Na, Na, Nb), dtype=REAL)
         
         if sbi is not None:
             for i in range(Nb):
-                llm[i, :, :] = sbi.rates[i]*sbi.KK[i, :, :]/2.0
-                lld[i, :, :] = numpy.transpose(llm[i, :, :])
+                llm[:, :, i] = sbi.rates[i]*sbi.KK[i, :, :]/2.0
+                lld[:, :, i] = numpy.transpose(llm[:, :, i])
 
         if sbi is None:
             KK = numpy.zeros((1, Na, Na), dtype=REAL)
