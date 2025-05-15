@@ -76,6 +76,8 @@ def prepare_simulation(Ham, sbi, depth):
 
     # number of states 
     Ngr = 1
+
+    # FIXME: we have to base it on 
     Ndim = Ham.dim
     Nex = Ndim  - Ngr  # This has to be checked when we use aggregate
 

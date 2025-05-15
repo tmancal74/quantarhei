@@ -38,6 +38,8 @@ class OpenSystem:
         self.Nel = 0
         self.Ntot = 0
         
+        self.which_band = None
+
         self.mult = 0
         
         self.WPM = None # weighted participation matrix (for spectroscopy)
@@ -126,7 +128,7 @@ class OpenSystem:
         # mapping of the function storage
         gg = self.get_lineshape_functions()
         mpx = gg.get_mapping_matrix()
-        
+
         # here we get the mapping of energy gap correlation functions to states
         self.WPM = self.map_egcf_to_states(mpx)
         self._has_wpm = True               
@@ -232,14 +234,13 @@ class OpenSystem:
         
 
     def get_SystemBathInteraction(self):
-        """Returns the system-bath interaction definition
-        
-        
-        This is a method to be implemented by the particular system
-        
+        """Returns the aggregate SystemBathInteraction object
+
         """
-        
-        return None        
+        if self._built:
+            return self.sbi
+        else:
+            raise Exception("The object not built.")       
     
     
 

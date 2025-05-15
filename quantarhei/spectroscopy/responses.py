@@ -47,7 +47,7 @@ class NonLinearResponse:
         self.t3s = t3s
         
         # setting zero rates for the case they are not set from outside
-        KK = numpy.zeros((system.Nb[1],system.Nb[1]),dtype=REAL)
+        KK = numpy.zeros((system.Nb[1]+system.Nb[0],system.Nb[1]+system.Nb[0]),dtype=REAL)
         self.set_rate_matrix(KK)
     
     

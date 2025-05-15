@@ -186,13 +186,14 @@ class SystemBathInteraction(Saveable):
             self.orates = orates
             self.osites = osites
             
-    
+
     def set_system(self, system):
         """Sets the system attribute
         
         """
         from ...builders.aggregates import Aggregate
         from ...builders.molecules import Molecule  
+        from ...builders.opensystem import OpenSystem
         
         if system is not None:
             if isinstance(system, Aggregate):
@@ -204,6 +205,11 @@ class SystemBathInteraction(Saveable):
                 self.aggregate = None
                 self.molecule = system
                 self.system = self.molecule
+                
+            elif isinstance(system, OpenSystem):
+                self.aggregate = None
+                self.molecule = None
+                self.system = system
                 
             else:
                 raise Exception("Unknown system type")
@@ -353,7 +359,7 @@ class SystemBathInteraction(Saveable):
         
         # number of functions
         Nf = self.CC.nof
-        
+
         # number of sites
         Nb = self.CC.nob
 
