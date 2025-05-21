@@ -159,7 +159,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 # correlation function of site ns (if ns == ms)
                 # or a cross-correlation function of sites ns and ms
                 # ms counts baths and it starts from 0, but the excited states are counted from 1
-                rc1 = sbi.get_coft(ms+1, ns+1)
+                rc1 = sbi.get_coft(ms, ns) #(ms+1, ns+1)
 
                 print("MAX:", ms, numpy.max(numpy.abs(rc1)) )
                 rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
@@ -233,8 +233,10 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         Nb = self.SystemBathInteraction.N
         Nt = self.Nt
         
-        if self.SystemBathInteraction.system.mult > 1:
-            Nb = 2*Nb
+        #if self.SystemBathInteraction.system.mult > 1:
+        #    Nb = 2*Nb
+        # Introduced a safer way to figure out if there are more projection operators than sites
+        Nb = Km.shape[0]
 
         RR = numpy.zeros((Nt, Na, Na, Na, Na), dtype=numpy.complex128)
         

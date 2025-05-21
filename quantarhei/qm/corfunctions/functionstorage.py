@@ -683,12 +683,16 @@ class FastFunctionStorage(FunctionStorage):
             start = self.mapping[i]*self.data_stride
             sta = start + self.start[j]
             end = start + self.end[j]
+            if sta + 1== end:
+                return self.data[sta]
             return self.data[sta:end]
         
         # i is a slice :
         elif isinstance(i, slice) and i == slice(None):
             sta = self.start[j]
             end = self.end[j]
+            if sta + 1 == end:
+                return self._data2d[i, sta]
             return self._data2d[i, sta:end]
         
         else:

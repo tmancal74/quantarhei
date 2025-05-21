@@ -377,7 +377,6 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
             
             at = _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular)
 
-        
 
         #
         # Fourier transform of the time-dependent result
@@ -606,14 +605,28 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
     #deff = numpy.sqrt(numpy.einsum("ijn,ijn->ij", DD.data,DD.data,
     #                               dtype=REAL))
  
+    import matplotlib.pyplot as plt
+
     for kk in range(3):
         deff = DD.data[:,:,kk]
         # excitation by an effective dipole
-        rhoi.data = numpy.dot(deff,rhoeq.data)/3.0
-        
+        rhoi.data = (numpy.dot(deff,rhoeq.data)+numpy.dot(rhoeq.data,deff))/3.0
+
         rhot = prop.propagate(rhoi)
+
+        _show = False
+        if _show:
+            for ig in range(HH.rwa_indices[1]):
+                print("ig=", ig)
+                for ll in range(rhot.data.shape[2]):
+                    plt.plot(time.data, rhot.data[:,ig,ll])
+                plt.title("kk="+str(kk))
+                plt.show()
+
+
         for ig in range(HH.rwa_indices[1]):
             at += numpy.einsum("j,kj->k",deff[ig,:],rhot.data[:,:,ig])
+        
 
     return at
 

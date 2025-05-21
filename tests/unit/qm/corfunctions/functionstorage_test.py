@@ -148,8 +148,9 @@ class TestFunctionStorage(unittest.TestCase):
                                 rtol=1.0e-6)
             npt.assert_allclose(ggt1t2t3, 
                         list_fce[kk](t2+t1.data[:,None]
-                        +t3.data[None,:]).reshape(t1.length*t3.length),
+                        +t3.data[None,:]),
                         rtol=1.0e-6)
+             #.reshape(t1.length*t3.length),
             print("OK")
 
 
@@ -211,6 +212,6 @@ class TestFunctionStorage(unittest.TestCase):
                                 rtol=1.0e-5)
             npt.assert_allclose(ggt1t2t3, 
                         list_fce[kk](t2+t1.data[:,None]
-                        +t3.data[None,:]).reshape(t1.length*t3.length),
+                        +t3.data[None,:]), # .reshape(t1.length*t3.length),
                         rtol=1.0e-6)
             print("OK")

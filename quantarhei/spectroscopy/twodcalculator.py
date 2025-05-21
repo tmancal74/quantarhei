@@ -7,6 +7,7 @@ import os
 from ..utils import derived_type
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
+from ..builders.opensystem import OpenSystem
 from ..core.time import TimeAxis
 from ..core.managers import eigenbasis_of
 from ..qm.propagators.poppropagator import PopulationPropagator
@@ -34,7 +35,7 @@ except:
     from ..implementations.aceto import nr3td  
     from ..implementations.aceto.band_system import band_system 
     from ..implementations.aceto.lab_settings import lab_settings         
-    _have_aceto = True # we assume we have Python implementation
+    _have_aceto = False # we assume we have Python implementation
 
 
 class TwoDResponseCalculator:
@@ -55,7 +56,7 @@ class TwoDResponseCalculator:
     t2axis = derived_type("t2axis",TimeAxis)
     t3axis = derived_type("t3axis",TimeAxis)
     
-    system = derived_type("system",[Molecule,Aggregate])
+    system = derived_type("system",[Molecule,Aggregate,OpenSystem])
     
     _has_responses = False
     _has_system = False
@@ -169,7 +170,7 @@ class TwoDResponseCalculator:
             
             if self._has_system:
             
-                if isinstance(self.system, Aggregate):
+                if isinstance(self.system, (Aggregate, OpenSystem)):
                 
                     pass
                 
@@ -177,60 +178,62 @@ class TwoDResponseCalculator:
                     
                     raise Exception("Molecule 2D not implememted")
                     
-                agg = self.system
-                agg.diagonalize()
+                sys = self.system
+                sys.diagonalize()
                 
                 #
                 # hamiltonian and transition dipole moment operators
                 #
-                H = agg.get_Hamiltonian()
-                D = agg.get_TransitionDipoleMoment()
+                H = sys.get_Hamiltonian()
+                D = sys.get_TransitionDipoleMoment()
                 
                 #
                 # Construct band_system object
                 #
                 Nb = 3
-                Ns = numpy.zeros(Nb, dtype=numpy.int)
-                Ns[0] = 1
-                Ns[1] = agg.nmono
-                Ns[2] = Ns[1]*(Ns[1]-1)/2
+                Ns = numpy.zeros(Nb, dtype=numpy.int32)
+                Ns[0] = sys.Nb[0] #1
+                Ns[1] = sys.Nb[1] #agg.nmono
+                Ns[2] = sys.Nb[1] #Ns[1]*(Ns[1]-1)/2
                 
+                _use_aceto = False
 
+                if _use_aceto:
 #
 # This is the part that uses ACETO library - soon to be abandoned
 #
                     # FIXME: DO I NEED THIS????
 #
 ###############################################################################
-                self.sys = band_system(Nb, Ns)
-                
-                #
-                # Set energies
-                #
-                en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
-                #if True:
-                with eigenbasis_of(H):
-                    for i in range(self.sys.Ne):
-                        en[i] = H.data[i,i]
-                    self.sys.set_energies(en)
-                
-                
-               
-                    #
-                    # Set transition dipole moments
-                    #
-                    dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
-                    def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
-                                    (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
-                
-                    dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
-                    deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
+                    self.sys = band_system(Nb, Ns)
                     
-                    for i in range(3):
-                        dge[i,:,:] = dge_wr[:,:,i]
-                        deff[i,:,:] = def_wr[:,:,i]
-                    self.sys.set_dipoles(0,1,dge)
-                    self.sys.set_dipoles(1,2,deff)
+                    #
+                    # Set energies
+                    #
+                    en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
+                    #if True:
+                    with eigenbasis_of(H):
+                        for i in range(self.sys.Ne):
+                            en[i] = H.data[i,i]
+                        self.sys.set_energies(en)
+                    
+                    
+                
+                        #
+                        # Set transition dipole moments
+                        #
+                        dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
+                        def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
+                                        (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
+                    
+                        dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
+                        deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
+                        
+                        for i in range(3):
+                            dge[i,:,:] = dge_wr[:,:,i]
+                            deff[i,:,:] = def_wr[:,:,i]
+                        self.sys.set_dipoles(0,1,dge)
+                        self.sys.set_dipoles(1,2,deff)
 ###############################################################################
 #              
                 
@@ -238,7 +241,16 @@ class TwoDResponseCalculator:
                 # Relaxation rates
                 #
                 if not self._has_rate_matrix:
-                    KK = agg.get_RedfieldRateMatrix()
+                    try:
+                        KK = sys.get_RedfieldRateMatrix()
+                    except:
+
+                        # FIXME: This is a quick fix to make a zero rate matrix
+                        class hlp:
+                            def __init__(self, N):
+                                self.data =  numpy.zeros((N,N), dtype=numpy.REAL)
+
+                        KK = hlp(Ns[1])
                 else:
                     KK = self._rate_matrix
                 
@@ -251,9 +263,9 @@ class TwoDResponseCalculator:
 #
 # ACETO code ##################################################################
 #
-
-                self.sys.init_dephasing_rates()
-                self.sys.set_relaxation_rates(1,Kr)
+                if _use_aceto:               
+                    self.sys.init_dephasing_rates()
+                    self.sys.set_relaxation_rates(1,Kr)
 
 #
 ###############################################################################
@@ -262,7 +274,7 @@ class TwoDResponseCalculator:
                 #
                 # Lineshape functions
                 #
-                sbi = agg.get_SystemBathInteraction()
+                sbi = sys.get_SystemBathInteraction()
                 cfm = sbi.CC
                 cfm.create_double_integral()
                 
@@ -270,21 +282,21 @@ class TwoDResponseCalculator:
 #
 # ACETO code ##################################################################
 #
-                
-                #
-                # Transformation matrices
-                #
-                SS = H.diagonalize()
-                SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
-                SS2 = SS[Ns[1]+1:,Ns[1]+1:]
-                H.undiagonalize()
-                
-                self.sys.set_gofts(cfm._gofts)    # line shape functions
-                self.sys.set_sitep(cfm.cpointer)  # pointer to sites
-                # matrix of transformation coefficients
-                self.sys.set_transcoef(1,SS1)  
-                # matrix of transformation coefficients
-                self.sys.set_transcoef(2,SS2)    
+                if _use_aceto:
+                    #
+                    # Transformation matrices
+                    #
+                    SS = H.diagonalize()
+                    SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
+                    SS2 = SS[Ns[1]+1:,Ns[1]+1:]
+                    H.undiagonalize()
+                    
+                    self.sys.set_gofts(cfm._gofts)    # line shape functions
+                    self.sys.set_sitep(cfm.cpointer)  # pointer to sites
+                    # matrix of transformation coefficients
+                    self.sys.set_transcoef(1,SS1)  
+                    # matrix of transformation coefficients
+                    self.sys.set_transcoef(2,SS2)    
                 
 #
 ###############################################################################
@@ -298,7 +310,7 @@ class TwoDResponseCalculator:
                 #
                 # Finding population evolution matrix
                 #
-                prop = PopulationPropagator(self.t1axis, Kr)
+                prop = PopulationPropagator(self.t2axis, Kr)
                 #Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
                 #                                     corrections=True)
                 self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
@@ -491,9 +503,34 @@ class TwoDResponseCalculator:
     
             t2 = time.time()
             self._vprint("... calculated in "+str(t2-t1)+" sec")
+
+            self._has_responses = False  # responses are ignored if we use aceto
             
-            
-        elif self._has_responses:
+
+
+        if self._has_system and not self._has_responses:
+            #
+            # Calculating all responses from the system
+            #
+            self.resp_fcions = []
+
+            Nr1g = qr.NonLinearResponse(self.lab, self.system, "R1g", self.t1axis, self.t2axis, self.t3axis)
+            Nr2g = qr.NonLinearResponse(self.lab, self.system, "R2g", self.t1axis, self.t2axis, self.t3axis)
+            Nr3g = qr.NonLinearResponse(self.lab, self.system, "R3g", self.t1axis, self.t2axis, self.t3axis)
+            Nr4g = qr.NonLinearResponse(self.lab, self.system, "R4g", self.t1axis, self.t2axis, self.t3axis)
+            Nr1f = qr.NonLinearResponse(self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis)
+            Nr2f = qr.NonLinearResponse(self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis)
+            self.resp_fcions.append(Nr1g)
+            self.resp_fcions.append(Nr2g)
+            self.resp_fcions.append(Nr3g)
+            self.resp_fcions.append(Nr4g)
+            #self.resp_fcions.append(Nr1f)
+            #self.resp_fcions.append(Nr2f)
+            self._has_responses = True
+                
+
+
+        if self._has_responses:
             #
             # Calculation from predefined non-linear responses
             #
@@ -544,6 +581,8 @@ class TwoDResponseCalculator:
         #
         resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
         resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
+
+
 
         #
         # Calculate corresponding 2D spectrum
@@ -665,7 +704,7 @@ class TwoDResponseCalculator:
             
             return twods
         
-        elif self._has_responses:
+        elif self._has_responses or self._has_system:
             
             # calculate user defined responses
 
