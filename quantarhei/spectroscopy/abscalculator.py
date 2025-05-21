@@ -605,7 +605,9 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
     #deff = numpy.sqrt(numpy.einsum("ijn,ijn->ij", DD.data,DD.data,
     #                               dtype=REAL))
  
-    import matplotlib.pyplot as plt
+    _show = False
+    if _show:
+        import matplotlib.pyplot as plt
 
     for kk in range(3):
         deff = DD.data[:,:,kk]
@@ -614,7 +616,7 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
 
         rhot = prop.propagate(rhoi)
 
-        _show = False
+        
         if _show:
             for ig in range(HH.rwa_indices[1]):
                 print("ig=", ig)

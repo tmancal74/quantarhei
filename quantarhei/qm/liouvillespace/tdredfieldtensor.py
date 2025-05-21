@@ -161,7 +161,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 # ms counts baths and it starts from 0, but the excited states are counted from 1
                 rc1 = sbi.get_coft(ms, ns) #(ms+1, ns+1)
 
-                print("MAX:", ms, numpy.max(numpy.abs(rc1)) )
+                #print("MAX:", ms, numpy.max(numpy.abs(rc1)) )
                 rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
 
                 cc_mnab = _integrate_last_axis(rc, dt)
