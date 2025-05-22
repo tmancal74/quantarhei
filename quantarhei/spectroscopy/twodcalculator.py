@@ -21,21 +21,21 @@ from ..spectroscopy.responses import LiouvillePathway
 
 import quantarhei as qr
 
-try:
-
-    import aceto.nr3td as nr3td            
-    from aceto.lab_settings import lab_settings
-    from aceto.band_system import band_system            
-    _have_aceto = True
-    
-except:
+#try:
+#
+#    import aceto.nr3td as nr3td            
+#    from aceto.lab_settings import lab_settings
+#    from aceto.band_system import band_system            
+#    _have_aceto = True
+#    
+#except:
     #
     #
     #raise Exception("Aceto not available")
-    from ..implementations.aceto import nr3td  
-    from ..implementations.aceto.band_system import band_system 
-    from ..implementations.aceto.lab_settings import lab_settings         
-    _have_aceto = False # we assume we have Python implementation
+from ..implementations.aceto import nr3td  
+from ..implementations.aceto.band_system import band_system 
+from ..implementations.aceto.lab_settings import lab_settings         
+_have_aceto = False # we assume we have Python implementation
 
 
 class TwoDResponseCalculator:
@@ -422,10 +422,10 @@ class TwoDResponseCalculator:
         #
         # Initialize response storage
         #
-        if _have_aceto and self._has_system:
-            order = 'F'
-        else:
-            order = 'C'
+        #if _have_aceto and self._has_system:
+        #    order = 'F'
+        #else:
+        order = 'C'
             
         ntype = numpy.complex128
         
@@ -437,6 +437,7 @@ class TwoDResponseCalculator:
         resp_n = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Ngsb = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+
         resp_Rse = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Nse = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Resa = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
@@ -447,7 +448,7 @@ class TwoDResponseCalculator:
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         
     
-        if _have_aceto and self._has_system:
+        if False: #_have_aceto and self._has_system:
             #
             # calcute response
             #
@@ -579,8 +580,8 @@ class TwoDResponseCalculator:
         #
         # FIXME: discontinue Aceto and remove the sum (and the code above)
         #
-        resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
-        resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
+        resp_r = resp_Rgsb #+ resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
+        resp_n = resp_Ngsb #+ resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
 
 
 
@@ -686,25 +687,25 @@ class TwoDResponseCalculator:
         from .twodcontainer import TwoDResponseContainer
  
                   
-        if _have_aceto and self._has_system:
+        # if _have_aceto and self._has_system:
 
-            twods = TwoDResponseContainer(self.t2axis)
+        #     twods = TwoDResponseContainer(self.t2axis)
             
-            teetoos = self.t2axis.data
+        #     teetoos = self.t2axis.data
             
-            kk = 0
-            Nk = teetoos.shape[0]
+        #     kk = 0
+        #     Nk = teetoos.shape[0]
             
-            for tt2 in teetoos:
+        #     for tt2 in teetoos:
 
-                self._vprint_r(" Calculating t2 =", tt2, "fs (",kk,"of",Nk,")")
-                onetwod = self.calculate_next()
-                twods.set_spectrum(onetwod)   
-                kk += 1
+        #         self._vprint_r(" Calculating t2 =", tt2, "fs (",kk,"of",Nk,")")
+        #         onetwod = self.calculate_next()
+        #         twods.set_spectrum(onetwod)   
+        #         kk += 1
             
-            return twods
+        #     return twods
         
-        elif self._has_responses or self._has_system:
+        if self._has_responses or self._has_system:
             
             # calculate user defined responses
 
