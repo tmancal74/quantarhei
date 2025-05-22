@@ -273,6 +273,64 @@ class TestLabSetup(unittest.TestCase):
             plt.show()
             
         
+    def test_phase_setting_and_time_shifts(self):
+        """(Labsetup) Phase and time-shift setting
+        
+        """
+
+        lab = LabSetup(nopulses=4)
+        
+        Nfr = 10
+        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+
+        # pulse shapes are specified below
+        pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
+        params = (pulse2, pulse2, pulse2, pulse2)       
+
+        lab.set_pulse_arrival_times([0.0, 0.0, 100.0, 200.0])
+
+        lab.set_pulse_shapes(time, params)
+
+        X = numpy.zeros(3, dtype=float)
+        X[0] = 1
+        lab.set_pulse_polarizations(pulse_polarizations=(X,X,X,X), detection_polarization=X)
+
+        ome = convert(10200.0,"1/cm","int")
+        lab.set_pulse_frequencies([ome, ome, ome, ome])
+        
+        # additional phases can be also controlled
+        lab.set_pulse_phases([0.0, 1.0, 0.0, 2.0]) 
+
+        fields = lab.get_labfields()
+        cntr = fields[0].get_center()
+        self.assertTrue(cntr == 0.0)
+
+        fields[0].set_center(10.0)
+        cntr = fields[0].get_center()
+        self.assertTrue(cntr == 10.0)
+
+        phs = fields[0].get_phase()
+        self.assertTrue(phs == 0.0)
+
+        fields[0].set_phase(1.53)
+        phs = fields[0].get_phase()
+        self.assertTrue(phs == 1.53)
+
+        lab.set_pulse_phases([0.6, 1.2, 0.1, 2.3]) 
+        phs = fields[0].get_phase()
+        self.assertTrue(phs == 0.6)
+        phs = fields[1].get_phase()
+        self.assertTrue(phs == 1.2)
+
+        fields[3].set_phase(1.8)
+
+        phses = lab.get_pulse_phases()
+        self.assertAlmostEqual(phses, [0.6, 1.2, 0.1, 1.8])
+
+        #delays
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
