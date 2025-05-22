@@ -198,44 +198,6 @@ class TwoDResponseCalculator:
                 
                 _use_aceto = False
 
-                if _use_aceto:
-#
-# This is the part that uses ACETO library - soon to be abandoned
-#
-                    # FIXME: DO I NEED THIS????
-#
-###############################################################################
-                    self.sys = band_system(Nb, Ns)
-                    
-                    #
-                    # Set energies
-                    #
-                    en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
-                    #if True:
-                    with eigenbasis_of(H):
-                        for i in range(self.sys.Ne):
-                            en[i] = H.data[i,i]
-                        self.sys.set_energies(en)
-                    
-                    
-                
-                        #
-                        # Set transition dipole moments
-                        #
-                        dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
-                        def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
-                                        (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
-                    
-                        dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
-                        deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
-                        
-                        for i in range(3):
-                            dge[i,:,:] = dge_wr[:,:,i]
-                            deff[i,:,:] = def_wr[:,:,i]
-                        self.sys.set_dipoles(0,1,dge)
-                        self.sys.set_dipoles(1,2,deff)
-###############################################################################
-#              
                 
                 #
                 # Relaxation rates
@@ -258,18 +220,8 @@ class TwoDResponseCalculator:
                 Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
                 #print(1.0/KK.data)
                 
-                # FIXM: we need also 2 exciton rates
-                
-#
-# ACETO code ##################################################################
-#
-                if _use_aceto:               
-                    self.sys.init_dephasing_rates()
-                    self.sys.set_relaxation_rates(1,Kr)
-
-#
-###############################################################################
-#                
+                # FIXME: we need also 2 exciton rates
+                #                
                 
                 #
                 # Lineshape functions
@@ -277,31 +229,7 @@ class TwoDResponseCalculator:
                 sbi = sys.get_SystemBathInteraction()
                 cfm = sbi.CC
                 cfm.create_double_integral()
-                
-                
-#
-# ACETO code ##################################################################
-#
-                if _use_aceto:
-                    #
-                    # Transformation matrices
-                    #
-                    SS = H.diagonalize()
-                    SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
-                    SS2 = SS[Ns[1]+1:,Ns[1]+1:]
-                    H.undiagonalize()
-                    
-                    self.sys.set_gofts(cfm._gofts)    # line shape functions
-                    self.sys.set_sitep(cfm.cpointer)  # pointer to sites
-                    # matrix of transformation coefficients
-                    self.sys.set_transcoef(1,SS1)  
-                    # matrix of transformation coefficients
-                    self.sys.set_transcoef(2,SS2)    
-                
-#
-###############################################################################
-#
-             
+                             
 
 #
 #  This section will also be removed - It goes to the new Response class

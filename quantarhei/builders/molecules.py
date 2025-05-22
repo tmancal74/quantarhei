@@ -121,6 +121,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     
     # position of the monomer 
     position = array_property('position',shape=(3,))
+
+    # These will be inherited from OpenSystem
+    
     # energies of electronic states
     #elenergies = array_property('elenergies')
     # transition dipole moments
