@@ -64,7 +64,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def __init__(self, molecules=None, name=""):
 
-        OpenSystem.__init__(self)        
+        #OpenSystem.__init__(self)        
 
         self.mnames = {}    #
         self.monomers = []
@@ -461,6 +461,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return mn.get_energy(N)
         except:
             raise Exception()
+
+
+    def set_dipole(self, N, M, vec):
+        """ Sets the dipole moment of a given transition
+        
+        """
+        raise Exception("Transition dipole moments cannot be set directly. Use aggregate components.")
+
 
 
     def fc_factor(self, state1, state2):
@@ -2294,11 +2302,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         if self._diagonalized:
             return
 
-        #
-        ###3
-        #
-        #for i in range(self.HH.shape[0]):
-        #    print(self.HH[i,i])
 
         ee,SS = numpy.linalg.eigh(self.HH)
         
@@ -3048,24 +3051,23 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return tuple(lst)
 
-
-    def get_band(self, band=1):
-        """Indices of states in a given excitonic band.
+    # def get_band(self, band=1):
+    #     """Indices of states in a given excitonic band.
          
-         This is an implementation of a method from OpenSystem class
+    #      This is an implementation of a method from OpenSystem class
         
         
-         Returns indices of all states in the excitonic band
-         with number of excitons equal to `band`
+    #      Returns indices of all states in the excitonic band
+    #      with number of excitons equal to `band`
         
-         Parameters
-         ----------
+    #      Parameters
+    #      ----------
         
-         band : int
-             Specifies which band should be returned.
+    #      band : int
+    #          Specifies which band should be returned.
         
-        """       
-        return self.get_excitonic_band(band=band)
+    #     """       
+    #     return self.get_excitonic_band(band=band)
 
 
     def get_excitonic_band(self, band=1):
@@ -3082,13 +3084,15 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             Specifies which band should be returned.
 
         """
-        Nbefore = 0
-        for ii in range(band):
-            Nbefore += self.Nb[ii]
-        Nin = self.Nb[band]
-        lst = [k for k in range(Nbefore, Nbefore+Nin)]
+        return self.get_band(band=band)
+    
+    #     Nbefore = 0
+    #     for ii in range(band):
+    #         Nbefore += self.Nb[ii]
+    #     Nin = self.Nb[band]
+    #     lst = [k for k in range(Nbefore, Nbefore+Nin)]
 
-        return tuple(lst)
+    #     return tuple(lst)
 
 
     def get_transition(self, Nf, Ni):

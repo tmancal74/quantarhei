@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy
 
-
+from ..utils import array_property
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.liouvillespace.heom import KTHierarchy
 from ..qm.liouvillespace.heom import KTHierarchyPropagator
@@ -10,6 +10,7 @@ from ..core.managers import energy_units
 from ..qm import SelfAdjointOperator
 from ..qm import ReducedDensityMatrix
 from ..core.dfunction import DFunction
+from ..core.triangle import triangle
 from ..core.units import kB_intK
 from .. import REAL
 from .. import COMPLEX
@@ -24,47 +25,262 @@ class OpenSystem:
     
     
     """
+
+    # energies of electronic states
+    elenergies = array_property('elenergies')
+    # transition dipole moments
+    dmoments = array_property('dmoments')
     
-    def __init__(self):
+    def __init__(self, Nel):
         
+        self.Nel = Nel
+        #
+        #  The system has to be built before it can be used
+        #
         self._built = False
+
+        self._diagonalized = False
         
+        #
+        #  Energy gap correlation functions
+        #
+        self._is_mapped_on_egcf_matrix = False
+        self._has_egcf_matrix = False #
+        self.egcf_matrix = None
+
+        self.triangle = triangle(self.Nel)
+        
+        self._egcf_initialized = True
+        self._has_egcf = self.triangle.get_list(init=False)
+        self.egcf = self.triangle.get_empty_list()
+        
+
+        #
+        #   System-bath interaction
+        #
+        self._has_system_bath_interaction = False 
+
+
+        #
+        #  Relaxation tensor information
+        #
         self.RelaxationTensor = None
         self.RelaxationHamiltonian = None
         self._has_relaxation_tensor = False
         self._relaxation_theory = "standard_Redfield"
         self.has_Iterm = False
         
-        self.Nel = 0
+
+        #
+        #  Electronic and other states
+        #
+        #self.Nel = 0
         self.Ntot = 0
         
+
+        # 
+        #  Transition dipole moment 
+        #
+        self.dmoments = numpy.zeros((self.Nel,self.Nel,3))
+
+        #
+        #  States are devided into bands
+        #
         self.which_band = None
 
+        #
+        #  We have multiplicity of bands
+        #
         self.mult = 0
         
+
+        #
+        #  Spectroscopic information
+        #
         self.WPM = None # weighted participation matrix (for spectroscopy)
         self._has_wpm = False
         
 
     def diagonalize(self):
-        """Diagonalizes the Hamltonian of the system 
+        """Prepage the diagonal form of the Hamiltonian
         
-        
-        The routine calculates eigenenergies, transformation matrix and
-        other properties of the system to be used in other calculations.
-        
+        In the present case, it is already diagonal
+
         """
-        raise Exception("diagonalize() is not implemented.")
+        if self._diagonalized:
+            return
+
+        self.HD = numpy.diag(self.HH)
+
+        # diagonal transformation matrix
+        self.SS = numpy.ones_like(self.HH)
+
+        self._diagonalized = True
 
 
     def get_Hamiltonian(self):
-        """Returns the system Hamiltonian 
+        """ Returns the Hamiltonian operator
+
+        """
+        if self._built:
+
+            return self.HamOp
+
+        else:
+
+            raise Exception("System has to be built first")
+
+
+    def get_TransitionDipoleMoment(self):
+        """ Returns the asystem's transition dipole moment operator
+
+        """
+        if self._built:
+            return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
+        else:
+            raise Exception("Aggregate object not built")
+
+
+    def set_transition_environment(self, transition, egcf):
+        """Sets a correlation function for a transition on this monomer
         
-        
-        This is a method to be implemented by the particular system
+        Parameters
+        ----------
+        transition : tuple
+            A tuple describing a transition in the molecule, e.g. (0,1) is
+            a transition from the ground state to the first excited state.
+
+        egcf : CorrelationFunction
+            CorrelationFunction object 
+            
+        (Should go to Open System)
         
         """
-        raise Exception("get_Hamiltonian() is not implemented.")
+
+        if self._is_mapped_on_egcf_matrix:
+            raise Exception("This system is mapped" 
+                            + " on a CorrelationFunctionMatrix")
+
+        if not (self._has_egcf[self.triangle.locate(transition[0],
+                                                    transition[1])]):
+                                                        
+            self.egcf[self.triangle.locate(transition[0],
+                                           transition[1])] = egcf
+                                           
+            self._has_egcf[self.triangle.locate(transition[0],
+                                                transition[1])] = True
+            self._has_system_bath_coupling = True                                          
+                                                
+        else:
+            raise Exception("Correlation function already speficied" +
+                            " for this monomer")
+
+
+    def unset_transition_environment(self, transition):
+        """Unsets correlation function from a transition on this monomer
+        
+        This is needed if the environment is to be replaced
+        
+        Parameters
+        ----------
+        transition : tuple
+            A tuple describing a transition in the molecule, e.g. (0,1) is
+            a transition from the ground state to the first excited state.
+ 
+        (Should go to OpenSystem)
+            
+        """
+        
+        if self._is_mapped_on_egcf_matrix:
+            raise Exception("This monomer is mapped" 
+                            + " on a CorrelationFunctionMatrix") 
+             
+        if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
+
+            self.egcf[self.triangle.locate(transition[0],
+                                           transition[1])] = None
+                                           
+            self._has_egcf[self.triangle.locate(transition[0],
+                                                transition[1])] = False
+        
+        self._has_system_bath_coupling = False
+
+
+    def get_transition_environment(self, transition):
+        """Returns energy gap correlation function of a monomer
+        
+        Parameters
+        ----------
+        transition : tuple
+            A tuple describing a transition in the molecule, e.g. (0,1) is
+            a transition from the ground state to the first excited state.
+ 
+        (Should go to OpenSystem)    
+        
+        """
+
+        if self._has_egcf[self.triangle.locate(transition[0] ,transition[1])]:
+            return self.egcf[self.triangle.locate(transition[0],
+                                                  transition[1])]
+ 
+        if self._is_mapped_on_egcf_matrix:
+            n = self.egcf_mapping[0]
+            iof = self.egcf_matrix.get_index_by_where((n,n))
+            
+            if iof >= 0:
+                return self.egcf_matrix.cfunc[iof]
+
+        raise Exception("No environment set for the transition")   
+
+
+    def set_egcf_mapping(self, transition, correlation_matrix, position):
+        """ Sets a correlation function mapping for a selected transition.
+        
+        The monomer can either have a correlation function assigned to it,
+        or it can be a part of a correlation matrix. Here the mapping to the
+        correlation matrix is specified. 
+        
+        Parameters
+        ----------
+        transition : tuple
+            A tuple describing a transition in the molecule, e.g. (0,1) is
+            a transition from the ground state to the first excited state.
+            
+        correlation_matrix : CorrelationFunctionMatrix
+            An instance of CorrelationFunctionMatrix
+            
+        position : int
+            Position in the CorrelationFunctionMatrix corresponding
+            to the monomer. 
+            
+            
+        (Should go to OpenSystems)
+        
+        """
+        
+        if not (self._has_egcf[self.triangle.locate(transition[0],
+                                                    transition[1])]):
+                                                        
+            if not (self._is_mapped_on_egcf_matrix):
+                
+                self.egcf_matrix = correlation_matrix
+                self.egcf_transitions = []
+                self.egcf_mapping = []
+
+                
+            self.egcf_transitions.append(transition)
+            self.egcf_mapping.append(position)
+            self._has_egcf[self.triangle.locate(transition[0],
+                                                transition[1])] = True
+
+            self._is_mapped_on_egcf_matrix = True
+            self._has_system_bath_coupling = True
+
+        else:
+            
+            raise Exception("Monomer has a correlation function already")            
+
+
 
 
     def get_band(self, band=1):
@@ -75,13 +291,140 @@ class OpenSystem:
     
 
     def get_RWA_suggestion(self):
-        """Returns average transition energy
-
-        Average transition energy of the monomer as a suggestion for
-        RWA frequency
-
+        """Returns a suggestion of the RWA frequency
+        
         """
-        raise Exception("get_RWA_suggestion() is not implemented.")
+        #return self.convert_energy_2_current_u(self.HH[1,1])
+    
+        indxs = self.get_band(band=1)
+        e_av = 0.0
+        for ii in indxs:
+            e_av += self.HH[ii,ii]
+        e_av = e_av/len(indxs)
+
+        return self.convert_energy_2_current_u(e_av)
+
+
+    def get_band(self, band=1):
+        """ Returns a tuple of state indices for a given band of states
+        
+        """
+
+        Nbefore = 0
+        for ii in range(band):
+            Nbefore += self.Nb[ii]
+        Nin = self.Nb[band]
+        lst = [k for k in range(Nbefore, Nbefore+Nin)]
+
+        return tuple(lst)
+
+
+    def set_dipole(self, N, M, vec=None):
+        """Sets transition dipole moment for an electronic transition
+        
+        
+        There are two ways how to use this function:
+            
+            1) recommended
+                
+                set_dipole((0,1),[1.0, 0.0, 0.0])
+                
+                here N represents a transition by a tuple, M is the dipole
+                
+            2) deprecated (used in earlier versions of quantarhei)
+                
+                set_dipole(0,1,[1.0, 0.0, 0.0])
+                
+                here the transition is characterized by two integers
+                and the last arguments is the vector
+                
+        
+        
+        Examples
+        --------
+ 
+        >>> m = OpenSystem(2)
+        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+        >>> m.get_dipole((0,1))
+        array([ 1.,  0.,  0.])
+
+        
+        """
+        if vec is None:
+            n = N[0]
+            m = N[1]
+            vc = M
+        else:
+            n = N
+            m = M
+            vc = vec
+            
+        if n == m:
+            raise Exception("M must not be equal to N")
+        try:
+            self.dmoments[n, m, :] = vc
+            self.dmoments[m, n, :] = numpy.conj(vc)
+        except:
+            raise Exception()
+
+
+    def get_dipole(self, N, M=None):
+        """Returns the dipole vector for a given electronic transition
+        
+        There are two ways how to use this function:
+            
+            1) recommended
+                
+                get_dipole((0,1),[1.0, 0.0, 0.0])
+                
+                here N represents a transition by a tuple, M is the dipole
+                
+            2) deprecated (used in earlier versions of quantarhei)
+                
+                get_dipole(0,1,[1.0, 0.0, 0.0])
+                
+                here the transition is characterized by two integers
+                and the last arguments is the vector        
+                
+        
+        Examples
+        --------
+        
+        
+        >>> m = OpenSystem(2)
+        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+        >>> m.get_dipole((0,1))
+        array([ 1.,  0.,  0.])
+        
+        
+        """
+        if M is None:
+            n = N[0]
+            m = N[1]
+        else:
+            n = N
+            m = M
+            
+        try:
+            return self.dmoments[n, m, :]
+        except:
+            raise Exception()
+
+
+
+
+    # FIXME: There are two functions with similar results 
+    def map_egcf_to_states(self, mpx):
+        """Returns a mapping between states and correlation functions"""
+
+        ss = self.SS
+        Ng = self.Nb[0]
+        Ne1 = self.Nb[1] + Ng
+
+        WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
+                                            ss[Ng:Ne1,Ng:Ne1]**2,mpx)
+
+        return WPM
 
 
     def get_lineshape_functions(self):
