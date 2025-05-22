@@ -3,6 +3,7 @@
 import unittest
 
 import numpy
+import numpy.testing as npt
 import matplotlib.pyplot as plt
 
 #import quantarhei as qr
@@ -273,6 +274,110 @@ class TestLabSetup(unittest.TestCase):
             plt.show()
             
         
+    def test_phase_setting_and_time_shifts(self):
+        """(Labsetup) Phase and time-shift setting
+        
+        """
+
+        lab = LabSetup(nopulses=4)
+        
+        Nfr = 10
+        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+
+        # pulse shapes are specified below
+        pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
+        params = (pulse2, pulse2, pulse2, pulse2)       
+
+        # pulse arrival times
+        lab.set_pulse_arrival_times([0.0, 0.0, 100.0, 200.0])
+
+        # pulse envelops
+        lab.set_pulse_shapes(time, params)
+
+        # pulse polarizations
+        X = numpy.zeros(3, dtype=float)
+        X[0] = 1
+        lab.set_pulse_polarizations(pulse_polarizations=(X,X,X,X), detection_polarization=X)
+
+        # pulse frequencies
+        ome = convert(10200.0,"1/cm","int")
+        lab.set_pulse_frequencies([ome, ome, ome, ome])
+        
+        # additional phases can be also controlled
+        lab.set_pulse_phases([0.0, 1.0, 0.0, 2.0]) 
+
+        #
+        # Test delay settings
+        #
+        fields = lab.get_labfields()
+        cntr = fields[0].get_center()
+        self.assertTrue(cntr == 0.0)
+
+        fields[0].set_center(10.0)
+        cntr = fields[0].get_center()
+        self.assertTrue(cntr == 10.0)
+
+        #
+        # Test phases
+        #
+        phs = fields[0].get_phase()
+        self.assertTrue(phs == 0.0)
+
+        fields[0].set_phase(1.53)
+        phs = fields[0].get_phase()
+        self.assertTrue(phs == 1.53)
+
+        lab.set_pulse_phases([0.6, 1.2, 0.1, 2.3]) 
+        phs = fields[0].get_phase()
+        self.assertTrue(phs == 0.6)
+        phs = fields[1].get_phase()
+        self.assertTrue(phs == 1.2)
+
+        fields[3].set_phase(1.8)
+
+        phses = lab.get_pulse_phases()
+        self.assertAlmostEqual(phses, [0.6, 1.2, 0.1, 1.8])
+
+        for ii in range(4):
+            self.assertTrue(phses[ii] == fields[ii].get_phase())
+
+        #
+        #   delays again
+        #
+        cntrs = lab.get_pulse_arrival_times()
+        for ii in range(4):
+            cntr = fields[ii].get_center()
+            self.assertTrue(cntr == cntrs[ii])
+
+
+        #
+        # Check indiviual field values
+        #
+        for kk in range(4):
+            fld_f = fields[kk].get_field()
+            fld_c = lab.get_field(kk)
+            npt.assert_allclose(fld_f, fld_c)
+
+
+        #
+        # Check field values when resetting phase and time delay
+        #
+        setthis = [0.67, 1.53, 2.14, 3.0]
+        for kk in range(4):
+            fld = fields[kk].get_field()
+            phs = fields[kk].get_phase()
+
+            nphs = setthis[kk]
+            phs_diff = nphs - phs
+            fields[kk].set_phase(nphs)
+            nfld = fields[kk].get_field()
+
+            npt.assert_allclose(fld, nfld*numpy.exp(-1j*phs_diff), rtol=0, atol=1.0e-10)
+
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

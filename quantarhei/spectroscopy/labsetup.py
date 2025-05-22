@@ -1122,25 +1122,32 @@ class LabSetup:
         self.omega[:] = self.saved_omega[:] 
         
         
-    def get_field(self):
-        """Returns the total field of the lab
+    def get_field(self, kk=None):
+        """Returns the total field of the lab or a single field
         
         """
         #N = t.shape[0]
         
         #fld = numpy.zeros(N, dtype=COMPLEX)
-        flds = self.get_labfields()
-        
-        kk = 0
-        for fl in flds:
-            if kk == 0:
-                fld = fl.get_field()
-            else:
-                fld += fl.get_field()
-            kk += 1
+        if kk is None:
+
+            flds = self.get_labfields()
             
-        return fld
+            kk = 0
+            for fl in flds:
+                if kk == 0:
+                    fld = fl.get_field()
+                else:
+                    fld += fl.get_field()
+                kk += 1
+                
+            return fld
         
+        else:
+
+            fl = self.get_labfield(kk)
+            return fl.get_field()
+
 
     def get_field_derivative(self):
         """ Returns the time derivative of the total field
