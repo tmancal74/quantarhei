@@ -27,21 +27,42 @@ class OpenSystem:
     
     def __init__(self):
         
+        #
+        #  The system has to be built before it can be used
+        #
         self._built = False
         
+
+        #
+        #  Relaxation tensor information
+        #
         self.RelaxationTensor = None
         self.RelaxationHamiltonian = None
         self._has_relaxation_tensor = False
         self._relaxation_theory = "standard_Redfield"
         self.has_Iterm = False
         
+
+        #
+        #  Electronic and other states
+        #
         self.Nel = 0
         self.Ntot = 0
         
+        #
+        #  States are devided into bands
+        #
         self.which_band = None
 
+        #
+        #  We have multiplicity of bands
+        #
         self.mult = 0
         
+
+        #
+        #  Spectroscopic information
+        #
         self.WPM = None # weighted participation matrix (for spectroscopy)
         self._has_wpm = False
         
@@ -58,13 +79,26 @@ class OpenSystem:
 
 
     def get_Hamiltonian(self):
-        """Returns the system Hamiltonian 
-        
-        
-        This is a method to be implemented by the particular system
-        
+        """ Returns the Hamiltonian operator
+
         """
-        raise Exception("get_Hamiltonian() is not implemented.")
+        if self._built:
+
+            return self.HamOp
+
+        else:
+
+            raise Exception("System has to be built first")
+
+
+    def get_TransitionDipoleMoment(self):
+        """ Returns the asystem's transition dipole moment operator
+
+        """
+        if self._built:
+            return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
+        else:
+            raise Exception("Aggregate object not built")
 
 
     def get_band(self, band=1):
