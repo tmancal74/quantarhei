@@ -463,6 +463,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             raise Exception()
 
 
+    def set_dipole(self, N, M, vec):
+        """ Sets the dipole moment of a given transition
+        
+        """
+        raise Exception("Transition dipole moments cannot be set directly. Use aggregate components.")
+
+
+
     def fc_factor(self, state1, state2):
         """Franck-Condon factors between two vibrational states
 
