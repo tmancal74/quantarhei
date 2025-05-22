@@ -136,7 +136,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     
     def __init__(self,  elenergies=[0.0,1.0], name=None): #,dmoments):
     
-        OpenSystem.__init__(self)
+        OpenSystem.__init__(self, len(elenergies))
         #self.manager = Manager()
         
         # monomer name
