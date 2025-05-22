@@ -359,6 +359,22 @@ class TestLabSetup(unittest.TestCase):
             npt.assert_allclose(fld_f, fld_c)
 
 
+        #
+        # Check field values when resetting phase and time delay
+        #
+        setthis = [0.67, 1.53, 2.14, 3.0]
+        for kk in range(4):
+            fld = fields[kk].get_field()
+            phs = fields[kk].get_phase()
+
+            nphs = setthis[kk]
+            phs_diff = nphs - phs
+            fields[kk].set_phase(nphs)
+            nfld = fields[kk].get_field()
+
+            npt.assert_allclose(fld, nfld*numpy.exp(-1j*phs_diff), rtol=0, atol=1.0e-10)
+
+
 
 
 
