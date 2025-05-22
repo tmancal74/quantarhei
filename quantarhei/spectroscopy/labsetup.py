@@ -101,8 +101,8 @@ class LabSetup:
 
         if self.saved_params is not None:
             self.set_pulse_shapes(self.timeaxis, self.saved_params)
-        else:
-            raise Exception("Pulse shapes must be set first.")
+        #else:
+        #    raise Exception("Pulse shapes must be set first.")
             
         
 
@@ -333,9 +333,10 @@ class LabSetup:
 
 
         if not self._centers_set:
-            print("Use 'set_pulse_arrival_times' function before this function.")
-            raise Exception("Pulse arrival times have to specified before "+
-                            "the pulse shape is set.")
+            #print("Use 'set_pulse_arrival_times' function before this function.")
+            #raise Exception("Pulse arrival times have to specified before "+
+            #                "the pulse shape is set.")
+            self.set_pulse_arrival_times([0.0 for ii in range(self.number_of_pulses)])
 
 
         if len(params) == self.number_of_pulses:
@@ -947,6 +948,7 @@ class LabSetup:
             
             self.pulse_centers = times
             self._centers_set = True
+            self.reset_pulse_shape()
             
         else:
             raise Exception("Wrong number of arrival times: "+
@@ -1451,6 +1453,9 @@ class LabField():
         self.index = k
         self._center_changed = False
 
+        # delay phase 
+        self.set_delay_phase(self.tc)
+
     
     def get_phase(self):
         """Returns the phase of the pulse
@@ -1510,16 +1515,27 @@ class LabField():
         self.labsetup.pulse_centers[self.index] = val
       
         # calculate phase shift associated with the delay
-        om = self.labsetup.omega[self.index]
-        phi = val*om
-        self.labsetup.delay_phases[self.index] = phi 
+        self.set_delay_phase(val)
+        #om = self.labsetup.omega[self.index]
+        #phi = val*om
+        #self.labsetup.delay_phases[self.index] = phi 
         
         # reset the pulse shapes
         self.labsetup.reset_pulse_shape()
-        
+
         self._center_changed = False
+
         
+    def set_delay_phase(self, val):
+        """Calculate and set delay phases
         
+        """
+        om = self.labsetup.omega[self.index]
+        phi = val*om
+
+        #print("Setting delay phase of", phi, "val=",val, "om=", om)
+        self.labsetup.delay_phases[self.index] = phi 
+
         
     def get_frequency(self):
         return self.labsetup.omega[self.index]

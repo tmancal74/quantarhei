@@ -49,12 +49,12 @@ class TestLabSetup(unittest.TestCase):
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
         params = (pulse2, pulse2, pulse2)
         
-        with self.assertRaises(Exception) as context:
-        
-            lab.set_pulse_shapes(time, params)
-            
-        self.assertTrue("Pulse arrival times have to specified" 
-                        in str(context.exception))
+        #with self.assertRaises(Exception) as context:
+        #
+        #    lab.set_pulse_shapes(time, params)
+        #    
+        #self.assertTrue("Pulse arrival times have to specified" 
+        #                in str(context.exception))
         
         
         # each pulse has a defined frequency
@@ -288,11 +288,11 @@ class TestLabSetup(unittest.TestCase):
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
         params = (pulse2, pulse2, pulse2, pulse2)       
 
-        # pulse arrival times
-        lab.set_pulse_arrival_times([0.0, 0.0, 100.0, 200.0])
-
         # pulse envelops
         lab.set_pulse_shapes(time, params)
+
+        # pulse arrival times
+        lab.set_pulse_arrival_times([0.0, 100.0, -80.0, 10.0])
 
         # pulse polarizations
         X = numpy.zeros(3, dtype=float)
@@ -375,7 +375,103 @@ class TestLabSetup(unittest.TestCase):
             npt.assert_allclose(fld, nfld*numpy.exp(-1j*phs_diff), rtol=0, atol=1.0e-10)
 
 
+        setthis = [20.0, 100.0, 80.0, 180.0]
+        for kk in range(4):
 
+            fld = fields[kk].get_field()
+            cnt = fields[kk].get_center()
+            dph = fields[kk].get_delay_phase()
+
+            ncnt = setthis[kk]
+
+            cnt_diff = (ncnt - cnt)
+
+            fields[kk].set_center(ncnt)
+            ndph = fields[kk].get_delay_phase()
+
+            dph_diff = dph - ndph
+            om = fields[kk].get_frequency()
+
+            exp_diff = -cnt_diff*om
+
+            #print(om, cnt_diff, dph_diff, exp_diff)
+
+            npt.assert_allclose(exp_diff, dph_diff)
+
+
+    def test_from_scratch_vs_by_objects(self):
+        """(Labsetup) Phase and time-shift setting
+        
+        """
+        Nfr = 10
+        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+        # pulse shapes are specified below
+        pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
+        params = (pulse2, pulse2, pulse2, pulse2)
+
+        ome = convert(10200.0,"1/cm","int")
+
+
+        lab = LabSetup(nopulses=4)
+        
+        # pulse envelops
+        lab.set_pulse_shapes(time, params)
+
+        # pulse arrival times
+        arr_times = [0.0, 100.0, -80.0, 10.0]
+        lab.set_pulse_arrival_times(arr_times)
+
+        # pulse frequencies
+        lab.set_pulse_frequencies([ome, ome, ome, ome])
+        
+        # additional phases can be also controlled
+        #lab.set_pulse_phases([0.0, 1.0, 0.0, 2.0]) 
+
+
+        for ii in range(4):
+            self.assertEqual(0.0, lab.get_pulse_phase(ii))
+            fld = lab.get_labfield(ii)
+            self.assertEqual(0.0, fld.get_phase())
+            fld.set_phase(10.0)
+            self.assertEqual(10.0, lab.get_pulse_phase(ii))
+
+        npt.assert_allclose(arr_times,lab.get_pulse_arrival_times())
+            
+        for ii in range(4):
+            tp = lab.get_pulse_arrival_time(ii)
+            self.assertEqual(arr_times[ii],tp)
+
+        tset = [-30.0, 0.0, 100.0, 200.0]
+        lab.set_pulse_arrival_times(tset)
+
+        fld1 = lab.get_field()
+        plt.plot(time.data, numpy.real(fld1),"-r")
+        plt.show()
+
+        zeros = [0.0, 0.0, 0.0, 0.0]
+        lab.set_pulse_arrival_times(zeros)
+
+        fields = lab.get_labfields()
+        for ii in range(4):
+            self.assertEqual(0.0, fields[ii].get_center())
+            self.assertEqual(0.0, fields[ii].get_delay_phase())
+
+        for ii in range(4):
+            fields[ii].set_center(tset[ii])
+
+        istset = lab.get_pulse_arrival_times()
+        npt.assert_allclose(istset, tset)
+
+        fld2 = lab.get_field()
+
+        plt.plot(time.data, numpy.real(fld1),"-r")
+        plt.plot(time.data, numpy.real(fld2),"-b")
+        plt.show()
+
+
+        npt.assert_allclose(fld1, fld2, rtol=0, atol=1.0e-7)
+
+        
 
 
 
