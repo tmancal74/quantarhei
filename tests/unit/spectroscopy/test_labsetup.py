@@ -3,6 +3,7 @@
 import unittest
 
 import numpy
+import numpy.testing as npt
 import matplotlib.pyplot as plt
 
 #import quantarhei as qr
@@ -287,20 +288,27 @@ class TestLabSetup(unittest.TestCase):
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
         params = (pulse2, pulse2, pulse2, pulse2)       
 
+        # pulse arrival times
         lab.set_pulse_arrival_times([0.0, 0.0, 100.0, 200.0])
 
+        # pulse envelops
         lab.set_pulse_shapes(time, params)
 
+        # pulse polarizations
         X = numpy.zeros(3, dtype=float)
         X[0] = 1
         lab.set_pulse_polarizations(pulse_polarizations=(X,X,X,X), detection_polarization=X)
 
+        # pulse frequencies
         ome = convert(10200.0,"1/cm","int")
         lab.set_pulse_frequencies([ome, ome, ome, ome])
         
         # additional phases can be also controlled
         lab.set_pulse_phases([0.0, 1.0, 0.0, 2.0]) 
 
+        #
+        # Test delay settings
+        #
         fields = lab.get_labfields()
         cntr = fields[0].get_center()
         self.assertTrue(cntr == 0.0)
@@ -309,6 +317,9 @@ class TestLabSetup(unittest.TestCase):
         cntr = fields[0].get_center()
         self.assertTrue(cntr == 10.0)
 
+        #
+        # Test phases
+        #
         phs = fields[0].get_phase()
         self.assertTrue(phs == 0.0)
 
@@ -327,7 +338,27 @@ class TestLabSetup(unittest.TestCase):
         phses = lab.get_pulse_phases()
         self.assertAlmostEqual(phses, [0.6, 1.2, 0.1, 1.8])
 
-        #delays
+        for ii in range(4):
+            self.assertTrue(phses[ii] == fields[ii].get_phase())
+
+        #
+        #   delays again
+        #
+        cntrs = lab.get_pulse_arrival_times()
+        for ii in range(4):
+            cntr = fields[ii].get_center()
+            self.assertTrue(cntr == cntrs[ii])
+
+
+        #
+        # Check indiviual field values
+        #
+        for kk in range(4):
+            fld_f = fields[kk].get_field()
+            fld_c = lab.get_field(kk)
+            npt.assert_allclose(fld_f, fld_c)
+
+
 
 
 
