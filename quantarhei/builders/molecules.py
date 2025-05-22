@@ -122,9 +122,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     # position of the monomer 
     position = array_property('position',shape=(3,))
     # energies of electronic states
-    elenergies = array_property('elenergies')
+    #elenergies = array_property('elenergies')
     # transition dipole moments
-    dmoments = array_property('dmoments')    
+    #dmoments = array_property('dmoments')    
     
     # number of electronic statesarray_property
     nel      = Integer('nel')
@@ -167,7 +167,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.allowed_transitions = []
          
         # transition dipole moments
-        self.dmoments = numpy.zeros((self.nel,self.nel,3)) 
+        #self.dmoments = numpy.zeros((self.nel,self.nel,3)) 
         
         # matrix of the transition widths
         self.widths = None
@@ -771,95 +771,95 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return len(self.modes)
 
 
-    def set_dipole(self, N, M, vec=None):
-        """Sets transition dipole moment for an electronic transition
+    # def set_dipole(self, N, M, vec=None):
+    #     """Sets transition dipole moment for an electronic transition
         
         
-        There are two ways how to use this function:
+    #     There are two ways how to use this function:
             
-            1) recommended
+    #         1) recommended
                 
-                set_dipole((0,1),[1.0, 0.0, 0.0])
+    #             set_dipole((0,1),[1.0, 0.0, 0.0])
                 
-                here N represents a transition by a tuple, M is the dipole
+    #             here N represents a transition by a tuple, M is the dipole
                 
-            2) deprecated (used in earlier versions of quantarhei)
+    #         2) deprecated (used in earlier versions of quantarhei)
                 
-                set_dipole(0,1,[1.0, 0.0, 0.0])
+    #             set_dipole(0,1,[1.0, 0.0, 0.0])
                 
-                here the transition is characterized by two integers
-                and the last arguments is the vector
+    #             here the transition is characterized by two integers
+    #             and the last arguments is the vector
                 
         
         
-        Examples
-        --------
+    #     Examples
+    #     --------
  
-        >>> m = Molecule([0.0, 1.0])
-        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
-        >>> m.get_dipole((0,1))
-        array([ 1.,  0.,  0.])
+    #     >>> m = Molecule([0.0, 1.0])
+    #     >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+    #     >>> m.get_dipole((0,1))
+    #     array([ 1.,  0.,  0.])
 
         
-        """
-        if vec is None:
-            n = N[0]
-            m = N[1]
-            vc = M
-        else:
-            n = N
-            m = M
-            vc = vec
+    #     """
+    #     if vec is None:
+    #         n = N[0]
+    #         m = N[1]
+    #         vc = M
+    #     else:
+    #         n = N
+    #         m = M
+    #         vc = vec
             
-        if n == m:
-            raise Exception("M must not be equal to N")
-        try:
-            self.dmoments[n, m, :] = vc
-            self.dmoments[m, n, :] = numpy.conj(vc)
-        except:
-            raise Exception()
+    #     if n == m:
+    #         raise Exception("M must not be equal to N")
+    #     try:
+    #         self.dmoments[n, m, :] = vc
+    #         self.dmoments[m, n, :] = numpy.conj(vc)
+    #     except:
+    #         raise Exception()
             
         
-    def get_dipole(self, N, M=None):
-        """Returns the dipole vector for a given electronic transition
+    # def get_dipole(self, N, M=None):
+    #     """Returns the dipole vector for a given electronic transition
         
-        There are two ways how to use this function:
+    #     There are two ways how to use this function:
             
-            1) recommended
+    #         1) recommended
                 
-                get_dipole((0,1),[1.0, 0.0, 0.0])
+    #             get_dipole((0,1),[1.0, 0.0, 0.0])
                 
-                here N represents a transition by a tuple, M is the dipole
+    #             here N represents a transition by a tuple, M is the dipole
                 
-            2) deprecated (used in earlier versions of quantarhei)
+    #         2) deprecated (used in earlier versions of quantarhei)
                 
-                get_dipole(0,1,[1.0, 0.0, 0.0])
+    #             get_dipole(0,1,[1.0, 0.0, 0.0])
                 
-                here the transition is characterized by two integers
-                and the last arguments is the vector        
+    #             here the transition is characterized by two integers
+    #             and the last arguments is the vector        
                 
         
-        Examples
-        --------
+    #     Examples
+    #     --------
         
-        >>> m = Molecule([0.0, 1.0])
-        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
-        >>> m.get_dipole((0,1))
-        array([ 1.,  0.,  0.])
+    #     >>> m = Molecule([0.0, 1.0])
+    #     >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+    #     >>> m.get_dipole((0,1))
+    #     array([ 1.,  0.,  0.])
         
         
-        """
-        if M is None:
-            n = N[0]
-            m = N[1]
-        else:
-            n = N
-            m = M
+    #     """
+    #     if M is None:
+    #         n = N[0]
+    #         m = N[1]
+    #     else:
+    #         n = N
+    #         m = M
             
-        try:
-            return self.dmoments[n, m, :]
-        except:
-            raise Exception()
+    #     try:
+    #         return self.dmoments[n, m, :]
+    #     except:
+    #         raise Exception()
 
 
             

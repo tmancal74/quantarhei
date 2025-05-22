@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy
 
-
+from ..utils import array_property
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.liouvillespace.heom import KTHierarchy
 from ..qm.liouvillespace.heom import KTHierarchyPropagator
@@ -25,6 +25,11 @@ class OpenSystem:
     
     
     """
+
+    # energies of electronic states
+    elenergies = array_property('elenergies')
+    # transition dipole moments
+    dmoments = array_property('dmoments')
     
     def __init__(self, Nel):
         
@@ -72,6 +77,12 @@ class OpenSystem:
         #self.Nel = 0
         self.Ntot = 0
         
+
+        # 
+        #  Transition dipole moment 
+        #
+        self.dmoments = numpy.zeros((self.Nel,self.Nel,3))
+
         #
         #  States are devided into bands
         #
@@ -306,6 +317,114 @@ class OpenSystem:
         lst = [k for k in range(Nbefore, Nbefore+Nin)]
 
         return tuple(lst)
+
+
+    def set_dipole(self, N, M, vec=None):
+        """Sets transition dipole moment for an electronic transition
+        
+        
+        There are two ways how to use this function:
+            
+            1) recommended
+                
+                set_dipole((0,1),[1.0, 0.0, 0.0])
+                
+                here N represents a transition by a tuple, M is the dipole
+                
+            2) deprecated (used in earlier versions of quantarhei)
+                
+                set_dipole(0,1,[1.0, 0.0, 0.0])
+                
+                here the transition is characterized by two integers
+                and the last arguments is the vector
+                
+        
+        
+        Examples
+        --------
+ 
+        >>> m = OpenSystem(2)
+        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+        >>> m.get_dipole((0,1))
+        array([ 1.,  0.,  0.])
+
+        
+        """
+        if vec is None:
+            n = N[0]
+            m = N[1]
+            vc = M
+        else:
+            n = N
+            m = M
+            vc = vec
+            
+        if n == m:
+            raise Exception("M must not be equal to N")
+        try:
+            self.dmoments[n, m, :] = vc
+            self.dmoments[m, n, :] = numpy.conj(vc)
+        except:
+            raise Exception()
+
+
+    def get_dipole(self, N, M=None):
+        """Returns the dipole vector for a given electronic transition
+        
+        There are two ways how to use this function:
+            
+            1) recommended
+                
+                get_dipole((0,1),[1.0, 0.0, 0.0])
+                
+                here N represents a transition by a tuple, M is the dipole
+                
+            2) deprecated (used in earlier versions of quantarhei)
+                
+                get_dipole(0,1,[1.0, 0.0, 0.0])
+                
+                here the transition is characterized by two integers
+                and the last arguments is the vector        
+                
+        
+        Examples
+        --------
+        
+        
+        >>> m = OpenSystem(2)
+        >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
+        >>> m.get_dipole((0,1))
+        array([ 1.,  0.,  0.])
+        
+        
+        """
+        if M is None:
+            n = N[0]
+            m = N[1]
+        else:
+            n = N
+            m = M
+            
+        try:
+            return self.dmoments[n, m, :]
+        except:
+            raise Exception()
+
+
+
+
+    # FIXME: There are two functions with similar results 
+    def map_egcf_to_states(self, mpx):
+        """Returns a mapping between states and correlation functions"""
+
+        ss = self.SS
+        Ng = self.Nb[0]
+        Ne1 = self.Nb[1] + Ng
+
+        WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
+                                            ss[Ng:Ne1,Ng:Ne1]**2,mpx)
+
+        return WPM
 
 
     def get_lineshape_functions(self):
