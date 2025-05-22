@@ -445,8 +445,11 @@ class TestLabSetup(unittest.TestCase):
         lab.set_pulse_arrival_times(tset)
 
         fld1 = lab.get_field()
-        plt.plot(time.data, numpy.real(fld1),"-r")
-        plt.show()
+
+        _plot = False
+        if _plot:
+            plt.plot(time.data, numpy.real(fld1),"-r")
+            plt.show()
 
         zeros = [0.0, 0.0, 0.0, 0.0]
         lab.set_pulse_arrival_times(zeros)
@@ -464,14 +467,68 @@ class TestLabSetup(unittest.TestCase):
 
         fld2 = lab.get_field()
 
-        plt.plot(time.data, numpy.real(fld1),"-r")
-        plt.plot(time.data, numpy.real(fld2),"-b")
-        plt.show()
+
+        if _plot:
+            plt.plot(time.data, numpy.real(fld1),"-r")
+            plt.plot(time.data, numpy.real(fld2),"-b")
+            plt.show()
 
 
         npt.assert_allclose(fld1, fld2, rtol=0, atol=1.0e-7)
 
+
+
+    def test_comparing_fields(self):
+        """(Labsetup) Phase and time-shift setting
         
+        """
+        Nfr = 10
+        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+        # pulse shapes are specified below
+        pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
+        params = (pulse2, pulse2, pulse2, pulse2)
+
+        ome = convert(10200.0,"1/cm","int")
+
+
+        lab = LabSetup(nopulses=4)
+        
+        # pulse envelops
+        lab.set_pulse_shapes(time, params)
+
+        # pulse arrival times
+        arr_times = [0.0, 100.0, -80.0, 10.0]
+        lab.set_pulse_arrival_times(arr_times)
+
+        # pulse frequencies
+        lab.set_pulse_frequencies([ome, ome, ome, ome])
+
+        lab.set_pulse_phases([0.0, 1.0, 0.0, 2.0]) 
+
+        fields = lab.get_labfields()
+
+        setthis = [10.0, 20.0, 15.0, -10.0]
+        for ii in range(4):
+            fld = fields[ii]
+
+            fwhm = fld.get_fwhm()
+            om = fld.get_frequency()
+
+            npt.assert_almost_equal(20.0, fwhm)
+            t1 = fld.get_center()
+
+            ef1 = fld.get_field()
+
+            t2 = t1 + setthis[ii]
+            fld.set_center(t2)
+
+            lfc = 4.0*numpy.log(2.0)
+            kappa = numpy.exp(-lfc*(2.0*(t1-t2)*time.data -(t1**2 - t2**2))/(fwhm**2) - 1j*om*(t1-t2))
+
+            ef2 = fld.get_field()
+
+            npt.assert_allclose(ef2, ef1*kappa, rtol=0, atol=1.0e-7)
+
 
 
 

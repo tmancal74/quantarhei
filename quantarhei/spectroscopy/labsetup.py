@@ -1548,6 +1548,9 @@ class LabField():
     
     def set_polarization(self, pol):
         self.labsetup.e[self.index,:] = pol
+
+    def get_fwhm(self):
+        return self.labsetup.saved_params[self.index]["FWHM"]
         
         
     def get_field(self, time=None, sign=1):
