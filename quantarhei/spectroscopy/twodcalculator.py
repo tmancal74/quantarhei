@@ -16,6 +16,8 @@ from .. import signal_REPH, signal_NONR
 
 from ..spectroscopy.responses import NonLinearResponse
 
+from .. import REAL
+
 # deprecated class
 from ..spectroscopy.responses import LiouvillePathway
 
@@ -194,7 +196,7 @@ class TwoDResponseCalculator:
                 Ns = numpy.zeros(Nb, dtype=numpy.int32)
                 Ns[0] = sys.Nb[0] #1
                 Ns[1] = sys.Nb[1] #agg.nmono
-                Ns[2] = sys.Nb[1] #Ns[1]*(Ns[1]-1)/2
+                Ns[2] = sys.Nb[2] #Ns[1]*(Ns[1]-1)/2
                 
                 _use_aceto = False
 
@@ -203,14 +205,16 @@ class TwoDResponseCalculator:
                 # Relaxation rates
                 #
                 if not self._has_rate_matrix:
-                    try:
+                    #try:
+                    if False:
                         KK = sys.get_RedfieldRateMatrix()
-                    except:
+                    #except:
+                    else:
 
                         # FIXME: This is a quick fix to make a zero rate matrix
                         class hlp:
                             def __init__(self, N):
-                                self.data =  numpy.zeros((N,N), dtype=numpy.REAL)
+                                self.data =  numpy.zeros((N,N), dtype=REAL)
 
                         KK = hlp(Ns[1])
                 else:
@@ -444,43 +448,63 @@ class TwoDResponseCalculator:
             self.resp_fcions = []
 
             # basic pathways
-            Nr1g = qr.NonLinearResponse(self.lab, self.system, "R1g", self.t1axis, self.t2axis, self.t3axis)
-            Nr2g = qr.NonLinearResponse(self.lab, self.system, "R2g", self.t1axis, self.t2axis, self.t3axis)
-            Nr3g = qr.NonLinearResponse(self.lab, self.system, "R3g", self.t1axis, self.t2axis, self.t3axis)
-            Nr4g = qr.NonLinearResponse(self.lab, self.system, "R4g", self.t1axis, self.t2axis, self.t3axis)
+            Nr1g = qr.NonLinearResponse(self.lab, self.system, "R1g",
+                                        self.t1axis, self.t2axis, self.t3axis)
+            Nr2g = qr.NonLinearResponse(self.lab, self.system, "R2g",
+                                        self.t1axis, self.t2axis, self.t3axis)
+            Nr3g = qr.NonLinearResponse(self.lab, self.system, "R3g",
+                                        self.t1axis, self.t2axis, self.t3axis)
+            Nr4g = qr.NonLinearResponse(self.lab, self.system, "R4g",
+                                        self.t1axis, self.t2axis, self.t3axis)
 
             self.resp_fcions.append(Nr1g)
             self.resp_fcions.append(Nr2g)
             self.resp_fcions.append(Nr3g)
             self.resp_fcions.append(Nr4g)
 
-            # ESA (if mult > 1)
-            Nr1f = qr.NonLinearResponse(self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis)
-            Nr2f = qr.NonLinearResponse(self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis)
+            if self.system.mult > 1:
+                # ESA (if mult > 1)
+                Nr1f = qr.NonLinearResponse(self.lab, self.system, "R1f",
+                                            self.t1axis, self.t2axis, self.t3axis)
+                Nr2f = qr.NonLinearResponse(self.lab, self.system, "R2f",
+                                            self.t1axis, self.t2axis, self.t3axis)
 
-            self.resp_fcions.append(Nr1f)
-            self.resp_fcions.append(Nr2f)            
-            
+                self.resp_fcions.append(Nr1f)
+                self.resp_fcions.append(Nr2f)            
+
+
             # relaxation (if relax neq 0)
             Nr1g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
                                               "R1g_scM0g", self.t1axis, self.t2axis, self.t3axis)
             Nr2g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
                                               "R2g_scM0g", self.t1axis, self.t2axis, self.t3axis)
-            Nr1f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
-                                              "R1f_scM0g", self.t1axis, self.t2axis, self.t3axis)
-            Nr2f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
-                                              "R2f_scM0g", self.t1axis, self.t2axis, self.t3axis)
-            Nr1f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
-                                              "R1f_scM0e", self.t1axis, self.t2axis, self.t3axis)
-            Nr2f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
-                                              "R2f_scM0e", self.t1axis, self.t2axis, self.t3axis)
+            
+            KK = Nr1g_scM0g.KK
+            if numpy.all(numpy.isclose(KK, 0.0, atol=1e-9)):
 
-            self.resp_fcions.append(Nr1g_scM0g)
-            self.resp_fcions.append(Nr2g_scM0g)
-            self.resp_fcions.append(Nr1f_scM0g)
-            self.resp_fcions.append(Nr2f_scM0g)
-            self.resp_fcions.append(Nr1f_scM0e)
-            self.resp_fcions.append(Nr2f_scM0e)
+                pass  # we avoid calculating relaxation if the matrix is zero
+
+            else:
+
+                #print("Including relaxation")
+                self.resp_fcions.append(Nr1g_scM0g)
+                self.resp_fcions.append(Nr2g_scM0g)            
+
+
+            if self.system.mult > 1:
+                Nr1f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R1f_scM0g", self.t1axis, self.t2axis, self.t3axis)
+                Nr2f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R2f_scM0g", self.t1axis, self.t2axis, self.t3axis)
+                Nr1f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R1f_scM0e", self.t1axis, self.t2axis, self.t3axis)
+                Nr2f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R2f_scM0e", self.t1axis, self.t2axis, self.t3axis)
+
+                self.resp_fcions.append(Nr1f_scM0g)
+                self.resp_fcions.append(Nr2f_scM0g)
+                self.resp_fcions.append(Nr1f_scM0e)
+                self.resp_fcions.append(Nr2f_scM0e)
 
 
             self._has_responses = True
