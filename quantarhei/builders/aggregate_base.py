@@ -546,6 +546,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
 
         ss = self.SS
+
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
         

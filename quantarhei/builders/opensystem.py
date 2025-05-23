@@ -113,7 +113,7 @@ class OpenSystem:
         self.HD = numpy.diag(self.HH)
 
         # diagonal transformation matrix
-        self.SS = numpy.ones_like(self.HH)
+        self.SS = numpy.diag(numpy.ones_like(self.HD))
 
         self._diagonalized = True
 
@@ -416,11 +416,6 @@ class OpenSystem:
 
         WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
                                             ss[Ng:Ne1,Ng:Ne1]**2,mpx)
-        
-        print(mpx)
-        print(mpx.shape)
-
-        stop
 
         return WPM
 

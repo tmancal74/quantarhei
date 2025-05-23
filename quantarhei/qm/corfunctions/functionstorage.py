@@ -652,7 +652,7 @@ class FunctionStorage:
         for ii in range(Nsites):
             jj_ind = self.mapping[ii]
             mtrx[ii,jj_ind] = 1.0
-                
+        
         return mtrx
 
         
