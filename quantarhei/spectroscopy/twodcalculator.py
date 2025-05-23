@@ -443,18 +443,46 @@ class TwoDResponseCalculator:
             #
             self.resp_fcions = []
 
+            # basic pathways
             Nr1g = qr.NonLinearResponse(self.lab, self.system, "R1g", self.t1axis, self.t2axis, self.t3axis)
             Nr2g = qr.NonLinearResponse(self.lab, self.system, "R2g", self.t1axis, self.t2axis, self.t3axis)
             Nr3g = qr.NonLinearResponse(self.lab, self.system, "R3g", self.t1axis, self.t2axis, self.t3axis)
             Nr4g = qr.NonLinearResponse(self.lab, self.system, "R4g", self.t1axis, self.t2axis, self.t3axis)
-            Nr1f = qr.NonLinearResponse(self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis)
-            Nr2f = qr.NonLinearResponse(self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis)
+
             self.resp_fcions.append(Nr1g)
             self.resp_fcions.append(Nr2g)
             self.resp_fcions.append(Nr3g)
             self.resp_fcions.append(Nr4g)
+
+            # ESA (if mult > 1)
+            Nr1f = qr.NonLinearResponse(self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis)
+            Nr2f = qr.NonLinearResponse(self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis)
+
             self.resp_fcions.append(Nr1f)
-            self.resp_fcions.append(Nr2f)
+            self.resp_fcions.append(Nr2f)            
+            
+            # relaxation (if relax neq 0)
+            Nr1g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R1g_scM0g", self.t1axis, self.t2axis, self.t3axis)
+            Nr2g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R2g_scM0g", self.t1axis, self.t2axis, self.t3axis)
+            Nr1f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R1f_scM0g", self.t1axis, self.t2axis, self.t3axis)
+            Nr2f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R2f_scM0g", self.t1axis, self.t2axis, self.t3axis)
+            Nr1f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R1f_scM0e", self.t1axis, self.t2axis, self.t3axis)
+            Nr2f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R2f_scM0e", self.t1axis, self.t2axis, self.t3axis)
+
+            self.resp_fcions.append(Nr1g_scM0g)
+            self.resp_fcions.append(Nr2g_scM0g)
+            self.resp_fcions.append(Nr1f_scM0g)
+            self.resp_fcions.append(Nr2f_scM0g)
+            self.resp_fcions.append(Nr1f_scM0e)
+            self.resp_fcions.append(Nr2f_scM0e)
+
+
             self._has_responses = True
                 
 
