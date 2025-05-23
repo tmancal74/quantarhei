@@ -279,15 +279,6 @@ class OpenSystem:
         else:
             
             raise Exception("Monomer has a correlation function already")            
-
-
-
-
-    def get_band(self, band=1):
-        """Returns indices of all states in a given band
-        
-        """
-        raise Exception("get_band() is not implemented.")
     
 
     def get_RWA_suggestion(self):
@@ -421,8 +412,15 @@ class OpenSystem:
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
 
+        Ne1 = self.Nel
+
         WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
                                             ss[Ng:Ne1,Ng:Ne1]**2,mpx)
+        
+        print(mpx)
+        print(mpx.shape)
+
+        stop
 
         return WPM
 

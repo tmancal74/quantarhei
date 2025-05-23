@@ -126,6 +126,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.D2_max = 0
         self.sbi = None
 
+        self._has_wpm = False
+        self.WPM = None
+
 
     def clean(self):
         """Cleans the aggregate object of anything built

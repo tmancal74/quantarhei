@@ -453,8 +453,8 @@ class TwoDResponseCalculator:
             self.resp_fcions.append(Nr2g)
             self.resp_fcions.append(Nr3g)
             self.resp_fcions.append(Nr4g)
-            #self.resp_fcions.append(Nr1f)
-            #self.resp_fcions.append(Nr2f)
+            self.resp_fcions.append(Nr1f)
+            self.resp_fcions.append(Nr2f)
             self._has_responses = True
                 
 
