@@ -16,26 +16,28 @@ from .. import signal_REPH, signal_NONR
 
 from ..spectroscopy.responses import NonLinearResponse
 
+from .. import REAL
+
 # deprecated class
 from ..spectroscopy.responses import LiouvillePathway
 
 import quantarhei as qr
 
-try:
-
-    import aceto.nr3td as nr3td            
-    from aceto.lab_settings import lab_settings
-    from aceto.band_system import band_system            
-    _have_aceto = True
-    
-except:
+#try:
+#
+#    import aceto.nr3td as nr3td            
+#    from aceto.lab_settings import lab_settings
+#    from aceto.band_system import band_system            
+#    _have_aceto = True
+#    
+#except:
     #
     #
     #raise Exception("Aceto not available")
-    from ..implementations.aceto import nr3td  
-    from ..implementations.aceto.band_system import band_system 
-    from ..implementations.aceto.lab_settings import lab_settings         
-    _have_aceto = False # we assume we have Python implementation
+from ..implementations.aceto import nr3td  
+from ..implementations.aceto.band_system import band_system 
+from ..implementations.aceto.lab_settings import lab_settings         
+_have_aceto = False # we assume we have Python implementation
 
 
 class TwoDResponseCalculator:
@@ -194,61 +196,25 @@ class TwoDResponseCalculator:
                 Ns = numpy.zeros(Nb, dtype=numpy.int32)
                 Ns[0] = sys.Nb[0] #1
                 Ns[1] = sys.Nb[1] #agg.nmono
-                Ns[2] = sys.Nb[1] #Ns[1]*(Ns[1]-1)/2
+                Ns[2] = sys.Nb[2] #Ns[1]*(Ns[1]-1)/2
                 
                 _use_aceto = False
 
-                if _use_aceto:
-#
-# This is the part that uses ACETO library - soon to be abandoned
-#
-                    # FIXME: DO I NEED THIS????
-#
-###############################################################################
-                    self.sys = band_system(Nb, Ns)
-                    
-                    #
-                    # Set energies
-                    #
-                    en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
-                    #if True:
-                    with eigenbasis_of(H):
-                        for i in range(self.sys.Ne):
-                            en[i] = H.data[i,i]
-                        self.sys.set_energies(en)
-                    
-                    
-                
-                        #
-                        # Set transition dipole moments
-                        #
-                        dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
-                        def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
-                                        (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
-                    
-                        dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
-                        deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
-                        
-                        for i in range(3):
-                            dge[i,:,:] = dge_wr[:,:,i]
-                            deff[i,:,:] = def_wr[:,:,i]
-                        self.sys.set_dipoles(0,1,dge)
-                        self.sys.set_dipoles(1,2,deff)
-###############################################################################
-#              
                 
                 #
                 # Relaxation rates
                 #
                 if not self._has_rate_matrix:
-                    try:
+                    #try:
+                    if False:
                         KK = sys.get_RedfieldRateMatrix()
-                    except:
+                    #except:
+                    else:
 
                         # FIXME: This is a quick fix to make a zero rate matrix
                         class hlp:
                             def __init__(self, N):
-                                self.data =  numpy.zeros((N,N), dtype=numpy.REAL)
+                                self.data =  numpy.zeros((N,N), dtype=REAL)
 
                         KK = hlp(Ns[1])
                 else:
@@ -258,18 +224,8 @@ class TwoDResponseCalculator:
                 Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
                 #print(1.0/KK.data)
                 
-                # FIXM: we need also 2 exciton rates
-                
-#
-# ACETO code ##################################################################
-#
-                if _use_aceto:               
-                    self.sys.init_dephasing_rates()
-                    self.sys.set_relaxation_rates(1,Kr)
-
-#
-###############################################################################
-#                
+                # FIXME: we need also 2 exciton rates
+                #                
                 
                 #
                 # Lineshape functions
@@ -277,31 +233,7 @@ class TwoDResponseCalculator:
                 sbi = sys.get_SystemBathInteraction()
                 cfm = sbi.CC
                 cfm.create_double_integral()
-                
-                
-#
-# ACETO code ##################################################################
-#
-                if _use_aceto:
-                    #
-                    # Transformation matrices
-                    #
-                    SS = H.diagonalize()
-                    SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
-                    SS2 = SS[Ns[1]+1:,Ns[1]+1:]
-                    H.undiagonalize()
-                    
-                    self.sys.set_gofts(cfm._gofts)    # line shape functions
-                    self.sys.set_sitep(cfm.cpointer)  # pointer to sites
-                    # matrix of transformation coefficients
-                    self.sys.set_transcoef(1,SS1)  
-                    # matrix of transformation coefficients
-                    self.sys.set_transcoef(2,SS2)    
-                
-#
-###############################################################################
-#
-             
+                             
 
 #
 #  This section will also be removed - It goes to the new Response class
@@ -422,10 +354,10 @@ class TwoDResponseCalculator:
         #
         # Initialize response storage
         #
-        if _have_aceto and self._has_system:
-            order = 'F'
-        else:
-            order = 'C'
+        #if _have_aceto and self._has_system:
+        #    order = 'F'
+        #else:
+        order = 'C'
             
         ntype = numpy.complex128
         
@@ -437,6 +369,7 @@ class TwoDResponseCalculator:
         resp_n = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Ngsb = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+
         resp_Rse = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Nse = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Resa = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
@@ -447,7 +380,7 @@ class TwoDResponseCalculator:
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         
     
-        if _have_aceto and self._has_system:
+        if False: #_have_aceto and self._has_system:
             #
             # calcute response
             #
@@ -514,18 +447,66 @@ class TwoDResponseCalculator:
             #
             self.resp_fcions = []
 
-            Nr1g = qr.NonLinearResponse(self.lab, self.system, "R1g", self.t1axis, self.t2axis, self.t3axis)
-            Nr2g = qr.NonLinearResponse(self.lab, self.system, "R2g", self.t1axis, self.t2axis, self.t3axis)
-            Nr3g = qr.NonLinearResponse(self.lab, self.system, "R3g", self.t1axis, self.t2axis, self.t3axis)
-            Nr4g = qr.NonLinearResponse(self.lab, self.system, "R4g", self.t1axis, self.t2axis, self.t3axis)
-            Nr1f = qr.NonLinearResponse(self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis)
-            Nr2f = qr.NonLinearResponse(self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis)
+            # basic pathways
+            Nr1g = qr.NonLinearResponse(self.lab, self.system, "R1g",
+                                        self.t1axis, self.t2axis, self.t3axis)
+            Nr2g = qr.NonLinearResponse(self.lab, self.system, "R2g",
+                                        self.t1axis, self.t2axis, self.t3axis)
+            Nr3g = qr.NonLinearResponse(self.lab, self.system, "R3g",
+                                        self.t1axis, self.t2axis, self.t3axis)
+            Nr4g = qr.NonLinearResponse(self.lab, self.system, "R4g",
+                                        self.t1axis, self.t2axis, self.t3axis)
+
             self.resp_fcions.append(Nr1g)
             self.resp_fcions.append(Nr2g)
             self.resp_fcions.append(Nr3g)
             self.resp_fcions.append(Nr4g)
-            #self.resp_fcions.append(Nr1f)
-            #self.resp_fcions.append(Nr2f)
+
+            if self.system.mult > 1:
+                # ESA (if mult > 1)
+                Nr1f = qr.NonLinearResponse(self.lab, self.system, "R1f",
+                                            self.t1axis, self.t2axis, self.t3axis)
+                Nr2f = qr.NonLinearResponse(self.lab, self.system, "R2f",
+                                            self.t1axis, self.t2axis, self.t3axis)
+
+                self.resp_fcions.append(Nr1f)
+                self.resp_fcions.append(Nr2f)            
+
+
+            # relaxation (if relax neq 0)
+            Nr1g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R1g_scM0g", self.t1axis, self.t2axis, self.t3axis)
+            Nr2g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                              "R2g_scM0g", self.t1axis, self.t2axis, self.t3axis)
+            
+            KK = Nr1g_scM0g.KK
+            if numpy.all(numpy.isclose(KK, 0.0, atol=1e-9)):
+
+                pass  # we avoid calculating relaxation if the matrix is zero
+
+            else:
+
+                #print("Including relaxation")
+                self.resp_fcions.append(Nr1g_scM0g)
+                self.resp_fcions.append(Nr2g_scM0g)            
+
+
+            if self.system.mult > 1:
+                Nr1f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R1f_scM0g", self.t1axis, self.t2axis, self.t3axis)
+                Nr2f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R2f_scM0g", self.t1axis, self.t2axis, self.t3axis)
+                Nr1f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R1f_scM0e", self.t1axis, self.t2axis, self.t3axis)
+                Nr2f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                                                "R2f_scM0e", self.t1axis, self.t2axis, self.t3axis)
+
+                self.resp_fcions.append(Nr1f_scM0g)
+                self.resp_fcions.append(Nr2f_scM0g)
+                self.resp_fcions.append(Nr1f_scM0e)
+                self.resp_fcions.append(Nr2f_scM0e)
+
+
             self._has_responses = True
                 
 
@@ -579,8 +560,8 @@ class TwoDResponseCalculator:
         #
         # FIXME: discontinue Aceto and remove the sum (and the code above)
         #
-        resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
-        resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
+        resp_r = resp_Rgsb #+ resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
+        resp_n = resp_Ngsb #+ resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
 
 
 
@@ -686,25 +667,25 @@ class TwoDResponseCalculator:
         from .twodcontainer import TwoDResponseContainer
  
                   
-        if _have_aceto and self._has_system:
+        # if _have_aceto and self._has_system:
 
-            twods = TwoDResponseContainer(self.t2axis)
+        #     twods = TwoDResponseContainer(self.t2axis)
             
-            teetoos = self.t2axis.data
+        #     teetoos = self.t2axis.data
             
-            kk = 0
-            Nk = teetoos.shape[0]
+        #     kk = 0
+        #     Nk = teetoos.shape[0]
             
-            for tt2 in teetoos:
+        #     for tt2 in teetoos:
 
-                self._vprint_r(" Calculating t2 =", tt2, "fs (",kk,"of",Nk,")")
-                onetwod = self.calculate_next()
-                twods.set_spectrum(onetwod)   
-                kk += 1
+        #         self._vprint_r(" Calculating t2 =", tt2, "fs (",kk,"of",Nk,")")
+        #         onetwod = self.calculate_next()
+        #         twods.set_spectrum(onetwod)   
+        #         kk += 1
             
-            return twods
+        #     return twods
         
-        elif self._has_responses or self._has_system:
+        if self._has_responses or self._has_system:
             
             # calculate user defined responses
 

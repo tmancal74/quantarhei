@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy
 
+from ..core.managers import Manager
 from ..utils import array_property
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.liouvillespace.heom import KTHierarchy
@@ -15,7 +16,7 @@ from ..core.units import kB_intK
 from .. import REAL
 from .. import COMPLEX
 
-class OpenSystem:
+class OpenSystem():
     """The class representing a general open quantum system
     
     It provides routines to store and extract the most interesting
@@ -31,9 +32,43 @@ class OpenSystem:
     # transition dipole moments
     dmoments = array_property('dmoments')
     
-    def __init__(self, Nel):
+    def __init__(self, elen):
         
-        self.Nel = Nel
+        #
+        # Analyze energies
+        #
+        count = 0
+        nband = 0
+        which_band = []
+        i_en = []
+        for sub in elen:
+            try:
+                for ssub in sub:
+                    count += 1
+                    i_en.append(ssub)
+                    which_band.append(nband)
+                nband += 1
+            except:
+                count += 1
+                i_en.append(sub)
+                which_band.append(nband)
+                nband += 1
+
+        self.which_band = which_band
+
+        #
+        #  We have multiplicity of bands
+        #
+        self.mult = nband - 1
+
+        self.Nb = numpy.zeros(nband, dtype=numpy.int32)
+        for bb in range(count):
+            self.Nb[self.which_band[bb]] += 1
+
+        self.elenergies = i_en
+        self.elenergies = Manager().convert_energy_2_internal_u(self.elenergies)
+
+        self.Nel = count
         #
         #  The system has to be built before it can be used
         #
@@ -75,24 +110,21 @@ class OpenSystem:
         #  Electronic and other states
         #
         #self.Nel = 0
-        self.Ntot = 0
+        self.Ntot = self.Nel
         
 
         # 
         #  Transition dipole moment 
         #
         self.dmoments = numpy.zeros((self.Nel,self.Nel,3))
-
-        #
-        #  States are devided into bands
-        #
-        self.which_band = None
-
-        #
-        #  We have multiplicity of bands
-        #
-        self.mult = 0
         
+        self.HH = None
+
+        #
+        # RWA
+        #
+        self.el_rwa_indices = None
+        self.has_rwa = False
 
         #
         #  Spectroscopic information
@@ -113,7 +145,7 @@ class OpenSystem:
         self.HD = numpy.diag(self.HH)
 
         # diagonal transformation matrix
-        self.SS = numpy.ones_like(self.HH)
+        self.SS = numpy.diag(numpy.ones_like(self.HD))
 
         self._diagonalized = True
 
@@ -279,15 +311,6 @@ class OpenSystem:
         else:
             
             raise Exception("Monomer has a correlation function already")            
-
-
-
-
-    def get_band(self, band=1):
-        """Returns indices of all states in a given band
-        
-        """
-        raise Exception("get_band() is not implemented.")
     
 
     def get_RWA_suggestion(self):
@@ -343,7 +366,7 @@ class OpenSystem:
         Examples
         --------
  
-        >>> m = OpenSystem(2)
+        >>> m = OpenSystem([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
         array([ 1.,  0.,  0.])
@@ -391,7 +414,7 @@ class OpenSystem:
         --------
         
         
-        >>> m = OpenSystem(2)
+        >>> m = OpenSystem([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
         array([ 1.,  0.,  0.])
@@ -420,6 +443,8 @@ class OpenSystem:
         ss = self.SS
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
+
+        Ne1 = self.Nel
 
         WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
                                             ss[Ng:Ne1,Ng:Ne1]**2,mpx)

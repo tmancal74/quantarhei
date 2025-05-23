@@ -837,7 +837,7 @@ def R2f_scM0e(t2, t1, t3, lab, system, evol, KK):
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
     
     lam = gg.get_reorganization_energies()
-    print("lam = ", convert(lam,"int","1/cm"))
+    #print("lam = ", convert(lam,"int","1/cm"))
     
     for g in band0:
         for ff in band2:
