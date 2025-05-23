@@ -121,6 +121,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     
     # position of the monomer 
     position = array_property('position',shape=(3,))
+
+    # These will be inherited from OpenSystem
+    
     # energies of electronic states
     #elenergies = array_property('elenergies')
     # transition dipole moments
@@ -136,7 +139,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     
     def __init__(self,  elenergies=[0.0,1.0], name=None): #,dmoments):
     
-        OpenSystem.__init__(self, len(elenergies))
+        OpenSystem.__init__(self, elenergies)
         #self.manager = Manager()
         
         # monomer name
@@ -152,9 +155,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         # convert to internal_units
         #self.elenergies = self.manager.convert_energy_2_internal_u(elenergies)
-        self.elenergies = elenergies
-        self.elenergies = self.convert_energy_2_internal_u(self.elenergies) #
-        self.nel = len(elenergies)    #
+        #
+        self.nel = self.Nel    #
         
         
         # FIXME: check the order of energies (increasing order has 
@@ -236,6 +238,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         
         self.Nel = self.nel
         self._built = True
+
 
     #
     # I am systematically removing any "naming" in Quantarhei

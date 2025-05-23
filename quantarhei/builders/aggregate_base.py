@@ -126,6 +126,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.D2_max = 0
         self.sbi = None
 
+        self._has_wpm = False
+        self.WPM = None
+
 
     def clean(self):
         """Cleans the aggregate object of anything built
@@ -543,6 +546,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
 
         ss = self.SS
+
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
         
