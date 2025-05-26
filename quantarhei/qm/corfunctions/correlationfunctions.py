@@ -54,6 +54,7 @@ from ...core.managers import UnitsManaged
 from ...core.managers import energy_units
 from ...core.time import TimeAxis
 from ...core.frequency import FrequencyAxis
+from ...core.wrappers import enforce_energy_units_context
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
@@ -92,6 +93,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
     energy_params = ("reorg", "omega", "freq", "fcp", "g_FWHM", "l_FWHM",\
                      "freq1", "freq2", "gamma")
 
+    @enforce_energy_units_context
     def __init__(self, axis=None, params=None , values=None):
         super().__init__()
         
@@ -99,6 +101,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             # FIXME: values might also need handling according to specified 
             # energy units
+            #self.energy_units = self.manager.get_current_units("energy")
     
             # handle axis (it can be TimeAxis or FrequencyAxis)
             if not isinstance(axis, TimeAxis):
@@ -400,6 +403,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0*ctime) 
         
+
+
+
     def _make_B777(self, params, values=None):
         from .spectraldensities import SpectralDensity
         
@@ -506,8 +512,13 @@ class CorrelationFunction(DFunction, UnitsManaged):
             #f = CorrelationFunction(t1, params=self.params)
             #f.add_to_data(other)
             
-            f = deepcopy(self)
+            f = deepcopy(self) # Works with value defined functions
             f.add_to_data2(other)
+             
+#            with energy_units("int"):
+#                f = CorrelationFunction(t1, params=self.params)
+#            #f = self.deepcopy()
+#            f.add_to_data(other)
             
         else:
             raise Exception("In addition, functions have to share"
@@ -555,7 +566,10 @@ class CorrelationFunction(DFunction, UnitsManaged):
         
         """
         if self == other:
-            ocor = CorrelationFunction(other.axis,other.params)
+            #print(other.energy_units)
+            #print(other.params)
+            with energy_units("int"): #other.energy_units):
+                ocor = CorrelationFunction(other.axis,other.params)
         else:
             ocor = other
             
@@ -627,7 +641,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Returns correlation time associated with the first component 
         of the bath correlation function
         """
-        return self.params[0]["ctime"]
+        return self.params[0]["cortime"]
 
     def measure_reorganization_energy(self):
         """Calculates the reorganization energy of the correlation function
@@ -646,8 +660,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Creates a copy of the current correlation function
 
         """
-        #with energy_units(self.energy_units):
-        cfce = CorrelationFunction(self.axis, self.params)
+        with energy_units("int"):
+            cfce = CorrelationFunction(self.axis, self.params)
         return cfce
 
 
@@ -670,7 +684,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
             if fa is not None:
                 if numpy.all(numpy.isclose(fa.data, frequencies.data, 1e-5)):
                     #time = ta
-                    pass
+                    #pass
+                    frequencies = fa
                 else:
                     raise Exception("The provided FrequencyAxis does not "
                                     + "have the same data as the Fourier "
@@ -719,6 +734,80 @@ class CorrelationFunction(DFunction, UnitsManaged):
         with energy_units("int"):
             eftcf = EvenFTCorrelationFunction(self.axis, self.params)
         return eftcf
+
+
+class LineshapeFunction(DFunction, UnitsManaged):
+    """
+    
+    """
+    
+    @enforce_energy_units_context
+    def __init__(self, axis=None, params=None, values=None, lfactor=1):
+        """
+        
+        Currently we do not use 'values'
+
+        Parameters
+        ----------
+        axis : TYPE, optional
+            DESCRIPTION. The default is None.
+        params : TYPE, optional
+            DESCRIPTION. The default is None.
+        values : TYPE, optional
+            DESCRIPTION. The default is None.
+        lfactor : TYPE, optional
+            DESCRIPTION. The default is 1.
+
+        Raises
+        ------
+        Exception
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """    
+    
+        self.lfactor = lfactor
+        self.axis = axis
+        self.params = params
+        self.values = values
+        
+        if params is None:
+            raise Exception("Argument 'params' must not be None")
+            
+        # FIXME: This DOES NOT WORK!!!, we need something else to distinguish 
+        try:
+            N = len(params)
+        except:
+            N = 1
+        
+        #print(N, params)
+        
+        N = 1
+        
+        if N == 1:
+            tt = TimeAxis(axis.start, lfactor*axis.length, axis.step)
+            cf = CorrelationFunction(axis=tt, params=params, values=values)
+            gg = c2g(tt, cf.data)
+        else:
+            k = 0
+            for prm in params:
+                tt = TimeAxis(axis.start, lfactor*axis.length, axis.step)
+                cf = CorrelationFunction(axis=tt, params=prm, values=values)
+                if k == 0:
+                    cf_out = cf
+                else:
+                    cf_out.__iadd__(cf)
+                k += 1
+            gg = c2g(tt, cf_out.data)
+        
+        
+        super().__init__(tt, gg)
+        
+        
+
 
 
 class FTCorrelationFunction(DFunction, UnitsManaged):
@@ -1038,3 +1127,118 @@ def h2g(timeaxis, coft):
         in the TimeAxis object
     """
     return c2h(timeaxis, coft)
+
+
+def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
+                                           Nmax=5, HR=0.01, silent=True):
+    """ Scales reorganization energy of the system-bath interaction
+
+    Returns a bath correlation function with reorganization energy scalled
+    such that it achieves a required relaxation time between the first
+    vibrationally excited and the ground state of an oscillator with a
+    given frequency.
+
+    Parameters
+    ----------
+
+    time: TimeAxis
+        The time axis on which the correlation function is defined
+
+    params: dictionary
+        A dictionary of the correlation function parameters. Requires
+        the "reorg" item.
+
+    omega: float
+        Frequency/energy of the oscillator
+
+    target_time: float
+        The requested relaxation time in fs
+
+    Nmax: int
+        The mumber of harmonic oscillator levels used for the calculation
+        Default is 5.
+
+    HR: float
+        Huang-Rhys factor to be used in the calculation. Default is 0.1.
+
+    silent: bool
+        If silent is not True, some info about internal calculations
+        is printed.
+        
+    
+    Examples
+    --------
+   
+    
+    >>> omega = 200.0
+    >>> target_time = 100.0
+
+    Defining correltion function and time axis
+
+    >>> time = TimeAxis(0.0, 1000, 1.0)
+    >>> params = dict(ftype="OverdampedBrownian", T=300, cortime=30.0,
+    ...          reorg=100.0, matsubara=30)
+    
+    >>> with energy_units("1/cm"):
+    ...     cf = oscillator_scalled_CorrelationFunction(time, params, omega,
+    ...                                            target_time, Nmax=7, HR=0.3)
+    >>> print("%10.5f" % params["reorg"])
+      32.97806
+    
+
+    """
+    
+    #from ..qm.corfunctions import CorrelationFunction
+    from ...builders.molecules import Molecule
+    from ...builders.modes import Mode
+    from ...core.managers import eigenbasis_of
+
+    Nmx = Nmax
+    cf = CorrelationFunction(time, params)
+
+    with energy_units("1/cm"):
+        mol = Molecule([0.0, 10000.0])
+
+    mol.set_electronic_rwa([0, 1])
+    md = Mode(omega)
+
+    mol.add_Mode(md)
+
+    md.set_HR(1, HR)
+    md.set_nmax(0,Nmx)
+    md.set_nmax(1,Nmx)
+
+    #mol.set_mode_environment(mode=0, elstate=0, corfunc=cf)
+    #mol.set_mode_environment(mode=0, elstate=1, corfunc=cf)
+
+    mol.set_mode_environment(mode=0, elstate="ALL", corfunc=cf)
+
+    mol.set_transition_environment((0,1), cf)
+
+    #HH = mol.get_Hamiltonian()
+    #sbi = mol.get_SystemBathInteraction()
+
+    time = cf.axis
+    RR, ham = mol.get_RelaxationTensor(time, relaxation_theory="stR",
+                                       as_operators=False)
+
+    ref_time = 1.0/numpy.real(RR.data[0,0,1,1])
+    #print("Ref. time:", ref_time)
+    ratio = ref_time/target_time
+    #print("Ratio:", ratio)
+
+    orig_reorg = params["reorg"]
+    reorg = ratio*orig_reorg
+    params["reorg"] = reorg
+
+    cfn = CorrelationFunction(time, params)
+
+    if not silent:
+        with eigenbasis_of(ham):
+            print("Original time (S0):",
+                  1.0/numpy.real(RR.data[0,0,1,1]))
+            print("Original time (S1):",
+                  1.0/numpy.real(RR.data[Nmx,Nmx,Nmx+1,Nmx+1]))
+
+    return cfn
+

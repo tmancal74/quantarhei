@@ -14,6 +14,7 @@ import numpy
 from ...core.saveable import Saveable
 from ...core.dfunction import DFunction
 from ... import COMPLEX
+from ... import REAL
 
 
 class fcstorage(Saveable):
@@ -66,7 +67,7 @@ class operator_factory(Saveable):
         
     def anihilation_operator(self):
         N = self.N
-        aa = numpy.zeros((N,N),dtype=numpy.float) # matrix N x N full of zeros
+        aa = numpy.zeros((N,N),dtype=REAL) # matrix N x N full of zeros
 
         for ng in range(N):
             for mg in range(N):
@@ -77,7 +78,7 @@ class operator_factory(Saveable):
     
     def creation_operator(self):
         N = self.N
-        ad = numpy.zeros((N,N),dtype=numpy.float)
+        ad = numpy.zeros((N,N),dtype=REAL)
             
         for ng in range(N):
             for mg in range(N):
@@ -168,7 +169,7 @@ class operator_factory(Saveable):
         
         The definition differs by the factor of :math:`\\sqrt{2}` from what
         is usually used in literature, but for applications in molecular
-        physics, this definition seems to be more reasoble.
+        physics, this definition seems to be more reasonable.
             
         
         
@@ -196,7 +197,7 @@ class operator_factory(Saveable):
         
     def unity_operator(self):
         
-        ones = numpy.ones(self.N, dtype=numpy.float)
+        ones = numpy.ones(self.N, dtype=REAL)
         ret = numpy.diag(ones)
         return ret
         

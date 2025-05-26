@@ -107,7 +107,7 @@ with qr.eigenbasis_of(ham):
 
     RRT.secularize()
     print(" Relaxation time exciton basis: ", 1.0/RRT.data[1,1,2,2])
-    rho_t = prop.propagate(rho_i, name="Redfield evolution")
+    rho_t = prop.propagate(rho_i)
 
     if _show_plots_:
         rho_t.plot(coherences=False)

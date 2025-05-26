@@ -1,6 +1,9 @@
 Overview of Relaxation Tensors
 ==============================
 
-.. automodule:: quantarhei.qm.liouvillespace.__init__
+Quantarhei provides means to calculate approximate relaxation tensors with
+several different perturbation theories. Two basic perturbation limits are
+represented by the Redfield and Förster theories.
+  
 
 

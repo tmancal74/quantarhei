@@ -469,7 +469,7 @@ class AggregateTest(unittest.TestCase):
         
         vlf = VibrationalDecayLindbladForm(ham, sbi)
         
-        self.assertEqual(T1, numpy.sqrt(3.0)/(2.0*numpy.max(vlf.Lm[2,:,:])))
-        self.assertEqual(T2, numpy.sqrt(3.0)/(2.0*numpy.max(vlf.Lm[5,:,:])))        
+        self.assertEqual(T1, numpy.sqrt(3.0)/(2.0*numpy.max(vlf.Lm[:,:,2])))
+        self.assertEqual(T2, numpy.sqrt(3.0)/(2.0*numpy.max(vlf.Lm[:,:,5])))        
         
         

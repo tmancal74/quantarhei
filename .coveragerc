@@ -1,8 +1,6 @@
 [run]
 parallel = True
-source = quantarhei
-omit =
-   ./tests/*_
+source = ./quantarhei
 
 [report]
 precision=2

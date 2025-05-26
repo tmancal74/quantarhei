@@ -16,6 +16,7 @@ import numpy
 
 from quantarhei.core import BasisManaged
 from quantarhei.core import BasisManagedRealArray
+from quantarhei import REAL
     
     
 class BasisManagedObject(BasisManaged):
@@ -72,7 +73,7 @@ class BasisManagedObject(BasisManaged):
 class TestBasisManaged(unittest.TestCase):
     
     def setUp(self):
-        dat = numpy.zeros((2,2),dtype=numpy.float)
+        dat = numpy.zeros((2,2),dtype=REAL)
         self.u = BasisManagedObject(dat,"test")
         
     def test_inherited_method(self):

@@ -24,7 +24,9 @@ class RateMatrix(MatrixData):
             if self.N == 0:
                 self.N = data.shape[0]
                 self.data = data
-            elif self.N != dim:
+            elif self.N == data.shape[0]:
+                self.data = data
+            else:
                 raise Exception("Inconsistent data dimensions")
                    
         else:
@@ -45,6 +47,10 @@ class RateMatrix(MatrixData):
         """
         N = pos[0]
         M = pos[1]
+        
+        if N == M:
+            raise Exception("Diagonal (depopulation) rates cannot be set")
+            
         orig_val = self.data[N,M]
         self.data[N,M] = value
         

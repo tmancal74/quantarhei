@@ -5,7 +5,7 @@ import scipy.constants as const
 # frequency
 conversion_facs_frequency = {
     "int"    : 1.0,
-    "1/fs" : 1.0, 
+    "1/fs"   : 1.0, 
     "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
     "THz"    : 2.0*const.pi*1.0e-03,
     "Hz"     : 2.0*const.pi,
@@ -18,7 +18,7 @@ conversion_facs_frequency = {
 # energy
 conversion_facs_energy = {
     "int"    : 1.0,
-    "1/fs" : 1.0, 
+    "1/fs"   : 1.0, 
     "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
     "THz"    : 2.0*const.pi*1.0e-03,
     "eV"     : 1.0e-15*const.e/const.hbar,

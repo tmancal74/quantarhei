@@ -213,6 +213,7 @@ class TestCorrelationFunction(unittest.TestCase):
         for i in range(5):
             f1 += f1
         
+        
         with energy_units("1/cm"):
             self.assertEqual(f1.lamb, 
               32.0*Manager().convert_energy_2_internal_u(params1["reorg"]))
@@ -317,7 +318,8 @@ class TestCorrelationFunction(unittest.TestCase):
             
             f1.save(f)#, test=True)
             f.seek(0)
-            f1_loaded = CorrelationFunction()
+            with energy_units("int"):
+                f1_loaded = CorrelationFunction()
             f1_loaded = f1_loaded.load(f) #, test=True)
             
         with tempfile.TemporaryFile() as f:
@@ -326,7 +328,8 @@ class TestCorrelationFunction(unittest.TestCase):
             
             f2.save(f) #, test=True)
             f.seek(0)
-            f2_loaded = CorrelationFunction()
+            with energy_units("int"):
+                f2_loaded = CorrelationFunction()
             f2_loaded = f2_loaded.load(f) #, test=True)
             
             

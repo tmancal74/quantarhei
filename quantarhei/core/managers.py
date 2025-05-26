@@ -81,7 +81,7 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.64"
+    version = "0.0.67-LesHouches"
 
     # hard wired unit options
     allowed_utypes = ["energy",
@@ -109,7 +109,7 @@ class Manager(metaclass=Singleton):
                    "THz":"THz",
                    "eV":"eV",
                    "1/fs":"1/fs",
-                   "int":"2pi/fs",
+                   "int":"1/fs",
                    "meV":"meV",
                    "nm":"nm",    
                    "Ha":"Ha",
@@ -172,6 +172,14 @@ class Manager(metaclass=Singleton):
                 
         self.current_basis_operator = None
 
+        #
+        # Flags for all contexts which are enforced or prevented by functions
+        #
+        self._enforce_contexts = True
+        self._in_eigenbasis_of_context = False
+        self._in_eb_count = 0
+        self._in_energy_units_context = False
+        self._in_eu_count = 0
 
 
 
@@ -341,7 +349,7 @@ class Manager(metaclass=Singleton):
         
         
     def _read_uconf(self):
-        """Reads used defined local config file
+        """Reads user defined local config file
         
         From Stackoverflow recipe:
             https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
@@ -361,7 +369,7 @@ class Manager(metaclass=Singleton):
                 
         else:
             if cfile.exists():
-                raise Exception("Configuration file "+fpath+" seems to exits"+
+                raise Exception("Configuration file "+fpath+" seems to exist"+
                                 " but it is not a file")
             else:
                 print("Warning: Configuration file "+fpath+" does not exit")
@@ -563,7 +571,7 @@ class Manager(metaclass=Singleton):
             i_val = x*val
             
             cu = self.current_units["energy"] 
-            if cu != "2pi/fs":
+            if cu != "1/fs":
                 y = conversion_facs_energy[units] 
                 return i_val/y
                 
@@ -849,7 +857,7 @@ class UnitsManaged(Managed):
 class EnergyUnitsManaged(Managed):
     
     utype = "energy"
-    units = "2pi/fs"    
+    units = "1/fs"    
     
     def convert_2_internal_u(self,val):
         return self.manager.convert_energy_2_internal_u(val)
@@ -947,9 +955,14 @@ class energy_units(units_context_manager):
         # save current energy units
         self.units_backup = self.manager.get_current_units("energy")
         self.manager.set_current_units(self.utype,self.units)
+        self.manager._in_energy_units_context = True
+        self.manager._in_eu_count += 1
         
     def __exit__(self,ext_ty,exc_val,tb):
         self.manager.set_current_units("energy",self.units_backup)
+        self.manager._in_eu_count -= 1
+        if self.manager._in_eu_count == 0:
+            self.manager._in_energy_units_context = False
         
         
 class frequency_units(energy_units):
@@ -1016,6 +1029,8 @@ class eigenbasis_of(basis_context_manager):
         
     def __enter__(self):
 
+        self.manager._in_eigenbasis_of_context = True
+        
         if self.manager.warn_about_basis_change:
             print("\nQr >>> Entering basis context manager ...")
             
@@ -1079,6 +1094,11 @@ class eigenbasis_of(basis_context_manager):
             
         del self.manager.basis_registered[bb]
 
+        
+        if len(self.manager.basis_stack) == 1:
+            self.manager._in_eigenbasis_of_context = False
+
+        
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")        
             

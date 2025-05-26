@@ -257,6 +257,7 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
     
         return selected
 
+
 def max_amplitude(pathways):
     """Return the maximum of pathway prefactors
     

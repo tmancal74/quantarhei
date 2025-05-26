@@ -1,0 +1,1 @@
+##  EvolutionSuperOperator testing #Feature: Evolution super operator with in jit mode    Evolution super operator which stores its value only at one time.    Scenario Outline: Evolution superoperator can use the jit mode        Given I have evolution super operator at time zero        Then evolution superoperator is unity superoperator  

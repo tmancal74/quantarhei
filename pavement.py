@@ -46,7 +46,7 @@
     doc_tests_cov_v
     doc_tests_cov_vs
         
-    Runs test doc tests. _cov means `--with-coverage` option, _v means
+    Runs test doc tests. _cov means `` option, _v means
     with `-v` option for verbose output and _vs means with `-vs` option, i.e.
     verbose and printing standard output of the tests.
         
@@ -87,7 +87,20 @@ from paver.tasks import needs
 from paver.easy import sh
 
 
-version = "0.0.65"
+""" The project version has to be set here and then in the following files:
+    
+    Makefile
+    docs/sphinx/conf.py
+    quantarhei/core/managers.py
+    setup.py
+  
+    Ideally it would be all updated base on the present file by calling:
+    
+    > paver version-update
+    
+"""
+version = "0.0.67"
+
 
 sys_name = platform.system()
 
@@ -123,6 +136,7 @@ if sys_name != "Windows":
     ii = 0
     for line in p.stdout.readlines():
         behave_bin = str(line.decode())
+        behave_bin = behave_bin.strip()
         ii += 1
     if ii != 1:
         raise Exception("Don't know where `behave` is")
@@ -226,7 +240,7 @@ def clean():
     except:
         print("File not present - no problem")
     try:        
-        sh(delfile+'coverage.xml')
+        sh(delfile+'test.log')
     except:
         print("File not present - no problem")
 
@@ -340,14 +354,26 @@ def coverage_erase():
     """
     sh('coverage erase')
 
+
+#
+# TASK: combine coverage reports
+#
+@task
+def coverage_combine():
+    """ Combines all coverage reports into one
+    
+    """
+    sh('coverage combine --append')
+    
+
 ###############################################################################
 #    
 # Tests of Quantarhei installed examples
 #
 ###############################################################################
 
-cover_flags = '--cover-package=quantarhei '
-covr = ' --with-coverage ' 
+cover_flags = ' '
+covr = '  ' 
 nose_test_dir = 'tests/unit/wizard/examples/ '
 
 #
@@ -377,7 +403,7 @@ def unit_tests_vs():
     """Performs verbose units tests printing output but without coverage 
     
     """
-    sh('coverage run -m nose -vs '+cover_flags+nose_test_dir)
+    sh('pytest -vs --cov=quantarhei --cov-report=term --cov-report=xml --cov-report=html '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_v
@@ -387,7 +413,7 @@ def unit_tests_v():
     """Performs verbose units tests capturing output but without coverage 
     
     """
-    sh('coverage run -m nose -v '+cover_flags+nose_test_dir)
+    sh('pytest -v --cov=quantarhei --cov-report=term --cov-report=xml --cov-report=html '+cover_flags+nose_test_dir)
 
 #
 # TASK: unit_tests_cov_vs
@@ -397,7 +423,7 @@ def unit_tests_cov_vs():
     """Performs verbose units tests without capturing output and with coverage 
     
     """
-    sh('coverage run -m nose -vs '+covr+cover_flags+nose_test_dir)    
+    sh('pytest -vs --cov=quantarhei --cov-report=term --cov-report=xml --cov-report=html '+covr+cover_flags+nose_test_dir)    
 
 #
 # TASK: unit_tests_cov_v
@@ -407,7 +433,8 @@ def unit_tests_cov_v():
     """Performs verbose units tests capturing output and with coverage 
     
     """
-    sh('coverage run -m nose -v '+covr+cover_flags+nose_test_dir)     
+    sh('pytest -v --cov=quantarhei --cov-report=term --cov-report=xml --cov-report=html '+covr+cover_flags+nose_test_dir)
+ 
 
 
 ###############################################################################
@@ -417,11 +444,11 @@ def unit_tests_cov_v():
 ###############################################################################
 
 # Doc tests with coverage
-cmdd = 'coverage run -m nose --with-doctest'
+cmdd = 'pytest --doctest-modules'
 
 # Directories to test
 dirs = ['core', 'builders', 'qm/corfunctions', 'spectroscopy',
-        'qm/liouvillespace']
+        'qm/liouvillespace',  'functions', 'qm/hilbertspace', 'qm/propagators']
 
 # Specific modules to test
 mods = ['qm/propagators/poppropagator.py']
@@ -539,11 +566,11 @@ def aloe_tests_v():
     
 @task
 def aloe_tests_cov_vs():
-    sh("aloe --with-coverage -vs -a !in_development "+cover_flags+aloe_test_dir)
+    sh("aloe  -vs -a !in_development "+cover_flags+aloe_test_dir)
 
 @task
 def aloe_tests_cov_v():
-    sh('aloe --with-coverage -v -a !in_development '+cover_flags+aloe_test_dir)
+    sh('aloe  -v -a !in_development '+cover_flags+aloe_test_dir)
 
 
 ###############################################################################
@@ -553,9 +580,8 @@ def aloe_tests_cov_v():
 ###############################################################################
 @task
 def behave():
-    with cd(os.path.join('tests', 'behave', 'features')):
-        sh("coverage run "+behave_bin) # $(which behave)")
-
+    path = os.path.join('.','tests', 'behave', 'features')
+    sh("coverage run "+behave_bin+" "+path)
 
 ###############################################################################
 #
@@ -667,8 +693,8 @@ unit_devs = ['tests/unit/qm/liouvillespace/test_evolutionsuperoperator.py',
              'tests/unit/qm/propagators/rdmpropagator_test.py']
 
 
-cmd = 'nosetests'
-doct = ' --with-doctest'
+cmd = 'pytest'
+doct = ''
 
 #
 # TASK: doc_dev
@@ -709,7 +735,7 @@ def codecov():
     """Uploads the results of `coverage` command on the codecov.io server
     
     """
-    sh('codecov --token=34f2053d-7aa9-4b0c-b776-92d852e597ca')
+    sh('codecov --token=1d501d6b-b32d-44c2-8253-8b12ef3c8cc9')
 
 
 ###############################################################################
@@ -743,10 +769,16 @@ def default():
 #
 # This is called when paver is run without any task
 #
+
+#@needs('coverage_erase',
+#       'unit_tests_cov_v',
+#       'doc_tests_cov_v',
+#       'aloe_tests_cov_v',
+#       'behave',
+#       'coverage_combine')
 @needs('coverage_erase',
        'unit_tests_cov_v',
        'doc_tests_cov_v',
-       'aloe_tests_cov_v',
        'behave')
 @task
 def test():
@@ -758,13 +790,18 @@ def test():
 #
 # Verbose version of the default tests
 #
+#@needs('coverage_erase',
+#       'unit_tests_cov_vs',
+#       'doc_tests_cov_vs',
+#       'aloe_tests_cov_vs')
 @needs('coverage_erase',
        'unit_tests_cov_vs',
-       'doc_tests_cov_vs',
-       'aloe_tests_cov_vs')
+       'doc_tests_cov_vs')
 @task
 def verbose():
     """Run the default tests but with printing output
     
     """
     pass
+
+

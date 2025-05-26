@@ -88,6 +88,44 @@ class ElectronicState(UnitsManaged):
         return self.elsignature
 
 
+    def signature(self):
+        return self.get_signature()
+    
+    
+    def get_excited_sites(self):
+        """Returns a list of excited sites corresponding to this state
+        
+        
+        """
+        sgntr = self.elsignature
+        sites = []
+        count = 0
+        for vl in sgntr:
+            if vl == 1:
+                sites.append(count)
+            count += 1
+        return sites
+
+ 
+    def get_shared_sites(self, state):
+        """Returns a touple of sites shared by the two states
+        
+        
+        """
+        sig1 = self.elsignature
+        sig2 = state.elsignature
+        
+        # take a product of the signatures
+        combined = numpy.array(sig1)*numpy.array(sig2)
+        
+        sites = []
+        for ii, ex in enumerate(combined):
+            if ex > 0:
+                sites.append(ii)
+
+        return sites               
+
+
     def energy(self, vsig=None):
         """ Returns energy of the state (electronic + vibrational)
         
@@ -163,7 +201,7 @@ class ElectronicState(UnitsManaged):
             
         ret = []
         N = len(tup)
-        zer = numpy.zeros(N,dtype=numpy.int)
+        zer = numpy.zeros(N,dtype=int)
         ret.append(tuple(zer))
         # single particles
         
@@ -194,7 +232,7 @@ class ElectronicState(UnitsManaged):
         if ecut is not None:
             vec = self.convert_energy_2_internal_u(ecut)
 
-        two = numpy.zeros(len(tup), dtype=numpy.int)
+        two = numpy.zeros(len(tup), dtype=int)
         two[:] = 2
         for i in range(len(two)):
             if two[i] > tup[i] + 1:
@@ -235,7 +273,7 @@ class ElectronicState(UnitsManaged):
         if N is None:
             raise Exception("Number of states to be used must be defined")
             
-        two = numpy.zeros(len(tup), dtype=numpy.int)
+        two = numpy.zeros(len(tup), dtype=int)
         two[:] = N + 1
         shp = tuple(two)
         
@@ -263,7 +301,7 @@ class ElectronicState(UnitsManaged):
         if ecut is not None:
             vec = self.convert_energy_2_internal_u(ecut)
 
-        two = numpy.zeros(len(tup), dtype=numpy.int)
+        two = numpy.zeros(len(tup), dtype=int)
         two[:] = N + 1
 
         for i in range(len(two)):
@@ -392,6 +430,40 @@ class VibronicState(UnitsManaged):
         
         """
         return self.vsig
+
+
+    def get_shared_sites(self, state):
+        """Returns a touple of sites shared by the two states
+        
+        
+        """
+        sig1 = self.elstate.elsignature
+        sig2 = state.elstate.elsignature
+        
+        # take a product of the signatures
+        combined = numpy.array(sig1)*numpy.array(sig2)
+        
+        sites = []
+        for ii, ex in enumerate(combined):
+            if ex > 0:
+                sites.append(ii)
+
+        return sites
+    
+
+    def get_excited_sites(self):
+        """Returns a list of excited sites corresponding to this state
+        
+        
+        """
+        sgntr = self.elstate.elsignature
+        sites = []
+        count = 0
+        for vl in sgntr:
+            if vl == 1:
+                sites.append(count)
+            count += 1
+        return sites
 
 
     def energy(self):

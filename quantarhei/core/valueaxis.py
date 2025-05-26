@@ -176,7 +176,7 @@ class ValueAxis(Saveable):
         """
 
         # nearest smaller neighbor index
-        nsni = numpy.int(numpy.floor((val-self.start)/self.step))
+        nsni = int(numpy.floor((val-self.start)/self.step))
 
         # if n0 is within bounds calculate distance
         # from the lower neighbor
@@ -205,7 +205,7 @@ class ValueAxis(Saveable):
         """
 
         # nearest smaller neighbor index
-        nsni = numpy.int(numpy.floor((val-self.start)/self.step))
+        nsni = int(numpy.floor((val-self.start)/self.step))
 
 
         if (nsni >= 0) and (nsni < self.length):
@@ -380,5 +380,19 @@ class ValueAxis(Saveable):
         ret = ret and ((axis.max in self.data))        
         
         return ret
+    
+    def __str__(self):
+        """String representation of the ValueAxis object
+        
+        """
+        
+        out  = "\nquantarhei.ValueAxis object" 
+        out += "\n=========================="
+        out += "\nstart = "+str(self.start)
+        out += "\nlength = "+str(self.length)
+        out += "\nstep = "+str(self.step)
+
+            
+        return out    
     
     

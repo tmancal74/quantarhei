@@ -5,6 +5,8 @@ paver
 coverage
 codecov
 gherkin-official
+pytest
+pytest-cov
 
 
 

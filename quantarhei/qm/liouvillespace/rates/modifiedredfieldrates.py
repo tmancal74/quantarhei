@@ -7,20 +7,28 @@
 
 *******************************************************************************
 """  
+import time
 
 import numpy
 from scipy import integrate
 import scipy
 
-from quantarhei.core.implementations import implementation
-from quantarhei.core.units import cm2int
-from quantarhei.core.units import kB_intK
+from scipy.integrate import simpson as simps 
 
-from quantarhei.qm.hilbertspace.hamiltonian import Hamiltonian
-from quantarhei.qm.liouvillespace.systembathinteraction import SystemBathInteraction
+#from quantarhei.core.implementations import implementation
 
-import quantarhei as qr
-import itertools as it
+from ...hilbertspace.hamiltonian import Hamiltonian
+from ...liouvillespace.systembathinteraction import SystemBathInteraction
+
+from .... import REAL
+from .... import COMPLEX
+
+from ....core.units import convert
+
+import matplotlib.pyplot as plt
+
+
+#import itertools as it
 
 class ModifiedRedfieldRateMatrix:
     """Modifield Redfield relaxation rate matrix
@@ -50,7 +58,7 @@ class ModifiedRedfieldRateMatrix:
     
     """
     
-    def __init__(self, ham, sbi, time, initialize=True, cutoff_time=None):
+    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
         
         if not isinstance(ham,Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -67,7 +75,6 @@ class ModifiedRedfieldRateMatrix:
             
         self.ham = ham
         self.sbi = sbi
-        self.tt = time.data
         
         if initialize: 
             self._set_rates2()          
@@ -173,47 +180,89 @@ class ModifiedRedfieldRateMatrix:
         
         self.rates = rates
             
+            
     def _set_rates(self):
-        """
+        """ Setting Modified Redfield rates for an electronic system
+        
+        We assume a single exciton band only!!!
+        
+        
         
         """
 
         Na = self.ham.dim
         Nc = self.sbi.N 
-        tt = self.tt
-    
-        # Eigen problem
-        hD,SS = numpy.linalg.eigh(self.ham._data) #hD=eigenvalues, SS=eigenvectors
         
+        # this is the system for which we calculate rates (OpenSystem) 
+        sys = self.sbi.system
+        
+        # The size of the Hamiltonian must be by 1 larger than
+        # the number of sites - this is the excitonic situation
+        if Na != Nc + 1:
+            raise Exception("Modified Redfield is implemented for "
+                            +"single exciton systems only")        
+        
+        tt = self.sbi.TimeAxis.data
         Nt = self.sbi.CC.timeAxis.length
+    
+        # Eigen problem 
+        hD,SS = numpy.linalg.eigh(self.ham._data) 
         
-        lam4 = numpy.zeros((Na-1,Na-1,Na-1,Na-1),dtype=qr.REAL)
-        #lam4 = numpy.zeros((Na,Na,Na,Na),dtype=qr.REAL)
+        # 
+        # THIS WILL BE DONE ON THE OPEN SYSTEM
+        #
+        self.sbi.CC.transform(SS)
         
-        for a in range(Na-1):
-        #for a in range(1,Na):    
-            for b in range(Na-1):
-            #for b in range(1,Na):
-                for c in range(Na-1):
-                #for c in range(1,Na):   
-                    for d in range(Na-1):
-                    #for d in range(1,Na):   
-                         lam4[a,b,c,d] = self.sbi.CC.get_reorganization_energy4(a,b,c,d)
-            
+        #
+        # HIDE THIS INTO: get_reorganization_energy_matrix()
+        #
+        lam4 = numpy.zeros((Na,Na,Na,Na),dtype=REAL)
+        for a in range(Na):
+            for b in range(Na):
+                for c in range(Na):
+                    for d in range(Na):
+                        lam4[a,b,c,d] = \
+                             self.sbi.CC.get_reorganization_energy4(a,b,
+                                                                    c,d)
+        
+        #
+        #  THESE CALLS HAVE TO BE DONE AUTOMATICALY BEFORE get_Xoft_matrix()
+        #
         self.sbi.CC.create_double_integral() #g(t)
         self.sbi.CC.create_one_integral()  #g_dot(t)
-        self.sbi.CC.transform(SS)
-        #g4_1value = self.sbi.CC.get_goft4(1,2,3,4)
-        g4 = self.sbi.CC.get_goft_matrix()   #g_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
-        h4 = self.sbi.CC.get_hoft_matrix()   #g_dot_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
-        c4 = self.sbi.CC.get_coft_matrix()   #g_dotdot_{abcd}(t) = C(t) in exciton basis, dimensions (Na, Na, Na, Na, Nt-1)
         
-        rates = ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt)
-        self.rates = rates
+        # g_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
+        g4 = self.sbi.CC.get_goft_matrix()
+       
+        # g_dot_{abcd}(t), dimensions (Na, Na, Na, Na, Nt-1)
+        h4 = self.sbi.CC.get_hoft_matrix()  
+        
+        # g_dotdot_{abcd}(t) = C(t) in exciton basis, 
+        # dimensions (Na, Na, Na, Na, Nt-1)
+        c4 = self.sbi.CC.get_coft_matrix()   
+        
+        #c1 = self.sbi.CC.get_coft(0,0)
+        
+        #print("Lambda:")
+        #print(lam4[2,2,2,2])
 
-def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, SS, prt, gg, hh, cf, tt, ls,
+        
+        #plt.plot(tt,c1,"-k")
+        #plt.plot(tt,c4[1,1,1,1,:],"--b")
+        #plt.show()
+        
+        #quit()
+
+
+        rates = ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD,
+                                             lam4, g4, h4, c4, tt)
+        
+        self.data = rates
+
+
+def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): 
                                  #rtol, werror, RR):
-        """Standard redfield rates
+        """Modified redfield rates
     
     
         Parameters
@@ -225,6 +274,14 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, S
         Nc : integer
         Number of components of the interaction Hamiltonian (number of sites
         or number of distinct correlation functions)
+    
+        Nt : integer
+        
+        
+        hD : real
+        Eigenenergies of the Hamiltonian
+        
+        
     
         Ee : float array
         Eigen energies of the Hamiltonian
@@ -262,68 +319,84 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt): #, Ee, S
         
         """
         
-        print("***")
+        E_0k = numpy.zeros(Na,dtype=REAL)
+        F_k_t = numpy.zeros((Na,Nt),dtype=COMPLEX)    
+        A_k_t = numpy.zeros((Na,Nt),dtype=COMPLEX) 
+        N_kl_t = numpy.zeros((Na,Na,Nt),dtype=COMPLEX) 
+        f = numpy.zeros((Na,Na,Nt),dtype=COMPLEX) 
+        RR = numpy.zeros((Na,Na),dtype=COMPLEX)  
+        RR1 = numpy.zeros((Na,Na),dtype=COMPLEX)
         
-        E_0k = numpy.zeros(Na-1,dtype=numpy.float)
-        #E_0k = numpy.zeros(Na,dtype=numpy.float)
         
-        for ii in range(Na-1):
-        #for ii in range(1,Na):
-            E_0k[ii] = hD[ii] - lam4[ii,ii,ii,ii]  
+        #lam1 = (convert(numpy.imag(-h4[2,1,1,2,Nt-1]),"int","1/cm"))
+        #lam2 = convert(lam4[2,1,1,2],"int","1/cm")
+        #fac = lam2/lam1
+        #print(fac)
+        #lam1 = (convert(numpy.imag(-h4[1,2,2,1,Nt-1]),"int","1/cm"))
+        #lam2 = convert(lam4[1,2,2,1],"int","1/cm")
+        #fac = lam2/lam1
+        #print(fac)        
+        #quit()
+        
+        #h4 = fac*h4
+        #g4 = fac*g4
+        #c4 = fac*c4
+        
+        
+        for ii in range(Na):
+            E_0k[ii] = hD[ii] - lam4[ii,ii,ii,ii]
             
-        F_k_t = numpy.zeros((Na-1,Nt-1),dtype=numpy.complex)    
-        A_k_t = numpy.zeros((Na-1,Nt-1),dtype=numpy.complex) 
-        N_kl_t = numpy.zeros((Na-1,Na-1,Nt-1),dtype=numpy.complex) 
-        
-        #F_k_t = numpy.zeros((Na,Nt-1),dtype=numpy.complex)    
-        #A_k_t = numpy.zeros((Na,Nt-1),dtype=numpy.complex) 
-        #N_kl_t = numpy.zeros((Na,Na,Nt-1),dtype=numpy.complex) 
-        
-        for a in range(Na-1):
-        #for a in range(1,Na):
-            for ti in range(Nt-1):
-                F_k_t[a,ti] = numpy.exp(-1j*(E_0k[a] - lam4[a,a,a,a])*tt[ti] - numpy.conjugate(g4[a,a,a,a,ti])) 
-                A_k_t[a,ti] = numpy.exp(-1j*(E_0k[a] + lam4[a,a,a,a])*tt[ti] - g4[a,a,a,a,ti]) 
-                                
-        for a in range(Na-1):
-        #for a in range(1,Na):
-            for b in range(Na-1):
-            #for b in range(1,Na):
-                for ti in range(Nt-1): 
-                    N_kl_t[a,b,ti] = (c4[b,a,a,b,ti] - (h4[b,a,a,a,ti] -  h4[b,a,b,b,ti] - 2j*lam4[b,a,b,b])*(h4[a,b,a,a,ti] - h4[a,b,b,b,ti] - 2j*lam4[a,b,b,b]))*numpy.exp(2*(g4[a,a,b,b,ti] + 1j*lam4[a,a,b,b]*tt[ti]))
+        for a in range(Na):
+            F_k_t[a,:] = (numpy.exp(-1j*(E_0k[a] - lam4[a,a,a,a])*tt[:]
+                                    - g4[a,a,a,a,:]) )
+                                    # - numpy.conjugate(g4[a,a,a,a,:])) )
+            A_k_t[a,:] = (numpy.exp(-1j*(E_0k[a] + lam4[a,a,a,a])*tt[:]
+                                     - g4[a,a,a,a,:]) )
+              
+        for a in range(Na):
+            for b in range(Na):
+                N_kl_t[a,b,:] = ((c4[b,a,a,b,:] 
+                    - (h4[b,a,b,b,:] - h4[b,a,a,a,:] + 2j*lam4[b,a,b,b])
+                     *(h4[b,b,a,b,:] - h4[a,a,a,b,:] + 2j*lam4[b,b,a,b]))
+                     *numpy.exp(2*(g4[a,a,b,b,:] + 2j*lam4[a,a,b,b]*tt[:])))
+ 
+        """
+        for a in range(Na):
+            for b in range(Na):
+                
+                #f[a,b,:] = numpy.exp(1j*(hD[b]-hD[a])*tt[:])*c4[b,a,a,b,:]
+                
+                
+                f[b,a,:] = (numpy.exp(1j*(E_0k[a]-E_0k[b])*tt[:])
+                *(c4[a,b,b,a,:]-
+                (h4[b,b,b,a,:]-h4[a,a,b,a,:]+2.0*1j*lam4[b,a,a,a])
+                *(h4[a,b,a,a,:]-h4[a,b,b,b,:]+2.0*1j*lam4[a,b,a,a]))
+                *numpy.exp(-g4[a,a,a,a,:]-g4[b,b,b,b,:]
+                          +g4[a,a,b,b,:]+g4[b,b,a,a,:]
+                          +2.0*1j*(lam4[a,a,b,b]-lam4[a,a,a,a])*tt[:]))
+                
+        """
+                
+        f1 = numpy.zeros((Na,Na,Nt),dtype=COMPLEX)                                 
+        for a in range(Na):
+            for b in range(Na):
+                f1[a,b,:] = (numpy.conjugate(F_k_t[b,:])
+                            *A_k_t[a,:]*N_kl_t[a,b,:])
+
+                RR[a,b] = 2.0*numpy.real(simps(f1[a,b,:],tt))
+ 
                   
-        f = numpy.zeros((Na-1,Na-1,Nt),dtype=numpy.complex) 
-        RR = numpy.zeros((Na-1,Na-1),dtype=numpy.complex) 
-        
-        #f = numpy.zeros((Na,Na,Nt),dtype=numpy.complex) 
-        #RR = numpy.zeros((Na,Na),dtype=numpy.complex) 
-        
-        for a in range(Na-1):
-        #for a in range(1,Na):
-            for b in range(Na-1):
-            #for b in range(1,Na):
-                for ti in range(Nt-1):
-                    f[a,b,ti] = numpy.conjugate(F_k_t[b,ti])*A_k_t[a,ti]*N_kl_t[a,b,ti]
-                    RR[a,b] = 2*numpy.real(integrate.simps(f[a,b,:],tt))
-                    
-        for a in range(Na-1):
-        #for a in range(1,Na):
-            RR[a,a] = 0
-                   
-        RR_bbaa = -numpy.sum(RR, axis = 0)
-        print('RR_bbaa is:')
-        print(RR_bbaa)
-        #RR = numpy.diag(numpy.diag(RR_bbaa)) + RR  
-        RR = numpy.diag(RR_bbaa) + RR  
-        print('diag RR_bbaa is:')
-        print(numpy.diag(RR_bbaa))
-        print('RR is:')
-        print(RR)
-                        
-        print("I am called from outside")
+        #print(RR-RR1)
+                
+        #for a in range(Na):
+        #    RR[a,a] = 0
+        #RR_bbaa = -numpy.sum(RR, axis = 0)
+        #RR = numpy.diag(RR_bbaa) + RR  
+
+
         return RR
 
-        qr.stop()
+        #qr.stop()
                     
 def _c2g(timeaxis,coft):
     """ Converts correlation function to lineshape function
@@ -386,3 +459,53 @@ def _c2h(timeaxis,coft):
                         ri,s=0).antiderivative()(ta.data)
     ht = sr + 1j*si
     return ht
+                 
+def ssModifiedRRM(Na, Nt, en, ln, SS, tt, ct, ht, gt, method="ModifiedRedfield"):
+    """ Modifield Redfield rates
+    
+    Na : integer
+        Number of sites
+        
+    Nt : integer
+        Number of time steps
+        
+    en : real
+        Eigenenergies 
+        
+    SS : transformation matrix
+    
+    tt : time
+    
+    ct : complex vector
+    
+    ht : complex vector
+    
+    gt : conmplex vector
+    
+    
+    """
+        
+    RR = numpy.zeros((Na, Na), dtype=REAL)   
+    f = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
+    Ab = numpy.zeros(Nt, dtype=COMPLEX)
+    Fl = numpy.zeros(Nt, dtype=COMPLEX)
+    Nn = numpy.zeros(Nt, dtype=COMPLEX)
+    
+    if method == "ModifiedRedfield":
+        
+       
+        for a in range(Na):
+            for b in range(Na):
+                Ab[:] = 0.0
+                Fl[:] = 0.0
+                Nn[:] = 0.0
+                f[a,b,:] = Ab[:]*Fl[:]*Nn[:]
+                RR[a,b] = 2.0*numpy.real(simps(f[a,b,:],tt))
+        
+    
+    elif method == "Redfield":
+    
+        RR[:,:] = 0.0
+    
+    return RR
+                    

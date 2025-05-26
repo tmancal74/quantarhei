@@ -10,18 +10,14 @@
 import numpy
 
 from ....core.implementations import implementation
-#from ....core.parallel import block_distributed_range
-#from ....core.parallel import start_parallel_region
-#from ....core.parallel import close_parallel_region
-#from ....core.parallel import distributed_configuration
 from ....core.units import cm2int
 from ....core.units import kB_intK
-from ....core.managers import Manager
+
 
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
-
+from .... import REAL
 
    
 class RedfieldRateMatrix:
@@ -119,7 +115,7 @@ class RedfieldRateMatrix:
                 Om[a,b] = hD[a] - hD[b]
                 
         # calculate values of the spectral density at frequencies
-        cc = numpy.zeros((Nk,Na,Na),dtype=numpy.float64)
+        cc = numpy.zeros((Nk,Na,Na),dtype=REAL)
         
         # loop over components
         for k in range(Nk):
@@ -149,7 +145,7 @@ class RedfieldRateMatrix:
 
         
         # create storage for the rates
-        self.data = numpy.zeros((Na,Na), dtype=numpy.float)
+        self.data = numpy.zeros((Na,Na), dtype=REAL)
 
         # calculate rate matrix
         #

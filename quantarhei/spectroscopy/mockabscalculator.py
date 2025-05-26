@@ -88,7 +88,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         for pwy in self.pathways:
             
             data = self.calculate_pathway(pwy, shape=self.shape, raw=raw)
-            one.add_data(data)  
+            one.data += data  
             k += 1
             
         return one

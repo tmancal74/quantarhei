@@ -15,6 +15,8 @@ import unittest
 import numpy
 
 from quantarhei import eigenbasis_of
+from quantarhei import REAL
+from quantarhei import Manager
 from .test_BasisManaged import BasisManagedObject
     
         
@@ -52,9 +54,10 @@ class TestEigenbasisOf(unittest.TestCase):
         
         with eigenbasis_of(self.H):
             self.assertTrue(numpy.allclose(self.H.data,h_copy_tr))
+            
+            self.assertTrue(Manager()._in_eigenbasis_of_context)
         
         self.assertTrue(numpy.allclose(self.H.data,self.h_copy))
-        
         
         
     def test_of_many_contexts_single_var(self):
@@ -72,6 +75,7 @@ class TestEigenbasisOf(unittest.TestCase):
         h_copy_tr2 = numpy.dot(Sb1,numpy.dot(h_copy_tr1,Sb))   
         
         with eigenbasis_of(self.H):
+            
             # in context 1
             #print("In 1",self.H.manager.get_current_basis())
             self.assertTrue(numpy.allclose(self.H.data,h_copy_tr1))
@@ -83,7 +87,7 @@ class TestEigenbasisOf(unittest.TestCase):
             # in context 1
             #print("Out 2 in 1",self.H.manager.get_current_basis())
             self.assertTrue(numpy.allclose(self.H.data,h_copy_tr1))
-        
+            
         # outside contexts
         #print("Out 1",self.H.manager.get_current_basis())
         self.assertTrue(numpy.allclose(self.H.data,self.h_copy))
@@ -158,7 +162,7 @@ class TestEigenbasisOf(unittest.TestCase):
         d_copy_tr4 = numpy.dot(Sd1,numpy.dot(d_copy_tr3,Sd))
 
 
-        A4 = numpy.zeros((2,2),dtype=numpy.float)
+        A4 = numpy.zeros((2,2),dtype=REAL)
         A4[0,0] = -1.0
         A4[1,1] = 2.0
         
@@ -168,7 +172,7 @@ class TestEigenbasisOf(unittest.TestCase):
         A0 = numpy.dot(Sh,numpy.dot(A1,Sh1))
 
 
-        B2 = numpy.zeros((2,2),dtype=numpy.float)
+        B2 = numpy.zeros((2,2),dtype=REAL)
         B2[0,0] = -1.0
         B2[1,1] = 2.0
         

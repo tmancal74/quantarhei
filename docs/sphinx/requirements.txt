@@ -1,0 +1,9 @@
+scipy
+numpy
+matplotlib
+terminaltables
+dill
+pyyaml
+sympy
+numpydoc
+

@@ -16,6 +16,7 @@ import unittest
 """
 
 from quantarhei import StateVector
+from quantarhei import REAL
 
 class TestStateVector(unittest.TestCase):
     """Tests for the statevector package
@@ -41,12 +42,12 @@ class TestStateVector(unittest.TestCase):
         
         import numpy
         
-        vec = numpy.zeros((1,3), dtype=numpy.float)
+        vec = numpy.zeros((1,3), dtype=REAL)
         
         with self.assertRaises(Exception):
             psi = StateVector(data=vec)
             
-        vec = numpy.zeros(3, dtype=numpy.float)
+        vec = numpy.zeros(3, dtype=REAL)
         psi = StateVector(data=vec)
         
         self.assertEqual(psi.dim,3)
@@ -67,8 +68,8 @@ class TestStateVector(unittest.TestCase):
         """Test StateVector scalar product """
         
         import numpy
-        vec1 = numpy.zeros(3, dtype=numpy.float)
-        vec2 = numpy.zeros(3, dtype=numpy.float)
+        vec1 = numpy.zeros(3, dtype=REAL)
+        vec2 = numpy.zeros(3, dtype=REAL)
         
         vec1[1] = 1.0
         vec2[0] = 1.0
@@ -95,7 +96,7 @@ class TestStateVector(unittest.TestCase):
         """
         
         import numpy
-        vec = numpy.zeros(5, dtype=numpy.float)
+        vec = numpy.zeros(5, dtype=REAL)
         vec[1] = 2.0
         vec[4] = 3.0
         

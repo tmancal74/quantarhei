@@ -19,7 +19,10 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     
     
     This class is used to represent LiouvillePathway objects. Lineshape is
-    Gaussian 
+    Gaussian.
+    
+    The response is calculated with effective lineshapes directly in frequency
+    domain.
     
     """
 
@@ -162,6 +165,11 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         
         """
         self.tc = 0
+
+        try:
+            sys.diagonalize()
+        except:
+            pass
         
         tcont = TwoDResponseContainer(t2axis=self.t2axis)
         
@@ -203,6 +211,11 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         except:
             Uin = eUt
             
+        try:
+            sys.diagonalize()
+        except:
+            pass
+            
         H = eUt.get_Hamiltonian()
     
         # FIXME: this needs to be set differently, and it mu
@@ -220,8 +233,11 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         H1 = sys.get_Hamiltonian()
 #        if H1.dim == eUt.dim:
 #            has_ESA = False
+        #if H1.dim == eUt.dim:
+        if H1.Nblocks == 2:
+            has_ESA = False
         
-        #print(has_ESA)
+        #print("HAS ESA:", has_ESA)
         # get Liouville pathways
         if has_ESA:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",

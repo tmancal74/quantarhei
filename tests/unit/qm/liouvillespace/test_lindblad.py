@@ -26,8 +26,8 @@ from quantarhei import Hamiltonian
 from quantarhei import energy_units
 from quantarhei import TimeAxis
 
-from quantarhei import eigenbasis_of, Manager
-
+from quantarhei import eigenbasis_of
+from quantarhei import REAL
 
 class TestLindblad(unittest.TestCase):
     """Tests for the LindbladForm class
@@ -42,8 +42,8 @@ class TestLindblad(unittest.TestCase):
         #
         # Lindblad projection operators
         #
-        K12 = numpy.array([[0.0, 1.0],[0.0, 0.0]],dtype=numpy.float)
-        K21 = numpy.array([[0.0, 0.0],[1.0, 0.0]],dtype=numpy.float)
+        K12 = numpy.array([[0.0, 1.0],[0.0, 0.0]],dtype=REAL)
+        K21 = numpy.array([[0.0, 0.0],[1.0, 0.0]],dtype=REAL)
 
         KK12 = Operator(data=K12)
         KK21 = Operator(data=K21)
@@ -133,8 +133,8 @@ class TestLindblad(unittest.TestCase):
 #        matrix = True
         
         dim = self.H1.dim
-        KT = numpy.zeros((dim,dim), dtype=numpy.float64)
-        KM = numpy.zeros((dim,dim), dtype=numpy.float64)
+        KT = numpy.zeros((dim,dim), dtype=REAL)
+        KM = numpy.zeros((dim,dim), dtype=REAL)
         
         if tensor:
             #print(self.H1)
@@ -418,8 +418,8 @@ class TestElectronicLindblad(unittest.TestCase):
         """ 
         
         dim = self.ham.dim
-        KT = numpy.zeros((dim,dim), dtype=numpy.float64)
-        KM = numpy.zeros((dim,dim), dtype=numpy.float64)
+        KT = numpy.zeros((dim,dim), dtype=REAL)
+        KM = numpy.zeros((dim,dim), dtype=REAL)
         
         LT = ElectronicLindbladForm(self.ham, self.sbi, as_operators=False)
         
@@ -448,7 +448,7 @@ class TestElectronicLindblad(unittest.TestCase):
         LT = ElectronicLindbladForm(self.vham, self.vsbi, as_operators=False)
         
         dim = self.vham.dim
-        zer = numpy.zeros((dim, dim, dim, dim), dtype=numpy.float64)
+        zer = numpy.zeros((dim, dim, dim, dim), dtype=REAL)
         numpy.testing.assert_array_equal(LT._data-LT._data, zer)
 
 

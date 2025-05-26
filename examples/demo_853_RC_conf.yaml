@@ -1,0 +1,140 @@
+
+###############################################################################
+#
+#  What to calculate and output?
+#
+###############################################################################
+
+
+#
+#  Simulation type is `disorder_average` or `parameter_scan`
+#
+simulation_type: disorder_average
+
+#
+# Stochastic averaging over disorder
+#
+disorder_average:
+    total_abs_spectrum: True
+    electronic_2D_spectrum: True
+    twod_maps: True
+
+    N_realizations: 240 
+    fwhm: 100
+    restart: False
+
+    #
+    #  State of the random number generator
+    #
+    random_state:
+      reset: False
+      save: False
+      file: random_state.qrp
+      
+#
+# Scan of parameters space
+#
+parameter_scan:
+    type: energy_gap_from_to
+    
+    energy_gap_from_to:
+        start: 300.0
+        end: 700.0
+        step: 2.0
+        
+    energy_gap_for_disorder:
+        single_realization: False
+        # center of the disorder in energy gap
+        center : 520.0  # 1/cm
+        # step of the disorder scanning
+        step : 2.0  # 1/cm
+        # maximum possible FWHM of the disorder
+        max_available_fwhm : 1.0  # 1/cm
+        # how many FWHM we include into the scanned energy interval
+        how_many_fwhm : 2
+    
+    abs_spectrum: True
+    twod_maps: True
+    
+    make_movie : False
+
+###############################################################################
+#
+#  Never use plots in background calculations - this option will be set hard to False
+#
+###############################################################################
+
+show_plots : False
+
+###############################################################################
+#
+#  What intermediates to save?
+#
+###############################################################################
+
+#
+save_containers : False
+
+# at which realization and t2 values we should save all Liouville pathways
+save_pathways_in_t2 : [0, [30.0, 170.0]]  # realization and fs
+
+# if True, output dir will contain the input file use to run the simulation
+copy_input_files_to_results : True
+copy_script_to_results: True
+
+
+###############################################################################
+#
+#  Evolution in excited state and FFT in time t2
+#
+###############################################################################
+
+# t2 time specification
+t2_N_steps          : 350
+t2_time_step        : 10.0  # fs
+fine_splitting      : 10    # number of steps inside the t2_time_step
+
+#
+# select only pathways which fall with +/- omega_uncertaity/2
+#
+omega_uncertainty   : 50.0 # 1/cm
+
+# Tukey window parameter
+tukey_window_r      : 0.3
+
+###############################################################################
+#
+#  Calculated spectra
+#
+###############################################################################
+
+# t1 time
+t1_N_steps          : 100
+t1_time_step        : 10.0  # fs
+
+# t3 time
+t3_N_steps          : 100
+t3_time_step        : 10.0  # fs
+
+# trim maps to this spectral region
+trim_maps_to        : [11000, 14000, 11000, 14000]  # 1/cm
+
+
+
+
+###############################################################################
+#
+#            END OD CONFIGURATION SECTION
+#
+###############################################################################
+
+###############################################################################
+###############################################################################
+#
+# List of possible math evaluations
+#
+_math_allowed_in : ["E0", "resonance_coupling", "rate",
+                    ["params",["HR","omega","rate"]],
+                    ["trimer",["rate"]],
+                    "center", "step", "max_available_fwhm",
+                    "how_many_fwhm", "t2_save_pathways"]

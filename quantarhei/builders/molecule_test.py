@@ -11,6 +11,7 @@
 """
 from .molecules import Molecule
 from .modes import Mode
+from .. import REAL
 
 class TestMolecule(Molecule):
     """Class to support tests on the Molecule class

@@ -204,7 +204,12 @@ class PopulationPropagator:
                     Uc0[i,i,:] = numpy.exp(-KKD[i]*timeaxis.data) 
                     
                 if corrections == 0:
-                    return U, (Uc0)
+                    return U, (Uc0,)
+            
+            #
+            # The rest of the corrections (Uc1, Uc2 ...) is not used at the moment
+            #
+                
                 
                 
             if (corrections > 0) and exact:

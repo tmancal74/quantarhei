@@ -159,14 +159,14 @@ class KTHierarchy:
         #
         
         # indices where the levels start
-        self.levels = numpy.zeros(depth+1, dtype=numpy.int)
+        self.levels = numpy.zeros(depth+1, dtype=int)
         # lengths of the levels
-        self.levlengths = numpy.zeros(depth+1, dtype=numpy.int)
+        self.levlengths = numpy.zeros(depth+1, dtype=int)
         # indices
         self.hinds = self._convert_2_matrix(indxs)
         
-        self.nm1 = numpy.zeros((self.hsize, self.nbath), dtype=numpy.int)
-        self.np1 = numpy.zeros((self.hsize, self.nbath), dtype=numpy.int)
+        self.nm1 = numpy.zeros((self.hsize, self.nbath), dtype=int)
+        self.np1 = numpy.zeros((self.hsize, self.nbath), dtype=int)
         self._make_nmp1()
         
         self.Gamma = numpy.zeros(self.hsize, dtype=REAL)
@@ -310,7 +310,7 @@ class KTHierarchy:
             lvl +=1
             start = start+lngth
             
-        mat = numpy.zeros((hsize, self.nbath), dtype=numpy.int)
+        mat = numpy.zeros((hsize, self.nbath), dtype=int)
         ii = 0
         for level in indxs:
             for inds in level:
@@ -330,11 +330,11 @@ class KTHierarchy:
         
         for nn in range(self.hsize):
             for kk in range(self.nbath):
-                indxm = numpy.zeros(self.nbath, dtype=numpy.int)
+                indxm = numpy.zeros(self.nbath, dtype=int)
                 indxm[:] = self.hinds[nn,:]
                 indxm[kk] -= 1
 
-                indxp = numpy.zeros(self.nbath, dtype=numpy.int)
+                indxp = numpy.zeros(self.nbath, dtype=int)
                 indxp[:] = self.hinds[nn,:]
                 indxp[kk] += 1
                 
@@ -520,7 +520,11 @@ class KTHierarchyPropagator:
             for ii in range(shape[0]):
                 HOmega[ii,ii] = self.hy.ham.rwa_energies[ii]
                                 
-            self.HOmega = HOmega        
+            self.HOmega = HOmega    
+            
+        else:
+            
+            raise Exception("Hamiltonian does not have RWA.")
     
     
     def propagate(self, rhoi, L=4, report_hierarchy=False,
@@ -685,3 +689,50 @@ class KTHierarchyPropagator:
 
     
         
+
+class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
+    """If QuTip is installed, this class provides the solution of the HEOM
+    
+    
+    """
+
+    def __init__(self, timeaxis, hierarchy):
+
+        super().__init__(timeaxis, hierarchy)
+        self._is_prepared = False
+
+
+    def propagate(self, rhoi, options=None, report_hierarchy=False):
+        """Propagates the Kubo-Tanimura Hierarchy using QuTip implementation
+        
+        """
+        from ...implementations.qutip.qutip_heom import run_simulation
+        from ...implementations.qutip.qutip_heom import prepare_simulation
+
+        ham = self.hy.ham
+        sbi = self.hy.sbi
+        depth = self.hy.depth
+
+        if options is None:
+
+            loc_options = {
+            "nsteps": 5000,
+            "store_states": True,
+            "rtol": 1e-12,
+            "atol": 1e-12,
+            "min_step": 1e-18,
+            "method": "vern9",
+            "progress_bar": "enhanced"
+            }
+
+        else:
+
+            loc_options = options
+
+        if not self._is_prepared:
+            self.qutip_data = prepare_simulation(ham, sbi, depth)
+            self._is_prepared = True
+
+            rhot = run_simulation(self, rhoi, options=loc_options)
+
+        return rhot 

@@ -104,7 +104,7 @@
         plt.show()
         
         
-    We may want to calculate the evolotion superoperator with a step larger
+    We may want to calculate the evolution superoperator with a step larger
     than the one which we specified for evaluation of bath correlation
     functions (In this example we use predefined  SystemBathInteraction object
     which holds this information). Our time axis is too dense for our needs.
@@ -184,7 +184,6 @@
 """
 
 # standard library imports
-import time
 import numbers
 
 # dependencies imports
@@ -197,12 +196,15 @@ from ..hilbertspace.operators import ReducedDensityMatrix
 from ...core.time import TimeAxis
 from ...core.saveable import Saveable
 
+
 from .superoperator import SuperOperator
 from ...core.time import TimeDependent
 from ... import COMPLEX
+from ... import REAL
 import matplotlib.pyplot as plt
 
-import quantarhei as qr
+from ...core.dfunction import DFunction
+
 
 #from ...utils.types import BasisManagedComplexArray
 
@@ -228,10 +230,19 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         points of the evolution are stored, or it can be "jit" = just in (one)
         time. In the "jit" mode, only the "present" time of the evolution
         operator is stored.
+        
+    block: tuple
+        Evolution Superoperator is usually defined on the Liouville space
+        derived from the complete system's Hilbert space. We can specify 
+        a smaller block section of elements in the Liouville space, to limit
+        the size of the calculation. Typical situation is calculate
+        only the optical coherence block neede for the calculation of 
+        absorption spectra.
     
     """
     
-    def __init__(self, time=None, ham=None, relt=None, pdeph=None, mode="all"):
+    def __init__(self, time=None, ham=None, relt=None, 
+                 pdeph=None, mode="all", block=None):
         super().__init__()
         
         self.time = time
@@ -239,20 +250,41 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.relt = relt
         self.mode = mode
         self.pdeph = pdeph
+        self.block = block
         
         try:
             self.dim = ham.dim
         except:
             self.dim = 1
+
+        # keeps track of RWA
+        self.is_in_rwa = False
         
         self.dense_time = None
         self.set_dense_dt(1)
+        
+        #
+        # define the size of the data
+        #
+        Nt = self.time.length
+        
+        # if bock is not defined (default), we use the full size
+        if self.block is None:   
+            N1 = self.dim
+            N2 = self.dim
+            
+        elif self.block == (0,1):
+            N1 = self.dim
+            N2 = self.dim
+        
+        else:
+            raise Exception("Unknown block type")
+            
+            self.ham.rwa_indices
             
         if (self.time is not None) and (self.mode == "all"):
             
-            self.data = numpy.zeros((self.time.length, self.dim, self.dim,
-                                     self.dim, self.dim),
-                                     dtype=qr.COMPLEX)
+            self.data = numpy.zeros((Nt, N1, N2, N1, N2), dtype=COMPLEX)
             #
             # zero time value (unity superoperator)
             #
@@ -264,7 +296,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         else:
             
             self.data = numpy.zeros((self.dim, self.dim, self.dim, self.dim),
-                                dtype=qr.COMPLEX) 
+                                dtype=COMPLEX) 
             #
             # zero time value (unity superoperator)
             #
@@ -341,7 +373,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             Nt = self.time.length                    
             self.data = numpy.zeros((Nt, self.dim, self.dim,
                                          self.dim, self.dim),
-                                         dtype=qr.COMPLEX)
+                                         dtype=COMPLEX)
             #
             # zero time value (unity superoperator)
             #
@@ -356,7 +388,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             if self.dim != self.data.shape[0]:
                 self.data = numpy.zeros((self.dim, self.dim,
                                          self.dim, self.dim),
-                                         dtype=qr.COMPLEX)
+                                         dtype=COMPLEX)
 
             #
             # zero time value (unity superoperator)
@@ -367,7 +399,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     self.data[i,j,i,j] = 1.0
         
         
-
     def calculate(self, show_progress=False):
         """Calculates the data of the evolution superoperator
         
@@ -379,17 +410,24 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             When set True, reports on its progress and elapsed time
         
         
+        This function MUST NOT be called from within an eigenbasis_of context
+        
         """
+        
+        #
+        #  FIXME: This functionality should be achieved by a decorator
+        #
+        #if Manager()._in_eigenbasis_of_context:
+        #    raise Exception("This function MUST be called outside"+
+        #                    " a basis context")
+        
         if self.mode != "all":
             raise Exception("This method (calculate()) can be used only"+
                             " with mode='all'")
         Nt = self.time.length
         
         self._initialize_data()
-            
-        if show_progress:
-            print("Calculating evolution superoperator ")
-        self._init_progress()
+         
         
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
@@ -408,9 +446,13 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 
                 self.data[ti,:,:,:,:] = \
                     numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
-                    
-                if show_progress:
-                    print("propagation: ", ti, "of", Nt)            
+                             
+        elif (self.relt is not None) and self.relt.is_time_dependent:
+            
+            #
+            # Time dependent relaxation tensor requires a complete calculation
+            #
+            self._all_steps_time_dep()
                 
         else:
             
@@ -421,22 +463,21 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             self.data[1,:,:,:,:] = self._one_step_with_dense_TimeIndep(t0,
                                                     self.dense_time.length,
-                                                    self.dense_time.step,
-                                                    Nt,
-                                                    show_progress) 
-            
+                                                    self.dense_time.step,Nt)
+                                                     
             
             #
             # repeat propagation over the longer interval
             #
-            self._calculate_remainig_using_first_interval(Nt,
-                                                          show_progress)
+            self._calculate_remainig_using_first_interval(Nt)
+            
+        
+        if self.ham.has_rwa:
+            # evolution was calculated in RWA
+            self.is_in_rwa = True
 
-        if show_progress:
-            print("...done")
             
-            
-    def _elemental_step_TimeIndep(self, t0, dens_dt, Nt, show_progress=False):
+    def _elemental_step_TimeIndep(self, t0, dens_dt, Nt):
         """Single elemental step of propagation with the dense time step
         
         """
@@ -448,8 +489,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
-            if show_progress:
-                self._progress(Nt, dim, 0, n, 0)
             for m in range(dim):
                 rhonm0.data[n,m] = 1.0
                 rhot = prop.propagate(rhonm0)
@@ -485,15 +524,71 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Ut1
 
 
-    def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt,
-                                     show_progress=False):
+    def _all_steps_time_dep(self):
+        """Calculates a complete evolution superoperator
+        
+        """
+        
+        dim = self.dim
+        time = self.time
+
+        # time axis of the relaxation operator
+        systime = self.relt.SystemBathInteraction.TimeAxis
+        
+        if not time.is_subset_of(systime):
+            
+            raise Exception("Incompatible time axes"+
+                            " (RelaxationTensor vs. EvolutionSuperOperator)")
+            
+        # # requested number of refinement steps
+        # if self.dense_time is not None:
+        #     Nref_req = self.dense_time.length-1
+        # else:
+        #     Nref_req = 1
+        
+        # if Nref_max % Nref_req == 0:
+            
+        #     stride = Nref_max//Nref_req
+            
+        # else:
+        #     print("System has a timestep  :", systime.step, "fs")
+        #     print("Propagation timestep is:", time.step, "fs")
+        #     print("ERROR:", Nref_req,"steps of", systime.step,"fs do not fit"+
+        #           " neatly into a step of", time.step,"fs")
+        #     raise Exception("Incompatible number of refinement steps")
+        
+        
+        # print("A stride over system time:", stride)
+        
+        
+        prop = ReducedDensityMatrixPropagator(time, self.ham,
+                                              RTensor=self.relt)
+        
+        Nref = self.dense_time.length-1
+        prop.setDtRefinement(Nref)
+        
+        #print(time.length, time.step, self.dense_time.length-1)
+        
+        rhonm0 = ReducedDensityMatrix(dim=dim)
+
+        for n in range(dim):
+            for m in range(dim):
+                rhonm0.data[n,m] = 1.0
+                rhot = prop.propagate(rhonm0)
+                self.data[:,:,:,n,m] = rhot.data[:,:,:]
+                #if n != m:
+                #    self.data[:,:,:,m,n] = numpy.conj()
+                rhonm0.data[n,m] = 0.0
+            
+
+
+    def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt):
         """One step of propagation over the standard time step
         
         This step is componsed of Ndense time steps
         
         """
-        Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt,
-                                           show_progress=show_progress)
+        Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt)
         #
         # propagation to the end of the first interval
         #
@@ -504,8 +599,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Udt
 
         
-    def _calculate_remainig_using_first_interval(self, Nt,
-                                                 show_progress=False):
+    def _calculate_remainig_using_first_interval(self, Nt):
         """Calculate the rest of the superoperator with known first interval
         
         
@@ -513,8 +607,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         Udt = self.data[1,:,:,:,:]
         
         for ti in range(2, Nt):
-            if show_progress:
-                print("Self propagation: ", ti, "of", Nt)            
+           
             self.data[ti,:,:,:,:] = \
                 numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])        
 
@@ -573,8 +666,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
                 self.Udt = self._one_step_with_dense_TimeIndep(t0,
                                                     self.dense_time.length,
-                                                    self.dense_time.step, Nt,
-                                                    show_progress=False) 
+                                                    self.dense_time.step, Nt) 
                 
                 if save:
                     self.data[1,:,:,:,:] = self.Udt[:,:,:,:]
@@ -763,8 +855,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
 
         if window is None:
-            winfce = qr.DFunction(self.time, 
-                               numpy.ones(self.time.length, dtype=qr.REAL))
+            winfce = DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=REAL))
         else:
             winfce = window
             
@@ -776,7 +868,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         time = self.time
         freq = time.get_FrequencyAxis()
         
-        ffce = qr.DFunction(freq, fdat)
+        ffce = DFunction(freq, fdat)
         
         return ffce
     
@@ -799,8 +891,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
 
         if window is None:
-            winfce = qr.DFunction(self.time, 
-                               numpy.ones(self.time.length, dtype=qr.REAL))
+            winfce = DFunction(self.time, 
+                               numpy.ones(self.time.length, dtype=REAL))
         else:
             winfce = window
             
@@ -818,50 +910,65 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return fdat, freq        
         
 
-    #
-    # Calculation `progressbar`
-    #
+    def convert_from_RWA(self, ham=None, sgn=1):
+        """Converts evolution superoperator from RWA to standard repre
+        
+        
+        Parameters
+        ----------
+        
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA. If none is
+            specified, internal Hamiltonian is used. This is the most
+            natural use of this function.
+            
+        sgn : {1, -1}
+            Forward (1) or backward (-1) conversion. Default sgn=1 corresponds
+            to the function name. Backward conversion sgn=-1 is called from
+            the inverse routine.
+        """
+        
+        if ham is None:
+            ham = self.ham
+            
+        if (self.is_in_rwa and sgn == 1) or sgn == -1:
+            
+            HOmega = ham.get_RWA_skeleton()
+            
+            for i, t in enumerate(self.time.data):
+                # evolution operator
+                Ut = numpy.diag(numpy.diag(numpy.exp(-sgn*1j*HOmega*t)))
+                Uc = numpy.conj(Ut)
+                
+                # revert RWA
+                dim = self.ham.dim
+                for aa in range(dim):
+                    for bb in range(dim):
 
-    def _estimate_remaining_loops(self, Nt, dim, ti, n, m):
-        return (dim-n)*dim 
+                        self.data[i,aa,bb,:,:] = \
+                            Ut[aa]*Uc[bb]*self.data[i,aa,bb,:,:]
+
+                
+        if sgn == 1:
+            self.is_in_rwa = False
+
+
+    def convert_to_RWA(self, ham):
+        """Converts evolution superoperator from standard repre to RWA
+
+
+        Parameters
+        ----------
         
-    
-    def _init_progress(self):
-        self.ccount = 0
-        self.strtime = time.time()
-        self.oldtime = self.strtime
-        self.remlast = 0
-        
-        
-    def _progress(self, Nt, dim, ti, n, m):
-        
-        curtime = time.time()
-        #dt = curtime - self.oldtime
-        Dt = curtime - self.strtime
-        self.oldtime = curtime
-        self.ccount += 1
-         
-        dt_past = Dt/(self.ccount*dim)
-        
-        remloops = self._estimate_remaining_loops(Nt, dim, ti, n, m)
-        
-        remtime = int(remloops*(dt_past))
-        
-        txt1 = "Propagation cycle "+str(ti)+" of "+str(Nt)+ \
-               " : ("+str(n)+" of "+str(dim)+")"
-        if True:
-        #if remtime <= self.remlast:
-            txt2 = " : remaining time "+str(remtime)+" sec"
-        #else:
-        #    txt2 = " : remaining time ... calculating"
-        tlen1 = len(txt1)
-        tlen2 = len(txt2)
-        
-        rem = 65 - tlen1 - tlen2
-        txt = "\r"+txt1+(" "*rem)+txt2
-        print(txt, end="\r")
-        
-        self.remlast = remtime
+        ham : qr.Hamiltonian
+            Hamiltonian with respect to which we construct RWA
+            
+        """        
+        if not self.is_in_rwa:
+            self.convert_from_RWA(ham, sgn=-1)
+            self.is_in_rwa = True
+            
+
 
 
     def __str__(self):

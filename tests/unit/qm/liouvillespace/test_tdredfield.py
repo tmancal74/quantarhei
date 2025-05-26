@@ -26,7 +26,7 @@ from quantarhei.qm import SystemBathInteraction
 
 from quantarhei import energy_units
 
-import quantarhei as qr
+from quantarhei import REAL
 
 class TDTestRedfield(unittest.TestCase):
     """Tests for the TDRedfieldRelaxationTensor class
@@ -54,8 +54,8 @@ class TDTestRedfield(unittest.TestCase):
         cm2 = CorrelationFunctionMatrix(time,2,1)
         cm2.set_correlation_function(cf2,[(0,0),(1,1)])  
           
-        K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=qr.REAL)
-        K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=qr.REAL)
+        K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
+        K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
         K12 = K11.copy()
         K22 = K21.copy()
             
@@ -90,8 +90,8 @@ class TDTestRedfield(unittest.TestCase):
         matrix = True
         
         dim = self.H1.dim
-        KT = numpy.zeros((dim,dim), dtype=numpy.float64)
-        KM = numpy.zeros((dim,dim), dtype=numpy.float64)
+        KT = numpy.zeros((dim,dim), dtype=REAL)
+        KM = numpy.zeros((dim,dim), dtype=REAL)
         
         if tensor:
             #print(self.H1)

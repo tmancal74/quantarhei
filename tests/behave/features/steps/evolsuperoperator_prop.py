@@ -297,3 +297,46 @@ def step_when_12(context):
         R1 = prop.propagate(R)
 
     context.R1 = R1
+    
+    
+
+@given('I have evolution super operator at time zero')   
+def step_given_11(context):
+    """
+    
+    Given I have evolution super operator at time zero
+    
+    
+    """
+    
+    # create test aggregate
+    agg = qr.TestAggregate("dimer-2-env")
+    agg.build()
+    
+    # get the associated time axis and the relaxation tensor and Hamiltonian
+    time = agg.get_SystemBathInteraction().TimeAxis
+    RR, HH = agg.get_RelaxationTensor(time, relaxation_theory="stR")
+    
+    context.H = HH
+    
+    # define and calculate evolution superoperator
+    U = qr.qm.EvolutionSuperOperator(ham=HH, relt=RR)
+    #U.calculate()
+    
+    context.U = U
+    
+    
+@then('evolution superoperator is unity superoperator')
+def step_then_9(context):
+    
+    U = context.U
+    N = U.dim
+    I = qr.qm.SOpUnity(dim=N)
+    numpy.testing.assert_allclose(I.data, U.data, rtol=1.0e-10, atol=1.0e-10)
+    
+    
+    
+    
+    
+    
+    

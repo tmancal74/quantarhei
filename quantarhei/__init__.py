@@ -208,12 +208,15 @@ LIOUVILLE_PATHWAY_TYPES = PATHWAY_TYPES
 # Builders
 #
 from .builders.modes import Mode
+from .builders.submodes import AnharmonicMode
+from .builders.submodes import HarmonicMode
 from .builders.molecules import Molecule
 from .builders.molecule_test import TestMolecule
 from .builders.aggregates import Aggregate
 from .builders.aggregate_test import TestAggregate
 from .builders.pdb import PDBFile
 from .builders.disorder import Disorder
+from .builders.opensystem import OpenSystem
 
 #
 # Core classes
@@ -287,6 +290,11 @@ from .spectroscopy.twod import TwoDSpectrum
 from .spectroscopy.twodcalculator import TwoDResponseCalculator
 from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator
 
+from .spectroscopy.responses import NonLinearResponse
+# 2 deprecated classes
+from .spectroscopy.responses import ResponseFunction
+from .spectroscopy.responses import LiouvillePathway
+
 #
 # Pump-probe spectrum
 #
@@ -298,7 +306,18 @@ from .spectroscopy.pumpprobe import MockPumpProbeSpectrumCalculator
 from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
 
 from .spectroscopy.labsetup import LabSetup
-from .spectroscopy.labsetup import EField
+from .spectroscopy.labsetup import LabField
+
+from .spectroscopy.dsfeynman import DSFeynmanDiagram
+from .spectroscopy.dsfeynman import R1g_Diagram
+from .spectroscopy.dsfeynman import R2g_Diagram
+from .spectroscopy.dsfeynman import R3g_Diagram
+from .spectroscopy.dsfeynman import R4g_Diagram
+from .spectroscopy.dsfeynman import R1f_Diagram
+from .spectroscopy.dsfeynman import R2f_Diagram
+from .spectroscopy.dsfeynman import R1g_R_Diagram
+
+
 
 ###############################################################################
 #                           QUANTUM MECHANICS
@@ -306,9 +325,13 @@ from .spectroscopy.labsetup import EField
 
 
 #
-# Operators
+# State vectors
 #
 from .qm import StateVector
+from .qm import OQSStateVector
+#
+# Operators
+#
 from .qm import DensityMatrix
 from .qm import ReducedDensityMatrix
 from .qm import BasisReferenceOperator
@@ -316,18 +339,21 @@ from .qm import Hamiltonian
 from .qm import Liouvillian
 from .qm import TransitionDipoleMoment
 from .qm import UnityOperator
+from .qm import ProjectionOperator
 
 #
 # Propagators
 #
 from .qm.propagators.poppropagator import PopulationPropagator
 from .qm.propagators.svpropagator import StateVectorPropagator
+from .qm import OQSStateVectorPropagator
 from .qm import ReducedDensityMatrixPropagator
 
 #
 # Evolutions (time-dependent operators)
 #
 from .qm.propagators.statevectorevolution import StateVectorEvolution
+from .qm import OQSStateVectorEvolution
 from .qm import DensityMatrixEvolution
 from .qm import ReducedDensityMatrixEvolution
 
@@ -342,10 +368,24 @@ from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 # System-bath interaction
 #
 from .qm.corfunctions import CorrelationFunction
+from .qm.corfunctions import CorrelationFunctionMatrix
+from .qm.corfunctions import LineshapeFunction
 from .qm.corfunctions import SpectralDensity
+from .qm import SystemBathInteraction
+from .qm.corfunctions.correlationfunctions import oscillator_scalled_CorrelationFunction
+
+#
+# LINESHAPE FUNCTIONS
+#
+from .qm.corfunctions import FunctionStorage
+from .qm.corfunctions import FastFunctionStorage
+
 
 from .qm.liouvillespace.heom import KTHierarchy
 from .qm.liouvillespace.heom import KTHierarchyPropagator
+from .qm.liouvillespace.heom import QuTip_KTHierarchyPropagator
+
+from .symbolic.cumulant import evaluate_cumulant
 
 ###############################################################################
 # Convenience functions

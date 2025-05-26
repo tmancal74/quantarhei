@@ -10,6 +10,7 @@ e = Symbol('e',real=True)
 f = Symbol('f',real=True)
  
 
+s = Symbol('s',real=True)
 t = Symbol('t',real=True)
 T = Symbol('T',real=True)
 tau = Symbol('tau',real=True)

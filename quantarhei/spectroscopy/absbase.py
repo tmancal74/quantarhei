@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-
-
 import numpy
-
-import matplotlib.pyplot as plt
 
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
@@ -12,8 +8,16 @@ from ..core.managers import EnergyUnitsManaged
 from ..core.units import cm2int
 
 
+
+
 class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
     """Provides basic container for absorption spectrum
+    
+    
+    Examples
+    --------
+    
+    
     
     """
     
@@ -46,11 +50,29 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         """
         self.data = data
         
-    def add_data(self, data):
-        self.data += data
+    #def add_data(self, data):
+    #    self.data += data
         
     def set_by_interpolation(self, x, y, xaxis="frequency"):
+        """Sets the data by interpolation with splines
         
+        When the spectrum is defined in wavelength, it is converted to 
+        an internal representation in frequency.
+        
+        Examples
+        --------
+        
+        >>> from quantarhei import REAL
+        >>> from quantarhei import energy_units
+        >>> abs = AbsSpectrumBase()
+        >>> x = numpy.array([600.0 + 5.0*ii for ii in range(100)], dtype=REAL)
+        >>> y = numpy.exp(-(x-800.0)**2/(50**2))
+        >>> abs.set_by_interpolation(x, y, xaxis="wavelength")
+        >>> with energy_units("1/cm"):
+        ...     print("%6.3f, %6.3f" % (abs.axis.min, abs.axis.max))
+        9132.420, 16591.324
+        
+        """
         from scipy import interpolate
         
         if xaxis == "frequency":
@@ -131,6 +153,42 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         spect : spectrum containing object
             This object should have a compatible axis and some data
         
+        
+        Examples
+        --------
+        
+        Standard usage
+        
+        >>> from quantarhei import energy_units
+        >>> abs = AbsSpectrumBase()
+        >>> other = AbsSpectrumBase()
+        >>> with energy_units("1/cm"):
+        ...     w = FrequencyAxis(10000.0, 1000, 5.0)
+        ...     y = numpy.exp(-(w.data-12500.0)**2/(200.0**2))
+        >>> other.set_axis(w)
+        >>> other.set_data(y)
+        >>> abs.add_to_data(other)
+        
+        Axes have to be compatible (i.e. the same)
+        
+        >>> yetanother = AbsSpectrumBase()
+        >>> yetanother.set_axis(FrequencyAxis(8000.0, 1000, 4.0))
+        >>> abs.add_to_data(yetanother)
+        Traceback (most recent call last):
+            ...
+        Exception: Incompatible axis
+        
+        An empty AbsSpectrumBase can be filled by add_to_data() method
+        Axis is taken from the class that we add
+        
+        >>> yetanother.set_axis(w)
+        >>> yetanother.add_to_data(abs)
+        >>> onemore = AbsSpectrumBase()
+        >>> onemore.add_to_data(other)
+        
+        >>> numpy.testing.assert_allclose(onemore.data,abs.data) 
+
+        
         """
 
         
@@ -138,8 +196,8 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
             self.axis = spect.axis.copy()
             
         if not numpy.allclose(spect.axis.data, self.axis.data):
-            numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
-            numpy.savetxt("self_data_wrong.dat", self.axis.data)
+            #numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
+            #numpy.savetxt("self_data_wrong.dat", self.axis.data)
             raise Exception("Incompatible axis")
             
         if self.data is None:
@@ -148,7 +206,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         
         self.data += spect.data
         
-#    #save method is inherited from DFunction 
+    #save method is inherited from DFunction 
     
     def save_data(self, filename):
         """Saves the data of this absorption spectrum

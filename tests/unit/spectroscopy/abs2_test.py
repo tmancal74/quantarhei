@@ -168,7 +168,8 @@ class TestAbs(unittest.TestCase):
             mol1.set_dipole(0,1,[0.0, 1.0, 0.0])
             mol2.set_dipole(0,1,[0.0, 1.0, 0.0])
 
-            cf = CorrelationFunction(self.ta, params)
+            with energy_units("int"):
+                cf = CorrelationFunction(self.ta, params)
             mol1.set_transition_environment((0,1),cf)
             mol2.set_transition_environment((0,1),cf)
 

@@ -4,6 +4,7 @@
 #   HILBERT SPACE STATES
 #
 from .hilbertspace.statevector import StateVector
+from .hilbertspace.oqsstatevector import OQSStateVector
 
 #
 #   LIOUVILLE SPACE STATES
@@ -66,6 +67,9 @@ from .liouvillespace.puredephasing import PureDephasing
 from .liouvillespace.puredephasing import ElectronicPureDephasing
 
 
+from .liouvillespace.heom import KTHierarchy
+from .liouvillespace.heom import KTHierarchyPropagator
+
 from .liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
 from .liouvillespace.superoperator import SuperOperator
 from .liouvillespace.superoperator_test import TestSuperOperator
@@ -76,12 +80,17 @@ from .liouvillespace.supopunity import SOpUnity
 #
 from .propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from .propagators.svpropagator import StateVectorPropagator
+from .propagators.oqssvpropagator import OQSStateVectorPropagator
 
 #
 #  TIME EVOLUTIONS
 #
 from .propagators.statevectorevolution import StateVectorEvolution
+from .propagators.oqssvevolution import OQSStateVectorEvolution
 from .propagators.dmevolution import DensityMatrixEvolution
 from .propagators.dmevolution import ReducedDensityMatrixEvolution
+
+
+
 
 

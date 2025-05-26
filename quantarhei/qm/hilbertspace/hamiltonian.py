@@ -2,6 +2,7 @@
 
 from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged
+from ...core.managers import energy_units
 from ...core.managers import EnergyUnitsManaged
 from ...utils.types import ManagedRealArray
 from .operators import Operator
@@ -70,7 +71,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         if rwa_indices[0] != 0:
             raise Exception("First element in 'rwa_indices' has to be zero")
-        self.rwa_indices = rwa_indices
+        self.rwa_indices = numpy.array(rwa_indices, dtype=int)
         
         Null_blocks = numpy.sum(self.dim == self.rwa_indices)
 
@@ -79,23 +80,24 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
         
         # average energies in every block
-        en_block = numpy.zeros(self.Nblocks, dtype=REAL)
-        for block in range(self.Nblocks):
-            if block < self.Nblocks-1:
-                upper = self.rwa_indices[block+1]
-            else:
-                upper = self.data.shape[0]
-            k = 0
-            # calculate average energy in the block
-            for ii in range(self.rwa_indices[block],upper):
-                en_block[block] += self.data[ii,ii]
-                k += 1
-            if k==0:
-                continue
-            en_block[block] = en_block[block]/float(k)
-            # set rwa_energies within the block
-            for ii in range(self.rwa_indices[block],upper):
-                self.rwa_energies[ii] = en_block[block]            
+        with energy_units("int"):
+            en_block = numpy.zeros(self.Nblocks, dtype=REAL)
+            for block in range(self.Nblocks):
+                if block < self.Nblocks-1:
+                    upper = self.rwa_indices[block+1]
+                else:
+                    upper = self.data.shape[0]
+                k = 0
+                # calculate average energy in the block
+                for ii in range(self.rwa_indices[block],upper):
+                    en_block[block] += self.data[ii,ii]
+                    k += 1
+                if k==0:
+                    continue
+                en_block[block] = en_block[block]/float(k)
+                # set rwa_energies within the block
+                for ii in range(self.rwa_indices[block],upper):
+                    self.rwa_energies[ii] = en_block[block]            
         
         # we have information on RWA
         self.has_rwa = True
@@ -109,7 +111,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         shape = HH.shape[0]
         HOmega = numpy.zeros(shape, dtype=REAL)
         for ii in range(shape):
-            HOmega[ii] = self.rwa_energies[ii]
+            HOmega[ii] = self.convert_2_current_u(self.rwa_energies[ii])
         return HOmega
 
 
@@ -154,7 +156,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             self.remove_cutoff_coupling(coupling_cutoff)
             # diagonalize the strong coupling part
             dd,SS = numpy.linalg.eigh(self.data)
-            self.data = numpy.zeros(self.data.shape,dtype=numpy.float64)
+            self.data = numpy.zeros(self.data.shape,dtype=REAL)
             for ii in range(0,self.data.shape[0]):
                 self.data[ii,ii] = dd[ii]
             # transform the remainder of couling correspondingly
@@ -199,7 +201,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if coupling_cutoff < 0.0:
             raise Exception("Coupling cutoff value must be positive")
             
-        JR = numpy.zeros((self.dim,self.dim),dtype=numpy.float64)
+        JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
         # go through all couplings and remove small ones
         for ii in range(self.dim):
             for jj in range(ii+1,self.dim):
@@ -246,7 +248,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 
             coupcut = self.convert_2_internal_u(coupling_cutoff)
                 
-            JR = numpy.zeros((self.dim,self.dim),dtype=numpy.float64)
+            JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
             # go through all couplings and remove small ones
             for ii in range(self.dim):
                 for jj in range(ii+1,self.dim):
@@ -329,7 +331,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             out += "\nBlock average energies:"
             for k in range(self.Nblocks):
                 out += "\n "+str(k)+" : "\
-                +str(self.rwa_energies[self.rwa_indices[k]])
+                +str(self.convert_2_current_u(self.rwa_energies[self.rwa_indices[k]]))
         out += "\ndata = \n"
         out += str(self.data)
         return out

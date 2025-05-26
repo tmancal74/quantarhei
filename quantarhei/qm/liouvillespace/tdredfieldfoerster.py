@@ -49,6 +49,8 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
         if initialize: 
             with energy_units("int"):
                 self._reference_implementation()
+                
+        self.is_time_dependent = True
 
 
     def _reference_implementation(self):

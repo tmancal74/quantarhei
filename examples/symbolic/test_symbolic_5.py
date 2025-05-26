@@ -32,8 +32,8 @@ m = Symbol('m')
 n = Symbol('n')
 t1 = Symbol('t1')
 
-A = Uged(n,T)*Uedg(n,tau)*ExpdV(a,tau,x)*Ugde(m,tau)*ExpdV(b,0,y)*Uegd(n,T)
-A = Uged(b,T)*ExpdV(n,0,x)*Uegd(a,tau)*ExpdV(m,-tau,y)*Uged(b,tau)*Uegd(b,T)
+#A = Uged(n,T)*Uedg(n,tau)*ExpdV(a,tau,x)*Ugde(m,tau)*ExpdV(b,0,y)*Uegd(n,T)
+A = Uged(b,T)*ExpdV(n,t1,x)*Uegd(a,tau)*ExpdV(m,-tau,y)*Uged(b,tau)*Uegd(b,T)
 
 Anorm = Uged(n,T)*Uegd(n,T)  
 
@@ -108,9 +108,9 @@ if info:
     Axy1 = collect(Ax1,y,evaluate=False)
     Axy = sympify(Axy1[y])
     print(Axy)
-    print("x**2:")
-    Ax2 = sympify(terms[x**2])
-    print(Ax2)
+    #print("x**2:")
+    #Ax2 = sympify(terms[x**2])
+    #print(Ax2)
     print(" ")
     print(" ")
 

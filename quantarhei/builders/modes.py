@@ -33,11 +33,13 @@ from ..core.wrappers import deprecated
 from ..core.saveable import Saveable
 
 from .submodes import SubMode
+
+from .opensystem import OpenSystem
         
         
 # Mode is UnitsManaged with components of different dimensions
 # Mode is not BasisManaged
-class Mode(UnitsManaged, Saveable):
+class Mode(UnitsManaged, Saveable, OpenSystem):
     """ Vibrational mode
     
         
@@ -93,8 +95,14 @@ class Mode(UnitsManaged, Saveable):
         self.monomer_set = False
         # no electronic states set or asigned
         self.nel = 0
-
         
+        self.has_mode_environment = False 
+
+
+#
+#   MODE AS A PART OF A MOLECULE
+#
+
     def set_Molecule(self, monomer):
         """Assigns this mode to a given monomer.
         
@@ -334,16 +342,10 @@ class Mode(UnitsManaged, Saveable):
         >>> print("{0:.2f}".format(hr))
         1.00
 
-        Exception will be thrown if HR factor is set to the ground-state
-        
-        >>> mod.set_HR(0, 2.0)
-        Traceback (most recent call last):
-            ...
-        Exception: Makes no sense to set HR in the ground state
-        
+       
         """
-        if N==0:
-            raise Exception("Makes no sense to set HR in the ground state")
+        #if N==0:
+        #    raise Exception("Makes no sense to set HR in the ground state")
             
         sh = numpy.sqrt(2.0*hr)
         self.set_shift(N, sh)
@@ -591,3 +593,28 @@ class Mode(UnitsManaged, Saveable):
         
         """
         return self.submodes[N]
+    
+    
+    def set_mode_environment(self, corfce):
+        """Set linear interaction with a bosonic environment
+        
+        
+        """
+        
+        self.egcf = corfce
+        self.has_mode_environment = True
+
+
+    def get_mode_environment(self):
+        """Returns interaction of this mode with a bosonic bath
+        
+        """
+        
+        if not self.has_mode_environment:
+            return None
+        
+        return self.egcf
+    
+    
+        
+        

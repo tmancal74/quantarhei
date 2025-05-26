@@ -15,13 +15,7 @@ author: Tomas Mancal, Charles University
 """
 
 import numpy
-
-#import scipy.integrate
 import numpy.linalg
-
-import matplotlib.pyplot as plt
-
-#import cu.oqs.cython.propagators as prop
 
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..hilbertspace.operators import Operator
@@ -33,11 +27,18 @@ from ..hilbertspace.operators import ReducedDensityMatrix, DensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
 from ...core.managers import Manager
-from ... import REAL
+from ...spectroscopy.labsetup import LabSetup
 
 import quantarhei as qr
 
+import matplotlib.pyplot as plt
+
     
+_show_debug = False
+def debug(msg):
+    
+    if _show_debug:
+        print(msg)
 
 class ReducedDensityMatrixPropagator(MatrixData, Saveable): 
     """
@@ -50,7 +51,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     """
     
     def __init__(self, timeaxis=None, Ham=None, RTensor=None, Iterm=None,
-                 Efield=None, Trdip=None, PDeph=None):
+                 Efield=None, Trdip=None, PDeph=None, NonHerm=None):
         """
         
         Creates a Reduced Density Matrix propagator which can propagate
@@ -73,17 +74,18 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         The constructor accepts only numpy.ndarray object, so the
         following code will fail, because it submits normal Python arrays.         
         
-        >>> pr = RDMPropagator([[0.0, 0.0],[0.0, 1.0]],[0,1,2,3,4,5])
+        >>> pr = ReducedDensityMatrixPropagator([[0.0, 0.0],
+        ...                                     [0.0, 1.0]],[0,1,2,3,4,5])
         Traceback (most recent call last):
             ...
-        Exception
+        Exception: TimeAxis expected here.
         
         The correct way to construct the propagator is the following:
 
         >>> h = numpy.array([[0.0, 0.0],[0.0,1.0]])
         >>> HH = Hamiltonian(data=h)
         >>> times = TimeAxis(0,1000,1)
-        >>> pr = RDMPropagator(HH,times)
+        >>> pr = ReducedDensityMatrixPropagator(times,HH)
         
         """
         self.has_Trdip = False
@@ -93,26 +95,29 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_Iterm = False
         self.has_RWA = False
         self.has_EField = False
+        self.has_NonHerm = False
         
         if not ((timeaxis is None) and (Ham is None)):
             
             #
             # Hamiltonian and TimeAxis are required
             #
-            if isinstance(Ham,Hamiltonian):
-                self.Hamiltonian = Ham
-            else:
-                raise Exception
-            
-            if isinstance(timeaxis,TimeAxis):
+            if isinstance(timeaxis, TimeAxis):
                 self.TimeAxis = timeaxis
             else:
-                raise Exception
+                raise Exception("TimeAxis expected here.")
+
+            if isinstance(Ham, Hamiltonian):
+                self.Hamiltonian = Ham
+            elif Ham is None:
+                raise Exception("Hamiltonian is required.")
+            else:
+                raise Exception("Hamiltonian represented by a wrong type.")
             
             #
             # RelaxationTensor is not requited
             #
-            if isinstance(RTensor,RelaxationTensor):
+            if isinstance(RTensor, RelaxationTensor):
                 self.RelaxationTensor = RTensor
                 self.has_RTensor = True
                 self.has_relaxation = True
@@ -120,38 +125,60 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 self.has_RTensor = False
                 self.has_relaxation = False
             else:
-                raise Exception
-    
+                raise Exception("RelaxationTensor or None expected here.")
+            
+            #
+            # TransitionDipoleMoment is not required
+            #
             if Trdip is not None:            
-                if isinstance(Trdip,Operator):
+                if isinstance(Trdip, Operator):
                     self.Trdip = Trdip
                     self.has_Trdip = True
                 else:
-                    raise Exception
-    
+                    raise Exception("Operator or None expected here.")
+
+            #
+            # Driving field is not required
+            #    
             if Efield is not None:
-                if isinstance(Efield,numpy.ndarray):
+                if isinstance(Efield, numpy.ndarray):
                     self.Efield = Efield
+                    self.has_Efield = True
+                    self.has_EField = False
+                elif isinstance(Efield, LabSetup):
+                    print("****************!!!!")
+                    fl = []
+                    for ii in range(3):
+                        fl.append(Efield.get_labfield(ii))
+                    self.Efield = fl
                     self.has_Efield = True
                     self.has_EField = False
                 else: 
                     self.EField = Efield
                     self.has_EField = True
                     self.has_Efield = False                    
-
             
             #
-            # Pure dephasing also counts as relaxation
+            # Pure dephasing also counts as relaxation; not required
             #
             if PDeph is not None:
                 self.PDeph = PDeph
                 self.has_PDeph = True
                 self.has_relaxation = True
-                
-            if Iterm is not None:
-                self.Iterm = Iterm
-                self.has_Iterm = True
             
+            #
+            # Initial term is not required; has to come with relaxation
+            #
+            if Iterm is not None:
+                if self.has_relaxation:
+                    self.Iterm = Iterm
+                    self.has_Iterm = True
+                else:
+                    raise Exception("RelaxationTensor has to be set first.")
+            
+            if NonHerm is not None:
+                self.has_NonHerm = True
+                self.NonHerm = NonHerm
             
             self.Odt = self.TimeAxis.data[1]-self.TimeAxis.data[0]
             self.dt = self.Odt
@@ -162,9 +189,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             N = self.Hamiltonian.data.shape[0]
             self.N = N
             self.data = numpy.zeros((self.Nt,N,N),dtype=numpy.complex64)
-            self.propagation_name = ""
         
             self.verbose = Manager().log_conf.verbose
+            
+        else:
+            
+            raise Exception("TimeAxis and Hamiltonian are required to"+
+                            " initialize the propagator.")
 
         
     def setDtRefinement(self, Nref):
@@ -177,9 +208,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         have dt = 10 in the TimeAxis, but we want to calculate with
         dt = 1
         
-        >>> HH = numpy.array([[0.0, 0.0],[0.0,1.0]])
-        >>> times = numpy.linspace(0,1000,10)
-        >>> pr = RDMPropagator(HH,times)
+        >>> HH = Hamiltonian(data=numpy.array([[0.0, 0.0],[0.0,1.0]]))
+        >>> times = TimeAxis(0,1000,10.0)
+        >>> pr = ReducedDensityMatrixPropagator(times, HH)
         >>> pr.setDtRefinement(10)
         
         """
@@ -187,7 +218,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.dt = self.Odt/self.Nref
         
         
-    def propagate(self, rhoi, method="short-exp", mdata=None, name=""):
+    def propagate(self, rhoi, method="short-exp", mdata=None, Nref=1):
         """
         
         >>> T0   = 0
@@ -200,27 +231,35 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         ...               [0.0, 0.0, 0.0],
         ...               [0.0, 0.0, 0.0]]
 
-        >>> Hamiltonian = [[0.0, 0.1, 0.0],
+        >>> Ham_matrix = [[0.0, 0.1, 0.0],
         ...                [0.1, 0.0, 0.1],
         ...                [0.0, 0.1, 0.1]]        
         
-        >>> HH = numpy.array(Hamiltonian)
-        >>> times = numpy.linspace(T0,Tmax,(Tmax-T0)/dt+1)
+        >>> HH = Hamiltonian(data=Ham_matrix)
+        >>> times = TimeAxis(T0,Tmax,dt)
         
-        >>> pr = RDMPropagator(HH,times)
+        >>> pr = ReducedDensityMatrixPropagator(times, HH)
         >>> pr.setDtRefinement(Nref)
 
-        >>> rhoi = numpy.array(initial_dm)  
-
-        >>> pr.propagate(rhoi,method="primitive")
+        >>> rhoi = ReducedDensityMatrix(data=numpy.array(initial_dm))  
+        >>> rhot=pr.propagate(rhoi)
         
+        Refinement of the time-step can also be set when calling 
+        the propagate() method.
         
+        >>> pr = ReducedDensityMatrixPropagator(times, HH) 
+        >>> rhot=pr.propagate(rhoi, Nref=Nref) 
+        
+        First argument must be ReducedDensityMatrix
+        
+        >>> rhot = pr.propagate(initial_dm)
+        Traceback (most recent call last):
+            ...
+        Exception: First argument has be of the ReducedDensityMatrix type
         """
         
-        #
-        # FIXME: Remove this
-        #
-        self.propagation_name = name
+        if Nref > 1:
+            self.setDtRefinement(Nref)
         
         #
         # Testing if the object submitted is density matrix
@@ -228,7 +267,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         if not (isinstance(rhoi, ReducedDensityMatrix) 
              or isinstance(rhoi, DensityMatrix)):
             raise Exception("First argument has be of"+
-            "the ReducedDensityMatrix type")
+            " the ReducedDensityMatrix type")
               
         #######################################################################
         #
@@ -270,6 +309,28 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         rhoi,L=6)            
                     else:
                         raise Exception("Unknown propagation method: "+method)
+
+                elif (self.has_EField and self.has_Trdip):
+                    
+                    if method == "short-exp": 
+                        return \
+                        self.__propagate_short_exp_with_TD_relaxation_EField(\
+                        rhoi,L=4)
+                    elif method == "short-exp-2":
+                        return \
+                        self.__propagate_short_exp_with_TD_relaxation_EField(\
+                        rhoi,L=2)
+                    elif method == "short-exp-4":
+                        return \
+                        self.__propagate_short_exp_with_TD_relaxation_EField(\
+                        rhoi,L=4)
+                    elif method == "short-exp-6":
+                        return \
+                        self.__propagate_short_exp_with_TD_relaxation_EField(\
+                        rhoi,L=6)            
+                    else:
+                        raise Exception("Unknown propagation method: "+method)
+
                     
                 ###############################################################
                 #
@@ -327,7 +388,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         raise Exception("Unknown propagation method: "+method)                
                         
                 elif (self.has_EField and self.has_Trdip):
- 
+                    
                     if method == "short-exp":
                         return \
                         self.__propagate_short_exp_with_relaxation_EField(
@@ -354,6 +415,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 ###############################################################                    
                 else:
 
+                    #
+                    #  Section used by Time-independent Redfield and similar
+                    #
+
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=4)
@@ -366,16 +431,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     elif method == "short-exp-6":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=6)            
-
-                    #
-                    # FIXME: These methods are untested
-                    #
-                    elif method == "primitive":
-                        return self.__propagate_primitive_with_relaxation(rhoi)
-                    elif method == "Runge-Kutta":
-                        return self.__propagate_Runge_Kutta(rhoi)
-                    elif method == "diagonalization":
-                        return self.__propagate_diagonalization(rhoi)
 
                     else:
                         raise Exception("Unknown propagation method: "+method)   
@@ -390,8 +445,31 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             if (self.has_Efield and self.has_Trdip):   
 
-                raise Exception("NOT IMPLEMENTED")
+                if method == "short-exp":
+                    return self.__propagate_short_exp_efield(rhoi,L=4)
+                elif method == "short-exp-2":
+                    return self.__propagate_short_exp_efield(rhoi,L=2)
+                elif method == "short-exp-4":
+                    return self.__propagate_short_exp_efield(rhoi,L=4)
+                elif method == "short-exp-6":
+                    return self.__propagate_short_exp_efield(rhoi,L=6)            
+    
+                else:
+                    raise Exception("Unknown propagation method: "+method)                
 
+            elif (self.has_EField and self.has_Trdip):   
+
+                if method == "short-exp":
+                    return self.__propagate_short_exp_EField(rhoi,L=4)
+                elif method == "short-exp-2":
+                    return self.__propagate_short_exp_EField(rhoi,L=2)
+                elif method == "short-exp-4":
+                    return self.__propagate_short_exp_EField(rhoi,L=4)
+                elif method == "short-exp-6":
+                    return self.__propagate_short_exp_EField(rhoi,L=6)            
+    
+                else:
+                    raise Exception("Unknown propagation method: "+method)
             else:
                  
                 if method == "short-exp":
@@ -403,112 +481,25 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 elif method == "short-exp-6":
                     return self.__propagate_short_exp(rhoi,L=6)            
     
-                #
-                # FIXME: These methods are not tested
-                #
-                elif method == "primitive":
-                    return self.__propagate_primitive(rhoi)
-                elif method == "Runge-Kutta":
-                    return self.__propagate_Runge_Kutta(rhoi)
-                elif method == "diagonalization":
-                    return self.__propagate_diagonalization(rhoi)
-    
                 else:
                     raise Exception("Unknown propagation method: "+method)
         
-            
-        
-    def __propagate_primitive(self, rhoi):
-        """Primitive integration of equantion of motion
-        
-        This is of no other than perhaps pedagogical value
-        
-        """
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
-
-        rhoPrim = rhoi.data
-        HH = self.Hamiltonian.data  
-        
-        
-        indx = 0
-        for ii in self.TimeAxis.time: 
-
-            for jj in range(0,self.Nref):   
-                
-                drho  = -1j*(  numpy.dot(HH,rhoPrim) \
-                             - numpy.dot(rhoPrim,HH) )
-                             
-                rhoPrim = rhoPrim + drho*self.dt
-
-            pr.data[indx,:,:] = rhoPrim            
-            
-            indx += 1            
-            
-        return pr
-
-        
-    def __propagate_primitive_with_relaxation(self, rhoi):
-        """Primitive integration of equantion of motion with relaxation
-        
-        This is of no other than perhaps pedagogical value
-        
-        """
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
-       
-        rhoPrim = rhoi.data
-        HH = self.Hamiltonian.data        
-        RR = self.RelaxationTensor.data        
-        
-        indx = 0
-        for ii in self.TimeAxis.data: 
-
-            for jj in range(0,self.Nref):   
-                
-                drho  = -1j*(  numpy.dot(HH,rhoPrim) \
-                             - numpy.dot(rhoPrim,HH) ) \
-                        + numpy.tensordot(RR,rhoPrim)
-                             
-                rhoPrim = rhoPrim + drho*self.dt
-
-            pr.data[indx,:,:] = rhoPrim            
-            
-            indx += 1            
-            
-        return pr
-        
-        
-    def __propagate_Runge_Kutta(self, rhoi):
-        """Runge-Kutta integration of equation of motion
-              
-        NOT IMPLEMENTED
-        
-        """
-        indx = 0
-        for ii in self.timeaxis: 
-
-            self.rho[:,:,indx] = rhoi            
-            
-            indx += 1  
  
 
     def __propagate_short_exp(self, rhoi, L=4):
         """Short expansion of an exponention to integrate equations of motion
         
         
+        Propagation with Hamiltonian only
+        
+        
         """
         
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
-        rho1 = rhoi.data
-        rho2 = rhoi.data
+        debug("(1)")
+
+        (pr, rho1, rho2) = self._INIT_EXP(rhoi)
         
-        #HH = self.Hamiltonian.data
-        #
-        # RWA is applied here
-        #
-        if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
-        else:
-            HH = self.Hamiltonian.data
+        HH = self._INIT_RWA()
         
         indx = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
@@ -516,9 +507,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             for jj in range(0,self.Nref):
                 
                 for ll in range(1,L+1):
-                    
-                    rho1 = -1j*(self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) )
+                   
+                    rho1 = -_COM(HH, ll, self.dt, rho1, 
+                                 has_NonHerm=self.has_NonHerm)
                              
                     rho2 = rho2 + rho1
                 rho1 = rho2    
@@ -526,107 +517,237 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             pr.data[indx,:,:] = rho2                        
             indx += 1                       
             
-        if self.Hamiltonian.has_rwa:
-            pr.is_in_rwa = True
+        self._CLOSE_RWA(pr)
             
         return pr
- 
+
+
+    def _INIT_EXP(self, rhoi):
+        """
+
+        Parameters
+        ----------
+        rhoi : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        pr : TYPE
+            DESCRIPTION.
+        rho1 : TYPE
+            DESCRIPTION.
+        rho2 : TYPE
+            DESCRIPTION.
+
+        """
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+        rho1 = rhoi.data
+        rho2 = rhoi.data   
+        
+        return (pr, rho1, rho2)
+
+
+    def _INIT_RWA(self):
+        """Create Hamiltonian matrix respecting RWA settings
+
+        Parameters
+        ----------
+        Ham : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        HH : TYPE
+            DESCRIPTION.
+
+        """
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data()
+        else:
+            HH = self.Hamiltonian.data
+
+
+        if self.has_NonHerm:
+            HH = HH + 1j*self.NonHerm
+            
+        return HH
+
+
+    def _CLOSE_RWA(self, pr):
+        """Closes the RWA treatment
+
+        Parameters
+        ----------
+        Ham : TYPE
+            DESCRIPTION.
+        pr : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True  
+
+
+    def __propagate_short_exp_efield(self, rhoi,L=4): 
+
+        raise Exception("NOT IMPLEMENTED")
+        
+
+    def __propagate_short_exp_EField(self, rhoi,L=4):
+        
+        raise Exception("NOT IMPLEMENTED")
+                
  
     def __propagate_short_exp_with_relaxation(self, rhoi, L=4):
         """Integration by short exponentional expansion
         
-        Integration by expanding exponential to Lth order
-              
+        Integration by expanding exponential to Lth order. Time independent
+        relaxation tensor
               
         """
         
-        try:
-            if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_with_rel_operators(rhoi, L=L)
-        except:
-            raise Exception("Operator propagation failed")
+        if self.RelaxationTensor.as_operators:
+            return self.__propagate_short_exp_with_rel_operators(rhoi, L=L)
+
         
+        debug("(2)")
         
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
-                                           name=self.propagation_name)
+        (pr, rho1, rho2) = self._INIT_EXP(rhoi)
         
-        rho1 = rhoi.data
-        rho2 = rhoi.data
-        
-        #HH = self.Hamiltonian.data  
-        #
-        # RWA is applied here
-        #
-        if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
-        else:
-            HH = self.Hamiltonian.data
+        HH = self._INIT_RWA()
             
         RR = self.RelaxationTensor.data
 
+        #
+        #  Propagation with aditional pure dephasing
+        #
         if self.has_PDeph:
             
-            if self.PDeph.dtype == "Lorentzian":
-                expo = numpy.exp(-self.PDeph.data*self.dt)
-                t0 = 0.0
-            elif self.PDeph.dtype == "Gaussian":
-                expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
-                t0 = self.PDeph.data*self.dt
-
+            self._BOOT_DEPH()
             
+            IR = 0.0
             indx = 1
             for ii in range(1, self.Nt): 
 
                 # time at the beginning of the step
                 tNt = self.TimeAxis.data[indx-1]  
+
+                # if self.has_Iterm:
+                #     IR = self.RelaxationTensor.Iterm[indx,:,:] 
+                IR = self._GET_IR(indx)
                 
                 for jj in range(0, self.Nref):
                     
                     tt = tNt + jj*self.dt  # time right now 
  
                     for ll in range(1, L+1):
+
+                        rhoY = -_COM(HH, ll, self.dt, rho1)
+                        _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
                         
-                        rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                                 - numpy.dot(rho1,HH)) \
-                               + (self.dt/ll)*numpy.tensordot(RR,rho1)
-                                 
+                        rho1 = rhoY                        
                         rho2 = rho2 + rho1
                         
-                    # pure dephasing is added here                        
-                    rho2 = rho2*expo*numpy.exp(-t0*tt)
+                    rho2 = self._APPLY_DEPH(tt, rho2)
                         
                     rho1 = rho2    
                     
                 pr.data[indx,:,:] = rho2 
                 indx += 1   
-                
+        #
+        #  Standard propagation with Hamiltonian and relaxation
+        #        
         else:
             
+            #IR = 0.0
             indx = 1
             for ii in range(1, self.Nt): 
                 
+                # if self.has_Iterm:
+                #     IR = self.RelaxationTensor.Iterm[indx,:,:]
+                IR = self._GET_IR(indx)
+
                 for jj in range(0, self.Nref):
                     
                     for ll in range(1, L+1):
                         
-                        rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                                 - numpy.dot(rho1,HH)) \
-                               + (self.dt/ll)*numpy.tensordot(RR,rho1)
-                                 
-                                 
+                        rhoY = -_COM(HH, ll, self.dt, rho1)
+                        _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
+                        
+                        rho1 = rhoY                                 
                         rho2 = rho2 + rho1
                     rho1 = rho2    
                     
                 pr.data[indx,:,:] = rho2 
                 indx += 1   
-           
 
-        if self.Hamiltonian.has_rwa:
-            pr.is_in_rwa = True
-            
+        self._CLOSE_RWA(pr)    
+        
         return pr  
 
+
+    def _GET_IR(self, indx):
+        """Returns in value of the initial term at a give time
+
+        Parameters
+        ----------
+        indx : int
+            Index representing the time.
+
+        Returns
+        -------
+        IR : numpy.array, 2 indices
+            The value of the initial term for a given time.
+
+        """
+        if self.has_Iterm:
+            IR = self.RelaxationTensor.Iterm[indx,:,:] 
+        else:
+            IR = 0.0
+        return IR
+
+
+    def _BOOT_DEPH(self):
+        """
         
+
+        Returns
+        -------
+        None.
+
+        """
+        if self.PDeph.dtype == "Lorentzian":
+            self.expo = numpy.exp(-self.PDeph.data*self.dt)
+            self.t0 = 0.0
+        elif self.PDeph.dtype == "Gaussian":
+            self.expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
+            self.t0 = self.PDeph.data*self.dt
+
+
+    def _APPLY_DEPH(self, tt, rho2):
+        """
+        
+
+        Parameters
+        ----------
+        tt : TYPE
+            DESCRIPTION.
+        rho2 : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        return rho2*self.expo*numpy.exp(-self.t0*tt)
+      
+                
     def __propagate_short_exp_with_rel_operators(self, rhoi, L=4):
         """Integration by short exponentional expansion
         
@@ -634,67 +755,36 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
               
             
         """
-        mana = Manager()
-        save_pytorch = None
         
-        legacy = mana.gen_conf.legacy_relaxation
-        
-        if mana.num_conf.gpu_acceleration:
-            save_pytorch = mana.num_conf.enable_pytorch
-            mana.num_conf.enable_pytorch = True
-            
-        if mana.num_conf.enable_pytorch and (not legacy):
-            ret =  self._propagate_SExp_RTOp_ReSymK_Re_pytorch(rhoi,
-                                        self.Hamiltonian,
-                                        self.RelaxationTensor,
-                                        self.dt, 
-                                        use_gpu=mana.num_conf.gpu_acceleration,
-                                        L=L)
-            
-            if save_pytorch is not None:
-                mana.num_conf.enable_pytorch = save_pytorch
-                
-            return ret
-        
-        elif not legacy:
-            return self._propagate_SExp_RTOp_ReSymK_Re_numpy(rhoi,
-                                                 self.Hamiltonian,
-                                                 self.RelaxationTensor,
-                                                 self.dt, L=L)
-        
-        #
-        # legacy version
-        #
+        debug("(3)")
 
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
-                                           name=self.propagation_name)
+        (pr, rho1, rho2) = self._INIT_EXP(rhoi)
+        # pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
-        rho1 = rhoi.data
-        rho2 = rhoi.data
+        # rho1 = rhoi.data
+        # rho2 = rhoi.data
         
         #
         # RWA is applied here
         #
-        if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
-        else:
-            HH = self.Hamiltonian.data
+        # if self.Hamiltonian.has_rwa:
+        #     HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+        # else:
+        #     HH = self.Hamiltonian.data
+        HH = self._INIT_RWA()
         
         qr.log_detail("PROPAGATION (short exponential with "+
                      "relaxation in operator form): order ", L, 
                      verbose=self.verbose)
         qr.log_detail("Using complex numpy implementation")
         
-        try:
-            Km = self.RelaxationTensor.Km # real
-            Lm = self.RelaxationTensor.Lm # complex
-            Ld = self.RelaxationTensor.Ld # complex - get by transposition
-            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
-            Nm = Km.shape[0]
-            for m in range(Nm):
-                Kd[m, :, :] = numpy.transpose(Km[m, :, :])
-        except:
-            raise Exception("Tensor is not in operator form")
+        Km = self.RelaxationTensor.Km # real
+        Lm = self.RelaxationTensor.Lm # complex
+        Ld = self.RelaxationTensor.Ld # complex - get by transposition
+        Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
+        Nm = Km.shape[0]
+        for m in range(Nm):
+            Kd[m, :, :] = numpy.transpose(Km[m, :, :])
             
         indx = 1
 
@@ -704,12 +794,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # after each step we apply pure dephasing (if present)
         if self.has_PDeph:
             
-            if self.PDeph.dtype == "Lorentzian":
-                expo = numpy.exp(-self.PDeph.data*self.dt)
-                t0 = 0.0
-            elif self.PDeph.dtype == "Gaussian":
-                expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
-                t0 = self.PDeph.data*self.dt
+            # if self.PDeph.dtype == "Lorentzian":
+            #     expo = numpy.exp(-self.PDeph.data*self.dt)
+            #     t0 = 0.0
+            # elif self.PDeph.dtype == "Gaussian":
+            #     expo = numpy.exp(-self.PDeph.data*(self.dt**2)/2.0)
+            #     t0 = self.PDeph.data*self.dt
+            self._BOOT_DEPH()
             
             # loop over time
             for ii in range(1, self.Nt):
@@ -728,25 +819,27 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     # L interations to get short exponential expansion
                     for ll in range(1, L+1):
                         
-                        rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                                 - numpy.dot(rho1,HH))
+                        rhoY = -_COM(HH, ll, self.dt, rho1)
+                        # rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                        #                         - numpy.dot(rho1,HH))
                         
-                        #rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
-                        for mm in range(Nm):
+                        _OTI(rhoY, Km, Kd, Lm, Ld, ll, self.dt, rho1)
+                        # for mm in range(Nm):
                             
-                           rhoY += (self.dt/ll)*(
-                            numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
-                           +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
-                           -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
-                           -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
-                           )
+                        #    rhoY += (self.dt/ll)*(
+                        #     numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                        #    +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                        #    -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                        #    -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+                        #    )
                                  
                         rho1 = rhoY #+ rhoX
                         
                         rho2 = rho2 + rho1
                        
                     # pure dephasing is added here                        
-                    rho2 = rho2*expo*numpy.exp(-t0*tt)
+                    #rho2 = rho2*expo*numpy.exp(-t0*tt)
+                    rho2 = self._APPLY_DEPH(tt, rho2)
                         
                     rho1 = rho2    
                 
@@ -767,18 +860,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     # L interations to get short exponential expansion
                     for ll in range(1, L+1):
                         
-                        rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                                 - numpy.dot(rho1,HH))
+                        rhoY = -_COM(HH, ll, self.dt, rho1)
+                        # rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                        #                          - numpy.dot(rho1,HH))
                         
-                        #rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
-                        for mm in range(Nm):
+                        _OTI(rhoY, Km, Kd, Lm, Ld, ll, self.dt, rho1)
+                        # for mm in range(Nm):
                             
-                           rhoY += (self.dt/ll)*(
-                            numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
-                           +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
-                           -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
-                           -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
-                           )
+                        #    rhoY += (self.dt/ll)*(
+                        #     numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                        #    +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                        #    -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                        #    -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+                        #    )
                                  
                         rho1 = rhoY #+ rhoX
                         
@@ -792,293 +886,15 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
              
         qr.log_detail("...DONE")
 
-        if self.Hamiltonian.has_rwa:
-            pr.is_in_rwa = True
+        #if self.Hamiltonian.has_rwa:
+        #    pr.is_in_rwa = True
+        self._CLOSE_RWA(pr)
             
         return pr
 
 
-    def _propagate_SExp_RTOp_ReSymK_Re_numpy(self, rhoi, Ham, RT, dt, L=4):
-        """Integration by short exponentional expansion
-        
-        Integration by expanding exponential (_SExp_) to Lth order. 
-        This is a numpy (_numpy) implementation with real (_Re_) matrices
-        for  a system part of the system-bath interaction operator  ``K``
-        in a form of real symmetric operator (ReSymK). The relaxation tensor
-        is assumed in form of a set of operators (_RTOp_)
-              
-            
-        """
-
-        Nref = self.Nref
-        Nt = self.Nt
-        verbose = self.verbose
-        timea = self.TimeAxis
-        prop_name = self.propagation_name
-        
-        # no self beyond this point
-        
-        qr.log_detail("PROPAGATION (short exponential with "+
-                    "relaxation in operator form): order ", L, 
-                    verbose=verbose)
-        qr.log_detail("Using real valued numpy implementation")
-        
-        pr = ReducedDensityMatrixEvolution(timea, rhoi,
-                                           name=prop_name)
-        
-        rho1_r = numpy.real(rhoi.data)
-        rho2_r = numpy.real(rhoi.data)
-        rho1_i = numpy.imag(rhoi.data)
-        rho2_i = numpy.imag(rhoi.data)
-         
-        HH = Ham.data
-                
-        try:
-            Km = RT.Km #self.RelaxationTensor.Km # real
-            Lm_r = numpy.real(RT.Lm) #self.RelaxationTensor.Lm) # complex
-            Lm_i = numpy.imag(RT.Lm) #self.RelaxationTensor.Lm)
-            Nm = Km.shape[0]
-        except:
-            raise Exception("Tensor is not in operator form")
-            
-        indx = 1
-        
-        # verbosity inside loops
-        levs = [qr.LOG_QUICK] 
-        verb = qr.loglevels2bool(levs, verbose=self.verbose)
-
-        # after each step we apply pure dephasing (if present)
-        if self.has_PDeph:
-        
-            # loop over time
-            for ii in range(1, Nt):
-                qr.printlog("time step ", ii, "of", Nt, 
-                            verbose=verb[0], loglevel=levs[0], end="\r")
-                
-                # steps in between saving the results
-                for jj in range(Nref):
-                    
-                    # L interations to get short exponential expansion
-                    for ll in range(1, L+1):
-    
-                        A = numpy.dot(HH,rho1_i)
-                        B = numpy.dot(HH,rho1_r)
-                        rhoY_r =  (dt/ll)*(A + numpy.transpose(A))
-                        rhoY_i = -(dt/ll)*(B - numpy.transpose(B)) 
-                        
-                        for mm in range(Nm):
-                        
-                            a = numpy.dot(Lm_r[mm,:,:], rho1_r)
-                            A = a - numpy.transpose(a)
-                            b = numpy.dot(Lm_i[mm,:,:], rho1_i)
-                            B = b - numpy.transpose(b)
-                            c = numpy.dot(Lm_r[mm,:,:], rho1_i)
-                            C = -(c + numpy.transpose(c))
-                            d = numpy.dot(Lm_i[mm,:,:], rho1_r)
-                            D = d + numpy.transpose(d)
-                            
-                            E = B - A
-                            F = C - D
-                            
-                            A = numpy.dot(Km[mm,:,:], E)
-                            B = numpy.dot(Km[mm,:,:], F)
-                            rhoY_r += (dt/ll)*(A + numpy.transpose(A))
-                            rhoY_i += (dt/ll)*(B - numpy.transpose(B))
-                            
-                        rho1_r = rhoY_r 
-                        rho1_i = rhoY_i
-                        
-                        rho2_r +=  rho1_r
-                        rho2_i +=  rho1_i
-                        
-                        rho2_r = rho2_r*numpy.exp(-self.PDeph.data*dt)
-                        rho2_i = rho2_i*numpy.exp(-self.PDeph.data*dt)
-                        
-                    rho1_r = rho2_r
-                    rho1_i = rho2_i
-                    
-                pr.data[indx,:,:] = rho2_r + 1j*rho2_i 
-                indx += 1             
-
-        # propagatiomn with no extra dephasing
-        else:
-            
-            # loop over time
-            for ii in range(1, Nt):
-                qr.printlog("time step ", ii, "of", Nt, 
-                            verbose=verb[0], loglevel=levs[0], end="\r")
-                
-                # steps in between saving the results
-                for jj in range(Nref):
-                    
-                    # L interations to get short exponential expansion
-                    for ll in range(1, L+1):
-    
-                        A = numpy.dot(HH,rho1_i)
-                        B = numpy.dot(HH,rho1_r)
-                        rhoY_r =  (dt/ll)*(A + numpy.transpose(A))
-                        rhoY_i = -(dt/ll)*(B - numpy.transpose(B)) 
-                        
-                        for mm in range(Nm):
-                        
-                            a = numpy.dot(Lm_r[mm,:,:], rho1_r)
-                            A = a - numpy.transpose(a)
-                            b = numpy.dot(Lm_i[mm,:,:], rho1_i)
-                            B = b - numpy.transpose(b)
-                            c = numpy.dot(Lm_r[mm,:,:], rho1_i)
-                            C = -(c + numpy.transpose(c))
-                            d = numpy.dot(Lm_i[mm,:,:], rho1_r)
-                            D = d + numpy.transpose(d)
-                            
-                            E = B - A
-                            F = C - D
-                            
-                            A = numpy.dot(Km[mm,:,:], E)
-                            B = numpy.dot(Km[mm,:,:], F)
-                            rhoY_r += (dt/ll)*(A + numpy.transpose(A))
-                            rhoY_i += (dt/ll)*(B - numpy.transpose(B))
-                            
-                        rho1_r = rhoY_r 
-                        rho1_i = rhoY_i
-                        
-                        rho2_r +=  rho1_r
-                        rho2_i +=  rho1_i
-                        
-                    rho1_r = rho2_r
-                    rho1_i = rho2_i
-                    
-                pr.data[indx,:,:] = rho2_r + 1j*rho2_i 
-                indx += 1             
 
         
-        qr.log_detail()
-        qr.log_detail("...DONE")
-
-        return pr
-
-    def _propagate_SExp_RTOp_ReSymK_Re_pytorch(self, rhoi, Ham, RT, dt,
-                                               use_gpu=False, L=4):
-        """Integration by short exponentional expansion
-        
-        Integration by expanding exponential (_SExp_) to Lth order. 
-        This is a PyTorch (_pytorch) implementation with real (_Re_) matrices
-        for  a system part of the system-bath interaction operator  ``K``
-        in a form of real symmetric operator (ReSymK). The relaxation tensor
-        is assumed in form of a set of operators (_RTOp_)
-              
-            
-        """
-
-        Nref = self.Nref
-        Nt = self.Nt
-        verbose = self.verbose
-        timea = self.TimeAxis
-        prop_name = self.propagation_name
-        
-        try: 
-            import torch
-        except:
-            raise Exception("PyTorch not installed")
-        
-        # no self beyond this point
-        
-        qr.log_detail("PROPAGATION (short exponential with "+
-                    "relaxation in operator form): order ", L, 
-                    verbose=verbose)
-        qr.log_detail("Using pytorch implementation")
-        qr.log_detail("Using GPU: ", use_gpu & torch.cuda.is_available())
-        
-        pr = ReducedDensityMatrixEvolution(timea, rhoi,
-                                           name=prop_name)
-        
-        rho1_r = torch.from_numpy(numpy.real(rhoi.data))
-        rho2_r = torch.from_numpy(numpy.real(rhoi.data))
-        rho1_i = torch.from_numpy(numpy.imag(rhoi.data))
-        rho2_i = torch.from_numpy(numpy.imag(rhoi.data))
-         
-        HH = torch.from_numpy(Ham.data)
-                
-        try:
-            Km = torch.from_numpy(RT.Km) #self.RelaxationTensor.Km # real
-            Lm_r = torch.from_numpy(numpy.real(RT.Lm)) #self.RelaxationTensor.Lm) # complex
-            Lm_i = torch.from_numpy(numpy.imag(RT.Lm)) #self.RelaxationTensor.Lm)
-            Nm = RT.Km.shape[0]
-        except:
-            raise Exception("Tensor is not in operator form")
-            
-        if use_gpu & torch.cuda.is_available():
-            rho1_r = rho1_r.cuda()
-            rho2_r = rho1_r
-            rho1_i = rho1_i.cuda()
-            rho2_i = rho1_i
-            HH = HH.cuda()
-            Km = Km.cuda()
-            Lm_r = Lm_r.cuda()
-            Lm_i = Lm_i.cuda()
- 
-        indx = 1
-        
-        # verbosity inside loops
-        levs = [qr.LOG_QUICK] 
-        verb = qr.loglevels2bool(levs)
-        
-        # loop over time
-        for ii in range(1, Nt):
-            qr.printlog(" time step ", ii, "of", Nt, 
-                        verbose=verb[0], loglevel=levs[0])
-            
-            # steps in between saving the results
-            for jj in range(Nref):
-                
-                # L interations to get short exponential expansion
-                for ll in range(1, L+1):
-
-                    A = torch.matmul(HH,rho1_i)
-                    B = torch.matmul(HH,rho1_r)
-                    rhoY_r = torch.mul(A + torch.transpose(A, 0, 1), dt/ll)
-                    rhoY_i = torch.mul(B - torch.transpose(B, 0, 1), -dt/ll) 
-
-                    for mm in range(Nm):
-                    
-                        a = torch.matmul(Lm_r[mm,:,:], rho1_r)
-                        A = a - torch.transpose(a, 0, 1)
-                        b = torch.matmul(Lm_i[mm,:,:], rho1_i)
-                        B = b - torch.transpose(b, 0, 1)
-                        c = torch.matmul(Lm_r[mm,:,:], rho1_i)
-                        C = -(c + torch.transpose(c, 0, 1))
-                        d = torch.matmul(Lm_i[mm,:,:], rho1_r)
-                        D = d + torch.transpose(d, 0, 1)
-                        
-                        E = B - A
-                        F = C - D
-                        
-                        A = torch.matmul(Km[mm,:,:], E)
-                        B = torch.matmul(Km[mm,:,:], F)
-                        rhoY_r += torch.mul(A + torch.transpose(A, 0, 1),dt/ll)
-                        rhoY_i += torch.mul(B - torch.transpose(B, 0, 1),dt/ll)
- 
-                    rho1_r = rhoY_r 
-                    rho1_i = rhoY_i
-                    
-                    rho2_r += rho1_r
-                    rho2_i += rho1_i
-                    
-                rho1_r = rho2_r
-                rho1_i = rho2_i
-            
-            if use_gpu & torch.cuda.is_available():
-                rho2_sr = rho2_r.cpu()
-                rho2_si = rho2_i.cpu()
-            else:
-                rho2_sr = rho2_r
-                rho2_si = rho2_i                
-    
-            pr.data[indx,:,:] = rho2_sr.numpy() + 1j*rho2_si.numpy() 
-            indx += 1             
-         
-        qr.log_detail("...DONE")
-        return pr
-
 
     def __propagate_short_exp_with_TD_relaxation(self,rhoi,L=4):
         """
@@ -1090,23 +906,25 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
               
         """
 
-        try:
-            if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_with_TDrel_operators(rhoi,
-                                                                       L=L)
-        except:
-            raise Exception("Operator propagation failed")
+    
+
+        if self.RelaxationTensor.as_operators:
+            return self.__propagate_short_exp_with_TDrel_operators(rhoi,L=L)
+                                                                       
+        debug("(4)")
         
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
 
+
         #
         # RWA is applied here
         #
         if self.Hamiltonian.has_rwa:
             HH = self.Hamiltonian.get_RWA_data()
+
         else:
             HH = self.Hamiltonian.data
        
@@ -1117,7 +935,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             cutoff_indx = \
             self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
         else:
-            cutoff_indx = self.TimeAxis.length
+            sbi = self.RelaxationTensor.SystemBathInteraction
+            cutoff_indx = sbi.TimeAxis.length
             
         indx = 1
         indxR = 1
@@ -1127,7 +946,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         try:
             self.has_Iterm = self.RelaxationTensor.has_Iterm
         except:
-            print(self, "This tensor does not support has_Iterm")
+            print("Warning: This relaxation tensor does not support has_Iterm")
             self.has_Iterm = False
             
         if self.has_Iterm:
@@ -1138,24 +957,48 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # Propagate with time-dependent relaxation tensor and inhomogeneous
         # term if there is one.
         #
-        for ii in self.TimeAxis.data[1:self.Nt]:
-
-            RR = self.RelaxationTensor.data[indxR,:,:,:,:]
-            if self.has_Iterm:
-                IR = self.RelaxationTensor.Iterm[indxR,:,:]
-            else:
-                IR = 0.0
-                
-            #print(IR, self.has_Iterm)
+        sysstep = self.RelaxationTensor.SystemBathInteraction.TimeAxis.step
+        Nref_max = round(self.TimeAxis.step/sysstep)
+        Nref_req = self.Nref
+        
+        if Nref_max % Nref_req == 0:
             
-            for jj in range(0,self.Nref):
+            stride = Nref_max//Nref_req
+            
+        else:
+            time = self.TimeAxis
+            print("Relaxation tensor has a timestep  :", sysstep, "fs")
+            print("Propagation timestep is:", time.step, "fs")
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+                  " neatly into a step of", time.step,"fs")
+            raise Exception("Incompatible number of refinement steps")
+            
+        IR = 0.0 
+        dt = sysstep*stride
+        for ii in self.TimeAxis.data[1:self.Nt]:
+            
+            for jj in range(self.Nref):
+                
+                
+                RR = self.RelaxationTensor.data[indxR,:,:,:,:]
+                if self.has_Iterm:
+                    IR = self.RelaxationTensor.Iterm[indxR,:,:]                           
+                
                 for ll in range(1,L+1):
                     
-                    rho1 =  (self.dt/ll)*(numpy.tensordot(RR,rho1) \
-                       - 1j*(numpy.dot(HH,rho1)- numpy.dot(rho1,HH)) + IR)
-                             
+                    rhoY = -_COM(HH, ll, dt, rho1)
+                    _TTI(rhoY, RR, IR, ll, dt, rho1, L=L)
+                    # rho1 =  (dt/ll)*(numpy.tensordot(RR,rho1) \
+                    #    - 1j*(numpy.dot(HH,rho1)- numpy.dot(rho1,HH)) + IR)
+                    rho1 = rhoY      
                     rho2 = rho2 + rho1
                 rho1 = rho2    
+
+                if indxR < cutoff_indx - 1:                      
+                    indxR += stride
+                else:
+                    indxR = cutoff_indx
+
                 
             pr.data[indx,:,:] = rho2
             
@@ -1163,19 +1006,25 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             # We respect the tensor cut-off
             #
             indx += 1
-            if indxR < cutoff_indx - 1:                      
-                indxR += 1             
+  
+                
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
             
         return pr     
 
 
     def __propagate_short_exp_with_TDrel_operators(self, rhoi, L=4):
         """
-              Short exp integration
+            Short exp integration with time-dependent relaxation tensor
+              
+            The tensor is in operator form.
+            
+            
         """
 
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi,
-                                           name=self.propagation_name)
+        debug("(5)")
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
@@ -1197,40 +1046,41 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         else:
             cutoff_indx = self.TimeAxis.length
 
-        try:
-            Km = self.RelaxationTensor.Km
-            Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
-            Nm = Km.shape[0]
-            for m in range(Nm):
-                Kd[m, :, :] = numpy.transpose(Km[m, :, :])
-        except:
-            raise Exception("Tensor is not in operator form")
+        Km = self.RelaxationTensor.Km
+        Kd = numpy.zeros(Km.shape, dtype=numpy.float64)
+        Nm = Km.shape[0]
+        for m in range(Nm):
+            Kd[m, :, :] = numpy.transpose(Km[m, :, :])
                         
         indx = 1
         indxR = 1
+
         for ii in range(1, self.Nt): 
 
-            Lm = self.RelaxationTensor.Lm[indxR,:,:,:]
-            Ld = self.RelaxationTensor.Ld[indxR,:,:,:]
+            Lm = self.RelaxationTensor.Lm[:,:,:,indxR]
+            Ld = self.RelaxationTensor.Ld[:,:,:,indxR]
        
             for jj in range(0, self.Nref):
                 
                 for ll in range(1, L+1):
                     
-                    rhoY =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) 
-                                             - numpy.dot(rho1,HH))
+                    rhoY =  - _COM(HH, ll, self.dt,rho1) 
                     
-                    rhoX = numpy.zeros(rho1.shape, dtype=numpy.complex128)
-                    for mm in range(Nm):
+                    #(1j*self.dt/ll)*(numpy.dot(HH,rho1) 
+                    #                         - numpy.dot(rho1,HH))
+                    
+                    _OTI(rhoY, Km, Kd, Lm, Ld, ll, self.dt, rho1)
+                    
+                    # for mm in range(Nm):
                         
-                       rhoX += (self.dt/ll)*(
-                        numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
-                       +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
-                       -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
-                       -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
-                       )
+                    #     rhoY += (self.dt/ll)*(
+                    #     numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[mm,:,:]))
+                    #     +numpy.dot(Lm[mm,:,:],numpy.dot(rho1, Kd[mm,:,:]))
+                    #     -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[mm,:,:]), rho1)
+                    #     -numpy.dot(rho1, numpy.dot(Ld[mm,:,:],Km[mm,:,:]))
+                    #     )
                              
-                    rho1 = rhoY + rhoX
+                    rho1 = rhoY # + rhoX
                     
                     rho2 = rho2 + rho1
                 rho1 = rho2    
@@ -1239,13 +1089,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             indx += 1             
             if indxR < cutoff_indx-1:                      
                 indxR += 1             
+
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
+
             
         return pr
-        
-        
-    def __propagate_diagonalization(self,rhoi):
-        pass
-        
         
         
     def __propagate_short_exp_with_TD_relaxation_field(self,rhoi,L=4):
@@ -1254,92 +1103,353 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         
         """
-        try:
-            if self.RelaxationTensor.as_operators:
-                return self.__propagate_short_exp_with_TD_relaxation_field_operators(rhoi, L=L)
-        except:
-            raise Exception("Operator propagation failed")
+        if self.RelaxationTensor.as_operators:
+            return self.__propagate_short_exp_TDrelax_field_oper(rhoi, L=L)
+
             
+        debug("(6)")    
+        
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
-        
-        #HH = self.Hamiltonian.data    
-        MU = self.Trdip.data 
+
         #
         # RWA is applied here
         #
-        # FIXME: RWA has to be applied to ralaxation tensor, too!!!!
-        #
         if self.Hamiltonian.has_rwa:
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            HH = self.Hamiltonian.get_RWA_data()
         else:
             HH = self.Hamiltonian.data
-        
-        indx = 1
-        for ii in self.TimeAxis.time[1:self.Nt]:
 
-            RR = self.RelaxationTensor.data[indx,:,:]        
-            EE = self.Efield[indx]
+        #
+        # We do not have an information on polarization - we take X as default
+        #
+        MU = self.Trdip.data[:,:,0]
+        
+        EE = self.Efield
+        
+        #
+        # set cut-off index by the tensor cut-off time
+        #
+        if self.RelaxationTensor._has_cutoff_time:
+            cutoff_indx = \
+            self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
+        else:
+            sbi = self.RelaxationTensor.SystemBathInteraction
+            cutoff_indx = sbi.TimeAxis.length
             
-            for jj in range(0,self.Nref):
+        indx = 1
+        indxR = 1
+        
+        # check if the relaxation tensor requires inhomogeneous term
+        
+        try:
+            self.has_Iterm = self.RelaxationTensor.has_Iterm
+        except:
+            print(self, "This tensor does not support has_Iterm")
+            self.has_Iterm = False
+            
+        if self.has_Iterm:
+            self.RelaxationTensor.initial_term(rhoi)
+            
+            
+        #
+        # Propagate with time-dependent relaxation tensor and inhomogeneous
+        # term if there is one.
+        #
+        sysstep = self.RelaxationTensor.SystemBathInteraction.TimeAxis.step
+        Nref_max = round(self.TimeAxis.step/sysstep)
+        Nref_req = self.Nref
+        
+        if Nref_max % Nref_req == 0:
+            
+            stride = Nref_max//Nref_req
+            
+        else:
+            time = self.TimeAxis
+            print("Relaxation tensor has a timestep  :", sysstep, "fs")
+            print("Propagation timestep is:", time.step, "fs")
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+                  " neatly into a step of", time.step,"fs")
+            raise Exception("Incompatible number of refinement steps")
+            
+        IR = 0.0 
+        dt = sysstep*stride
+        for ii in self.TimeAxis.data[1:self.Nt]:
+            
+            for jj in range(self.Nref):
+                
+                
+                RR = self.RelaxationTensor.data[indxR,:,:,:,:]
+                if self.has_Iterm:
+                    IR = self.RelaxationTensor.Iterm[indxR,:,:]                           
+                MuE = MU*EE[indx]
+                
                 for ll in range(1,L+1):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                            + (1j*self.dt/ll)*( numpy.dot(MU,rho1) \
-                             - numpy.dot(rho1,MU) )*EE
-                             
-                             
+                    rhoY = -_COM(HH, ll, dt, rho1)
+                    _TTI(rhoY, RR, IR, ll, dt, rho1, L=L)
+                    rhoY += _COM(MuE, ll, dt, rho1)
+                    # rho1 = (dt/ll)*(numpy.tensordot(RR,rho1) 
+                    #      - 1j*(numpy.dot(HH,rho1)-numpy.dot(rho1,HH)) + IR
+                    #      + 1j*(numpy.dot(MU,rho1)-numpy.dot(rho1,MU))*EE[indx])
+                    rho1 = rhoY        
                     rho2 = rho2 + rho1
+                    
                 rho1 = rho2    
+
+                if indxR < cutoff_indx - 1:                      
+                    indxR += stride
+                else:
+                    indxR = cutoff_indx
+
                 
-            pr.data[indx,:,:] = rho2                        
-            indx += 1             
+            pr.data[indx,:,:] = rho2
             
-        return pr         
+            #
+            # We respect the tensor cut-off
+            #
+            indx += 1
+  
+                
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
+            
+        return pr     
 
 
-    def __propagate_short_exp_with_TD_relaxation_field_operators(self, rhoi, L=4):
+
+    def __propagate_short_exp_TDrelax_field_oper(self, rhoi, L=4):
         """
 
         """
-        pass        
+        debug("(7)")    
 
 
-    def __propagate_short_exp_with_relaxation_field(self,rhoi,L=4):
+
+    def __propagate_short_exp_with_TD_relaxation_EField(self,rhoi,L=4):
+        """Short exp integration of the density matrix with external driving
+        
+        
+        
         """
-              Short exp integration
-        """
+        if self.RelaxationTensor.as_operators:
+            return self.__propagate_short_exp_TDrelax_EField_oper(rhoi, L=L)
 
             
+        debug("(8)")    
+        
         pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
         
         rho1 = rhoi.data
         rho2 = rhoi.data
+
+        #
+        # RWA is applied here
+        #
+        if self.Hamiltonian.has_rwa:
+            HH = self.Hamiltonian.get_RWA_data()
+        else:
+            HH = self.Hamiltonian.data
+
+        #
+        # We do not have an information on polarization - we take X as default
+        #
+        MU = self.Trdip.data[:,:,0]
         
-        HH = self.Hamiltonian.data        
-        RR = self.RelaxationTensor.data        
-        MU = self.Trdip.data
+        EE = self.EField.field
         
+        #
+        # set cut-off index by the tensor cut-off time
+        #
+        if self.RelaxationTensor._has_cutoff_time:
+            cutoff_indx = \
+            self.TimeAxis.nearest(self.RelaxationTensor.cutoff_time)
+        else:
+            sbi = self.RelaxationTensor.SystemBathInteraction
+            cutoff_indx = sbi.TimeAxis.length
+            
         indx = 1
+        indxR = 1
+        
+        # check if the relaxation tensor requires inhomogeneous term
+        
+        try:
+            self.has_Iterm = self.RelaxationTensor.has_Iterm
+        except:
+            print(self, "This tensor does not support has_Iterm")
+            self.has_Iterm = False
+            
+        if self.has_Iterm:
+            self.RelaxationTensor.initial_term(rhoi)
+            
+            
+        #
+        # Propagate with time-dependent relaxation tensor and inhomogeneous
+        # term if there is one.
+        #
+        sysstep = self.RelaxationTensor.SystemBathInteraction.TimeAxis.step
+        Nref_max = round(self.TimeAxis.step/sysstep)
+        Nref_req = self.Nref
+        
+        if Nref_max % Nref_req == 0:
+            
+            stride = Nref_max//Nref_req
+            
+        else:
+            time = self.TimeAxis
+            print("Relaxation tensor has a timestep  :", sysstep, "fs")
+            print("Propagation timestep is:", time.step, "fs")
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+                  " neatly into a step of", time.step,"fs")
+            raise Exception("Incompatible number of refinement steps")
+            
+        IR = 0.0 
+        dt = sysstep*stride
         for ii in self.TimeAxis.data[1:self.Nt]:
             
-            EE = self.Efield[indx]
-            
-            for jj in range(0,self.Nref):
+            for jj in range(self.Nref):
+                
+                
+                RR = self.RelaxationTensor.data[indxR,:,:,:,:]
+                if self.has_Iterm:
+                    IR = self.RelaxationTensor.Iterm[indxR,:,:]                           
+                MuE = MU*EE[indx]
+                
                 for ll in range(1,L+1):
                     
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                            + (1j*self.dt/ll)*( numpy.dot(MU,rho1) \
-                             - numpy.dot(rho1,MU) )*EE                             
-                             
+                    rhoY = -_COM(HH, ll, dt, rho1)
+                    _TTI(rhoY, RR, IR, ll, dt, rho1, L=L)
+                    rhoY += _COM(MuE, ll, dt, rho1) 
+                    # rho1 = (dt/ll)*(numpy.tensordot(RR,rho1) 
+                    #      - 1j*(numpy.dot(HH,rho1)-numpy.dot(rho1,HH)) + IR
+                    #      + 1j*(numpy.dot(MU,rho1)-numpy.dot(rho1,MU))*EE[indx])
+                    rho1 = rhoY       
                     rho2 = rho2 + rho1
                 rho1 = rho2    
+
+                if indxR < cutoff_indx - 1:                      
+                    indxR += stride
+                else:
+                    indxR = cutoff_indx
+
+                
+            pr.data[indx,:,:] = rho2
+            
+            #
+            # We respect the tensor cut-off
+            #
+            indx += 1
+  
+                
+        if self.Hamiltonian.has_rwa:
+            pr.is_in_rwa = True
+            
+        return pr     
+
+
+
+    def __propagate_short_exp_TDrelax_EField_oper(self, rhoi, L=4):
+        """
+
+        """
+        debug("(9)")    
+
+
+
+
+    def __propagate_short_exp_with_relaxation_field(self, rhoi, L=4):
+        """Short exponential integration with relaxation and array field
+        
+        Propagates the system defined by the Hamiltonian and the relaxation
+        tensor under the influence of an electric field defined as 
+        a complex-valued array. The array corresponds to the positive frequency
+        component of the field.
+
+        Algorith datails
+        ----------------
+        Polarization: It is implicitly assumed that the field is X-polarized (to be generalized)
+        Rotating wave approximation: RWA is not considered (to be fixed)
+        Relaxation tensor: The relaxation tensor must be independent of time.
+
+        Parameters
+        ----------
+
+        rhoi : DensityMatrix
+            Initial reduced density matrix
+
+        L : int
+            Order of expansion of the exponential in the propagation
+        
+        """
+        if self.RelaxationTensor.as_operators:
+            return \
+            self.__propagate_short_exp_with_relaxation_field_oper(rhoi, L=L)
+        
+        debug("(10)")
+        
+        # we forbid the refinement of the time step
+        if self.Nref != 1:
+            raise Exception("Cannot propagation with refined time-step.")
+            
+        # here the dynamics will be stored
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
+        
+        # Hamiltonian and the relaxation tensor
+        HH = self.Hamiltonian.data        
+        RR = self.RelaxationTensor.data  
+    
+        #
+        # We do not have an information on polarization - we take X as default
+        #
+        X = 0
+        # Upper and lower triangle of the transition dipole moment operator
+        MU_u = numpy.triu(self.Trdip.data[:,:,X],k=1)
+        MU_l = numpy.tril(self.Trdip.data[:,:,X],k=-1)
+
+        # positive and negative frequency component of the field
+        EEp = self.Efield    # E field must be a complex possitive frequency part
+        EEm = numpy.conj(EEp)
+
+        # auxiliary density matrices
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+
+        #
+        # Propagation loop
+        #
+        IR = 0.0
+        indx = 1
+        for tt in self.TimeAxis.data[1:self.Nt]:
+            
+            #
+            #  Time step refinement loop (disabled temporarily) 
+            #
+            #for jj in range(0,self.Nref):
+
+            # Initial term
+            if self.has_Iterm:
+                IR = self.RelaxationTensor.Iterm[indx,:,:]
+
+            # field-multiplicated transition dipole moment 
+            MuE_u = MU_u*EEm[indx]
+            MuE_l = MU_l*EEp[indx]
+            
+            # expansion of the exponential
+            for ll in range(1,L+1):
+                
+                rhoY =  -_COM(HH, ll, self.dt, rho1)
+                _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
+                rhoY += _COM(MuE_u, ll, self.dt, rho1)
+                rhoY += _COM(MuE_l, ll, self.dt, rho1)  
+
+                rho1 = rhoY        
+                rho2 = rho2 + rho1
+
+            rho1 = rho2   
+            
+            # the for jj loop would end here
                 
             pr.data[indx,:,:] = rho2                        
             indx += 1             
@@ -1347,13 +1457,37 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
 
-    def __propagate_short_exp_with_relaxation_EField(self,rhoi,L=4):
-        """
-              Short exp integration
-        """
-
-        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+    def __propagate_short_exp_with_relaxation_field_oper(self, rhoi, L=4):
         
+        debug("(12)")
+
+
+    def __propagate_short_exp_with_relaxation_EField(self,rhoi,L=4):
+        """Short exponential integration with relaxation and EField like object
+
+        Propagates the system defined by Hamiltonian and the relaxation
+        tensor under the influence of an electric field defined by
+        the LabField or EField object. The relaxation tensor must be 
+        independent of time.
+        
+        The EField carries the information on the field polarization, and 
+        this information is used. 
+        
+        Rotating wave approximation is considered if defined by the Hamiltonian
+        object.
+
+        """
+        if self.RelaxationTensor.as_operators:
+            return \
+            self.__propagate_short_exp_with_relaxation_EField_oper(rhoi, L=L)
+        
+        debug("(11)") 
+        # we forbid the refinement of the time step
+        if self.Nref != 1:
+            raise Exception("Cannot propagation with refined time-step.")
+            
+        pr = ReducedDensityMatrixEvolution(self.TimeAxis,rhoi)
+            
         rho1 = rhoi.data
         rho2 = rhoi.data
  
@@ -1362,18 +1496,41 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         #
         if self.Hamiltonian.has_rwa:
             
-            HH = self.Hamiltonian.get_RWA_data() #data  - self.HOmega
+            HH = self.Hamiltonian.get_RWA_data() 
             
             # get the field corresponding to RWA
-            #print(self.Hamiltonian.rwa_energies)
-            #print(self.Hamiltonian.rwa_indices)
             om = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]]
-            self.EField.subtract_omega(om)
+            
+            try:
+                Nfields = len(self.EField)
+            except:
+                Nfields = 1
+            
+            
+            if Nfields > 1:
+                
+                # rotating wave frequency is set to all of the fields globally
+                self.EField[0].set_rwa(om)
+
+            else:
+                self.EField.set_rwa(om)
+            
             
             # the two complex components of the field
-            Epls = self.EField.field(sign=1)
-            Emin = self.EField.field(sign=-1)
-            self.EField.restore_omega()
+            if Nfields > 1:
+                Epls = []
+                Emin = []
+                for kk in range(Nfields):
+                    Epls.append(self.EField[kk].field_p)
+                    Emin.append(self.EField[kk].field_m)                
+            else:
+                Epls = self.EField.field_p
+                Emin = self.EField.field_m
+ 
+            if Nfields > 1:
+                self.EField[0].restore_rwa()
+            else:            
+                self.EField.restore_rwa()
             
             # upper and lower triagle
             N = self.Hamiltonian.dim
@@ -1382,40 +1539,66 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 for jj in range(ii+1,N):
                     Mu[ii,jj] = 1.0
             Ml = numpy.transpose(Mu)
+                   
             
         else:
             
             HH = self.Hamiltonian.data 
-            EField = self.EField.field()
+            EField = self.EField.field
         
         RR = self.RelaxationTensor.data
         
-        pol = self.EField.pol
-        MU = numpy.dot(self.Trdip.data[:,:,:], pol)
+        if Nfields > 1:
+
+            MU = []
+            for kk in range(Nfields):
+                pol = self.EField[kk].pol
+
+                MU.append(numpy.dot(self.Trdip.data[:,:,:], pol))
+        else:
+            pol = self.EField.pol
+            MU = numpy.dot(self.Trdip.data[:,:,:], pol)
         
         #
         # Propagation
         #
-        
+        IR = 0.0
         indx = 1
         for ii in self.TimeAxis.data[1:self.Nt]:
-            
+
+            if self.has_Iterm:
+                IR = self.RelaxationTensor.Iterm[indx,:,:] 
+                
             if self.Hamiltonian.has_rwa:
-                MuE = MU*(Mu*Epls[indx]+Ml*Emin[indx])
+                if Nfields > 1:
+                    MuE = []
+                    for kk in range(Nfields):
+                        MuE.append(MU[kk]*(Ml*Epls[kk][indx]+Mu*Emin[kk][indx]))
+                else:
+                    MuE = [MU*(Ml*Epls[indx]+Mu*Emin[indx])]
             else:
-                MuE = MU*EField[indx]
+                if Nfields > 1:
+                    MuE = []
+                    for kk in range(Nfields):
+                        MuE.append(MU[kk]*EField[kk][indx])
+                else:
+                    MuE = [MU*EField[indx]]
             
-            for jj in range(0,self.Nref):
-                for ll in range(1,L+1):
-                    
-                    rho1 =  - (1j*self.dt/ll)*(numpy.dot(HH,rho1) \
-                             - numpy.dot(rho1,HH) ) \
-                           + (self.dt/ll)*numpy.tensordot(RR,rho1) \
-                            + (1j*self.dt/ll)*( numpy.dot(MuE,rho1) \
-                             - numpy.dot(rho1,MuE) )                             
+            #for jj in range(0,self.Nref):
+            for ll in range(1,L+1):
+                
+                rhoY = -_COM(HH, ll, self.dt, rho1)
+                _TTI(rhoY, RR, IR, ll, self.dt, rho1, L=L)
+                
+                for jj in range(Nfields):
+                    rhoY += _COM(MuE[jj], ll, self.dt, rho1)
                              
-                    rho2 = rho2 + rho1
-                rho1 = rho2    
+                rho1 = rhoY
+                
+                rho2 = rho2 + rho1
+            rho1 = rho2  
+                
+            # for jj loop would end here
                 
             pr.data[indx,:,:] = rho2                        
             indx += 1
@@ -1424,4 +1607,104 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             pr.is_in_rwa = True   
             
         return pr
+    
+
+    def __propagate_short_exp_with_relaxation_EField_oper(self, rhoi, L=4):
+        
+        debug("(13")
+    
+    
+def _OTI(rhoY, Km, Kd, Lm, Ld, ll, dt, rho1):
+    """Operator form of the Time Indepedent relaxation tensor
+
+    Parameters
+    ----------
+    rhoY : TYPE
+        DESCRIPTION.
+    Km : TYPE
+        DESCRIPTION.
+    Kd : TYPE
+        DESCRIPTION.
+    Lm : TYPE
+        DESCRIPTION.
+    Ld : TYPE
+        DESCRIPTION.
+    ll : TYPE
+        DESCRIPTION.
+    dt : TYPE
+        DESCRIPTION.
+    rho1 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    
+    """
+    
+    Nm = Km.shape[0]
+    for mm in range(Nm):
+        
+       rhoY += (dt/ll)*(
+        numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[:,:,mm]))
+       +numpy.dot(Lm[:,:,mm],numpy.dot(rho1, Kd[mm,:,:]))
+       -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[:,:,mm]), rho1)
+       -numpy.dot(rho1, numpy.dot(Ld[:,:,mm],Km[mm,:,:]))
+       )
+
+            
+def _COM(HH, ll, dt, rho1, has_NonHerm=False):
+    """Commutator with the a given operator (e.g. Hamiltonian)
+    
+    Parameters
+    ----------
+    rhoY : TYPE
+        DESCRIPTION.
+    HH : TYPE
+        DESCRIPTION.
+    ll : TYPE
+        DESCRIPTION.
+    dt : TYPE
+        DESCRIPTION.
+    rho1 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    ret : numpy.array, 2 indices
+        The resulting commutaror
+    
+    
+    """
+    if has_NonHerm:
+        H2 = numpy.conj(numpy.transpose(HH))
+    else:
+        H2 = HH
+    ret = (1j*dt/ll)*(numpy.dot(HH,rho1) - numpy.dot(rho1,H2))
+    return ret
+
+
+def _TTI(rhoY, RR, IR, ll, dt, rho1, L=4):
+    """ Tensor form of the Time Indendent relaxation tensor
+
+    Parameters
+    ----------
+    rhoY : numpy.array, 2 indices
+        Input and output density matrix 
+    RR : numpy.array, 4 indices
+        Relaxation tensor
+    ll : int
+        Index counting the steps in exponential expansion
+    dt : float
+        Time step
+    rho1 : numpy.array, 2 indices
+        State before the time step.
+
+    Returns
+    -------
+    None.
+
+    """
+    rhoY += (dt/ll)*(numpy.tensordot(RR,rho1)) + dt*IR/numpy.real(L)
 

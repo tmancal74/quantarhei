@@ -24,10 +24,9 @@ from quantarhei.qm.corfunctions import SpectralDensity
 from quantarhei import TimeAxis, eigenbasis_of
 from quantarhei.qm import Operator
 from quantarhei.qm import SystemBathInteraction
-from quantarhei.qm import ReducedDensityMatrixPropagator
-from quantarhei.qm import ReducedDensityMatrix
 from quantarhei import energy_units
 from quantarhei import Manager
+from quantarhei import REAL
 
 class TestRedfieldFoerster(unittest.TestCase):
     """Tests for the RedfieldFoersterRelaxationTensor class
@@ -55,8 +54,8 @@ class TestRedfieldFoerster(unittest.TestCase):
         cm2 = CorrelationFunctionMatrix(time,2,1)
         cm2.set_correlation_function(cf2,[(0,0),(1,1)])  
           
-        K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=numpy.float)
-        K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=numpy.float)
+        K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
+        K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
         K12 = K11.copy()
         K22 = K21.copy()
             
@@ -93,9 +92,9 @@ class TestRedfieldFoerster(unittest.TestCase):
         print("\n")
         
         dim = self.H1.dim
-        KT = numpy.zeros((dim,dim), dtype=numpy.float64)
-        KM = numpy.zeros((dim,dim), dtype=numpy.float64)
-        KF = numpy.zeros((dim,dim), dtype=numpy.float64)
+        KT = numpy.zeros((dim,dim), dtype=REAL)
+        KM = numpy.zeros((dim,dim), dtype=REAL)
+        KF = numpy.zeros((dim,dim), dtype=REAL)
         
         if tensor:
  

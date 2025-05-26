@@ -172,6 +172,7 @@ pcont.set_spectrum(pprop, tag=T2)
 if _show_plots_:
     with qr.energy_units("1/cm"):
         pcont.plot()
+    qr.show_plot()
     
 # Pump-probe spectra from 2D spectrum container
 pcont2 = tcont.get_PumpProbeSpectrumContainer()

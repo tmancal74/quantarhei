@@ -2,6 +2,7 @@
 
 from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged
+from ... import REAL
 
 import numpy
 #import scipy
@@ -19,7 +20,10 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
             if cb != 0:
                 self.manager.register_with_basis(cb,self) 
     
-            self._data = data
+            if data is None:
+                self._data = numpy.zeros((dim,dim,3), dtype=REAL)  
+            else:
+                self._data = data
             self.dim = self._data.shape[0] 
             
             if not self.check_selfadjoint():
@@ -50,14 +54,28 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
             self._data[:,:,i] = numpy.dot(S1,numpy.dot(self._data[:,:,i],SS))
         
           
-    def dipole_strength(self,from_state=0, to_state=1):
+    def dipole_strength(self, from_state=None, to_state=None, transition=None):
         """Calculates transition dipole strength between two states
         
+        Current usage is:
+        
+        ds = dip.dipole_strength(transition=(0,1))
+        
+        deprecated use is
+        
+        ds = dip.dipole_strength(from_state=0, to_state=1)
+        
         """
-        # FIXME: we should specify transition rather then from_ and to_state
+        # FIXME: it should be possibe to call just dipole_strength((0,1))
+        if to_state is None:
+            fstate = transition[0]
+            tstate = transition[1]
+        else:
+            fstate = from_state
+            tstate = to_state
         d = numpy.zeros(3,dtype=numpy.float64)        
         for i in range(3):        
-            d[i] = self.data[from_state,to_state,i]
+            d[i] = self.data[fstate,tstate,i]
         return numpy.dot(d,d)
     
     def get_compoment_data(self, n):
@@ -71,5 +89,19 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
         
         """
         return SelfAdjointOperator(dim=self.dim, data=self.data[:,:,n])
+    
+    def get_dipole_length_operator(self):
+        """Returns operator composed of the dipole strengths
+        
+        """
+        d = numpy.zeros(3,dtype=numpy.float64)   
+        dat = numpy.zeros((self.dim, self.dim), dtype=numpy.float64)
+        for k in range(self.dim):
+            for l in range(self.dim):
+                for i in range(3):        
+                    d[i] = self.data[k,l,i]
+                dat[k,l] = numpy.sqrt(numpy.dot(d,d))
+                
+        return SelfAdjointOperator(data=dat)
     
     
