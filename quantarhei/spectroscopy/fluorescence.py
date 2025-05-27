@@ -726,7 +726,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         Nt = ta.length #len(ta.data)        
         return ft[Nt//2:Nt+Nt//2]
 
-    def _equilibrium_populations(self, AG, temperature=300,
+    def _equilibrium_populations(self, AG, temperature=4.0,
                                  relaxation_hamiltonian=None):    
         if relaxation_hamiltonian:
             H = relaxation_hamiltonian
@@ -778,6 +778,12 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         # CorrelationFunctionMatrix
         cfm = sbi.CC
         
+        #reorg = numpy.zeros((Nt),dtype=numpy.complex128)
+        #Na = AG.nmono
+        #for kk in range(Na):
+        #    reorg += ((SS[kk+1,n+1]**2)*(SS[kk+1,n+1]**2)*cfm.get_reorganization_energy(kk,kk))
+        #return reorg  
+
         rg = 0.0
         
         # electronic states corresponding to single excited states
@@ -940,7 +946,6 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
                 # first transition energy
                 tr["om"] = HH.data[ii,ii]-HH.data[jj,jj]-self.rwa
                 data += rho_eq.data[ii, ii]*self.one_transition_spectrum(tr)
-
 
         # we only want to retain the upper half of the spectrum
         Nt = len(self.frequencyAxis.data)//2        

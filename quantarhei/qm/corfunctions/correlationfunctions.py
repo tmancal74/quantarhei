@@ -46,6 +46,7 @@
 
 import numpy
 import scipy.interpolate as interp
+from copy import deepcopy
 
 from ...core.dfunction import DFunction
 from ...core.units import kB_intK
@@ -175,6 +176,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
 #                    except:
 #                        raise Exception("Dictionary of parameters does not contain "
 #                                        +" `ftype` key")                    
+        
+                    ftype = prms["ftype"]
         
                     if ftype == "OverdampedBrownian-HighTemperature":
             
@@ -505,11 +508,17 @@ class CorrelationFunction(DFunction, UnitsManaged):
         t1 = self.axis
         t2 = other.axis
         if t1 == t2:
+                      
+            #f = CorrelationFunction(t1, params=self.params)
+            #f.add_to_data(other)
+            
+            f = deepcopy(self) # Works with value defined functions
+            f.add_to_data2(other)
              
-            with energy_units("int"):
-                f = CorrelationFunction(t1, params=self.params)
-            #f = self.deepcopy()
-            f.add_to_data(other)
+#            with energy_units("int"):
+#                f = CorrelationFunction(t1, params=self.params)
+#            #f = self.deepcopy()
+#            f.add_to_data(other)
             
         else:
             raise Exception("In addition, functions have to share"
@@ -674,6 +683,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
             
             if fa is not None:
                 if numpy.all(numpy.isclose(fa.data, frequencies.data, 1e-5)):
+                    #time = ta
+                    #pass
                     frequencies = fa
                 else:
                     raise Exception("The provided FrequencyAxis does not "

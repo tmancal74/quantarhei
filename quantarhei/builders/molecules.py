@@ -84,8 +84,8 @@ from ..core.triangle import triangle
 from ..core.unique import unique_list
 from ..core.unique import unique_array
 
-
-from ..core.units import eps0_int, c_int
+from ..core.units import kB_intK, eps0_int, c_int
+from ..core.units import conversion_facs_length, conversion_facs_edipole
 
 from ..qm import Hamiltonian
 from ..qm import TransitionDipoleMoment
@@ -155,8 +155,24 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         # convert to internal_units
         #self.elenergies = self.manager.convert_energy_2_internal_u(elenergies)
-        #
-        self.nel = self.Nel    #
+        energy = []
+        self.Nb = numpy.zeros(len(elenergies),dtype=numpy.int64)
+        self.which_band = []
+        for n in range(self.Nb.size):
+            if isinstance(elenergies[n],list):
+                self.Nb[n] = len(elenergies[n])
+                for ii in range(self.Nb[n]):
+                    self.which_band.append(n)
+                    energy.append(elenergies[n][ii])
+            else:
+                self.Nb[n] = 1
+                self.which_band.append(n)
+                energy.append(elenergies[n])
+        self.which_band = numpy.array(self.which_band,dtype=numpy.int64)
+        
+        self.elenergies = energy
+        self.elenergies = self.convert_energy_2_internal_u(self.elenergies) #
+        self.nel = len(self.elenergies)    #
         
         
         # FIXME: check the order of energies (increasing order has 
@@ -169,7 +185,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.allowed_transitions = []
          
         # transition dipole moments
-        #self.dmoments = numpy.zeros((self.nel,self.nel,3)) 
+        self.dmoments = numpy.zeros((self.nel,self.nel,3))
+        
+        # transition velocity dipole moments
+        self.dvmoments = numpy.zeros((self.nel,self.nel,3),dtype=numpy.complex128)
+        
+        # transition magnetic dipole moments
+        self.mmoments = numpy.zeros((self.nel,self.nel,3),dtype=numpy.complex128)
         
         # matrix of the transition widths
         self.widths = None
@@ -190,6 +212,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self._has_egcf = self.triangle.get_list(init=False)
         self.egcf = self.triangle.get_empty_list()
         self._has_egcf_matrix = False
+        self._has_transition_velocity = False
         
         #
         self._adiabatic_initialized = False
@@ -773,6 +796,146 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         return len(self.modes)
 
+        
+    def get_dipole(self, N, M):
+        try:
+            return self.dmoments[N, M, :]
+        except:
+            raise Exception()
+            
+    
+    def get_velocity_dipole(self, N, M):
+        try:
+            if self._has_transition_velocity:
+                return self.dvmoments[N, M, :]
+            else:
+                raise Exception()
+        except:
+            raise Exception()
+            
+            
+    def get_magnetic_dipole(self, N, M):
+        try:
+            return self.mmoments[N, M, :]
+        except:
+            raise Exception()
+            
+            
+    def set_dipole(self, N, M, vec=None):
+        if vec is None:
+            n = N[0]
+            m = N[1]
+            vc = M
+        else:
+            n = N
+            m = M
+            vc = vec
+        if n == m:
+            raise Exception("M must not be equal to N")
+        try:
+            self.dmoments[n, m, :] = vc
+            self.dmoments[m, n, :] = numpy.conj(vc)
+        except:
+            raise Exception()  
+    
+    def set_velocity_dipole(self, N, M, vec=None):
+
+        if vec is None:
+            n = N[0]
+            m = N[1]
+            vc = M
+        else:
+            n = N
+            m = M
+            vc = vec
+
+
+        # FIXME: use complex dipole velocity moment (pure imaginary quantity)
+        if n == m:
+            raise Exception("M must not be equal to N")
+        try:
+            self.dvmoments[n, m, :] = vc
+            self.dvmoments[m, n, :] = numpy.conj(vc)
+            self._has_transition_velocity = True
+        except:
+            raise Exception()  
+            
+    def set_velocity_dipole_from_dipole(self):
+        # FIXME: use complex dipole velocity moment (pure imaginary qunatity)
+        #try:
+            for N in range(self.dmoments.shape[0]):
+                for M in range(N+1,self.dmoments.shape[1]):
+                    DE = self.elenergies[M] - self.elenergies[N]
+                    self.dvmoments[N, M, :] = -1j*self.dmoments[N,M,:]*DE
+                    self.dvmoments[M, N, :] = numpy.conj(self.dvmoments[N, M, :])
+            self._has_transition_velocity = True
+        #except:
+            #raise Exception()  
+            
+    def set_magnetic_dipole(self, N, M, vec=None):
+        # vec is probably in atomic units and our units are [Angstrom*1/fs*Debye]
+#        print(vec)
+
+        if vec is None:
+            n = N[0]
+            m = N[1]
+            vc = M
+        else:
+            n = N
+            m = M
+            vc = vec
+
+
+        units = self.manager.get_current_units("energy")
+        vec_int = self.manager.convert_energy_2_internal_u(vc) \
+                     *conversion_facs_edipole[units] * conversion_facs_length[units]
+        
+        # magnetic dipole moment stored in internal units
+        if n == m:
+            raise Exception("M must not be equal to N")
+        try:
+            self.mmoments[n, m, :] = vec_int
+            self.mmoments[m, n, :] = numpy.conj(vec_int)
+        except:
+            raise Exception()  
+        
+    def set_magnetic_dipoleR(self, N, M, vec, RR=None):
+
+
+        if RR is None:
+            n = N[0]
+            m = N[1]
+            vc = M
+            R = vec
+        else:
+            n = N
+            m = M
+            vc = vec
+            R = RR
+
+        # So far vec in atomic units (complex) and R in Angstroms
+        try:
+            dv = self.dvmoments[n, m, :]
+        except:
+            DE = self.elenergies[m] - self.elenergies[n]
+            dv = -1j*self.dmoments[n,m,:]*DE
+        
+        vc = numpy.array(vc,dtype=numpy.complex128)
+        R = numpy.array(R,dtype="f8")
+        
+        # dipole velocity (dv) in Int*Debye -> Transform to a.u.
+        units = self.manager.get_current_units("energy")
+        dv_au =  self.manager.convert_energy_2_current_u(dv)/conversion_facs_edipole[units]
+        
+        # position is in angstroms -> transform to a.u.
+        R_au = R/conversion_facs_length[units]
+        
+        # look if dipole velocity is defined:
+        m_int_au = vc - numpy.cross(R_au,dv_au)
+        
+        #print(m_int_au)
+        self.set_magnetic_dipole(n, m,m_int_au)
+        
 
     # def set_dipole(self, N, M, vec=None):
     #     """Sets transition dipole moment for an electronic transition
@@ -863,7 +1026,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     #         return self.dmoments[n, m, :]
     #     except:
     #         raise Exception()
-
 
             
     def set_transition_width(self, transition, width):

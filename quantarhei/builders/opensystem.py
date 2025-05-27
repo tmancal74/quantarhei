@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
+from copy import deepcopy
 
 from ..core.managers import Manager
 from ..utils import array_property
@@ -620,7 +621,8 @@ class OpenSystem():
                        relaxation_cutoff_time=None,
                        coupling_cutoff=None,
                        recalculate=True,
-                       as_operators=False):
+                       as_operators=False,
+                       adiabatic=None):
         """Returns a relaxation tensor corresponding to the system
 
 
@@ -668,7 +670,8 @@ class OpenSystem():
         from ..core.managers import eigenbasis_of
 
         if self._built:
-            ham = self.get_Hamiltonian()
+            #ham = self.get_Hamiltonian()
+            ham = deepcopy(self.get_Hamiltonian())
             sbi = self.get_SystemBathInteraction()
         else:
             raise Exception()
@@ -703,6 +706,12 @@ class OpenSystem():
 
 
         if relaxation_theory in theories["standard_Redfield"]:
+
+            # When adiabatic hamiltonian is used
+            val,SS = self._get_exciton_prop(adiabatic=adiabatic) # adiabatic="NoBath"
+            SS1 = numpy.linalg.inv(SS)
+            HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1))
+            ham=Hamiltonian(data=HH_new)
 
             if time_dependent:
 
@@ -865,10 +874,18 @@ class OpenSystem():
 
         elif relaxation_theory in theories["combined_RedfieldFoerster"]:
 
+            ham.subtract_cutoff_coupling(coupling_cutoff)
+            # When adiabatic hamiltonian is used
+            val,SS = self._get_exciton_prop(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath" 
+            SS1 = numpy.linalg.inv(SS)
+            HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1))
+            ham._data[:,:] = HH_new.copy()
+            
+
             if time_dependent:
 
                 # Time dependent combined tensor
-                ham.subtract_cutoff_coupling(coupling_cutoff)
+                #ham.subtract_cutoff_coupling(coupling_cutoff)
                 ham.protect_basis()
                 with eigenbasis_of(ham):
                     relaxT = \
@@ -883,7 +900,7 @@ class OpenSystem():
             else:
 
                 # Time independent combined tensor
-                ham.subtract_cutoff_coupling(coupling_cutoff)
+                #ham.subtract_cutoff_coupling(coupling_cutoff)
                 ham.protect_basis()
                 with eigenbasis_of(ham):
                     relaxT = \
@@ -902,16 +919,16 @@ class OpenSystem():
             #
             # create a corresponding propagator
             #
-            ham1 = Hamiltonian(data=ham.data.copy())
+            #ham1 = Hamiltonian(data=ham.data.copy())
             #ham1.subtract_cutoff_coupling(coupling_cutoff)
-            ham1.remove_cutoff_coupling(coupling_cutoff)
+            #ham1.remove_cutoff_coupling(coupling_cutoff)
 
             self.RelaxationTensor = relaxT
-            self.RelaxationHamiltonian = ham1
+            self.RelaxationHamiltonian = ham
             self._has_relaxation_tensor = True
             self._relaxation_theory = "combined_RedfieldFoerster"
 
-            return relaxT, ham1
+            return relaxT, ham
 
         elif relaxation_theory in theories["combined_WeakStrong"]:
 
@@ -1035,14 +1052,14 @@ class OpenSystem():
             raise Exception()
         else:
             # FIXME: is the eigenbases needed???
-            #with eigenbasis_of(ham):
-            prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
+            with eigenbasis_of(ham):
+               prop = ReducedDensityMatrixPropagator(timeaxis, ham, relaxT)
 
         return prop
 
 
     #FIXME: There must be a general theory here
-    def get_RedfieldRateMatrix(self):
+    def get_RedfieldRateMatrix(self,corr_mat=None):
         """Returns Redfield rate matrix
         
         """
@@ -1058,7 +1075,7 @@ class OpenSystem():
 
         ham.protect_basis()
         with eigenbasis_of(ham):
-            RR = RedfieldRateMatrix(ham, sbi)
+            RR = RedfieldRateMatrix(ham, sbi,corr_mat=corr_mat)
         ham.unprotect_basis()
 
         return RR

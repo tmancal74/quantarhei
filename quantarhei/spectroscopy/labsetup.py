@@ -51,6 +51,10 @@ class LabSetup:
         
         # number of pulses in the set-up
         self.number_of_pulses = nopulses
+        self.pulse_effects = "rescale_dip"  # Pulse shape effects accounted
+                                        # for by rescaling transition dipoles
+                                        # When the pulses are not defined no 
+                                        # rescaling is used.
     
         # orientational averaging matrix for four-wave-mixing
         self.M4 = numpy.array([[4.0, -1.0, -1.0],
@@ -140,7 +144,7 @@ class LabSetup:
             .. math::
                  
                 \\rm{shape}(\\omega) = 
-                \\frac{2}{\\Delta}\\sqrt{\\frac{4\\ln(2)}{\\pi}}
+                \\frac{2}{\\Delta}\\sqrt{\\frac{\\ln(2)}{\\pi}}
                 \\exp\\left\\{-\\frac{4\\ln(2)\\omega^2}{\\Delta^2}\\right\\}
 
             The same formulae are used for time- and frequency domain
@@ -374,10 +378,15 @@ class LabSetup:
                         fra = self.freqaxis
                         fwhm = par["FWHM"]
                         amp = par["amplitude"]
+                        try:
+                            freq = par["frequency"]
+                        except:
+                            freq = 0.0
                         
                         # normalized Gaussian mupliplied by amplitude
                         val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/3.14159) \
-                        *amp*numpy.exp(-4.0*numpy.log(2.0)*(fra.data/fwhm)**2)
+                        *amp*numpy.exp(-4.0*numpy.log(2.0)\
+                                       *((fra.data-freq)/fwhm)**2)
                         
                         self.pulse_f[k_p] = DFunction(fra, val) 
                         

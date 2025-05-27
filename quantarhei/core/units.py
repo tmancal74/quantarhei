@@ -62,10 +62,10 @@ conversion_offs_temperature = {
 
 conversion_facs_edipole = {
     "int": 1.0,
-    "au" : 1.0,
-    "D"  : 1.0/0.20819434,
-    "Cm" : 1.0e-21/const.c,
-    "SI" : 1.0e-21/const.c
+    "a.u." : 1/0.393430307,
+    "D"  : 1.0,
+#    "Cm" : 1.0e-21/const.c,
+#    "SI" : 1.0e-21/const.c
 }
 
 conversion_facs_length = {

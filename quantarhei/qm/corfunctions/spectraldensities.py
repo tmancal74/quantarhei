@@ -568,7 +568,8 @@ class SpectralDensity(DFunction, UnitsManaged):
         """
         import scipy.interpolate as interp
 
-        integr = self.data/self.axis.data
+        #integr = self.data/self.axis.data
+        integr = numpy.divide(self.data, self.axis.data, out=numpy.zeros_like(self.data), where=self.axis.data!=0)
         uvspl = interp.UnivariateSpline(self.axis.data, integr, s=0)
         integ = uvspl.integral(0.0, self.axis.max)/numpy.pi
 

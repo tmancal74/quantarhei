@@ -48,7 +48,7 @@ class RedfieldRateMatrix:
     
     """
     
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham, sbi, initialize=True, cutoff_time=None, corr_mat=None):
         
         if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -65,6 +65,8 @@ class RedfieldRateMatrix:
             
         self.ham = ham
         self.sbi = sbi
+        
+        self.corrM = corr_mat
         
         if initialize: 
             self._set_rates()          

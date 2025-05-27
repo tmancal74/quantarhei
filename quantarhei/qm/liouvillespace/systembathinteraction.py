@@ -126,6 +126,12 @@ class SystemBathInteraction(Saveable):
                 self._set_operators(sys_operators)
                 self.CC = bath_correlation_matrix
              
+        
+            if rates is not None:
+                if len(rates) != self.N:
+                    raise Exception("Wrong number of rates specified")
+                self.rates = rates
+                
         #      
         # version with system-bath operators and rates Lindblad form
         #
@@ -268,9 +274,11 @@ class SystemBathInteraction(Saveable):
         if self.sbitype != "Linear_Coupling":
             raise Exception("Correlation functions only defined for "+
                             "linear microscopic system-bath coupling")
-            
+        
+        #print("Returning coft" )
+        
         if self.system is None:
-            
+            #print("Returning coft without the system" )
             return self.CC.get_coft(n,m)
             
         else:
@@ -287,8 +295,9 @@ class SystemBathInteraction(Saveable):
                 #
                 return self.CC._cofts[0,:]
                 
-            # First excited state band
-            elif ((bn == 1) and (bm == 1)):
+            # First or higher excited state bands
+            elif ((bn >= 1) and (bm >= 1)): 
+                #print(bn,bm,"::",n-1,m-1)
                 
                 #
                 # First band starts with n=1, but the correlation functions
