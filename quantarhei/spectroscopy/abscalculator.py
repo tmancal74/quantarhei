@@ -783,7 +783,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         dd = numpy.dot(dm,dm)
         # natural life-time from the dipole moment
         gama = [0.0] #[-1.0/self.system.get_electronic_natural_lifetime(1)]
-        sbi = self.system.get_SystemBathInteraction(self.TimeAxis)
+        sbi = self.system.get_SystemBathInteraction()
         reorg = sbi.CC.get_reorganization_energy(0,0)
             
         if self.system._has_system_bath_coupling:
@@ -910,6 +910,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # cut the center of the spectrum
         Nt = time.length #len(ta.data)        
         data = ft[Nt//2:Nt+Nt//2]
+
+        # FIXME: Fluorescence spectrum from dynamics not implemented
+        data_fl = numpy.zeros_like(data)
        
         #
         # multiply the response by \omega
@@ -918,6 +921,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             data = axis.data*data
         
         spect_abs = LinSpectrum(axis=axis, data=data)
+
+
         fluor_spect = LinSpectrum(axis=axis, data=data_fl)
         
         return {"abs": spect_abs, "fluor": fluor_spect}
@@ -1168,9 +1173,22 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
                  rate_matrix=rate_matrix,
                  effective_hamiltonian=effective_hamiltonian)
     
-    def calculate(self, raw=False):
+    @prevent_basis_context 
+    def calculate(self, raw=False, from_dynamics=False, alt=False):
+
+        if not self.bootstrapped:
+            raise Exception("Calculator must be bootstrapped first: "+
+                            "call bootstrap() method of this object.")
+                
         with energy_units("int"):
             if self.system is not None:
+
+                if from_dynamics:
+                    
+                    # alt = True is for testing only
+                    spect = self._calculate_abs_from_dynamics(raw=raw,
+                                                              alt=alt)
+
                 if isinstance(self.system,Molecule):
                     #self._calculate_Molecule(rwa)      
                     spect = self._calculate_monomer(raw=raw)

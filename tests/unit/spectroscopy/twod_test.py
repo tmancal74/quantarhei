@@ -175,6 +175,8 @@ class TestTwod(unittest.TestCase):
         #
         # comparison of 2D spectra at 800 fs
         #
+        sp800.plot(show=True)
+        sp2.plot(show=True)
         npt.assert_allclose(sp800.data, sp2.data)
         npt.assert_allclose(sp800.data, sp.data)
 

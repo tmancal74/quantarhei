@@ -83,6 +83,8 @@ class LabSetup:
         self.pulse_f = [None]*nopulses
         
         self._field_set = False
+
+        self.dscaling = None
         
         #
         # Pulse characteristics

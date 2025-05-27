@@ -122,6 +122,7 @@ class Manager(metaclass=Singleton):
                    "THz":"THz",
                    "eV":"eV",
                    "1/fs":"fs$^{-1}$",
+                   "int":"1/fs",
                    "meV":"meV",
                    "nm":"nm",
                    "Ha":"Ha",

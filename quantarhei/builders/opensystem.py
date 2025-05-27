@@ -1221,3 +1221,42 @@ class OpenSystem():
                 
         
         return rdm  
+
+
+    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
+        
+        is_adiabatic = False
+        adiabatic_noBath = False
+        
+        if HH_in is None:
+            HH = self.HH.copy()
+        else:
+            HH = HH_in.copy()
+        
+        if self._diagonalized:
+            raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
+        
+        if adiabatic is not None:
+            if adiabatic != False:
+                is_adiabatic = True
+            else:
+                is_adiabatic = False
+            
+            if (adiabatic == "SubtractBath") or (adiabatic == "NoBath"):
+                adiabatic_noBath = True
+        
+        if is_adiabatic:
+            reorg_site = self._site_reorg_diag(subtract_bath=adiabatic_noBath)
+            
+            for kk in range(self.Ntot):              
+                HH[kk,kk] -= reorg_site[kk]
+            
+            val,SS = numpy.linalg.eigh(HH)
+            
+            reorg_excit = self._excitonic_reorg_diag(SS, subtract_bath=adiabatic_noBath)
+            
+            val += reorg_excit
+        else:
+            val,SS = numpy.linalg.eigh(HH)
+            
+        return val,SS

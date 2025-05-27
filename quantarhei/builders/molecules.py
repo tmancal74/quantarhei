@@ -2468,6 +2468,16 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             return None
 
 
+    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
+        """Molecule does not have coupling between states (so far)
+            
+        """
+        # FIXME: shouldn't self.HH be just the data matrix?
+        ee = numpy.diag(self.HH.data)
+        ss = numpy.diag(numpy.ones_like(ee))
+        return ee, ss
+    
+
 
     def __str__(self):
         """String representation of the Molecule object

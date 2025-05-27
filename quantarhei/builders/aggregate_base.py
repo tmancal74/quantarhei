@@ -58,6 +58,7 @@ import warnings
 from .opensystem import OpenSystem
 
 from .. import REAL
+from .. import COMPLEX
 
 class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     """ Molecular aggregate
