@@ -311,7 +311,7 @@ class AggregateTest(unittest.TestCase):
         
         """
         agg = TestAggregate(name="dimer-2-env")
-        agg.init_coupling_matrix()        
+        #agg.init_coupling_matrix()        
         
         agg.set_resonance_coupling(0, 1, 1.0)
         self.assertAlmostEqual(1.0, agg.resonance_coupling[0,1])
@@ -330,7 +330,7 @@ class AggregateTest(unittest.TestCase):
         
         """
         agg = TestAggregate(name="dimer-2-env")
-        agg.init_coupling_matrix()        
+        #agg.init_coupling_matrix()        
         agg.set_resonance_coupling(0, 1, 1.0)
 
         coup = agg.get_resonance_coupling(1,0)
@@ -417,7 +417,7 @@ class AggregateTest(unittest.TestCase):
         
         agg.calculate_resonance_coupling(method="dipole-dipole")        
         coup1 = agg.dipole_dipole_coupling(0,1)
-        
+
         self.assertEqual(coup1, agg.resonance_coupling[1,0])
         
         with qr.energy_units("1/cm"):

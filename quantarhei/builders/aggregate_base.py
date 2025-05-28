@@ -292,6 +292,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         
         return self.convert_energy_2_current_u(coupling)
 
+
     def set_coupling_by_dipole_dipole_vec(self, epsr=1.0):
         """Sets resonance coupling by dipole-dipole interaction for multilevel
         molecules
@@ -300,6 +301,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         
         if not self.coupling_initiated:
             self.init_coupling_vector() 
+            self.init_coupling_matrix()
         
         for kk in range(self.resonance_coupling_vec.size):
             monomer1, monomer2 = self._coupling2mol[kk]
@@ -308,6 +310,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                 monomer2[1],monomer2[2],epsr=epsr)
             c1 = self.convert_energy_2_internal_u(cc)
             self.resonance_coupling_vec[kk] = c1
+
+            if (((monomer1[1] == 0) and (monomer1[2] == 1))
+                 and ((monomer2[1] == 0) and (monomer2[2] == 1))):
+                self.resonance_coupling[monomer1[0],monomer2[0]] = c1
+                self.resonance_coupling[monomer2[0],monomer1[0]] = c1
                     
 
     def init_coupling_matrix(self):
@@ -334,13 +341,15 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 ######################## My new part beginning #################################### @Vladislav Slama
             self.init_coupling_matrix() 
             self.init_coupling_vector() 
-            
-        #coup = self.convert_energy_2_internal_u(coupling)
         
         self._set_coupling_vec(i,0,1,j,0,1,coupling)
-        
-        #self.resonance_coupling[i,j] = coup
-        #self.resonance_coupling[j,i] = coup
+
+        #
+        # This has to stay for compatibility reasons
+        #
+        coup = self.convert_energy_2_internal_u(coupling)       
+        self.resonance_coupling[i,j] = coup
+        self.resonance_coupling[j,i] = coup
         #
         # TESTED
 
@@ -462,7 +471,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             # TODD: Delete unnesesary
             self.init_coupling_matrix()
          
-        # TODD: Delete unnesesary
+        # TODO: Delete unnesesary
         coup = self.convert_energy_2_internal_u(coupling)
         self.resonance_coupling[i,j] = coup
         self.resonance_coupling[j,i] = coup
@@ -529,8 +538,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Returns resonance coupling value between two sites
 
         """
-        coupling = self.resonance_coupling[i,j]
-        return self.convert_energy_2_current_u(coupling)
+        #
+        # Replaced to use the new implementation of coupling storage
+        #
+        return self.get_resonance_coupling_vec(i,0,1,j,1,0)
+        #coupling = self.resonance_coupling[i,j]
+        #return self.convert_energy_2_current_u(coupling)
         #
         # TESTED
 
@@ -635,6 +648,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 ######################## My new part end #################################### @Vladislav Slama
         #
         # TESTED
+
 
 
     def calculate_resonance_coupling(self, method="dipole-dipole",
@@ -3419,6 +3433,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     
         return reorg_exct
     
+    # FIXME: All these properties have to be meaningfully defined for all open systems
     def _get_exciton_prop(self,adiabatic=None,HH_in=None):
         
         is_adiabatic = False
