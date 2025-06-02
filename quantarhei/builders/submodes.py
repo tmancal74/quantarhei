@@ -20,6 +20,9 @@ from ..core.saveable import Saveable
 from ..qm.hilbertspace.hamiltonian import Hamiltonian 
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 from ..qm.oscillators.ho import operator_factory
+from ..qm import ProjectionOperator
+from ..qm import SystemBathInteraction
+from ..qm import LindbladForm
 
 from .. import REAL
 
@@ -74,10 +77,13 @@ class HarmonicMode(SubMode): #, OpenSystem):
 
     def __init__(self, omega=1.0, shift=0.0, nmax=2):
         super().__init__(omega=omega, shift=shift, nmax=nmax)
+        self._has_sbi = False
         self._built = False
+        self.gamma = 0.0
+        self.RT = None
 
 
-    def build(self, nmax=None):
+    def build(self, nmax=None, build_relaxation=False):
         """Building all necessary quantities """
 
         # if provided, we reset nmax
@@ -110,6 +116,15 @@ class HarmonicMode(SubMode): #, OpenSystem):
         # Dipole moment
         #
         self._setup_dipole_moment(N, ad, aa)
+
+        #
+        # Relaxation 
+        #
+        if build_relaxation:
+            if self._has_sbi:
+                self.RT = LindbladForm(self.HamOp, self.sbi, as_operators=True)
+            else:
+                self.RT = None
 
         self._built = True
         self._diagonalized = True
@@ -164,7 +179,52 @@ class HarmonicMode(SubMode): #, OpenSystem):
         if self._built:
             return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
         else:
-            raise Exception("The Mode has to be built first.")       
+            raise Exception("The Mode has to be built first.")    
+
+    def get_SystemBathInteraction(self):
+
+        if self._built:
+            return self.sbi
+        else:
+            raise Exception("The Mode has to be built first.")         
+
+
+
+    def set_mode_environment(self, environ, pdeph=None):
+        """
+        
+        """
+
+        if isinstance(environ, (int, float)):
+
+            self.gamma = environ
+            self.pdeph = pdeph
+
+            ops = []
+            rts = []
+
+            # relaxation
+            for kk in range(self.nmax-1):
+                op = ProjectionOperator(to_state=kk, from_state=kk+1, dim=self.nmax)
+                ops.append(op)
+                rts.append(numpy.sqrt(float(kk+1))*self.gamma)
+
+            # pure dephasing
+            if self.pdeph is not None:
+                for kk in range(self.nmax):
+                    op = ProjectionOperator(to_state=kk, from_state=kk, dim=self.nmax)
+                    ops.append(op)
+                    rts.append(numpy.sqrt(float(kk+1))*self.pdeph)              
+
+
+            self.sbi = SystemBathInteraction(sys_operators=ops, rates=rts)
+
+            self._has_sbi = True
+
+        else:
+
+            raise Exception("Environment not implemented")
+        
 
 
 
@@ -211,7 +271,7 @@ class AnharmonicMode(HarmonicMode):
             return dom_int/(2.0*(self.omega + dom_int))
         
 
-    def build(self, nmax=None, xi=None):
+    def build(self, nmax=None, xi=None, build_relaxation=False):
         """Building all necessary quantities """
 
         # if provided, we reset nmax
@@ -285,6 +345,16 @@ class AnharmonicMode(HarmonicMode):
         #  Dipole moment 
         #
         self._setup_dipole_moment(N, ad, aa, ss=SS)
+
+
+        #
+        # Relaxation 
+        #
+        if build_relaxation:
+            if self._has_sbi:
+                self.RT = LindbladForm(self.HamOp, self.sbi, as_operators=True)
+            else:
+                self.RT = None
 
         self._built = True
         # this system is prepared in its eigenstate basis
