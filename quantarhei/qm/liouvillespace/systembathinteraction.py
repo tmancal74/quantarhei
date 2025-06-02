@@ -235,7 +235,7 @@ class SystemBathInteraction(Saveable):
             
             if True: #isinstance(KK,Operator):
                 if dim == KK.data.shape[0]:
-                    self.KK[ii,:,:] = KK.data
+                    self.KK[ii,:,:] = numpy.real(KK.data)
                 else:
                     raise Exception("Operators in the list are" 
                     + " not of the same dimension")
