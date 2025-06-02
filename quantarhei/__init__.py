@@ -210,6 +210,7 @@ LIOUVILLE_PATHWAY_TYPES = PATHWAY_TYPES
 from .builders.modes import Mode
 from .builders.submodes import AnharmonicMode
 from .builders.submodes import HarmonicMode
+from .builders.vibsystem import VibrationalSystem
 from .builders.molecules import Molecule
 from .builders.molecule_test import TestMolecule
 from .builders.aggregates import Aggregate
