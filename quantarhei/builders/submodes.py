@@ -204,17 +204,18 @@ class HarmonicMode(SubMode): #, OpenSystem):
             rts = []
 
             # relaxation
-            for kk in range(self.nmax-1):
-                op = ProjectionOperator(to_state=kk, from_state=kk+1, dim=self.nmax)
-                ops.append(op)
-                rts.append(numpy.sqrt(float(kk+1))*self.gamma)
+            if self.gamma > 0.0:
+                for kk in range(self.nmax-1):
+                    op = ProjectionOperator(to_state=kk, from_state=kk+1, dim=self.nmax)
+                    ops.append(op)
+                    rts.append(numpy.sqrt(float(kk+1))*self.gamma)
 
             # pure dephasing
-            if self.pdeph is not None:
+            if (self.pdeph is not None) and (self.pdeph > 0.0):
                 for kk in range(self.nmax):
                     op = ProjectionOperator(to_state=kk, from_state=kk, dim=self.nmax)
                     ops.append(op)
-                    rts.append(numpy.sqrt(float(kk+1))*self.pdeph)              
+                    rts.append(numpy.sqrt(float(kk))*self.pdeph)              
 
 
             self.sbi = SystemBathInteraction(sys_operators=ops, rates=rts)
