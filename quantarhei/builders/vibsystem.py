@@ -41,6 +41,8 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
     
         self._mode_couping_init = False
 
+        self._built = False
+
         ofac = operator_factory()
         self.ad = ofac.creation_operator()
         self.aa = ofac.anihilation_operator()
@@ -258,7 +260,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                 D_tot_mx[:,:,kk] += Di_full
 
         self.DD = D_tot_mx
-        self.TrDip = TransitionDipoleMoment(data=D_tot_mx)
+        self.TrDMOp = TransitionDipoleMoment(data=D_tot_mx)
 
         #
         # Relaxation
@@ -317,4 +319,6 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             self.RelaxationTensor = LindbladForm(self.HamOp, self.sbi, as_operators=True)
         else:
             self.RelaxationTensor = None
+
+        self._built = True
         
