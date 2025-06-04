@@ -5,7 +5,7 @@ import numpy
 from .twodcalculator import TwoDResponseCalculator
 from .twodcontainer import TwoDResponseContainer
 from .pathwayanalyzer import LiouvillePathwayAnalyzer
-from .twod2 import TwoDResponse
+from .twodresponse import TwoDResponse
 from ..core.units import convert
 from .. import COMPLEX
 from .. import signal_REPH, signal_NONR

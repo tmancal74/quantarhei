@@ -3,7 +3,7 @@
 
 
 #
-# Includes past Fluorescence detect 2D code
+# Includes past Fluorescence detected 2D code
 #
 
 
