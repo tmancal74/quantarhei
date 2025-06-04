@@ -176,6 +176,46 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             return super().apply(oper, copy=copy)
 
 
+    def get_population_rate(self, N, M):
+        """Returns the relaxation rate between states N -> M
+        
+        
+        """
+
+        if self.as_operators:
+
+            rt = 0.0
+            for ii in range(self.Lm.shape[2]):
+                rt += 2.0*numpy.real(self.Lm[N,M,ii]*self.Km[ii,N,M])
+            
+            return rt
+        
+        else:
+            return super().get_population_rate(N, M)
+        
+        
+    def get_dephasing_rate(self, N, M):
+        """Returns the dephasing rate of a coherence between states N and M
+        
+        
+        """
+        if self.as_operators:
+
+            rt = 0.0
+            for ii in range(self.Lm.shape[2]):
+
+                A_a = numpy.dot(self.Km[ii,N,:],self.Lm[:,N,ii])
+                A_b = numpy.dot(self.Ld[M,:,ii],self.Km[ii,:,M])
+                KL = self.Km[ii,N,N]*self.Ld[M,M,ii]
+                LK = self.Lm[N,N,ii]*self.Km[ii,M,M]
+                rt += A_a + A_b - KL - LK
+            
+            return rt 
+                   
+        else:  
+            return super().get_dephasing_rate(N, M)
+
+
     def transform(self, SS, inv=None):
         """Transformation of the tensor by a given matrix
         
