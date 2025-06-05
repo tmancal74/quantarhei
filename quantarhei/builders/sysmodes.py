@@ -33,7 +33,11 @@ class HarmonicMode(SubMode, OpenSystem):
 
 
     def build(self, nmax=None, build_relaxation=False):
-        """Building all necessary quantities """
+        """Building all necessary quantities 
+        
+        
+        
+        """
 
         # if provided, we reset nmax
         if nmax is not None:
@@ -111,31 +115,31 @@ class HarmonicMode(SubMode, OpenSystem):
         self.TrDMOp = TransitionDipoleMoment(data=trdata)
 
 
-    def get_Hamiltonian(self):
-        """Returns the system Hamiltonian 
+    # def get_Hamiltonian(self):
+    #     """Returns the system Hamiltonian 
         
-        """
-        if self._built:
-            return self.HamOp
-        else:
-            raise Exception("The Mode has to be built first.")
+    #     """
+    #     if self._built:
+    #         return self.HamOp
+    #     else:
+    #         raise Exception("The Mode has to be built first.")
 
 
-    def get_TransitionDipoleMoment(self):
-        """Returns the aggregate transition dipole moment operator
+    # def get_TransitionDipoleMoment(self):
+    #     """Returns the aggregate transition dipole moment operator
 
-        """
-        if self._built:
-            return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
-        else:
-            raise Exception("The Mode has to be built first.")    
+    #     """
+    #     if self._built:
+    #         return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
+    #     else:
+    #         raise Exception("The Mode has to be built first.")    
 
-    def get_SystemBathInteraction(self):
+    # def get_SystemBathInteraction(self):
 
-        if self._built:
-            return self.sbi
-        else:
-            raise Exception("The Mode has to be built first.")         
+    #     if self._built:
+    #         return self.sbi
+    #     else:
+    #         raise Exception("The Mode has to be built first.")         
 
 
 

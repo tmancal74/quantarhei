@@ -285,9 +285,9 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 # Fourier transform Two-Dimensional Spectra
 #
-from .spectroscopy.twod2 import TwoDResponse 
+from .spectroscopy.twodresponse import TwoDResponse 
 from .spectroscopy.twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
-from .spectroscopy.twod import TwoDSpectrum
+from .spectroscopy.twodspect import TwoDSpectrum
 from .spectroscopy.twodcalculator import TwoDResponseCalculator
 from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator
 

@@ -16,6 +16,8 @@ from ..core.units import kB_intK
 from .. import REAL
 from .. import COMPLEX
 
+from ..core.units import eps0_int, c_int
+
 class OpenSystem():
     """The class representing a general open quantum system
     
@@ -69,6 +71,7 @@ class OpenSystem():
         self.elenergies = Manager().convert_energy_2_internal_u(self.elenergies)
 
         self.Nel = count
+        self.nel = self.Nel
         #
         #  The system has to be built before it can be used
         #
@@ -76,6 +79,10 @@ class OpenSystem():
 
         self._diagonalized = False
         
+        self._has_nat_lifetime = [False]*self.nel
+        self._nat_lifetime = numpy.zeros(self.nel)
+        self._nat_linewidth = numpy.zeros(self.nel) 
+
         #
         #  Energy gap correlation functions
         #
@@ -1204,3 +1211,84 @@ class OpenSystem():
                 
         
         return rdm  
+
+
+    def set_electronic_natural_lifetime(self, N, epsilon_r=1.0):
+        
+        rate = 0.0
+        eps = eps0_int*epsilon_r
+        
+        try: 
+            # loop over all states with lower energy
+            for n in range(N):
+                dip2 = numpy.dot(self.dmoments[n,N,:],
+                                 self.dmoments[n,N,:])
+                ome = self.elenergies[N] - self.elenergies[n]                        
+        
+                rate += dip2*(ome**3)/(3.0*numpy.pi*eps*(c_int**3))
+                
+        except:
+            raise Exception("Calculation of rate failed")
+            
+        if rate > 0.0:
+            
+            lftm = 1.0/rate
+            self._has_nat_lifetime[N] = True
+            self._nat_lifetime[N] = lftm
+            # FIXME: calculate the linewidth
+            self._nat_linewidth[N] = 1.0/lftm
+            self._saved_epsilon_r = epsilon_r
+            
+        else:
+            #raise Exception("Cannot calculate natural lifetime")
+            self._has_nat_lifetime[N] = True
+            self._nat_lifetime[N] = numpy.inf   
+            
+            
+    def get_electronic_natural_lifetime(self, N, epsilon_r=1.0):
+        """Returns natural lifetime of a given electronic state
+        
+        
+        Examplex
+        --------
+        
+        Molecule where transition dipole was not set does not calculate lifetime
+        
+        >>> from quantarhei import Molecule
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.get_electronic_natural_lifetime(1)
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'Molecule' object has no attribute '_saved_epsilon_r'
+        
+        
+        Setting transition dipole moment allows calculation of the lifetime
+        
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_dipole((0,1), [5.0, 0.0, 0.0])
+        >>> print(m.get_electronic_natural_lifetime(1))
+        852431568.119
+
+        The value is recalculated only when relative permitivity is changed
+
+        >>> m = Molecule([0.0, 1.0])
+        >>> m.set_dipole((0,1), [5.0, 0.0, 0.0])
+        >>> tl1 = m.get_electronic_natural_lifetime(1)
+        >>> m.set_dipole((0,1), [2.0, 0.0, 0.0]) 
+        >>> tl2 = m.get_electronic_natural_lifetime(1)
+        >>> tl3 = m.get_electronic_natural_lifetime(1, epsilon_r=2.0)
+        >>> (tl2 == tl1) and (tl2 != tl3)
+        True
+        
+        
+        """     
+        
+        
+        if not self._has_nat_lifetime[N]:
+            self.set_electronic_natural_lifetime(N,epsilon_r=epsilon_r)
+            
+
+        if self._saved_epsilon_r != epsilon_r:
+            self.set_electronic_natural_lifetime(N,epsilon_r=epsilon_r)
+
+        return self._nat_lifetime[N]

@@ -11,7 +11,7 @@ from ..builders.opensystem import OpenSystem
 from ..core.time import TimeAxis
 from ..core.managers import eigenbasis_of
 from ..qm.propagators.poppropagator import PopulationPropagator
-from .twod2 import TwoDResponse
+from .twodresponse import TwoDResponse
 from .. import signal_REPH, signal_NONR
 
 from ..spectroscopy.responses import NonLinearResponse
@@ -45,7 +45,7 @@ class TwoDResponseCalculator:
     
     
     Enables setting up parameters of 2D spectrum calculation for later
-    evaluation. The method `calculate` returns TwoDSpectrumContainer
+    evaluation. The method `calculate` returns TwoDResponseContainer
     with a 2D spectrum.
     
     Parameters
@@ -658,7 +658,7 @@ class TwoDResponseCalculator:
     def calculate(self):
         """Returns 2D spectrum
         
-        Calculates and returns TwoDSpectrumContainer containing 2D spectrum
+        Calculates and returns TwoDResponseContainer containing 2D spectrum
         based on the parameters specified in this object.
         
         
