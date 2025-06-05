@@ -830,7 +830,7 @@ class LabSetup:
         >>> lab.set_pulse_shapes(freq, params)
         >>> dfc = lab.get_pulse_spectrum(1, [600.0, 700.0, 800.0, 900.0])
         >>> print(dfc)
-        [  2.46865554e-04   1.40563844e-04   7.33935684e-05   3.51409609e-05]
+        [  2.46865450e-04   1.40563784e-04   7.33935374e-05   3.51409461e-05]
         
         Here is a complete example with setting, getting and plotting spectrum:
 
