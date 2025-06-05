@@ -1254,6 +1254,7 @@ class OpenSystem():
         
         Molecule where transition dipole was not set does not calculate lifetime
         
+        >>> from quantarhei import Molecule
         >>> m = Molecule([0.0, 1.0])
         >>> m.get_electronic_natural_lifetime(1)
         Traceback (most recent call last):

@@ -41,13 +41,13 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
     Examples
     --------
 
-    Calcutor has to be created using a Molecule or Aggregate
+    Calcutor has to be created using a Molecule, Aggregate or OpenSystem
 
     >>> time = TimeAxis(0.0, 1000, 1.0)
     >>> absc = AbsSpectrumCalculator(time)
     Traceback (most recent call last):
         ...
-    TypeError: system must be of type [<class 'quantarhei.builders.molecules.Molecule'>, <class 'quantarhei.builders.aggregates.Aggregate'>]
+    TypeError: system must be of type [<class 'quantarhei.builders.molecules.Molecule'>, <class 'quantarhei.builders.aggregates.Aggregate'>, <class 'quantarhei.builders.opensystem.OpenSystem'>]
     
     >>> with energy_units("1/cm"):
     ...     mol = Molecule([0.0, 10000.0])
@@ -195,10 +195,6 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                     # alt = True is for testing only
                     spect = self._calculate_abs_from_dynamics(raw=raw,
                                                               alt=alt)
-            
-                elif isinstance(self.system, (Molecule, OpenSystem)):
-                    #self._calculate_Molecule(rwa) 
-                    spect = self._calculate_monomer(raw=raw)
                         
                 elif isinstance(self.system, Aggregate):
                     spect = self._calculate_aggregate( 
@@ -209,6 +205,11 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                                             relaxation_hamiltonian=
                                             self._relaxation_hamiltonian,
                                             raw=raw)
+                    
+                elif isinstance(self.system, (Molecule, OpenSystem)):
+                    #self._calculate_Molecule(rwa) 
+                    spect = self._calculate_monomer(raw=raw)
+
             else:
                 raise Exception("System to calculate spectrum for not defined")
         
