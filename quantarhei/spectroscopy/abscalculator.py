@@ -12,6 +12,7 @@ import scipy
 from ..utils import derived_type
 from ..builders import Molecule 
 from ..builders import Aggregate
+from ..builders import OpenSystem
 from ..core.time import TimeAxis
 from ..core.frequency import FrequencyAxis
 from ..core.managers import energy_units
@@ -94,7 +95,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
     """
 
     TimeAxis = derived_type("TimeAxis",TimeAxis)
-    system = derived_type("system",[Molecule,Aggregate])
+    system = derived_type("system",[Molecule,Aggregate,OpenSystem])
     
     def __init__(self, timeaxis,
                  system=None,
@@ -195,7 +196,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
                     spect = self._calculate_abs_from_dynamics(raw=raw,
                                                               alt=alt)
             
-                elif isinstance(self.system, Molecule):
+                elif isinstance(self.system, (Molecule, OpenSystem)):
                     #self._calculate_Molecule(rwa) 
                     spect = self._calculate_monomer(raw=raw)
                         
@@ -263,7 +264,7 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         # FIXME: works only for 2 level molecules
         
-        c0 = AG.monomers[0].get_egcf((0,1))
+        c0 = AG.monomers[0].get_transition_environment((0,1)).data #get_egcf((0,1))
         Nt = len(c0)
         
         # SystemBathInteraction
@@ -293,24 +294,34 @@ class AbsSpectrumCalculator(EnergyUnitsManaged):
         
         """
         ta = self.TimeAxis
-        # transition frequency
-        om = self.system.elenergies[1]-self.system.elenergies[0]
-        # transition dipole moment
-        dm = self.system.dmoments[0,1,:]
-        # dipole^2
-        dd = numpy.dot(dm,dm)
-        # natural life-time from the dipole moment
-        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
-        
-        if self.system._has_system_bath_coupling:
-            # correlation function
-            ct = self.system.get_egcf((0,1))            
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama}
-        else:
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
 
-        # calculates the one transition of the monomer        
-        data = numpy.real(self.one_transition_spectrum(tr))
+        # loop over first band transitions
+        for kk in range(self.system.Nb[1]):
+
+            k_st = self.system.Nb[0] + kk
+            # transition frequency (assuming just one ground state)
+            om = self.system.elenergies[k_st]-self.system.elenergies[0]
+            # transition dipole moment
+            dm = self.system.dmoments[0,k_st,:]
+            # dipole^2
+            dd = numpy.dot(dm,dm)
+            # natural life-time from the dipole moment
+            gama = [-1.0/self.system.get_electronic_natural_lifetime(k_st)]
+            
+            if self.system._has_system_bath_coupling:
+                # correlation function
+                ct = self.system.get_transition_environment((0,k_st)).data #get_egcf((0,1))            
+                tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama}
+            else:
+                tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
+
+            # calculates the one transition of the monomer        
+            data_loc = numpy.real(self.one_transition_spectrum(tr))
+
+            if kk == 0:
+                data = data_loc
+            else:
+                data += data_loc
         
 
         # we only want to retain the upper half of the spectrum
