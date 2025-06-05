@@ -18,7 +18,7 @@ from ..core.datasaveable import DataSaveable
 from ..core.dfunction import DFunction
 from ..core.valueaxis import ValueAxis
 from ..utils.types import check_numpy_array
-from .twod import TwoDSpectrum
+from .twodspect import TwoDSpectrum
 
 # FIXME: Check these names
 

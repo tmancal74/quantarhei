@@ -24,6 +24,7 @@ from ..core.dfunction import DFunction
 from .. import REAL, COMPLEX
 from .. import Manager
 
+
 class LabSetup:
     """Laboratory set-up for non-linear spectroscopy
     
@@ -367,17 +368,23 @@ class LabSetup:
                         self.pulse_t[k_p] = DFunction(tma, val)
                     
                     elif self.axis_type == "frequency":
+                        
                         #
-                        # Frequency domain Gaussian pulse around 0.0 
+                        # Frequency domain Gaussian pulse around its central frequency 
                         # as a DFunction
                         #
                         fra = self.freqaxis
-                        fwhm = par["FWHM"]
+                        
+                        fwhm_int = Manager().convert_energy_2_internal_u(par["FWHM"])
+
+                        fwhm = Manager().convert_energy_2_current_u(fwhm_int)
+                        pcentr = Manager().convert_energy_2_current_u(self.omega[k_p])
+
                         amp = par["amplitude"]
                         
                         # normalized Gaussian mupliplied by amplitude
-                        val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/3.14159) \
-                        *amp*numpy.exp(-4.0*numpy.log(2.0)*(fra.data/fwhm)**2)
+                        val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/numpy.pi) \
+                        *amp*numpy.exp(-4.0*numpy.log(2.0)*((fra.data-pcentr)/fwhm)**2)
                         
                         self.pulse_f[k_p] = DFunction(fra, val) 
                         
@@ -823,7 +830,7 @@ class LabSetup:
         >>> lab.set_pulse_shapes(freq, params)
         >>> dfc = lab.get_pulse_spectrum(1, [600.0, 700.0, 800.0, 900.0])
         >>> print(dfc)
-        [  2.46865554e-04   1.40563844e-04   7.33935684e-05   3.51409609e-05]
+        [  2.46865450e-04   1.40563784e-04   7.33935374e-05   3.51409461e-05]
         
         Here is a complete example with setting, getting and plotting spectrum:
 
