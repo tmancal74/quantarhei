@@ -26,7 +26,7 @@ from ..liouvillespace.redfieldtensor import RelaxationTensor
 from ..hilbertspace.operators import ReducedDensityMatrix, DensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
-from ...core.managers import Manager
+from ...core.managers import Manager, energy_units
 from ...spectroscopy.labsetup import LabSetup
 
 import quantarhei as qr
@@ -94,6 +94,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_RTensor = False
         self.has_Iterm = False
         self.has_RWA = False
+        self._has_field_RWA = False
         self.has_EField = False
         self.has_NonHerm = False
         
@@ -1358,6 +1359,21 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
 
+    def set_global_rwa(self, rwa):
+
+        self.field_rwa = Manager().convert_energy_2_internal_u(rwa)
+
+        # there must already be RWA set in the Hamiltonian
+        rwa_indices = self.Hamiltonian.rwa_indices
+        with energy_units("int"):
+            self.Hamiltonian.set_rwa(rwa_indices, rwa_energy=self.field_rwa)
+        self._has_field_RWA = True
+
+
+    def remove_global_rwa(self):
+
+        self._has_field_RWA = False
+
 
     def __propagate_short_exp_with_relaxation_field(self, rhoi, L=4):
         """Short exponential integration with relaxation and array field
@@ -1397,7 +1413,25 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         # Hamiltonian and the relaxation tensor
-        HH = self.Hamiltonian.data        
+        HH = self.Hamiltonian.data 
+
+        Ht = HH - numpy.diag(numpy.diag(HH))
+        #print("Test diagonality:", numpy.max(numpy.abs(Ht)),"vs.",numpy.max(numpy.abs(HH)))
+
+        if self._has_field_RWA:
+
+            Hske = numpy.diag(self.Hamiltonian.get_RWA_skeleton())
+            Uske = numpy.exp(-1j*self.Hamiltonian.get_RWA_skeleton())
+
+            # rwa_indices[1] is an index of the start of the first band
+            ome_p = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]] \
+                  - self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[0]]
+            
+            #print("Ome_p:", ome_p)
+            # remove optical frequency
+            HH = HH - Hske
+
+
         RR = self.RelaxationTensor.data  
     
         #
@@ -1433,8 +1467,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 IR = self.RelaxationTensor.Iterm[indx,:,:]
 
             # field-multiplicated transition dipole moment 
-            MuE_u = MU_u*EEm[indx]
-            MuE_l = MU_l*EEp[indx]
+            if self._has_field_RWA:
+                Usked = Uske**tt
+                #Usket = numpy.diag(Usked)
+                MU_ut = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_u, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_u,Usked)) 
+                MU_lt = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_l, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_l,Usked))
+                MuE_u =  MU_ut*EEm[indx] # MU_u*EEm[indx]*numpy.exp(-1j*ome_p*tt)
+                MuE_l =  MU_lt*EEp[indx] # MU_l*EEp[indx]*numpy.exp(1j*ome_p*tt)
+                
+            else:
+                MuE_u = MU_u*EEm[indx]
+                MuE_l = MU_l*EEp[indx]
             
             # expansion of the exponential
             for ll in range(1,L+1):

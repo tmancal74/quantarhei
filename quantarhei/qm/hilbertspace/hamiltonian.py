@@ -40,7 +40,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.Nblocks = 1
 
 
-    def set_rwa(self, rwa_indices):
+    def set_rwa(self, rwa_indices, rwa_energy=None):
         """sets indice of RWA blocks of the Hamiltonian
         
         
@@ -73,6 +73,9 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             raise Exception("First element in 'rwa_indices' has to be zero")
         self.rwa_indices = numpy.array(rwa_indices, dtype=int)
 
+        if rwa_energy is not None:
+            rwa_energy_loc = self.convert_2_current_u(rwa_energy)
+
         self.Nblocks = len(self.rwa_indices)
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
         
@@ -87,12 +90,15 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 k = 0
                 # calculate average energy in the block
                 for ii in range(self.rwa_indices[block],upper):
-                    en_block[block] += self.data[ii,ii]
+                    if rwa_energy is None:
+                        en_block[block] += numpy.real(self.data[ii,ii])
+                    else:
+                        en_block[block] += block*rwa_energy_loc
                     k += 1
                 en_block[block] = en_block[block]/float(k)
                 # set rwa_energies within the block
                 for ii in range(self.rwa_indices[block],upper):
-                    self.rwa_energies[ii] = en_block[block]            
+                    self.rwa_energies[ii] = en_block[block]
         
         # we have information on RWA
         self.has_rwa = True
