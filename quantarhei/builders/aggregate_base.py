@@ -1442,7 +1442,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def build(self, mult=1, sbi_for_higher_ex=False,
               vibgen_approx=None, Nvib=None, vibenergy_cutoff=None,
-              fem_full=False, el_blocks=False):
+              fem_full=False): #, el_blocks=False):
         """Builds aggregate properties
 
         Calculates Hamiltonian and transition dipole moment matrices and
@@ -1542,14 +1542,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                     vibenergy_cutoff=vibenergy_cutoff):
             self.all_states.append((a, s1))
 
-        if el_blocks:
-            self.electronic_blocks = dict()
-            for sig in self.elsigs:
-                self.electronic_blocks[sig] = "ciao"
-            
-            
-            print("AHOJ !!!!!!!!!!!!!!!!!")
-            print(self.electronic_blocks)
+        #if el_blocks:
+        #    self.electronic_blocks = dict()
+        #    for sig in self.elsigs:
+        #        self.electronic_blocks[sig] = "ciao"
+        #    
+        #    
+        #    print("AHOJ !!!!!!!!!!!!!!!!!")
+        #    print(self.electronic_blocks)
 
 
         # Set up Hamiltonian and Transition dipole moment matrices

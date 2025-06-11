@@ -9,7 +9,6 @@
 """
 import numbers
 
-#import h5py
 #import matplotlib.pyplot as plt  
 import numpy
 
@@ -18,7 +17,7 @@ from ..core.valueaxis import ValueAxis
 from ..core.frequency import FrequencyAxis
 from ..core.dfunction import DFunction
 #from .twod2 import TwoDResponse
-from .twod import TwoDSpectrum
+from .twodspect import TwoDSpectrum
 
 from ..core.managers import Manager, energy_units
 

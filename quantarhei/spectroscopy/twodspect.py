@@ -113,7 +113,29 @@ class TwoDSpectrum(DataSaveable, Saveable):
             raise Exception("Data is not initialized: use set_data method.")
         self.data += data 
 
-       
+    
+    def overlay_pulses(self, lab):
+        """Use labsetup class to overlay pulse spectra over this 2D spectrum 
+
+        
+        """
+
+        # first two pulses are on omega_1 axis
+        ome1 = self.xaxis.data
+        spect1 = lab.get_pulse_spectrum(0, ome1)
+        spect2 = lab.get_pulse_spectrum(1, ome1)
+
+        # third pulse
+        ome3 = self.yaxis.data
+        spect3 = lab.get_pulse_spectrum(2, ome3)
+
+        self.data = self.data*(spect1*spect2)          # multiplying the second (x) axis by E^2
+        self.data = self.data*spect3[:,numpy.newaxis]  # multiplying the first (y) axis by E
+        
+        # do we need to add also the detection pulse ?
+
+
+
     def set_t2(self, t2):
         """Sets the t2 (waiting time) of the spectrum
         

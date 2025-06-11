@@ -2,7 +2,7 @@
 
 import numpy
 
-from .twod import TwoDSpectrum
+#from .twodspect import TwoDSpectrum
 from .twodcontainer import TwoDResponseContainer
 from .twodcalculator import TwoDResponseCalculator
 from .mocktwodcalculator import MockTwoDResponseCalculator
