@@ -1203,4 +1203,109 @@ class OpenSystem():
             rdm = ReducedDensityMatrix(data=dat)
                 
         
-        return rdm  
+        return rdm 
+    
+
+    def integrate_deposited_energy(self, rho_t, field, ome=None):
+        """ Integrates the energy deposited into the system by light
+
+        By default, rho_t and field contain the optical frequency. If ome and dt are defined,
+        it is assumed that rho_t was calculated using a single frequency (global) RWA. In that
+        case the field is assumed to be the field's envelop.
+
+        Parameters
+        ----------
+
+        rho_t : DensityMatrixEvolution
+            The dynamics of the system in terms of its time-dependent density matrix
+
+        field: real array
+            Positive frequency (e^{-i\omega t}) component of the electric field or its envelop
+            if RWA is assumed.
+
+        ome: real
+            Field RWA frequency
+
+        dt: real
+            Time step on which rho_t and field are defined
+            
+        """
+
+        # transition dipole moment 
+        DD = self.get_TransitionDipoleMoment()
+
+
+        # X component of the transition dipole moment
+        # FIXME: here and in the propagator, we have to find some way how to use the whole of DD and
+        #        the field polaritation
+        mu = DD.data[:,:,0]
+
+        # upper and lower triangle of the dipole moment
+        #mu_u = numpy.triu(mu, k=1)
+        mu_l = numpy.tril(mu, k=-1)
+        
+        # complex components of the field
+        Ep = field
+        #Em = numpy.conj(field)
+
+        # quasi-rotating wave approximation (resonant parts only)
+        #trdip_u = numpy.einsum("ij,tji->t", mu_u, rho_t.data)
+        trdip_l = numpy.einsum("ij,tji->t", mu_l, rho_t.data)
+
+        # numerical integration with the derivative of the field
+        #integ_u = integral_g_dfdt(trdip_u, Em)
+        integ_l = integral_g_dfdt(trdip_l, Ep)
+        
+        if ome is not None:
+            dt = rho_t.TimeAxis.step
+            ome_in = Manager().convert_energy_2_internal_u(ome)
+            Epom = 1j*ome_in*Ep
+            
+            integ_rwa = integral_g_f(trdip_l, Epom, dt)
+        else:
+            integ_rwa = 0.0
+
+        val = -2.0*numpy.real(integ_l) + 2.0*numpy.real(integ_rwa) # + integ_u)
+        
+        return Manager().convert_energy_2_current_u(val)
+
+#
+# Auxiliary routines
+#
+def integral_g_dfdt(g,f):
+    """
+    Numerically compute ∫ g(t) * df/dt(t) dt using central differences.
+    Assumes df/dt = 0 at boundaries.
+    
+    Parameters:
+        g (ndarray): Function values to multiply with df/dt.
+        f (ndarray): Function values at discrete time points.
+        # dt (float): Time step between points. (Time step cancels out)
+        
+    Returns:
+        float: Approximation of the integral.
+    """
+    dfdt = numpy.empty_like(f)
+    dfdt[0] = (f[1] - f[0])
+    dfdt[-1] = (f[-1] - f[-2])
+    dfdt[1:-1] = (f[2:] - f[:-2])/2.0
+    
+    return numpy.sum(g*dfdt)
+
+
+def integral_g_f(g, f, dt):
+    """
+    Numerically compute ∫ g(t) * f(t) dt using the trapezoidal rule.
+    Assumes uniform time step (dt cancels out, as in the df/dt version).
+
+    Parameters:
+        g (ndarray): Function values.
+        f (ndarray): Function values.
+
+    Returns:
+        float: Approximate integral (up to a constant dt).
+    """
+    integrand = g*f
+    result = 0.5*(integrand[0] + integrand[-1]) + numpy.sum(integrand[1:-1])
+    return result*dt 
+     

@@ -1359,8 +1359,10 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         debug("(9)")    
 
 
-
     def set_global_rwa(self, rwa):
+        """Set the single frequency Rotating Wave Approximation
+        
+        """
 
         self.field_rwa = Manager().convert_energy_2_internal_u(rwa)
 
@@ -1372,6 +1374,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def remove_global_rwa(self):
+        """Switch off the single frequency RWA
+
+        """
 
         self._has_field_RWA = False
 
@@ -1408,7 +1413,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         # we forbid the refinement of the time step
         if self.Nref != 1:
-            raise Exception("Cannot propagation with refined time-step.")
+            raise Exception("This version of the propagator cannot propagate with refined time-step.")
             
         # here the dynamics will be stored
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
@@ -1419,6 +1424,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         #
         # We do not have an information on polarization - we take X as default
         #
+        # FIXME: some better way to use transition dipole moment
         X = 0
         
         Nst = self.Hamiltonian.dim
@@ -1429,8 +1435,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             sk_en = self.Hamiltonian.get_RWA_skeleton()
             Hske = numpy.diag(sk_en)
-            Uske = numpy.exp(-1j*self.Hamiltonian.get_RWA_skeleton())
+            #Uske = numpy.exp(-1j*self.Hamiltonian.get_RWA_skeleton())
 
+            # optical frequency
             ome_p = sk_en[self.Hamiltonian.rwa_indices[1]] - sk_en[self.Hamiltonian.rwa_indices[0]]
 
             # remove optical frequency
@@ -1476,13 +1483,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             # field-multiplicated transition dipole moment 
             if self._has_field_RWA:
-                #Usked = Uske**tt
-                #Usket = numpy.diag(Usked)
-                #MU_ut = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_u, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_u,Usked)) 
-                #MU_lt = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_l, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_l,Usked))
-                #MuE_u =  MU_ut*EEm[indx] 
                 MuE_u = MU_u*EEm[indx]*numpy.exp(-1j*ome_p*tt)
-                #MuE_l = MU_lt*EEp[indx] 
                 MuE_l = MU_l*EEp[indx]*numpy.exp(1j*ome_p*tt)
                 
             else:

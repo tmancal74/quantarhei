@@ -1124,13 +1124,11 @@ class LabSetup:
         self.omega[:] = self.saved_omega[:] 
         
         
-    def get_field(self, kk=None):
+    def get_field(self, kk=None, rwa_frequency=None):
         """Returns the total field of the lab or a single field
         
         """
-        #N = t.shape[0]
-        
-        #fld = numpy.zeros(N, dtype=COMPLEX)
+
         if kk is None:
 
             flds = self.get_labfields()
@@ -1142,13 +1140,21 @@ class LabSetup:
                 else:
                     fld += fl.get_field()
                 kk += 1
-                
-            return fld
         
         else:
 
             fl = self.get_labfield(kk)
-            return fl.get_field()
+            fld = fl.get_field()
+
+
+        if rwa_frequency is not None:
+            ome = Manager().convert_energy_2_internal_u(rwa_frequency)
+            tt = self.timeaxis.data
+            arg = 1j*ome*tt
+            fld = fld*numpy.exp(arg)
+
+        return fld
+
 
 
     def get_field_derivative(self):
