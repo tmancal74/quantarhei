@@ -243,7 +243,13 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         ll = 0
         for kk in range(self.Ntot):
 
-            if (kk >= indxs[ll]) and (kk < indxs[ll+1]):
+            # fix for the case that the band index grows too much
+            if ll+1 < len(indxs):
+                uind = indxs[ll+1]
+            else:
+                uind = self.Ntot+1
+
+            if (kk >= indxs[ll]) and (kk < uind):
                 self.which_band[kk] = ll
             else:
                 ll += 1

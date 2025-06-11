@@ -39,7 +39,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         # knowing that the blocks are there
         self.Nblocks = 1
 
-
     def set_rwa(self, rwa_indices, rwa_energy=None):
         """sets indice of RWA blocks of the Hamiltonian
         
@@ -100,6 +99,11 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 for ii in range(self.rwa_indices[block],upper):
                     self.rwa_energies[ii] = en_block[block]
         
+        # set which_band information
+        self.which_band = numpy.zeros(self.dim)
+        for kk in range(self.dim):
+            self.which_band[kk] = _find_band(kk, self.rwa_indices)
+
         # we have information on RWA
         self.has_rwa = True
 
@@ -336,3 +340,30 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         out += "\ndata = \n"
         out += str(self.data)
         return out
+    
+
+def _find_band(x, starts):
+    """
+    Given an integer x and a sorted list of interval starts (starting with 0),
+    returns the index of the interval x belongs to.
+    
+    Parameters
+    ----------
+    x : int
+        The integer to locate.
+    starts : list of int
+        List of interval start points (ascending, starting with 0).
+        
+    Returns
+    -------
+    int
+        Interval index to which x belongs.
+    """
+    if x < starts[0]:
+        raise ValueError("x is below the start of the first interval")
+
+    for i in range(len(starts) - 1):
+        if starts[i] <= x < starts[i + 1]:
+            return i
+    return len(starts) - 1  # last open-ended interval
+

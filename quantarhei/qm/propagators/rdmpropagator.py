@@ -30,6 +30,7 @@ from ...core.managers import Manager, energy_units
 from ...spectroscopy.labsetup import LabSetup
 
 import quantarhei as qr
+from ... import COMPLEX
 
 import matplotlib.pyplot as plt
 
@@ -1415,36 +1416,43 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         # Hamiltonian and the relaxation tensor
         HH = self.Hamiltonian.data 
 
-        Ht = HH - numpy.diag(numpy.diag(HH))
-        #print("Test diagonality:", numpy.max(numpy.abs(Ht)),"vs.",numpy.max(numpy.abs(HH)))
-
-        if self._has_field_RWA:
-
-            Hske = numpy.diag(self.Hamiltonian.get_RWA_skeleton())
-            Uske = numpy.exp(-1j*self.Hamiltonian.get_RWA_skeleton())
-
-            # rwa_indices[1] is an index of the start of the first band
-            ome_p = self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[1]] \
-                  - self.Hamiltonian.rwa_energies[self.Hamiltonian.rwa_indices[0]]
-            
-            #print("Ome_p:", ome_p)
-            # remove optical frequency
-            HH = HH - Hske
-
-
-        RR = self.RelaxationTensor.data  
-    
         #
         # We do not have an information on polarization - we take X as default
         #
         X = 0
+        
+        Nst = self.Hamiltonian.dim
+        MU_raw = numpy.zeros((Nst, Nst), dtype=COMPLEX)
+        MU_raw[:,:] = self.Trdip.data[:,:,X]
+
+        if self._has_field_RWA:
+
+            sk_en = self.Hamiltonian.get_RWA_skeleton()
+            Hske = numpy.diag(sk_en)
+            Uske = numpy.exp(-1j*self.Hamiltonian.get_RWA_skeleton())
+
+            ome_p = sk_en[self.Hamiltonian.rwa_indices[1]] - sk_en[self.Hamiltonian.rwa_indices[0]]
+
+            # remove optical frequency
+            HH = HH - Hske
+
+            # remove non RWA transitions 
+            for ii in range(Nst):
+                b_ii = self.Hamiltonian.which_band[ii]
+                for jj in range(Nst):
+                    b_jj = self.Hamiltonian.which_band[jj]
+                    if numpy.abs(b_ii - b_jj) > 1:
+                        MU_raw[ii,jj] = 0.0
+
         # Upper and lower triangle of the transition dipole moment operator
-        MU_u = numpy.triu(self.Trdip.data[:,:,X],k=1)
-        MU_l = numpy.tril(self.Trdip.data[:,:,X],k=-1)
+        MU_u = numpy.triu(MU_raw,k=1)
+        MU_l = numpy.tril(MU_raw,k=-1)
 
         # positive and negative frequency component of the field
         EEp = self.Efield    # E field must be a complex possitive frequency part
         EEm = numpy.conj(EEp)
+
+        RR = self.RelaxationTensor.data
 
         # auxiliary density matrices
         rho1 = rhoi.data
@@ -1468,12 +1476,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             # field-multiplicated transition dipole moment 
             if self._has_field_RWA:
-                Usked = Uske**tt
+                #Usked = Uske**tt
                 #Usket = numpy.diag(Usked)
-                MU_ut = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_u, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_u,Usked)) 
-                MU_lt = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_l, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_l,Usked))
-                MuE_u =  MU_ut*EEm[indx] # MU_u*EEm[indx]*numpy.exp(-1j*ome_p*tt)
-                MuE_l =  MU_lt*EEp[indx] # MU_l*EEp[indx]*numpy.exp(1j*ome_p*tt)
+                #MU_ut = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_u, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_u,Usked)) 
+                #MU_lt = numpy.einsum("i,ij,j->ij", numpy.conj(Usked), MU_l, Usked) #numpy.dot(numpy.conj(Usked),numpy.dot(MU_l,Usked))
+                #MuE_u =  MU_ut*EEm[indx] 
+                MuE_u = MU_u*EEm[indx]*numpy.exp(-1j*ome_p*tt)
+                #MuE_l = MU_lt*EEp[indx] 
+                MuE_l = MU_l*EEp[indx]*numpy.exp(1j*ome_p*tt)
                 
             else:
                 MuE_u = MU_u*EEm[indx]
