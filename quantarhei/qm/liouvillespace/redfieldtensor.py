@@ -22,7 +22,7 @@ from ...core.parallel import distributed_configuration
 #from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 
-from ... import REAL
+from ... import REAL, COMPLEX
 
 import quantarhei as qr
 
@@ -245,11 +245,18 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             else:
                 S1 = inv
 
+            _Lm = numpy.zeros_like(self._Lm, dtype=COMPLEX)
+            _Ld = numpy.zeros_like(self._Ld, dtype=COMPLEX)
+            _Km = numpy.zeros_like(self._Km, dtype=COMPLEX)
             for m in range(self._Km.shape[0]):
-                self._Lm[:,:,m] = numpy.dot(S1,numpy.dot(self._Lm[:,:,m], SS))  
-                self._Ld[:,:,m] = numpy.dot(S1,numpy.dot(self._Ld[:,:,m], SS))
-                self._Km[m,:,:] = numpy.dot(S1,numpy.dot(self._Km[m,:,:], SS))
+                _Lm[:,:,m] = numpy.dot(S1,numpy.dot(self._Lm[:,:,m], SS))
+                _Ld[:,:,m] = numpy.dot(S1,numpy.dot(self._Ld[:,:,m], SS))
+                _Km[m,:,:] = numpy.dot(S1,numpy.dot(self._Km[m,:,:], SS))
      
+            self._Lm = _Lm
+            self._Ld = _Ld
+            self._Km = _Km
+            
         else:
     
             super().transform(SS)
@@ -463,8 +470,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self.Km = Km
             self.Lm = Lm
             self.Ld = Ld
-            
-            
             
         else:
             
