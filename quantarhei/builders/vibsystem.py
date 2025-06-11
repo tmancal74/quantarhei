@@ -34,6 +34,8 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         self.modes = modes
         self.Nmodes = len(self.modes)
 
+        self.Nb = None
+
         self.sbi = None
         self._has_sbi = False
 
@@ -225,8 +227,33 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                 Hi_full = numpy.kron(Hi_full, op)
             H_tot_mx += Hi_full
 
+        H_tot_mx, perm = reorder_hamiltonian_by_energy(H_tot_mx)
+
         self.HH = H_tot_mx
         self.HamOp = Hamiltonian(data=self.HH)
+
+        self.Ntot = self.HamOp.dim
+
+        Nbl, indxs = group_energies_by_gap(numpy.diag(self.HH))
+        self.HamOp.set_rwa(indxs)
+
+        self.Nb = numpy.array(Nbl)
+       
+        self.which_band = numpy.zeros(self.Ntot,dtype=numpy.int32)
+        ll = 0
+        for kk in range(self.Ntot):
+
+            # fix for the case that the band index grows too much
+            if ll+1 < len(indxs):
+                uind = indxs[ll+1]
+            else:
+                uind = self.Ntot+1
+
+            if (kk >= indxs[ll]) and (kk < uind):
+                self.which_band[kk] = ll
+            else:
+                ll += 1
+                self.which_band[kk] = ll
 
         # calculate bilinear interaction between modes
         if self._mode_couping_init:
@@ -236,6 +263,10 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                     kap = self.coupling[ii,jj]
                     if numpy.abs(kap) > 0.0:
                         H_int += self._embed_bilinear_interaction(ii, jj, kappa=kap)
+
+            
+            out = reorder_operators_by_perm(perm, [H_int])
+            H_int = out[0]
 
             # add the interaction to the mode
             self.HamOp.data += H_int
@@ -247,6 +278,8 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         D_tot_mx = numpy.zeros((numpy.prod(dims), numpy.prod(dims), 3), dtype=COMPLEX)
 
         for i, DD in enumerate(D_list):
+
+            to_be_sorted = []
             for kk in range(3):
                 ops = []
                 for j in range(Nl):
@@ -257,6 +290,11 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                 Di_full = ops[0]
                 for op in ops[1:]:
                     Di_full = numpy.kron(Di_full, op)
+                to_be_sorted.append(Di_full)
+
+            sorted = reorder_operators_by_perm(perm, to_be_sorted)
+            for kk in range(3):
+                Di_full = sorted[kk]
                 D_tot_mx[:,:,kk] += Di_full
 
         self.DD = D_tot_mx
@@ -301,6 +339,9 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                     for op in all_ops[1:]:
                         oper_full = numpy.kron(oper_full, op)
 
+                    # reordering of all Lindblad operators
+                    out = reorder_operators_by_perm(perm, [oper_full])
+                    oper_full = out[0]
                     ops.append(oper_full)
                     rts.append(sbi.rates[ii])
             
@@ -322,3 +363,122 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
         self._built = True
         
+
+
+def group_energies_by_gap(energies, threshold=None, gap_factor=3.0):
+    """
+    Groups sorted energies into bands separated by significant energy gaps.
+
+    Parameters
+    ----------
+    energies : array-like
+        Sorted list or array of energy values.
+    threshold : float or None
+        If given, any gap larger than this is a separator.
+    gap_factor : float
+        If threshold is not given, we use gap_factor * median_gap to detect large gaps.
+
+    Returns
+    -------
+    band_sizes : list of int
+        Number of energies in each band.
+    gap_indices : list of int
+        Indices at which bands start (for reference).
+    """
+    import numpy as np 
+    energies = np.asarray(energies)
+    gaps = np.diff(energies)
+
+    if threshold is None:
+        median_gap = np.median(gaps)
+        threshold = gap_factor * median_gap
+
+    # Find gap positions
+    band_breaks = np.where(gaps > threshold)[0]
+
+    # Calculate sizes
+    start = 0
+    band_sizes = []
+    gap_indices = []
+
+    for b in band_breaks:
+        band_sizes.append(b + 1 - start)
+        gap_indices.append(start)
+        start = b + 1
+
+    # Add last band
+    band_sizes.append(len(energies) - start)
+    gap_indices.append(start)
+
+    return band_sizes, gap_indices
+
+
+def reorder_operators_by_energy(H, operators):
+    """
+    Reorders a Hamiltonian and other operators according to ascending energies (diagonal elements of H).
+
+    Parameters
+    ----------
+    H : np.ndarray
+        Square Hermitian matrix representing the Hamiltonian.
+    *operators : np.ndarray
+        Any number of square operators (same shape as H) to be reordered consistently.
+
+    Returns
+    -------
+    H_sorted : np.ndarray
+        Hamiltonian reordered by ascending diagonal values.
+    operators_sorted : list of np.ndarray
+        List of reordered operators in the same order as H.
+    permutation : np.ndarray
+        The permutation array applied (indices of ascending diagonal values).
+    """
+    if not all(op.shape == H.shape for op in operators):
+        raise ValueError("All operators must have the same shape as the Hamiltonian")
+
+    energies = numpy.diag(H)
+    perm = numpy.argsort(energies)
+    H_sorted = H[numpy.ix_(perm, perm)]
+    ops_sorted = [op[numpy.ix_(perm, perm)] for op in operators]
+
+    return H_sorted, ops_sorted, perm
+
+
+def reorder_hamiltonian_by_energy(H): 
+    """
+    Reorders a Hamiltonian according to ascending energies (diagonal elements of H).
+
+    Parameters
+    ----------
+    H : np.ndarray
+        Square Hermitian matrix representing the Hamiltonian.
+
+    Returns
+    -------
+    H_sorted : np.ndarray
+        Hamiltonian reordered by ascending diagonal values.
+    operators_sorted : list of np.ndarray
+        List of reordered operators in the same order as H.
+    permutation : np.ndarray
+        The permutation array applied (indices of ascending diagonal values).
+    """
+    #if not all(op.shape == H.shape for op in operators):
+    #    raise ValueError("All operators must have the same shape as the Hamiltonian")
+
+    energies = numpy.diag(H)
+    perm = numpy.argsort(energies)
+
+    H_sorted = H[numpy.ix_(perm, perm)]
+
+    return H_sorted, perm
+
+
+
+def reorder_operators_by_perm(perm, operators):
+    """
+    Reorders operators according to a specified order.
+
+    """
+
+    ops_sorted = [op[numpy.ix_(perm, perm)] for op in operators]
+    return ops_sorted
