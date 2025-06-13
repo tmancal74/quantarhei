@@ -170,15 +170,10 @@ class TestTwod(unittest.TestCase):
         cont2 = msc.calculate_all_system(agg2D, eUt, lab)
         cont2.set_data_flag(qr.signal_TOTL)
         sp2 = cont.get_spectrum(800.0)
-        
-        
-        #
-        # comparison of 2D spectra at 800 fs
-        #
-        #sp800.plot(show=True)
-        #sp2.plot(show=True)
-        npt.assert_allclose(sp800.data, sp2.data)
+
         npt.assert_allclose(sp800.data, sp.data)
+        npt.assert_allclose(sp800.data, sp2.data)
+        
 
 
         """ 
