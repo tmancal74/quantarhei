@@ -323,6 +323,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         """
         nstates = 0
+        # count the number of electronic states
         for monomer in self.monomers:
             nstates += (monomer.nel -1)
         self.resonance_coupling = numpy.zeros((nstates,nstates),
@@ -1478,6 +1479,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     
     def get_StateBand(self, state):
         """Returns band of the corresponding electronic state
+
+        This effectively counts the number of excitations in the state
+        by counting the band numbers in each molecules.
         
         Parameters
         ----------
@@ -2384,7 +2388,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         twoex_indx = numpy.zeros((Ntot, 2), dtype=int)
         
         # two-exciton state index by pair of single excitations
-        twoex_state = numpy.zeros((self.nmono,self.nmono), dtype=int)
+        # - originally this was only alocated with the number of molecules/monomers
+        twoex_state = numpy.zeros((self.Nel, self.Nel), dtype=int)
 
 
         # Initialization of the matrix of couplings between states
@@ -2422,10 +2427,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             self.electronic_blocks = dict()
             for sig in self.elsigs:
                 self.electronic_blocks[sig] = "ciao"
-            
-            
-            print("AHOJ !!!!!!!!!!!!!!!!!")
-            print(self.electronic_blocks)
 
 
         # Set up Hamiltonian and Transition dipole moment matrices
@@ -2448,20 +2449,28 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             # for each excited state
             elind = self.elinds[a]
             if (self.which_band[elind] == 1) or (self.which_band[elind] == 2):
-                
+
                 Wd[a,a] = numpy.sqrt(self.get_transition_width(s1, s0)) 
                 
                 Dr[a,a] = numpy.sqrt(self.get_transition_dephasing(s1, s0))
-
+            #
             # save composition of twice excited states
+            # (This only stores info about aggregate states composed of excitations on different molecules)
+            #
             if self.which_band[elind] == 2:
                 # k_s counts excited molecules in the doubly exc. state
                 # there are molecules 0 and 1 in diad (n,m)
                 k_s = 0
+
                 # counts positons in the electronic signature
                 # i.e. it counts molecular index
                 sig_position = 0
+
+                # we loop through the states in the signature
                 for i_s in s1.elstate.elsignature:
+                    #print("i_s:", i_s, s1.elstate.get_signature())
+                    
+                    # record excitations
                     #if i_s == 1:
                     if i_s != 0: # allow the doubly excited states on single molecule
                         # we save indices of electronic states and 
@@ -2469,16 +2478,29 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         state_is = [0,]*self.nmono 
                         state_is[sig_position] = i_s
                         state_is = tuple(state_is)
-                        twoex_indx[a, k_s] = self.get_ElectronicState(state_is).index #sig_position + 1
+                        els = self.get_ElectronicState(state_is)
+
+                        # two alternatives (older vs. newer)
+                        #twoex_indx[a, k_s] = sig_position + 1 
+                        twoex_indx[a, k_s] = els.index
+                        #print("Making twoex_indx:", els.get_signature(), twoex_indx[a, k_s], a, k_s)
                         k_s += 1
                     sig_position += 1
                     
+                #
+                # If this is a two-exciton state, then save the info here
+                #
                 if (twoex_indx[a,0]-1>=0) and (twoex_indx[a,1]-1>=0):
+                    #print("Two-exciton indices:", twoex_indx[a,0]-1, twoex_indx[a,1]-1)
                     twoex_state[twoex_indx[a,0]-1,twoex_indx[a,1]-1] = a
                     twoex_state[twoex_indx[a,1]-1,twoex_indx[a,0]-1] = a    
 
-            self.twoex_state = twoex_state
+            # This works for single member bands 
+            #self.twoex_state = twoex_state
 
+
+            #print("Two ex. state info:")
+            #print(self.twoex_state)
                 
             for b, s2 in self.all_states: #self.allstates(mult=self.mult,
                                     #vibgen_approx=vibgen_approx, Nvib=Nvib,
@@ -2537,6 +2559,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 #                        Wd[b,a] = numpy.sqrt(trwidth)
 #                    else:
 #                        Wd[b,a] = 0.0
+
+        self.twoex_state = twoex_state
 
 ####### End new
 
@@ -3757,14 +3781,17 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             # The rest should be uncommented and reviewed for the multilevel systems
             
             #raise IOError("Diagonalization of the transition width with vibronic states and multilevel molecules not yet implemented")
-            # Check for the double excited state on single molecule
-            for n in range(N1b,Ntot):
-                if self.twoex_indx[n,1] == 0:
-                    text = "State {:} is double excited state on single molecule.".format(n) +\
-                    " For this state transition width transformation is not defined." +\
-                    " Correct the diagonalization rutine in aggregate_base!!! "
-                    warnings.warn(text)
             
+            warn_me = False
+            if warn_me:
+                # Check for the double excited state on single molecule
+                for n in range(N1b, self.Ntot):
+                    if self.twoex_indx[n,1] == 0:
+                        text = "State {:} is double excited state on single molecule.".format(n) +\
+                        " For this state transition width transformation is not defined." +\
+                        " Correct the diagonalization rutine in aggregate_base!!! "
+                        warnings.warn(text)
+                
             ######################################################################
             # CASE OF VIBRATIONAL MODES
             ######################################################################     

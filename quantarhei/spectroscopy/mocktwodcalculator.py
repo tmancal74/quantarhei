@@ -294,7 +294,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                             pws.append(pw)
                         
                     
-            
+        print("Number of pathways:", len(pws))
         self.set_pathways(pws)
         
         if pways is not None:
