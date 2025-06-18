@@ -13,15 +13,15 @@ import numpy
 
 class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     """Hamiltonian operator
-    
-    
-    
+
+
+
     """
-    
+
     _has_remainder_coupling = False
-    
+
     data = ManagedRealArray("data")
- 
+
     def __init__(self, dim=None, data=None):
         #self.data = data
 #FIXME: how to avoid the Operator breaking the EnergyUnits management ????
@@ -30,23 +30,22 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             if not self.check_selfadjoint():
                 raise Exception("The data of this operator have"+
                                 "to be represented by a selfadjoint matrix")
-        
+
         self.rwa_indices = None
         self.rwa_energies = None
         self.has_rwa = False
         # In future, the Hamiltonian should have a block structure
-        # reflected in the data storage, for now we are fine just with 
+        # reflected in the data storage, for now we are fine just with
         # knowing that the blocks are there
         self.Nblocks = 1
 
-
-    def set_rwa(self, rwa_indices):
+    def set_rwa(self, rwa_indices, rwa_energy=None):
         """sets indice of RWA blocks of the Hamiltonian
-        
-        
+
+
         Examples
         --------
-        
+
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate(name="trimer-2")
         >>> agg.build()
@@ -61,7 +60,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         Block average energies:
          0 : 0.0
          1 : 2.3011943314
-        data = 
+        data =
         [[ 0.          0.          0.          0.        ]
          [ 0.          2.26038188  0.          0.        ]
          [ 0.          0.          2.31689143  0.        ]
@@ -72,13 +71,15 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if rwa_indices[0] != 0:
             raise Exception("First element in 'rwa_indices' has to be zero")
         self.rwa_indices = numpy.array(rwa_indices, dtype=int)
-        
+
         Null_blocks = numpy.sum(self.dim == self.rwa_indices)
 
+        if rwa_energy is not None:
+            rwa_energy_loc = self.convert_2_current_u(rwa_energy)
         #self.Nblocks = len(self.rwa_indices)
         self.Nblocks = len(self.rwa_indices) - Null_blocks
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
-        
+
         # average energies in every block
         with energy_units("int"):
             en_block = numpy.zeros(self.Nblocks, dtype=REAL)
@@ -90,22 +91,30 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 k = 0
                 # calculate average energy in the block
                 for ii in range(self.rwa_indices[block],upper):
-                    en_block[block] += self.data[ii,ii]
+                    if rwa_energy is None:
+                        en_block[block] += numpy.real(self.data[ii,ii])
+                    else:
+                        en_block[block] += block*rwa_energy_loc
                     k += 1
                 if k==0:
                     continue
                 en_block[block] = en_block[block]/float(k)
                 # set rwa_energies within the block
                 for ii in range(self.rwa_indices[block],upper):
-                    self.rwa_energies[ii] = en_block[block]            
-        
+                    self.rwa_energies[ii] = en_block[block]
+
+        # set which_band information
+        self.which_band = numpy.zeros(self.dim)
+        for kk in range(self.dim):
+            self.which_band[kk] = _find_band(kk, self.rwa_indices)
+
         # we have information on RWA
         self.has_rwa = True
 
 
     def get_RWA_skeleton(self):
         """Returns the Hamiltonian matrix with RWA energies
-        
+
         """
         HH = self.data
         shape = HH.shape[0]
@@ -117,34 +126,34 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
     def get_RWA_data(self):
         """Returns Hamiltonian matrix with RWA energies subtracted
-        
+
         """
         return self.data - numpy.diag(self.get_RWA_skeleton())
 
 
     def diagonalize(self, coupling_cutoff=None):
-        """Diagonalizes the Hamiltonian matrix 
-        
+        """Diagonalizes the Hamiltonian matrix
+
         Parameters
         ----------
-        
+
         coupling_cutoff : float, optional
-            Specifies the smallest (absolute) value of coupling 
+            Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
             and a remainder coupling matrix is returned together with
             the diagonalization matrix (see Returns section).
-            
+
         Returns
         -------
-        
+
         SS : numpy array
             The diagonalization matrix of the Hamiltonian
-            
+
         JR : numpy array
             Returned only if `coupling_cutoff` is specified. It contains
-            couplings that were removed because they are smaller than 
+            couplings that were removed because they are smaller than
             the cut-off value.
-                        
+
         """
         if coupling_cutoff is None:
             SS = super().diagonalize()
@@ -163,44 +172,44 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
             self.SS = SS
             return self.SS, self.JR
-            
 
-        
+
+
     def undiagonalize(self,with_remainder=True):
         """Transformed the Hamiltonian to the basis before diagonalization
-        
+
         Parameters
         ----------
         with_remainder : bool
             Specifies if we add the coupling smaller than the cutt-off
             used in diagonalization back to the Hamiltonian.
-        
+
         """
         self.data = numpy.dot(self.SS,numpy.dot(self.data,self.SS.T))
         if self._has_remainder_coupling:
             self.JR = numpy.dot(self.SS,numpy.dot(self.JR,self.SS.T))
-        if with_remainder and self._has_remainder_coupling:                
+        if with_remainder and self._has_remainder_coupling:
             self.data += self.JR
 
-            
+
     def remove_cutoff_coupling(self, coupling_cutoff):
         """Removes the couplings smaller than a specified cutoff
-        
+
         Parameters
         ----------
-        
+
         coupling_cutoff : float, optional
-            Specifies the smallest (absolute) value of coupling 
+            Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
             and a remainder coupling matrix is returned together with
             the diagonalization matrix (see Returns section).
-            
+
         """
         if coupling_cutoff is None:
             coupling_cutoff = 0.0
         if coupling_cutoff < 0.0:
             raise Exception("Coupling cutoff value must be positive")
-            
+
         JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
         # go through all couplings and remove small ones
         for ii in range(self.dim):
@@ -214,40 +223,40 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.JR = JR
         self._has_remainder_coupling = True
 
-        
+
     def subtract_cutoff_coupling(self, coupling_cutoff):
         """Subtracts the cut-off coupling from all coupling elements
-        
+
         We supress the couplings by a given amount. If the coupling is
-        smaller than the cutoff it is removed, if it is larger than 
+        smaller than the cutoff it is removed, if it is larger than
         cutoff, the cutoff values is subtracted from the absolute value,
         and the cutoff values is stored in the object for subsequent
         restoration.
-        
+
         Parameters
         ----------
-        
+
         coupling_cutoff : float, optional
-            Specifies the smallest (absolute) value of coupling 
+            Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
             and a remainder coupling matrix is returned together with
             the diagonalization matrix (see Returns section).
-            
-        """        
+
+        """
         if coupling_cutoff is None:
             coupling_cutoff = 0.0
-            
+
         if type(coupling_cutoff) in (list, tuple, numpy.ndarray):
-            
+
             raise Exception("Variable coupling cutoff not implemented yet")
-        
+
         else:
-            
+
             if coupling_cutoff < 0.0:
                 raise Exception("Coupling cutoff value must be positive")
-                
+
             coupcut = self.convert_2_internal_u(coupling_cutoff)
-                
+
             JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
             # go through all couplings and remove small ones
             for ii in range(self.dim):
@@ -265,7 +274,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                     # if the coupling > coupling_cutoff -> suppress it
                     #
                     else:
-                        absv = numpy.abs(self._data[ii,jj]) 
+                        absv = numpy.abs(self._data[ii,jj])
                         sign = self._data[ii,jj]/absv
                         val = absv - coupcut
                         if val < 0.0:
@@ -277,49 +286,49 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         self.JR = JR
         self._has_remainder_coupling = True
-        
-        
+
+
     def recover_cutoff_coupling(self):
         """
-        
+
         """
         if self._has_remainder_coupling:
-            self._data += self.JR 
+            self._data += self.JR
             self.JR[:,:] = 0.0
             self._has_remainder_coupling = False
 
 
     def transform(self, SS, inv=None):
         """Transformation of the Hamiltonian and the remainder coupling
-        
-        
+
+
         This function transforms the Operator into a different basis, using
         a given transformation matrix.
-        
+
         Parameters
         ----------
-         
+
         SS : matrix, numpy.ndarray
             transformation matrix
-            
+
         inv : matrix, numpy.ndarray
             inverse of the transformation matrix
-            
-        """        
+
+        """
         if (self.manager.warn_about_basis_change):
                 print("\nQr >>> Operator '%s' changes basis" %self.name)
-        
+
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
             S1 = inv
 
         self._data = numpy.dot(S1,numpy.dot(self._data,SS))
-        
+
         if self._has_remainder_coupling:
             self.JR = numpy.dot(S1,numpy.dot(self.JR,SS))
-            
-            
+
+
     def __str__(self):
         out  = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
@@ -335,3 +344,29 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         out += "\ndata = \n"
         out += str(self.data)
         return out
+
+
+def _find_band(x, starts):
+    """
+    Given an integer x and a sorted list of interval starts (starting with 0),
+    returns the index of the interval x belongs to.
+
+    Parameters
+    ----------
+    x : int
+        The integer to locate.
+    starts : list of int
+        List of interval start points (ascending, starting with 0).
+
+    Returns
+    -------
+    int
+        Interval index to which x belongs.
+    """
+    if x < starts[0]:
+        raise ValueError("x is below the start of the first interval")
+
+    for i in range(len(starts) - 1):
+        if starts[i] <= x < starts[i + 1]:
+            return i
+    return len(starts) - 1  # last open-ended interval

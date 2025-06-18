@@ -18,7 +18,7 @@ from behave import when
 from behave import then
 
 import quantarhei as qr
-from quantarhei.spectroscopy.twod2 import _ptypes, _processes, _signals
+from quantarhei.spectroscopy.twodresponse import _ptypes, _processes, _signals
 
 
 def _spectrum(a, b):

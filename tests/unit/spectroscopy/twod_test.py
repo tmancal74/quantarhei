@@ -12,7 +12,7 @@ import numpy.testing as npt
 from nose.tools import assert_raises
 
 import quantarhei as qr
-from quantarhei.spectroscopy.twod2 import TwoDSpectrumBase
+from quantarhei.spectroscopy.twodresponse import TwoDSpectrumBase
 from quantarhei.utils.vectors import X 
 
 import matplotlib.pyplot as plt

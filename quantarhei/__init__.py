@@ -208,8 +208,9 @@ LIOUVILLE_PATHWAY_TYPES = PATHWAY_TYPES
 # Builders
 #
 from .builders.modes import Mode
-from .builders.submodes import AnharmonicMode
-from .builders.submodes import HarmonicMode
+from .builders.sysmodes import AnharmonicMode
+from .builders.sysmodes import HarmonicMode
+from .builders.vibsystem import VibrationalSystem
 from .builders.molecules import Molecule
 from .builders.molecule_test import TestMolecule
 from .builders.aggregates import Aggregate
@@ -284,9 +285,9 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 # Fourier transform Two-Dimensional Spectra
 #
-from .spectroscopy.twod2 import TwoDResponse 
+from .spectroscopy.twodresponse import TwoDResponse 
 from .spectroscopy.twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
-from .spectroscopy.twod import TwoDSpectrum
+from .spectroscopy.twodspect import TwoDSpectrum
 from .spectroscopy.twodcalculator import TwoDResponseCalculator
 from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator
 
