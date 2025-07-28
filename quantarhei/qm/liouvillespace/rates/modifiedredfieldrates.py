@@ -20,10 +20,12 @@ from scipy.integrate import simpson as simps
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
+from ....core.dfunction import DFunction
+
 from .... import REAL
 from .... import COMPLEX
 
-from ....core.units import convert
+from ....core.units import convert, kB_intK
 
 import matplotlib.pyplot as plt
 
@@ -87,7 +89,7 @@ class ModifiedRedfieldRateMatrix:
 
         Na = self.ham.dim
         Nc = self.sbi.N 
-        tt = self.tt
+        tt = self.sbi.TimeAxis.data
     
         # Eigen problem
         hD,SS = numpy.linalg.eigh(self.ham._data) #hD=eigenvalues, SS=eigenvectors
@@ -159,7 +161,7 @@ class ModifiedRedfieldRateMatrix:
                 fw_full = numpy.real(fw_full)
                 faxis = time.get_FrequencyAxis()
                 # Define the result as DFunction to enable the interpolation
-                Fw = qr.DFunction(x=faxis,y=fw_full)
+                Fw = DFunction(x=faxis,y=fw_full)
                 
                 rates[M,L] = Fw.at(om)
         
@@ -179,7 +181,7 @@ class ModifiedRedfieldRateMatrix:
             rates[L,L] = -numpy.sum(rates[:,L])
         
         self.rates = rates
-            
+        self.data = rates    
             
     def _set_rates(self):
         """ Setting Modified Redfield rates for an electronic system
