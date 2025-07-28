@@ -26,10 +26,11 @@ from ..liouvillespace.redfieldtensor import RelaxationTensor
 from ..hilbertspace.operators import ReducedDensityMatrix, DensityMatrix
 from .dmevolution import ReducedDensityMatrixEvolution
 from ...core.matrixdata import MatrixData
-from ...core.managers import Manager
+from ...core.managers import Manager, energy_units
 from ...spectroscopy.labsetup import LabSetup
 
 import quantarhei as qr
+from ... import COMPLEX
 
 import matplotlib.pyplot as plt
 
@@ -94,6 +95,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.has_RTensor = False
         self.has_Iterm = False
         self.has_RWA = False
+        self._has_field_RWA = False
         self.has_EField = False
         self.has_NonHerm = False
         
@@ -1357,6 +1359,26 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         debug("(9)")    
 
 
+    def set_global_rwa(self, rwa):
+        """Set the single frequency Rotating Wave Approximation
+        
+        """
+
+        self.field_rwa = Manager().convert_energy_2_internal_u(rwa)
+
+        # there must already be RWA set in the Hamiltonian
+        rwa_indices = self.Hamiltonian.rwa_indices
+        with energy_units("int"):
+            self.Hamiltonian.set_rwa(rwa_indices, rwa_energy=self.field_rwa)
+        self._has_field_RWA = True
+
+
+    def remove_global_rwa(self):
+        """Switch off the single frequency RWA
+
+        """
+
+        self._has_field_RWA = False
 
 
     def __propagate_short_exp_with_relaxation_field(self, rhoi, L=4):
@@ -1391,26 +1413,53 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         
         # we forbid the refinement of the time step
         if self.Nref != 1:
-            raise Exception("Cannot propagation with refined time-step.")
+            raise Exception("This version of the propagator cannot propagate with refined time-step.")
             
         # here the dynamics will be stored
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
         
         # Hamiltonian and the relaxation tensor
-        HH = self.Hamiltonian.data        
-        RR = self.RelaxationTensor.data  
-    
+        HH = self.Hamiltonian.data 
+
         #
         # We do not have an information on polarization - we take X as default
         #
+        # FIXME: some better way to use transition dipole moment
         X = 0
+        
+        Nst = self.Hamiltonian.dim
+        MU_raw = numpy.zeros((Nst, Nst), dtype=COMPLEX)
+        MU_raw[:,:] = self.Trdip.data[:,:,X]
+
+        if self._has_field_RWA:
+
+            sk_en = self.Hamiltonian.get_RWA_skeleton()
+            Hske = numpy.diag(sk_en)
+            #Uske = numpy.exp(-1j*self.Hamiltonian.get_RWA_skeleton())
+
+            # optical frequency
+            ome_p = sk_en[self.Hamiltonian.rwa_indices[1]] - sk_en[self.Hamiltonian.rwa_indices[0]]
+
+            # remove optical frequency
+            HH = HH - Hske
+
+            # remove non RWA transitions 
+            for ii in range(Nst):
+                b_ii = self.Hamiltonian.which_band[ii]
+                for jj in range(Nst):
+                    b_jj = self.Hamiltonian.which_band[jj]
+                    if numpy.abs(b_ii - b_jj) > 1:
+                        MU_raw[ii,jj] = 0.0
+
         # Upper and lower triangle of the transition dipole moment operator
-        MU_u = numpy.triu(self.Trdip.data[:,:,X],k=1)
-        MU_l = numpy.tril(self.Trdip.data[:,:,X],k=-1)
+        MU_u = numpy.triu(MU_raw,k=1)
+        MU_l = numpy.tril(MU_raw,k=-1)
 
         # positive and negative frequency component of the field
         EEp = self.Efield    # E field must be a complex possitive frequency part
         EEm = numpy.conj(EEp)
+
+        RR = self.RelaxationTensor.data
 
         # auxiliary density matrices
         rho1 = rhoi.data
@@ -1433,8 +1482,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 IR = self.RelaxationTensor.Iterm[indx,:,:]
 
             # field-multiplicated transition dipole moment 
-            MuE_u = MU_u*EEm[indx]
-            MuE_l = MU_l*EEp[indx]
+            if self._has_field_RWA:
+                MuE_u = MU_u*EEm[indx]*numpy.exp(-1j*ome_p*tt)
+                MuE_l = MU_l*EEp[indx]*numpy.exp(1j*ome_p*tt)
+                
+            else:
+                MuE_u = MU_u*EEm[indx]
+                MuE_l = MU_l*EEp[indx]
             
             # expansion of the exponential
             for ll in range(1,L+1):

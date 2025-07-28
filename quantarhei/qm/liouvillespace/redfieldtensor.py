@@ -22,7 +22,7 @@ from ...core.parallel import distributed_configuration
 #from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 
-from ... import REAL
+from ... import REAL, COMPLEX
 
 import quantarhei as qr
 
@@ -176,6 +176,46 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             return super().apply(oper, copy=copy)
 
 
+    def get_population_rate(self, N, M):
+        """Returns the relaxation rate between states N -> M
+        
+        
+        """
+
+        if self.as_operators:
+
+            rt = 0.0
+            for ii in range(self.Lm.shape[2]):
+                rt += 2.0*numpy.real(self.Lm[N,M,ii]*self.Km[ii,N,M])
+            
+            return rt
+        
+        else:
+            return super().get_population_rate(N, M)
+        
+        
+    def get_dephasing_rate(self, N, M):
+        """Returns the dephasing rate of a coherence between states N and M
+        
+        
+        """
+        if self.as_operators:
+
+            rt = 0.0
+            for ii in range(self.Lm.shape[2]):
+
+                A_a = numpy.dot(self.Km[ii,N,:],self.Lm[:,N,ii])
+                A_b = numpy.dot(self.Ld[M,:,ii],self.Km[ii,:,M])
+                KL = self.Km[ii,N,N]*self.Ld[M,M,ii]
+                LK = self.Lm[N,N,ii]*self.Km[ii,M,M]
+                rt += A_a + A_b - KL - LK
+            
+            return rt 
+                   
+        else:  
+            return super().get_dephasing_rate(N, M)
+
+
     def transform(self, SS, inv=None):
         """Transformation of the tensor by a given matrix
         
@@ -205,11 +245,18 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             else:
                 S1 = inv
 
+            _Lm = numpy.zeros_like(self._Lm, dtype=COMPLEX)
+            _Ld = numpy.zeros_like(self._Ld, dtype=COMPLEX)
+            _Km = numpy.zeros_like(self._Km, dtype=COMPLEX)
             for m in range(self._Km.shape[0]):
-                self._Lm[:,:,m] = numpy.dot(S1,numpy.dot(self._Lm[:,:,m], SS))  
-                self._Ld[:,:,m] = numpy.dot(S1,numpy.dot(self._Ld[:,:,m], SS))
-                self._Km[m,:,:] = numpy.dot(S1,numpy.dot(self._Km[m,:,:], SS))
+                _Lm[:,:,m] = numpy.dot(S1,numpy.dot(self._Lm[:,:,m], SS))
+                _Ld[:,:,m] = numpy.dot(S1,numpy.dot(self._Ld[:,:,m], SS))
+                _Km[m,:,:] = numpy.dot(S1,numpy.dot(self._Km[m,:,:], SS))
      
+            self._Lm = _Lm
+            self._Ld = _Ld
+            self._Km = _Km
+            
         else:
     
             super().transform(SS)
@@ -423,8 +470,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self.Km = Km
             self.Lm = Lm
             self.Ld = Ld
-            
-            
             
         else:
             

@@ -119,7 +119,7 @@ class TestRDMPropagator(unittest.TestCase):
             50 0 5 -0.0404678523217 -0.0413353312194
             75 0 5 -0.0747762812157 0.00493941699829
         """
-        
+
         expstring = """
             0 4 4 4.08356345338e-19 0.0
             25 4 4 0.01232034923 -1.93617550736e-16
@@ -195,7 +195,8 @@ class TestRDMPropagator(unittest.TestCase):
                 for ii in range(HH.dim):
                     plt.plot(time.data, numpy.real(rhot1.data[:,ii,ii]))
                     plt.plot(time.data, numpy.real(rhot2.data[:,ii,ii]),"--")
-            
+            plt.plot(time.data, numpy.real(rhot2.data[:,0,5]))
+            plt.plot(time.data, numpy.real(rhot2.data[:,0,5]),"--")
             plt.show()
         
         _create_data_ = True
@@ -225,6 +226,7 @@ class TestRDMPropagator(unittest.TestCase):
                 expected[il] = (tmi, i1, i2, re, im)
                 il += 1
 
+        atol_loc = 1.0e-6
         _perform_test_ = True
         if _perform_test_:
             for ks in expected:
@@ -234,10 +236,10 @@ class TestRDMPropagator(unittest.TestCase):
                 i2 = dats[2]
                 numpy.testing.assert_allclose(dats[3], 
                                        numpy.real(rhot2.data[tt,i1,i2]),
-                                       atol=1.0e-6)
+                                       atol=atol_loc)
                 numpy.testing.assert_allclose(dats[4], 
                                        numpy.imag(rhot2.data[tt,i1,i2]),
-                                       atol=1.0e-6)
+                                       atol=atol_loc)
 
 
 

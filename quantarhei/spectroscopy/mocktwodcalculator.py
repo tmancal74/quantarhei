@@ -5,7 +5,7 @@ import numpy
 from .twodcalculator import TwoDResponseCalculator
 from .twodcontainer import TwoDResponseContainer
 from .pathwayanalyzer import LiouvillePathwayAnalyzer
-from .twod2 import TwoDResponse
+from .twodresponse import TwoDResponse
 from ..core.units import convert
 from .. import COMPLEX
 from .. import signal_REPH, signal_NONR
@@ -233,21 +233,20 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         H1 = sys.get_Hamiltonian()
 #        if H1.dim == eUt.dim:
 #            has_ESA = False
-        #if H1.dim == eUt.dim:
+
         if H1.Nblocks == 2:
             has_ESA = False
         
         #print("HAS ESA:", has_ESA)
         # get Liouville pathways
         if has_ESA:
-            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g", "R1f*", "R2f*",
-                                                   "R1gE", "R2gE"),
+            tps = ("R1g", "R2g", "R3g", "R4g", "R1f*", "R2f*", "R1gE", "R2gE")
+            pws = sys.liouville_pathways_3T(ptype=tps,
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab, dtol=dtol)
         else:
-            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g", "R1gE", "R2gE"),
+            tps = ("R1g", "R2g", "R3g", "R4g", "R1gE", "R2gE")
+            pws = sys.liouville_pathways_3T(ptype=tps,
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab, dtol=dtol)
             
@@ -295,7 +294,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                             pws.append(pw)
                         
                     
-            
+        print("Number of pathways:", len(pws))
         self.set_pathways(pws)
         
         if pways is not None:

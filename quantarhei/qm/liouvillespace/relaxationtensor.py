@@ -5,6 +5,8 @@ import numpy
 from .superoperator import SuperOperator
 from .secular import Secular
 from ...core.saveable import Saveable
+from ...core.units import kB_int
+from ...core.managers import eigenbasis_of
 
 class RelaxationTensor(SuperOperator, Secular, Saveable):
     """Basic class representing a relaxation tensor
@@ -25,6 +27,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         self.Iterm = None
         self.has_Iterm = False
         
+        self.Hamiltonian = None
         
 
  
@@ -114,7 +117,125 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             for ii in range(N):
                 self.secular_GG[:,ii,ii] = 0.0
 
-                               
+
+    def get_population_rate(self, N, M):
+        """Returns the relaxation rate from state M -> N
+        
+        
+        """
+        return self.data[N,N,M,M]
+
+    def set_population_rate(self, N, M, val):
+        """Sets the relaxation rate from state M -> N
+        
+        
+        """
+        self.data[N,N,M,M] = val
+
+
+    def get_dephasing_rate(self, N, M):
+        """Returns the dephasing rate of a coherence between states N and M
+        
+        
+        """
+        return -self.data[N,M,N,M]
+    
+
+    def set_dephasing_rate(self, N, M, val):
+        """Sets the dephasing rate of a coherence between states N and M
+        
+        
+        """
+        self.data[N,M,N,M] = -val  
+
+
+    def get_depopulation_rate(self, N):
+        """Returns the rate of depopulation of the state N
+        
+        
+        """
+
+        Ns = self.data.shape[0]
+        dep_rate = 0.0
+        for ii in range(Ns):
+            if ii != N:
+                dep_rate += self.get_population_rate(ii, N)
+
+        return dep_rate
+
+
+    def get_pure_dephasing_rate(self, N, M):
+        """Isolate the pure dephasing part of the rate
+        
+        """
+
+        Ns = self.data.shape[0]
+        tot_rate_1 = self.get_depopulation_rate(N)+self.get_depopulation_rate(M)
+        exp_deph_rate = tot_rate_1/2.0
+        act_deph_rate = self.get_dephasing_rate(N,M)
+
+        delta_rate = 0.0
+        if act_deph_rate >= exp_deph_rate:
+            delta_rate = act_deph_rate - exp_deph_rate
+        else:
+            raise Exception("Relaxation rate does not respect the 1/2 rule.")
+
+        return delta_rate
+
+
+    def enforce_detailed_balance(self, temperature=0.0, secularize=True):
+        """Enforces uphill rates to comply with the canonical detailed balace
+        
+        """
+
+        with eigenbasis_of(self.Hamiltonian):
+
+            if secularize:
+                self.secularize()
+
+            if self.as_operators:
+
+                pass
+
+            else:
+                Ns = self.data.shape[0]
+                HH = self.Hamiltonian.data
+                kbT = kB_int*temperature
+
+                # save pure dephasing matrix
+                Rdep = numpy.zeros_like(HH)
+                for ii in range(Ns):
+                    for jj in range(Ns):
+                        if ii != jj:
+                            Rdep[ii,jj] = self.get_dephasing_rate(ii,jj) \
+                                - 0.5*(self.get_depopulation_rate(ii)+self.get_depopulation_rate(jj))
+
+
+                # set uphill rates
+                for ii in range(Ns):
+                    for jj in range(ii+1,Ns):
+                        downhill = self.get_population_rate(ii,jj)
+                        if downhill > 0.0:
+                            if temperature == 0.0:
+                                coef = 0.0
+                            else:
+                                coef = numpy.exp(-(HH[jj,jj]-HH[ii,ii])/kbT)
+                            self.set_population_rate(jj,ii, downhill*coef)
+                            #uphill = self.get_population_rate(jj,ii)
+                            #print(ii,jj, downhill, uphill, Rdep[ii,jj])
+
+                # update the dephasing and depopulation
+                self.updateStructure()
+
+                # add the saved dephasing
+                for ii in range(Ns):
+                    for jj in range(Ns):
+                        if ii != jj: 
+                            self.data[ii,jj,ii,jj] += Rdep[ii,jj]
+
+
+
+
     def transform(self, SS, inv=None):
         """Transformation of the tensor by a given matrix
         
