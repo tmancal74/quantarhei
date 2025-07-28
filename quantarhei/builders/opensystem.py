@@ -670,8 +670,8 @@ class OpenSystem():
         from ..core.managers import eigenbasis_of
 
         if self._built:
-            #ham = self.get_Hamiltonian()
-            ham = deepcopy(self.get_Hamiltonian())
+            ham = self.get_Hamiltonian()
+            #ham = deepcopy(self.get_Hamiltonian())
             sbi = self.get_SystemBathInteraction()
         else:
             raise Exception()
@@ -707,11 +707,16 @@ class OpenSystem():
 
         if relaxation_theory in theories["standard_Redfield"]:
 
-            # When adiabatic hamiltonian is used
-            val,SS = self._get_exciton_prop(adiabatic=adiabatic) # adiabatic="NoBath"
-            SS1 = numpy.linalg.inv(SS)
-            HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1))
-            ham=Hamiltonian(data=HH_new)
+            if adiabatic is not None and adiabatic != False:
+              print("Ponverting hamiltonian to adiabatic one.")
+              print(" Relaxation tensor Hamiltonian is not molecule Hamiltonian anymore!")
+              # When adiabatic hamiltonian is used
+              ham = self.HH.copy()
+              val,SS = self._get_exciton_prop(adiabatic=adiabatic) # adiabatic="NoBath"
+              SS1 = numpy.linalg.inv(SS)
+              HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1))
+              ham._data = HH_new
+              #ham=Hamiltonian(data=HH_new)
 
             if time_dependent:
 
@@ -876,7 +881,7 @@ class OpenSystem():
 
             ham.subtract_cutoff_coupling(coupling_cutoff)
             # When adiabatic hamiltonian is used
-            val,SS = self._get_exciton_prop(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath" 
+            val,SS = self._get_exciton_prop2(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath" 
             SS1 = numpy.linalg.inv(SS)
             HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1))
             ham._data[:,:] = HH_new.copy()
@@ -1227,7 +1232,7 @@ class OpenSystem():
         
         is_adiabatic = False
         adiabatic_noBath = False
-        
+       
         if HH_in is None:
             HH = self.HH.copy()
         else:
@@ -1251,12 +1256,12 @@ class OpenSystem():
             for kk in range(self.Ntot):              
                 HH[kk,kk] -= reorg_site[kk]
             
-            val,SS = numpy.linalg.eigh(HH)
+            val,SS = numpy.linalg.eigh(HH.data)
             
             reorg_excit = self._excitonic_reorg_diag(SS, subtract_bath=adiabatic_noBath)
             
             val += reorg_excit
         else:
-            val,SS = numpy.linalg.eigh(HH)
+            val,SS = numpy.linalg.eigh(HH.data)
             
         return val,SS
