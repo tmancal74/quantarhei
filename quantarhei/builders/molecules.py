@@ -2468,15 +2468,53 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             return None
 
 
+#    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
+#        """Molecule does not have coupling between states (so far)
+#            
+#        """
+#        # FIXME: shouldn't self.HH be just the data matrix?
+#        ee = numpy.diag(self.HH.data)
+#        ss = numpy.diag(numpy.ones_like(ee))
+#        return ee, ss
+   
     def _get_exciton_prop(self,adiabatic=None,HH_in=None):
-        """Molecule does not have coupling between states (so far)
-            
-        """
-        # FIXME: shouldn't self.HH be just the data matrix?
-        ee = numpy.diag(self.HH.data)
-        ss = numpy.diag(numpy.ones_like(ee))
-        return ee, ss
-    
+
+        is_adiabatic = False
+        adiabatic_noBath = False
+
+        if HH_in is None:
+            HH = self.HH.copy()
+        else:
+            HH = HH_in.copy()
+
+        if self._diagonalized:
+            raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
+
+        if adiabatic is not None:
+            if adiabatic != False:
+                is_adiabatic = True
+            else:
+                is_adiabatic = False
+
+            if (adiabatic == "SubtractBath") or (adiabatic == "NoBath"):
+                adiabatic_noBath = True
+
+        if is_adiabatic:
+            reorg_site = self._site_reorg_diag(subtract_bath=adiabatic_noBath)
+
+            for kk in range(self.Ntot):
+                HH[kk,kk] -= reorg_site[kk]
+
+            ee,ss = numpy.linalg.eigh(HH.data)
+
+            reorg_excit = self._excitonic_reorg_diag(ss, subtract_bath=adiabatic_noBath)
+
+            val += reorg_excit
+        else:
+            ee,ss = numpy.linalg.eigh(HH.data)
+
+        return ee,ss
+
 
 
     def __str__(self):
