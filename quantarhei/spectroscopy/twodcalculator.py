@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-import time
 import os
 
 from ..utils import derived_type
@@ -9,7 +8,6 @@ from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..builders.opensystem import OpenSystem
 from ..core.time import TimeAxis
-from ..core.managers import eigenbasis_of
 from ..qm.propagators.poppropagator import PopulationPropagator
 from .twodresponse import TwoDResponse
 from .. import signal_REPH, signal_NONR
@@ -23,21 +21,8 @@ from ..spectroscopy.responses import LiouvillePathway
 
 import quantarhei as qr
 
-#try:
-#
-#    import aceto.nr3td as nr3td            
-#    from aceto.lab_settings import lab_settings
-#    from aceto.band_system import band_system            
-#    _have_aceto = True
-#    
-#except:
-    #
-    #
-    #raise Exception("Aceto not available")
-from ..implementations.aceto import nr3td  
-from ..implementations.aceto.band_system import band_system 
-from ..implementations.aceto.lab_settings import lab_settings         
-_have_aceto = False # we assume we have Python implementation
+from ..implementations.aceto.lab_settings import lab_settings
+
 
 
 class TwoDResponseCalculator:
@@ -73,6 +58,8 @@ class TwoDResponseCalculator:
         self.t3axis = t3axis
         
         #FIXME: check the compatibility of the axes 
+
+
         
         if system is not None:
             self.system = system
@@ -184,12 +171,6 @@ class TwoDResponseCalculator:
                 sys.diagonalize()
                 
                 #
-                # hamiltonian and transition dipole moment operators
-                #
-                H = sys.get_Hamiltonian()
-                D = sys.get_TransitionDipoleMoment()
-                
-                #
                 # Construct band_system object
                 #
                 Nb = 3
@@ -197,9 +178,6 @@ class TwoDResponseCalculator:
                 Ns[0] = sys.Nb[0] #1
                 Ns[1] = sys.Nb[1] #agg.nmono
                 Ns[2] = sys.Nb[2] #Ns[1]*(Ns[1]-1)/2
-                
-                _use_aceto = False
-
                 
                 #
                 # Relaxation rates
@@ -379,67 +357,6 @@ class TwoDResponseCalculator:
         resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         
-    
-        if False: #_have_aceto and self._has_system:
-            #
-            # calcute response
-            #
-            self._vprint("calculating response: ")
-    
-            t1 = time.time()
-    
-            self._vprint(" - ground state bleach")
-            # GSB
-            nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, 
-                          self.rwa, self.rmin, resp_Rgsb)
-            nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, 
-                          self.rwa, self.rmin, resp_Ngsb)
-    
-            self._vprint(" - stimulated emission")
-            # SE
-            nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, 
-                          self.rwa, self.rmin, resp_Rse)
-            nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, 
-                          self.rwa, self.rmin, resp_Nse)
-    
-            self._vprint(" - excited state absorption")
-            # ESA
-            nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, 
-                           self.rwa, self.rmin, resp_Resa)
-            nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, 
-                           self.rwa, self.rmin, resp_Nesa)
-            
-            #
-            # Transfer
-            #
-            Utr = self.Uee[:,:,self.tc] - self.Uc0[:,:,self.tc] 
-                                      # -Uc1[:,:,tc]-Uc2[:,:,tc] etc.
-            self.sys.set_population_propagation_matrix(Utr)
-            
-            self._vprint(" - stimulated emission with transfer")
-            # SE
-            nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
-                                self.rwa, self.rmin, resp_Rsewt)
-            nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
-                                self.rwa, self.rmin, resp_Nsewt)
-    
-            ## This contributes only when No > 0
-            #nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
-            #
-    
-            self._vprint(" - excited state absorption with transfer")
-            # ESA
-            nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
-                                 self.rwa, self.rmin, resp_Resawt)
-            nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s,
-                                 self.rwa, self.rmin, resp_Nesawt)
-    
-            t2 = time.time()
-            self._vprint("... calculated in "+str(t2-t1)+" sec")
-
-            self._has_responses = False  # responses are ignored if we use aceto
-            
-
 
         if self._has_system and not self._has_responses:
             #
