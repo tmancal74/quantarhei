@@ -147,15 +147,6 @@ class TwoDResponseCalculator:
                     print ("Creation of the directory failed, "+
                            "it either already exists "+
                            "or you didn't give a string")
-    
-              
-            # calculate 2D spectrum using aceto library
-              
-            ###############################################################
-            #
-            # Create band_system from quantarhei classes
-            #
-            ###############################################################
             
             if self._has_system:
             
