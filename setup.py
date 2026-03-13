@@ -15,11 +15,16 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+from pathlib import Path
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+#with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+#    long_description = f.read()
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.rst").read_text(encoding="utf-8")
 
 setup(
     name='quantarhei',
@@ -30,7 +35,9 @@ setup(
     version='0.0.68',
 
     description='Quantarhei: Open Quantum System Theory for Molecular Systems',
+    #long_description=long_description,
     long_description=long_description,
+    long_description_content_type="text/x-rst",
 
     # The project's main homepage.
     url='https://github.com/tmancal74/quantarhei',
@@ -81,7 +88,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['numpy','scipy','matplotlib',
-                      'dill','terminaltables','gherkin-official','pyyaml'],
+                      'dill','terminaltables','gherkin-official','pyyaml', 'packaging'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
