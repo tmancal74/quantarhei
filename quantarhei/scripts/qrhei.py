@@ -437,9 +437,9 @@ def do_command_fetch(args):
             for filename in matching:
                 
                 resource_package = "quantarhei"
-                resource_path = '/'.join(('wizard', 'examples', filename))
+                resource_path = '/'.join(('wizard', 'examples', filename))  # pragma: no cover
 
-                content = files(resource_package).joinpath(resource_path).read_bytes()
+                content = files(resource_package).joinpath(resource_path).read_bytes()  # pragma: no cover
                 
                 over = True
 

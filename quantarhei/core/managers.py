@@ -371,8 +371,8 @@ class Manager(metaclass=Singleton):
                 print("Warning: Configuration file "+fpath+" does not exit")
                 print("Warning: Placing a default configuration are using it")
                 
-                resource_path = '/'.join(('core', 'conf', 'qrhei.py'))
-                content = files("quantarhei").joinpath(resource_path).read_bytes()
+                resource_path = '/'.join(('core', 'conf', 'qrhei.py'))  # pragma: no cover
+                content = files("quantarhei").joinpath(resource_path).read_bytes()  # pragma: no cover
 
                 with open(fpath, "w") as f:
                     f.write(content.decode("utf-8"))

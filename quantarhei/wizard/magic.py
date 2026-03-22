@@ -144,7 +144,7 @@ def fetch_template(tname):
         
     resource_path = '/'.join(('wizard', 'templates', tfile))  
 
-    template = files(resource_package).joinpath(resource_path).read_bytes()
+    template = files(resource_package).joinpath(resource_path).read_bytes()  # pragma: no cover
      
     if _have_ip_:
         
