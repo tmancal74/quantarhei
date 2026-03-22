@@ -1,1 +1,20 @@
- 
+include README.rst
+include LICENSE
+include CONTRIBUTING.md
+include requirements.txt
+include requirements_devel.txt
+include pyproject.toml
+
+recursive-include quantarhei *.py
+recursive-include quantarhei/testing/resources *
+recursive-include quantarhei/wizard/examples *
+recursive-include quantarhei/core/conf *
+
+recursive-include tests *.py *.feature
+recursive-include examples *.py *.rst
+recursive-include docs/sphinx *.rst *.py
+
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude .DS_Store
