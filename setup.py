@@ -103,8 +103,13 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'quantarhei': ['testing/resources/behave/test.feature', 
-                       'wizard/examples/data_*', 'wizard/examples/*.yaml']
+        'quantarhei': [
+            'testing/resources/behave/*.feature',
+            'wizard/examples/*.py',
+            'wizard/examples/*.yaml',
+            'wizard/examples/*.pdb',
+            'wizard/examples/*.ipynb',
+        ]
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
