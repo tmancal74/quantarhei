@@ -62,7 +62,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import json
-import pkg_resources
+from importlib.resources import files
 
 import numpy
 
@@ -371,12 +371,8 @@ class Manager(metaclass=Singleton):
                 print("Warning: Configuration file "+fpath+" does not exit")
                 print("Warning: Placing a default configuration are using it")
                 
-                import pkg_resources
-
-                resource_package = "quantarhei"  # Could be any module/package name
-                resource_path = '/'.join(('core', 'conf', 'qrhei.py')) 
-                content = pkg_resources.resource_string(resource_package,
-                                                        resource_path)
+                resource_path = '/'.join(('core', 'conf', 'qrhei.py'))
+                content = files("quantarhei").joinpath(resource_path).read_bytes()
 
                 with open(fpath, "w") as f:
                     f.write(content.decode("utf-8"))
