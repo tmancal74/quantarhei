@@ -12,7 +12,7 @@ import re
 from subprocess import check_output
 
 # non-standard imports
-import pkg_resources
+from importlib.resources import files
 
 
 def quantarhei_installed(context, version=None):
@@ -119,7 +119,7 @@ def fetch_test_feature_file(context, filename):
     resource_package = "quantarhei"
     resource_path = '/'.join(('testing', 'resources', 'behave', filename))
 
-    content = pkg_resources.resource_string(resource_package, resource_path)
+    content = files(resource_package).joinpath(resource_path).read_bytes()
 
     with open(filename, "w") as file:
         file.write(content.decode("utf-8"))

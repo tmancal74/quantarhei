@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import pkg_resources
 import unittest
 import os.path as path
 

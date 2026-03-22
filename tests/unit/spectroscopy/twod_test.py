@@ -9,7 +9,7 @@ import os
 import numpy
 import numpy.testing as npt
 
-from nose.tools import assert_raises
+from pytest import raises as assert_raises
 
 import quantarhei as qr
 from quantarhei.spectroscopy.twodresponse import TwoDSpectrumBase

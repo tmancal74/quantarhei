@@ -23,7 +23,7 @@
 
 
 """
-import pkg_resources
+from importlib.resources import files
 
 
 try:
@@ -144,7 +144,7 @@ def fetch_template(tname):
         
     resource_path = '/'.join(('wizard', 'templates', tfile))  
 
-    template = pkg_resources.resource_string(resource_package, resource_path)
+    template = files(resource_package).joinpath(resource_path).read_bytes()
      
     if _have_ip_:
         
