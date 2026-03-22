@@ -62,6 +62,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import json
+from importlib.metadata import version as _pkg_version
 from importlib.resources import files
 
 import numpy
@@ -81,7 +82,7 @@ class Manager(metaclass=Singleton):
 
     """
 
-    version = "0.0.68"
+    version = _pkg_version("quantarhei")
 
     # hard wired unit options
     allowed_utypes = ["energy",
