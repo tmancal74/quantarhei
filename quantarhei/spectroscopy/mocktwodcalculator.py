@@ -11,6 +11,7 @@ from .. import COMPLEX
 from .. import signal_REPH, signal_NONR
 from .lineshapes import gaussian2D
 from .lineshapes import lorentzian2D
+from .lineshapes import storage
 from ..core.managers import Manager
 from ..core.managers import energy_units
 
@@ -62,6 +63,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         
         self.tc = 0
             
+    def get_storage(self):
+        return storage
 
     def set_width(self, val):
         m = Manager()
