@@ -757,10 +757,16 @@ class AggregateSpectroscopy(AggregateBase):
         try:
             # either the eUt is a complete evolution superoperator
             eUt2 = eUt.at(t2)
-            eUt2_dat = numpy.zeros(eUt2.data.shape, dtype=eUt2.data.dtype)
-            HH = eUt.get_Hamiltonian()
-            with eigenbasis_of(HH):
-                eUt2_dat[:,:,:,:] = eUt2.data
+
+#
+# TODO: Check this part I had before without eigenbasis of and used the evolution superoperator values directly
+#----------------------------------------------
+            eUt2_dat = numpy.zeros(eUt2.data.shape, dtype=eUt2.data.dtype)   #
+            HH = eUt.get_Hamiltonian()                                       #
+            with eigenbasis_of(HH):                                          #
+                eUt2_dat[:,:,:,:] = eUt2.data                                #
+#----------------------------------------------
+
         except:
             # or it is only a super operator at a given time t2
             # in this case 'ham' must be specified
@@ -776,8 +782,8 @@ class AggregateSpectroscopy(AggregateBase):
                 generate_R1g(self, lst, eUt2_dat,
                              pop_tol, dip_tol, evf_tol, verbose)
 
-            elif ptp == "R2g":  
-
+            elif ptp == "R2g":
+                
                 generate_R2g(self, lst, eUt2_dat,
                              pop_tol, dip_tol, evf_tol, verbose)
 
@@ -949,12 +955,13 @@ def generate_R1g(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
        
                             for i2d in nes:
                                 for i3d in nes:
-
-                                    evf = eUt2[i2d, i3d, i2e, i3e]
+         
+                                    #evf = eUt2[i2d, i3d, i2e, i3e]
                                     #if isinstance(eUt2,SuperOperator):
                                     #    evf = eUt2.data[i2d, i3d, i2e, i3e]
                                     #else:
                                     #    evf = eUt2.data(i2d, i3d, i2e, i3e)
+                                    evf = eUt2[i2d, i3d, i2e, i3e]
 
                                     if abs(evf) > evf_tol:
 
@@ -1082,11 +1089,11 @@ def generate_R1gE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i4g in ngs:
                                 for i5g in ngs:
 
-                                    evf = eUt2[i4g, i5g, i2e, i3e]
                                     #if isinstance(eUt2,SuperOperator):
                                     #    evf = eUt2.data[i4g, i5g, i2e, i3e]
                                     #else:
                                     #    evf = eUt2.data(i4g, i5g, i2e, i3e)
+                                    evf = eUt2[i4g, i5g, i2e, i3e]
 
                                     if abs(evf) > evf_tol:
 
@@ -1211,16 +1218,18 @@ def generate_R2g(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                     #    evf = eUt2.data[i3d, i2d, i3e, i2e]
                                     #else:
                                     #    evf = eUt2.data(i3d, i2d, i3e, i2e)
-                                    
                                     evf = eUt2[i3d, i2d, i3e, i2e]
                                     if abs(evf) > evf_tol:
 
                     
                                         for i4g in ngs:
 
-                                            if ((self.D2[i4g,i2d] > dip_tol)
-                                            and (self.D2[i4g,i3d] > dip_tol)):
+                                            #if ((self.D2[i4g,i2d] > dip_tol)
+                                            #and (self.D2[i4g,i3d] > dip_tol)):
                                     
+                                            if ((self.D2[i4g,i2e] > dip_tol)
+                                            and (self.D2[i4g,i3e] > dip_tol)):
+
                                 
                                                 l += 1
 
@@ -1328,12 +1337,12 @@ def generate_R2gE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i4g in ngs:
                                 for i5g in ngs:
 
-                                    evf = eUt2[i4g, i5g, i3e, i2e]
                                     #if isinstance(eUt2,SuperOperator):
                                     #    evf = eUt2.data[i4g, i5g, i3e, i2e]
                                     #else:
                                     #    evf = eUt2.data(i4g, i5g, i3e, i2e)
-                                    
+                                    evf = eUt2[i4g, i5g, i3e, i2e]
+
                                     if verbose > 4:
                                         print("Evolution factor",i4g, i5g, i3e, i2e, evf)
                                     if abs(evf) > evf_tol:
@@ -1453,11 +1462,11 @@ def generate_R3g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
                     
                         if self.D2[i3g,i2e] > dip_tol:
 
-                            evf = eUt2[i1g, i3g, i1g, i3g]
                             #if isinstance(eUt2,SuperOperator):
                             #    evf = eUt2.data[i1g, i3g, i1g, i3g]
                             #else:
                             #    evf = eUt2.data(i1g, i3g, i1g, i3g)
+                            evf = eUt2[i1g, i3g, i1g, i3g]
                     
                             for i4e in nes:
                 
@@ -1566,11 +1575,11 @@ def generate_R4g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
 
                         if self.D2[i3g,i2e] > dip_tol:
 
-                            evf = eUt2[i1g, i3g, i1g, i3g]
                             #if isinstance(eUt2,SuperOperator):
                             #    evf = eUt2.data[i1g, i3g, i1g, i3g]
                             #else:
                             #    evf = eUt2.data(i1g, i3g, i1g, i3g)
+                            evf = eUt2[i1g, i3g, i1g, i3g]
 
                             for i4e in nes:
 
@@ -1685,11 +1694,12 @@ def generate_R1f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i3d in nes:
                                 for i2d in nes:
 
-                                    evf = eUt2[i3d, i2d, i3e, i2e]
                                     #if isinstance(eUt2,SuperOperator):
                                     #    evf = eUt2.data[i3d, i2d, i3e, i2e]
                                     #else:
                                     #    evf = eUt2.data(i3d, i2d, i3e, i2e)
+                                    evf = eUt2[i3d, i2d, i3e, i2e]
+
                                     if abs(evf) > evf_tol:
                     
                                         for i4f in nfs:
@@ -1808,11 +1818,12 @@ def generate_R2f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i2d in nes:
                                 for i3d in nes:
 
-                                    evf = eUt2[i2d, i3d, i2e, i3e]
                                     #if isinstance(eUt2,SuperOperator):
                                     #    evf = eUt2.data[i2d, i3d, i2e, i3e]
                                     #else:
                                     #    evf = eUt2.data(i2d, i3d, i2e, i3e)
+                                    evf = eUt2[i2d, i3d, i2e, i3e]
+  
                                     if abs(evf) > evf_tol:
 
                                         for i4f in nfs:
@@ -1928,11 +1939,12 @@ def generate_R1fE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                             for i3g in ngs:
                                 for i2g in ngs:
 
-                                    evf = eUt2[i3g, i2g, i3e, i2e]
                                     #if isinstance(eUt2,SuperOperator):
                                     #    evf = eUt2.data[i3g, i2g, i3e, i2e]
                                     #else:
                                     #    evf = eUt2.data(i3g, i2g, i3e, i2e)
+                                    evf = eUt2[i3g, i2g, i3e, i2e]
+
                                     if abs(evf) > evf_tol:
                     
                                         for i4e in nes:
@@ -2044,11 +2056,13 @@ def generate_R2fE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                 
                             for i2g in ngs:
                                 for i3g in ngs:
-                                    evf = eUt2[i2g, i3g, i2e, i3e]
+
                                     #if isinstance(eUt2,SuperOperator):
                                     #    evf = eUt2.data[i2g, i3g, i2e, i3e]
                                     #else:
                                     #    evf = eUt2.data(i2g, i3g, i2e, i3e)
+                                    evf = eUt2[i2g, i3g, i2e, i3e]
+                                    
                                     if abs(evf) > evf_tol:
 
                                         for i4e in nes:

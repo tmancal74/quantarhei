@@ -78,6 +78,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             rwa_energy_loc = self.convert_2_current_u(rwa_energy)
         #self.Nblocks = len(self.rwa_indices)
         self.Nblocks = len(self.rwa_indices) - Null_blocks
+
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
 
         # average energies in every block
@@ -96,11 +97,12 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                     else:
                         en_block[block] += block*rwa_energy_loc
                     k += 1
-                if k==0:
-                    continue
+                #if k==0:
+                #    continue
                 en_block[block] = en_block[block]/float(k)
                 # set rwa_energies within the block
                 for ii in range(self.rwa_indices[block],upper):
+
                     self.rwa_energies[ii] = en_block[block]
 
         # set which_band information

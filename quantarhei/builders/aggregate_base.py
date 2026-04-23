@@ -2721,8 +2721,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     # a single correlation function per monomer
                     # ASSUMPTION: Two-level molecules
                     #Ncf = self.nmono
-                    Ncf = self.Nel - Nelg   # We construct bigger correlation
+
+                    #Ncf = self.Nel - Nelg   # We construct bigger correlation 
                                             # matrix, but fill only part
+                    Ncf = self.Nbe[1]
 
                 # instantiate the EGCF matrix object
                 self.egcf_matrix = CorrelationFunctionMatrix(time, Ncf)
@@ -2863,6 +2865,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             iops = []
 
             # how many operators should be created
+            # print("Higher excit:",sbi_for_higher_ex, self.Nel-1, self.sbi_mult)
             if sbi_for_higher_ex:
                 Nop = self.Nel-1 # all electronic states
             else:
@@ -3488,14 +3491,15 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             for kk in range(self.Ntot):
                 HH[kk,kk] -= reorg_site[kk]
-
-            val,SS = numpy.linalg.eigh(HH)
-
+            
+            val,SS = numpy.linalg.eigh(HH.data)
+            
             reorg_excit = self._excitonic_reorg_diag(SS, subtract_bath=adiabatic_noBath)
 
             val += reorg_excit
         else:
-            val,SS = numpy.linalg.eigh(HH)
+
+            val,SS = numpy.linalg.eigh(HH.data)
 
         return val,SS
 
