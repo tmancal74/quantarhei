@@ -1,9 +1,10 @@
 
 import subprocess
 import sys
+from typing import Any
 
 
-def execute_paver(args, util="paver"):
+def execute_paver(args: list[Any], util: str = "paver") -> None:
     """Executes 'paver' utility
 
     """
