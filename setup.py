@@ -1,4 +1,7 @@
-# -*- coding: utf-8 -*-
+# Minimal stub — all project metadata lives in pyproject.toml (PEP 621).
+# This file exists only for tools that invoke `python setup.py` directly
+# (e.g. paver sdist). Modern pip and build use pyproject.toml exclusively.
+from setuptools import setup
 
 """A setuptools based setup module for Quanterhei package
 
