@@ -6,16 +6,15 @@ load themselves from a file.
 
 """
 
-import os
-from tempfile import TemporaryDirectory
 import copy
-
-from .parcel import Parcel
-from .parcel import load_parcel
+import os
 
 #import time
 #import hashlib
 import uuid
+from tempfile import TemporaryDirectory
+
+from .parcel import Parcel, load_parcel
 
 
 class Saveable:

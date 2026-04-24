@@ -7,21 +7,19 @@ The default version of the script runs a series of three simulations
 (parameters Ns_d = 1 and Ns_u=1)
 
 """
-import time
 import datetime
+import gc
 import os
 import shutil
-import gc
+import time
 
 import numpy
 
 import quantarhei as qr
-
-from quantarhei.utils.vectors import X
 import quantarhei.functions as func
-from quantarhei.core.units import kB_int
-
 from quantarhei import printlog as print
+from quantarhei.core.units import kB_int
+from quantarhei.utils.vectors import X
 
 print("\n***** Rc Simulation Script"+
       " *****")

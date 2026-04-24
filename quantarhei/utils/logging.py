@@ -4,7 +4,9 @@
 
 """
 import traceback
+
 import quantarhei as qr
+
 
 def init_logging():
     """Initialization of logging

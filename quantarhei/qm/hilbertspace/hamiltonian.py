@@ -1,13 +1,10 @@
 
-from .operators import SelfAdjointOperator
-from ...core.managers import BasisManaged
-from ...core.managers import energy_units
-from ...core.managers import EnergyUnitsManaged
-from ...utils.types import ManagedRealArray
-from .operators import Operator
-from ... import REAL
-
 import numpy
+
+from ... import REAL
+from ...core.managers import BasisManaged, EnergyUnitsManaged, energy_units
+from ...utils.types import ManagedRealArray
+from .operators import Operator, SelfAdjointOperator
 
 
 class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):

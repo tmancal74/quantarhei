@@ -7,11 +7,12 @@
 
 import numpy
 
-from ..utils.types import Integer
+import quantarhei as qr
+
 #from ..core.units import cm2int
 from ..core.managers import UnitsManaged
+from ..utils.types import Integer
 
-import quantarhei as qr
 
 class liouville_pathway(UnitsManaged):
 

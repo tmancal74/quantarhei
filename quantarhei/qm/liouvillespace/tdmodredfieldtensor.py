@@ -1,14 +1,18 @@
 import time
-import numpy
-#import scipy.interpolate as interp
 
+import numpy
+
+from ... import COMPLEX, REAL
+from ...core.managers import eigenbasis_of, energy_units
+
+#from .rates.foersterrates import FoersterRateMatrix
+from ...core.time import TimeDependent
+
+#import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .relaxationtensor import RelaxationTensor
-#from .rates.foersterrates import FoersterRateMatrix
-from ...core.time import TimeDependent
-from ...core.managers import energy_units, eigenbasis_of
-from ... import COMPLEX, REAL
+
 
 class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
     """Time-dependent Modifield Redfield Tensor

@@ -1,6 +1,7 @@
 
 from .triangle import triangle
 
+
 class unique_list:
     """Helper list class that stores only unique objects
 

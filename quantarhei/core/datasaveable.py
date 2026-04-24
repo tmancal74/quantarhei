@@ -7,8 +7,10 @@ represented as a `data` property of the class.
 
 """
 import os
+
 import numpy
 import scipy.io as io
+
 
 class DataSaveable:
     """This class defines saving and loading procedure for the data property

@@ -8,30 +8,28 @@
 
 """
 #import h5py
+import time
+
 import matplotlib.pyplot as plt
 import numpy
 
-from ..core.time import TimeAxis
-from ..core.frequency import FrequencyAxis
-from ..builders.aggregates import Aggregate
-from ..builders.molecules import Molecule
-from ..core.managers import eigenbasis_of
-from ..core.managers import energy_units
-from ..qm.propagators.poppropagator import PopulationPropagator
-from ..core.units import convert
-from ..core.saveable import Saveable
-
-from ..utils import derived_type
-
 import quantarhei as qr
 
-import time
+from ..builders.aggregates import Aggregate
+from ..builders.molecules import Molecule
+from ..core.frequency import FrequencyAxis
+from ..core.managers import eigenbasis_of, energy_units
+from ..core.saveable import Saveable
+from ..core.time import TimeAxis
+from ..core.units import convert
+from ..qm.propagators.poppropagator import PopulationPropagator
+from ..utils import derived_type
 
 try:
 
     import aceto.nr3td as nr3td
-    from aceto.lab_settings import lab_settings
     from aceto.band_system import band_system
+    from aceto.lab_settings import lab_settings
     _have_aceto = True
 
 except:
@@ -750,8 +748,8 @@ class TwoDSpectrumContainer(Saveable):
                    frate=20, dpi=100, start=None, end=None,
                    show_states=None, progressbar=False):
 
-        import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
+        import matplotlib.pyplot as plt
 
         FFMpegWriter = manimation.writers["ffmpeg"]
         metadata = dict(title="Test Movie", artist='Matplotlib',

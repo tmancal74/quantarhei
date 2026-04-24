@@ -9,20 +9,23 @@ Class Details
 import numpy
 import scipy
 
-from .systembathinteraction import SystemBathInteraction
-from ..hilbertspace.hamiltonian import Hamiltonian
+import quantarhei as qr
 
-from .relaxationtensor import RelaxationTensor
-from ...core.managers import  energy_units
-from ...core.parallel import block_distributed_range
-from ...core.parallel import start_parallel_region, close_parallel_region
-from ...core.parallel import distributed_configuration
+from ... import COMPLEX, REAL
+from ...core.managers import energy_units
+from ...core.parallel import (
+    block_distributed_range,
+    close_parallel_region,
+    distributed_configuration,
+    start_parallel_region,
+)
+
 #from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
+from ..hilbertspace.hamiltonian import Hamiltonian
+from .relaxationtensor import RelaxationTensor
+from .systembathinteraction import SystemBathInteraction
 
-from ... import REAL, COMPLEX
-
-import quantarhei as qr
 
 class RedfieldRelaxationTensor(RelaxationTensor):
     """Redfield Relaxation Tensor
@@ -116,8 +119,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         if initialize:
 
             try:
-                from ...implementations.qm.liouvillespace.redfieldtensor \
-                        import redfieldtensor
+                from ...implementations.qm.liouvillespace.redfieldtensor import (
+                    redfieldtensor,
+                )
             except:
                 pass
 

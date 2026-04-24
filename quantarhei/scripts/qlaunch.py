@@ -13,14 +13,13 @@ and after the simulation is done it is returned back with the suffix .out.
 """
 
 import argparse
-import subprocess
-import os
 import fnmatch
-import traceback
+import os
+import subprocess
 import sys
+import traceback
 
 import quantarhei as qr
-
 
 
 def do_launch():

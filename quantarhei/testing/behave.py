@@ -5,12 +5,12 @@
 """
 # standard imports
 import os
-import tempfile
 import re
-from subprocess import check_output
+import tempfile
 
 # non-standard imports
 from importlib.resources import files
+from subprocess import check_output
 
 
 def quantarhei_installed(context, version=None):

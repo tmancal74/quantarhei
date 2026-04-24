@@ -1,8 +1,5 @@
 
-from .correlationfunctions import CorrelationFunction
-from .correlationfunctions import LineshapeFunction
-from .spectraldensities import SpectralDensity
 from .cfmatrix import CorrelationFunctionMatrix
-
-from .functionstorage import FunctionStorage
-from .functionstorage import FastFunctionStorage
+from .correlationfunctions import CorrelationFunction, LineshapeFunction
+from .functionstorage import FastFunctionStorage, FunctionStorage
+from .spectraldensities import SpectralDensity

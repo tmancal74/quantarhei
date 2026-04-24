@@ -1,27 +1,22 @@
 
-import numpy
 import os
 
-from ..utils import derived_type
+import numpy
+
+import quantarhei as qr
+
+from .. import REAL, signal_NONR, signal_REPH
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..builders.opensystem import OpenSystem
 from ..core.time import TimeAxis
+from ..implementations.aceto.lab_settings import lab_settings
 from ..qm.propagators.poppropagator import PopulationPropagator
-from .twodresponse import TwoDResponse
-from .. import signal_REPH, signal_NONR
-
-from ..spectroscopy.responses import NonLinearResponse
-
-from .. import REAL
 
 # deprecated class
-from ..spectroscopy.responses import LiouvillePathway
-
-import quantarhei as qr
-
-from ..implementations.aceto.lab_settings import lab_settings
-
+from ..spectroscopy.responses import LiouvillePathway, NonLinearResponse
+from ..utils import derived_type
+from .twodresponse import TwoDResponse
 
 
 class TwoDResponseCalculator:

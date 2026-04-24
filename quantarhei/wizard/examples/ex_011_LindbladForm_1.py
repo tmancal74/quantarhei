@@ -19,6 +19,7 @@ print("""
 """)
 
 from quantarhei import Manager
+
 #
 # FIXME: temporary fix for version 0.0.34
 #
@@ -138,9 +139,11 @@ print("...done")
 time = TimeAxis(0.0, 1000, 1.0)
 
 from quantarhei.qm import ReducedDensityMatrixPropagator
+
 vibprop = ReducedDensityMatrixPropagator(time, ham, eLF)
 
 from quantarhei.qm import ReducedDensityMatrix
+
 rho0 = ReducedDensityMatrix(dim=ham.dim)
 Ni = vagg.vibindices[3][0]
 rho0.data[Ni, Ni] = 1.0
@@ -179,9 +182,11 @@ print("...done")
 time = TimeAxis(0.0, 1000, 1.0)
 
 from quantarhei.qm import ReducedDensityMatrixPropagator
+
 vibprop = ReducedDensityMatrixPropagator(time, ham, eLF)
 
 from quantarhei.qm import ReducedDensityMatrix
+
 rho0 = ReducedDensityMatrix(dim=ham.dim)
 Ni = 3
 rho0.data[Ni, Ni] = 1.0

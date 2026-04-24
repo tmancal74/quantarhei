@@ -1,14 +1,15 @@
 
-import numpy
 import matplotlib.pylab as plt
+import numpy
 
+from ...core.managers import BasisManaged
 from ...core.matrixdata import MatrixData
+from ...core.saveable import Saveable
+
 #from ...core.time import TimeAxis
 from ...utils.types import BasisManagedComplexArray
-from ...core.managers import BasisManaged
-from ...core.saveable import Saveable
-from ..hilbertspace.operators import DensityMatrix
-from ..hilbertspace.operators import ReducedDensityMatrix
+from ..hilbertspace.operators import DensityMatrix, ReducedDensityMatrix
+
 
 class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 

@@ -3,12 +3,13 @@
 
 """
 import copy
-import quantarhei as qr
 
+import matplotlib
+
+import quantarhei as qr
 from quantarhei import printlog as print
 from quantarhei.spectroscopy import X
 
-import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 
 qr.assert_version(">","0.0.62")

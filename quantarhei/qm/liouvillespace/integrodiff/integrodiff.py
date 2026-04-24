@@ -1,11 +1,12 @@
 import types
+
 import numpy
 
-
-from ...propagators.dmevolution import ReducedDensityMatrixEvolution
+from .... import COMPLEX, REAL
 from ...liouvillespace.liouvillian import Liouvillian
 from ...liouvillespace.supopunity import SOpUnity
-from .... import COMPLEX, REAL
+from ...propagators.dmevolution import ReducedDensityMatrixEvolution
+
 
 class IntegrodiffPropagator:
     """Solver of integrodifferential equations

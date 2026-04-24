@@ -20,19 +20,16 @@ max_amplitude(pathways)
 
 """
 import os
+
 import numpy
 
-from ..core.managers import UnitsManaged, Manager
-from ..core.wrappers import deprecated
-
-from ..core.units import cm2int
-from ..core.units import convert
-from ..core.parcel import load_parcel
-from .. import REAL, COMPLEX
-
-from ..core.time import TimeAxis
+from .. import COMPLEX, REAL
 from ..core.dfunction import DFunction
-
+from ..core.managers import Manager, UnitsManaged
+from ..core.parcel import load_parcel
+from ..core.time import TimeAxis
+from ..core.units import cm2int, convert
+from ..core.wrappers import deprecated
 
 
 class LiouvillePathwayAnalyzer(UnitsManaged):

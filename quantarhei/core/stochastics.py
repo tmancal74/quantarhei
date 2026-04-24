@@ -1,9 +1,10 @@
 """Entirely experimental - if I delete it, I would forget about. That's why it is here
 
 """
-import numpy as np
 import time
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 # correlation functions

@@ -1,7 +1,8 @@
 import numpy
 
-from ... import REAL, COMPLEX
+from ... import COMPLEX, REAL
 from ..propagators.dmevolution import ReducedDensityMatrixEvolution
+
 
 class OQSStateVectorEvolution:
 

@@ -7,9 +7,10 @@ Class Details
 -------------
 
 """
-from .molecules import Molecule
-from .modes import Mode
 from .. import REAL
+from .modes import Mode
+from .molecules import Molecule
+
 
 class TestMolecule(Molecule):
     """Class to support tests on the Molecule class

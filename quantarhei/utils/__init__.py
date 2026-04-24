@@ -7,15 +7,7 @@ Some auxiliarly classes and functions to support the package
 
 """
 
-from .types import Float
-from .types import Integer
-from .types import Bool
-from .types import derived_type
-
-from .types import check_numpy_array
-from .types import array_property
-
-
+from .types import Bool, Float, Integer, array_property, check_numpy_array, derived_type
 from .vectors import normalize2
 
 

@@ -2,8 +2,10 @@
 
 
 """
-import numpy
 import os
+
+import numpy
+
 
 class MatrixData:
     """MatrixData type

@@ -1,13 +1,13 @@
 
+import matplotlib.pyplot as plt
 import numpy
+
+from ..core.dfunction import DFunction
+from .mocktwodcalculator import MockTwoDResponseCalculator
+from .twodcalculator import TwoDResponseCalculator
 
 #from .twodspect import TwoDSpectrum
 from .twodcontainer import TwoDResponseContainer
-from .twodcalculator import TwoDResponseCalculator
-from .mocktwodcalculator import MockTwoDResponseCalculator
-from ..core.dfunction import DFunction
-
-import matplotlib.pyplot as plt
 
 
 class PumpProbeSpectrum(DFunction):
@@ -98,8 +98,8 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
                    frate=20, dpi=100, start=None, end=None,
                    show_states=None, progressbar=False):
 
-        import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
+        import matplotlib.pyplot as plt
 
         FFMpegWriter = manimation.writers["ffmpeg"]
 

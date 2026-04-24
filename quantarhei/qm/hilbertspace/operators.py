@@ -1,14 +1,14 @@
 
 import numbers
+
 import numpy
 
+from ... import COMPLEX, REAL
+from ...core.managers import BasisManaged
 from ...core.matrixdata import MatrixData
 from ...core.saveable import Saveable
 from ...utils.types import BasisManagedComplexArray
-from ...core.managers import BasisManaged
 from .statevector import StateVector
-from ... import COMPLEX, REAL
-
 
 
 class Operator(MatrixData, BasisManaged, Saveable):

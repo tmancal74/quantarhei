@@ -1,7 +1,8 @@
 
 import os
-import subprocess
 import shlex
+import subprocess
+
 
 def run_unit_test(toexec):
 

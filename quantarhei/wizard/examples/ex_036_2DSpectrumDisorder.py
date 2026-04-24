@@ -1,4 +1,5 @@
 import numpy
+
 import quantarhei as qr
 
 _show_plots_ = True
@@ -24,10 +25,10 @@ t2_axis = qr.TimeAxis(0.0, 100, 10.0)
 t1_axis = qr.TimeAxis(0.0, 100, 10.0)
 t3_axis = qr.TimeAxis(0.0, 100, 10.0)
 
-from quantarhei.spectroscopy.mocktwodcalculator \
-    import MockTwoDResponseCalculator as TwoDResponseCalculator
-
 from quantarhei.spectroscopy import X
+from quantarhei.spectroscopy.mocktwodcalculator import (
+    MockTwoDResponseCalculator as TwoDResponseCalculator,
+)
 
 calc = TwoDResponseCalculator(t1_axis, t2_axis, t3_axis)
 with qr.energy_units("1/cm"):

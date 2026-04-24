@@ -8,15 +8,12 @@
 import numpy
 import scipy
 
+from .... import COMPLEX, REAL
 from ....core.implementations import implementation
+from ....core.time import TimeDependent
 from ....core.units import cm2int
-
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
-
-from ....core.time import TimeDependent
-from .... import REAL
-from .... import COMPLEX
 
 
 class TDRedfieldRateMatrix(TimeDependent):

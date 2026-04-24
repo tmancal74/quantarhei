@@ -4,8 +4,7 @@ import numpy
 
 import quantarhei as qr
 from quantarhei import LabSetup
-from quantarhei.utils.vectors import X #, Y, Z
-
+from quantarhei.utils.vectors import X  #, Y, Z
 
 ###############################################################################
 #
@@ -168,6 +167,7 @@ with qr.energy_units("1/cm"):
 # Window function for subsequenty FFT
 #
 import quantarhei.functions as func
+
 window = func.Tukey(t2axis, r=0.3, sym=False)
 
 #

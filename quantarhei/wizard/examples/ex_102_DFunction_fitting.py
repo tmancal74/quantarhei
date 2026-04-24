@@ -5,9 +5,10 @@
 
 _show_plots_ = True
 
-import numpy
-import quantarhei as qr
 import matplotlib.pyplot as plt
+import numpy
+
+import quantarhei as qr
 
 ###############################################################################
 #

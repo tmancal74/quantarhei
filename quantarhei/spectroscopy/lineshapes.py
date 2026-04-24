@@ -4,9 +4,9 @@
 import numpy
 from scipy import special
 
-from .. import REAL
-from .. import COMPLEX
+from .. import COMPLEX, REAL
 from ..core.managers import Manager
+
 
 class Storage:
     def __init__(self, rel_tol=1e-8):

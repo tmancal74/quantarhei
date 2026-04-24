@@ -3,6 +3,7 @@
 
 """
 import sys
+
 import numpy
 
 from .. import COMPLEX

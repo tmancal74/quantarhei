@@ -65,15 +65,16 @@ from importlib.resources import files
 
 import numpy
 
-from .units import conversion_facs_frequency
-from .units import conversion_facs_energy
-from .units import conversion_facs_length
-
-from .singleton import Singleton
-
-from .numconf import NumConf
-from .logconf import LogConf
 from .genconf import GenConf
+from .logconf import LogConf
+from .numconf import NumConf
+from .singleton import Singleton
+from .units import (
+    conversion_facs_energy,
+    conversion_facs_frequency,
+    conversion_facs_length,
+)
+
 
 class Manager(metaclass=Singleton):
     """Main package Manager

@@ -1,7 +1,6 @@
 
 
-from quantarhei import Molecule
-from quantarhei import energy_units
+from quantarhei import Molecule, energy_units
 
 en = [0.0, 12500] # 12500 1/cm corresponds to an absorption
                   # at the wavelength of 800 nm (near infra red light)

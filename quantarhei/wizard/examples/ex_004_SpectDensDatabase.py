@@ -1,9 +1,9 @@
 
 import numpy
-from quantarhei.models.spectdens import SpectralDensityDB
+
 #from quantarhei.models.spectdens import CorrelationFunctionDB
-from quantarhei import SpectralDensity
-from quantarhei import TimeAxis, energy_units
+from quantarhei import SpectralDensity, TimeAxis, energy_units
+from quantarhei.models.spectdens import SpectralDensityDB
 
 _show_plots_ = True
 

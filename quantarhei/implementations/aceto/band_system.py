@@ -1,5 +1,6 @@
 import numpy
 
+
 class band_system:
     """Python implementation of acetosys band_system class
 

@@ -11,23 +11,25 @@ import numbers
 #import matplotlib.pyplot as plt
 import numpy
 
+#from ..core.managers import energy_units
+from .. import (
+    COMPLEX,
+    REAL,
+    part_ABS,
+    part_COMPLEX,
+    part_IMAGINARY,
+    part_REAL,
+    signal_TOTL,  #, signal_REPH, signal_NONR
+)
+from ..core.dfunction import DFunction
+from ..core.frequency import FrequencyAxis
+from ..core.managers import Manager, energy_units
+from ..core.saveable import Saveable
 from ..core.time import TimeAxis
 from ..core.valueaxis import ValueAxis
-from ..core.frequency import FrequencyAxis
-from ..core.dfunction import DFunction
+
 #from .twod2 import TwoDResponse
 from .twodspect import TwoDSpectrum
-
-from ..core.managers import Manager, energy_units
-
-#from ..core.managers import energy_units
-from .. import COMPLEX
-from .. import REAL
-
-from ..core.saveable import Saveable
-
-from .. import part_REAL, part_IMAGINARY, part_COMPLEX, part_ABS
-from .. import signal_TOTL #, signal_REPH, signal_NONR
 
 
 class TwoDResponseContainer(Saveable):
@@ -440,8 +442,9 @@ class TwoDResponseContainer(Saveable):
 
 
         """
-        from scipy.optimize import least_squares
         from functools import partial
+
+        from scipy.optimize import least_squares
 
         if guess is None:
             guess = [1.0, 1.0/100.0, 0.0]
@@ -713,8 +716,8 @@ class TwoDResponseContainer(Saveable):
 
 
         """
-        import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
+        import matplotlib.pyplot as plt
 
         FFMpegWriter = manimation.writers["ffmpeg"]
 

@@ -1,14 +1,16 @@
 import numpy
+
 #import matplotlib.pyplot as plt
 import scipy.interpolate as interp
+
+from ...core.managers import energy_units
+from ...core.time import TimeDependent
+from ..corfunctions.correlationfunctions import c2g
 
 #from ..hilbertspace.hamiltonian import Hamiltonian
 #from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .foerstertensor import FoersterRelaxationTensor
-from ..corfunctions.correlationfunctions import c2g
-from ...core.managers import energy_units
 
-from ...core.time import TimeDependent
 
 class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
     """Weak resonance coupling relaxation tensor by Foerster theory

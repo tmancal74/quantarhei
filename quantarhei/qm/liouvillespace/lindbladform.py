@@ -4,12 +4,13 @@
 """
 import numpy
 
-from .redfieldtensor import RedfieldRelaxationTensor
-from ...builders.aggregates import Aggregate
-from .systembathinteraction import SystemBathInteraction
-from ...builders.aggregate_states import VibronicState
 from ... import REAL
+from ...builders.aggregate_states import VibronicState
+from ...builders.aggregates import Aggregate
 from ..hilbertspace.operators import ProjectionOperator
+from .redfieldtensor import RedfieldRelaxationTensor
+from .systembathinteraction import SystemBathInteraction
+
 
 class LindbladForm(RedfieldRelaxationTensor):
     """Lindblad form of relaxation tensor

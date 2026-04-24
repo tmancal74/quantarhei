@@ -4,11 +4,9 @@
 """
 import numpy
 
-from ..core.managers import Manager
-from ..core.managers import energy_units
-
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
+from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 

@@ -1,16 +1,14 @@
+import time
+
 import numpy
+
 #import matplotlib.pyplot as plt
 import scipy.interpolate as interp
 
-
-from ..corfunctions.correlationfunctions import c2g
-from ...core.managers import energy_units
-from .tdfoerstertensor import TDFoersterRelaxationTensor
-from .tdfoerstertensor import _td_reference_implementation
 from ... import COMPLEX, REAL
-
-
-import time
+from ...core.managers import energy_units
+from ..corfunctions.correlationfunctions import c2g
+from .tdfoerstertensor import TDFoersterRelaxationTensor, _td_reference_implementation
 
 
 class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
@@ -351,8 +349,8 @@ def _integrate_kernel_to_t(ti, tt, fce, margin=10):
                 0
 
     """
-    import scipy.interpolate as interp
     import numpy
+    import scipy.interpolate as interp
 
     ti_min = margin
     ti_eff = max(ti_min, ti) + 1

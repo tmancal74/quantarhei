@@ -1,13 +1,11 @@
 import numpy
 
+from .. import COMPLEX, REAL, Manager
 from ..core.managers import UnitsManaged
-from .opensystem import OpenSystem
 from ..core.saveable import Saveable
-from .. import REAL
-from .. import COMPLEX
-from .. import Manager
 from ..qm import LindbladForm
 from ..qm.oscillators.ho import operator_factory
+from .opensystem import OpenSystem
 
 
 class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
@@ -183,9 +181,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-        from .. import SystemBathInteraction
-        from .. import Hamiltonian
-        from .. import TransitionDipoleMoment
+        from .. import Hamiltonian, SystemBathInteraction, TransitionDipoleMoment
 
         Nl = len(self.modes)
 

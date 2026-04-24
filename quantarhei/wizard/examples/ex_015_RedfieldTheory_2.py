@@ -8,11 +8,11 @@ _show_plots_ = False
 
 import time
 
+import matplotlib.pyplot as plt
 import numpy
 
 import quantarhei as qr
 import quantarhei.models as models
-import matplotlib.pyplot as plt
 
 print("""
 *******************************************************************************

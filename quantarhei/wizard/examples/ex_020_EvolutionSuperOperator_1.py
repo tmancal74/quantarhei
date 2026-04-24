@@ -1,6 +1,7 @@
-import numpy
-import tempfile
 import os
+import tempfile
+
+import numpy
 
 _show_plots_ = False
 

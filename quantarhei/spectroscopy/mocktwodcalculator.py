@@ -1,18 +1,15 @@
 
 import numpy
 
+from .. import COMPLEX, signal_NONR, signal_REPH
+from ..core.managers import Manager, energy_units
+from ..core.units import convert
+from .lineshapes import gaussian2D, lorentzian2D, storage
+from .pathwayanalyzer import LiouvillePathwayAnalyzer
 from .twodcalculator import TwoDResponseCalculator
 from .twodcontainer import TwoDResponseContainer
-from .pathwayanalyzer import LiouvillePathwayAnalyzer
 from .twodresponse import TwoDResponse
-from ..core.units import convert
-from .. import COMPLEX
-from .. import signal_REPH, signal_NONR
-from .lineshapes import gaussian2D
-from .lineshapes import lorentzian2D
-from .lineshapes import storage
-from ..core.managers import Manager
-from ..core.managers import energy_units
+
 
 class MockTwoDResponseCalculator(TwoDResponseCalculator):
     """Calculator of the third order non-linear response

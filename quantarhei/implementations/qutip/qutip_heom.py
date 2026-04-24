@@ -2,16 +2,14 @@ import contextlib
 import time
 
 import numpy as np
-from matplotlib import pyplot as plt
-from scipy.optimize import curve_fit
-
 import qutip
-import quantarhei as qr
-
-
+from matplotlib import pyplot as plt
 from qutip import (
+    Qobj,
     basis,
     brmesolve,
+    coherent,
+    coherent_dm,
     destroy,
     expect,
     liouvillian,
@@ -22,11 +20,11 @@ from qutip import (
     spost,
     spre,
     tensor,
-    Qobj,
-    coherent,
-    coherent_dm,
 )
-
+from qutip.core.dimensions import (
+    from_tensor_rep,
+    to_tensor_rep,
+)
 from qutip.solver.heom import (
     BosonicBath,
     DrudeLorentzBath,
@@ -34,11 +32,10 @@ from qutip.solver.heom import (
     HEOMSolver,
     HSolverDL,
 )
+from scipy.optimize import curve_fit
 
-from qutip.core.dimensions import (
-    to_tensor_rep,
-    from_tensor_rep,
-)
+import quantarhei as qr
+
 
 @contextlib.contextmanager
 def timer(label):
@@ -52,10 +49,8 @@ def timer(label):
     end = time.time()
     print(f"{label}: {end - start}")
 
-from random import randint
 import time
-
-
+from random import randint
 
 """
 fmo_ham = numpy.array([

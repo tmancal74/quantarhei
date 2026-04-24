@@ -2,6 +2,7 @@ import numpy
 
 from ..core.managers import EnergyUnitsManaged
 
+
 class MolecularModel(EnergyUnitsManaged):
     """Representation of a non-Quantarhei molecule.
 

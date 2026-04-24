@@ -3,8 +3,8 @@
 
 """
 import copy
-import quantarhei as qr
 
+import quantarhei as qr
 from quantarhei.spectroscopy import X
 
 _show_plots_ = True

@@ -10,6 +10,7 @@ import numpy
 
 from ...core.managers import Manager
 
+
 class Secular:
     """Class representing secular Superoperators
 

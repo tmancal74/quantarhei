@@ -2,6 +2,7 @@
 from itertools import combinations
 
 import numpy
+
 from ...core.time import TimeAxis
 
 

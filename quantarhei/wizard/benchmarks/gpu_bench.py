@@ -2,8 +2,8 @@
 
 @author: tomas
 """
-import time
 import os
+import time
 
 import numpy
 

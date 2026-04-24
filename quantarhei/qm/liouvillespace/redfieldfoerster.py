@@ -1,11 +1,10 @@
 import numpy
 
-from .redfieldtensor import RedfieldRelaxationTensor
+from ...core.managers import Manager, energy_units
+from ..corfunctions.correlationfunctions import c2g
 from .foerstertensor import FoersterRelaxationTensor
 from .rates.foersterrates import _reference_implementation as foerster_rates
-from ..corfunctions.correlationfunctions import c2g
-from ...core.managers import Manager
-from ...core.managers import energy_units
+from .redfieldtensor import RedfieldRelaxationTensor
 
 
 class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,

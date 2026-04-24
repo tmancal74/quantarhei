@@ -2,6 +2,7 @@
 from ...builders.aggregates import Aggregate
 from .simulation import Simulation
 
+
 class ExcitonDynamics(Simulation):
     """Excitonic Dynamics Simulation
 

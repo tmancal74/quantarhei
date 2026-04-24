@@ -21,6 +21,7 @@ import quantarhei as qr
 from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 
+
 class SuperOperator(BasisManaged):
     """Class representing superoperators
 

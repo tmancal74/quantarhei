@@ -3,12 +3,13 @@
 
 
 """
-import time
 import datetime
+import time
+
+from ..core.managers import Manager
 
 # Quantarhei imports
 from .logging import printlog
-from ..core.managers import Manager
 
 
 def timeit(msg=None,show_stamp=False, loglevel=5, verbose=True):

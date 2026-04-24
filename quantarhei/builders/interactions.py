@@ -1,7 +1,8 @@
 
-import scipy.constants as const
-from ..core.units import eps0_int
 import numpy as np
+import scipy.constants as const
+
+from ..core.units import eps0_int
 
 
 def dipole_dipole_interaction(r1, r2, d1, d2, epsr):

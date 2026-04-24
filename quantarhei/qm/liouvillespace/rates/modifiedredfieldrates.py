@@ -7,26 +7,19 @@
 """
 import time
 
+import matplotlib.pyplot as plt
 import numpy
-from scipy import integrate
 import scipy
-
+from scipy import integrate
 from scipy.integrate import simpson as simps
 
-#from quantarhei.core.implementations import implementation
-
-from ...hilbertspace.hamiltonian import Hamiltonian
-from ...liouvillespace.systembathinteraction import SystemBathInteraction
-
+from .... import COMPLEX, REAL
 from ....core.dfunction import DFunction
-
-from .... import REAL
-from .... import COMPLEX
-
 from ....core.units import convert, kB_intK
 
-import matplotlib.pyplot as plt
-
+#from quantarhei.core.implementations import implementation
+from ...hilbertspace.hamiltonian import Hamiltonian
+from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
 #import itertools as it
 

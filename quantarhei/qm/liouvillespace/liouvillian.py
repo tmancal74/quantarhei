@@ -7,8 +7,9 @@ Class Details
 -------------
 
 """
-from .superoperator import SuperOperator
 from ..hilbertspace.operators import UnityOperator
+from .superoperator import SuperOperator
+
 
 class Liouvillian(SuperOperator):
     """Class representing and creating Liouvillian super operator

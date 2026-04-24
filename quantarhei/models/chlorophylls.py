@@ -5,10 +5,11 @@
 
 # -*- coding: utf-8 -*-
 
-from ..core.units import cm2int
-from .molecularmodel import MolecularModel
 from ..builders import pdb
+from ..core.units import cm2int
 from ..utils.vectors import normalize2
+from .molecularmodel import MolecularModel
+
 
 class ChlorophyllA(MolecularModel):
 

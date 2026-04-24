@@ -1,8 +1,9 @@
 import numpy
+
+from .. import REAL
 from ..core.managers import Manager
 from ..qm.propagators.poppropagator import PopulationPropagator
 from .response_implementations import get_implementation
-from .. import REAL
 
 """
     This packege contains two methodologies for calculating non-linear

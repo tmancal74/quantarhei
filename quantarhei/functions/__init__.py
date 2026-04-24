@@ -1,3 +1,2 @@
 
-from .dfce1 import Cos
-from .dfce1 import Tukey
+from .dfce1 import Cos, Tukey

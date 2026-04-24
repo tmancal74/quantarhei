@@ -1,9 +1,10 @@
 import numpy
 import scipy.interpolate as interp
 
+from ...corfunctions.correlationfunctions import c2g
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
-from ...corfunctions.correlationfunctions import c2g
+
 
 class FoersterRateMatrix:
     """Förster relaxation rate matrix

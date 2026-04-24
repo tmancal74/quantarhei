@@ -28,6 +28,7 @@ Load the definition file, instantiate it and run it as:
 
 from quantarhei.wizard.simulations import ExcitonDynamics
 
+
 class mySimulation(ExcitonDynamics):
     """Example file for ExcitonDynamics simulation
 
@@ -86,8 +87,7 @@ class mySimulation(ExcitonDynamics):
         #     Molecular system definition section
         #
         ###############################################################
-        from quantarhei import Molecule
-        from quantarhei import energy_units
+        from quantarhei import Molecule, energy_units
 
         # define as many molecules as you want
         # use energy units of your choice

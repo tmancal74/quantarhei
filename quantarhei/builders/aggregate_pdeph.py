@@ -13,9 +13,9 @@ Class Details
 """
 import numpy
 
+from .. import REAL
 from .aggregate_excitonanalysis import AggregateExcitonAnalysis
 
-from .. import REAL
 
 class AggregatePureDephasing(AggregateExcitonAnalysis):
     """Class calculation of PureDephasing object

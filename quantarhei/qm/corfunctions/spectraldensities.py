@@ -7,14 +7,12 @@ spectraldensities module
 import numpy
 
 from ...core.dfunction import DFunction
-from ...core.managers import UnitsManaged
-from ...core.managers import energy_units
+from ...core.managers import UnitsManaged, energy_units
 from ...core.time import TimeAxis
+from ...core.units import convert, kB_int
+
 #from ...core.frequency import FrequencyAxis
-from .correlationfunctions import CorrelationFunction
-from .correlationfunctions import FTCorrelationFunction
-from ...core.units import kB_int
-from ...core.units import convert
+from .correlationfunctions import CorrelationFunction, FTCorrelationFunction
 
 #from .correlationfunctions import c2h
 

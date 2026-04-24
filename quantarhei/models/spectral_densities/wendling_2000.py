@@ -1,8 +1,6 @@
 
+from quantarhei import SpectralDensity, energy_units
 from quantarhei.models.spectdens import SpectralDensityDatabaseEntry
-from quantarhei import SpectralDensity
-
-from quantarhei import energy_units
 
 
 class wendling_2000a(SpectralDensityDatabaseEntry):

@@ -1,7 +1,6 @@
 
+from quantarhei import SpectralDensity, energy_units
 from quantarhei.models.spectdens import SpectralDensityDatabaseEntry
-from quantarhei import SpectralDensity
-from quantarhei import energy_units
 
 
 class renger_2002a(SpectralDensityDatabaseEntry):

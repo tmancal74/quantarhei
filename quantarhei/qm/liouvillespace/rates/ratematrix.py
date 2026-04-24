@@ -2,6 +2,7 @@ import numpy
 
 from ....core.matrixdata import MatrixData
 
+
 class RateMatrix(MatrixData):
     """Represents a population transfer rate matrix
 

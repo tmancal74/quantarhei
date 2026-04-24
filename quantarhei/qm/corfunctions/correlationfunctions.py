@@ -41,16 +41,16 @@ Details of Classes Provided
 
 """
 
-import numpy
-import scipy.interpolate as interp
 from copy import deepcopy
 
+import numpy
+import scipy.interpolate as interp
+
 from ...core.dfunction import DFunction
-from ...core.units import kB_intK
-from ...core.managers import UnitsManaged
-from ...core.managers import energy_units
-from ...core.time import TimeAxis
 from ...core.frequency import FrequencyAxis
+from ...core.managers import UnitsManaged, energy_units
+from ...core.time import TimeAxis
+from ...core.units import kB_intK
 from ...core.wrappers import enforce_energy_units_context
 
 
@@ -1161,8 +1161,8 @@ def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
 
     """
     #from ..qm.corfunctions import CorrelationFunction
-    from ...builders.molecules import Molecule
     from ...builders.modes import Mode
+    from ...builders.molecules import Molecule
     from ...core.managers import eigenbasis_of
 
     Nmx = Nmax

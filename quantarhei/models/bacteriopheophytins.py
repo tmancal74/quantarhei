@@ -1,9 +1,11 @@
 
 from ..core.units import cm2int
+
 #from .molecularmodel import MolecularModel
 #from ..builders import pdb
 #from ..utils.vectors import normalize2
 from .bacteriochlorophylls import BacterioChlorophyll
+
 
 class BacterioPheophytin(BacterioChlorophyll):
 

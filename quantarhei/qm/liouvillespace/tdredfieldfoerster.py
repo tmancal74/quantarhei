@@ -1,13 +1,13 @@
 import numpy
 
-from .redfieldfoerster import RedfieldFoersterRelaxationTensor
-from .tdredfieldtensor import TDRedfieldRelaxationTensor
-from .tdfoerstertensor import _td_reference_implementation as td_foerster_rates
-from ..corfunctions.correlationfunctions import c2g
 #from ...core.managers import Manager
 from ...core.managers import energy_units
-
 from ...core.time import TimeDependent
+from ..corfunctions.correlationfunctions import c2g
+from .redfieldfoerster import RedfieldFoersterRelaxationTensor
+from .tdfoerstertensor import _td_reference_implementation as td_foerster_rates
+from .tdredfieldtensor import TDRedfieldRelaxationTensor
+
 
 class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
                                          TimeDependent):

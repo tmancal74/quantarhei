@@ -10,19 +10,18 @@ The default version of the script runs a series of three simulations
 
 
 """
-import time
 import datetime
+import gc
 import os
 import shutil
-import gc
+import time
 
 import numpy
 
 import quantarhei as qr
-
-from quantarhei.utils.vectors import X
 import quantarhei.functions as func
 from quantarhei.core.units import kB_int
+from quantarhei.utils.vectors import X
 
 print("\n***** Calculation of material for disorder integration (dimer version) *****")
 

@@ -1,13 +1,8 @@
-from sympy.physics.quantum import Operator, Dagger
-from sympy.physics.quantum.qexpr import QExpr
-from sympy import I, conjugate
-from sympy import S
-from sympy import Function, Wild, Mul, Pow
-from sympy import sympify
-
-import sympy as sp
-
 import numpy
+import sympy as sp
+from sympy import Function, I, Mul, Pow, S, Wild, conjugate, sympify
+from sympy.physics.quantum import Dagger, Operator
+from sympy.physics.quantum.qexpr import QExpr
 
 
 class CumulantException(Exception):
@@ -316,8 +311,7 @@ def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
 
     """
 
-    from .lang import python_code
-    from .lang import fortran_code
+    from .lang import fortran_code, python_code
 
     A = cuml.rewrite(gg)
     expr = CumulantExpr(A)

@@ -1,9 +1,10 @@
 
-from .operators import SelfAdjointOperator
-from ...core.managers import BasisManaged
-from ... import REAL
-
 import numpy
+
+from ... import REAL
+from ...core.managers import BasisManaged
+from .operators import SelfAdjointOperator
+
 #import scipy
 
 

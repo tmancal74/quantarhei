@@ -11,9 +11,11 @@ print("""
 """)
 
 import time
+
 import matplotlib.pyplot as plt
-import quantarhei as qr
 import numpy
+
+import quantarhei as qr
 
 ##########################################################
 #
@@ -86,8 +88,7 @@ def test_kernel(timeaxis, ham, operators, rates, ctime):
 
         return MM
 
-from quantarhei.qm.liouvillespace.integrodiff.integrodiff \
-     import IntegrodiffPropagator
+from quantarhei.qm.liouvillespace.integrodiff.integrodiff import IntegrodiffPropagator
 
 timea = qr.TimeAxis(0.0, 200, 0.5)
 Nt = timea.length

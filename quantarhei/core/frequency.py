@@ -120,11 +120,9 @@ Class Details
 """
 import numpy
 
+from ..utils.types import UnitsManagedReal, UnitsManagedRealArray
+from .managers import EnergyUnitsManaged, energy_units
 from .valueaxis import ValueAxis
-from .managers import EnergyUnitsManaged
-from .managers import energy_units
-from ..utils.types import UnitsManagedRealArray
-from ..utils.types import UnitsManagedReal
 
 
 class FrequencyAxis(ValueAxis, EnergyUnitsManaged):

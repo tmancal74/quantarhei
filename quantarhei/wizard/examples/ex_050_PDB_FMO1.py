@@ -14,13 +14,10 @@ print("""
 
 import numpy
 
+import quantarhei as qr
+from quantarhei import Aggregate, energy_units
 from quantarhei.builders.pdb import PDBFile
 from quantarhei.models.bacteriochlorophylls import BacterioChlorophyll
-
-from quantarhei import Aggregate
-from quantarhei import energy_units
-
-import quantarhei as qr
 
 #
 # Read a PDB file

@@ -4,19 +4,19 @@ Loads *.qrp, *.png, and other files and shows their content
 
 
 """
-from tkinter import Tk
-from tkinter import Label, Button, Frame, Menu
-from tkinter import YES, BOTH, SUNKEN, BOTTOM, RIGHT, X
-from tkinter.messagebox import showerror, askyesno
+from tkinter import BOTH, BOTTOM, RIGHT, SUNKEN, YES, Button, Frame, Label, Menu, Tk, X
 from tkinter.filedialog import askopenfilename
+from tkinter.messagebox import askyesno, showerror
+
 import matplotlib
+
 #matplotlib.use("TkAgg")
 #from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 #from matplotlib.figure import Figure
-
 import quantarhei as qr
 from quantarhei import printlog as print
+
 
 class Viewer(Frame):
     def __init__(self, parent=None, numrow=5, numcol=5):

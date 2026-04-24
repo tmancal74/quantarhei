@@ -34,8 +34,10 @@ Class Details
 """
 import numpy
 
-from .aggregate_spectroscopy import AggregateSpectroscopy
 import quantarhei as qr
+
+from .aggregate_spectroscopy import AggregateSpectroscopy
+
 
 class AggregateExcitonAnalysis(AggregateSpectroscopy):
     """Class adding exciton analysis on molecular aggregates

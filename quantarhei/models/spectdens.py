@@ -135,10 +135,11 @@ class SpectralDensityDB:
 
     def __init__(self, verbose=False):
 
-        from . import spectral_densities as SD
-        import pkgutil
         import importlib
         import inspect
+        import pkgutil
+
+        from . import spectral_densities as SD
 
         if verbose:
             print("Initializing Spectral Density Database")

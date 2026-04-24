@@ -1,19 +1,17 @@
 import warnings
 
-import numpy
 import matplotlib.pyplot as plt
-
-from ..core.datasaveable import DataSaveable
-from ..core.saveable import Saveable
-from ..core.dfunction import DFunction
-from ..core.valueaxis import ValueAxis
-from ..core.frequency import FrequencyAxis
-
-from .. import signal_TOTL
-from .. import TWOD_SIGNALS
-from .. import part_REAL, part_IMAGINARY, part_ABS
+import numpy
 
 import quantarhei as qr
+
+from .. import TWOD_SIGNALS, part_ABS, part_IMAGINARY, part_REAL, signal_TOTL
+from ..core.datasaveable import DataSaveable
+from ..core.dfunction import DFunction
+from ..core.frequency import FrequencyAxis
+from ..core.saveable import Saveable
+from ..core.valueaxis import ValueAxis
+
 
 class TwoDSpectrum(DataSaveable, Saveable):
 

@@ -4,28 +4,22 @@ Linear absorption spectrum of a molecule or an aggregate of molecules.
 
 
 """
-import numpy
-import scipy
 import copy
 
-from ..utils import derived_type
-from ..builders import Molecule
-from ..builders import Aggregate
-from ..builders import OpenSystem
-from ..core.time import TimeAxis
-from ..core.frequency import FrequencyAxis
-from ..core.managers import energy_units
-from ..core.managers import EnergyUnitsManaged
-from ..core.time import TimeDependent
-from ..core.managers import eigenbasis_of
-from ..core.units import convert,kB_intK
+import numpy
+import scipy
 
-from .linear_spectra import LinSpectrum
-from ..core.wrappers import prevent_basis_context
-
-from ..qm.hilbertspace.operators import ReducedDensityMatrix
-from .abs2 import AbsSpectrum
 from .. import COMPLEX, REAL
+from ..builders import Aggregate, Molecule, OpenSystem
+from ..core.frequency import FrequencyAxis
+from ..core.managers import EnergyUnitsManaged, eigenbasis_of, energy_units
+from ..core.time import TimeAxis, TimeDependent
+from ..core.units import convert, kB_intK
+from ..core.wrappers import prevent_basis_context
+from ..qm.hilbertspace.operators import ReducedDensityMatrix
+from ..utils import derived_type
+from .abs2 import AbsSpectrum
+from .linear_spectra import LinSpectrum
 
 #TODO: move _c2g from the calculator and use _c2g instead self._c2g
 

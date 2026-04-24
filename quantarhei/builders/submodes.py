@@ -6,21 +6,15 @@ a given vibrational mode has different parameters.
 """
 import numpy
 
-from ..utils import Float
-from ..utils import Integer
-
-from ..core.managers import UnitsManaged
-
-from ..core.saveable import Saveable
-
-from ..qm.hilbertspace.hamiltonian import Hamiltonian
-from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
-from ..qm.oscillators.ho import operator_factory
-from ..qm import ProjectionOperator
-from ..qm import SystemBathInteraction
-from ..qm import LindbladForm
-
 from .. import REAL
+from ..core.managers import UnitsManaged
+from ..core.saveable import Saveable
+from ..qm import LindbladForm, ProjectionOperator, SystemBathInteraction
+from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
+from ..qm.hilbertspace.hamiltonian import Hamiltonian
+from ..qm.oscillators.ho import operator_factory
+from ..utils import Float, Integer
+
 
 class SubMode(UnitsManaged, Saveable):
     """Instance of a vibrational mode relative to a give electronic state

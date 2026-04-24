@@ -1,8 +1,8 @@
 
-from functools import partial
-import numpy
 import numbers
+from functools import partial
 
+import numpy
 
 
 def array_property(name,shape=None):

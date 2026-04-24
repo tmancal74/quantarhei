@@ -9,10 +9,9 @@ ho (harmonic oscillator) module
 """
 import numpy
 
-from ...core.saveable import Saveable
+from ... import COMPLEX, REAL
 from ...core.dfunction import DFunction
-from ... import COMPLEX
-from ... import REAL
+from ...core.saveable import Saveable
 
 
 class fcstorage(Saveable):

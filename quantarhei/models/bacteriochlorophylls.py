@@ -1,9 +1,10 @@
 
-from ..core.units import cm2int
-from ..core.managers import EnergyUnitsManaged
-from .molecularmodel import MolecularModel
 from ..builders import pdb
+from ..core.managers import EnergyUnitsManaged
+from ..core.units import cm2int
 from ..utils.vectors import normalize2
+from .molecularmodel import MolecularModel
+
 
 class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
 

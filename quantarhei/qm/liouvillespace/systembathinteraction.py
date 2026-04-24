@@ -5,12 +5,13 @@ systembathinteraction module
 """
 import numpy
 
+from ... import REAL
+from ...core.dfunction import DFunction
 from ...core.saveable import Saveable
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
-from ...qm.corfunctions.functionstorage import FunctionStorage
 from ...qm.corfunctions.correlationfunctions import c2g
-from ...core.dfunction import DFunction
-from ... import REAL
+from ...qm.corfunctions.functionstorage import FunctionStorage
+
 
 class SystemBathInteraction(Saveable):
     """Describes interaction of an open quantum system with its environment

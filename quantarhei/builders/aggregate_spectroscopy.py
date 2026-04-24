@@ -9,12 +9,13 @@ Class Details
 
 import numpy
 
-from .aggregate_base import AggregateBase
-from ..spectroscopy import diagramatics as diag
+import quantarhei as qr
+
 from ..core.managers import eigenbasis_of
 from ..qm.liouvillespace.superoperator import SuperOperator
+from ..spectroscopy import diagramatics as diag
+from .aggregate_base import AggregateBase
 
-import quantarhei as qr
 
 class AggregateSpectroscopy(AggregateBase):
     """Class comprising the aggregate methods for support of spectroscopic simulations

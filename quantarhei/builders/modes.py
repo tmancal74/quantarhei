@@ -22,17 +22,12 @@ Class Details
 
 import numpy
 
-from ..utils import Integer
-from ..utils import Bool
-
 from ..core.managers import UnitsManaged, energy_units
-from ..core.wrappers import deprecated
-
 from ..core.saveable import Saveable
-
-from .submodes import SubMode
-
+from ..core.wrappers import deprecated
+from ..utils import Bool, Integer
 from .opensystem import OpenSystem
+from .submodes import SubMode
 
 
 # Mode is UnitsManaged with components of different dimensions

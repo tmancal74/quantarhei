@@ -1,24 +1,22 @@
 
-import numpy
-import scipy
 import copy
 
-from .twodcontainer import TwoDSpectrumContainer
-from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
-from ..core.dfunction import DFunction
-from ..core.managers import Manager
-from ..core.managers import energy_units
-from quantarhei import convert
-from .. import COMPLEX
+import matplotlib.pyplot as plt
+import numpy
+import scipy
 
-from ..utils import derived_type
+from quantarhei import convert
+
+from .. import COMPLEX
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
-from ..core.time import TimeAxis
+from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
-
-
-import matplotlib.pyplot as plt
+from ..core.managers import Manager, energy_units
+from ..core.time import TimeAxis
+from ..utils import derived_type
+from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
+from .twodcontainer import TwoDSpectrumContainer
 
 
 class PumpProbeSpectrum(DFunction):
@@ -198,8 +196,8 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                    frate=20, dpi=100, start=None, end=None,
                    show_states=None, progressbar=False):
 
-        import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
+        import matplotlib.pyplot as plt
 
         FFMpegWriter = manimation.writers["ffmpeg"]
 

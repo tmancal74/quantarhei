@@ -1,10 +1,8 @@
 
-from .modes import Mode
-from .sysmodes import AnharmonicMode
-from .sysmodes import HarmonicMode
-from .molecules import Molecule
+from .aggregate_states import ElectronicState, VibronicState
 from .aggregates import Aggregate
+from .modes import Mode
+from .molecules import Molecule
 from .opensystem import OpenSystem
 from .pdb import PDBFile
-from .aggregate_states import ElectronicState
-from .aggregate_states import VibronicState
+from .sysmodes import AnharmonicMode, HarmonicMode

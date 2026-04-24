@@ -70,35 +70,24 @@ Class Details
 
 import numpy
 
-from ..utils import array_property
-from ..utils import Integer
-
-from ..core.managers import UnitsManaged, Manager
-from ..core.managers import eigenbasis_of
-from ..core.managers import energy_units
-
-from . import Mode
-
-from ..core.triangle import triangle
-from ..core.unique import unique_list
-from ..core.unique import unique_array
-
-from ..core.units import kB_intK, eps0_int, c_int
-from ..core.units import conversion_facs_length, conversion_facs_edipole
-
-from ..qm import Hamiltonian
-from ..qm import TransitionDipoleMoment
-
-from ..qm.oscillators.ho import operator_factory
-
-from ..qm import SystemBathInteraction
-from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
-
-from ..core.saveable import Saveable
-from .opensystem import OpenSystem
-
 from .. import REAL
-
+from ..core.managers import Manager, UnitsManaged, eigenbasis_of, energy_units
+from ..core.saveable import Saveable
+from ..core.triangle import triangle
+from ..core.unique import unique_array, unique_list
+from ..core.units import (
+    c_int,
+    conversion_facs_edipole,
+    conversion_facs_length,
+    eps0_int,
+    kB_intK,
+)
+from ..qm import Hamiltonian, SystemBathInteraction, TransitionDipoleMoment
+from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
+from ..qm.oscillators.ho import operator_factory
+from ..utils import Integer, array_property
+from . import Mode
+from .opensystem import OpenSystem
 
 
 class Molecule(UnitsManaged, Saveable, OpenSystem):

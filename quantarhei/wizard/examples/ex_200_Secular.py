@@ -4,6 +4,7 @@
 
 """
 import numpy
+
 import quantarhei as qr
 import quantarhei.models as models
 

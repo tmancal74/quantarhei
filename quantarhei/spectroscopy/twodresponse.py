@@ -2,19 +2,27 @@
 
 
 """
-from functools import partial
 import numbers
+from functools import partial
+
 import matplotlib.pyplot as plt
 import numpy
 
-from ..core.frequency import FrequencyAxis
-from .. import COMPLEX
-from .. import signal_REPH, signal_NONR, signal_TOTL, signal_DC
-from .. import TWOD_SIGNALS
-from .. import part_REAL, part_IMAGINARY, part_ABS
-from ..core.saveable import Saveable
+from .. import (
+    COMPLEX,
+    TWOD_SIGNALS,
+    part_ABS,
+    part_IMAGINARY,
+    part_REAL,
+    signal_DC,
+    signal_NONR,
+    signal_REPH,
+    signal_TOTL,
+)
 from ..core.datasaveable import DataSaveable
 from ..core.dfunction import DFunction
+from ..core.frequency import FrequencyAxis
+from ..core.saveable import Saveable
 from ..core.valueaxis import ValueAxis
 from ..utils.types import check_numpy_array
 from .twodspect import TwoDSpectrum

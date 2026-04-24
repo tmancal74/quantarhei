@@ -7,9 +7,9 @@ email: mancal@karlov.mff.cuni.cz
 
 """
 import argparse
-import subprocess
-import os
 import fnmatch
+import os
+import subprocess
 import traceback
 from importlib.resources import files
 

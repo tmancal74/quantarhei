@@ -1,11 +1,12 @@
 import time
+
 import numpy
-#from numba import njit
 
-from .oqssvevolution import OQSStateVectorEvolution
-from quantarhei.qm import TDRedfieldRateMatrix
 import quantarhei as qr
+from quantarhei.qm import TDRedfieldRateMatrix
 
+#from numba import njit
+from .oqssvevolution import OQSStateVectorEvolution
 
 
 class OQSStateVectorPropagator:

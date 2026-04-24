@@ -23,7 +23,6 @@ Lists available templates
 """
 from importlib.resources import files
 
-
 try:
 
     # if IPython is not present,

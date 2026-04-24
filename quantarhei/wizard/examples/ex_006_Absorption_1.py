@@ -13,9 +13,10 @@ if _use_tempdir_:
 #</remove>
 
 import os
-import numpy
-import quantarhei as qr
 
+import numpy
+
+import quantarhei as qr
 
 #<remove>
 if _use_tempdir_:

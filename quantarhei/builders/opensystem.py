@@ -1,22 +1,17 @@
-import numpy
 from copy import deepcopy
 
-from ..core.managers import Manager
-from ..utils import array_property
-from ..qm.hilbertspace.hamiltonian import Hamiltonian
-from ..qm.liouvillespace.heom import KTHierarchy
-from ..qm.liouvillespace.heom import KTHierarchyPropagator
-from ..core.managers import eigenbasis_of
-from ..core.managers import energy_units
-from ..qm import SelfAdjointOperator
-from ..qm import ReducedDensityMatrix
-from ..core.dfunction import DFunction
-from ..core.triangle import triangle
-from ..core.units import kB_intK
-from .. import REAL
-from .. import COMPLEX
+import numpy
 
-from ..core.units import eps0_int, c_int
+from .. import COMPLEX, REAL
+from ..core.dfunction import DFunction
+from ..core.managers import Manager, eigenbasis_of, energy_units
+from ..core.triangle import triangle
+from ..core.units import c_int, eps0_int, kB_intK
+from ..qm import ReducedDensityMatrix, SelfAdjointOperator
+from ..qm.hilbertspace.hamiltonian import Hamiltonian
+from ..qm.liouvillespace.heom import KTHierarchy, KTHierarchyPropagator
+from ..utils import array_property
+
 
 class OpenSystem:
     """The class representing a general open quantum system
@@ -648,18 +643,19 @@ class OpenSystem:
 
 
         """
-        from ..qm import RedfieldRelaxationTensor
-        from ..qm import TDRedfieldRelaxationTensor
-        from ..qm import ModRedfieldRelaxationTensor
-        from ..qm import TDModRedfieldRelaxationTensor
-        from ..qm import FoersterRelaxationTensor
-        from ..qm import TDFoersterRelaxationTensor
-        from ..qm import NEFoersterRelaxationTensor
-        from ..qm import RedfieldFoersterRelaxationTensor
-        from ..qm import TDRedfieldFoersterRelaxationTensor
-        from ..qm import LindbladForm
-
         from ..core.managers import eigenbasis_of
+        from ..qm import (
+            FoersterRelaxationTensor,
+            LindbladForm,
+            ModRedfieldRelaxationTensor,
+            NEFoersterRelaxationTensor,
+            RedfieldFoersterRelaxationTensor,
+            RedfieldRelaxationTensor,
+            TDFoersterRelaxationTensor,
+            TDModRedfieldRelaxationTensor,
+            TDRedfieldFoersterRelaxationTensor,
+            TDRedfieldRelaxationTensor,
+        )
 
         if self._built:
             ham = self.get_Hamiltonian()
@@ -1027,8 +1023,8 @@ class OpenSystem:
 
 
         """
-        from ..qm import ReducedDensityMatrixPropagator
         from ..core.managers import eigenbasis_of
+        from ..qm import ReducedDensityMatrixPropagator
 
 
         relaxT, ham = self.get_RelaxationTensor(timeaxis,
@@ -1059,8 +1055,8 @@ class OpenSystem:
         """Returns Redfield rate matrix
 
         """
-        from ..qm import RedfieldRateMatrix
         from ..core.managers import eigenbasis_of
+        from ..qm import RedfieldRateMatrix
 
         if self._built:
             ham = self.get_Hamiltonian()

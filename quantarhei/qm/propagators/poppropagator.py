@@ -1,5 +1,7 @@
 import numpy
+
 from ..liouvillespace.rates.ratematrix import RateMatrix
+
 
 class PopulationPropagator:
     """Propagator for a population vector

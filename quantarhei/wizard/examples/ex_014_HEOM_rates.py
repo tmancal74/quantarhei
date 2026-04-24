@@ -1,9 +1,9 @@
 _show_plots_ = False
 
 import time
+
 import quantarhei as qr
-from quantarhei.qm.liouvillespace.integrodiff.integrodiff \
-     import IntegrodiffPropagator
+from quantarhei.qm.liouvillespace.integrodiff.integrodiff import IntegrodiffPropagator
 
 print("")
 print("***************************************************************")

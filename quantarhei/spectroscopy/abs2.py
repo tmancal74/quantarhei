@@ -9,6 +9,7 @@ Class Details
 
 from .absbase import AbsSpectrumBase
 
+
 class AbsSpectrum(AbsSpectrumBase):
     """Class representing absorption spectrum
 

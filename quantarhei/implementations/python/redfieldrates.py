@@ -1,12 +1,12 @@
 
 import numpy
 
-
-from ...core.parallel import block_distributed_range
-from ...core.parallel import start_parallel_region
-from ...core.parallel import close_parallel_region
-from ...core.parallel import distributed_configuration
-
+from ...core.parallel import (
+    block_distributed_range,
+    close_parallel_region,
+    distributed_configuration,
+    start_parallel_region,
+)
 
 
 def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):

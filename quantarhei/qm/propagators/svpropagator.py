@@ -5,8 +5,9 @@
 
 import numpy
 
-from .statevectorevolution import StateVectorEvolution
 from ..hilbertspace.evolutionoperator import EvolutionOperator
+from .statevectorevolution import StateVectorEvolution
+
 #from ... import REAL
 
 

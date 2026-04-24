@@ -105,20 +105,19 @@ Class Details
 
 """
 
+import numbers
 import os
 
-import scipy.interpolate
-import numpy
-import numbers
-
 import matplotlib.pyplot as plt
+import numpy
+import scipy.interpolate
 
-from .valueaxis import ValueAxis
-from .time import TimeAxis
+from .. import REAL
+from .datasaveable import DataSaveable
 from .frequency import FrequencyAxis
 from .saveable import Saveable
-from .datasaveable import DataSaveable
-from .. import REAL
+from .time import TimeAxis
+from .valueaxis import ValueAxis
 
 
 #FIXME Check the posibility to set a derivative of the spline at the edges

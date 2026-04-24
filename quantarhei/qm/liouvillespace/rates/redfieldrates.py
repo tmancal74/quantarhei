@@ -7,15 +7,11 @@
 
 import numpy
 
+from .... import REAL
 from ....core.implementations import implementation
-from ....core.units import cm2int
-from ....core.units import kB_intK
-
-
+from ....core.units import cm2int, kB_intK
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
-
-from .... import REAL
 
 
 class RedfieldRateMatrix:

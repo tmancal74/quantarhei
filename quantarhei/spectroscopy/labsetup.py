@@ -11,16 +11,16 @@ Class Details
 
 """
 
-import numpy
 from functools import partial
 
+import numpy
+
+from .. import COMPLEX, REAL, Manager
+from ..core.dfunction import DFunction
+from ..core.frequency import FrequencyAxis
+from ..core.time import TimeAxis
 from ..utils import Integer
 from ..utils.vectors import X
-from ..core.time import TimeAxis
-from ..core.frequency import FrequencyAxis
-from ..core.dfunction import DFunction
-from .. import REAL, COMPLEX
-from .. import Manager
 
 
 class LabSetup:

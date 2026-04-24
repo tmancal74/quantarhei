@@ -17,46 +17,40 @@ Issues:
 
 """
 
-import numpy
+import warnings
 from copy import deepcopy
-#import h5py
 
-from ..core.managers import UnitsManaged
-#from ..core.units import cm2int
-from .interactions import dipole_dipole_interaction
-
-from ..qm.oscillators.ho import fcstorage
-from ..qm.oscillators.ho import operator_factory
-
-from ..qm.hilbertspace.operators import Operator
-from ..qm.hilbertspace.operators import DensityMatrix
-from ..qm.hilbertspace.operators import ReducedDensityMatrix
-from ..qm.hilbertspace.statevector import StateVector
-from ..qm.propagators.dmevolution import DensityMatrixEvolution
-from ..qm.propagators.dmevolution import ReducedDensityMatrixEvolution
-from ..qm.propagators.statevectorevolution import StateVectorEvolution
-from ..qm.liouvillespace.systembathinteraction import SystemBathInteraction
-from ..qm.hilbertspace.hamiltonian import Hamiltonian
-from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
-
-from ..qm.corfunctions import CorrelationFunctionMatrix
-
-#from .aggregate_states import aggregate_state
-from .aggregate_states import ElectronicState
-from .aggregate_states import VibronicState
-
-#from ..core.managers import energy_units
-#from .molecules import Molecule
-from ..core.managers import Manager
-from ..core.managers import eigenbasis_of
-from ..core.saveable import Saveable
+import numpy
 
 import quantarhei as qr
-import warnings
+
+from .. import COMPLEX, REAL
+
+#import h5py
+#from ..core.managers import energy_units
+#from .molecules import Molecule
+from ..core.managers import Manager, UnitsManaged, eigenbasis_of
+from ..core.saveable import Saveable
+from ..qm.corfunctions import CorrelationFunctionMatrix
+from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
+from ..qm.hilbertspace.hamiltonian import Hamiltonian
+from ..qm.hilbertspace.operators import DensityMatrix, Operator, ReducedDensityMatrix
+from ..qm.hilbertspace.statevector import StateVector
+from ..qm.liouvillespace.systembathinteraction import SystemBathInteraction
+from ..qm.oscillators.ho import fcstorage, operator_factory
+from ..qm.propagators.dmevolution import (
+    DensityMatrixEvolution,
+    ReducedDensityMatrixEvolution,
+)
+from ..qm.propagators.statevectorevolution import StateVectorEvolution
+
+#from .aggregate_states import aggregate_state
+from .aggregate_states import ElectronicState, VibronicState
+
+#from ..core.units import cm2int
+from .interactions import dipole_dipole_interaction
 from .opensystem import OpenSystem
 
-from .. import REAL
-from .. import COMPLEX
 
 class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     """Molecular aggregate

@@ -1,19 +1,14 @@
 
 import numpy
 
-from ..utils import Float
-from ..utils import Integer
-
-from .opensystem import OpenSystem
-from ..qm.hilbertspace.hamiltonian import Hamiltonian
-from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
-from ..qm.oscillators.ho import operator_factory
-from ..qm import ProjectionOperator
-from ..qm import SystemBathInteraction
-from ..qm import LindbladForm
-from .submodes import SubMode
-
 from .. import REAL
+from ..qm import LindbladForm, ProjectionOperator, SystemBathInteraction
+from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
+from ..qm.hilbertspace.hamiltonian import Hamiltonian
+from ..qm.oscillators.ho import operator_factory
+from ..utils import Float, Integer
+from .opensystem import OpenSystem
+from .submodes import SubMode
 
 
 class HarmonicMode(SubMode, OpenSystem):

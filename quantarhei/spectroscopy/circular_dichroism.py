@@ -7,25 +7,21 @@ spectra.
 
 """
 #import h5py
+import matplotlib.pyplot as plt
 import numpy
 import scipy
-import matplotlib.pyplot as plt
 
-#from scipy.optimize import minimize, leastsq, curve_fit
-
-from ..utils import derived_type
-from ..builders import Molecule
-from ..builders import Aggregate
-from ..core.time import TimeAxis
-from ..core.frequency import FrequencyAxis
+from ..builders import Aggregate, Molecule
 from ..core.dfunction import DFunction
-
-from ..core.managers import energy_units
-from ..core.managers import EnergyUnitsManaged
-from ..core.time import TimeDependent
+from ..core.frequency import FrequencyAxis
+from ..core.managers import EnergyUnitsManaged, energy_units
+from ..core.saveable import Saveable
+from ..core.time import TimeAxis, TimeDependent
 from ..core.units import cm2int
 
-from ..core.saveable import Saveable
+#from scipy.optimize import minimize, leastsq, curve_fit
+from ..utils import derived_type
+
 
 class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
     """Provides basic container for circular dichroism spectrum
@@ -188,8 +184,8 @@ class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
 
     def gaussian_fit(self, N=1, guess=None, plot=False, Nsvf=251):
-        from scipy.signal import savgol_filter
         from scipy.interpolate import UnivariateSpline
+        from scipy.signal import savgol_filter
         """Performs a Gaussian fit of the spectrum based on an initial guess
 
 

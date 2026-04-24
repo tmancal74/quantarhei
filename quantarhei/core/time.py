@@ -201,8 +201,9 @@ Class Details
 
 import numpy
 
-from .valueaxis import ValueAxis
 from .managers import energy_units
+from .valueaxis import ValueAxis
+
 
 class TimeDependent:
 

@@ -3,12 +3,13 @@
 
 """
 import numpy
-from ... import REAL, COMPLEX
-from ..propagators.dmevolution import DensityMatrixEvolution
-from ..hilbertspace.operators import ReducedDensityMatrix
-from ..hilbertspace.operators import UnityOperator
+
+from ... import COMPLEX, REAL
 from ...core.units import kB_int
 from ..corfunctions.correlationfunctions import CorrelationFunction
+from ..hilbertspace.operators import ReducedDensityMatrix, UnityOperator
+from ..propagators.dmevolution import DensityMatrixEvolution
+
 
 class KTHierarchy:
     """Kubo-Tanimura Hierarchy
@@ -698,8 +699,10 @@ class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
         """Propagates the Kubo-Tanimura Hierarchy using QuTip implementation
 
         """
-        from ...implementations.qutip.qutip_heom import run_simulation
-        from ...implementations.qutip.qutip_heom import prepare_simulation
+        from ...implementations.qutip.qutip_heom import (
+            prepare_simulation,
+            run_simulation,
+        )
 
         ham = self.hy.ham
         sbi = self.hy.sbi

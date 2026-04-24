@@ -1,9 +1,10 @@
-import os
+import ast
 import json
+import os
+import re
+
 import yaml  # type: ignore[import-untyped]
 
-import ast
-import re
 
 #
 # The code below is here to test against arbitrary code execution during

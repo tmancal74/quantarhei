@@ -1,11 +1,11 @@
 import numpy
 import scipy
 
-from .redfieldtensor import RedfieldRelaxationTensor
-from ...core.time import TimeDependent
-
-from ...core.managers import Manager
 from ... import REAL
+from ...core.managers import Manager
+from ...core.time import TimeDependent
+from .redfieldtensor import RedfieldRelaxationTensor
+
 
 class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 

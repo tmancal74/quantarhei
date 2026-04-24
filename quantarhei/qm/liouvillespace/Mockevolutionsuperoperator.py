@@ -182,26 +182,26 @@ Class Details
 """
 
 # standard library imports
-import time
 import numbers
+import time
+
+import matplotlib.pyplot as plt
 
 # dependencies imports
 import numpy
 from scipy.linalg import expm
 
+import quantarhei as qr
+
+from ... import COMPLEX
+from ...core.saveable import Saveable
+from ...core.time import TimeAxis, TimeDependent
+from ..hilbertspace.operators import ReducedDensityMatrix
+from ..propagators.dmevolution import ReducedDensityMatrixEvolution
+
 # quantarhei imports
 from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
-from ..propagators.dmevolution import ReducedDensityMatrixEvolution
-from ..hilbertspace.operators import ReducedDensityMatrix
-from ...core.time import TimeAxis
-from ...core.saveable import Saveable
-
 from .superoperator import SuperOperator
-from ...core.time import TimeDependent
-from ... import COMPLEX
-import matplotlib.pyplot as plt
-
-import quantarhei as qr
 
 #from ...utils.types import BasisManagedComplexArray
 

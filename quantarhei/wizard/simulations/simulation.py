@@ -4,6 +4,7 @@ import datetime
 from ...core.managers import Manager
 from ...core.saveable import Saveable
 
+
 class Simulation(Saveable):
     """Quantarhei simulation class
 

@@ -1,8 +1,7 @@
-import numpy
 import matplotlib.pyplot as plt
+import numpy
 
-from quantarhei.models.spectdens import DatabaseEntry
-from quantarhei.models.spectdens import DataDefinedEntry
+from quantarhei.models.spectdens import DatabaseEntry, DataDefinedEntry
 
 
 class example_data_defined_array(DataDefinedEntry):

@@ -7,9 +7,10 @@ statevector module
 
 import numpy
 
-from ...utils.types import BasisManagedComplexArray
+from ... import COMPLEX, REAL
 from ...core.managers import BasisManaged
-from ... import REAL, COMPLEX
+from ...utils.types import BasisManagedComplexArray
+
 
 class StateVector(BasisManaged):
     """Represents a quantum mechanical state vector

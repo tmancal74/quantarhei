@@ -8,10 +8,10 @@ to be precalculated in a designated directory ("sim_up" by default)
 """
 
 import os
+
 import numpy
+
 import quantarhei as qr
-
-
 
 INP = qr.Input("ex_854_2DSpectrum_DimerDisorder.yaml")
                #math_allowed_in=["E1", "E2", "width_dis"])

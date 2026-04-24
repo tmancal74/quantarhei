@@ -21,8 +21,10 @@ Class Details
 """
 import numpy
 
-from .superoperator import SuperOperator
 import quantarhei as qr
+
+from .superoperator import SuperOperator
+
 
 class TestSuperOperator(SuperOperator):
     """SuperOperator class for test purposes

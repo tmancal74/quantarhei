@@ -8,13 +8,14 @@ email: mancal@karlov.mff.cuni.cz
 # standard imports
 import argparse
 import datetime
-import time
 import os
 import re
+import time
+
+from gherkin.parser import Parser
 
 # third party imports
 from gherkin.token_scanner import TokenScanner
-from gherkin.parser import Parser
 
 # quantarhei
 import quantarhei as qr

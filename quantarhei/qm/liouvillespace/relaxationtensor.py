@@ -1,11 +1,12 @@
 
 import numpy
 
-from .superoperator import SuperOperator
-from .secular import Secular
+from ...core.managers import eigenbasis_of
 from ...core.saveable import Saveable
 from ...core.units import kB_int
-from ...core.managers import eigenbasis_of
+from .secular import Secular
+from .superoperator import SuperOperator
+
 
 class RelaxationTensor(SuperOperator, Secular, Saveable):
     """Basic class representing a relaxation tensor
