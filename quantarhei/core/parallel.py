@@ -2,20 +2,25 @@
 
 
 """
+from __future__ import annotations
+
 import sys
+import threading
+from collections.abc import Generator
+from typing import Any
 
 import numpy
 
 from .. import COMPLEX
 
 
-def call_finish():
+def call_finish() -> None:
     pass
 
 
 class DistributedConfiguration:
 
-    def __init__(self, schedule=None):
+    def __init__(self, schedule: Any = None) -> None:
 
         self.use_steerer = False
         if self.use_steerer:
@@ -55,12 +60,16 @@ class DistributedConfiguration:
         self.parallel_region = 0
 
         self.silent = True
+        self.ranges: list[Any] = []
+        self.range: list[int] = []
+        self.inparallel_entered: bool = False
 
 
-    def stearer_loop(self):
+    def stearer_loop(self) -> None:
         """Here we wait for stearer tasks
 
         """
+        count = 0
         for ii in range(self.size):
             s = self.comm.recv()
             if s == "FINISH":
@@ -70,7 +79,7 @@ class DistributedConfiguration:
             pass
 
 
-    def start_parallel_region(self):
+    def start_parallel_region(self) -> None:
         """Starts a parallel region
 
         This function raises parallel_level if MPI is present and it sets
@@ -94,7 +103,7 @@ class DistributedConfiguration:
         #
         if self.use_steerer:
             if self.rank == self.size:
-                self.steerer_loop()
+                self.stearer_loop()
             else:
                 import atexit
                 atexit.register(call_finish)
@@ -103,7 +112,7 @@ class DistributedConfiguration:
         self.parallel_region += 1
 
 
-    def finish_parallel_region(self):
+    def finish_parallel_region(self) -> None:
         """Closes a parallel region
 
         Lowers parallel_level by 1
@@ -120,7 +129,7 @@ class DistributedConfiguration:
 
         self.parallel_region -= 1
 
-    def print_info(self):
+    def print_info(self) -> None:
         if self.rank == 0:
             if self.have_mpi:
                 from mpi4py import MPI
@@ -131,13 +140,13 @@ class DistributedConfiguration:
             else:
                 print("No Distributed Environemt")
 
-    def print(self, txt, who=0):
+    def print(self, txt: Any, who: int = 0) -> None:
         if self.rank == who:
             if not self.silent:
                 print(txt)
 
 
-    def reduce(self, A, operation="sum"):
+    def reduce(self, A: numpy.ndarray, operation: str = "sum") -> numpy.ndarray:
         """Performs a reduction operation on an array
 
         Performs a reduction on an array according to a specification by
@@ -162,7 +171,7 @@ class DistributedConfiguration:
         raise Exception("Unknown reduction operation")
 
 
-    def allreduce(self, A, operation="sum"):
+    def allreduce(self, A: numpy.ndarray, operation: str = "sum") -> None:
         """Performs a reduction operation on an array
 
         Performs a reduction on an array according to a specification by
@@ -187,7 +196,7 @@ class DistributedConfiguration:
         else:
             raise Exception("Unknown reduction operation")
 
-    def bcast(self, value, root=0):
+    def bcast(self, value: Any, root: int = 0) -> Any:
         #if self.parallel_level != 1:
         #    return value
         if self.parallel_region < 1:
@@ -196,7 +205,7 @@ class DistributedConfiguration:
         return self.comm.bcast(value, root=root)
 
 
-def start_parallel_region():
+def start_parallel_region() -> None:
     """Starts a parallel region
 
     This is a clean solution without having to explicitely invoke Manager
@@ -211,7 +220,7 @@ def start_parallel_region():
         Manager().log_conf.fverbosity -= 2
 
 
-def close_parallel_region():
+def close_parallel_region() -> None:
     """Closes a parallel region
 
     This is a clean solution without having to explicitely invoke Manager
@@ -226,7 +235,7 @@ def close_parallel_region():
         Manager().log_conf.fverbosity += 2
 
 
-def distributed_configuration():
+def distributed_configuration() -> DistributedConfiguration:
     """Returns the DistributedConfiguration object from the Manager
 
     """
@@ -234,7 +243,7 @@ def distributed_configuration():
     return Manager().get_DistributedConfiguration()
 
 
-def block_distributed_range(start, stop):
+def block_distributed_range(start: int, stop: int) -> range:
     """Creates an iterator which returns a block of indices
 
     Returns an iterator over a block of indices for each parallel process.
@@ -269,7 +278,7 @@ def block_distributed_range(start, stop):
     return range(start, stop)
 
 
-def block_distributed_list(dlist, return_index=False):
+def block_distributed_list(dlist: list[Any], return_index: bool = False) -> list[Any]:
     """Creates sublists for each process
 
     Returns an iterator over a part of the list
@@ -301,7 +310,7 @@ def block_distributed_list(dlist, return_index=False):
         config.range = rng
 
         if return_index:
-            lst = []
+            lst: list[Any] = []
             for a in range(rng[0],rng[1]):
                 lst.append((a, dlist[a]))
             return lst
@@ -319,7 +328,7 @@ def block_distributed_list(dlist, return_index=False):
     return dlist
 
 
-def block_distributed_array(array, return_index=False):
+def block_distributed_array(array: numpy.ndarray, return_index: bool = False) -> Any:
     """
 
     """
@@ -340,7 +349,7 @@ def block_distributed_array(array, return_index=False):
         config.range = rng
 
         if return_index:
-            lst = []
+            lst: list[Any] = []
             for a in range(array.shape[0]):
                 lst.append((a, array[a]))
             return lst
@@ -358,8 +367,10 @@ def block_distributed_array(array, return_index=False):
     return array
 
 
-def collect_block_distributed_data(containers, setter_function,
-                                  retriever_function, tags=None):
+def collect_block_distributed_data(containers: list[Any],
+                                   setter_function: Any,
+                                   retriever_function: Any,
+                                   tags: list[Any] | None = None) -> None:
     """Collects distributed data into a container on rank 0 nod
 
     Collects the "data" properties of the objects of the
@@ -460,7 +471,7 @@ def collect_block_distributed_data(containers, setter_function,
             setter_function(containers[0], tag, data)
 
 
-def _calculate_ranges(config, start, stop):
+def _calculate_ranges(config: DistributedConfiguration, start: int, stop: int) -> list[int]:
     """Calculate which part of a give range should belong to which process
 
 
@@ -480,7 +491,7 @@ def _calculate_ranges(config, start, stop):
     per_worker = whole_range // config.size
     remainder = whole_range % config.size
 
-    ranges = [None]*config.size
+    ranges: list[Any] = [None]*config.size
     for rank in range(config.size):
         N1_local = rank*per_worker
         N2_local = N1_local+per_worker
@@ -502,7 +513,7 @@ def _calculate_ranges(config, start, stop):
     return ranges[config.rank]
 
 
-def _calculate_ranges_list(config, dlist):
+def _calculate_ranges_list(config: DistributedConfiguration, dlist: list[Any]) -> list[int]:
     """Calculate which part of a given list should belong to which process
 
     Parameters
@@ -520,7 +531,7 @@ def _calculate_ranges_list(config, dlist):
     return _calculate_ranges(config, start, stop)
 
 
-def _calculate_ranges_array(config, array):
+def _calculate_ranges_array(config: DistributedConfiguration, array: numpy.ndarray) -> list[int]:
     """Calculate which part of a given array should belong to which process
 
     Parameters
@@ -538,11 +549,9 @@ def _calculate_ranges_array(config, array):
     return _calculate_ranges(config, start, stop)
 
 
-import threading
-
 _sentinel = object()
 
-def _send_to_other_by_MPI(config, i, dest, finish=False):
+def _send_to_other_by_MPI(config: DistributedConfiguration, i: int, dest: int, finish: bool = False) -> None:
 
     to_send = numpy.zeros(2, dtype=int)
     to_send[0] = i
@@ -555,7 +564,7 @@ def _send_to_other_by_MPI(config, i, dest, finish=False):
     config.comm.Send(to_send, dest=dest)
 
 
-def _receive_from_MPI(config, source):
+def _receive_from_MPI(config: DistributedConfiguration, source: int) -> int | None:
 
     # receive it
     data = numpy.zeros(2, dtype=int)
@@ -569,7 +578,7 @@ def _receive_from_MPI(config, source):
 
 class RangeDistributor(threading.Thread):
 
-    def __init__(self, start, stop, queue, config):
+    def __init__(self, start: int, stop: int, queue: Any, config: DistributedConfiguration) -> None:
         threading.Thread.__init__(self)
         self.threadID = 0
         self.name = "Range Distributor"
@@ -580,7 +589,7 @@ class RangeDistributor(threading.Thread):
         self.queue = queue
         self.config = config
 
-    def run(self):
+    def run(self) -> None:
 
         nproc = self.config.size
 
@@ -618,7 +627,7 @@ class RangeDistributor(threading.Thread):
                 l = 0
 
 
-def _get_next_from_thread(queue):
+def _get_next_from_thread(queue: Any) -> int | None:
 
     val = queue.get()
 
@@ -629,14 +638,14 @@ def _get_next_from_thread(queue):
     return val
 
 
-def _get_next_from_MPI(config, source):
+def _get_next_from_MPI(config: DistributedConfiguration, source: int) -> int | None:
 
     # receive value through MPI
     return _receive_from_MPI(config, source)
 
 
 
-def asynchronous_range(start, stop):
+def asynchronous_range(start: int, stop: int) -> Generator[int, None, None]:
     """Range distributing numbers asynchronously among processes
 
     """
@@ -649,7 +658,7 @@ def asynchronous_range(start, stop):
     if config.parallel_level==1:
 
         from queue import Queue
-        q = Queue()
+        q: Queue[Any] = Queue()
 
         if config.rank == 0:
 
@@ -693,10 +702,10 @@ def asynchronous_range(start, stop):
 
 
 
-def _parallel_function_wrapper(func, root):
+def _parallel_function_wrapper(func: Any, root: int) -> Any:
     # FIXME: return a wrapped function with parameter broadcasting
 
-    def retfce(params):
+    def retfce(params: Any) -> Any:
 
         wait_for_work = True
         dc = distributed_configuration()
@@ -776,7 +785,7 @@ class parallel_function:
     """
 
 
-    def __init__(self, function, leader_rank=0, parallel_level=0):
+    def __init__(self, function: Any, leader_rank: int = 0, parallel_level: int = 0) -> None:
 
 
         from .managers import Manager
@@ -790,7 +799,7 @@ class parallel_function:
         if self.dc.parallel_region < 1:
             raise Exception("This code has to be run from a declared parallel_region")
 
-    def __enter__(self):
+    def __enter__(self) -> tuple[Any, bool]:
         """All except of the leader are put on hold
 
         All processes will wait for the leader (rank=0 by default)
@@ -827,7 +836,7 @@ class parallel_function:
 
         return (ftoret, execute_block)
 
-    def __exit__(self,ext_ty,exc_val,tb):
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
         """On exit the leader process signals to stop waiting for more work
 
         """
@@ -836,5 +845,3 @@ class parallel_function:
             wait_for_work = False
             wait_for_work = self.dc.bcast(wait_for_work,
                                           root=self.leader)
-
-
