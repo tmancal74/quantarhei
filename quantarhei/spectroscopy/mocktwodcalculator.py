@@ -11,6 +11,7 @@ from .. import COMPLEX
 from .. import signal_REPH, signal_NONR
 from .lineshapes import gaussian2D
 from .lineshapes import lorentzian2D
+from .lineshapes import storage
 from ..core.managers import Manager
 from ..core.managers import energy_units
 
@@ -26,12 +27,14 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     
     """
 
-    def __init__(self, t1axis, t2axis, t3axis):
+
+    def __init__(self, t1axis, t2axis, t3axis,temp=None):
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
         self.widthy = convert(300, "1/cm", "int")
         self.dephx = convert(300, "1/cm", "int")
-        self.dephy = convert(300, "1/cm", "int")        
+        self.dephy = convert(300, "1/cm", "int")   
+        self.temp = temp # Temperature
 
         
     def bootstrap(self,rwa=0.0, pathways=None, verbose=False, 
@@ -60,6 +63,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         
         self.tc = 0
             
+    def get_storage(self):
+        return storage
 
     def set_width(self, val):
         m = Manager()
@@ -217,26 +222,34 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         H = eUt.get_Hamiltonian()
     
         # FIXME: this needs to be set differently, and it mu
-        rho0 = sys.get_DensityMatrix(condition_type="thermal",
+        # density matrix stored into sys.rho0
+        #temp = sys.get_temperature()
+        if self.temp is None:
+            rho0 = sys.get_DensityMatrix(condition_type="thermal",
                                      temperature=0.0)
+        else:
+            rho0 = sys.get_DensityMatrix(condition_type="thermal",
+                                     temperature=self.temp)
         
         # if the Hamiltonian is larger than eUt, we will calculate ESA
         has_ESA = True
         H1 = sys.get_Hamiltonian()
-        #if H1.dim == eUt.dim:
+#        if H1.dim == eUt.dim:
+#            has_ESA = False
+
         if H1.Nblocks == 2:
             has_ESA = False
         
         #print("HAS ESA:", has_ESA)
         # get Liouville pathways
         if has_ESA:
-            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g", "R1f*", "R2f*"),
+            tps = ("R1g", "R2g", "R3g", "R4g", "R1f*", "R2f*", "R1gE", "R2gE")
+            pws = sys.liouville_pathways_3T(ptype=tps,
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab, dtol=dtol)
         else:
-            pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g"),
+            tps = ("R1g", "R2g", "R3g", "R4g", "R1gE", "R2gE")
+            pws = sys.liouville_pathways_3T(ptype=tps,
                                                    eUt=Uin, ham=H, t2=t2,
                                                    lab=lab, dtol=dtol)
             
@@ -284,7 +297,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                             pws.append(pw)
                         
                     
-            
+        print("Number of pathways:", len(pws))
         self.set_pathways(pws)
         
         if pways is not None:
@@ -342,7 +355,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         else:
             dephy = pathway.dephs[3]
         
-        #print(shape, widthx, widthy)
+        if (widthx < 1e-5) or (widthy < 1e-5):
+            print("Shape, widthx, widthy:",shape, widthx, widthy)
         
         prefk = 4.0*numpy.log(2.0)
         

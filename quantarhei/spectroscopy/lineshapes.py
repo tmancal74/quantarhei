@@ -7,6 +7,44 @@ from scipy import special
 
 from .. import REAL
 from .. import COMPLEX
+from ..core.managers import Manager
+
+class Storage:
+    def __init__(self, rel_tol=1e-8):
+        self.params = []        # list of parameter tuples
+        self.results = []       # list of 2D matrices
+        self.positions = []
+        self.rel_tol = rel_tol  # relative tolerance for parameter comparison
+        self.lookup_count = 0
+        self.ok_count = 0
+        self.move_count = 0
+        self.flip_count = 0
+        self.lookup_on = False
+
+    def _is_close(self, a, b):
+        """Check if two 4-tuples are close within relative tolerance."""
+        return all(numpy.isclose(a_i, b_i, rtol=self.rel_tol, atol=0.0) for a_i, b_i in zip(a, b))
+
+    def lookup(self, param_tuple):
+        """Return the index of param_tuple if found, else -1."""
+        self.lookup_count += 1
+        for idx, existing in enumerate(self.params):
+            if self._is_close(param_tuple, existing):
+                return idx
+        return -1
+
+    def store(self, param_tuple, pos, matrix):
+        """Store new parameters and corresponding matrix."""
+        self.params.append(param_tuple)
+        self.results.append(matrix)
+        self.positions.append(pos)
+
+# Singleton instance
+storage = Storage()
+
+
+
+
 
 ###############################################################################
 #
@@ -79,20 +117,66 @@ def gaussian2D(omega1, cent1, delta1, omega2, cent2, delta2, corr=0.0):
 def voigt2D(omega1, cent1, delta1, gamma1, 
             omega2, cent2, delta2, gamma2, corr=0.0):
     """Two-dimensional complex Voigt lineshape
+
+    Parameters
+    ----------
+
+    omega1, omega2 : real arrays
+        Arrays of frequencies
+
+    cent1, cent2 : real
+        Center of the lineshape coordinates
+
+    delta1, delta2 : real
+        Gaussian linshape widths
+
+    gamma1, gamma2 : real
+        Exponential decays of the signal in t1 and t3 times (here denoted as 2)
+
+    corr : real
+        Correlation in the lineshape
     
     """
+
+    N1 = omega1.shape[0]
+    N2 = omega2.shape[0]
+
     if corr == 0.0:
-        
-        N1 = omega1.shape[0]
-        N2 = omega2.shape[0]
         
         dat1 = cvoigt(omega1, cent1, delta1, gamma1)
         dat2 = cvoigt(omega2, cent2, delta2, gamma2)
         
-        data = numpy.zeros((N1, N2), dtype=COMPLEX)  
+        #data = numpy.zeros((N1, N2), dtype=COMPLEX)  
+        #
+        #for k in range(N1):
+        #    data[:, k] = dat1[k]*dat2[:]
 
-        for k in range(N1):
-            data[:, k] = dat1[k]*dat2[:]
+        if storage.lookup_on:
+
+            params = (delta1, delta2, gamma1, gamma2)
+
+            indx = storage.lookup(params)
+            if indx < 0:
+                data = numpy.outer(dat2, dat1)
+                storage.store(params, (cent1, cent2), data)
+            else:
+                data = storage.results[indx]
+                pos = storage.positions[indx]
+                if storage._is_close((cent1, cent2), pos):
+                    print("Ok")
+                    storage.ok_count += 1
+                else:
+                    if (numpy.abs(cent1) == numpy.abs(pos[0])) and (cent2 == pos[1]):
+                        print("Just a flip", pos[0], cent1, pos[1], cent2)
+                        storage.flip_count += 1
+                    else:
+                        print("Has to be moved by", pos[0], cent1, pos[1], cent2)
+                        storage.move_count += 1
+
+        else:
+            data = numpy.outer(dat2, dat1)
+
+        #print(indx, len(storage.params), storage.lookup_count)
         
     else:
         
@@ -105,22 +189,22 @@ def lorentzian2D(omega1, cent1, gamma1, omega2, cent2, gamma2, corr=0.0):
     """Two-dimensional complex Lorentzian lineshape
     
     """
-    
+    N1 = omega1.shape[0]
+    N2 = omega2.shape[0]
+
     if corr == 0.0:
-        
-        N1 = omega1.shape[0]
-        N2 = omega2.shape[0]
         
         dat1 = lorentzian(omega1, cent1, gamma1) + \
                lorentzian_im(omega1, cent1, gamma1)
         dat2 = lorentzian(omega2, cent2, gamma2) + \
                lorentzian_im(omega2, cent2, gamma2)
         
-        data = numpy.zeros((N1, N2), dtype=COMPLEX)  
+        #data = numpy.zeros((N1, N2), dtype=COMPLEX)  
+        #
+        #for k in range(N1):
+        #    data[k, :] = dat1[k]*dat2[:]
+        data = numpy.outer(dat1,dat2)
 
-        for k in range(N1):
-            data[k, :] = dat1[k]*dat2[:]
-        
     else:
         
         raise Exception("Not implemented yet")

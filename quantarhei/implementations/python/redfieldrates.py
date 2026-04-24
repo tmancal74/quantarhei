@@ -10,7 +10,7 @@ from ...core.parallel import distributed_configuration
 
 
 
-def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
+def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
     """Standard redfield rates
     
     
@@ -35,32 +35,28 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
     
     """
     
+    if corrM is None:
+        corrM = numpy.identity(Nk)
+    
     # loop over components
 
-    dc = distributed_configuration() # Manager().get_DistributedConfiguration()
+    #dc = distributed_configuration() # Manager().get_DistributedConfiguration()
     
     #
-    #  PARALLELIZED
+    #  SERIAL VERSION
     #
-    start_parallel_region()
-    for k in block_distributed_range(0, Nk):
-    #for k in range(Nk):
-        
-        # interaction operator
-        KK = KI[k,:,:]
-
-        for i in range(Na):
-            for j in range(Na):
-                
-                # calculate rates, i.e. off diagonal elements
-                if i != j:                                
-                            
-                    RR[i,j] += (cc[k,i,j]*KK[i,j]*KK[j,i])
+    for i in range(Na):
+        for j in range(Na):
+            
+            # calculate rates, i.e. off diagonal elements
+            if i != j:                                
+                        
+                RR[i,j] += numpy.dot(cc[:,i,j]*KI[:,i,j],numpy.dot(corrM,KI[:,j,i]))
                     
     
     # FIXME: parallelization ignores werror
-    dc.allreduce(RR, operation="sum")        
-    close_parallel_region()
+    #dc.allreduce(RR, operation="sum")        
+    #close_parallel_region()
     
     #
     #  END PARALLELIZED

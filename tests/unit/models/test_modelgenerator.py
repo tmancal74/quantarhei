@@ -48,6 +48,8 @@ class TestModelGenerator(unittest.TestCase):
         
         agg1 = mgen.get_Aggregate("dimer-1")
         agg1.build(mult=2)
+        # Consider testing also:
+        # agg1.build(mult=2,sbi_for_higher_ex=True)
         H = agg1.get_Hamiltonian()
         self.assertEqual(H.dim, 4) 
         

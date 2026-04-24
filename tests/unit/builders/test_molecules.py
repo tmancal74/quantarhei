@@ -416,21 +416,21 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         N3_g = 3
         N3_e = 3
         with qr.energy_units("1/cm"):
-            m3 = Molecule([0.0, 10000.0])
+            m4 = Molecule([0.0, 10000.0])
             mod3 = Mode(300.0)
-            m3.add_Mode(mod3)
+            m4.add_Mode(mod3)
             mod3.set_nmax(0,N3_g)
             mod3.set_nmax(1,N3_e)
             mod3.set_HR(1,0.1)
             mod4 = Mode(200.0)
-            m3.add_Mode(mod4)
+            m4.add_Mode(mod4)
             mod4.set_nmax(0,N3_g)
             mod4.set_nmax(1,N3_e)
             mod4.set_HR(1,0.1) 
             
         self.N4 = N3_g**2 + N3_e**2
-        self.m4 = m3
-        
+        self.m4 = m4
+
         # a tree state molecule to test two mode relaxation
         N3_g = 3
         N3_e = 3
@@ -591,7 +591,11 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         #    for jj in range(ii+1,ham.dim):
         #        if numpy.abs(numpy.real(RT.data[ii,ii,jj,jj])) > 1.0e-10:
         #            print(ii,jj, 1.0/numpy.real(RT.data[ii,ii,jj,jj]))
-        
+       
+        #print(ham)
+        #print(expected)
+        #print(1/numpy.real(RT.data[0,0,1,1]),1/numpy.real(RT.data[1,1,2,2]),1/numpy.real(RT.data[3,3,4,4]),1/numpy.real(RT.data[4,4,5,5]))
+
         for key in expected.keys():
             ii = key[0]
             jj = key[1]
