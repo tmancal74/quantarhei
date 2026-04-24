@@ -32,14 +32,14 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "numpy",
-  "scipy",
-  "matplotlib",
-  "dill",
-  "terminaltables",
-  "gherkin-official<5",
-  "pyyaml",
-  "packaging",
+  "numpy>=1.24",
+  "scipy>=1.9",
+  "matplotlib>=3.5",
+  "dill>=0.3.6",
+  "terminaltables>=3.1",
+  "gherkin-official>=4.1,<5",
+  "pyyaml>=6.0",
+  "packaging>=21.0",
 ]
 
 [project.urls]
@@ -63,6 +63,7 @@ exclude = ["contrib", "docs", "tests"]
 
 [tool.setuptools.package-data]
 quantarhei = [
+  "py.typed",
   "testing/resources/behave/*.feature",
   "wizard/examples/*.py",
   "wizard/examples/*.yaml",
