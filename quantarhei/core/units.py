@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy
 import scipy.constants as const
 
 # frequency
@@ -114,7 +115,7 @@ eps0_int = 1.0e19/(4.0*const.pi*J2int)
 #
 
 
-def convert(val: float, in_units: str, to: str | None = None) -> float:
+def convert(val: float | numpy.ndarray, in_units: str, to: str | None = None) -> float | numpy.ndarray:
     """Converts value in certain units into other units
 
     """
@@ -131,7 +132,7 @@ def convert(val: float, in_units: str, to: str | None = None) -> float:
 
     return ne
 
-def in_current_units(val: float, in_units: str) -> float:
+def in_current_units(val: float | numpy.ndarray, in_units: str) -> float | numpy.ndarray:
     """Converts value in certain units into the current units
 
     """

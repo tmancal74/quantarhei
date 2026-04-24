@@ -140,7 +140,7 @@ class ValueAxis(Saveable):
         self.start = start
         self.length = length
 
-        self.data = numpy.linspace(start,
+        self.data: numpy.ndarray = numpy.linspace(start,
                                    start+(length-1)*step, length,
                                    dtype=REAL)
 

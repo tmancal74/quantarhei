@@ -26,6 +26,7 @@ class LogConf:
         self.log_file: IO[str] | None = None
         self.initialized: bool = False
         self.time_stamp: LifoQueue[float] = LifoQueue()
+        self.is_serial: bool = True
 
     def __del__(self) -> None:
         """Destructor to be used on garbage collection
