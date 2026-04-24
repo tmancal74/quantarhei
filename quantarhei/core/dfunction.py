@@ -105,8 +105,12 @@ Class Details
 
 """
 
+from __future__ import annotations
+
 import numbers
 import os
+from collections.abc import Callable
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy
@@ -177,16 +181,18 @@ class DFunction(Saveable, DataSaveable):
 
     allowed_interp_types = ("linear", "spline", "default")
 
-    def __init__(self, x=None, y=None):
+    def __init__(self, x: ValueAxis | None = None,
+                 y: numpy.ndarray | None = None) -> None:
 
         self._loc_init__(x,y)
 
 
 
-    def _loc_init__(self, x=None, y=None):
+    def _loc_init__(self, x: ValueAxis | None = None,
+                    y: numpy.ndarray | None = None) -> None:
 
 
-        self._has_imag = None
+        self._has_imag: bool | None = None
         self._is_empty = False
 
         if not ((x is None) and (y is None)):
@@ -196,7 +202,7 @@ class DFunction(Saveable, DataSaveable):
 
         self._splines_initialized = False
 
-    def _make_me(self, x, y):
+    def _make_me(self, x: ValueAxis, y: numpy.ndarray) -> None:
         """Creates the DFunction internals
 
 
@@ -232,7 +238,7 @@ class DFunction(Saveable, DataSaveable):
              " one-dimensional numpy.ndarray")
 
 
-    def _add_me(self, x, y):
+    def _add_me(self, x: ValueAxis, y: numpy.ndarray) -> None:
         """Adds data to the DFunction
 
         """
@@ -278,7 +284,7 @@ class DFunction(Saveable, DataSaveable):
                                 " identical")
 
 
-    def change_axis(self, axis):
+    def change_axis(self, axis: ValueAxis) -> None:
         """Replaces the axis object with a compatible one, zero pads or trims the values
 
 
@@ -352,7 +358,7 @@ class DFunction(Saveable, DataSaveable):
             raise Exception("Incompatible axis")
 
 
-    def at(self, x, approx="default"):
+    def at(self, x: Any, approx: str = "default") -> Any:
         """Returns the function value at the argument `x`
 
         Returns the value of the function at a given value of argument `x`. The
@@ -408,14 +414,14 @@ class DFunction(Saveable, DataSaveable):
             return self._get_spline_approx(x)
 
 
-    def as_spline_function(self):
+    def as_spline_function(self) -> Callable[[Any], Any]:
         """Returns this function as a normal function of one argument
 
         """
         if not self._splines_initialized:
             self._set_splines()
 
-        def func(t):
+        def func(t: Any) -> Any:
             return self.at(t)
 
         return func
@@ -427,7 +433,7 @@ class DFunction(Saveable, DataSaveable):
     #
     #
 
-    def _get_linear_approx(self, x_in):
+    def _get_linear_approx(self, x_in: Any) -> Any:
         """Returns linear interpolation of the function
 
         """
@@ -457,7 +463,7 @@ class DFunction(Saveable, DataSaveable):
         return val
 
 
-    def _approx_point(self, x):
+    def _approx_point(self, x: float) -> Any:
 
         n, dval = self.axis.locate(x)
         if n+1 >= self.axis.length:
@@ -469,7 +475,7 @@ class DFunction(Saveable, DataSaveable):
         return val
 
 
-    def _get_spline_approx(self, x):
+    def _get_spline_approx(self, x: Any) -> Any:
         """Returns spline interpolation of the function
 
         """
@@ -477,7 +483,7 @@ class DFunction(Saveable, DataSaveable):
             self._set_splines()
         return self._spline_value(x)
 
-    def _set_splines(self):
+    def _set_splines(self) -> None:
         """Calculates the spline representation of the function
 
 
@@ -493,7 +499,7 @@ class DFunction(Saveable, DataSaveable):
         self._splines_initialized = True
         #print("Calculating splines")
 
-    def _spline_value(self, x):
+    def _spline_value(self, x: Any) -> Any:
         """Returns the splie interpolated value of the function
 
         """
@@ -503,7 +509,7 @@ class DFunction(Saveable, DataSaveable):
             ret = self._spline_r(x)
         return ret
 
-    def __add__(self, other):
+    def __add__(self, other: DFunction) -> DFunction:
         """Adding two DFunctions together
 
 
@@ -536,7 +542,7 @@ class DFunction(Saveable, DataSaveable):
         return f
 
 
-    def apply_to_data(self, func):
+    def apply_to_data(self, func: Callable[[numpy.ndarray], numpy.ndarray]) -> None:
         """Applies a submitted function to the data
 
 
@@ -566,7 +572,7 @@ class DFunction(Saveable, DataSaveable):
     #
     #
 
-    def get_Fourier_transform(self, window=None):
+    def get_Fourier_transform(self, window: DFunction | None = None) -> DFunction:
         """Returns Fourier transform of the DFunction
 
 
@@ -681,7 +687,7 @@ class DFunction(Saveable, DataSaveable):
         return F
 
 
-    def get_inverse_Fourier_transform(self):
+    def get_inverse_Fourier_transform(self) -> DFunction:
         """Returns inverse Fourier transform of the DFunction
 
 
@@ -772,7 +778,7 @@ class DFunction(Saveable, DataSaveable):
         return F
 
 
-    def fit_exponential(self, guess=None):
+    def fit_exponential(self, guess: list[float] | None = None) -> numpy.ndarray:
         """Exponential fit of the function
 
 
@@ -796,7 +802,8 @@ class DFunction(Saveable, DataSaveable):
         return popt
 
 
-    def fit_gaussian(self, N=1, guess=None, Nsvf=251):
+    def fit_gaussian(self, N: int = 1, guess: list[float] | None = None,
+                     Nsvf: int = 251) -> numpy.ndarray:
         #from scipy.signal import savgol_filter
         #from scipy.interpolate import UnivariateSpline
         """Performs a Gaussian fit of the spectrum based on an initial guess
@@ -861,7 +868,7 @@ class DFunction(Saveable, DataSaveable):
 
 
 
-        def funcf(x, *p):
+        def funcf(x: Any, *p: Any) -> Any:
             return _n_gaussians(x, *p)
 
         # minimize, leastsq,
@@ -887,22 +894,22 @@ class DFunction(Saveable, DataSaveable):
 
 
 
-    def plot(self, fig=None, title=None,
-             title_font=None,
-             axis=None,
-             vmax=None,
-             vmin=None,
-             xlabel=None,
-             ylabel=None,
-             label_font=None,
-             text=None,
-             text_font=None,
-             label = None,
-             text_loc=None,
-             fontsize="20",
-             real_only=True,
-             show=False,
-             color=None):
+    def plot(self, fig: Any = None, title: str | None = None,
+             title_font: Any = None,
+             axis: list[float] | None = None,
+             vmax: float | None = None,
+             vmin: float | None = None,
+             xlabel: str | None = None,
+             ylabel: str | None = None,
+             label_font: Any = None,
+             text: Any = None,
+             text_font: Any = None,
+             label: str | None = None,
+             text_loc: list[float] | None = None,
+             fontsize: str = "20",
+             real_only: bool = True,
+             show: bool = False,
+             color: Any = None) -> None:
         """Plotting of the DFunction's data against the ValueAxis.
 
 
@@ -982,7 +989,7 @@ class DFunction(Saveable, DataSaveable):
                 plt.plot(self.axis.data, self.data)
 
         if axis is not None:
-            plt.axis(axis)
+            plt.axis(axis)  # type: ignore[arg-type]
 
         if title is not None:
             plt.title(title)
@@ -1029,7 +1036,7 @@ class DFunction(Saveable, DataSaveable):
             plt.show()
 
 
-    def savefig(self, filename):
+    def savefig(self, filename: str) -> None:
         """Saves current figure into a file
 
 
@@ -1039,7 +1046,7 @@ class DFunction(Saveable, DataSaveable):
 
 
 
-    def _fname_ext(self, filename, ext):
+    def _fname_ext(self, filename: str, ext: str | None) -> tuple[str, str | None]:
         """
 
         """
@@ -1059,7 +1066,7 @@ class DFunction(Saveable, DataSaveable):
         return fname, ext
 
 
-def _exp_fcion(t, *params):
+def _exp_fcion(t: Any, *params: Any) -> Any:
 
     np = len(params)
     ret = 0.0
@@ -1076,7 +1083,8 @@ def _exp_fcion(t, *params):
     return ret
 
 
-def _gaussian(x, height, center, fwhm, offset=0.0):
+def _gaussian(x: Any, height: float, center: float, fwhm: float,
+              offset: float = 0.0) -> Any:
     """Gaussian function with a possible offset
 
 
@@ -1103,7 +1111,7 @@ def _gaussian(x, height, center, fwhm, offset=0.0):
                             (fwhm**2)) + offset
 
 
-def _n_gaussians(x, *params):
+def _n_gaussians(x: Any, *params: Any) -> Any:
     """Sum of N Gaussian functions plus an offset from zero
 
     Parameters
