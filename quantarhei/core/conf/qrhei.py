@@ -45,8 +45,12 @@ On the other hand, GPU usage can be switched on and off during the
 computation.
 
 """
+from __future__ import annotations
 
-def configure(manager):
+from typing import Any
+
+
+def configure(manager: Any) -> None:
     """Configuration of quantarhei computation and logging
 
     """

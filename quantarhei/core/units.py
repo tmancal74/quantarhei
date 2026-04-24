@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 import scipy.constants as const
 
@@ -113,7 +114,7 @@ eps0_int = 1.0e19/(4.0*const.pi*J2int)
 #
 
 
-def convert(val, in_units, to=None):
+def convert(val: float, in_units: str, to: str | None = None) -> float:
     """Converts value in certain units into other units
 
     """
@@ -130,7 +131,7 @@ def convert(val, in_units, to=None):
 
     return ne
 
-def in_current_units(val, in_units):
+def in_current_units(val: float, in_units: str) -> float:
     """Converts value in certain units into the current units
 
     """
