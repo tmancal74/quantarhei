@@ -80,7 +80,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         """
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> DensityMatrixEvolution '{}' changes basis".format(self.name))
+                print(f"\nQr >>> DensityMatrixEvolution '{self.name}' changes basis")
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)

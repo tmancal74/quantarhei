@@ -383,7 +383,7 @@ class ElectronicState(UnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.ElectronicStateobject"
         out += "\n=================================="
-        out += "\nenergy = {:f}".format(self.energy())
+        out += f"\nenergy = {self.energy():f}"
         out += "\nnumber of substates = %i " % self.number_of_states()
         out += ("\nmember of an aggregate of %i molecules"
                 % self.aggregate.nmono)
@@ -501,7 +501,7 @@ class VibronicState(UnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.VibronicState object"
         out += "\n=================================="
-        out += "\nenergy = {:f}".format(self.energy())
+        out += f"\nenergy = {self.energy():f}"
         out += ("\nmember of an aggregate of %i molecules"
                 % self.elstate.aggregate.nmono)
         return out

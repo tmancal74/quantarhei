@@ -2373,11 +2373,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         out  = "\nquantarhei.Molecule object"
         out += "\n=========================="
-        out += "\n   name = {}  \n".format(self.name)
+        out += f"\n   name = {self.name}  \n"
         try:
-            out += "   position = [{!r}, {!r}, {!r}] \n".format(self.position[0],
-                                                  self.position[1],
-                                                  self.position[2])
+            out += f"   position = [{self.position[0]!r}, {self.position[1]!r}, {self.position[2]!r}] \n"
         except:
             out += "   position = None\n"
 
@@ -2396,13 +2394,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 out += "\n   State nr: %i" % n
             # state energy
             ene = self.convert_energy_2_current_u(self.elenergies[n])
-            out += "\n      electronic energy = {!r} {}".format(ene,eunits)
+            out += f"\n      electronic energy = {ene!r} {eunits}"
             # transition dipole moments
             for j in range(n):
                 out += "\n      transition %i -> %i " % (j, n)
-                out += "\n      transition dipole moment = [{!r}, {!r}, {!r}]".format(
-               self.dmoments[n,j][0],
-               self.dmoments[n,j][1], self.dmoments[n,j][2])
+                out += f"\n      transition dipole moment = [{self.dmoments[n,j][0]!r}, {self.dmoments[n,j][1]!r}, {self.dmoments[n,j][2]!r}]"
             out += "\n      number of vibrational modes = %i" % self.nmod
             out += "\n"
             if self.nmod > 0:
@@ -2412,7 +2408,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     out += "\n      mode no. = %i " % m1
                     out += ("\n         frequency = {!r} {}".format(self.modes[m1].get_energy(n,no_conversion=False),
                           self.unit_repr(utype="energy")))
-                    out += ("\n         shift = {!r}".format(self.modes[m1].get_shift(n)))
+                    out += (f"\n         shift = {self.modes[m1].get_shift(n)!r}")
                     out += ("\n         nmax = %i" %
                            self.modes[m1].get_nmax(n))
 

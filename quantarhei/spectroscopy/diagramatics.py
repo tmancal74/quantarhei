@@ -187,10 +187,10 @@ class liouville_pathway(UnitsManaged):
                                                      spc, rx))
                     # output the arrow
                     spc = self._chars("", "", char="-")
-                    outr += ("--->|{}|  \n".format(spc))
+                    outr += (f"--->|{spc}|  \n")
                     # and an empty space
                     spc = self._chars("", "", char=" ")
-                    outr += ("    |{}|  \n".format(spc))
+                    outr += (f"    |{spc}|  \n")
                     # all this is appended at the end
                     out = outr+out
                     lx = self.transitions[ii,0]
@@ -207,10 +207,10 @@ class liouville_pathway(UnitsManaged):
 
                     # output the arrow
                     spc = self._chars("", "", char="-")
-                    outl += ("    |{}|<---  \n").format(spc) #, self.frequency[ee])
+                    outl += (f"    |{spc}|<---  \n") #, self.frequency[ee])
                     # and an empty space
                     spc = self._chars("", "", char=" ")
-                    outl += ("    |{}|  \n").format(spc)
+                    outl += (f"    |{spc}|  \n")
                     # append everything at the end
                     out = outl+out
                     rx = self.transitions[ii,0]
@@ -225,9 +225,9 @@ class liouville_pathway(UnitsManaged):
                 outR  = "    |%i%s%i|      %r\n" % (lf, spc, rf,
                                             numpy.round(ene))
                 spc = self._chars("", "", char="*")
-                outR += "  >>|{}|<< \n".format(spc)
+                outR += f"  >>|{spc}|<< \n"
                 spc = self._chars("", "", char=" ")
-                outR += "    |{}| \n".format(spc)
+                outR += f"    |{spc}| \n"
                 out = outR+out
 
                 lx = lf
@@ -240,10 +240,10 @@ class liouville_pathway(UnitsManaged):
             k -= 1
 
 
-        outd = ("\n\nLiouville Pathway {} (type = {}) \n".format(self.pathway_name, self.pathway_type))
-        outd += ("Weighting prefactor: {!r} \n".format(self.pref))
-        outd += ("(in absolute value): {!r} \n".format(numpy.abs(self.pref)))
-        outd += ("Evolution factor   : {!r} \n".format(self.evolfac))
+        outd = (f"\n\nLiouville Pathway {self.pathway_name} (type = {self.pathway_type}) \n")
+        outd += (f"Weighting prefactor: {self.pref!r} \n")
+        outd += (f"(in absolute value): {numpy.abs(self.pref)!r} \n")
+        outd += (f"Evolution factor   : {self.evolfac!r} \n")
         outd += "\n"
 
         out = outd+out
@@ -284,9 +284,8 @@ class liouville_pathway(UnitsManaged):
         # check if the transition start is consistent with current state
         # in the diagram
         if (self.current[sd] != ni):
-            raise Exception(("Transition on the {} hand"
-            "side of the diagram has to start from state {}").format(text[sd],
-                                                        self.current[sd]))
+            raise Exception(f"Transition on the {text[sd]} hand"
+            f"side of the diagram has to start from state {self.current[sd]}")
 
         # save the transition associated with this interaction
         self.transitions[self.nint,:] = transition

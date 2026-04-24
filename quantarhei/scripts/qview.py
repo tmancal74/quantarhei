@@ -8,7 +8,6 @@ from tkinter import BOTH, BOTTOM, RIGHT, SUNKEN, YES, Button, Frame, Label, Menu
 from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import askyesno, showerror
 
-
 #matplotlib.use("TkAgg")
 #from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk

@@ -102,7 +102,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
         """
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operator '{}' changes basis".format(self.name))
+                print(f"\nQr >>> Operator '{self.name}' changes basis")
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)

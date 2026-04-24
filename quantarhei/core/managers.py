@@ -518,7 +518,7 @@ class Manager(metaclass=Singleton):
             if units in self.units[utype]:
                 self.current_units[utype] = units
             else:
-                raise Exception("Unknown units of {}".format(utype))
+                raise Exception(f"Unknown units of {utype}")
         else:
             raise Exception("Unknown type of units")
 
@@ -535,7 +535,7 @@ class Manager(metaclass=Singleton):
             if cunits in self.units[utype]:
                 self.current_units[utype] = cunits
             else:
-                raise Exception("Unknown units of {}".format(utype))
+                raise Exception(f"Unknown units of {utype}")
         else:
             raise Exception("Unknown type of units")
 
@@ -1101,7 +1101,7 @@ def set_current_units(units=None):
 
                 manager.set_current_units(utype,un)
             else:
-                raise Exception("Unknown units type {}".format(utype))
+                raise Exception(f"Unknown units type {utype}")
 
     else:
         # reset units to the default
@@ -1109,5 +1109,5 @@ def set_current_units(units=None):
             if utype in manager.allowed_utypes:
                 manager.set_current_units(utype,manager.internal_units[utype])
             else:
-                raise Exception("Unknown units type {}".format(utype))
+                raise Exception(f"Unknown units type {utype}")
 

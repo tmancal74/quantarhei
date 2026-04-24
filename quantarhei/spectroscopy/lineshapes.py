@@ -5,7 +5,6 @@ import numpy
 from scipy import special
 
 
-
 class Storage:
     def __init__(self, rel_tol=1e-8):
         self.params = []        # list of parameter tuples

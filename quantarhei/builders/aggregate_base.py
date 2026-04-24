@@ -21,7 +21,6 @@ import warnings
 
 import numpy
 
-
 from .. import COMPLEX, REAL
 
 #import h5py
@@ -2194,7 +2193,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     def __str__(self):
         out  = "\nquantarhei.Aggregate object"
         out += "\n==========================="
-        out += "\nname = {}".format(self.name)
+        out += f"\nname = {self.name}"
         out += "\nnumber of molecules = %i " % self.nmono
         count = 0
         for nm in self.monomers:

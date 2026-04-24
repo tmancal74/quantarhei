@@ -228,8 +228,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         if self.as_operators:
 
             if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operators of relaxation"+
-                      " in Redfield tensor '{}' changes basis".format(self.name))
+                print("\nQr >>> Operators of relaxation"
+                      f" in Redfield tensor '{self.name}' changes basis")
 
             if inv is None:
                 S1 = numpy.linalg.inv(SS)

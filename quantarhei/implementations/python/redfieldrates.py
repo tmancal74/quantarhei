@@ -2,7 +2,6 @@
 import numpy
 
 
-
 def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
     """Standard redfield rates
 

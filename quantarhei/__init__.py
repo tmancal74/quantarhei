@@ -214,7 +214,8 @@ from .builders.molecule_test import TestMolecule as TestMolecule
 from .builders.molecules import Molecule as Molecule
 from .builders.opensystem import OpenSystem as OpenSystem
 from .builders.pdb import PDBFile as PDBFile
-from .builders.sysmodes import AnharmonicMode as AnharmonicMode, HarmonicMode as HarmonicMode
+from .builders.sysmodes import AnharmonicMode as AnharmonicMode
+from .builders.sysmodes import HarmonicMode as HarmonicMode
 from .builders.vibsystem import VibrationalSystem as VibrationalSystem
 from .core.dfunction import DFunction as DFunction
 from .core.frequency import FrequencyAxis as FrequencyAxis
@@ -224,9 +225,17 @@ from .core.frequency import FrequencyAxis as FrequencyAxis
 #
 from .core.managers import (
     eigenbasis_of as eigenbasis_of,
+)
+from .core.managers import (
     energy_units as energy_units,
+)
+from .core.managers import (
     frequency_units as frequency_units,
+)
+from .core.managers import (
     length_units as length_units,
+)
+from .core.managers import (
     set_current_units as set_current_units,
 )
 
@@ -235,13 +244,29 @@ from .core.managers import (
 #
 from .core.parallel import (
     asynchronous_range as asynchronous_range,
+)
+from .core.parallel import (
     block_distributed_array as block_distributed_array,
+)
+from .core.parallel import (
     block_distributed_list as block_distributed_list,
+)
+from .core.parallel import (
     block_distributed_range as block_distributed_range,
+)
+from .core.parallel import (
     close_parallel_region as close_parallel_region,
+)
+from .core.parallel import (
     collect_block_distributed_data as collect_block_distributed_data,
+)
+from .core.parallel import (
     distributed_configuration as distributed_configuration,
+)
+from .core.parallel import (
     parallel_function as parallel_function,
+)
+from .core.parallel import (
     start_parallel_region as start_parallel_region,
 )
 
@@ -250,7 +275,10 @@ from .core.parallel import (
 ###############################################################################
 #from .core.saveable import load
 #from .core.saveable import read_info
-from .core.parcel import Parcel as Parcel, check_parcel as check_parcel, load_parcel as load_parcel, save_parcel as save_parcel
+from .core.parcel import Parcel as Parcel
+from .core.parcel import check_parcel as check_parcel
+from .core.parcel import load_parcel as load_parcel
+from .core.parcel import save_parcel as save_parcel
 
 #from .core.saveable import Saveable
 from .core.saveable import Saveable as Saveable
@@ -259,7 +287,8 @@ from .core.saveable import Saveable as Saveable
 # Core classes
 #
 from .core.time import TimeAxis as TimeAxis
-from .core.units import convert as convert, in_current_units as in_current_units
+from .core.units import convert as convert
+from .core.units import in_current_units as in_current_units
 from .core.valueaxis import ValueAxis as ValueAxis
 
 ###############################################################################
@@ -273,20 +302,50 @@ from .core.valueaxis import ValueAxis as ValueAxis
 #
 from .qm import (
     BasisReferenceOperator as BasisReferenceOperator,
+)
+from .qm import (
     DensityMatrix as DensityMatrix,
+)
+from .qm import (
     DensityMatrixEvolution as DensityMatrixEvolution,
+)
+from .qm import (
     Hamiltonian as Hamiltonian,
+)
+from .qm import (
     Liouvillian as Liouvillian,
+)
+from .qm import (
     OQSStateVector as OQSStateVector,
+)
+from .qm import (
     OQSStateVectorEvolution as OQSStateVectorEvolution,
+)
+from .qm import (
     OQSStateVectorPropagator as OQSStateVectorPropagator,
+)
+from .qm import (
     ProjectionOperator as ProjectionOperator,
+)
+from .qm import (
     ReducedDensityMatrix as ReducedDensityMatrix,
+)
+from .qm import (
     ReducedDensityMatrixEvolution as ReducedDensityMatrixEvolution,
+)
+from .qm import (
     ReducedDensityMatrixPropagator as ReducedDensityMatrixPropagator,
+)
+from .qm import (
     StateVector as StateVector,
+)
+from .qm import (
     SystemBathInteraction as SystemBathInteraction,
+)
+from .qm import (
     TransitionDipoleMoment as TransitionDipoleMoment,
+)
+from .qm import (
     UnityOperator as UnityOperator,
 )
 
@@ -298,21 +357,39 @@ from .qm import (
 #
 from .qm.corfunctions import (
     CorrelationFunction as CorrelationFunction,
+)
+from .qm.corfunctions import (
     CorrelationFunctionMatrix as CorrelationFunctionMatrix,
+)
+from .qm.corfunctions import (
     FastFunctionStorage as FastFunctionStorage,
+)
+from .qm.corfunctions import (
     FunctionStorage as FunctionStorage,
+)
+from .qm.corfunctions import (
     LineshapeFunction as LineshapeFunction,
+)
+from .qm.corfunctions import (
     SpectralDensity as SpectralDensity,
 )
-from .qm.corfunctions.correlationfunctions import oscillator_scalled_CorrelationFunction as oscillator_scalled_CorrelationFunction
+from .qm.corfunctions.correlationfunctions import (
+    oscillator_scalled_CorrelationFunction as oscillator_scalled_CorrelationFunction,
+)
 
 #
 # Evolution operators
 #
-from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator as EvolutionSuperOperator
+from .qm.liouvillespace.evolutionsuperoperator import (
+    EvolutionSuperOperator as EvolutionSuperOperator,
+)
 from .qm.liouvillespace.heom import (
     KTHierarchy as KTHierarchy,
+)
+from .qm.liouvillespace.heom import (
     KTHierarchyPropagator as KTHierarchyPropagator,
+)
+from .qm.liouvillespace.heom import (
     QuTip_KTHierarchyPropagator as QuTip_KTHierarchyPropagator,
 )
 
@@ -324,7 +401,9 @@ from .qm.propagators.poppropagator import PopulationPropagator as PopulationProp
 #
 # Evolutions (time-dependent operators)
 #
-from .qm.propagators.statevectorevolution import StateVectorEvolution as StateVectorEvolution
+from .qm.propagators.statevectorevolution import (
+    StateVectorEvolution as StateVectorEvolution,
+)
 from .qm.propagators.svpropagator import StateVectorPropagator as StateVectorPropagator
 
 ###############################################################################
@@ -342,17 +421,35 @@ from .spectroscopy.abscontainer import AbsSpectrumContainer as AbsSpectrumContai
 #
 from .spectroscopy.circular_dichroism import (
     CircDichSpectrum as CircDichSpectrum,
+)
+from .spectroscopy.circular_dichroism import (
     CircDichSpectrumCalculator as CircDichSpectrumCalculator,
+)
+from .spectroscopy.circular_dichroism import (
     CircDichSpectrumContainer as CircDichSpectrumContainer,
 )
 from .spectroscopy.dsfeynman import (
     DSFeynmanDiagram as DSFeynmanDiagram,
+)
+from .spectroscopy.dsfeynman import (
     R1f_Diagram as R1f_Diagram,
+)
+from .spectroscopy.dsfeynman import (
     R1g_Diagram as R1g_Diagram,
+)
+from .spectroscopy.dsfeynman import (
     R1g_R_Diagram as R1g_R_Diagram,
+)
+from .spectroscopy.dsfeynman import (
     R2f_Diagram as R2f_Diagram,
+)
+from .spectroscopy.dsfeynman import (
     R2g_Diagram as R2g_Diagram,
+)
+from .spectroscopy.dsfeynman import (
     R3g_Diagram as R3g_Diagram,
+)
+from .spectroscopy.dsfeynman import (
     R4g_Diagram as R4g_Diagram,
 )
 
@@ -361,41 +458,69 @@ from .spectroscopy.dsfeynman import (
 #
 from .spectroscopy.fluorescence import (
     FluorSpectrum as FluorSpectrum,
+)
+from .spectroscopy.fluorescence import (
     FluorSpectrumCalculator as FluorSpectrumCalculator,
+)
+from .spectroscopy.fluorescence import (
     FluorSpectrumContainer as FluorSpectrumContainer,
 )
-from .spectroscopy.labsetup import LabField as LabField, LabSetup as LabSetup
+from .spectroscopy.labsetup import LabField as LabField
+from .spectroscopy.labsetup import LabSetup as LabSetup
 
 #
 # Linear dichroism
 #
 from .spectroscopy.linear_dichroism import (
     LinDichSpectrum as LinDichSpectrum,
+)
+from .spectroscopy.linear_dichroism import (
     LinDichSpectrumCalculator as LinDichSpectrumCalculator,
+)
+from .spectroscopy.linear_dichroism import (
     LinDichSpectrumContainer as LinDichSpectrumContainer,
 )
-from .spectroscopy.mockabscalculator import MockAbsSpectrumCalculator as MockAbsSpectrumCalculator
-from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDResponseCalculator
-from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer as LiouvillePathwayAnalyzer
+from .spectroscopy.mockabscalculator import (
+    MockAbsSpectrumCalculator as MockAbsSpectrumCalculator,
+)
+from .spectroscopy.mocktwodcalculator import (
+    MockTwoDResponseCalculator as MockTwoDResponseCalculator,
+)
+from .spectroscopy.pathwayanalyzer import (
+    LiouvillePathwayAnalyzer as LiouvillePathwayAnalyzer,
+)
 
 #
 # Pump-probe spectrum
 #
 from .spectroscopy.pumpprobe import (
     MockPumpProbeSpectrumCalculator as MockPumpProbeSpectrumCalculator,
+)
+from .spectroscopy.pumpprobe import (
     PumpProbeSpectrum as PumpProbeSpectrum,
+)
+from .spectroscopy.pumpprobe import (
     PumpProbeSpectrumCalculator as PumpProbeSpectrumCalculator,
+)
+from .spectroscopy.pumpprobe import (
     PumpProbeSpectrumContainer as PumpProbeSpectrumContainer,
 )
 
 # 2 deprecated classes
 from .spectroscopy.responses import (
     LiouvillePathway as LiouvillePathway,
+)
+from .spectroscopy.responses import (
     NonLinearResponse as NonLinearResponse,
+)
+from .spectroscopy.responses import (
     ResponseFunction as ResponseFunction,
 )
-from .spectroscopy.twodcalculator import TwoDResponseCalculator as TwoDResponseCalculator
-from .spectroscopy.twodcontainer import TwoDResponseContainer as TwoDResponseContainer, TwoDSpectrumContainer as TwoDSpectrumContainer
+from .spectroscopy.twodcalculator import (
+    TwoDResponseCalculator as TwoDResponseCalculator,
+)
+from .spectroscopy.twodcontainer import TwoDResponseContainer as TwoDResponseContainer
+from .spectroscopy.twodcontainer import TwoDSpectrumContainer as TwoDSpectrumContainer
 
 #
 # Fourier transform Two-Dimensional Spectra
@@ -405,19 +530,41 @@ from .spectroscopy.twodspect import TwoDSpectrum as TwoDSpectrum
 from .symbolic.cumulant import evaluate_cumulant as evaluate_cumulant
 from .utils.logging import (
     init_logging as init_logging,
+)
+from .utils.logging import (
     log_detail as log_detail,
+)
+from .utils.logging import (
     log_info as log_info,
+)
+from .utils.logging import (
     log_quick as log_quick,
+)
+from .utils.logging import (
     log_report as log_report,
+)
+from .utils.logging import (
     log_to_file as log_to_file,
+)
+from .utils.logging import (
     log_urgent as log_urgent,
+)
+from .utils.logging import (
     loglevels2bool as loglevels2bool,
+)
+from .utils.logging import (
     printlog as printlog,
+)
+from .utils.logging import (
     tprint as tprint,
 )
 from .utils.paver import execute_paver as execute_paver
-from .utils.timing import done_in as done_in, finished_in as finished_in, timeit as timeit, untimeit as untimeit
-from .utils.vectors import norm as norm, normalize2 as normalize2
+from .utils.timing import done_in as done_in
+from .utils.timing import finished_in as finished_in
+from .utils.timing import timeit as timeit
+from .utils.timing import untimeit as untimeit
+from .utils.vectors import norm as norm
+from .utils.vectors import normalize2 as normalize2
 from .wizard.input.input import Input as Input
 
 

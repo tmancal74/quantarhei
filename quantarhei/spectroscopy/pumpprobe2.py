@@ -1014,7 +1014,6 @@ class PumpProbeSpectrumCalculator:
         """Calculate the shape of a Liouville pathway
 
         """
-
         # we can calculate empty pathway
         if pathways is None:
             N3 = self.oa3.length
@@ -1539,7 +1538,7 @@ def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, l
     percent = ("{:0." + str(decimals) + "f}").format(100* (iteration/float(total)))
     filledlength = int(length * iteration // total)
     bar = fill * filledlength + "-" * (length - filledlength)
-    print('\r{} |{}| {}% {}'.format(prefix, bar, percent, suffix), end = '\r')
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = '\r')
     # print New line after completition
     if iteration == total:
         print()

@@ -74,7 +74,7 @@ def load_function(lib,fce):
     if hasattr(a,fce):
         fc = getattr(a,fce)
     else:
-        raise Exception("Cannot reach implementation of {} ".format(fce))
+        raise Exception(f"Cannot reach implementation of {fce} ")
 
 
     return fc

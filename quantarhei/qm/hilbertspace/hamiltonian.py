@@ -306,7 +306,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         """
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operator '{}' changes basis".format(self.name))
+                print(f"\nQr >>> Operator '{self.name}' changes basis")
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -322,7 +322,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
-        out += "\nunits of energy {}".format(self.unit_repr())
+        out += f"\nunits of energy {self.unit_repr()}"
         out += "\nRotating Wave Approximation (RWA) enabled : "\
             +str(self.has_rwa)
         if self.has_rwa:

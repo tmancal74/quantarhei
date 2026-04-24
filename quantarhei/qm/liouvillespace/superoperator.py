@@ -278,8 +278,8 @@ class SuperOperator(BasisManaged):
 
         """
         if (self.manager.warn_about_basis_change):
-            print("\nQr >>> SuperOperator "+
-                  "'{}' changes basis".format(self.name))
+            print("\nQr >>> SuperOperator "
+                  f"'{self.name}' changes basis")
 
         #
         # if inverse matrix not present, we create it
