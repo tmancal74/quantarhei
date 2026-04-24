@@ -37,7 +37,7 @@ dependencies = [
   "matplotlib",
   "dill",
   "terminaltables",
-  "gherkin-official",
+  "gherkin-official<5",
   "pyyaml",
   "packaging",
 ]
