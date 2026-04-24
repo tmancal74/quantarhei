@@ -225,6 +225,31 @@ ignore_errors = true
 module = ["quantarhei.utils.*"]
 disallow_untyped_defs = true
 
+[[tool.mypy.overrides]]
+module = [
+    "quantarhei.core.datasaveable",
+    "quantarhei.core.dfunction",
+    "quantarhei.core.frequency",
+    "quantarhei.core.genconf",
+    "quantarhei.core.implementations",
+    "quantarhei.core.logconf",
+    "quantarhei.core.matrixdata",
+    "quantarhei.core.numconf",
+    "quantarhei.core.parcel",
+    "quantarhei.core.plottable",
+    "quantarhei.core.saveable",
+    "quantarhei.core.singleton",
+    "quantarhei.core.stochastics",
+    "quantarhei.core.time",
+    "quantarhei.core.triangle",
+    "quantarhei.core.unique",
+    "quantarhei.core.units",
+    "quantarhei.core.valueaxis",
+    "quantarhei.core.wrappers",
+    "quantarhei.core.conf.qrhei",
+]
+disallow_untyped_defs = true
+
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests"]
 
@@ -236,4 +261,9 @@ quantarhei = [
   "wizard/examples/*.yaml",
   "wizard/examples/*.pdb",
   "wizard/examples/*.ipynb",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
 ]
