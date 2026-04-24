@@ -105,7 +105,7 @@ def parsing():
     try:
         with open(filename) as myfile:
             data = myfile.read()
-    except (OSError, IOError):
+    except OSError:
         raise Exception("Problems reading file: "+filename)
 
     parser = Parser()

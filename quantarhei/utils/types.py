@@ -25,7 +25,7 @@ def array_property(name,shape=None):
                     raise TypeError(
                     f'{name} must be of shape {shape}')
             setattr(self,storage_name,vl)
-        except:
+        except TypeError:
             raise TypeError(
             f'{name} must be either a list or numpy.array')
 
@@ -82,7 +82,7 @@ def units_managed_array_property(name,dtype,shape=None):
                     raise TypeError(
                     f'{name} must be of shape {shape}')
             setattr(self,storage_name,self.convert_2_internal_u(vl))
-        except:
+        except TypeError:
             raise TypeError(
             f'{name} must be either a list or numpy.array')
 
@@ -132,7 +132,7 @@ def basis_managed_array_property(name,dtype,shape=None):
                     raise TypeError(
                     f'{name} must be of shape {shape}')
             setattr(self,storage_name,vl)
-        except:
+        except TypeError:
             raise TypeError(
             f'{name} must be either a list or numpy.array')
 
@@ -189,7 +189,7 @@ def managed_array_property(name,dtype,shape=None):
                     raise TypeError(
                     f'{name} must be of shape {shape}')
             setattr(self,storage_name,self.convert_2_internal_u(vl))
-        except:
+        except TypeError:
             raise TypeError(
             f'{name} must be either a list or numpy.array')
 
@@ -208,7 +208,7 @@ def check_numpy_array(val):
     if isinstance(val,list):
         try:
             vl = numpy.array(val)
-        except:
+        except TypeError:
             raise TypeError('Numerical array is required')
         return numpy.array(vl)
     raise TypeError('List or numpy.ndarray required')

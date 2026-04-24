@@ -663,14 +663,14 @@ class Uop:
         try:
             for key in times:
                 self.times[key]=1
-        except:
+        except TypeError:
             raise Exception("'times' argument has to be a dictionary")
 
         if negative is not None:
             try:
                 for key in negative:
                     self.times[key]=-1
-            except:
+            except TypeError:
                 raise Exception("'negative' argument has to be a dictionary")
 
 

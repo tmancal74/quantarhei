@@ -25,7 +25,7 @@ def init_logging():
         else:
             manager.is_serial = False
             manager.log_file_appendix = "."+str(rank)
-    except:
+    except ImportError:
         manager.is_serial = True
     manager.initialized = True
 
@@ -216,7 +216,7 @@ def tprint(var, messg=None, default=None):
             val = '"'+val+'"'
         print(var, "=", val)
 
-    except:
+    except Exception:
         if default is None:
             traceback.print_exc()
             print("Configuration file is incomplete")

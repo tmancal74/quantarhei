@@ -848,7 +848,7 @@ for model in models:
                 try:
                     random_state = qr.load_parcel(INP.random_state["file"])
                     numpy.random.set_state(random_state)
-                except:
+                except (OSError, ValueError):
                     raise Exception("Loading random state failed")
             if INP.random_state["save"]:
                 random_state = numpy.random.get_state()

@@ -212,7 +212,7 @@ class Input:
             du_Number = len(defined_usecases)
             print()
             print("Found", du_Number, "defined usecase(s)")
-        except:
+        except (AttributeError, KeyError):
             defined_usecases = []
 
         for duname in defined_usecases:
@@ -229,7 +229,7 @@ class Input:
 
             try:
                 usecase_value = getattr(self, duname)
-            except:
+            except AttributeError:
                 usecase_value = None
 
             if usecase_value is not None:

@@ -56,7 +56,7 @@ def shell_command(context, cmd, err_msg="Shell command error"):
         output = check_output(cmd, shell=True, cwd=os.getcwd())
         context.output = output
 
-    except:
+    except Exception:
         raise Exception(err_msg)
 
 
@@ -97,12 +97,12 @@ def cleanup_temp_dir(context):
     """
     try:
         os.chdir(context.cwd)
-    except:
+    except (AttributeError, OSError):
         print("Current working file record does not exist")
 
     try:
         context.tempdir.cleanup()
-    except:
+    except (AttributeError, OSError):
         print("Temporary directory cannot be cleaned up - does it exist?")
 
 
@@ -137,7 +137,7 @@ class testdir:
             tempdir = context.tempdir
             if tempdir is None:
                 raise Exception()
-        except:
+        except Exception:
             raise Exception("Context does not contain info about tempdir")
 
 

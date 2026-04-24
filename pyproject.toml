@@ -71,7 +71,7 @@ ignore = [
     "E402",
     # ── Remaining large cleanup batches ───────────────────────────────────────
     "E501",    # line too long (416 violations)
-    "E722",    # bare except (153 violations — #186)
+    # E722 — fully resolved
     "F821",    # undefined name (87 violations — often dynamic attributes)
     "F841",    # unused variable (76 violations)
     # UP031 — fully resolved

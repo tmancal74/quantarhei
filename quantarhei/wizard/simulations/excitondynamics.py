@@ -17,7 +17,7 @@ class ExcitonDynamics(Simulation):
 
         try:
             self.aggregate = Aggregate(molecules=self.molecules)
-        except:
+        except Exception:
             raise Exception("Aggregate construction failed")
 
         #try:
@@ -103,7 +103,7 @@ class ExcitonDynamics(Simulation):
                     objfile = task["object_file"]
                     self._printlog("Saving RDM dynamics into file:", objfile, loglevel=0)
                     self._rhot.save(objfile)
-                except:
+                except (KeyError, AttributeError, OSError):
                     pass
 
                 self._printlog("...done")
