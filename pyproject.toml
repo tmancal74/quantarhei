@@ -32,14 +32,14 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "numpy>=1.24",
-  "scipy>=1.9",
-  "matplotlib>=3.5",
-  "dill>=0.3.6",
-  "terminaltables>=3.1",
+  "numpy>=1.24,<3",
+  "scipy>=1.9,<2",
+  "matplotlib>=3.5,<4",
+  "dill>=0.3.6,<1",
+  "terminaltables>=3.1,<4",
   "gherkin-official>=4.1,<5",
-  "pyyaml>=6.0",
-  "packaging>=21.0",
+  "pyyaml>=6.0,<7",
+  "packaging>=21.0,<27",
 ]
 
 [project.urls]
