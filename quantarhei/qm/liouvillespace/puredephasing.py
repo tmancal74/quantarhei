@@ -93,7 +93,7 @@ def _eigenb():
 
     @prop.setter
     def prop(self, value):
-        raise Exception("The property 'eigenbasis' is protected"+
+        raise Exception("The property 'eigenbasis' is protected"
                         " and cannot be set.")
 
     return prop
@@ -139,7 +139,7 @@ class PureDephasing: #(BasisManaged):
             HH = self.system.get_Hamiltonian()
             if (HH.dim != self.data.shape[0]):
                 raise Exception("Incompatible dimension of the rate matrix:"
-                                +" system has dimension = "+str(HH.dim))
+                                " system has dimension = "+str(HH.dim))
 
         else:
 
@@ -219,10 +219,9 @@ class PureDephasing: #(BasisManaged):
             ham = self.system.get_Hamiltonian()
             return eigenbasis_of(ham)
 
-        else:
 
-            op = Operator(dim=self.dim)
-            return eigenbasis_of(op)
+        op = Operator(dim=self.dim)
+        return eigenbasis_of(op)
 
 
 

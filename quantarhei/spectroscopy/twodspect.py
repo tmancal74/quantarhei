@@ -92,7 +92,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             self.data = data
 
         else:
-            raise Exception("Axes not compatible with data\n"+
+            raise Exception("Axes not compatible with data\n"
                             "xaxis.length = "+str(self.xaxis.length)+"\n"+
                             "yaxis.length = "+str(self.yaxis.length)+"\n"+
                             "data shape = "+str(data.shape))
@@ -279,12 +279,11 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """
         if dpart == part_REAL:
             return numpy.amax(numpy.real(self.data))
-        elif dpart == part_IMAGINARY:
+        if dpart == part_IMAGINARY:
             return numpy.amax(numpy.imag(self.data))
-        elif dpart == part_ABS:
+        if dpart == part_ABS:
             return numpy.amax(numpy.abs(self.data))
-        else:
-            raise Exception("Unknown data part")
+        raise Exception("Unknown data part")
 
 
     def get_min_value(self, dpart=part_REAL):
@@ -294,12 +293,11 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """
         if dpart == part_REAL:
             return numpy.amin(numpy.real(self.data))
-        elif dpart == part_IMAGINARY:
+        if dpart == part_IMAGINARY:
             return numpy.min(numpy.imag(self.data))
-        elif dpart == part_ABS:
+        if dpart == part_ABS:
             return numpy.amin(numpy.abs(self.data))
-        else:
-            raise Exception("Unknown data part")
+        raise Exception("Unknown data part")
 
 
     def get_area_integral(self, area, dpart=part_REAL):
@@ -334,12 +332,11 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         if dpart == part_REAL:
             return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
-        elif dpart == part_IMAGINARY:
+        if dpart == part_IMAGINARY:
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
-        elif dpart == part_ABS:
+        if dpart == part_ABS:
             return int_fce(x1, x2, y1, y2, numpy.abs(data))
-        else:
-            raise Exception("Unknown data part")
+        raise Exception("Unknown data part")
 
 
     def get_area_max(self, area, dpart=part_REAL, loc=None):
@@ -386,12 +383,11 @@ class TwoDSpectrum(DataSaveable, Saveable):
             if loc is not None:
                 loc.append(loc_in_square(x1, x2, y1, y2, data, dx, dy))
             return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
-        elif dpart == part_IMAGINARY:
+        if dpart == part_IMAGINARY:
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
-        elif dpart == part_ABS:
+        if dpart == part_ABS:
             return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
-        else:
-            raise Exception("Unknown data part")
+        raise Exception("Unknown data part")
 
 
     def normalize2(self, norm=1.0, dpart=part_REAL, nmax=None, use_max=False):
@@ -725,12 +721,12 @@ class TwoDSpectrum(DataSaveable, Saveable):
                     ln_t = len(text_loc)
                     ln_l = len(label)
                 except:
-                    raise Exception("text_loc and label parameters must be"+
+                    raise Exception("text_loc and label parameters must be"
                                     " lists of the same lengths")
 
             if ln_t != ln_l:
                 raise Exception("text_loc and label parameters have to have the"
-                                +" same number of members")
+                                " same number of members")
 
             kk = 0
             for pos in text_loc:

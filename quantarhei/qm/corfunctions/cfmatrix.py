@@ -197,7 +197,7 @@ class CorrelationFunctionMatrix(Saveable):
                 if temp < 0.0:
                     temp = T
                 if T != temp:
-                    raise Exception("Temperature of "+
+                    raise Exception("Temperature of "
                                 "CorrelationFunctionMatrix is not consistent")
             else:
                 none_count += 1
@@ -261,8 +261,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 lm += self._A4[a,b,c,d,k]
             return lm
-        else:
-            raise Exception("Correlation function matrix is not initialized.")
+        raise Exception("Correlation function matrix is not initialized.")
 
 
     def get_coft(self,n,m):
@@ -304,8 +303,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[a,b,c,d,k]*self._cofts[k+1,:]
             return ret
-        else:
-            raise Exception()
+        raise Exception()
 
 
     def get_coft_matrix(self,t=None):
@@ -341,14 +339,12 @@ class CorrelationFunctionMatrix(Saveable):
                             *self._cofts[self.cpointer[k,k],it]
 
                 return ret
-            else:
-                ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
-                it = self.timeAxis.nearest(t)
-                for k in range(self.nof):
-                    ret += self._A4[:,:,:,:,k]*self._cofts[k+1,it]
-                return ret
-        else:
-            raise Exception()
+            ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
+            it = self.timeAxis.nearest(t)
+            for k in range(self.nof):
+                ret += self._A4[:,:,:,:,k]*self._cofts[k+1,it]
+            return ret
+        raise Exception()
 
 
     def get_hoft4(self,a,b,c,d):
@@ -357,8 +353,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[a,b,c,d,k]*self._hofts[k+1,:]
             return ret
-        else:
-            raise Exception()
+        raise Exception()
 
 
     def get_hoft_matrix(self,t=None):
@@ -392,14 +387,12 @@ class CorrelationFunctionMatrix(Saveable):
                         ret[:,:,:,:,it] += self._C4[:,:,:,:,k]\
                             *self._hofts[self.cpointer[k,k],it]
                 return ret
-            else:
-                ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
-                it = self.timeAxis.nearest(t)
-                for k in range(self.nof):
-                    ret += self._A4[:,:,:,:,k]*self._hofts[k+1,it]
-                return ret
-        else:
-            raise Exception()
+            ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
+            it = self.timeAxis.nearest(t)
+            for k in range(self.nof):
+                ret += self._A4[:,:,:,:,k]*self._hofts[k+1,it]
+            return ret
+        raise Exception()
 
 
     def get_goft4(self,a,b,c,d):
@@ -411,8 +404,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[a,b,c,d,k]*self._gofts[k+1,:]
             return ret
-        else:
-            raise Exception()
+        raise Exception()
 
 
     def get_goft_matrix(self,t=None):
@@ -446,14 +438,12 @@ class CorrelationFunctionMatrix(Saveable):
                         #ret[:,:,:,:,it] += self._A4[:,:,:,:,k]\
                         #*self._gofts[k+1,it]
                 return ret
-            else:
-                ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
-                it = self.timeAxis.nearest(t)
-                for k in range(self.nof):
-                    ret += self._A4[:,:,:,:,k]*self._gofts[k+1,it]
-                return ret
-        else:
-            raise Exception()
+            ret = numpy.zeros((nos,nos,nos,nos),dtype=COMPLEX)
+            it = self.timeAxis.nearest(t)
+            for k in range(self.nof):
+                ret += self._A4[:,:,:,:,k]*self._gofts[k+1,it]
+            return ret
+        raise Exception()
 
 
     def set_correlation_function(self, fce, where, iof=None):

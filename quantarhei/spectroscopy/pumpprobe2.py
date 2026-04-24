@@ -69,7 +69,7 @@ class PumpProbeSpectrum(DFunction):
             self.set_data(data)
         else:
             if self.data.size != len(data):
-                raise OSError("Added data length does not match the current" +
+                raise OSError("Added data length does not match the current"
                               "one")
             self.data += data
 
@@ -462,9 +462,9 @@ class PumpProbeSpectrumCalculator:
         """
         # Check if the magic angle polarization is used
         if not numpy.isclose(lab.F4eM4[1:],[0,0],atol=1e-6).all():
-            message = "Lab is not set to the magic angle polarization which is" +\
-            "the only supported measurement setting for this calculation. Set " +\
-            "polarization angle between first two pulses and the last two to" +\
+            message = "Lab is not set to the magic angle polarization which is"\
+            "the only supported measurement setting for this calculation. Set "\
+            "polarization angle between first two pulses and the last two to"\
             "54.7356103 deg. and repeat the calculation."
             raise OSError(message)
 
@@ -704,7 +704,7 @@ class PumpProbeSpectrumCalculator:
         ctimeAxis = cfm.timeAxis
 
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise OSError("Correlation function should be defined on interval"+
+            raise OSError("Correlation function should be defined on interval"
                           " (0, t2_max+t3_max).")
 
         # get number of monomeric basis states
@@ -792,7 +792,7 @@ class PumpProbeSpectrumCalculator:
         ctimeAxis = cfm.timeAxis
 
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise OSError("Correlation function should be defined on interval"+
+            raise OSError("Correlation function should be defined on interval"
                           " (0, t2_max+t3_max).")
 
         # get number of monomeric basis states
@@ -892,7 +892,7 @@ class PumpProbeSpectrumCalculator:
         ctimeAxis = cfm.timeAxis
 
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise OSError("Correlation function should be defined on interval"+
+            raise OSError("Correlation function should be defined on interval"
                           " (0, t2_max+t3_max).")
 
         # get number of monomeric basis states
@@ -1540,7 +1540,7 @@ def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, l
     percent = ("{:0." + str(decimals) + "f}").format(100* (iteration/float(total)))
     filledlength = int(length * iteration // total)
     bar = fill * filledlength + "-" * (length - filledlength)
-    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+    print('\r{} |{}| {}% {}'.format(prefix, bar, percent, suffix), end = '\r')
     # print New line after completition
     if iteration == total:
         print()

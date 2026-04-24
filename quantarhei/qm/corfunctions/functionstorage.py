@@ -102,7 +102,7 @@ class FunctionStorage:
             print("Storage configuration:")
             print(self.config)
             raise Exception("The number of time axes has"
-                           +" to be consistent with storage conguration.")
+                           " to be consistent with storage conguration.")
 
         self.oned_times = oned_times
 
@@ -315,7 +315,7 @@ class FunctionStorage:
 
         """
         return ("Correlation function storage\n"
-               +" dimension: "+str(self.dim)+"\n"
+               " dimension: "+str(self.dim)+"\n"
                +" data size: "+str(self.data_size)+" "+self.size_units)
 
 
@@ -372,16 +372,15 @@ class FunctionStorage:
 
                     if sta + 1 == end:
                         return self.data[sta]
+                    if isinstance(j,int):
+                        tpl = self.reshapes[j]
                     else:
-                        if isinstance(j,int):
-                            tpl = self.reshapes[j]
-                        else:
-                            tpl = self.reshapes_dic[j]
+                        tpl = self.reshapes_dic[j]
 
-                        return self.data[sta:end].reshape(tpl)
+                    return self.data[sta:end].reshape(tpl)
 
                 # if i is a slice :, we return a view an all arrays
-                elif isinstance(i, slice) and i == slice(None):
+                if isinstance(i, slice) and i == slice(None):
 
                     if isinstance(j,int):
                         sta = self.start[j]
@@ -393,13 +392,12 @@ class FunctionStorage:
 
                     if sta + 1 == end:
                         return self._data2d[i, sta]
+                    if isinstance(j,int):
+                        tpl = [self._data2d.shape[0]]+self.reshapes[j]
                     else:
-                        if isinstance(j,int):
-                            tpl = [self._data2d.shape[0]]+self.reshapes[j]
-                        else:
-                            tpl = [self._data2d.shape[0]]+self.reshapes_dic[j]
+                        tpl = [self._data2d.shape[0]]+self.reshapes_dic[j]
 
-                        return self._data2d[i, sta:end].reshape(tpl)
+                    return self._data2d[i, sta:end].reshape(tpl)
 
             else:
                 raise Exception()
@@ -643,7 +641,7 @@ class FunctionStorage:
 
         if Nsites != len(self.mapping):
             raise Exception("Mapping has to be complete."
-                        +" All of its elements have to be set without gaps.")
+                        " All of its elements have to be set without gaps.")
 
         mtrx = numpy.zeros((Nsites,Nstore), dtype=numpy.int32)
         for ii in range(Nsites):
@@ -685,15 +683,14 @@ class FastFunctionStorage(FunctionStorage):
             return self.data[sta:end]
 
         # i is a slice :
-        elif isinstance(i, slice) and i == slice(None):
+        if isinstance(i, slice) and i == slice(None):
             sta = self.start[j]
             end = self.end[j]
             if sta + 1 == end:
                 return self._data2d[i, sta]
             return self._data2d[i, sta:end]
 
-        else:
-            raise Exception("Integer or slice : required as a first index")
+        raise Exception("Integer or slice : required as a first index")
 
 
 

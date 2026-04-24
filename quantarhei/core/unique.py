@@ -189,8 +189,7 @@ class unique_array:
     def get_element(self,i,j):
         if ((i<self.N) and (j < self.M)) and ((i>=0) and (j>=0)) :
             return self._storage.get_element((self.M-1)*i+j)
-        else:
-            raise Exception("Index out of range")
+        raise Exception("Index out of range")
 
     def set_element(self,i,j,obj):
         if ((i<self.N) and (j < self.M)) and ((i>=0) and (j>=0)) :

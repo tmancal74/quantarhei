@@ -119,7 +119,7 @@ with energy_units("1/cm"):
 #        for j in range(i,H.dim):
 #            print(i,j,":",H.data[i,j])
     numpy.set_printoptions(precision=2, linewidth=100,
-                           formatter={'all':lambda x: "%8.1f" % x})
+                           formatter={'all':lambda x: "{:8.1f}".format(x)})
     print(H.data[1:,1:])
 
 

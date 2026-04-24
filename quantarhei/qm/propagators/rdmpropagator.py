@@ -185,7 +185,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         else:
 
-            raise Exception("TimeAxis and Hamiltonian are required to"+
+            raise Exception("TimeAxis and Hamiltonian are required to"
                             " initialize the propagator.")
 
 
@@ -253,7 +253,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         #
         if not (isinstance(rhoi, ReducedDensityMatrix)
              or isinstance(rhoi, DensityMatrix)):
-            raise Exception("First argument has be of"+
+            raise Exception("First argument has be of"
             " the ReducedDensityMatrix type")
 
         #######################################################################
@@ -282,20 +282,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
                         rhoi,L=4)
-                    elif method == "short-exp-2":
+                    if method == "short-exp-2":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
                         rhoi,L=2)
-                    elif method == "short-exp-4":
+                    if method == "short-exp-4":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
                         rhoi,L=4)
-                    elif method == "short-exp-6":
+                    if method == "short-exp-6":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_field(\
                         rhoi,L=6)
-                    else:
-                        raise Exception("Unknown propagation method: "+method)
+                    raise Exception("Unknown propagation method: "+method)
 
                 elif (self.has_EField and self.has_Trdip):
 
@@ -303,20 +302,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_EField(\
                         rhoi,L=4)
-                    elif method == "short-exp-2":
+                    if method == "short-exp-2":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_EField(\
                         rhoi,L=2)
-                    elif method == "short-exp-4":
+                    if method == "short-exp-4":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_EField(\
                         rhoi,L=4)
-                    elif method == "short-exp-6":
+                    if method == "short-exp-6":
                         return \
                         self.__propagate_short_exp_with_TD_relaxation_EField(\
                         rhoi,L=6)
-                    else:
-                        raise Exception("Unknown propagation method: "+method)
+                    raise Exception("Unknown propagation method: "+method)
 
 
                 ###############################################################
@@ -329,17 +327,16 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_TD_relaxation(\
                         rhoi,L=4)
-                    elif method == "short-exp-2":
+                    if method == "short-exp-2":
                         return self.__propagate_short_exp_with_TD_relaxation(\
                         rhoi,L=2)
-                    elif method == "short-exp-4":
+                    if method == "short-exp-4":
                         return self.__propagate_short_exp_with_TD_relaxation(\
                         rhoi,L=4)
-                    elif method == "short-exp-6":
+                    if method == "short-exp-6":
                         return self.__propagate_short_exp_with_TD_relaxation(\
                         rhoi,L=6)
-                    else:
-                        raise Exception("Unknown propagation method: "+method)
+                    raise Exception("Unknown propagation method: "+method)
 
             ###################################################################
             #
@@ -359,20 +356,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return \
                         self.__propagate_short_exp_with_relaxation_field(
                         rhoi,L=4)
-                    elif method == "short-exp-2":
+                    if method == "short-exp-2":
                         return \
                         self.__propagate_short_exp_with_relaxation_field(
                         rhoi,L=2)
-                    elif method == "short-exp-4":
+                    if method == "short-exp-4":
                         return \
                         self.__propagate_short_exp_with_relaxation_field(
                         rhoi,L=4)
-                    elif method == "short-exp-6":
+                    if method == "short-exp-6":
                         return \
                         self.__propagate_short_exp_with_relaxation_field(
                         rhoi,L=6)
-                    else:
-                        raise Exception("Unknown propagation method: "+method)
+                    raise Exception("Unknown propagation method: "+method)
 
                 elif (self.has_EField and self.has_Trdip):
 
@@ -380,20 +376,19 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return \
                         self.__propagate_short_exp_with_relaxation_EField(
                         rhoi,L=4)
-                    elif method == "short-exp-2":
+                    if method == "short-exp-2":
                         return \
                         self.__propagate_short_exp_with_relaxation_EField(
                         rhoi,L=2)
-                    elif method == "short-exp-4":
+                    if method == "short-exp-4":
                         return \
                         self.__propagate_short_exp_with_relaxation_EField(
                         rhoi,L=4)
-                    elif method == "short-exp-6":
+                    if method == "short-exp-6":
                         return \
                         self.__propagate_short_exp_with_relaxation_EField(
                         rhoi,L=6)
-                    else:
-                        raise Exception("Unknown propagation method: "+method)
+                    raise Exception("Unknown propagation method: "+method)
 
                 ###############################################################
                 #
@@ -409,18 +404,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=4)
-                    elif method == "short-exp-2":
+                    if method == "short-exp-2":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=2)
-                    elif method == "short-exp-4":
+                    if method == "short-exp-4":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=4)
-                    elif method == "short-exp-6":
+                    if method == "short-exp-6":
                         return self.__propagate_short_exp_with_relaxation(
                         rhoi,L=6)
 
-                    else:
-                        raise Exception("Unknown propagation method: "+method)
+                    raise Exception("Unknown propagation method: "+method)
 
         #######################################################################
         #
@@ -434,42 +428,39 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
                 if method == "short-exp":
                     return self.__propagate_short_exp_efield(rhoi,L=4)
-                elif method == "short-exp-2":
+                if method == "short-exp-2":
                     return self.__propagate_short_exp_efield(rhoi,L=2)
-                elif method == "short-exp-4":
+                if method == "short-exp-4":
                     return self.__propagate_short_exp_efield(rhoi,L=4)
-                elif method == "short-exp-6":
+                if method == "short-exp-6":
                     return self.__propagate_short_exp_efield(rhoi,L=6)
 
-                else:
-                    raise Exception("Unknown propagation method: "+method)
+                raise Exception("Unknown propagation method: "+method)
 
             elif (self.has_EField and self.has_Trdip):
 
                 if method == "short-exp":
                     return self.__propagate_short_exp_EField(rhoi,L=4)
-                elif method == "short-exp-2":
+                if method == "short-exp-2":
                     return self.__propagate_short_exp_EField(rhoi,L=2)
-                elif method == "short-exp-4":
+                if method == "short-exp-4":
                     return self.__propagate_short_exp_EField(rhoi,L=4)
-                elif method == "short-exp-6":
+                if method == "short-exp-6":
                     return self.__propagate_short_exp_EField(rhoi,L=6)
 
-                else:
-                    raise Exception("Unknown propagation method: "+method)
+                raise Exception("Unknown propagation method: "+method)
             else:
 
                 if method == "short-exp":
                     return self.__propagate_short_exp(rhoi,L=4)
-                elif method == "short-exp-2":
+                if method == "short-exp-2":
                     return self.__propagate_short_exp(rhoi,L=2)
-                elif method == "short-exp-4":
+                if method == "short-exp-4":
                     return self.__propagate_short_exp(rhoi,L=4)
-                elif method == "short-exp-6":
+                if method == "short-exp-6":
                     return self.__propagate_short_exp(rhoi,L=6)
 
-                else:
-                    raise Exception("Unknown propagation method: "+method)
+                raise Exception("Unknown propagation method: "+method)
 
 
 
@@ -749,7 +740,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         #     HH = self.Hamiltonian.data
         HH = self._INIT_RWA()
 
-        qr.log_detail("PROPAGATION (short exponential with "+
+        qr.log_detail("PROPAGATION (short exponential with "
                      "relaxation in operator form): order ", L,
                      verbose=self.verbose)
         qr.log_detail("Using complex numpy implementation")
@@ -941,7 +932,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             time = self.TimeAxis
             print("Relaxation tensor has a timestep  :", sysstep, "fs")
             print("Propagation timestep is:", time.step, "fs")
-            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"
                   " neatly into a step of", time.step,"fs")
             raise Exception("Incompatible number of refinement steps")
 
@@ -1140,7 +1131,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             time = self.TimeAxis
             print("Relaxation tensor has a timestep  :", sysstep, "fs")
             print("Propagation timestep is:", time.step, "fs")
-            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"
                   " neatly into a step of", time.step,"fs")
             raise Exception("Incompatible number of refinement steps")
 
@@ -1271,7 +1262,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             time = self.TimeAxis
             print("Relaxation tensor has a timestep  :", sysstep, "fs")
             print("Propagation timestep is:", time.step, "fs")
-            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"+
+            print("ERROR:", Nref_req,"steps of", sysstep,"fs do not fit"
                   " neatly into a step of", time.step,"fs")
             raise Exception("Incompatible number of refinement steps")
 

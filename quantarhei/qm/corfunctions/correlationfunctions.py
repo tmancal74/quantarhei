@@ -144,7 +144,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
                 except:
                     raise Exception("Dictionary of parameters does not contain "
-                                    +" `ftype` key")
+                                    " `ftype` key")
 
                 self.params.append(prms)
 
@@ -204,7 +204,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                         self._make_value_defined(prms, values)
 
                     else:
-                        raise Exception("Unknown correlation function type or"+
+                        raise Exception("Unknown correlation function type or"
                                         "type domain combination.")
 
                     #self.params.append(prms)
@@ -219,8 +219,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
                     self.lamb += prms["reorg"]
                     if self.temperature != prms["T"]:
                         raise Exception("Inconsistent temperature! "
-                                        +"Temperatures of all "
-                                        +"components have to be the same")
+                                        "Temperatures of all "
+                                        "components have to be the same")
 
                 #FIXME: set cut-off time and temperature
                 #self._set_temperature_and_cutoff_time(self.params[0])
@@ -249,7 +249,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.temperature = temperature
         elif self.temperature != temperature:
             raise Exception("Inconsistent temperature! Temperatures of all "
-                            +"components have to be the same")
+                            "components have to be the same")
 
         # longest cortime has to be preserved
         new_cutoff_time = 5.0*ctime
@@ -441,7 +441,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # use the units in which params was defined
         lamb = self.manager.iu_energy(params["reorg"],
                                       units=self.energy_units)
-        print('correlation function lamb in int units %f' %lamb)
+        print('correlation function lamb in int units {:f}'.format(lamb))
         time = self.axis #.data
 
         if values is not None:
@@ -516,7 +516,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         else:
             raise Exception("In addition, functions have to share"
-                            +" the same TimeAxis object")
+                            " the same TimeAxis object")
 
         return f
 
@@ -553,7 +553,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         else:
             raise Exception("In addition, functions have to share"
-                            +" the same TimeAxis object")
+                            " the same TimeAxis object")
 
     def add_to_data2(self, other):
         """Addition of data from a specified CorrelationFunction to this object
@@ -589,7 +589,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         else:
             raise Exception("In addition, functions have to share"
-                            +" the same TimeAxis object")
+                            " the same TimeAxis object")
 
 
     def reorganization_energy_consistent(self, rtol=1.0e-3):
@@ -602,8 +602,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         lamb2 = self.convert_energy_2_current_u(self.lamb)
         if (abs(lamb1 - lamb2)/(lamb1+lamb2)) < rtol:
             return True
-        else:
-            return False
+        return False
 
 
     def is_analytical(self):
@@ -678,8 +677,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
                     frequencies = fa
                 else:
                     raise Exception("The provided FrequencyAxis does not "
-                                    + "have the same data as the Fourier "
-                                    + "transformed axis")
+                                     "have the same data as the Fourier "
+                                     "transformed axis")
 
             # FIXME: how to set the limit of SpectralDensity at w->0
             spectd = SpectralDensity(frequencies, self.params, values=vals)
@@ -854,7 +853,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
 
             except:
                 raise Exception("Dictionary of parameters does not contain "
-                                +" `ftype` key")
+                                " `ftype` key")
         self.params = prms
 
         if values is None:

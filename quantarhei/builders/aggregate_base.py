@@ -374,7 +374,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             self.init_coupling_vector()
 
         if mon1 == mon2:
-            print("Trying to set couling between states within the same " +\
+            print("Trying to set couling between states within the same "\
                   "molecule. This coupling is set to zero!")
             return
 
@@ -651,7 +651,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             epsr = params["epsr"]
             self.set_coupling_by_dipole_dipole(epsr=epsr)
         else:
-            raise Exception("Unknown method for calculation"+
+            raise Exception("Unknown method for calculation"
                             " of resonance coupling")
         #
         # TESTED
@@ -671,8 +671,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     def get_lindich_axes(self):
         if self._has_lindich_axes:
             return self.q
-        else:
-            raise Exception("No linear dichroism coordinate system supplied")
+        raise Exception("No linear dichroism coordinate system supplied")
 
 
     # FIXME: This should be delegated SystemBathInteraction
@@ -989,7 +988,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
         else:
-            raise Exception("Participation matrix not implemented for"+
+            raise Exception("Participation matrix not implemented for"
                             "multiplicity higher than mult=2.")
 
         return WPM
@@ -1027,7 +1026,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 #print(exindx, width)
                 return width
 
-            elif abs(b2-b1) == 2:
+            if abs(b2-b1) == 2:
                 s1_signature = state1.elstate.elsignature
                 if numpy.nonzero(s1_signature)[0].size == 1:
                     #Todo: repare _get_exindx for state from double excited block but on single molecule
@@ -1045,61 +1044,57 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 #-------------------------------------------------------------------------------
 
                     return width
-                else:
-                    (indx1, indx2) = self._get_twoexindx(state1, state2)
-                    #print(state1.elstate.elsignature,
-                    #      state2.elstate.elsignature, indx1, indx2)
-                    exct1 = state1.elstate.elsignature[indx1]
-                    exct2 = state1.elstate.elsignature[indx2]
-                    width = self.monomers[indx1].get_transition_width((0,exct1))
-                    width += self.monomers[indx2].get_transition_width((0,exct2))
-                    #print(indx1, indx2, width)
-                    return width
+                (indx1, indx2) = self._get_twoexindx(state1, state2)
+                #print(state1.elstate.elsignature,
+                #      state2.elstate.elsignature, indx1, indx2)
+                exct1 = state1.elstate.elsignature[indx1]
+                exct2 = state1.elstate.elsignature[indx2]
+                width = self.monomers[indx1].get_transition_width((0,exct1))
+                width += self.monomers[indx2].get_transition_width((0,exct2))
+                #print(indx1, indx2, width)
+                return width
 
-            else:
-                return -1.0
+            return -1.0
 
 
-        else:
 
-            transition = state1
+        transition = state1
 
-            Nf = transition[0]
-            Ni = transition[1]
+        Nf = transition[0]
+        Ni = transition[1]
 
-            eli = self.elinds[Ni]
-            elf = self.elinds[Nf]
+        eli = self.elinds[Ni]
+        elf = self.elinds[Nf]
 
-            # g -> 1 exciton band transitions
-            if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
-                # this simulates bath correlation function
-                #print("0->1 :", self.Wd[Nf, Nf]**2)
-                return self.Wd[Nf, Nf]**2
+        # g -> 1 exciton band transitions
+        if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
+            # this simulates bath correlation function
+            #print("0->1 :", self.Wd[Nf, Nf]**2)
+            return self.Wd[Nf, Nf]**2
 
-            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
-                # this simulates bath correlation function
-                #print("0->1 :", self.Wd[Nf, Nf]**2)
-                return self.Wd[Ni, Ni]**2
+        if (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
+            # this simulates bath correlation function
+            #print("0->1 :", self.Wd[Nf, Nf]**2)
+            return self.Wd[Ni, Ni]**2
 
-            # 1 exciton -> 2 exciton transitions
-            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
-                # this simulates the term  g_ff + g_ee - 2Re g_fe
-                ret =  (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]**2
-                        - 2.0*(self.Wd[Nf, Ni]**2))
-                #print("1->2 (", eli, elf,") :", ret, self.Wd[Nf, Ni]**2)
-                return ret
+        # 1 exciton -> 2 exciton transitions
+        if (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
+            # this simulates the term  g_ff + g_ee - 2Re g_fe
+            ret =  (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]**2
+                    - 2.0*(self.Wd[Nf, Ni]**2))
+            #print("1->2 (", eli, elf,") :", ret, self.Wd[Nf, Ni]**2)
+            return ret
 
-            elif (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
-                # this simulates the term  g_ff + g_ee - 2Re g_fe
-                ret =  (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]**2
-                        - 2.0*(self.Wd[Nf, Ni]**2))
-                #print("1->2 (", eli, elf,") :", ret, self.Wd[Nf, Ni]**2)
-                return ret
+        if (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
+            # this simulates the term  g_ff + g_ee - 2Re g_fe
+            ret =  (self.Wd[Ni, Ni]**2 + self.Wd[Nf, Nf]**2
+                    - 2.0*(self.Wd[Nf, Ni]**2))
+            #print("1->2 (", eli, elf,") :", ret, self.Wd[Nf, Ni]**2)
+            return ret
 
 
-            else:
-                print("This should not be used")
-                return 0.0
+        print("This should not be used")
+        return 0.0
 
 
     def get_transition_dephasing(self, state1, state2=None):
@@ -1130,36 +1125,34 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             deph = self.monomers[exindx].get_transition_dephasing((0,1))
             return deph
 
-        else:
 
-            transition = state1
+        transition = state1
 
-            Nf = transition[0]
-            Ni = transition[1]
+        Nf = transition[0]
+        Ni = transition[1]
 
-            eli = self.elinds[Ni]
-            elf = self.elinds[Nf]
+        eli = self.elinds[Ni]
+        elf = self.elinds[Nf]
 
-            # g -> 1 exciton band transitions
-            if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
-                return self.Dr[Nf, Nf]**2
+        # g -> 1 exciton band transitions
+        if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
+            return self.Dr[Nf, Nf]**2
 
-            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
-                return self.Dr[Ni, Ni]**2
+        if (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
+            return self.Dr[Ni, Ni]**2
 
-            # 1 exciton -> 2 exciton band transitions
-            elif (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
-                # this simulates the term  g_ff + g_ee - 2Re g_fe
-                return (self.Dr[Ni, Ni]**2 + self.Dr[Nf, Nf]
-                        - 2.0*self.Dr[Nf, Ni])
+        # 1 exciton -> 2 exciton band transitions
+        if (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
+            # this simulates the term  g_ff + g_ee - 2Re g_fe
+            return (self.Dr[Ni, Ni]**2 + self.Dr[Nf, Nf]
+                    - 2.0*self.Dr[Nf, Ni])
 
-            elif (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
-                # this simulates the term  g_ff + g_ee - 2Re g_fe
-                return (self.Dr[Ni, Ni]**2 + self.Dr[Nf, Nf]
-                        - 2.0*self.Dr[Nf, Ni])
+        if (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
+            # this simulates the term  g_ff + g_ee - 2Re g_fe
+            return (self.Dr[Ni, Ni]**2 + self.Dr[Nf, Nf]
+                    - 2.0*self.Dr[Nf, Ni])
 
-            else:
-                return -1.0
+        return -1.0
 
 
     def transition_dipole(self, state1, state2):
@@ -2203,7 +2196,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     def __str__(self):
         out  = "\nquantarhei.Aggregate object"
         out += "\n==========================="
-        out += "\nname = %s" % self.name
+        out += "\nname = {}".format(self.name)
         out += "\nnumber of molecules = %i " % self.nmono
         count = 0
         for nm in self.monomers:
@@ -2627,7 +2620,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             # Check the consistency of the energy gap correlation matrix
             if self.egcf_matrix.nob != nmonst:
-                raise Exception("Correlation matrix has a size different" +
+                raise Exception("Correlation matrix has a size different"
                                 " from the number of monomeric states")
 
             #FIXME The aggregate having a egcf matrix does not mean the monomers
@@ -2636,8 +2629,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 if self.monomers[i]._is_mapped_on_egcf_matrix and \
                 self.monomers[i].egcf_matrix is not self.egcf_matrix:
                     # TODO: Ask about this - it would mean that every monomer has the same energy gap correlation function
-                    raise Exception("Correlation matrix in the monomer" +
-                                    " has to be the same as the one of" +
+                    raise Exception("Correlation matrix in the monomer"
+                                    " has to be the same as the one of"
                                     " the aggregate.")
             # seems like everything is consistent -> we can calculate system-
             # -bath interaction
@@ -2968,8 +2961,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         if (j > 0):
                             n_e = mod.get_nmax(j)
                             if n_e > n_g:
-                                raise Exception("Number of levels"+
-                    " in the excited state of a molecule has to be \n"+
+                                raise Exception("Number of levels"
+                    " in the excited state of a molecule has to be \n"
                     "the same or smaller than in the ground state")
 
             #
@@ -3031,7 +3024,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                 return nop #, nop1
 
-            elif n_indices == 3:
+            if n_indices == 3:
 
                 # do the conversion
 
@@ -3058,8 +3051,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 return nop
 
 
-            else:
-                raise Exception("Incompatible operator")
+            raise Exception("Incompatible operator")
 
 
     def trace_converted(self, operator, Nt=None):
@@ -3117,8 +3109,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                         operator._data[i_n, i_m]
                 return nop
 
-            else:
-                raise Exception("Incompatible operator")
+            raise Exception("Incompatible operator")
 
 
     def trace_over_vibrations(self, operator, Nt=None):
@@ -3187,8 +3178,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                             if (j > 0):
                                 n_e = mod.get_nmax(j)
                                 if n_e > n_g:
-                                    raise Exception("Number of levels"+
-                        " in the excited state of a molecule has to be \n"+
+                                    raise Exception("Number of levels"
+                        " in the excited state of a molecule has to be \n"
                         "the same or smaller than in the ground state")
 
 
@@ -3246,13 +3237,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                         operator._data[i_n, i_m]*FcProd[i_n, i_m]
 
             else:
-                raise Exception("Cannot trace over this object: "+
+                raise Exception("Cannot trace over this object: "
                                 "wrong number of indices")
 
             return nop
 
-        else:
-            raise Exception("Incompatible operator")
+        raise Exception("Incompatible operator")
 
 
     def cast_to_vibronic(self, KK):
@@ -3748,8 +3738,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 # Check for the double excited state on single molecule
                 for n in range(N1b, self.Ntot):
                     if self.twoex_indx[n,1] == 0:
-                        text = f"State {n} is double excited state on single molecule." +\
-                        " For this state transition width transformation is not defined." +\
+                        text = f"State {n} is double excited state on single molecule."\
+                        " For this state transition width transformation is not defined."\
                         " Correct the diagonalization rutine in aggregate_base!!! "
                         warnings.warn(text)
 
@@ -4072,7 +4062,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # aggregate must be built before we call this method
         if not self._built:
             raise Exception("Aggregate must be built before"
-                            +" get_StateVector can be invoked.")
+                            " get_StateVector can be invoked.")
 
         # if no condition is specified, it is understood that we return
         # internal sv0, which was calculated sometime in the past
@@ -4080,7 +4070,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return StateVector(data=self.sv0)
 
 
-        elif condition_type == "impulsive_excitation":
+        if condition_type == "impulsive_excitation":
 
             if DD is None:
                 DD = self.TrDMOp.data
@@ -4098,8 +4088,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             return StateVector(data=self.sv0)
 
-        else:
-            raise Exception("Unknown condition type")
+        raise Exception("Unknown condition type")
 
 
 
@@ -4153,7 +4142,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # aggregate must be built before we call this method
         if not self._built:
             raise Exception("Aggregate must be built before"
-                            +" get_DensityMatrix can be invoked.")
+                            " get_DensityMatrix can be invoked.")
 
         # if Aggregate has interaction with the bath, temperature
         # is already defined
@@ -4172,7 +4161,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
         # impulsive excitation from a thermal ground state
-        elif condition_type == "impulsive_excitation":
+        if condition_type == "impulsive_excitation":
             rho0 = self._impulsive_population(
                               relaxation_theory_limit=relaxation_theory_limit,
                               temperature=temperature, DD=DD)
@@ -4181,7 +4170,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
         # thermal population based on the total Hamiltonian
-        elif condition_type == "thermal":
+        if condition_type == "thermal":
 
             if not relaxation_hamiltonian:
                 Ham = self.get_Hamiltonian()
@@ -4195,7 +4184,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
-        elif condition_type == "thermal_excited_state":
+        if condition_type == "thermal_excited_state":
 
             if relaxation_theory_limit == "strong_coupling":
 
@@ -4256,7 +4245,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
-        elif condition_type == "thermal_twoexciton":
+        if condition_type == "thermal_twoexciton":
 
             if relaxation_theory_limit == "strong_coupling":
 
@@ -4317,8 +4306,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
-        else:
-            raise Exception("Unknown condition type")
+        raise Exception("Unknown condition type")
         #
         # TESTED
 
@@ -4464,8 +4452,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         if self._built:
             return self.sbi
-        else:
-            raise Exception("Aggregate object not built.")
+        raise Exception("Aggregate object not built.")
 
 
     def set_SystemBathInteraction(self, sbi):
@@ -4484,8 +4471,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         if self._built:
             return self.HamOp #Hamiltonian(data=self.HH)
-        else:
-            raise Exception("Aggregate object not built")
+        raise Exception("Aggregate object not built")
 
     def get_electronic_Hamiltonian(self, full=False):
         """Returns the aggregate electronic Hamiltonian
@@ -4511,8 +4497,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         if self._built:
             return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
-        else:
-            raise Exception("Aggregate object not built")
+        raise Exception("Aggregate object not built")
 
 
     def get_TransitionMagneticDipoleMoment(self):
@@ -4521,5 +4506,4 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         if self._built:
             return TransitionDipoleMoment(data=self.MM)
-        else:
-            raise Exception("Aggregate object not built")
+        raise Exception("Aggregate object not built")

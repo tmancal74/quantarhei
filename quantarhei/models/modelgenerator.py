@@ -109,7 +109,7 @@ class ModelGenerator:
                 agg.set_coupling_by_dipole_dipole()
 
         else:
-            raise Exception("Unknown model name %s" % name)
+            raise Exception("Unknown model name {}".format(name))
 
         return agg
 
@@ -178,6 +178,6 @@ class ModelGenerator:
                 m.set_transition_environment((0,1), cf)
 
         else:
-            raise Exception("Unknown model name %s" % name)
+            raise Exception("Unknown model name {}".format(name))
 
         return agg

@@ -39,7 +39,7 @@ def do_command_run(args):
             m.fverbosity = int(vrbint[1])
         except:
             raise Exception("Integer or two comma separated integers required"
-                            +" for -y/--verbosity option")
+                            " for -y/--verbosity option")
 
 
     # we set the verbosity lower for other than the leading process
@@ -576,7 +576,7 @@ def main():
     parser.add_argument("-v", "--version", action="store_true",
                         help="shows Quantarhei package version")
     parser.add_argument("-i", "--info", action='store_true',
-                        help="shows detailed information about Quantarhei"+
+                        help="shows detailed information about Quantarhei"
                         " installation")
     parser.add_argument("-y", "--verbosity", type=str, default="5",
                         help="defines verbosity between 0 and 10")
@@ -607,16 +607,16 @@ def main():
                           help="number of processes to start")
     parser_run.add_argument("-d", "--driver", type=str,
                           default="mpirun", help="driver command, e.g."
-                          +" for MPI.")
+                          " for MPI.")
     parser_run.add_argument("-f", "--hostfile", metavar="HOSTFILE",
                             default="", help="list of available"
-                            +" host for parallel calculation")
+                            " host for parallel calculation")
     parser_run.add_argument("-b", "--benchmark", type=int, default=0,
                           help="run one of the predefined benchmark"
-                          +" calculations")
+                          " calculations")
     parser_run.add_argument("-i", "--inputfile", type=str,
                           default="input.yaml", help="input file for the "
-                          +"script")
+                          "script")
 
 
     parser_run.set_defaults(func=do_command_run)
@@ -634,8 +634,8 @@ def main():
     #
 
     parser_fetch = subparsers.add_parser("fetch", help="Fetches examples,"
-                                        +" benchmarks, tutorials, templates"
-                                        +" and configuration files")
+                                        " benchmarks, tutorials, templates"
+                                        " and configuration files")
 
     parser_fetch.add_argument("glob", metavar='glob', type=str,
                               help='file name', nargs="?")
@@ -649,7 +649,7 @@ def main():
     #
 
     parser_list = subparsers.add_parser("list", help="Lists examples,"
-                                    +" benchmarks, tutorials and templates")
+                                    " benchmarks, tutorials and templates")
 
     parser_list.add_argument("glob", metavar='glob', type=str,
                              help='file name', nargs="?")
@@ -682,7 +682,7 @@ def main():
     #
     parser_file = subparsers.add_parser("file", help=
                                 "Shows information about files"
-                                +" created by Quantarhei")
+                                " created by Quantarhei")
 
     parser_file.add_argument("fname", metavar='fname', type=str,
                           help='file to be checked', nargs=1)
@@ -695,7 +695,7 @@ def main():
     #
 
     parser_script = subparsers.add_parser("script", help="Installs and manages"
-                                        +" scripts")
+                                        " scripts")
 
     #parser_script.add_argument("glob", metavar='glob', type=str,
     #                          help='file name', nargs="?")
@@ -710,14 +710,14 @@ def main():
     parser_script.add_argument("-l", "--list", action='store_true',
                           help="lists all installed scripts")
     parser_script.add_argument("-y", "--history", metavar="SCRIPT",
-                            default="", help="reports the history of an"+
+                            default="", help="reports the history of an"
                             " installed script")
     parser_script.add_argument("-t", "--status", metavar="SCRIPT",
-                            default="", help="reports the status of an"+
+                            default="", help="reports the status of an"
                             " installed script")
     parser_script.add_argument("-a", "--hash", metavar="FILE",
                             default="", help="creates a hash unique to the"
-                            +" content of a file")
+                            " content of a file")
     parser_script.set_defaults(func=do_command_script)
 
 
@@ -732,7 +732,7 @@ def main():
     #
     if args.info:
         qr.printlog("\n"
-                   +"qrhei: Quantarhei Package Driver\n",
+                   "qrhei: Quantarhei Package Driver\n",
                    verbose=True, loglevel=1)
 #                   +"\n"
 #                   +"MPI parallelization enabled: ", flag_parallel,

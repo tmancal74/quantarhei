@@ -320,7 +320,7 @@ class PopulationPropagator:
 
         else:
             raise Exception("TimeAxis is not a subset of the internal"
-                            +" TimeAxis of this propagator.")
+                            " TimeAxis of this propagator.")
 
 
 

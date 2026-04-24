@@ -22,7 +22,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         if as_operators:
             import warnings
             warnings.warn("Modiefied Redfield Tensor does not have "
-                          +"operator form: using tensor form.")
+                          "operator form: using tensor form.")
             as_operators = False
 
 
@@ -33,7 +33,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
 
         if not isinstance(sbi, SystemBathInteraction):
             raise Exception("Second argument must be of"
-                           +" type SystemBathInteraction")
+                           " type SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False

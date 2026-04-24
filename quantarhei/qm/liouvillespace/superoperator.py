@@ -105,7 +105,7 @@ class SuperOperator(BasisManaged):
                 raise Exception("The data do not represent a superoperator")
             Nd = data.shape[0]
             if numpy.any(numpy.array(data.shape) - Nd):
-                raise Exception("`data` has to be `square` "+
+                raise Exception("`data` has to be `square` "
                                 "four-dimensional matrix")
             self.dim = data.shape[0]
 
@@ -187,9 +187,8 @@ class SuperOperator(BasisManaged):
                 oper_ven = numpy.tensordot(self.data, oper)
 
             return oper_ven
-        else:
-            oper.data = numpy.tensordot(self.data, oper.data)
-            return oper
+        oper.data = numpy.tensordot(self.data, oper.data)
+        return oper
 
 
     def transform(self, SS, inv=None):
@@ -280,7 +279,7 @@ class SuperOperator(BasisManaged):
         """
         if (self.manager.warn_about_basis_change):
             print("\nQr >>> SuperOperator "+
-                  "'%s' changes basis" %self.name)
+                  "'{}' changes basis".format(self.name))
 
         #
         # if inverse matrix not present, we create it

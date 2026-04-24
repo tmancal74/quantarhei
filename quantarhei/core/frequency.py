@@ -206,7 +206,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
 
                 if (self.length % 2) != 0:
                     raise Exception("Cannot create upper-half TimeAxis"
-                                    + " from an odd number of points")
+                                     " from an odd number of points")
 
                 times = numpy.fft.fftshift(
                     (2.0*numpy.pi)*numpy.fft.fftfreq(self.length, self.step))

@@ -58,48 +58,47 @@ class PDBFile:
         if model is None:
             return self.molecules
 
-        else:
 
-            molecules = []
+        molecules = []
 
-            #
-            #  residue name identifying the molecule in pdb file
-            #
-            res_name = model.pdbname
+        #
+        #  residue name identifying the molecule in pdb file
+        #
+        res_name = model.pdbname
 
-            #
-            # Get all lines with molecules matching residue name
-            #
-            mollines = self._match_lines(by_recName="HETATM",
-                                         by_resName=res_name)
-                                      #by_resSeq=378, by_atmName="ND")
+        #
+        # Get all lines with molecules matching residue name
+        #
+        mollines = self._match_lines(by_recName="HETATM",
+                                     by_resName=res_name)
+                                  #by_resSeq=378, by_atmName="ND")
 
-            #    return line[_resSeq_min:_resSeq_max]
-            # Get resSeq - residue sequence number
-            # (sometimes enough to identify uniquely the molechaincule)
-            #)
-            for mols in mollines:
-                rseq = int(line_resSeq(mols))
-                if rseq not in self._resSeqs:
-                    # if the sequence numeber not in a list of number
-                    self._resSeqs.append(rseq) # append it
-                    self._res_lines[rseq] = [] # make a new list of lines
-                self._res_lines[rseq].append(mols) # append line to a list
-                                                   # according to a sequence nr
+        #    return line[_resSeq_min:_resSeq_max]
+        # Get resSeq - residue sequence number
+        # (sometimes enough to identify uniquely the molechaincule)
+        #)
+        for mols in mollines:
+            rseq = int(line_resSeq(mols))
+            if rseq not in self._resSeqs:
+                # if the sequence numeber not in a list of number
+                self._resSeqs.append(rseq) # append it
+                self._res_lines[rseq] = [] # make a new list of lines
+            self._res_lines[rseq].append(mols) # append line to a list
+                                               # according to a sequence nr
 
-            # check if there is one molecule in the list of lines
+        # check if there is one molecule in the list of lines
 
 
-            count = -1
-            for mols in mollines:
-                rseq = int(line_resSeq(mols))
-                chainId = line_chainId(mols)
-                comb = chainId+str(rseq)
-                if comb not in self._uniqueIds:
-                    count += 1
-                    self._uniqueIds.append(comb)
-                    self._unique_lines[comb] = []
-                self._unique_lines[comb].append(mols)
+        count = -1
+        for mols in mollines:
+            rseq = int(line_resSeq(mols))
+            chainId = line_chainId(mols)
+            comb = chainId+str(rseq)
+            if comb not in self._uniqueIds:
+                count += 1
+                self._uniqueIds.append(comb)
+                self._unique_lines[comb] = []
+            self._unique_lines[comb].append(mols)
 
 #            # Create a molecule from given lines
 #            for rseq in self._resSeqs:
@@ -112,18 +111,18 @@ class PDBFile:
 #                m.set_dipole(0,1,d)
 #                self.molecules.append(m)
 
-            # Create a molecule from given unique lines
-            for rseq in self._uniqueIds:
-                m = Molecule(name=str(rseq), elenergies=model.default_energies)
-                r = model.position_of_center(data_type="PDB",
-                                             data=self._unique_lines[rseq])
-                m.position = r
-                d = model.transition_dipole(data_type="PDB",
-                                            data=self._unique_lines[rseq])
-                m.set_dipole(0,1,d)
-                m.model = self
-                m.data = self._unique_lines[rseq]
-                molecules.append(m)
+        # Create a molecule from given unique lines
+        for rseq in self._uniqueIds:
+            m = Molecule(name=str(rseq), elenergies=model.default_energies)
+            r = model.position_of_center(data_type="PDB",
+                                         data=self._unique_lines[rseq])
+            m.position = r
+            d = model.transition_dipole(data_type="PDB",
+                                        data=self._unique_lines[rseq])
+            m.set_dipole(0,1,d)
+            m.model = self
+            m.data = self._unique_lines[rseq]
+            molecules.append(m)
 
         self._reset_helpers()
         self.molecules = molecules

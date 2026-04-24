@@ -160,9 +160,8 @@ class OpenSystem:
 
             return self.HamOp
 
-        else:
 
-            raise Exception("System has to be built first")
+        raise Exception("System has to be built first")
 
 
     def get_TransitionDipoleMoment(self):
@@ -171,8 +170,7 @@ class OpenSystem:
         """
         if self._built:
             return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
-        else:
-            raise Exception("Aggregate object not built")
+        raise Exception("Aggregate object not built")
 
 
     def set_transition_environment(self, transition, egcf):
@@ -192,7 +190,7 @@ class OpenSystem:
         """
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This system is mapped"
-                            + " on a CorrelationFunctionMatrix")
+                             " on a CorrelationFunctionMatrix")
 
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
@@ -205,7 +203,7 @@ class OpenSystem:
             self._has_system_bath_coupling = True
 
         else:
-            raise Exception("Correlation function already speficied" +
+            raise Exception("Correlation function already speficied"
                             " for this monomer")
 
 
@@ -225,7 +223,7 @@ class OpenSystem:
         """
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped"
-                            + " on a CorrelationFunctionMatrix")
+                             " on a CorrelationFunctionMatrix")
 
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
 
@@ -466,7 +464,7 @@ class OpenSystem:
         Ne1 = self.Nb[1] + Ng
 
         if self.mult > 1:
-            raise Exception("Participation matrix not implemented for"+
+            raise Exception("Participation matrix not implemented for"
                             "multiplicity higher than mult=1.")
 
         WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
@@ -598,8 +596,7 @@ class OpenSystem:
         """
         if self._built:
             return self.sbi
-        else:
-            raise Exception("The object not built.")
+        raise Exception("The object not built.")
 
 
 
@@ -743,7 +740,7 @@ class OpenSystem:
 
             return relaxT, ham
 
-        elif relaxation_theory in theories["modified_Redfield"]:
+        if relaxation_theory in theories["modified_Redfield"]:
 
             if time_dependent:
 
@@ -783,7 +780,7 @@ class OpenSystem:
             return relaxT, ham
 
 
-        elif relaxation_theory in theories["standard_Foerster"]:
+        if relaxation_theory in theories["standard_Foerster"]:
 
             if time_dependent:
 
@@ -820,7 +817,7 @@ class OpenSystem:
 
             return relaxT, ham_0
 
-        elif relaxation_theory in theories["noneq_Foerster"]:
+        if relaxation_theory in theories["noneq_Foerster"]:
 
             if time_dependent:
 
@@ -865,7 +862,7 @@ class OpenSystem:
 
             return relaxT, ham_0
 
-        elif relaxation_theory in theories["combined_RedfieldFoerster"]:
+        if relaxation_theory in theories["combined_RedfieldFoerster"]:
 
             if adiabatic is not None and adiabatic != False:
                 ham.subtract_cutoff_coupling(coupling_cutoff)
@@ -924,7 +921,7 @@ class OpenSystem:
 
             return relaxT, ham
 
-        elif relaxation_theory in theories["combined_WeakStrong"]:
+        if relaxation_theory in theories["combined_WeakStrong"]:
 
             pass
 
@@ -987,7 +984,7 @@ class OpenSystem:
 
                         sbi.KK = vKK
                     else:
-                        raise Exception("SystemBathInteraction object has to"+
+                        raise Exception("SystemBathInteraction object has to"
                                         " purely electronic")
 
                     relaxT = LindbladForm(ham, sbi)
@@ -1139,7 +1136,7 @@ class OpenSystem:
 
             return rhoi
 
-        elif cond == "pulse_spectrum":
+        if cond == "pulse_spectrum":
 
             spectrum = condition[1]
 
@@ -1169,10 +1166,9 @@ class OpenSystem:
 
                 return rhoi
 
-            else:
 
-                raise Exception("Spectrum must be specified through"+
-                                " a DFunction object")
+            raise Exception("Spectrum must be specified through"
+                            " a DFunction object")
 
         else:
             print("Excitation condition:", condition)

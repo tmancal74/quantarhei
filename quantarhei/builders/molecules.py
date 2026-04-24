@@ -529,7 +529,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped"
-                            + " on a CorrelationFunctionMatrix")
+                             " on a CorrelationFunctionMatrix")
 
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
@@ -543,7 +543,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
         else:
-            raise Exception("Correlation function already speficied" +
+            raise Exception("Correlation function already speficied"
                             " for this monomer")
 
     def unset_transition_environment(self, transition):
@@ -600,7 +600,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped"
-                            + " on a CorrelationFunctionMatrix")
+                             " on a CorrelationFunctionMatrix")
 
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
 
@@ -775,8 +775,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         try:
             if self._has_transition_velocity:
                 return self.dvmoments[N, M, :]
-            else:
-                raise Exception()
+            raise Exception()
         except:
             raise Exception()
 
@@ -1179,13 +1178,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
             if egcf is None:
                 return 0.0
-            else:
-                return egcf.get_temperature()
+            return egcf.get_temperature()
 
-        else:
 
-            raise Exception("Molecular environment has"+
-            " an inconsisten temperature")
+        raise Exception("Molecular environment has"
+        " an inconsisten temperature")
 
 
     def check_temperature_consistent(self):
@@ -1234,9 +1231,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
             return True
 
-        else:
 
-            return True
+        return True
 
 
 
@@ -1330,7 +1326,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             other_modes = [0.0]*self.nmod
 
         if len(other_modes) != self.nmod:
-            raise Exception("Argument 'other_modes' has to have the lenth"+
+            raise Exception("Argument 'other_modes' has to have the lenth"
                             " equal to the number of modes")
 
         coorval = numpy.zeros(self.nmod)
@@ -1367,7 +1363,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             other_modes = [0.0]*self.nmod
 
         if len(other_modes) != self.nmod:
-            raise Exception("Argument 'other_modes' has to have the lenth"+
+            raise Exception("Argument 'other_modes' has to have the lenth"
                             " equal to the number of modes")
 
         coorval = numpy.zeros(self.nmod)
@@ -1530,10 +1526,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                     val = self.convert_energy_2_current_u(fcv)
                     ven.append([val, fc[1]])
                 return  ven
-            else:
-                return []
-        else:
             return []
+        return []
 
 
     def get_diabatic_shifts(self, order=1):
@@ -1588,8 +1582,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         if dif == 0:
             return 1.0
-        else:
-            return 0.0
+        return 0.0
 
 
     def _overlap_all(self, tpl1, tpl2):
@@ -1599,8 +1592,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         if dif == 0:
             return 1.0
-        else:
-            return 0.0
+        return 0.0
 
 
 
@@ -2326,8 +2318,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         if self._mode_env_initialized and self._has_mode_env[mode,elstate]:
             return self._mode_env.get_element(mode,elstate)
-        else:
-            return None
+        return None
 
 
 #    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
@@ -2385,9 +2376,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         out  = "\nquantarhei.Molecule object"
         out += "\n=========================="
-        out += "\n   name = %s  \n" % self.name
+        out += "\n   name = {}  \n".format(self.name)
         try:
-            out += "   position = [%r, %r, %r] \n" % (self.position[0],
+            out += "   position = [{!r}, {!r}, {!r}] \n".format(self.position[0],
                                                   self.position[1],
                                                   self.position[2])
         except:
@@ -2408,11 +2399,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 out += "\n   State nr: %i" % n
             # state energy
             ene = self.convert_energy_2_current_u(self.elenergies[n])
-            out += "\n      electronic energy = %r %s" % (ene,eunits)
+            out += "\n      electronic energy = {!r} {}".format(ene,eunits)
             # transition dipole moments
             for j in range(n):
                 out += "\n      transition %i -> %i " % (j, n)
-                out += "\n      transition dipole moment = [%r, %r, %r]" % (
+                out += "\n      transition dipole moment = [{!r}, {!r}, {!r}]".format(
                self.dmoments[n,j][0],
                self.dmoments[n,j][1], self.dmoments[n,j][2])
             out += "\n      number of vibrational modes = %i" % self.nmod
@@ -2422,11 +2413,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 #out += "\n      ----------------"
                 for m1 in range(self.nmod):
                     out += "\n      mode no. = %i " % m1
-                    out += ("\n         frequency = %r %s" %
-                         (self.modes[m1].get_energy(n,no_conversion=False),
+                    out += ("\n         frequency = {!r} {}".format(self.modes[m1].get_energy(n,no_conversion=False),
                           self.unit_repr(utype="energy")))
-                    out += ("\n         shift = %r" %
-                           self.modes[m1].get_shift(n))
+                    out += ("\n         shift = {!r}".format(self.modes[m1].get_shift(n)))
                     out += ("\n         nmax = %i" %
                            self.modes[m1].get_nmax(n))
 

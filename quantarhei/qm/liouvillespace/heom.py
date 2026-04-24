@@ -189,53 +189,52 @@ class KTHierarchy:
         """
         if False:
             return self._generate_indices_2_0to4(N, level)
-        else:
 
-            lret = []
+        lret = []
 
-            if False:
-                level_prev = []
-                inilist = [0]*N          # lowest level
-                level_prev.append(inilist)
-                lret.append(level_prev)
+        if False:
+            level_prev = []
+            inilist = [0]*N          # lowest level
+            level_prev.append(inilist)
+            lret.append(level_prev)
 
-                for kk in range(level):
-                    last_level = kk
-                    new_level_prev = []
-                    for old_level in level_prev:
-                        doit = False
-                        for nn in range(N):
-                            if old_level[nn] == last_level:
-                                doit = True
-                            if doit:
-                                nlist = old_level.copy()
-                                nlist[nn] += 1
-                                new_level_prev.append(nlist)
-
-                    level_prev = new_level_prev
-                    lret.append(level_prev)
-            else:
-
-                level_prev = []
-                inilist = [0]*N
-                level_prev.append(inilist)
-                lret.append(level_prev)
-
-                for kk in range(level):
-                    last_level = kk
-                    new_level_prev = []
-                    for old_level in level_prev:
-                        for nn in range(N):
+            for kk in range(level):
+                last_level = kk
+                new_level_prev = []
+                for old_level in level_prev:
+                    doit = False
+                    for nn in range(N):
+                        if old_level[nn] == last_level:
+                            doit = True
+                        if doit:
                             nlist = old_level.copy()
                             nlist[nn] += 1
-                            #check if it is already in
-                            if nlist not in new_level_prev:
-                                new_level_prev.append(nlist)
+                            new_level_prev.append(nlist)
 
-                    level_prev = new_level_prev
-                    lret.append(level_prev)
+                level_prev = new_level_prev
+                lret.append(level_prev)
+        else:
 
-            return lret
+            level_prev = []
+            inilist = [0]*N
+            level_prev.append(inilist)
+            lret.append(level_prev)
+
+            for kk in range(level):
+                last_level = kk
+                new_level_prev = []
+                for old_level in level_prev:
+                    for nn in range(N):
+                        nlist = old_level.copy()
+                        nlist[nn] += 1
+                        #check if it is already in
+                        if nlist not in new_level_prev:
+                            new_level_prev.append(nlist)
+
+                level_prev = new_level_prev
+                lret.append(level_prev)
+
+        return lret
 
 
 
@@ -245,7 +244,7 @@ class KTHierarchy:
 
         """
         if N != 2:
-            raise Exception("Experimental code, N different from 2"+
+            raise Exception("Experimental code, N different from 2"
                             " not implemented")
         if level > 4:
             raise Exception("Experimental code, level > 4 not implemented")

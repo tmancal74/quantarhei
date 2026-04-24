@@ -403,7 +403,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
             return reph2D
 
-        elif pathway.pathway_type == "NR":
+        if pathway.pathway_type == "NR":
 
             nonr2D = numpy.zeros((N1, N3), dtype=COMPLEX)
 

@@ -39,17 +39,17 @@ def parsing():
     parser.add_argument("-v", "--version", action="store_true",
                         help="shows Quantarhei package version")
     parser.add_argument("-i", "--info", action='store_true',
-                        help="shows detailed information about Quantarhei"+
+                        help="shows detailed information about Quantarhei"
                         " installation")
     parser.add_argument("-d", "--destination", type=str,
-                        help="specifies destination directory for the"+
+                        help="specifies destination directory for the"
                         " generated step file")
     parser.add_argument("-n", "--no-pass", action="store_true",
                         help="empty tests should not pass (default is"
-                        +" passing empty tests)")
+                        " passing empty tests)")
     parser.add_argument("-f", "--start-from", type=int,
                         help="step functions will be numberred starting"
-                        +" from this value")
+                        " from this value")
 
     #
     # Parsing all arguments
@@ -61,7 +61,7 @@ def parsing():
     #
     if args.info:
         qr.printlog("\n"
-                    +"ghenerate: Quantarhei Gherkin Python Step Generator\n",
+                    "ghenerate: Quantarhei Gherkin Python Step Generator\n",
                     verbose=True, loglevel=0)
 
         if not args.version:
@@ -203,8 +203,8 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
         current = "then"
     elif step["keyword"].strip() == "And":
         if current == "":
-            raise Exception("`And` has to be preceeded by a "+
-                            "line with `Given`, `When` or"+
+            raise Exception("`And` has to be preceeded by a "
+                            "line with `Given`, `When` or"
                             "`Then`")
         myfile.write("\n\n#\n# And ...\n#\n")
         myfile.write("@"+current+"('"+textrep+"')\n")
@@ -213,8 +213,8 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
         myfile.write('    """\n')
     elif step["keyword"].strip() == "But":
         if current == "":
-            raise Exception("`But` has to be preceeded by a "+
-                            "line with `Given`, `When` or"+
+            raise Exception("`But` has to be preceeded by a "
+                            "line with `Given`, `When` or"
                             "`Then`")
         myfile.write("\n\n#\n# But ...\n#\n")
         myfile.write("@"+current+"('"+textrep+"')\n")
@@ -336,13 +336,13 @@ def main():
                         current = "then"
                     elif step["keyword"].strip() == "And":
                         if current == "":
-                            raise Exception("`And` has to be preceeded by a "+
-                                            "line with `Given`, `When` or"+
+                            raise Exception("`And` has to be preceeded by a "
+                                            "line with `Given`, `When` or"
                                             "`Then`")
                     elif step["keyword"].strip() == "But":
                         if current == "":
-                            raise Exception("`But` has to be preceeded by a "+
-                                            "line with `Given`, `When` or"+
+                            raise Exception("`But` has to be preceeded by a "
+                                            "line with `Given`, `When` or"
                                             "`Then`")
                     else:
                         raise Exception("unknown keyword: "+step["keyword"])

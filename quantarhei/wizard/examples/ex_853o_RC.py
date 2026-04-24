@@ -298,7 +298,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     eUt.calculate(show_progress=False)
 
     if save_eUt:
-        eut_name = os.path.join(dname, "eUt"+
+        eut_name = os.path.join(dname, "eUt"
                                     "_omega2="+str(omega)+data_descr+obj_ext)
         eUt.save(eut_name)
 

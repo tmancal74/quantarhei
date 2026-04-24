@@ -348,8 +348,7 @@ def _n_gaussians(x, N, *params):
         res += params[n-1] # last parameter is an offset
         return res
 
-    else:
-        raise Exception("Inconsistend number of parameters")
+    raise Exception("Inconsistend number of parameters")
 
 
 class CircDichSpectrum(CircDichSpectrumBase):
@@ -455,8 +454,7 @@ class CircDichSpectrumContainer(Saveable):
 
         if tag in self.spectra.keys():
             return self.spectra[tag]
-        else:
-            raise Exception("Unknown spectrum")
+        raise Exception("Unknown spectrum")
 
 
     def get_spectra(self):

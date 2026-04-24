@@ -304,7 +304,7 @@ for J in Js:
                   1.0/balance)
 
             rate_predicted = 0.5*balance + 0.5*rat
-            print("Prediction for the decoherence time"+
+            print("Prediction for the decoherence time"
                   " based on population transfer:", 1.0/rate_predicted)
 
 
@@ -336,7 +336,7 @@ for J in Js:
                          popt_e[0]*numpy.exp(-popt_e[1]*timea.data)
                          +popt_e[2],"--k", label="electronic coherence fit")
                 plt.legend()
-                plt.title("Mono-exponential fits of"+
+                plt.title("Mono-exponential fits of"
                           " coherence and population decay")
                 plt.show()
             if J != 0.0:
@@ -346,7 +346,7 @@ for J in Js:
                          popt_p_s[0]*numpy.exp(-popt_p_s[1]*timea.data)
                          +popt_p_s[2],"--k", label="population fit")
                 plt.legend()
-                plt.title("Mono-exponential fits of"+
+                plt.title("Mono-exponential fits of"
                           " site basis population decay")
                 plt.show()
 

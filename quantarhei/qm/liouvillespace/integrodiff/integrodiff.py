@@ -203,67 +203,66 @@ class IntegrodiffPropagator:
 
             return rhot
 
+
+        #
+        # propagation in time domain by short exponential approximation
+        #
+
+        rho1 = rhoi.data
+        rho2 = rhoi.data
+
+        self.Nref = 1  # we need to calculate integral from the saved
+                       # values, and correspondingly, dt has to be small
+
+        L = 4
+        self.last_tn = -1
+        dt = self.timeaxis.step
+        indx = 1
+
+        if self._kernel is None:
+
+            #
+            # Propagation without kernel
+            #
+            for ii in range(1,self.timeaxis.length):
+
+                for jj in range(0, self.Nref):
+
+                    for ll in range(1, L+1):
+
+                        rho1 = (dt/ll)* \
+                               self._no_kernel_rhs(ii, rho1, rhot)
+
+                        rho2 = rho2 + rho1
+                    rho1 = rho2
+
+                rhot.data[indx,:,:] = rho2
+                indx += 1
+
         else:
 
             #
-            # propagation in time domain by short exponential approximation
+            # Propagation with the kernel
             #
+            for ii in range(1,self.timeaxis.length):
 
-            rho1 = rhoi.data
-            rho2 = rhoi.data
+                for jj in range(0, self.Nref):
 
-            self.Nref = 1  # we need to calculate integral from the saved
-                           # values, and correspondingly, dt has to be small
+                    for ll in range(1, L+1):
 
-            L = 4
-            self.last_tn = -1
-            dt = self.timeaxis.step
-            indx = 1
+                        rho1 = (dt/ll)* \
+                               self._right_hand_side(ii, rho1, rhot)
 
-            if self._kernel is None:
+                        rho2 = rho2 + rho1
+                    rho1 = rho2
 
-                #
-                # Propagation without kernel
-                #
-                for ii in range(1,self.timeaxis.length):
+                rhot.data[indx,:,:] = rho2
 
-                    for jj in range(0, self.Nref):
+                indx += 1
 
-                        for ll in range(1, L+1):
+                #print(indx, ii)
 
-                            rho1 = (dt/ll)* \
-                                   self._no_kernel_rhs(ii, rho1, rhot)
-
-                            rho2 = rho2 + rho1
-                        rho1 = rho2
-
-                    rhot.data[indx,:,:] = rho2
-                    indx += 1
-
-            else:
-
-                #
-                # Propagation with the kernel
-                #
-                for ii in range(1,self.timeaxis.length):
-
-                    for jj in range(0, self.Nref):
-
-                        for ll in range(1, L+1):
-
-                            rho1 = (dt/ll)* \
-                                   self._right_hand_side(ii, rho1, rhot)
-
-                            rho2 = rho2 + rho1
-                        rho1 = rho2
-
-                    rhot.data[indx,:,:] = rho2
-
-                    indx += 1
-
-                    #print(indx, ii)
-
-            return rhot
+        return rhot
 
 
 

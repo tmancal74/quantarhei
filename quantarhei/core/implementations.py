@@ -54,9 +54,8 @@ def implementation(package="",
 
         return decorate_at_runtime
 
-    else:
 
-        return decorate_at_loadtime
+    return decorate_at_loadtime
 
 
 
@@ -76,7 +75,7 @@ def load_function(lib,fce):
     if hasattr(a,fce):
         fc = getattr(a,fce)
     else:
-        raise Exception("Cannot reach implementation of %s " % fce)
+        raise Exception("Cannot reach implementation of {} ".format(fce))
 
 
     return fc

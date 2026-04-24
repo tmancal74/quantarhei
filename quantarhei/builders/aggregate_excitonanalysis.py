@@ -115,7 +115,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             from terminaltables import AsciiTable
         except:
             raise Exception("Get terminaltables package "
-                            +"for this functionality")
+                            "for this functionality")
 
         indx, coefs, sqrs = self.get_expansion_squares(state)
 
@@ -223,8 +223,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         if self._diagonalized:
             return self.D2[state1, state2]
 
-        else:
-            raise Exception("Aggregate has to be diagonalized")
+        raise Exception("Aggregate has to be diagonalized")
 
 
     def get_state_energy(self, state=0):
@@ -258,8 +257,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         """
         if self._diagonalized:
             return self.convert_energy_2_current_u(self.HD[state])
-        else:
-            raise Exception("Aggregate has to be diagonalized")
+        raise Exception("Aggregate has to be diagonalized")
 
 
     def exciton_report(self, file=None, start=1, stop=None, Nrep=5, criterium=None):
@@ -358,9 +356,9 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     print(line, file=file)
                     print("", file=file)
                     with qr.energy_units("1/cm"):
-                        print("Transition energy        "+
+                        print("Transition energy        "
                               f": {tre:.8f} 1/cm", file=file)
-                        print("Transition dipole moment "+
+                        print("Transition dipole moment "
                               f": {dip:.8f} D", file=file)
                     self.report_on_expansion(file=file, state=Nst, N=Nrep)
                     print("", file=file)

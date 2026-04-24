@@ -315,7 +315,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
 
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Relaxation tensor '%s' changes basis" %self.name)
+                print("\nQr >>> Relaxation tensor '{}' changes basis".format(self.name))
 
 
         for tt in range(self.Nt):

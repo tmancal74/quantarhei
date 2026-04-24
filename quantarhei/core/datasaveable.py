@@ -136,23 +136,21 @@ class DataSaveable:
         """
         if axis is None:
             return data
+        if len(data.shape) == 2:
+
+            print("Data shape:", data.shape)
+            if data.shape[1] == 2:
+                print("Extracting from two columns")
+                axis.data = data[:,0]
+                return data[:,1]
+            if data.shape[1] > 2:
+                axis.data = data[:,0]
+                return data[:,1:]
+            raise Exception()
+
         else:
-            if len(data.shape) == 2:
-
-                print("Data shape:", data.shape)
-                if data.shape[1] == 2:
-                    print("Extracting from two columns")
-                    axis.data = data[:,0]
-                    return data[:,1]
-                elif data.shape[1] > 2:
-                    axis.data = data[:,0]
-                    return data[:,1:]
-                else:
-                    raise Exception()
-
-            else:
-                raise Exception("Other shapes than (N,) and (N,M)"+
-                                " not implemented")
+            raise Exception("Other shapes than (N,) and (N,M)"
+                            " not implemented")
 
 
 

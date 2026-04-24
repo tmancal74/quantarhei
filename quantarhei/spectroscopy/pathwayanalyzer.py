@@ -585,7 +585,7 @@ def get_evolution_from_saved_pathways(states, name="pathways", ext="qrp",
     ii = 0
     for tt in t2s:
         if tt != taxis.data[ii]:
-            raise Exception("The set of available times"+
+            raise Exception("The set of available times"
                             " does not correspond to a continuous time axis")
         ii += 1
 
@@ -614,7 +614,7 @@ def get_prefactors_from_saved_pathways(states, name="pathways", ext="qrp",
     ii = 0
     for tt in t2s:
         if tt != taxis.data[ii]:
-            raise Exception("The set of available times"+
+            raise Exception("The set of available times"
                             " does not correspond to a continuous time axis")
         ii += 1
 

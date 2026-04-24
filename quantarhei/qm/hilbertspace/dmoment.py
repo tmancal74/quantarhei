@@ -28,7 +28,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
 
             if not self.check_selfadjoint():
                 raise Exception("The data of this operator have"
-                +" to be represented by 3 selfadjoint matrices")
+                " to be represented by 3 selfadjoint matrices")
 
 
     def check_selfadjoint(self):

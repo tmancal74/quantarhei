@@ -116,7 +116,7 @@ dE_min = es2[0] - es1[int((N1_2-1)/2)]
 if (dE_max > des.max) or (dE_min < des.min):
     print("dE max required:", dE_max, " --- dE max available:", des.max)
     print("dE min required:", dE_min, " --- dE min available:",des.min)
-    raise Exception("Precalculated spectra are not "+
+    raise Exception("Precalculated spectra are not "
                     "sufficient to integrated the disorder")
 
 print("dE max:", dE_max)

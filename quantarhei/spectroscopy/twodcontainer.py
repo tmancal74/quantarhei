@@ -133,14 +133,13 @@ class TwoDResponseContainer(Saveable):
                 self.spectra[self.index] = spect
                 self.index += 1
                 return self.index
+            if isinstance(tag, numbers.Integral):
+                self.spectra[tag] = spect
             else:
-                if isinstance(tag, numbers.Integral):
-                    self.spectra[tag] = spect
-                else:
-                    raise Exception("The spectrum has to be tagged by an integer")
-                return tag
+                raise Exception("The spectrum has to be tagged by an integer")
+            return tag
 
-        elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+        if self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
 
             if tag is None:
                 # we will read the spectrum intrinsic t2 time and set it as tag
@@ -156,11 +155,11 @@ class TwoDResponseContainer(Saveable):
                     raise Exception("Tag not compatible with the ValueAxis")
             else:
                 raise Exception("No tag specified, and spectrum"
-                                +" does not have t2 time set"
-                                +" - cannot store spectrum")
+                                " does not have t2 time set"
+                                " - cannot store spectrum")
             return self.index
 
-        elif self.itype == "string":
+        if self.itype == "string":
             if tag is not None:
                 stag = str(tag)
                 self.spectra[stag] = spect
@@ -170,9 +169,8 @@ class TwoDResponseContainer(Saveable):
                 raise Exception("No tag specified - cannot store spectrum")
             return self.index
 
-        else:
 
-            raise Exception("Unknown type of indexing")
+        raise Exception("Unknown type of indexing")
 
 
     def _lousy_equal(self, x1, x2, dx, frac=0.25):
@@ -208,9 +206,8 @@ class TwoDResponseContainer(Saveable):
 
             return self.get_spectrum(indx)
 
-        else:
 
-            return self.spectra[self.tags[indx]]
+        return self.spectra[self.tags[indx]]
 
 
     def get_response(self, tag):
@@ -236,11 +233,11 @@ class TwoDResponseContainer(Saveable):
 
             return self.spectra[tag]
 
-        elif self.itype in ["string"]:
+        if self.itype in ["string"]:
 
             return self.spectra[str(tag)]
 
-        elif self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+        if self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
 
             with energy_units("int"):
                 if any(self._lousy_equal(tag, li, self.axis.step)
@@ -286,9 +283,8 @@ class TwoDResponseContainer(Saveable):
 
             return cont
 
-        else:
 
-            raise Exception("")
+        raise Exception("")
 
 
     def get_nearest(self, val):
@@ -339,13 +335,12 @@ class TwoDResponseContainer(Saveable):
 
         if (start is None) and (end is None):
             return ven
-        else:
-            ven2 = []
-            vkeys = [key for (key, value) in sorted(self.spectra.items())]
-            for k in vkeys:
-                if k >= start and k <= end:
-                    ven2.append(self.spectra[k])
-            return ven2
+        ven2 = []
+        vkeys = [key for (key, value) in sorted(self.spectra.items())]
+        for k in vkeys:
+            if k >= start and k <= end:
+                ven2.append(self.spectra[k])
+        return ven2
 
 
     def get_PumpProbeSpectrumContainer(self, skip=0):
@@ -481,7 +476,7 @@ class TwoDResponseContainer(Saveable):
             raise Exception("Type of the data for FFT has to be specified")
 
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
-            raise Exception("FFT cannot be performed for"+
+            raise Exception("FFT cannot be performed for"
                             " this type of indexing")
 
         # even when no window function is supplied, we create one with
@@ -541,7 +536,7 @@ class TwoDResponseContainer(Saveable):
 
 
         else:
-            raise Exception("Number of spectra not consistent"+
+            raise Exception("Number of spectra not consistent"
                             " with ValueAxis object")
 
         #
@@ -679,7 +674,7 @@ class TwoDResponseContainer(Saveable):
         percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
         filledLength = int(length * iteration // total)
         bar = fill * filledLength + '-' * (length - filledLength)
-        print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+        print('\r{} |{}| {}% {}'.format(prefix, bar, percent, suffix), end = '\r')
         # Print New Line on Complete
         if iteration == total:
             print()
@@ -867,8 +862,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         """
         if stype == self.dtype:
             return self
-        else:
-            raise Exception("Cannot change spectra type in this container")
+        raise Exception("Cannot change spectra type in this container")
 
 
     # FIXME: This needs to be reimplemented
@@ -909,10 +903,9 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
             return ppcont
 
-        else:
 
-            raise Exception("Cannot calculate Pump-probe from 2D"+
-                            " spectra of type"+self.dtype)
+        raise Exception("Cannot calculate Pump-probe from 2D"
+                        " spectra of type"+self.dtype)
 
     def normalize2(self, norm=1.0, each=False, dpart=part_REAL):
         """Normalize the whole container of spectra
@@ -979,11 +972,11 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         """
         if dtype is not None:
             if dtype != self.dtype:
-                raise Exception("Cannot change spectra type"+
+                raise Exception("Cannot change spectra type"
                                 " in TwoDSpectrumContainer")
 
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
-            raise Exception("FFT cannot be performed for"+
+            raise Exception("FFT cannot be performed for"
                             " this type of indexing")
 
         # even when no window function is supplied, we create one with
@@ -1042,7 +1035,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
 
         else:
-            raise Exception("Number of spectra not consistent"+
+            raise Exception("Number of spectra not consistent"
                             " with ValueAxis object")
 
         #

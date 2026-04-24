@@ -396,8 +396,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         """
         if no_conversion:
             return self.submodes[N].omega
-        else:
-            return self.convert_energy_2_current_u(self.submodes[N].omega)
+        return self.convert_energy_2_current_u(self.submodes[N].omega)
 
 
     def get_shift(self, N):

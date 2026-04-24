@@ -1654,7 +1654,7 @@ def generate_R1f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
     try:
         nfs = self.get_excitonic_band(band=2)
     except:
-        raise Exception("Excited states not available for R1f* pathway"+
+        raise Exception("Excited states not available for R1f* pathway"
                         " generation")
 
     if verbose > 0:
@@ -1762,7 +1762,7 @@ def generate_R1f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
 
                                                 except:
 
-                                                    raise Exception("Construction"+
+                                                    raise Exception("Construction"
                                                     "relaxation pathway failed")
 
                                                 lp.build()
@@ -1777,7 +1777,7 @@ def generate_R2f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
     try:
         nfs = self.get_excitonic_band(band=2)
     except:
-        raise Exception("Excited states not available for R2f* pathway"+
+        raise Exception("Excited states not available for R2f* pathway"
                         " generation")
 
     if verbose > 0:
@@ -2007,7 +2007,7 @@ def generate_R1fE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
 
                                                 except:
 
-                                                    raise Exception("Construction"+
+                                                    raise Exception("Construction"
                                                     "relaxation pathway failed")
 
                                                 lp.build()

@@ -38,8 +38,7 @@ class triangle(Saveable):
 
         if report_transpose:
             return trans,I
-        else:
-            return I
+        return I
 
     def indices(self,I):
         pass

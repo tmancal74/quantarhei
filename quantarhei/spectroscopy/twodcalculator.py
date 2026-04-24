@@ -137,8 +137,8 @@ class TwoDResponseCalculator:
                 try:
                     os.mkdir(write_resp)
                 except OSError:
-                    print ("Creation of the directory failed, "+
-                           "it either already exists "+
+                    print ("Creation of the directory failed, "
+                           "it either already exists "
                            "or you didn't give a string")
 
             if self._has_system:
@@ -296,7 +296,7 @@ class TwoDResponseCalculator:
         try:
             tt2 = self.t2axis.data[tc]
         except:
-            print("Time axis error:\n"+
+            print("Time axis error:\n"
                   "  perhaps tc =", tc, " (representing t2 population time) is outside range?")
             print("You can reset automatic calculation along the population time axes by calling:")
             print("> twodcalc.reset_t2_time() ")
@@ -603,9 +603,8 @@ class TwoDResponseCalculator:
 
             return twods
 
-        else:
 
-            raise Exception("2D calculation in this mode not implemented.")
+        raise Exception("2D calculation in this mode not implemented.")
 
 
     def reset_evaluation_functions(self, fcions):

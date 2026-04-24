@@ -46,8 +46,7 @@ class AbsSpectrumContainer(Saveable):
 
         if tag in self.spectra.keys():
             return self.spectra[tag]
-        else:
-            raise Exception("Unknown spectrum")
+        raise Exception("Unknown spectrum")
 
 
     def get_spectra(self):

@@ -253,7 +253,7 @@ class Manager(metaclass=Singleton):
 
         self.parallel_implementations = {}
         self.parallel_implementations["redfieldrates."
-                                 +"ssRedfieldRateMatrix"] = \
+                                 "ssRedfieldRateMatrix"] = \
             {'0':"quantarhei.implementations.python.parallel",
              '1':"quantarhei.implementations.cython.parallel"}
 
@@ -482,10 +482,9 @@ class Manager(metaclass=Singleton):
         if utype in self.allowed_utypes:
             if mode == "current":
                 return self.units_repre[self.current_units[utype]]
-            elif mode == "internal":
+            if mode == "internal":
                 return self.units_repre[self.internal_units[utype]]
-            else:
-                raise Exception("Unknown representation mode")
+            raise Exception("Unknown representation mode")
 
         else:
             raise Exception("Unknown unit type")
@@ -498,10 +497,9 @@ class Manager(metaclass=Singleton):
         if utype in self.allowed_utypes:
             if mode == "current":
                 return self.units_repre_latex[self.current_units[utype]]
-            elif mode == "internal":
+            if mode == "internal":
                 return self.units_repre_latex[self.internal_units[utype]]
-            else:
-                raise Exception("Unknown representation mode")
+            raise Exception("Unknown representation mode")
 
         else:
             raise Exception("Unknown unit type")
@@ -520,7 +518,7 @@ class Manager(metaclass=Singleton):
             if units in self.units[utype]:
                 self.current_units[utype] = units
             else:
-                raise Exception("Unknown units of %s" % utype)
+                raise Exception("Unknown units of {}".format(utype))
         else:
             raise Exception("Unknown type of units")
 
@@ -537,7 +535,7 @@ class Manager(metaclass=Singleton):
             if cunits in self.units[utype]:
                 self.current_units[utype] = cunits
             else:
-                raise Exception("Unknown units of %s" % utype)
+                raise Exception("Unknown units of {}".format(utype))
         else:
             raise Exception("Unknown type of units")
 
@@ -549,8 +547,7 @@ class Manager(metaclass=Singleton):
         """
         if utype in self.allowed_utypes:
             return self.current_units[utype]
-        else:
-            raise Exception("Unknown type of units")
+        raise Exception("Unknown type of units")
 
 
 #    @deprecated
@@ -1104,7 +1101,7 @@ def set_current_units(units=None):
 
                 manager.set_current_units(utype,un)
             else:
-                raise Exception("Unknown units type %s" % utype)
+                raise Exception("Unknown units type {}".format(utype))
 
     else:
         # reset units to the default
@@ -1112,5 +1109,5 @@ def set_current_units(units=None):
             if utype in manager.allowed_utypes:
                 manager.set_current_units(utype,manager.internal_units[utype])
             else:
-                raise Exception("Unknown units type %s" % utype)
+                raise Exception("Unknown units type {}".format(utype))
 

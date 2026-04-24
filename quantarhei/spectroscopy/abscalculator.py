@@ -225,7 +225,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         """
         if not self.bootstrapped:
-            raise Exception("Calculator must be bootstrapped first: "+
+            raise Exception("Calculator must be bootstrapped first: "
                             "call bootstrap() method of this object.")
 
         with energy_units("int"):
@@ -846,7 +846,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         system = self.system
         HH = system.get_Hamiltonian()
         if not HH.has_rwa:
-            raise Exception("Hamiltonian has to define"+
+            raise Exception("Hamiltonian has to define"
                             " Rotating Wave Approximation")
 
 
@@ -1129,9 +1129,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
                     "LD": LD_spect, "LD gauss": LD_spect_gauss,
                     "abs gauss": abs_spect_gauss, "CD gauss": CD_spect_gauss}
-        else:
-            return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
-                    "LD":  LD_spect}
+        return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
+                "LD":  LD_spect}
 
 
 class AbsSpectrumCalculator(LinSpectrumCalculator):
@@ -1153,7 +1152,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
     def calculate(self, raw=False, from_dynamics=False, alt=False):
 
         if not self.bootstrapped:
-            raise Exception("Calculator must be bootstrapped first: "+
+            raise Exception("Calculator must be bootstrapped first: "
                             "call bootstrap() method of this object.")
 
         with energy_units("int"):

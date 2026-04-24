@@ -53,7 +53,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
             else:
                 #print(k1,k2)
                 raise Exception("No unique direction of"
-                                +" a molecule's dipole found")
+                                " a molecule's dipole found")
         else:
             raise Exception("Unknown data type")
 

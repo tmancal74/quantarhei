@@ -177,8 +177,7 @@ class ValueAxis(Saveable):
         if (nsni >= 0) and (nsni < self.length):
             dval = val-self.data[nsni]
             return nsni, dval
-        else:
-            raise Exception("Value out of bounds")
+        raise Exception("Value out of bounds")
 
 
 
@@ -215,16 +214,13 @@ class ValueAxis(Saveable):
             # return the closer neighbor
             if diff1 < diff2:
                 return nsni
-            else:
-                if nsni+1 < self.length:
-                    return nsni + 1
-                else:
-                    # if the upper neigbor is out of bounds
-                    # return the lower one
-                    return nsni
+            if nsni+1 < self.length:
+                return nsni + 1
+            # if the upper neigbor is out of bounds
+            # return the lower one
+            return nsni
 
-        else:
-            raise Exception("Value out of bounds")
+        raise Exception("Value out of bounds")
 
 
     def is_equal_to(self, axis):

@@ -93,7 +93,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # SystemBathInteraction
         if not isinstance(sbi, SystemBathInteraction):
             if sbi is not None:
-                raise Exception("Second argument must be of" +
+                raise Exception("Second argument must be of"
                             " the SystemBathInteraction type")
 
         self.Hamiltonian = ham
@@ -170,9 +170,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             return oper_ven
 
-        else:
 
-            return super().apply(oper, copy=copy)
+        return super().apply(oper, copy=copy)
 
 
     def get_population_rate(self, N, M):
@@ -188,8 +187,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             return rt
 
-        else:
-            return super().get_population_rate(N, M)
+        return super().get_population_rate(N, M)
 
 
     def get_dephasing_rate(self, N, M):
@@ -210,8 +208,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             return rt
 
-        else:
-            return super().get_dephasing_rate(N, M)
+        return super().get_dephasing_rate(N, M)
 
 
     def transform(self, SS, inv=None):
@@ -234,7 +231,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             if (self.manager.warn_about_basis_change):
                 print("\nQr >>> Operators of relaxation"+
-                      " in Redfield tensor '%s' changes basis" %self.name)
+                      " in Redfield tensor '{}' changes basis".format(self.name))
 
             if inv is None:
                 S1 = numpy.linalg.inv(SS)

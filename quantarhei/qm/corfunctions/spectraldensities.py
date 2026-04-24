@@ -208,7 +208,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                     self._make_value_defined(prms, values=values)
 
                 else:
-                    raise Exception("Unknown correlation function type or"+
+                    raise Exception("Unknown correlation function type or"
                                     " type domain combination.")
 
                 self.params.append(prms)
@@ -452,7 +452,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         else:
             raise Exception("In addition, functions have to share"
-                            +" the same FrequencyAxis object")
+                            " the same FrequencyAxis object")
 
         return f
 
@@ -490,7 +490,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         else:
             raise Exception("In the operation of addition, functions "
-                           +"have to share the same FrequencyAxis object")
+                           "have to share the same FrequencyAxis object")
 
 
     def add_to_data2(self, other):
@@ -525,7 +525,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         else:
             raise Exception("In the operation of addition, functions "
-                           +"have to share the same FrequencyAxis object")
+                           "have to share the same FrequencyAxis object")
 
     def is_analytical(self):
         """Returns `True` if analytical
@@ -543,8 +543,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         """
         if self.temperature > 0.0:
             return self.temperature
-        else:
-            raise Exception("SpectralDensity was not assigned temperature")
+        raise Exception("SpectralDensity was not assigned temperature")
 
     def get_reorganization_energy(self):
         """Returns the reorganization energy of the cspectral density

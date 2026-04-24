@@ -91,8 +91,7 @@ def _resolution2number(res):
     """
     if res in _resolutions:
         return _resolutions.index(res)
-    else:
-        raise Exception("Unknow resolution level in TwoDSpectrum")
+    raise Exception("Unknow resolution level in TwoDSpectrum")
 
 
 def _get_type_and_tag(obj, storage):
@@ -367,45 +366,43 @@ def twodspectrum_dictionary(name, dtype):
                 #
                 # return as type
                 #
-                else:
-                    # tag not specified so we add up all pathways
-                    # of a given type
-                    k_i = 0
-                    for tag in piece:
-                        dat = piece[tag]
-                        if k_i == 0:
-                            data = dat.copy()
-                        else:
-                            data += dat
-                        k_i += 1
+                # tag not specified so we add up all pathways
+                # of a given type
+                k_i = 0
+                for tag in piece:
+                    dat = piece[tag]
+                    if k_i == 0:
+                        data = dat.copy()
+                    else:
+                        data += dat
+                    k_i += 1
 
-                    return data
+                return data
 
-            elif self.current_dtype in _processes:
+            if self.current_dtype in _processes:
 
                 #
                 # return as process
                 #
                 return _pathways_to_processes(self, self.current_dtype)
 
-            elif self.current_dtype in _signals:
+            if self.current_dtype in _signals:
 
                 #
                 # return as signals
                 #
                 return _pathways_to_signals(self, self.current_dtype)
 
-            elif self.current_dtype == _total:
+            if self.current_dtype == _total:
 
                 #
                 # return total spectrum
                 #
                 return _pathways_to_total(self)
 
-            else:
-                raise Exception("Inappropriate data type: "
-                                +self.current_dtype+" for storage resolution "
-                                +self.storage_resolution)
+            raise Exception("Inappropriate data type: "
+                            +self.current_dtype+" for storage resolution "
+                            +self.storage_resolution)
 
         #
         # Resolution = "types"
@@ -420,28 +417,27 @@ def twodspectrum_dictionary(name, dtype):
 
                 return ret
 
-            elif self.current_dtype in _processes:
+            if self.current_dtype in _processes:
 
                 # return as process
                 return _types_to_processes(self, self.current_dtype)
 
-            elif self.current_dtype in _signals:
+            if self.current_dtype in _signals:
                 #
                 # return as signals
                 #
                 return _types_to_signals(self, self.current_dtype)
 
-            elif self.current_dtype == _total:
+            if self.current_dtype == _total:
 
                 #
                 # return total spectrum
                 #
                 return _types_to_total(self)
 
-            else:
-                raise Exception("Inappropriate data type: "
-                                +self.current_dtype+" for storage resolution "
-                                +self.storage_resolution)
+            raise Exception("Inappropriate data type: "
+                            +self.current_dtype+" for storage resolution "
+                            +self.storage_resolution)
 
         #
         # Resolution = "processes"
@@ -456,17 +452,16 @@ def twodspectrum_dictionary(name, dtype):
 
                 return ret
 
-            elif self.current_dtype == _total:
+            if self.current_dtype == _total:
 
                 #
                 # Return total spectrum
                 #
                 return _processes_to_total(self)
 
-            else:
-                raise Exception("Inappropriate data type: "
-                                +self.current_dtype+" for storage resolution "
-                                +self.storage_resolution)
+            raise Exception("Inappropriate data type: "
+                            +self.current_dtype+" for storage resolution "
+                            +self.storage_resolution)
 
         #
         # Resolution = "signals"
@@ -481,17 +476,16 @@ def twodspectrum_dictionary(name, dtype):
 
                 return ret
 
-            elif self.current_dtype == _total:
+            if self.current_dtype == _total:
 
                 #
                 # return total spectrum
                 #
                 return _signals_to_total(self)
 
-            else:
-                raise Exception("Inappropriate data type: "
-                                +self.current_dtype+" for storage resolution "
-                                +self.storage_resolution)
+            raise Exception("Inappropriate data type: "
+                            +self.current_dtype+" for storage resolution "
+                            +self.storage_resolution)
 
         elif self.storage_resolution == "off":
 
@@ -503,10 +497,9 @@ def twodspectrum_dictionary(name, dtype):
 
                 return ret
 
-            else:
-                raise Exception("Inappropriate data type: "
-                                +self.current_dtype+" for storage resolution "
-                                +self.storage_resolution)
+            raise Exception("Inappropriate data type: "
+                            +self.current_dtype+" for storage resolution "
+                            +self.storage_resolution)
 
         else:
             raise Exception("not implemented")
@@ -547,7 +540,7 @@ def twodspectrum_dictionary(name, dtype):
 
                     if value.shape != (self.xaxis.length, self.yaxis.length):
                         # if the data shape is not consistent, raise Exception
-                        raise Exception("Data not consistent "+
+                        raise Exception("Data not consistent "
                                         "with spectrum axes")
 
                 piece[self.current_tag] = value
@@ -823,7 +816,7 @@ class TwoDSpectrumBase(DataSaveable):
                 self.current_tag = flag[1]
             except IndexError:
                 raise Exception("flag in form of a list must have"
-                                +" two elements")
+                                " two elements")
             self.address_length = 2
         else:
             self.current_dtype = flag
@@ -928,7 +921,7 @@ class TwoDSpectrumBase(DataSaveable):
             res_old = _resolution2number(self.storage_resolution)
             res_new = _resolution2number(resolution)
             if res_old < res_new:
-                raise Exception("Cannot convert from lower"+
+                raise Exception("Cannot convert from lower"
                                 " to higher resolution")
             elif res_old > res_new:
                 # recalculate data towards lower resolution
@@ -1104,7 +1097,7 @@ class TwoDSpectrumBase(DataSaveable):
 
             else:
                 raise Exception("This TwoDSpectrum does not have enough "
-                                +"resolution to add data with resolution = "
+                                "resolution to add data with resolution = "
                                 +resolution)
 
         if resolution == "pathways":
@@ -1123,14 +1116,14 @@ class TwoDSpectrumBase(DataSaveable):
                 else:
                     raise Exception("Tag for Liouville pathway not specified")
             else:
-                raise Exception("Storage resolution 'pathways': "+
+                raise Exception("Storage resolution 'pathways': "
                                 "Unknown type of Liouville pathway: "+dtype)
 
         elif resolution == "types":
             if dtype in _ptypes:
                 if tag is not None:
-                    raise Exception("Tag specified for storage resolutios"+
-                                    " 'types'. Tag would be ignored and"+
+                    raise Exception("Tag specified for storage resolutios"
+                                    " 'types'. Tag would be ignored and"
                                     " information lost")
                 self.set_data_flag(dtype)
                 try:
@@ -1144,7 +1137,7 @@ class TwoDSpectrumBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception("Storage resolution 'types': "+
+                raise Exception("Storage resolution 'types': "
                                 "Unknown type of Liouville pathway: "+dtype)
 
 
@@ -1152,8 +1145,8 @@ class TwoDSpectrumBase(DataSaveable):
 
             if dtype in _processes:
                 if tag is not None:
-                    raise Exception("Tag specified for storage resolutios"+
-                                    " 'processes'. Tag would be ignored and"+
+                    raise Exception("Tag specified for storage resolutios"
+                                    " 'processes'. Tag would be ignored and"
                                     " information lost")
                 self.set_data_flag(dtype)
                 try:
@@ -1167,15 +1160,15 @@ class TwoDSpectrumBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception("Storage resolution 'processes': "+
+                raise Exception("Storage resolution 'processes': "
                                 "Unknown type of signal: "+dtype)
 
         elif resolution == "signals":
 
             if dtype in _signals:
                 if tag is not None:
-                    raise Exception("Tag specified for storage resolutios"+
-                                    " 'signals'. Tag would be ignored and"+
+                    raise Exception("Tag specified for storage resolutios"
+                                    " 'signals'. Tag would be ignored and"
                                     " information lost")
                 self.set_data_flag(dtype)
                 try:
@@ -1189,15 +1182,15 @@ class TwoDSpectrumBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception("Storage resolution 'signals': "+
+                raise Exception("Storage resolution 'signals': "
                                 "Unknown type of signal: "+dtype)
 
         elif resolution ==  "off":
 
             if dtype == _total:
                 if tag is not None:
-                    raise Exception("Tag specified for storage resolutios"+
-                                    " 'off'. Tag would be ignored and"+
+                    raise Exception("Tag specified for storage resolutios"
+                                    " 'off'. Tag would be ignored and"
                                     " information lost")
                 self.set_data_flag(dtype)
                 try:
@@ -1211,9 +1204,9 @@ class TwoDSpectrumBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception("Storage has no resolution. "+
+                raise Exception("Storage has no resolution. "
                                 "Only total spectrum can be saved. "
-                                +"Used data type: "+dtype)
+                                "Used data type: "+dtype)
 
 
     # FIXME: implement
@@ -1370,9 +1363,9 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
             if self.dtype == "Tot":
                 return self.data[iy,ix]
                 #return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
-            elif self.dtype == "Reph":
+            if self.dtype == "Reph":
                 return self.reph2D[iy,ix]
-            elif self.dtype == "Nonr":
+            if self.dtype == "Nonr":
                 return self.nonr2D[iy,ix]
 
         else:
@@ -1414,12 +1407,11 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
         if dpart == part_REAL:
             return int_fce(x1, x2, y1, y2, numpy.real(data), dx, dy)
-        elif dpart == part_IMAGINARY:
+        if dpart == part_IMAGINARY:
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
-        elif dpart == part_ABS:
+        if dpart == part_ABS:
             return int_fce(x1, x2, y1, y2, numpy.abs(data))
-        else:
-            raise Exception("Unknown data part")
+        raise Exception("Unknown data part")
 
 
     def get_cut_along_x(self, y0):
@@ -1531,8 +1523,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         if legacy:
             return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
 
-        else:
-            return numpy.amax(numpy.real(self.d__data))
+        return numpy.amax(numpy.real(self.d__data))
 
 
     def get_min_value(self):
@@ -1545,8 +1536,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         if legacy:
             return numpy.amin(numpy.real(self.reph2D+self.nonr2D))
 
-        else:
-            return numpy.amin(numpy.real(self.d__data))
+        return numpy.amin(numpy.real(self.d__data))
 
 
     #FIXME: introduce new storage scheme

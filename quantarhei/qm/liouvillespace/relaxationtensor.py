@@ -79,8 +79,8 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
 
     def _set_population_rates_from_operators(self):
-        raise Exception("Method _set_population_rates_from_operators()"+
-                        " needs to be implemented in a class inheriting"+
+        raise Exception("Method _set_population_rates_from_operators()"
+                        " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
@@ -95,8 +95,8 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
 
     def _set_dephasing_rates_from_operators(self):
-        raise Exception("Method _set_dephasing_rates_from_operators()"+
-                        " needs to be implemented in a class inheriting"+
+        raise Exception("Method _set_dephasing_rates_from_operators()"
+                        " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
@@ -249,8 +249,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         """
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Relaxation tensor '%s' changes basis"
-                      %self.name)
+                print("\nQr >>> Relaxation tensor '{}' changes basis".format(self.name))
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -364,9 +363,8 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
             return self._rhs_as_operators(rho)
 
-        else:
 
-            return self._rhs_as_tensor(rho)
+        return self._rhs_as_tensor(rho)
 
 
     def _rhs_as_operators(self, rho):

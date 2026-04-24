@@ -21,7 +21,7 @@ from quantarhei import printlog as print
 from quantarhei.core.units import kB_int
 from quantarhei.utils.vectors import X
 
-print("\n***** Rc Simulation Script"+
+print("\n***** Rc Simulation Script"
       " *****")
 
 input_file = "ex_853_RC.yaml"
@@ -387,7 +387,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
     # save the evolution operator
     if save_eUt:
-        eut_name = os.path.join(dname, "eUt"+
+        eut_name = os.path.join(dname, "eUt"
                                     "_omega2="+str(omega)+data_descr+obj_ext)
         eUt.save(eut_name)
 

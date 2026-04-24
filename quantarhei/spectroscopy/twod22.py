@@ -572,8 +572,7 @@ class TwoDSpectrumContainer(Saveable):
         """
         if t2 in self.t2axis.data:
             return self.spectra[t2]
-        else:
-            raise Exception("Waiting time not compatible with the t2 axis")
+        raise Exception("Waiting time not compatible with the t2 axis")
 
     def length(self):
         return len(self.spectra.keys())
@@ -586,13 +585,12 @@ class TwoDSpectrumContainer(Saveable):
 
         if (start is None) and (end is None):
             return ven
-        else:
-            ven2 = []
-            vkeys = [key for (key, value) in sorted(self.spectra.items())]
-            for k in vkeys:
-                if k >= start and k <= end:
-                    ven2.append(self.spectra[k])
-            return ven2
+        ven2 = []
+        vkeys = [key for (key, value) in sorted(self.spectra.items())]
+        for k in vkeys:
+            if k >= start and k <= end:
+                ven2.append(self.spectra[k])
+        return ven2
 
     def get_PumpProbeSpectrumContainer(self, skip=0):
         """Converts this container into PumpProbeSpectrumContainer
@@ -736,7 +734,7 @@ class TwoDSpectrumContainer(Saveable):
         percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
         filledLength = int(length * iteration // total)
         bar = fill * filledLength + '-' * (length - filledLength)
-        print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+        print('\r{} |{}| {}% {}'.format(prefix, bar, percent, suffix), end = '\r')
         # Print New Line on Complete
         if iteration == total:
             print()
@@ -1232,11 +1230,10 @@ class TwoDSpectrumCalculator:
 
             return twods
 
-        else:
 
-            # fall back on quantarhei's own implementation
+        # fall back on quantarhei's own implementation
 
-            ret = TwoDSpectrumContainer()
+        ret = TwoDSpectrumContainer()
 
 
         return ret
@@ -1383,7 +1380,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
 
             return reph2D
 
-        elif pathway.pathway_type == "NR":
+        if pathway.pathway_type == "NR":
 
             nonr2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
 

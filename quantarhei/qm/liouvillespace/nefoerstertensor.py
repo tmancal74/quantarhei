@@ -139,24 +139,22 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
             # Here we prepare the kernel so that it can be returned
             # on demand for any value of propagation time t
             #
-            else:
-                return _nsc_kernel_implementation(Na, Nt, HH, tt,
-                                                 gt, ll, _nsc_kernel_at_t)
+            return _nsc_kernel_implementation(Na, Nt, HH, tt,
+                                             gt, ll, _nsc_kernel_at_t)
 
         #
         # Secular implementation
         #
-        else:
-            #
-            # Initial term
-            #
-            self._initial_term_pre(Na, Nt, HH, tt, gt, ll)
+        #
+        # Initial term
+        #
+        self._initial_term_pre(Na, Nt, HH, tt, gt, ll)
 
-            #
-            # Here we calculate the time-dependent non-secular tensor
-            #
-            return _td_reference_implementation(Na, Nt, HH, tt,
-                                            gt, ll, _ne_fintegral)
+        #
+        # Here we calculate the time-dependent non-secular tensor
+        #
+        return _td_reference_implementation(Na, Nt, HH, tt,
+                                        gt, ll, _ne_fintegral)
 
 
 

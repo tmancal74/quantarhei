@@ -96,7 +96,7 @@ class DataDefinedEntry(DatabaseEntry):
                   == DatabaseEntry.CORRELATION_FUNCTION):
                 pass
             else:
-                raise Exception("Don't know if this is spectral density or "+
+                raise Exception("Don't know if this is spectral density or "
                                 "correlation function")
 
         else:
@@ -261,7 +261,7 @@ class SpectralDensityDB:
         try:
             sd = inst.get_SpectralDensity(axis)
         except:
-            raise Exception("Could not obtain spectral density from "+
+            raise Exception("Could not obtain spectral density from "
                             "definition class for : "+ident)
 
         return sd

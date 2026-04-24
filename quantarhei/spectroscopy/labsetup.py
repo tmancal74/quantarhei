@@ -320,8 +320,8 @@ class LabSetup:
                 self.timeaxis = axis
                 self.axis_type = "time"
             else:
-                raise Exception("TimeAxis has to be of 'complete' type"+
-                                " use atype='complete' as a parameter"+
+                raise Exception("TimeAxis has to be of 'complete' type"
+                                " use atype='complete' as a parameter"
                                 " of TimeAxis")
 
         elif isinstance(axis, FrequencyAxis):
@@ -656,7 +656,7 @@ class LabSetup:
             self.has_timedomain = True
 
         else:
-            raise Exception("Cannot convert to time domain: "+
+            raise Exception("Cannot convert to time domain: "
                             "frequency domain not set")
 
 
@@ -732,7 +732,7 @@ class LabSetup:
             self.has_freqdomain = True
 
         else:
-            raise Exception("Cannot convert to frequency domain: "+
+            raise Exception("Cannot convert to frequency domain: "
                             "time domain not set")
 
 
@@ -1218,13 +1218,12 @@ def _fieldprop(name, flag, sign):
         if getattr(self.labsetup, flag):
             if cmplx_sign == 1:
                 return self.get_field()
-            elif cmplx_sign == -1:
+            if cmplx_sign == -1:
                 return numpy.conj(self.get_field())
-            elif cmplx_sign == 0:
+            if cmplx_sign == 0:
                 fld = self.get_field()
                 return (fld + numpy.conj(fld))/2.0
-            else:
-                raise Exception("Only signs of -1, 0 and 1 are allowed.")
+            raise Exception("Only signs of -1, 0 and 1 are allowed.")
         else:
             raise Exception("The property '"+name+"' is not initialited.")
 
@@ -1553,8 +1552,7 @@ class LabField:
                      *numpy.exp(1j*sign*delay_phi)
             return fld
 
-        else:
-            return self.labsetup.pulse_t[self.index].at(time)
+        return self.labsetup.pulse_t[self.index].at(time)
 
 
     def get_time_axis(self):
@@ -1599,9 +1597,8 @@ class LabField:
 
             return val
 
-        else:
 
-            raise Exception()
+        raise Exception()
 
 
     def get_pulse_envelop_function(self):
@@ -1624,6 +1621,5 @@ class LabField:
 
             return env
 
-        else:
 
-            raise Exception()
+        raise Exception()

@@ -268,8 +268,7 @@ class LiouvillePathway:
                   Manager().convert_energy_2_current_u(self._omega3))
 
             return fr
-        else:
-            raise Exception("Frequencies not set.")
+        raise Exception("Frequencies not set.")
 
 
     def set_rwa(self, rwa):

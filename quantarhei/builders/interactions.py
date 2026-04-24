@@ -62,7 +62,7 @@ def dipole_dipole(center1,dipole1,center2,dipole2,*args):
         for a in args:
             if a=='Hartree':
                 return Edip_dip_Ha
-            elif a=='cm-1':
+            if a=='cm-1':
                 return Edip_dip_cm1
 
     return Edip_dip_cm1

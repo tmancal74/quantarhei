@@ -65,5 +65,5 @@ for N in Ns:
         tmaxs2 = fraxs2.get_TimeAxis()
         print("TimeAxis type       :", tmaxs2.atype)
     except:
-        print("*** Exception occurs when you try to get TimeAxis from "+
+        print("*** Exception occurs when you try to get TimeAxis from "
               "FrequencyAxis of the upper-half type and odd number of points")

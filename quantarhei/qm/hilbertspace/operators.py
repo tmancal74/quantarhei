@@ -77,13 +77,12 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
             return Operator(data=numpy.dot(self.data,obj.data))
 
-        elif isinstance(obj, StateVector):
+        if isinstance(obj, StateVector):
 
             return StateVector(data=numpy.dot(self.data,obj.data))
 
-        else:
 
-            raise Exception("Cannot apply operator to the object")
+        raise Exception("Cannot apply operator to the object")
 
 
     def transform(self, SS, inv=None):
@@ -103,7 +102,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
         """
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operator '%s' changes basis" %self.name)
+                print("\nQr >>> Operator '{}' changes basis".format(self.name))
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -119,12 +118,9 @@ class Operator(MatrixData, BasisManaged, Saveable):
             if A.ndim == 2:
                 if A.shape[0] == A.shape[1]:
                     return True
-                else:
-                    return False
-            else:
                 return False
-        else:
             return False
+        return False
 
     def is_diagonal(self):
         dat = self._data.copy()
@@ -156,7 +152,7 @@ class SelfAdjointOperator(Operator):
         if not ((dim is None) and (data is None)):
             Operator.__init__(self,dim=dim,data=data,name=name)
             if not self.check_selfadjoint():
-                raise Exception("The data of this operator have"+
+                raise Exception("The data of this operator have"
                 "to be represented by a selfadjoint matrix")
 
 

@@ -205,14 +205,13 @@ def check_numpy_array(val):
     """
     if isinstance(val,numpy.ndarray):
         return val
-    elif isinstance(val,list):
+    if isinstance(val,list):
         try:
             vl = numpy.array(val)
         except:
             raise TypeError('Numerical array is required')
         return numpy.array(vl)
-    else:
-        raise TypeError('List or numpy.ndarray required')
+    raise TypeError('List or numpy.ndarray required')
 
 
 

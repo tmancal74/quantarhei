@@ -212,9 +212,8 @@ class AnharmonicMode(HarmonicMode):
         """
         if dom is None:
             return self.xi
-        else:
-            dom_int = self.convert_energy_2_internal_u(dom)
-            return dom_int/(2.0*(self.omega + dom_int))
+        dom_int = self.convert_energy_2_internal_u(dom)
+        return dom_int/(2.0*(self.omega + dom_int))
 
 
     def build(self, nmax=None, xi=None, build_relaxation=False):

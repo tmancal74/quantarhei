@@ -52,7 +52,7 @@ class TestSuperOperator(SuperOperator):
     def __init__(self, name=None):
 
         if name is None:
-            raise Exception("Name of the test super operator "+
+            raise Exception("Name of the test super operator "
                             "must be specified")
 
         if name == "dim-2-AOA":

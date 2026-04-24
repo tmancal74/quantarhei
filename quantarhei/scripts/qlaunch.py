@@ -45,7 +45,7 @@ def main():
     parser.add_argument("-v", "--version", action="store_true",
                         help="shows Quantarhei package version")
     parser.add_argument("-i", "--info", action='store_true',
-                        help="shows detailed information about Quantarhei"+
+                        help="shows detailed information about Quantarhei"
                         " installation")
 
     parser.set_defaults(func=do_launch)
@@ -65,7 +65,7 @@ def main():
     #
     if args.info:
         qr.printlog("\n"
-                   +"qrhei: Quantarhei Package Driver\n",
+                   "qrhei: Quantarhei Package Driver\n",
                    verbose=True, loglevel=1)
 #                   +"\n"
 #                   +"MPI parallelization enabled: ", flag_parallel,

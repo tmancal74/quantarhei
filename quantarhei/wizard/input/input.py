@@ -98,7 +98,7 @@ class Input:
 
         else:
             raise Exception("Input file name (string) or "
-                            +"a dictionary hs to be specified")
+                            "a dictionary hs to be specified")
 
         data = self.data
         for piece in data:

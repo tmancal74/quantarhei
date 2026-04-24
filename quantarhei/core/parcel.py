@@ -81,8 +81,7 @@ def load_parcel(filename):
 
     if isinstance(obj, Parcel):
         return obj.content
-    else:
-        raise Exception("Only Quantarhei Parcels can be loaded")
+    raise Exception("Only Quantarhei Parcels can be loaded")
 
 
 def check_parcel(filename):
@@ -104,7 +103,6 @@ def check_parcel(filename):
     if isinstance(obj, Parcel):
         return dict(class_name=obj.class_name, qrversion=obj.qrversion,
                     comment=obj.comment)
-    else:
-        raise Exception("The file does not represent a Quantarhei parcel")
+    raise Exception("The file does not represent a Quantarhei parcel")
 
 

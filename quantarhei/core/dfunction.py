@@ -213,7 +213,7 @@ class DFunction(Saveable, DataSaveable):
             if len(y.shape) == 1:
                 if y.shape[0] != self.axis.length:
                     raise Exception("Wrong number of elements"
-                    + " in 1D numpy.ndarray")
+                     " in 1D numpy.ndarray")
 
                 #Set values of the function
                 self.data = y
@@ -225,11 +225,11 @@ class DFunction(Saveable, DataSaveable):
 
             else:
                 raise Exception("Second argument has to be"
-                + " one-dimensional numpy.ndarray")
+                 " one-dimensional numpy.ndarray")
 
         else:
             raise Exception("Second argument has to be"
-            + " one-dimensional numpy.ndarray")
+             " one-dimensional numpy.ndarray")
 
 
     def _add_me(self, x, y):
@@ -253,7 +253,7 @@ class DFunction(Saveable, DataSaveable):
                 if len(y.shape) == 1:
                     if y.shape[0] != xaxis.length:
                         raise Exception("Wrong number of elements"
-                        + " in 1D numpy.ndarray")
+                         " in 1D numpy.ndarray")
 
                     #Set values of the function
                     data = y
@@ -263,11 +263,11 @@ class DFunction(Saveable, DataSaveable):
 
                 else:
                     raise Exception("Second argument has to be"
-                    + " one-dimensional numpy.ndarray")
+                     " one-dimensional numpy.ndarray")
 
             else:
                 raise Exception("Second argument has to be"
-                + " one-dimensional numpy.ndarray")
+                 " one-dimensional numpy.ndarray")
 
             # check axis
             if self.axis == xaxis:
@@ -275,7 +275,7 @@ class DFunction(Saveable, DataSaveable):
                 self.data += data
             else:
                 raise Exception("On addition, axis objects have to be"
-                                +" identical")
+                                " identical")
 
 
     def change_axis(self, axis):
@@ -404,7 +404,7 @@ class DFunction(Saveable, DataSaveable):
 
         if approx == "linear":
             return self._get_linear_approx(x)
-        elif approx == "spline":
+        if approx == "spline":
             return self._get_spline_approx(x)
 
 
@@ -531,7 +531,7 @@ class DFunction(Saveable, DataSaveable):
             f.data += other.data
         else:
             raise Exception("axis attribute of both"
-                            + " functions has to be identical")
+                             " functions has to be identical")
 
         return f
 
@@ -647,7 +647,7 @@ class DFunction(Saveable, DataSaveable):
 
             else:
                 raise Exception("Unknown axis type"
-                                +" (must be complete or upper-half)")
+                                " (must be complete or upper-half)")
 
             F = DFunction(w, Y)
 
@@ -671,7 +671,7 @@ class DFunction(Saveable, DataSaveable):
 
             else:
                 raise Exception("Unknown axis type"
-                                +" (must be complete or upper-half)")
+                                " (must be complete or upper-half)")
 
 
         else:
@@ -731,7 +731,7 @@ class DFunction(Saveable, DataSaveable):
 
             else:
                 raise Exception("Unknown axis type"
-                                +" (must be complete or upper-half)")
+                                " (must be complete or upper-half)")
 
             F = DFunction(w, Y)
 
@@ -763,7 +763,7 @@ class DFunction(Saveable, DataSaveable):
 
             else:
                 raise Exception("Unknown axis type"
-                                +" (must be complete or upper-half)")
+                                " (must be complete or upper-half)")
 
         else:
             pass
@@ -1128,6 +1128,5 @@ def _n_gaussians(x, *params):
         res += params[n-1] # last parameter is an offset
         return res
 
-    else:
-        raise Exception("Inconsistend number of parameters")
+    raise Exception("Inconsistend number of parameters")
 

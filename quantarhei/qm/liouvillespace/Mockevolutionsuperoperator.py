@@ -214,10 +214,9 @@ class MockSuperOperator:
     def data(self,i,j,k,l):
         if i==j and k==l: # population
             return self.data_pop[i,k]
-        elif i==k and j==l:
+        if i==k and j==l:
             return self.data_coh[i,j]
-        else:
-            return 0.0
+        return 0.0
 
 
 class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
@@ -344,8 +343,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
         if self.pdeph is None:
             return False
-        else:
-            return True
+        return True
 
 
     def _initialize_data(self, save=False):
@@ -397,10 +395,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     def data(self,ti,i,j,k,l):
         if i==j and k==l: # population
             return self.data_pop[ti,i,k]
-        elif i==k and j==l:
+        if i==k and j==l:
             return self.data_coh[ti,i,j]
-        else:
-            return 0.0
+        return 0.0
 
     def calculate(self, show_progress=False):
         """Calculates the data of the evolution superoperator
@@ -414,7 +411,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         if self.mode != "all":
-            raise Exception("This method (calculate()) can be used only"+
+            raise Exception("This method (calculate()) can be used only"
                             " with mode='all'")
         Nt = self.time.length
 
@@ -586,7 +583,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         if self.mode != "jit":
-            raise Exception("This method (calculate_next()) can be used only"+
+            raise Exception("This method (calculate_next()) can be used only"
                             " with mode='jit'")
 
         Nt = self.time.length
@@ -710,66 +707,63 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
                                                 target.data)
                 return oper_ven
+            target.data = numpy.tensordot(self.data[ti, :, :, :, :],
+                                          target.data)
+            return target
+
+        # Probably evaluation at more than one time
+        # here, `copy` parameter is irrelevant
+
+        if isinstance(time, str) or (id(time) == id(self.time)):
+
+            #
+            # Either we say time="all" or time= exactly the time axis
+            # of the evolution superoperator
+            #
+            # we apply the tensor at all its points
+            #
+
+            if isinstance(time, str):
+                if time != "all":
+                    raise Exception("When argument time is a string, "
+                                    "it must be equal to 'all'")
+
+            rhot = ReducedDensityMatrixEvolution(timeaxis=self.time,
+                                                 rhoi=target)
+            k_i = 0
+            for tt in time.data:
+                rhot.data[k_i,:,:] = \
+                numpy.tensordot(self.data[k_i,:,:,:,:],
+                                target.data)
+                k_i += 1
+
+            return rhot
+
+        if isinstance(time, (list, numpy.array, tuple, TimeAxis)):
+
+            #
+            # we apply at points specified by TimeAxis
+            #
+            if isinstance(time, TimeAxis):
+                ntime = time
             else:
-                target.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                              target.data)
-                return target
+                length = len(time)
+                dt = time[1]-time[0]
+                t0 = time[0]
+                ntime = TimeAxis(t0, length, dt)
 
-        else:
-            # Probably evaluation at more than one time
-            # here, `copy` parameter is irrelevant
+            rhot = ReducedDensityMatrixEvolution(timeaxis=ntime,
+                                                 rhoi=target)
 
-            if isinstance(time, str) or (id(time) == id(self.time)):
+            k_i = 0
+            for tt in ntime.data:
+                Ut = self.at(tt)
+                rhot.data[k_i,:,:] = numpy.tensordot(Ut.data, target.data)
+                k_i += 1
 
-                #
-                # Either we say time="all" or time= exactly the time axis
-                # of the evolution superoperator
-                #
-                # we apply the tensor at all its points
-                #
+            return rhot
 
-                if isinstance(time, str):
-                    if time != "all":
-                        raise Exception("When argument time is a string, "+
-                                        "it must be equal to 'all'")
-
-                rhot = ReducedDensityMatrixEvolution(timeaxis=self.time,
-                                                     rhoi=target)
-                k_i = 0
-                for tt in time.data:
-                    rhot.data[k_i,:,:] = \
-                    numpy.tensordot(self.data[k_i,:,:,:,:],
-                                    target.data)
-                    k_i += 1
-
-                return rhot
-
-            elif isinstance(time, (list, numpy.array, tuple, TimeAxis)):
-
-                #
-                # we apply at points specified by TimeAxis
-                #
-                if isinstance(time, TimeAxis):
-                    ntime = time
-                else:
-                    length = len(time)
-                    dt = time[1]-time[0]
-                    t0 = time[0]
-                    ntime = TimeAxis(t0, length, dt)
-
-                rhot = ReducedDensityMatrixEvolution(timeaxis=ntime,
-                                                     rhoi=target)
-
-                k_i = 0
-                for tt in ntime.data:
-                    Ut = self.at(tt)
-                    rhot.data[k_i,:,:] = numpy.tensordot(Ut.data, target.data)
-                    k_i += 1
-
-                return rhot
-
-            else:
-                raise Exception("Invalid argument: time")
+        raise Exception("Invalid argument: time")
 
 
     def plot_element(self, elem, show=True):

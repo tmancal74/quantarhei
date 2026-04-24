@@ -114,7 +114,7 @@ class ElectronicLindbladForm(LindbladForm):
                     for mon in agg.monomers:
                         Nel1 += mon.nel-1 # Add number of excited states in monomer
                 else:
-                    raise Exception("Cannot yet handle"+
+                    raise Exception("Cannot yet handle"
                                     "the case of sbi_mult> 1")
 
                 if Nel1 == sbi.KK.shape[1]:
@@ -165,12 +165,12 @@ class ElectronicLindbladForm(LindbladForm):
 
 
                 else:
-                    raise Exception("Incompatible dimension of system-bath"+
+                    raise Exception("Incompatible dimension of system-bath"
                                     " interaction operators")
 
         else:
 
-            raise Exception("SystemBathInteraction has to have `system`"+
+            raise Exception("SystemBathInteraction has to have `system`"
                             " attribute set to an Aggregate")
 
     def cast_to_vibronic(agg, KK):
@@ -310,7 +310,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
 
         else:
 
-            raise Exception("SystemBathInteraction has to have `system`"+
+            raise Exception("SystemBathInteraction has to have `system`"
                             " attribute set to an Aggregate")
 
 

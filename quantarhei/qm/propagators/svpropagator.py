@@ -77,9 +77,8 @@ class StateVectorPropagator:
                 # non-linear version
                 return self._propagate_short_exp_nonlin(psii, hfce, L=L)
 
-            else:
-                # just time dependence
-                return self._propagate_short_exp_tdep(psii, hfce, L=L)
+            # just time dependence
+            return self._propagate_short_exp_tdep(psii, hfce, L=L)
 
         # standard propagation with time independent Hamiltonian
         return self._propagate_short_exp(psii, L=L)

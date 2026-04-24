@@ -159,8 +159,7 @@ class DistributedConfiguration:
             self.comm.Reduce(A, B, op=MPI.SUM)
             return B
 
-        else:
-            raise Exception("Unknown reduction operation")
+        raise Exception("Unknown reduction operation")
 
 
     def allreduce(self, A, operation="sum"):
@@ -266,9 +265,8 @@ def block_distributed_range(start, stop):
 
         return range(rng[0],rng[1])
 
-    else:
 
-        return range(start, stop)
+    return range(start, stop)
 
 
 def block_distributed_list(dlist, return_index=False):
@@ -307,21 +305,18 @@ def block_distributed_list(dlist, return_index=False):
             for a in range(rng[0],rng[1]):
                 lst.append((a, dlist[a]))
             return lst
-        else:
-            return dlist[rng[0]:rng[1]]
+        return dlist[rng[0]:rng[1]]
 
-    else:
 
-        rng = [0, len(dlist)]
-        config.range = rng
+    rng = [0, len(dlist)]
+    config.range = rng
 
-        if return_index:
-            lst = []
-            for a in range(len(dlist)):
-                lst.append((a, dlist[a]))
-            return lst
-        else:
-            return dlist
+    if return_index:
+        lst = []
+        for a in range(len(dlist)):
+            lst.append((a, dlist[a]))
+        return lst
+    return dlist
 
 
 def block_distributed_array(array, return_index=False):
@@ -349,21 +344,18 @@ def block_distributed_array(array, return_index=False):
             for a in range(array.shape[0]):
                 lst.append((a, array[a]))
             return lst
-        else:
-            return array[rng[0]:rng[1]]
+        return array[rng[0]:rng[1]]
 
-    else:
 
-        rng = [0, array.shape[0]]
-        config.range = rng
+    rng = [0, array.shape[0]]
+    config.range = rng
 
-        if return_index:
-            lst = []
-            for a in range(array.shape[0]):
-                lst.append((a, array[a]))
-            return lst
-        else:
-            return array
+    if return_index:
+        lst = []
+        for a in range(array.shape[0]):
+            lst.append((a, array[a]))
+        return lst
+    return array
 
 
 def collect_block_distributed_data(containers, setter_function,
@@ -571,8 +563,7 @@ def _receive_from_MPI(config, source):
 
     if data[1] == 1:
         return None
-    else:
-        return data[0]
+    return data[0]
 
 
 

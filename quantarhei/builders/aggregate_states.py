@@ -350,24 +350,23 @@ class ElectronicState(UnitsManaged):
 
         if approx is None:
             return numpy.ndindex(tuple(vibmax))
-        elif approx == 'ZPA':
+        if approx == 'ZPA':
             return numpy.ndindex(tuple([1]*len(vibmax)))
-        elif approx == 'SPA':
+        if approx == 'SPA':
             return self._spa_ndindex(tuple(vibmax), ecut=vibenergy_cutoff)
-        elif approx == 'SPPMA':
+        if approx == 'SPPMA':
             return self._sppma_ndindex(tuple(vibmax), ecut=vibenergy_cutoff)
-        elif approx == 'TPA':
+        if approx == 'TPA':
             return self._tpa_ndindex(tuple(vibmax), ecut=vibenergy_cutoff)
-        elif approx == 'TPPMA':
+        if approx == 'TPPMA':
             return self._tppma_ndindex(tuple(vibmax), ecut=vibenergy_cutoff)
-        elif approx == 'NPA':
+        if approx == 'NPA':
             return self._npa_ndindex(tuple(vibmax), N=N, ecut=vibenergy_cutoff)
-        elif approx == 'NPPMA':
+        if approx == 'NPPMA':
             return self._nppma_ndindex(tuple(vibmax), N=N,
                                        ecut=vibenergy_cutoff)
-        else:
-            raise Exception("Unknown vibrational "+
-                            "state generation approximation")
+        raise Exception("Unknown vibrational "
+                        "state generation approximation")
 
 
     def number_of_states(self):
@@ -384,7 +383,7 @@ class ElectronicState(UnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.ElectronicStateobject"
         out += "\n=================================="
-        out += "\nenergy = %f" % self.energy()
+        out += "\nenergy = {:f}".format(self.energy())
         out += "\nnumber of substates = %i " % self.number_of_states()
         out += ("\nmember of an aggregate of %i molecules"
                 % self.aggregate.nmono)
@@ -502,7 +501,7 @@ class VibronicState(UnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.VibronicState object"
         out += "\n=================================="
-        out += "\nenergy = %f" % self.energy()
+        out += "\nenergy = {:f}".format(self.energy())
         out += ("\nmember of an aggregate of %i molecules"
                 % self.elstate.aggregate.nmono)
         return out
@@ -543,7 +542,7 @@ class Coherence:
             system1 = state1.system
             system2 = state2.system
         except:
-            raise Exception("At least one of the states"+
+            raise Exception("At least one of the states"
                             " does not know its system")
 
         if system1 != system2:

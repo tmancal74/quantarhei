@@ -26,14 +26,13 @@ class CumulantExpr(QExpr):
     def getOrder(self,n):
         if n == self._calculate_order(self):
             return self
-        else:
-            add = self.args[0]
-            A = sympify(0)
-            for aa in add.args:
-                if self._calculate_order(aa) == 2 :
-                    A = A + aa
+        add = self.args[0]
+        A = sympify(0)
+        for aa in add.args:
+            if self._calculate_order(aa) == 2 :
+                A = A + aa
 
-            return CumulantExpr(A)
+        return CumulantExpr(A)
 
 
     def evaluate(self,large=False):
@@ -178,17 +177,16 @@ class CumulantExpr(QExpr):
                 order += self._calculate_order(aa)
             return order
 
-        elif content.func is Pow:
+        if content.func is Pow:
             sorder = self._calculate_order(content.args[0])
             return sorder*content.args[1]
 
-        elif content.func in (hh_plus,hh_minus,gg_plus,gg_minus,dV):
+        if content.func in (hh_plus,hh_minus,gg_plus,gg_minus,dV):
             return content.order()
 
-        elif content.func is Dagger:
+        if content.func is Dagger:
             return self._calculate_order(content.args[0])
-        else:
-            return 0
+        return 0
 
 
 """
@@ -487,8 +485,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
             einsum_string = get_einsum_string(reshape)
             einsum_expr = einsum(sp.Symbol(einsum_string), M_part, gg_part)
             return sp.Symbol(f'({einsum_expr}){reshape}') if reshape else einsum_expr
-        else:
-            return sp.Symbol(f'gg[{index},"{t_str}"]{reshape}')
+        return sp.Symbol(f'gg[{index},"{t_str}"]{reshape}')
 
     # Handle conjugate(gg(...))
     if isinstance(expr, sp.Basic) and expr.func == conjugate:
@@ -683,8 +680,7 @@ class Uop:
 
         if tot == 0:
             return True
-        else:
-            return False
+        return False
 
 
 
@@ -779,10 +775,9 @@ class Uop:
         """
         if self.dagger == -1:
             return True
-        elif self.dagger == 1:
+        if self.dagger == 1:
             return False
-        else:
-            raise Exception("'dagger' property must be +/- 1")
+        raise Exception("'dagger' property must be +/- 1")
 
 
 
@@ -916,8 +911,7 @@ class UopEater:
             self.uop_next = self.in_list[self.pointer + 1]
             return True
 
-        else:
-            return False
+        return False
 
 
     def spit_pairs(self):

@@ -29,7 +29,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
 
         if not isinstance(sbi, SystemBathInteraction):
             raise Exception("Second argument must be of"
-                           +" type SystemBathInteraction")
+                           " type SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False

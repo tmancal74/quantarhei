@@ -168,7 +168,7 @@ class Secular:
             else:
 
                 raise Exception("Cannot recover non-secular data:"
-                                +" secularization was performed irreversibly")
+                                " secularization was performed irreversibly")
 
 
 
@@ -188,26 +188,26 @@ class Secular:
     ###########################################################################
 
     def _set_population_rates_from_operators(self):
-        raise Exception("Method _set_population_rates_from_operators()"+
-                        " needs to be implemented in a class inheriting"+
+        raise Exception("Method _set_population_rates_from_operators()"
+                        " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
     def _set_population_rates_from_tensor(self):
-        raise Exception("Method _set_population_rates_from_tensor()"+
-                        " needs to be implemented in a class inheriting"+
+        raise Exception("Method _set_population_rates_from_tensor()"
+                        " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
     def _set_dephasing_rates_from_operators(self):
-        raise Exception("Method _set_dephasing_rates_from_operators()"+
-                        " needs to be implemented in a class inheriting"+
+        raise Exception("Method _set_dephasing_rates_from_operators()"
+                        " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
     def _set_dephasing_rates_from_tensor(self):
-        raise Exception("Method _set_dephasing_rates_from_tensor()"+
-                        " needs to be implemented in a class inheriting"+
+        raise Exception("Method _set_dephasing_rates_from_tensor()"
+                        " needs to be implemented in a class inheriting"
                         " from Secular")
 
 

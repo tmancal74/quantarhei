@@ -260,7 +260,7 @@ class TestAggregate(Aggregate):
 
             return [m1, m2]
 
-        elif (N == 3) and (nst == 2):
+        if (N == 3) and (nst == 2):
 
             nstates = nst
 
@@ -309,7 +309,6 @@ class TestAggregate(Aggregate):
 
             return [m1, m2, m3]
 
-        else:
 
-            return None
+        return None
 

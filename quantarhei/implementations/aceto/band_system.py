@@ -159,7 +159,7 @@ class band_system:
                 for j in range(self.Ns[2]):
                     self.Kd12[i,j] -= self.Kr22[j,j]/2.0
         else:
-            raise Exception("Attempt to update unsupported "+
+            raise Exception("Attempt to update unsupported "
                             "dephasing rate block")
 
 

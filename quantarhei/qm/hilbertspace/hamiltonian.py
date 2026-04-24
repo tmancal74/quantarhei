@@ -24,7 +24,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if not ((dim is None) and (data is None)):
             Operator.__init__(self, dim=dim, data=data)
             if not self.check_selfadjoint():
-                raise Exception("The data of this operator have"+
+                raise Exception("The data of this operator have"
                                 "to be represented by a selfadjoint matrix")
 
         self.rwa_indices = None
@@ -155,17 +155,16 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
             self.SS = SS
             return SS
-        else:
-            self.remove_cutoff_coupling(coupling_cutoff)
-            # diagonalize the strong coupling part
-            dd,SS = numpy.linalg.eigh(self.data)
-            self.data = numpy.zeros(self.data.shape,dtype=REAL)
-            for ii in range(0,self.data.shape[0]):
-                self.data[ii,ii] = dd[ii]
-            # transform the remainder of couling correspondingly
-            self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
-            self.SS = SS
-            return self.SS, self.JR
+        self.remove_cutoff_coupling(coupling_cutoff)
+        # diagonalize the strong coupling part
+        dd,SS = numpy.linalg.eigh(self.data)
+        self.data = numpy.zeros(self.data.shape,dtype=REAL)
+        for ii in range(0,self.data.shape[0]):
+            self.data[ii,ii] = dd[ii]
+        # transform the remainder of couling correspondingly
+        self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
+        self.SS = SS
+        return self.SS, self.JR
 
 
 
@@ -307,7 +306,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         """
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operator '%s' changes basis" %self.name)
+                print("\nQr >>> Operator '{}' changes basis".format(self.name))
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -323,7 +322,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
-        out += "\nunits of energy %s" % self.unit_repr()
+        out += "\nunits of energy {}".format(self.unit_repr())
         out += "\nRotating Wave Approximation (RWA) enabled : "\
             +str(self.has_rwa)
         if self.has_rwa:

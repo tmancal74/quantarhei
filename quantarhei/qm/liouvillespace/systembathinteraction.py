@@ -106,7 +106,7 @@ class SystemBathInteraction(Saveable):
             # Second argument has to be a CorrelationFunctionMatrix
             if not isinstance(bath_correlation_matrix,
                               CorrelationFunctionMatrix):
-                raise Exception("ba_correlation_function argument has to a"+
+                raise Exception("ba_correlation_function argument has to a"
                                 " CorrelationFunctionMatrix")
 
             # Check that sys_operators and bath_correlation matrix has
@@ -164,11 +164,11 @@ class SystemBathInteraction(Saveable):
 
             if len(drates.shape) != 2:
                 raise Exception("Pure dephasing rates must"
-                                +" be defined by a matrix")
+                                " be defined by a matrix")
 
             if drates.shape[0] != drates.shape[1]:
                 raise Exception("Pure dephasing rates must"
-                                +" be defined by a square matrix")
+                                " be defined by a square matrix")
 
             self.N = drates.shape[0]
             self.set_system(system)
@@ -182,7 +182,7 @@ class SystemBathInteraction(Saveable):
             self.sbitype = "Vibrational_Lindblad_Form"
 
             if len(orates) != len(osites):
-                raise Exception("`orates` and `osites` arguments must"+
+                raise Exception("`orates` and `osites` arguments must"
                                 " have the same lengths")
 
             self.set_system(system)
@@ -242,10 +242,10 @@ class SystemBathInteraction(Saveable):
                     self.KK[ii,:,:] = numpy.real(KK.data)
                 else:
                     raise Exception("Operators in the list are"
-                    + " not of the same dimension")
+                     " not of the same dimension")
             else:
                 raise Exception("sys_operators tuple (the first argument)"
-                + " has to contain cu.oqs.hilbertspace.Operator")
+                 " has to contain cu.oqs.hilbertspace.Operator")
 
 
     def get_time_axis(self):
@@ -268,7 +268,7 @@ class SystemBathInteraction(Saveable):
 
         """
         if self.sbitype != "Linear_Coupling":
-            raise Exception("Correlation functions only defined for "+
+            raise Exception("Correlation functions only defined for "
                             "linear microscopic system-bath coupling")
 
         #print("Returning coft" )
@@ -277,34 +277,32 @@ class SystemBathInteraction(Saveable):
             #print("Returning coft without the system" )
             return self.CC.get_coft(n,m)
 
-        else:
 
-            #FIXME: Molecule needs this method
-            bn = self.system.which_band[n]
-            bm = self.system.which_band[m]
+        #FIXME: Molecule needs this method
+        bn = self.system.which_band[n]
+        bm = self.system.which_band[m]
 
-            # Ground state
-            if ((bn == 0) and (bm == 0)):
+        # Ground state
+        if ((bn == 0) and (bm == 0)):
 
-                #
-                # This returns zero correlation function, which is consistent
-                #
-                return self.CC._cofts[0,:]
+            #
+            # This returns zero correlation function, which is consistent
+            #
+            return self.CC._cofts[0,:]
 
-            # First or higher excited state bands
-            elif ((bn >= 1) and (bm >= 1)):
-                #print(bn,bm,"::",n-1,m-1)
+        # First or higher excited state bands
+        if ((bn >= 1) and (bm >= 1)):
+            #print(bn,bm,"::",n-1,m-1)
 
-                #
-                # First band starts with n=1, but the correlation functions
-                # are stored by site index which starts with 0
-                #
-                return self.CC.get_coft(n-1,m-1)
+            #
+            # First band starts with n=1, but the correlation functions
+            # are stored by site index which starts with 0
+            #
+            return self.CC.get_coft(n-1,m-1)
 
-            # other bands return zero correlation function now
-            else:
+        # other bands return zero correlation function now
 
-                return self.CC._cofts[0,:]
+        return self.CC._cofts[0,:]
 
 
 
@@ -314,7 +312,7 @@ class SystemBathInteraction(Saveable):
 
         """
         if self.sbitype != "Linear_Coupling":
-            raise Exception("Correlation functions only defined for "+
+            raise Exception("Correlation functions only defined for "
                             "linear microscopic system-bath coupling")
 
         nb = numpy.sum(n_sig)
@@ -339,8 +337,7 @@ class SystemBathInteraction(Saveable):
 
             return ret
 
-        else:
-            return self.CC._cofts[0,:]
+        return self.CC._cofts[0,:]
 
 
     def get_goft_storage(self, config=None):
@@ -393,7 +390,7 @@ class SystemBathInteraction(Saveable):
         # make checks
         if Nf != gg.get_number_of_functions():
             raise Exception("Number of functions did not"
-                            +" conserve in g(t) calculation")
+                            " conserve in g(t) calculation")
 
         self.GG = gg
         self._has_gg_storage = True
@@ -408,13 +405,12 @@ class SystemBathInteraction(Saveable):
         if (self.sbitype == "Lindblad_Form" or
             self.sbitype == "Vibrational_Lindblad_Form"):
             return False
-        else:
-            try:
-                T = self.get_temperature()
-                if T >= 0.0:
-                    return True
-            except:
-                return False
+        try:
+            T = self.get_temperature()
+            if T >= 0.0:
+                return True
+        except:
+            return False
 
 
     def get_temperature(self):
@@ -436,10 +432,9 @@ class SystemBathInteraction(Saveable):
         if (self.sbitype == "Lindblad_Form" or
             self.sbitype == "Vibrational_Lindblad_Form"):
             return None
-        else:
-            if j is None:
-                j = i
-            return self.CC.get_reorganization_energy(i,j)
+        if j is None:
+            j = i
+        return self.CC.get_reorganization_energy(i,j)
 
 
     def get_correlation_time(self, i, j=None):
@@ -447,10 +442,9 @@ class SystemBathInteraction(Saveable):
         if (self.sbitype == "Lindblad_Form" or
             self.sbitype == "Vibrational_Lindblad_Form"):
             return None
-        else:
-            if j is None:
-                j = i
-            return self.CC.get_correlation_time(i,j)
+        if j is None:
+            j = i
+        return self.CC.get_correlation_time(i,j)
 
 
     def get_sbitype(self):

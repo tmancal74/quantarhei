@@ -124,12 +124,11 @@ class DSFeynmanDiagram:
             axis = dimensions.get(tname, None)
             if axis == 0:
                 return f"{tname}[:,None]"
-            elif axis == 1:
+            if axis == 1:
                 return f"{tname}[None,:]"
-            elif axis == -1:
+            if axis == -1:
                 return f"{tname}[None,None]"
-            else:
-                raise ValueError(f"Unsupported or missing axis for time variable '{tname}' in dimensions.")
+            raise ValueError(f"Unsupported or missing axis for time variable '{tname}' in dimensions.")
 
         for sec in range(1, Nst - 1):
             st = self.states[sec]
@@ -288,7 +287,7 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         code1 = code_symbols+"A_cum = "+outs
         codes.append(code1)
 
-        code2 = "\n"+\
+        code2 = "\n"\
             "evc = evaluate_cumulant(A_cum, positive_times=[t1, t2, t3])\n"
 #        code2 = "\n"+\
 #            "evc = evaluate_cumulant(A_cum)\n"

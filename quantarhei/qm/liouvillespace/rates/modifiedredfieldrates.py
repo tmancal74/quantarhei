@@ -191,7 +191,7 @@ class ModifiedRedfieldRateMatrix:
         # the number of sites - this is the excitonic situation
         if Na != Nc + 1:
             raise Exception("Modified Redfield is implemented for "
-                            +"single exciton systems only")
+                            "single exciton systems only")
 
         tt = self.sbi.TimeAxis.data
         Nt = self.sbi.CC.timeAxis.length
