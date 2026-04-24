@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from functools import wraps
 import os
 from importlib import import_module

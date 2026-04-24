@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
     Model Generator for Examples and Tests

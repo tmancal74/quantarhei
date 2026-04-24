@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 class LogConf:
     """Holds information of the configuration for Quantarhei logging system

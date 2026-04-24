@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from .operators import SelfAdjointOperator
 from ...core.managers import BasisManaged

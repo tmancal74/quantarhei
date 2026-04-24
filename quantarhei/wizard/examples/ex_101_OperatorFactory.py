@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #import numpy
 import quantarhei as qr
 from quantarhei.models import HarmonicOscillator as HO

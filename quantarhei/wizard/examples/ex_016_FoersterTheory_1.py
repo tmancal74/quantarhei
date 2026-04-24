@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
     Propagation with Foerster theory using Aggregate object

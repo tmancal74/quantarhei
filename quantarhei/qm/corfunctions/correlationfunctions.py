@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Provides typical Bath correlation function types.
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
     Liouville pathways and their analysis

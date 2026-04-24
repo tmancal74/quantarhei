@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Liouvillian super operator
 
     Louvillean super operator represent the action of a commutator with

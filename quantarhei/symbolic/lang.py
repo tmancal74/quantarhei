@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 def rename_function(ss, oldname, newname):
     """Replaces all occurences of a name by a new name
 

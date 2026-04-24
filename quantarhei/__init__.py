@@ -1,4 +1,3 @@
-    # -*- coding: utf-8 -*-
 """
     Quantarhei User Level Classes and Objects
     =========================================

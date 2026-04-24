@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
 Relaxation tensors are related in the following way

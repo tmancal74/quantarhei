@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Class representing time in time dependent calculations.
 

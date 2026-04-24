@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     SuperOperator class for test purposes
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Driver script for Quantarhei package
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     IPython magic commands and their equivalents for Python console
 

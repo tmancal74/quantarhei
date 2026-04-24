@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Multi-level molecule (monomer)
 
     The molecule is defined by the vector of energies of its states

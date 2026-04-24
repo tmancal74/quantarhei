@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Class comprising the aggregate methods for support of spectroscopic simulations
 

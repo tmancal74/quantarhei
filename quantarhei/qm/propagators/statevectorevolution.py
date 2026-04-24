@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import numpy
 import matplotlib.pylab as plt

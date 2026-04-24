@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Liouville pathway analysis module
 
    This module defines classes and function to help in

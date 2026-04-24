@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Two-dimensional Fourier Transform Spectrum and its calculation
 
 

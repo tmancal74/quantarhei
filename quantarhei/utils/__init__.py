@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
     quantarhei.utils  subpackage

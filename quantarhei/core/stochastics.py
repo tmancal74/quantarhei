@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Entirely experimental - if I delete it, I would forget about. That's why it is here
 

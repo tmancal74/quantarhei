@@ -1,4 +1,3 @@
- # -*- coding: utf-8 -*-
 """Class adding exciton analysis on molecular aggregates
 
     Most of the present methods are available after the aggregate is

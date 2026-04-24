@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
     Calculation of pump-probe spectra with effective lineshapes

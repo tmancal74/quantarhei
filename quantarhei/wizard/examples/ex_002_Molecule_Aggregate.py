@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 #<remove>
 _show_plots_ = False

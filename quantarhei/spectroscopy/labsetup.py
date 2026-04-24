@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Laboratory set-up for non-linear spectroscopy
 

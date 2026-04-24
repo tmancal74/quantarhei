@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     The SubMode class is an internal class through which the mode keeps
     track of the fact that in different electronic states of the molecule,

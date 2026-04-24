@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy
 
 class band_system:

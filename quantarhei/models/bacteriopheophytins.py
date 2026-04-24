@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from ..core.units import cm2int
 #from .molecularmodel import MolecularModel

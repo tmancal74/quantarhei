@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Class representing evolution superoperator
 
     This class represents evolution superoperator at discrete times.

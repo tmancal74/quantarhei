@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 #  Example for the parallel iterator and collector:
 #      block_distributed_list

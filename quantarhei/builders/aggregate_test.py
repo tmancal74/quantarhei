@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Class to support tests on Aggregate class
 

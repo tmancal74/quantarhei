@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 match_number = r'(\d+(?:\.\d+)?)'
 match_word = r'([^"]*)'

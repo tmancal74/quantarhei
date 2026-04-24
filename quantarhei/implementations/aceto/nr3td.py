@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Time-dependent third order non-linear response of a three band
     multi-level system

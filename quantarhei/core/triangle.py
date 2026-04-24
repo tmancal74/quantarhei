@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from .saveable import Saveable
 
 class triangle(Saveable):

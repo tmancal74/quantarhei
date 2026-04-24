@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This module defines several normalized lineshapes for 1D and 2D spectroscopy
 #

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from ..symbolic.cumulant import Uop
 from ..symbolic.cumulant import UopEater

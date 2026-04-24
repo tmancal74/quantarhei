@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Support module for tests using `behave` package
 

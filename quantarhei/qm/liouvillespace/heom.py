@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Representation of Hierarchical Equations of Motion
 

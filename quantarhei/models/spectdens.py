@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 class DatabaseEntry:
     """Database entry in the database of spectral densities and correlation functions

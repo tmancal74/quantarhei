@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from .. import COMPLEX
 from ..core.units import convert
 

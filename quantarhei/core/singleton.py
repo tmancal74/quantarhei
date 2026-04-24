@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 class Singleton(type):
     """Base type of singletons, such as the main Quantarhei class Manager

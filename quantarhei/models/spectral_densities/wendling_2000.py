@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from quantarhei.models.spectdens import SpectralDensityDatabaseEntry
 from quantarhei import SpectralDensity

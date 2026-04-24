@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy
 from ..liouvillespace.rates.ratematrix import RateMatrix
 

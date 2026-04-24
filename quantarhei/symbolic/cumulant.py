@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from sympy.physics.quantum import Operator, Dagger
 from sympy.physics.quantum.qexpr import QExpr
 from sympy import I, conjugate

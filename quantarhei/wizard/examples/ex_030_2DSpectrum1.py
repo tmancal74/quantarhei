@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
     Calculation of 2D spectra with effective lineshapes

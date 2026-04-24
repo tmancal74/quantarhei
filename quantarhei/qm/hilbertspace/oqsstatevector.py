@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
     State vector of the open quantum system

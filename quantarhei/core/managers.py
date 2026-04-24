@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     This class handles several important package wide tasks:
 
