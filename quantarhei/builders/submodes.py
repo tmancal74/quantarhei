@@ -4,15 +4,9 @@ a given vibrational mode has different parameters.
 
 
 """
-import numpy
 
-from .. import REAL
 from ..core.managers import UnitsManaged
 from ..core.saveable import Saveable
-from ..qm import LindbladForm, ProjectionOperator, SystemBathInteraction
-from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
-from ..qm.hilbertspace.hamiltonian import Hamiltonian
-from ..qm.oscillators.ho import operator_factory
 from ..utils import Float, Integer
 
 

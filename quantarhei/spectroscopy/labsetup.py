@@ -11,11 +11,10 @@ Class Details
 
 """
 
-from functools import partial
 
 import numpy
 
-from .. import COMPLEX, REAL, Manager
+from .. import REAL, Manager
 from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
 from ..core.time import TimeAxis

@@ -5,17 +5,14 @@
 
 *******************************************************************************
 """
-import time
 
-import matplotlib.pyplot as plt
 import numpy
 import scipy
-from scipy import integrate
 from scipy.integrate import simpson as simps
 
 from .... import COMPLEX, REAL
 from ....core.dfunction import DFunction
-from ....core.units import convert, kB_intK
+from ....core.units import kB_intK
 
 #from quantarhei.core.implementations import implementation
 from ...hilbertspace.hamiltonian import Hamiltonian

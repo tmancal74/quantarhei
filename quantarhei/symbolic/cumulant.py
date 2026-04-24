@@ -815,7 +815,6 @@ class UopEater:
 
 
     def eat(self, u_list):
-        import copy
 
         self.in_list = u_list
         self.out_list = []

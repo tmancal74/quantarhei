@@ -1,5 +1,4 @@
 from .. import COMPLEX
-from ..core.units import convert
 
 
 def R1g(t2, t1, t3, lab, system, evol, KK):

@@ -3,7 +3,6 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy
 
-import quantarhei as qr
 
 from .. import TWOD_SIGNALS, part_ABS, part_IMAGINARY, part_REAL, signal_TOTL
 from ..core.datasaveable import DataSaveable

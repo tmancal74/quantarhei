@@ -7,7 +7,6 @@ Class Details
 -------------
 
 """
-from .. import REAL
 from .modes import Mode
 from .molecules import Molecule
 

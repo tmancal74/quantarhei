@@ -1014,7 +1014,6 @@ class PumpProbeSpectrumCalculator:
         """Calculate the shape of a Liouville pathway
 
         """
-        import time
 
         # we can calculate empty pathway
         if pathways is None:

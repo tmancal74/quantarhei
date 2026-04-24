@@ -76,11 +76,8 @@ from ..core.saveable import Saveable
 from ..core.triangle import triangle
 from ..core.unique import unique_array, unique_list
 from ..core.units import (
-    c_int,
     conversion_facs_edipole,
     conversion_facs_length,
-    eps0_int,
-    kB_intK,
 )
 from ..qm import Hamiltonian, SystemBathInteraction, TransitionDipoleMoment
 from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix

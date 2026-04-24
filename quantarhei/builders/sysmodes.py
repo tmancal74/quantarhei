@@ -6,7 +6,6 @@ from ..qm import LindbladForm, ProjectionOperator, SystemBathInteraction
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.oscillators.ho import operator_factory
-from ..utils import Float, Integer
 from .opensystem import OpenSystem
 from .submodes import SubMode
 

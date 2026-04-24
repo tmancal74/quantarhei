@@ -12,7 +12,6 @@ author: Tomas Mancal, Charles University
 
 """
 
-import matplotlib.pyplot as plt
 import numpy
 import numpy.linalg
 

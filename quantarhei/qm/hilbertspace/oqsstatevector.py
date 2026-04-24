@@ -4,7 +4,7 @@
 """
 import numpy
 
-from ... import COMPLEX, REAL
+from ... import REAL
 from .operators import ReducedDensityMatrix
 
 

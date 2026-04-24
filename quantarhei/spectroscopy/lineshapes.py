@@ -4,8 +4,6 @@
 import numpy
 from scipy import special
 
-from .. import COMPLEX, REAL
-from ..core.managers import Manager
 
 
 class Storage:

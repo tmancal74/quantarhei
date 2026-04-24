@@ -7,7 +7,7 @@ statevector module
 
 import numpy
 
-from ... import COMPLEX, REAL
+from ... import COMPLEX
 from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 

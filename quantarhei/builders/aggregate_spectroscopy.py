@@ -12,7 +12,6 @@ import numpy
 import quantarhei as qr
 
 from ..core.managers import eigenbasis_of
-from ..qm.liouvillespace.superoperator import SuperOperator
 from ..spectroscopy import diagramatics as diag
 from .aggregate_base import AggregateBase
 

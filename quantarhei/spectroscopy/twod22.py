@@ -18,7 +18,7 @@ import quantarhei as qr
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..core.frequency import FrequencyAxis
-from ..core.managers import eigenbasis_of, energy_units
+from ..core.managers import eigenbasis_of
 from ..core.saveable import Saveable
 from ..core.time import TimeAxis
 from ..core.units import convert

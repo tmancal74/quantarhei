@@ -9,12 +9,12 @@ import copy
 import numpy
 import scipy
 
-from .. import COMPLEX, REAL
+from .. import COMPLEX
 from ..builders import Aggregate, Molecule, OpenSystem
 from ..core.frequency import FrequencyAxis
 from ..core.managers import EnergyUnitsManaged, eigenbasis_of, energy_units
 from ..core.time import TimeAxis, TimeDependent
-from ..core.units import convert, kB_intK
+from ..core.units import kB_intK
 from ..core.wrappers import prevent_basis_context
 from ..qm.hilbertspace.operators import ReducedDensityMatrix
 from ..utils import derived_type

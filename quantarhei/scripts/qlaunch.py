@@ -13,11 +13,7 @@ and after the simulation is done it is returned back with the suffix .out.
 """
 
 import argparse
-import fnmatch
-import os
-import subprocess
 import sys
-import traceback
 
 import quantarhei as qr
 

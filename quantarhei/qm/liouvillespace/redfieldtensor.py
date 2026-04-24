@@ -119,9 +119,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         if initialize:
 
             try:
-                from ...implementations.qm.liouvillespace.redfieldtensor import (
-                    redfieldtensor,
-                )
+                pass
             except:
                 pass
 

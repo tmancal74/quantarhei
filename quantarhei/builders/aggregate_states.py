@@ -1,7 +1,7 @@
 import numpy
 
 from ..core.managers import UnitsManaged, energy_units
-from ..utils.types import Float, Integer
+from ..utils.types import Integer
 
 
 class ElectronicState(UnitsManaged):

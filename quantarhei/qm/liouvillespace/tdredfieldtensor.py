@@ -2,7 +2,6 @@ import numpy
 import scipy
 
 from ... import REAL
-from ...core.managers import Manager
 from ...core.time import TimeDependent
 from .redfieldtensor import RedfieldRelaxationTensor
 

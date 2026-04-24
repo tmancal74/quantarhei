@@ -18,11 +18,9 @@ Issues:
 """
 
 import warnings
-from copy import deepcopy
 
 import numpy
 
-import quantarhei as qr
 
 from .. import COMPLEX, REAL
 

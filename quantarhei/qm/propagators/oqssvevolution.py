@@ -1,6 +1,6 @@
 import numpy
 
-from ... import COMPLEX, REAL
+from ... import REAL
 from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 
 

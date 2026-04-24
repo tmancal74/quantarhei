@@ -309,7 +309,6 @@ def do_command_test(args):
     #
     have_mpi = False
     try:
-        from mpi4py import MPI
         have_mpi = True
     except:
         pass
