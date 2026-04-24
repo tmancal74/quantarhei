@@ -12,7 +12,7 @@ from ..core.managers import Manager
 from .logging import printlog
 
 
-def timeit(msg=None,show_stamp=False, loglevel=5, verbose=True):
+def timeit(msg: str | None = None, show_stamp: bool = False, loglevel: int = 5, verbose: bool = True) -> None:
     """Start timing at this point and save the time
 
     """
@@ -24,7 +24,7 @@ def timeit(msg=None,show_stamp=False, loglevel=5, verbose=True):
     lconf.time_stamp.put(time.time())
 
 
-def untimeit(show_stamp=False):
+def untimeit(show_stamp: bool = False) -> float:
     """Stop timing and return current time
 
     """
@@ -35,7 +35,7 @@ def untimeit(show_stamp=False):
     return tm2 - lconf.time_stamp.get()
 
 
-def finished_in(show_stamp=False,loglevel=5, verbose=True):
+def finished_in(show_stamp: bool = False, loglevel: int = 5, verbose: bool = True) -> None:
     """Print message with time past from the last timing statement
 
     """
@@ -48,7 +48,7 @@ def finished_in(show_stamp=False,loglevel=5, verbose=True):
                  verbose=verbose)
 
 
-def done_in(show_stamp=False,loglevel=5, verbose=True):
+def done_in(show_stamp: bool = False, loglevel: int = 5, verbose: bool = True) -> None:
     """Print message with time past from the last timing statement
 
     """
