@@ -5,9 +5,11 @@ load themselves from a file.
 
 
 """
+from __future__ import annotations
 
 import copy
 import os
+from typing import IO, Any
 
 #import time
 #import hashlib
@@ -25,7 +27,8 @@ class Saveable:
 
     hashes: dict = {}
 
-    def save(self, filename, comment=None, test=False):
+    def save(self, filename: str | IO[bytes], comment: str | None = None,
+             test: bool = False) -> None:
         """Saves the object with all its content into a file
 
 
@@ -56,7 +59,7 @@ class Saveable:
                 filename.seek(0)
 
 
-    def load(self, filename, test=False):
+    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:
         """Loads an object from a file and returns it
 
         Parameters
@@ -73,7 +76,7 @@ class Saveable:
         return load_parcel(filename)
 
 
-    def _get_fname(self):
+    def _get_fname(self) -> str:
 
         #hashstr = str(hash(time.time()))
         #str40 = str(hashlib.sha1(hashstr.encode()).hexdigest())
@@ -81,7 +84,8 @@ class Saveable:
         return str40
 
 
-    def savedir(self, dirname, tag=None, comment=None, test=False):
+    def savedir(self, dirname: str, tag: Any = None,
+                comment: str | None = None, test: bool = False) -> None:
         """Saves an object into directory containing a file with unique name
 
 
@@ -122,11 +126,11 @@ class Saveable:
         p.save(hfile)
 
 
-    def loaddir(self, dirname):
+    def loaddir(self, dirname: str) -> dict[Any, Any]:
         """Returns a directory of objects saved into a directory
 
         """
-        out = {}
+        out: dict[Any, Any] = {}
         hfile = os.path.join(dirname,"_hashes_.qrp")
         hashes = load_parcel(hfile)
 
@@ -139,7 +143,7 @@ class Saveable:
         return out
 
 
-    def scopy(self):
+    def scopy(self) -> Any:
         """Creates a copy of the object by saving and loading it
 
         """
@@ -152,7 +156,7 @@ class Saveable:
         return no
 
 
-    def deepcopy(self):
+    def deepcopy(self) -> Any:
         """Returns a deep copy of the self
 
 
@@ -160,7 +164,7 @@ class Saveable:
         return copy.deepcopy(self)
 
 
-    def copy(self):
+    def copy(self) -> Any:
         """Returns a shallow copy of the self
 
 
