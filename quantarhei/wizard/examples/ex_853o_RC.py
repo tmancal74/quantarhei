@@ -40,12 +40,14 @@ detailed_balance = INP.detailed_balance
 
 def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         stype=qr.signal_REPH, make_movie=False, save_eUt=False,
-        t2_save_pathways=[], dname=None, trimer=None):
+        t2_save_pathways=None, dname=None, trimer=None):
     """Runs a complete set of simulations for a single set of parameters
 
 
 
     """
+    if t2_save_pathways is None:
+        t2_save_pathways = []
     if dname is None:
         dname = "sim_"+vib_loc
 

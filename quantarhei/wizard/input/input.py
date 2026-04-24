@@ -59,8 +59,10 @@ class Input:
 
     """
 
-    def __init__(self, file_or_dict, math_allowed_in=[], show_input=False):
+    def __init__(self, file_or_dict, math_allowed_in=None, show_input=False):
 
+        if math_allowed_in is None:
+            math_allowed_in = []
         conversions = math_allowed_in
         self._math_allowed_in = []
 

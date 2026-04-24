@@ -586,7 +586,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
              colorbar=True, colorbar_loc="right",
              cmap=None, Npos_contours=10,
              show_states=None,
-             text_loc=[0.05,0.9], fontsize="20", label=None,
+             text_loc=None, fontsize="20", label=None,
              show=False,
              show_diagonal=None,
              xlabel=None,
@@ -619,6 +619,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
         """
+        if text_loc is None:
+            text_loc = [0.05, 0.9]
         spect2D = self.data
 
         #

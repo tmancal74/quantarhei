@@ -270,10 +270,12 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
 
         return pvec
 
-    def excite_delta(self,dmoment,epolarization=[1.0, 0.0, 0.0]):
+    def excite_delta(self,dmoment,epolarization=None):
         """Returns a density matrix obtained by delta-pulse excitation
 
         """
+        if epolarization is None:
+            epolarization = [1.0, 0.0, 0.0]
         # using .data to allow transformation
         dd = dmoment.data
         etimesd = numpy.zeros((dd.shape[0],dd.shape[1]),dtype=REAL)

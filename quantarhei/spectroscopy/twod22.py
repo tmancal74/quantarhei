@@ -223,7 +223,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
              colorbar=True, colorbar_loc="right",
              cmap=None, Npos_contours=10,
              show_states=None,
-             text_loc=[0.05,0.9], fontsize="20", label=None, zero_contour=True,
+             text_loc=None, fontsize="20", label=None, zero_contour=True,
              plot_units=r'cm$^{-1}$'):
         """Plots the 2D spectrum
 
@@ -242,6 +242,8 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
 
         """
+        if text_loc is None:
+            text_loc = [0.05, 0.9]
         if stype == "total":
             if (self.reph2D is not None) and (self.nonr2D is not None):
                 spect2D = self.reph2D + self.nonr2D

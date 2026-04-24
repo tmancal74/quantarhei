@@ -570,7 +570,9 @@ class R1g_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states=None):
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R1g")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("right", "<---", to=states[1])
@@ -600,7 +602,9 @@ class R1g_R_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states=None):
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R1g_RL0")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("right", "<---", to=states[0])
@@ -630,7 +634,9 @@ class R2g_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states=None):
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R2g")
         self.add_arrow("right", "<---", to=states[0])
         self.add_arrow("left", "--->", to=states[1])
@@ -658,7 +664,9 @@ class R3g_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states=None):
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R3g")
         self.add_arrow("right", "<---", to=states[0])
         self.add_arrow("right", "--->", to="g")
@@ -685,7 +693,9 @@ class R4g_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states=None):
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R4g")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("left", "<---", to="g")
@@ -712,7 +722,9 @@ class R1f_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b","f"]):
+    def __init__(self, states=None):
+        if states is None:
+            states = ["a", "b", "f"]
         super().__init__(ptype="R1f")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("right","<---", to=states[1])
@@ -738,7 +750,9 @@ class R2f_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b","f"]):
+    def __init__(self, states=None):
+        if states is None:
+            states = ["a", "b", "f"]
         super().__init__(ptype="R2f")
         self.add_arrow("right", "<---", to=states[0])
         self.add_arrow("left","--->", to=states[1])

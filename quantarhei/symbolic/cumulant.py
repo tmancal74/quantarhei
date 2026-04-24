@@ -303,11 +303,13 @@ class lam(Function):
         return True
 
 """High level cumulant evaluation function """
-def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
+def evaluate_cumulant(cuml, positive_times=None, leading_index=None,
                       lang = None, arrays=None):
     """
 
     """
+    if positive_times is None:
+        positive_times = []
 
     from .lang import fortran_code, python_code
 
@@ -648,7 +650,9 @@ class GFInitiator:
 class Uop:
 
 
-    def __init__(self,state="g", times=dict(t1=1, t2=0, t3=0), negative=None, dagger=False):
+    def __init__(self,state="g", times=None, negative=None, dagger=False):
+        if times is None:
+            times = {"t1": 1, "t2": 0, "t3": 0}
         self.state=state
         self.times = {}
         if dagger:

@@ -898,7 +898,7 @@ class DFunction(Saveable, DataSaveable):
              text=None,
              text_font=None,
              label = None,
-             text_loc=[0.05,0.9],
+             text_loc=None,
              fontsize="20",
              real_only=True,
              show=False,
@@ -916,6 +916,8 @@ class DFunction(Saveable, DataSaveable):
 
 
         """
+        if text_loc is None:
+            text_loc = [0.05, 0.9]
         #
         #  How to treat the figures
         #

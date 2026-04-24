@@ -519,11 +519,13 @@ class FunctionStorage:
 
 
     # FIXME: allow multiple reset times
-    def create_data(self, reset=dict(t2=0.0)):
+    def create_data(self, reset=None):
         """We create data for all submitted functions
 
 
         """
+        if reset is None:
+            reset = {"t2": 0.0}
         tt_matrix = []
         t2 = reset["t2"]
 

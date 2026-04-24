@@ -635,7 +635,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def calculate_resonance_coupling(self, method="dipole-dipole",
-                               params=dict(epsr=1.0)):
+                               params=None):
         """Sets resonance coupling calculated by a given method
 
         Parameters
@@ -644,6 +644,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             Method to be used for calculation of resonance coupling
 
         """
+        if params is None:
+            params = {"epsr": 1.0}
         if method == "dipole-dipole":
             epsr = params["epsr"]
             self.set_coupling_by_dipole_dipole(epsr=epsr)

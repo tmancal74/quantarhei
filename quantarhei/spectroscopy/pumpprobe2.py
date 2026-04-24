@@ -454,12 +454,14 @@ class PumpProbeSpectrumCalculator:
 
         return reorg_site
 
-    def calculate_all_system_approx(self, sys, rdmt, lab, show_progress=False,approx=None,spec=["Full"]):
+    def calculate_all_system_approx(self, sys, rdmt, lab, show_progress=False,approx=None,spec=None):
         """Calculates all 2D spectra for a system and reduced density matrix
         evolution. The approach assumes no diiference between pathways with
         jumps and without the jumps.
 
         """
+        if spec is None:
+            spec = ["Full"]
         # Check if the magic angle polarization is used
         if not numpy.isclose(lab.F4eM4[1:],[0,0],atol=1e-6).all():
             message = "Lab is not set to the magic angle polarization which is"\
@@ -1196,11 +1198,13 @@ class PumpProbeSpectrumCalculator:
 
         return data
 
-    def calculate_pathways_rdm(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=["Full"]):
+    def calculate_pathways_rdm(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=None):
         """Calculate the shape of a Liouville pathway
         so far implemented only for electronic
         aggregate.
         """
+        if spec is None:
+            spec = ["Full"]
         onepp = PumpProbeSpectrum()
         onepp.set_axis(self.oa3)
 
@@ -1330,11 +1334,13 @@ class PumpProbeSpectrumCalculator:
         return onepp
 
 
-    def calculate_pathways_rdm_novoderezhkin(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=["Full"]):
+    def calculate_pathways_rdm_novoderezhkin(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=None):
         """Calculate the shape of a Liouville pathway
         so far implemented only for electronic
         aggregate.
         """
+        if spec is None:
+            spec = ["Full"]
         onepp = PumpProbeSpectrum()
         onepp.set_axis(self.oa3)
 

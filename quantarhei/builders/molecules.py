@@ -121,7 +121,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     nmod     = Integer('nmod')
 
 
-    def __init__(self,  elenergies=[0.0,1.0], name=None): #,dmoments):
+    def __init__(self,  elenergies=None, name=None): #,dmoments):
+        if elenergies is None:
+            elenergies = [0.0, 1.0]
 
         OpenSystem.__init__(self, elenergies)
         #self.manager = Manager()
@@ -1437,11 +1439,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             plt.show()
 
 
-    def plot_stick_spectrum(self, xlims=[0.0,1.0], ylims=None,
+    def plot_stick_spectrum(self, xlims=None, ylims=None,
                             show_zero_coupling=False, show=True):
         """Plots the stick spectrum of the molecule
 
         """
+        if xlims is None:
+            xlims = [0.0, 1.0]
         import matplotlib.pyplot as plt
 
         HH = self.get_Hamiltonian()
@@ -1465,12 +1469,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             plt.show()
 
 
-    def plot_dressed_sticks(self, dfce=None, xlims=[0,1], nsteps=1000,
+    def plot_dressed_sticks(self, dfce=None, xlims=None, nsteps=1000,
                             show_zero_coupling=False, show=True):
         """Plots a stick spectrum dessed by a supplied function
 
 
         """
+        if xlims is None:
+            xlims = [0, 1]
         import matplotlib.pyplot as plt
 
         if dfce is None:
@@ -2569,6 +2575,8 @@ def generate_1orderP_sec(self, lst,
 
 def PiMolecule(Molecule):
 
-    def __init__(self, name=None, elenergies=[0.0,1.0], data=None):
+    def __init__(self, name=None, elenergies=None, data=None):
+        if elenergies is None:
+            elenergies = [0.0, 1.0]
         super().__init__(name=None, elenergies=[0.0,1.0], data=None)
         self.data = data
