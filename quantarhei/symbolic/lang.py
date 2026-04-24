@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 def rename_function(ss, oldname, newname):
     """Replaces all occurences of a name by a new name
-    
+
     """
     #return ss.replace("conjugate","numpy.conj")
     return ss.replace(oldname, newname)
-    
+
 def fce2array(sr, pat):
-    """Converts functions into arrays 
-    
+    """Converts functions into arrays
+
     """
     se = "".join(sr)
     so = ""
@@ -35,28 +35,28 @@ def fce2array(sr, pat):
         if sl[pos2] == ")":
             sl[pos2] = "]"
         se = "".join(sl)
-    
+
         ln = len(se)
     so += se
     return so
 
 def python_code(ss, arrays=None):
     """Generate Python code with numpy functions
-    
+
     """
-    sr = rename_function(ss,"conjugate","numpy.conj")    
+    sr = rename_function(ss,"conjugate","numpy.conj")
     sr = rename_function(sr,"exp","numpy.exp")
     if arrays is not None:
-        for ar in arrays:    
+        for ar in arrays:
             sr = fce2array(sr,ar)
     return sr
 
 def fortran_code(ss, arrays=None):
     """Generate Fortran code with numpy functions
-    
+
     """
-    sr = rename_function(ss,"conjugate","conjg")    
+    sr = rename_function(ss,"conjugate","conjg")
     #sr = rename_function(sr,"exp","numpy.exp")
-    #for ar in arrays:    
+    #for ar in arrays:
     #    sr = fce2array(sr,ar)
     return sr

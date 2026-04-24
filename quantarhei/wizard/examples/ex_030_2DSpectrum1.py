@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-    Calculation of 2D spectra with effective lineshapes 
+    Calculation of 2D spectra with effective lineshapes
 
 
 """
@@ -23,9 +23,9 @@ with qr.energy_units("1/cm"):
     # two two-level molecules
     m1 = qr.Molecule([0.0, 12000.0])
     m2 = qr.Molecule([0.0, 12300.0])
-    
+
     # transitions will have Gaussian lineshape with a width specified here
-    m1.set_transition_width((0,1), 150.0) 
+    m1.set_transition_width((0,1), 150.0)
     m2.set_transition_width((0,1), 150.0)
 
 # we create an aggregate from the two molecules
@@ -39,11 +39,11 @@ m2.set_dipole(0,1,[0.8, 0.8, 0.0])
 with qr.energy_units("1/cm"):
     agg.set_resonance_coupling(0,1, 100.0)
 
-# we copy the aggregate before it is built. For the calculation of 2D 
+# we copy the aggregate before it is built. For the calculation of 2D
 # spectrum, we need to build the aggregate so that it contains two-exciton
 # states. But those are irrelevant for single exciton excited state dynamics
 # so we make two identical aggregates, one with single-excitons only, and
-# one with two-excitons. 
+# one with two-excitons.
 agg_2D = copy.copy(agg)
 
 
@@ -86,8 +86,8 @@ if _show_plots_:
         eUt.plot_element((1,1,1,1), show=False)
         eUt.plot_element((1,1,2,2))
         eUt.plot_element((1,2,1,2))
-    
-    
+
+
 ###############################################################################
 #
 # 2D SPECTRUM: effective lineshape 2D spectrum
@@ -101,7 +101,7 @@ t3_axis = qr.TimeAxis(0.0, 100, 10.0)
 
 from quantarhei.spectroscopy.mocktwodcalculator \
     import MockTwoDResponseCalculator as TwoDResponseCalculator
-    
+
 from quantarhei.spectroscopy import X
 
 calc = TwoDResponseCalculator(t1_axis, t2_axis, t3_axis)
@@ -136,9 +136,9 @@ if _save_2D_:
 if _show_plots_:
     plot_window = [11500,13000,11500,13000]
     with qr.energy_units("1/cm"):
-        twod.plot(Npos_contours=10, window=plot_window,            
+        twod.plot(Npos_contours=10, window=plot_window,
                   stype=qr.signal_TOTL, spart=qr.part_REAL)
-    
+
 if _movie_:
     with qr.energy_units("1/cm"):
         tcont.make_movie("twod.mp4", window=plot_window)
@@ -158,7 +158,7 @@ if _show_plots_:
         pprop.plot(axis=[11500, 13000, -1200.0, 0.0], vmax=100,
                    title="Pump probe spectrum",
                    show=True)
- 
+
 # Pump-probe spectra also have their container
 pcont = qr.PumpProbeSpectrumContainer(t2axis=t2_axis)
 pcont.set_spectrum(pprop, tag=T2)
@@ -173,7 +173,7 @@ if _show_plots_:
     with qr.energy_units("1/cm"):
         pcont.plot()
     qr.show_plot()
-    
+
 # Pump-probe spectra from 2D spectrum container
 pcont2 = tcont.get_PumpProbeSpectrumContainer()
 
@@ -182,7 +182,7 @@ if _show_plots_:
         pcont2.plot()
 
 if _movie_:
-    with qr.energy_units("1/cm"):   
+    with qr.energy_units("1/cm"):
         pcont2.make_movie("pprob.mp4")
 
 

@@ -32,18 +32,18 @@ with qr.energy_units("1/cm"):
     mol1 = qr.Molecule([0.0, E1])
     mol1.set_dipole(0,1,[1.0, 0.0, 0.0])
     mol1.set_transition_width((0,1), width)
-    
+
     mod = qr.Mode(omega)
     mol1.add_Mode(mod)
     mod.set_nmax(0, 2)
     mod.set_nmax(1, 2)
     mod.set_HR(1, HR)
-    
+
     mol2 = qr.Molecule([0.0, E2])
     mol2.set_dipole(0,1,numpy.array([1.0, 1.0, 0.0])/numpy.sqrt(2.0))
     mol2.set_transition_width((0,1), width)
-    
-    
+
+
     agg = qr.Aggregate(molecules=[mol1, mol2])
     agg.set_resonance_coupling(0,1,JJ)
 
@@ -101,10 +101,10 @@ with qr.energy_units("1/cm"):
     if _show_plots_:
         twod.plot(window=[12000,13000,12000,13000])
 
-    twod = resp_mins.get_TwoDSpectrum()    
+    twod = resp_mins.get_TwoDSpectrum()
     if _show_plots_:
         twod.plot(window=[12000,13000,12000,13000])
-    
+
     pw = []
     print(len(pways.keys()))
     for key in pways.keys():

@@ -889,7 +889,7 @@ class OpenSystem:
             if adiabatic is not None and adiabatic != False:
                 ham.subtract_cutoff_coupling(coupling_cutoff)
                 # When adiabatic hamiltonian is used
-                val,SS = self._get_exciton_prop2(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath" 
+                val,SS = self._get_exciton_prop2(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath"
                 SS1 = numpy.linalg.inv(SS)
                 HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1))
                 ham._data[:,:] = HH_new.copy()

@@ -24,4 +24,4 @@ with energy_units("eV"):
     print("\nElectronvolts:")
     print("--------------")
     print("\nManaged data: \n", H.data)
-    print("\nRaw data:\n",H._data)    
+    print("\nRaw data:\n",H._data)

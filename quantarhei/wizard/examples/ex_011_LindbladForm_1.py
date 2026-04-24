@@ -3,14 +3,14 @@
 _show_plots_ = False
 """
     Demo of the Lindblad form
-    
+
     First we create a Lindblad form for a purely electronic system,
     the we create electronic Lindblad form for a system with vibrational
     levels
-    
+
 """
 print("""
-***********************************************************      
+***********************************************************
 *
 *
 *          Lindblad form demo
@@ -76,7 +76,7 @@ from quantarhei import TimeAxis
 time = TimeAxis()
 
 # time is not used here at all
-LFa, ham = agg.get_RelaxationTensor(time, 
+LFa, ham = agg.get_RelaxationTensor(time,
            relaxation_theory="electronic_Lindblad")
 LFa.convert_2_tensor()
 

@@ -5,7 +5,7 @@ from quantarhei.models import HarmonicOscillator as HO
 
 
 print("""
-   
+
      Demonstration of the operators from operator_factory object
 
 """)

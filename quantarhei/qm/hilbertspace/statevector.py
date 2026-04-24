@@ -39,7 +39,7 @@ class StateVector(BasisManaged):
 
     """
 
-    data = BasisManagedComplexArray("data")   
+    data = BasisManagedComplexArray("data")
 
     def __init__(self, dim=None, data=None):
 
@@ -89,44 +89,44 @@ class StateVector(BasisManaged):
 
     def transform(self, SS, inv=None):
         """Transformation of the operator by a given matrix
-        
-        
+
+
         This function transforms the Operator into a different basis, using
         a given transformation matrix.
-        
+
         Parameters
         ----------
-        
+
         SS : matrix, numpy.ndarray
             transformation matrix
-            
+
         inv : matrix, numpy.ndarray
             inverse of the transformation matrix
-            
-        """        
+
+        """
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
             S1 = inv
 
         self._data = numpy.dot(S1,self._data)
-        
+
 
     def get_DensityMatrix(self):
         """Constructs DensityMatrix from the present StateVector
-        
+
         """
         from .operators import DensityMatrix
 
         rho = DensityMatrix(dim=self.dim)
-        
+
         for ii in range(self.dim):
             for jj in range(self.dim):
                 rho.data[ii,jj] = self.data[ii]*numpy.conj(self.data[jj])
-        
+
         return rho
-        
-        
+
+
     def __str__(self):
         out  = "\nquantarhei.StateVector object"
         out += "\n============================="

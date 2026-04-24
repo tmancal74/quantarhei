@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-from  .types import check_numpy_array 
+from  .types import check_numpy_array
 
 X = (1.0,0.0,0.0)
 Y = (0.0,1.0,0.0)

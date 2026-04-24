@@ -22,104 +22,104 @@
     0.0.63
 
     The list of user level classes is provided below. Tue latest and most
-    uptodate information can be obtained by viewing the source code of the 
+    uptodate information can be obtained by viewing the source code of the
     root `__init__.py` file of the packages. All classes imported there are
     considered user level classes.
-    
-    
+
+
     Other Class Levels
     ------------------
-    
+
     In this documentation we recognize two more groups (or levels) of classes.
     More specialized classes, which normal user does not need as often as the
     user level classes are called **advanced level classes**. These use the
     second level name space. For instance the class `SystemBathInteraction`
     is relatively rarely used directly. It is therefore *hidden* in the name
-    space `qm` (as quantum mechanics) of the package. This class can be 
+    space `qm` (as quantum mechanics) of the package. This class can be
     instantiated e.g. like this
-    
+
     >>> import quantarhei as qr
     >>> sbi = qr.qm.SystemBathInteraction()
-    
+
     Advanced level classes are still intendend for relatively frequent use
     by the user. However, in order to reduced the *apparent* complexity of
     basic usage of Quantarhei, advanced level classes are documented in their
     respective sub-packages, one level deeper than user level classes. Complete
     documentation of advanced level classes is available in the Advanced Level
     Classes section of this documentation.
-    
+
     Everything else in Quantarhei package goes under the banner of
-    **expert level classes**. This includes all classes and objects used 
+    **expert level classes**. This includes all classes and objects used
     internally in Quantarhei. We make every effort to document also this part
     of the package as completely as possible, but it is the last item on the
     list, so to say. The user is welcome to learn and use the expert level
     classes, but our aim is to structure Quantarhei in such a way, that this
-    is not necessary. More on expert level classes in the section in 
+    is not necessary. More on expert level classes in the section in
     Quantarhei internals.
 
     User Level Objects and Convenience Functions
     ============================================
-    
+
     Besides classes, Quantarhei also defines some user level objects and
     convenience functions. They are listed here under several categories
-  
+
     Numeric types
     -------------
 
     .. toctree::
         :maxdepth: 2
-        
-        functions/numtypes        
-    
+
+        functions/numtypes
+
     Convenience Functions
     ---------------------
-    
+
     .. toctree::
         :maxdepth: 2
-        
+
         functions/convenience
-        
-    
+
+
     Logging Functions and Loglevels
     -------------------------------
 
     .. toctree::
         :maxdepth: 2
-        
+
         functions/logging
 
-   
-    .. 
+
+    ..
         Builders
         --------
-        
+
         Mode .......... represents a harmonic vibrational mode of a molecule
         Molecule ...... represents a molecule
         Aggregate ..... represents an aggregate of molecules
         PDBFile ....... reader and writter of structures from PDB format
         Disorder ...... class managing static disorder of molecular transition
                         energies
-         
+
         Core classes
         ------------
-        
+
         TimeAxis ......... linear axis of real values representing discrete time
         FrequencyAxis .... linear axis of real values representing discrete
                            frequency axis
         DFunction ........ discrete function
-        
-        
+
+
         Various managers
         ----------------
-        
+
         Manager ............ the main behind-the-scenes manager of the package
         energy_units ....... energy units manager for use with the "with" construct
-        frequency_units .... frequency units manager for use with 
+        frequency_units .... frequency units manager for use with
                              the "with" construct
-        eigenbasis_of ...... manager of the basis transformations to be used with 
+        eigenbasis_of ...... manager of the basis transformations to be used with
                              the "with" construct
         set_current_units .. function to set current units globally
-        
+
         ... to be continued
 
 
@@ -129,7 +129,7 @@
 ###############################################################################
 #
 #
-#            Imports of high level classes and functions 
+#            Imports of high level classes and functions
 #
 #
 ###############################################################################
@@ -258,7 +258,7 @@ from .core.parallel import asynchronous_range
 ###############################################################################
 
 #
-# Linear absorption 
+# Linear absorption
 #
 from .spectroscopy.abs2 import AbsSpectrum
 from .spectroscopy.abscontainer import AbsSpectrumContainer
@@ -285,7 +285,7 @@ from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 #
 # Fourier transform Two-Dimensional Spectra
 #
-from .spectroscopy.twodresponse import TwoDResponse 
+from .spectroscopy.twodresponse import TwoDResponse
 from .spectroscopy.twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
 from .spectroscopy.twodspect import TwoDSpectrum
 from .spectroscopy.twodcalculator import TwoDResponseCalculator
@@ -402,7 +402,7 @@ from .core.units import convert
 from .core.units import in_current_units
 
 from .utils.vectors import normalize2
-from .utils.vectors import norm 
+from .utils.vectors import norm
 
 from .utils.logging import printlog
 from .utils.logging import loglevels2bool
@@ -428,7 +428,7 @@ from .wizard.input.input import Input
 
 def exit(msg=None):
     """Exit to the level above the script with SystemExit exception
-    
+
     """
     import sys
     if msg is not None:
@@ -438,16 +438,16 @@ def exit(msg=None):
 
 def stop(msg=None):
     """Stop execution and leave to level above
-    
+
     """
 
     exit("Execution stopped")
-    
-    
-    
+
+
+
 def show_plot(block=True):
     """Shows current plot
-    
+
     This function is used to avoid explicit import of matplotlib
     """
     import matplotlib.pyplot as plt
@@ -457,30 +457,30 @@ def show_plot(block=True):
 
 def savefig(fname):
     """Saves current plot to a file
-    
+
     This function is used to avoid explicit import of matplotlib
     """
     import matplotlib.pyplot as plt
-    plt.savefig(fname)    
+    plt.savefig(fname)
 
 
 def assert_version(check, vno):
     """Throws an exception if the condition is not satisfied
-    
+
     """
     from packaging import version
-    
+
     def ext():
         exit("Version requirement not satisfied.")
 
     if check == ">=":
         if not (version.parse(Manager().version) >= version.parse(vno)):
             ext()
-            
+
     elif check == "==":
          if not (version.parse(Manager().version) == version.parse(vno)):
             ext()
-            
+
     elif check == "<=":
         if not (version.parse(Manager().version) <= version.parse(vno)):
             ext()
@@ -488,12 +488,12 @@ def assert_version(check, vno):
     elif check == ">":
         if not (version.parse(Manager().version) == version.parse(vno)):
             ext()
-            
+
     elif check == "<=":
         if not (version.parse(Manager().version) >= version.parse(vno)):
             ext()
-            
+
     else:
         raise Exception("Unknown comparison operator `"+check+"`")
-        
-    
+
+

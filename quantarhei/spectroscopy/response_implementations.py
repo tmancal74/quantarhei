@@ -4,25 +4,25 @@ from ..core.units import convert
 
 
 def R1g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -32,13 +32,13 @@ def R1g(t2, t1, t3, lab, system, evol, KK):
     En = system.get_eigenstate_energies()
     rwa = system.get_RWA_suggestion()
     #g = 0  # ground state index
-    gg.create_data(reset={'t2':t2}) 
+    gg.create_data(reset={'t2':t2})
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
-    
+
     Ut2 = evol[2]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
 
@@ -52,7 +52,7 @@ def R1g(t2, t1, t3, lab, system, evol, KK):
             a = aa - 1
             for bb in band1:
                 b = bb - 1
-                    
+
                 #ret += Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                 ret += dfac[b,a]*Ut2[a]*Ut2[b]* \
                 np.exp(
@@ -68,29 +68,29 @@ def R1g(t2, t1, t3, lab, system, evol, KK):
                 )
 
     return np.transpose(ret)
-           
-                
+
+
 
 def R2g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -104,12 +104,12 @@ def R2g(t2, t1, t3, lab, system, evol, KK):
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
-    
+
     Ut2 = evol[2]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
-    
+
     # dipole arrangemenent type: baba
     F4 = system.get_F4d('baba')
     dfac = np.einsum('i,abi->ab',lab.F4eM4,F4)
@@ -118,9 +118,9 @@ def R2g(t2, t1, t3, lab, system, evol, KK):
     for g in band0:
         for aa in band1:
             a = aa - 1
-            for bb in band1:  
+            for bb in band1:
                 b = bb - 1
-                
+
                 #ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                 ret += dfac[b,a]*Ut2[a]*Ut2[b]* \
                 np.exp(
@@ -134,33 +134,33 @@ def R2g(t2, t1, t3, lab, system, evol, KK):
                     -1j*(En[bb]-En[aa])*t2
                     -1j*(En[bb]-En[g]-rwa)*t3[None,:]
                 )
-    
-    return np.transpose(ret)                
+
+    return np.transpose(ret)
 
 
 def R3g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
-    
+
     gg = system.get_lineshape_functions()
     # Mx = system.get_participation()
     MM = system.get_weighted_participation()
@@ -171,7 +171,7 @@ def R3g(t2, t1, t3, lab, system, evol, KK):
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
-    
+
     #Ut2 = evol[1]
     Ut1 = evol[0]
     Ut3 = evol[1]
@@ -186,7 +186,7 @@ def R3g(t2, t1, t3, lab, system, evol, KK):
             a = aa - 1
             for bb in band1:
                 b = bb - 1
-  
+
                 #ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                 ret += dfac[b,a]* \
                 np.exp(
@@ -201,29 +201,29 @@ def R3g(t2, t1, t3, lab, system, evol, KK):
                     -1j*(En[bb]-En[g]-rwa)*t3[None,:]
                 )
 
-    return np.transpose(ret) 
-                
+    return np.transpose(ret)
+
 
 def R4g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -237,7 +237,7 @@ def R4g(t2, t1, t3, lab, system, evol, KK):
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
-    
+
     #Ut2 = evol[2]
     Ut1 = evol[0]
     Ut3 = evol[1]
@@ -267,39 +267,39 @@ def R4g(t2, t1, t3, lab, system, evol, KK):
                     -1j*(En[bb]-En[g]-rwa)*t3[None,:]
                 )
 
-    return np.transpose(ret)             
+    return np.transpose(ret)
 
 
 def R1f(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
-    
+
     gg = system.get_lineshape_functions()
     gg.create_data(reset={'t2':t2})
-    
+
     # Mx = system.get_participation()
     MM = system.get_weighted_participation()
     En = system.get_eigenstate_energies()
-    rwa = system.get_RWA_suggestion()    
+    rwa = system.get_RWA_suggestion()
 
     band0 = system.get_band(0)
     band1 = system.get_band(1)
@@ -307,16 +307,16 @@ def R1f(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[2]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
-    
+
     # dipole arrangemenent type: fbfaba
     F4 = system.get_F4d('fbfaba')
     dfac = np.einsum('i,fabi->fab',lab.F4eM4,F4)
-    
+
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
@@ -347,40 +347,40 @@ def R1f(t2, t1, t3, lab, system, evol, KK):
                         -1j*(En[aa]-En[bb])*t2[None,None]
                         -1j*(En[ff]-En[bb]-rwa)*t3[None,:]
                     )
-    
-   
+
+
     return np.transpose(ret)
 
 def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
-    
+
     gg = system.get_lineshape_functions()
     gg.create_data(reset={'t2':t2})
-    
+
     # Mx = system.get_participation()
     MM = system.get_weighted_participation()
     En = system.get_eigenstate_energies()
-    rwa = system.get_RWA_suggestion()    
+    rwa = system.get_RWA_suggestion()
 
     band0 = system.get_band(0)
     band1 = system.get_band(1)
@@ -388,16 +388,16 @@ def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[2]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
-    
+
     # dipole arrangemenent type: fbfaba
     F4 = system.get_F4d('fbfaba')
     dfac = np.einsum('i,fabi->fab',lab.F4eM4,F4)
-    
+
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
@@ -428,31 +428,31 @@ def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
                         -1j*(En[aa]-En[bb])*t2[None,None]
                         -1j*(En[ff]-En[bb]-rwa)*t3[None,:]
                     )
-    
+
     return np.transpose(ret)
 
 
 
 def R2f(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -470,9 +470,9 @@ def R2f(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[2]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
 
@@ -481,7 +481,7 @@ def R2f(t2, t1, t3, lab, system, evol, KK):
     dfac = np.einsum('i,fabi->fab',lab.F4eM4,F4)
 
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
-    
+
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -490,7 +490,7 @@ def R2f(t2, t1, t3, lab, system, evol, KK):
                 a = aa - N0
                 for bb in band1:
                     b = bb - N0
-    
+
                     #ret += Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                     ret += -1.0*dfac[f,b,a]*Ut2[a]*Ut2[b]* \
                         np.exp(
@@ -516,25 +516,25 @@ def R2f(t2, t1, t3, lab, system, evol, KK):
 
 
 def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -552,9 +552,9 @@ def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[2]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
 
@@ -563,7 +563,7 @@ def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
     dfac = np.einsum('i,fabi->fab',lab.F4eM4,F4)
 
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
-    
+
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -572,7 +572,7 @@ def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
                 a = aa - N0
                 for bb in band1:
                     b = bb - N0
-    
+
                     #ret += Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                     ret += -1.0*dfac[f,b,a]*Ut2[a]*Ut2[b]* \
                         np.exp(
@@ -600,25 +600,25 @@ def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
 
 
 def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -628,13 +628,13 @@ def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
     En = system.get_eigenstate_energies()
     rwa = system.get_RWA_suggestion()
     #g = 0  # ground state index
-    gg.create_data(reset={'t2':t2}) 
+    gg.create_data(reset={'t2':t2})
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
-    
+
     Ut2 = evol[3]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
 
@@ -648,7 +648,7 @@ def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
             a = aa - 1
             for bb in band1:
                 b = bb - 1
-                    
+
                 if a != b:
                     #ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                     ret += dfac[b,a]*Ut2[b,a]* \
@@ -660,29 +660,29 @@ def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
                     )
 
     return np.transpose(ret)
-           
-                
+
+
 
 def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -696,12 +696,12 @@ def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
 
     band1 = system.get_band(1)
     band0 = system.get_band(0)
-    
+
     Ut2 = evol[3]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
-    
+
     # dipole arrangemenent type: baba
     F4 = system.get_F4d('bbaa')
     dfac = np.einsum('i,bai->ba',lab.F4eM4,F4)
@@ -710,9 +710,9 @@ def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
     for g in band0:
         for aa in band1:
             a = aa - 1
-            for bb in band1:  
+            for bb in band1:
                 b = bb - 1
-                
+
                 if a != b:
                     #ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                     ret += dfac[b,a]*Ut2[b,a]* \
@@ -722,41 +722,41 @@ def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
                         -1j*(En[g]-En[aa]+rwa)*t1[:,None]
                         -1j*(En[bb]-En[g]-rwa)*t3[None,:]
                     )
-    
-    return np.transpose(ret)                
+
+    return np.transpose(ret)
 
 
 
 def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
-    
+
     gg = system.get_lineshape_functions()
     gg.create_data(reset={'t2':t2})
-    
+
     # Mx = system.get_participation()
     MM = system.get_weighted_participation()
     En = system.get_eigenstate_energies()
-    rwa = system.get_RWA_suggestion()    
+    rwa = system.get_RWA_suggestion()
 
     band0 = system.get_band(0)
     band1 = system.get_band(1)
@@ -764,16 +764,16 @@ def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[3]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
-    
+
     # dipole arrangemenent type: fbfaba
     F4 = system.get_F4d('fbfbaa')
     dfac = np.einsum('i,fbai->fba',lab.F4eM4,F4)
-    
+
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
@@ -783,7 +783,7 @@ def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
                 a = aa - N0
                 for bb in band1:
                     b = bb - N0
-                    
+
                     if a != b:
 
                         #ret += Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
@@ -796,30 +796,30 @@ def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
                             -1j*(En[aa]-En[g]-rwa)*t1[:,None]
                             -1j*(En[ff]-En[bb]-rwa)*t3[None,:]
                         )
-                        
+
     return np.transpose(ret)
 
 
 def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -837,9 +837,9 @@ def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[3]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
 
@@ -848,7 +848,7 @@ def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
     dfac = np.einsum('i,fbai->fba',lab.F4eM4,F4)
 
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
-    
+
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -857,9 +857,9 @@ def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
                 a = aa - N0
                 for bb in band1:
                     b = bb - N0
-                    
+
                     if b != a:
-    
+
                         #ret +=  Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                         ret +=  (-1.0)*dfac[f,a,b]*Ut2[b,a]* \
                             np.exp(
@@ -881,35 +881,35 @@ def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
-    
+
     gg = system.get_lineshape_functions()
     gg.create_data(reset={'t2':t2})
-    
+
     # Mx = system.get_participation()
     MM = system.get_weighted_participation()
     En = system.get_eigenstate_energies()
-    rwa = system.get_RWA_suggestion()    
+    rwa = system.get_RWA_suggestion()
 
     band0 = system.get_band(0)
     band1 = system.get_band(1)
@@ -917,16 +917,16 @@ def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[3]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
-    
+
     # dipole arrangemenent type: fbfaba
     F4 = system.get_F4d('fbfbaa')
     dfac = np.einsum('i,fbai->fba',lab.F4eM4,F4)
-    
+
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
@@ -936,7 +936,7 @@ def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
                 a = aa - N0
                 for bb in band1:
                     b = bb - N0
-                    
+
                     if a != b:
 
                         #ret += Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
@@ -949,30 +949,30 @@ def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
                             -1j*(En[aa]-En[g]-rwa)*t1[:,None]
                             -1j*(En[ff]-En[bb]-rwa)*t3[None,:]
                         )
-                        
+
     return np.transpose(ret)
 
 
 def R2f_scM0e(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """
     import numpy as np
 
@@ -990,9 +990,9 @@ def R2f_scM0e(t2, t1, t3, lab, system, evol, KK):
 
     N0 = system.Nb[0]
     N1 = system.Nb[1]
-    
+
     Ut2 = evol[3]
-    
+
     Ut1 = evol[0]
     Ut3 = evol[1]
 
@@ -1001,10 +1001,10 @@ def R2f_scM0e(t2, t1, t3, lab, system, evol, KK):
     dfac = np.einsum('i,fbai->fba',lab.F4eM4,F4)
 
     ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)
-    
+
     lam = gg.get_reorganization_energies()
     #print("lam = ", convert(lam,"int","1/cm"))
-    
+
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -1013,9 +1013,9 @@ def R2f_scM0e(t2, t1, t3, lab, system, evol, KK):
                 a = aa - N0
                 for bb in band1:
                     b = bb - N0
-                    
+
                     if b != a:
-    
+
                         #ret +=  Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                         ret +=  (-1.0)*dfac[f,a,b]*Ut2[b,a]* \
                             np.exp(
@@ -1057,8 +1057,8 @@ dc["R1f_scM0e"] = R1f_scM0e
 dc["R2f_scM0e"] = R2f_scM0e
 
 def get_implementation(name):
-    """Returns a dictionary of functions 
-    
-    
+    """Returns a dictionary of functions
+
+
     """
     return dc[name]

@@ -5,7 +5,7 @@ from ..utils import Float
 from ..utils import Integer
 
 from .opensystem import OpenSystem
-from ..qm.hilbertspace.hamiltonian import Hamiltonian 
+from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 from ..qm.oscillators.ho import operator_factory
 from ..qm import ProjectionOperator
@@ -18,8 +18,8 @@ from .. import REAL
 
 class HarmonicMode(SubMode, OpenSystem):
     """Renaming the SubMode to be used as a standalone Harmonic oscillator mode
-    
-    
+
+
        PES shift is always 0 (will be implemented later)
 
     """
@@ -33,10 +33,10 @@ class HarmonicMode(SubMode, OpenSystem):
 
 
     def build(self, nmax=None, build_relaxation=False):
-        """Building all necessary quantities 
-        
-        
-        
+        """Building all necessary quantities
+
+
+
         """
 
         # if provided, we reset nmax
@@ -58,7 +58,7 @@ class HarmonicMode(SubMode, OpenSystem):
         HH[:,:] = hh[:N,:N]
 
         HH -= HH[0,0]*EE[:N,:N]
-        
+
         self.HH = HH
 
         self.HamOp = Hamiltonian(data=HH)
@@ -71,7 +71,7 @@ class HarmonicMode(SubMode, OpenSystem):
         self._setup_dipole_moment(N, ad, aa)
 
         #
-        # Relaxation 
+        # Relaxation
         #
         if build_relaxation:
             if self._has_sbi:
@@ -85,11 +85,11 @@ class HarmonicMode(SubMode, OpenSystem):
 
     def diagonalize(self):
         """This problem is diagonal from the begining
-        
+
         """
         if self._diagonalized:
             return
-        
+
 
         self._diagonalized = True
 
@@ -97,9 +97,9 @@ class HarmonicMode(SubMode, OpenSystem):
     def _setup_dipole_moment(self, N, ad, aa, ss=None, pfac=1.0):
 
         DD = numpy.zeros((N,N,3), dtype=REAL)
-        
+
         # FIXME: In what units we define transition dipole moment?
-        dip = pfac*(ad + aa)/numpy.sqrt(2.0) 
+        dip = pfac*(ad + aa)/numpy.sqrt(2.0)
 
         # transform if needed
         if ss is not None:
@@ -116,8 +116,8 @@ class HarmonicMode(SubMode, OpenSystem):
 
 
     # def get_Hamiltonian(self):
-    #     """Returns the system Hamiltonian 
-        
+    #     """Returns the system Hamiltonian
+
     #     """
     #     if self._built:
     #         return self.HamOp
@@ -132,20 +132,20 @@ class HarmonicMode(SubMode, OpenSystem):
     #     if self._built:
     #         return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
     #     else:
-    #         raise Exception("The Mode has to be built first.")    
+    #         raise Exception("The Mode has to be built first.")
 
     # def get_SystemBathInteraction(self):
 
     #     if self._built:
     #         return self.sbi
     #     else:
-    #         raise Exception("The Mode has to be built first.")         
+    #         raise Exception("The Mode has to be built first.")
 
 
 
     def set_mode_environment(self, environ, pdeph=None):
         """
-        
+
         """
 
         if isinstance(environ, (int, float)):
@@ -168,7 +168,7 @@ class HarmonicMode(SubMode, OpenSystem):
                 for kk in range(self.nmax):
                     op = ProjectionOperator(to_state=kk, from_state=kk, dim=self.nmax)
                     ops.append(op)
-                    rts.append(numpy.sqrt(float(kk))*self.pdeph)              
+                    rts.append(numpy.sqrt(float(kk))*self.pdeph)
 
 
             self.sbi = SystemBathInteraction(sys_operators=ops, rates=rts)
@@ -178,19 +178,19 @@ class HarmonicMode(SubMode, OpenSystem):
         else:
 
             raise Exception("Environment not implemented")
-        
+
 
 
 
 class AnharmonicMode(HarmonicMode):
     """
-    
-    
-    
+
+
+
     """
     def __init__(self, omega=1.0, shift=0.0, nmax=2):
         """
-        
+
         In this case, omega is the difference between levels 1 and 0
 
         """
@@ -206,7 +206,7 @@ class AnharmonicMode(HarmonicMode):
 
     def set_anharmonicity(self, xi):
         """Sets the ocillator anharmonicity
-        
+
         """
         self.xi = xi
         # corresponding harmonic frequency
@@ -216,14 +216,14 @@ class AnharmonicMode(HarmonicMode):
 
     def get_anharmonicity(self, dom=None):
         """Returns the ahnarmonicity set previously, or calculates anharmonicity from frequency difference
-        
+
         """
         if dom is None:
-            return self.xi 
+            return self.xi
         else:
             dom_int = self.convert_energy_2_internal_u(dom)
             return dom_int/(2.0*(self.omega + dom_int))
-        
+
 
     def build(self, nmax=None, xi=None, build_relaxation=False):
         """Building all necessary quantities """
@@ -254,7 +254,7 @@ class AnharmonicMode(HarmonicMode):
 
         #
         # Morse by diagonalization
-        # 
+        #
         ofac = operator_factory()
         ad = ofac.creation_operator()
         aa = ofac.anihilation_operator()
@@ -265,7 +265,7 @@ class AnharmonicMode(HarmonicMode):
         hm = (self.omega/2.0)*(numpy.dot(pp,pp) + numpy.dot(qq,qq))
 
         # potential
-        earg = numpy.sqrt(2.0*self.xi)*qq 
+        earg = numpy.sqrt(2.0*self.xi)*qq
         de, ss = numpy.linalg.eigh(earg)
 
         # e^{-a q}
@@ -294,15 +294,15 @@ class AnharmonicMode(HarmonicMode):
         self.HamOp = Hamiltonian(data=HM)
         rind = numpy.array([n for n in range(N)], dtype=int)
         self.HamOp.set_rwa(rwa_indices=rind)
-        
+
         #
-        #  Dipole moment 
+        #  Dipole moment
         #
         self._setup_dipole_moment(N, ad, aa, ss=SS)
 
 
         #
-        # Relaxation 
+        # Relaxation
         #
         if build_relaxation:
             if self._has_sbi:

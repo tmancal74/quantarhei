@@ -6,7 +6,7 @@ _show_plots_ = False
 
 import quantarhei as qr
 
-    
+
 en = [0.0, 1.0]
 m1 = qr.Molecule(name="Mol1",elenergies=en)
 m2 = qr.Molecule(name="Mol2",elenergies=en)
@@ -44,7 +44,7 @@ ii = 0
 for sig in ag.elsignatures(mult=4):
     print(ii, sig)
     ii += 1
-    
+
 ag.build(mult=2)
 
 H = ag.get_Hamiltonian()

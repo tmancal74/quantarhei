@@ -27,7 +27,7 @@ with qr.energy_units("1/cm"):
     m2 = qr.Molecule([0.0, 10300.0])
     m3 = qr.Molecule([0.0, 10000.0])
 
-#   Aggregate is built from the molecules    
+#   Aggregate is built from the molecules
 agg = qr.Aggregate([m1, m2, m3])
 
 #   Couplings between them are set
@@ -45,11 +45,11 @@ cpar2 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50,
 with qr.energy_units("1/cm"):
     cfce1 = qr.CorrelationFunction(timea, cpar1)
     cfce2 = qr.CorrelationFunction(timea, cpar2)
-    
+
 m1.set_transition_environment((0, 1), cfce1)
 m2.set_transition_environment((0, 1), cfce1)
 m3.set_transition_environment((0, 1), cfce2)
-    
+
 #    Aggregate is built
 agg.build()
 
@@ -59,10 +59,10 @@ agg.build()
 #
 ###############################################################################
 
-#    Hamiltonian and the system-bath interaction operator is needed to 
+#    Hamiltonian and the system-bath interaction operator is needed to
 #    define the Kubo-Tanimura hierarchy
 ham = agg.get_Hamiltonian()
-sbi = agg.get_SystemBathInteraction() 
+sbi = agg.get_SystemBathInteraction()
 
 #    We define the hierarchy
 #Hy3 = qr.KTHierarchy(ham, sbi, 3)
@@ -93,7 +93,7 @@ with qr.eigenbasis_of(ham):
     rhoi.data[3,3] = 0.1
 
 #print(rhoi)
-    
+
 #   Definition of the HEOM propagator
 #kprop3 = qr.KTHierarchyPropagator(timea, Hy3)
 #kprop4 = qr.KTHierarchyPropagator(timea, Hy4)
@@ -121,7 +121,7 @@ print("Propagated in", t2-t1,"s")
 ###############################################################################
 
 if _show_plots_:
-    
+
     import matplotlib.pyplot as plt
     N = timea.length
     with qr.eigenbasis_of(ham):
@@ -137,10 +137,10 @@ if _show_plots_:
         plt.plot(timea.data[0:N], rhot6.data[0:N,0,0])
         plt.plot(timea.data[0:N], rhot6.data[0:N,1,3],"-b")
         plt.plot(timea.data[0:N], rhot6.data[0:N,2,3],"-r")
-        plt.plot(timea.data[0:N], rhot6.data[0:N,1,2],"-k")    
+        plt.plot(timea.data[0:N], rhot6.data[0:N,1,2],"-k")
         plt.plot(timea.data[0:N], rhot7.data[0:N,1,3],"--b")
         plt.plot(timea.data[0:N], rhot7.data[0:N,2,3],"--r")
-        plt.plot(timea.data[0:N], rhot7.data[0:N,1,2],"--k")    
+        plt.plot(timea.data[0:N], rhot7.data[0:N,1,2],"--k")
         #plt.plot(timea.data[0:N], Hy.hpop[0:N,1], "-k")
         #plt.plot(timea.data[0:N], Hy.hpop[0:N,2], "-k")
         #plt.plot(timea.data[0:N], Hy.hpop[0:N,3], "-b")
@@ -178,7 +178,7 @@ if _show_plots_:
         plt.show()
         plt.plot(timea.data[0:N], rhot8.data[0:N,1,1],"-b")
         plt.plot(timea.data[0:N], rhot8.data[0:N,2,2],"-r")
-        plt.plot(timea.data[0:N], rhot8.data[0:N,1,2],"-k") 
+        plt.plot(timea.data[0:N], rhot8.data[0:N,1,2],"-k")
         plt.plot(timea.data[0:N], rhot6.data[0:N,1,1],"--b")
         plt.plot(timea.data[0:N], rhot6.data[0:N,2,2],"--r")
         plt.plot(timea.data[0:N], rhot6.data[0:N,1,2],"--k")

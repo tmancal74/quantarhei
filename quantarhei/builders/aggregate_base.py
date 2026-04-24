@@ -2723,7 +2723,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     # ASSUMPTION: Two-level molecules
                     #Ncf = self.nmono
 
-                    #Ncf = self.Nel - Nelg   # We construct bigger correlation 
+                    #Ncf = self.Nel - Nelg   # We construct bigger correlation
                                             # matrix, but fill only part
                     Ncf = self.Nbe[1]
 
@@ -3492,9 +3492,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             for kk in range(self.Ntot):
                 HH[kk,kk] -= reorg_site[kk]
-            
+
             val,SS = numpy.linalg.eigh(HH.data)
-            
+
             reorg_excit = self._excitonic_reorg_diag(SS, subtract_bath=adiabatic_noBath)
 
             val += reorg_excit

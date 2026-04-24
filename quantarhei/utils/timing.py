@@ -7,14 +7,14 @@
 import time
 import datetime
 
-# Quantarhei imports 
+# Quantarhei imports
 from .logging import printlog
 from ..core.managers import Manager
 
 
 def timeit(msg=None,show_stamp=False, loglevel=5, verbose=True):
     """Start timing at this point and save the time
-    
+
     """
     lconf = Manager().log_conf
     if msg is not None:
@@ -26,7 +26,7 @@ def timeit(msg=None,show_stamp=False, loglevel=5, verbose=True):
 
 def untimeit(show_stamp=False):
     """Stop timing and return current time
-    
+
     """
     tm2 = time.time()
     if show_stamp:
@@ -37,20 +37,20 @@ def untimeit(show_stamp=False):
 
 def finished_in(show_stamp=False,loglevel=5, verbose=True):
     """Print message with time past from the last timing statement
-    
+
     """
     tm = untimeit()
     if show_stamp:
          printlog(f"... finished at {datetime.datetime.now():%Y-%m-%d %H:%M:%S} in",tm,"sec", loglevel=loglevel,
-                 verbose=verbose)       
+                 verbose=verbose)
     else:
-        printlog("... finished in",tm,"sec", loglevel=loglevel, 
+        printlog("... finished in",tm,"sec", loglevel=loglevel,
                  verbose=verbose)
 
 
 def done_in(show_stamp=False,loglevel=5, verbose=True):
     """Print message with time past from the last timing statement
-    
+
     """
     tm = untimeit()
     if show_stamp:

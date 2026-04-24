@@ -17,14 +17,14 @@ import quantarhei as qr
 
 
 
-INP = qr.Input("ex_854_2DSpectrum_DimerDisorder.yaml") 
+INP = qr.Input("ex_854_2DSpectrum_DimerDisorder.yaml")
                #math_allowed_in=["E1", "E2", "width_dis"])
 
 if INP.input_file_from_results:
     ifile = os.path.join(INP.dname, INP.input_file)
 else:
     ifile = INP.input_file
-    
+
 INP_pre = qr.Input(ifile, math_allowed_in=INP.with_math_allowed_in)
 
 # directory with the precalculated results
@@ -42,9 +42,9 @@ calculated_width = INP_pre.max_available_fwhm
 #
 #for de in des:
 #    fname = op.path.join(dname,"twod_E0=1000_dE="+str(de)+".qrp")
-    
+
 cont = qr.load_parcel(os.path.join(dname, INP.container_file))
-   
+
 spects = []
 for ii in range(cont.length()):
     sp = cont.get_spectrum(ii)
@@ -95,8 +95,8 @@ print("E2:", E2)
 
 def weight(E, E0,  width):
     """Weighting function characterizing the disorder
-    
-    
+
+
     """
     return numpy.exp(-numpy.sqrt(numpy.log(2.0))*((E-E0)/width)**2)
 
@@ -109,12 +109,12 @@ N1 = de_N
 N1_1 = int(width_dis[0]*N1/calculated_width)
 N1_2 = int(width_dis[1]*N1/calculated_width)
 Emin1 = E1 - de*(N1_1-1)/4.0 #490.0
-Emin2 = E2 - de*(N1_2-1)/4.0 # 
+Emin2 = E2 - de*(N1_2-1)/4.0 #
 
 es1 = [Emin1 + de*i for i in range(int((N1_1-1)/2)+1)]
 es2 = [Emin2 + de*i for i in range(int((N1_2-1)/2)+1)]
 
-dE_max = es2[int((N1_1-1)/2)] - es1[0]  
+dE_max = es2[int((N1_1-1)/2)] - es1[0]
 dE_min = es2[0] - es1[int((N1_2-1)/2)]
 
 if (dE_max > des.max) or (dE_min < des.min):
@@ -139,21 +139,21 @@ data = numpy.zeros(twod_a.data.shape, dtype=twod_a.data.dtype)
 #
 for e1 in es1:
     for e2 in es2:
-        
+
         e_shift = e1 - Ecalc
         DE = e2 - e1
-        
+
         # get the spectrum with DE and shift it by e_shift
         (N_DE, err) = des.locate(DE)
         #print(DE, N_DE, weight(e1, E1, width_dis[0])*
         #                weight(e2, E2, width_dis[1]))
         twod_a = spects[N_DE].deepcopy()
         twod_a.shift_energy(qr.convert(e_shift,"1/cm","int"))
-        
+
         data[:,:] += weight(e1, E1, width_dis[0])* \
                      weight(e2, E2, width_dis[1])*twod_a.data[:,:]
-        
-        
+
+
 twod_a.data[:,:] = data[:,:]/(N1_1*N1_2)
 
 with qr.energy_units("1/cm"):
@@ -167,8 +167,8 @@ if INP.save_spectrum:
 
 
 
-        
-    
 
-    
+
+
+
 

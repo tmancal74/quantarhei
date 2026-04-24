@@ -42,23 +42,23 @@ fft_of = qr.signal_REPH  # qr.signal_NONR, qr.signal_TOTL
 ###############################################################################
 
 #
-# Create a two-level molecule with one intra-molecular harmonic mode 
+# Create a two-level molecule with one intra-molecular harmonic mode
 #
 with qr.energy_units("1/cm"):
     mol = qr.Molecule(elenergies=[0.0, E1])
     mol.set_dipole(0, 1, [1.0, 0.0, 1.0])
-    
+
     mod = qr.Mode(frequency=omega)
-    
+
     mol.add_Mode(mod)
-    
+
     mod.set_nmax(0, Ng)
     mod.set_nmax(1, Ne)
-    
+
     mod.set_HR(1, hr_factor)
-    
+
     mol.set_transition_width((0,1), width)
-    
+
 #
 # Create an aggregate
 #
@@ -102,17 +102,17 @@ eUt.calculate(show_progress=False)
 #
 print("Calculating 2D spectra ...")
 t1 = time.time()
-    
+
 om1 = qr.convert(omega-dOmega,"1/cm","int")
 om2 = qr.convert(omega+dOmega,"1/cm","int")
 
 print(" - positive frequency")
-cont1 = msc.calculate_all_system(agg, eUt, lab, 
+cont1 = msc.calculate_all_system(agg, eUt, lab,
                                  selection=[["omega2",[om1, om2]],
                                             ["order"]])
 
 print(" - negative frequency")
-cont2 = msc.calculate_all_system(agg, eUt, lab, 
+cont2 = msc.calculate_all_system(agg, eUt, lab,
                                  selection=[["omega2",[-om2, -om1]],
                                             ["order"]])
 
@@ -133,13 +133,13 @@ print("... done in", t2-t1, "sec")
 # Example spectrum to plot and a movie of the time evolution
 #
 
-    
+
 #res = cont1.get_response(tag=0.0)
 #specttwd = res.get_TwoDSpectrum(dtype=qr.signal_TOTL)
 #with qr.energy_units("1/cm"):
 #    res.plot(stype=qr.signal_TOTL)
 #    specttwd.plot()
-    
+
 #    print("Creating a movie ...")
 #    cont.make_movie("movie.mp4")
 #    print("... done")
@@ -152,10 +152,10 @@ cont2 = cont2.get_TwoDSpectrumContainer(stype=fft_of)
 #
 # Trim the spectra to a smaller region
 #
-with qr.energy_units("1/cm"): 
+with qr.energy_units("1/cm"):
     cont1.trimall_to(window=plot_window)
     cont2.trimall_to(window=plot_window)
-    
+
 #
 #
 # Global fit
@@ -164,7 +164,7 @@ with qr.energy_units("1/cm"):
 #params_guess = []
 #params_out, cont_residue = cont.global_fit_exponential(params_guess)
 
-    
+
 #
 # Window function for subsequenty FFT
 #
@@ -202,8 +202,8 @@ with qr.frequency_units("1/cm"):
 #
 units = "1/cm"
 with qr.energy_units(units):
-    
-    print("\nPlotting spectrum at frequency:", 
+
+    print("\nPlotting spectrum at frequency:",
           fcont1.axis.data[show_Npoint1], units)
     sp11.plot(window=plot_window, Npos_contours=20, spart=qr.part_ABS)
     fftfile = "twod_fft_map_1.png"
@@ -213,9 +213,9 @@ with qr.energy_units(units):
     evol1 = fcont2.get_point_evolution(13000, 12500,
                                        fcont1.axis)
     evol1.data = numpy.abs(evol1.data)
-    evol1.plot()    
-    
-    print("\nPlotting spectrum at frequency:", 
+    evol1.plot()
+
+    print("\nPlotting spectrum at frequency:",
           fcont1.axis.data[show_Npoint2], units)
     sp21.plot(window=plot_window, Npos_contours=20, spart=qr.part_ABS)
     fftfile = "twod_fft_map_2.png"

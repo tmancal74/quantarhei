@@ -76,7 +76,7 @@ from .liouvillespace.superoperator_test import TestSuperOperator
 from .liouvillespace.supopunity import SOpUnity
 
 #
-#  PROPAGATORS 
+#  PROPAGATORS
 #
 from .propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from .propagators.svpropagator import StateVectorPropagator

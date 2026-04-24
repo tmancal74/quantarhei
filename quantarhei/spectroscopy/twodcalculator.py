@@ -27,60 +27,60 @@ from ..implementations.aceto.lab_settings import lab_settings
 
 class TwoDResponseCalculator:
     """Calculator of the 2D spectrum
-    
-    
+
+
     Enables setting up parameters of 2D spectrum calculation for later
     evaluation. The method `calculate` returns TwoDResponseContainer
     with a 2D spectrum.
-    
+
     Parameters
     ----------
-    
-    
+
+
     """
 
     t1axis = derived_type("t1axis",TimeAxis)
     t2axis = derived_type("t2axis",TimeAxis)
     t3axis = derived_type("t3axis",TimeAxis)
-    
+
     system = derived_type("system",[Molecule,Aggregate,OpenSystem])
-    
+
     _has_responses = False
     _has_system = False
-    
+
     def __init__(self, t1axis, t2axis, t3axis, system=None, responses=None,
                  dynamics="secular", relaxation_tensor=None, rate_matrix=None,
                  effective_hamiltonian=None):
-            
-            
+
+
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
-        
-        #FIXME: check the compatibility of the axes 
+
+        #FIXME: check the compatibility of the axes
 
 
-        
+
         if system is not None:
             self.system = system
             self._has_system = True
         else:
             self._has_system = False
-            
+
         if responses is not None:
             self.resp_fcions = responses
             self._has_responses = True
         else:
             self._has_responses = False
-        
+
         #FIXME: properties to be protected
         self.dynamics = dynamics
-        
+
         # unprotected properties
         self.data = None
 
         self.responses = []
-        
+
         self._relaxation_tensor = None
         self._rate_matrix = None
         self._relaxation_hamiltonian = None
@@ -95,7 +95,7 @@ class TwoDResponseCalculator:
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
 
-        
+
         #
         # after bootstrap information
         #
@@ -109,27 +109,27 @@ class TwoDResponseCalculator:
         self.oa3 = None
         self.Uee = None
         self.Uc0 = None
-        
+
         self.tc = 0
-        
-       
+
+
     def _vprint(self, *args, **kwargs):
         """Prints a string if the self.verbose attribute is True
-        
+
         """
         if self.verbose:
             print(*args, **kwargs)
 
-            
-    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False, 
+
+    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False,
                   write_resp=False, keep_resp=False):
         """Sets up the environment for 2D calculation
         write_resp takes a string, creates a directory with the name of
         the string and saves the respoonses and time axis as a npz file
-        
-        keep_resp saves the responses as a list of dictionaries. The 
+
+        keep_resp saves the responses as a list of dictionaries. The
         list goes through the time points in t2.
-        
+
         """
 
         self.verbose = verbose
@@ -147,20 +147,20 @@ class TwoDResponseCalculator:
                     print ("Creation of the directory failed, "+
                            "it either already exists "+
                            "or you didn't give a string")
-            
+
             if self._has_system:
-            
+
                 if isinstance(self.system, (Aggregate, OpenSystem)):
-                
+
                     pass
-                
+
                 else:
-                    
+
                     raise Exception("Molecule 2D not implememted")
-                    
+
                 sys = self.system
                 sys.diagonalize()
-                
+
                 #
                 # Construct band_system object
                 #
@@ -169,7 +169,7 @@ class TwoDResponseCalculator:
                 Ns[0] = sys.Nb[0] #1
                 Ns[1] = sys.Nb[1] #agg.nmono
                 Ns[2] = sys.Nb[2] #Ns[1]*(Ns[1]-1)/2
-                
+
                 #
                 # Relaxation rates
                 #
@@ -188,25 +188,25 @@ class TwoDResponseCalculator:
                         KK = hlp(Ns[1])
                 else:
                     KK = self._rate_matrix
-                
+
                 # relaxation rate in single exciton band
                 Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
                 #print(1.0/KK.data)
-                
+
                 # FIXME: we need also 2 exciton rates
-                #                
-                
+                #
+
                 #
                 # Lineshape functions
                 #
                 sbi = sys.get_SystemBathInteraction()
                 cfm = sbi.CC
                 cfm.create_double_integral()
-                             
+
 
 #
 #  This section will also be removed - It goes to the new Response class
-#        
+#
 
                 #
                 # Finding population evolution matrix
@@ -216,31 +216,31 @@ class TwoDResponseCalculator:
                 #                                     corrections=True)
                 self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
                                                       corrections=3)
-                  
-                # FIXME: Order of transfer is set by hand here 
+
+                # FIXME: Order of transfer is set by hand here
                 # - needs to be moved to some reasonable place
-                
+
                 #Ucor = Uee
                 self.Uc0 = cor[0]
-                
+
 ###############################################################################
-             
+
             #
             # bootstrap responses
             #
             if self._has_responses:
-                
+
                 for rsp in self.resp_fcions:
                     rsp.set_rwa(self.rwa)
-                    
+
             elif self._has_system:
-                
+
                 # FIXME: create responses from system
-                
+
                 pass
                 # FIXME: set _has_responses to True after they are calculated
-                    
-             
+
+
             #
             # define lab settings
             #
@@ -250,76 +250,76 @@ class TwoDResponseCalculator:
                 self.lab.set_laser_polarizations(X,X,X,X)
             else:
                 self.lab = lab
-            
+
             #
             # Other parameters
             #
             #dt = self.t1axis.step
             self.rmin = 0.0001
-            self.t1s = self.t1axis.data 
+            self.t1s = self.t1axis.data
             self.t3s = self.t3axis.data
-             
+
             atype = self.t1axis.atype
             self.t1axis.atype = 'complete'
-            self.oa1 = self.t1axis.get_FrequencyAxis() 
+            self.oa1 = self.t1axis.get_FrequencyAxis()
             self.oa1.data += self.rwa
             self.oa1.start += self.rwa
             #print(self.oa1.start, self.oa1.data[0])
             self.t1axis.atype = atype
-              
+
             atype = self.t3axis.atype
             self.t3axis.atype = 'complete'
-            self.oa3 = self.t3axis.get_FrequencyAxis() 
+            self.oa3 = self.t3axis.get_FrequencyAxis()
             self.oa3.data += self.rwa
             self.oa3.start += self.rwa
             #print(self.oa3.start, self.oa3.data[0])
             self.t3axis.atype = atype
-            
-            
+
+
             self.tc = 0
 
-        
+
     def reset_t2_time(self):
         """Resets the population time of the calculations
-        
+
         """
         self.tc = 0
-        
+
 
     def calculate_next(self):
         """ Calculate next population time of a 2D spectrum
-        
+
         """
         sone = self.calculate_one(self.tc)
         self.tc += 1
         return sone
-    
-        
+
+
     def calculate_one(self, tc):
         """ Calculate one population time
-        
-        
+
+
         """
-        
+
         try:
-            tt2 = self.t2axis.data[tc]  
+            tt2 = self.t2axis.data[tc]
         except:
             print("Time axis error:\n"+
                   "  perhaps tc =", tc, " (representing t2 population time) is outside range?")
             print("You can reset automatic calculation along the population time axes by calling:")
             print("> twodcalc.reset_t2_time() ")
             print("where 'twodcalc' is the TwoDResponseCalculator object.")
-        
-        
+
+
         Nt2 = self.t2axis.length
         Nr1 = self.t1axis.length
-        Nr3 = self.t3axis.length   
-        
-        # FIXME: on which axis we should be looking for it2 ??? 
-        (it2, err) = self.t2axis.locate(tt2) 
+        Nr3 = self.t3axis.length
+
+        # FIXME: on which axis we should be looking for it2 ???
+        (it2, err) = self.t2axis.locate(tt2)
         self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)
-                     +" of "+str(Nt2)+")", end="\r")      
-        
+                     +" of "+str(Nt2)+")", end="\r")
+
         #
         # Initialize response storage
         #
@@ -327,13 +327,13 @@ class TwoDResponseCalculator:
         #    order = 'F'
         #else:
         order = 'C'
-            
+
         ntype = numpy.complex128
-        
-        
+
+
         # FIXME:  Fix the axis of time
         # the order of axis is wrong. 2D code works only if it is Nr3, Nr1
-        
+
         resp_r = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_n = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Rgsb = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
@@ -347,7 +347,7 @@ class TwoDResponseCalculator:
         resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
-        
+
 
         if self._has_system and not self._has_responses:
             #
@@ -378,15 +378,15 @@ class TwoDResponseCalculator:
                                             self.t1axis, self.t2axis, self.t3axis)
 
                 self.resp_fcions.append(Nr1f)
-                self.resp_fcions.append(Nr2f)            
+                self.resp_fcions.append(Nr2f)
 
 
             # relaxation (if relax neq 0)
-            Nr1g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+            Nr1g_scM0g = qr.NonLinearResponse(self.lab, self.system,
                                               "R1g_scM0g", self.t1axis, self.t2axis, self.t3axis)
-            Nr2g_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+            Nr2g_scM0g = qr.NonLinearResponse(self.lab, self.system,
                                               "R2g_scM0g", self.t1axis, self.t2axis, self.t3axis)
-            
+
             KK = Nr1g_scM0g.KK
             if numpy.all(numpy.isclose(KK, 0.0, atol=1e-9)):
 
@@ -396,17 +396,17 @@ class TwoDResponseCalculator:
 
                 #print("Including relaxation")
                 self.resp_fcions.append(Nr1g_scM0g)
-                self.resp_fcions.append(Nr2g_scM0g)            
+                self.resp_fcions.append(Nr2g_scM0g)
 
 
             if self.system.mult > 1:
-                Nr1f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                Nr1f_scM0g = qr.NonLinearResponse(self.lab, self.system,
                                                 "R1f_scM0g", self.t1axis, self.t2axis, self.t3axis)
-                Nr2f_scM0g = qr.NonLinearResponse(self.lab, self.system, 
+                Nr2f_scM0g = qr.NonLinearResponse(self.lab, self.system,
                                                 "R2f_scM0g", self.t1axis, self.t2axis, self.t3axis)
-                Nr1f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                Nr1f_scM0e = qr.NonLinearResponse(self.lab, self.system,
                                                 "R1f_scM0e", self.t1axis, self.t2axis, self.t3axis)
-                Nr2f_scM0e = qr.NonLinearResponse(self.lab, self.system, 
+                Nr2f_scM0e = qr.NonLinearResponse(self.lab, self.system,
                                                 "R2f_scM0e", self.t1axis, self.t2axis, self.t3axis)
 
                 self.resp_fcions.append(Nr1f_scM0g)
@@ -416,55 +416,55 @@ class TwoDResponseCalculator:
 
 
             self._has_responses = True
-                
+
 
 
         if self._has_responses:
             #
             # Calculation from predefined non-linear responses
             #
-                
-            for resp in self.resp_fcions:
-                
-                if isinstance(resp, NonLinearResponse):
-                    
-                    if resp.rtype == "R":
-                        
-                        resp_Rgsb += resp.calculate_matrix(tt2)
-    
-                    elif resp.rtype == "NR":
-                        
-                        resp_Ngsb += resp.calculate_matrix(tt2)
-                        
-                    else:
-                        
-                        raise Exception("Unknown response type")
-                
-                
-                elif isinstance(resp, LiouvillePathway):
-                
-                    if resp.rtype == "R":
-                        
-                        resp_Rgsb += resp.calculate_matrix(self.lab, None, tt2, 
-                                                           self.t1s, self.t3s, 
-                                                           self.rwa)
-    
-                    elif resp.rtype == "NR":
-                        
-                        resp_Ngsb += resp.calculate_matrix(self.lab, None, tt2, 
-                                                           self.t1s, self.t3s, 
-                                                           self.rwa)
-                    else:
-                        
-                        raise Exception("Unknown response type")
-                    
-            
-        else:
-            
-            raise Exception("Calculation method not implemented")
-            
 
-        # only for Aceto we need the sum 
+            for resp in self.resp_fcions:
+
+                if isinstance(resp, NonLinearResponse):
+
+                    if resp.rtype == "R":
+
+                        resp_Rgsb += resp.calculate_matrix(tt2)
+
+                    elif resp.rtype == "NR":
+
+                        resp_Ngsb += resp.calculate_matrix(tt2)
+
+                    else:
+
+                        raise Exception("Unknown response type")
+
+
+                elif isinstance(resp, LiouvillePathway):
+
+                    if resp.rtype == "R":
+
+                        resp_Rgsb += resp.calculate_matrix(self.lab, None, tt2,
+                                                           self.t1s, self.t3s,
+                                                           self.rwa)
+
+                    elif resp.rtype == "NR":
+
+                        resp_Ngsb += resp.calculate_matrix(self.lab, None, tt2,
+                                                           self.t1s, self.t3s,
+                                                           self.rwa)
+                    else:
+
+                        raise Exception("Unknown response type")
+
+
+        else:
+
+            raise Exception("Calculation method not implemented")
+
+
+        # only for Aceto we need the sum
         #
         # FIXME: discontinue Aceto and remove the sum (and the code above)
         #
@@ -504,13 +504,13 @@ class TwoDResponseCalculator:
                 resp_n[len(resp_n)-window:,k] *= tuc[window:]
                 resp_n[k,len(resp_n)-window:] *= tuc[window:]
 
-            resp_r = numpy.hstack((resp_r, 
+            resp_r = numpy.hstack((resp_r,
                                    numpy.zeros((resp_r.shape[0], self.pad))))
-            resp_r = numpy.vstack((resp_r, 
+            resp_r = numpy.vstack((resp_r,
                                    numpy.zeros((self.pad, resp_r.shape[1]))))
-            resp_n = numpy.hstack((resp_n, 
+            resp_n = numpy.hstack((resp_n,
                                    numpy.zeros((resp_n.shape[0], self.pad))))
-            resp_n = numpy.vstack((resp_n, 
+            resp_n = numpy.vstack((resp_n,
                                    numpy.zeros((self.pad, resp_n.shape[1]))))
 
         else:
@@ -539,16 +539,16 @@ class TwoDResponseCalculator:
                 rSEWT=resp_Rsewt, nSEWT=resp_Nsewt,
                 rESAWT=resp_Resawt, nESAWT=resp_Nesawt)
 
-        # FIXME: This only applies when 
+        # FIXME: This only applies when
         resp_r[:,0] = resp_r[:,0]*0.5
         resp_n[:,0] = resp_n[:,0]*0.5
         resp_r[0,:] = resp_r[0,:]*0.5
-        resp_n[0,:] = resp_n[0,:]*0.5       
-        
+        resp_n[0,:] = resp_n[0,:]*0.5
+
         ftresp = numpy.fft.fft(resp_r,axis=1)   # \omega_1
-        ftresp = numpy.fft.ifft(ftresp,axis=0)  # \omega_3        
+        ftresp = numpy.fft.ifft(ftresp,axis=0)  # \omega_3
         reph2D = numpy.fft.fftshift(ftresp)
-        
+
         ftresp = numpy.fft.ifft(resp_n,axis=1)*ftresp.shape[1]  # \omega_1
         ftresp = numpy.fft.ifft(ftresp,axis=0)                  # \omega_3
         nonr2D = numpy.fft.fftshift(ftresp)
@@ -560,76 +560,76 @@ class TwoDResponseCalculator:
 
         onetwod.set_t2(self.t2axis.data[tc])
 
-        return onetwod            
-                
-            
+        return onetwod
+
+
     def calculate(self):
         """Returns 2D spectrum
-        
+
         Calculates and returns TwoDResponseContainer containing 2D spectrum
         based on the parameters specified in this object.
-        
-        
-        """            
+
+
+        """
         # FIXME: we will later use only one branch below
         from .twodcontainer import TwoDResponseContainer
- 
-                  
+
+
         # if _have_aceto and self._has_system:
 
         #     twods = TwoDResponseContainer(self.t2axis)
-            
+
         #     teetoos = self.t2axis.data
-            
+
         #     kk = 0
         #     Nk = teetoos.shape[0]
-            
+
         #     for tt2 in teetoos:
 
         #         self._vprint_r(" Calculating t2 =", tt2, "fs (",kk,"of",Nk,")")
         #         onetwod = self.calculate_next()
-        #         twods.set_spectrum(onetwod)   
+        #         twods.set_spectrum(onetwod)
         #         kk += 1
-            
+
         #     return twods
-        
+
         if self._has_responses or self._has_system:
-            
+
             # calculate user defined responses
 
             twods = TwoDResponseContainer(self.t2axis)
-            
+
             teetoos = self.t2axis.data
- 
+
             kk = 0
             Nk = teetoos.shape[0]
             for tt2 in teetoos:
 
                 onetwod = self.calculate_next()
-                twods.set_spectrum(onetwod) 
+                twods.set_spectrum(onetwod)
                 kk += 1
-            
+
             return twods
-        
-        else: 
-            
+
+        else:
+
             raise Exception("2D calculation in this mode not implemented.")
 
 
     def reset_evaluation_functions(self, fcions):
         """Resets the evaluation functions used by the reseponse functions
-        
-        
-        
-        
+
+
+
+
         """
-        
+
         if self._has_responses:
-            
+
             for rsp, fce in zip(self.resp_fcions, fcions):
                 rsp.set_evaluation_function(fce)
                 print(rsp)
-            
+
         else:
             raise Exception("Calculatore has no responses defined.")
-            
+

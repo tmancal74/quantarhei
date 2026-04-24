@@ -3,7 +3,7 @@
 
 # -*- coding: utf-8 -*-
 """
-    Linear array of values which are used as variables of numerical functions 
+    Linear array of values which are used as variables of numerical functions
     and parameter dependent matrices
 
 
@@ -74,7 +74,7 @@
     17
 
     Mutual compatibility of the two ValueAxis objects can be tested as follows
-    
+
     >>> va1 = ValueAxis(0.0, 2000, 1.0)
     >>> va2 = ValueAxis(0.0, 1000, 1.0)
     >>> va2.is_subsection_of(va1)
@@ -108,22 +108,22 @@ from .saveable import Saveable
 from .. import REAL
 
 class ValueAxis(Saveable):
-    """Linear array of values which are used as variables of numerical functions 
-    and parameter dependent matrices 
-    
+    """Linear array of values which are used as variables of numerical functions
+    and parameter dependent matrices
+
     Parameters
     ----------
-    
+
     start : float
         Beginning of the axis
-        
+
     lenght : int
         Number of points in the DFunction
-        
+
     step : float
         Step size on the axis
-        
-    
+
+
     """
 
     step = Float("step")
@@ -238,25 +238,25 @@ class ValueAxis(Saveable):
 
     def is_equal_to(self, axis):
         """Returns True if the axis is equal to this ValueAxis
-        
+
         """
         return ((self.start == axis.start) and (self.step == axis.step)
                 and (self.length == axis.length))
 
-        
+
     def __eq__(self, other):
         return self.is_equal_to(other)
 
 
     def is_extension_of(self, axis):
         """Returns True if the axis is contained in this ValueAxis
-        
+
         """
         ret = True
         ret = ret and (self.start <= axis.start)
         ret = ret and (self.step == axis.step)
         ret = ret and (self.max >= axis.max)
-        
+
         found_one_point = False
         N = self.length
         k = 0
@@ -265,36 +265,36 @@ class ValueAxis(Saveable):
             if point in axis.data:
                 found_one_point = True
             k += 1
-            
+
         ret = ret and found_one_point
-        
+
         return ret
-    
+
     def is_subsection_of(self, axis):
         """Returns True if the axis contains this ValueAxis
-        
+
         """
         ret = True
         ret = ret and (self.start in axis.data)
         ret = ret and (self.step == axis.step)
         ret = ret and (self.max in axis.data)
-        
+
         return ret
-    
+
     def is_subset_of(self, axis):
         """Returns True if the ValueAxis is a subset of axis
-        
-        We check if all values of this axis are also values of the submitted 
+
+        We check if all values of this axis are also values of the submitted
         axis object.
-        
+
         Examples
         --------
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(0.0, 490, 2.0)
         >>> ta2.is_subset_of(ta1)
         True
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(3.0, 900, 1.0)
         >>> ta2.is_subset_of(ta1)
@@ -309,12 +309,12 @@ class ValueAxis(Saveable):
         >>> ta2 = ValueAxis(3*1.12345, 400, 2*1.12345)
         >>> ta2.is_subset_of(ta1)
         True
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.12345)
         >>> ta2 = ValueAxis(3.0, 400, 2*1.12345)
         >>> ta2.is_subset_of(ta1)
         False
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(3.0, 500, 2.0)
         >>> ta2.is_subset_of(ta1)
@@ -322,30 +322,30 @@ class ValueAxis(Saveable):
 
         """
         ret = True
-        
+
         Nst = round(self.step/axis.step)
         ret = ret and (Nst*axis.step == self.step)
         ret = ret and ((self.start in axis.data) and (self.start < axis.max))
         ret = ret and (self.max in axis.data)
-        
+
         return ret
-    
-    
-    
+
+
+
     def is_superset_of(self, axis):
         """Returns True if the ValueAxis is a superset of axis
-        
-        We check if all values of this axis are also values of the submitted 
+
+        We check if all values of this axis are also values of the submitted
         axis object.
-        
+
         Examples
         --------
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(0.0, 490, 2.0)
         >>> ta1.is_superset_of(ta2)
         True
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(3.0, 900, 1.0)
         >>> ta1.is_superset_of(ta2)
@@ -360,39 +360,39 @@ class ValueAxis(Saveable):
         >>> ta2 = ValueAxis(3*1.12345, 400, 2*1.12345)
         >>> ta1.is_superset_of(ta2)
         True
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.12345)
         >>> ta2 = ValueAxis(3.0, 400, 2*1.12345)
         >>> ta1.is_superset_of(ta2)
         False
-        
+
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(3.0, 500, 2.0)
         >>> ta1.is_superset_of(ta2)
         False
-        
+
         """
         ret = True
-        
+
         Nst = round(axis.step/self.step)
         ret = ret and (Nst*self.step == axis.step)
         ret = ret and ((axis.start in self.data) and (axis.start < self.max))
-        ret = ret and (axis.max in self.data)        
-        
+        ret = ret and (axis.max in self.data)
+
         return ret
-    
+
     def __str__(self):
         """String representation of the ValueAxis object
-        
+
         """
-        
-        out  = "\nquantarhei.ValueAxis object" 
+
+        out  = "\nquantarhei.ValueAxis object"
         out += "\n=========================="
         out += "\nstart = "+str(self.start)
         out += "\nlength = "+str(self.length)
         out += "\nstep = "+str(self.step)
 
-            
-        return out    
-    
-    
+
+        return out
+
+

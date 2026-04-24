@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
     Class representing time in time dependent calculations.
-    
+
     User level function of the Quantarhei package. To be used as:
-        
-    >>> import quantarhei as qr   
+
+    >>> import quantarhei as qr
     >>> time = qr.TimeAxis()
 
     The `TimeAxis` class stands in a close relation to `FrequencyAxis`
@@ -208,16 +208,16 @@ from .valueaxis import ValueAxis
 from .managers import energy_units
 
 class TimeDependent:
-    
+
     _has_cutoff_time = False
     cutoff_time = None
-    
+
     def set_cutoff_time(self, time):
         self.cutoff_time = time
         self._has_cutoff_time = True
-        
-    
-    
+
+
+
 
 class TimeAxis(ValueAxis):
     """ Class representing time in time dependent calculations.
@@ -258,16 +258,16 @@ class TimeAxis(ValueAxis):
 
     def shift_to_zero(self):
         """Shifts the values so that the first one is zero
-        
+
         """
         if self.start != self.data[0]:
             raise Exception("Inconsistent data")
-            
+
         if self.start > 0.0:
             self.data[:] = self.data[:] - self.start
             self.start = 0.0
-            
-            
+
+
     def get_FrequencyAxis(self):
         """ Returns corresponding FrequencyAxis object
 

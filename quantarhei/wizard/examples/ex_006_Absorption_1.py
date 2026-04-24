@@ -31,7 +31,7 @@ else:
 #</remove>
 #<indent decr=4>
     wdir = "."
-#<indent incr=4>    
+#<indent incr=4>
 
 
 ta = qr.TimeAxis(0.0, 1000, 1.0)
@@ -55,13 +55,13 @@ with e_units:
     m = qr.Molecule(name="Molecule",elenergies=[0.0,en])
     with qr.energy_units("1/cm"):
         cfce1 = qr.CorrelationFunction(ta,cfce_params1)
-    
-m.set_egcf((0,1),cfce1)   
+
+m.set_egcf((0,1),cfce1)
 m.set_dipole(0,1,[0.0, 1.0, 0.0])
 
-ac = qr.AbsSpectrumCalculator(ta,m) 
+ac = qr.AbsSpectrumCalculator(ta,m)
 
-with qr.energy_units("1/cm"): 
+with qr.energy_units("1/cm"):
     ac.bootstrap(rwa=en)
     a1 = ac.calculate()
 
@@ -74,13 +74,13 @@ if _show_plots_:
     with qr.frequency_units("1/cm"):
         print(HH)
         a1.plot(axis=[11500,12500,0,numpy.max(a1.data)*1.1])
-#<indent incr=4>    
+#<indent incr=4>
 
 
 filename = os.path.join(wdir, "abs_1mol_20cm_100fs_100K_m20.qrp")
 with qr.frequency_units("1/cm"):
     a1.save(filename)
- 
+
 with qr.frequency_units("1/cm"):
     f = qr.AbsSpectrum()
     f = f.load(filename)
@@ -91,7 +91,7 @@ with qr.frequency_units("1/cm"):
 #<indent decr=4>
         f.plot()
 #<indent incr=4>
-    
+
 """
 
     Absorption of a simple dimer aggregate of two-level molecules
@@ -122,9 +122,9 @@ with qr.energy_units("1/cm"):
     m2 = qr.Molecule([0.0, 12000], name="M2")
     m2.set_dipole(0,1,[0.0,1.0,1.0])
     m2.position = [5.0,0.0,0.0]
-    m2.set_transition_environment((0,1),cfce2)    
-    
-    
+    m2.set_transition_environment((0,1),cfce2)
+
+
 # create an aggregate
 AG = qr.Aggregate(name="TestAggregate")
 #AG.set_egcf_matrix(cm)
@@ -153,7 +153,7 @@ with e_units:
     a3 = ac3.calculate()
 
 filename = os.path.join(wdir, "spectrum_a3.qrp")
-a3.save(filename)  
+a3.save(filename)
 a4 = qr.AbsSpectrum()
 a4 = a4.load(filename)
 
@@ -166,7 +166,7 @@ if _show_plots_:
         a4.plot(show=False)
         a2.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 #<indent incr=4>
-  
+
 
 filename = os.path.join(wdir, "abs_2mol_10cm_60fs_100K_m20.dat")
 with e_units:
@@ -174,7 +174,7 @@ with e_units:
 
     f = qr.DFunction()
     f.axis = a3.axis
-    
+
     print(a3.axis)
     print(f.axis)
     print("Loading data")
@@ -183,17 +183,17 @@ with e_units:
 #<remove>
     if _show_plots_:
 #</remove>
-#<indent decr=4>    
+#<indent decr=4>
         f.plot(axis=[11500,12500,0,numpy.max(a3.data)*1.1])
 #<indent incr=4>
-     
+
 
 """
 
     Absorption of a simple trimeric aggregate of two-level molecules
 
 
-""" 
+"""
 
 cfce_params1 = dict(ftype="OverdampedBrownian",
                    reorg=20.0,
@@ -216,8 +216,8 @@ with qr.energy_units("1/cm"):
     m2.set_dipole(0,1,[0.0,1.0,2.0])
     m2.set_transition_environment((0,1), cfce1)
     m3 = qr.Molecule([0.0, 12500], name="M3")
-    m3.set_dipole(0,1,[0.0,1.0,1.0])    
-    m3.set_transition_environment((0,1), cfce2)    
+    m3.set_dipole(0,1,[0.0,1.0,1.0])
+    m3.set_transition_environment((0,1), cfce2)
 
 
 m1.position = [0.0,0.0,0.0]
@@ -241,7 +241,7 @@ AG.build()
 HH = AG.get_Hamiltonian()
 with e_units:
     print(HH)
-    
+
 (RRf,hamf) = AG.get_RelaxationTensor(ta,
                                    relaxation_theory="standard_Foerster",
                                    time_dependent=True)
@@ -254,7 +254,7 @@ with e_units:
 #                                   relaxation_theory="combined_RedfieldFoerster",
 #                                   time_dependent=True,
 #                                   coupling_cutoff=50.0)
-    
+
 
 ac1 = qr.AbsSpectrumCalculator(ta, AG, relaxation_tensor=RRf,
                                effective_hamiltonian=hamf)
@@ -268,8 +268,8 @@ with e_units:
     ac2.bootstrap(rwa=12000)
 #    ac3.bootstrap(rwa=12000)
     ac1.bootstrap(rwa=12000)
-    
-    
+
+
 a2 = ac2.calculate()
 fa = a2.axis
 ACont = qr.AbsSpectrumContainer(fa)
@@ -293,7 +293,7 @@ if _show_plots_:
         a1 = ACont.get_spectrum(tag=1)
         a1.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 #<indent incr=4>
-      
+
 filename1 = os.path.join(wdir, "abs_3mol_20cm_60fs_100K_m20.dat")
 filename2 = os.path.join(wdir, "container.qrp")
 
@@ -302,22 +302,22 @@ with e_units:
 
     f = qr.AbsSpectrum(axis=a2.axis)
     f.load_data(filename1) #, with_axis=a2.axis) # ext="dat", axis="frequency")
-    
+
     if _show_plots_:
         f.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
-    
+
     ACont.save(filename2)
-    
+
     Cont2 = qr.AbsSpectrumContainer()
     Cont2 = Cont2.load(filename2)
-    
+
     a6 = Cont2.get_spectrum(1)
 
 #<remove>
 if _show_plots_:
 #</remove>
-#<indent decr=4>        
-    with e_units:        
+#<indent decr=4>
+    with e_units:
         a6.plot(axis=[11000,13000,0,numpy.max(a2.data)*1.1])
 #<indent incr=4>
-            
+

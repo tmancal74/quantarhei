@@ -3,16 +3,16 @@ from functools import wraps
 #import os
 
 from .managers import Manager
-   
-   
+
+
 def deprecated(func):
     @wraps(func)
     def wrapper(*arg,**kwargs):
         print("function ",func," is deprecated")
         return func(*arg,**kwargs)
     return wrapper
-    
-    
+
+
 
 def prevent_basis_context(func):
     @wraps(func)
@@ -22,7 +22,7 @@ def prevent_basis_context(func):
             raise Exception("This function MUST NOT be called"+
                             " from within an 'eigenbasis_of' context.")
         return func(*arg,**kwargs)
-    return wrapper        
+    return wrapper
 
 
 def enforce_basis_context(func):
@@ -33,7 +33,7 @@ def enforce_basis_context(func):
             raise Exception("This function MUST be called"+
                             " from within an 'eigenbasis_of' context.")
         return func(*arg,**kwargs)
-    return wrapper 
+    return wrapper
 
 
 def prevent_energy_units_context(func):
@@ -44,7 +44,7 @@ def prevent_energy_units_context(func):
             raise Exception("This function MUST NOT be called"+
                             " from within an 'energy_units' context.")
         return func(*arg,**kwargs)
-    return wrapper    
+    return wrapper
 
 
 def enforce_energy_units_context(func):
@@ -55,7 +55,7 @@ def enforce_energy_units_context(func):
             raise Exception("This function MUST be called"+
                             " from within an 'energy_units' context.")
         return func(*arg,**kwargs)
-    return wrapper  
+    return wrapper
 
 
 

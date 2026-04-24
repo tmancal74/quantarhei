@@ -49,8 +49,8 @@ for ii in range(N):
         rho_check[ii,ii] += KK.data[ii,kk]*rho.data[kk,kk]
 
 # Checking results
-        
-print("\nResult of einsum:")  
+
+print("\nResult of einsum:")
 print(rho_out)
 print("Result of a check:")
 print(rho_check)
@@ -86,7 +86,7 @@ for ii in range(N):
 
 # checking results
 
-print("\nResult of matrix operations:")  
+print("\nResult of matrix operations:")
 print(rho_out)
 print("Result of a check:")
 print(rho_check)
@@ -109,7 +109,7 @@ print(rr[1,1])
 gg = numpy.einsum("ijij->ij", RR)
 for ii in range(gg.shape[0]):
     gg[ii,ii] = 0.0
-    
+
 print(gg)
 print(gg[1,2])
 
@@ -136,9 +136,9 @@ sbi = agg.get_SystemBathInteraction()
 #ham.protect_basis()
 #with qr.eigenbasis_of(ham):
 #    Rfld = qr.qm.RedfieldRelaxationTensor(ham, sbi, as_operators=False)
-#    
+#
 #ham.unprotect_basis()
-with qr.eigenbasis_of(ham):    
+with qr.eigenbasis_of(ham):
     Rfld.secularize(legacy=False)
 print("Dephasing from Redfield tensor")
 print(Rfld.secular_GG)

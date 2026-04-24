@@ -30,7 +30,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
     """
 
     def __init__(self, modes=None, name=""):
-        
+
         self.modes = modes
         self.Nmodes = len(self.modes)
 
@@ -39,8 +39,8 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         self.sbi = None
         self._has_sbi = False
 
-        self.HH = None    
-    
+        self.HH = None
+
         self._mode_couping_init = False
 
         self._built = False
@@ -48,7 +48,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         ofac = operator_factory()
         self.ad = ofac.creation_operator()
         self.aa = ofac.anihilation_operator()
-        self.EE = ofac.unity_operator()   
+        self.EE = ofac.unity_operator()
 
         #
         #  Relaxation tensor information
@@ -60,9 +60,9 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
 
     def set_mode_coupling(self, N, M, val):
-        """Sets bilinear coupling between the modes 
-        
-    
+        """Sets bilinear coupling between the modes
+
+
         >>> import quantarhei as qr
         >>> mod1 = qr.AnharmonicMode(100.0, 1.0/1000.0)
         >>> mod2 = qr.AnharmonicMode(100.0, 1.0/1000.0)
@@ -75,7 +75,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         0.00188365156731
         >>> print(vsys.coupling[1,0])
         0.00188365156731
-        
+
         """
 
         if not self._mode_couping_init:
@@ -83,7 +83,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             self._mode_couping_init = True
 
         val_int = Manager().convert_energy_2_internal_u(val)
-        self.coupling[N,M] = val_int 
+        self.coupling[N,M] = val_int
         self.coupling[M,N] = val_int
 
 
@@ -103,8 +103,8 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         10.0
         """
         return Manager().convert_energy_2_current_u(self.coupling[N,M])
-    
-        
+
+
     def _embed_operator(self, res_tot, member):
 
         pass
@@ -150,11 +150,11 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             interaction = numpy.kron(interaction, op)
 
         return kappa * interaction
-    
+
 
     def build(self):
         """Build the VibrationalSystem based on its components
-        
+
         The VibrationalSystem can be built without system-bath interaction
 
         >>> import quantarhei as qr
@@ -184,8 +184,8 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         >>> vsys.build()
 
         >>> assert numpy.amax(numpy.abs(vsys.RelaxationTensor.Ld)) > 0.0
-        
-        
+
+
         """
         from .. import SystemBathInteraction
         from .. import Hamiltonian
@@ -207,7 +207,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             H_list.append(Ham._data)
             TrDip = md.get_TransitionDipoleMoment()
             D_list.append(TrDip._data)
-        
+
         # list of dimensions
         dims = [H.shape[0] for H in H_list]
         self.dims = dims
@@ -238,7 +238,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         self.HamOp.set_rwa(indxs)
 
         self.Nb = numpy.array(Nbl)
-       
+
         self.which_band = numpy.zeros(self.Ntot,dtype=numpy.int32)
         ll = 0
         for kk in range(self.Ntot):
@@ -264,7 +264,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                     if numpy.abs(kap) > 0.0:
                         H_int += self._embed_bilinear_interaction(ii, jj, kappa=kap)
 
-            
+
             out = reorder_operators_by_perm(perm, [H_int])
             H_int = out[0]
 
@@ -319,7 +319,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
             if not skip_relaxation:
                 nops = sbi.KK.shape[0]
-               
+
                 for ii in range(nops):
 
                     #print("Current operator is:", ii)
@@ -344,7 +344,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                     oper_full = out[0]
                     ops.append(oper_full)
                     rts.append(sbi.rates[ii])
-            
+
             skip_relaxation = False
 
             mcount += 1
@@ -362,7 +362,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             self.RelaxationTensor = None
 
         self._built = True
-        
+
 
 
 def group_energies_by_gap(energies, threshold=None, gap_factor=3.0):
@@ -385,7 +385,7 @@ def group_energies_by_gap(energies, threshold=None, gap_factor=3.0):
     gap_indices : list of int
         Indices at which bands start (for reference).
     """
-    import numpy as np 
+    import numpy as np
     energies = np.asarray(energies)
     gaps = np.diff(energies)
 
@@ -444,7 +444,7 @@ def reorder_operators_by_energy(H, operators):
     return H_sorted, ops_sorted, perm
 
 
-def reorder_hamiltonian_by_energy(H): 
+def reorder_hamiltonian_by_energy(H):
     """
     Reorders a Hamiltonian according to ascending energies (diagonal elements of H).
 

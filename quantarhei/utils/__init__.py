@@ -3,8 +3,8 @@
 
     quantarhei.utils  subpackage
     ==================================
-    
-    
+
+
     Some auxiliarly classes and functions to support the package
 
 
@@ -23,4 +23,4 @@ from .vectors import normalize2
 
 
 
- 
+

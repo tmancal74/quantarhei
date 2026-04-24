@@ -5,7 +5,7 @@
     Defines the class DataSaveable. DataSaveable objects can save their data
     to and load them from a file in various formats. Data is exclusively
     represented as a `data` property of the class.
-    
+
 
 """
 import os
@@ -14,10 +14,10 @@ import scipy.io as io
 
 class DataSaveable:
     """This class defines saving and loading procedure for the data property
-    
+
     """
-    
-    
+
+
     def save_data(self, name, with_axis=None):
         """Saves the data into a format determined by the file name extension
 
@@ -26,25 +26,25 @@ class DataSaveable:
 
         name : str
             Name of the file to be saved into
-            
-        
+
+
         Notes
         -----
-        
+
         This method knows the following file extensions
-        
-        .dat 
+
+        .dat
             text
-            
+
         .txt
             text, same as .dat
-            
+
         .npy
             binary numpy format, no compression
-            
+
         .npz
             compressed numpy format
-            
+
         .mat
             Matlab format
 
@@ -62,7 +62,7 @@ class DataSaveable:
 
         elif extension == ".npz":
             self._saveBinaryData_compressed(name, with_axis)
-            
+
         elif extension == ".mat":
             self._saveMatlab(name, with_axis)
 
@@ -79,9 +79,9 @@ class DataSaveable:
 
         """
         filename, extension = os.path.splitext(name)
-        
+
         if extension not in [".dat",".txt",".npy",".npz", ".mat"]:
-            raise Exception("Unknown data format")        
+            raise Exception("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
             self._importDataFromText(name, with_axis)
@@ -95,33 +95,33 @@ class DataSaveable:
         elif extension == ".mat":
             self._loadMatlab(name, with_axis)
 
-           
+
     def set_data_writable(self):
         """Implement this method to lift existing protection of data property
-        
+
         """
         pass
 
 
     def set_data_protected(self):
         """Implement this method to put protections on data property
-        
-        """        
+
+        """
         pass
 
 
     def _data_with_axis(self, axis):
         """Constructs data array which contains also data from the axis
-        
+
         """
         shpl = list(self.data.shape)
-        
+
         if len(shpl) == 2:
             shpl[1] += 1
             shp = tuple(shpl)
             data = numpy.zeros(shp,dtype=self.data.dtype)
             data[:,1:] = self.data
-            data[:,0] = axis.data     
+            data[:,0] = axis.data
         elif len(shpl) == 1:
             shpl.append(2)
             shp = tuple(shpl)
@@ -134,14 +134,14 @@ class DataSaveable:
 
 
     def _extract_data_with_axis(self, data, axis):
-        """Extracts data part and the axis data from the `data` array 
-        
+        """Extracts data part and the axis data from the `data` array
+
         """
         if axis is None:
             return data
         else:
             if len(data.shape) == 2:
-                
+
                 print("Data shape:", data.shape)
                 if data.shape[1] == 2:
                     print("Extracting from two columns")
@@ -152,7 +152,7 @@ class DataSaveable:
                     return data[:,1:]
                 else:
                     raise Exception()
-                    
+
             else:
                 raise Exception("Other shapes than (N,) and (N,M)"+
                                 " not implemented")
@@ -185,7 +185,7 @@ class DataSaveable:
         """Imports binary data from a file
 
         """
-        
+
         self.set_data_writable()
         _data = numpy.load(filename)
         self.data = self._extract_data_with_axis(_data, with_axis)
@@ -195,13 +195,13 @@ class DataSaveable:
     def _loadBinaryData_compressed(self, filename, with_axis=None):
         """Imports binary data from a file
 
-        """  
-        self.set_data_writable()        
+        """
+        self.set_data_writable()
         _data = numpy.load(filename)["data"]
         self.data = self._extract_data_with_axis(_data, with_axis)
         self.set_data_protected()
 
-    
+
     def _exportDataToText(self, file, with_axis=None):
         """Saves textual data to a file
 
@@ -218,18 +218,18 @@ class DataSaveable:
 
         """
         self.set_data_writable()
-        try:        
+        try:
             _data = numpy.loadtxt(filename)
         except ValueError:
             _data = numpy.loadtxt(filename, dtype=complex)
-        
+
         self.data = self._extract_data_with_axis(_data, with_axis)
-        self.set_data_protected()            
+        self.set_data_protected()
 
 
     def _saveMatlab(self, file, with_axis=None):
         """Saves data as a Matlab file
-        
+
         """
         if with_axis is not None:
             data = self._data_with_axis(with_axis)
@@ -237,10 +237,10 @@ class DataSaveable:
         else:
             io.savemat(file, {"data":self.data})
 
-    
+
     def _loadMatlab(self, file, with_axis=None):
         """Loads a matrix called `data` from a matlab file
-        
+
         """
         self.set_data_writable()
         _data = io.loadmat(file)["data"]

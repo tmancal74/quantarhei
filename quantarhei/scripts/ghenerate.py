@@ -289,19 +289,19 @@ def main():
         for scenario in parse_data["children"]:
 
             steps = scenario["steps"]
-            
+
             current = ""
             for step in steps:
                 text = step["text"]
-                
+
                 if step["keyword"] != "And ":
                     prepo = step["keyword"]
                     # if keyword is not And, prepo remains
-                    
+
                 check_text = prepo+": "+step["text"]
 
                 # the step strings should not be duplicate
-                # but the same text can follow different keywords with 
+                # but the same text can follow different keywords with
                 # different code
                 if check_text not in test_strings:
                     test_strings.append(check_text)

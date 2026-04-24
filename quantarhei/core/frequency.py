@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
     Class representing frequency axis of calculations
-    
-    
+
+
     Examples
     --------
 
@@ -23,7 +23,7 @@
     50
 
     #>>> print(ta.step,2.0*numpy.pi/(100*wa.step))
-    
+
     >>> print(numpy.allclose(ta.step,2.0*numpy.pi/(100*wa.step)))
     True
 
@@ -116,7 +116,7 @@
     >>> print(numpy.allclose(tb.data,times[5:10]))
     True
 
-    
+
     Class Details
     -------------
 
@@ -131,7 +131,7 @@ from ..utils.types import UnitsManagedReal
 
 
 class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
-    """Class representing frequency axis of calculations 
+    """Class representing frequency axis of calculations
 
     Parameters
     ----------
@@ -185,8 +185,8 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         axis = FrequencyAxis(self.start, self.length, self.step,
                              atype=self.atype, time_start=self.time_start)
         return axis
-        
-        
+
+
     def get_TimeAxis(self):
         """Returns the corresponding TimeAxis object
 

@@ -9,9 +9,9 @@ import quantarhei as qr
 
 def init_logging():
     """Initialization of logging
-    
+
     We test if the logging is parallel or not
-    
+
     """
     manager = qr.Manager().log_conf
     try:
@@ -27,8 +27,8 @@ def init_logging():
     except:
         manager.is_serial = True
     manager.initialized = True
-    
-    
+
+
 def log_urgent(*args, **kwargs):
     printlog(*args, loglevel=qr.LOG_URGENT, **kwargs)
 
@@ -40,18 +40,18 @@ def log_report(*args, **kwargs):
 def log_info(*args, **kwargs):
     printlog(*args, loglevel=qr.LOG_INFO, **kwargs)
 
-        
+
 def log_detail(*args, **kwargs):
     printlog(*args, loglevel=qr.LOG_DETAIL, **kwargs)
 
-    
+
 def log_quick(*args, verbose=True, **kwargs):
     if not verbose:
         return
-    printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)  
+    printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)
 
 
-def printlog(*args, verbose=True, loglevel=5, 
+def printlog(*args, verbose=True, loglevel=5,
              incr_indent=0, use_indent=True, **kwargs):
     """Prints logging information
 
@@ -111,12 +111,12 @@ def printlog(*args, verbose=True, loglevel=5,
     manager = qr.Manager().log_conf
     if not manager.initialized:
         init_logging()
-    
+
     if not manager.verbose:
         return
-    
+
     manager.log_indent += incr_indent
-    
+
     if loglevel <= manager.verbosity:
 
         if manager.log_on_screen:
@@ -127,7 +127,7 @@ def printlog(*args, verbose=True, loglevel=5,
             print(indent, *args, **kwargs)
 
     if loglevel <= manager.fverbosity:
-        
+
         if manager.log_to_file:
             if not manager.log_file_opened:
                 manager.log_file = open(manager.log_file_name
@@ -207,12 +207,12 @@ def loglevels2bool(loglevs, verbose=False):
 
 def tprint(var, messg=None, default=None):
     """Test the existence of the variable with the name `var`
-    
-    
+
+
     If the default is specified, the non-existence of the variable
     is not a problem, and the variable is set to the default
-    
-    """    
+
+    """
     try:
         if messg is not None:
             print("#", messg)
@@ -236,7 +236,7 @@ def tprint(var, messg=None, default=None):
 
 def log_to_file(filename="qrhei.log"):
     """Set logging to file
-    
+
     """
     manager = qr.Manager().log_conf
     #manager.log_on_screen = False

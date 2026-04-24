@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from sympy import Symbol
- 
+
 a = Symbol('a',real=True)
 b = Symbol('b',real=True)
 c = Symbol('c',real=True)
-d = Symbol('d',real=True) 
+d = Symbol('d',real=True)
 e = Symbol('e',real=True)
 f = Symbol('f',real=True)
- 
+
 
 s = Symbol('s',real=True)
 t = Symbol('t',real=True)

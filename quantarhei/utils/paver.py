@@ -5,7 +5,7 @@ import sys
 
 def execute_paver(args, util="paver"):
     """Executes 'paver' utility
-    
+
     """
     pargs = ['paver']+args
     process = subprocess.Popen(pargs,

@@ -15,7 +15,7 @@
     <BLANKLINE>
     quantarhei.Molecule object
     ==========================
-       name =   
+       name =
        position = None
        number of electronic states = 2
        # State properties
@@ -25,7 +25,7 @@
     <BLANKLINE>
        State nr: 1
           electronic energy = 1.0 1/fs
-          transition 0 -> 1 
+          transition 0 -> 1
           transition dipole moment = [0.0, 0.0, 0.0]
           number of vibrational modes = 0
     <BLANKLINE>
@@ -37,7 +37,7 @@
     <BLANKLINE>
     quantarhei.Molecule object
     ==========================
-       name = two-levels-1-mode  
+       name = two-levels-1-mode
        position = None
        number of electronic states = 2
        # State properties
@@ -45,17 +45,17 @@
           electronic energy = 0.0 1/fs
           number of vibrational modes = 1
           # Mode properties
-          mode no. = 0 
+          mode no. = 0
              frequency = 1.0 1/fs
              shift = 0.0
              nmax = 2
        State nr: 1
           electronic energy = 1.0 1/fs
-          transition 0 -> 1 
+          transition 0 -> 1
           transition dipole moment = [0.0, 0.0, 0.0]
           number of vibrational modes = 1
           # Mode properties
-          mode no. = 0 
+          mode no. = 0
              frequency = 1.0 1/fs
              shift = 0.0
              nmax = 2
@@ -2386,13 +2386,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 #    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
 #        """Molecule does not have coupling between states (so far)
-#            
+#
 #        """
 #        # FIXME: shouldn't self.HH be just the data matrix?
 #        ee = numpy.diag(self.HH.data)
 #        ss = numpy.diag(numpy.ones_like(ee))
 #        return ee, ss
-   
+
     def _get_exciton_prop(self,adiabatic=None,HH_in=None):
 
         is_adiabatic = False
