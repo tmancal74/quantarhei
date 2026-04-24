@@ -387,10 +387,6 @@ class LabSetup:
                         pcentr = Manager().convert_energy_2_current_u(self.omega[k_p])
 
                         amp = par["amplitude"]
-                        try:
-                            freq = par["frequency"]
-                        except:
-                            freq = 0.0
 
                         # normalized Gaussian mupliplied by amplitude
                         val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/numpy.pi) \
