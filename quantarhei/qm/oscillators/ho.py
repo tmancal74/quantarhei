@@ -152,7 +152,7 @@ class operator_factory(Saveable):
         .. math::
             
             D_{\\alpha} = e^{-i\\alpha P} 
-            = e^{-\\frac{\\alpha}{\sqrt{2}}\\left(a-a^{\\dagger}\\right)}
+            = e^{-\\frac{\\alpha}{\\sqrt{2}}\\left(a-a^{\\dagger}\\right)}
             
         
         The operator can be generalized for complex values of :math:`\\alpha`
@@ -161,7 +161,7 @@ class operator_factory(Saveable):
         .. math::
             
             D_{\\alpha} =
-            e^{\\frac{1}{\sqrt{2}}\\left(\\alpha 
+            e^{\\frac{1}{\\sqrt{2}}\\left(\\alpha 
             a^{\\dagger}-\\alpha^{*}a\\right)},
             
         where :math:`*` represents complex conjugation. This is the definition 

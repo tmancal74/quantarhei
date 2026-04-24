@@ -229,7 +229,7 @@ class SuperOperator(BasisManaged):
         .. math::
             
             \\langle i | j \\rangle = \\delta_{ij} = \\
-            \sum_{\\alpha} \\langle i | \\alpha \\rangle \\
+            \\sum_{\\alpha} \\langle i | \\alpha \\rangle \\
             \\langle \\alpha | j \\rangle 
             
         and we see that 

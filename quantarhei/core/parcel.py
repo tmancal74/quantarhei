@@ -12,8 +12,7 @@ class Parcel:
         
         """
         self.content = obj
-        self.class_name = "{0}.{1}".format(obj.__class__.__module__,
-                                           obj.__class__.__name__)
+        self.class_name = f"{obj.__class__.__module__}.{obj.__class__.__name__}"
         self.qrversion = Manager().version
         self.comment = ""
 

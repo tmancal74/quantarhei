@@ -207,7 +207,7 @@ import quantarhei as qr
 
 #from ...utils.types import BasisManagedComplexArray
 
-class MockSuperOperator():
+class MockSuperOperator:
     def __init__(self, data_pop=None, data_coh=None, ham=None):
         self.data_pop = data_pop
         self.data_coh = data_coh

@@ -321,7 +321,7 @@ def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
                + dl[bb,cc]*(+ conj(gt[bb, :]) + gt[bb, ti] - gtb_m) \
                + dl[bb,dd]*(- conj(gt[bb, :]) - gt[bb, ti] + gtb_m) \
                + dl[cc,dd]*(conj(gt[cc, :]) + gt[cc, :])            \
-               + 1j*((ea-eb)*tt_i)+1j*((ec-ed))*tt)        
+               + 1j*((ea-eb)*tt_i)+1j*(ec-ed)*tt)        
         
     return prod
 

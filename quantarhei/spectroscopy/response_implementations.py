@@ -339,8 +339,8 @@ def R1f(t2, t1, t3, lab, system, evol, KK):
                         - (np.einsum("i,ij", MM[p,p,:], gg[:,"t3"]))[None,:]
                         + (np.einsum("i,ijk", MM[b,a,:], gg[:,"t1+t2+t3"]))[:,:]
                         - (np.einsum("i,ijk", MM[p,a,:], gg[:,"t1+t2+t3"]))[:,:]
-                        + np.conj((np.einsum("i,i", MM[a,b,:], gg[:,"t2"])))
-                        - np.conj((np.einsum("i,i", MM[p,b,:], gg[:,"t2"])))
+                        + np.conj(np.einsum("i,i", MM[a,b,:], gg[:,"t2"]))
+                        - np.conj(np.einsum("i,i", MM[p,b,:], gg[:,"t2"]))
                         - np.conj((np.einsum("i,ij", MM[b,b,:], gg[:,"t2+t3"]))[None,:])
                         + np.conj((np.einsum("i,ij", MM[p,b,:], gg[:,"t2+t3"]))[None,:])
                         -1j*(En[aa]-En[g]-rwa)*t1[:,None]
@@ -420,8 +420,8 @@ def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
                         - (np.einsum("i,ij", MM[p,p,:], gg[:,"t3"]))[None,:]
                         - (np.einsum("i,ijk", MM[b,a,:], gg[:,"t1+t2+t3"]))[:,:]
                         - (np.einsum("i,ijk", MM[p,a,:], gg[:,"t1+t2+t3"]))[:,:]
-                        - np.conj((np.einsum("i,i", MM[a,b,:], gg[:,"t2"])))
-                        + np.conj((np.einsum("i,i", MM[p,b,:], gg[:,"t2"])))
+                        - np.conj(np.einsum("i,i", MM[a,b,:], gg[:,"t2"]))
+                        + np.conj(np.einsum("i,i", MM[p,b,:], gg[:,"t2"]))
                         - np.conj((np.einsum("i,ij", MM[b,b,:], gg[:,"t2+t3"]))[None,:])
                         - np.conj((np.einsum("i,ij", MM[p,b,:], gg[:,"t2+t3"]))[None,:])
                         -1j*(En[aa]-En[g]-rwa)*t1[:,None]

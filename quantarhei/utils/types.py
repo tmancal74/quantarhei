@@ -24,11 +24,11 @@ def array_property(name,shape=None):
             if not (shape == None):
                 if not (shape == vl.shape):
                     raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
+                    f'{name} must be of shape {shape}')  
             setattr(self,storage_name,vl)
         except:
             raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
+            f'{name} must be either a list or numpy.array')
         
     return prop
     
@@ -82,11 +82,11 @@ def units_managed_array_property(name,dtype,shape=None):
             if not (shape == None):
                 if not (shape == vl.shape):
                     raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
+                    f'{name} must be of shape {shape}')  
             setattr(self,storage_name,self.convert_2_internal_u(vl))
         except:
             raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
+            f'{name} must be either a list or numpy.array')
         
     return prop 
     
@@ -132,11 +132,11 @@ def basis_managed_array_property(name,dtype,shape=None):
             if not (shape == None):
                 if not (shape == vl.shape):
                     raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
+                    f'{name} must be of shape {shape}')  
             setattr(self,storage_name,vl)
         except:
             raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
+            f'{name} must be either a list or numpy.array')
         
     return prop        
     
@@ -190,11 +190,11 @@ def managed_array_property(name,dtype,shape=None):
             if not (shape == None):
                 if not (shape == vl.shape):
                     raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
+                    f'{name} must be of shape {shape}')  
             setattr(self,storage_name,self.convert_2_internal_u(vl))
         except:
             raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
+            f'{name} must be either a list or numpy.array')
         
     return prop     
     
@@ -231,7 +231,7 @@ def typed_property(name,dtype):
         if isinstance(value,dtype):
             setattr(self,storage_name,value)
         else:
-            raise TypeError('{} must be of type {}'.format(name,dtype))
+            raise TypeError(f'{name} must be of type {dtype}')
             
     return prop
     
@@ -249,8 +249,8 @@ def list_of_typed_property(name,dtype):
         if isinstance(value,list):
             for el in value:
                 if not isinstance(el,dtype):
-                    raise TypeError('{} must contain \
-                    values of type {})'.format(name,dtype),dtype)
+                    raise TypeError(f'{name} must contain \
+                    values of type {dtype})',dtype)
             
     return prop
     
@@ -273,11 +273,11 @@ def alt_type_property(name,dtype):
                     isset = True
                     break
             if not isset:
-                raise TypeError('{} must be of type {}'.format(name,dtype))
+                raise TypeError(f'{name} must be of type {dtype}')
         elif isinstance(value,dtype):
             setattr(self,storage_name,value)
         else:
-            raise TypeError('{} must be of type {}'.format(name,dtype))
+            raise TypeError(f'{name} must be of type {dtype}')
             
     return prop    
     

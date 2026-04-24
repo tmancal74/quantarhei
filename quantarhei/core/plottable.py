@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 
 
-class Plottable():
+class Plottable:
     
     
     def __init__(self):

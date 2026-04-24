@@ -28,9 +28,9 @@ from importlib.resources import files
 
 try:
     
-    # if IPython is not present, 
+    # if IPython is not present,
     # we fail here and continue in the except section
-    ip = get_ipython()
+    ip = get_ipython()  # type: ignore[name-defined]
     _have_ip_ = True
     from IPython.core.magic import register_line_magic
     

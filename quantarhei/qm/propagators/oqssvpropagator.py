@@ -9,7 +9,7 @@ import quantarhei as qr
 
 
 
-class OQSStateVectorPropagator():
+class OQSStateVectorPropagator:
     
     
     def __init__(self, timeaxis=None, current_matrix=None, agg=None,

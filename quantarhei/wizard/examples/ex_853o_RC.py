@@ -441,7 +441,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_1 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=REPH"+"_omega="+str(omega)+data_ext)
             sp1_p_re.plot(Npos_contours=10, spart=qr.part_ABS, 
-                          label="Rephasing\n $\omega="+str(omega)+
+                          label="Rephasing\n $\\omega="+str(omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1], 
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)], 
                           show_diagonal="-k")   
@@ -450,7 +450,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_2 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=NONR"+"_omega="+str(omega)+data_ext)
             sp1_p_nr.plot(Npos_contours=10, spart=qr.part_ABS, 
-                          label="Non-rephasing\n $\omega="+str(omega)+
+                          label="Non-rephasing\n $\\omega="+str(omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")   
@@ -459,7 +459,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_3 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=tot"+"_omega="+str(omega)+data_ext)
             sp1_p_to.plot(Npos_contours=10, spart=qr.part_ABS, 
-                          label="Total\n $\omega="+str(omega)+
+                          label="Total\n $\\omega="+str(omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")   
@@ -487,7 +487,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_4 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=REPH"+"_omega="+str(-omega)+data_ext)
             sp2_m_re.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Rephasing\n $\omega="+str(-omega)+
+                          label="Rephasing\n $\\omega="+str(-omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")   
@@ -496,7 +496,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_5 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=NONR"+"_omega="+str(-omega)+data_ext)
             sp2_m_nr.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Non-rephasing\n $\omega="+str(-omega)+
+                          label="Non-rephasing\n $\\omega="+str(-omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")      
@@ -505,7 +505,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_6 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=tot"+"_omega="+str(-omega)+data_ext)
             sp2_m_to.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Total\n $\omega="+str(-omega)+
+                          label="Total\n $\\omega="+str(-omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")      
@@ -685,7 +685,7 @@ i_p_re = 0
 tags = []
 
 tA = time.time()
-at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+at = f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
 print("\nStarting simulation set at", at)
 ll = 1
 for model in models:
@@ -707,7 +707,7 @@ for model in models:
 
 
     kk = 1
-    at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+    at = f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
     print("\nStarting the simulation at:", at)
     Np = len(parms)
     for par in parms:
@@ -758,7 +758,7 @@ for model in models:
     ll += 1
     
 tB = time.time()
-at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+at = f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
 print("\n... finished simulation set at", at, "in", tB-tA,"sec")
 
 fname = os.path.join(dname, "cont_p_re.qrp")

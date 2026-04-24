@@ -263,7 +263,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             
 
     def _implementation(self, ham, sbi):
-        """ Reference implementation, completely in Python
+        r""" Reference implementation, completely in Python
         
         Implementation of Redfield relaxation tensor according to 
         
@@ -552,7 +552,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 
             
     def _convert_operators_2_tensor(self, Km, Lm, Ld):
-        """Converts operator representation to the tensor one
+        r"""Converts operator representation to the tensor one
         
         Convertes operator representation of the Redfield tensor
         into a truely tensor representation

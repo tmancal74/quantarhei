@@ -58,6 +58,70 @@ testpaths = ["tests/unit"]
 addopts = "-v --tb=short"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
 
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "UP", "I", "B", "RUF"]
+ignore = [
+    # Scientific code — math variables (E, H, N, l, I) are standard physics symbols
+    "E741",
+    # Module-level imports not at top — often intentional (conditional, deferred)
+    "E402",
+    # ── Large cleanup batches addressed in follow-up PRs ──────────────────────
+    "E501",    # line too long (416 violations)
+    "E722",    # bare except (153 violations)
+    "W291",    # trailing whitespace (2560 violations)
+    "W293",    # whitespace in blank line (9591 violations)
+    "F401",    # unused import (303 violations)
+    "F821",    # undefined name (87 violations — often dynamic attributes)
+    "F841",    # unused variable (76 violations)
+    "UP009",   # utf-8 encoding declaration (215 violations)
+    "I001",    # import sorting (207 violations)
+    # ── Medium-risk / needs-review — addressed in follow-up PRs ───────────────
+    "UP031",   # printf-style format string (60 violations)
+    "UP030",   # format literals (13 violations)
+    "B904",    # raise-without-from inside except (61 violations)
+    "RUF059",  # unused-unpacked-variable (49 violations)
+    "RUF012",  # mutable-class-default (11 violations)
+    "E712",    # true-false-comparison (16 violations)
+    "E711",    # none-comparison (4 violations)
+    "B905",    # zip-without-explicit-strict (4 violations)
+    "RUF002",  # ambiguous-unicode-character-docstring (2 violations)
+    "B028",    # no-explicit-stacklevel in warnings (2 violations)
+    "B008",    # function-call-in-default-argument (2 violations)
+    "UP028",   # yield-in-for-loop (1 violation)
+    "F811",    # redefined-while-unused (5 violations)
+    "RUF005",  # collection-literal-concatenation (1 violation)
+    "B018",    # useless-expression (1 violation)
+    "B006",    # mutable-argument-default (26 violations — needs per-site review)
+    "B007",    # unused-loop-control-variable (66 violations)
+]
+
+[tool.mypy]
+ignore_missing_imports = true
+no_strict_optional = true
+exclude = [
+    "quantarhei/wizard/examples",
+    "quantarhei/wizard/benchmarks",
+    "quantarhei/scripts/codelets",
+]
+
+# Modules with unresolvable [misc] errors from multiple inheritance chains
+# through untyped base classes — suppressed until #189 type annotation pass
+[[tool.mypy.overrides]]
+module = [
+    "quantarhei.qm.liouvillespace.tdredfieldtensor",
+    "quantarhei.qm.liouvillespace.tdredfieldfoerster",
+    "quantarhei.qm.liouvillespace.tdfoerstertensor",
+    "quantarhei.qm.liouvillespace.redfieldfoerster",
+    "quantarhei.spectroscopy.twod22",
+    "quantarhei.spectroscopy.twodspect",
+    "quantarhei.spectroscopy.twodresponse",
+]
+ignore_errors = true
+
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests"]
 

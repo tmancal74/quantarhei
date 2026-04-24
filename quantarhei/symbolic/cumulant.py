@@ -98,7 +98,7 @@ class CumulantExpr(QExpr):
                          w*(conjugate(-gg(b,a,t1) \
                            +gg(b,a,t1+t2)-gg(b,a,t2))))
 
-        """
+        r"""
         Replacement rules for ggs
 
         First daggered ggs

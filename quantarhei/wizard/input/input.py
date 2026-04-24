@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import json
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 import ast
 import re
@@ -53,7 +53,7 @@ def expr(code, context=None):
 
 
 
-class Input(object):
+class Input:
     """A class representing a json or yaml input file
     
     
@@ -79,13 +79,13 @@ class Input(object):
             # json
             if ext in [".json"]:
                 
-                with open(filename, "r") as f:
+                with open(filename) as f:
                     self.data = json.load(f)
     
             # yaml
             elif ext in [".yaml", ".yml"]:
                 
-                with open(filename, "r") as f:
+                with open(filename) as f:
                     self.data = yaml.safe_load(f)    
                     
             else:

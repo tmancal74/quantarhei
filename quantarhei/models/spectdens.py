@@ -6,9 +6,9 @@ class DatabaseEntry:
     """
     SPECTRAL_DENSITY     = 0
     CORRELATION_FUNCTION = 1
-    direct_implementation = None    
-    identificator = None   
-    alt_ident = []
+    direct_implementation: int | None = None
+    identificator: str | None = None
+    alt_ident: list[str] = []
     units = "int"
     
     

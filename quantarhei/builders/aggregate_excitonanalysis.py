@@ -128,8 +128,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             imax, sqr = _strip_max_coef(indx, sqrs)
             coef = coefs[imax]
 
-            sqr_s = "{0:.8f}".format(sqr)
-            coef_s = "{0:.8f}".format(coef)
+            sqr_s = f"{sqr:.8f}"
+            coef_s = f"{coef:.8f}"
             
             sta = self.get_state_signature_by_index(imax)
             table_data.append([imax, sqr_s, coef_s, sta])
@@ -369,9 +369,9 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     print("", file=file)
                     with qr.energy_units("1/cm"):
                         print("Transition energy        "+
-                              ": {:.8f} 1/cm".format(tre), file=file)
+                              f": {tre:.8f} 1/cm", file=file)
                         print("Transition dipole moment "+
-                              ": {:.8f} D".format(dip), file=file)
+                              f": {dip:.8f} D", file=file)
                     self.report_on_expansion(file=file, state=Nst, N=Nrep)
                     print("", file=file)
 

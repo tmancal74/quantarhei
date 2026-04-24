@@ -26,7 +26,7 @@ class Saveable:
     
     """
     
-    hashes = {}
+    hashes: dict = {}
     
     def save(self, filename, comment=None, test=False):
         """Saves the object with all its content into a file

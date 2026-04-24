@@ -84,8 +84,8 @@ class Simulation(Saveable):
         
         """
         if filename:
-            return '{:%Y-%m-%d_%H:%M:%S}'.format(datetime.datetime.now())
-        return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+            return f'{datetime.datetime.now():%Y-%m-%d_%H:%M:%S}'
+        return f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
 
     
     def _print_greetings(self):

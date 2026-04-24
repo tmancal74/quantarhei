@@ -212,7 +212,7 @@ class ProjectionOperator(Operator):
     Projection operator projecting from state m to state n.
     Braket definition:
     
-    |n\rangle \langle m|
+    |n\rangle \\langle m|
 
     """    
     def __init__(self, to_state=-1, from_state=-1, dim=0):

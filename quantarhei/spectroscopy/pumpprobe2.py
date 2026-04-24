@@ -72,7 +72,7 @@ class PumpProbeSpectrum(DFunction):
             self.set_data(data)
         else:
             if self.data.size != len(data):
-                raise IOError("Added data length does not match the current" +
+                raise OSError("Added data length does not match the current" +
                               "one")
             self.data += data
     
@@ -256,7 +256,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                 k += 1
 
 
-class PumpProbeSpectrumCalculator():
+class PumpProbeSpectrumCalculator:
     
     t2axis = derived_type("t2axis",TimeAxis)
     t3axis = derived_type("t3axis",TimeAxis)
@@ -474,7 +474,7 @@ class PumpProbeSpectrumCalculator():
             "the only supported measurement setting for this calculation. Set " +\
             "polarization angle between first two pulses and the last two to" +\
             "54.7356103 deg. and repeat the calculation."
-            raise IOError(message)
+            raise OSError(message)
 
         self.system = copy.deepcopy(sys)
         
@@ -716,7 +716,7 @@ class PumpProbeSpectrumCalculator():
         ctimeAxis = cfm.timeAxis
         
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise IOError("Correlation function should be defined on interval"+ 
+            raise OSError("Correlation function should be defined on interval"+ 
                           " (0, t2_max+t3_max).")
         
         # get number of monomeric basis states
@@ -805,7 +805,7 @@ class PumpProbeSpectrumCalculator():
         ctimeAxis = cfm.timeAxis
         
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise IOError("Correlation function should be defined on interval"+ 
+            raise OSError("Correlation function should be defined on interval"+ 
                           " (0, t2_max+t3_max).")
         
         # get number of monomeric basis states
@@ -906,7 +906,7 @@ class PumpProbeSpectrumCalculator():
         ctimeAxis = cfm.timeAxis
         
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise IOError("Correlation function should be defined on interval"+ 
+            raise OSError("Correlation function should be defined on interval"+ 
                           " (0, t2_max+t3_max).")
         
         # get number of monomeric basis states

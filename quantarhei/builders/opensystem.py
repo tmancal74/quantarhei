@@ -19,7 +19,7 @@ from .. import COMPLEX
 
 from ..core.units import eps0_int, c_int
 
-class OpenSystem():
+class OpenSystem:
     """The class representing a general open quantum system
 
     It provides routines to store and extract the most interesting
@@ -1236,7 +1236,7 @@ class OpenSystem():
 
 
     def integrate_deposited_energy(self, rho_t, field, ome=None):
-        """ Integrates the energy deposited into the system by light
+        r""" Integrates the energy deposited into the system by light
 
         By default, rho_t and field contain the optical frequency. If ome and dt are defined,
         it is assumed that rho_t was calculated using a single frequency (global) RWA. In that
@@ -1310,7 +1310,7 @@ class OpenSystem():
             HH = HH_in.copy()
 
         if self._diagonalized:
-            raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
+            raise OSError("Not possible to obtain the exciton properties for diagonalized aggregate")
 
         if adiabatic is not None:
             if adiabatic != False:

@@ -251,7 +251,7 @@ def do_command_run(args):
 
             # launch this properly, so that it gives information
             # on the origin of exceptions
-            with open(scr,'U') as fp:
+            with open(scr) as fp:
                 code = fp.read()
                 glbs = globals()
                 glbs.update(dict(_input_file_=input_file))

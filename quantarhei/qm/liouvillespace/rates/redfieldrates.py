@@ -135,9 +135,9 @@ class RedfieldRateMatrix:
                             cc[k,i,j] = 0.0
                         else:
                             if Om[j,i] < 0.0:
-                                cc[k,i,j] = numpy.real((cw.at(Om[i,j],
+                                cc[k,i,j] = numpy.real(cw.at(Om[i,j],
                                 approx="spline")
-                                *numpy.exp(-Om[i,j]/(kB_intK*Temp))))
+                                *numpy.exp(-Om[i,j]/(kB_intK*Temp)))
                             else:
                                 cc[k,i,j] = numpy.real(cw.at(Om[j,i],
                                 approx="spline"))

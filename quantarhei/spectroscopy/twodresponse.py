@@ -511,10 +511,10 @@ def twodspectrum_dictionary(name, dtype):
     @prop.setter
     def prop(self, value):
         
-        ini = getattr(self, "storage_initialized")
+        ini = self.storage_initialized
         if not ini:
             setattr(self, storage_name, {})
-            setattr(self, "storage_initialized", True)
+            self.storage_initialized = True
         
         if isinstance(value, numpy.ndarray):
 
@@ -594,8 +594,8 @@ def twodspectrum_dictionary(name, dtype):
                     
                                         
         else:
-            raise TypeError('{} must contain \
-                            values of type {})'.format(name, dtype), dtype)
+            raise TypeError(f'{name} must contain \
+                            values of type {dtype})', dtype)
             
     return prop
 

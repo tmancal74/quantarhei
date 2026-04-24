@@ -2404,7 +2404,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             HH = HH_in.copy()
 
         if self._diagonalized:
-            raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
+            raise OSError("Not possible to obtain the exciton properties for diagonalized aggregate")
 
         if adiabatic is not None:
             if adiabatic != False:

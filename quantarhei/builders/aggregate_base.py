@@ -2676,7 +2676,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             #have egcf matrices. They could just have correlation funtions.
             for i in range(self.nmono):
                 if self.monomers[i]._is_mapped_on_egcf_matrix and \
-                not (self.monomers[i].egcf_matrix is self.egcf_matrix):
+                self.monomers[i].egcf_matrix is not self.egcf_matrix:
                     # TODO: Ask about this - it would mean that every monomer has the same energy gap correlation function
                     raise Exception("Correlation matrix in the monomer" +
                                     " has to be the same as the one of" +
@@ -3476,7 +3476,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             HH = HH_in.copy()
 
         if self._diagonalized:
-            raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
+            raise OSError("Not possible to obtain the exciton properties for diagonalized aggregate")
 
         if adiabatic is not None:
             if adiabatic != False:
@@ -3795,7 +3795,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 # Check for the double excited state on single molecule
                 for n in range(N1b, self.Ntot):
                     if self.twoex_indx[n,1] == 0:
-                        text = "State {:} is double excited state on single molecule.".format(n) +\
+                        text = f"State {n} is double excited state on single molecule." +\
                         " For this state transition width transformation is not defined." +\
                         " Correct the diagonalization rutine in aggregate_base!!! "
                         warnings.warn(text)

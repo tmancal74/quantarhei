@@ -152,7 +152,7 @@ class LabSetup:
 
             The same formulae are used for time- and frequency domain
             definitions. For time domain, :math:`t` should be used in stead of
-            :math:`\omega`.
+            :math:`\\omega`.
 
             **numeric** pulse is specified by a second parameters `function`
             which should be of DFunction type and specifies line shape around
@@ -1282,7 +1282,7 @@ def _get_example_lab():
     return lab
 
 
-class LabField():
+class LabField:
     """Class representing electric field of a laser pulse defined in LabSetup
 
 
@@ -1545,7 +1545,7 @@ class LabField():
         self._center_changed = False
 
 
-    def set_delay_phase(self, val):
+    def set_delay_phase(self, val):  # type: ignore[no-redef]
         """Calculate and set delay phases
 
         """

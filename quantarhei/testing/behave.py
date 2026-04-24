@@ -127,7 +127,7 @@ def fetch_test_feature_file(context, filename):
     context.output = ""
 
 
-class testdir():
+class testdir:
     """Context manager for test directory
 
     With this context manager we enter temporary directory which was

@@ -49,9 +49,9 @@ class SystemBathInteraction(Saveable):
     dtype : str
         Type of the dehasing defined in `drates`. The types are "Lorentzian"
         which is default, and correponds to a dephasing rate equation with
-        the term -\gamma\rho_{ab} on the right hand side. The dephasing
+        the term -\\gamma\rho_{ab} on the right hand side. The dephasing
         is exponential. The type "Gaussian" results in a Gaussian dephasing
-        and corresponds to the term -\gamma t \rho_{ab} on the right hand 
+        and corresponds to the term -\\gamma t \rho_{ab} on the right hand 
         side of the rate equation.
 
     osites : list, array

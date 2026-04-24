@@ -20,8 +20,7 @@ def timeit(msg=None,show_stamp=False, loglevel=5, verbose=True):
     if msg is not None:
         printlog(msg, loglevel=loglevel, verbose=verbose)
     if show_stamp:
-        printlog("Time stamp: {0:%Y-%m-%d %H:%M:%S}".format(
-                 datetime.datetime.now()))
+        printlog(f"Time stamp: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}")
     lconf.time_stamp.put(time.time())
 
 
@@ -31,8 +30,7 @@ def untimeit(show_stamp=False):
     """
     tm2 = time.time()
     if show_stamp:
-        printlog("Time stamp: {0:%Y-%m-%d %H:%M:%S}".format(
-                 datetime.datetime.now()))
+        printlog(f"Time stamp: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}")
     lconf = Manager().log_conf
     return tm2 - lconf.time_stamp.get()
 
@@ -43,8 +41,7 @@ def finished_in(show_stamp=False,loglevel=5, verbose=True):
     """
     tm = untimeit()
     if show_stamp:
-         printlog("... finished at {0:%Y-%m-%d %H:%M:%S} in".format(
-                 datetime.datetime.now()),tm,"sec", loglevel=loglevel,
+         printlog(f"... finished at {datetime.datetime.now():%Y-%m-%d %H:%M:%S} in",tm,"sec", loglevel=loglevel,
                  verbose=verbose)       
     else:
         printlog("... finished in",tm,"sec", loglevel=loglevel, 
@@ -57,8 +54,7 @@ def done_in(show_stamp=False,loglevel=5, verbose=True):
     """
     tm = untimeit()
     if show_stamp:
-        printlog("... done at {0:%Y-%m-%d %H:%M:%S} in".format(
-                 datetime.datetime.now()),tm,"sec", loglevel=loglevel,
+        printlog(f"... done at {datetime.datetime.now():%Y-%m-%d %H:%M:%S} in",tm,"sec", loglevel=loglevel,
                  verbose=verbose)
     else:
         printlog("... done in",tm,"sec", loglevel=loglevel, verbose=verbose)

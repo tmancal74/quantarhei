@@ -16,7 +16,7 @@ from ..core.time import TimeAxis
 from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 
 
-class ModelGenerator():
+class ModelGenerator:
     
     def __init__(self):
         self.name = ""

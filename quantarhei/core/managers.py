@@ -168,7 +168,7 @@ class Manager(metaclass=Singleton):
 
         else:
             # load the main configuration file
-            with open(self.cfile, 'r') as f:
+            with open(self.cfile) as f:
                 self.main_conf = json.load(f)
                 
                 
@@ -434,7 +434,7 @@ class Manager(metaclass=Singleton):
     def load_implementations(self):
         imp_file = self.main_conf["implementations"]
         imp_file = os.path.join(self.conf_path,imp_file)
-        with open(imp_file,'r') as f:
+        with open(imp_file) as f:
             implementations = json.load(f)
             self.implementation_points = implementations["imp_points"]
             self.all_implementations = implementations["all_available"]
@@ -452,7 +452,7 @@ class Manager(metaclass=Singleton):
     def load_units(self):
         units_file = self.main_conf["units"]
         units_file = os.path.join(self.conf_path,units_file)
-        with open(units_file,'r') as f:
+        with open(units_file) as f:
             self.current_units = json.load(f)       
     
     def get_real_type(self):

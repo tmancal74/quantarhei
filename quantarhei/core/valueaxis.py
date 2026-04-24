@@ -326,7 +326,7 @@ class ValueAxis(Saveable):
         Nst = round(self.step/axis.step)
         ret = ret and (Nst*axis.step == self.step)
         ret = ret and ((self.start in axis.data) and (self.start < axis.max))
-        ret = ret and ((self.max in axis.data))
+        ret = ret and (self.max in axis.data)
         
         return ret
     
@@ -377,7 +377,7 @@ class ValueAxis(Saveable):
         Nst = round(axis.step/self.step)
         ret = ret and (Nst*self.step == axis.step)
         ret = ret and ((axis.start in self.data) and (axis.start < self.max))
-        ret = ret and ((axis.max in self.data))        
+        ret = ret and (axis.max in self.data)        
         
         return ret
     
