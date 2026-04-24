@@ -802,7 +802,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
         else:
             try:
                 q = self.system.get_lindich_axes()
-            except:
+            except Exception:
                 raise Exception('No orthogonal axis system provided for\
                                 calculation of linear dichroism.')
 

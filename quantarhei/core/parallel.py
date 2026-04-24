@@ -28,7 +28,7 @@ class DistributedConfiguration:
         try:
             from mpi4py import MPI
             self.have_mpi = True
-        except:
+        except ImportError:
             self.have_mpi = False
             #print("WARNING: MPI import failed - switching to serial.")
             #print("WARNING: If you run this with mpiexec/mpirun,"

@@ -32,7 +32,7 @@ try:
     from aceto.lab_settings import lab_settings
     _have_aceto = True
 
-except:
+except ImportError:
     #
     # FIXME: There should be an optional warning and a fall back onto
     # quantarhei.implementations.aceto module

@@ -720,7 +720,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
                 try:
                     ln_t = len(text_loc)
                     ln_l = len(label)
-                except:
+                except TypeError:
                     raise Exception("text_loc and label parameters must be"
                                     " lists of the same lengths")
 
@@ -752,7 +752,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
                      self.yaxis.data[i3_min:i3_max],
                      realout, levels=poslevels, colors="k")
                      #linewidth=1)
-        except:
+        except (UserWarning, ValueError):
             pass
             #print("No positive contours found; not plotted")
 
@@ -764,7 +764,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
                          self.yaxis.data[i3_min:i3_max],
                          realout, levels=[0],colors="b")
                          #linewidth=1)
-            except:
+            except (UserWarning, ValueError):
                 pass
                 #print("Zero contour not found; not plotting")
 
@@ -775,7 +775,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
                          self.yaxis.data[i3_min:i3_max],
                          realout, levels=neglevels, colors="k")
                          #linewidth=1)
-            except:
+            except (UserWarning, ValueError):
                 pass
                 #print("Negative contour not found; not plotting")
 
@@ -796,7 +796,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
                 try:
                     en1 = en[0]
                     co1 = en[1]
-                except:
+                except (TypeError, IndexError):
                     en1 = en
                     co1 = '--k'
 

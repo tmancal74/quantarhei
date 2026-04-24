@@ -260,7 +260,7 @@ class SpectralDensityDB:
 
         try:
             sd = inst.get_SpectralDensity(axis)
-        except:
+        except Exception:
             raise Exception("Could not obtain spectral density from "
                             "definition class for : "+ident)
 

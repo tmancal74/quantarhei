@@ -112,7 +112,7 @@ class AggregateSpectroscopy(AggregateBase):
                                         lp.add_transition((i3g,i4e),+1)
                                         # |g_i3> <g_i3|
 
-                                    except:
+                                    except Exception:
 
 
                                         break
@@ -180,7 +180,7 @@ class AggregateSpectroscopy(AggregateBase):
                                         lp.add_transition((i4g,i3e),+1)
                                         #      |g_i4> <g_i4|
 
-                                    except:
+                                    except Exception:
 
                                         break
 
@@ -255,7 +255,7 @@ class AggregateSpectroscopy(AggregateBase):
                                         lp.add_transition((i4g,i2e),+1)
                                         #      |g_i4> <g_i4|
 
-                                    except:
+                                    except Exception:
 
                                         break
 
@@ -329,7 +329,7 @@ class AggregateSpectroscopy(AggregateBase):
                                         lp.add_transition((i1g,i4e),+1)
                                         #      |g_i1> <g_i1|
 
-                                    except:
+                                    except Exception:
 
                                         break
 
@@ -343,7 +343,7 @@ class AggregateSpectroscopy(AggregateBase):
                 nes = self.get_excitonic_band(band=1)
                 try:
                     nfs = self.get_excitonic_band(band=2)
-                except:
+                except Exception:
                     break
 
 #                print(ngs)
@@ -411,7 +411,7 @@ class AggregateSpectroscopy(AggregateBase):
                                         lp.add_transition((i2e,i4f),+1)
                                         #      |e_i2> <e_i2|
 
-                                    except:
+                                    except Exception:
 
                                         break
 
@@ -426,7 +426,7 @@ class AggregateSpectroscopy(AggregateBase):
 
                 try:
                     nfs = self.get_excitonic_band(band=2)
-                except:
+                except Exception:
                     break
 
 
@@ -486,7 +486,7 @@ class AggregateSpectroscopy(AggregateBase):
                                         lp.add_transition((i3e,i4f),+1)
                                         #      |e_i3> <e_i3|
 
-                                    except:
+                                    except Exception:
 
                                         break
 
@@ -647,7 +647,7 @@ class AggregateSpectroscopy(AggregateBase):
                                                 lp.add_transition((i5g,i6e),+1)
                                                 #      |g_i5> <g_i5|
 
-                                            except:
+                                            except Exception:
 
                                                 break
 
@@ -762,7 +762,7 @@ class AggregateSpectroscopy(AggregateBase):
                 eUt2_dat[:,:,:,:] = eUt2.data                                #
 #----------------------------------------------
 
-        except:
+        except AttributeError:
             # or it is only a super operator at a given time t2
             # in this case 'ham' must be specified
             eUt2 = eUt
@@ -1039,7 +1039,7 @@ def _generate_R1g(self, i1g, i2e, i3e, i2d, i3d, i4g, evf, verbose=0):
               deph=deph3)
         #      |g_i4> <g_i4|
 
-    except:
+    except Exception:
 
         raise Exception("Pathway generation failed")
 
@@ -1160,7 +1160,7 @@ def generate_R1gE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                                                       deph=deph3)
                                                     #      |g_i4> <g_i4|
 
-                                                except:
+                                                except Exception:
 
                                                     raise Exception()
                                                     break
@@ -1285,7 +1285,7 @@ def generate_R2g(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                                                       deph=deph3)
                                                     #      |g_i4> <g_i4|
 
-                                                except:
+                                                except Exception:
 
                                                     raise Exception()
                                                     break
@@ -1410,7 +1410,7 @@ def generate_R2gE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                                                       deph=deph3)
                                                     #      |g_i4> <g_i4|
 
-                                                except:
+                                                except Exception:
 
                                                     raise Exception()
                                                     break
@@ -1521,7 +1521,7 @@ def generate_R3g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
 
                                         lp.set_evolution_factor(evf)
 
-                                    except:
+                                    except Exception:
 
                                         raise Exception("Generation of pathway failed")
 
@@ -1634,7 +1634,7 @@ def generate_R4g(self, lst, eUt2, pop_tol, dip_tol, verbose=0):
 
                                         lp.set_evolution_factor(evf)
 
-                                    except:
+                                    except Exception:
 
                                         break
 
@@ -1652,7 +1652,7 @@ def generate_R1f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
     nes = self.get_excitonic_band(band=1)
     try:
         nfs = self.get_excitonic_band(band=2)
-    except:
+    except Exception:
         raise Exception("Excited states not available for R1f* pathway"
                         " generation")
 
@@ -1759,7 +1759,7 @@ def generate_R1f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                                                       deph=deph3)
                                                     #      |d_i2> <d_i2|
 
-                                                except:
+                                                except Exception:
 
                                                     raise Exception("Construction"
                                                     "relaxation pathway failed")
@@ -1775,7 +1775,7 @@ def generate_R2f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
 
     try:
         nfs = self.get_excitonic_band(band=2)
-    except:
+    except Exception:
         raise Exception("Excited states not available for R2f* pathway"
                         " generation")
 
@@ -1886,7 +1886,7 @@ def generate_R2f(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                                                       deph=deph3)
                                                     #      |d_i3> <d_i3|
 
-                                                except:
+                                                except Exception:
 
                                                     break
 
@@ -2004,7 +2004,7 @@ def generate_R1fE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                                                       deph=deph3)
                                                     #      |g_i2> <g_i2|
 
-                                                except:
+                                                except Exception:
 
                                                     raise Exception("Construction"
                                                     "relaxation pathway failed")
@@ -2125,7 +2125,7 @@ def generate_R2fE(self, lst, eUt2, pop_tol, dip_tol, evf_tol, verbose=0):
                                                                       deph=deph3)
                                                     #      |g_i3> <g_i3|
 
-                                                except:
+                                                except Exception:
 
                                                     break
 
@@ -2204,7 +2204,7 @@ def generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose=0):
                                           deph=deph1)
                         #      |g_i1> <g_i1|
 
-                    except:
+                    except Exception:
 
                         break
 

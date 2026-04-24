@@ -105,19 +105,19 @@ def parsing():
     try:
         with open(filename) as myfile:
             data = myfile.read()
-    except:
+    except (OSError, IOError):
         raise Exception("Problems reading file: "+filename)
 
     parser = Parser()
     try:
         feature_file = parser.parse(TokenScanner(data))
-    except:
+    except Exception:
         raise Exception("Problem parsing file: "+filename+
                         " - is it a feature file?")
 
     try:
         children = feature_file["feature"]["children"]
-    except:
+    except (KeyError, TypeError):
         raise Exception("No scenarii or scenario outlines")
 
     return dict(children=children, ddir=ddir,

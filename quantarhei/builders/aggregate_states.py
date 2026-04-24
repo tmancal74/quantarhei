@@ -405,7 +405,7 @@ class VibronicState(UnitsManaged):
         try:
             agg = self.elstate.aggregate
             self.index = agg.vibsigs.index((elstate.elsignature, vsig))
-        except:
+        except (AttributeError, ValueError):
             self.index = None
 
 
@@ -539,7 +539,7 @@ class Coherence:
         try:
             system1 = state1.system
             system2 = state2.system
-        except:
+        except AttributeError:
             raise Exception("At least one of the states"
                             " does not know its system")
 

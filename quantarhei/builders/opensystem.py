@@ -44,7 +44,7 @@ class OpenSystem:
                     i_en.append(ssub)
                     which_band.append(nband)
                 nband += 1
-            except:
+            except TypeError:
                 count += 1
                 i_en.append(sub)
                 which_band.append(nband)
@@ -380,7 +380,7 @@ class OpenSystem:
         try:
             self.dmoments[n, m, :] = vc
             self.dmoments[m, n, :] = numpy.conj(vc)
-        except:
+        except (IndexError, AttributeError):
             raise Exception()
 
 
@@ -421,7 +421,7 @@ class OpenSystem:
 
         try:
             return self.dmoments[n, m, :]
-        except:
+        except (IndexError, AttributeError):
             raise Exception()
 
 
@@ -1319,7 +1319,7 @@ class OpenSystem:
 
                 rate += dip2*(ome**3)/(3.0*numpy.pi*eps*(c_int**3))
 
-        except:
+        except (IndexError, AttributeError, ValueError, ZeroDivisionError):
             raise Exception("Calculation of rate failed")
 
         if rate > 0.0:

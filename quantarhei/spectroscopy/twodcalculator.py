@@ -295,7 +295,7 @@ class TwoDResponseCalculator:
         """
         try:
             tt2 = self.t2axis.data[tc]
-        except:
+        except (IndexError, AttributeError):
             print("Time axis error:\n"
                   "  perhaps tc =", tc, " (representing t2 population time) is outside range?")
             print("You can reset automatic calculation along the population time axes by calling:")

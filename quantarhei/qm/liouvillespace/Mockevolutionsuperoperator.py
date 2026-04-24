@@ -254,7 +254,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         try:
             self.dim = ham.dim
-        except:
+        except AttributeError:
             self.dim = 1
 
         self.dense_time = None

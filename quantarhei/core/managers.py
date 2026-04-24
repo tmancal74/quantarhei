@@ -133,7 +133,7 @@ class Manager(metaclass=Singleton):
         try:
             # this is numpy 1.14
             numpy.set_printoptions(precision=8, sign=' ', legacy='1.13')
-        except:
+        except TypeError:
             # before there was no `sign` parameters
             numpy.set_printoptions(precision=8)
 
@@ -324,7 +324,7 @@ class Manager(metaclass=Singleton):
             #    self.log_conf.verbosity -= 2
             #    self.log_conf.fverbosity -= 2
             #print(dc.rank, self.log_conf.verbosity)
-        except:
+        except Exception:
             self.parallel_conf = None
 
 
@@ -399,7 +399,7 @@ class Manager(metaclass=Singleton):
             #print(self)
             foo.configure(self)
             #print("..done")
-        except:
+        except Exception:
             raise Exception()
 
     def save_settings(self):
@@ -596,7 +596,7 @@ class Manager(metaclass=Singleton):
                 ret = numpy.zeros(val.shape, dtype=val.dtype)
                 ret[val!=0.0] = 1.0/val[val!=0]
                 return ret/cfact
-            except:
+            except AttributeError:
                 return (1.0/val)/cfact
             #if val == 0.0:
             #    return 0.0
@@ -624,7 +624,7 @@ class Manager(metaclass=Singleton):
                 ret = numpy.zeros(val.shape, dtype=val.dtype)
                 ret[val!=0.0] = 1.0/val[val!=0]
                 return ret/cfact
-            except:
+            except AttributeError:
                 return (1.0/val)/cfact
         else:
             return val/cfact

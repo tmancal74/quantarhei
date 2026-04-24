@@ -247,7 +247,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         try:
             self.dim = ham.dim
-        except:
+        except AttributeError:
             self.dim = 1
 
         # keeps track of RWA

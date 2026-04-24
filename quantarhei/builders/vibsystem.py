@@ -306,7 +306,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             try:
                 sbi = md.get_SystemBathInteraction()
 
-            except:
+            except Exception:
                 skip_relaxation = True
 
             if not skip_relaxation:

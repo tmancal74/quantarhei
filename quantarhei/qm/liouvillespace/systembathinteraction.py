@@ -409,7 +409,7 @@ class SystemBathInteraction(Saveable):
             T = self.get_temperature()
             if T >= 0.0:
                 return True
-        except:
+        except Exception:
             return False
 
 

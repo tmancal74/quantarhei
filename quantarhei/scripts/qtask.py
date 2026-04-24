@@ -43,7 +43,7 @@ def do_process(args):
         try:
             INP = qr.Input(fname)
             code = tasks(INP.tasks, INP)
-        except:
+        except Exception:
             print(traceback.format_exc())
             return
 
@@ -109,5 +109,5 @@ def main():
     try:
         if args.func:
             args.func(args)
-    except:
+    except AttributeError:
         parser.error("No arguments provided")

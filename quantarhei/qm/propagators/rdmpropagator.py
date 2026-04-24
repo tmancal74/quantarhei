@@ -907,7 +907,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         try:
             self.has_Iterm = self.RelaxationTensor.has_Iterm
-        except:
+        except AttributeError:
             print("Warning: This relaxation tensor does not support has_Iterm")
             self.has_Iterm = False
 
@@ -1106,7 +1106,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         try:
             self.has_Iterm = self.RelaxationTensor.has_Iterm
-        except:
+        except AttributeError:
             print(self, "This tensor does not support has_Iterm")
             self.has_Iterm = False
 
@@ -1237,7 +1237,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         try:
             self.has_Iterm = self.RelaxationTensor.has_Iterm
-        except:
+        except AttributeError:
             print(self, "This tensor does not support has_Iterm")
             self.has_Iterm = False
 
@@ -1512,7 +1512,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             try:
                 Nfields = len(self.EField)
-            except:
+            except TypeError:
                 Nfields = 1
 
 

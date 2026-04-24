@@ -552,7 +552,7 @@ def load_pathways_by_t2(t2, name="pathways", ext="qrp", directory=".",
     path = os.path.join(directory, fname)
     try:
         pw = load_parcel(path)
-    except:
+    except Exception:
         print("Error while loading")
         return []
 

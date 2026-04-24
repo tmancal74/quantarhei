@@ -77,7 +77,7 @@ class unique_list:
         try:
             ind = self._storage.index(obj)
             self._indices.append(ind)
-        except:
+        except ValueError:
             self._storage.append(obj)
             ind = self._storage.index(obj)
             self._indices.append(ind)
@@ -93,7 +93,7 @@ class unique_list:
         try:
             ind = self._storage.index(obj)
             self._indices[i] = ind
-        except:
+        except ValueError:
             self._storage.append(obj)
             ind = self._storage.index(obj)
             self._indices[i]= ind

@@ -165,7 +165,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         try:
             sys.diagonalize()
-        except:
+        except AttributeError:
             pass
 
         tcont = TwoDResponseContainer(t2axis=self.t2axis)
@@ -185,7 +185,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             if show_progress:
                 try:
                     print("   "+str(len(pways[str(T2)])), "pathways used")
-                except:
+                except KeyError:
                     pass
 
             if twod1 is not None:
@@ -205,12 +205,12 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         """
         try:
             Uin = eUt.at(t2)
-        except:
+        except (AttributeError, IndexError):
             Uin = eUt
 
         try:
             sys.diagonalize()
-        except:
+        except AttributeError:
             pass
 
         H = eUt.get_Hamiltonian()

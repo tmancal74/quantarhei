@@ -434,7 +434,7 @@ class DFunction(Saveable, DataSaveable):
         # FIXME: we need qr.FLOAT or more flexible, here
         try:
             ln = len(x_in)
-        except:
+        except TypeError:
             ln = 0
 
         if ln > 0:

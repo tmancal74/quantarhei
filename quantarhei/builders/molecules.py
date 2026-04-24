@@ -766,7 +766,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     def get_dipole(self, N, M):
         try:
             return self.dmoments[N, M, :]
-        except:
+        except (IndexError, TypeError):
             raise Exception()
 
 
@@ -775,14 +775,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             if self._has_transition_velocity:
                 return self.dvmoments[N, M, :]
             raise Exception()
-        except:
+        except (IndexError, TypeError, AttributeError):
             raise Exception()
 
 
     def get_magnetic_dipole(self, N, M):
         try:
             return self.mmoments[N, M, :]
-        except:
+        except (IndexError, TypeError):
             raise Exception()
 
 
@@ -800,7 +800,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         try:
             self.dmoments[n, m, :] = vc
             self.dmoments[m, n, :] = numpy.conj(vc)
-        except:
+        except (IndexError, ValueError):
             raise Exception()
 
     def set_velocity_dipole(self, N, M, vec=None):
@@ -822,7 +822,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             self.dvmoments[n, m, :] = vc
             self.dvmoments[m, n, :] = numpy.conj(vc)
             self._has_transition_velocity = True
-        except:
+        except (IndexError, ValueError):
             raise Exception()
 
     def set_velocity_dipole_from_dipole(self):
@@ -861,7 +861,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         try:
             self.mmoments[n, m, :] = vec_int
             self.mmoments[m, n, :] = numpy.conj(vec_int)
-        except:
+        except (IndexError, ValueError):
             raise Exception()
 
     def set_magnetic_dipoleR(self, N, M, vec, RR=None):
@@ -881,7 +881,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # So far vec in atomic units (complex) and R in Angstroms
         try:
             dv = self.dvmoments[n, m, :]
-        except:
+        except (IndexError, TypeError):
             DE = self.elenergies[m] - self.elenergies[n]
             dv = -1j*self.dmoments[n,m,:]*DE
 
@@ -1098,7 +1098,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         try:
             return self.convert_energy_2_current_u(self.elenergies[N])
-        except:
+        except (IndexError, TypeError):
             raise Exception()
 
 
@@ -1172,7 +1172,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
             try:
                 egcf =  self.get_transition_environment([0,1])
-            except:
+            except Exception:
                 egcf = None
 
             if egcf is None:
@@ -2053,7 +2053,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
             try:
                 totdim = self.totstates
-            except:
+            except AttributeError:
                 HH = self.get_Hamiltonian()
                 totdim = HH.dim
 
@@ -2382,7 +2382,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         out += f"\n   name = {self.name}  \n"
         try:
             out += f"   position = [{self.position[0]!r}, {self.position[1]!r}, {self.position[2]!r}] \n"
-        except:
+        except (AttributeError, TypeError):
             out += "   position = None\n"
 
 
@@ -2563,7 +2563,7 @@ def generate_1orderP_sec(self, lst,
                                           deph=deph1)
                         #      |g_i1> <g_i1|
 
-                    except:
+                    except Exception:
 
                         break
 

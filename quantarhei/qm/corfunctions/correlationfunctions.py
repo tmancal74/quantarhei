@@ -115,7 +115,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 self._is_composed = False
                 p2calc.append(params)
 
-            except:
+            except AttributeError:
                 # othewise we assume it is a list of dictionaries
                 self._is_composed = True
                 for p in params:
@@ -142,7 +142,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                         else:
                             prms[key] = params[key]
 
-                except:
+                except KeyError:
                     raise Exception("Dictionary of parameters does not contain "
                                     " `ftype` key")
 
@@ -765,7 +765,7 @@ class LineshapeFunction(DFunction, UnitsManaged):
         # FIXME: This DOES NOT WORK!!!, we need something else to distinguish
         try:
             N = len(params)
-        except:
+        except TypeError:
             N = 1
 
         #print(N, params)
@@ -829,7 +829,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
             self._is_composed = False
             p2calc.append(params)
 
-        except:
+        except AttributeError:
             # othewise we assume it is a list of dictionaries
             self._is_composed = True
             for p in params:
@@ -851,7 +851,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
                     else:
                         prms[key] = params[key]
 
-            except:
+            except KeyError:
                 raise Exception("Dictionary of parameters does not contain "
                                 " `ftype` key")
         self.params = prms
@@ -916,7 +916,7 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
             self._is_composed = False
             p2calc.append(params)
 
-        except:
+        except AttributeError:
             # othewise we assume it is a list of dictionaries
             self._is_composed = True
             for p in params:
@@ -993,7 +993,7 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
             self._is_composed = False
             p2calc.append(params)
 
-        except:
+        except AttributeError:
             # othewise we assume it is a list of dictionaries
             self._is_composed = True
             for p in params:

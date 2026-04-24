@@ -147,7 +147,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                 self._is_composed = False
                 p2calc.append(params)
 
-            except:
+            except AttributeError:
                 # othewise we assume it is a list of dictionaries
                 self._is_composed = True
                 for p in params:
@@ -177,7 +177,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                         else:
                             prms[key] = params[key]
 
-                except:
+                except KeyError:
                     raise Exception
 
                 if "T" in params.keys():
@@ -219,7 +219,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         """
         try:
             ctime = params["cortime"]
-        except:
+        except KeyError:
             gamma = params["gamma"]
             ctime = 1/gamma
         lamb = params["reorg"]
@@ -315,7 +315,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                 try:
                     ss = [params['s1'], params['s2']]
                     freq = [params["freq1"], params["freq2"]]
-                except:
+                except KeyError:
                     ss = [0.8, 0.5]
                     freq = [convert(0.56, "1/cm", "int"), convert(1.9, "1/cm", "int")]
 
@@ -337,7 +337,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                     omega1c = convert(params['om1'], "1/cm", "int")
                     omega2c = convert(params['om2'], "1/cm", "int")
                     omega3c = convert(params['om3'], "1/cm", "int")
-                except:
+                except KeyError:
                     omega1c = convert(170, "1/cm", "int")
                     omega2c = convert(34, "1/cm", "int")
                     omega3c = convert(69, "1/cm", "int")
@@ -380,7 +380,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             function_change_point = params['fcp']
             g_FWHM = params['g_FWHM']
             l_FWHM = params['l_FWHM']
-        except:
+        except KeyError:
             function_change_point = self.manager.iu_energy(22,
                                        units="1/cm")
             g_FWHM = self.manager.iu_energy(20,

@@ -135,7 +135,7 @@ def _pathways_to_processes(obj, process):
             # pways corresponding to a given type
             try:
                 pways = obj._d__data[typ]
-            except:
+            except KeyError:
                 pways = []
             # sum those pathways
             for tag in pways:
@@ -164,7 +164,7 @@ def _pathways_to_signals(obj, signal):
             # pways corresponding to a given type
             try:
                 pways = obj._d__data[typ]
-            except:
+            except KeyError:
                 pways = []
             # sum those pathways
             for tag in pways:
@@ -349,7 +349,7 @@ def twodspectrum_dictionary(name, dtype):
 
                     try:
                         piece = storage[self.current_dtype]
-                    except:
+                    except KeyError:
                         return numpy.zeros((self.xaxis.length,
                                             self.yaxis.length),
                                             dtype=COMPLEX)
@@ -619,7 +619,7 @@ def twod_data_wrapper(dtype):
             try:
                 vl = check_numpy_array(value)
                 setattr(self,storage_name,vl)
-            except:
+            except (TypeError, ValueError):
                 raise TypeError(
                 'Value must be either a list or numpy.array')
         else:
@@ -1106,7 +1106,7 @@ class TwoDSpectrumBase(DataSaveable):
                     self.set_data_flag([dtype, tag])
                     try:
                         odata = self.d__data
-                    except:
+                    except Exception:
                         odata = None
 
                     if odata is None:
@@ -1128,7 +1128,7 @@ class TwoDSpectrumBase(DataSaveable):
                 self.set_data_flag(dtype)
                 try:
                     odata = self.d__data
-                except:
+                except Exception:
                     odata = None
 
                 if odata is None:
@@ -1151,7 +1151,7 @@ class TwoDSpectrumBase(DataSaveable):
                 self.set_data_flag(dtype)
                 try:
                     odata = self.d__data
-                except:
+                except Exception:
                     odata = None
 
                 if odata is None:
@@ -1173,7 +1173,7 @@ class TwoDSpectrumBase(DataSaveable):
                 self.set_data_flag(dtype)
                 try:
                     odata = self.d__data
-                except:
+                except Exception:
                     odata = None
 
                 if odata is None:
@@ -1195,7 +1195,7 @@ class TwoDSpectrumBase(DataSaveable):
                 self.set_data_flag(dtype)
                 try:
                     odata = self.d__data
-                except:
+                except Exception:
                     odata = None
 
                 if odata is None:
@@ -1292,7 +1292,7 @@ class TwoDSpectrumBase(DataSaveable):
             data_ex = True
             try:
                 data = self._d__data[_total]
-            except:
+            except KeyError:
                 data_ex = False
             if data_ex:
                 key = _total
@@ -1816,7 +1816,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
                      self.yaxis.data[i3_min:i3_max],
                      realout, levels=poslevels, colors="k")
                      #linewidth=1)
-        except:
+        except ValueError:
             print("No positive contours found; not plotted")
 
         # other contours only if we do not plot absolute values
@@ -1827,7 +1827,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
                          self.yaxis.data[i3_min:i3_max],
                          realout, levels=[0],colors="b")
                          #linewidth=1)
-            except:
+            except ValueError:
                 print("Zero contour not found; not plotting")
 
 
@@ -1837,7 +1837,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
                          self.yaxis.data[i3_min:i3_max],
                          realout, levels=neglevels,colors="k")
                          #linewidth=1)
-            except:
+            except ValueError:
                 print("Negative contour not found; not plotting")
 
         #
@@ -1947,7 +1947,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
                     piece_ex = True
                     try:
                         piece = self._d__data[typ]
-                    except:
+                    except KeyError:
                         piece_ex = False
                     if piece_ex:
                         for tag in piece.keys():

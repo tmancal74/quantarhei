@@ -113,7 +113,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         """
         try:
             from terminaltables import AsciiTable
-        except:
+        except ImportError:
             raise Exception("Get terminaltables package "
                             "for this functionality")
 

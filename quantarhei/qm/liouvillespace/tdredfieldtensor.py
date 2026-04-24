@@ -114,7 +114,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 #if ii >= 0:
                 #    print("Something is wrong")
                 #    raise Exception("twoex_state property ill-defined.")
-            except:
+            except AttributeError:
                 raise Exception("System requires the twoex_state property.")
 
             # There are also two-exciton bath which can also be converted into one per monomer

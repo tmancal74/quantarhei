@@ -32,12 +32,12 @@ def do_command_run(args):
         vrbint = int(verb)
         m.verbosity = vrbint
         m.fverbosity = vrbint + 2
-    except:
+    except (TypeError, ValueError):
         try:
             vrbint = verb.split(",")
             m.verbosity = int(vrbint[0])
             m.fverbosity = int(vrbint[1])
-        except:
+        except (TypeError, ValueError, IndexError):
             raise Exception("Integer or two comma separated integers required"
                             " for -y/--verbosity option")
 
@@ -132,12 +132,12 @@ def do_command_run(args):
         # see if the script name is specified, if not use the conf name + .py
         try:
             script = INP.script
-        except:
+        except AttributeError:
             script = extsplt[0]+".py"
         # see if path is defined, if not use local directory
         try:
             spath = INP.path
-        except:
+        except AttributeError:
             spath = "."
 
         scr = os.path.join(spath, script)
@@ -262,7 +262,7 @@ def do_command_run(args):
             qr.printlog(" --- Exited by SystemExit --- ", verbose=True,
                         loglevel=qr.LOG_DETAIL)
 
-        except:
+        except Exception:
 
             print(traceback.format_exc())
 
@@ -310,7 +310,7 @@ def do_command_test(args):
     have_mpi = False
     try:
         have_mpi = True
-    except:
+    except Exception:
         pass
     qr.printlog("mpi4py installed:", have_mpi)
 
@@ -347,7 +347,7 @@ def _try_cmd(cmd):
             #print(ln, end="", flush=True)
 
         retval = p.wait()
-    except:
+    except OSError:
         pass
     if retval == 0:
         ret = True
@@ -506,7 +506,7 @@ def do_command_file(args):
         qr.printlog("Saved with Quantarhei version: "+check["qrversion"],
                     loglevel=1)
         qr.printlog("Description: "+check["comment"])
-    except:
+    except Exception:
         qr.printlog("The file is not a Quantarhei parcel", loglevel=1)
         #print(traceback.format_exc())
 
@@ -753,5 +753,5 @@ def main():
     try:
         if args.func:
             args.func(args)
-    except:
+    except AttributeError:
         parser.error("No arguments provided")

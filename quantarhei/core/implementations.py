@@ -68,7 +68,7 @@ def load_function(lib,fce):
     """
     try:
         a =  import_module(lib)
-    except:
+    except ImportError:
         print("Cannot load module", lib)
 
     if hasattr(a,fce):
@@ -100,7 +100,7 @@ def get_function(func, package, taskname, default_local, always_local):
         imp_name = imp_prefix + "." + package
         fc = load_function(imp_name, taskname)
 
-    except:
+    except Exception:
 
         try:
             # fall back on pure Python implementation
@@ -112,7 +112,7 @@ def get_function(func, package, taskname, default_local, always_local):
 
             # FIXME: issue a warning
             print("WARNING: import failed, falling back on pure Python")
-        except:
+        except Exception:
             # do not provide implementation, call the decorated function itself
             # FIXME: issue a warning (this is an unwanted result)
             print("WARNING: calling decorated function itself")

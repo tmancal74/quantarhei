@@ -707,7 +707,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         try:
             im = self.mnames[name]
             return self.monomers[im]
-        except:
+        except (KeyError, IndexError):
             raise Exception()
 
 
@@ -715,7 +715,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         try:
             im = self.mnames[name]
             return im
-        except:
+        except KeyError:
             raise Exception()
 
 
@@ -755,7 +755,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             im = self.mnames[name]
             mn = self.monomers[im]
             mn.add_mode(mode)
-        except:
+        except (KeyError, IndexError):
             raise Exception()
 
     def get_Mode_by_name(self,name,N):
@@ -763,7 +763,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             im = self.mnames[name]
             mn = self.monomers[im]
             return mn.get_mode(N)
-        except:
+        except (KeyError, IndexError):
             raise Exception("Mode not found")
 
     #
@@ -774,7 +774,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             im = self.mnames[name]
             mn = self.monomers[im]
             return mn.get_dipole(N,M)
-        except:
+        except (KeyError, IndexError):
             raise Exception()
 
     def get_dipole(self, n, N, M):
@@ -813,7 +813,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             im = self.mnames[name]
             mn = self.monomers[im]
             return mn.get_energy(N)
-        except:
+        except (KeyError, IndexError):
             raise Exception()
 
 
@@ -2481,14 +2481,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         try:
                             dav = self.transition_velocity_dipole(s0, s1)
                             self._has_velocity_dipoles = True
-                        except:
+                        except (AttributeError, TypeError):
                             dav = -1j*Ea*da
                         RRv[a,b] = numpy.real(1j*numpy.dot(Ra, numpy.cross(dav,db)))
                         RR[a,b] = numpy.dot(Ra, numpy.cross(da, db))
                         RRm[a,b] = numpy.real(numpy.dot(dav,mb))
 
 
-                except:
+                except Exception:
                     pass
 
                 if a != b:
@@ -2649,7 +2649,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             # get correlation function from a monomer
             try:
                 egcf1 = self.monomers[0].get_transition_environment((0,1))
-            except:
+            except Exception:
                 # we cannot calculate EGCF matrix, there is no system-bath
                 # interaction, or it is not based on correlation functions
                 egcf_ok = False

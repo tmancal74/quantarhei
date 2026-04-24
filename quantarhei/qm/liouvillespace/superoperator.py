@@ -182,7 +182,7 @@ class SuperOperator(BasisManaged):
             try:
                 # if oper is Quantarhei operator
                 oper_ven.data = numpy.tensordot(self.data, oper.data)
-            except:
+            except AttributeError:
                 # if oper is numpy array
                 oper_ven = numpy.tensordot(self.data, oper)
 

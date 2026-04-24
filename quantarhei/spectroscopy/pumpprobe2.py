@@ -563,7 +563,7 @@ class PumpProbeSpectrumCalculator:
             #print(t2)
             Uin = eUt.at(t2)
             #print(Uin.data.shape)
-        except:
+        except (AttributeError, IndexError):
             Uin = eUt
             #print("False")
 
