@@ -53,7 +53,10 @@ from __future__ import annotations
 
 import os
 import warnings
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .parallel import DistributedConfiguration
 
 #
 # This stops future warnings, notably those in h5py library
@@ -279,7 +282,8 @@ class Manager(metaclass=Singleton):
         self.warn_about_basis_change = False
         self.warn_about_basis_changing_objects = False
 
-        self.parallel_conf: Any = None
+        self.parallel_conf: DistributedConfiguration | None = None
+        self._saved_units: dict[str, str] = {}
 
         self.save_dict: dict[str, Any] = {}
 
@@ -513,7 +517,6 @@ class Manager(metaclass=Singleton):
 
 
         """
-        self._saved_units: dict[str, str] = {}
         self._saved_units[utype] = self.get_current_units(utype)
 
         if utype in self.allowed_utypes:
@@ -780,7 +783,7 @@ class Manager(metaclass=Singleton):
         self.basis_registered[nb].append(operator)
 
 
-    def get_DistributedConfiguration(self) -> Any:
+    def get_DistributedConfiguration(self) -> "DistributedConfiguration":
         """
 
         """
