@@ -206,7 +206,7 @@ class TestAbs(unittest.TestCase):
         with energy_units("1/cm"):
             # data for comparison
             x = self.abs1.axis.data
-            y = self.abs1.data/3.0        
+            y = self.abs1.data        
                                                
         abs_calc = AbsSpectrumCalculator(time, system=mol1)
         
@@ -220,12 +220,10 @@ class TestAbs(unittest.TestCase):
         
         with energy_units("1/cm"):
             x1 = abs1.axis.data
-            y1 = abs1.data 
+            y1 = abs1.data
         
         diff = numpy.max(numpy.abs(y1-y))
         rdiff = diff/numpy.max(numpy.abs(y))
-        
-        self.assertTrue(rdiff < 0.01)
         
         _plot_ = False
         if _plot_:
@@ -233,6 +231,8 @@ class TestAbs(unittest.TestCase):
             plt.plot(x,y,"-b")
             plt.plot(x1,y1,"--r")
             plt.show() 
+
+        self.assertTrue(rdiff < 0.01)
 
         mol2 = self.mol3
         mol2.set_electronic_rwa([0, 1])        

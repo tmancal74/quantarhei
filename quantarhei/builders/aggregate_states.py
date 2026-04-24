@@ -149,6 +149,28 @@ class ElectronicState(UnitsManaged):
             
         return en
     
+    
+    def _energy(self, vsig=None):
+        """ Returns energy of the state (electronic + vibrational) in internal units
+        
+        """
+        en = 0.0
+
+        if vsig is not None:
+            if not (len(vsig) == self.vsiglength):
+                raise Exception()  
+            k = 0
+            for nn in self.vibmodes:
+                en += vsig[k]*nn.omega
+                k += 1
+
+        k = 0
+        for nn in self.elsignature:
+            en += self.aggregate.monomers[k].elenergies[nn]
+            k += 1
+            
+        return en
+    
         
     def vibenergy(self, vsig=None):
         """ Returns vibrational energy of a state
@@ -449,6 +471,13 @@ class VibronicState(UnitsManaged):
         
         """
         return self.elstate.energy(self.vsig)
+    
+    def _energy(self):
+        """Returns the energy of the state
+        
+        """
+        return self.elstate._energy(self.vsig)
+
 
 
     def vibenergy(self):
@@ -486,6 +515,14 @@ class VibronicState(UnitsManaged):
                 % self.elstate.aggregate.nmono)
         return out        
     
+    def get_monomer(self):
+        elsig = self.signature()[0]
+        nz = numpy.nonzero(elsig)[0]
+        if len(nz)==1:
+            monomer = nz[0]
+        else:
+            monomer = -1
+        return monomer
     
 class Coherence:
     """Class representing quantum mechanical coherence

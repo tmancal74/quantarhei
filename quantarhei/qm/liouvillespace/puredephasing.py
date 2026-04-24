@@ -255,8 +255,8 @@ class ElectronicPureDephasing(PureDephasing):
             Nstates = self.system.Ntot
             Nel = self.system.number_of_electronic_states_in_band(1)+1 
             self.data = numpy.zeros((Nstates, Nstates), dtype=REAL)
-            
             widths = numpy.zeros(Nel, dtype=REAL)
+
             for ii in range(Nel):
                 if ii > 0:
                     widths[ii] = (((self.system.monomers[ii
