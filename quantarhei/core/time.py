@@ -199,10 +199,17 @@ Class Details
 
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy
 
 from .managers import energy_units
 from .valueaxis import ValueAxis
+
+if TYPE_CHECKING:
+    from .frequency import FrequencyAxis
 
 
 class TimeDependent:
@@ -210,7 +217,7 @@ class TimeDependent:
     _has_cutoff_time = False
     cutoff_time = None
 
-    def set_cutoff_time(self, time):
+    def set_cutoff_time(self, time: float) -> None:
         self.cutoff_time = time
         self._has_cutoff_time = True
 
@@ -238,8 +245,8 @@ class TimeAxis(ValueAxis):
 
     """
 
-    def __init__(self, start=0.0, length=1, step=1.0,
-                 atype="upper-half", frequency_start=0.0):
+    def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0,
+                 atype: str = "upper-half", frequency_start: float = 0.0) -> None:
 
 
         ValueAxis.__init__(self, start=start,
@@ -254,7 +261,7 @@ class TimeAxis(ValueAxis):
             raise Exception("Unknown time axis type")
 
 
-    def shift_to_zero(self):
+    def shift_to_zero(self) -> None:
         """Shifts the values so that the first one is zero
 
         """
@@ -266,7 +273,7 @@ class TimeAxis(ValueAxis):
             self.start = 0.0
 
 
-    def get_FrequencyAxis(self):
+    def get_FrequencyAxis(self) -> "FrequencyAxis":
         """Returns corresponding FrequencyAxis object
 
 
