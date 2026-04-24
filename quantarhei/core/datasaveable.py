@@ -180,7 +180,7 @@ class DataSaveable:
         """
         if with_axis is not None:
             data = self._data_with_axis(with_axis)
-            numpy.save_compressed(file, data=data)  # type: ignore[attr-defined]
+            numpy.savez_compressed(file, data=data)  # type: ignore[attr-defined]
         else:
             numpy.savez_compressed(file, data=self.data)  # type: ignore[attr-defined]
 

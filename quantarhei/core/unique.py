@@ -175,10 +175,10 @@ class unique_triangle_array:
 
     #@deprecated
     def get_unique_element(self) -> list[Any]:
-        return self._storage._storage  # type: ignore[attr-defined]
+        return self._storgage._storage
 
     def get_unique_elements(self) -> list[Any]:
-        return self._storage._storage  # type: ignore[attr-defined]
+        return self._storgage._storage
 
 
 class unique_array:
