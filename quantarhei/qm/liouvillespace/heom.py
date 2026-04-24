@@ -46,7 +46,7 @@ class KTHierarchy:
     Block average energies:
      0 : 0.0
      1 : 1.0
-    data = 
+    data =
     [[ 0.   0.   0. ]
      [ 0.   1.   0.1]
      [ 0.   0.1  1. ]]

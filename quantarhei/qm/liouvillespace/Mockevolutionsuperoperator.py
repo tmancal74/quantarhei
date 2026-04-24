@@ -29,7 +29,7 @@
     
     We initialize evolution superoperator
     
-    >>> eSO = EvolutionSuperOperator(time, ham=HH, relt=RR)
+    >>> eSO = qr.qm.EvolutionSuperOperator(time, ham=HH, relt=RR)
     >>> eSO.calculate()
     
     We create initial condition. Dimension of the problem is 3 (ground state

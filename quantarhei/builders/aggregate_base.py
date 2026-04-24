@@ -1970,7 +1970,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 out = [0 for k in range(l)]
                 # if this is the multiplicity 0, yield the ground state
                 #if (((mlt == 0) and (mode == "LQ")) or (mult==0)):
-                if band_n==0:
+                #if band_n==0:
+                if (((band_n==0) and (mode == "LQ")) or (mult==0)):
                     yield tuple(out)
                 else:
                     k = 1
