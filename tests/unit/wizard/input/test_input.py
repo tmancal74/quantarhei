@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-import pkg_resources
+from importlib.resources import files as resource_files
 import unittest
 import numpy
 
@@ -24,7 +24,7 @@ class TestInput(unittest.TestCase):
 
             extsplt = os.path.splitext(fl)
             
-            filejson = pkg_resources.resource_filename(__package__, fl)   
+            filejson = str(resource_files(__package__).joinpath(fl))
             
             inp = Input(filejson)
     

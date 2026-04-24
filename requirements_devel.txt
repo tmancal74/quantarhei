@@ -2,6 +2,7 @@ nose
 aloe
 behave
 paver
+setuptools
 coverage
 codecov
 gherkin-official

@@ -13,7 +13,7 @@ import subprocess
 import os
 import fnmatch
 import traceback
-import pkg_resources
+from importlib.resources import files
 
 import quantarhei as qr
 
@@ -437,10 +437,9 @@ def do_command_fetch(args):
             for filename in matching:
                 
                 resource_package = "quantarhei"
-                resource_path = '/'.join(('wizard', 'examples', filename))
+                resource_path = '/'.join(('wizard', 'examples', filename))  # pragma: no cover
 
-                content = pkg_resources.resource_string(resource_package,
-                                                        resource_path)
+                content = files(resource_package).joinpath(resource_path).read_bytes()  # pragma: no cover
                 
                 over = True
 

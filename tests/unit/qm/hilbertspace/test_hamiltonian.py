@@ -37,15 +37,15 @@ class TestHamiltonian(unittest.TestCase):
         
         """        
         cm2int = 2.0*const.pi*const.c*1.0e-13
-        self.assertEquals(self.H.unit_repr(),"1/fs")
+        self.assertEqual(self.H.unit_repr(),"1/fs")
         
         if self.verbose:
             print("In internal:")
             print(self.H.data)
         
         with energy_units("1/cm"):
-            self.assertEquals(self.H.unit_repr(),"1/cm")
-            self.assertEquals(self.H.data[0,1],1.0/cm2int)
+            self.assertEqual(self.H.unit_repr(),"1/cm")
+            self.assertEqual(self.H.data[0,1],1.0/cm2int)
             if self.verbose:
                 print("In 1/cm:")
                 print(self.H.data)

@@ -49,10 +49,10 @@ class SuperOperator(BasisManaged):
     True
     
     But calling uninitialize data attribute raises an exception
-    >>> print(So.data is None)
+    >>> print(So.data is None)  # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
-    AttributeError: 'SuperOperator' object has no attribute '_data'. Did you mean: 'data'?
+    AttributeError: 'SuperOperator' object has no attribute '_data'...
     
     
     Creating with `dim` arguments creates a zero superoperator

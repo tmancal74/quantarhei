@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pkg_resources
+from importlib.resources import files
 
 import unittest
 import numpy
@@ -26,8 +26,8 @@ class TestLindbladDynamics(unittest.TestCase):
         ms.run()
 
         # get file for comparison
-        filename = pkg_resources.resource_filename(__package__,   
-                                    "excitondynamics_lindblad_rhot.qrp_test")
+        filename = str(files(__package__).joinpath(
+                                    "excitondynamics_lindblad_rhot.qrp_test"))
         # load object for comparison
         rhot = load(filename)
 

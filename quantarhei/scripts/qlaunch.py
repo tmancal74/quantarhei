@@ -19,7 +19,6 @@ import subprocess
 import os
 import fnmatch
 import traceback
-import pkg_resources
 import sys
 
 import quantarhei as qr
