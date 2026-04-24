@@ -9,19 +9,39 @@ git clone https://github.com/tmancal74/quantarhei
 cd quantarhei
 pip install -e .
 pip install -r requirements_devel.txt
+pre-commit install
 ```
+
+`pre-commit install` wires up the code quality hooks so they run automatically on every commit. You only need to do this once per clone.
 
 ## Running tests
 
 ```bash
-# Unit tests (recommended for quick feedback)
+# Unit tests — fast feedback, run before every push
 pytest tests/unit
 
-# Full test suite (as run in CI)
-paver test
+# Doc tests
+pytest --doctest-modules \
+  quantarhei/core quantarhei/builders quantarhei/qm/corfunctions \
+  quantarhei/spectroscopy quantarhei/qm/liouvillespace quantarhei/functions \
+  quantarhei/qm/hilbertspace quantarhei/qm/propagators
+
+# Behave acceptance tests
+coverage run -m behave tests/behave/features
 ```
 
-Tests are run against Python 3.10, 3.11, and 3.12 in CI. Please verify locally on at least one of these versions before submitting.
+CI runs all three suites on Python 3.10, 3.11, and 3.12. Please verify unit tests pass locally before submitting.
+
+## Pre-commit hooks
+
+The repository uses [pre-commit](https://pre-commit.com) to catch common issues before they reach review:
+
+```bash
+# Run hooks manually across all files (same as CI)
+pre-commit run --all-files
+```
+
+Hooks check for: valid YAML/TOML, valid Python AST, merge conflict markers, accidentally large files, and leftover debug statements.
 
 ## Submitting changes
 
