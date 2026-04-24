@@ -1,8 +1,6 @@
-"""
+"""Quantarhei file viewer
 
-    Quantarhei file viewer
-
-    Loads *.qrp, *.png, and other files and shows their content
+Loads *.qrp, *.png, and other files and shows their content
 
 
 """

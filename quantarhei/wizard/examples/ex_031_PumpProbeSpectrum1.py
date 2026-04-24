@@ -1,6 +1,4 @@
-"""
-
-    Calculation of pump-probe spectra with effective lineshapes
+"""Calculation of pump-probe spectra with effective lineshapes
 
 
 """

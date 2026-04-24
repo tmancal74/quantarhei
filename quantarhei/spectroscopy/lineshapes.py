@@ -119,7 +119,6 @@ def voigt2D(omega1, cent1, delta1, gamma1,
 
     Parameters
     ----------
-
     omega1, omega2 : real arrays
         Arrays of frequencies
 
@@ -136,7 +135,6 @@ def voigt2D(omega1, cent1, delta1, gamma1,
         Correlation in the lineshape
 
     """
-
     N1 = omega1.shape[0]
     N2 = omega2.shape[0]
 

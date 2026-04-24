@@ -152,7 +152,6 @@ def _td_fintegral(tt, gtd, gta, ed, ea, ld):
             The value of the Foerster integral
 
         """
-
         prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tt)
 
         preal = numpy.real(prod)

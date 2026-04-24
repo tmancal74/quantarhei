@@ -53,7 +53,6 @@ def _resolution2number(res):
 
     Parameters
     ----------
-
     res : string
         Resolution string. Here is conversion table
         | string    | integer |
@@ -278,7 +277,6 @@ def _processes_to_total(obj):
 
 
     """
-
     if obj.storage_initialized:
         data = numpy.zeros((obj.xaxis.length,
                             obj.yaxis.length),
@@ -326,7 +324,6 @@ def twodspectrum_dictionary(name, dtype):
 
 
     """
-
     storage_name = '_'+name
 
     @property
@@ -727,11 +724,9 @@ class TwoDSpectrumBase(DataSaveable):
 
         Parameters
         ----------
-
         dtype : string
            Specifies the type of data stored in this TwoDSpectrum object
         """
-
         if dtype in self.dtypes:
             self.dtype = dtype
         else:
@@ -747,7 +742,6 @@ class TwoDSpectrumBase(DataSaveable):
 
         Parameters
         ----------
-
         data : 2D array
             Data of the spectrum, float or complex
 
@@ -815,7 +809,6 @@ class TwoDSpectrumBase(DataSaveable):
 
 
         """
-
         if isinstance(flag, list):
             self.current_dtype = flag[0]
             try:
@@ -837,7 +830,6 @@ class TwoDSpectrumBase(DataSaveable):
         as [type, tag]
 
         """
-
         if self.storage_resolution != "pathways":
             return []
 
@@ -861,7 +853,6 @@ class TwoDSpectrumBase(DataSaveable):
 
         Parameters
         ----------
-
         resolution : string
             Resolution in which data are stored in TwoDSpectrum object.
             Values are one of the strings: `pathways` - stores individual
@@ -875,7 +866,6 @@ class TwoDSpectrumBase(DataSaveable):
 
         Examples
         --------
-
         Initial resolution is the highest one, i.e. 'pathways'
 
         >>> spect1 = TwoDResponse()
@@ -953,7 +943,6 @@ class TwoDSpectrumBase(DataSaveable):
         """Converts storage from one level of resolution to another
 
         """
-
         _conversion_paths = {4:{3:[4,3], 2:[4,3,2], 1:[4,3,1], 0:[4,3,2,0]},
                  3:{2:[3,2], 1:[3,1], 0:[3,2,0]},
                  2:{0:[2,0]},
@@ -979,7 +968,6 @@ class TwoDSpectrumBase(DataSaveable):
         """Performs simple storage conversions involving only one step conversion
 
         """
-
         # convert "pathways" to "types"
         if (old == 4) and (new == 3):
 
@@ -1071,7 +1059,6 @@ class TwoDSpectrumBase(DataSaveable):
 
         Parameters
         ----------
-
         data : array
             Numpy array compatible in dimensions with the axes of the spectrum
 
@@ -1231,7 +1218,6 @@ class TwoDSpectrumBase(DataSaveable):
 
         Parameters
         ----------
-
         data : numpy array
             Data of the spectrum
 
@@ -1243,7 +1229,6 @@ class TwoDSpectrumBase(DataSaveable):
             is not None allows storage of individual pathways
 
         """
-
         pass
 
 
@@ -1324,7 +1309,6 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
     Methods
     -------
-
     plot(fig=None, window=None, stype=_total, spart="real",
          vmax=None, vmin_ratio=0.5,
          colorbar=True, colorbar_loc="right",
@@ -1361,7 +1345,6 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         """Returns value of the spectrum at a given coordinate
 
         """
-
         legacy = False
 
         if legacy:
@@ -1515,7 +1498,6 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
 
         """
-
         point1 = [self.xaxis.min, self.yaxis.min]
         point2 = [self.xaxis.max, self.yaxis.max]
 
@@ -1566,12 +1548,10 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
         Parameters
         ----------
-
         val : float, int
             Value by which we devide the spectrum
 
         """
-
         legacy = False
 
         if legacy:
@@ -1633,7 +1613,6 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
         Parameters
         ----------
-
         fig : matplotlib.figure
             Figure into which plotting will be done. This is used e.g. when
             making a movie using moview writter (may be obsolete).
@@ -1896,7 +1875,6 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         is called
 
         """
-
         plt.show()
 
 
@@ -1912,7 +1890,6 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
         Parameters
         ----------
-
         window : array
             Spectral window to which the present 2D spectrum
             should be trimmed. The window is specified as
@@ -1923,7 +1900,6 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
 
         """
-
         if window is not None:
 
             axis = window

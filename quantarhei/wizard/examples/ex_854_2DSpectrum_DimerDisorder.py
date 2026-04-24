@@ -1,9 +1,6 @@
 
-"""
-
-
-  This example assumes 2D spectra of a dimer with a range of energy gaps
-  to be precalculated in a designated directory ("sim_up" by default)
+"""This example assumes 2D spectra of a dimer with a range of energy gaps
+to be precalculated in a designated directory ("sim_up" by default)
 
 
 

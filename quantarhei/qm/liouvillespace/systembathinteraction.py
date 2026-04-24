@@ -1,7 +1,6 @@
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    systembathinteraction module
+systembathinteraction module
 
 """
 import numpy
@@ -28,7 +27,6 @@ class SystemBathInteraction(Saveable):
 
     Parameters
     ----------
-
     sys_operators : list
         List of the system part of the system-bath interaction Hamiltonian
         components
@@ -260,7 +258,6 @@ class SystemBathInteraction(Saveable):
         """Returns the bath correlation function object defined by a pair of sites (tuple)
 
         """
-
         return self.CC.get_correlation_function(where[0],where[1])
 
 
@@ -269,7 +266,6 @@ class SystemBathInteraction(Saveable):
 
 
         """
-
         if self.sbitype != "Linear_Coupling":
             raise Exception("Correlation functions only defined for "+
                             "linear microscopic system-bath coupling")
@@ -355,13 +351,11 @@ class SystemBathInteraction(Saveable):
 
         Parameters
         ----------
-
         config : dict
             Dictionary of the FunctionStorage configuration. If None submitted
             it wil produced g(t) for a standard 3rd order response calculation.
 
         """
-
         if self._has_gg_storage:
             return self.GG
 
@@ -410,7 +404,6 @@ class SystemBathInteraction(Saveable):
         """Checkst if the Aggregate has a defined temperature
 
         """
-
         if (self.sbitype == "Lindblad_Form" or
             self.sbitype == "Vibrational_Lindblad_Form"):
             return False

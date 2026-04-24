@@ -1,23 +1,22 @@
-"""
-    SuperOperator class for test purposes
+"""SuperOperator class for test purposes
 
-    You can take this superoperator and feed it to tests. There are several
-    super operators which can be created distinguished by descriptive
-    names. They are listed below:
+You can take this superoperator and feed it to tests. There are several
+super operators which can be created distinguished by descriptive
+names. They are listed below:
 
-    Test Names
-    ----------
+Test Names
+----------
 
-    dim-2-AOA :
-        This superoperator corresponds to a multiplication by a 2x2 matrix
-        from both left and write (A0A), where O is an operator
+dim-2-AOA :
+This superoperator corresponds to a multiplication by a 2x2 matrix
+from both left and write (A0A), where O is an operator
 
-    dim-3-AOA :
-        The same as dim-2-AOA only with 3x3 matrix
+dim-3-AOA :
+The same as dim-2-AOA only with 3x3 matrix
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 import numpy
@@ -31,14 +30,12 @@ class TestSuperOperator(SuperOperator):
 
     Parameters
     ----------
-
     name : string
         Name of the test super operator to create
 
 
     Examples
     --------
-
     >>> import quantarhei as qr
     >>> S = qr.qm.TestSuperOperator("dim-2-AOA")
     >>> A = S._def_A(2)
@@ -91,7 +88,7 @@ class TestSuperOperator(SuperOperator):
 
 
     def _AOA(self, dim):
-        """ Multiplication by matrix A from left and right
+        """Multiplication by matrix A from left and right
 
         """
         A = self._def_A(dim)

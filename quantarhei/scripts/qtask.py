@@ -17,7 +17,6 @@ def tasks(tlist, INP):
     """Go through the list of tasks
 
     """
-
     status = []
     code = ""
 
@@ -37,7 +36,6 @@ def do_process(args):
     """Process arguments of the script
 
     """
-
     if args.filename:
         fname = args.filename[0]
         print("Processing file: ", fname)

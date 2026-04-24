@@ -1,109 +1,107 @@
-"""
-    Discrete function with interpolation
+"""Discrete function with interpolation
 
-    User level function of the Quantarhei package. To be used as:
+User level function of the Quantarhei package. To be used as:
 
-    >>> import quantarhei as qr
-    >>> f = qr.DFunction()
+>>> import quantarhei as qr
+>>> f = qr.DFunction()
 
-    Discrete representation of a function with several modes of interpolation.
-    Once defined, the function values are obtained by the method at(x), which
-    takes the function argument and optionally a specification of the
-    interpolation type. See examples below.
+Discrete representation of a function with several modes of interpolation.
+Once defined, the function values are obtained by the method at(x), which
+takes the function argument and optionally a specification of the
+interpolation type. See examples below.
 
-    The linear interpolation is the default initially. Once the function is
-    interpolated by splines (which happens why you call it with
-    approx="spline"), the default switches to "spline". You can always enforce
-    the type of interpolation by specifying it explicitely by the `approx`
-    argument.
+The linear interpolation is the default initially. Once the function is
+interpolated by splines (which happens why you call it with
+approx="spline"), the default switches to "spline". You can always enforce
+the type of interpolation by specifying it explicitely by the `approx`
+argument.
 
 
-    Examples
-    --------
-
+Examples
+--------
     >>> import numpy
-    >>> x = numpy.linspace(0.0,95.0,20)
-    >>> y = numpy.exp(-x/30.0)
-    >>> u = ValueAxis(0.0,len(x),x[1]-x[0])
-    >>> f = DFunction(u,y)
-    >>> "%.4f" % f.axis.step
-    '5.0000'
+>>> x = numpy.linspace(0.0,95.0,20)
+>>> y = numpy.exp(-x/30.0)
+>>> u = ValueAxis(0.0,len(x),x[1]-x[0])
+>>> f = DFunction(u,y)
+>>> "%.4f" % f.axis.step
+'5.0000'
 
-    Values at the points where the function was defined are exact
+Values at the points where the function was defined are exact
 
-    >>> "%.4f" % f.at(0.0)
-    '1.0000'
-    >>> "%.4f" % f.at(5.0)
-    '0.8465'
+>>> "%.4f" % f.at(0.0)
+'1.0000'
+>>> "%.4f" % f.at(5.0)
+'0.8465'
 
-    This is the exact value between the discrete points on which the function
-    was defined
+This is the exact value between the discrete points on which the function
+was defined
 
-    >>> "%.4f" % numpy.exp(-2.0/30.0)
-    '0.9355'
+>>> "%.4f" % numpy.exp(-2.0/30.0)
+'0.9355'
 
-    Default linear approximation leads to a difference at the second digit
+Default linear approximation leads to a difference at the second digit
 
-    >>> "%.4f" % f.at(2.0)
-    '0.9386'
+>>> "%.4f" % f.at(2.0)
+'0.9386'
 
-    Spline approximation is much better
+Spline approximation is much better
 
-    >>> "%.4f" % f.at(2.0,approx='spline')
-    '0.9355'
+>>> "%.4f" % f.at(2.0,approx='spline')
+'0.9355'
 
-    Fourier transform of a DFunction
+Fourier transform of a DFunction
 
-    >>> from .time import TimeAxis
-    >>> dt = 0.1; Ns = 10000
-    >>> t = TimeAxis(-(Ns//2)*dt,Ns,dt,atype="complete")
-    >>> gg = 1.0/30.0
-    >>> y = numpy.exp(-numpy.abs(t.data)*gg)
-    >>> f = DFunction(t,y)
-    >>> F = f.get_Fourier_transform()
-    >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
-    True
+>>> from .time import TimeAxis
+>>> dt = 0.1; Ns = 10000
+>>> t = TimeAxis(-(Ns//2)*dt,Ns,dt,atype="complete")
+>>> gg = 1.0/30.0
+>>> y = numpy.exp(-numpy.abs(t.data)*gg)
+>>> f = DFunction(t,y)
+>>> F = f.get_Fourier_transform()
+>>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
+True
 
-    >>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
-    True
+>>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
+True
 
-    >>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
-    True
+>>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
+True
 
-    >>> t = TimeAxis(0,Ns,dt)
-    >>> print(t.atype == "upper-half")
-    True
+>>> t = TimeAxis(0,Ns,dt)
+>>> print(t.atype == "upper-half")
+True
 
-    >>> gg = 1.0/30.0
-    >>> y = numpy.exp(-numpy.abs(t.data)*gg)
-    >>> f = DFunction(t,y)
-    >>> F = f.get_Fourier_transform()
-    >>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
-    True
+>>> gg = 1.0/30.0
+>>> y = numpy.exp(-numpy.abs(t.data)*gg)
+>>> f = DFunction(t,y)
+>>> F = f.get_Fourier_transform()
+>>> print(numpy.allclose(F.at(0.0,approx="spline"),2.0/gg,rtol=1.0e-5))
+True
 
-    >>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
-    True
+>>> print(numpy.allclose(F.at(1.0),2*gg/(gg**2 + 1.0**2),rtol=1.0e-3))
+True
 
-    >>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
-    True
+>>> print(numpy.allclose(F.at(0.15),2*gg/(gg**2 + 0.15**2),rtol=1.0e-4))
+True
 
-    DFunction can be complex valued
+DFunction can be complex valued
 
-    >>> y = numpy.sin(t.data/10.0) + 1j*numpy.cos(t.data/10.0)
-    >>> fi = DFunction(t,y)
-    >>> print(numpy.allclose(fi.at(13.2,approx="spline"),\
+>>> y = numpy.sin(t.data/10.0) + 1j*numpy.cos(t.data/10.0)
+>>> fi = DFunction(t,y)
+>>> print(numpy.allclose(fi.at(13.2,approx="spline"),\
     (numpy.sin(13.2/10.0) + 1j*numpy.cos(13.2/10.0)),rtol=1.0e-7))
-    True
+True
 
-    Only "linear" and "spline" approximations are available
-    >>> fval = fi.at(11.2, approx="quadratic")
-    Traceback (most recent call last):
-        ...
-    Exception: Unknown interpolation type
+Only "linear" and "spline" approximations are available
+>>> fval = fi.at(11.2, approx="quadratic")
+Traceback (most recent call last):
+...
+Exception: Unknown interpolation type
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 
@@ -130,7 +128,6 @@ class DFunction(Saveable, DataSaveable):
 
     Parameters
     ----------
-
     x : ValueAxis (such as TimeAxis, FrequencyAxis etc.)
         Array of the values of the argument of the discrete function
 
@@ -140,7 +137,6 @@ class DFunction(Saveable, DataSaveable):
 
     Examples
     --------
-
     How not to create the DFunction:
 
     First argument of the DFunction must be a ValueAxis
@@ -206,7 +202,6 @@ class DFunction(Saveable, DataSaveable):
 
 
         """
-
         self._has_imag = False
 
         if isinstance(x, ValueAxis):
@@ -290,8 +285,6 @@ class DFunction(Saveable, DataSaveable):
 
         Examples
         --------
-
-
         >>> time = TimeAxis(0.0, 1000, 1.0)
         >>> vals = numpy.cos(2.0*numpy.pi*time.data/500.0)
         >>> fce = DFunction(time, vals)
@@ -370,7 +363,6 @@ class DFunction(Saveable, DataSaveable):
 
         Parameters
         ----------
-
         x : number
             Function argument
 
@@ -380,7 +372,6 @@ class DFunction(Saveable, DataSaveable):
 
         Examples
         --------
-
         >>> time = TimeAxis(0.0, 100, 10.0)
         >>> vals = numpy.cos(2.0*numpy.pi*time.data/300.0)
         >>> fce = DFunction(time, vals)
@@ -403,7 +394,6 @@ class DFunction(Saveable, DataSaveable):
 
 
         """
-
         if approx not in self.allowed_interp_types:
             raise Exception("Unknown interpolation type")
 
@@ -625,7 +615,6 @@ class DFunction(Saveable, DataSaveable):
 
 
         """
-
         t = self.axis
         y = self.data
 
@@ -716,7 +705,6 @@ class DFunction(Saveable, DataSaveable):
         True
 
         """
-
         t = self.axis
         y = self.data
 
@@ -791,7 +779,6 @@ class DFunction(Saveable, DataSaveable):
 
         Examples
         --------
-
         >>> t = TimeAxis(0.0, 100, 1.0)
         >>> f = DFunction(t, 2.3*numpy.exp(-(t.data)/(10.0))+0.32)
         >>> popt = f.fit_exponential()
@@ -818,7 +805,6 @@ class DFunction(Saveable, DataSaveable):
 
         Parameters
         ----------
-
         Nsvf : int
             Length of the Savitzky-Golay filter window (odd integer)
 
@@ -826,7 +812,6 @@ class DFunction(Saveable, DataSaveable):
 
         Examples
         --------
-
         >>> t = TimeAxis(0.0, 100, 1.0)
         >>> f = DFunction(t, 2.3*numpy.exp(-(4.0*numpy.log(2.0))*((t.data-30.0)**2)/(10.0**2))+0.32)
         >>> popt = f.fit_gaussian(guess=[1.0, 33.0, 5.0, 0.5])
@@ -924,7 +909,6 @@ class DFunction(Saveable, DataSaveable):
 
         Parameters
         ----------
-
         title : str
             Title of the plot
 
@@ -1049,7 +1033,6 @@ class DFunction(Saveable, DataSaveable):
 
 
         """
-
         fig = plt.gcf()
         fig.savefig(filename, bbox_inches='tight')
 
@@ -1098,7 +1081,6 @@ def _gaussian(x, height, center, fwhm, offset=0.0):
 
     Parameters
     ----------
-
     x : float array
         values to calculate Gaussian function at
 
@@ -1116,7 +1098,6 @@ def _gaussian(x, height, center, fwhm, offset=0.0):
 
 
     """
-
     return height*numpy.exp(-(((x - center)**2)*4.0*numpy.log(2.0))/
                             (fwhm**2)) + offset
 
@@ -1126,7 +1107,6 @@ def _n_gaussians(x, *params):
 
     Parameters
     ----------
-
     x : float
         values to calculate Gaussians function at
 

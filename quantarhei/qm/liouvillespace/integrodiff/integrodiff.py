@@ -13,7 +13,6 @@ class IntegrodiffPropagator:
 
     Parameters
     ----------
-
     timeaxis : TimeAxis
         Time axis on which the solution should be defined
 
@@ -306,7 +305,7 @@ class IntegrodiffPropagator:
 
 
     def _right_hand_side(self, tn, rho, rhot):
-        """ Right-hand side of the master equation
+        """Right-hand side of the master equation
 
         """
         ham = self.ham.data
@@ -317,7 +316,7 @@ class IntegrodiffPropagator:
 
 
     def _no_kernel_rhs(self, tn, rho, rhot):
-        """ Right-hand side of the master equation without the kernel
+        """Right-hand side of the master equation without the kernel
 
         """
         #M0 = self.kernel
@@ -331,7 +330,7 @@ class IntegrodiffPropagator:
 
     def check_solution(self, rhot):
         """Masures the difference between the right- and left-hand-side
-           of the equation
+        of the equation
 
         """
         N1 = self.ham.dim

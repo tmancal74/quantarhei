@@ -67,7 +67,6 @@ def test_kernel(timeaxis, ham, operators, rates, ctime):
     """Returns a simple kernel for tests
 
     """
-
     dim = ham.dim
     Nt = timeaxis.length
 

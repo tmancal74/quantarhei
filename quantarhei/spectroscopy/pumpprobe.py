@@ -170,12 +170,10 @@ def calculate_from_2D(twod):
 
     Parameters
     ----------
-
     twod: TwoDSpectrum
         2D spectrum from which pump-probe will be calculated
 
     """
-
     pp = PumpProbeSpectrum()
 
     # waiting time
@@ -212,7 +210,6 @@ class MockPumpProbeSpectrumCalculator(MockTwoDResponseCalculator):
         """Calculates all spectra corresponding to a specified t2axis
 
         """
-
         temporary_fix = True
 
         if temporary_fix:
@@ -225,7 +222,6 @@ class MockPumpProbeSpectrumCalculator(MockTwoDResponseCalculator):
         """Calculates one spectru corresponding to a specified t2 time
 
         """
-
         temporary_fix = True
 
         if temporary_fix:

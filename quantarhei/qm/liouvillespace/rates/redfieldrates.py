@@ -1,5 +1,4 @@
-"""
-*******************************************************************************
+"""*******************************************************************************
 
       REDFIELD RATE MATRIX
 
@@ -30,7 +29,6 @@ class RedfieldRateMatrix:
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian object
 
@@ -73,10 +71,9 @@ class RedfieldRateMatrix:
 
 
     def _set_rates(self):
-        """ Prepares all data for rate calculation, and calls an implementation code
+        """Prepares all data for rate calculation, and calls an implementation code
 
         """
-
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         Na = self.ham._data.shape[0]
@@ -184,7 +181,6 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
 
     Parameters
     ----------
-
     Na : integer
         Rank of the rate matrix, number of excitons
 

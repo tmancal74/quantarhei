@@ -2,8 +2,8 @@
 
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 import numpy
@@ -18,7 +18,6 @@ class Secular:
 
     Attributes
     ----------
-
     is_secular : bool
         If True, the superoperator has a secular form and it should be
         handled like that.
@@ -26,14 +25,12 @@ class Secular:
 
     Methods
     -------
-
     secularize() :
         Converts the superoperator into secular form
 
 
     Examples
     --------
-
     This class is used as a base class for classis that want to provide
     a secular form. The class has to define the attribute as_operators (bool)
     and it has to be BasisManaged
@@ -116,7 +113,6 @@ class Secular:
 
         Parameters
         ----------
-
         reversible : bool
             If the secularization is reversible, the original data property
             is left untouched, so that secularization can be reversed.

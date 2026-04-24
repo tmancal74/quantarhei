@@ -1,9 +1,8 @@
-"""
-    Driver script for Quantarhei package
+"""Driver script for Quantarhei package
 
 
-    Author: Tomas Mancal, Charles University, Prague, Czech Republic
-    email: mancal@karlov.mff.cuni.cz
+Author: Tomas Mancal, Charles University, Prague, Czech Republic
+email: mancal@karlov.mff.cuni.cz
 
 
 """
@@ -22,7 +21,6 @@ def do_command_run(args):
 
 
     """
-
     m = qr.Manager().log_conf
     dc = qr.Manager().get_DistributedConfiguration()
 
@@ -291,7 +289,6 @@ def do_command_test(args):
     """Runs Quantarhei tests
 
     """
-
     qr.printlog("--- Running tests ---", loglevel=qr.LOG_URGENT)
     qr.printlog("")
     qr.printlog("Testing parallel capabilities:", loglevel=qr.LOG_URGENT)
@@ -400,7 +397,6 @@ def do_command_fetch(args):
     """Fetches files for Quantarhei
 
     """
-
     global parser_fetch
 
     def get_number(file):
@@ -472,7 +468,6 @@ def do_command_config(args):
     """Configures Quantarhei
 
     """
-
     qr.printlog("Setting configuration", loglevel=1)
 
 
@@ -480,7 +475,6 @@ def do_command_report(args):
     """Reports on Quantarhei and the system
 
     """
-
     qr.printlog("Probing system configuration", loglevel=1)
 
 
@@ -488,7 +482,6 @@ def do_command_file(args):
     """Report on the content of a file
 
     """
-
     qr.printlog("Checking file info", loglevel=1)
 
     #

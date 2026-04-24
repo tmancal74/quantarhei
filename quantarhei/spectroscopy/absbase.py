@@ -30,7 +30,6 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
         Parameters
         ----------
-
         axis : FrequencyAxis object
             Frequency axis object. This object has managed energy units
 
@@ -42,7 +41,6 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
         Parameters
         ----------
-
         data : array like object (numpy array)
             Sets the data of the absorption spectrum
 
@@ -60,7 +58,6 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
         Examples
         --------
-
         >>> from quantarhei import REAL
         >>> from quantarhei import energy_units
         >>> abs = AbsSpectrumBase()
@@ -148,14 +145,12 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
         Parameters
         ----------
-
         spect : spectrum containing object
             This object should have a compatible axis and some data
 
 
         Examples
         --------
-
         Standard usage
 
         >>> from quantarhei import energy_units
@@ -189,8 +184,6 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
 
         """
-
-
         if self.axis is None:
             self.axis = spect.axis.copy()
 
@@ -224,7 +217,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
 
     def plot(self, **kwargs):
-        """ Plotting absorption spectrum using the DFunction plot method
+        """Plotting absorption spectrum using the DFunction plot method
 
         """
         if "ylabel" not in kwargs:

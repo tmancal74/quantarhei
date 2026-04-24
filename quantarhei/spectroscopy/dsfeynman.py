@@ -4,7 +4,7 @@ from ..symbolic.cumulant import UopEater
 from ..symbolic.cumulant import transform_to_einsum_expr
 
 class DSFeynmanDiagram:
-    """ Double-sided Feynman diagrams
+    """Double-sided Feynman diagrams
 
 
     """
@@ -105,7 +105,7 @@ class DSFeynmanDiagram:
 
 
     def get_time_dimensions(self):
-        """ Returns a dictionary describing the required representation
+        """Returns a dictionary describing the required representation
         of the response as a matrix of times.
 
         """
@@ -114,7 +114,6 @@ class DSFeynmanDiagram:
 
     def get_phase_factor(self, dimensions=None):
         """Returns the phase factor for the present diagram, with reshaped time symbols if provided."""
-
         fact = "-"
         Nst = len(self.states)
 
@@ -159,13 +158,11 @@ class DSFeynmanDiagram:
 
         Parameters
         ----------
-
         operators : bool
             If operators is False, string representation will be returned.
             A list of Uop objects will be returned if operators is True.
 
         """
-
         self._check_finished()
 
         symbols = set()
@@ -256,7 +253,6 @@ class DSFeynmanDiagram:
         """Returns coherence Green's function product for this diagram
 
         """
-
         evs = self.evolution_operators(operators=True)
         eater = UopEater()
         out_list = eater.eat(evs)
@@ -267,7 +263,6 @@ class DSFeynmanDiagram:
         """Returns the cumulant evaluation of the diagram
 
         """
-
         codes = []
 
         code_import = """
@@ -328,7 +323,6 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         """Returns a string characterizing order of light transitions
 
         """
-
         d = self.light_transitions
         letters = []
 
@@ -352,7 +346,6 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         """Creates loop code
 
         """
-
         tab = "    "
         outstr = ""
         ctab = ""
@@ -365,10 +358,9 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
 
 
     def get_vectorized_code(self, function=True, participation_matrix=True):
-        """ Return the code that evaluates the response function
+        """Return the code that evaluates the response function
 
         """
-
         dims = self.dimensions
         phfac = self.get_phase_factor(dimensions=dims)
         #print("\n ... phase factor:", phfac)
@@ -478,8 +470,7 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
 
 
 def _format_code(N, code_string):
-    """
-    Formats a long Python expression string into a properly indented, multiline expression
+    """Formats a long Python expression string into a properly indented, multiline expression
     wrapped inside numpy.exp(...), with line breaks only at top-level '+' and '-' operators.
 
     Parameters:

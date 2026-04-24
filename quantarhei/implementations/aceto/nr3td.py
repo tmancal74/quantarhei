@@ -1,6 +1,5 @@
-"""
-    Time-dependent third order non-linear response of a three band
-    multi-level system
+"""Time-dependent third order non-linear response of a three band
+multi-level system
 
 
 """
@@ -17,12 +16,10 @@
 #
 
 def nr3_r1g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R2g response function
+    """Calculates R2g response function
 
 
     """
-
-
     # nr3td_fic.nr3_r1g_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, it2+1, t1s, t3s, rwa, rmin, resp)
@@ -31,7 +28,7 @@ def nr3_r1g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r2g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R2g response function
+    """Calculates R2g response function
 
 
 
@@ -88,7 +85,7 @@ def nr3_r2g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r2gt10(lab, sys, it2, t3s, rwa, rmin, resp):
-    """ Calculates R2g response function
+    """Calculates R2g response function
 
 
 
@@ -120,8 +117,6 @@ def nr3_r2gt10(lab, sys, it2, t3s, rwa, rmin, resp):
         Non-linear response
 
     """
-
-
     # nr3td_fic.nr3_r2gt10_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, it2+1, t3s, rwa, rmin, resp)
@@ -129,11 +124,10 @@ def nr3_r2gt10(lab, sys, it2, t3s, rwa, rmin, resp):
 
 
 def nr3_r3g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R3g response function
+    """Calculates R3g response function
 
 
     """
-
 #
 #    For debugging, check if all arrays are fortran continuous
 #
@@ -162,12 +156,10 @@ def nr3_r3g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r4g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R4g response function
+    """Calculates R4g response function
 
 
     """
-
-
     # nr3td_fic.nr3_r4g_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, it2+1, t1s, t3s, rwa, rmin, resp)
@@ -175,10 +167,9 @@ def nr3_r4g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r1fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
-    """ Calculates R1f* response function
+    """Calculates R1f* response function
 
     """
-
     # if plist:
     #     nr3td_fic.nr3_r1fs_list_fic(lab.orient_aver, sys.Ns, sys.om01,
     #                                 sys.om12, sys.nn01, sys.dd01, sys.nn12,
@@ -195,7 +186,7 @@ def nr3_r1fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
 
 
 def nr3_r2fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
-    """ Calculates R2f* response function
+    """Calculates R2f* response function
 
     """
     # if plist:
@@ -219,7 +210,7 @@ def nr3_r2fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
 #
 #
 def nr3_r2g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R2g response function
+    """Calculates R2g response function
 
 
 
@@ -254,8 +245,6 @@ def nr3_r2g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
         Non-linear response
 
     """
-
-
     # nr3td_fic.nr3_r2g_trans_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, sys.Ueet2, it2+1, t1s, t3s, rwa, rmin, resp)
@@ -263,7 +252,7 @@ def nr3_r2g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R2g response function with energy transfer
+    """Calculates R2g response function with energy transfer
 
     Calculates R2g response function with energy transfer to the No-th
     order of energy transfer with a complete treatment of the memory
@@ -304,8 +293,6 @@ def nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp):
         Non-linear response
 
     """
-
-
     # nr3td_fic.nr3_r2g_trn_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, No, it2+1, t1s, t3s, rwa, rmin, resp)
@@ -314,7 +301,7 @@ def nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r1g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R2g response function
+    """Calculates R2g response function
 
 
 
@@ -349,8 +336,6 @@ def nr3_r1g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
         Non-linear response
 
     """
-
-
     # nr3td_fic.nr3_r1g_trans_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, sys.Ueet2, it2+1, t1s, t3s, rwa, rmin, resp)
@@ -359,10 +344,9 @@ def nr3_r1g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r1fs_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R1f* transfer response function
+    """Calculates R1f* transfer response function
 
     """
-
     # nr3td_fic.nr3_r1fs_trans_fic(lab.orient_aver, sys.Ns, sys.om01, sys.om12,
     #                        sys.nn01, sys.dd01, sys.nn12, sys.dd12, sys.Kd01,
     #                        sys.Kd11, sys.Kd12, sys.gofts, sys.fptn,
@@ -373,10 +357,9 @@ def nr3_r1fs_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 def nr3_r2fs_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
-    """ Calculates R1f* transfer response function
+    """Calculates R1f* transfer response function
 
     """
-
     # nr3td_fic.nr3_r2fs_trans_fic(lab.orient_aver, sys.Ns, sys.om01, sys.om12,
     #                        sys.nn01, sys.dd01, sys.nn12, sys.dd12, sys.Kd01,
     #                        sys.Kd11, sys.Kd12, sys.gofts, sys.fptn,

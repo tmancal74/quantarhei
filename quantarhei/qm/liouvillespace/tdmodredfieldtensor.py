@@ -137,7 +137,6 @@ def intfull(F, dt, omega):
     """Discrete integration of an oscillating function
 
     """
-
     Nt = F.shape[0]
     x = (1.0 - numpy.exp(-1j*omega*dt))/(1j*omega*dt)
     y = 1j*(1.0 - x)/omega
@@ -148,7 +147,6 @@ def intfull(F, dt, omega):
 
 def intrun(F, dt, omega):
     """Running intergration of an oscillating function of one parameter"""
-
     Nt = F.shape[0]
     I = numpy.zeros(Nt, dtype=COMPLEX)
     x = (1.0 - numpy.exp(-1j*omega*dt))/(1j*omega*dt)
@@ -198,7 +196,6 @@ def ssmodr(Na, ee, ll, ss, tt, cofts, hofts, gofts, pntr, tdep=False, theory="st
 
     Parameters
     ----------
-
     Na : int
         Number of molecular sites. Na + 1 gives the dimension of the tensor, because
         the ground state is also included
@@ -242,7 +239,6 @@ def ssmodr(Na, ee, ll, ss, tt, cofts, hofts, gofts, pntr, tdep=False, theory="st
 
 
     """
-
     #ee, ss = numpy.linalg.eigh(hh)
 
     # number of time steps

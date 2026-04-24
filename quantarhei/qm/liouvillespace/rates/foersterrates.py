@@ -13,7 +13,6 @@ class FoersterRateMatrix:
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian object
 
@@ -89,7 +88,6 @@ def _reference_implementation(Na, HH, tt, gt, ll):
 
     Parameters
     ----------
-
     Na : integer
         Number of sites in the problem (rank of the rate matrix)
 
@@ -108,12 +106,10 @@ def _reference_implementation(Na, HH, tt, gt, ll):
 
     Returns
     -------
-
     KK : float array
         Rate matrix with zeros on the diagonal
 
     """
-
     #
     # Rates between states a and b
     #

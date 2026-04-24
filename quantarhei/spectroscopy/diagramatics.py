@@ -1,6 +1,4 @@
-"""
-
-    Liouville pathways and their analysis
+"""Liouville pathways and their analysis
 
 
 
@@ -32,7 +30,6 @@ class liouville_pathway(UnitsManaged):
 
         Parameters
         ----------
-
         ptype : str {"R", "NR", "DC"}
             type of the pathway
 
@@ -47,7 +44,6 @@ class liouville_pathway(UnitsManaged):
             the only value allowed.
 
         """
-
         if not aggregate:
             raise Exception("aggregate has to be specified")
 
@@ -149,7 +145,6 @@ class liouville_pathway(UnitsManaged):
 
 
         """
-
         k = 3
         # output string - starts empty
         out = ""
@@ -260,11 +255,10 @@ class liouville_pathway(UnitsManaged):
 
     def add_transition(self, transition, side,
                        interval=0, width=-1.0, deph=-1.0):
-        """ Adds a transition to the Liouville pathway.
+        """Adds a transition to the Liouville pathway.
 
         Parameters
         ----------
-
         transition
             Tuple such as (8,2) specifying the states in the Hamiltonian
             between which the transition proceeds. The order of the initial
@@ -278,7 +272,6 @@ class liouville_pathway(UnitsManaged):
             of interaction on the right.
 
         """
-
         # final state of the transition
         nf = transition[0]
         # initial state of the transition
@@ -428,7 +421,6 @@ class liouville_pathway(UnitsManaged):
         1) F4n ... vector for spatial averaging
 
         """
-
         d = self.dmoments
 
         if self.order == 3:
@@ -452,13 +444,13 @@ class liouville_pathway(UnitsManaged):
         return self.current
 
     def get_transition(self,n):
-        """ Returns info on the transition occuring on the n-th interaction
+        """Returns info on the transition occuring on the n-th interaction
 
         """
         return self.side[n], self.transitions[n]
 
     def orientational_averaging(self,lab):
-        """ Orientational averaging
+        """Orientational averaging
 
         Orientational averaging and temperature dependence of the
         initial density matrix
@@ -475,7 +467,7 @@ class liouville_pathway(UnitsManaged):
 
 
     def get_transition_energy(self,n):
-        """ Transition energy of a given interaction with light
+        """Transition energy of a given interaction with light
 
         """
         return self.energy[n]
@@ -487,13 +479,13 @@ class liouville_pathway(UnitsManaged):
         return self.frequency[n]
 
     def get_dmoment(self, n):
-        """ Transition dipole moment of a given interaction with light
+        """Transition dipole moment of a given interaction with light
 
         """
         return self.dmoments[n]
 
     def get_prefactor(self):
-        """ Dipole and temperature dependent prefactor
+        """Dipole and temperature dependent prefactor
 
         """
         return self.pref

@@ -1,6 +1,4 @@
-"""
-
-    State vector of the open quantum system
+"""State vector of the open quantum system
 
 
 """
@@ -22,7 +20,6 @@ class OQSStateVector:
 
     Examples
     --------
-
     >>> psi = OQSStateVector(2)
     >>> print(psi.dim)
     2
@@ -68,7 +65,6 @@ class OQSStateVector:
         """Norm of the state vector
 
         """
-
         return numpy.sqrt(numpy.dot(self.data,self.data))
 
 
@@ -76,12 +72,11 @@ class OQSStateVector:
         """Dot product concerning only the system part
 
         """
-
         return numpy.dot(self.data, psi.data)
 
 
     def get_ReducedDensityMatrix(self, decoherence=False):
-        """ Converts the state vector into the density matrix
+        """Converts the state vector into the density matrix
 
         Parameters
         ----------

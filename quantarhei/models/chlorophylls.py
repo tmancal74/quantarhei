@@ -1,5 +1,4 @@
-"""
-Created on Thu Sep 14 13:50:05 2017
+"""Created on Thu Sep 14 13:50:05 2017
 
 @author: Johan
 """
@@ -25,10 +24,9 @@ class ChlorophyllA(MolecularModel):
         self.set_default_dipole_length((0,1), dp_length)
 
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
-        """ Returns transition dipole moment vector
+        """Returns transition dipole moment vector
 
         """
-
         data_type = self._check_data_type(data_type)
 
         if data_type == "PDB":
@@ -56,10 +54,9 @@ class ChlorophyllA(MolecularModel):
 
 
     def position_of_center(self, data_type=None, data=None):
-        """ Returns the position of the molecular center
+        """Returns the position of the molecular center
 
         """
-
         data_type = self._check_data_type(data_type)
 
         if data_type == "PDB":
@@ -99,7 +96,6 @@ class ChlorophyllA(MolecularModel):
 
         Parameters
         ----------
-
         data_type : string
             Type of the data; can be e.g. PDB
 
@@ -145,10 +141,9 @@ class ChlorophyllB(MolecularModel):
 
 
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
-        """ Returns transition dipole moment vector
+        """Returns transition dipole moment vector
 
         """
-
         data_type = self._check_data_type(data_type)
 
         if data_type == "PDB":
@@ -176,10 +171,9 @@ class ChlorophyllB(MolecularModel):
 
 
     def position_of_center(self, data_type=None, data=None):
-        """ Returns the position of the molecular center
+        """Returns the position of the molecular center
 
         """
-
         data_type = self._check_data_type(data_type)
 
         if data_type == "PDB":
@@ -219,7 +213,6 @@ class ChlorophyllB(MolecularModel):
 
         Parameters
         ----------
-
         data_type : string
             Type of the data; can be e.g. PDB
 

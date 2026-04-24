@@ -1,5 +1,4 @@
-"""
-*******************************************************************************
+"""*******************************************************************************
 
     REDUCED DENSITY MATRIX PROPAGATOR
 
@@ -41,9 +40,7 @@ def debug(msg):
         print(msg)
 
 class ReducedDensityMatrixPropagator(MatrixData, Saveable):
-    """
-
-    Reduced Density Matrix Propagator calculates the evolution of the
+    """Reduced Density Matrix Propagator calculates the evolution of the
     reduced density matrix based on the Hamiltonian and optionally
     a relaxation tensor. Relaxation tensor may be constant or time
     dependent.
@@ -52,9 +49,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
     def __init__(self, timeaxis=None, Ham=None, RTensor=None, Iterm=None,
                  Efield=None, Trdip=None, PDeph=None, NonHerm=None):
-        """
-
-        Creates a Reduced Density Matrix propagator which can propagate
+        """Creates a Reduced Density Matrix propagator which can propagate
         a given initial density matrix with the given Hamiltonian and
         relaxation tensor.Time axis of the propagation is specied by
         the second argument.
@@ -70,7 +65,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         Examples
         --------
-
         The constructor accepts only numpy.ndarray object, so the
         following code will fail, because it submits normal Python arrays.
 
@@ -200,8 +194,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def setDtRefinement(self, Nref):
-        """
-        The TimeAxis object specifies at what times the propagation
+        """The TimeAxis object specifies at what times the propagation
         should be stored. We can tell the propagator to use finer
         time step for the calculation by setting the refinement. The
         refinement is an integer by which the TimeAxis time step should
@@ -220,9 +213,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def propagate(self, rhoi, method="short-exp", mdata=None, Nref=1):
-        """
-
-        >>> T0   = 0
+        """>>> T0   = 0
         >>> Tmax = 100
         >>> dt   = 1
         >>> Nref = 30
@@ -258,7 +249,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             ...
         Exception: First argument has be of the ReducedDensityMatrix type
         """
-
         if Nref > 1:
             self.setDtRefinement(Nref)
 
@@ -495,7 +485,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
         """
-
         debug("(1)")
 
         (pr, rho1, rho2) = self._INIT_EXP(rhoi)
@@ -524,9 +513,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def _INIT_EXP(self, rhoi):
-        """
-
-        Parameters
+        """Parameters
         ----------
         rhoi : TYPE
             DESCRIPTION.
@@ -610,7 +597,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         relaxation tensor
 
         """
-
         if self.RelaxationTensor.as_operators:
             return self.__propagate_short_exp_with_rel_operators(rhoi, L=L)
 
@@ -713,10 +699,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def _BOOT_DEPH(self):
-        """
-
-
-        Returns
+        """Returns
         -------
         None.
 
@@ -730,10 +713,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def _APPLY_DEPH(self, tt, rho2):
-        """
-
-
-        Parameters
+        """Parameters
         ----------
         tt : TYPE
             DESCRIPTION.
@@ -756,7 +736,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
         """
-
         debug("(3)")
 
         (pr, rho1, rho2) = self._INIT_EXP(rhoi)
@@ -898,17 +877,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def __propagate_short_exp_with_TD_relaxation(self,rhoi,L=4):
+        """Short exp integration
+
+        This is the propagator used with the Time-dependent relaxation
+        tensors
+
+
         """
-              Short exp integration
-
-              This is the propagator used with the Time-dependent relaxation
-              tensors
-
-
-        """
-
-
-
         if self.RelaxationTensor.as_operators:
             return self.__propagate_short_exp_with_TDrel_operators(rhoi,L=L)
 
@@ -1016,14 +991,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
     def __propagate_short_exp_with_TDrel_operators(self, rhoi, L=4):
+        """Short exp integration with time-dependent relaxation tensor
+
+        The tensor is in operator form.
+
+
         """
-            Short exp integration with time-dependent relaxation tensor
-
-            The tensor is in operator form.
-
-
-        """
-
         debug("(5)")
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
 
@@ -1362,7 +1335,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """Set the single frequency Rotating Wave Approximation
 
         """
-
         self.field_rwa = Manager().convert_energy_2_internal_u(rwa)
 
         # there must already be RWA set in the Hamiltonian
@@ -1376,7 +1348,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         """Switch off the single frequency RWA
 
         """
-
         self._has_field_RWA = False
 
 
@@ -1396,7 +1367,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         Parameters
         ----------
-
         rhoi : DensityMatrix
             Initial reduced density matrix
 
@@ -1695,7 +1665,6 @@ def _OTI(rhoY, Km, Kd, Lm, Ld, ll, dt, rho1):
 
 
     """
-
     Nm = Km.shape[0]
     for mm in range(Nm):
 
@@ -1739,7 +1708,7 @@ def _COM(HH, ll, dt, rho1, has_NonHerm=False):
 
 
 def _TTI(rhoY, RR, IR, ll, dt, rho1, L=4):
-    """ Tensor form of the Time Indendent relaxation tensor
+    """Tensor form of the Time Indendent relaxation tensor
 
     Parameters
     ----------

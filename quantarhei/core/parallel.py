@@ -57,7 +57,7 @@ class DistributedConfiguration:
 
 
     def stearer_loop(self):
-        """ Here we wait for stearer tasks
+        """Here we wait for stearer tasks
 
         """
         for ii in range(self.size):
@@ -137,14 +137,13 @@ class DistributedConfiguration:
 
 
     def reduce(self, A, operation="sum"):
-        """ Performs a reduction operation on an array
+        """Performs a reduction operation on an array
 
         Performs a reduction on an array according to a specification by
         the `operation` argument using MPI. The result is available
         on the process with rank = 0
 
         """
-
         if self.parallel_region < 1:
             raise Exception("This code has to be run from a declared parallel_region")
 
@@ -164,14 +163,13 @@ class DistributedConfiguration:
 
 
     def allreduce(self, A, operation="sum"):
-        """ Performs a reduction operation on an array
+        """Performs a reduction operation on an array
 
         Performs a reduction on an array according to a specification by
         the `operation` argument using MPI. Result is available to all
         processes.
 
         """
-
         if self.parallel_region < 1:
             raise Exception("This code has to be run from a declared parallel_region")
 
@@ -237,22 +235,20 @@ def distributed_configuration():
 
 
 def block_distributed_range(start, stop):
-    """ Creates an iterator which returns a block of indices
+    """Creates an iterator which returns a block of indices
 
-        Returns an iterator over a block of indices for each parallel process.
-        Altogether the iterators span the range from start to stop.
+    Returns an iterator over a block of indices for each parallel process.
+    Altogether the iterators span the range from start to stop.
 
-        Parameters
-        ----------
-
+    Parameters
+    ----------
         start : int
-            beginning of the range
+        beginning of the range
 
-        stop: int
-            end of the range
+    stop: int
+        end of the range
 
     """
-
     from .managers import Manager
     # we share the work only in parallel_level == 1
     config = Manager().get_DistributedConfiguration()
@@ -275,23 +271,21 @@ def block_distributed_range(start, stop):
 
 
 def block_distributed_list(dlist, return_index=False):
-    """ Creates sublists for each process
+    """Creates sublists for each process
 
-        Returns an iterator over a part of the list
-        Altogether the iterators span the original list.
+    Returns an iterator over a part of the list
+    Altogether the iterators span the original list.
 
-        Parameters
-        ----------
-
+    Parameters
+    ----------
         dlist : list
-            the list to loop over
+        the list to loop over
 
-        return_index : bool
-            if True, the function returns a list of tuples, where the first
-            element is an index counting the interated list elements from 0
+    return_index : bool
+        if True, the function returns a list of tuples, where the first
+        element is an index counting the interated list elements from 0
 
     """
-
     from .managers import Manager
     # we share the work only in parallel_level == 1
     config = Manager().get_DistributedConfiguration()
@@ -381,7 +375,6 @@ def collect_block_distributed_data(containers, setter_function,
 
     Parameters
     ----------
-
     containers : list
         A list of two container. Firts container is a new empty container
         to which everything will be collected (on nod 0), the other
@@ -399,7 +392,6 @@ def collect_block_distributed_data(containers, setter_function,
 
 
     """
-
     from .managers import Manager
     # we share the work only in parallel_level == 1
     config = Manager().get_DistributedConfiguration()
@@ -481,7 +473,6 @@ def _calculate_ranges(config, start, stop):
 
     Parameters
     ----------
-
     config : DistributedConfiguration
         object holding information about the parallel environment of quantarhei
 
@@ -492,7 +483,6 @@ def _calculate_ranges(config, start, stop):
         end of the integer range
 
     """
-
     whole_range = stop-start
     per_worker = whole_range // config.size
     remainder = whole_range % config.size
@@ -524,7 +514,6 @@ def _calculate_ranges_list(config, dlist):
 
     Parameters
     ----------
-
     config : DistributedConfiguration
         object holding information about the parallel environment of quantarhei
 
@@ -543,7 +532,6 @@ def _calculate_ranges_array(config, array):
 
     Parameters
     ----------
-
     config : DistributedConfiguration
         object holding information about the parallel environment of quantarhei
 
@@ -738,7 +726,6 @@ class parallel_function:
 
     Parameters
     ----------
-
     function : callable
         function which will be repeatedly called within the context
 
@@ -748,7 +735,6 @@ class parallel_function:
 
     Examples
     --------
-
 #    These examples, when tested, will be run in serial mode and the test will
 #    only confirm that the serial version works
 #
@@ -853,7 +839,6 @@ class parallel_function:
         """On exit the leader process signals to stop waiting for more work
 
         """
-
         # all processes except of the leader go straight through
         if self.dc.rank == self.leader:
             wait_for_work = False

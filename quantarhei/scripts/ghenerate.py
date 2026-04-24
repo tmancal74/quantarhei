@@ -1,9 +1,7 @@
-"""
+"""Steps template generator for `behave` acceptance tests
 
-    Steps template generator for `behave` acceptance tests
-
-    Author: Tomas Mancal, Charles University, Prague, Czech Republic
-    email: mancal@karlov.mff.cuni.cz
+Author: Tomas Mancal, Charles University, Prague, Czech Republic
+email: mancal@karlov.mff.cuni.cz
 
 
 """
@@ -27,7 +25,6 @@ def parsing():
 
 
     """
-
     descr = 'Ghenerate, the Gherkin Python Step Generator from Quantarhei'
     parser = argparse.ArgumentParser(description=descr+' ...')
 
@@ -130,7 +127,6 @@ def analyze_children(children):
     """Analyzes children of the feature and prints info
 
     """
-
     test_strings = []
     for scenario in children:
 
@@ -156,7 +152,6 @@ def check_outputfile_exists(ddir, filename):
     """Checks the existance of destination directory and the target file
 
     """
-
     (filen, ext) = os.path.splitext(os.path.basename(filename))
 
     if ext != ".feature":
@@ -184,7 +179,6 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
     """Write step function implementation header
 
     """
-
     if step["keyword"].strip() == "Given":
         myfile.write("\n\n#\n# Given ...\n#\n")
         myfile.write("@given('"+textrep+"')\n")
@@ -264,7 +258,6 @@ def main():
 
 
     """
-
     #(children, ddir, steps_pass, filename) = parsing()
     parse_data = parsing()
     if not isinstance(parse_data, dict):

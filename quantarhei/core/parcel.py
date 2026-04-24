@@ -29,7 +29,6 @@ class Parcel:
 
         Parameters
         ----------
-
         filename : str or File
             Name of the file or a file object to which the content of
             the object will be saved
@@ -48,7 +47,6 @@ def save_parcel(obj, filename, comment=None):
 
     Parameters
     ----------
-
     filename : str or File
         Name of the file or a file object to which the content of
         the object will be saved
@@ -70,7 +68,6 @@ def load_parcel(filename):
 
     Parameters
     ----------
-
     filename : str or File
         Filename of the file or file descriptor of the file from which
         and object should be loaded.
@@ -93,13 +90,11 @@ def check_parcel(filename):
 
     Parameters
     ----------
-
     filename : str or File
         Filename of the file or file descriptor of the file from which
         and object should be loaded.
 
     """
-
     if isinstance(filename, str):
         with open(filename, "rb") as f:
             obj = pickle.load(f)

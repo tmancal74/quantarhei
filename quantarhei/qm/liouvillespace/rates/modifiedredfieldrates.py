@@ -1,6 +1,5 @@
 
-"""
-*******************************************************************************
+"""*******************************************************************************
 
       MODIFIED REDFIELD RATE MATRIX
 
@@ -42,7 +41,6 @@ class ModifiedRedfieldRateMatrix:
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian object
 
@@ -183,14 +181,13 @@ class ModifiedRedfieldRateMatrix:
         self.data = rates
 
     def _set_rates(self):
-        """ Setting Modified Redfield rates for an electronic system
+        """Setting Modified Redfield rates for an electronic system
 
         We assume a single exciton band only!!!
 
 
 
         """
-
         Na = self.ham.dim
         Nc = self.sbi.N
 
@@ -268,7 +265,6 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt):
 
         Parameters
         ----------
-
         Na : integer
         Rank of the rate matrix, number of excitons
 
@@ -319,7 +315,6 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt):
         warnings and errors
 
         """
-
         E_0k = numpy.zeros(Na,dtype=REAL)
         F_k_t = numpy.zeros((Na,Nt),dtype=COMPLEX)
         A_k_t = numpy.zeros((Na,Nt),dtype=COMPLEX)
@@ -400,14 +395,13 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt):
         #qr.stop()
 
 def _c2g(timeaxis,coft):
-    """ Converts correlation function to lineshape function
+    """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation
     function to form a lineshape function.
 
     Parameters
     ----------
-
     timeaxis : cu.oqs.time.TimeAxis
         TimeAxis of the correlation function
 
@@ -417,7 +411,6 @@ def _c2g(timeaxis,coft):
 
 
     """
-
     ta = timeaxis
     rr = numpy.real(coft)
     ri = numpy.imag(coft)
@@ -433,14 +426,13 @@ def _c2g(timeaxis,coft):
     return gt
 
 def _c2h(timeaxis,coft):
-    """ Converts correlation function to derivative of lineshape function
+    """Converts correlation function to derivative of lineshape function
 
     Explicit numerical single integration of the correlation
     function to form a time redivative of lineshape function.
 
     Parameters
     ----------
-
     timeaxis : cu.oqs.time.TimeAxis
         TimeAxis of the correlation function
 
@@ -450,7 +442,6 @@ def _c2h(timeaxis,coft):
 
 
     """
-
     ta = timeaxis
     rr = numpy.real(coft)
     ri = numpy.imag(coft)
@@ -462,7 +453,7 @@ def _c2h(timeaxis,coft):
     return ht
 
 def ssModifiedRRM(Na, Nt, en, ln, SS, tt, ct, ht, gt, method="ModifiedRedfield"):
-    """ Modifield Redfield rates
+    """Modifield Redfield rates
 
     Na : integer
         Number of sites
@@ -485,7 +476,6 @@ def ssModifiedRRM(Na, Nt, en, ln, SS, tt, ct, ht, gt, method="ModifiedRedfield")
 
 
     """
-
     RR = numpy.zeros((Na, Na), dtype=REAL)
     f = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
     Ab = numpy.zeros(Nt, dtype=COMPLEX)

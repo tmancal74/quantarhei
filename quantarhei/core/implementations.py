@@ -39,7 +39,6 @@ def implementation(package="",
         is loaded, i.e. at the start of the application.
 
         """
-
         fc = get_function(func, package, taskname,
                           default_local=fallback_local,
                           always_local=always_local)

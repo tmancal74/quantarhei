@@ -64,8 +64,7 @@ class CumulantExpr(QExpr):
 
 
     def _evaluate_second_order_rules(self):
-        """
-        Evaluates second order terms in terms of the line shape function
+        """Evaluates second order terms in terms of the line shape function
 
         """
         a = Wild('a')
@@ -173,8 +172,7 @@ class CumulantExpr(QExpr):
         return self.args[0]
 
     def _calculate_order(self,expr):
-        """
-        Calculates a perturbation order of the expression expr
+        """Calculates a perturbation order of the expression expr
 
         """
         content = expr
@@ -346,7 +344,7 @@ def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
 
 
 def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
-    """ Transforms the sympy cumulant evaluation into a matrix Python code
+    """Transforms the sympy cumulant evaluation into a matrix Python code
 
     Transform gg(int1, int2, time_vars) into target_name_t1_t2_t3["int1int2"]
     Convert conjugate(gg(...)) into conj_func(target_name_t1_t2_t3["int1int2"]).
@@ -426,7 +424,6 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
             "t5": 2
         }
     """
-
     import sympy as sp
 
     conjugate = sp.conjugate
@@ -526,7 +523,6 @@ class GFInitiator:
 
     Parameters
     ----------
-
     t1s : array
         Array of t1 times
 
@@ -575,7 +571,6 @@ class GFInitiator:
         """Sets the waiting time t2 and precalculates values of the response functions
 
         """
-
         # for every t2 we precalculate all necessary combinations of g(t) arguments
         if t2 != self.t2:
             self.t2 = t2
@@ -606,7 +601,6 @@ class GFInitiator:
 
         Parameters
         ----------
-
         t2 : float
             Time t2
 
@@ -705,7 +699,6 @@ class Uop:
 
 
         """
-
         if self.is_unity():
             return "1"
 
@@ -758,8 +751,6 @@ class Uop:
         """Merge two operators of the same type
 
         """
-
-
         if self.state != u.state:
             raise Exception("Cannot merge "+self.state+" with "+u.state)
 

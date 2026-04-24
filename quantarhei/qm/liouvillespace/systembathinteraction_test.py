@@ -1,11 +1,11 @@
 """Test class for SystemBathInteraction
 
 
-    Provides ready to use classes of the type SystemBathInteraction
+Provides ready to use classes of the type SystemBathInteraction
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 from .systembathinteraction import SystemBathInteraction

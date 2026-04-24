@@ -1,7 +1,5 @@
 
-"""
-
-    Propagation with Redfield theory using Aggregate object
+"""Propagation with Redfield theory using Aggregate object
 
 """
 

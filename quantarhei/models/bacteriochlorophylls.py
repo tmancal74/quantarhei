@@ -30,10 +30,9 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
 
 
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
-        """ Returns transition dipole moment vector
+        """Returns transition dipole moment vector
 
         """
-
         data_type = self._check_data_type(data_type)
 
         if data_type == "PDB":
@@ -61,10 +60,9 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
 
 
     def position_of_center(self, data_type=None, data=None):
-        """ Returns the position of the molecular center
+        """Returns the position of the molecular center
 
         """
-
         data_type = self._check_data_type(data_type)
 
         if data_type == "PDB":
@@ -104,7 +102,6 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         data_type : string
             Type of the data; can be e.g. PDB
 

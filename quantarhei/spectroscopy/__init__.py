@@ -1,10 +1,8 @@
-"""
-
-    quantarhei.spectroscopy subpackage
-    ==================================
+"""quantarhei.spectroscopy subpackage
+==================================
 
 
-    Spectroscopy of molecules and their aggregates
+Spectroscopy of molecules and their aggregates
 
 
 """

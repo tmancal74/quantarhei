@@ -1,6 +1,4 @@
-"""
-
-    Demonstration of the secularization of a relaxation tensor
+"""Demonstration of the secularization of a relaxation tensor
 
 
 

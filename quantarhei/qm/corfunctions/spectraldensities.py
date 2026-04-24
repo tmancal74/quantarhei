@@ -1,7 +1,6 @@
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    spectraldensities module
+spectraldensities module
 
 
 """
@@ -24,7 +23,6 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     Parameters
     ----------
-
     axis : TimeAxis, FrequencyAxis
         ValueAxis object specifying the frequency range directly or through
         Fourier transform frequencies corresponding to a TimeAxis
@@ -35,7 +33,6 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     Methods
     -------
-
 ....is_analytical()
         Returns `True` if the spectral density is calculated from an analytical
         formula, `False` otherwise.
@@ -66,7 +63,6 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     Examples
     --------
-
     `SpectralDensity` object can be ctreated with the same parameters as
     `CorrelationFunction`. The temperature can be set, but it is not
     a compulsory parameter.
@@ -220,7 +216,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                 self.params.append(prms)
 
     def _make_overdamped_brownian(self, params, values=None):
-        """ Sets the Overdamped Brownian oscillator spectral density
+        """Sets the Overdamped Brownian oscillator spectral density
 
         """
         try:
@@ -426,7 +422,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega[1] = 0.0
 
     def _make_value_defined(self, values=None):
-        """ Value defined spectral density
+        """Value defined spectral density
 
         """
         if values is None:
@@ -540,7 +536,6 @@ class SpectralDensity(DFunction, UnitsManaged):
         by analytical formula. Returns `False` if the object was constructed
         by numerical transformation from spectral density.
         """
-
         return bool(self.params["ftype"] in self.analytical_types)
 
 
@@ -588,7 +583,6 @@ class SpectralDensity(DFunction, UnitsManaged):
         object will be returned with that TimeAxis instance as its time axis.
 
         """
-
         params = []
         for pdict in self.params:
             newdict = pdict.copy()
@@ -623,14 +617,12 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         Parameters
         ----------
-
         temperature : optional
             Temperature which can be missing among the spectral density
             parameters
 
 
         """
-
         #
         # copy the parameters and change temperature if needed
         #

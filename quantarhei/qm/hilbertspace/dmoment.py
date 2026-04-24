@@ -40,8 +40,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
         return (a and b) and c
 
     def transform(self,SS,inv=None):
-        """
-        This function transforms the Operator into a different basis, using
+        """This function transforms the Operator into a different basis, using
         a given transformation matrix.
         """
         if inv is None:

@@ -158,7 +158,7 @@ class OpenSystem:
 
 
     def get_Hamiltonian(self):
-        """ Returns the Hamiltonian operator
+        """Returns the Hamiltonian operator
 
         """
         if self._built:
@@ -171,7 +171,7 @@ class OpenSystem:
 
 
     def get_TransitionDipoleMoment(self):
-        """ Returns the asystem's transition dipole moment operator
+        """Returns the asystem's transition dipole moment operator
 
         """
         if self._built:
@@ -195,7 +195,6 @@ class OpenSystem:
         (Should go to Open System)
 
         """
-
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This system is mapped"
                             + " on a CorrelationFunctionMatrix")
@@ -229,7 +228,6 @@ class OpenSystem:
         (Should go to OpenSystem)
 
         """
-
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped"
                             + " on a CorrelationFunctionMatrix")
@@ -257,7 +255,6 @@ class OpenSystem:
         (Should go to OpenSystem)
 
         """
-
         if self._has_egcf[self.triangle.locate(transition[0] ,transition[1])]:
             return self.egcf[self.triangle.locate(transition[0],
                                                   transition[1])]
@@ -273,7 +270,7 @@ class OpenSystem:
 
 
     def set_egcf_mapping(self, transition, correlation_matrix, position):
-        """ Sets a correlation function mapping for a selected transition.
+        """Sets a correlation function mapping for a selected transition.
 
         The monomer can either have a correlation function assigned to it,
         or it can be a part of a correlation matrix. Here the mapping to the
@@ -296,7 +293,6 @@ class OpenSystem:
         (Should go to OpenSystems)
 
         """
-
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
 
@@ -336,10 +332,9 @@ class OpenSystem:
 
 
     def get_band(self, band=1):
-        """ Returns a tuple of state indices for a given band of states
+        """Returns a tuple of state indices for a given band of states
 
         """
-
         Nbefore = 0
         for ii in range(band):
             Nbefore += self.Nb[ii]
@@ -372,7 +367,6 @@ class OpenSystem:
 
         Examples
         --------
-
         >>> m = OpenSystem([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
@@ -419,8 +413,6 @@ class OpenSystem:
 
         Examples
         --------
-
-
         >>> m = OpenSystem([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
@@ -446,7 +438,6 @@ class OpenSystem:
     # FIXME: There are two functions with similar results
     def map_egcf_to_states(self, mpx):
         """Returns a mapping between states and correlation functions"""
-
         ss = self.SS
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
@@ -475,7 +466,6 @@ class OpenSystem:
         in classes that inherite from here.
 
         """
-
         ss = self.SS
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
@@ -528,7 +518,6 @@ class OpenSystem:
 
         Parameters
         ----------
-
         which : string
             A string characterizing the type of dipole moment product
 
@@ -634,7 +623,6 @@ class OpenSystem:
 
         Parameters
         ----------
-
         timeaxis : TimeAxis
             Time axis of the relaxation tensor calculation. It has to be
             compatible with the time axis of the correlation functions
@@ -651,7 +639,6 @@ class OpenSystem:
 
         Returns
         -------
-
         RR : RelaxationTensor
             Relaxation tensor of the aggregate
 
@@ -661,7 +648,6 @@ class OpenSystem:
 
 
         """
-
         from ..qm import RedfieldRelaxationTensor
         from ..qm import TDRedfieldRelaxationTensor
         from ..qm import ModRedfieldRelaxationTensor
@@ -1041,8 +1027,6 @@ class OpenSystem:
 
 
         """
-
-
         from ..qm import ReducedDensityMatrixPropagator
         from ..core.managers import eigenbasis_of
 
@@ -1075,7 +1059,6 @@ class OpenSystem:
         """Returns Redfield rate matrix
 
         """
-
         from ..qm import RedfieldRateMatrix
         from ..core.managers import eigenbasis_of
 
@@ -1098,7 +1081,6 @@ class OpenSystem:
 
 
         """
-
         from ..qm import FoersterRateMatrix
 
         if self._built:
@@ -1115,7 +1097,6 @@ class OpenSystem:
         """Returns the Kubo-Tanimura hierarchy of an open system
 
         """
-
         HH = self.get_Hamiltonian()
         HH.set_rwa([0,1])
         sbi = self.get_SystemBathInteraction()
@@ -1126,7 +1107,6 @@ class OpenSystem:
         """Returns a propagator based on the Kubo-Tanimura hierarchy
 
         """
-
         kth = self.get_KTHierarchy(depth)
         ta = kth.sbi.TimeAxis
 
@@ -1138,7 +1118,6 @@ class OpenSystem:
 
 
         """
-
         dip = self.get_TransitionDipoleMoment()
         if polarization is None:
             dip = dip.get_dipole_length_operator()
@@ -1209,7 +1188,6 @@ class OpenSystem:
         """Returns equilibrium density matrix for a give temparature
 
         """
-
         H = self.get_Hamiltonian()
         T = self.get_temperature()
         dat = numpy.zeros(H._data.shape,dtype=COMPLEX)
@@ -1235,7 +1213,7 @@ class OpenSystem:
 
 
     def integrate_deposited_energy(self, rho_t, field, ome=None):
-        r""" Integrates the energy deposited into the system by light
+        r"""Integrates the energy deposited into the system by light
 
         By default, rho_t and field contain the optical frequency. If ome and dt are defined,
         it is assumed that rho_t was calculated using a single frequency (global) RWA. In that
@@ -1243,7 +1221,6 @@ class OpenSystem:
 
         Parameters
         ----------
-
         rho_t : DensityMatrixEvolution
             The dynamics of the system in terms of its time-dependent density matrix
 
@@ -1258,7 +1235,6 @@ class OpenSystem:
             Time step on which rho_t and field are defined
 
         """
-
         # transition dipole moment
         DD = self.get_TransitionDipoleMoment()
 
@@ -1407,8 +1383,6 @@ class OpenSystem:
 
 
         """
-
-
         if not self._has_nat_lifetime[N]:
             self.set_electronic_natural_lifetime(N,epsilon_r=epsilon_r)
 
@@ -1422,8 +1396,7 @@ class OpenSystem:
 # Auxiliary routines
 #
 def integral_g_dfdt(g,f):
-    """
-    Numerically compute ∫ g(t) * df/dt(t) dt using central differences.
+    """Numerically compute ∫ g(t) * df/dt(t) dt using central differences.
     Assumes df/dt = 0 at boundaries.
 
     Parameters:
@@ -1443,8 +1416,7 @@ def integral_g_dfdt(g,f):
 
 
 def integral_g_f(g, f, dt):
-    """
-    Numerically compute ∫ g(t) * f(t) dt using the trapezoidal rule.
+    """Numerically compute ∫ g(t) * f(t) dt using the trapezoidal rule.
     Assumes uniform time step (dt cancels out, as in the df/dt version).
 
     Parameters:

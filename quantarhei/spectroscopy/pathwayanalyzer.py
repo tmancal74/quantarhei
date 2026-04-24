@@ -1,18 +1,18 @@
 """Liouville pathway analysis module
 
-   This module defines classes and function to help in
-   Liouvile pathway analysis
+This module defines classes and function to help in
+Liouvile pathway analysis
 
-   Classes
-   -------
+Classes
+-------
 
-   LiouvillePathwayAnalyzer
+LiouvillePathwayAnalyzer
 
 
-   Functions
-   ---------
+Functions
+---------
 
-   max_amplitude(pathways)
+max_amplitude(pathways)
 
 
 
@@ -40,14 +40,12 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
 
     Parameters
     ----------
-
     pathways : list
         List of pathways to analyze
 
 
     Methods
     -------
-
     set_pathways(pathways=None)
         Set the pathways for the analysis
 
@@ -97,14 +95,12 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
 
         Parameters
         ----------
-
         pathways : list
             List of Liouville pathways
 
 
         Returns
         -------
-
         pmax : float
             Maximum prefactor of the pathways
 
@@ -112,7 +108,6 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
             position of the pathway with the maximum prefactor
 
         """
-
         if pathways is None:
             pthways = self.pathways
         else:
@@ -136,14 +131,12 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
 
         Parameters
         ----------
-
         pathways : list
             List of Liouville pathways
 
 
         Returns
         -------
-
         pmax : float
             Maximum prefactor of the pathways
 
@@ -160,7 +153,6 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         """Select all pathways with prefactors greater than a value
 
         """
-
         if pathways is None:
             pthways = self.pathways
         else:
@@ -263,14 +255,12 @@ def max_amplitude(pathways):
 
     Parameters
     ----------
-
     pathways : list
         List of Liouville pathways
 
 
     Returns
     -------
-
     pmax : float
         Maximum prefactor of the pathways
 
@@ -295,7 +285,6 @@ def select_amplitude_GT(val, pathways, verbose=False):
 
     Parameters
     ----------
-
     val : float
         Value to compare with the pathway prefactor
 
@@ -308,12 +297,10 @@ def select_amplitude_GT(val, pathways, verbose=False):
 
     Returns
     -------
-
     selected : list
         List of selected pathways
 
     """
-
     pthways = pathways
 
     selected = []
@@ -332,7 +319,6 @@ def select_frequency_window(window, pathways, verbose=False):
     """Selects pathways with omega_1 and omega_3 in a certain range
 
     """
-
     pthways = pathways
     m = Manager()
 
@@ -366,7 +352,6 @@ def select_omega2(interval, pathways, secular=True,
     """Selects pathways with omega_2 in a certain interval
 
     """
-
     pthways = pathways
     m = Manager()
 
@@ -429,7 +414,7 @@ def order_by_amplitude(pthways):
 
 
 def select_sign(pathways, sign):
-    """Selects all pathways depending on the overall sign """
+    """Selects all pathways depending on the overall sign"""
     selected = []
 
     pos = False
@@ -452,7 +437,6 @@ def select_type(pathways, stype):
 
     Parameters
     ----------
-
     pathways : list
         List of pathways to be analyzed
 
@@ -503,7 +487,6 @@ def select_by_states(pathways, states):
 
     Parameters
     ----------
-
     pathways : list, tuple
         List of tuple of states to analyze
 
@@ -514,7 +497,6 @@ def select_by_states(pathways, states):
 
 
     """
-
     # loop over all pathways
     for pw in pathways:
 
@@ -540,7 +522,6 @@ def look_for_pathways(name="pathways", ext="qrp",
     """Load pathways by t2
 
     """
-
     # get all files with the name_*.ext pattern
     import glob
     import os.path
@@ -569,7 +550,6 @@ def load_pathways_by_t2(t2, name="pathways", ext="qrp", directory=".",
     """Load pathways by t2 time
 
     """
-
     t2_str = str(t2)
     fname = name+"_"+t2_str+"."+ext
     path = os.path.join(directory, fname)
@@ -734,7 +714,6 @@ def _get_evol(t2s, states, name, ext, directory, repl=0.0):
     """Return evolution of a single pathway
 
     """
-
     N = 1
     if _is_tuple_of_dyads(states):
         evol = numpy.zeros(len(t2s), dtype=COMPLEX)
@@ -770,7 +749,6 @@ def _get_pref(t2s, states, name, ext, directory, repl=0.0):
     """Return evolution of a single pathway
 
     """
-
     N = 1
     if _is_tuple_of_dyads(states):
         evol = numpy.zeros(len(t2s), dtype=COMPLEX)

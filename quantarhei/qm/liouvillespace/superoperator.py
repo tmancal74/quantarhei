@@ -1,14 +1,14 @@
-""" Class representing superoperators
+"""Class representing superoperators
 
 
-    This class represents operators on the space of Hilbert space operators.
-    Usually, we refer to such operators as superoperators.
+This class represents operators on the space of Hilbert space operators.
+Usually, we refer to such operators as superoperators.
 
 
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 
@@ -27,7 +27,6 @@ class SuperOperator(BasisManaged):
 
     Parameters
     ----------
-
     dim : int
         Dimension of the superoperator
 
@@ -40,7 +39,6 @@ class SuperOperator(BasisManaged):
 
     Examples
     --------
-
     Creation of an empty SuperOperator is allowed
 
     >>> So = SuperOperator()
@@ -117,14 +115,12 @@ class SuperOperator(BasisManaged):
 
         Parameters
         ----------
-
         oper : Operator
             Operator on which the present superoperator is applied
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> import numpy
         >>> op = qr.ReducedDensityMatrix(data=[[0.0, 1.0], [1.0, 0.0]])
@@ -179,7 +175,6 @@ class SuperOperator(BasisManaged):
         >>> numpy.allclose(B3.data, B2)
         True
         """
-
         if copy:
             import copy
             oper_ven = copy.copy(oper)
@@ -272,7 +267,6 @@ class SuperOperator(BasisManaged):
 
         Parameters
         ----------
-
         SS : float matrix
             Transformation matrix
 

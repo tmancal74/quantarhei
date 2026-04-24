@@ -11,7 +11,7 @@ from ..qm.oscillators.ho import operator_factory
 
 
 class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
-    """ Represents a set of coupled oscillators (possibly unharmonic)
+    """Represents a set of coupled oscillators (possibly unharmonic)
 
 
     This class forms the basis of the IR spectroscopy treatment
@@ -19,7 +19,6 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
     Parameters
     ----------
-
     name : str
         Specifies the name of the system
 
@@ -76,7 +75,6 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         0.00188365156731
 
         """
-
         if not self._mode_couping_init:
             self.coupling = numpy.zeros((self.Nmodes, self.Nmodes), dtype=REAL)
             self._mode_couping_init = True
@@ -109,8 +107,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         pass
 
     def _embed_bilinear_interaction(self, i, j, kappa=1.0):
-        """
-        Embed a bilinear interaction term kappa * K1 ⊗ K2
+        """Embed a bilinear interaction term kappa * K1 ⊗ K2
         between subsystem i and j (0-based indices).
 
         Parameters:
@@ -365,8 +362,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
 
 def group_energies_by_gap(energies, threshold=None, gap_factor=3.0):
-    """
-    Groups sorted energies into bands separated by significant energy gaps.
+    """Groups sorted energies into bands separated by significant energy gaps.
 
     Parameters
     ----------
@@ -413,8 +409,7 @@ def group_energies_by_gap(energies, threshold=None, gap_factor=3.0):
 
 
 def reorder_operators_by_energy(H, operators):
-    """
-    Reorders a Hamiltonian and other operators according to ascending energies (diagonal elements of H).
+    """Reorders a Hamiltonian and other operators according to ascending energies (diagonal elements of H).
 
     Parameters
     ----------
@@ -444,8 +439,7 @@ def reorder_operators_by_energy(H, operators):
 
 
 def reorder_hamiltonian_by_energy(H):
-    """
-    Reorders a Hamiltonian according to ascending energies (diagonal elements of H).
+    """Reorders a Hamiltonian according to ascending energies (diagonal elements of H).
 
     Parameters
     ----------
@@ -474,10 +468,8 @@ def reorder_hamiltonian_by_energy(H):
 
 
 def reorder_operators_by_perm(perm, operators):
-    """
-    Reorders operators according to a specified order.
+    """Reorders operators according to a specified order.
 
     """
-
     ops_sorted = [op[numpy.ix_(perm, perm)] for op in operators]
     return ops_sorted

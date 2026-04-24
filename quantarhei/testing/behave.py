@@ -1,5 +1,4 @@
-"""
-    Support module for tests using `behave` package
+"""Support module for tests using `behave` package
 
 
 
@@ -20,7 +19,6 @@ def quantarhei_installed(context, version=None):
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -42,7 +40,6 @@ def shell_command(context, cmd, err_msg="Shell command error"):
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -69,7 +66,6 @@ def check_output_contains(context, text, err_msg):
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -99,7 +95,6 @@ def cleanup_temp_dir(context):
 
 
     """
-
     try:
         os.chdir(context.cwd)
     except:

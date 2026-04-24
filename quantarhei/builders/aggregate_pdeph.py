@@ -1,14 +1,14 @@
 """Class adding calculation of PureDephasing object
 
-    Most of the present methods are available after the aggregate is
-    diagonalized by calling the ``diagonalize`` method.
+Most of the present methods are available after the aggregate is
+diagonalized by calling the ``diagonalize`` method.
 
-    **This class should not be used directly**. Use `Aggregate` class, which
-    inherits all the methods from here, instead.
+**This class should not be used directly**. Use `Aggregate` class, which
+inherits all the methods from here, instead.
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 import numpy
@@ -28,7 +28,6 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
         """Returns pure dephasing object of this aggregate
 
         """
-
         from ..qm.liouvillespace.puredephasing import ElectronicPureDephasing
 
         # collect site basis dephasing rates

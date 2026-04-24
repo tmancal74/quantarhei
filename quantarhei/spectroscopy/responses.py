@@ -56,14 +56,12 @@ class NonLinearResponse:
 
         Parameters
         ----------
-
         t2 : float
             Waiting time for which the response is calculated
 
 
 
         """
-
         # identify the index of the present t2 time
         out = self.t2s.locate(t2)
         t2i = out[0]
@@ -158,14 +156,8 @@ class NonLinearResponse:
 
 
 class LiouvillePathway:
-    """
-
-
-
-    Parameters
+    """Parameters
     ----------
-
-
     ptype : str
         Type of the Liouville pathway
 
@@ -214,7 +206,6 @@ class LiouvillePathway:
 
         Parameters:
         -----------
-
         d1 : vector
             First transition dipole moment of the response.
 
@@ -258,7 +249,6 @@ class LiouvillePathway:
 
 
         """
-
         if self._frequencies_set:
             raise Exception("Frequencies of are already set.")
 
@@ -272,7 +262,6 @@ class LiouvillePathway:
         """Returns the two main frequencies of the response
 
         """
-
         if self._frequencies_set:
             fr = (Manager().convert_energy_2_current_u(self._omega1),
                   Manager().convert_energy_2_current_u(self._omega3))
@@ -286,7 +275,6 @@ class LiouvillePathway:
         """Sets the RWA frequency
 
         """
-
         if not self._frequencies_set:
             raise Exception("Frequencies must be set before setting RWA.")
 
@@ -339,7 +327,6 @@ class ResponseFunction(LiouvillePathway):
 
         Parameters
         ----------
-
         lab :
 
         sys : ... None
@@ -362,7 +349,6 @@ class ResponseFunction(LiouvillePathway):
 
 
         """
-
         om3 = self._omega3
         om1 = self._omega1
 
@@ -397,13 +383,11 @@ class ResponseFunction(LiouvillePathway):
 
         Parameters:
         -----------
-
         args : tuple
             A tuple of arguments that will be passed to the function after
             the expected standard arguments
 
         """
-
         self.args = args
 
 

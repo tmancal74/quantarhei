@@ -1,5 +1,4 @@
-"""
-    Representation of Hierarchical Equations of Motion
+"""Representation of Hierarchical Equations of Motion
 
 
 """
@@ -12,12 +11,11 @@ from ...core.units import kB_int
 from ..corfunctions.correlationfunctions import CorrelationFunction
 
 class KTHierarchy:
-    """ Kubo-Tanimura Hierarchy
+    """Kubo-Tanimura Hierarchy
 
 
     Parameters
     ----------
-
     ham : Hamiltonian
         System Hamiltonian
 
@@ -181,7 +179,6 @@ class KTHierarchy:
 
         Parameters
         ----------
-
         N : int
             Number of indices in the hierarchy
 
@@ -189,7 +186,6 @@ class KTHierarchy:
             Highest level of the hierarchy to be generated
 
         """
-
         if False:
             return self._generate_indices_2_0to4(N, level)
         else:
@@ -323,10 +319,9 @@ class KTHierarchy:
 
 
     def _make_nmp1(self):
-        """ Makes the list of indices obtained from n by -1 or +1 operations
+        """Makes the list of indices obtained from n by -1 or +1 operations
 
         """
-
         for nn in range(self.hsize):
             for kk in range(self.nbath):
                 indxm = numpy.zeros(self.nbath, dtype=int)
@@ -351,10 +346,9 @@ class KTHierarchy:
 
 
     def _make_Gamma(self):
-        """ Decay factor of a given ADO
+        """Decay factor of a given ADO
 
         """
-
         for nn in range(self.hsize):
             for kk in range(self.nbath):
                 self.Gamma[nn] += self.hinds[nn,kk]*self.gamma[kk]
@@ -622,7 +616,6 @@ class KTHierarchyPropagator:
         """All cross-terms of the Hierarchy
 
         """
-
         ado3 = numpy.zeros(ado1.shape, dtype=ado1.dtype)
         rl = numpy.zeros((ado1.shape[1],ado1.shape[2]), dtype=ado1.dtype)
         rr = numpy.zeros((ado1.shape[1],ado1.shape[2]), dtype=ado1.dtype)

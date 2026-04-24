@@ -2,7 +2,7 @@ import numpy
 from ..liouvillespace.rates.ratematrix import RateMatrix
 
 class PopulationPropagator:
-    """ Propagator for a population vector
+    """Propagator for a population vector
 
     The most important method of this class is the method `propagate`.
     It takes initial population vector and propagates it using the time values
@@ -10,7 +10,6 @@ class PopulationPropagator:
 
     Parameters
     ----------
-
     timeaxis: TimeAxis
         The time interval on which we propagate.
 
@@ -123,7 +122,6 @@ class PopulationPropagator:
 
         Examples
         --------
-
         >>> from quantarhei import TimeAxis
         >>> ta = TimeAxis(0.0, 1000, 1.0)
         >>> ts = TimeAxis(0.0, 10, 10.0)

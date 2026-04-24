@@ -77,7 +77,6 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         """Calculate the absorption spectrum for all pathways
 
         """
-
         one = AbsSpectrum()
         one.set_axis(self.oa1)
         one.set_data(numpy.zeros(self.TimeAxis.length,
@@ -99,7 +98,6 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
 
         Parameters
         ----------
-
         pathway : Liouville pathways object
             A Liouville pathway which spectrum will be calculated
 
@@ -111,7 +109,6 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
             over the returned spectrum
 
         """
-
         pref = pathway.pref
         cen1 = pathway.frequency[0]
         N1 = self.oa1.length

@@ -1,6 +1,4 @@
-"""
-
-    Calculation of 2D spectra with lineshape functions
+"""Calculation of 2D spectra with lineshape functions
 
 
 """

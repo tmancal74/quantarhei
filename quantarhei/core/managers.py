@@ -1,50 +1,49 @@
-"""
-    This class handles several important package wide tasks:
+"""This class handles several important package wide tasks:
 
-    1) Usage of units across objects storing data
-    2) Basis conversion of all registered objects
-    3) Calls to proper optimized implementations of numerically heavy
-       sections of the calculations
-
-
-    Manager is a singleton class, only one instance exists at all times
-    and all managing objects have the instance of the Manager.
-
-    Properies
-    ---------
-
-    version : string
-        contains the package version number
+1) Usage of units across objects storing data
+2) Basis conversion of all registered objects
+3) Calls to proper optimized implementations of numerically heavy
+sections of the calculations
 
 
-    allower_utypes : list
-        contains a list of unit types which can be controlled by the Manager
+Manager is a singleton class, only one instance exists at all times
+and all managing objects have the instance of the Manager.
 
-    units : dictionary
-        dictionary of available units for each units type
+Properies
+---------
 
-    units_repre : dictionary
-        dictionary of abreviations used to represent various units
-
-    units_repre_latex : dictionary
-        dictionary of latex prepresentations of available units
+version : string
+contains the package version number
 
 
+allower_utypes : list
+contains a list of unit types which can be controlled by the Manager
 
-    Units Management
-    ----------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.UnitsManaged class.
+units : dictionary
+dictionary of available units for each units type
+
+units_repre : dictionary
+dictionary of abreviations used to represent various units
+
+units_repre_latex : dictionary
+dictionary of latex prepresentations of available units
 
 
-    Basis Conversion Management
-    ---------------------------
-    Units management is performed for all classes derived from
-    quantarhei.managers.BasisManaged class.
 
-    Basis management works like this: when an class is defined, and its
-    property needs to be basis managed, one should use a predefined type
-    `basis_managed_array_property`
+Units Management
+----------------
+Units management is performed for all classes derived from
+quantarhei.managers.UnitsManaged class.
+
+
+Basis Conversion Management
+---------------------------
+Units management is performed for all classes derived from
+quantarhei.managers.BasisManaged class.
+
+Basis management works like this: when an class is defined, and its
+property needs to be basis managed, one should use a predefined type
+`basis_managed_array_property`
 
 
 
@@ -77,7 +76,7 @@ from .logconf import LogConf
 from .genconf import GenConf
 
 class Manager(metaclass=Singleton):
-    """ Main package Manager
+    """Main package Manager
 
     """
 
@@ -332,7 +331,6 @@ class Manager(metaclass=Singleton):
         """Closes parallel environment if needed
 
         """
-
         if self.parallel_conf is not None:
             #from .parallel import close_parallel_region
             self.parallel_conf.finish_parallel_region()
@@ -480,8 +478,6 @@ class Manager(metaclass=Singleton):
 
 
         """
-
-
         if utype in self.allowed_utypes:
             if mode == "current":
                 return self.units_repre[self.current_units[utype]]
@@ -498,8 +494,6 @@ class Manager(metaclass=Singleton):
 
 
         """
-
-
         if utype in self.allowed_utypes:
             if mode == "current":
                 return self.units_repre_latex[self.current_units[utype]]
@@ -590,7 +584,6 @@ class Manager(metaclass=Singleton):
 
         Parameters
         ----------
-
         val : number, array, list, tuple of numbers
             values to convert
 
@@ -619,7 +612,6 @@ class Manager(metaclass=Singleton):
 
         Parameters
         ----------
-
         val : number, array, list, tuple of numbers
             values to convert
 
@@ -645,7 +637,6 @@ class Manager(metaclass=Singleton):
 
         Parameters
         ----------
-
         val : number, array, list, tuple of numbers
             values to convert
 
@@ -658,7 +649,6 @@ class Manager(metaclass=Singleton):
 
         Parameters
         ----------
-
         val : number, array, list, tuple of numbers
             values to convert
 
@@ -671,7 +661,6 @@ class Manager(metaclass=Singleton):
 
         Parameters
         ----------
-
         val : number, array, list, tuple of numbers
             values to convert
 
@@ -684,7 +673,6 @@ class Manager(metaclass=Singleton):
 
         Parameters
         ----------
-
         val : number, array, list, tuple of numbers
             values to convert
 
@@ -747,13 +735,11 @@ class Manager(metaclass=Singleton):
 
         Parameters
         ----------
-
         operator : operator
             Any basis managed operator
 
 
         """
-
         if operator.is_basis_protected:
             return
 

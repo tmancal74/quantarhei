@@ -1,7 +1,6 @@
 
 #<remove>
-"""
-The <remove> ... </remove> and <indent> directives show the processor
+"""The <remove> ... </remove> and <indent> directives show the processor
 how to change the code to convert it into a demo.
 
 

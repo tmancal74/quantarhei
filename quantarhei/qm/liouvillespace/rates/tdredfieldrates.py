@@ -1,5 +1,4 @@
-"""
-*******************************************************************************
+"""*******************************************************************************
 
       REDFIELD RATE MATRIX
 
@@ -31,7 +30,6 @@ class TDRedfieldRateMatrix(TimeDependent):
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian object
 
@@ -72,10 +70,9 @@ class TDRedfieldRateMatrix(TimeDependent):
 
 
     def _set_rates(self,ham,sbi):
-        """ Reference implementation, completely in Python
+        """Reference implementation, completely in Python
 
         """
-
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         Na = ham.data.shape[0]

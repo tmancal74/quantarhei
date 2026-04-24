@@ -1,10 +1,9 @@
-"""
-    Class comprising the aggregate methods for support of spectroscopic simulations
+"""Class comprising the aggregate methods for support of spectroscopic simulations
 
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 
@@ -18,7 +17,7 @@ from ..qm.liouvillespace.superoperator import SuperOperator
 import quantarhei as qr
 
 class AggregateSpectroscopy(AggregateBase):
-    """ Class comprising the aggregate methods for support of spectroscopic simulations
+    """Class comprising the aggregate methods for support of spectroscopic simulations
 
 
     """
@@ -32,8 +31,7 @@ class AggregateSpectroscopy(AggregateBase):
 
     def liouville_pathways_3(self, ptype="R3g", dtol=0.01, ptol=1.0e-3,
                              lab=None, verbose=0):
-        """ Generator of Liouville pathways """
-
+        """Generator of Liouville pathways"""
         ham = self.get_Hamiltonian()
         self.lab = lab
         return self.liouville_pathways_3T(ptype, dtol=dtol, ptol=ptol, lab=lab,
@@ -669,14 +667,13 @@ class AggregateSpectroscopy(AggregateBase):
     def liouville_pathways_3T(self, ptype="R3g", eUt=None, ham=None, t2=0.0,
                               dtol=1.0e-12, ptol=1.0e-3, etol=1.0e-6,
                               verbose=0, lab=None):
-        """ Generator of Liouville pathways with energy transfer
+        """Generator of Liouville pathways with energy transfer
 
 
 
 
         Parameters
         ----------
-
         ptype : tuple, list, str
             List of strings or a string representing one or more
             Liouville pathway types that are to be calculated
@@ -703,7 +700,6 @@ class AggregateSpectroscopy(AggregateBase):
 
         Returns
         -------
-
         lst : list
             List of LiouvillePathway objects
 
@@ -840,7 +836,7 @@ class AggregateSpectroscopy(AggregateBase):
 
     def liouville_pathways_1(self, eUt=None, ham=None, dtol=0.01, ptol=1.0e-3,
                              etol=1.0e-6, verbose=0, lab=None):
-        """ Generator of the first order Liouville pathways
+        """Generator of the first order Liouville pathways
 
 
         Generator of the pathways for an absorption spectrum
@@ -850,8 +846,6 @@ class AggregateSpectroscopy(AggregateBase):
 
         Parameters
         ----------
-
-
         eUt : EvolutionSuperOperator
             Evolution superoperator representing the evolution of optical
             coherence in the system
@@ -872,7 +866,6 @@ class AggregateSpectroscopy(AggregateBase):
 
         Returns
         -------
-
         lst : list
             List of LiouvillePathway objects
 

@@ -1,7 +1,6 @@
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    cfmatrix module
+cfmatrix module
 
 """
 import numpy
@@ -473,7 +472,6 @@ class CorrelationFunctionMatrix(Saveable):
             be essigned.
 
         """
-
         if fce in self.cfuncs:
 
             # if the function is already in, iof parameter is ignored
@@ -532,7 +530,6 @@ class CorrelationFunctionMatrix(Saveable):
         """Updates the location information for a correlation function
 
         """
-
         for loc in where:
             if loc in self.where[iof]:
                 raise Exception("Location in correlation matrix already taken")
@@ -582,7 +579,6 @@ class CorrelationFunctionMatrix(Saveable):
         """Initializes the internals to allow four-index correlation functions
 
         """
-
         nos = self.nob + 1
         one = numpy.eye(nos, dtype=REAL)
 
@@ -599,7 +595,6 @@ class CorrelationFunctionMatrix(Saveable):
 
 
         """
-
         # FIXME: This must go somewhere alse. It is system dependent
 
         # system size is by one larger than the number of sites (excitonic system)

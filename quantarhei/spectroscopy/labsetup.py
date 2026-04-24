@@ -1,14 +1,13 @@
-"""
-    Laboratory set-up for non-linear spectroscopy
+"""Laboratory set-up for non-linear spectroscopy
 
-    This class controls calculations of non-linear optical spectra, and
-    other experiments in which laboratory setting needs to be controlled.
-    Examples are pulse polarization setting, pulse shapes and spectra
-    in non-linear spectroscopy.
+This class controls calculations of non-linear optical spectra, and
+other experiments in which laboratory setting needs to be controlled.
+Examples are pulse polarization setting, pulse shapes and spectra
+in non-linear spectroscopy.
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 
@@ -37,7 +36,6 @@ class LabSetup:
 
     Parameters
     ----------
-
     nopulses : int
         Number of pulses in the experiment. Default is 3.
 
@@ -104,7 +102,6 @@ class LabSetup:
         """Recalculates the pulse shapes
 
         """
-
         if self.saved_params is not None:
             self.set_pulse_shapes(self.timeaxis, self.saved_params)
         #else:
@@ -124,7 +121,6 @@ class LabSetup:
 
         Parameters
         ----------
-
         axis : TimeAxis or FrequencyAxis
             Quantarhei time axis object, which specifies the values for which
             pulse properties are defined. If `TimeAxis` is specified, the
@@ -160,7 +156,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> import matplotlib.pyplot as plt
         >>> lab = LabSetup()
@@ -320,7 +315,6 @@ class LabSetup:
 
 
         """
-
         if isinstance(axis, TimeAxis):
             if axis.atype == "complete":
                 self.timeaxis = axis
@@ -448,7 +442,6 @@ class LabSetup:
 
         Parameters
         ----------
-
         pulse_polarization : tuple like
             Contains three vectors of polarization of the three pulses
             of the experiment. Currently we assume three pulse experiment
@@ -460,7 +453,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
@@ -512,7 +504,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
@@ -536,7 +527,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
@@ -557,7 +547,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> import matplotlib.pyplot as plt
         >>> lab = LabSetup()
@@ -678,7 +667,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> time = qr.TimeAxis(-100,200,1.0, atype="complete")
@@ -754,7 +742,6 @@ class LabSetup:
 
         Parameters
         ----------
-
         k : int
             Index of the pulse to be returned
 
@@ -764,7 +751,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> time = qr.TimeAxis(-100, 200, 1.0, atype="complete")
@@ -814,7 +800,6 @@ class LabSetup:
 
         Parameters
         ----------
-
         k : int
             Index of the pulse to be returned
 
@@ -824,7 +809,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> freq = qr.FrequencyAxis(-2500, 1000, 5.0)
@@ -877,13 +861,11 @@ class LabSetup:
 
         Parameters
         ----------
-
         omegas : array of floats
             Frequencies of pulses
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_frequencies([1.0, 2.0, 1.0])
         >>> print(lab.omega)
@@ -898,7 +880,6 @@ class LabSetup:
         Exception: Wrong number of frequencies: 3 required
 
         """
-
         # FIXME: energy unit control has to be in place
         if len(omegas) == self.number_of_pulses:
 
@@ -914,13 +895,11 @@ class LabSetup:
 
         Parameters
         ----------
-
         k : int
             Pulse index
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_frequencies([1.0, 2.0, 1.0])
         >>> print(lab.get_pulse_frequency(1))
@@ -935,13 +914,11 @@ class LabSetup:
 
         Parameters
         ----------
-
         times : array of floats
             Arrival times (centers) of the pulses
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
         >>> print(lab.pulse_centers)
@@ -973,7 +950,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
         >>> print(lab.get_pulse_arrival_times())
@@ -988,13 +964,11 @@ class LabSetup:
 
         Parameters
         ----------
-
         k : int
             Pulse index
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
         >>> print(lab.get_pulse_arrival_time(1))
@@ -1009,13 +983,11 @@ class LabSetup:
 
         Parameters
         ----------
-
         phases : array of floats
             Phases of the pulses
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
         >>> print(lab.phases)
@@ -1045,7 +1017,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
         >>> print(lab.get_pulse_phases())
@@ -1060,13 +1031,11 @@ class LabSetup:
 
         Parameters
         ----------
-
         k : int
             Pulse index
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
         >>> print(lab.get_pulse_phase(1))
@@ -1110,7 +1079,6 @@ class LabSetup:
         """Retruns a list of EField objects for the lab's pulses
 
         """
-
         fields = [None]*self.number_of_pulses
 
         for kk in range(self.number_of_pulses):
@@ -1140,7 +1108,6 @@ class LabSetup:
         """Returns the total field of the lab or a single field
 
         """
-
         if kk is None:
 
             flds = self.get_labfields()
@@ -1170,10 +1137,9 @@ class LabSetup:
 
 
     def get_field_derivative(self):
-        """ Returns the time derivative of the total field
+        """Returns the time derivative of the total field
 
         """
-
         flds = self.get_labfields()
 
         kk = 0
@@ -1205,7 +1171,6 @@ def _labattr(name, target, flag=None):
     """Pointer to a field attribute of the LabSep object
 
     """
-
     storage_name = target
     access_flag = flag
 
@@ -1227,7 +1192,6 @@ def _labarray(name, target):
     """Pointer to a field array attribute of the LabSep object
 
     """
-
     storage_name = target
 
     @property
@@ -1293,7 +1257,6 @@ class LabField:
 
     Examples
     --------
-
     Only the number of pulses has to be specified when LabSetup is created.
 
     >>> lab = LabSetup(nopulses=3)
@@ -1500,7 +1463,6 @@ class LabField:
 
         Parameters
         ----------
-
         val : float
 
 
@@ -1622,7 +1584,6 @@ class LabField:
 
 
         """
-
         #tma = self.timeaxis
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
             fwhm = self.labsetup.saved_params[self.index]["FWHM"]
@@ -1648,7 +1609,6 @@ class LabField:
 
 
         """
-
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
             fwhm = self.labsetup.saved_params[self.index]["FWHM"]
             amp = self.labsetup.saved_params[self.index]["amplitude"]

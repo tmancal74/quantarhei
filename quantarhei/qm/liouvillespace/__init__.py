@@ -1,6 +1,4 @@
-"""
-
-Relaxation tensors are related in the following way
+"""Relaxation tensors are related in the following way
 
 .. inheritance-diagram:: quantarhei.qm.liouvillespace.relaxationtensor \
     quantarhei.qm.liouvillespace.redfieldtensor \

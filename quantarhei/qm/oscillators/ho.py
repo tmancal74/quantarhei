@@ -1,7 +1,6 @@
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    ho (harmonic oscillator) module
+ho (harmonic oscillator) module
 
 
 
@@ -24,28 +23,28 @@ class fcstorage(Saveable):
     """
 
     def __init__(self):
-        """ Constructor """
+        """Constructor"""
         self._shifts = []
         self._fcs = []
 
 
     def lookup(self,shift):
-        """ Returns true if the FC factors for a given shift are available """
+        """Returns true if the FC factors for a given shift are available"""
         if self._shifts.count(shift) > 0:
             return True
         return False
 
     def index(self,shift):
-        """ Returns an index of the FC factors with a given shift """
+        """Returns an index of the FC factors with a given shift"""
         return self._shifts.index(shift)
 
     def add(self,shift,fcmatrix):
-        """ Adds the matrix of FC factors to the storage """
+        """Adds the matrix of FC factors to the storage"""
         self._shifts.append(shift)
         self._fcs.append(fcmatrix)
 
     def get(self,ii):
-        """ Returns a stored FC matrix """
+        """Returns a stored FC matrix"""
         return self._fcs[ii]
 
 
@@ -174,7 +173,6 @@ class operator_factory(Saveable):
 
 
         """
-
         N_ = self.N
         aa = self.anihilation_operator()
         ad = self.creation_operator()
@@ -236,7 +234,6 @@ class qrepresentation:
 
 
         """
-
         data = numpy.exp(-(self.qaxis.data**2)/2)\
             /numpy.sqrt(numpy.sqrt(numpy.pi))
         psi0 = DFunction(x=self.qaxis, y=data)
@@ -248,7 +245,6 @@ class qrepresentation:
         """Returns q-representation of a coherent state with a given alpha
 
         """
-
         ar = numpy.real(alpha)
         ai = numpy.imag(alpha)
         sq2 = numpy.sqrt(2.0)
@@ -266,7 +262,6 @@ class qrepresentation:
         """Returns probability distribution for a given wavefunction
 
         """
-
         return DFunction(x=wfce.axis, y=numpy.abs(wfce.data)**2)
 
 

@@ -50,11 +50,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         Parameters
         ----------
-
         dtype : string
            Specifies the type of data stored in this TwoDSpectrum object
         """
-
         if dtype in self.dtypes.values():
             self.dtype = dtype
         else:
@@ -75,7 +73,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         Parameters
         ----------
-
         data : 2D array
             Data of the spectrum, float or complex
 
@@ -118,7 +115,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
         """
-
         # first two pulses are on omega_1 axis
         ome1 = self.xaxis.data
         spect1 = lab.get_pulse_spectrum(0, ome1)
@@ -170,7 +166,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """Returns value of the spectrum at a given coordinate
 
         """
-
         if self.dtype is None:
             raise Exception("Data type not set")
 
@@ -264,7 +259,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
         """
-
         point1 = [self.xaxis.min, self.yaxis.min]
         point2 = [self.xaxis.max, self.yaxis.max]
 
@@ -416,7 +410,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         Parameters
         ----------
-
         norm : float
             Norm to which we normalize. Default value is 1.
 
@@ -448,12 +441,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         Parameters
         ----------
-
         val : float, int
             Value by which we devide the spectrum
 
         """
-
         self.data = self.data/val
 
 
@@ -496,7 +487,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
         as a first thing in the code. This is for user convenience.
 
         """
-
         dE = -dE
 
         ndata = numpy.zeros(self.data.shape, dtype=self.data.dtype)
@@ -614,7 +604,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         Parameters
         ----------
-
         fig : matplotlib.figure
             Figure into which plotting will be done. This is used e.g. when
             making a movie using moview writter (may be obsolete).
@@ -638,7 +627,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
         """
-
         spect2D = self.data
 
         #
@@ -893,7 +881,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         Parameters
         ----------
-
         window : array
             Spectral window to which the present 2D spectrum
             should be trimmed. The window is specified as
@@ -904,7 +891,6 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
         """
-
         if window is not None:
             axis = window
             w1_min = axis[0]

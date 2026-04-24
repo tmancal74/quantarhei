@@ -12,7 +12,6 @@ class FunctionStorage:
 
     Parameters
     ----------
-
     N: int
         Number of functions to be stored.
 
@@ -351,7 +350,6 @@ class FunctionStorage:
 
 
         """
-
         if isinstance(index, tuple):
 
             if len(index) == 2:
@@ -410,7 +408,7 @@ class FunctionStorage:
 
 
     def set_goft(self, N, func=None):
-        """ Sets the values for a given stored function.
+        """Sets the values for a given stored function.
 
 
         """
@@ -488,7 +486,7 @@ class FunctionStorage:
 
     def _check_and_make_space(self, nn):
         """Check if the required position is outside the allocated mapping
-           and if so, make more space.
+        and if so, make more space.
 
         """
         if nn > self.Nmax:
@@ -506,7 +504,7 @@ class FunctionStorage:
 
     def _fce_already_stored(self, func):
         """If the function was already stored in the object, the function returns its position,
-           otherwise it returns -1.
+        otherwise it returns -1.
 
         """
         ret = -1
@@ -606,28 +604,28 @@ class FunctionStorage:
 
 
     def effective_size(self):
-            """ Effective size of the storage. Some stored functions have the same functional form
+            """Effective size of the storage. Some stored functions have the same functional form
 
             """
             return len(self.mapping)
 
 
     def get_number_of_functions(self):
-        """ Returns the number of different stored functions
+        """Returns the number of different stored functions
 
         """
         return numpy.max(self.mapping)+1
 
 
     def get_number_of_sites(self):
-        """ Returns the number of assigned sites
+        """Returns the number of assigned sites
 
         """
         return (self.mapping >= 0).sum()
 
 
     def get_mapping_matrix(self):
-        """ Returns a matrix that maps site index on the function index
+        """Returns a matrix that maps site index on the function index
 
 
         M[n,i] equals 1 if the site n has the correlation function stored
@@ -639,7 +637,6 @@ class FunctionStorage:
 
 
         """
-
         Nstore = self.get_number_of_functions()
         Nsites = self.get_number_of_sites()
 
@@ -670,7 +667,7 @@ class FunctionStorage:
 
 
 class FastFunctionStorage(FunctionStorage):
-    """ Function storage with no overhead retrieval
+    """Function storage with no overhead retrieval
 
     """
 
@@ -702,7 +699,7 @@ class FastFunctionStorage(FunctionStorage):
 
 
 class SingleGoft(FunctionStorage):
-    """ Storage of a single lineshape function
+    """Storage of a single lineshape function
 
     """
     def __init__(self, timeaxis=None, dtype=numpy.complex64,
@@ -712,7 +709,7 @@ class SingleGoft(FunctionStorage):
 
 
     def __getitem__(self, index):
-        """ Returns the stored function
+        """Returns the stored function
 
 
         """

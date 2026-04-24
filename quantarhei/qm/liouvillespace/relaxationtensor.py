@@ -46,7 +46,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
 
         """
-
         if legacy:
 
             if self.as_operators:
@@ -153,7 +152,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
 
         """
-
         Ns = self.data.shape[0]
         dep_rate = 0.0
         for ii in range(Ns):
@@ -167,7 +165,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         """Isolate the pure dephasing part of the rate
 
         """
-
         Ns = self.data.shape[0]
         tot_rate_1 = self.get_depopulation_rate(N)+self.get_depopulation_rate(M)
         exp_deph_rate = tot_rate_1/2.0
@@ -186,7 +183,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         """Enforces uphill rates to comply with the canonical detailed balace
 
         """
-
         with eigenbasis_of(self.Hamiltonian):
 
             if secularize:
@@ -244,7 +240,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -252,7 +247,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             inverse of the transformation matrix
 
         """
-
         if (self.manager.warn_about_basis_change):
                 print("\nQr >>> Relaxation tensor '%s' changes basis"
                       %self.name)
@@ -295,10 +289,9 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
 
     def updateStructure(self):
-        """ Recalculates dephasing and depopulation rates
+        """Recalculates dephasing and depopulation rates
 
         """
-
         if self._data.ndim == 4:
             # depopulation rates
             for nn in range(self.dim):
@@ -366,7 +359,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         """Applies the tensor to a given matrix
 
         """
-
         if self.as_operators:
 
             return self._rhs_as_operators(rho)
@@ -381,14 +373,12 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         Parameters
         ----------
-
         rho : complex or real array
             Array representing density matrix
 
 
         Returns
         -------
-
         Complex array
 
 
@@ -401,14 +391,12 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         Parameters
         ----------
-
         rho : complex or real array
             Array representing density matrix
 
 
         Returns
         -------
-
         Complex array
 
 

@@ -1,36 +1,35 @@
 """Class adding exciton analysis on molecular aggregates
 
-    Most of the present methods are available after the aggregate is
-    diagonalized by calling the ``diagonalize`` method.
+Most of the present methods are available after the aggregate is
+diagonalized by calling the ``diagonalize`` method.
 
-    **This class should not be used directly**. Use `Aggregate` class, which
-    inherits all the methods from here, instead.
+**This class should not be used directly**. Use `Aggregate` class, which
+inherits all the methods from here, instead.
 
-    Examples
-    --------
-
+Examples
+--------
     >>> import quantarhei as qr
-    >>> agg = qr.TestAggregate("homodimer-2")
-    >>> agg.set_coupling_by_dipole_dipole()
-    >>> agg.build()
-    >>> # create information about eigenstates of the aggregate (to call `diagonalize()` is crucial)
-    >>> agg.diagonalize()
-    >>> #
-    >>> # Create a report on expantions of state with index `1`
-    >>> agg.report_on_expansion(state=1)
-    +-------+-------------+--------------+------------------+
-    | index | squares     | coefficients | state signatures |
-    +-------+-------------+--------------+------------------+
-    | 1     | 0.50000000  | -0.70710678  | ((1, 0), ())     |
-    | 2     | 0.50000000  | 0.70710678   | ((0, 1), ())     |
-    | 0     | 0.00000000  | 0.00000000   | ((0, 0), ())     |
-    | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
-    | 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
-    +-------+-------------+--------------+------------------+
+>>> agg = qr.TestAggregate("homodimer-2")
+>>> agg.set_coupling_by_dipole_dipole()
+>>> agg.build()
+>>> # create information about eigenstates of the aggregate (to call `diagonalize()` is crucial)
+>>> agg.diagonalize()
+>>> #
+>>> # Create a report on expantions of state with index `1`
+>>> agg.report_on_expansion(state=1)
++-------+-------------+--------------+------------------+
+| index | squares     | coefficients | state signatures |
++-------+-------------+--------------+------------------+
+| 1     | 0.50000000  | -0.70710678  | ((1, 0), ())     |
+| 2     | 0.50000000  | 0.70710678   | ((0, 1), ())     |
+| 0     | 0.00000000  | 0.00000000   | ((0, 0), ())     |
+| 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
+| 0     | -1.00000000 | 0.00000000   | ((0, 0), ())     |
++-------+-------------+--------------+------------------+
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 import numpy
@@ -82,7 +81,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Parameters
         ----------
-
         state : int
             Excitonic state of the aggregate
 
@@ -91,7 +89,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate("dimer-2")
         >>> agg.set_coupling_by_dipole_dipole()
@@ -162,7 +159,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate("dimer-2")
         >>> agg.set_coupling_by_dipole_dipole()
@@ -199,7 +195,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Parameters
         ----------
-
         state1 : int
             Starting state of the transition
 
@@ -209,7 +204,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate("dimer-2")
         >>> agg.set_coupling_by_dipole_dipole()
@@ -237,14 +231,12 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Parameters
         ----------
-
         state : int
             Index of the state whose energy we ask for
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate("dimer-2")
         >>> agg.set_coupling_by_dipole_dipole()
@@ -273,7 +265,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Parameters
         ----------
-
         start : int (default = 1)
             First state to report on. Because 0 is often the ground state,
             it is skipped. For systems with molecular vibrations, first mixed
@@ -287,7 +278,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate("dimer-2")
         >>> agg.set_coupling_by_dipole_dipole()
@@ -331,7 +321,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         +-------+-------------+--------------+------------------+
         <BLANKLINE>
         """
-
         start_at = start
         stop_at = stop
 
@@ -387,7 +376,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         Parameters
         ----------
-
         N : int
             Index of state (or site). Signatures make sense only for localized
             states

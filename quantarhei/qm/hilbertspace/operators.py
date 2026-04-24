@@ -73,7 +73,6 @@ class Operator(MatrixData, BasisManaged, Saveable):
         """Apply the operator to vector or operator on the right
 
         """
-
         if isinstance(obj, Operator):
 
             return Operator(data=numpy.dot(self.data,obj.data))
@@ -96,7 +95,6 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -207,8 +205,7 @@ class BasisReferenceOperator(SelfAdjointOperator):
 
 
 class ProjectionOperator(Operator):
-    """
-    Projection operator projecting from state m to state n.
+    """Projection operator projecting from state m to state n.
     Braket definition:
 
     |n\rangle \\langle m|

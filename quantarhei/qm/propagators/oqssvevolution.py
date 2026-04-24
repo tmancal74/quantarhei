@@ -41,7 +41,7 @@ class OQSStateVectorEvolution:
 
 
     def get_ReducedDensityMatrixEvolution(self, decoherence=False):
-        """ Returns the corresponding reduced density matrix
+        """Returns the corresponding reduced density matrix
 
 
         The present implementation cannot account for dephasing

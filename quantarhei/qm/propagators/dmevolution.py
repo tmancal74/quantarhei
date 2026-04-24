@@ -52,13 +52,11 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         Parameters
         ----------
-
         time : float
             Time (in fs) at which the tensor should be returned
 
 
         """
-
         ti, dt = self.TimeAxis.locate(time)
 
         return DensityMatrix(data=self.data[ti, :, :])
@@ -73,7 +71,6 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -114,7 +111,6 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         Parameters
         ----------
-
         ham : qr.Hamiltonian
             Hamiltonian with respect to which we construct RWA
 
@@ -123,7 +119,6 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             to the function name. Backward conversion sgn=-1 is called from
             the inverse routine.
         """
-
         if (self.is_in_rwa and sgn == 1) or sgn == -1:
 
             HOmega = ham.get_RWA_skeleton()
@@ -146,7 +141,6 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         Parameters
         ----------
-
         ham : qr.Hamiltonian
             Hamiltonian with respect to which we construct RWA
 
@@ -159,9 +153,8 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
     def plot(self, populations=True, popselection="All", trace=False,
                    coherences=True, cohselection="All", how='-',
                    axis=None, show=True, legend=False, start=1, shiftcolor=0):
-        """
-            Plots selected data.
-            Return figure so that it can be manipulated
+        """Plots selected data.
+        Return figure so that it can be manipulated
         """
         population_sum = False
         #populations=False
@@ -268,7 +261,6 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         """Imports textual data to a file
 
         """
-
         out = numpy.loadtxt(filename)
 
         N = int(numpy.sqrt(out.shape[1] - 1))
@@ -305,13 +297,11 @@ class ReducedDensityMatrixEvolution(DensityMatrixEvolution):
 
         Parameters
         ----------
-
         time : float
             Time (in fs) at which the tensor should be returned
 
 
         """
-
         ti, dt = self.TimeAxis.locate(time)
 
         return ReducedDensityMatrix(data=self.data[ti, :, :])

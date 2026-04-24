@@ -1,5 +1,4 @@
-"""
-Class representing aggregates of molecules.
+"""Class representing aggregates of molecules.
 
 The class enables building of complicated objects from objects of the Molecule
 type, their mutual interactions and system-bath interactions. It also provides
@@ -60,12 +59,11 @@ from .. import REAL
 from .. import COMPLEX
 
 class AggregateBase(UnitsManaged, Saveable, OpenSystem):
-    """ Molecular aggregate
+    """Molecular aggregate
 
 
     Parameters
     ----------
-
     name : str
         Specifies the name of the aggregate
 
@@ -110,7 +108,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         self.FC = fcstorage()
         self.ops = operator_factory()
 
@@ -190,7 +187,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     ########################################################################
 
     def init_coupling_indexes(self):
-        """ Set indexes for elements of the coupling matrix
+        """Set indexes for elements of the coupling matrix
 
         index for coupling between mon1 init1 -> final1 and mon2 init2 -> final2
         is self._mol2coupling[mon1][init1][final1-init1-1][mon2-mon1-1][init2][final2-init2-1]
@@ -224,9 +221,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                 count += 1
 
     def init_coupling_vector(self):
-        """ initialize coupling vector
+        """initialize coupling vector
         """
-
         self.init_coupling_indexes()
         Ncoupl = len(self._coupling2mol)
         self.resonance_coupling_vec = numpy.zeros(Ncoupl, dtype=numpy.float64)
@@ -235,7 +231,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.coupling_initiated = True
 
     def get_resonance_coupling_vec(self,mon1,init1,fin1,mon2,init2,fin2):
-        """ returns coupling between mon1 transition init1->fin1 and
+        """returns coupling between mon1 transition init1->fin1 and
         mon2 transition init2->fin2
 
         Parameters
@@ -257,7 +253,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             mon2 transition init2->fin2 in current energy units
 
         """
-
         if mon1 == mon2:
             return 0.0
 
@@ -297,7 +292,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         molecules
 
         """
-
         if not self.coupling_initiated:
             self.init_coupling_vector()
             self.init_coupling_matrix()
@@ -420,7 +414,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def set_coupling_by_Hamiltonian(self,HH):
-        """ set the resonance coupling values according to given electronic
+        """set the resonance coupling values according to given electronic
         Hamiltonian (single exciton band is expected - without the ground state).
         Only excitations from the ground state are allowed.
 
@@ -432,7 +426,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             be the same and the nomomers and its transitions.
 
         """
-
         # FIXME: Allow higher excited states for the monomer
 
         count=[0,0]
@@ -552,7 +545,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Sets resonance coupling values from a matrix
 
         """
-
         if type(coupmat) in (list, tuple):
             coupmat = numpy.array(coupmat)
 
@@ -653,16 +645,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def calculate_resonance_coupling(self, method="dipole-dipole",
                                params=dict(epsr=1.0)):
-        """ Sets resonance coupling calculated by a given method
+        """Sets resonance coupling calculated by a given method
 
         Parameters
         ----------
-
         method: string
             Method to be used for calculation of resonance coupling
 
         """
-
         if method == "dipole-dipole":
             epsr = params["epsr"]
             self.set_coupling_by_dipole_dipole(epsr=epsr)
@@ -675,11 +665,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     # FIXME: This must be set in coordination with objects describing laboratory
     def set_lindich_axes(self, axis_orthog_membrane):
-        """ Creates a coordinate system with one axis supplied by the user
+        """Creates a coordinate system with one axis supplied by the user
         (typically an axis orthogonal to the membrane), and two other axes, all
         of which are orthonormal.
         """
-
         qr = numpy.vstack((axis_orthog_membrane, numpy.array([1,0,0]), numpy.array([0,1,0]))).T
         self.q, r = numpy.linalg.qr(qr)
         self._has_lindich_axes = True
@@ -709,7 +698,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         # If at least one monomer has energy gap correlation function
         # we will try to build system bath interaction for a the aggregate.
         # Exception will be thrown if not all monomers have the same egcf
@@ -749,7 +737,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         molecule : Molecule
             Molecule whose neighbor we look for
 
@@ -829,7 +816,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def get_energy_by_name(self, name, N):
-        """ Electronic energy """
+        """Electronic energy"""
         try:
             im = self.mnames[name]
             mn = self.monomers[im]
@@ -839,7 +826,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def set_dipole(self, N, M, vec):
-        """ Sets the dipole moment of a given transition
+        """Sets the dipole moment of a given transition
 
         """
         raise Exception("Transition dipole moments cannot be set directly. Use aggregate components.")
@@ -855,7 +842,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         inx1 = state1.vsig
         inx2 = state2.vsig
         sta1 = state1.elstate.vibmodes
@@ -920,7 +906,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         in classes that inherite from here.
 
         """
-
         ss = self.SS
 
         Ng = self.Nb[0]
@@ -1022,7 +1007,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         state1 : {ElectroniState/VibronicState, tuple}
             If both state1 and state2 are specified, it is assumed they are
             of the type of Electronic of Vibronic state. Otherwise, if state2
@@ -1131,7 +1115,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         state1 : {ElectroniState/VibronicState, tuple}
             If both state1 and state2 are specified, it is assumed they are
             of the type of Electronic of Vibronic state. Otherwise, if state2
@@ -1186,7 +1169,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def transition_dipole(self, state1, state2):
-        """ Transition dipole moment between two states
+        """Transition dipole moment between two states
 
         Parameters
         ----------
@@ -1224,7 +1207,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return eldip*fcfac
 
     def transition_velocity_dipole(self, state1, state2):
-        """ Transition dipole moment between two states
+        """Transition dipole moment between two states
 
         Parameters
         ----------
@@ -1255,7 +1238,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return elvdip*fcfac
 
     def transition_magnetic(self, state1, state2):
-        """ Transition magnetic dipole moment between two states
+        """Transition magnetic dipole moment between two states
 
         Parameters
         ----------
@@ -1287,7 +1270,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return magdip*fcfac
 
     def _get_twoexindx(self, state1, state2):
-        """ Indices of two molecule with transitions or negative number
+        """Indices of two molecule with transitions or negative number
         if not found
 
         Parameters
@@ -1343,7 +1326,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def _get_exindx(self, state1, state2):
-        """ Index of molecule with transition or negative number if not found
+        """Index of molecule with transition or negative number if not found
 
         Parameters
         ----------
@@ -1354,7 +1337,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             state 2
 
         """
-
         # get electronic signatures
         els1 = state1.elstate.elsignature
         els2 = state2.elstate.elsignature
@@ -1401,13 +1383,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def total_number_of_states(self, mult=1, vibgen_approx=None, Nvib=None,
                                vibenergy_cutoff=None, save_indices=False, band_external=None):
-        """ Total number of states in the aggregate
+        """Total number of states in the aggregate
 
         Counts all states of the aggregate by iterating through them. States
         are generated with a set of constraints.
 
         """
-
         nret = 0
 
         for state in self.allstates(mult=mult,
@@ -1422,8 +1403,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def total_number_of_electronic_states(self, mult=1):
-        """ Total number of electronic states in the aggregate"""
-
+        """Total number of electronic states in the aggregate"""
         nret = 0
 
         for elsig in self.elsignatures(mult=mult):
@@ -1434,8 +1414,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def number_of_states_in_band(self, band=1, vibgen_approx=None,
                                  Nvib=None, vibenergy_cutoff=None):
-        """ Number of states in a given excitonic band """
-
+        """Number of states in a given excitonic band"""
         nret = 0
 
         for state in self.allstates(mult=band, mode="EQ", save_indices=False,
@@ -1447,8 +1426,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def number_of_electronic_states_in_band(self, band=1):
-        """ Number of states in a given excitonic band """
-
+        """Number of states in a given excitonic band"""
         nret = 0
 
         for elsig in self.elsignatures(mult=band, mode="EQ"):
@@ -1463,7 +1441,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         sig : tuple
             Tuple defining the electronic state of the aggregate
 
@@ -1484,12 +1461,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         state : ElectronicState
             Aggregate electronic state.
 
         """
-
         band = 0
         elsig = state.elsignature
         for n in range(len(elsig)):
@@ -1514,7 +1489,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         state1,state2 : {ElectronicState, VibronicState}
             States for which coupling should be calculated
 
@@ -1523,7 +1497,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         coup : float
             Resonance coupling in current units
         """
-
         #
         # Coupling between two purely electronic states
         #
@@ -1659,13 +1632,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         state1 : {ElectronicState, VibronicState}
             States for which coupling should be calculated
 
 
         """
-
         #
         # Coupling between two purely electronic states
         #
@@ -1829,7 +1800,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #######################################################################
 
     def elsignatures_old(self, mult=1, mode="LQ", emax=None):
-        """ Generator of electronic signatures
+        """Generator of electronic signatures
 
         Here we create signature tuples of electronic states. The signature
         is a tuple with as many integer numbers as the members of
@@ -1853,7 +1824,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             given by `mult`
 
         """
-
         if mode not in ["LQ","EQ"]:
             raise Exception("Unknown mode")
 
@@ -1914,7 +1884,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             mlt += 1
 
     def elsignatures(self, mult=1, mode="LQ", emax=None):
-        """ Generator of electronic signatures
+        """Generator of electronic signatures
 
         Here we create signature tuples of electronic states. The signature
         is a tuple with as many integer numbers as the members of
@@ -1940,7 +1910,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             given by `mult`
 
         """
-
         if mode not in ["LQ","EQ"]:
             raise Exception("Unknown mode")
 
@@ -2005,7 +1974,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def _add_excitation(self, inlists, strt, omax):
         """Adds one excitation to all submitted electronic signatures"""
-
         k = 0
         # go through all signatures
         for inlist in inlists:
@@ -2027,11 +1995,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def vibsignatures(self, elsignature, approx=None):
-        """ Generator of vibrational signatures
+        """Generator of vibrational signatures
 
         Parameters
         ----------
-
         approx : None or str
             Approximation used in generation of vibrational states
             Allowed values are None or "SPA"
@@ -2044,7 +2011,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     def allstates(self, mult=1, mode="LQ", all_vibronic=True,
                   save_indices=False, vibgen_approx=None, Nvib=None,
                   vibenergy_cutoff=None,band_external=None):
-        """ Generator of all aggregate states
+        """Generator of all aggregate states
 
         Iterator generating all states of the aggregate given a set
         of constraints.
@@ -2052,7 +2019,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         mult : integer {0, 1, 2}
             Exciton multiplicity (ground state, single and double excitons).
             All excitons with the multiplicity smaller or equal to ``mult``
@@ -2229,7 +2195,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def elstates(self, mult=1, mode="LQ", save_indices=False):
-        """ Generator of electronic states
+        """Generator of electronic states
 
         """
         a = 0
@@ -2286,7 +2252,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         mult : int
             exciton multiplicity
 
@@ -3332,7 +3297,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Converts StateVector into DensityMatrix (possibly reduced one)
 
         """
-
         if trace_over_vibrations:
 
             if isinstance(psi, StateVector):
@@ -3360,7 +3324,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         RWA frequency
 
         """
-
         #Nn = self.Nb[1]  # number of monomers
         esum = 0.0
         count = 0
@@ -3382,9 +3345,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
 
     def _site_reorg_diag(self, subtract_bath=True):
-        """ Returns the reorganisation energy of an exciton state
+        """Returns the reorganisation energy of an exciton state
         """
-
         # SystemBathInteraction
         sbi = self.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -3420,9 +3382,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return reorg_site
 
     def _excitonic_reorg_diag(self, SS, subtract_bath=True):
-        """ Returns the reorganisation energy of an exciton state
+        """Returns the reorganisation energy of an exciton state
         """
-
         # SystemBathInteraction
         sbi = self.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -3508,7 +3469,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Transforms some internal quantities into diagonal basis
 
         """
-
         if self._diagonalized:
             return
 
@@ -4024,7 +3984,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         temp : float
             Temperature in Kelvins
 
@@ -4035,7 +3994,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             Hamiltonian according to which we form thermal equilibrium
 
         """
-
         from ..core.units import kB_intK
 
         kBT = kB_intK*temp
@@ -4083,7 +4041,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Impulsive excitation of the density matrix from ground state
 
         """
-
         rho = self.get_DensityMatrix(condition_type="thermal",
                             relaxation_theory_limit=relaxation_theory_limit,
                             temperature=temperature)
@@ -4106,7 +4063,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         condition_type : str
             Type of the initial condition. If None, the property sv0, which
             was presumably calculated in the past, is returned.
@@ -4164,7 +4120,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         condition_type : str
             Type of the initial condition. If None, the property rho0, which
             was presumably calculated in the past, is returned.
@@ -4201,7 +4156,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             Excitation by ultrabroad laser pulse
 
         """
-
         # aggregate must be built before we call this method
         if not self._built:
             raise Exception("Aggregate must be built before"
@@ -4382,7 +4336,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         The temperature originates from the system-bath interaction
 
         """
-
         # aggregate must be built before we call this method
         if not self._built:
             raise Exception()
@@ -4403,7 +4356,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         ground state of the system.
 
         """
-
         Ng = self.Nb[0]
         lst = [k for k in range(Ng)]
 
@@ -4437,7 +4389,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         band : int
             Specifies which band should be returned.
 
@@ -4458,7 +4409,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         Nf : {int, ElectronicState, VibronicState}
             Final state of the transition
 
@@ -4505,7 +4455,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Returns True if the Aggregate is embedded in a defined environment
 
         """
-
         # aggregate must be built before we call this method
         if not self._built:
             raise Exception("Aggregate must be built before this call.")
@@ -4551,7 +4500,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         is identical to get_Hamiltonian()
 
         """
-
         HH = numpy.zeros((self.Nel, self.Nel), dtype=REAL)
         for (a, sta) in self.elstates(mult=self.mult):
             HH[a,a] = sta.energy()

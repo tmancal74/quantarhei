@@ -20,7 +20,7 @@ class HarmonicMode(SubMode, OpenSystem):
     """Renaming the SubMode to be used as a standalone Harmonic oscillator mode
 
 
-       PES shift is always 0 (will be implemented later)
+    PES shift is always 0 (will be implemented later)
 
     """
 
@@ -38,7 +38,6 @@ class HarmonicMode(SubMode, OpenSystem):
 
 
         """
-
         # if provided, we reset nmax
         if nmax is not None:
             self.nmax = nmax
@@ -189,9 +188,7 @@ class AnharmonicMode(HarmonicMode):
 
     """
     def __init__(self, omega=1.0, shift=0.0, nmax=2):
-        """
-
-        In this case, omega is the difference between levels 1 and 0
+        """In this case, omega is the difference between levels 1 and 0
 
         """
         super().__init__(omega=omega, shift=shift, nmax=nmax)
@@ -226,8 +223,7 @@ class AnharmonicMode(HarmonicMode):
 
 
     def build(self, nmax=None, xi=None, build_relaxation=False):
-        """Building all necessary quantities """
-
+        """Building all necessary quantities"""
         # if provided, we reset nmax
         if nmax is not None:
             self.nmax = nmax

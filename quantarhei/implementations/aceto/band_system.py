@@ -82,7 +82,6 @@ class band_system:
 
 
         """
-
         print(self.en)
 
         print("Monomer 2 transition dipole moment:")

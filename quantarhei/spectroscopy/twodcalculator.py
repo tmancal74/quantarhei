@@ -130,7 +130,6 @@ class TwoDResponseCalculator:
         list goes through the time points in t2.
 
         """
-
         self.verbose = verbose
         self.pad = pad
         self.write_resp = write_resp
@@ -286,7 +285,7 @@ class TwoDResponseCalculator:
 
 
     def calculate_next(self):
-        """ Calculate next population time of a 2D spectrum
+        """Calculate next population time of a 2D spectrum
 
         """
         sone = self.calculate_one(self.tc)
@@ -295,11 +294,10 @@ class TwoDResponseCalculator:
 
 
     def calculate_one(self, tc):
-        """ Calculate one population time
+        """Calculate one population time
 
 
         """
-
         try:
             tt2 = self.t2axis.data[tc]
         except:
@@ -622,7 +620,6 @@ class TwoDResponseCalculator:
 
 
         """
-
         if self._has_responses:
 
             for rsp, fce in zip(self.resp_fcions, fcions):

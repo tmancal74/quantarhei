@@ -157,7 +157,6 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
     Methods
     -------
-
     plot(fig=None, window=None, stype="total", spart="real",
          vmax=None, vmin_ratio=0.5,
          colorbar=True, colorbar_loc="right",
@@ -232,7 +231,6 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
         Parameters
         ----------
-
         fig : matplotlib.figure
             Figure into which plotting will be done. This is used e.g. when
             making a movie using moview writter (may be obsolete)
@@ -246,7 +244,6 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
 
         """
-
         if stype == "total":
             if (self.reph2D is not None) and (self.nonr2D is not None):
                 spect2D = self.reph2D + self.nonr2D
@@ -529,7 +526,6 @@ class TwoDSpectrumContainer(Saveable):
 
     Parameters
     ----------
-
     t2axis: TimeAxis
        object holding waiting times at which spectra are calculated
 
@@ -588,7 +584,6 @@ class TwoDSpectrumContainer(Saveable):
         """Returns a list or tuple of the calculated spectra
 
         """
-
         ven = [value for (key, value) in sorted(self.spectra.items())]
 
         if (start is None) and (end is None):
@@ -605,7 +600,6 @@ class TwoDSpectrumContainer(Saveable):
         """Converts this container into PumpProbeSpectrumContainer
 
         """
-
         from .pumpprobe import PumpProbeSpectrumContainer
 
         k = 0
@@ -634,7 +628,6 @@ class TwoDSpectrumContainer(Saveable):
         """Tracks an evolution of a single point on the 2D spectrum
 
         """
-
         vals = numpy.zeros(times.length)
         k = 0
         for t2 in times.data:
@@ -728,8 +721,7 @@ class TwoDSpectrumContainer(Saveable):
                           prefix = '', suffix = '',
                           decimals = 1, length = 100,
                           fill='*'):
-        """
-        Call in a loop to create terminal progress bar
+        """Call in a loop to create terminal progress bar
         @params:
             iteration   - Required  : current iteration (Int)
             total       - Required  : total iterations (Int)
@@ -903,8 +895,6 @@ class TwoDSpectrumCalculator:
         """Sets up the environment for 2D calculation
 
         """
-
-
         self.verbose = verbose
 
 
@@ -1232,7 +1222,6 @@ class TwoDSpectrumCalculator:
 
 
         """
-
         if _have_aceto:
 
             twods = TwoDSpectrumContainer(self.t2axis)
@@ -1311,7 +1300,6 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         """Calculate the 2D spectrum for all pathways
 
         """
-
         onetwod = TwoDSpectrum()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
@@ -1336,7 +1324,6 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         """Calculate the shape of a Liouville pathway
 
         """
-
         noe = 1+pathway.order+pathway.relax_order
 
         cen1 = pathway.frequency[0]

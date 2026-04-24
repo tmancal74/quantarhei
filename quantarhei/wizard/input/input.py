@@ -27,7 +27,6 @@ def expr(code, context=None):
 
     Examples
     --------
-
     This example should ultimately fail
 
     >>> print(expr("ahoj(a)"))
@@ -151,7 +150,7 @@ class Input:
 
 
     def strings_2_floats_dictionary(self, dictionary, keys):
-        """ Converts selected keys of a dictionary from string expression to float
+        """Converts selected keys of a dictionary from string expression to float
 
         """
         ndict = {}
@@ -165,10 +164,9 @@ class Input:
         return ndict
 
     def strings_2_floats_lists(self, inlist):
-        """ Converts every string in a list into float
+        """Converts every string in a list into float
 
         """
-
         N = len(inlist)
 
         for k in range(N):
@@ -181,7 +179,6 @@ class Input:
         """If the submitted object is a string it is converted to float
 
         """
-
         if isinstance(prop, str):
             val = expr(prop)
         else:
@@ -202,7 +199,6 @@ class Input:
 
         Parameters
         ----------
-
         inpt: input
             The input object constructed from the configuration file.
 

@@ -54,6 +54,5 @@ class AbsSpectrumContainer(Saveable):
         """Returns a list or tuple of the calculated spectra
 
         """
-
         ven = [value for (key, value) in sorted(self.spectra.items())]
         return ven

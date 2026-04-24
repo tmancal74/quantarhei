@@ -27,8 +27,7 @@ class OQSStateVectorPropagator:
 
 
     def setDtRefinement(self, Nref):
-        """
-        The TimeAxis object specifies at what times the propagation
+        """The TimeAxis object specifies at what times the propagation
         should be stored. We can tell the propagator to use finer
         time step for the calculation by setting the refinement. The
         refinement is an integer by which the TimeAxis time step should
@@ -56,7 +55,6 @@ class OQSStateVectorPropagator:
 
 
        """
-
        pr = OQSStateVectorEvolution(self.TimeAxis, psii)
 
        _CALC(self.KK, psii.data, self.Nt, self.Nref, L, self.dt, pr.data)
@@ -68,7 +66,6 @@ class OQSStateVectorPropagator:
        """Here we obtain the secular dynamics for self-consistent methodology
 
        """
-
        pr = OQSStateVectorEvolution(self.TimeAxis, psii)
 
        if self.theory_type == "Redfield":
@@ -112,7 +109,6 @@ def _CALC(KK, psii, Nt, Nref, L, dt, out):
     """Propagation numerics
 
     """
-
     psi1 = psii
     psi2 = psii
 

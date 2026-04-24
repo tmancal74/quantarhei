@@ -9,7 +9,6 @@ class Cos(DFunction):
 
     Parameters
     ----------
-
     x : ValueAxis
         ValueAxis (TimeAxis, FrequencyAxis) on which the function is defined
 
@@ -22,7 +21,6 @@ class Cos(DFunction):
 
     Examples
     --------
-
     >>> import quantarhei as qr
     >>> omega = 2.0*3.14159/20.0
     >>> t = 12.3
@@ -43,7 +41,6 @@ class Tukey(DFunction):
 
     Parameters
     ----------
-
     x : ValueAxis
         ValueAxis (TimeAxis, FrequencyAxis) on which the function is defined
 
@@ -58,7 +55,6 @@ class Tukey(DFunction):
 
     Examples
     --------
-
     >>> import quantarhei as qr
     >>> r = 0.3
     >>> time = qr.TimeAxis(0.0, 1000, 1.0)

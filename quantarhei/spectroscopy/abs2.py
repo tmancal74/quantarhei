@@ -1,10 +1,9 @@
-"""
-    Class representing absorption spectrum
+"""Class representing absorption spectrum
 
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 

@@ -10,14 +10,12 @@ class unique_list:
 
     Parameters
     ----------
-
     N : int
         Number of elements of the list. Default is 0.
 
 
     Examples
     --------
-
     >>> A = unique_list()
     >>> A.get_number_of_unique_elements()
     0
@@ -69,7 +67,6 @@ class unique_list:
 
         Examples
         --------
-
         >>> A = unique_list()
         >>> A.append("x")
         >>> print(A.get_number_of_unique_elements())
@@ -117,7 +114,6 @@ class unique_list:
 
         Examples
         --------
-
         >>> ul = unique_list()
         >>> a = "x"
         >>> b = "y"
@@ -140,7 +136,6 @@ class unique_list:
 
         Examples
         --------
-
         >>> ul = unique_list()
         >>> a = "x"
         >>> b = "y"

@@ -15,7 +15,6 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
 
     Parameters
     ----------
-
     Na : integer
         Rank of the rate matrix, number of excitons
 
@@ -33,7 +32,6 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
         Relaxation rate matrix (to be calculated and returned)
 
     """
-
     if corrM is None:
         corrM = numpy.identity(Nk)
 

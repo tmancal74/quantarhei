@@ -1,11 +1,10 @@
-"""
-    Simulation script
+"""Simulation script
 
-    This script performs a set of simulations by calling the function "run"
-    specified below. Scroll down below the definition of the "run" function
-    for the simulation parameters.
-    The default version of the script runs a series of three simulations
-    (parameters Ns_d = 1 and Ns_u=1)
+This script performs a set of simulations by calling the function "run"
+specified below. Scroll down below the definition of the "run" function
+for the simulation parameters.
+The default version of the script runs a series of three simulations
+(parameters Ns_d = 1 and Ns_u=1)
 
 """
 import time
@@ -43,7 +42,6 @@ def init_containers():
     """Initialized containers
 
     """
-
     cont_p_re = qr.TwoDSpectrumContainer()
     cont_p_re.use_indexing_type("integer")
     cont_p_nr = qr.TwoDSpectrumContainer()
@@ -60,7 +58,6 @@ def save_containers(cont, dname, node=0):
     """Saves the content of containers
 
     """
-
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = cont
 
     name1 = "cont_p_re_"+str(node)
@@ -80,7 +77,6 @@ def save_averages(cont, dname):
     """Saves disorder averaged spectra
 
     """
-
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = cont
 
     name1 = "ave_p_re.qrp"
@@ -101,7 +97,6 @@ def unite_containers(node=0):
     """Collects container parts from the directory to make a single container
 
     """
-
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = init_containers()
     name1 = "cont_p_re_"+str(node)
     name2 = "cont_p_nr_"+str(node)

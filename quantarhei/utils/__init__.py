@@ -1,10 +1,8 @@
-"""
-
-    quantarhei.utils  subpackage
-    ==================================
+"""quantarhei.utils  subpackage
+==================================
 
 
-    Some auxiliarly classes and functions to support the package
+Some auxiliarly classes and functions to support the package
 
 
 """

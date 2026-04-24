@@ -1,11 +1,10 @@
-"""
-    Class to support tests on the Molecule class
+"""Class to support tests on the Molecule class
 
 
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 from .molecules import Molecule
@@ -18,14 +17,12 @@ class TestMolecule(Molecule):
 
     Parameters
     ----------
-
     name : str
         Name of the test molecule
 
 
     Examples
     --------
-
     The TestMolecule must be created with a name. The name specifies the
     content of the TestMolecule object.
 

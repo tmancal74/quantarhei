@@ -1,7 +1,6 @@
-"""
-    The SubMode class is an internal class through which the mode keeps
-    track of the fact that in different electronic states of the molecule,
-    a given vibrational mode has different parameters.
+"""The SubMode class is an internal class through which the mode keeps
+track of the fact that in different electronic states of the molecule,
+a given vibrational mode has different parameters.
 
 
 """
@@ -24,7 +23,7 @@ from ..qm import LindbladForm
 from .. import REAL
 
 class SubMode(UnitsManaged, Saveable):
-    """ Instance of a vibrational mode relative to a give electronic state
+    """Instance of a vibrational mode relative to a give electronic state
 
     When a mode is set on a Molecule object, it has to be indepedently
     set on each electronic state of the molecule. We keep track of individual
@@ -34,7 +33,6 @@ class SubMode(UnitsManaged, Saveable):
 
     Examples
     --------
-
     >>> sm = SubMode()
     >>> print(sm.nmax)
     2

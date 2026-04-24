@@ -1,6 +1,4 @@
-"""
-
-Lindblad form implementation
+"""Lindblad form implementation
 
 
 """
@@ -65,7 +63,6 @@ class ElectronicLindbladForm(LindbladForm):
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian of the system (aggregate)
 
@@ -214,7 +211,6 @@ class VibrationalDecayLindbladForm(LindbladForm):
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian of the system (aggregate)
 

@@ -1,5 +1,4 @@
-"""
-Created on Wed Dec 13 09:12:29 2017
+"""Created on Wed Dec 13 09:12:29 2017
 
 @author: tomas
 """

@@ -2,101 +2,99 @@
 
 
 # -*- coding: utf-8 -*-
-"""
-    Linear array of values which are used as variables of numerical functions
-    and parameter dependent matrices
+"""Linear array of values which are used as variables of numerical functions
+and parameter dependent matrices
 
 
 
-    Properties
-    ----------
+Properties
+----------
 
-    start : float
-        Starting value of the axis
+start : float
+Starting value of the axis
 
-    step : float
-        Step between consecutive values of the axis
+step : float
+Step between consecutive values of the axis
 
-    length : int
-        Length of the `data` array
+length : int
+Length of the `data` array
 
-    data : numpy.array of float
-        Values of the axis
+data : numpy.array of float
+Values of the axis
 
 
-    Examples
-    --------
-
+Examples
+--------
     Creation of the `ValueAxis` object
 
-    >>> va = ValueAxis(0.0,100,1.0)
+>>> va = ValueAxis(0.0,100,1.0)
 
-    Its standard attributes are the following:
+Its standard attributes are the following:
 
-    >>> print(va.length)
-    100
-    >>> print(va.step)
-    1.0
-    >>> print(va.start)
-    0.0
+>>> print(va.length)
+100
+>>> print(va.step)
+1.0
+>>> print(va.start)
+0.0
 
-    The attribute `data` is an array of floats
+The attribute `data` is an array of floats
 
-    >>> print(va.data[3:5])
-    [ 3.  4.]
+>>> print(va.data[3:5])
+[ 3.  4.]
 
-    Attributes `min` and `max` are provided for convenience
+Attributes `min` and `max` are provided for convenience
 
-    >>> print(va.min)
-    0.0
-    >>> print(va.max)
-    99.0
+>>> print(va.min)
+0.0
+>>> print(va.max)
+99.0
 
-    You can locate an index of a specific value. The lower neighbor and
-    the difference to it is returned.
+You can locate an index of a specific value. The lower neighbor and
+the difference to it is returned.
 
-    >>> i,diff = va.locate(16.3)
-    >>> print(i)
-    16
-    >>> print("{0:.1f}".format(diff))
-    0.3
+>>> i,diff = va.locate(16.3)
+>>> print(i)
+16
+>>> print("{0:.1f}".format(diff))
+0.3
 
-    The following returns the nearest index on the axis
+The following returns the nearest index on the axis
 
-    >>> i = va.nearest(16.3)
-    >>> print(i)
-    16
-    >>> i = va.nearest(16.7)
-    >>> print(i)
-    17
-    >>> i = va.nearest(16.5)
-    >>> print(i)
-    17
+>>> i = va.nearest(16.3)
+>>> print(i)
+16
+>>> i = va.nearest(16.7)
+>>> print(i)
+17
+>>> i = va.nearest(16.5)
+>>> print(i)
+17
 
-    Mutual compatibility of the two ValueAxis objects can be tested as follows
+Mutual compatibility of the two ValueAxis objects can be tested as follows
 
-    >>> va1 = ValueAxis(0.0, 2000, 1.0)
-    >>> va2 = ValueAxis(0.0, 1000, 1.0)
-    >>> va2.is_subsection_of(va1)
-    True
-    >>> va1.is_subsection_of(va2)
-    False
-    >>> va1.is_extension_of(va2)
-    True
-    >>> va2.is_subsection_of(va1)
-    True
-    >>> va2.is_extension_of(va1)
-    False
-    >>> va1.is_equal_to(va2)
-    False
-    >>> va1.is_equal_to(va1)
-    True
-    >>> va3 = ValueAxis(0.0, 2000, 1.0)
-    >>> va3.is_equal_to(va1)
-    True
+>>> va1 = ValueAxis(0.0, 2000, 1.0)
+>>> va2 = ValueAxis(0.0, 1000, 1.0)
+>>> va2.is_subsection_of(va1)
+True
+>>> va1.is_subsection_of(va2)
+False
+>>> va1.is_extension_of(va2)
+True
+>>> va2.is_subsection_of(va1)
+True
+>>> va2.is_extension_of(va1)
+False
+>>> va1.is_equal_to(va2)
+False
+>>> va1.is_equal_to(va1)
+True
+>>> va3 = ValueAxis(0.0, 2000, 1.0)
+>>> va3.is_equal_to(va1)
+True
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 
@@ -113,7 +111,6 @@ class ValueAxis(Saveable):
 
     Parameters
     ----------
-
     start : float
         Beginning of the axis
 
@@ -161,20 +158,17 @@ class ValueAxis(Saveable):
 
 
     def locate(self, val):
-        """
-        Returns the index of the lower neigbor of the ``val``
+        """Returns the index of the lower neigbor of the ``val``
 
         Returns the index of the lower neigbor of the value x and the
         remaining distance to the value of ``val``
 
         Parameters
         ----------
-
         val : float
             A value within the min and max values of the axis
 
         """
-
         # nearest smaller neighbor index
         nsni = int(numpy.floor((val-self.start)/self.step))
 
@@ -189,8 +183,7 @@ class ValueAxis(Saveable):
 
 
     def nearest(self, val):
-        """
-        Returns the index of the nearest neighbor to ``val``
+        """Returns the index of the nearest neighbor to ``val``
 
         Returns the index of the nearest neighbor of ``val``. If ``val``
         is out of the upper bounds within the ``self.step`` from the upper
@@ -198,12 +191,10 @@ class ValueAxis(Saveable):
 
         Parameters
         ----------
-
         val : float
             A value within the min and max values of the axis
 
         """
-
         # nearest smaller neighbor index
         nsni = int(numpy.floor((val-self.start)/self.step))
 
@@ -289,7 +280,6 @@ class ValueAxis(Saveable):
 
         Examples
         --------
-
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(0.0, 490, 2.0)
         >>> ta2.is_subset_of(ta1)
@@ -340,7 +330,6 @@ class ValueAxis(Saveable):
 
         Examples
         --------
-
         >>> ta1 = ValueAxis(0.0, 1000, 1.0)
         >>> ta2 = ValueAxis(0.0, 490, 2.0)
         >>> ta1.is_superset_of(ta2)
@@ -385,7 +374,6 @@ class ValueAxis(Saveable):
         """String representation of the ValueAxis object
 
         """
-
         out  = "\nquantarhei.ValueAxis object"
         out += "\n=========================="
         out += "\nstart = "+str(self.start)

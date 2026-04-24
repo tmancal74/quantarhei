@@ -1,9 +1,8 @@
-"""
-    Module datasaveable
+"""Module datasaveable
 
-    Defines the class DataSaveable. DataSaveable objects can save their data
-    to and load them from a file in various formats. Data is exclusively
-    represented as a `data` property of the class.
+Defines the class DataSaveable. DataSaveable objects can save their data
+to and load them from a file in various formats. Data is exclusively
+represented as a `data` property of the class.
 
 
 """
@@ -22,14 +21,12 @@ class DataSaveable:
 
         Parameters
         ----------
-
         name : str
             Name of the file to be saved into
 
 
         Notes
         -----
-
         This method knows the following file extensions
 
         .dat
@@ -72,7 +69,6 @@ class DataSaveable:
 
         Parameters
         ----------
-
         name : str
             Name of the file to be loaded from
 
@@ -184,7 +180,6 @@ class DataSaveable:
         """Imports binary data from a file
 
         """
-
         self.set_data_writable()
         _data = numpy.load(filename)
         self.data = self._extract_data_with_axis(_data, with_axis)

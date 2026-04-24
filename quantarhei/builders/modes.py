@@ -1,22 +1,21 @@
-"""
-    Class representing intramolecular vibrations.
+"""Class representing intramolecular vibrations.
 
-    The Mode class is a user class through which the user defines an intra
-    molecular mode.
+The Mode class is a user class through which the user defines an intra
+molecular mode.
 
-    The vibrational mode is supposed to be an intramolecular mode of some
-    molecule. This class is therefore aware of its Molecule class. Once it
-    knows in which Molecule object it lives, it creates instances of the class
-    Submode (as many as there are electronic states in the Molecule). Submods
-    hold the parameters of the mode respective to a give electronic state
-    of the monomer
+The vibrational mode is supposed to be an intramolecular mode of some
+molecule. This class is therefore aware of its Molecule class. Once it
+knows in which Molecule object it lives, it creates instances of the class
+Submode (as many as there are electronic states in the Molecule). Submods
+hold the parameters of the mode respective to a give electronic state
+of the monomer
 
-    These parameters have to be set after the mode is registered in
-    the Molecule, and therefore there is an issue of consistency of the class.
-    Currently, the consistency is completely in the hands of the user.
+These parameters have to be set after the mode is registered in
+the Molecule, and therefore there is an issue of consistency of the class.
+Currently, the consistency is completely in the hands of the user.
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 
 """
@@ -39,12 +38,11 @@ from .opensystem import OpenSystem
 # Mode is UnitsManaged with components of different dimensions
 # Mode is not BasisManaged
 class Mode(UnitsManaged, Saveable, OpenSystem):
-    """ Vibrational mode
+    """Vibrational mode
 
 
     Parameters
     ----------
-
     omega : float
         vibrational frequency
 
@@ -52,7 +50,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
     Examples
     --------
-
     >>> import quantarhei as qr
     >>> mol = qr.Molecule([0.0, 1.0])
     >>> md = Mode(frequency=0.2)
@@ -111,14 +108,12 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         monomer : quantarhei.Molecule
             Molecule object to which this Mode will be assigned
 
 
         Examples
         --------
-
         `set_Molecule` should not be called directly, except of some (hard
         to imagine) special cases. The `add_Mode` method of the Molecule
         class does some extra work to keep consistent record of the Modes in
@@ -152,7 +147,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         self.nel = monomer.nel
         self.monomer = monomer
 
@@ -178,7 +172,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
@@ -188,7 +181,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -202,7 +194,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         1.3
 
         """
-
         #sbm = self.submodes[N]
         #sbm.omega = omega
         self.set_energy(N, omega)
@@ -214,7 +205,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state for we set frequency
 
@@ -224,7 +214,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -250,7 +239,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state for we set frequency
 
@@ -260,7 +248,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -280,7 +267,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
@@ -290,7 +276,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -315,7 +300,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the state for which we set. Setting for N=0 gives
             exception
@@ -327,7 +311,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -363,7 +346,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
@@ -371,7 +353,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -393,7 +374,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
@@ -403,7 +383,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -420,7 +399,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         if no_conversion:
             return self.submodes[N].omega
         else:
@@ -433,14 +411,12 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -463,14 +439,12 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
 
         Examples
         --------
-
         Default value of `nmax` is 2
 
         >>> import quantarhei as qr
@@ -492,7 +466,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
@@ -522,7 +495,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic states for which we set the mode parameters
 
@@ -534,7 +506,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -573,14 +544,12 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the electronic state
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
@@ -599,7 +568,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         self.egcf = corfce
         self.has_mode_environment = True
 
@@ -608,7 +576,6 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         """Returns interaction of this mode with a bosonic bath
 
         """
-
         if not self.has_mode_environment:
             return None
 

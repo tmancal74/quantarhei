@@ -1,43 +1,42 @@
-"""
-    Class to support tests on Aggregate class
+"""Class to support tests on Aggregate class
 
-    This class provides an easy access to a prefilled, but not initiallized
-    object of the Aggregate class. These can be used for testing and
-    demonstration. There are several types of aggregates available,
-    distinguished by the `name` argument of the constructor.
+This class provides an easy access to a prefilled, but not initiallized
+object of the Aggregate class. These can be used for testing and
+demonstration. There are several types of aggregates available,
+distinguished by the `name` argument of the constructor.
 
 
-    TestAggregates Provided
-    -----------------------
+TestAggregates Provided
+-----------------------
 
-    Below we list the valid values for the `name` argument of the TestAggregate
-    constructor:
+Below we list the valid values for the `name` argument of the TestAggregate
+constructor:
 
-    dimer-2 :
-        Dimer of two-level molecules, with positions in space
-        and transition dipole moments specified. No environment
-        is defined.
+dimer-2 :
+Dimer of two-level molecules, with positions in space
+and transition dipole moments specified. No environment
+is defined.
 
-    dimer-2-env :
-        Dimer of two-level molecules, with positions in space and
-        transition dipole moments specified. For each molecule
-        we define energy gap correlation function (energy gao
-        correlation functions on different sites are not correlated).
+dimer-2-env :
+Dimer of two-level molecules, with positions in space and
+transition dipole moments specified. For each molecule
+we define energy gap correlation function (energy gao
+correlation functions on different sites are not correlated).
 
-    homodimer-2 :
-        Homo-dimer of two-level molecules (molecules with the same energy
-        gaps), with positions in space
-        and transition dipole moments specified. No environment
-        is defined.
+homodimer-2 :
+Homo-dimer of two-level molecules (molecules with the same energy
+gaps), with positions in space
+and transition dipole moments specified. No environment
+is defined.
 
-    homodimer-2-env :
-        Homo-dimer of two-level molecules, with positions in space and
-        transition dipole moments specified. For each molecule
-        we define energy gap correlation function (energy gao
-        correlation functions on different sites are not correlated).
+homodimer-2-env :
+Homo-dimer of two-level molecules, with positions in space and
+transition dipole moments specified. For each molecule
+we define energy gap correlation function (energy gao
+correlation functions on different sites are not correlated).
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 
@@ -57,14 +56,12 @@ class TestAggregate(Aggregate):
 
     Parameters
     ----------
-
     name : str
         Name characterizing the test aggregate.
 
 
     Examples
     --------
-
     General dimers
 
     >>> # Dimer of two-level systems
@@ -104,7 +101,7 @@ class TestAggregate(Aggregate):
     """
 
     def __init__(self, name=None):
-        """ Some more doctests
+        """Some more doctests
 
         >>> TestAggregate()
         Traceback (most recent call last):
@@ -113,7 +110,6 @@ class TestAggregate(Aggregate):
 
 
         """
-
         if name is None:
             raise Exception("Aggregate name not specified")
 
@@ -221,7 +217,6 @@ class TestAggregate(Aggregate):
         None
 
         """
-
         if (N == 2) and (nst == 2):
 
             nstates = nst

@@ -1,6 +1,4 @@
-"""
-
-    Propagation with Foerster theory using Aggregate object
+"""Propagation with Foerster theory using Aggregate object
 
 
 

@@ -2,8 +2,8 @@
 
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 import numbers
@@ -36,7 +36,6 @@ class TwoDResponseContainer(Saveable):
 
     Parameters
     ----------
-
     t2axis: TimeAxis
        object holding waiting times at which spectra are calculated
 
@@ -78,7 +77,6 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         itype : string, ValueAxis, TimeAxis, FrequencyAxis
             Type of indexig. If itype is a string, it should have values
             either 'integer' or 'string' in which case the specra will be
@@ -87,7 +85,6 @@ class TwoDResponseContainer(Saveable):
             be indexed by the values in the axis object.
 
         """
-
         if isinstance(itype, str):
             if itype == "integer":
                 self.itype = "integer"
@@ -119,7 +116,6 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         spect : TwoDSpectrum
             Object holding the spectrum; when not tag is specified for a
             spectrum which as its t2 time set, the tag is set to t2 time.
@@ -129,8 +125,6 @@ class TwoDResponseContainer(Saveable):
             the container.
 
         """
-
-
         if self.itype == "integer":
 
             if tag is None:
@@ -204,12 +198,10 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         indx : int
             Index of the spectrum to be retrieved
 
         """
-
         if self.itype == "integer":
 
             return self.get_spectrum(indx)
@@ -233,7 +225,6 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         t2 : float
             Waiting time for which spectrum should be returned
 
@@ -271,7 +262,6 @@ class TwoDResponseContainer(Saveable):
 
 
         """
-
         for tag in self.spectra:
 
             sp = self.spectra[tag]
@@ -336,7 +326,6 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         start : int
             Index of the first spectrum to be returned
 
@@ -344,7 +333,6 @@ class TwoDResponseContainer(Saveable):
             Index of the last spectrum to be returned
 
         """
-
         ven = [value for (key, value) in sorted(self.spectra.items())]
 
         if (start is None) and (end is None):
@@ -362,7 +350,6 @@ class TwoDResponseContainer(Saveable):
         """Converts this container into PumpProbeSpectrumContainer
 
         """
-
         from .pumpprobe import PumpProbeSpectrumContainer
 
         k = 0
@@ -422,7 +409,6 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         x : float
             x coordinate in the 2D spectrum (usually omega_1 axis)
 
@@ -433,7 +419,6 @@ class TwoDResponseContainer(Saveable):
             Times (usually waiting t_2 times) in which spectra are taken
 
         """
-
         vals = numpy.zeros(times.length, dtype=COMPLEX)
         k = 0
 
@@ -482,7 +467,6 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         ffttype : string
             Specifies the type Fourier transform we perform
 
@@ -490,7 +474,6 @@ class TwoDResponseContainer(Saveable):
             Windowing function for the data. Default is None
 
         """
-
         if dtype is None:
             raise Exception("Type of the data for FFT has to be specified")
 
@@ -640,7 +623,6 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         window: list of floats
             Window, specified by four float number, to which all spectra
             in the container should be trimmed
@@ -656,8 +638,6 @@ class TwoDResponseContainer(Saveable):
         """Returns maximum amplitude of the spectra in the container
 
         """
-
-
         mxs = []
         for s in self.get_spectra():
             #spect2D = numpy.real(s.d__data)
@@ -679,8 +659,7 @@ class TwoDResponseContainer(Saveable):
                           prefix = '', suffix = '',
                           decimals = 1, length = 100,
                           fill='*'):
-        """
-        Call in a loop to create terminal progress bar
+        """Call in a loop to create terminal progress bar
         @params:
             iteration   - Required  : current iteration (Int)
             total       - Required  : total iterations (Int)
@@ -728,15 +707,12 @@ class TwoDResponseContainer(Saveable):
 
         Parameters
         ----------
-
         Npos_contours : int
             Nomber of positive value contours in the plot
 
 
 
         """
-
-
         import matplotlib.pyplot as plt
         import matplotlib.animation as manimation
 
@@ -810,10 +786,9 @@ class TwoDResponseContainer(Saveable):
 
 def _exp_2D_data0(params, times=None, cont=None):
     """Returns a residue between time dependent matrix data and a matrix
-       multipled by a sum of exponentials
+    multipled by a sum of exponentials
 
     """
-
     if times is None:
         raise Exception("Times have to be supplied")
     if cont is None:
@@ -879,7 +854,6 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
 
         """
-
         if flag != self.dtype:
             raise Exception("Cannot change spectra type")
 
@@ -899,7 +873,6 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         """Converts this container into PumpProbeSpectrumContainer
 
         """
-
         if self.dtype == signal_TOTL:
 
             from .pumpprobe import PumpProbeSpectrumContainer
@@ -946,7 +919,6 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         Parameters
         ----------
-
         norm : float
             Value to which we normalize the spectra
 
@@ -962,7 +934,6 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             Quantarhei.
 
         """
-
         nsp = len(self.spectra)
         mxs = numpy.zeros(nsp, dtype=REAL)
         ii = 0
@@ -996,7 +967,6 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         Parameters
         ----------
-
         ffttype : string
             Specifies the type Fourier transform we perform
 
@@ -1004,7 +974,6 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             Windowing function for the data. Default is None
 
         """
-
         if dtype is not None:
             if dtype != self.dtype:
                 raise Exception("Cannot change spectra type"+

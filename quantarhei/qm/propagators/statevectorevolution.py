@@ -34,7 +34,6 @@ class StateVectorEvolution(MatrixData, BasisManaged):
 
         Parameters
         ----------
-
         ham : qr.Hamiltonian
             Hamiltonian with respect to which we construct RWA
 
@@ -43,7 +42,6 @@ class StateVectorEvolution(MatrixData, BasisManaged):
             to the function name. Backward conversion sgn=-1 is called from
             the inverse routine.
         """
-
         if (self.is_in_rwa and sgn == 1) or sgn == -1:
 
             HOmega = ham.get_RWA_skeleton()
@@ -65,7 +63,6 @@ class StateVectorEvolution(MatrixData, BasisManaged):
 
         Parameters
         ----------
-
         ham : qr.Hamiltonian
             Hamiltonian with respect to which we construct RWA
 
@@ -104,7 +101,6 @@ class StateVectorEvolution(MatrixData, BasisManaged):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -125,7 +121,6 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         """Constructs DensityMatrix from the present StateVector
 
         """
-
         rhot = DensityMatrixEvolution(timeaxis=self.TimeAxis)
 
         rhoi = DensityMatrix(dim=self.dim)

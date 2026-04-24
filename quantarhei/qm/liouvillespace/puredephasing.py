@@ -1,72 +1,70 @@
-"""
-    Pure dephasing Tensor
+"""Pure dephasing Tensor
 
 
-    We create this class intentionally as not basis managed. Pure dephasing
-    must be applied only while working in the correct basis!
+We create this class intentionally as not basis managed. Pure dephasing
+must be applied only while working in the correct basis!
 
 
-    Class Details
-    -------------
-
-
+Class Details
+-------------
 
 
 
-    Examples
-    --------
 
+
+Examples
+--------
     >>> from quantarhei import energy_units
-    >>> from quantarhei import Molecule
+>>> from quantarhei import Molecule
 
-    >>> d_rates = [[0.0, 1.0/100.0], [1.0/100.0, 0.0]]
-    >>> pd = PureDephasing(d_rates)
-    >>> print(pd.data)
-    [[ 0.    0.01]
-     [ 0.01  0.  ]]
+>>> d_rates = [[0.0, 1.0/100.0], [1.0/100.0, 0.0]]
+>>> pd = PureDephasing(d_rates)
+>>> print(pd.data)
+[[ 0.    0.01]
+[ 0.01  0.  ]]
 
-    >>> with energy_units("1/cm"):
-    ...     mol1 = Molecule([0.0, 12000.0])
-    ...     mol2 = Molecule([0.0, 12100.0])
-    ...     agg = Aggregate(molecules=[mol1, mol2])
-    ...     agg.set_resonance_coupling(0,1,100.0)
-    >>> agg.build()
-    >>> pd = PureDephasing(drates=d_rates, system=agg)
-    Traceback (most recent call last):
-        ...
-    Exception: Incompatible dimension of the rate matrix: system has dimension = 3
-
-
-    >>> d_rates = [[0.0, 0.0, 0.0],[0.0, 0.0, 1.0/100.0], [0.0, 0.0, 0.0]]
-    >>> pd = PureDephasing(drates=d_rates, system=agg)
-    >>> pd.data[1,2] == d_rates[1][2]
-    True
-
-    >>> print(pd.data[1,2])
-    0.01
+>>> with energy_units("1/cm"):
+...     mol1 = Molecule([0.0, 12000.0])
+...     mol2 = Molecule([0.0, 12100.0])
+...     agg = Aggregate(molecules=[mol1, mol2])
+...     agg.set_resonance_coupling(0,1,100.0)
+>>> agg.build()
+>>> pd = PureDephasing(drates=d_rates, system=agg)
+Traceback (most recent call last):
+...
+Exception: Incompatible dimension of the rate matrix: system has dimension = 3
 
 
-    >>> pd = PureDephasing(system=agg)
-    Traceback (most recent call last):
-        ...
-    Exception: Dephasing rates must be specified.
+>>> d_rates = [[0.0, 0.0, 0.0],[0.0, 0.0, 1.0/100.0], [0.0, 0.0, 0.0]]
+>>> pd = PureDephasing(drates=d_rates, system=agg)
+>>> pd.data[1,2] == d_rates[1][2]
+True
 
-    >>> pd = PureDephasing(drates=d_rates, system=1.0)
-    Traceback (most recent call last):
-        ...
-    Exception: Non-Aggregate systems not implemented yet.
+>>> print(pd.data[1,2])
+0.01
 
-    >>> pd = PureDephasing(drates=d_rates, system=agg)
-    >>> HH = agg.get_Hamiltonian()
-    >>> with pd.eigenbasis:
-    ...     print(numpy.max(numpy.abs(HH.data
-    ...                   -numpy.diag(numpy.diag(HH.data))))<1.0e-15)
-    True
 
-    >>> pd.eigenbasis = None
-    Traceback (most recent call last):
-        ...
-    Exception: The property 'eigenbasis' is protected and cannot be set.
+>>> pd = PureDephasing(system=agg)
+Traceback (most recent call last):
+...
+Exception: Dephasing rates must be specified.
+
+>>> pd = PureDephasing(drates=d_rates, system=1.0)
+Traceback (most recent call last):
+...
+Exception: Non-Aggregate systems not implemented yet.
+
+>>> pd = PureDephasing(drates=d_rates, system=agg)
+>>> HH = agg.get_Hamiltonian()
+>>> with pd.eigenbasis:
+...     print(numpy.max(numpy.abs(HH.data
+...                   -numpy.diag(numpy.diag(HH.data))))<1.0e-15)
+True
+
+>>> pd.eigenbasis = None
+Traceback (most recent call last):
+...
+Exception: The property 'eigenbasis' is protected and cannot be set.
 
 """
 
@@ -182,15 +180,12 @@ class PureDephasing: #(BasisManaged):
 
         Parameters
         ----------
-
         dtype: str
             Type of PureDephasing to which one should convert. Conversion
             factor is such that the FFT of the time evolution gives a curve
             with the same FWHM.
 
         """
-
-
         if dtype in self.dtypes:
 
             #factor = 2.0*numpy.sqrt(numpy.log(2.0))

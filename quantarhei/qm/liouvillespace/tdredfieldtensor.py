@@ -15,7 +15,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
     Km = None
 
     def _implementation(self, ham, sbi):
-        r""" Reference implementation, completely in Python
+        r"""Reference implementation, completely in Python
 
         Implementation of Redfield relaxation tensor according to
 
@@ -216,7 +216,6 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
         Parameters
         ----------
-
         Km : 3D array
             K_m operators
 
@@ -227,7 +226,6 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             Hermite conjuget \Lambda_m operators
 
         """
-
         Na = self.Hamiltonian.data.shape[0]
         Nb = self.SystemBathInteraction.N
         Nt = self.Nt
@@ -290,7 +288,6 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -298,7 +295,6 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             inverse of the transformation matrix
 
         """
-
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
@@ -379,8 +375,7 @@ def _integrate(f, dt):
 
 
 def _integrate_last_axis(f, dt):
-    """
-    Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
+    """Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
 
     Parameters:
         f : ndarray

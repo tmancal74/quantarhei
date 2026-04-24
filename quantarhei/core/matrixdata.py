@@ -1,5 +1,4 @@
-"""
-    Basic data type of Quantarhei
+"""Basic data type of Quantarhei
 
 
 """
@@ -12,7 +11,6 @@ class MatrixData:
 
     Parameters
     ----------
-
     dims : list or tuple
         Dimensions of the data in form of a tuple or list
 
@@ -45,7 +43,6 @@ class MatrixData:
 
         Parameters
         ----------
-
         name : str
             Name of of the object
 
@@ -63,7 +60,6 @@ class MatrixData:
 
         Parameters
         ----------
-
         n : int
             matrix index
 
@@ -87,7 +83,6 @@ class MatrixData:
 
         Parameters
         ----------
-
         data : array like
             Data to be set in the object
 
@@ -99,14 +94,12 @@ class MatrixData:
 
         Parameters
         ----------
-
         name : str
             Name of the file to be saved into
 
 
         Notes
         -----
-
         This method knows the following file extensions
 
         .dat
@@ -143,7 +136,6 @@ class MatrixData:
 
         Parameters
         ----------
-
         name : str
             Name of the file to be loaded from
 

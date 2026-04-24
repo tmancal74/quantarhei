@@ -57,7 +57,6 @@ def printlog(*args, verbose=True, loglevel=5,
 
     Parameters
     ----------
-
     *args : arguments
         arguments like in a print function
 
@@ -99,7 +98,6 @@ def printlog(*args, verbose=True, loglevel=5,
 
 
     """
-
     if not verbose:
         return
 
@@ -155,7 +153,6 @@ def loglevels2bool(loglevs, verbose=False):
 
     Parameters
     ----------
-
     loglevels : list of int
         List of logleves to be converted
 
@@ -165,13 +162,11 @@ def loglevels2bool(loglevs, verbose=False):
 
     Returns
     -------
-
     verb : list of bool
         List of bools, one fo each loglevel
 
     Examples
     --------
-
     Standard usage:
 
     >>> m = qr.Manager()
@@ -190,7 +185,6 @@ def loglevels2bool(loglevs, verbose=False):
     [False, False, False, False, False]
 
     """
-
     verb = [False]*len(loglevs)
 
     if verbose:

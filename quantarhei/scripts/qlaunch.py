@@ -1,14 +1,13 @@
-"""
-    Quantarhei job launcher
+"""Quantarhei job launcher
 
-    This script is ment to launch Quantarhei jobs on remote machines
+This script is ment to launch Quantarhei jobs on remote machines
 
-    The script transfers simulation inputs to the remote machine, launches
-    the simulation, monitors it, and transfers the results back to the machine
-    from which the job was launched. The simulation inputs are stored in a
-    single directory denoted by a suffix .in. This directory includes input
-    data and configuration settings. It is transferred to the target machine
-    and after the simulation is done it is returned back with the suffix .out.
+The script transfers simulation inputs to the remote machine, launches
+the simulation, monitors it, and transfers the results back to the machine
+from which the job was launched. The simulation inputs are stored in a
+single directory denoted by a suffix .in. This directory includes input
+data and configuration settings. It is transferred to the target machine
+and after the simulation is done it is returned back with the suffix .out.
 
 
 """

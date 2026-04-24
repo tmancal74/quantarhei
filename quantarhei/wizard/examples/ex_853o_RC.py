@@ -1,13 +1,11 @@
-"""
+"""Simulation script
 
-    Simulation script
+This script performs a set of simulations by calling the function "run"
+specified below. Scroll down below the definition of the "run" function
+for the simulation parameters.
 
-    This script performs a set of simulations by calling the function "run"
-    specified below. Scroll down below the definition of the "run" function
-    for the simulation parameters.
-
-    The default version of the script runs a series of three simulations
-    (parameters Ns_d = 1 and Ns_u=1)
+The default version of the script runs a series of three simulations
+(parameters Ns_d = 1 and Ns_u=1)
 
 
 

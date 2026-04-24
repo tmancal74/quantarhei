@@ -1,45 +1,43 @@
-"""
-    Provides typical Bath correlation function types.
+"""Provides typical Bath correlation function types.
 
-    Most important types of bath or energy gap correlation functions are
-    provided. Where possible, the correlation function is calculated
-    from the parameters from analytical formulae. Where such formulae are
-    not available, correlation function is calculated by transformation
-    of the spectral density.
+Most important types of bath or energy gap correlation functions are
+provided. Where possible, the correlation function is calculated
+from the parameters from analytical formulae. Where such formulae are
+not available, correlation function is calculated by transformation
+of the spectral density.
 
-    Types of correlation function provided
-    --------------------------------------
-    OverdampedBrownian-HighTemperature :
-        OverdampedBrownian oscillator in high temperature limit
+Types of correlation function provided
+--------------------------------------
+OverdampedBrownian-HighTemperature :
+OverdampedBrownian oscillator in high temperature limit
 
-    OverdampedBrownian :
-        General overdampedBrownian oscillator
+OverdampedBrownian :
+General overdampedBrownian oscillator
 
-    Examples
-    --------
-
+Examples
+--------
     >>> from quantarhei import TimeAxis
-    >>> params = dict(ftype="OverdampedBrownian", cortime=100, reorg=20, T=300)
-    >>> time = TimeAxis(0.0,1000,1.0)
-    >>> with energy_units("1/cm"):
-    ...     cf = CorrelationFunction(time,params)
+>>> params = dict(ftype="OverdampedBrownian", cortime=100, reorg=20, T=300)
+>>> time = TimeAxis(0.0,1000,1.0)
+>>> with energy_units("1/cm"):
+...     cf = CorrelationFunction(time,params)
 
-    >>> with energy_units("1/cm"):
-    ...     print(cf.get_reorganization_energy())
-    20.0
+>>> with energy_units("1/cm"):
+...     print(cf.get_reorganization_energy())
+20.0
 
-    Reorganization energy of a correlation function can be calculated from the
-    shape of the spectral density by integrating over it. The accuracy
-    of such estimation depends on numerics, hence the relative tolerance of
-    only 1.0e-4 below
+Reorganization energy of a correlation function can be calculated from the
+shape of the spectral density by integrating over it. The accuracy
+of such estimation depends on numerics, hence the relative tolerance of
+only 1.0e-4 below
 
-    >>> lamb_definition = cf.get_reorganization_energy()
-    >>> lamb_measured = cf.measure_reorganization_energy()
-    >>> print(numpy.allclose(lamb_definition, lamb_measured, rtol=1.0e-4))
-    True
+>>> lamb_definition = cf.get_reorganization_energy()
+>>> lamb_measured = cf.measure_reorganization_energy()
+>>> print(numpy.allclose(lamb_definition, lamb_measured, rtol=1.0e-4))
+True
 
-    Details of Classes Provided
-    ---------------------------
+Details of Classes Provided
+---------------------------
 
 """
 
@@ -62,7 +60,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
     Parameters
     ----------
-
     axis : TimeAxis
         TimeAxis object specifying the time interval on which the
         correlation function is defined.
@@ -246,7 +243,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
         """Sets the temperature and cutoff time of for the component
 
         """
-
         # Temperatures of all components have to be the same
         # is this the first time that temperature is assigned?
         if self.temperature == -1.0:
@@ -266,7 +262,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
         of the correlation function
 
         """
-
         temperature = params["T"]
         ctime = params["cortime"]
         lamb = params["reorg"]
@@ -603,7 +598,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
         Calculates reorganization energy from the data and checks if it
         is within specified tolerance from the expected value
         """
-
         lamb1 = self.measure_reorganization_energy()
         lamb2 = self.convert_energy_2_current_u(self.lamb)
         if (abs(lamb1 - lamb2)/(lamb1+lamb2)) < rtol:
@@ -619,7 +613,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
         by analytical formula. Returns `False` if the object was constructed
         by numerical transformation from spectral density.
         """
-
         return bool(self.params["ftype"] in self.analytical_types)
 
 
@@ -665,14 +658,12 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
 
     def get_SpectralDensity(self, fa=None):
-        """
-        Returns a SpectralDensity corresponding to this CorrelationFunction.
+        """Returns a SpectralDensity corresponding to this CorrelationFunction.
         If a FrequencyAxis object is included, the SpectralDensity
         object will be returned with that FrequencyAxis instance as its
         frequency axis.
 
         """
-
         from .spectraldensities import SpectralDensity
 
         # protect this from external units
@@ -716,7 +707,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
         ``OddFTCorrelationFunction``
 
         """
-
         with energy_units("int"):
             oftcf = OddFTCorrelationFunction(self.axis, self.params)
         return oftcf
@@ -742,9 +732,7 @@ class LineshapeFunction(DFunction, UnitsManaged):
 
     @enforce_energy_units_context
     def __init__(self, axis=None, params=None, values=None, lfactor=1):
-        """
-
-        Currently we do not use 'values'
+        """Currently we do not use 'values'
 
         Parameters
         ----------
@@ -767,7 +755,6 @@ class LineshapeFunction(DFunction, UnitsManaged):
         None.
 
         """
-
         self.lfactor = lfactor
         self.axis = axis
         self.params = params
@@ -816,7 +803,6 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
 
     Parameters
     ----------
-
     axis: TimeAxis
         Time interval from which the frequency interval is calculated
 
@@ -895,7 +881,6 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
 
     Parameters
     ----------
-
     axis: TimeAxis
         Time interval from which the frequency interval is calculated
 
@@ -905,7 +890,6 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
 
     Examples
     --------
-
     >>> ta = TimeAxis(0.0,1000,1.0)
     >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
     >>> with energy_units("1/cm"):
@@ -975,7 +959,6 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
     Parameters
     ----------
-
     axis: TimeAxis
         Time interval from which the frequency interval is calculated
 
@@ -984,7 +967,6 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
     Examples
     --------
-
     >>> ta = TimeAxis(0.0,1000,1.0)
     >>> params = dict(ftype="OverdampedBrownian",reorg=20,cortime=100,T=300)
     >>> with energy_units("1/cm"):
@@ -1048,14 +1030,13 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
 #FIXME: these functions can go to DFunction
 def c2g(timeaxis, coft):
-    """ Converts correlation function to lineshape function
+    """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation
     function to form a lineshape function.
 
     Parameters
     ----------
-
     timeaxis : cu.oqs.time.TimeAxis
         TimeAxis of the correlation function
 
@@ -1065,7 +1046,6 @@ def c2g(timeaxis, coft):
 
 
     """
-
     time = timeaxis
     preal = numpy.real(coft)
     pimag = numpy.imag(coft)
@@ -1082,14 +1062,13 @@ def c2g(timeaxis, coft):
 
 
 def c2h(timeaxis, coft):
-    """ Integrates correlation function in time with an open upper limit
+    """Integrates correlation function in time with an open upper limit
 
     Explicit numerical integration of the correlation
     function to form a precursor to the lineshape function.
 
     Parameters
     ----------
-
     timeaxis : TimeAxis
         TimeAxis of the correlation function
 
@@ -1097,7 +1076,6 @@ def c2h(timeaxis, coft):
         Values of correlation function given at points specified
         in the TimeAxis object
     """
-
     time = timeaxis
     preal = numpy.real(coft)
     pimag = numpy.imag(coft)
@@ -1110,14 +1088,13 @@ def c2h(timeaxis, coft):
     return hoft
 
 def h2g(timeaxis, coft):
-    """ Integrates and integrated correlation function
+    """Integrates and integrated correlation function
 
     Explicit numerical integration of the correlation
     function to form a precursor to the lineshape function.
 
     Parameters
     ----------
-
     timeaxis : TimeAxis
         TimeAxis of the correlation function
 
@@ -1130,7 +1107,7 @@ def h2g(timeaxis, coft):
 
 def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
                                            Nmax=5, HR=0.01, silent=True):
-    """ Scales reorganization energy of the system-bath interaction
+    """Scales reorganization energy of the system-bath interaction
 
     Returns a bath correlation function with reorganization energy scalled
     such that it achieves a required relaxation time between the first
@@ -1139,7 +1116,6 @@ def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
 
     Parameters
     ----------
-
     time: TimeAxis
         The time axis on which the correlation function is defined
 
@@ -1167,8 +1143,6 @@ def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
 
     Examples
     --------
-
-
     >>> omega = 200.0
     >>> target_time = 100.0
 
@@ -1186,7 +1160,6 @@ def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
 
 
     """
-
     #from ..qm.corfunctions import CorrelationFunction
     from ...builders.molecules import Molecule
     from ...builders.modes import Mode

@@ -1,6 +1,4 @@
-"""
-
-Simulation definition file for Quantarhei package. You can run the simulation
+"""Simulation definition file for Quantarhei package. You can run the simulation
 in the terminal using Quantarhei command line tool ``qrhei``. Alternatively you
 can instantiate the class and run it in python/IPython console or in Jupyter
 notebook.

@@ -317,8 +317,6 @@ class PumpProbeSpectrumCalculator:
         """Sets up the environment for pump-probe calculation
 
         """
-
-
         self.verbose = verbose
 
         if isinstance(self.system, Aggregate):
@@ -376,9 +374,8 @@ class PumpProbeSpectrumCalculator:
         return reorg_bath
 
     def _excitonic_reorg_diag(self, SS, subtract_bath=True):
-        """ Returns the reorganisation energy of an exciton state
+        """Returns the reorganisation energy of an exciton state
         """
-
         # SystemBathInteraction
         sbi = self.system.get_SystemBathInteraction()
         AG = self.system
@@ -421,9 +418,8 @@ class PumpProbeSpectrumCalculator:
         return reorg_exct
 
     def _site_reorg_diag(self, subtract_bath=True):
-        """ Returns the reorganisation energy of an exciton state
+        """Returns the reorganisation energy of an exciton state
         """
-
         # SystemBathInteraction
         sbi = self.system.get_SystemBathInteraction()
         AG = self.system
@@ -462,11 +458,10 @@ class PumpProbeSpectrumCalculator:
 
     def calculate_all_system_approx(self, sys, rdmt, lab, show_progress=False,approx=None,spec=["Full"]):
         """Calculates all 2D spectra for a system and reduced density matrix
-           evolution. The approach assumes no diiference between pathways with
-           jumps and without the jumps.
+        evolution. The approach assumes no diiference between pathways with
+        jumps and without the jumps.
 
         """
-
         # Check if the magic angle polarization is used
         if not numpy.isclose(lab.F4eM4[1:],[0,0],atol=1e-6).all():
             message = "Lab is not set to the magic angle polarization which is" +\
@@ -637,14 +632,13 @@ class PumpProbeSpectrumCalculator:
         return onepp
 
     def _c2g(self,timeaxis,coft):
-        """ Converts correlation function to lineshape function
+        """Converts correlation function to lineshape function
 
         Explicit numerical double integration of the correlation
         function to form a lineshape function.
 
         Parameters
         ----------
-
         timeaxis : cu.oqs.time.TimeAxis
             TimeAxis of the correlation function
 
@@ -654,7 +648,6 @@ class PumpProbeSpectrumCalculator:
 
 
         """
-
         ta = timeaxis
         rr = numpy.real(coft)
         ri = numpy.imag(coft)
@@ -670,10 +663,9 @@ class PumpProbeSpectrumCalculator:
         return gt
 
     def _excitonic_coft(self,SS,AG,n):
-        """ Returns energy gap correlation function data of an exciton state n
+        """Returns energy gap correlation function data of an exciton state n
 
         """
-
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -701,10 +693,9 @@ class PumpProbeSpectrumCalculator:
         return ct
 
     def _SE_excitonic_cofts(self,SS,AG,tau = 0):
-        """ Returns energy gap correlation function data of an exciton state n
+        """Returns energy gap correlation function data of an exciton state n
 
         """
-
         c0 = AG.monomers[0].get_egcf((0,1))
         Nt = len(c0)
 
@@ -790,10 +781,9 @@ class PumpProbeSpectrumCalculator:
 
 
     def _SE_excitonic_cofts_test(self,SS,AG,tau = 0):
-        """ Returns energy gap correlation function data of an exciton state n
+        """Returns energy gap correlation function data of an exciton state n
 
         """
-
         c0 = AG.monomers[0].get_egcf((0,1))
         Nt = len(c0)
 
@@ -894,10 +884,9 @@ class PumpProbeSpectrumCalculator:
         return gt3,gt3tau
 
     def _SE_excitonic_gofts(self,SS,AG,tau = 0,_diag_double_only=False):
-        """ Returns energy gap correlation function data of an exciton state n
+        """Returns energy gap correlation function data of an exciton state n
 
         """
-
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -990,9 +979,8 @@ class PumpProbeSpectrumCalculator:
         return gt3tau
 
     def _excitonic_reorg_energy(self, SS, AG):
-        """ Returns the reorganisation energy of an exciton state
+        """Returns the reorganisation energy of an exciton state
         """
-
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -1214,10 +1202,9 @@ class PumpProbeSpectrumCalculator:
 
     def calculate_pathways_rdm(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=["Full"]):
         """Calculate the shape of a Liouville pathway
-            so far implemented only for electronic
-            aggregate.
+        so far implemented only for electronic
+        aggregate.
         """
-
         onepp = PumpProbeSpectrum()
         onepp.set_axis(self.oa3)
 
@@ -1349,10 +1336,9 @@ class PumpProbeSpectrumCalculator:
 
     def calculate_pathways_rdm_novoderezhkin(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=["Full"]):
         """Calculate the shape of a Liouville pathway
-            so far implemented only for electronic
-            aggregate.
+        so far implemented only for electronic
+        aggregate.
         """
-
         onepp = PumpProbeSpectrum()
         onepp.set_axis(self.oa3)
 
@@ -1474,12 +1460,10 @@ def calculate_from_2D(twod):
 
     Parameters
     ----------
-
     twod: TwoDSpectrum
         2D spectrum from which pump-probe will be calculated
 
     """
-
     pp = PumpProbeSpectrum()
 
     # waiting time
@@ -1515,7 +1499,6 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
         """Calculates all spectra corresponding to a specified t2axis
 
         """
-
         temporary_fix = True
 
         if temporary_fix:
@@ -1528,7 +1511,6 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
         """Calculates one spectru corresponding to a specified t2 time
 
         """
-
         temporary_fix = True
 
         if temporary_fix:
@@ -1538,8 +1520,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
 
 
 def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'): # █ = U-219
-    """
-    Call n a loop to create terminal progress bar
+    """Call n a loop to create terminal progress bar
 
     Parameters
     --------
@@ -1558,7 +1539,6 @@ def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, l
     fill: str (optional)
         Fill bar character
     """
-
     percent = ("{:0." + str(decimals) + "f}").format(100* (iteration/float(total)))
     filledlength = int(length * iteration // total)
     bar = fill * filledlength + "-" * (length - filledlength)

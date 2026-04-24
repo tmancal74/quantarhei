@@ -1,8 +1,8 @@
-""" Class representing unity superoperator
+"""Class representing unity superoperator
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 
@@ -17,7 +17,6 @@ class SOpUnity(SuperOperator):
 
     Parameters
     ----------
-
     dim : int
         Dimension of the unity superoperator
 
@@ -28,7 +27,6 @@ class SOpUnity(SuperOperator):
 
     Examples
     --------
-
     Creation of an empty operator is not allowed
 
     >>> empty = SOpUnity()

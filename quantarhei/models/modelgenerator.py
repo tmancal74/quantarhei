@@ -1,6 +1,4 @@
-"""
-
-    Model Generator for Examples and Tests
+"""Model Generator for Examples and Tests
 
 
 """

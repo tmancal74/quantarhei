@@ -1,7 +1,4 @@
-"""
-
-
-    StateVector propagator
+"""StateVector propagator
 
 
 """
@@ -32,8 +29,7 @@ class StateVectorPropagator:
 
 
     def setDtRefinement(self, Nref):
-        """
-        The TimeAxis object specifies at what times the propagation
+        """The TimeAxis object specifies at what times the propagation
         should be stored. We can tell the propagator to use finer
         time step for the calculation by setting the refinement. The
         refinement is an integer by which the TimeAxis time step should
@@ -58,7 +54,6 @@ class StateVectorPropagator:
 
         Parameters
         ----------
-
         psii :
             Initial state vector
 
@@ -94,15 +89,13 @@ class StateVectorPropagator:
 
 
         """
-
         # FIXME: not yet implemented
         eop = 0.0
         return EvolutionOperator(self.timeaxis, data=eop)
 
 
     def _propagate_short_exp(self, psii, L=4):
-        """
-              Short exp integration
+        """Short exp integration
 
         """
         pr = StateVectorEvolution(self.timeaxis, psii)
@@ -139,11 +132,9 @@ class StateVectorPropagator:
         return pr
 
     def _propagate_short_exp_nonlin(self, psii, hfce, L=4) :
-        """
-              Short exp integration with non-linear "Hamiltonian"
+        """Short exp integration with non-linear "Hamiltonian"
 
         """
-
         # here we will store the results
         pr = StateVectorEvolution(self.timeaxis, psii)
 
@@ -191,8 +182,7 @@ class StateVectorPropagator:
 
 
     def _propagate_short_exp_tdep(self, psii, hfce, L=4):
-        """
-              Short exp integration with time-dependent Hamiltonian
+        """Short exp integration with time-dependent Hamiltonian
 
         """
         pr = StateVectorEvolution(self.timeaxis, psii)

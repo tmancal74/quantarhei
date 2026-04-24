@@ -6,7 +6,7 @@ import numbers
 
 
 def array_property(name,shape=None):
-    """ Controls the access to an array property of package classes
+    """Controls the access to an array property of package classes
 
 
     """
@@ -63,7 +63,6 @@ def units_managed_array_property(name,dtype,shape=None):
     Warning: The type of the property depends on the object; The object
     has to be EnergyUnitsManaged or similar.
     """
-
     storage_name = '_'+name
 
     @property
@@ -147,7 +146,6 @@ def managed_array_property(name,dtype,shape=None):
 
 
     """
-
     storage_name = '_'+name
 
     @property
@@ -199,7 +197,7 @@ def managed_array_property(name,dtype,shape=None):
 
 
 def check_numpy_array(val):
-    """ Checks if argument is a numpy array.
+    """Checks if argument is a numpy array.
 
     If the argument is a list, it converts it into numpy array. Otherwise,
     error occurs.

@@ -1,6 +1,4 @@
-"""
-
-    Demonstration of Quantarhei fitting capabilities
+"""Demonstration of Quantarhei fitting capabilities
 
 
 """
@@ -25,7 +23,6 @@ def single_exp(x):
     """Example single exponential function
 
     """
-
     return numpy.exp(-x/245.0) - 0.2
 
 
@@ -34,7 +31,6 @@ def double_exp(x):
 
 
     """
-
     return 0.5*numpy.exp(-x/35.0) + 0.4*numpy.exp(-x/801.0) + 0.1
 
 
@@ -117,7 +113,6 @@ def single_gauss(x):
     """Example single exponential function
 
     """
-
     return 1.34*numpy.exp(-(x-55.3)**2/(24.0**2)) - 0.2
 
 
@@ -126,7 +121,6 @@ def double_gauss(x):
 
 
     """
-
     return (0.5*numpy.exp(-(x-34.6)**2/(10.0**2)) +
             0.4*numpy.exp(-(x-71.0)**2/(18.0**2)) + 0.1)
 

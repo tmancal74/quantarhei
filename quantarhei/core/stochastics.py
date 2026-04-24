@@ -1,5 +1,4 @@
-"""
-Entirely experimental - if I delete it, I would forget about. That's why it is here
+"""Entirely experimental - if I delete it, I would forget about. That's why it is here
 
 """
 import numpy as np

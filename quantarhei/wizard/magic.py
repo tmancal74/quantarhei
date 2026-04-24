@@ -1,23 +1,22 @@
-"""
-    IPython magic commands and their equivalents for Python console
+"""IPython magic commands and their equivalents for Python console
 
 
-    Magic commands
-    --------------
+Magic commands
+--------------
 
-    %template {list, fetch} [template_name]
-        Lists available templates, or fetches a template by its name
+%template {list, fetch} [template_name]
+Lists available templates, or fetches a template by its name
 
 
 
-    Console functions
-    -----------------
+Console functions
+-----------------
 
-    fetch_template(template_name)
-        Fetches a template by its name
+fetch_template(template_name)
+Fetches a template by its name
 
-    list_templates()
-        Lists available templates
+list_templates()
+Lists available templates
 
 
 
@@ -49,7 +48,6 @@ try:
 
 
         """
-
         # split the line of the magic command
         words = line.split()
 

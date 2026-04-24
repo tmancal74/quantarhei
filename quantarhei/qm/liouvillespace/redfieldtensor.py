@@ -1,9 +1,8 @@
-"""
-    Redfield Tensor
+"""Redfield Tensor
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 #import time
@@ -31,7 +30,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian of the system.
 
@@ -52,7 +50,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
     Methods
     -------
-
     secularize()
         Deletes non-secular terms in the relaxation tensor. If the tensor
         is represented by operators (i.e. the as_operators atribute is
@@ -137,7 +134,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         """Applies the relaxation tensor on a superoperator
 
         """
-
         if self.as_operators:
 
             print("Applying Relaxation tensor")
@@ -180,7 +176,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
 
         """
-
         if self.as_operators:
 
             rt = 0.0
@@ -224,7 +219,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -232,7 +226,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             inverse of the transformation matrix
 
         """
-
         if self.as_operators:
 
             if (self.manager.warn_about_basis_change):
@@ -262,7 +255,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
 
     def _implementation(self, ham, sbi):
-        r""" Reference implementation, completely in Python
+        r"""Reference implementation, completely in Python
 
         Implementation of Redfield relaxation tensor according to
 
@@ -281,7 +274,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
 
         """
-
         qr.log_detail("Reference time-independent Redfield tensor calculation")
         #print("Reference Redfield implementation ...")
         #
@@ -462,7 +454,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         saved or converted into full tensor?
 
         """
-
         if self.as_operators:
 
             # save the operators - propagation methods must know about them
@@ -558,7 +549,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         Parameters
         ----------
-
         Km : 3D array
             K_m operators
 
@@ -569,7 +559,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             Hermite conjuget \Lambda_m operators
 
         """
-
         Na = self.Hamiltonian.data.shape[0]
         Nb = Lm.shape[2] #self.SystemBathInteraction.N
 
@@ -633,7 +622,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         of operators into a tensor representation.
 
         """
-
         if self.as_operators:
 
             RR = self._convert_operators_2_tensor(self.Km, self.Lm, self.Ld)
@@ -664,8 +652,7 @@ def _loopit(Km, Kd, Lm, Ld, Na, RR, m):
 
 
 def _integrate_last_axis(f, dt):
-    """
-    Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
+    """Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
 
     Parameters:
         f : ndarray

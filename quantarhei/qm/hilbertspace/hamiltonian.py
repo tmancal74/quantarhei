@@ -44,7 +44,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate(name="trimer-2")
         >>> agg.build()
@@ -66,7 +65,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
          [ 0.          0.          0.          2.32630969]]
 
         """
-
         if rwa_indices[0] != 0:
             raise Exception("First element in 'rwa_indices' has to be zero")
         self.rwa_indices = numpy.array(rwa_indices, dtype=int)
@@ -137,7 +135,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         coupling_cutoff : float, optional
             Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
@@ -146,7 +143,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Returns
         -------
-
         SS : numpy array
             The diagonalization matrix of the Hamiltonian
 
@@ -198,7 +194,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         coupling_cutoff : float, optional
             Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
@@ -236,7 +231,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         coupling_cutoff : float, optional
             Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
@@ -308,7 +302,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -348,8 +341,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
 
 def _find_band(x, starts):
-    """
-    Given an integer x and a sorted list of interval starts (starting with 0),
+    """Given an integer x and a sorted list of interval starts (starting with 0),
     returns the index of the interval x belongs to.
 
     Parameters

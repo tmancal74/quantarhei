@@ -38,7 +38,7 @@ class RateMatrix(MatrixData):
 
 
     def set_rate(self, pos, value):
-        """ Sets a value of a rate between two states
+        """Sets a value of a rate between two states
 
         Diagonal depopulation rates are automatically updated
 

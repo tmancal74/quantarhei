@@ -3,11 +3,10 @@ from ..core.units import convert
 
 
 def R1g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -71,11 +70,10 @@ def R1g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R2g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -138,11 +136,10 @@ def R2g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R3g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -204,11 +201,10 @@ def R3g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R4g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -270,11 +266,10 @@ def R4g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R1f(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -351,11 +346,10 @@ def R1f(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -433,11 +427,10 @@ def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
 
 
 def R2f(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -515,11 +508,10 @@ def R2f(t2, t1, t3, lab, system, evol, KK):
 
 
 def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -599,11 +591,10 @@ def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
 
 
 def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -663,11 +654,10 @@ def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -727,11 +717,10 @@ def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -800,11 +789,10 @@ def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -880,11 +868,10 @@ def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
 
 
 def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 
@@ -953,11 +940,10 @@ def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
 
 
 def R2f_scM0e(t2, t1, t3, lab, system, evol, KK):
-    """ Returns a matrix of the respose function values for given t1 and t3
+    """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
     -----------
-
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
 

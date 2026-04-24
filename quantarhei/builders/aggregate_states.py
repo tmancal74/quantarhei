@@ -7,11 +7,10 @@ from ..core.managers import UnitsManaged, energy_units
 
 
 class ElectronicState(UnitsManaged):
-    """ Represents electronic state of an aggregate
+    """Represents electronic state of an aggregate
 
     Parameters
     ----------
-
     aggregate :
         Parent aggregate of the electronic state
 
@@ -126,7 +125,7 @@ class ElectronicState(UnitsManaged):
 
 
     def energy(self, vsig=None):
-        """ Returns energy of the state (electronic + vibrational)
+        """Returns energy of the state (electronic + vibrational)
 
         """
         en = 0.0
@@ -150,7 +149,7 @@ class ElectronicState(UnitsManaged):
 
 
     def _energy(self, vsig=None):
-        """ Returns energy of the state (electronic + vibrational) in internal units
+        """Returns energy of the state (electronic + vibrational) in internal units
 
         """
         en = 0.0
@@ -172,10 +171,9 @@ class ElectronicState(UnitsManaged):
 
 
     def vibenergy(self, vsig=None):
-        """ Returns vibrational energy of a state
+        """Returns vibrational energy of a state
 
         """
-
         en = 0.0
 
         if vsig is not None:
@@ -268,7 +266,6 @@ class ElectronicState(UnitsManaged):
         """Generates vibrational signature in N Particle Approximation (NPA)
 
         """
-
         if N is None:
             raise Exception("Number of states to be used must be defined")
 
@@ -322,11 +319,10 @@ class ElectronicState(UnitsManaged):
 
 
     def vsignatures(self, approx=None, N=None, vibenergy_cutoff=None):
-        """ Generator of the vibrational signatures
+        """Generator of the vibrational signatures
 
         Parameters
         ----------
-
         approx : str
             Type of approximation in generation of vibrational
             signatures. Values are
@@ -480,10 +476,9 @@ class VibronicState(UnitsManaged):
 
 
     def vibenergy(self):
-        """ Returns vibrational energy of a state
+        """Returns vibrational energy of a state
 
         """
-
         en = 0.0
 
         if self.vsig is not None:
@@ -532,7 +527,6 @@ class Coherence:
 
     Parameters
     ----------
-
     state1 : {ElectronicState, VibronicState}
         State which participates in the coherence
 
@@ -564,5 +558,4 @@ class Coherence:
         """Returns a dictionary describing the character of a given coherence
 
         """
-
         return dict(electronic=0.0, vibrational=0.0, mixed=0.0)

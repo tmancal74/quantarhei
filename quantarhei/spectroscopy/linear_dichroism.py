@@ -1,10 +1,9 @@
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    lineardichroism module
+lineardichroism module
 
-    This module contains classes to support calculation of linear dichroism
-    spectra.
+This module contains classes to support calculation of linear dichroism
+spectra.
 
 """
 #import h5py
@@ -43,7 +42,6 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         axis : FrequencyAxis object
             Frequency axis object. This object has managed energy units
 
@@ -55,7 +53,6 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         data : array like object (numpy array)
             Sets the data of the linear dichroism spectrum
 
@@ -140,13 +137,10 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         spect : spectrum containing object
             This object should have a compatible axis and some data
 
         """
-
-
         if self.axis is None:
             self.axis = spect.axis.copy()
 
@@ -180,7 +174,7 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
 
     def plot(self, **kwargs):
-        """ Plotting linear dichroism spectrum using the DFunction plot method
+        """Plotting linear dichroism spectrum using the DFunction plot method
 
         """
         if "ylabel" not in kwargs:
@@ -306,7 +300,6 @@ def _gaussian(x, height, center, fwhm, offset=0.0):
 
     Parameters
     ----------
-
     x : float array
         values to calculate Gaussian function at
 
@@ -324,7 +317,6 @@ def _gaussian(x, height, center, fwhm, offset=0.0):
 
 
     """
-
     return height*numpy.exp(-(((x - center)**2)*4.0*numpy.log(2.0))/
                             (fwhm**2)) + offset
 
@@ -334,7 +326,6 @@ def _n_gaussians(x, N, *params):
 
     Parameters
     ----------
-
     x : float
         values to calculate Gaussians function at
 
@@ -476,7 +467,6 @@ class LinDichSpectrumContainer(Saveable):
         """Returns a list or tuple of the calculated spectra
 
         """
-
         ven = [value for (key, value) in sorted(self.spectra.items())]
         return ven
 
@@ -613,11 +603,10 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
     def calculate(self):
-        """ Calculates the linear dichroism spectrum
+        """Calculates the linear dichroism spectrum
 
 
         """
-
         with energy_units("int"):
             if self.system is not None:
                 if isinstance(self.system,Molecule):
@@ -648,14 +637,13 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
     def _c2g(self,timeaxis,coft):
-        """ Converts correlation function to lineshape function
+        """Converts correlation function to lineshape function
 
         Explicit numerical double integration of the correlation
         function to form a lineshape function.
 
         Parameters
         ----------
-
         timeaxis : cu.oqs.time.TimeAxis
             TimeAxis of the correlation function
 
@@ -665,7 +653,6 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
         """
-
         ta = timeaxis
         rr = numpy.real(coft)
         ri = numpy.imag(coft)
@@ -681,7 +668,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
         return gt
 
     def one_transition_spectrum(self,tr):
-        """ Calculates spectrum of one transition
+        """Calculates spectrum of one transition
 
 
         """
@@ -724,10 +711,9 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
     def _excitonic_coft(self,SS,AG,n):
-        """ Returns energy gap correlation function data of an exciton state
+        """Returns energy gap correlation function data of an exciton state
 
         """
-
         # FIXME: works only for 2 level molecules
 
         c0 = AG.monomers[0].get_egcf((0,1))
@@ -756,7 +742,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
     def _calculate_monomer(self):
-        """ Calculates the circular dichroism spectrum of a monomer
+        """Calculates the circular dichroism spectrum of a monomer
 
 
         """
@@ -767,7 +753,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
     def _calculate_aggregate(self, relaxation_tensor=None,
                              relaxation_hamiltonian=None, rate_matrix=None):
-        """ Calculates the linear dichroism spectrum of a molecular aggregate
+        """Calculates the linear dichroism spectrum of a molecular aggregate
 
 
 

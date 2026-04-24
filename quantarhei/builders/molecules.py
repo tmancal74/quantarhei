@@ -1,67 +1,67 @@
 """Multi-level molecule (monomer)
 
-    The molecule is defined by the vector of energies of its states
-    and by the transition dipole moments between allowed transitions.
+The molecule is defined by the vector of energies of its states
+and by the transition dipole moments between allowed transitions.
 
-    >>> m = Molecule([0.0, 1.0])
-    >>> print(m.Nel)
-    2
-
-
-    Information about the molecule can be obtained simply by printing it
-
-    >>> print(m)
-    <BLANKLINE>
-    quantarhei.Molecule object
-    ==========================
-       name =
-       position = None
-       number of electronic states = 2
-       # State properties
-       State nr: 0 (ground state)
-          electronic energy = 0.0 1/fs
-          number of vibrational modes = 0
-    <BLANKLINE>
-       State nr: 1
-          electronic energy = 1.0 1/fs
-          transition 0 -> 1
-          transition dipole moment = [0.0, 0.0, 0.0]
-          number of vibrational modes = 0
-    <BLANKLINE>
+>>> m = Molecule([0.0, 1.0])
+>>> print(m.Nel)
+2
 
 
-    >>> import quantarhei as qr
-    >>> mol = qr.TestMolecule("two-levels-1-mode")
-    >>> print(mol)
-    <BLANKLINE>
-    quantarhei.Molecule object
-    ==========================
-       name = two-levels-1-mode
-       position = None
-       number of electronic states = 2
-       # State properties
-       State nr: 0 (ground state)
-          electronic energy = 0.0 1/fs
-          number of vibrational modes = 1
-          # Mode properties
-          mode no. = 0
-             frequency = 1.0 1/fs
-             shift = 0.0
-             nmax = 2
-       State nr: 1
-          electronic energy = 1.0 1/fs
-          transition 0 -> 1
-          transition dipole moment = [0.0, 0.0, 0.0]
-          number of vibrational modes = 1
-          # Mode properties
-          mode no. = 0
-             frequency = 1.0 1/fs
-             shift = 0.0
-             nmax = 2
+Information about the molecule can be obtained simply by printing it
+
+>>> print(m)
+<BLANKLINE>
+quantarhei.Molecule object
+==========================
+name =
+position = None
+number of electronic states = 2
+# State properties
+State nr: 0 (ground state)
+electronic energy = 0.0 1/fs
+number of vibrational modes = 0
+<BLANKLINE>
+State nr: 1
+electronic energy = 1.0 1/fs
+transition 0 -> 1
+transition dipole moment = [0.0, 0.0, 0.0]
+number of vibrational modes = 0
+<BLANKLINE>
 
 
-    Class Details
-    -------------
+>>> import quantarhei as qr
+>>> mol = qr.TestMolecule("two-levels-1-mode")
+>>> print(mol)
+<BLANKLINE>
+quantarhei.Molecule object
+==========================
+name = two-levels-1-mode
+position = None
+number of electronic states = 2
+# State properties
+State nr: 0 (ground state)
+electronic energy = 0.0 1/fs
+number of vibrational modes = 1
+# Mode properties
+mode no. = 0
+frequency = 1.0 1/fs
+shift = 0.0
+nmax = 2
+State nr: 1
+electronic energy = 1.0 1/fs
+transition 0 -> 1
+transition dipole moment = [0.0, 0.0, 0.0]
+number of vibrational modes = 1
+# Mode properties
+mode no. = 0
+frequency = 1.0 1/fs
+shift = 0.0
+nmax = 2
+
+
+Class Details
+-------------
 
 
 
@@ -107,7 +107,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
     Parameters
     ----------
-
     name : str
         Monomer descriptor; a string identifying the monomer
 
@@ -253,7 +252,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         before we start using the Molecule
 
         """
-
         self.Nel = self.nel
         self._built = True
 
@@ -267,7 +265,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> m = Molecule([0.0, 1.0], name="Jane")
         >>> m.get_name()
         'Jane'
@@ -281,7 +278,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> m = Molecule([0.0, 1.0])
         >>> m.set_name("Jane")
         >>> print(m.get_name())
@@ -300,7 +296,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> with energy_units("1/cm"):
         ...     mol1 = Molecule([0.0, 10000.0])
         >>> mol1.set_electronic_rwa([0, 1])
@@ -329,7 +324,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         [ 0  5 14]
 
         """
-
         self.el_rwa_indices = rwa_indices
         if rwa_indices is not None:
             self.has_rwa = True
@@ -392,7 +386,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
     def set_egcf_mapping(self, transition, correlation_matrix, position):
-        """ Sets a correlation function mapping for a selected transition.
+        """Sets a correlation function mapping for a selected transition.
 
         The monomer can either have a correlation function assigned to it,
         or it can be a part of a correlation matrix. Here the mapping to the
@@ -415,7 +409,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         A set of three monomers
 
         >>> en1 = [0.0,12100, 13000] #*cm2int]
@@ -471,7 +464,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         Exception: Monomer has a correlation function already
 
         """
-
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
 
@@ -617,7 +609,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped"
                             + " on a CorrelationFunctionMatrix")
@@ -684,7 +675,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         if self._has_egcf[self.triangle.locate(transition[0] ,transition[1])]:
             return self.egcf[self.triangle.locate(transition[0],
                                                   transition[1])]
@@ -714,14 +704,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         mod : quantarhei.Mode
             Intramolecular vibrational mode
 
 
         Examples
         --------
-
         >>> mode = Mode()
         >>> mol = Molecule([0.0, 2.0])
         >>> print(mol.get_number_of_modes())
@@ -747,14 +735,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the mode to be returned
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(1)
@@ -767,7 +753,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         1.0
 
         """
-
         return self.modes[N]
 
 
@@ -777,8 +762,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
-
         >>> m = Molecule([0.0, 1.0])
         >>> m.get_number_of_modes()
         0
@@ -1029,7 +1012,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         transition : {tuple, list}
             Quantum numbers of the states between which the transition occurs
 
@@ -1056,12 +1038,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         transition : {tuple, list}
             Quantum numbers of the states between which the transition occurs
 
         """
-
         if self.widths is None:
             return 0.0
 
@@ -1074,7 +1054,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         transition : {tuple, list}
             Quantum numbers of the states between which the transition occurs
 
@@ -1096,12 +1075,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         transition : {tuple, list}
             Quantum numbers of the states between which the transition occurs
 
         """
-
         if self.dephs is None:
             return 0.0
 
@@ -1114,14 +1091,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the state
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mol.get_energy(1)
@@ -1146,7 +1121,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
         N : int
             Index of the state
 
@@ -1156,7 +1130,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mol.set_energy(1, 1.5)
@@ -1186,7 +1159,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         Default temperature is 0 K
 
 
@@ -1209,7 +1181,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         300
 
         """
-
         if self.check_temperature_consistent():
 
             try:
@@ -1234,7 +1205,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         Isolated molecule has always consistent temperature
 
         >>> m = Molecule([0.0, 1.0, 1.2])
@@ -1261,7 +1231,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         if self._has_system_bath_coupling:
 
 
@@ -1319,7 +1288,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """Creates Hamiltonian matrix for given values of the coordinates
 
         """
-
         for ii in range(self.nel):
             for jj in range(self.nel):
 
@@ -1368,7 +1336,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """Returns the one dimensional diabatic potentials
 
         """
-
         if other_modes is None:
             # default value for other than the plotted mode
             other_modes = [0.0]*self.nmod
@@ -1454,7 +1421,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """Plots the potentials
 
         """
-
         import matplotlib.pyplot as plt
 
         pot, pot0 = self.get_potential_1D(mode, points,
@@ -1494,7 +1460,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """Plots the stick spectrum of the molecule
 
         """
-
         import matplotlib.pyplot as plt
 
         HH = self.get_Hamiltonian()
@@ -1524,7 +1489,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         import matplotlib.pyplot as plt
 
         if dfce is None:
@@ -1622,7 +1586,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """Returns natural linewidth of a given electronic state
 
         """
-
         if not self._has_nat_lifetime[N]:
             self.get_electronic_natural_lifetime(N)
 
@@ -1659,7 +1622,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Examples
         --------
-
         After the molecule is created, its Hamiltonian can be obtained
 
         >>> import quantarhei as qr
@@ -1699,7 +1661,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         True
 
         """
-
         if (self.HH is not None) and (not recalculate):
 
             return self.HH
@@ -2074,7 +2035,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         Will be removed when multi mode molecule is fully implemented
 
         """
-
         # list of Hamiltonian dimensions
         ldim = [None]*self.nel
 
@@ -2105,7 +2065,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """Returns the transition dipole moment operator
 
         """
-
         if multi:
 
             try:
@@ -2334,7 +2293,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
         """
-
         if corfunc is None:
             raise Exception("Correlation function not specified.")
 
@@ -2436,7 +2394,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """String representation of the Molecule object
 
         """
-
         out  = "\nquantarhei.Molecule object"
         out += "\n=========================="
         out += "\n   name = %s  \n" % self.name
@@ -2489,7 +2446,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
     def liouville_pathways_1(self, eUt=None, ham=None, dtol=0.01, ptol=1.0e-3,
                              etol=1.0e-6, verbose=0, lab=None):
-        """ Generator of the first order Liouville pathways
+        """Generator of the first order Liouville pathways
 
 
         Generator of the pathways for an absorption spectrum
@@ -2499,8 +2456,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Parameters
         ----------
-
-
         eUt : EvolutionSuperOperator
             Evolution superoperator representing the evolution of optical
             coherence in the system
@@ -2521,7 +2476,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Returns
         -------
-
         lst : list
             List of LiouvillePathway objects
 

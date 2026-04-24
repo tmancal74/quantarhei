@@ -53,10 +53,9 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
 
 
     def _reference_implementation(self):
-        """ Reference all Python implementation
+        """Reference all Python implementation
 
         """
-
         ham = self.Hamiltonian
         sbi = self.SystemBathInteraction
 

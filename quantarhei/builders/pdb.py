@@ -1,6 +1,4 @@
-"""
-
-PDB File representation
+"""PDB File representation
 
 """
 import numpy
@@ -57,7 +55,6 @@ class PDBFile:
         """Returns all molecules corresponding to a given model
 
         """
-
         if model is None:
             return self.molecules
 
@@ -155,7 +152,6 @@ class PDBFile:
         """Matches a line with a given pattern
 
         """
-
         matched_lines = []
         k = 0
         for line in self.lines:

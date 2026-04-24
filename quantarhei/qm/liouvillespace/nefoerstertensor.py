@@ -36,8 +36,6 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
         """
-
-
         tt = self.SystemBathInteraction.TimeAxis.data
         Nt = len(tt)
 
@@ -118,12 +116,11 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
     def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):
-        """ Overloaded implementation method replacing the standard kernel
+        """Overloaded implementation method replacing the standard kernel
         corresponding to the normal Redfield with its non-equilibrium
         version
 
         """
-
         #
         # Non-secular implementartion
         #
@@ -166,8 +163,8 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
     def _initial_term_pre(self, Na, Nt, HH, tt, gt, ll):
-        """ Quantities to easily calculate initial term with known initial
-            condition
+        """Quantities to easily calculate initial term with known initial
+        condition
 
         """
         II = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
@@ -187,11 +184,10 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
     def initial_term(self, rhoi):
-        """ Inhomogeneous (initial condition) term
-            of the non-equilibrium Foerster theory
+        """Inhomogeneous (initial condition) term
+        of the non-equilibrium Foerster theory
 
         """
-
         if self.nsc:
             self.initial_term_nsc(rhoi)
             return
@@ -208,8 +204,8 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
     def _initial_term_pre_nsc(self, Na, Nt, HH, tt, gt, ll):
-        """ Quantities to easily calculate initial term in non-secular theory
-            with known initial condition
+        """Quantities to easily calculate initial term in non-secular theory
+        with known initial condition
 
         """
         II = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
@@ -238,8 +234,8 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
     def initial_term_nsc(self, rhoi):
-        """ Inhomogeneous (initial condition) term
-            of the effective non-secular non-equilibrium Foerster theory
+        """Inhomogeneous (initial condition) term
+        of the effective non-secular non-equilibrium Foerster theory
 
         """
         Na = self.II.shape[1]
@@ -260,7 +256,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
 def _kernel_at_t(ti, tt, gtd, gta, ed, ea, ld):
-    """ Two-time kernel to be integrated
+    """Two-time kernel to be integrated
 
 
     """
@@ -277,7 +273,7 @@ def _kernel_at_t(ti, tt, gtd, gta, ed, ea, ld):
 
 
 def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
-    """ Two-time kernel to be integrated
+    """Two-time kernel to be integrated
 
 
     """
@@ -327,7 +323,7 @@ def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
 
 
 def _integrate_kernel(tt, fce):
-    """ Spline integration of a complex function
+    """Spline integration of a complex function
 
     """
     preal = numpy.real(fce)
@@ -342,7 +338,7 @@ def _integrate_kernel(tt, fce):
 
 
 def _integrate_kernel_to_t(ti, tt, fce, margin=10):
-    """ Spline partial integration of a complex function
+    """Spline partial integration of a complex function
 
     A function of variables tau is integrated from zero to t.
 
@@ -377,7 +373,7 @@ def _integrate_kernel_to_t(ti, tt, fce, margin=10):
 
 
 def _integrate_three_to_t(ti, tt, fce_t, fce_tau, fce_ttau):
-    """ Integrate the product of three functions
+    """Integrate the product of three functions
 
     The product of functions of variables t, tau and t-tau, respectively,
     is integrated over the variable tau from zero to t.
@@ -435,7 +431,6 @@ def _ne_fintegral(tt, gtd, gta, ed, ea, ld):
         The value of the Foerster integral
 
     """
-
     Nt = tt.shape[0]
     hoft = numpy.zeros(Nt, dtype=COMPLEX)
 
@@ -468,7 +463,6 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
 
 
     """
-
     #
     # Rates between states a and b
     #
@@ -540,7 +534,7 @@ def _nsc_kernel_implementation(Na, Nt, HH, tt, gt, ll, fce):
     def fkernel(ti):
 
         def fce2(tt, aa, bb, cc, dd, HH, gt):
-            """Closure of the kernel to fix the time """
+            """Closure of the kernel to fix the time"""
             return fce(ti, tt, aa, bb, cc, dd, HH, gt)
 
         KK = _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce2)
@@ -579,7 +573,6 @@ def _nsc_fintegral(tt, a, b, c, d, HH, gt):
         The value of the Foerster integral
 
     """
-
     Nt = tt.shape[0]
     hoft = numpy.zeros(Nt, dtype=COMPLEX)
 

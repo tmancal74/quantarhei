@@ -5,8 +5,7 @@ from quantarhei import energy_units
 
 
 class renger_2002a(SpectralDensityDatabaseEntry):
-    """
-    Spectral density of bacteriochlorophyll
+    """Spectral density of bacteriochlorophyll
 
     Spectral density derived in
 

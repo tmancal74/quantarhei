@@ -1,8 +1,7 @@
-"""
-    Module saveable
+"""Module saveable
 
-    Defines the class Saveable. Saveable objects can save themselves to and
-    load themselves from a file.
+Defines the class Saveable. Saveable objects can save themselves to and
+load themselves from a file.
 
 
 """
@@ -33,7 +32,6 @@ class Saveable:
 
         Parameters
         ----------
-
         filename : str or File
             Name of the file or a file object to which the content of
             the object will be saved
@@ -64,7 +62,6 @@ class Saveable:
 
         Parameters
         ----------
-
         filename : str or File
             Filename of the file or file descriptor of the file from which
             and object should be loaded.
@@ -147,7 +144,6 @@ class Saveable:
         """Creates a copy of the object by saving and loading it
 
         """
-
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "ssave.qrp")
             self.save(fname)

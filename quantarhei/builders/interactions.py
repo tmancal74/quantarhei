@@ -5,12 +5,11 @@ import numpy as np
 
 
 def dipole_dipole_interaction(r1, r2, d1, d2, epsr):
-    """ Calculates interaction between two dipoles
+    """Calculates interaction between two dipoles
 
 
     Parameters
     ----------
-
     r1 : array like
         position of molecule 1
 
@@ -28,7 +27,6 @@ def dipole_dipole_interaction(r1, r2, d1, d2, epsr):
 
 
     """
-
     R = r1 - r2
     RR = np.sqrt(np.dot(R,R))
 
@@ -41,7 +39,7 @@ def dipole_dipole_interaction(r1, r2, d1, d2, epsr):
 
 
 def dipole_dipole(center1,dipole1,center2,dipole2,*args):
-    ''' Calculates interaction between two dipoles
+    '''Calculates interaction between two dipoles
 
     Pro dipoly v AU = naboj*Bohr a polohy b Bohrech vypocita
     interakcni energii v cm-1
@@ -77,7 +75,6 @@ def Oscilator3D(rr1, bond1, AtType1, NMN1, TotDip1, rr2, bond2, AtType2,
 
     Parameters
     ----------
-
     rr : float array, shape=(Natoms,3)
         Atomic position in Bohr (AtomicUnits) (or atomic orbital position)
 
@@ -100,7 +97,6 @@ def Oscilator3D(rr1, bond1, AtType1, NMN1, TotDip1, rr2, bond2, AtType2,
         energy will be in inverse centimeters (cm-1)
 
     '''
-
     scale_by_overlap=False
 #    use_model_carotenoid=False
 #
@@ -221,12 +217,11 @@ def Oscilator3D(rr1, bond1, AtType1, NMN1, TotDip1, rr2, bond2, AtType2,
     return res
 
 def GuessBonds(rr, bond_length=4.0, **kwargs):
-    ''' Function guesses pairs of atoms between which bond might occure.
+    '''Function guesses pairs of atoms between which bond might occure.
 
 
     Parameters
     ----------
-
     rr : float array, shape=(Natoms,3)
         Atomic positions in Bohr (AtomicUnits) (or atomic orbital position)
 
@@ -245,7 +240,6 @@ def GuessBonds(rr, bond_length=4.0, **kwargs):
             list(dictionary.keys()) -> ['AtType']
 
     '''
-
     Nat=len(rr)
 
     is_AtType=False

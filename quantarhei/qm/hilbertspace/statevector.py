@@ -1,7 +1,6 @@
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    statevector module
+statevector module
 
 
 """
@@ -22,7 +21,6 @@ class StateVector(BasisManaged):
 
     Examples
     --------
-
     >>> psi = StateVector(2)
     >>> print(psi.dim)
     2
@@ -76,7 +74,6 @@ class StateVector(BasisManaged):
         """Scalar product of two StateVectors
 
         """
-
         return numpy.dot(self.data, vec.data)
 
     def norm(self):
@@ -95,7 +92,6 @@ class StateVector(BasisManaged):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 

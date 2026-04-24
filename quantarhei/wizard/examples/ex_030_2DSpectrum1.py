@@ -1,6 +1,4 @@
-"""
-
-    Calculation of 2D spectra with effective lineshapes
+"""Calculation of 2D spectra with effective lineshapes
 
 
 """

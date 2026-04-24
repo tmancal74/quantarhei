@@ -222,7 +222,6 @@ class SpectralDensityDB:
         """Returns a status report of the database
 
         """
-
         # count loaded modules and print a report
         kount = 0
         for ld in self.loaded.keys():

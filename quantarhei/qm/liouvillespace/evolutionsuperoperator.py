@@ -1,184 +1,183 @@
 """Class representing evolution superoperator
 
-    This class represents evolution superoperator at discrete times.
+This class represents evolution superoperator at discrete times.
 
 
 
-    Examples
-    --------
-
+Examples
+--------
     Evolution superoperator can be
-    created from a known Hamiltonian and relaxation tensor
+created from a known Hamiltonian and relaxation tensor
 
-    >>> import quantarhei as qr
-    >>> # We use the predefined Aggregate - dimer of two-level systems
-    >>> # with an environment
-    >>> tagg = qr.TestAggregate(name="dimer-2-env")
-    >>> tagg.set_coupling_by_dipole_dipole()
-    >>> tagg.build()
-    >>> # we get the existing predefined time axis for the calculations
-    >>> time = tagg.get_SystemBathInteraction().TimeAxis
-    >>> print(time.start, time.length, time.step)
-    0 1000 1.0
+>>> import quantarhei as qr
+>>> # We use the predefined Aggregate - dimer of two-level systems
+>>> # with an environment
+>>> tagg = qr.TestAggregate(name="dimer-2-env")
+>>> tagg.set_coupling_by_dipole_dipole()
+>>> tagg.build()
+>>> # we get the existing predefined time axis for the calculations
+>>> time = tagg.get_SystemBathInteraction().TimeAxis
+>>> print(time.start, time.length, time.step)
+0 1000 1.0
 
-    We create relaxation tensor and obtain renormalized Hamiltonian from
-    standard Redfield theory (`stR`)
+We create relaxation tensor and obtain renormalized Hamiltonian from
+standard Redfield theory (`stR`)
 
-    >>> RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
+>>> RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
 
-    We initialize evolution superoperator
+We initialize evolution superoperator
 
-    >>> eSO = EvolutionSuperOperator(time, ham=HH, relt=RR)
-    >>> eSO.calculate()
+>>> eSO = EvolutionSuperOperator(time, ham=HH, relt=RR)
+>>> eSO.calculate()
 
-    We create initial condition. Dimension of the problem is 3 (ground state
-    and two excited states of the dimer)
+We create initial condition. Dimension of the problem is 3 (ground state
+and two excited states of the dimer)
 
-    >>> dim = HH.dim
-    >>> print(dim)
-    3
+>>> dim = HH.dim
+>>> print(dim)
+3
 
-    >>> rho = qr.ReducedDensityMatrix(dim=dim)
-    >>> rho.data[2,2] = 1.0
+>>> rho = qr.ReducedDensityMatrix(dim=dim)
+>>> rho.data[2,2] = 1.0
 
-    Now we calculate density matrix evolution using a propagator
+Now we calculate density matrix evolution using a propagator
 
-    >>> prop = tagg.get_ReducedDensityMatrixPropagator(time,
-    ...                                                relaxation_theory="stR")
-    >>> rhot = prop.propagate(rho)
+>>> prop = tagg.get_ReducedDensityMatrixPropagator(time,
+...                                                relaxation_theory="stR")
+>>> rhot = prop.propagate(rho)
 
-    Comparing the results at one point can be done like this:
+Comparing the results at one point can be done like this:
 
-    >>> rhot_eSO = eSO.apply(100.0, rho)
-    >>> dat_100_eSO = rhot_eSO.data
-    >>> dat_100     = rhot.data[100,:,:]
-    >>> numpy.allclose(dat_100_eSO, dat_100)
-    True
+>>> rhot_eSO = eSO.apply(100.0, rho)
+>>> dat_100_eSO = rhot_eSO.data
+>>> dat_100     = rhot.data[100,:,:]
+>>> numpy.allclose(dat_100_eSO, dat_100)
+True
 
-    To see the full aggreement, we may plot all the times calculated with
-    both methods. We plot the dynamics calculated using the evolution
-    superoperator only every 20 fs using asterisks "*"
+To see the full aggreement, we may plot all the times calculated with
+both methods. We plot the dynamics calculated using the evolution
+superoperator only every 20 fs using asterisks "*"
 
-    .. plot::
+.. plot::
 
-        import quantarhei as qr
-        import matplotlib.pyplot as plt
-        import numpy
+import quantarhei as qr
+import matplotlib.pyplot as plt
+import numpy
 
-        # We use the predefined Aggregate - dimer of two-level systems
-        # with an environment
-        tagg = qr.TestAggregate(name="dimer-2-env")
-        tagg.set_coupling_by_dipole_dipole()
-        tagg.build()
+# We use the predefined Aggregate - dimer of two-level systems
+# with an environment
+tagg = qr.TestAggregate(name="dimer-2-env")
+tagg.set_coupling_by_dipole_dipole()
+tagg.build()
 
-        # we get the existing predefined time axis for the calculations
-        time = tagg.get_SystemBathInteraction().TimeAxis
+# we get the existing predefined time axis for the calculations
+time = tagg.get_SystemBathInteraction().TimeAxis
 
-        RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
+RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
 
-        eSO = qr.qm.EvolutionSuperOperator(time, ham=HH, relt=RR)
-        eSO.calculate()
+eSO = qr.qm.EvolutionSuperOperator(time, ham=HH, relt=RR)
+eSO.calculate()
 
-        dim = HH.dim
+dim = HH.dim
 
-        rho = qr.ReducedDensityMatrix(dim=dim)
-        rho.data[2,2] = 1.0
+rho = qr.ReducedDensityMatrix(dim=dim)
+rho.data[2,2] = 1.0
 
-        prop = tagg.get_ReducedDensityMatrixPropagator(time,
-                                                       relaxation_theory="stR")
-        rhot = prop.propagate(rho)
+prop = tagg.get_ReducedDensityMatrixPropagator(time,
+relaxation_theory="stR")
+rhot = prop.propagate(rho)
 
-        rhot.plot(coherences=False, show=False)
+rhot.plot(coherences=False, show=False)
 
-        time_skip = numpy.arange(0.0, 1000, 20.0)
-        rhot_skip = numpy.zeros((50,3,3))
-        k = 0
-        for tm in time_skip:
-            rhot_skip[k,:,:] = numpy.real(eSO.apply(tm, rho).data)
-            k += 1
+time_skip = numpy.arange(0.0, 1000, 20.0)
+rhot_skip = numpy.zeros((50,3,3))
+k = 0
+for tm in time_skip:
+rhot_skip[k,:,:] = numpy.real(eSO.apply(tm, rho).data)
+k += 1
 
-        plt.plot(time_skip,numpy.real(rhot_skip[:,1,1]),"*g")
-        plt.plot(time_skip,numpy.real(rhot_skip[:,2,2]),"*g")
+plt.plot(time_skip,numpy.real(rhot_skip[:,1,1]),"*g")
+plt.plot(time_skip,numpy.real(rhot_skip[:,2,2]),"*g")
 
-        plt.show()
-
-
-    We may want to calculate the evolution superoperator with a step larger
-    than the one which we specified for evaluation of bath correlation
-    functions (In this example we use predefined  SystemBathInteraction object
-    which holds this information). Our time axis is too dense for our needs.
-    We specify a less dense one
-
-    >>> time2 = qr.TimeAxis(0.0, 1000, 50.0)
-
-    This one has the step of 50 fs. We define an evolution superoperator
-    with this time:
-
-    >>> eSO2 = qr.qm.EvolutionSuperOperator(time2, HH, RR)
-
-    Now, to obtain the same results as before, we need to set a time step
-    of the propagation to 1 fs as before. This is done by setting a "dense"
-    time step with is N times shorter than the one specified in the time
-    axis. In our case N = 50
-
-    >>> eSO2.set_dense_dt(50)
-    >>> eSO2.calculate()
-    >>> rhot_eSO = eSO.apply(100.0, rho)
-    >>> dat_100_eSO = rhot_eSO.data
-    >>> numpy.allclose(dat_100_eSO, dat_100)
-    True
-
-    We can calculate a similar picture as before, but now with an evolution
-    superoperator calculated only every 50 fs.
-
-    .. plot::
-
-        import quantarhei as qr
-        import matplotlib.pyplot as plt
-        import numpy
-
-        # We use the predefined Aggregate - dimer of two-level systems
-        # with an environment
-        tagg = qr.TestAggregate(name="dimer-2-env")
-        tagg.set_coupling_by_dipole_dipole()
-        tagg.build()
-
-        # we get the existing predefined time axis for the calculations
-        time = tagg.get_SystemBathInteraction().TimeAxis
-        time2 = qr.TimeAxis(0.0, int(time.length/50), 50*time.step)
-
-        RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
-
-        eSO = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=RR)
-        eSO.set_dense_dt(50)
-        eSO.calculate()
-
-        dim = HH.dim
-
-        rho = qr.ReducedDensityMatrix(dim=dim)
-        rho.data[2,2] = 1.0
-
-        prop = tagg.get_ReducedDensityMatrixPropagator(time,
-                                                       relaxation_theory="stR")
-        rhot = prop.propagate(rho)
-
-        rhot.plot(coherences=False, show=False)
+plt.show()
 
 
-        rhot_skip = numpy.zeros((time2.length,3,3))
-        k = 0
-        for tm in time2.data:
-            rhot_skip[k,:,:] = numpy.real(eSO.apply(tm, rho).data)
-            k += 1
+We may want to calculate the evolution superoperator with a step larger
+than the one which we specified for evaluation of bath correlation
+functions (In this example we use predefined  SystemBathInteraction object
+which holds this information). Our time axis is too dense for our needs.
+We specify a less dense one
 
-        plt.plot(time2.data,numpy.real(rhot_skip[:,1,1]),"*g")
-        plt.plot(time2.data,numpy.real(rhot_skip[:,2,2]),"*g")
+>>> time2 = qr.TimeAxis(0.0, 1000, 50.0)
 
-        plt.show()
+This one has the step of 50 fs. We define an evolution superoperator
+with this time:
+
+>>> eSO2 = qr.qm.EvolutionSuperOperator(time2, HH, RR)
+
+Now, to obtain the same results as before, we need to set a time step
+of the propagation to 1 fs as before. This is done by setting a "dense"
+time step with is N times shorter than the one specified in the time
+axis. In our case N = 50
+
+>>> eSO2.set_dense_dt(50)
+>>> eSO2.calculate()
+>>> rhot_eSO = eSO.apply(100.0, rho)
+>>> dat_100_eSO = rhot_eSO.data
+>>> numpy.allclose(dat_100_eSO, dat_100)
+True
+
+We can calculate a similar picture as before, but now with an evolution
+superoperator calculated only every 50 fs.
+
+.. plot::
+
+import quantarhei as qr
+import matplotlib.pyplot as plt
+import numpy
+
+# We use the predefined Aggregate - dimer of two-level systems
+# with an environment
+tagg = qr.TestAggregate(name="dimer-2-env")
+tagg.set_coupling_by_dipole_dipole()
+tagg.build()
+
+# we get the existing predefined time axis for the calculations
+time = tagg.get_SystemBathInteraction().TimeAxis
+time2 = qr.TimeAxis(0.0, int(time.length/50), 50*time.step)
+
+RR, HH = tagg.get_RelaxationTensor(time, relaxation_theory="stR")
+
+eSO = qr.qm.EvolutionSuperOperator(time2, ham=HH, relt=RR)
+eSO.set_dense_dt(50)
+eSO.calculate()
+
+dim = HH.dim
+
+rho = qr.ReducedDensityMatrix(dim=dim)
+rho.data[2,2] = 1.0
+
+prop = tagg.get_ReducedDensityMatrixPropagator(time,
+relaxation_theory="stR")
+rhot = prop.propagate(rho)
+
+rhot.plot(coherences=False, show=False)
 
 
-    Class Details
-    -------------
+rhot_skip = numpy.zeros((time2.length,3,3))
+k = 0
+for tm in time2.data:
+rhot_skip[k,:,:] = numpy.real(eSO.apply(tm, rho).data)
+k += 1
+
+plt.plot(time2.data,numpy.real(rhot_skip[:,1,1]),"*g")
+plt.plot(time2.data,numpy.real(rhot_skip[:,2,2]),"*g")
+
+plt.show()
+
+
+Class Details
+-------------
 
 """
 
@@ -214,7 +213,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
     Parameters
     ----------
-
     time : TimeAxis
         TimeAxis obejct specifying the time points of the superoperator
 
@@ -318,7 +316,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         Nt : int
             Number of steps between two points of the superoperator to be used
             for numerical propagation
@@ -361,7 +358,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """Initializes EvolutionSuperOperator data
 
         """
-
         #
         # Create new data
         #
@@ -404,7 +400,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         show_progress : bool
             When set True, reports on its progress and elapsed time
 
@@ -412,7 +407,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         This function MUST NOT be called from within an eigenbasis_of context
 
         """
-
         #
         #  FIXME: This functionality should be achieved by a decorator
         #
@@ -503,7 +497,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         assuming time dependent relaxation tensor
 
         """
-
         dim = self.dim
         one_step_time = TimeAxis(t0, self.dense_time.length,
                                  self.dense_time.step)
@@ -527,7 +520,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """Calculates a complete evolution superoperator
 
         """
-
         dim = self.dim
         time = self.time
 
@@ -615,7 +607,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """Calculates one point of data of the superopetor
 
         """
-
         if self.mode != "jit":
             raise Exception("This method (calculate_next()) can be used only"+
                             " with mode='jit'")
@@ -697,14 +688,12 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         time : float, None
             Time (in fs) at which the tensor should be returned. If time is
             None, the whole data object is returned
 
 
         """
-
         if time is not None:
             ti, dt = self.time.locate(time)
 
@@ -719,7 +708,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         time : float, array (list, tupple) of floats or TimeAxis
             Time(s) at which the evolution superoperator should be applied
 
@@ -733,7 +721,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
 
         """
-
         if isinstance(time, numbers.Real):
 
             #
@@ -814,12 +801,10 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         elem : tuple
             A tuple of indices determing the element of the superoperator
 
         """
-
         shape = self.data.shape
         tl = self.time.length
         if (len(elem) == len(shape)-1) and (len(elem) == 4):
@@ -852,7 +837,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """Returns a DFunction with the FFT of the element evolution
 
         """
-
         if window is None:
             winfce = DFunction(self.time,
                                numpy.ones(self.time.length, dtype=REAL))
@@ -879,7 +863,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         window: DFunction or numpy array
             Windowing function by which the data are multiplied
 
@@ -888,7 +871,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             from all times
 
         """
-
         if window is None:
             winfce = DFunction(self.time,
                                numpy.ones(self.time.length, dtype=REAL))
@@ -915,7 +897,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         ham : qr.Hamiltonian
             Hamiltonian with respect to which we construct RWA. If none is
             specified, internal Hamiltonian is used. This is the most
@@ -926,7 +907,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             to the function name. Backward conversion sgn=-1 is called from
             the inverse routine.
         """
-
         if ham is None:
             ham = self.ham
 
@@ -958,7 +938,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         Parameters
         ----------
-
         ham : qr.Hamiltonian
             Hamiltonian with respect to which we construct RWA
 

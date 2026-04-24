@@ -1,10 +1,10 @@
 """Liouvillian super operator
 
-    Louvillean super operator represent the action of a commutator with
-    Hamiltonian
+Louvillean super operator represent the action of a commutator with
+Hamiltonian
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
 from .superoperator import SuperOperator
@@ -16,14 +16,12 @@ class Liouvillian(SuperOperator):
 
     Parameters
     ----------
-
     ham : Hamiltonian
         Hamiltonian from which we create the Liouvillian
 
 
     Examples
     --------
-
     >>> import numpy
     >>> import quantarhei as qr
     >>> HH = qr.qm.Hamiltonian(data=[[0.0, 1.0], [1.0, 0.2]])

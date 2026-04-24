@@ -98,7 +98,6 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         """Calculate the 2D spectrum for all pathways
 
         """
-
         onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
@@ -131,7 +130,6 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         """Calculate the 2D spectrum for all pathways
 
         """
-
         onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
@@ -313,7 +311,6 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         """Calculate the shape of a Liouville pathway
 
         """
-
         # we can calculate empty pathway
         if pathway is None:
             N1 = self.oa1.length
