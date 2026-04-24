@@ -226,6 +226,10 @@ module = ["quantarhei.utils.*"]
 disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
+module = ["quantarhei.core.managers", "quantarhei.core.parallel"]
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
 module = [
     "quantarhei.core.datasaveable",
     "quantarhei.core.dfunction",
