@@ -6,6 +6,7 @@ codecov
 gherkin-official<5
 pytest
 pytest-cov
+pre-commit
 
 
 
