@@ -1,11 +1,9 @@
-nose
-aloe
 behave
 paver
 setuptools
 coverage
 codecov
-gherkin-official
+gherkin-official<5
 pytest
 pytest-cov
 

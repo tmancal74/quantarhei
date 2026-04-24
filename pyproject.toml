@@ -37,7 +37,7 @@ dependencies = [
   "matplotlib",
   "dill",
   "terminaltables",
-  "gherkin-official",
+  "gherkin-official<5",
   "pyyaml",
   "packaging",
 ]
@@ -52,6 +52,11 @@ qtask = "quantarhei.scripts.qtask:main"
 qview = "quantarhei.scripts.qview:main"
 qlaunch = "quantarhei.scripts.qlaunch:main"
 qtest = "quantarhei.scripts.qtest:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+addopts = "-v --tb=short"
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
 
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests"]
