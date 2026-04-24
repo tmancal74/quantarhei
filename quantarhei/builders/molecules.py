@@ -2381,7 +2381,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-        out += "   number of electronic states = %i" % self.nel
+        out += f"   number of electronic states = {self.nel:d}"
         out += "\n   # State properties"
         #out += "\n   -----------------"
 
@@ -2389,28 +2389,27 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         for n in range(self.nel):
             if n == 0:
-                out += "\n   State nr: %i (ground state)" % n
+                out += f"\n   State nr: {n:d} (ground state)"
             else:
-                out += "\n   State nr: %i" % n
+                out += f"\n   State nr: {n:d}"
             # state energy
             ene = self.convert_energy_2_current_u(self.elenergies[n])
             out += f"\n      electronic energy = {ene!r} {eunits}"
             # transition dipole moments
             for j in range(n):
-                out += "\n      transition %i -> %i " % (j, n)
+                out += f"\n      transition {j:d} -> {n:d} "
                 out += f"\n      transition dipole moment = [{self.dmoments[n,j][0]!r}, {self.dmoments[n,j][1]!r}, {self.dmoments[n,j][2]!r}]"
-            out += "\n      number of vibrational modes = %i" % self.nmod
+            out += f"\n      number of vibrational modes = {self.nmod:d}"
             out += "\n"
             if self.nmod > 0:
                 out += "      # Mode properties"
                 #out += "\n      ----------------"
                 for m1 in range(self.nmod):
-                    out += "\n      mode no. = %i " % m1
+                    out += f"\n      mode no. = {m1:d} "
                     out += ("\n         frequency = {!r} {}".format(self.modes[m1].get_energy(n,no_conversion=False),
                           self.unit_repr(utype="energy")))
                     out += (f"\n         shift = {self.modes[m1].get_shift(n)!r}")
-                    out += ("\n         nmax = %i" %
-                           self.modes[m1].get_nmax(n))
+                    out += f"\n         nmax = {self.modes[m1].get_nmax(n):d}"
 
         return out
 

@@ -74,7 +74,7 @@ ignore = [
     "E722",    # bare except (153 violations — #186)
     "F821",    # undefined name (87 violations — often dynamic attributes)
     "F841",    # unused variable (76 violations)
-    "UP031",   # printf-style format string (20 remaining — multi-line, not auto-fixable)
+    # UP031 — fully resolved
     # ── Medium-risk / needs-review — addressed in follow-up PRs ───────────────
     "B904",    # raise-without-from inside except (61 violations)
     "RUF059",  # unused-unpacked-variable (49 violations)

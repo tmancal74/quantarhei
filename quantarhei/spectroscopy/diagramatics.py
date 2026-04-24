@@ -132,8 +132,8 @@ class liouville_pathway(UnitsManaged):
         if isinstance(lx,str):
             ln = 0
         else:
-            lxs = "%i"%lx
-            rxs = "%i"%rx
+            lxs = f"{lx:d}"
+            rxs = f"{rx:d}"
             ln = len(lxs)+len(rxs)
         spc = char
         for scount in range(nsp-ln):
@@ -168,23 +168,18 @@ class liouville_pathway(UnitsManaged):
                     lx = self.sinit[0]
                     rx = self.sinit[0]
                     spc = self._chars(lx, rx)
-                    out = ("    |%i%s%i|  \n") % (lx, spc, rx)
+                    out = f"    |{lx:d}{spc}{rx:d}|  \n"
                 # now it depends if the interaction is from left or right
                 if sd == 1: # interaction from left
                     if ii != 3: # if this is not the last interaction print
                                 # also the frequency
                         spc = self._chars(self.transitions[ii,0], rx)
                         ene = self.convert_energy_2_current_u(self.frequency[ee])
-                        outr =  ("    |%i%s%i|      %r\n" %
-                                                     (self.transitions[ii,0],
-                                                      spc, rx,
-                                            numpy.round(ene)))
+                        outr = f"    |{self.transitions[ii,0]:d}{spc}{rx:d}|      {numpy.round(ene)!r}\n"
 
                     else: # last interaction
                         spc = self._chars(self.transitions[ii,0], rx)
-                        outr =  ("    |%i%s%i|  \n" %
-                                                     (self.transitions[ii,0],
-                                                     spc, rx))
+                        outr = f"    |{self.transitions[ii,0]:d}{spc}{rx:d}|  \n"
                     # output the arrow
                     spc = self._chars("", "", char="-")
                     outr += (f"--->|{spc}|  \n")
@@ -199,9 +194,7 @@ class liouville_pathway(UnitsManaged):
                                 # print also the frequency
                         spc = self._chars(lx, self.transitions[ii,0])
                         ene = self.convert_energy_2_current_u(self.frequency[ee])
-                        outl =  ("    |%i%s%i|      %r\n" %
-                                              (lx, spc, self.transitions[ii,0],
-                                            numpy.round(ene)))
+                        outl = f"    |{lx:d}{spc}{self.transitions[ii,0]:d}|      {numpy.round(ene)!r}\n"
                     # actually, iteraction from the right as last does not
                     # occur by convention
 
@@ -222,8 +215,7 @@ class liouville_pathway(UnitsManaged):
                 rf = self.relaxations[rr][0][1]
                 ene = self.convert_energy_2_current_u(self.frequency[ee])
                 spc = self._chars(lf, rf, char=" ")
-                outR  = "    |%i%s%i|      %r\n" % (lf, spc, rf,
-                                            numpy.round(ene))
+                outR = f"    |{lf:d}{spc}{rf:d}|      {numpy.round(ene)!r}\n"
                 spc = self._chars("", "", char="*")
                 outR += f"  >>|{spc}|<< \n"
                 spc = self._chars("", "", char=" ")

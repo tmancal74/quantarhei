@@ -2194,10 +2194,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         out  = "\nquantarhei.Aggregate object"
         out += "\n==========================="
         out += f"\nname = {self.name}"
-        out += "\nnumber of molecules = %i " % self.nmono
+        out += f"\nnumber of molecules = {self.nmono:d} "
         count = 0
         for nm in self.monomers:
-            out += "\n\nMonomer %i" % count
+            out += f"\n\nMonomer {count:d}"
             out += str(nm)
             count += 1
 

@@ -112,9 +112,9 @@ class SystemBathInteraction(Saveable):
             # Check that sys_operators and bath_correlation matrix has
             # a compatible number of components
             if bath_correlation_matrix.nob != self.N:
-                raise Exception("Incompatile number of bath compoments: " +
-                    ("Correlation function matrix - %i vs. operators %i" %
-                    (bath_correlation_matrix.nob,self.N)))
+                raise Exception(
+                    f"Incompatile number of bath compoments: "
+                    f"Correlation function matrix - {bath_correlation_matrix.nob:d} vs. operators {self.N:d}")
 
             self.TimeAxis = bath_correlation_matrix.timeAxis
             self.set_system(system)

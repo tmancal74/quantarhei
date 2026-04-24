@@ -384,9 +384,8 @@ class ElectronicState(UnitsManaged):
         out  = "\nquantarhei.ElectronicStateobject"
         out += "\n=================================="
         out += f"\nenergy = {self.energy():f}"
-        out += "\nnumber of substates = %i " % self.number_of_states()
-        out += ("\nmember of an aggregate of %i molecules"
-                % self.aggregate.nmono)
+        out += f"\nnumber of substates = {self.number_of_states():d} "
+        out += f"\nmember of an aggregate of {self.aggregate.nmono:d} molecules"
         return out
 
 
@@ -502,8 +501,7 @@ class VibronicState(UnitsManaged):
         out  = "\nquantarhei.VibronicState object"
         out += "\n=================================="
         out += f"\nenergy = {self.energy():f}"
-        out += ("\nmember of an aggregate of %i molecules"
-                % self.elstate.aggregate.nmono)
+        out += f"\nmember of an aggregate of {self.elstate.aggregate.nmono:d} molecules"
         return out
 
     def get_monomer(self):
