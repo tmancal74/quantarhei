@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import COMPLEX
@@ -16,8 +20,8 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
 
 
     """
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None,
-                 as_operators=False):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None,
+                 as_operators: bool = False) -> None:
 
         if as_operators:
             import warnings
@@ -58,7 +62,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             self._data_initialized = False
 
 
-    def initialize(self):
+    def initialize(self) -> None:
 
         #
         # Tensor data

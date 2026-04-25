@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import REAL
@@ -7,7 +11,7 @@ from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 class OQSStateVectorEvolution:
 
 
-    def __init__(self, timeaxis=None, psii=None):
+    def __init__(self, timeaxis: Any = None, psii: Any = None) -> None:
 
 
         if timeaxis is not None:
@@ -23,7 +27,7 @@ class OQSStateVectorEvolution:
 
 
 
-    def set_initial_condition(self, psii):
+    def set_initial_condition(self, psii: Any) -> None:
         """
 
 
@@ -34,14 +38,14 @@ class OQSStateVectorEvolution:
         self.data[0,:] = psii.data
 
 
-    def get_norm(self):
+    def get_norm(self) -> numpy.ndarray:
         """Time dependent norm of the state vector
 
         """
         return numpy.sum(self.data*self.data, axis=1)
 
 
-    def get_ReducedDensityMatrixEvolution(self, decoherence=False):
+    def get_ReducedDensityMatrixEvolution(self, decoherence: bool = False) -> ReducedDensityMatrixEvolution:
         """Returns the corresponding reduced density matrix
 
 

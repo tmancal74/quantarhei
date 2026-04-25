@@ -19,6 +19,10 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 import quantarhei as qr
@@ -49,7 +53,7 @@ class TestSuperOperator(SuperOperator):
     """
 
 
-    def __init__(self, name=None):
+    def __init__(self, name: str | None = None) -> None:
 
         if name is None:
             raise Exception("Name of the test super operator "
@@ -73,7 +77,7 @@ class TestSuperOperator(SuperOperator):
             raise Exception("Unknown test name")
 
 
-    def _def_A(self, dim):
+    def _def_A(self, dim: int) -> numpy.ndarray:
         """Defines the matrix A for constuction of a super operator
 
         """
@@ -89,7 +93,7 @@ class TestSuperOperator(SuperOperator):
         return A
 
 
-    def _AOA(self, dim):
+    def _AOA(self, dim: int) -> None:
         """Multiplication by matrix A from left and right
 
         """

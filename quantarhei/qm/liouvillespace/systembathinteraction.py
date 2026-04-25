@@ -3,6 +3,10 @@
 systembathinteraction module
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import REAL
@@ -67,9 +71,9 @@ class SystemBathInteraction(Saveable):
 
     """
 
-    def __init__(self, sys_operators=None, bath_correlation_matrix=None,
-                 rates=None, drates=None, dtype="Lorentzian", osites=None,
-                 orates=None, system=None):
+    def __init__(self, sys_operators: Any = None, bath_correlation_matrix: Any = None,
+                 rates: Any = None, drates: Any = None, dtype: str = "Lorentzian", osites: Any = None,
+                 orates: Any = None, system: Any = None) -> None:
 
         # information about aggregate is needed when dealing with
         # multiple excitons
@@ -191,7 +195,7 @@ class SystemBathInteraction(Saveable):
             self.osites = osites
 
 
-    def set_system(self, system):
+    def set_system(self, system: Any) -> None:
         """Sets the system attribute
 
         """
@@ -219,7 +223,7 @@ class SystemBathInteraction(Saveable):
                 raise Exception("Unknown system type")
 
 
-    def _set_operators(self, sys_operators):
+    def _set_operators(self, sys_operators: Any) -> None:
         """Sets the system part of the interaction
 
         """
@@ -248,21 +252,21 @@ class SystemBathInteraction(Saveable):
                  " has to contain cu.oqs.hilbertspace.Operator")
 
 
-    def get_time_axis(self):
+    def get_time_axis(self) -> Any:
         """Returns the time axis of the storred correlation functions
 
         """
         return self.TimeAxis
 
 
-    def get_correlation_function(self, where):
+    def get_correlation_function(self, where: Any) -> Any:
         """Returns the bath correlation function object defined by a pair of sites (tuple)
 
         """
         return self.CC.get_correlation_function(where[0],where[1])
 
 
-    def get_coft(self, n, m):
+    def get_coft(self, n: int, m: int) -> Any:
         """Returns bath correlation function corresponding to sites n and m
 
 
@@ -306,7 +310,7 @@ class SystemBathInteraction(Saveable):
 
 
 
-    def get_coft_elsig(self, n_sig, m_sig):
+    def get_coft_elsig(self, n_sig: Any, m_sig: Any) -> Any:
         """Returns bath correlation based on electronic signatures
 
 
@@ -340,7 +344,7 @@ class SystemBathInteraction(Saveable):
         return self.CC._cofts[0,:]
 
 
-    def get_goft_storage(self, config=None):
+    def get_goft_storage(self, config: dict | None = None) -> Any:
         """Returns a lineshape function storage based on correlation functions
 
         The function calculates g(t) fuctions based on the correlation
@@ -398,7 +402,7 @@ class SystemBathInteraction(Saveable):
         return gg
 
 
-    def has_temperature(self):
+    def has_temperature(self) -> bool:
         """Checkst if the Aggregate has a defined temperature
 
         """
@@ -413,14 +417,14 @@ class SystemBathInteraction(Saveable):
             return False
 
 
-    def get_temperature(self):
+    def get_temperature(self) -> float:
         """Returns temperature associated with the bath
 
         """
         return self.CC.get_temperature()
 
 
-    def get_reorganization_energy(self, i, j=None):
+    def get_reorganization_energy(self, i: int, j: int | None = None) -> Any:
         """Returns reorganization energy associated with a given site
 
         If one index `i` is specified, the function returns reorganization
@@ -437,7 +441,7 @@ class SystemBathInteraction(Saveable):
         return self.CC.get_reorganization_energy(i,j)
 
 
-    def get_correlation_time(self, i, j=None):
+    def get_correlation_time(self, i: int, j: int | None = None) -> Any:
 
         if (self.sbitype == "Lindblad_Form" or
             self.sbitype == "Vibrational_Lindblad_Form"):
@@ -447,7 +451,7 @@ class SystemBathInteraction(Saveable):
         return self.CC.get_correlation_time(i,j)
 
 
-    def get_sbitype(self):
+    def get_sbitype(self) -> str:
         """Returns the type of SystemBathInteraction
 
         Options are `Lindblad_Form`, `Vibrational_Lindblad_Form`

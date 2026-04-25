@@ -8,6 +8,10 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 from .systembathinteraction import SystemBathInteraction
 
 
@@ -29,7 +33,7 @@ class TestSystemBathInteraction(SystemBathInteraction):
 
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name: str | None = None) -> None:
 
         if name is None:
             raise Exception("Name of the test must be specified")

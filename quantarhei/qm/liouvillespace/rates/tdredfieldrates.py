@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 """*******************************************************************************
 
       REDFIELD RATE MATRIX
@@ -43,7 +47,7 @@ class TDRedfieldRateMatrix(TimeDependent):
 
     """
 
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None) -> None:
 
         if not isinstance(ham,Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -66,7 +70,7 @@ class TDRedfieldRateMatrix(TimeDependent):
             self._is_initialized = True
 
 
-    def _set_rates(self,ham,sbi):
+    def _set_rates(self, ham: Hamiltonian, sbi: SystemBathInteraction) -> None:
         """Reference implementation, completely in Python
 
         """
@@ -166,7 +170,7 @@ class TDRedfieldRateMatrix(TimeDependent):
                 at_runtime=True,
                 fallback_local=True,
                 always_local=True)
-def ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol, warning, error):
+def ssTDRedfieldRateMatrix(Na: int, Nk: int, Nt: int, KI: numpy.ndarray, cc: numpy.ndarray, rtol: float, warning: list, error: list) -> numpy.ndarray:
 
     # output relaxatio rate matrix
     RR = numpy.zeros((Nt,Na,Na),dtype=REAL)

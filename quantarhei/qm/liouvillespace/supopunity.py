@@ -5,6 +5,9 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -62,7 +65,7 @@ class SOpUnity(SuperOperator):
 
     """
 
-    def __init__(self, dim=None, data=None):
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:
 
         if data is not None:
             dim = data.shape[0]

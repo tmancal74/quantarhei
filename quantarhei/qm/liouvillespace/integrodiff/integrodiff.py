@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import types
 
 import numpy
@@ -53,14 +57,16 @@ class IntegrodiffPropagator:
 
     """
 
-    def __init__(self, timeaxis, ham, kernel=None, cutoff_time=-1,
-                 inhom=None, fft=True, save_fft_kernel=False,
-                 timefac=3, decay_fraction=2.0,
-                 correct_short_time=False, correction_length=0.0):
+    def __init__(self, timeaxis: Any, ham: Any, kernel: Any = None, cutoff_time: float = -1,
+                 inhom: Any = None, fft: bool = True, save_fft_kernel: bool = False,
+                 timefac: int = 3, decay_fraction: float = 2.0,
+                 correct_short_time: bool = False, correction_length: float = 0.0) -> None:
 
         self.timeaxis = timeaxis
         self.ham = ham
         self.kernel = kernel
+        self.last_int: numpy.ndarray
+        self.last_tn: int = -1
 
         self.kernel_is_tdependent = False
         if isinstance(self.kernel, types.FunctionType):
@@ -95,7 +101,7 @@ class IntegrodiffPropagator:
 
         if self.fft:
 
-            self.resolv = None
+            self.resolv: numpy.ndarray | None = None
 
             # FFT on timeaxis twice as long as defines (we add negative times)
             tlen = timefac*self.timeaxis.length
@@ -111,7 +117,7 @@ class IntegrodiffPropagator:
             # FFT of the kernel
             N1 = self.ham.dim
 
-            self.om = numpy.zeros(len(tt), REAL)
+            self.om: numpy.ndarray = numpy.zeros(len(tt), REAL)
             # calculate frequencies
             self.om[:] = (2.0*numpy.pi)* \
                          numpy.fft.fftfreq(tlen, self.timeaxis.step)
@@ -131,7 +137,7 @@ class IntegrodiffPropagator:
             if with_kernel:
 
                 # if kernel is present, we use it for calculation
-                MM = numpy.zeros((tlen, N1, N1, N1, N1), dtype=COMPLEX)
+                MM: numpy.ndarray = numpy.zeros((tlen, N1, N1, N1, N1), dtype=COMPLEX)
                 MM[:self.timeaxis.length,:,:,:,:] = self._kernel
 
                 # we renormalize the kernel by a e^{-gam*t} decay
@@ -168,7 +174,7 @@ class IntegrodiffPropagator:
             pass
 
 
-    def propagate(self, rhoi):
+    def propagate(self, rhoi: Any) -> Any:
         """Propagates initial condition of an integro-differential eq.
 
 
@@ -183,7 +189,7 @@ class IntegrodiffPropagator:
 
             Nt = len(self.om)
 
-            rhOm = numpy.zeros((Nt, N1, N1), dtype=COMPLEX)
+            rhOm: numpy.ndarray = numpy.zeros((Nt, N1, N1), dtype=COMPLEX)
 
             rho0 = rhoi.data #.reshape(N1**2)
 
@@ -266,7 +272,7 @@ class IntegrodiffPropagator:
 
 
 
-    def _convolution_with_kernel(self, tn, rho_in, rhot):
+    def _convolution_with_kernel(self, tn: int, rho_in: numpy.ndarray, rhot: Any) -> numpy.ndarray:
         """Convolution of the density matrix with integration kernel
 
 
@@ -304,7 +310,7 @@ class IntegrodiffPropagator:
         return rho
 
 
-    def _right_hand_side(self, tn, rho, rhot):
+    def _right_hand_side(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:
         """Right-hand side of the master equation
 
         """
@@ -315,7 +321,7 @@ class IntegrodiffPropagator:
         return drho
 
 
-    def _no_kernel_rhs(self, tn, rho, rhot):
+    def _no_kernel_rhs(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:
         """Right-hand side of the master equation without the kernel
 
         """
@@ -328,14 +334,14 @@ class IntegrodiffPropagator:
         return drho
 
 
-    def check_solution(self, rhot):
+    def check_solution(self, rhot: Any) -> numpy.ndarray:
         """Masures the difference between the right- and left-hand-side
         of the equation
 
         """
         N1 = self.ham.dim
-        diff = numpy.zeros((self.timeaxis.length, N1, N1),
-                           dtype=COMPLEX)
+        diff: numpy.ndarray = numpy.zeros((self.timeaxis.length, N1, N1),
+                                          dtype=COMPLEX)
         for tn in range(self.timeaxis.length):
 
             # time derivative
