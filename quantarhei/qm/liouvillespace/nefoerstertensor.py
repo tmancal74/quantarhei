@@ -531,9 +531,9 @@ def _nsc_kernel_implementation(Na: int, Nt: int, HH: numpy.ndarray, tt: numpy.nd
 
     """
 
-    def fkernel(ti):
+    def fkernel(ti: int) -> numpy.ndarray:
 
-        def fce2(tt, aa, bb, cc, dd, HH, gt):
+        def fce2(tt: numpy.ndarray, aa: int, bb: int, cc: int, dd: int, HH: numpy.ndarray, gt: numpy.ndarray) -> numpy.ndarray:
             """Closure of the kernel to fix the time"""
             return fce(ti, tt, aa, bb, cc, dd, HH, gt)
 

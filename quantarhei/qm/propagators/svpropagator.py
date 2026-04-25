@@ -97,7 +97,7 @@ class StateVectorPropagator:
         return EvolutionOperator(self.timeaxis, data=eop)
 
 
-    def _propagate_short_exp(self, psii, L=4):
+    def _propagate_short_exp(self, psii: Any, L: int = 4) -> StateVectorEvolution:
         """Short exp integration
 
         """
@@ -134,7 +134,7 @@ class StateVectorPropagator:
 
         return pr
 
-    def _propagate_short_exp_nonlin(self, psii, hfce, L=4) :
+    def _propagate_short_exp_nonlin(self, psii: Any, hfce: Any, L: int = 4) -> StateVectorEvolution:
         """Short exp integration with non-linear "Hamiltonian"
 
         """
@@ -184,7 +184,7 @@ class StateVectorPropagator:
         return pr
 
 
-    def _propagate_short_exp_tdep(self, psii, hfce, L=4):
+    def _propagate_short_exp_tdep(self, psii: Any, hfce: Any, L: int = 4) -> StateVectorEvolution:
         """Short exp integration with time-dependent Hamiltonian
 
         """
