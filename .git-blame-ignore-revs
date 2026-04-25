@@ -185,3 +185,10 @@ de2a28fe7c980d5e6aa6da73577149abeee78b6b
 
 # type hints: annotate env closure in labsetup.py get_pulse_envelop_function
 d250352e66c5fb2529746c48075abab45d67d050
+
+# ---------------------------------------------------------------------------
+# #241 style: ruff autoformatter pass
+# ---------------------------------------------------------------------------
+
+# style: apply ruff formatter across entire codebase (198 files)
+af5ccd7b08beb1dfbfe9f8de91c7c05bdc0fce1c
