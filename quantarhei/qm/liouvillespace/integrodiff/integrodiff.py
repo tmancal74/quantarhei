@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-
 import types
+from typing import Any
 
 import numpy
 
