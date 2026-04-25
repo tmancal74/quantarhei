@@ -182,10 +182,9 @@ Class Details
 """
 from __future__ import annotations
 
-from typing import Any
-
 # standard library imports
 import numbers
+from typing import Any
 
 import matplotlib.pyplot as plt
 

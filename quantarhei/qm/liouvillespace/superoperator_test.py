@@ -21,8 +21,6 @@ Class Details
 """
 from __future__ import annotations
 
-from typing import Any
-
 import numpy
 
 import quantarhei as qr
