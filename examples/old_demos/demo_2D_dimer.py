@@ -2,30 +2,26 @@
 
 
 # -*- coding: utf-8 -*-
-"""
-Calculation of 2D spectra 
+"""Calculation of 2D spectra
 
 
 
 """
-import matplotlib.pyplot as plt
-import numpy
 import time
+
+import numpy
+
+#from quantarhei.spectroscopy.twod2 import TwoDSpectrumCalculator
+#from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
+#from quantarhei.spectroscopy.twod2 import TwoDSpectrum
+from aceto.lab_settings import lab_settings
 
 #from quantarhei import Molecule
 #from quantarhei import Aggregate
 #from quantarhei import energy_units
 #from quantarhei import TimeAxis
 #from quantarhei import CorrelationFunction
-
 import quantarhei as qr
-
-#from quantarhei.spectroscopy.twod2 import TwoDSpectrumCalculator
-#from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
-#from quantarhei.spectroscopy.twod2 import TwoDSpectrum
-
-from aceto.lab_settings import lab_settings
-
 from quantarhei import Manager
 
 print(Manager().version)
@@ -52,7 +48,7 @@ with qr.energy_units("1/cm"):
     for ii in range(Nmol):
         mol = qr.Molecule(elenergies=[0.0, Emol+20.0*numpy.random.randn()]) #
         mols.append(mol)
-        
+
 #    mol1 = Molecule(elenergies=[0.0, 12550.0])
 #    mol2 = Molecule(elenergies=[0.0, 12150.0])
 #    mol3 = Molecule(elenergies=[0.0, 12350.0])
@@ -80,17 +76,17 @@ lab.set_laser_polarizations(a_0,a_0,a_0,a_0)
 #
 # System-bath interaction
 #
-   
+
 tsbi = qr.TimeAxis(0.0, 3*Nr, 1.0)
 params = dict(ftype="OverdampedBrownian", T=300, reorg=100.0, cortime=50.0)
 with qr.energy_units('1/cm'):
     cf = qr.CorrelationFunction(tsbi, params)
-    
+
 params2 = dict(ftype="UnderdampedBrownian", T=300, reorg=10.0, freq=150.0,
                gamma=1.0/10000.0)
 with qr.energy_units('1/cm'):
     cf2 = qr.CorrelationFunction(tsbi, params2)
-    
+
 #cf.add_to_data(cf2)
 
 ##
@@ -105,7 +101,7 @@ for ii in range(Nmol):
 
 #
 # Creating aggregate
-#      
+#
 #agg = Aggregate(name="Dimer", molecules=[mol1, mol2, mol3])
 agg = qr.Aggregate(molecules=mols)
 #agg.set_coupling_by_dipole_dipole()
@@ -147,7 +143,7 @@ tcalc.bootstrap(rwa, verbose=True, lab=lab)
 
 #
 # Calculate 2D spectra, display and save them
-#    
+#
 
 w1_min = rwa_cm - 700.0
 w1_max = rwa_cm + 700.0
@@ -161,12 +157,12 @@ t_start = time.time()
 # Plotting with given units on axes
 #
 with qr.energy_units("1/cm"):
-    
+
     k = 0
     twods = qr.TwoDResponseContainer(t2s)
-    
+
     for tt2 in t2s.data:
-        
+
         # calculate spectra iteratively
         spect = tcalc.calculate_next()
         # save memory by trimming the spectrum
@@ -182,9 +178,9 @@ with qr.energy_units("1/cm"):
         #print("saving file: ", figname, " with 2D spectrum at ", tt2, "fs")
         #spect.savefig(figname)
         #spect.show()
-        
+
         k += 1
-        
+
 t_end = time.time()
 t_fend = time.time()
 print("Finished at ", t_fend-t_fstart, " secs")
@@ -194,13 +190,13 @@ print("Calculation took ", t_end-t_start, " sec")
 #pp2 = numpy.zeros(t2s.length)
 #k = 0
 #with energy_units("1/cm"):
-#        
+#
 #    pp1 = twods.get_point_evolution(12250,12250,t2s)
-#    pp2 = twods.get_point_evolution(11900,12250,t2s)    
+#    pp2 = twods.get_point_evolution(11900,12250,t2s)
 #    pp3 = twods.get_point_evolution(11900,11900,t2s)
 #    pp4 = twods.get_point_evolution(12000,12500,t2s)
-#    
-#    
+#
+#
 #plt.plot(t2s.data,pp1)
 #plt.plot(t2s.data,pp2)
 #plt.plot(t2s.data,pp3)
@@ -210,14 +206,14 @@ print("Calculation took ", t_end-t_start, " sec")
 ##sp = twods.get_spectrum(t2s.data[-1])
 #with energy_units("1/cm"):
 #    sp.plot(window=window_2D)
-#    
+#
 #sp.save("spectrum.hdf5")
 #
 #rsp = TwoDSpectrum()
 #rsp.load("spectrum.hdf5")
 #
 #with energy_units("1/cm"):
-#    rsp.plot(window=window_2D) 
+#    rsp.plot(window=window_2D)
 
 with qr.energy_units("1/cm"):
     twods.trimall_to(window=window_2D)
@@ -232,5 +228,5 @@ newtw = qr.load_parcel("allspectra.qrp")
 #    sp.plot(window=window_2D)
 
 
-        
-    
+
+

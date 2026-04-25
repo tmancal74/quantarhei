@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
-import numpy
-import tempfile
 import os
+import tempfile
+
+import numpy
 
 _show_plots_ = False
 
 print("""
-***********************************************************      
+***********************************************************
 *
 *
 *          Evolution superoperator demo
@@ -49,7 +49,7 @@ with qr.eigenbasis_of(H):
     K12 = qr.qm.ProjectionOperator(1, 2, dim=Ndim)
     K23 = qr.qm.ProjectionOperator(2, 3, dim=Ndim)
     K34 = qr.qm.ProjectionOperator(3, 4, dim=Ndim)
-    sbi = qr.qm.SystemBathInteraction(sys_operators=[K12, K23, K34], 
+    sbi = qr.qm.SystemBathInteraction(sys_operators=[K12, K23, K34],
                                       rates=(1.0/200, 1.0/100.0, 1.0/150))
 
 agg.set_SystemBathInteraction(sbi)
@@ -104,17 +104,17 @@ rhoc1 = qr.qm.DensityMatrixEvolution(time_so)
 rhoc1.set_initial_condition(rho0)
 
 for j in range(1, time_so.length):
-    
+
     tj = time_so.data[j]
     sU = eS.at(tj)
     rdm0 = qr.qm.ReducedDensityMatrix(dim=Ndim, data=rho0.data)
-    
+
     rhoc1.data[j, :, :] = sU.apply(rdm0).data
 
 rhoc_0_data = numpy.zeros((Ndim, Ndim), dtype=qr.COMPLEX)
 rhoc_1_data = numpy.zeros((Ndim, Ndim), dtype=qr.COMPLEX)
 rhoc_2_data = numpy.zeros((Ndim, Ndim), dtype=qr.COMPLEX)
-    
+
 
 if _show_plots_:
     print("Comparing in a plots 1:")
@@ -128,7 +128,7 @@ if _show_plots_:
 with qr.eigenbasis_of(ham):
     rhoc_1_data[:,:] = rhoc1.data[0,:,:]
 
-print("Difference: ", numpy.amax(numpy.abs(rhoc_1_data - rhoc_0_data)))    
+print("Difference: ", numpy.amax(numpy.abs(rhoc_1_data - rhoc_0_data)))
 
 #print(eS.at(100.0).data.shape)
 
@@ -165,7 +165,7 @@ if mode == "jit":
     eS2.set_dense_dt(100)
     eS = qr.qm.EvolutionSuperOperator(time_so, ham, rt, pdeph=D)
     eS.set_dense_dt(100)
-    
+
     with qr.eigenbasis_of(ham):
         for ii in range(1,time_so.length):
             eS2.calculate_next()
@@ -183,11 +183,11 @@ rhoc.set_initial_condition(rho0)
 
 
 for j in range(1, time_so.length):
-    
+
     tj = time_so.data[j]
     sU = eS.at(tj)
     rdm0 = qr.qm.ReducedDensityMatrix(dim=Ndim, data=rho0.data)
-    
+
     rhoc.data[j, :, :] = sU.apply(rdm0).data
 
 print("...done")
@@ -208,13 +208,13 @@ if _show_plots_:
         #rhot.plot(coherences=True, populations=False, show=False)
         rhoc_2_data[:,:] = rhoc1.data[0,:,:]
         rhoc1.plot(populations=False)
-        
+
         #rhoc.plot(show=False)
         #rhot.plot(show=False)
         #rhoc1.plot()
 
-    print("...done")    
+    print("...done")
 
-print("Difference: ", numpy.amax(numpy.abs(rhoc_2_data - rhoc_0_data)))    
+print("Difference: ", numpy.amax(numpy.abs(rhoc_2_data - rhoc_0_data)))
 print(rho0)
 
