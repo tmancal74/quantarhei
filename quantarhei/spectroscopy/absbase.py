@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ..core.datasaveable import DataSaveable
@@ -18,12 +22,12 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
     """
 
-    def __init__(self, axis=None, data=None):
+    def __init__(self, axis: Any = None, data: Any = None) -> None:
         super().__init__()
         self.axis = axis
         self.data = data
 
-    def set_axis(self, axis):
+    def set_axis(self, axis: Any) -> None:
         """Sets axis atribute
 
         Parameters
@@ -34,7 +38,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         """
         self.axis = axis
 
-    def set_data(self, data):
+    def set_data(self, data: Any) -> None:
         """Sets data atribute
 
         Parameters
@@ -48,7 +52,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
     #def add_data(self, data):
     #    self.data += data
 
-    def set_by_interpolation(self, x, y, xaxis="frequency"):
+    def set_by_interpolation(self, x: Any, y: Any, xaxis: str = "frequency") -> None:
         """Sets the data by interpolation with splines
 
         When the spectrum is defined in wavelength, it is converted to
@@ -85,7 +89,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
             # to 1/fs
             om = om*cm2int
 
-        if om[1] > om[2]:
+        if om[1] > om[2]:  # type: ignore[index]
             # reverse order
             om = numpy.flip(om,0)
             y = numpy.flip(y,0)
@@ -93,7 +97,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         # equidistant points on the x-axis
         omin = numpy.amin(om)
         omax = numpy.amax(om)
-        length = om.shape[0]
+        length = om.shape[0]  # type: ignore[union-attr]
         step = (omax-omin)/length
 
         # new frequency axis
@@ -108,34 +112,34 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         self.data = ynew
 
 
-    def clear_data(self):
+    def clear_data(self) -> None:
         """Sets spectrum data to zero
 
         """
         shp = self.data.shape
         self.data = numpy.zeros(shp, dtype=numpy.float64)
 
-    def normalize2(self,norm=1.0):
+    def normalize2(self, norm: float = 1.0) -> None:
         """Normalizes spectrum to a given value
 
         """
         mx = numpy.max(self.data)
         self.data = norm*self.data/mx
 
-    def normalize(self):
+    def normalize(self) -> None:
         """Normalization to one
 
         """
         self.normalize2(norm=1.0)
 
-    def subtract(self, val):
+    def subtract(self, val: Any) -> None:
         """Subtracts a value from the spectrum to shift its base line
 
         """
         self.data -= val
 
 
-    def add_to_data(self, spect):
+    def add_to_data(self, spect: Any) -> None:
         """Performs addition on the data.
 
         Expects a compatible object holding absorption spectrum
@@ -198,14 +202,14 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
     #save method is inherited from DFunction
 
-    def save_data(self, filename):
+    def save_data(self, filename: str) -> None:
         """Saves the data of this absorption spectrum
 
         """
         super().save_data(filename, with_axis=self.axis)
 
 
-    def load_data(self, filename):
+    def load_data(self, filename: str) -> None:
         """Loads data from file into this absorption spectrum
 
         """
@@ -214,7 +218,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         super().load_data(filename, with_axis=self.axis)
 
 
-    def plot(self, **kwargs):
+    def plot(self, **kwargs: Any) -> Any:
         """Plotting absorption spectrum using the DFunction plot method
 
         """

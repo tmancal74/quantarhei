@@ -234,6 +234,14 @@ module = [
     "quantarhei.models.spectdens",
     "quantarhei.models.spectral_densities.wendling_2000",
     "quantarhei.models.spectral_densities.renger_2002",
+    "quantarhei.spectroscopy.absbase",
+    "quantarhei.spectroscopy.diagramatics",
+    "quantarhei.spectroscopy.twodcalculator",
+    "quantarhei.spectroscopy.responses",
+    "quantarhei.spectroscopy.mockabscalculator",
+    "quantarhei.spectroscopy.pumpprobe",
+    "quantarhei.spectroscopy.mocktwodcalculator",
+    "quantarhei.wizard.input.input",
 ]
 ignore_errors = true
 

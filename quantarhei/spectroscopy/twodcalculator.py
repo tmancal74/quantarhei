@@ -1,5 +1,7 @@
+from __future__ import annotations
 
 import os
+from typing import Any
 
 import numpy
 
@@ -42,9 +44,9 @@ class TwoDResponseCalculator:
     _has_responses = False
     _has_system = False
 
-    def __init__(self, t1axis, t2axis, t3axis, system=None, responses=None,
-                 dynamics="secular", relaxation_tensor=None, rate_matrix=None,
-                 effective_hamiltonian=None):
+    def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any, system: Any = None, responses: Any = None,
+                 dynamics: str = "secular", relaxation_tensor: Any = None, rate_matrix: Any = None,
+                 effective_hamiltonian: Any = None) -> None:
 
 
         self.t1axis = t1axis
@@ -107,7 +109,7 @@ class TwoDResponseCalculator:
         self.tc = 0
 
 
-    def _vprint(self, *args, **kwargs):
+    def _vprint(self, *args: Any, **kwargs: Any) -> None:
         """Prints a string if the self.verbose attribute is True
 
         """
@@ -115,8 +117,8 @@ class TwoDResponseCalculator:
             print(*args, **kwargs)
 
 
-    def bootstrap(self, rwa=0.0, pad=0, lab=None, verbose=False,
-                  write_resp=False, keep_resp=False):
+    def bootstrap(self, rwa: float = 0.0, pad: int = 0, lab: Any = None, verbose: bool = False,
+                  write_resp: bool | str = False, keep_resp: bool = False) -> None:
         """Sets up the environment for 2D calculation
         write_resp takes a string, creates a directory with the name of
         the string and saves the respoonses and time axis as a npz file
@@ -175,7 +177,7 @@ class TwoDResponseCalculator:
 
                         # FIXME: This is a quick fix to make a zero rate matrix
                         class hlp:
-                            def __init__(self, N):
+                            def __init__(self, N: int) -> None:
                                 self.data =  numpy.zeros((N,N), dtype=REAL)
 
                         KK = hlp(Ns[1])
@@ -272,14 +274,14 @@ class TwoDResponseCalculator:
             self.tc = 0
 
 
-    def reset_t2_time(self):
+    def reset_t2_time(self) -> None:
         """Resets the population time of the calculations
 
         """
         self.tc = 0
 
 
-    def calculate_next(self):
+    def calculate_next(self) -> Any:
         """Calculate next population time of a 2D spectrum
 
         """
@@ -288,7 +290,7 @@ class TwoDResponseCalculator:
         return sone
 
 
-    def calculate_one(self, tc):
+    def calculate_one(self, tc: int) -> Any:
         """Calculate one population time
 
 
@@ -555,7 +557,7 @@ class TwoDResponseCalculator:
         return onetwod
 
 
-    def calculate(self):
+    def calculate(self) -> Any:
         """Returns 2D spectrum
 
         Calculates and returns TwoDResponseContainer containing 2D spectrum
@@ -607,7 +609,7 @@ class TwoDResponseCalculator:
         raise Exception("2D calculation in this mode not implemented.")
 
 
-    def reset_evaluation_functions(self, fcions):
+    def reset_evaluation_functions(self, fcions: list[Any]) -> None:
         """Resets the evaluation functions used by the reseponse functions
 
 

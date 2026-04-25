@@ -1,19 +1,22 @@
+from __future__ import annotations
+
+from typing import Any
 
 from ..core.saveable import Saveable
 
 
 class AbsSpectrumContainer(Saveable):
 
-    def __init__(self, axis=None):
+    def __init__(self, axis: Any = None) -> None:
 
         self.axis = axis
         self.count = 0
-        self.spectra = {}
+        self.spectra: dict[str, Any] = {}
 
-    def set_axis(self, axis):
+    def set_axis(self, axis: Any) -> None:
         self.axis = axis
 
-    def set_spectrum(self, spect, tag=None):
+    def set_spectrum(self, spect: Any, tag: Any = None) -> None:
         """Stores absorption spectrum
 
         Checks compatibility of its frequency axis
@@ -35,7 +38,7 @@ class AbsSpectrumContainer(Saveable):
             raise Exception("Incompatible time axis (equal axis required)")
 
 
-    def get_spectrum(self, tag):
+    def get_spectrum(self, tag: Any) -> Any:
         """Returns spectrum corresponing to time t2
 
         Checks if the time t2 is present in the t2axis
@@ -49,7 +52,7 @@ class AbsSpectrumContainer(Saveable):
         raise Exception("Unknown spectrum")
 
 
-    def get_spectra(self):
+    def get_spectra(self) -> list[Any]:
         """Returns a list or tuple of the calculated spectra
 
         """

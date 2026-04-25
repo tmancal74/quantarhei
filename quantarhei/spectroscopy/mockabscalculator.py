@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -12,8 +15,8 @@ from .abscalculator import AbsSpectrumCalculator
 class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
 
 
-    def bootstrap(self,rwa=0.0, pathways=None, lab=None,
-                  shape="Gaussian", verbose=False):
+    def bootstrap(self, rwa: float = 0.0, pathways: Any = None, lab: Any = None,
+                  shape: str = "Gaussian", verbose: bool = False) -> None:
         """Prepare for the spectrum calculation
 
 
@@ -51,7 +54,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
             self.set_pathways(pthways)
 
     # FIXME: energy/frequency units
-    def set_width(self, val):
+    def set_width(self, val: float) -> None:
         """Set the spectral width as FWHM
 
 
@@ -59,7 +62,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         self.widthx = val
 
 
-    def set_deph(self, val):
+    def set_deph(self, val: float) -> None:
         """Set dephasing rate as 1/(dephasing time)
 
 
@@ -67,14 +70,14 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         self.dephx = val
 
 
-    def set_pathways(self, pathways):
+    def set_pathways(self, pathways: Any) -> None:
         """Set Liouville pathways to be used for spectral calculation
 
         """
         self.pathways = pathways
 
 
-    def calculate(self, raw=False):
+    def calculate(self, raw: bool = False) -> Any:
         """Calculate the absorption spectrum for all pathways
 
         """
@@ -93,7 +96,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         return one
 
 
-    def calculate_pathway(self, pathway, shape="Gaussian", raw=False):
+    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian", raw: bool = False) -> numpy.ndarray:
         """Calculate the shape of a Liouville pathway
 
 

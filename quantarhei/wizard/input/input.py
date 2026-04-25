@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import ast
 import json
 import os
 import re
+from typing import Any
 
 import yaml  # type: ignore[import-untyped]
 
@@ -10,7 +13,7 @@ import yaml  # type: ignore[import-untyped]
 # The code below is here to test against arbitrary code execution during
 # evaluation of math expressions in yaml configuration files
 #
-def ahoj(a):
+def ahoj(a: float) -> None:
     import numpy
     print("A teď dělám, co mě napadne")
     print(numpy.cos(a))
@@ -18,7 +21,7 @@ def ahoj(a):
 a = 5.0
 
 
-def expr(code, context=None):
+def expr(code: str, context: dict[str, Any] | None = None) -> Any:
     """Eval a math expression and return the result
 
     To be honest, I have no idea how this works
@@ -59,7 +62,7 @@ class Input:
 
     """
 
-    def __init__(self, file_or_dict, math_allowed_in=None, show_input=False):
+    def __init__(self, file_or_dict: str | dict[str, Any], math_allowed_in: list[Any] | None = None, show_input: bool = False) -> None:
 
         if math_allowed_in is None:
             math_allowed_in = []
@@ -140,7 +143,7 @@ class Input:
             else:
                 val = getattr(self, cnv)
                 if isinstance(val, list):
-                    val = self.strings_2_floats_lists(val)
+                    self.strings_2_floats_lists(val)
                 else:
                     val = self.string_2_float_prop(val)
                     setattr(self, cnv, val)
@@ -152,7 +155,7 @@ class Input:
             print(self.data)
 
 
-    def strings_2_floats_dictionary(self, dictionary, keys):
+    def strings_2_floats_dictionary(self, dictionary: dict[str, Any], keys: list[str]) -> dict[str, Any]:
         """Converts selected keys of a dictionary from string expression to float
 
         """
@@ -166,7 +169,7 @@ class Input:
             ndict[key] = val
         return ndict
 
-    def strings_2_floats_lists(self, inlist):
+    def strings_2_floats_lists(self, inlist: list[Any]) -> None:
         """Converts every string in a list into float
 
         """
@@ -178,7 +181,7 @@ class Input:
             inlist[k] = val
 
 
-    def string_2_float_prop(self, prop):
+    def string_2_float_prop(self, prop: Any) -> Any:
         """If the submitted object is a string it is converted to float
 
         """
@@ -189,12 +192,12 @@ class Input:
         return val
 
 
-    def dump_yaml(self, filename):
+    def dump_yaml(self, filename: str) -> None:
 
         yaml.dump(self.data, open(filename, "w"), default_flow_style=False)
 
 
-    def find_usecases(self):
+    def find_usecases(self) -> None:
         """Finds replacements for values defined in the input file
 
         This function replaces values of some input parameters by the values

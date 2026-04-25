@@ -3,7 +3,9 @@
 
 
 """
+from __future__ import annotations
 
+from typing import Any
 
 import numpy
 
@@ -19,8 +21,8 @@ class liouville_pathway(UnitsManaged):
     order = Integer("order")
     nint = Integer("nint")
 
-    def __init__(self, ptype, sinit, aggregate=False,
-                 order=3, pname="",relax_order=0, popt_band=0):
+    def __init__(self, ptype: str, sinit: int, aggregate: Any = False,
+                 order: int = 3, pname: str = "", relax_order: int = 0, popt_band: int = 0) -> None:
         """Liouville pathway through a molecular aggregate
 
 
@@ -127,7 +129,7 @@ class liouville_pathway(UnitsManaged):
         # was the pathway already built?
         self.built = False
 
-    def _chars(self, lx, rx, char=" "):
+    def _chars(self, lx: Any, rx: Any, char: str = " ") -> str:
         nsp = 10
         if isinstance(lx,str):
             ln = 0
@@ -140,7 +142,7 @@ class liouville_pathway(UnitsManaged):
             spc += char
         return spc
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the Liouville pathway
 
 
@@ -245,8 +247,8 @@ class liouville_pathway(UnitsManaged):
         return out
 
 
-    def add_transition(self, transition, side,
-                       interval=0, width=-1.0, deph=-1.0):
+    def add_transition(self, transition: tuple[int, int], side: int,
+                       interval: int = 0, width: float = -1.0, deph: float = -1.0) -> None:
         """Adds a transition to the Liouville pathway.
 
         Parameters
@@ -362,7 +364,7 @@ class liouville_pathway(UnitsManaged):
         self.event[self.ne] = "I"
         self.ne += 1
 
-    def add_transfer(self, fin, sta):
+    def add_transfer(self, fin: tuple[int, int], sta: tuple[int, int]) -> None:
         """Adds an energy transfer compoment to the pathway
 
 
@@ -400,10 +402,10 @@ class liouville_pathway(UnitsManaged):
         self.event[self.ne] = "R"
         self.ne += 1
 
-    def set_evolution_factor(self, evf):
+    def set_evolution_factor(self, evf: float) -> None:
         self.evolfac = evf
 
-    def build(self):
+    def build(self) -> None:
         """Building the Liouville pathway internals
 
         Here we calculate all important values which depend on all
@@ -428,19 +430,19 @@ class liouville_pathway(UnitsManaged):
         self.built = True
 
 
-    def get_current_state(self):
+    def get_current_state(self) -> numpy.ndarray:
         """
 
         """
         return self.current
 
-    def get_transition(self,n):
+    def get_transition(self, n: int) -> Any:
         """Returns info on the transition occuring on the n-th interaction
 
         """
         return self.side[n], self.transitions[n]
 
-    def orientational_averaging(self,lab):
+    def orientational_averaging(self, lab: Any) -> None:
         """Orientational averaging
 
         Orientational averaging and temperature dependence of the
@@ -457,31 +459,31 @@ class liouville_pathway(UnitsManaged):
             self.pref = numpy.real(self.aggregate.rho0[n0,n0])*self.or_av_1
 
 
-    def get_transition_energy(self,n):
+    def get_transition_energy(self, n: int) -> float:
         """Transition energy of a given interaction with light
 
         """
         return self.energy[n]
 
-    def get_interval_frequency(self,n):
+    def get_interval_frequency(self, n: int) -> float:
         """Returns frequency corresponding to a given response interval
 
         """
         return self.frequency[n]
 
-    def get_dmoment(self, n):
+    def get_dmoment(self, n: int) -> numpy.ndarray:
         """Transition dipole moment of a given interaction with light
 
         """
         return self.dmoments[n]
 
-    def get_prefactor(self):
+    def get_prefactor(self) -> float:
         """Dipole and temperature dependent prefactor
 
         """
         return self.pref
 
-    def get_states(self):
+    def get_states(self) -> tuple[Any, ...]:
         """Returns a tuple of states through which the pathway passes
 
 
