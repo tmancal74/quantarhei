@@ -1,0 +1,9 @@
+#!/bin/sh
+# Enforce that commit messages start with #N (issue number)
+# e.g. "#123 fix: description"
+msg=$(head -1 "$1")
+if ! echo "$msg" | grep -qE '^#[0-9]+'; then
+    echo "ERROR: Commit message must start with an issue number, e.g. '#123 description'"
+    echo "Got: $msg"
+    exit 1
+fi

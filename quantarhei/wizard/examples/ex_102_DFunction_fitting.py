@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-
-    Demonstration of Quantarhei fitting capabilities
+"""Demonstration of Quantarhei fitting capabilities
 
 
 """
 
 _show_plots_ = True
 
-import numpy
-import quantarhei as qr
 import matplotlib.pyplot as plt
+import numpy
+
+import quantarhei as qr
 
 ###############################################################################
 #
@@ -24,18 +22,16 @@ import matplotlib.pyplot as plt
 
 def single_exp(x):
     """Example single exponential function
-    
+
     """
-    
     return numpy.exp(-x/245.0) - 0.2
 
 
 def double_exp(x):
     """Example double exponential function
-    
-    
+
+
     """
-    
     return 0.5*numpy.exp(-x/35.0) + 0.4*numpy.exp(-x/801.0) + 0.1
 
 
@@ -45,8 +41,8 @@ def double_exp(x):
 
 def ref_nexp(x, par):
     """This is how exponential function is constructed from fitting parameters
-    
-    
+
+
     """
     y = numpy.zeros(x.shape[0], dtype=x.dtype)
     for ii in range(0, len(par)-1, 2):
@@ -54,10 +50,10 @@ def ref_nexp(x, par):
     y += par[ii+2]
     return y
 
-    
+
 def test_exponential(x, f, inpar, fitpar):
     """
-    
+
     """
     y = ref_nexp(x, inpar)
     if _show_plots_:
@@ -84,7 +80,7 @@ f = qr.DFunction(t, fv)
 
 inpar = [1.5, 1.0/100.0, 0.1]
 
-# This is how we use the `fit_exponential` function 
+# This is how we use the `fit_exponential` function
 fitpar = f.fit_exponential(guess=inpar)
 
 test_exponential(x, f, inpar, fitpar)
@@ -116,19 +112,17 @@ test_exponential(x, f, inpar, fitpar)
 
 def single_gauss(x):
     """Example single exponential function
-    
+
     """
-    
     return 1.34*numpy.exp(-(x-55.3)**2/(24.0**2)) - 0.2
 
 
 def double_gauss(x):
     """Example double exponential function
-    
-    
+
+
     """
-    
-    return (0.5*numpy.exp(-(x-34.6)**2/(10.0**2)) + 
+    return (0.5*numpy.exp(-(x-34.6)**2/(10.0**2)) +
             0.4*numpy.exp(-(x-71.0)**2/(18.0**2)) + 0.1)
 
 
@@ -138,8 +132,8 @@ def double_gauss(x):
 
 def ref_ngauss(x, par):
     """This is how exponential function is constructed from fitting parameters
-    
-    
+
+
     """
     y = numpy.zeros(x.shape[0], dtype=x.dtype)
     for ii in range(0, len(par)-1, 3):
@@ -151,7 +145,7 @@ def ref_ngauss(x, par):
 
 def test_gaussian(x, f, inpar, fitpar):
     """
-    
+
     """
     y = ref_ngauss(x, inpar)
     if _show_plots_:
@@ -173,7 +167,7 @@ fv = single_gauss(x)
 f = qr.DFunction(t, fv)
 inpar = [1.5, 50.0, 100.0, 0.1]
 
-# This is how we use the `fit_exponential` function 
+# This is how we use the `fit_exponential` function
 fitpar = f.fit_gaussian(guess=inpar)
 
 test_gaussian(x, f, inpar, fitpar)
@@ -189,7 +183,7 @@ f.set_data(fv)
 
 inpar = [1.5, 30.0, 20.0, 0.6, 60.0, 20.0, 0.1]
 
-# This is how we use the `fit_exponential` function 
+# This is how we use the `fit_exponential` function
 fitpar = f.fit_gaussian(guess=inpar)
 
 test_gaussian(x, f, inpar, fitpar)

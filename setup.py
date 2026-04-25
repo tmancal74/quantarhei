@@ -13,12 +13,11 @@ https://github.com/pypa/sampleproject
 """
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
 # To use a consistent encoding
-from codecs import open
 from os import path
-
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
 
@@ -69,7 +68,7 @@ setup(
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
 
-        # Specify the Python versions you support here. In particular, ensure       
+        # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.10',
@@ -117,7 +116,7 @@ setup(
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
-    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
+    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     ###data_files=[('my_data', ['data/data_file'])],
     ###
@@ -133,5 +132,5 @@ setup(
                             'qlaunch=quantarhei.scripts.qlaunch:main',
                             'qtest=quantarhei.scripts.qtest:main'],
     }
-    
+
 )

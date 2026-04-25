@@ -1,25 +1,25 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import scipy.constants as const
 
 # frequency
 conversion_facs_frequency = {
     "int"    : 1.0,
-    "1/fs"   : 1.0, 
-    "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
+    "1/fs"   : 1.0,
+    "1/cm"   : 2.0*const.pi*const.c*1.0e-13,
     "THz"    : 2.0*const.pi*1.0e-03,
     "Hz"     : 2.0*const.pi,
     "SI"     : 2.0*const.pi,
     "nm"     : 1.0/(1.0e7*2.0*const.pi*const.c*1.0e-13),
     "a.u."   : 27.21138602*1.0e-15*const.e/const.hbar,
-    "Ha"     : 27.21138602*1.0e-15*const.e/const.hbar      
-    } 
+    "Ha"     : 27.21138602*1.0e-15*const.e/const.hbar
+    }
 
 # energy
 conversion_facs_energy = {
     "int"    : 1.0,
-    "1/fs"   : 1.0, 
-    "1/cm"   : 2.0*const.pi*const.c*1.0e-13, 
+    "1/fs"   : 1.0,
+    "1/cm"   : 2.0*const.pi*const.c*1.0e-13,
     "THz"    : 2.0*const.pi*1.0e-03,
     "eV"     : 1.0e-15*const.e/const.hbar,
     "meV"    : 1.0e-18*const.e/const.hbar,
@@ -27,8 +27,8 @@ conversion_facs_energy = {
     "SI"     : 1.0e-15/const.hbar,
     "nm"     : 1.0/(1.0e7*2.0*const.pi*const.c*1.0e-13),
     "a.u."   : 27.21138602*1.0e-15*const.e/const.hbar,
-    "Ha"     : 27.21138602*1.0e-15*const.e/const.hbar    
-    } 
+    "Ha"     : 27.21138602*1.0e-15*const.e/const.hbar
+    }
 
 
 #conversion_facs_position = {
@@ -114,36 +114,34 @@ eps0_int = 1.0e19/(4.0*const.pi*J2int)
 #
 
 
-def convert(val, in_units, to=None):
+def convert(val: float, in_units: str, to: str | None = None) -> float:
     """Converts value in certain units into other units
-    
+
     """
-    from .managers import energy_units
-    from .managers import Manager
+    from .managers import Manager, energy_units
     m = Manager()
     with energy_units(in_units):
         e = m.convert_energy_2_internal_u(val)
-    
+
     if to is None:
         ne = m.convert_energy_2_current_u(e)
     else:
         with energy_units(to):
             ne = m.convert_energy_2_current_u(e)
-        
+
     return ne
 
-def in_current_units(val, in_units):
+def in_current_units(val: float, in_units: str) -> float:
     """Converts value in certain units into the current units
-    
+
     """
-    from .managers import energy_units
-    from .managers import Manager
+    from .managers import Manager, energy_units
 
     m = Manager()
     with energy_units(in_units):
         e = m.convert_energy_2_internal_u(val)
-    
+
     return m.convert_energy_2_current_u(e)
-         
+
 
 

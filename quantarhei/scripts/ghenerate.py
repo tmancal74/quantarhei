@@ -1,22 +1,21 @@
-"""
+"""Steps template generator for `behave` acceptance tests
 
-    Steps template generator for `behave` acceptance tests
-
-    Author: Tomas Mancal, Charles University, Prague, Czech Republic
-    email: mancal@karlov.mff.cuni.cz
+Author: Tomas Mancal, Charles University, Prague, Czech Republic
+email: mancal@karlov.mff.cuni.cz
 
 
 """
 # standard imports
 import argparse
 import datetime
-import time
 import os
 import re
+import time
+
+from gherkin.parser import Parser
 
 # third party imports
 from gherkin.token_scanner import TokenScanner
-from gherkin.parser import Parser
 
 # quantarhei
 import quantarhei as qr
@@ -27,7 +26,6 @@ def parsing():
 
 
     """
-
     descr = 'Ghenerate, the Gherkin Python Step Generator from Quantarhei'
     parser = argparse.ArgumentParser(description=descr+' ...')
 
@@ -41,17 +39,17 @@ def parsing():
     parser.add_argument("-v", "--version", action="store_true",
                         help="shows Quantarhei package version")
     parser.add_argument("-i", "--info", action='store_true',
-                        help="shows detailed information about Quantarhei"+
+                        help="shows detailed information about Quantarhei"
                         " installation")
     parser.add_argument("-d", "--destination", type=str,
-                        help="specifies destination directory for the"+
+                        help="specifies destination directory for the"
                         " generated step file")
     parser.add_argument("-n", "--no-pass", action="store_true",
                         help="empty tests should not pass (default is"
-                        +" passing empty tests)")
+                        " passing empty tests)")
     parser.add_argument("-f", "--start-from", type=int,
                         help="step functions will be numberred starting"
-                        +" from this value")
+                        " from this value")
 
     #
     # Parsing all arguments
@@ -63,7 +61,7 @@ def parsing():
     #
     if args.info:
         qr.printlog("\n"
-                    +"ghenerate: Quantarhei Gherkin Python Step Generator\n",
+                    "ghenerate: Quantarhei Gherkin Python Step Generator\n",
                     verbose=True, loglevel=0)
 
         if not args.version:
@@ -105,21 +103,21 @@ def parsing():
         k_from = args.start_from
 
     try:
-        with open(filename, 'r') as myfile:
+        with open(filename) as myfile:
             data = myfile.read()
-    except:
+    except OSError:
         raise Exception("Problems reading file: "+filename)
 
     parser = Parser()
     try:
         feature_file = parser.parse(TokenScanner(data))
-    except:
+    except Exception:
         raise Exception("Problem parsing file: "+filename+
                         " - is it a feature file?")
 
     try:
         children = feature_file["feature"]["children"]
-    except:
+    except (KeyError, TypeError):
         raise Exception("No scenarii or scenario outlines")
 
     return dict(children=children, ddir=ddir,
@@ -130,7 +128,6 @@ def analyze_children(children):
     """Analyzes children of the feature and prints info
 
     """
-
     test_strings = []
     for scenario in children:
 
@@ -156,7 +153,6 @@ def check_outputfile_exists(ddir, filename):
     """Checks the existance of destination directory and the target file
 
     """
-
     (filen, ext) = os.path.splitext(os.path.basename(filename))
 
     if ext != ".feature":
@@ -184,7 +180,6 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
     """Write step function implementation header
 
     """
-
     if step["keyword"].strip() == "Given":
         myfile.write("\n\n#\n# Given ...\n#\n")
         myfile.write("@given('"+textrep+"')\n")
@@ -208,8 +203,8 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
         current = "then"
     elif step["keyword"].strip() == "And":
         if current == "":
-            raise Exception("`And` has to be preceeded by a "+
-                            "line with `Given`, `When` or"+
+            raise Exception("`And` has to be preceeded by a "
+                            "line with `Given`, `When` or"
                             "`Then`")
         myfile.write("\n\n#\n# And ...\n#\n")
         myfile.write("@"+current+"('"+textrep+"')\n")
@@ -218,8 +213,8 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
         myfile.write('    """\n')
     elif step["keyword"].strip() == "But":
         if current == "":
-            raise Exception("`But` has to be preceeded by a "+
-                            "line with `Given`, `When` or"+
+            raise Exception("`But` has to be preceeded by a "
+                            "line with `Given`, `When` or"
                             "`Then`")
         myfile.write("\n\n#\n# But ...\n#\n")
         myfile.write("@"+current+"('"+textrep+"')\n")
@@ -238,13 +233,13 @@ def write_header(myfile):
     """
     tstamp = datetime.datetime.fromtimestamp(time.time()).\
     strftime('%Y-%m-%d %H:%M:%S')
-    myfile.write('''"""
+    myfile.write(f'''"""
 
     Autogenerated by ghenerate script, part of Quantarhei
     http://github.com/tmancal74/quantarhei
     Tomas Mancal, tmancal74@gmai.com
 
-    Generated on: {}
+    Generated on: {tstamp}
 
     Edit the functions below to give them desired functionality.
     In present version of `ghenerate`, no edits or replacements
@@ -256,7 +251,7 @@ from behave import given
 from behave import when
 from behave import then
 
-'''.format(tstamp))
+''')
 
 
 def main():
@@ -264,7 +259,6 @@ def main():
 
 
     """
-
     #(children, ddir, steps_pass, filename) = parsing()
     parse_data = parsing()
     if not isinstance(parse_data, dict):
@@ -289,19 +283,19 @@ def main():
         for scenario in parse_data["children"]:
 
             steps = scenario["steps"]
-            
+
             current = ""
             for step in steps:
                 text = step["text"]
-                
+
                 if step["keyword"] != "And ":
                     prepo = step["keyword"]
                     # if keyword is not And, prepo remains
-                    
+
                 check_text = prepo+": "+step["text"]
 
                 # the step strings should not be duplicate
-                # but the same text can follow different keywords with 
+                # but the same text can follow different keywords with
                 # different code
                 if check_text not in test_strings:
                     test_strings.append(check_text)
@@ -342,13 +336,13 @@ def main():
                         current = "then"
                     elif step["keyword"].strip() == "And":
                         if current == "":
-                            raise Exception("`And` has to be preceeded by a "+
-                                            "line with `Given`, `When` or"+
+                            raise Exception("`And` has to be preceeded by a "
+                                            "line with `Given`, `When` or"
                                             "`Then`")
                     elif step["keyword"].strip() == "But":
                         if current == "":
-                            raise Exception("`But` has to be preceeded by a "+
-                                            "line with `Given`, `When` or"+
+                            raise Exception("`But` has to be preceeded by a "
+                                            "line with `Given`, `When` or"
                                             "`Then`")
                     else:
                         raise Exception("unknown keyword: "+step["keyword"])

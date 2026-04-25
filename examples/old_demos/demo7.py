@@ -1,12 +1,16 @@
-# -*- coding: utf-8 -*-
 
-from quantarhei import Molecule, Aggregate, CorrelationFunction
-from quantarhei import TimeAxis
-from quantarhei import energy_units, eigenbasis_of
-  
+from quantarhei import (
+    Aggregate,
+    CorrelationFunction,
+    Molecule,
+    TimeAxis,
+    eigenbasis_of,
+    energy_units,
+)
+
 #
 # Define and build the system
-#  
+#
 en = [0.0, 1.0]
 m1 = Molecule("Mol1",en)
 m2 = Molecule("Mol2",en)
@@ -42,7 +46,7 @@ print("Shape of the operators")
 print(H.data.shape)
 with energy_units("1/cm"):
     print(H)
-    
+
 D = ag.get_TransitionDipoleMoment()
 
 
@@ -53,7 +57,7 @@ with eigenbasis_of(H):
     print(D.data[0,1,:])
     print(D.data[0,2,:])
     print(D.data[0,3,:])
-    
+
 
 SS = H.diagonalize()
 H.undiagonalize()
@@ -76,7 +80,7 @@ print("\nReorganization energies")
 for ic in range(cfm.nof):
     with energy_units("1/cm"):
         print(ic, cfm.cfuncs[ic+1].get_reorganization_energy())
-    
+
 print("\nSBI:")
 print(sbi)
 
