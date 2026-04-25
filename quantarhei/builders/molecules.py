@@ -68,6 +68,8 @@ Class Details
 """
 
 
+from __future__ import annotations
+
 import numpy
 
 from .. import REAL
@@ -121,7 +123,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     nmod     = Integer('nmod')
 
 
-    def __init__(self,  elenergies=None, name=None): #,dmoments):
+    def __init__(self, elenergies: list | None = None, name: str | None = None) -> None:
         if elenergies is None:
             elenergies = [0.0, 1.0]
 
@@ -232,7 +234,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.build()
 
 
-    def build(self):
+    def build(self) -> None:
         """Building routine for the molecule
 
 
@@ -248,7 +250,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     # I am systematically removing any "naming" in Quantarhei
     #
 
-    def get_name(self):
+    def get_name(self) -> str:
         """Returns the name of the molecule
 
         Examples
@@ -261,7 +263,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return self.name
 
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         """Sets the name of the Molecule object
 
         Examples
@@ -274,7 +276,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         self.name = name
 
-    def set_electronic_rwa(self, rwa_indices):
+    def set_electronic_rwa(self, rwa_indices: list | None) -> None:
         """Sets which electronic states belong to different blocks
 
         Setting the indices of blocks should allow the construction
@@ -324,7 +326,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def _calculate_rwa_indices(self, el_rwa_indices):
+    def _calculate_rwa_indices(self, el_rwa_indices: list) -> list:
         """Extends the rwa_indices by vibrational states if necessary
 
         """
@@ -373,7 +375,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return rwa_indices
 
 
-    def set_egcf_mapping(self, transition, correlation_matrix, position):
+    def set_egcf_mapping(self, transition: tuple, correlation_matrix: object, position: int) -> None:
         """Sets a correlation function mapping for a selected transition.
 
         The monomer can either have a correlation function assigned to it,
@@ -475,7 +477,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             raise Exception("Monomer has a correlation function already")
 
 
-    def set_transition_environment(self, transition, egcf):
+    def set_transition_environment(self, transition: tuple, egcf: object) -> None:
         """Sets a correlation function for a transition on this monomer
 
         Parameters
@@ -545,7 +547,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             raise Exception("Correlation function already speficied"
                             " for this monomer")
 
-    def unset_transition_environment(self, transition):
+    def unset_transition_environment(self, transition: tuple) -> None:
         """Unsets correlation function from a transition on this monomer
 
         This is needed if the environment is to be replaced
@@ -613,11 +615,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
     #@deprecated
-    def set_egcf(self, transition, egcf):
+    def set_egcf(self, transition: tuple, egcf: object) -> None:
         self.set_transition_environment(transition, egcf)
 
 
-    def get_transition_environment(self, transition):
+    def get_transition_environment(self, transition: tuple) -> object:
         """Returns energy gap correlation function of a monomer
 
         Parameters
@@ -678,7 +680,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
     #@deprecated
-    def get_egcf(self, transition):
+    def get_egcf(self, transition: tuple) -> object:
 
         if self._is_mapped_on_egcf_matrix:
             n = self.egcf_mapping[0]
@@ -687,7 +689,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return self.get_transition_environment(transition).data
 
 
-    def add_Mode(self, mod):
+    def add_Mode(self, mod: object) -> None:
         """Adds a vibrational mode to the monomer
 
         Parameters
@@ -717,7 +719,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     #
     # Some getters and setters
     #
-    def get_Mode(self, N):
+    def get_Mode(self, N: int) -> object:
         """Returns the Nth mode of the Molecule object
 
 
@@ -744,7 +746,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return self.modes[N]
 
 
-    def get_number_of_modes(self):
+    def get_number_of_modes(self) -> int:
         """Retruns the number of modes in this molecule
 
 
@@ -763,14 +765,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return len(self.modes)
 
 
-    def get_dipole(self, N, M):
+    def get_dipole(self, N: int, M: int) -> numpy.ndarray:
         try:
             return self.dmoments[N, M, :]
         except (IndexError, TypeError):
             raise Exception()
 
 
-    def get_velocity_dipole(self, N, M):
+    def get_velocity_dipole(self, N: int, M: int) -> numpy.ndarray:
         try:
             if self._has_transition_velocity:
                 return self.dvmoments[N, M, :]
@@ -779,14 +781,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             raise Exception()
 
 
-    def get_magnetic_dipole(self, N, M):
+    def get_magnetic_dipole(self, N: int, M: int) -> numpy.ndarray:
         try:
             return self.mmoments[N, M, :]
         except (IndexError, TypeError):
             raise Exception()
 
 
-    def set_dipole(self, N, M, vec=None):
+    def set_dipole(self, N: object, M: object, vec: object = None) -> None:
         if vec is None:
             n = N[0]
             m = N[1]
@@ -803,7 +805,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         except (IndexError, ValueError):
             raise Exception()
 
-    def set_velocity_dipole(self, N, M, vec=None):
+    def set_velocity_dipole(self, N: object, M: object, vec: object = None) -> None:
 
         if vec is None:
             n = N[0]
@@ -825,7 +827,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         except (IndexError, ValueError):
             raise Exception()
 
-    def set_velocity_dipole_from_dipole(self):
+    def set_velocity_dipole_from_dipole(self) -> None:
         # FIXME: use complex dipole velocity moment (pure imaginary qunatity)
         #try:
             for N in range(self.dmoments.shape[0]):
@@ -837,7 +839,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         #except:
             #raise Exception()
 
-    def set_magnetic_dipole(self, N, M, vec=None):
+    def set_magnetic_dipole(self, N: object, M: object, vec: object = None) -> None:
         # vec is probably in atomic units and our units are [Angstrom*1/fs*Debye]
 #        print(vec)
 
@@ -864,7 +866,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         except (IndexError, ValueError):
             raise Exception()
 
-    def set_magnetic_dipoleR(self, N, M, vec, RR=None):
+    def set_magnetic_dipoleR(self, N: object, M: object, vec: object, RR: object = None) -> None:
 
 
         if RR is None:
@@ -993,7 +995,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     #         raise Exception()
 
 
-    def set_transition_width(self, transition, width):
+    def set_transition_width(self, transition: tuple, width: float) -> None:
         """Sets the width of a given transition
 
 
@@ -1016,7 +1018,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.widths[transition[1], transition[0]] = cwidth
 
 
-    def get_transition_width(self, transition):
+    def get_transition_width(self, transition: tuple) -> float:
         """Returns the transition width
 
 
@@ -1035,7 +1037,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return self.widths[transition[0], transition[1]]
 
 
-    def set_transition_dephasing(self, transition, deph):
+    def set_transition_dephasing(self, transition: tuple, deph: float) -> None:
         """Sets the dephasing rate of a given transition
 
 
@@ -1056,7 +1058,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.dephs[transition[1], transition[0]] = deph
 
 
-    def get_transition_dephasing(self, transition):
+    def get_transition_dephasing(self, transition: tuple) -> float:
         """Returns the dephasing rate of a given transition
 
 
@@ -1072,7 +1074,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return self.dephs[transition[0], transition[1]]
 
 
-    def get_energy(self, N):
+    def get_energy(self, N: int) -> float:
         """Returns energy of the Nth state of the molecule
 
 
@@ -1102,7 +1104,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             raise Exception()
 
 
-    def set_energy(self, N, en):
+    def set_energy(self, N: int, en: float) -> None:
         """Sets the energy of the Nth state of the molecule
 
 
@@ -1136,7 +1138,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.elenergies[N] = self.convert_energy_2_internal_u(en)
 
 
-    def get_temperature(self):
+    def get_temperature(self) -> float:
         """Returns temperature of the molecule
 
         Checks if the setting of environments is consistent and than
@@ -1184,7 +1186,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         " an inconsisten temperature")
 
 
-    def check_temperature_consistent(self):
+    def check_temperature_consistent(self) -> bool:
         """Checks that the temperature is the same for all components
 
 
@@ -1235,7 +1237,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def set_diabatic_coupling(self, element, factor, shifts=None):
+    def set_diabatic_coupling(self, element: tuple, factor: list, shifts: list | None = None) -> None:
         """Sets off-diagobal elements of the diabatic potential matrix
 
         """
@@ -1268,7 +1270,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def _fill_hmatrix(self, HH, en0, coorval):
+    def _fill_hmatrix(self, HH: numpy.ndarray, en0: numpy.ndarray, coorval: numpy.ndarray) -> None:
         """Creates Hamiltonian matrix for given values of the coordinates
 
         """
@@ -1316,7 +1318,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                                             HH[ii,jj] += val[0]*qq
 
 
-    def get_potential_1D(self, mode, points, other_modes=None):
+    def get_potential_1D(self, mode: int, points: numpy.ndarray, other_modes: list | None = None) -> tuple:
         """Returns the one dimensional diabatic potentials
 
         """
@@ -1353,7 +1355,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return (pot, pot0)
 
 
-    def get_potential_2D(self, modes, points, other_modes=None):
+    def get_potential_2D(self, modes: list, points: list, other_modes: list | None = None) -> tuple:
         """Returns the two dimensional diabatic potentials
 
         """
@@ -1398,10 +1400,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def plot_potential_1D(self, mode, points, other_modes=None,
-                          nonint=True, states=None,
-                          energies=True, show=True,
-                          ylims=None):
+    def plot_potential_1D(self, mode: int, points: numpy.ndarray, other_modes: list | None = None,
+                          nonint: bool = True, states: list | None = None,
+                          energies: bool = True, show: bool = True,
+                          ylims: list | None = None) -> None:
         """Plots the potentials
 
         """
@@ -1439,8 +1441,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             plt.show()
 
 
-    def plot_stick_spectrum(self, xlims=None, ylims=None,
-                            show_zero_coupling=False, show=True):
+    def plot_stick_spectrum(self, xlims: list | None = None, ylims: list | None = None,
+                            show_zero_coupling: bool = False, show: bool = True) -> None:
         """Plots the stick spectrum of the molecule
 
         """
@@ -1469,8 +1471,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             plt.show()
 
 
-    def plot_dressed_sticks(self, dfce=None, xlims=None, nsteps=1000,
-                            show_zero_coupling=False, show=True):
+    def plot_dressed_sticks(self, dfce: object = None, xlims: list | None = None, nsteps: int = 1000,
+                            show_zero_coupling: bool = False, show: bool = True) -> None:
         """Plots a stick spectrum dessed by a supplied function
 
 
@@ -1515,7 +1517,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def get_diabatic_coupling(self, element):
+    def get_diabatic_coupling(self, element: tuple) -> list:
         """Returns list of coupling descriptors
 
         """
@@ -1533,7 +1535,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return []
 
 
-    def get_diabatic_shifts(self, order=1):
+    def get_diabatic_shifts(self, order: int = 1) -> None:
 
         raise Exception("Shifts not implemented")
 
@@ -1542,7 +1544,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def set_adiabatic_coupling(self,state1,state2,coupl):
+    def set_adiabatic_coupling(self, state1: int, state2: int, coupl: float) -> None:
         """Sets adiabatic coupling between two states
 
 
@@ -1558,7 +1560,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self._has_adiabatic[self.triangle.locate(state1,state2)] = True
 
 
-    def get_adiabatic_coupling(self,state1,state2):
+    def get_adiabatic_coupling(self, state1: int, state2: int) -> float:
         """Returns adiabatic coupling between two states
 
 
@@ -1568,7 +1570,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def get_electronic_natural_linewidth(self,N):
+    def get_electronic_natural_linewidth(self, N: int) -> float:
         """Returns natural linewidth of a given electronic state
 
         """
@@ -1577,7 +1579,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return self._nat_lifetime[N]
 
-    def _overlap_other(self, tpl1, tpl2, k):
+    def _overlap_other(self, tpl1: tuple, tpl2: tuple, k: int) -> float:
         dif = 0
         for i in range(len(tpl1)):
             if i != k:
@@ -1588,7 +1590,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return 0.0
 
 
-    def _overlap_all(self, tpl1, tpl2):
+    def _overlap_all(self, tpl1: tuple, tpl2: tuple) -> float:
         dif = 0
         for i in range(len(tpl1)):
             dif += numpy.abs(tpl1[i]-tpl2[i])
@@ -1600,7 +1602,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def get_Hamiltonian(self, multi=True, recalculate=False):
+    def get_Hamiltonian(self, multi: bool = True, recalculate: bool = False) -> object:
         """Returns the Hamiltonian of the Molecule object
 
 
@@ -1999,7 +2001,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return Hamiltonian(data=ham)
     """
 
-    def _sub_matrix_bounds(self,ldim):
+    def _sub_matrix_bounds(self, ldim: list) -> tuple:
         lbound = 0
         ub = numpy.zeros(self.nel,dtype=int)
         lb = numpy.zeros(self.nel,dtype=int)
@@ -2012,7 +2014,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             lbound = ubound
         return lb,ub
 
-    def _ham_dimension(self):
+    def _ham_dimension(self) -> tuple:
         """Returns internal information about the dimension of the Hamiltonian
 
         Works only for one mode per molecule.
@@ -2045,7 +2047,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def get_TransitionDipoleMoment(self, multi=True):
+    def get_TransitionDipoleMoment(self, multi: bool = True) -> object:
         """Returns the transition dipole moment operator
 
         """
@@ -2121,7 +2123,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
 
 
-    def get_SystemBathInteraction(self): #, timeAxis):
+    def get_SystemBathInteraction(self) -> object: #, timeAxis):
         """Returns a SystemBathInteraction object of the molecule
 
 
@@ -2257,7 +2259,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return sbi
 
 
-    def set_mode_environment(self, mode=0, elstate=0, corfunc=None):
+    def set_mode_environment(self, mode: int = 0, elstate: int | str = 0, corfunc: object = None) -> None:
         """Sets mode environment
 
 
@@ -2302,7 +2304,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             raise Exception("Unknown elstate.")
 
 
-    def get_mode_environment(self,mode,elstate):
+    def get_mode_environment(self, mode: int, elstate: int) -> object:
         """Returns mode environment
 
 
@@ -2333,7 +2335,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 #        ss = numpy.diag(numpy.ones_like(ee))
 #        return ee, ss
 
-    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
+    def _get_exciton_prop(self, adiabatic: object = None, HH_in: object = None) -> tuple:
 
         is_adiabatic = False
         adiabatic_noBath = False
@@ -2373,7 +2375,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the Molecule object
 
         """
@@ -2420,8 +2422,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return out
 
 
-    def liouville_pathways_1(self, eUt=None, ham=None, dtol=0.01, ptol=1.0e-3,
-                             etol=1.0e-6, verbose=0, lab=None):
+    def liouville_pathways_1(self, eUt: object = None, ham: object = None, dtol: float = 0.01, ptol: float = 1.0e-3,
+                             etol: float = 1.0e-6, verbose: int = 0, lab: object = None) -> list:
         """Generator of the first order Liouville pathways
 
 
@@ -2492,8 +2494,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return lst
 
-def generate_1orderP_sec(self, lst,
-                         pop_tol, dip_tol, verbose):
+def generate_1orderP_sec(self: object, lst: list,
+                         pop_tol: float, dip_tol: float, verbose: int) -> None:
 
     ngs = (0) # self.get_electronic_groundstate()
     nes = (1) #self.get_excitonic_band(band=1)
@@ -2573,9 +2575,9 @@ def generate_1orderP_sec(self, lst,
 
 
 
-def PiMolecule(Molecule):
+def PiMolecule(Molecule: type) -> None:  # type: ignore[misc]
 
-    def __init__(self, name=None, elenergies=None, data=None):
+    def __init__(self, name: str | None = None, elenergies: list | None = None, data: object = None) -> None:
         if elenergies is None:
             elenergies = [0.0, 1.0]
         super().__init__(name=None, elenergies=[0.0,1.0], data=None)

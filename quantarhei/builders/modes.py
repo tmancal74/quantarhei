@@ -20,6 +20,8 @@ Class Details
 
 """
 
+from __future__ import annotations
+
 import numpy
 
 from ..core.managers import UnitsManaged, energy_units
@@ -72,7 +74,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
     # is the monomer for this mode set?
     monomer_set = Bool('monomer_set')
 
-    def __init__(self, frequency=1.0):
+    def __init__(self, frequency: float = 1.0) -> None:
 
         # this holds a list of submods
         self.submodes = []
@@ -94,7 +96,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 #   MODE AS A PART OF A MOLECULE
 #
 
-    def set_Molecule(self, monomer):
+    def set_Molecule(self, monomer: object) -> None:
         """Assigns this mode to a given monomer.
 
         When set, the mode knows on how many electronic states
@@ -160,7 +162,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
     #
 
     @deprecated
-    def set_frequency(self, N, omega):
+    def set_frequency(self, N: int, omega: float) -> None:
         """Sets vibrational frequency
 
         Usage of this method is deprecated, use `set_energy` instead
@@ -194,7 +196,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         self.set_energy(N, omega)
 
 
-    def set_energy(self, N, omega):
+    def set_energy(self, N: int, omega: float) -> None:
         """Sets energy/frequency of the mode relative to a molecular state
 
 
@@ -226,7 +228,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         sbm.omega = self.convert_energy_2_internal_u(omega)
 
 
-    def set_shift(self, N, shift):
+    def set_shift(self, N: int, shift: float) -> None:
         """Sets the potential energy surface shift with respect to ground state
 
         The shift is dimensionless. frequency*(shift^2)/2 is the reorganization
@@ -256,7 +258,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         sbm.shift = shift
 
 
-    def set_nmax(self, N, nmax):
+    def set_nmax(self, N: int, nmax: int) -> None:
         """Sets maximum quantum number of the mode in an electronic state N
 
 
@@ -289,7 +291,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         sbm.nmax = nmax
 
 
-    def set_HR(self, N, hr):
+    def set_HR(self, N: int, hr: float) -> None:
         """Sets Huang-Rhys factor of the PES on the Nth electronic state
 
 
@@ -334,7 +336,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
     #
 
     @deprecated
-    def get_frequency(self, N):
+    def get_frequency(self, N: int) -> float:
         """Returns vibrational frequency
 
         Usage of this method is deprecated, use `get_energy` instead
@@ -363,7 +365,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         return self.get_energy(N)
 
 
-    def get_energy(self, N, no_conversion=True):
+    def get_energy(self, N: int, no_conversion: bool = True) -> float:
         """Returns frequency of the mode corresponding to Nth electronic state
 
 
@@ -399,7 +401,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         return self.convert_energy_2_current_u(self.submodes[N].omega)
 
 
-    def get_shift(self, N):
+    def get_shift(self, N: int) -> float:
         """Returns the shift of the PES of the mode at Nth electronic state
 
 
@@ -428,7 +430,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         return self.submodes[N].shift
 
 
-    def get_nmax(self, N):
+    def get_nmax(self, N: int) -> int:
         """Returns maximum quantum number of the mode at electronic state N
 
         Parameters
@@ -454,7 +456,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         return self.submodes[N].nmax
 
 
-    def get_HR(self, N):
+    def get_HR(self, N: int) -> float:
         """Returns Huang-Rhys factor of vib. mode in Nth electronic state
 
 
@@ -483,7 +485,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         return (self.submodes[N].shift**2)/2.0
 
 
-    def set_all(self, N, param):
+    def set_all(self, N: int, param: list) -> None:
         """Sets all the parameters of an intramolecular mode at once
 
 
@@ -532,7 +534,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         sbm.nmax  = param[2]
 
 
-    def get_SubMode(self, N):
+    def get_SubMode(self, N: int) -> object:
         """Returns the SubMode class of a give electronic state of the molecule
 
 
@@ -557,7 +559,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         return self.submodes[N]
 
 
-    def set_mode_environment(self, corfce):
+    def set_mode_environment(self, corfce: object) -> None:
         """Set linear interaction with a bosonic environment
 
 
@@ -566,7 +568,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         self.has_mode_environment = True
 
 
-    def get_mode_environment(self):
+    def get_mode_environment(self) -> object:
         """Returns interaction of this mode with a bosonic bath
 
         """

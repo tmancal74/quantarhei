@@ -1,6 +1,8 @@
 """PDB File representation
 
 """
+from __future__ import annotations
+
 import numpy
 
 from .molecules import Molecule
@@ -15,7 +17,7 @@ class PDBFile:
 
     """
 
-    def __init__(self, fname=None):
+    def __init__(self, fname: str | None = None) -> None:
 
         self.lines = []
         self.linecount = 0
@@ -33,13 +35,13 @@ class PDBFile:
         else:
             return
 
-    def _reset_helpers(self):
+    def _reset_helpers(self) -> None:
         self._resSeqs = []
         self._uniqueIds = []
         self._res_lines = dict()
         self._unique_lines = dict()
 
-    def load_file(self, fname):
+    def load_file(self, fname: str) -> int:
         """Loads a PDB file
 
         """
@@ -51,7 +53,7 @@ class PDBFile:
         return k
 
 
-    def get_Molecules(self, model=None):
+    def get_Molecules(self, model: object = None) -> list:
         """Returns all molecules corresponding to a given model
 
         """
@@ -129,7 +131,7 @@ class PDBFile:
 
         return molecules
 
-    def get_chainId(self,molecule):
+    def get_chainId(self, molecule: object) -> str | None:
         lines = molecule.data
         save = None
         for l in lines:
@@ -141,13 +143,13 @@ class PDBFile:
                 save = cid
         return save
 
-    def clear_Molecules(self):
+    def clear_Molecules(self) -> None:
         self.molecules = []
 
-    def _match_lines(self, by_recName=None,
-                     by_resName=None,
-                     by_resSeq=None,
-                     by_atmName=None):
+    def _match_lines(self, by_recName: str | None = None,
+                     by_resName: str | None = None,
+                     by_resSeq: int | None = None,
+                     by_atmName: str | None = None) -> list:
         """Matches a line with a given pattern
 
         """
@@ -163,19 +165,19 @@ class PDBFile:
         return matched_lines
 
 
-def line_resSeq(line):
+def line_resSeq(line: str) -> str:
     """Returns resSeq of the line
 
     """
     return line[_resSeq_min:_resSeq_max]
 
-def line_chainId(line):
+def line_chainId(line: str) -> str:
     """Returns chainId of a given line
 
     """
     return line[_chainId_min:_chainId_max]
 
-def line_xyz(line):
+def line_xyz(line: str) -> numpy.ndarray:
     """Returns coordinates of the line
 
     """
@@ -185,12 +187,12 @@ def line_xyz(line):
     return numpy.array([x,y,z])
 
 
-def line_matches(line,
-                 by_recName=None,
-                 by_resName=None,
-                 by_chainId=None,
-                 by_resSeq=None,
-                 by_atmName=None):
+def line_matches(line: str,
+                 by_recName: str | None = None,
+                 by_resName: str | None = None,
+                 by_chainId: str | None = None,
+                 by_resSeq: int | None = None,
+                 by_atmName: str | None = None) -> bool:
         """Matches a line for several possible patters
 
         """

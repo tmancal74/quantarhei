@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 import numpy
 
@@ -18,7 +19,7 @@ class HarmonicMode(SubMode, OpenSystem):
 
     """
 
-    def __init__(self, omega=1.0, shift=0.0, nmax=2):
+    def __init__(self, omega: float = 1.0, shift: float = 0.0, nmax: int = 2) -> None:
         super().__init__(omega=omega, shift=shift, nmax=nmax)
         self._has_sbi = False
         self._built = False
@@ -26,7 +27,7 @@ class HarmonicMode(SubMode, OpenSystem):
         self.RT = None
 
 
-    def build(self, nmax=None, build_relaxation=False):
+    def build(self, nmax: int | None = None, build_relaxation: bool = False) -> None:
         """Building all necessary quantities
 
 
@@ -76,7 +77,7 @@ class HarmonicMode(SubMode, OpenSystem):
         self._diagonalized = True
 
 
-    def diagonalize(self):
+    def diagonalize(self) -> None:
         """This problem is diagonal from the begining
 
         """
@@ -87,7 +88,7 @@ class HarmonicMode(SubMode, OpenSystem):
         self._diagonalized = True
 
 
-    def _setup_dipole_moment(self, N, ad, aa, ss=None, pfac=1.0):
+    def _setup_dipole_moment(self, N: int, ad: numpy.ndarray, aa: numpy.ndarray, ss: numpy.ndarray | None = None, pfac: float = 1.0) -> None:
 
         DD = numpy.zeros((N,N,3), dtype=REAL)
 
@@ -136,7 +137,7 @@ class HarmonicMode(SubMode, OpenSystem):
 
 
 
-    def set_mode_environment(self, environ, pdeph=None):
+    def set_mode_environment(self, environ: object, pdeph: float | None = None) -> None:
         """
 
         """
@@ -181,7 +182,7 @@ class AnharmonicMode(HarmonicMode):
 
 
     """
-    def __init__(self, omega=1.0, shift=0.0, nmax=2):
+    def __init__(self, omega: float = 1.0, shift: float = 0.0, nmax: int = 2) -> None:
         """In this case, omega is the difference between levels 1 and 0
 
         """
@@ -195,7 +196,7 @@ class AnharmonicMode(HarmonicMode):
         self._diagonalized = True
 
 
-    def set_anharmonicity(self, xi):
+    def set_anharmonicity(self, xi: float) -> None:
         """Sets the ocillator anharmonicity
 
         """
@@ -205,7 +206,7 @@ class AnharmonicMode(HarmonicMode):
         self.dom = self.om0 - self.omega
 
 
-    def get_anharmonicity(self, dom=None):
+    def get_anharmonicity(self, dom: float | None = None) -> float:
         """Returns the ahnarmonicity set previously, or calculates anharmonicity from frequency difference
 
         """
@@ -215,7 +216,7 @@ class AnharmonicMode(HarmonicMode):
         return dom_int/(2.0*(self.omega + dom_int))
 
 
-    def build(self, nmax=None, xi=None, build_relaxation=False):
+    def build(self, nmax: int | None = None, xi: float | None = None, build_relaxation: bool = False) -> None:
         """Building all necessary quantities"""
         # if provided, we reset nmax
         if nmax is not None:

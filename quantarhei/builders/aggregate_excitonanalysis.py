@@ -32,6 +32,8 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
 import numpy
 
 import quantarhei as qr
@@ -47,7 +49,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
     """
 
 
-    def get_expansion_squares(self, state=0):
+    def get_expansion_squares(self, state: int = 0) -> tuple:
         """Returns the squares of expansion coefficients of an excitonic state.
 
         The Aggregate must be built and diagonalized. This output is used by
@@ -78,7 +80,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         return indx, coefs, sqrs
 
 
-    def report_on_expansion(self, file=None, state=0, N=5):
+    def report_on_expansion(self, file: object = None, state: int = 0, N: int = 5) -> None:
         """Prints a short report on the composition of an exciton state
 
         Parameters
@@ -138,7 +140,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         print(table.table, file=file)
 
 
-    def get_intersite_mixing(self, state1=0, state2=0):
+    def get_intersite_mixing(self, state1: int = 0, state2: int = 0) -> float:
         """Returns inter site mixing ration
 
         Inter site mixing ratio gives the probability that
@@ -189,7 +191,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         return xi
 
 
-    def get_transition_dipole(self, state1=0, state2=0):
+    def get_transition_dipole(self, state1: int = 0, state2: int = 0) -> float:
         """Returns transition dipole moment between two state.
 
         If the second state is not specified, we get transition to the first
@@ -226,7 +228,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         raise Exception("Aggregate has to be diagonalized")
 
 
-    def get_state_energy(self, state=0):
+    def get_state_energy(self, state: int = 0) -> float:
         """Return the energy of a state with a given index
 
 
@@ -260,7 +262,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         raise Exception("Aggregate has to be diagonalized")
 
 
-    def exciton_report(self, file=None, start=1, stop=None, Nrep=5, criterium=None):
+    def exciton_report(self, file: object = None, start: int = 1, stop: int | None = None, Nrep: int = 5, criterium: object = None) -> None:
         """Prints a report on excitonic properties of the aggregate
 
         Parameters
@@ -370,7 +372,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
     #
 
     # FIXME: move it somewhere else
-    def get_state_signature_by_index(self, N):
+    def get_state_signature_by_index(self, N: int) -> tuple:
         """Return aggregate vibronic state signature  by its index
 
 
@@ -399,7 +401,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         return self.vibsigs[N]
 
 
-def _strip_max_coef(indx, sqrs):
+def _strip_max_coef(indx: list, sqrs: numpy.ndarray) -> tuple:
     """Returns the index of the maximum coefficient and the coefficient
     and sets the maximum value to zero.
 
