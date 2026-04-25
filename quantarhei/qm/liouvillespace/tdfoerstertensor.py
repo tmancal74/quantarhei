@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import numpy
+import numpy.typing
 
 #import matplotlib.pyplot as plt
 import scipy.interpolate as interp
@@ -20,13 +23,14 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
 
 
     """
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham: object, sbi: object, initialize: bool = True,
+                 cutoff_time: float | None = None) -> None:
 
         super().__init__(ham, sbi, initialize, cutoff_time)
 
         self.is_time_dependent = True
 
-    def initialize(self):
+    def initialize(self) -> None:
 
         tt = self.SystemBathInteraction.TimeAxis.data
         Nt = len(tt)
@@ -77,7 +81,7 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             self.add_dephasing()
 
 
-    def add_dephasing(self):
+    def add_dephasing(self) -> None:
 
 
         # line shape function derivatives
@@ -101,13 +105,19 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
 
 
 
-    def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):
+    def td_reference_implementation(self, Na: int, Nt: int,
+                                     HH: numpy.ndarray, tt: numpy.ndarray,
+                                     gt: numpy.ndarray,
+                                     ll: numpy.ndarray) -> numpy.ndarray:
         return _td_reference_implementation(Na, Nt, HH, tt,
                                             gt, ll, _td_fintegral)
 
 
 
-def _td_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
+def _td_reference_implementation(Na: int, Nt: int, HH: numpy.ndarray,
+                                  tt: numpy.ndarray, gt: numpy.ndarray,
+                                  ll: numpy.ndarray,
+                                  fce: object) -> numpy.ndarray:
 
     #
     # Rates between states a and b
@@ -124,7 +134,9 @@ def _td_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
     return KK
 
 
-def _td_fintegral(tt, gtd, gta, ed, ea, ld):
+def _td_fintegral(tt: numpy.ndarray, gtd: numpy.ndarray,
+                  gta: numpy.ndarray, ed: float, ea: float,
+                  ld: float) -> numpy.ndarray:
         """Time dependent Foerster integral
 
 
@@ -168,4 +180,3 @@ def _td_fintegral(tt, gtd, gta, ed, ea, ld):
         ret = 2.0*numpy.real(hoft)
 
         return ret
-

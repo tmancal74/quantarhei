@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy
 
 from ...core.managers import Manager, energy_units
@@ -32,8 +34,9 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
 
 
     """
-    def __init__(self, ham, sbi, initialize=True,
-                 cutoff_time=None, coupling_cutoff=None):
+    def __init__(self, ham: object, sbi: object, initialize: bool = True,
+                 cutoff_time: float | None = None,
+                 coupling_cutoff: float | None = None) -> None:
 
         # non-zero coupling cut-off requires a calculation of both Redfield
         # and Foerster contributions
@@ -52,7 +55,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
                 self._reference_implementation()
 
 
-    def _reference_implementation(self):
+    def _reference_implementation(self) -> None:
         """Reference all Python implementation
 
         """
@@ -191,4 +194,3 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
 #        """
 #        super().transform(SS, inv)
 #        self._data_initialized = True
-
