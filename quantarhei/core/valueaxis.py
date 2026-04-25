@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Linear array of values which are used as variables of numerical functions
 and parameter dependent matrices
 

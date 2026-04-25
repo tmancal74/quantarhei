@@ -123,7 +123,7 @@ class StateVectorPropagator:
     def _propagate_short_exp_nonlin(
         self, psii: Any, hfce: Any, L: int = 4
     ) -> StateVectorEvolution:
-        """Short exp integration with non-linear "Hamiltonian" """
+        """Short exp integration with non-linear "Hamiltonian"."""
         # here we will store the results
         pr = StateVectorEvolution(self.timeaxis, psii)
 
