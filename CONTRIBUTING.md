@@ -9,10 +9,16 @@ git clone https://github.com/tmancal74/quantarhei
 cd quantarhei
 pip install -e .
 pip install -r requirements_devel.txt
-pre-commit install
 ```
 
-`pre-commit install` wires up the code quality hooks so they run automatically on every commit. You only need to do this once per clone.
+Before pushing, make sure the code is formatted and lint-clean:
+
+```bash
+ruff format quantarhei/
+ruff check quantarhei/ --fix
+```
+
+CI enforces both — a push with unformatted or unlinted code will fail the lint job.
 
 ## Running tests
 
@@ -36,21 +42,23 @@ CI runs all three suites on Python 3.10, 3.11, and 3.12. Please verify unit test
 
 The repository uses three tools to enforce code quality. All three are installed by `pip install -r requirements_devel.txt`.
 
-### pre-commit
+### pre-commit (optional)
 
-[pre-commit](https://pre-commit.com) runs lightweight checks automatically on every commit. After installing the dev requirements, wire it up once per clone:
+[pre-commit](https://pre-commit.com) can run all checks automatically on every commit. It is **optional** — CI is the authoritative gate, not pre-commit.
+
+**Why you might skip it:** the formatter and linter hooks auto-fix files but then block the commit (because the files changed), so you have to `git add` the fixes and commit again. Many developers find this annoying, especially on quick fixup commits. The recommended alternative is to configure format-on-save in your editor (the [Ruff VS Code extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) does this) and run `ruff format` + `ruff check --fix` manually before pushing.
+
+If you do want hooks, install them once per clone:
 
 ```bash
 pre-commit install
 ```
 
-To run the full suite manually (same as CI):
+Or run the full suite manually at any time:
 
 ```bash
 pre-commit run --all-files
 ```
-
-Hooks check for: valid YAML/TOML, valid Python AST, merge conflict markers, accidentally large files, leftover debug statements, ruff lint violations, and mypy type errors.
 
 ### ruff
 
