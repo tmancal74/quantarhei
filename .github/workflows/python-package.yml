@@ -7,6 +7,21 @@ on:
     branches: [ "master" ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+    - name: Install pre-commit and ruff
+      run: pip install pre-commit ruff
+    - name: Check formatting
+      run: ruff format --check quantarhei/
+    - name: Run pre-commit hooks
+      run: pre-commit run --all-files
+
   build:
 
     runs-on: ubuntu-latest

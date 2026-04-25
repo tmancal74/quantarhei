@@ -1,28 +1,28 @@
-# -*- coding: utf-8 -*-
-"""
-    Laboratory set-up for non-linear spectroscopy
+"""Laboratory set-up for non-linear spectroscopy
 
-    This class controls calculations of non-linear optical spectra, and
-    other experiments in which laboratory setting needs to be controlled.
-    Examples are pulse polarization setting, pulse shapes and spectra
-    in non-linear spectroscopy.
+This class controls calculations of non-linear optical spectra, and
+other experiments in which laboratory setting needs to be controlled.
+Examples are pulse polarization setting, pulse shapes and spectra
+in non-linear spectroscopy.
 
 
-    Class Details
-    -------------
+Class Details
+-------------
 
 """
+
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
-from functools import partial
 
+from .. import REAL, Manager
+from ..core.dfunction import DFunction
+from ..core.frequency import FrequencyAxis
+from ..core.time import TimeAxis
 from ..utils import Integer
 from ..utils.vectors import X
-from ..core.time import TimeAxis
-from ..core.frequency import FrequencyAxis
-from ..core.dfunction import DFunction
-from .. import REAL, COMPLEX
-from .. import Manager
 
 
 class LabSetup:
@@ -38,7 +38,6 @@ class LabSetup:
 
     Parameters
     ----------
-
     nopulses : int
         Number of pulses in the experiment. Default is 3.
 
@@ -48,19 +47,20 @@ class LabSetup:
 
     number_of_pulses = Integer("number_of_pulses")
 
-    def __init__(self, nopulses = 3):
+    def __init__(self, nopulses: int = 3) -> None:
 
         # number of pulses in the set-up
         self.number_of_pulses = nopulses
         self.pulse_effects = "rescale_dip"  # Pulse shape effects accounted
-                                        # for by rescaling transition dipoles
-                                        # When the pulses are not defined no
-                                        # rescaling is used.
+        # for by rescaling transition dipoles
+        # When the pulses are not defined no
+        # rescaling is used.
 
         # orientational averaging matrix for four-wave-mixing
-        self.M4 = numpy.array([[4.0, -1.0, -1.0],
-                               [-1.0, 4.0, -1.0],
-                               [-1.0,-1.0,  4.0]])/30.0
+        self.M4 = (
+            numpy.array([[4.0, -1.0, -1.0], [-1.0, 4.0, -1.0], [-1.0, -1.0, 4.0]])
+            / 30.0
+        )
 
         # auxiliary matrix for orientational averaging
         self.F4eM4 = None
@@ -71,7 +71,6 @@ class LabSetup:
         self.timeaxis = None
         self.freqaxis = None
 
-
         self.has_polarizations = False
         self.has_freqdomain = False
         self.has_timedomain = False
@@ -80,8 +79,8 @@ class LabSetup:
         self.axis_type = None
 
         # pulses in time- and frequency domain
-        self.pulse_t = [None]*nopulses
-        self.pulse_f = [None]*nopulses
+        self.pulse_t = [None] * nopulses
+        self.pulse_f = [None] * nopulses
 
         self._field_set = False
 
@@ -96,24 +95,18 @@ class LabSetup:
         self._centers_set = False
         self.phases = numpy.zeros(nopulses, dtype=REAL)
         self.delay_phases = numpy.zeros(nopulses, dtype=REAL)
-        self.e = numpy.zeros((nopulses,3), dtype=REAL)
+        self.e = numpy.zeros((nopulses, 3), dtype=REAL)
 
         self.saved_params = None
 
-
-    def reset_pulse_shape(self):
-        """Recalculates the pulse shapes
-
-        """
-
+    def reset_pulse_shape(self) -> None:
+        """Recalculates the pulse shapes"""
         if self.saved_params is not None:
             self.set_pulse_shapes(self.timeaxis, self.saved_params)
-        #else:
+        # else:
         #    raise Exception("Pulse shapes must be set first.")
 
-
-
-    def set_pulse_shapes(self, axis, params):
+    def set_pulse_shapes(self, axis: Any, params: Any) -> None:
         """Sets the pulse properties
 
 
@@ -125,7 +118,6 @@ class LabSetup:
 
         Parameters
         ----------
-
         axis : TimeAxis or FrequencyAxis
             Quantarhei time axis object, which specifies the values for which
             pulse properties are defined. If `TimeAxis` is specified, the
@@ -152,7 +144,7 @@ class LabSetup:
 
             The same formulae are used for time- and frequency domain
             definitions. For time domain, :math:`t` should be used in stead of
-            :math:`\omega`.
+            :math:`\\omega`.
 
             **numeric** pulse is specified by a second parameters `function`
             which should be of DFunction type and specifies line shape around
@@ -161,7 +153,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> import matplotlib.pyplot as plt
         >>> lab = LabSetup()
@@ -321,15 +312,16 @@ class LabSetup:
 
 
         """
-
         if isinstance(axis, TimeAxis):
             if axis.atype == "complete":
                 self.timeaxis = axis
                 self.axis_type = "time"
             else:
-                raise Exception("TimeAxis has to be of 'complete' type"+
-                                " use atype='complete' as a parameter"+
-                                " of TimeAxis")
+                raise Exception(
+                    "TimeAxis has to be of 'complete' type"
+                    " use atype='complete' as a parameter"
+                    " of TimeAxis"
+                )
 
         elif isinstance(axis, FrequencyAxis):
             self.freqaxis = axis
@@ -338,23 +330,18 @@ class LabSetup:
         else:
             raise Exception("Wrong axis paramater")
 
-
         if not self._centers_set:
-            #print("Use 'set_pulse_arrival_times' function before this function.")
-            #raise Exception("Pulse arrival times have to specified before "+
+            # print("Use 'set_pulse_arrival_times' function before this function.")
+            # raise Exception("Pulse arrival times have to specified before "+
             #                "the pulse shape is set.")
             self.set_pulse_arrival_times([0.0 for ii in range(self.number_of_pulses)])
 
-
         if len(params) == self.number_of_pulses:
-
             self.saved_params = params
 
             k_p = 0
             for par in params:
-
                 if par["ptype"] == "Gaussian":
-
                     if self.axis_type == "time":
                         #
                         # Time domain Gaussian pulse around 0.0 as a DFunction
@@ -366,15 +353,18 @@ class LabSetup:
                         tc = self.pulse_centers[k_p]
 
                         # normalized Gaussian mupliplied by amplitude
-                        lfc = 4.0*numpy.log(2.0)
+                        lfc = 4.0 * numpy.log(2.0)
                         pi = numpy.pi
-                        val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/pi) \
-                        *amp*numpy.exp(-lfc*((tma.data-tc)/fwhm)**2)
+                        val = (
+                            (2.0 / fwhm)
+                            * numpy.sqrt(numpy.log(2.0) / pi)
+                            * amp
+                            * numpy.exp(-lfc * ((tma.data - tc) / fwhm) ** 2)
+                        )
 
                         self.pulse_t[k_p] = DFunction(tma, val)
 
                     elif self.axis_type == "frequency":
-
                         #
                         # Frequency domain Gaussian pulse around its central frequency
                         # as a DFunction
@@ -389,17 +379,23 @@ class LabSetup:
                         amp = par["amplitude"]
 
                         # normalized Gaussian mupliplied by amplitude
-                        val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/numpy.pi) \
-                        *amp*numpy.exp(-4.0*numpy.log(2.0)*((fra.data-pcentr)/fwhm)**2)
+                        val = (
+                            (2.0 / fwhm)
+                            * numpy.sqrt(numpy.log(2.0) / numpy.pi)
+                            * amp
+                            * numpy.exp(
+                                -4.0
+                                * numpy.log(2.0)
+                                * ((fra.data - pcentr) / fwhm) ** 2
+                            )
+                        )
 
                         self.pulse_f[k_p] = DFunction(fra, val)
 
                 elif par["ptype"] == "numeric":
-
                     fce = par["function"]
 
                     if self.axis_type == "time":
-
                         #
                         # Create a new DFunction based on the submitted time
                         # axis
@@ -413,7 +409,6 @@ class LabSetup:
                         self.pulse_t[k_p] = DFunction(self.timeaxis, data)
 
                     elif self.axis_type == "frequency":
-
                         data = numpy.zeros(self.freqaxis.length)
                         i_p = 0
                         for t_p in self.freqaxis.data:
@@ -421,7 +416,6 @@ class LabSetup:
                             i_p += 1
 
                         self.pulse_f[k_p] = DFunction(self.freqaxis, data)
-
 
                 else:
                     raise Exception("Unknown pulse type")
@@ -436,20 +430,19 @@ class LabSetup:
             self._field_set = True
 
         else:
-            text = "set_pulses requires "+str(self.number_of_pulses) \
-                    +" parameter sets"
+            text = (
+                "set_pulses requires " + str(self.number_of_pulses) + " parameter sets"
+            )
             raise Exception(text)
 
-
-
-    def set_pulse_polarizations(self, pulse_polarizations=(X, X, X),
-                         detection_polarization=X):
+    def set_pulse_polarizations(
+        self, pulse_polarizations: Any = (X, X, X), detection_polarization: Any = X
+    ) -> None:
         """Sets polarizations of the experimental pulses
 
 
         Parameters
         ----------
-
         pulse_polarization : tuple like
             Contains three vectors of polarization of the three pulses
             of the experiment. Currently we assume three pulse experiment
@@ -461,7 +454,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
@@ -483,37 +475,34 @@ class LabSetup:
 
         """
         if len(pulse_polarizations) == self.number_of_pulses:
-
-            self.e = numpy.zeros((4,3))
+            self.e = numpy.zeros((4, 3))
             for i in range(3):
-                self.e[i,:] = pulse_polarizations[i]
-            self.e[3,:] = detection_polarization
+                self.e[i, :] = pulse_polarizations[i]
+            self.e[3, :] = detection_polarization
 
             e = self.e
 
             F4e = numpy.zeros(3)
-            F4e[0] = numpy.dot(e[3,:],e[2,:])*numpy.dot(e[1,:],e[0,:])
-            F4e[1] = numpy.dot(e[3,:],e[1,:])*numpy.dot(e[2,:],e[0,:])
-            F4e[2] = numpy.dot(e[3,:],e[0,:])*numpy.dot(e[2,:],e[1,:])
+            F4e[0] = numpy.dot(e[3, :], e[2, :]) * numpy.dot(e[1, :], e[0, :])
+            F4e[1] = numpy.dot(e[3, :], e[1, :]) * numpy.dot(e[2, :], e[0, :])
+            F4e[2] = numpy.dot(e[3, :], e[0, :]) * numpy.dot(e[2, :], e[1, :])
 
-            self.F4eM4 = numpy.dot(F4e,self.M4)
-
+            self.F4eM4 = numpy.dot(F4e, self.M4)
 
         else:
-            text = "pulse_polarizations requires "+ \
-                    str(self.number_of_pulses)+" values"
+            text = (
+                "pulse_polarizations requires " + str(self.number_of_pulses) + " values"
+            )
             raise Exception(text)
 
         self.detection_polarization = detection_polarization
 
-
-    def get_pulse_polarizations(self):
+    def get_pulse_polarizations(self) -> list[Any]:
         """Returns polarizations of the laser pulses
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
@@ -526,18 +515,16 @@ class LabSetup:
         """
         pols = []
         for i in range(self.number_of_pulses):
-            pols.append(self.e[i,:])
+            pols.append(self.e[i, :])
 
         return pols
 
-
-    def get_detection_polarization(self):
+    def get_detection_polarization(self) -> Any:
         """Returns detection polarizations
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> lab.set_pulse_polarizations(pulse_polarizations=(qr.utils.vectors.X,
@@ -548,17 +535,15 @@ class LabSetup:
         [ 1.  0.  0.]
 
         """
-        return self.e[3,:]
+        return self.e[3, :]
 
-
-    def convert_to_time(self):
+    def convert_to_time(self) -> None:
         """Converts pulse information from frequency domain to time domain
 
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> import matplotlib.pyplot as plt
         >>> lab = LabSetup()
@@ -650,7 +635,6 @@ class LabSetup:
 
         """
         if self.has_freqdomain:
-
             freq = self.freqaxis
             time = freq.get_TimeAxis()
 
@@ -668,18 +652,15 @@ class LabSetup:
             self.has_timedomain = True
 
         else:
-            raise Exception("Cannot convert to time domain: "+
-                            "frequency domain not set")
+            raise Exception("Cannot convert to time domain: frequency domain not set")
 
-
-    def convert_to_frequency(self):
+    def convert_to_frequency(self) -> None:
         """Converts pulse information from time domain to frequency domain
 
 
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> time = qr.TimeAxis(-100,200,1.0, atype="complete")
@@ -727,7 +708,6 @@ class LabSetup:
 
         """
         if self.has_timedomain:
-
             time = self.timeaxis
             freq = time.get_FrequencyAxis()
 
@@ -745,17 +725,14 @@ class LabSetup:
             self.has_freqdomain = True
 
         else:
-            raise Exception("Cannot convert to frequency domain: "+
-                            "time domain not set")
+            raise Exception("Cannot convert to frequency domain: time domain not set")
 
-
-    def get_pulse_envelop(self, k, t):
+    def get_pulse_envelop(self, k: int, t: Any) -> Any:
         """Returns a numpy array with the pulse time-domain envelope
 
 
         Parameters
         ----------
-
         k : int
             Index of the pulse to be returned
 
@@ -765,7 +742,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> time = qr.TimeAxis(-100, 200, 1.0, atype="complete")
@@ -809,13 +785,11 @@ class LabSetup:
         """
         return self.pulse_t[k].at(t)
 
-
-    def get_pulse_spectrum(self, k, omega):
+    def get_pulse_spectrum(self, k: int, omega: Any) -> Any:
         """Returns a numpy array with the pulse frequency-domain spectrum
 
         Parameters
         ----------
-
         k : int
             Index of the pulse to be returned
 
@@ -825,7 +799,6 @@ class LabSetup:
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> lab = LabSetup()
         >>> freq = qr.FrequencyAxis(-2500, 1000, 5.0)
@@ -871,20 +844,17 @@ class LabSetup:
         """
         return self.pulse_f[k].at(omega)
 
-
-    def set_pulse_frequencies(self, omegas):
+    def set_pulse_frequencies(self, omegas: Any) -> None:
         """Sets pulse frequencies
 
 
         Parameters
         ----------
-
         omegas : array of floats
             Frequencies of pulses
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_frequencies([1.0, 2.0, 1.0])
         >>> print(lab.omega)
@@ -899,29 +869,29 @@ class LabSetup:
         Exception: Wrong number of frequencies: 3 required
 
         """
-
         # FIXME: energy unit control has to be in place
         if len(omegas) == self.number_of_pulses:
-
-            self.omega = Manager().convert_energy_2_internal_u(numpy.array(omegas, dtype=REAL))
+            self.omega = Manager().convert_energy_2_internal_u(
+                numpy.array(omegas, dtype=REAL)
+            )
 
         else:
-            raise Exception("Wrong number of frequencies: "+
-                            str(self.number_of_pulses)+" required")
+            raise Exception(
+                "Wrong number of frequencies: "
+                + str(self.number_of_pulses)
+                + " required"
+            )
 
-
-    def get_pulse_frequency(self, k):
+    def get_pulse_frequency(self, k: int) -> Any:
         """Returns frequency of the pulse with index k
 
         Parameters
         ----------
-
         k : int
             Pulse index
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_frequencies([1.0, 2.0, 1.0])
         >>> print(lab.get_pulse_frequency(1))
@@ -930,19 +900,16 @@ class LabSetup:
         """
         return self.omega[k]
 
-
-    def set_pulse_arrival_times(self, times):
+    def set_pulse_arrival_times(self, times: Any) -> None:
         """Sets the arrival time (i.e. centers) of the pulses
 
         Parameters
         ----------
-
         times : array of floats
             Arrival times (centers) of the pulses
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
         >>> print(lab.pulse_centers)
@@ -958,23 +925,23 @@ class LabSetup:
 
         """
         if len(times) == self.number_of_pulses:
-
             self.pulse_centers = times
             self._centers_set = True
             self.reset_pulse_shape()
 
         else:
-            raise Exception("Wrong number of arrival times: "+
-                            str(self.number_of_pulses)+" required")
+            raise Exception(
+                "Wrong number of arrival times: "
+                + str(self.number_of_pulses)
+                + " required"
+            )
 
-
-    def get_pulse_arrival_times(self):
+    def get_pulse_arrival_times(self) -> Any:
         """Returns frequency of the pulse with index k
 
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
         >>> print(lab.get_pulse_arrival_times())
@@ -983,19 +950,16 @@ class LabSetup:
         """
         return self.pulse_centers
 
-
-    def get_pulse_arrival_time(self, k):
+    def get_pulse_arrival_time(self, k: int) -> Any:
         """Returns frequency of the pulse with index k
 
         Parameters
         ----------
-
         k : int
             Pulse index
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_arrival_times([1.0, 20.0, 100.0])
         >>> print(lab.get_pulse_arrival_time(1))
@@ -1004,19 +968,16 @@ class LabSetup:
         """
         return self.pulse_centers[k]
 
-
-    def set_pulse_phases(self, phases):
+    def set_pulse_phases(self, phases: Any) -> None:
         """Sets the phases of the individual pulses
 
         Parameters
         ----------
-
         phases : array of floats
             Phases of the pulses
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
         >>> print(lab.phases)
@@ -1032,21 +993,19 @@ class LabSetup:
 
         """
         if len(phases) == self.number_of_pulses:
-
             self.phases = phases
 
         else:
-            raise Exception("Wrong number of phases: "+
-                            str(self.number_of_pulses)+" required")
+            raise Exception(
+                "Wrong number of phases: " + str(self.number_of_pulses) + " required"
+            )
 
-
-    def get_pulse_phases(self):
+    def get_pulse_phases(self) -> Any:
         """Returns frequency of the pulse with index k
 
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
         >>> print(lab.get_pulse_phases())
@@ -1055,19 +1014,16 @@ class LabSetup:
         """
         return self.phases
 
-
-    def get_pulse_phase(self, k):
+    def get_pulse_phase(self, k: int) -> Any:
         """Returns frequency of the pulse with index k
 
         Parameters
         ----------
-
         k : int
             Pulse index
 
         Examples
         --------
-
         >>> lab = LabSetup()
         >>> lab.set_pulse_phases([1.0, 3.14, -1.0])
         >>> print(lab.get_pulse_phase(1))
@@ -1075,7 +1031,6 @@ class LabSetup:
 
         """
         return self.phases[k]
-
 
     # def get_field(self, k, rwa=0.0):
     #     """Returns an EField object corresponding to the k-th field
@@ -1087,7 +1042,6 @@ class LabSetup:
     #     ef.subtract_frequency(rwa)
 
     #     return ef
-
 
     # def get_fields(self, rwa=0.0):
     #     """Retruns a list of EField objects for the lab's pulses
@@ -1102,48 +1056,36 @@ class LabSetup:
 
     #     return fields
 
-    def get_labfield(self, k):
+    def get_labfield(self, k: int) -> LabField:
         return LabField(self, k)
 
-
-
-    def get_labfields(self):
-        """Retruns a list of EField objects for the lab's pulses
-
-        """
-
-        fields = [None]*self.number_of_pulses
+    def get_labfields(self) -> list[Any]:
+        """Retruns a list of EField objects for the lab's pulses"""
+        fields = [None] * self.number_of_pulses
 
         for kk in range(self.number_of_pulses):
-
             ff = self.get_labfield(kk)
             fields[kk] = ff
 
         return fields
 
-
-    def set_rwa(self, om):
+    def set_rwa(self, om: float) -> None:
 
         self.saved_omega = numpy.zeros((self.number_of_pulses), dtype=REAL)
 
         self.saved_omega[:] = self.omega[:]
         self.omega[:] -= om
 
-    def restore_rwa(self):
+    def restore_rwa(self) -> None:
 
         if self.saved_omega is None:
             raise Exception("RWA has to be set first")
 
         self.omega[:] = self.saved_omega[:]
 
-
-    def get_field(self, kk=None, rwa_frequency=None):
-        """Returns the total field of the lab or a single field
-
-        """
-
+    def get_field(self, kk: Any = None, rwa_frequency: Any = None) -> Any:
+        """Returns the total field of the lab or a single field"""
         if kk is None:
-
             flds = self.get_labfields()
 
             kk = 0
@@ -1155,31 +1097,23 @@ class LabSetup:
                 kk += 1
 
         else:
-
             fl = self.get_labfield(kk)
             fld = fl.get_field()
-
 
         if rwa_frequency is not None:
             ome = Manager().convert_energy_2_internal_u(rwa_frequency)
             tt = self.timeaxis.data
-            arg = 1j*ome*tt
-            fld = fld*numpy.exp(arg)
+            arg = 1j * ome * tt
+            fld = fld * numpy.exp(arg)
 
         return fld
 
-
-
-    def get_field_derivative(self):
-        """ Returns the time derivative of the total field
-
-        """
-
+    def get_field_derivative(self) -> Any:
+        """Returns the time derivative of the total field"""
         flds = self.get_labfields()
 
         kk = 0
         for fl in flds:
-
             if kk == 0:
                 fld_d = fl.get_field_derivative()
             else:
@@ -1190,7 +1124,6 @@ class LabSetup:
         return fld_d
 
 
-
 class labsetup(LabSetup):
     """labsetup is just a different name for the class LabSetup.
 
@@ -1198,91 +1131,82 @@ class labsetup(LabSetup):
     of the LabSetup
 
     """
+
     pass
 
 
-
-def _labattr(name, target, flag=None):
-    """Pointer to a field attribute of the LabSep object
-
-    """
-
+def _labattr(name: str, target: str, flag: Any = None) -> Any:
+    """Pointer to a field attribute of the LabSep object"""
     storage_name = target
     access_flag = flag
 
     @property
-    def prop(self):
-        at = getattr(self.labsetup,storage_name)
+    def prop(self: Any) -> Any:
+        at = getattr(self.labsetup, storage_name)
         return at[self.index]
 
     @prop.setter
-    def prop(self,value):
-        at = getattr(self.labsetup,storage_name)
+    def prop(self: Any, value: Any) -> None:
+        at = getattr(self.labsetup, storage_name)
         if access_flag is not None:
             setattr(self, access_flag, True)
         at[self.index] = value
 
     return prop
 
-def _labarray(name, target):
-    """Pointer to a field array attribute of the LabSep object
 
-    """
-
+def _labarray(name: str, target: str) -> Any:
+    """Pointer to a field array attribute of the LabSep object"""
     storage_name = target
 
     @property
-    def prop(self):
-        at = getattr(self.labsetup,storage_name)
-        return at[self.index,:]
+    def prop(self: Any) -> Any:
+        at = getattr(self.labsetup, storage_name)
+        return at[self.index, :]
 
     @prop.setter
-    def prop(self,value):
-        at = getattr(self.labsetup,storage_name)
-        at[self.index,:] = value
+    def prop(self: Any, value: Any) -> None:
+        at = getattr(self.labsetup, storage_name)
+        at[self.index, :] = value
 
     return prop
 
 
-def _fieldprop(name, flag, sign):
-    """Property returning field values over time
-
-    """
+def _fieldprop(name: str, flag: str, sign: int) -> Any:
+    """Property returning field values over time"""
     cmplx_sign = sign
 
     @property
-    def prop(self):
+    def prop(self: Any) -> Any:
         if getattr(self.labsetup, flag):
             if cmplx_sign == 1:
                 return self.get_field()
-            elif cmplx_sign == -1:
+            if cmplx_sign == -1:
                 return numpy.conj(self.get_field())
-            elif cmplx_sign == 0:
+            if cmplx_sign == 0:
                 fld = self.get_field()
-                return (fld + numpy.conj(fld))/2.0
-            else:
-                raise Exception("Only signs of -1, 0 and 1 are allowed.")
+                return (fld + numpy.conj(fld)) / 2.0
+            raise Exception("Only signs of -1, 0 and 1 are allowed.")
         else:
-            raise Exception("The property '"+name+"' is not initialited.")
+            raise Exception("The property '" + name + "' is not initialited.")
 
     @prop.setter
-    def prop(self, value):
-        raise Exception("The property '"+name+"' is protected"+
-                        " and cannot be set.")
+    def prop(self: Any, value: Any) -> None:
+        raise Exception(
+            "The property '" + name + "' is protected" + " and cannot be set."
+        )
 
     return prop
 
 
-def _get_example_lab():
-    """Returns a LabSetup instance for doctests
-
-    """
+def _get_example_lab() -> LabSetup:
+    """Returns a LabSetup instance for doctests"""
     lab = LabSetup(nopulses=3)
 
     return lab
 
 
-class LabField():
+class LabField:
     """Class representing electric field of a laser pulse defined in LabSetup
 
 
@@ -1294,7 +1218,6 @@ class LabField():
 
     Examples
     --------
-
     Only the number of pulses has to be specified when LabSetup is created.
 
     >>> lab = LabSetup(nopulses=3)
@@ -1456,17 +1379,16 @@ class LabField():
 
     """
 
-
-    phi = _labattr("phi","phases")
-    delay_phi = _labattr("delay_phi","delay_phases")
+    phi = _labattr("phi", "phases")
+    delay_phi = _labattr("delay_phi", "delay_phases")
     tc = _labattr("tc", "pulse_centers", flag="_center_changed")
     om = _labattr("om", "omega")
     pol = _labarray("pol", "e")
-    field_p = _fieldprop("field_p","_field_set", 1)
-    field_m = _fieldprop("field_p","_field_set", -1)
-    field = _fieldprop("field","_field_set", 0)
+    field_p = _fieldprop("field_p", "_field_set", 1)
+    field_m = _fieldprop("field_p", "_field_set", -1)
+    field = _fieldprop("field", "_field_set", 0)
 
-    def __init__(self, labsetup, k):
+    def __init__(self, labsetup: Any, k: int) -> None:
 
         self.labsetup = labsetup
         self.index = k
@@ -1475,33 +1397,23 @@ class LabField():
         # delay phase
         self.set_delay_phase(self.tc)
 
-
-    def get_phase(self):
-        """Returns the phase of the pulse
-
-        """
+    def get_phase(self) -> Any:
+        """Returns the phase of the pulse"""
         return self.labsetup.phases[self.index]
 
-
-    def get_delay_phase(self):
-        """Returns the phase caused by the pulse delay
-
-        """
+    def get_delay_phase(self) -> Any:
+        """Returns the phase caused by the pulse delay"""
         return self.labsetup.delay_phases[self.index]
 
+    def get_total_phase(self) -> Any:
 
-    def get_total_phase(self):
+        return self.labsetup.delay_phases[self.index] + self.labsetup.phases[self.index]
 
-        return (self.labsetup.delay_phases[self.index]
-                +self.labsetup.phases[self.index])
-
-
-    def set_phase(self, val):
+    def set_phase(self, val: float) -> None:
         """Sets the phase of the pulse
 
         Parameters
         ----------
-
         val : float
 
 
@@ -1509,22 +1421,15 @@ class LabField():
         self.labsetup.phases[self.index] = val
         # FIXME: The pulse field has to be updated
 
-
-    def set_delay_phase(self, val):
-        """Returns the phase caused by the pulse delay
-
-        """
+    def set_delay_phase(self, val: float) -> None:
+        """Returns the phase caused by the pulse delay"""
         raise Exception("Setting delay phases independently is not allowed")
 
-
-    def get_center(self):
-        """Returns the pulse center time
-
-        """
+    def get_center(self) -> Any:
+        """Returns the pulse center time"""
         return self.labsetup.pulse_centers[self.index]
 
-
-    def set_center(self, val):
+    def set_center(self, val: float) -> None:
         """Sets the pulse center time
 
         val: float
@@ -1535,47 +1440,40 @@ class LabField():
 
         # calculate phase shift associated with the delay
         self.set_delay_phase(val)
-        #om = self.labsetup.omega[self.index]
-        #phi = val*om
-        #self.labsetup.delay_phases[self.index] = phi
+        # om = self.labsetup.omega[self.index]
+        # phi = val*om
+        # self.labsetup.delay_phases[self.index] = phi
 
         # reset the pulse shapes
         self.labsetup.reset_pulse_shape()
 
         self._center_changed = False
 
-
-    def set_delay_phase(self, val):
-        """Calculate and set delay phases
-
-        """
+    def set_delay_phase(self, val: float) -> None:  # type: ignore[no-redef]
+        """Calculate and set delay phases"""
         om = self.labsetup.omega[self.index]
-        phi = val*om
+        phi = val * om
 
-        #print("Setting delay phase of", phi, "val=",val, "om=", om)
+        # print("Setting delay phase of", phi, "val=",val, "om=", om)
         self.labsetup.delay_phases[self.index] = phi
 
-
-    def get_frequency(self):
+    def get_frequency(self) -> Any:
         return self.labsetup.omega[self.index]
 
-    def set_frequency(self, val):
+    def set_frequency(self, val: float) -> None:
         self.labsetup.omega[self.index] = val
 
-    def get_polarization(self):
-        return self.labsetup.e[self.index,:]
+    def get_polarization(self) -> Any:
+        return self.labsetup.e[self.index, :]
 
-    def set_polarization(self, pol):
-        self.labsetup.e[self.index,:] = pol
+    def set_polarization(self, pol: Any) -> None:
+        self.labsetup.e[self.index, :] = pol
 
-    def get_fwhm(self):
+    def get_fwhm(self) -> Any:
         return self.labsetup.saved_params[self.index]["FWHM"]
 
-
-    def get_field(self, time=None, sign=1):
-        """Returns the electric field of the pulses
-
-        """
+    def get_field(self, time: Any = None, sign: int = 1) -> Any:
+        """Returns the electric field of the pulses"""
         if self._center_changed:
             # recalculate pulses
             self.labsetup.reset_pulse_shape()
@@ -1587,84 +1485,75 @@ class LabField():
             om = self.om
             phi = self.phi
             delay_phi = self.delay_phi
-            #print(phi, delay_phi)
-            fld = env*numpy.exp(-1j*sign*om*tt)*numpy.exp(1j*sign*phi) \
-                     *numpy.exp(1j*sign*delay_phi)
+            # print(phi, delay_phi)
+            fld = (
+                env
+                * numpy.exp(-1j * sign * om * tt)
+                * numpy.exp(1j * sign * phi)
+                * numpy.exp(1j * sign * delay_phi)
+            )
             return fld
 
-        else:
-            return self.labsetup.pulse_t[self.index].at(time)
+        return self.labsetup.pulse_t[self.index].at(time)
 
-
-    def get_time_axis(self):
+    def get_time_axis(self) -> Any:
         return self.labsetup.timeaxis
 
-
-    def set_rwa(self, om):
+    def set_rwa(self, om: float) -> None:
 
         self.labsetup.set_rwa(om)
 
-
-    def restore_rwa(self):
+    def restore_rwa(self) -> None:
 
         self.labsetup.restore_rwa()
 
-
-    def as_spline_function(self):
-        """Returns the spline represention of this field
-
-        """
+    def as_spline_function(self) -> Any:
+        """Returns the spline represention of this field"""
         df = DFunction(self.labsetup.timeaxis, self.get_field())
         return df.as_spline_function()
 
-
-    def get_pulse_envelop(self, tt):
-        """Returns the envelop values
-
-
-        """
-
-        #tma = self.timeaxis
+    def get_pulse_envelop(self, tt: Any) -> Any:
+        """Returns the envelop values"""
+        # tma = self.timeaxis
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
             fwhm = self.labsetup.saved_params[self.index]["FWHM"]
             amp = self.labsetup.saved_params[self.index]["amplitude"]
 
-            #tc = self.pulse_centers[k_p]
+            # tc = self.pulse_centers[k_p]
 
             # normalized Gaussian mupliplied by amplitude
-            lfc = 4.0*numpy.log(2.0)
+            lfc = 4.0 * numpy.log(2.0)
             pi = numpy.pi
-            val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/pi) \
-            *amp*numpy.exp(-lfc*(tt/fwhm)**2)
+            val = (
+                (2.0 / fwhm)
+                * numpy.sqrt(numpy.log(2.0) / pi)
+                * amp
+                * numpy.exp(-lfc * (tt / fwhm) ** 2)
+            )
 
             return val
 
-        else:
+        raise Exception()
 
-            raise Exception()
-
-
-    def get_pulse_envelop_function(self):
-        """Return a function to be called later
-
-
-        """
-
+    def get_pulse_envelop_function(self) -> Any:
+        """Return a function to be called later"""
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
             fwhm = self.labsetup.saved_params[self.index]["FWHM"]
             amp = self.labsetup.saved_params[self.index]["amplitude"]
-            lfc = 4.0*numpy.log(2.0)
+            lfc = 4.0 * numpy.log(2.0)
             pi = numpy.pi
 
-            def env(tt):
+            def env(tt: Any) -> Any:
 
-                val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/pi) \
-                    *amp*numpy.exp(-lfc*(tt/fwhm)**2)
+                val = (
+                    (2.0 / fwhm)
+                    * numpy.sqrt(numpy.log(2.0) / pi)
+                    * amp
+                    * numpy.exp(-lfc * (tt / fwhm) ** 2)
+                )
 
                 return val
 
             return env
 
-        else:
-
-            raise Exception()
+        raise Exception()

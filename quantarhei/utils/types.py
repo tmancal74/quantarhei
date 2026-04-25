@@ -1,126 +1,119 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
-from functools import partial
-import numpy
 import numbers
+from functools import partial
+from typing import Any
+
+import numpy
 
 
+def array_property(name: str, shape: tuple[int, ...] | None = None) -> Any:
+    """Controls the access to an array property of package classes"""
+    storage_name = "_" + name
 
-def array_property(name,shape=None):
-    """ Controls the access to an array property of package classes 
-    
-    
-    """
-    storage_name = '_'+name
-    
-    @property
-    def prop(self):
-        return getattr(self,storage_name)
-    
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> numpy.ndarray:
+        return getattr(self, storage_name)
+
     @prop.setter
-    def prop(self,value):
+    def prop(self: Any, value: Any) -> None:
         try:
             vl = check_numpy_array(value)
             if not (shape == None):
                 if not (shape == vl.shape):
-                    raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
-            setattr(self,storage_name,vl)
-        except:
-            raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
-        
+                    raise TypeError(f"{name} must be of shape {shape}")
+            setattr(self, storage_name, vl)
+        except TypeError:
+            raise TypeError(f"{name} must be either a list or numpy.array")
+
     return prop
-    
-    
-def units_managed_property(name, dtype):
+
+
+def units_managed_property(name: str, dtype: type) -> Any:
     """Scalar property with units managed
-    
+
     Warning: The type of the property depends on the object; The object
     has to be EnergyUnitsManaged or similar.
-    """    
-    storage_name = '_'+name
-    
-    @property
-    def prop(self): 
-        val = getattr(self,storage_name)
-        return self.convert_2_current_u(val) # This is a method defined in
-                                             # the class which handles units
-    @prop.setter
-    def prop(self,value):
-        if isinstance(value,dtype):
-            setattr(self,storage_name,self.convert_2_internal_u(value))
-        else:
-            raise TypeError(
-            '{} must be either a real or complex number')
-        
-    return prop         
-        
+    """
+    storage_name = "_" + name
 
-        
-def units_managed_array_property(name,dtype,shape=None):
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
+        val = getattr(self, storage_name)
+        return self.convert_2_current_u(val)  # This is a method defined in
+        # the class which handles units
+
+    @prop.setter
+    def prop(self: Any, value: Any) -> None:
+        if isinstance(value, dtype):
+            setattr(self, storage_name, self.convert_2_internal_u(value))
+        else:
+            raise TypeError("{} must be either a real or complex number")
+
+    return prop
+
+
+def units_managed_array_property(
+    name: str, dtype: type, shape: tuple[int, ...] | None = None
+) -> Any:
     """Array property with units managed
-    
+
     Warning: The type of the property depends on the object; The object
     has to be EnergyUnitsManaged or similar.
     """
-    
-    storage_name = '_'+name
-    
-    @property
-    def prop(self): 
-        val = getattr(self,storage_name)
-        return self.convert_2_current_u(val) # This is a method defined in
-                                             # the class which handles units
+    storage_name = "_" + name
 
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
+        val = getattr(self, storage_name)
+        return self.convert_2_current_u(val)  # This is a method defined in
+        # the class which handles units
 
     @prop.setter
-    def prop(self,value):
+    def prop(self: Any, value: Any) -> None:
 
         try:
             vl = check_numpy_array(value)
             if not (shape == None):
                 if not (shape == vl.shape):
-                    raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
-            setattr(self,storage_name,self.convert_2_internal_u(vl))
-        except:
-            raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
-        
-    return prop 
-    
-    
-def basis_managed_array_property(name,dtype,shape=None):
+                    raise TypeError(f"{name} must be of shape {shape}")
+            setattr(self, storage_name, self.convert_2_internal_u(vl))
+        except TypeError:
+            raise TypeError(f"{name} must be either a list or numpy.array")
 
-    storage_name = '_'+name
+    return prop
 
-    @property
-    def prop(self):
+
+def basis_managed_array_property(
+    name: str, dtype: type, shape: tuple[int, ...] | None = None
+) -> Any:
+
+    storage_name = "_" + name
+
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
 
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
         # get object's current basis
         ob = self.get_current_basis()
 
-                    
         if cb == ob:
-            pass 
+            pass
         else:
             # change basis
             self.manager.transform_to_current_basis(self)
-        
-        return getattr(self,storage_name)        
-        
-    
+
+        return getattr(self, storage_name)
+
     @prop.setter
-    def prop(self,value):
-        
+    def prop(self: Any, value: Any) -> None:
+
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
         # get object's current basis
         ob = self.get_current_basis()
-            
+
         if cb == ob:
             pass
         else:
@@ -131,54 +124,45 @@ def basis_managed_array_property(name,dtype,shape=None):
             vl = check_numpy_array(value)
             if not (shape == None):
                 if not (shape == vl.shape):
-                    raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
-            setattr(self,storage_name,vl)
-        except:
-            raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
-        
-    return prop        
-    
+                    raise TypeError(f"{name} must be of shape {shape}")
+            setattr(self, storage_name, vl)
+        except TypeError:
+            raise TypeError(f"{name} must be either a list or numpy.array")
 
-    
-    
-def managed_array_property(name,dtype,shape=None):
-    """Property with the units and basis management
-    
-    
-    """
+    return prop
 
-    storage_name = '_'+name
 
-    @property
-    def prop(self):
+def managed_array_property(
+    name: str, dtype: type, shape: tuple[int, ...] | None = None
+) -> Any:
+    """Property with the units and basis management"""
+    storage_name = "_" + name
+
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
 
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
         # get object's current basis
         ob = self.get_current_basis()
 
-                    
         if cb == ob:
-            pass 
+            pass
         else:
             # change basis
             self.manager.transform_to_current_basis(self)
-        
-        val = getattr(self,storage_name)
-        return self.convert_2_current_u(val)     
-        
-    
+
+        val = getattr(self, storage_name)
+        return self.convert_2_current_u(val)
+
     @prop.setter
-    def prop(self,value):
-        
+    def prop(self: Any, value: Any) -> None:
+
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
         # get object's current basis
         ob = self.get_current_basis()
-        
-            
+
         if cb == ob:
             pass
         else:
@@ -189,134 +173,121 @@ def managed_array_property(name,dtype,shape=None):
             vl = check_numpy_array(value)
             if not (shape == None):
                 if not (shape == vl.shape):
-                    raise TypeError(
-                    '{} must be of shape {}'.format(name,shape))  
-            setattr(self,storage_name,self.convert_2_internal_u(vl))
-        except:
-            raise TypeError(
-            '{} must be either a list or numpy.array'.format(name))
-        
-    return prop     
-    
+                    raise TypeError(f"{name} must be of shape {shape}")
+            setattr(self, storage_name, self.convert_2_internal_u(vl))
+        except TypeError:
+            raise TypeError(f"{name} must be either a list or numpy.array")
 
-def check_numpy_array(val):
-    """ Checks if argument is a numpy array. 
-    
+    return prop
+
+
+def check_numpy_array(val: Any) -> numpy.ndarray:
+    """Checks if argument is a numpy array.
+
     If the argument is a list, it converts it into numpy array. Otherwise,
     error occurs.
-    
+
     """
-    if isinstance(val,numpy.ndarray):
+    if isinstance(val, numpy.ndarray):
         return val
-    elif isinstance(val,list):
+    if isinstance(val, list):
         try:
             vl = numpy.array(val)
-        except:
-            raise TypeError('Numerical array is required')
+        except TypeError:
+            raise TypeError("Numerical array is required")
         return numpy.array(vl)
-    else:
-        raise TypeError('List or numpy.ndarray required')
-        
-        
-    
-def typed_property(name,dtype):
-    storage_name = '_'+name
-            
-    @property
-    def prop(self):
-        return getattr(self,storage_name)
-    
+    raise TypeError("List or numpy.ndarray required")
+
+
+def typed_property(name: str, dtype: type) -> Any:
+    storage_name = "_" + name
+
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
+        return getattr(self, storage_name)
+
     @prop.setter
-    def prop(self,value):
-        if isinstance(value,dtype):
-            setattr(self,storage_name,value)
+    def prop(self: Any, value: Any) -> None:
+        if isinstance(value, dtype):
+            setattr(self, storage_name, value)
         else:
-            raise TypeError('{} must be of type {}'.format(name,dtype))
-            
+            raise TypeError(f"{name} must be of type {dtype}")
+
     return prop
-    
-    
- 
-def list_of_typed_property(name,dtype):
-    storage_name = '_'+name
-    
-    @property
-    def prop(self):
-        return getattr(self,storage_name)
-        
+
+
+def list_of_typed_property(name: str, dtype: type) -> Any:
+    storage_name = "_" + name
+
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
+        return getattr(self, storage_name)
+
     @prop.setter
-    def prop(self,value):
-        if isinstance(value,list):
+    def prop(self: Any, value: Any) -> None:
+        if isinstance(value, list):
             for el in value:
-                if not isinstance(el,dtype):
-                    raise TypeError('{} must contain \
-                    values of type {})'.format(name,dtype),dtype)
-            
+                if not isinstance(el, dtype):
+                    raise TypeError(
+                        f"{name} must contain \
+                    values of type {dtype})",
+                        dtype,
+                    )
+
     return prop
-    
 
 
-def alt_type_property(name,dtype):
-    storage_name = '_'+name
-    
-    @property
-    def prop(self):
-        return getattr(self,storage_name)
-    
+def alt_type_property(name: str, dtype: Any) -> Any:
+    storage_name = "_" + name
+
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
+        return getattr(self, storage_name)
+
     @prop.setter
-    def prop(self,value):
-        if isinstance(dtype,list):
+    def prop(self: Any, value: Any) -> None:
+        if isinstance(dtype, list):
             isset = False
             for tps in dtype:
-                if isinstance(value,tps):
-                    setattr(self,storage_name,value)
+                if isinstance(value, tps):
+                    setattr(self, storage_name, value)
                     isset = True
                     break
             if not isset:
-                raise TypeError('{} must be of type {}'.format(name,dtype))
-        elif isinstance(value,dtype):
-            setattr(self,storage_name,value)
+                raise TypeError(f"{name} must be of type {dtype}")
+        elif isinstance(value, dtype):
+            setattr(self, storage_name, value)
         else:
-            raise TypeError('{} must be of type {}'.format(name,dtype))
-            
-    return prop    
-    
-    
+            raise TypeError(f"{name} must be of type {dtype}")
 
-def derived_type(name,dtype_in):
-    if isinstance(dtype_in,list):
-        tp = partial(alt_type_property,dtype=dtype_in)
+    return prop
+
+
+def derived_type(name: str, dtype_in: Any) -> Any:
+    if isinstance(dtype_in, list):
+        tp = partial(alt_type_property, dtype=dtype_in)
     else:
-        tp = partial(typed_property,dtype=dtype_in)
-    return tp(name)                    
-    
+        tp = partial(typed_property, dtype=dtype_in)
+    return tp(name)
 
 
-Float   = partial(typed_property,dtype=numbers.Real)
+Float = partial(typed_property, dtype=numbers.Real)
 
-Integer = partial(typed_property,dtype=numbers.Integral)
+Integer = partial(typed_property, dtype=numbers.Integral)
 
-Bool    = partial(typed_property,dtype=bool)
+Bool = partial(typed_property, dtype=bool)
 
-BasisManagedComplexArray = partial(basis_managed_array_property,
-                                   dtype=numbers.Complex)
-                              
-BasisManagedRealArray = partial(basis_managed_array_property,
-                                dtype=numbers.Real)
+BasisManagedComplexArray = partial(basis_managed_array_property, dtype=numbers.Complex)
 
-UnitsManagedComplexArray = partial(units_managed_array_property,
-                                   dtype=numbers.Complex)
-UnitsManagedRealArray = partial(units_managed_array_property,
-                                dtype=numbers.Real)
+BasisManagedRealArray = partial(basis_managed_array_property, dtype=numbers.Real)
 
-UnitsManagedComplex = partial(units_managed_property,
-                              dtype=numbers.Complex)
-                              
-UnitsManagedReal = partial(units_managed_property,
-                           dtype=numbers.Real)
-                              
-ManagedComplexArray = partial(managed_array_property,dtype=numbers.Complex)
+UnitsManagedComplexArray = partial(units_managed_array_property, dtype=numbers.Complex)
+UnitsManagedRealArray = partial(units_managed_array_property, dtype=numbers.Real)
 
-ManagedRealArray = partial(managed_array_property,dtype=numbers.Real)
+UnitsManagedComplex = partial(units_managed_property, dtype=numbers.Complex)
 
-                              
+UnitsManagedReal = partial(units_managed_property, dtype=numbers.Real)
+
+ManagedComplexArray = partial(managed_array_property, dtype=numbers.Complex)
+
+ManagedRealArray = partial(managed_array_property, dtype=numbers.Real)

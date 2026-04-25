@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 from quantarhei.core.matrixdata import MatrixData
-
 
 #file = TemporaryFile()
 

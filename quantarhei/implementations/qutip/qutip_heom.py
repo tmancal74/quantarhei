@@ -1,47 +1,31 @@
+from __future__ import annotations
+
 import contextlib
 import time
+from collections.abc import Generator
+from typing import Any
 
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.optimize import curve_fit
+from qutip import (
+    Qobj,
+    basis,
+    expect,
+    liouvillian,
+)
+from qutip.core.dimensions import (
+    to_tensor_rep,
+)
+from qutip.solver.heom import (
+    DrudeLorentzBath,
+    HEOMSolver,
+)
 
-import qutip
 import quantarhei as qr
 
 
-from qutip import (
-    basis,
-    brmesolve,
-    destroy,
-    expect,
-    liouvillian,
-    qeye,
-    sigmax,
-    sigmay,
-    sigmaz,
-    spost,
-    spre,
-    tensor,
-    Qobj,
-    coherent,
-    coherent_dm,
-)
-
-from qutip.solver.heom import (
-    BosonicBath,
-    DrudeLorentzBath,
-    DrudeLorentzPadeBath,
-    HEOMSolver,
-    HSolverDL,
-)
-
-from qutip.core.dimensions import (
-    to_tensor_rep,
-    from_tensor_rep,
-)
-
 @contextlib.contextmanager
-def timer(label):
+def timer(label: str) -> Generator[None, None, None]:
     """Simple utility for timing functions:
 
     with timer("name"):
@@ -52,10 +36,8 @@ def timer(label):
     end = time.time()
     print(f"{label}: {end - start}")
 
-from random import randint
+
 import time
-
-
 
 """
 fmo_ham = numpy.array([
@@ -70,16 +52,17 @@ fmo_ham = numpy.array([
 
 """
 
-def prepare_simulation(Ham, sbi, depth):
+
+def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:
 
     qutip_data = dict(depth=depth)
 
-    # number of states 
+    # number of states
     Ngr = 1
 
-    # FIXME: we have to base it on 
+    # FIXME: we have to base it on
     Ndim = Ham.dim
-    Nex = Ndim  - Ngr  # This has to be checked when we use aggregate
+    Nex = Ndim - Ngr  # This has to be checked when we use aggregate
 
     with qr.energy_units("1/cm"):
         hdata = Ham.data
@@ -87,41 +70,37 @@ def prepare_simulation(Ham, sbi, depth):
     #
     # Use Quantarhei data
     #
-    Hsys = Qobj(hdata) # cm^-1
-    T_qr = sbi.get_temperature() #300 # from cfce
+    Hsys = Qobj(hdata)  # cm^-1
+    T_qr = sbi.get_temperature()  # 300 # from cfce
 
     Q_list = []
     baths = []
 
     Ltot = liouvillian(Hsys)
-    Nk = 0 # bath exponential terms (0 = single correlation term) + we can add terminator
+    Nk = 0  # bath exponential terms (0 = single correlation term) + we can add terminator
 
     for m in range(Nex):
-
         #
         # projector
         #
-        #Q = basis(Ndim, m+Ngr) * basis(Ndim, m+Ngr).dag()
-        Qalt = Qobj(sbi.KK[m,:,:])
+        # Q = basis(Ndim, m+Ngr) * basis(Ndim, m+Ngr).dag()
+        Qalt = Qobj(sbi.KK[m, :, :])
         Q_list.append(Qalt)
 
         #
-        # bath correlation function 
+        # bath correlation function
         #
-        cfce = sbi.get_correlation_function((m,m))
+        cfce = sbi.get_correlation_function((m, m))
         with qr.energy_units("1/cm"):
-            lam_qr = cfce.get_reorganization_energy() # from cfce
-        gamma_qr = 1.0/cfce.get_correlation_time() # from cfce
+            lam_qr = cfce.get_reorganization_energy()  # from cfce
+        gamma_qr = 1.0 / cfce.get_correlation_time()  # from cfce
 
-        T = T_qr * 0.6949 # K -> cm^-1
-        gamma = gamma_qr * (1e15/ (2*np.pi*3e10))  # fs^-1 -> cm^-1
-        lam = lam_qr # cm^-1
+        T = T_qr * 0.6949  # K -> cm^-1
+        gamma = gamma_qr * (1e15 / (2 * np.pi * 3e10))  # fs^-1 -> cm^-1
+        lam = lam_qr  # cm^-1
 
         baths.append(
-            DrudeLorentzBath(
-                Qalt, lam=lam, gamma=gamma, T=T, Nk=Nk,
-                tag=str(m)
-            )
+            DrudeLorentzBath(Qalt, lam=lam, gamma=gamma, T=T, Nk=Nk, tag=str(m))
         )
         _, terminator = baths[-1].terminator()
         Ltot += terminator
@@ -132,13 +111,14 @@ def prepare_simulation(Ham, sbi, depth):
     return qutip_data
 
 
-def run_simulation(kthprop, rhoi, options=None):
+def run_simulation(
+    kthprop: Any, rhoi: Any, options: dict[str, Any] | None = None
+) -> Any:
 
     timea = kthprop.hy.sbi.get_time_axis()
 
-    # numerical options 
+    # numerical options
     if options is None:
-
         # default options
         loc_options = {
             "nsteps": 5000,
@@ -151,7 +131,6 @@ def run_simulation(kthprop, rhoi, options=None):
         }
 
     else:
-
         loc_options = options
 
     NC = kthprop.qutip_data["depth"]
@@ -159,22 +138,24 @@ def run_simulation(kthprop, rhoi, options=None):
     baths = kthprop.qutip_data["baths"]
 
     # initial excitation on site 1
-    rho0 = Qobj(rhoi.data) #basis(Ndim, 1) * basis(Ndim, 1).dag()
+    rho0 = Qobj(rhoi.data)  # basis(Ndim, 1) * basis(Ndim, 1).dag()
 
-    Nt = timea.length 
-    end_fs = timea.data[Nt-1]
+    Nt = timea.length
+    end_fs = timea.data[Nt - 1]
 
-    t_slices = Nt #1000 # at which time points to evaluate (how many)
-    end_time_ps = end_fs / 1000 # 0.5
+    t_slices = Nt  # 1000 # at which time points to evaluate (how many)
+    end_time_ps = end_fs / 1000  # 0.5
 
     # times to calculate
-    tlist = np.linspace(0, end_time_ps * 1e-12 * 2*np.pi*3e10, t_slices) # 1e-12 s -> cm^-1
+    tlist = np.linspace(
+        0, end_time_ps * 1e-12 * 2 * np.pi * 3e10, t_slices
+    )  # 1e-12 s -> cm^-1
 
     """
 
     NC = depth #4 # max hierarchy level
 
-    # number of states 
+    # number of states
     Ngr = 1
     Ndim = Ham.dim
     Nex = Ndim  - Ngr  # This has to be checked when we use aggregate
@@ -187,8 +168,8 @@ def run_simulation(kthprop, rhoi, options=None):
     #
     Hsys = Qobj(hdata) # cm^-1
     T_qr = sbi.get_temperature() #300 # from cfce
- 
-    Nt = timea.length 
+
+    Nt = timea.length
     end_fs = timea.data[Nt-1]
 
     t_slices = Nt #1000 # at which time points to evaluate (how many)
@@ -216,7 +197,7 @@ def run_simulation(kthprop, rhoi, options=None):
         Q_list.append(Qalt)
 
         #
-        # bath correlation function 
+        # bath correlation function
         #
         cfce = sbi.get_correlation_function((m,m))
         with qr.energy_units("1/cm"):
@@ -235,52 +216,48 @@ def run_simulation(kthprop, rhoi, options=None):
         )
         _, terminator = baths[-1].terminator()
         Ltot += terminator
- 
-    """    
 
-    #with timer("RHS construction time"):
+    """
+
+    # with timer("RHS construction time"):
     HEOMMats = HEOMSolver(Ltot, baths, NC, options=loc_options)
 
-    #with timer("ODE solver time"):
+    # with timer("ODE solver time"):
     output = HEOMMats.run(rho0, tlist)
 
     rho_t = qr.DensityMatrixEvolution(timeaxis=timea, rhoi=rhoi)
     for t in range(t_slices):
-        rho_t.data[t,:,:] = output.states[t][:,:]
+        rho_t.data[t, :, :] = output.states[t][:, :]
 
     return rho_t
-
-
-
-
-
 
     #
     # CONSTRUCTING EVOLUTION SUPEROPERATOR
     #
     evosuperops = []
     for t in range(t_slices):
-        evosuperops.append(np.zeros((Ndim,Ndim,Ndim,Ndim), dtype=complex))
+        evosuperops.append(np.zeros((Ndim, Ndim, Ndim, Ndim), dtype=complex))
 
     for m in range(Ndim):
-        for n in range(m+1):
+        for n in range(m + 1):
             rho0_nm = basis(Ndim, n) * basis(Ndim, m).dag()
             print(rho0_nm)
             with timer("ODE solver time"):
                 outputFMO_HEOM = HEOMMats.run(rho0_nm, tlist)
 
             for t in range(t_slices):
-                evosuperops[t][n,m] += to_tensor_rep(outputFMO_HEOM.states[t])
-                evosuperops[t][m,n] += to_tensor_rep(outputFMO_HEOM.states[t].dag())
+                evosuperops[t][n, m] += to_tensor_rep(outputFMO_HEOM.states[t])
+                evosuperops[t][m, n] += to_tensor_rep(outputFMO_HEOM.states[t].dag())
 
     for n in range(Ndim):
         for t in range(t_slices):
-            evosuperops[t][n,n] /= 2
+            evosuperops[t][n, n] /= 2
 
     evosuperops_transformed = []
     for t in range(t_slices):
-        evosuperops_transformed.append(np.zeros((Ndim,Ndim,Ndim,Ndim), dtype=complex))
-
+        evosuperops_transformed.append(
+            np.zeros((Ndim, Ndim, Ndim, Ndim), dtype=complex)
+        )
 
     #
     #   TRANSFORMATIONS
@@ -342,29 +319,27 @@ def run_simulation(kthprop, rhoi, options=None):
                                         )
         """
         evosuperops_transformed[t] = np.einsum(
-            'km,ln,klij,ip,jq->mnpq',
+            "km,ln,klij,ip,jq->mnpq",
             np.conj(S),  # Transformation for the first input index
             np.conj(S),  # Transformation for the second input index
-            evosuperops[t], # Original evosuperops
-            S,           # Transformation for the first output index
-            S            # Transformation for the second output index
+            evosuperops[t],  # Original evosuperops
+            S,  # Transformation for the first output index
+            S,  # Transformation for the second output index
         )
-
 
     #
     #    PLOTTING
     #
 
-    
     id = int(time.time())
 
     # describe what to put in graphs
     POPSONLY = True
     COHERENCESONLY = not POPSONLY
 
-    xlims = [0, end_time_ps * 1000]   # in femto seconds
+    xlims = [0, end_time_ps * 1000]  # in femto seconds
     ylims = [0, 1]
-    colors = ['r', 'g', 'b', 'y', 'c', 'm', 'k']
+    colors = ["r", "g", "b", "y", "c", "m", "k"]
 
     if True:
         rho_final = []
@@ -373,32 +348,33 @@ def run_simulation(kthprop, rhoi, options=None):
         fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
 
         rho0numpy = SmatrixInv @ to_tensor_rep(rho0) @ Smatrix
-        
+
         for t in range(t_slices):
-            rho_f = np.zeros((Ndim,Ndim), dtype=complex)
+            rho_f = np.zeros((Ndim, Ndim), dtype=complex)
             for i in range(Ndim):
                 for j in range(Ndim):
                     for k in range(Ndim):
                         for l in range(Ndim):
-                            rho_f[i,j] += evosuperops_transformed[t][k,l,i,j] * rho0numpy[k,l]
+                            rho_f[i, j] += (
+                                evosuperops_transformed[t][k, l, i, j] * rho0numpy[k, l]
+                            )
 
             rho_f_to_append = rho_f
             rho_final.append(rho_f_to_append)
-        
+
         for n in range(Ndim):
             for m in range(Ndim):
-                
                 if POPSONLY == True and (n != m):
                     continue
 
                 if COHERENCESONLY == True:
-                    if (n == m):
+                    if n == m:
                         continue
 
                     # only coherences with first site/exc)
-                    if (n != 0):
+                    if n != 0:
                         continue
-                    
+
                 if True:
                     # sitebasis == True
                     # excbasis == False
@@ -417,20 +393,22 @@ def run_simulation(kthprop, rhoi, options=None):
                     vals = []
                     for t in range(t_slices):
                         # transform rho back into site basis
-                        vals.append(np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np))
-                    
+                        vals.append(
+                            np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np)
+                        )
+
                     ls = "-"
                     axes.plot(
                         np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
                         np.real(vals),
-                        label=f"{n + 1}{m+1}",
+                        label=f"{n + 1}{m + 1}",
                         color=colors[m % len(colors)],
                         linestyle=ls,
                     )
-                    axes.set_xlabel(r'$t$ (fs)', fontsize=30)
+                    axes.set_xlabel(r"$t$ (fs)", fontsize=30)
                     axes.set_ylabel(r"vals", fontsize=30)
-                    axes.locator_params(axis='y', nbins=6)
-                    axes.locator_params(axis='x', nbins=6)
+                    axes.locator_params(axis="y", nbins=6)
+                    axes.locator_params(axis="x", nbins=6)
                     axes.set_xlim(xlims)
                     axes.set_ylim(ylims)
 
@@ -445,36 +423,42 @@ def run_simulation(kthprop, rhoi, options=None):
                     for t in range(t_slices):
                         vals.append(expect(Qobj(rho_final[t]), Q))
                     """
-                    
+
                     # numpy calculation
                     Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
                     vals = []
                     for t in range(t_slices):
                         vals.append(np.trace(rho_final[t] @ Q_np))
-                    
+
                     ls = "-"
                     axes2.plot(
                         np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
                         np.real(vals),
-                        label=f"{n + 1}{m+1}",
+                        label=f"{n + 1}{m + 1}",
                         color=colors[m % len(colors)],
                         linestyle=ls,
                     )
-                    axes2.set_xlabel(r'$t$ (fs)', fontsize=30)
+                    axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
                     axes2.set_ylabel(r"vals", fontsize=30)
-                    axes2.locator_params(axis='y', nbins=6)
-                    axes2.locator_params(axis='x', nbins=6)
+                    axes2.locator_params(axis="y", nbins=6)
+                    axes2.locator_params(axis="x", nbins=6)
                     axes2.set_xlim(xlims)
                     axes2.set_ylim(ylims)
 
         axes.legend(loc=1)
-        fig.savefig("fullevo_sitebasis_" + str(NC) + "_" + str(Nk)  + "_" + str(id) + ".png")
+        fig.savefig(
+            "fullevo_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
+        )
         axes2.legend(loc=1)
-        fig2.savefig("fullevo_exctbasis_" + str(NC) + "_" + str(Nk)  + "_" + str(id) + ".png")
+        fig2.savefig(
+            "fullevo_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
+        )
 
     evosuperops_transformed_secular = []
     for t in range(t_slices):
-        evosuperops_transformed_secular.append(np.zeros((Ndim,Ndim,Ndim,Ndim), dtype=complex))
+        evosuperops_transformed_secular.append(
+            np.zeros((Ndim, Ndim, Ndim, Ndim), dtype=complex)
+        )
 
     for t in range(t_slices):
         for i in range(Ndim):
@@ -482,45 +466,53 @@ def run_simulation(kthprop, rhoi, options=None):
                 for k in range(Ndim):
                     for l in range(Ndim):
                         if (k == l) and (i == j):
-                            evosuperops_transformed_secular[t][k,l,i,j] += evosuperops_transformed[t][k,l,i,j]
+                            evosuperops_transformed_secular[t][k, l, i, j] += (
+                                evosuperops_transformed[t][k, l, i, j]
+                            )
                         if (k == i) and (l == j):
-                            evosuperops_transformed_secular[t][k,l,i,j] += evosuperops_transformed[t][k,l,i,j]
+                            evosuperops_transformed_secular[t][k, l, i, j] += (
+                                evosuperops_transformed[t][k, l, i, j]
+                            )
                             if (k == l) and (i == j):
-                                evosuperops_transformed_secular[t][k,l,i,j] -= evosuperops_transformed[t][k,l,i,j]
+                                evosuperops_transformed_secular[t][k, l, i, j] -= (
+                                    evosuperops_transformed[t][k, l, i, j]
+                                )
 
     if True:
         rho_final = []
         # Transformed SECULAR
-        
+
         fig, axes = plt.subplots(1, 1, figsize=(12, 8))
         fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
 
         rho0numpy = SmatrixInv @ to_tensor_rep(rho0) @ Smatrix
 
         for t in range(t_slices):
-            rho_f = np.zeros((Ndim,Ndim), dtype=complex)
+            rho_f = np.zeros((Ndim, Ndim), dtype=complex)
             for i in range(Ndim):
                 for j in range(Ndim):
                     for k in range(Ndim):
                         for l in range(Ndim):
-                            rho_f[i,j] += evosuperops_transformed_secular[t][k,l,i,j] * rho0numpy[k,l]
+                            rho_f[i, j] += (
+                                evosuperops_transformed_secular[t][k, l, i, j]
+                                * rho0numpy[k, l]
+                            )
             rho_f_to_append = rho_f
             rho_final.append(rho_f_to_append)
-        
+
         for n in range(Ndim):
             for m in range(Ndim):
-
                 if POPSONLY == True and (n != m):
                     continue
 
                 if COHERENCESONLY == True:
-                    if (n == m):
+                    if n == m:
                         continue
 
                     # only coherences with first site/exc)
-                    if (n != 0):
+                    if n != 0:
                         continue
-                
+
                 if True:
                     # sitebasis == True
                     # excbasis == False
@@ -538,23 +530,24 @@ def run_simulation(kthprop, rhoi, options=None):
                     Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
                     vals = []
                     for t in range(t_slices):
-                        vals.append(np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np))
-                    
+                        vals.append(
+                            np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np)
+                        )
+
                     ls = "--"
                     axes.plot(
                         np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
                         np.real(vals),
-                        label=f"{n + 1}{m+1}",
+                        label=f"{n + 1}{m + 1}",
                         color=colors[m % len(colors)],
                         linestyle=ls,
                     )
-                    axes.set_xlabel(r'$t$ (fs)', fontsize=30)
+                    axes.set_xlabel(r"$t$ (fs)", fontsize=30)
                     axes.set_ylabel(r"vals", fontsize=30)
-                    axes.locator_params(axis='y', nbins=6)
-                    axes.locator_params(axis='x', nbins=6)
+                    axes.locator_params(axis="y", nbins=6)
+                    axes.locator_params(axis="x", nbins=6)
                     axes.set_xlim(xlims)
                     axes.set_ylim(ylims)
-
 
                 if True:
                     # sitebasis == False
@@ -567,56 +560,57 @@ def run_simulation(kthprop, rhoi, options=None):
                     for t in range(t_slices):
                         vals.append(expect(Qobj(rho_final[t]), Q))
                     """
-                    
+
                     # numpy calculation
                     Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
                     vals = []
                     for t in range(t_slices):
                         vals.append(np.trace(rho_final[t] @ Q_np))
-                    
+
                     ls = "--"
                     axes2.plot(
                         np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
                         np.real(vals),
-                        label=f"{n + 1}{m+1}",
+                        label=f"{n + 1}{m + 1}",
                         color=colors[m % len(colors)],
                         linestyle=ls,
                     )
-                    axes2.set_xlabel(r'$t$ (fs)', fontsize=30)
+                    axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
                     axes2.set_ylabel(r"vals", fontsize=30)
-                    axes2.locator_params(axis='y', nbins=6)
-                    axes2.locator_params(axis='x', nbins=6)
+                    axes2.locator_params(axis="y", nbins=6)
+                    axes2.locator_params(axis="x", nbins=6)
                     axes2.set_xlim(xlims)
                     axes2.set_ylim(ylims)
 
-        
         axes.legend(loc=1)
-        fig.savefig("secexc_sitebasis_" + str(NC) + "_" + str(Nk)  + "_" + str(id) + ".png")
+        fig.savefig(
+            "secexc_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
+        )
         axes2.legend(loc=1)
-        fig2.savefig("secexc_exctbasis_" + str(NC) + "_" + str(Nk)  + "_" + str(id) + ".png")
-                    
+        fig2.savefig(
+            "secexc_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
+        )
 
     if True:
         # Normal HEOM
         fig, axes = plt.subplots(1, 1, figsize=(12, 8))
         fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
         with timer("ODE solver time"):
-            outputFMO_HEOM = HEOMMats.run(rho0, tlist)    
-        
+            outputFMO_HEOM = HEOMMats.run(rho0, tlist)
+
         for n in range(Ndim):
             for m in range(Ndim):
-                
                 if POPSONLY == True and (n != m):
                     continue
 
                 if COHERENCESONLY == True:
-                    if (n == m):
+                    if n == m:
                         continue
 
                     # only coherences with first site/exc)
-                    if (n != 0):
+                    if n != 0:
                         continue
-                
+
                 if True:
                     # sitebasis == True
                     # excbasis == False
@@ -626,18 +620,18 @@ def run_simulation(kthprop, rhoi, options=None):
                     vals = []
                     for t in range(t_slices):
                         vals.append(expect(outputFMO_HEOM.states[t], Q))
-                    
+
                     axes.plot(
                         np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
                         np.real(vals),
-                        label=f"{m + 1}{n+1}",
+                        label=f"{m + 1}{n + 1}",
                         color=colors[n % len(colors)],
                         linestyle=ls,
                     )
-                    axes.set_xlabel(r'$t$ (fs)', fontsize=30)
+                    axes.set_xlabel(r"$t$ (fs)", fontsize=30)
                     axes.set_ylabel(r"vals", fontsize=30)
-                    axes.locator_params(axis='y', nbins=6)
-                    axes.locator_params(axis='x', nbins=6)
+                    axes.locator_params(axis="y", nbins=6)
+                    axes.locator_params(axis="x", nbins=6)
                     axes.set_xlim(xlims)
                     axes.set_ylim(ylims)
 
@@ -650,23 +644,29 @@ def run_simulation(kthprop, rhoi, options=None):
                     vals = []
                     for t in range(t_slices):
                         # transform into exc basis
-                        vals.append(expect(outputFMO_HEOM.states[t].transform(ekets, False), Q))
-                    
+                        vals.append(
+                            expect(outputFMO_HEOM.states[t].transform(ekets, False), Q)
+                        )
+
                     axes2.plot(
                         np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
                         np.real(vals),
-                        label=f"{m + 1}{n+1}",
+                        label=f"{m + 1}{n + 1}",
                         color=colors[n % len(colors)],
                         linestyle=ls,
                     )
-                    axes2.set_xlabel(r'$t$ (fs)', fontsize=30)
+                    axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
                     axes2.set_ylabel(r"vals", fontsize=30)
-                    axes2.locator_params(axis='y', nbins=6)
-                    axes2.locator_params(axis='x', nbins=6)
+                    axes2.locator_params(axis="y", nbins=6)
+                    axes2.locator_params(axis="x", nbins=6)
                     axes2.set_xlim(xlims)
                     axes2.set_ylim(ylims)
-        
+
         axes.legend(loc=1)
-        fig.savefig("heom_sitebasis_" + str(NC) + "_" + str(Nk)  + "_" + str(id) + ".png")
+        fig.savefig(
+            "heom_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
+        )
         axes2.legend(loc=1)
-        fig2.savefig("heom_exctbasis_" + str(NC) + "_" + str(Nk)  + "_" + str(id) + ".png")
+        fig2.savefig(
+            "heom_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
+        )

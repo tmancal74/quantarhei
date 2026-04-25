@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from .correlationfunctions import CorrelationFunction
-from .correlationfunctions import LineshapeFunction
-from .spectraldensities import SpectralDensity
-from .cfmatrix import CorrelationFunctionMatrix
-
-from .functionstorage import FunctionStorage
-from .functionstorage import FastFunctionStorage
+from .cfmatrix import CorrelationFunctionMatrix as CorrelationFunctionMatrix
+from .correlationfunctions import CorrelationFunction as CorrelationFunction
+from .correlationfunctions import LineshapeFunction as LineshapeFunction
+from .functionstorage import FastFunctionStorage as FastFunctionStorage
+from .functionstorage import FunctionStorage as FunctionStorage
+from .spectraldensities import SpectralDensity as SpectralDensity

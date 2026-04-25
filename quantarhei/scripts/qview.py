@@ -1,75 +1,72 @@
-"""
+"""Quantarhei file viewer
 
-    Quantarhei file viewer
-
-    Loads *.qrp, *.png, and other files and shows their content
+Loads *.qrp, *.png, and other files and shows their content
 
 
 """
-from tkinter import Tk
-from tkinter import Label, Button, Frame, Menu
-from tkinter import YES, BOTH, SUNKEN, BOTTOM, RIGHT, X
-from tkinter.messagebox import showerror, askyesno
+
+from __future__ import annotations
+
+from tkinter import BOTH, BOTTOM, RIGHT, SUNKEN, YES, Button, Frame, Label, Menu, X
 from tkinter.filedialog import askopenfilename
-import matplotlib
-#matplotlib.use("TkAgg")
-#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-#from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
-#from matplotlib.figure import Figure
+from tkinter.messagebox import askyesno, showerror
 
+# matplotlib.use("TkAgg")
+# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+# from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+# from matplotlib.figure import Figure
 import quantarhei as qr
-from quantarhei import printlog as print
+
 
 class Viewer(Frame):
-    def __init__(self, parent=None, numrow=5, numcol=5):
+    def __init__(self, parent: object = None, numrow: int = 5, numcol: int = 5) -> None:
         Frame.__init__(self, parent)
-        self.pack(expand=YES,fill=BOTH)
+        self.pack(expand=YES, fill=BOTH)
         self.makeWidgets()
         self.master.title("Quantarhei File Viewer")
 
-
-    def makeWidgets(self):
+    def makeWidgets(self) -> None:
         self.makeMenuBar()
         self.makeToolBar()
-        L = Label(self, text="Quantarhei version "+str(qr.Manager().version))
+        L = Label(self, text="Quantarhei version " + str(qr.Manager().version))
         L.config(relief=SUNKEN, width=40, height=5, bg="white")
         L.pack(expand=YES, fill=BOTH)
 
-    def makeMenuBar(self):
-        self.menubar= Menu(self.master)
+    def makeMenuBar(self) -> None:
+        self.menubar = Menu(self.master)
         self.master.config(menu=self.menubar)
         self.fileMenu()
 
-    def makeToolBar(self):
+    def makeToolBar(self) -> None:
         toolbar = Frame(self, cursor="hand2", relief=SUNKEN, bd=2)
         toolbar.pack(side=BOTTOM, fill=X)
         Button(toolbar, text="Quit", command=self.quit).pack(side=RIGHT)
 
-    def fileMenu(self):
+    def fileMenu(self) -> None:
         pulldown = Menu(self.menubar)
         pulldown.add_command(label="Open...", command=self.onOpen)
         pulldown.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(label="File", underline=0, menu=pulldown)
 
-    def notdone(self):
+    def notdone(self) -> None:
         showerror("Not implemented", "Functionality not yet available")
 
-    def quit(self):
+    def quit(self) -> None:
         if askyesno("Verify Quit", "Do you really want to quit?"):
             Frame.quit(self)
 
-    def onOpen(self):
-        import matplotlib.pyplot as plt
+    def onOpen(self) -> None:
         file = askopenfilename()
-        #print(file, loglevel=qr.LOG_REPORT)
+        # print(file, loglevel=qr.LOG_REPORT)
         obj = qr.load_parcel(file)
         self.figure(obj)
 
-    def figure(self, obj):
+    def figure(self, obj: object) -> None:
         import matplotlib.pyplot as plt
-        f = plt.figure(figsize=(5,5), dpi=100)
-        #a = f.add_subplot(111)
-        #a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
+
+        f = plt.figure(figsize=(5, 5), dpi=100)
+        # a = f.add_subplot(111)
+        # a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
         with qr.energy_units("1/cm"):
             obj.plot(fig=f, spart=qr.part_ABS)
 
@@ -80,11 +77,8 @@ class Viewer(Frame):
         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
 
 
-
-def main():
-    import sys
-    #root = Tk()
-    #root.title("Open file")
-    #Viewer().mainloop()
+def main() -> None:
+    # root = Tk()
+    # root.title("Open file")
+    # Viewer().mainloop()
     pass
-

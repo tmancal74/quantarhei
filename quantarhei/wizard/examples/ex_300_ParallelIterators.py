@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 #  Example for the parallel iterator and collector:
 #      block_distributed_list
@@ -25,6 +24,7 @@
 #
 #
 import numpy
+
 import quantarhei as qr
 
 
@@ -33,24 +33,24 @@ import quantarhei as qr
 # a setter and retriever function for a dictionary
 #
 def setter(cont, tag, data):
-    """Setter function setting data to a primitive container (here a dictionary)
-    """
+    """Setter function setting data to a primitive container (here a dictionary)"""
     cont[tag] = data
 
+
 def retriever(cont, tag):
-    """Function retrieving the data from the container (here a dictionary)
-    """
+    """Function retrieving the data from the container (here a dictionary)"""
     return cont[tag]
+
 
 #
 # This list will be distributed
 #
-lst = [1,2,3,4,5,6,7]
+lst = [1, 2, 3, 4, 5, 6, 7]
 
 #
 # tags under which the data is saved to the container
 #
-tags = ["a","b","c","d","e","f","g"]
+tags = ["a", "b", "c", "d", "e", "f", "g"]
 
 # container for local calculation
 cont = dict()
@@ -65,12 +65,11 @@ config = qr.Manager().get_DistributedConfiguration()
 
 # iteration over the list
 for k, a in qr.block_distributed_list(lst, return_index=True):
-
-    #print(config.rank, a)
+    # print(config.rank, a)
     # calculation of the data
     b = numpy.zeros(2, dtype=qr.COMPLEX)
-    b[0] = 2.0*a
-    b[1] = 3.2*a + 1.3
+    b[0] = 2.0 * a
+    b[1] = 3.2 * a + 1.3
     # storing data under an appropriate tag
     cont[tags[k]] = b
 
@@ -78,7 +77,6 @@ for k, a in qr.block_distributed_list(lst, return_index=True):
 qr.collect_block_distributed_data(containers, setter, retriever, tags=tags)
 
 # printing the result
-#if config.rank == 0:
+# if config.rank == 0:
 if True:
     print(config.rank, collected_cont)
-

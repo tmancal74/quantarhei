@@ -1,4 +1,2 @@
-# -*- coding: utf-8 -*-
-
-from .dfce1 import Cos
-from .dfce1 import Tukey
+from .dfce1 import Cos as Cos
+from .dfce1 import Tukey as Tukey

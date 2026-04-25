@@ -1,26 +1,16 @@
-# -*- coding: utf-8 -*-
-"""
+"""quantarhei.utils  subpackage
+==================================
 
-    quantarhei.utils  subpackage
-    ==================================
-    
-    
-    Some auxiliarly classes and functions to support the package
+
+Some auxiliarly classes and functions to support the package
 
 
 """
 
-from .types import Float
-from .types import Integer
-from .types import Bool
-from .types import derived_type
-
-from .types import check_numpy_array
-from .types import array_property
-
-
-from .vectors import normalize2
-
-
-
- 
+from .types import Bool as Bool
+from .types import Float as Float
+from .types import Integer as Integer
+from .types import array_property as array_property
+from .types import check_numpy_array as check_numpy_array
+from .types import derived_type as derived_type
+from .vectors import normalize2 as normalize2

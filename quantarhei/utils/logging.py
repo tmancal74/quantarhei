@@ -1,21 +1,23 @@
-# -*- coding: utf-8 -*-
-"""Logging module of the Quantarhei package
+"""Logging module of the Quantarhei package"""
 
+from __future__ import annotations
 
-
-"""
 import traceback
+from typing import Any
+
 import quantarhei as qr
 
-def init_logging():
+
+def init_logging() -> None:
     """Initialization of logging
-    
+
     We test if the logging is parallel or not
-    
+
     """
     manager = qr.Manager().log_conf
     try:
         from mpi4py import MPI
+
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
@@ -23,42 +25,47 @@ def init_logging():
             manager.is_serial = True
         else:
             manager.is_serial = False
-            manager.log_file_appendix = "."+str(rank)
-    except:
+            manager.log_file_appendix = "." + str(rank)
+    except ImportError:
         manager.is_serial = True
     manager.initialized = True
-    
-    
-def log_urgent(*args, **kwargs):
+
+
+def log_urgent(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_URGENT, **kwargs)
 
 
-def log_report(*args, **kwargs):
+def log_report(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_REPORT, **kwargs)
 
 
-def log_info(*args, **kwargs):
+def log_info(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_INFO, **kwargs)
 
-        
-def log_detail(*args, **kwargs):
+
+def log_detail(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_DETAIL, **kwargs)
 
-    
-def log_quick(*args, verbose=True, **kwargs):
+
+def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:
     if not verbose:
         return
-    printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)  
+    printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)
 
 
-def printlog(*args, verbose=True, loglevel=5, 
-             incr_indent=0, use_indent=True, **kwargs):
+def printlog(
+    *args: Any,
+    verbose: bool = True,
+    loglevel: int = 5,
+    incr_indent: int = 0,
+    use_indent: bool = True,
+    **kwargs: Any,
+) -> None:
     """Prints logging information
 
 
     Parameters
     ----------
-
     *args : arguments
         arguments like in a print function
 
@@ -100,41 +107,38 @@ def printlog(*args, verbose=True, loglevel=5,
 
 
     """
-
     if not verbose:
         return
 
     if (loglevel > 10) or (loglevel < 0):
         raise Exception("Loglevel must be between 0 and 10")
 
-
     manager = qr.Manager().log_conf
     if not manager.initialized:
         init_logging()
-    
+
     if not manager.verbose:
         return
-    
-    manager.log_indent += incr_indent
-    
-    if loglevel <= manager.verbosity:
 
+    manager.log_indent += incr_indent
+
+    if loglevel <= manager.verbosity:
         if manager.log_on_screen:
             if use_indent:
-                indent = " "*manager.log_indent
+                indent = " " * manager.log_indent
             else:
                 indent = ""
             print(indent, *args, **kwargs)
 
     if loglevel <= manager.fverbosity:
-        
         if manager.log_to_file:
             if not manager.log_file_opened:
-                manager.log_file = open(manager.log_file_name
-                                        +manager.log_file_appendix, "w")
+                manager.log_file = open(
+                    manager.log_file_name + manager.log_file_appendix, "w"
+                )
                 manager.log_file_opened = True
             if use_indent:
-                indent = " "*manager.log_indent
+                indent = " " * manager.log_indent
             else:
                 indent = ""
             if "end" in kwargs.keys():
@@ -142,7 +146,7 @@ def printlog(*args, verbose=True, loglevel=5,
             print(indent, *args, **kwargs, file=manager.log_file)
 
 
-def loglevels2bool(loglevs, verbose=False):
+def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
     """Converts a list of loglevels to a list of bools
 
     This function converts loglevels to books (True or False values).
@@ -156,7 +160,6 @@ def loglevels2bool(loglevs, verbose=False):
 
     Parameters
     ----------
-
     loglevels : list of int
         List of logleves to be converted
 
@@ -166,13 +169,11 @@ def loglevels2bool(loglevs, verbose=False):
 
     Returns
     -------
-
     verb : list of bool
         List of bools, one fo each loglevel
 
     Examples
     --------
-
     Standard usage:
 
     >>> m = qr.Manager()
@@ -191,8 +192,7 @@ def loglevels2bool(loglevs, verbose=False):
     [False, False, False, False, False]
 
     """
-
-    verb = [False]*len(loglevs)
+    verb = [False] * len(loglevs)
 
     if verbose:
         m = qr.Manager().log_conf
@@ -205,23 +205,23 @@ def loglevels2bool(loglevs, verbose=False):
     return verb
 
 
-def tprint(var, messg=None, default=None):
+def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
     """Test the existence of the variable with the name `var`
-    
-    
+
+
     If the default is specified, the non-existence of the variable
     is not a problem, and the variable is set to the default
-    
-    """    
+
+    """
     try:
         if messg is not None:
             print("#", messg)
         val = eval(globals()[var])
         if isinstance(val, str):
-            val = '"'+val+'"'
+            val = '"' + val + '"'
         print(var, "=", val)
 
-    except:
+    except Exception:
         if default is None:
             traceback.print_exc()
             print("Configuration file is incomplete")
@@ -230,15 +230,13 @@ def tprint(var, messg=None, default=None):
             globals()[var] = default
             val = eval(globals()[var])
             if isinstance(val, str):
-                val = '"'+val+'"'
-            print(var,"=", val, "# (default)")
+                val = '"' + val + '"'
+            print(var, "=", val, "# (default)")
 
 
-def log_to_file(filename="qrhei.log"):
-    """Set logging to file
-    
-    """
+def log_to_file(filename: str = "qrhei.log") -> None:
+    """Set logging to file"""
     manager = qr.Manager().log_conf
-    #manager.log_on_screen = False
+    # manager.log_on_screen = False
     manager.log_to_file = True
     manager.log_file_name = filename

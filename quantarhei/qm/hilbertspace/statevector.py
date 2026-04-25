@@ -1,17 +1,20 @@
-# -*- coding: utf-8 -*-
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    statevector module
+statevector module
 
 
 """
+
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
-from ...utils.types import BasisManagedComplexArray
+from ... import COMPLEX
 from ...core.managers import BasisManaged
-from ... import REAL, COMPLEX
+from ...utils.types import BasisManagedComplexArray
+
 
 class StateVector(BasisManaged):
     """Represents a quantum mechanical state vector
@@ -23,13 +26,12 @@ class StateVector(BasisManaged):
 
     Examples
     --------
-
     >>> psi = StateVector(2)
     >>> print(psi.dim)
     2
 
 
-    >>> vec = numpy.zeros((1,3), dtype=REAL)
+    >>> vec = numpy.zeros((1,3), dtype=float)
     >>> psi = StateVector(data=vec)
     Traceback (most recent call last):
     ...
@@ -39,18 +41,17 @@ class StateVector(BasisManaged):
 
     """
 
-    data = BasisManagedComplexArray("data")   
+    data = BasisManagedComplexArray("data")
 
-    def __init__(self, dim=None, data=None):
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:
 
         self._initialized = False
 
         # check and save data
         if data is not None:
-
-#            # list is accepted
-#            if isinstance(data, list):
-#                data = numpy.array(data)
+            #            # list is accepted
+            #            if isinstance(data, list):
+            #                data = numpy.array(data)
             self.data = data
 
             if len(self.data.shape) != 1:
@@ -64,71 +65,57 @@ class StateVector(BasisManaged):
                 self._initialized = True
 
         else:
-
             # check and save dim
             if dim is not None:
                 self.dim = dim
                 self.data = numpy.zeros(dim, dtype=COMPLEX)
                 self._initialized = True
 
-
-
-    def dot(self, vec):
-        """Scalar product of two StateVectors
-
-        """
-
+    def dot(self, vec: StateVector) -> Any:
+        """Scalar product of two StateVectors"""
         return numpy.dot(self.data, vec.data)
 
-    def norm(self):
-        """Returns the norm of the StateVector
-
-        """
+    def norm(self) -> Any:
+        """Returns the norm of the StateVector"""
         return numpy.sqrt(numpy.dot(self.data, self.data))
 
-
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
-        
-        
+
+
         This function transforms the Operator into a different basis, using
         a given transformation matrix.
-        
+
         Parameters
         ----------
-        
         SS : matrix, numpy.ndarray
             transformation matrix
-            
+
         inv : matrix, numpy.ndarray
             inverse of the transformation matrix
-            
-        """        
+
+        """
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
             S1 = inv
 
-        self._data = numpy.dot(S1,self._data)
-        
+        self._data = numpy.dot(S1, self._data)
 
-    def get_DensityMatrix(self):
-        """Constructs DensityMatrix from the present StateVector
-        
-        """
+    def get_DensityMatrix(self) -> Any:
+        """Constructs DensityMatrix from the present StateVector"""
         from .operators import DensityMatrix
 
         rho = DensityMatrix(dim=self.dim)
-        
+
         for ii in range(self.dim):
             for jj in range(self.dim):
-                rho.data[ii,jj] = self.data[ii]*numpy.conj(self.data[jj])
-        
+                rho.data[ii, jj] = self.data[ii] * numpy.conj(self.data[jj])
+
         return rho
-        
-        
-    def __str__(self):
-        out  = "\nquantarhei.StateVector object"
+
+    def __str__(self) -> str:
+        out = "\nquantarhei.StateVector object"
         out += "\n============================="
         out += "\ndata = \n"
         out += str(self.data)

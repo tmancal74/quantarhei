@@ -1,0 +1,194 @@
+# Commits to ignore in git blame.
+# Run: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub respects this file automatically.
+#
+# These commits are large-scale automated changes (ruff formatting, mypy type
+# annotations) that touch many lines across the whole codebase but contain no
+# logic changes. Without this file every line of every annotated file would
+# blame to the annotation pass rather than the original author.
+#
+# NOTE: these SHAs are valid only if the PRs are merged preserving individual
+# commit history (rebase merge or regular merge commit). If PRs are squashed,
+# update this file with the resulting squash SHAs after merging.
+
+# ---------------------------------------------------------------------------
+# #227 ruff: full codebase linting pass
+# ---------------------------------------------------------------------------
+
+# Add ruff and mypy; apply safe auto-fixes
+09c39e69dde00a78ad530c257cd04e92c64bdc6b
+
+# ruff: fix trailing whitespace (W291, W293)
+a8d2dd1cf3c31b3c5e60272b5a7ac911793bb27c
+
+# ruff: remove redundant UTF-8 encoding declarations (UP009)
+6488b18e6e6191a2cf48f6ef20ac728a5d81391a
+
+# ruff: fix docstring spacing (D208, D202, D412, D210, D212)
+d975a94975e545d57210e3e13ad49c2de3e484a6
+
+# ruff: sort imports (I001)
+1018bffe2f6ba9f6152f805f32bc141880aed476
+
+# ruff: code modernisation (RET505, ISC003, UP031, UP030)
+afd2ff389218e33ad327e104a3764f7de8961e28
+
+# ruff: remove unused imports (F401) — safe subset
+615e7a3ee3e5231cb25e3b1cacfe8ac19fac5bb9
+
+# ruff: make re-exports explicit in __init__.py files (F401)
+68e763d7d23e49fc4c35cd2ee345ec80cb53383a
+
+# ruff: enable enforced rules for completed batches
+72acf6607ced8409fd3a96f980b556da95bf795c
+
+# ruff: convert remaining printf-style formats to f-strings (UP031)
+6ad0d4c12a9327af210f83ac2ee9198674d89298
+
+# ruff: fix mutable default arguments (B006)
+42dc675bea8c46b5edefc7e1c2bbe036296b0ed2
+
+# ruff: replace bare excepts with specific types (E722) — partial
+a26e1e4476a0417d1c9f416072e0566ae27629da
+
+# ruff: replace bare excepts with specific types (E722) — remaining
+b805a978ed04e3a66ff0caef553d8b34eb13cfa5
+
+# mypy: set python_version = "3.10" in config
+440fdff6dcbea76074b341c840c0a443c36fb5ad
+
+# ---------------------------------------------------------------------------
+# #228 type hints: utils/ (phase 1 of 6)
+# ---------------------------------------------------------------------------
+
+# type hints: utils/vectors.py
+91f4ef6414e724dbd865718ad77c0222b00d8302
+
+# type hints: utils/paver.py
+1b6f2bda9aaad066d3f59ea78b8ae4bfa75796bf
+
+# type hints: utils/timing.py
+e790055a3840a7a4070a7894c6056cdb55ad9ef5
+
+# type hints: utils/logging.py
+5dff210ced1a7a4d5f93fb450e58ab469a90ed34
+
+# type hints: utils/types.py
+91d2f52c5fa3b69a3e8cee4592c56f0c088336ca
+
+# type hints: add from __future__ annotations to utils/timing.py and utils/logging.py
+47de5e33b74a0d17639ec4d046c5d1c0d9cd084e
+
+# mypy: enforce disallow_untyped_defs for quantarhei.utils.*
+801fa91c1355270d7b6ab4102e9db0ecb4539f7d
+
+# type hints: fix paver.py args type from list[Any] to list[str]
+4cdcaed1159df345ab89b916d9d9e65a3fe84be9
+
+# ---------------------------------------------------------------------------
+# #229 type hints: core/ infrastructure (phase 2 of 6)
+# ---------------------------------------------------------------------------
+
+# type hints: conf/qrhei, genconf, numconf, logconf, stochastics, plottable, units, singleton
+454691ef5dc65f016ae04ada5138e7648e2eb941
+
+# type hints: triangle, unique, saveable, parcel
+4c0713297c3d9d234d81195d4935e111a95c173e
+
+# type hints: time, frequency, valueaxis
+d9ee6f3c0d9d5858a8aabe4104f3c4cc13cebce6
+
+# type hints: matrixdata, implementations, wrappers
+94107d0640463f07f7b9e422bb67659b3256f38f
+
+# type hints: datasaveable, dfunction
+ef1ece3b6d55ff4f27b4a6b0a8e9f35d6bacd0bf
+
+# mypy: add disallow_untyped_defs override for quantarhei.core modules
+ccba10a97b16b8eafc300340cfb97109e9d1a35c
+
+# type hints: fix unique.py attr typo and datasaveable.py numpy.savez_compressed
+814d320826cadb7dcca0a4e58ff5d6a2d54dc5a9
+
+# ---------------------------------------------------------------------------
+# #230 type hints: core/managers.py and core/parallel.py (phase 3 of 6)
+# ---------------------------------------------------------------------------
+
+# type hints: core/managers.py — annotate all defs
+173da788da29587f1bbcea50c0ff77441069e592
+
+# type hints: core/parallel.py — annotate all defs
+db2b934273690bccb09f926738c756af02f5ad03
+
+# type hints: fix cascading type errors in logconf, units, valueaxis
+bfaf405e1f71343c3a904cfcf5a2375a871ce4bf
+
+# pyproject.toml: add disallow_untyped_defs override for core/managers and core/parallel
+b8c2d5ba0661df9910fc6b8adcb6b70750c98c2e
+
+# type hints: managers.py — fix parallel_conf type, _saved_units init, DistributedConfiguration return
+baafdc38a7607ea9d049892b2711b3e25e785fb1
+
+# ---------------------------------------------------------------------------
+# #231 type hints: qm/ (phase 4 of 6)
+# ---------------------------------------------------------------------------
+
+# type hints: qm/ — annotate all defs, add disallow_untyped_defs for quantarhei.qm.*
+eb38e521c7275515fd1dc7f64fb8b6b5b59e1566
+
+# type hints: annotate missing defs in rdmpropagator.py, svpropagator.py, nefoerstertensor.py
+85c74a4a546059d9f6ec7863781202b4b3e434ce
+
+# ---------------------------------------------------------------------------
+# #232 type hints: builders/ (phase 5 of 6)
+# ---------------------------------------------------------------------------
+
+# type hints: builders/ — annotate all defs, add disallow_untyped_defs for quantarhei.builders.*
+64a469c67cfe5b710e217ade45085a7709bb42f1
+
+# type hints: opensystem.py — annotate DD and _setF4 closures in get_F4d
+bd788a24201972a66bc092c1a7cb8877666898e7
+
+# type hints: fix state2: object | None = None in aggregate_base.py
+7482470e87cd6e67fc96d9f942d605137a127909
+
+# ---------------------------------------------------------------------------
+# #233 type hints: spectroscopy + remaining subpackages (phase 6 of 6)
+# ---------------------------------------------------------------------------
+
+# type hints: testing/, scripts/, models/, implementations/, wizard/, symbolic/
+a7a9056c9f5bb3c91c457150487539140c99889c
+
+# type hints: spectroscopy (partial batch 1) + remaining non-spectroscopy files
+371123af33063a9d0cf55769a91f6b5fa88489ad
+
+# type hints: spectroscopy batch 2 — response_implementations, dsfeynman, pathwayanalyzer
+de335e903c57ab5edadb2b4ded7a4ab4483688ea
+
+# type hints: spectroscopy/labsetup, implementations/aceto, wizard/simulations
+c6447e5019f80d679ccaee9d9df748f6c5018f84
+
+# type hints: annotate funcf closures in circular_dichroism/fluorescence/linear_dichroism
+c69966eed3514092de3eaf9e64d5f366c351ca5f
+
+# type hints: annotate legacy qm/liouvillespace ignored files
+15126f705aa4e53cf53e13e2542f61430a7c0b27
+
+# type hints: twodspect.py
+ef886c351840ce608a1ccff99a2030066bc70c49
+
+# type hints: twodresponse.py
+de2a28fe7c980d5e6aa6da73577149abeee78b6b
+
+# type hints: twod22.py
+1b1df5083a3ca1c466ce57f0a160be6602583523
+
+# type hints: annotate env closure in labsetup.py get_pulse_envelop_function
+d250352e66c5fb2529746c48075abab45d67d050
+
+# ---------------------------------------------------------------------------
+# #241 style: ruff autoformatter pass
+# ---------------------------------------------------------------------------
+
+# style: apply ruff formatter across entire codebase (198 files)
+36cd6df2dcbdafde87b8a657c79d13dd5dcdb688

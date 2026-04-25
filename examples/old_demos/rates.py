@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-import numpy
 import matplotlib.pylab as plt
+import numpy
 
-from quantarhei import TimeAxis
+from quantarhei import PopulationPropagator, TimeAxis
 from quantarhei.qm import RateMatrix
-from quantarhei import PopulationPropagator
 
 tt = TimeAxis(0.0, 5000, 0.1)
 
@@ -169,10 +167,10 @@ plt.show()
 #    for j in range(N):
 #        plt.plot(tt.data,U[i,j,:])
 #plt.show()
-    
+
 #for i in range(N):
 #    for j in range(N):
 #        plt.plot(tt.data,Uc0[i,j,:]+Uc1[i,j,:],"--")
-        
+
 #plt.show()
 
