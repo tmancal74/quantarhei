@@ -381,7 +381,7 @@ class SystemBathInteraction(Saveable):
                 # correlation function in discrete representation
                 cf = self.get_coft(kk+1, kk+1)
                 # integration into g(t)
-                gf = c2g(self.TimeAxis.data, cf)
+                gf = c2g(self.TimeAxis, cf)
                 # make it into spline function
                 df = DFunction(self.TimeAxis, gf)
                 gfunc = df.as_spline_function()
@@ -413,6 +413,7 @@ class SystemBathInteraction(Saveable):
             T = self.get_temperature()
             if T >= 0.0:
                 return True
+            return False
         except Exception:
             return False
 
