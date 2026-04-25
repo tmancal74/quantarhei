@@ -783,7 +783,7 @@ class Manager(metaclass=Singleton):
         self.basis_registered[nb].append(operator)
 
 
-    def get_DistributedConfiguration(self) -> "DistributedConfiguration":
+    def get_DistributedConfiguration(self) -> DistributedConfiguration:
         """
 
         """
