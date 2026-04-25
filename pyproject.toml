@@ -241,6 +241,9 @@ module = [
     "quantarhei.spectroscopy.mockabscalculator",
     "quantarhei.spectroscopy.pumpprobe",
     "quantarhei.spectroscopy.mocktwodcalculator",
+    "quantarhei.spectroscopy.dsfeynman",
+    "quantarhei.spectroscopy.response_implementations",
+    "quantarhei.spectroscopy.pathwayanalyzer",
     "quantarhei.wizard.input.input",
 ]
 ignore_errors = true
