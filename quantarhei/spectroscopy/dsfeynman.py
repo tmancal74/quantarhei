@@ -1,27 +1,28 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
-from ..symbolic.cumulant import Uop
-from ..symbolic.cumulant import UopEater
-from ..symbolic.cumulant import transform_to_einsum_expr
+from typing import Any
 
-class DSFeynmanDiagram():
-    """ Double-sided Feynman diagrams
+from ..symbolic.cumulant import Uop, UopEater, transform_to_einsum_expr
+
+
+class DSFeynmanDiagram:
+    """Double-sided Feynman diagrams
 
 
     """
-    
-    def __init__(self, ptype="non-defined"):
 
-        
+    def __init__(self, ptype: str = "non-defined") -> None:
+
+
         ptype_simple = ["R1g", "R2g", "R3g", "R4g",
                         "R1f", "R2f", "R3f", "R4f"]
         ptype_relax = ["R1g_RL0", "R2g_RL0","R1f_L0", "R2f_RL0"]
-        
+
         self.states = {}
         self.pointer = 0
         self._pic_rep = "\n"
         self.finished = False
-        
+
         self.light_transitions = {}
         self.ltcount = 0
 
@@ -29,24 +30,24 @@ class DSFeynmanDiagram():
             self.type = ptype
         else:
             raise Exception("Unknown diagram type.")
-        
+
         self.states[self.pointer] = ["g", "g"]
         self.add_states_line()
-        
+
         if self.type in ptype_simple:
             self.dimensions = {"t1":0, "t2":-1, "t3":1}
         elif self.type in ptype_relax:
             self.dimensions = {"t1":0, "t2":-1, "t3":-1, "t4":1}
-        
+
         self.diag_name = None
 
 
-    def add_states_line(self):
+    def add_states_line(self) -> None:
         self._pic_rep = "      | "+self.states[self.pointer][0]+ \
                         "      "+self.states[self.pointer][1]+" |\n"+self._pic_rep
 
 
-    def add_arrow(self, side, dir, to="a"):
+    def add_arrow(self, side: str, dir: str, to: str = "a") -> None:
         """Adds an arrow in a given direction and transits to a new state
 
         """
@@ -60,7 +61,7 @@ class DSFeynmanDiagram():
                 self._pic_rep = "  --->|----------|\n"+self._pic_rep
             elif dir == "<---":
                 self._pic_rep = "  <---|----------|\n"+self._pic_rep
-                
+
         elif side == "right":
             self.states[self.pointer] = [self.states[self.pointer-1][0],to]
             self.light_transitions[self.ltcount] = \
@@ -70,13 +71,13 @@ class DSFeynmanDiagram():
                 self._pic_rep = "      |----------|<---\n"+self._pic_rep
             elif dir == "--->":
                 self._pic_rep = "      |----------|--->\n"+self._pic_rep
-                
+
         self.add_states_line()
 
 
-    def add_trans(self, to="b"): 
-        """Add a non-radiative transition 
-        
+    def add_trans(self, to: str = "b") -> None:
+        """Add a non-radiative transition
+
         """
         self.pointer += 1
         self.states[self.pointer] = [to,to]
@@ -85,9 +86,9 @@ class DSFeynmanDiagram():
         self.ltcount += 1
         self._pic_rep = "      |..........|\n"+self._pic_rep
         self.add_states_line()
-        
-        
-    def finish(self, end="g"):
+
+
+    def finish(self, end: str = "g") -> None:
         """Finishes the diagram with a given state
 
         """
@@ -97,7 +98,7 @@ class DSFeynmanDiagram():
         self.finished = True
 
 
-    def _check_finished(self):
+    def _check_finished(self) -> None:
         """Checkes if the diagram is finished
 
         """
@@ -105,39 +106,37 @@ class DSFeynmanDiagram():
             raise Exception("An unfinisged diagram: finish() method has to be called first")
 
 
-    def get_time_dimensions(self):
-        """ Returns a dictionary describing the required representation 
-        of the response as a matrix of times. 
-        
+    def get_time_dimensions(self) -> dict[str, int]:
+        """Returns a dictionary describing the required representation
+        of the response as a matrix of times.
+
         """
         return self.dimensions
 
-    
-    def get_phase_factor(self, dimensions=None):
+
+    def get_phase_factor(self, dimensions: dict[str, int] | None = None) -> str:
         """Returns the phase factor for the present diagram, with reshaped time symbols if provided."""
-    
         fact = "-"
         Nst = len(self.states)
-    
-        def reshape_time_symbol(tname):
+
+        def reshape_time_symbol(tname: str) -> str:
             """Return reshaped time variable like t1[:,None] or t2[None,None]"""
             if dimensions is None:
                 return tname
-    
+
             axis = dimensions.get(tname, None)
             if axis == 0:
                 return f"{tname}[:,None]"
-            elif axis == 1:
+            if axis == 1:
                 return f"{tname}[None,:]"
-            elif axis == -1:
+            if axis == -1:
                 return f"{tname}[None,None]"
-            else:
-                raise ValueError(f"Unsupported or missing axis for time variable '{tname}' in dimensions.")
-    
+            raise ValueError(f"Unsupported or missing axis for time variable '{tname}' in dimensions.")
+
         for sec in range(1, Nst - 1):
             st = self.states[sec]
             fact += "1j*(En["+st[0]+"]-En["+st[1]+"])"
-            
+
             if dimensions is None:
                 tm = "t"+str(sec)
                 fact += "*"+tm+" "
@@ -146,61 +145,59 @@ class DSFeynmanDiagram():
                 tm = list(dimensions.keys())[sec - 1]
                 tm_reshaped = reshape_time_symbol(tm)
                 fact += "*"+tm_reshaped+" "
-    
+
             if sec < Nst - 2:
                 fact += "-"
-    
-        return fact        
+
+        return fact
 
 
-    def evolution_operators(self, operators=False):
+    def evolution_operators(self, operators: bool = False) -> Any:
         """Returns evolution operators corresponding to the diagram
-        
+
         It can return a string representation or a list of operator objects.
-        
+
         Parameters
         ----------
-        
         operators : bool
-            If operators is False, string representation will be returned. 
+            If operators is False, string representation will be returned.
             A list of Uop objects will be returned if operators is True.
-        
-        """
 
+        """
         self._check_finished()
-            
+
         symbols = set()
-        
+
         kk = 0
         Uops = ""
         Uops_list = []
- 
+
         for key in self.states:
             if kk > 0 and kk < self.count+1:
                 sts = self.states[key]
                 rightstate = sts[1]
-                
+
                 symbols.add(rightstate)
-                
+
                 times = dict()
-                if kk <= len(self.dimensions): #4:  
+                if kk <= len(self.dimensions): #4:
                     tms = "t"+str(kk)
-                    times[tms] = 1 
+                    times[tms] = 1
                     symbols.add(tms)
-                    
+
                 else:
                     raise Exception("Unknown time for evolution operator")
-                    
+
                 if rightstate == "g":
                     Uops += "Ugd(t"+str(kk)+")"
                     if operators:
                         Uops_list.append(Uop(state="g", times=times, dagger=True))
-                    
+
                 else:
                     Uops += "Ued("+rightstate+",t"+str(kk)+")"
                     if operators:
                         Uops_list.append(Uop(state=rightstate, times=times, dagger=True))
-                        
+
                 if kk < self.count:
                     Uops += "*"
             kk += 1
@@ -213,18 +210,18 @@ class DSFeynmanDiagram():
              if kk > 0 and kk < self.count+1:
                 sts = self.states[key]
                 leftstate = sts[0]
-                
+
                 symbols.add(leftstate)
-                
+
                 times = dict()
-                if kk <= len(self.dimensions): # 4: 
+                if kk <= len(self.dimensions): # 4:
                     tms = "t"+str(kk)
                     times[tms] = 1
                     symbols.add(tms)
 
                 else:
-                    raise Exception("Unknown time for evolution operator")                
-                
+                    raise Exception("Unknown time for evolution operator")
+
                 if leftstate == "g":
                     rUop = "Ug(t"+str(kk)+")"+rUop
                     if operators:
@@ -237,38 +234,36 @@ class DSFeynmanDiagram():
                         list_st = [Uop(state=leftstate, times=times, dagger=False)]
                         list_st.extend(rUops_list)
                         rUops_list = list_st
-                        
+
                 if kk < self.count:
                     rUop = "*"+rUop
              kk += 1
 
         Uops += "*"+rUop
         Uops_list.extend(rUops_list)
-        
+
         self.symbols = symbols
-        
+
         if operators:
             return Uops_list
-        
+
         return Uops
-    
-    
-    def coherence_GF(self):
-        """Returns coherence Green's function product for this diagram 
-        
+
+
+    def coherence_GF(self) -> Any:
+        """Returns coherence Green's function product for this diagram
+
         """
-        
         evs = self.evolution_operators(operators=True)
         eater = UopEater()
         out_list = eater.eat(evs)
         return eater.spit_coherence_GF()
-    
-    
-    def get_cumulant_expression(self, verbose=False):
-        """Returns the cumulant evaluation of the diagram
-        
-        """
 
+
+    def get_cumulant_expression(self, verbose: bool = False) -> Any:
+        """Returns the cumulant evaluation of the diagram
+
+        """
         codes = []
 
         code_import = """
@@ -281,7 +276,7 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
 """
 
         codes.append(code_import)
-        
+
         outs = self.coherence_GF()
 
         #
@@ -289,53 +284,52 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         #
         code_symbols = ""
         for sms in self.symbols:
-            code_symbols += sms+" = sp.Symbol('"+sms+"')\n" 
+            code_symbols += sms+" = sp.Symbol('"+sms+"')\n"
         code_symbols += "\n"
-    
+
         code1 = code_symbols+"A_cum = "+outs
         codes.append(code1)
 
-        code2 = "\n"+\
+        code2 = "\n"\
             "evc = evaluate_cumulant(A_cum, positive_times=[t1, t2, t3])\n"
 #        code2 = "\n"+\
 #            "evc = evaluate_cumulant(A_cum)\n"
-       
-        codes.append(code2)        
-       
+
+        codes.append(code2)
+
         local_vars = {}
         for cod in codes:
             if verbose:
                 print(cod)
             compiled_code = compile(cod, "<string>","exec")
             exec(compiled_code, {}, local_vars)
-        
-        return local_vars["evc"]   
-    
-    
-    def __str__(self):
+
+        return local_vars["evc"]
+
+
+    def __str__(self) -> str:
         self._check_finished()
         return self._pic_rep
 
-    
-    def report(self):
+
+    def report(self) -> None:
         self._check_finished()
         print("\nDiagram of",self.type,"type\n")
         print(self)
-        print("Light interaction count:", self.count) 
+        print("Light interaction count:", self.count)
         print("Transitions:", self.light_transitions)
-              
-              
-    def _dipole_arrangement(self, ground='g'):
+
+
+    def _dipole_arrangement(self, ground: str = 'g') -> str:
         """Returns a string characterizing order of light transitions
-        
+
         """
-        
         d = self.light_transitions
         letters = []
-    
+
         for key in sorted(d.keys()):
             a, b = d[key]
-    
+
             if a == ground and b != ground:
                 letters.append(b)
             elif b == ground and a != ground:
@@ -349,11 +343,10 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         return ''.join(reversed(letters))
 
 
-    def _loops(self, Nloop, states, sizes):
+    def _loops(self, Nloop: int, states: list[str], sizes: list[str]) -> tuple[str, str]:
         """Creates loop code
-        
+
         """
-        
         tab = "    "
         outstr = ""
         ctab = ""
@@ -361,15 +354,14 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
             ctab += tab
             outstr += "\n"+ctab+"for "+states[kk]+" in range(" \
             +sizes[kk]+"):"
-            
-        return outstr, ctab
-            
 
-    def get_vectorized_code(self, function=True, participation_matrix=True):
-        """ Return the code that evaluates the response function
-        
+        return outstr, ctab
+
+
+    def get_vectorized_code(self, function: bool = True, participation_matrix: bool = True) -> str:
+        """Return the code that evaluates the response function
+
         """
-        
         dims = self.dimensions
         phfac = self.get_phase_factor(dimensions=dims)
         #print("\n ... phase factor:", phfac)
@@ -390,11 +382,11 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
             out = transform_to_einsum_expr(cme,
                                        participation_matrix=None,
                                        dimensions=dims)
-            
+
         out_str = str(out)+" "+phfac
-        
+
         if function:
-            
+
             if self.type in ["R1f", "R2f", "R3f", "R4f"]:
                 Ntab = 4
                 Nloop = 3
@@ -407,38 +399,38 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
                 dfac_code = "dfac[a,b]"
                 einsum_str = "i,abi->ab"
                 Nf_code = "\n"
-                
+
             fcode = _format_code(Ntab, out_str)
 
             #prt = "MM"
             fstr = "\ndef "+self.diag_name+"(t2, t1, t3, lab, system):"
-            
+
             fstr += \
 '''
-    """ Returns a matrix of the respose function values for given t1 and t3 
-    
+    """ Returns a matrix of the respose function values for given t1 and t3
+
     Parameters:
     -----------
-    
+
     t1 : numpy.array
         Array of t1 times (must be the same as the t1 axis of the gg object)
-        
+
     t2 : float
         Value of the t2 (waiting) time of the response
-        
+
     t3 : numpy.array
         Array of t3 times (must be the same as the t3 axis of the gg object)
-        
+
     system : aggregate or molecule class
-        An object storing all information about the system including 
+        An object storing all information about the system including
         the values of the line shape functions.
-    
-    
+
+
     """'''
-            
+
             fstr += "\n    import numpy as np"
             fstr += "\n"
-            
+
             fstr += "\n    gg = system.get_lineshape_functions()"
 
             if participation_matrix:
@@ -452,15 +444,15 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
             fstr += "\n"
             fstr += "\n    Ne = En.shape[0]"
             fstr += Nf_code
-            
+
             dip_type = self._dipole_arrangement()
-            
+
             fstr += "\n    # dipole arrangemenent type: "+dip_type
             fstr += "\n    F4 = system.get_F4d('"+dip_type+"')"
             fstr += "\n    dfac = np.einsum('"+einsum_str+"',lab.F4eM4,F4)"
             fstr += "\n"
             fstr += "\n    ret = np.zeros((len(t1),len(t3)), dtype=COMPLEX)"
-            
+
             # FIXME: Here we have to allow diffent number of loops
             lcode, ctab = self._loops(Nloop, ["a", "b", "f"],
                                              ["Ne", "Ne", "Nf"])
@@ -472,15 +464,14 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
             fstr += fcode
             fstr += "\n"
             fstr += "\n    return ret"
-            
-            return fstr
-            
-        return out_str
-    
 
-def _format_code(N, code_string):
-    """
-    Formats a long Python expression string into a properly indented, multiline expression
+            return fstr
+
+        return out_str
+
+
+def _format_code(N: int, code_string: str) -> str:
+    """Formats a long Python expression string into a properly indented, multiline expression
     wrapped inside numpy.exp(...), with line breaks only at top-level '+' and '-' operators.
 
     Parameters:
@@ -493,8 +484,8 @@ def _format_code(N, code_string):
     indent = " " * (4 * N)
     inner_indent = indent + "    "
 
-    def smart_split(expr):
-        parts = []
+    def smart_split(expr: str) -> list[str]:
+        parts: list[str] = []
         current = ""
         depth = 0
         in_quote = False
@@ -568,8 +559,8 @@ class R1g_Diagram(DSFeynmanDiagram):
     """R1g diagram
 
     Diagram of R1g type
-    
-    
+
+
           | g      g |
       <---|----------|
           | a      g |
@@ -581,14 +572,16 @@ class R1g_Diagram(DSFeynmanDiagram):
           | g      g |
 
     """
-    
-    def __init__(self, states=["a","b"]):
+
+    def __init__(self, states: list[str] | None = None) -> None:
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R1g")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("right", "<---", to=states[1])
         self.add_arrow("right", "--->", "g" )
         self.finish()
-        
+
         self.diag_name="R1g"
 
 
@@ -596,8 +589,8 @@ class R1g_R_Diagram(DSFeynmanDiagram):
     """R1g diagram
 
     Diagram of R1g type
-    
-    
+
+
           | g      g |
       <---|----------|
           | b      g |
@@ -611,15 +604,17 @@ class R1g_R_Diagram(DSFeynmanDiagram):
           | g      g |
 
     """
-    
-    def __init__(self, states=["a","b"]):
+
+    def __init__(self, states: list[str] | None = None) -> None:
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R1g_RL0")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("right", "<---", to=states[0])
         self.add_trans(to=states[1])
         self.add_arrow("right", "--->", "g" )
         self.finish()
-    
+
         self.diag_name="R1g_R"
 
 
@@ -628,8 +623,8 @@ class R2g_Diagram(DSFeynmanDiagram):
     """R2g diagram
 
     Diagram of R2g type
-    
-    
+
+
           | g      g |
       <---|----------|
           | b      g |
@@ -642,7 +637,9 @@ class R2g_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states: list[str] | None = None) -> None:
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R2g")
         self.add_arrow("right", "<---", to=states[0])
         self.add_arrow("left", "--->", to=states[1])
@@ -656,8 +653,8 @@ class R3g_Diagram(DSFeynmanDiagram):
     """R3g diagram
 
     Diagram of R3g type
-    
-    
+
+
           | g      g |
       <---|----------|
           | b      g |
@@ -670,21 +667,23 @@ class R3g_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states: list[str] | None = None) -> None:
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R3g")
         self.add_arrow("right", "<---", to=states[0])
         self.add_arrow("right", "--->", to="g")
         self.add_arrow("left", "--->", to=states[1])
         self.finish()
-        
-        self.diag_name="R3g"    
+
+        self.diag_name="R3g"
 
 class R4g_Diagram(DSFeynmanDiagram):
     """R4g diagram
 
     Diagram of R4g type
-    
-    
+
+
           | g      g |
       <---|----------|
           | b      g |
@@ -697,21 +696,23 @@ class R4g_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b"]):
+    def __init__(self, states: list[str] | None = None) -> None:
+        if states is None:
+            states = ["a", "b"]
         super().__init__(ptype="R4g")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("left", "<---", to="g")
         self.add_arrow("left", "--->", to=states[1])
         self.finish()
-        
+
         self.diag_name="R4g"
 
 class R1f_Diagram(DSFeynmanDiagram):
     """R1f diagram
 
     Diagram of R1f type
-    
-    
+
+
           | b      b |
       <---|----------|
           | f      b |
@@ -724,20 +725,22 @@ class R1f_Diagram(DSFeynmanDiagram):
 
     """
 
-    def __init__(self, states=["a","b","f"]):
+    def __init__(self, states: list[str] | None = None) -> None:
+        if states is None:
+            states = ["a", "b", "f"]
         super().__init__(ptype="R1f")
         self.add_arrow("left", "--->", to=states[0])
         self.add_arrow("right","<---", to=states[1])
         self.add_arrow("left", "--->", to=states[2])
         self.finish(end="b")
 
-        self.diag_name="R1f"        
+        self.diag_name="R1f"
 
 class R2f_Diagram(DSFeynmanDiagram):
     """R2f diagram
 
     Diagram of R2f type
-    
+
           | a      a |
       <---|----------|
           | f      a |
@@ -747,10 +750,12 @@ class R2f_Diagram(DSFeynmanDiagram):
           | g      a |
           |----------|<---
           | g      g |
-          
+
     """
 
-    def __init__(self, states=["a","b","f"]):
+    def __init__(self, states: list[str] | None = None) -> None:
+        if states is None:
+            states = ["a", "b", "f"]
         super().__init__(ptype="R2f")
         self.add_arrow("right", "<---", to=states[0])
         self.add_arrow("left","--->", to=states[1])
@@ -758,4 +763,4 @@ class R2f_Diagram(DSFeynmanDiagram):
         self.finish(end="a")
 
         self.diag_name="R2f"
-        
+

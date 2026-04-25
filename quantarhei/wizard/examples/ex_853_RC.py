@@ -1,31 +1,27 @@
-# -*- coding: utf-8 -*-
-"""
-    Simulation script
+"""Simulation script
 
-    This script performs a set of simulations by calling the function "run"
-    specified below. Scroll down below the definition of the "run" function
-    for the simulation parameters.
-    The default version of the script runs a series of three simulations
-    (parameters Ns_d = 1 and Ns_u=1)
+This script performs a set of simulations by calling the function "run"
+specified below. Scroll down below the definition of the "run" function
+for the simulation parameters.
+The default version of the script runs a series of three simulations
+(parameters Ns_d = 1 and Ns_u=1)
 
 """
-import time
 import datetime
+import gc
 import os
 import shutil
-import gc
+import time
 
 import numpy
 
 import quantarhei as qr
-
-from quantarhei.utils.vectors import X
 import quantarhei.functions as func
-from quantarhei.core.units import kB_int
-
 from quantarhei import printlog as print
+from quantarhei.core.units import kB_int
+from quantarhei.utils.vectors import X
 
-print("\n***** Rc Simulation Script"+
+print("\n***** Rc Simulation Script"
       " *****")
 
 input_file = "ex_853_RC.yaml"
@@ -44,7 +40,6 @@ def init_containers():
     """Initialized containers
 
     """
-
     cont_p_re = qr.TwoDSpectrumContainer()
     cont_p_re.use_indexing_type("integer")
     cont_p_nr = qr.TwoDSpectrumContainer()
@@ -61,7 +56,6 @@ def save_containers(cont, dname, node=0):
     """Saves the content of containers
 
     """
-
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = cont
 
     name1 = "cont_p_re_"+str(node)
@@ -81,7 +75,6 @@ def save_averages(cont, dname):
     """Saves disorder averaged spectra
 
     """
-
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = cont
 
     name1 = "ave_p_re.qrp"
@@ -102,7 +95,6 @@ def unite_containers(node=0):
     """Collects container parts from the directory to make a single container
 
     """
-
     (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr) = init_containers()
     name1 = "cont_p_re_"+str(node)
     name2 = "cont_p_nr_"+str(node)
@@ -130,7 +122,7 @@ def unite_containers(node=0):
 ################################################################################
 def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
         stype=qr.signal_REPH, make_movie=False, save_eUt=False,
-        t2_save_pathways=[], dname=None, trimer=None, disE=None):
+        t2_save_pathways=None, dname=None, trimer=None, disE=None):
     """Runs a complete set of simulations for a single set of parameters
 
 
@@ -138,6 +130,8 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     disorder.
 
     """
+    if t2_save_pathways is None:
+        t2_save_pathways = []
     if dname is None:
         dname = "sim_"+vib_loc
 
@@ -395,7 +389,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
 
     # save the evolution operator
     if save_eUt:
-        eut_name = os.path.join(dname, "eUt"+
+        eut_name = os.path.join(dname, "eUt"
                                     "_omega2="+str(omega)+data_descr+obj_ext)
         eUt.save(eut_name)
 
@@ -561,7 +555,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_1 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=REPH"+"_omega="+str(omega)+data_ext)
             sp1_p_re.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Rephasing\n $\omega="+str(omega)+
+                          label="Rephasing\n $\\omega="+str(omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")
@@ -570,7 +564,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_2 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=NONR"+"_omega="+str(omega)+data_ext)
             sp1_p_nr.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Non-rephasing\n $\omega="+str(omega)+
+                          label="Non-rephasing\n $\\omega="+str(omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")
@@ -579,7 +573,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_3 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=tot"+"_omega="+str(omega)+data_ext)
             sp1_p_to.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Total\n $\omega="+str(omega)+
+                          label="Total\n $\\omega="+str(omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")
@@ -605,7 +599,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_4 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=REPH"+"_omega="+str(-omega)+data_ext)
             sp2_m_re.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Rephasing\n $\omega="+str(-omega)+
+                          label="Rephasing\n $\\omega="+str(-omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")
@@ -614,7 +608,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_5 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=NONR"+"_omega="+str(-omega)+data_ext)
             sp2_m_nr.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Non-rephasing\n $\omega="+str(-omega)+
+                          label="Non-rephasing\n $\\omega="+str(-omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")
@@ -623,7 +617,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
             fftf_6 = os.path.join(dname, "twod_fft"+data_descr+
                                    "_stype=tot"+"_omega="+str(-omega)+data_ext)
             sp2_m_to.plot(Npos_contours=10, spart=qr.part_ABS,
-                          label="Total\n $\omega="+str(-omega)+
+                          label="Total\n $\\omega="+str(-omega)+
                           "$ cm$^{-1}$", text_loc=[0.05,0.1],
                           show_states=[Ep_l, Ep_u, Ep_u+numpy.abs(omega)],
                           show_diagonal="-k")
@@ -794,7 +788,7 @@ tags = []
 save_it_at_the_end = False
 
 tA = time.time()
-at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+at = f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
 print("\nStarting simulation set at", at)
 ll = 1
 for model in models:
@@ -816,7 +810,7 @@ for model in models:
 
 
     kk = 1
-    at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+    at = f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
     print("\nStarting the simulation at:", at)
     Np = len(parms)
     for par in parms:
@@ -854,7 +848,7 @@ for model in models:
                 try:
                     random_state = qr.load_parcel(INP.random_state["file"])
                     numpy.random.set_state(random_state)
-                except:
+                except (OSError, ValueError):
                     raise Exception("Loading random state failed")
             if INP.random_state["save"]:
                 random_state = numpy.random.get_state()
@@ -1009,7 +1003,7 @@ for model in models:
     ll += 1
 
 tB = time.time()
-at = '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+at = f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
 print("\n... finished simulation set at", at, "in", tB-tA,"sec")
 
 if disorder:

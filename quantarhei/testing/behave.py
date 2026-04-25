@@ -1,27 +1,27 @@
-# -*- coding: utf-8 -*-
-"""
-    Support module for tests using `behave` package
+"""Support module for tests using `behave` package
 
 
 
 """
+from __future__ import annotations
+
 # standard imports
 import os
-import tempfile
 import re
-from subprocess import check_output
+import tempfile
 
 # non-standard imports
 from importlib.resources import files
+from subprocess import check_output
+from typing import Any
 
 
-def quantarhei_installed(context, version=None):
+def quantarhei_installed(context: Any, version: str | None = None) -> None:
     """Tests if quantarhei is installed and sets version to context if it is
 
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -37,13 +37,12 @@ def quantarhei_installed(context, version=None):
         assert context.version == version
 
 
-def shell_command(context, cmd, err_msg="Shell command error"):
+def shell_command(context: Any, cmd: str, err_msg: str = "Shell command error") -> None:
     """Runs a shell command in current directory
 
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -60,17 +59,16 @@ def shell_command(context, cmd, err_msg="Shell command error"):
         output = check_output(cmd, shell=True, cwd=os.getcwd())
         context.output = output
 
-    except:
+    except Exception:
         raise Exception(err_msg)
 
 
-def check_output_contains(context, text, err_msg):
+def check_output_contains(context: Any, text: str, err_msg: str) -> None:
     """Checks that message contains certain text
 
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -87,7 +85,7 @@ def check_output_contains(context, text, err_msg):
         raise Exception(err_msg)
 
 
-def secure_temp_dir(context):
+def secure_temp_dir(context: Any) -> None:
     """Creates temporary directory and stores its info into context
 
     """
@@ -95,24 +93,23 @@ def secure_temp_dir(context):
     context.tempdir = tmpd
 
 
-def cleanup_temp_dir(context):
+def cleanup_temp_dir(context: Any) -> None:
     """Cleans up temporary directory
 
 
     """
-
     try:
         os.chdir(context.cwd)
-    except:
+    except (AttributeError, OSError):
         print("Current working file record does not exist")
 
     try:
         context.tempdir.cleanup()
-    except:
+    except (AttributeError, OSError):
         print("Temporary directory cannot be cleaned up - does it exist?")
 
 
-def fetch_test_feature_file(context, filename):
+def fetch_test_feature_file(context: Any, filename: str) -> None:
     """Fetches the file with a given name from the storage of test files
 
     """
@@ -127,7 +124,7 @@ def fetch_test_feature_file(context, filename):
     context.output = ""
 
 
-class testdir():
+class testdir:
     """Context manager for test directory
 
     With this context manager we enter temporary directory which was
@@ -136,22 +133,22 @@ class testdir():
 
     """
 
-    def __init__(self, context):
+    def __init__(self, context: Any) -> None:
 
         self.context = context
         try:
             tempdir = context.tempdir
             if tempdir is None:
                 raise Exception()
-        except:
+        except Exception:
             raise Exception("Context does not contain info about tempdir")
 
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.context.cwd = os.getcwd()
         os.chdir(self.context.tempdir.name)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         os.chdir(self.context.cwd)
         if exc_type is not None:
             cleanup_temp_dir(self.context)

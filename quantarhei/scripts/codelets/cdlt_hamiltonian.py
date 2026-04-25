@@ -9,7 +9,7 @@
 #
 # Usage
 # -----
-# 
+#
 # hamiltonian:
 #     matrix:
 #         12000.0
@@ -26,7 +26,7 @@ class QTaskException(Exception):
 
 
 if INP.hamiltonian:
-    
+
     #
     # Get multiplicity
     #
@@ -37,13 +37,13 @@ if INP.hamiltonian:
 
     #
     # Get units
-    #      
+    #
     if INP.hamiltonian["units"]:
         units = INP.hamiltonian["units"]
     else:
         units = "int"
-        
-    
+
+
     #
     # Either matrix or file keywords have to be specified
     #
@@ -54,20 +54,20 @@ if INP.hamiltonian:
         have_data = True
     except KeyError:
         error = True
-    
+
     if error:
         try:
             ham_file = INP.hamiltonian["file"]
             error = False
         except KeyError:
             error = True
-    
+
     if error:
         raise QTaskException("`matrix` or `file` keywords have to be provided")
-    
+
     if have_data:
         H = qr.Hamiltonian(data=data)
-    
+
 else:
-    
+
     raise QTaskException("Hamiltonian is not provided")

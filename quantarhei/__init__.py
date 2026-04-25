@@ -1,126 +1,124 @@
-    # -*- coding: utf-8 -*-
-"""
-    Quantarhei User Level Classes and Objects
-    =========================================
+"""Quantarhei User Level Classes and Objects
+=========================================
 
-    In Quantarhei, classes are losely grouped into three categories. First,
-    there is agroup of classes, which represent basic concepts of quantum
-    mechanics, provide access to important implementations of spectroscopic
-    simulations and dynamics of open quantum systems, and classes which allow
-    basic management of the simulation environment and numerical results.
-    These classed are called **user level classes**, and they are all
-    accessible in highest namespace level of the Quantarhei package.
-    If you import Quantarhei like this:
+In Quantarhei, classes are losely grouped into three categories. First,
+there is agroup of classes, which represent basic concepts of quantum
+mechanics, provide access to important implementations of spectroscopic
+simulations and dynamics of open quantum systems, and classes which allow
+basic management of the simulation environment and numerical results.
+These classed are called **user level classes**, and they are all
+accessible in highest namespace level of the Quantarhei package.
+If you import Quantarhei like this:
 
-    >>> import quantarhei as qr
+>>> import quantarhei as qr
 
-    you can access user level classes through the qr. prefix, e.g.
+you can access user level classes through the qr. prefix, e.g.
 
 
-    >>> manager = qr.Manager()
-    >>> print(manager.version)
-    0.0.63
+>>> manager = qr.Manager()
+>>> print(manager.version)
+0.0.63
 
-    The list of user level classes is provided below. Tue latest and most
-    uptodate information can be obtained by viewing the source code of the 
-    root `__init__.py` file of the packages. All classes imported there are
-    considered user level classes.
-    
-    
-    Other Class Levels
-    ------------------
-    
-    In this documentation we recognize two more groups (or levels) of classes.
-    More specialized classes, which normal user does not need as often as the
-    user level classes are called **advanced level classes**. These use the
-    second level name space. For instance the class `SystemBathInteraction`
-    is relatively rarely used directly. It is therefore *hidden* in the name
-    space `qm` (as quantum mechanics) of the package. This class can be 
-    instantiated e.g. like this
-    
-    >>> import quantarhei as qr
-    >>> sbi = qr.qm.SystemBathInteraction()
-    
-    Advanced level classes are still intendend for relatively frequent use
-    by the user. However, in order to reduced the *apparent* complexity of
-    basic usage of Quantarhei, advanced level classes are documented in their
-    respective sub-packages, one level deeper than user level classes. Complete
-    documentation of advanced level classes is available in the Advanced Level
-    Classes section of this documentation.
-    
-    Everything else in Quantarhei package goes under the banner of
-    **expert level classes**. This includes all classes and objects used 
-    internally in Quantarhei. We make every effort to document also this part
-    of the package as completely as possible, but it is the last item on the
-    list, so to say. The user is welcome to learn and use the expert level
-    classes, but our aim is to structure Quantarhei in such a way, that this
-    is not necessary. More on expert level classes in the section in 
-    Quantarhei internals.
+The list of user level classes is provided below. Tue latest and most
+uptodate information can be obtained by viewing the source code of the
+root `__init__.py` file of the packages. All classes imported there are
+considered user level classes.
 
-    User Level Objects and Convenience Functions
-    ============================================
-    
-    Besides classes, Quantarhei also defines some user level objects and
-    convenience functions. They are listed here under several categories
-  
-    Numeric types
-    -------------
 
-    .. toctree::
-        :maxdepth: 2
-        
-        functions/numtypes        
-    
-    Convenience Functions
-    ---------------------
-    
-    .. toctree::
-        :maxdepth: 2
-        
-        functions/convenience
-        
-    
-    Logging Functions and Loglevels
-    -------------------------------
+Other Class Levels
+------------------
 
-    .. toctree::
-        :maxdepth: 2
-        
-        functions/logging
+In this documentation we recognize two more groups (or levels) of classes.
+More specialized classes, which normal user does not need as often as the
+user level classes are called **advanced level classes**. These use the
+second level name space. For instance the class `SystemBathInteraction`
+is relatively rarely used directly. It is therefore *hidden* in the name
+space `qm` (as quantum mechanics) of the package. This class can be
+instantiated e.g. like this
 
-   
-    .. 
-        Builders
-        --------
-        
-        Mode .......... represents a harmonic vibrational mode of a molecule
-        Molecule ...... represents a molecule
-        Aggregate ..... represents an aggregate of molecules
-        PDBFile ....... reader and writter of structures from PDB format
-        Disorder ...... class managing static disorder of molecular transition
-                        energies
-         
-        Core classes
-        ------------
-        
-        TimeAxis ......... linear axis of real values representing discrete time
-        FrequencyAxis .... linear axis of real values representing discrete
-                           frequency axis
-        DFunction ........ discrete function
-        
-        
-        Various managers
-        ----------------
-        
-        Manager ............ the main behind-the-scenes manager of the package
-        energy_units ....... energy units manager for use with the "with" construct
-        frequency_units .... frequency units manager for use with 
-                             the "with" construct
-        eigenbasis_of ...... manager of the basis transformations to be used with 
-                             the "with" construct
-        set_current_units .. function to set current units globally
-        
-        ... to be continued
+>>> import quantarhei as qr
+>>> sbi = qr.qm.SystemBathInteraction()
+
+Advanced level classes are still intendend for relatively frequent use
+by the user. However, in order to reduced the *apparent* complexity of
+basic usage of Quantarhei, advanced level classes are documented in their
+respective sub-packages, one level deeper than user level classes. Complete
+documentation of advanced level classes is available in the Advanced Level
+Classes section of this documentation.
+
+Everything else in Quantarhei package goes under the banner of
+**expert level classes**. This includes all classes and objects used
+internally in Quantarhei. We make every effort to document also this part
+of the package as completely as possible, but it is the last item on the
+list, so to say. The user is welcome to learn and use the expert level
+classes, but our aim is to structure Quantarhei in such a way, that this
+is not necessary. More on expert level classes in the section in
+Quantarhei internals.
+
+User Level Objects and Convenience Functions
+============================================
+
+Besides classes, Quantarhei also defines some user level objects and
+convenience functions. They are listed here under several categories
+
+Numeric types
+-------------
+
+.. toctree::
+:maxdepth: 2
+
+functions/numtypes
+
+Convenience Functions
+---------------------
+
+.. toctree::
+:maxdepth: 2
+
+functions/convenience
+
+
+Logging Functions and Loglevels
+-------------------------------
+
+.. toctree::
+:maxdepth: 2
+
+functions/logging
+
+
+..
+Builders
+--------
+
+Mode .......... represents a harmonic vibrational mode of a molecule
+Molecule ...... represents a molecule
+Aggregate ..... represents an aggregate of molecules
+PDBFile ....... reader and writter of structures from PDB format
+Disorder ...... class managing static disorder of molecular transition
+energies
+
+Core classes
+------------
+
+TimeAxis ......... linear axis of real values representing discrete time
+FrequencyAxis .... linear axis of real values representing discrete
+frequency axis
+DFunction ........ discrete function
+
+
+Various managers
+----------------
+
+Manager ............ the main behind-the-scenes manager of the package
+energy_units ....... energy units manager for use with the "with" construct
+frequency_units .... frequency units manager for use with
+the "with" construct
+eigenbasis_of ...... manager of the basis transformations to be used with
+the "with" construct
+set_current_units .. function to set current units globally
+
+... to be continued
 
 
 """
@@ -129,7 +127,7 @@
 ###############################################################################
 #
 #
-#            Imports of high level classes and functions 
+#            Imports of high level classes and functions
 #
 #
 ###############################################################################
@@ -139,6 +137,7 @@
 #
 #import numpy
 from .core.managers import Manager
+
 m = Manager()
 
 REAL = m.get_real_type() #numpy.float64
@@ -207,228 +206,371 @@ LIOUVILLE_PATHWAY_TYPES = PATHWAY_TYPES
 #
 # Builders
 #
-from .builders.modes import Mode
-from .builders.sysmodes import AnharmonicMode
-from .builders.sysmodes import HarmonicMode
-from .builders.vibsystem import VibrationalSystem
-from .builders.molecules import Molecule
-from .builders.molecule_test import TestMolecule
-from .builders.aggregates import Aggregate
-from .builders.aggregate_test import TestAggregate
-from .builders.pdb import PDBFile
-from .builders.disorder import Disorder
-from .builders.opensystem import OpenSystem
-
-#
-# Core classes
-#
-from .core.time import TimeAxis
-from .core.frequency import FrequencyAxis
-from .core.valueaxis import ValueAxis
-from .core.dfunction import DFunction
-#from .core.saveable import Saveable
-
-from .core.saveable import Saveable
-from .core.parcel import Parcel
+from .builders.aggregate_test import TestAggregate as TestAggregate
+from .builders.aggregates import Aggregate as Aggregate
+from .builders.disorder import Disorder as Disorder
+from .builders.modes import Mode as Mode
+from .builders.molecule_test import TestMolecule as TestMolecule
+from .builders.molecules import Molecule as Molecule
+from .builders.opensystem import OpenSystem as OpenSystem
+from .builders.pdb import PDBFile as PDBFile
+from .builders.sysmodes import AnharmonicMode as AnharmonicMode
+from .builders.sysmodes import HarmonicMode as HarmonicMode
+from .builders.vibsystem import VibrationalSystem as VibrationalSystem
+from .core.dfunction import DFunction as DFunction
+from .core.frequency import FrequencyAxis as FrequencyAxis
 
 #
 # Various managers
 #
-from .core.managers import energy_units
-from .core.managers import frequency_units
-from .core.managers import length_units
-from .core.managers import eigenbasis_of
-from .core.managers import set_current_units
+from .core.managers import (
+    eigenbasis_of as eigenbasis_of,
+)
+from .core.managers import (
+    energy_units as energy_units,
+)
+from .core.managers import (
+    frequency_units as frequency_units,
+)
+from .core.managers import (
+    length_units as length_units,
+)
+from .core.managers import (
+    set_current_units as set_current_units,
+)
 
 #
 # Parallelization
 #
-from .core.parallel import distributed_configuration
-from .core.parallel import start_parallel_region
-from .core.parallel import close_parallel_region
-from .core.parallel import parallel_function
-from .core.parallel import block_distributed_range
-from .core.parallel import block_distributed_list
-from .core.parallel import block_distributed_array
-from .core.parallel import collect_block_distributed_data
-from .core.parallel import asynchronous_range
-
-###############################################################################
-#                            SPECTROSCOPY
-###############################################################################
-
-#
-# Linear absorption 
-#
-from .spectroscopy.abs2 import AbsSpectrum
-from .spectroscopy.abscontainer import AbsSpectrumContainer
-from .spectroscopy.abscalculator import AbsSpectrumCalculator
-from .spectroscopy.mockabscalculator import MockAbsSpectrumCalculator
-#
-# Fluorescence
-#
-from .spectroscopy.fluorescence import FluorSpectrum
-from .spectroscopy.fluorescence import FluorSpectrumContainer
-from .spectroscopy.fluorescence import FluorSpectrumCalculator
-#
-# Linear dichroism
-#
-from .spectroscopy.linear_dichroism import LinDichSpectrum
-from .spectroscopy.linear_dichroism import LinDichSpectrumContainer
-from .spectroscopy.linear_dichroism import LinDichSpectrumCalculator
-#
-# Circular dichroism
-#
-from .spectroscopy.circular_dichroism import CircDichSpectrum
-from .spectroscopy.circular_dichroism import CircDichSpectrumContainer
-from .spectroscopy.circular_dichroism import CircDichSpectrumCalculator
-#
-# Fourier transform Two-Dimensional Spectra
-#
-from .spectroscopy.twodresponse import TwoDResponse 
-from .spectroscopy.twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
-from .spectroscopy.twodspect import TwoDSpectrum
-from .spectroscopy.twodcalculator import TwoDResponseCalculator
-from .spectroscopy.mocktwodcalculator import MockTwoDResponseCalculator
-
-from .spectroscopy.responses import NonLinearResponse
-# 2 deprecated classes
-from .spectroscopy.responses import ResponseFunction
-from .spectroscopy.responses import LiouvillePathway
-
-#
-# Pump-probe spectrum
-#
-from .spectroscopy.pumpprobe import PumpProbeSpectrum
-from .spectroscopy.pumpprobe import PumpProbeSpectrumContainer
-from .spectroscopy.pumpprobe import PumpProbeSpectrumCalculator
-from .spectroscopy.pumpprobe import MockPumpProbeSpectrumCalculator
-
-from .spectroscopy.pathwayanalyzer import LiouvillePathwayAnalyzer
-
-from .spectroscopy.labsetup import LabSetup
-from .spectroscopy.labsetup import LabField
-
-from .spectroscopy.dsfeynman import DSFeynmanDiagram
-from .spectroscopy.dsfeynman import R1g_Diagram
-from .spectroscopy.dsfeynman import R2g_Diagram
-from .spectroscopy.dsfeynman import R3g_Diagram
-from .spectroscopy.dsfeynman import R4g_Diagram
-from .spectroscopy.dsfeynman import R1f_Diagram
-from .spectroscopy.dsfeynman import R2f_Diagram
-from .spectroscopy.dsfeynman import R1g_R_Diagram
-
-
-
-###############################################################################
-#                           QUANTUM MECHANICS
-###############################################################################
-
-
-#
-# State vectors
-#
-from .qm import StateVector
-from .qm import OQSStateVector
-#
-# Operators
-#
-from .qm import DensityMatrix
-from .qm import ReducedDensityMatrix
-from .qm import BasisReferenceOperator
-from .qm import Hamiltonian
-from .qm import Liouvillian
-from .qm import TransitionDipoleMoment
-from .qm import UnityOperator
-from .qm import ProjectionOperator
-
-#
-# Propagators
-#
-from .qm.propagators.poppropagator import PopulationPropagator
-from .qm.propagators.svpropagator import StateVectorPropagator
-from .qm import OQSStateVectorPropagator
-from .qm import ReducedDensityMatrixPropagator
-
-#
-# Evolutions (time-dependent operators)
-#
-from .qm.propagators.statevectorevolution import StateVectorEvolution
-from .qm import OQSStateVectorEvolution
-from .qm import DensityMatrixEvolution
-from .qm import ReducedDensityMatrixEvolution
-
-#
-# Evolution operators
-#
-from .qm.liouvillespace.evolutionsuperoperator import EvolutionSuperOperator
-
-
-
-#
-# System-bath interaction
-#
-from .qm.corfunctions import CorrelationFunction
-from .qm.corfunctions import CorrelationFunctionMatrix
-from .qm.corfunctions import LineshapeFunction
-from .qm.corfunctions import SpectralDensity
-from .qm import SystemBathInteraction
-from .qm.corfunctions.correlationfunctions import oscillator_scalled_CorrelationFunction
-
-#
-# LINESHAPE FUNCTIONS
-#
-from .qm.corfunctions import FunctionStorage
-from .qm.corfunctions import FastFunctionStorage
-
-
-from .qm.liouvillespace.heom import KTHierarchy
-from .qm.liouvillespace.heom import KTHierarchyPropagator
-from .qm.liouvillespace.heom import QuTip_KTHierarchyPropagator
-
-from .symbolic.cumulant import evaluate_cumulant
+from .core.parallel import (
+    asynchronous_range as asynchronous_range,
+)
+from .core.parallel import (
+    block_distributed_array as block_distributed_array,
+)
+from .core.parallel import (
+    block_distributed_list as block_distributed_list,
+)
+from .core.parallel import (
+    block_distributed_range as block_distributed_range,
+)
+from .core.parallel import (
+    close_parallel_region as close_parallel_region,
+)
+from .core.parallel import (
+    collect_block_distributed_data as collect_block_distributed_data,
+)
+from .core.parallel import (
+    distributed_configuration as distributed_configuration,
+)
+from .core.parallel import (
+    parallel_function as parallel_function,
+)
+from .core.parallel import (
+    start_parallel_region as start_parallel_region,
+)
 
 ###############################################################################
 # Convenience functions
 ###############################################################################
 #from .core.saveable import load
 #from .core.saveable import read_info
+from .core.parcel import Parcel as Parcel
+from .core.parcel import check_parcel as check_parcel
+from .core.parcel import load_parcel as load_parcel
+from .core.parcel import save_parcel as save_parcel
 
-from .core.parcel import save_parcel
-from .core.parcel import load_parcel
-from .core.parcel import check_parcel
+#from .core.saveable import Saveable
+from .core.saveable import Saveable as Saveable
 
-from .core.units import convert
-from .core.units import in_current_units
+#
+# Core classes
+#
+from .core.time import TimeAxis as TimeAxis
+from .core.units import convert as convert
+from .core.units import in_current_units as in_current_units
+from .core.valueaxis import ValueAxis as ValueAxis
 
-from .utils.vectors import normalize2
-from .utils.vectors import norm 
+###############################################################################
+#                           QUANTUM MECHANICS
+###############################################################################
+#
+# State vectors
+#
+#
+# Operators
+#
+from .qm import (
+    BasisReferenceOperator as BasisReferenceOperator,
+)
+from .qm import (
+    DensityMatrix as DensityMatrix,
+)
+from .qm import (
+    DensityMatrixEvolution as DensityMatrixEvolution,
+)
+from .qm import (
+    Hamiltonian as Hamiltonian,
+)
+from .qm import (
+    Liouvillian as Liouvillian,
+)
+from .qm import (
+    OQSStateVector as OQSStateVector,
+)
+from .qm import (
+    OQSStateVectorEvolution as OQSStateVectorEvolution,
+)
+from .qm import (
+    OQSStateVectorPropagator as OQSStateVectorPropagator,
+)
+from .qm import (
+    ProjectionOperator as ProjectionOperator,
+)
+from .qm import (
+    ReducedDensityMatrix as ReducedDensityMatrix,
+)
+from .qm import (
+    ReducedDensityMatrixEvolution as ReducedDensityMatrixEvolution,
+)
+from .qm import (
+    ReducedDensityMatrixPropagator as ReducedDensityMatrixPropagator,
+)
+from .qm import (
+    StateVector as StateVector,
+)
+from .qm import (
+    SystemBathInteraction as SystemBathInteraction,
+)
+from .qm import (
+    TransitionDipoleMoment as TransitionDipoleMoment,
+)
+from .qm import (
+    UnityOperator as UnityOperator,
+)
 
-from .utils.logging import printlog
-from .utils.logging import loglevels2bool
-from .utils.logging import log_urgent
-from .utils.logging import log_report
-from .utils.logging import log_info
-from .utils.logging import log_detail
-from .utils.logging import log_quick
-from .utils.logging import log_to_file
-from .utils.logging import init_logging
+#
+# System-bath interaction
+#
+#
+# LINESHAPE FUNCTIONS
+#
+from .qm.corfunctions import (
+    CorrelationFunction as CorrelationFunction,
+)
+from .qm.corfunctions import (
+    CorrelationFunctionMatrix as CorrelationFunctionMatrix,
+)
+from .qm.corfunctions import (
+    FastFunctionStorage as FastFunctionStorage,
+)
+from .qm.corfunctions import (
+    FunctionStorage as FunctionStorage,
+)
+from .qm.corfunctions import (
+    LineshapeFunction as LineshapeFunction,
+)
+from .qm.corfunctions import (
+    SpectralDensity as SpectralDensity,
+)
+from .qm.corfunctions.correlationfunctions import (
+    oscillator_scalled_CorrelationFunction as oscillator_scalled_CorrelationFunction,
+)
 
-from .utils.logging import tprint
+#
+# Evolution operators
+#
+from .qm.liouvillespace.evolutionsuperoperator import (
+    EvolutionSuperOperator as EvolutionSuperOperator,
+)
+from .qm.liouvillespace.heom import (
+    KTHierarchy as KTHierarchy,
+)
+from .qm.liouvillespace.heom import (
+    KTHierarchyPropagator as KTHierarchyPropagator,
+)
+from .qm.liouvillespace.heom import (
+    QuTip_KTHierarchyPropagator as QuTip_KTHierarchyPropagator,
+)
 
-from .utils.timing import timeit
-from .utils.timing import untimeit
-from .utils.timing import finished_in
-from .utils.timing import done_in
+#
+# Propagators
+#
+from .qm.propagators.poppropagator import PopulationPropagator as PopulationPropagator
 
-from .utils.paver import execute_paver
+#
+# Evolutions (time-dependent operators)
+#
+from .qm.propagators.statevectorevolution import (
+    StateVectorEvolution as StateVectorEvolution,
+)
+from .qm.propagators.svpropagator import StateVectorPropagator as StateVectorPropagator
 
-from .wizard.input.input import Input
+###############################################################################
+#                            SPECTROSCOPY
+###############################################################################
+#
+# Linear absorption
+#
+from .spectroscopy.abs2 import AbsSpectrum as AbsSpectrum
+from .spectroscopy.abscalculator import AbsSpectrumCalculator as AbsSpectrumCalculator
+from .spectroscopy.abscontainer import AbsSpectrumContainer as AbsSpectrumContainer
+
+#
+# Circular dichroism
+#
+from .spectroscopy.circular_dichroism import (
+    CircDichSpectrum as CircDichSpectrum,
+)
+from .spectroscopy.circular_dichroism import (
+    CircDichSpectrumCalculator as CircDichSpectrumCalculator,
+)
+from .spectroscopy.circular_dichroism import (
+    CircDichSpectrumContainer as CircDichSpectrumContainer,
+)
+from .spectroscopy.dsfeynman import (
+    DSFeynmanDiagram as DSFeynmanDiagram,
+)
+from .spectroscopy.dsfeynman import (
+    R1f_Diagram as R1f_Diagram,
+)
+from .spectroscopy.dsfeynman import (
+    R1g_Diagram as R1g_Diagram,
+)
+from .spectroscopy.dsfeynman import (
+    R1g_R_Diagram as R1g_R_Diagram,
+)
+from .spectroscopy.dsfeynman import (
+    R2f_Diagram as R2f_Diagram,
+)
+from .spectroscopy.dsfeynman import (
+    R2g_Diagram as R2g_Diagram,
+)
+from .spectroscopy.dsfeynman import (
+    R3g_Diagram as R3g_Diagram,
+)
+from .spectroscopy.dsfeynman import (
+    R4g_Diagram as R4g_Diagram,
+)
+
+#
+# Fluorescence
+#
+from .spectroscopy.fluorescence import (
+    FluorSpectrum as FluorSpectrum,
+)
+from .spectroscopy.fluorescence import (
+    FluorSpectrumCalculator as FluorSpectrumCalculator,
+)
+from .spectroscopy.fluorescence import (
+    FluorSpectrumContainer as FluorSpectrumContainer,
+)
+from .spectroscopy.labsetup import LabField as LabField
+from .spectroscopy.labsetup import LabSetup as LabSetup
+
+#
+# Linear dichroism
+#
+from .spectroscopy.linear_dichroism import (
+    LinDichSpectrum as LinDichSpectrum,
+)
+from .spectroscopy.linear_dichroism import (
+    LinDichSpectrumCalculator as LinDichSpectrumCalculator,
+)
+from .spectroscopy.linear_dichroism import (
+    LinDichSpectrumContainer as LinDichSpectrumContainer,
+)
+from .spectroscopy.mockabscalculator import (
+    MockAbsSpectrumCalculator as MockAbsSpectrumCalculator,
+)
+from .spectroscopy.mocktwodcalculator import (
+    MockTwoDResponseCalculator as MockTwoDResponseCalculator,
+)
+from .spectroscopy.pathwayanalyzer import (
+    LiouvillePathwayAnalyzer as LiouvillePathwayAnalyzer,
+)
+
+#
+# Pump-probe spectrum
+#
+from .spectroscopy.pumpprobe import (
+    MockPumpProbeSpectrumCalculator as MockPumpProbeSpectrumCalculator,
+)
+from .spectroscopy.pumpprobe import (
+    PumpProbeSpectrum as PumpProbeSpectrum,
+)
+from .spectroscopy.pumpprobe import (
+    PumpProbeSpectrumCalculator as PumpProbeSpectrumCalculator,
+)
+from .spectroscopy.pumpprobe import (
+    PumpProbeSpectrumContainer as PumpProbeSpectrumContainer,
+)
+
+# 2 deprecated classes
+from .spectroscopy.responses import (
+    LiouvillePathway as LiouvillePathway,
+)
+from .spectroscopy.responses import (
+    NonLinearResponse as NonLinearResponse,
+)
+from .spectroscopy.responses import (
+    ResponseFunction as ResponseFunction,
+)
+from .spectroscopy.twodcalculator import (
+    TwoDResponseCalculator as TwoDResponseCalculator,
+)
+from .spectroscopy.twodcontainer import TwoDResponseContainer as TwoDResponseContainer
+from .spectroscopy.twodcontainer import TwoDSpectrumContainer as TwoDSpectrumContainer
+
+#
+# Fourier transform Two-Dimensional Spectra
+#
+from .spectroscopy.twodresponse import TwoDResponse as TwoDResponse
+from .spectroscopy.twodspect import TwoDSpectrum as TwoDSpectrum
+from .symbolic.cumulant import evaluate_cumulant as evaluate_cumulant
+from .utils.logging import (
+    init_logging as init_logging,
+)
+from .utils.logging import (
+    log_detail as log_detail,
+)
+from .utils.logging import (
+    log_info as log_info,
+)
+from .utils.logging import (
+    log_quick as log_quick,
+)
+from .utils.logging import (
+    log_report as log_report,
+)
+from .utils.logging import (
+    log_to_file as log_to_file,
+)
+from .utils.logging import (
+    log_urgent as log_urgent,
+)
+from .utils.logging import (
+    loglevels2bool as loglevels2bool,
+)
+from .utils.logging import (
+    printlog as printlog,
+)
+from .utils.logging import (
+    tprint as tprint,
+)
+from .utils.paver import execute_paver as execute_paver
+from .utils.timing import done_in as done_in
+from .utils.timing import finished_in as finished_in
+from .utils.timing import timeit as timeit
+from .utils.timing import untimeit as untimeit
+from .utils.vectors import norm as norm
+from .utils.vectors import normalize2 as normalize2
+from .wizard.input.input import Input as Input
 
 
-def exit(msg=None):
+def exit(msg: str | None = None) -> None:
     """Exit to the level above the script with SystemExit exception
-    
+
     """
     import sys
     if msg is not None:
@@ -436,18 +578,17 @@ def exit(msg=None):
     sys.exit()
 
 
-def stop(msg=None):
+def stop(msg: str | None = None) -> None:
     """Stop execution and leave to level above
-    
-    """
 
+    """
     exit("Execution stopped")
-    
-    
-    
-def show_plot(block=True):
+
+
+
+def show_plot(block: bool = True) -> None:
     """Shows current plot
-    
+
     This function is used to avoid explicit import of matplotlib
     """
     import matplotlib.pyplot as plt
@@ -455,32 +596,32 @@ def show_plot(block=True):
 
 
 
-def savefig(fname):
+def savefig(fname: str) -> None:
     """Saves current plot to a file
-    
+
     This function is used to avoid explicit import of matplotlib
     """
     import matplotlib.pyplot as plt
-    plt.savefig(fname)    
+    plt.savefig(fname)
 
 
-def assert_version(check, vno):
+def assert_version(check: str, vno: str) -> None:
     """Throws an exception if the condition is not satisfied
-    
+
     """
     from packaging import version
-    
-    def ext():
+
+    def ext() -> None:
         exit("Version requirement not satisfied.")
 
     if check == ">=":
         if not (version.parse(Manager().version) >= version.parse(vno)):
             ext()
-            
+
     elif check == "==":
          if not (version.parse(Manager().version) == version.parse(vno)):
             ext()
-            
+
     elif check == "<=":
         if not (version.parse(Manager().version) <= version.parse(vno)):
             ext()
@@ -488,12 +629,12 @@ def assert_version(check, vno):
     elif check == ">":
         if not (version.parse(Manager().version) == version.parse(vno)):
             ext()
-            
+
     elif check == "<=":
         if not (version.parse(Manager().version) >= version.parse(vno)):
             ext()
-            
+
     else:
         raise Exception("Unknown comparison operator `"+check+"`")
-        
-    
+
+

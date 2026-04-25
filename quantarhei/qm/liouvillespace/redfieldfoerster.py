@@ -1,42 +1,43 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import numpy
 
-from .redfieldtensor import RedfieldRelaxationTensor
+from ...core.managers import Manager, energy_units
+from ..corfunctions.correlationfunctions import c2g
 from .foerstertensor import FoersterRelaxationTensor
 from .rates.foersterrates import _reference_implementation as foerster_rates
-from ..corfunctions.correlationfunctions import c2g
-from ...core.managers import Manager
-from ...core.managers import energy_units
+from .redfieldtensor import RedfieldRelaxationTensor
 
 
 class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
                                        FoersterRelaxationTensor):
     """Combination of Redfield and Foerster relaxation tensors
-    
+
     Paramaters
     ----------
     ham : cu.oqs.hilbertspace.Hamiltonian
         Hamiltonian of the system
-        
+
     sbi : cu.oqs.liouvillespace.SystemBathInteraction
         Object specifying system bath interaction
-        
+
     initialize : bool
         If True, the tensor is imediately calculated
-        
+
     cutoff_time : float
         Time after which the integration kernel of the Redfield tensor
         is assumed to be zero
-        
+
     coupling_cutoff : float
         The smallest value of coupling which is still considered to cause
         delocalization.
-        
-    
+
+
     """
-    def __init__(self, ham, sbi, initialize=True,
-                 cutoff_time=None, coupling_cutoff=None):
-                     
+    def __init__(self, ham: object, sbi: object, initialize: bool = True,
+                 cutoff_time: float | None = None,
+                 coupling_cutoff: float | None = None) -> None:
+
         # non-zero coupling cut-off requires a calculation of both Redfield
         # and Foerster contributions
         if coupling_cutoff is not None:
@@ -45,22 +46,22 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
                 m.convert_energy_2_internal_u(coupling_cutoff)
         else:
             self.coupling_cutoff = 0.0
-            
-        super().__init__(ham, sbi, initialize=False, 
+
+        super().__init__(ham, sbi, initialize=False,
                              cutoff_time=cutoff_time)
-                
-        if initialize: 
+
+        if initialize:
             with energy_units("int"):
                 self._reference_implementation()
 
-                
-    def _reference_implementation(self):
-        """ Reference all Python implementation
-        
+
+    def _reference_implementation(self) -> None:
+        """Reference all Python implementation
+
         """
-        ham = self.Hamiltonian 
+        ham = self.Hamiltonian
         sbi = self.SystemBathInteraction
-        
+
         tt = sbi.TimeAxis.data
         Nt = sbi.TimeAxis.length
         Na = ham.dim
@@ -69,7 +70,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
             JR = ham.JR
         else:
             JR = numpy.zeros((ham.dim, ham.dim), dtype=numpy.float64)
-        
+
         calcRT = True
         calcFT = True
 
@@ -81,13 +82,13 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
         # calculate Redfield tensor for the strong coupling part
         #
         if calcRT:
-            
+
             if self._has_cutoff_time:
                 RT = RedfieldRelaxationTensor(ham, sbi,
                                               cutoff_time=self.cutoff_time)
             else:
                 RT = RedfieldRelaxationTensor(ham, sbi)
-            
+
             self.data += RT.data
 
 
@@ -96,9 +97,9 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
         #
         if calcFT:
 
-            hD, SS = numpy.linalg.eigh(ham.data) 
+            hD, SS = numpy.linalg.eigh(ham.data)
 
-                       
+
             #
             # identify lineshape functions of excitonic states
             #
@@ -108,9 +109,9 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
                 Gt[ii,:] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
             for aa in range(Na):
                 for bb in range(Na):
-                    # Here we assume no correlation between sites 
-                    gvals[aa,:] += (SS[bb,aa]**4)*Gt[bb,:]  
-                    
+                    # Here we assume no correlation between sites
+                    gvals[aa,:] += (SS[bb,aa]**4)*Gt[bb,:]
+
             #
             # calculate reorganization energies of exciton states
             #
@@ -120,7 +121,7 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
                 lamb_sites[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
             for aa in range(1,Na):
                 for bb in range(1,Na):
-                    # Here we assume no correlation between sites 
+                    # Here we assume no correlation between sites
                     lamb[aa] += (SS[bb,aa]**4)*lamb_sites[bb]
 
 
@@ -130,21 +131,21 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
 #                op = Operator(dim=ham.dim, real=True)
 #                op.data[aa,aa] = 1.0
 #                nsbi_op.append(op)
-#            
+#
 #            # correlation function matrix
 #            cfm = CorrelationFunctionMatrix(ta, Na-1,Na-1)
 #            for ii in range(Na-1):
 #                params = dict(ftype="Value-defined",reorg=lamb[ii])
 #                fc = CorrelationFunction(ta,params,values=cvals[ii,:])
 #                cfm.set_correlation_function(fc,[(ii,ii)],ii+1)
-#                
+#
 #            nsbi = SystemBathInteraction(nsbi_op, cfm)
 
             # FIXME: Instead of all the above, we should have transformation
             # of SystemBathInteraction object
 
 
-                    
+
             #
             # Hamiltonian matrix
             #
@@ -165,10 +166,10 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
 #                FT = FoersterRelaxationTensor(nham, nsbi,
 #                                    cutoff_time=self.cutoff_time)
 #            else:
-#                FT = FoersterRelaxationTensor(nham, nsbi)                        
-            
-            
-            # 
+#                FT = FoersterRelaxationTensor(nham, nsbi)
+
+
+            #
             # Add the rates to the Redfield
             #
             for b in range(Na):
@@ -178,19 +179,18 @@ class RedfieldFoersterRelaxationTensor(RedfieldRelaxationTensor,
                     gg += KF[a,b]
                 self.data[b,b,b,b] += -gg
 
-            
+
         self._is_initialized = True
         self._data_initialized = True
-        
-        
+
+
 #    def transform(self, SS, inv=None):
 #        """Quick fix before I find what is the problem
-#        
-#        My expectation was that RedfieldFoerster is calculated in 
+#
+#        My expectation was that RedfieldFoerster is calculated in
 #        the excitonic basis and needs to undergo a transformation
 #        when it is entering code with no basis management context.
-#        
+#
 #        """
 #        super().transform(SS, inv)
 #        self._data_initialized = True
-        

@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-import numpy as np
-import matplotlib
-from matplotlib.testing.decorators import image_comparison
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.testing.decorators import image_comparison
+
 
 @image_comparison(baseline_images=['spines_axes_positions'],
                   extensions=['png'])

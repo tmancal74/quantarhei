@@ -1,22 +1,17 @@
-# -*- coding: utf-8 -*-
-from quantarhei.symbolic.cumulant import Ugde, Uedg, ExpdV
-#from quantarhei.symbolic.cumulant import Uegd, Uged
-from quantarhei.symbolic.cumulant import gg
-from quantarhei.symbolic.cumulant import CumulantExpr
-from quantarhei.symbolic.abc import a, b, t, tau, x, y
 #from quantarhei import stop
+from sympy import Symbol, diff, exp
 
-from sympy import diff
-from sympy import exp
+from quantarhei.symbolic.abc import a, b, t, tau, x, y
 
-from sympy import Symbol
+#from quantarhei.symbolic.cumulant import Uegd, Uged
+from quantarhei.symbolic.cumulant import CumulantExpr, ExpdV, Uedg, Ugde, gg
 
 m = Symbol('m')
 n = Symbol('n')
 k = Symbol('k')
 
-""" 
-Cummulant expression for 
+"""
+Cummulant expression for
 
 
 
@@ -32,7 +27,7 @@ A1 = Uedg(n,t)*ExpdV(a,t,x)*Ugde(m,t)
 A_nderiv = 2
 A1_nderiv = 1
 
-#Anorm = Uged(d,tau)*Uegd(c,tau)  
+#Anorm = Uged(d,tau)*Uegd(c,tau)
 
 verbatim = True
 
@@ -55,7 +50,7 @@ expr = CumulantExpr(A)
 A1 = A1.rewrite(gg)
 expr1 = CumulantExpr(A1)
 """ use option large=T to evaluate in T --> oo """
-expr = expr.evaluate() #large=T) 
+expr = expr.evaluate() #large=T)
 expr1 = expr1.evaluate()
 """ use the symetry of lineshape function in the exciton indices """
 #D = CumulantExpr(expr)._leading_index(a)
@@ -96,11 +91,10 @@ print(ss)
 print(" ")
 
 
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
+
+
+
+
+
+
+

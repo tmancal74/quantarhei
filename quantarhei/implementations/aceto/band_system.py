@@ -1,12 +1,16 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
+
 
 class band_system:
     """Python implementation of acetosys band_system class
 
 
     """
-    def __init__(self, Nb, Ns):
+    def __init__(self, Nb: int, Ns: Any) -> None:
         self.Nb = Nb
         # the type of Ns should be default fortran integer
         self.Ns = numpy.array(Ns, dtype=numpy.int32)
@@ -30,7 +34,7 @@ class band_system:
         self.SS2 = None
 
 
-    def set_energies(self, en):
+    def set_energies(self, en: Any) -> None:
         self.en = numpy.asfortranarray(en)
         self.om01 = numpy.zeros((self.Ns[0],self.Ns[1]),
                                 dtype=numpy.float64, order='F')
@@ -44,7 +48,7 @@ class band_system:
                 self.om12[i,j] = (self.en[self.Ns[0]+i]
                                 - self.en[self.Ns[0]+self.Ns[1]+j])
 
-    def set_dipoles(self, Nbi, Nbf, dab):
+    def set_dipoles(self, Nbi: int, Nbf: int, dab: Any) -> None:
 
         # FIXME: some of the arrays need to be turned in 'F'order
         if not (dab.shape == (3,self.Ns[Nbi],self.Ns[Nbf])):
@@ -78,12 +82,11 @@ class band_system:
         else:
             raise Exception("Attempt to assing unsupported dipole block")
 
-    def _check_twoex_dipoles(self):
+    def _check_twoex_dipoles(self) -> None:
         """This method assumes that the exciton basis is identical with site basis
 
 
         """
-
         print(self.en)
 
         print("Monomer 2 transition dipole moment:")
@@ -119,14 +122,14 @@ class band_system:
         print("Trasfer from |4> to |(1,3)> = 0")
         print(self.dd12[3,1], self.nn12[:,3,1])
 
-    def set_gofts(self,gofts):
+    def set_gofts(self, gofts: Any) -> None:
         self.gofts = numpy.asfortranarray(gofts)
 
-    def set_sitep(self, ptn):
+    def set_sitep(self, ptn: Any) -> None:
         self.ptn = ptn
         self.fptn = numpy.asfortranarray(self.ptn + 1)
 
-    def set_transcoef(self, Nb, SS):
+    def set_transcoef(self, Nb: int, SS: Any) -> None:
         if Nb == 1:
             self.SS1 = numpy.asfortranarray(SS)
         elif Nb == 2:
@@ -135,7 +138,7 @@ class band_system:
             raise Exception("Attempt to assign unsupported block")
 
 
-    def set_relaxation_rates(self, Nb, RR):
+    def set_relaxation_rates(self, Nb: int, RR: Any) -> None:
         if Nb == 1:
             self.Kr11 = numpy.asfortranarray(RR)
         elif Nb == 2:
@@ -144,7 +147,7 @@ class band_system:
             raise Exception("Attempt to set usupported rate block")
         self.update_dephasing_rates(Nb)
 
-    def update_dephasing_rates(self, Nb):
+    def update_dephasing_rates(self, Nb: int) -> None:
         if Nb == 1:
             for i in range(self.Ns[0]):
                 for j in range(self.Ns[1]):
@@ -160,11 +163,11 @@ class band_system:
                 for j in range(self.Ns[2]):
                     self.Kd12[i,j] -= self.Kr22[j,j]/2.0
         else:
-            raise Exception("Attempt to update unsupported "+
+            raise Exception("Attempt to update unsupported "
                             "dephasing rate block")
 
 
-    def init_dephasing_rates(self):
+    def init_dephasing_rates(self) -> None:
         self.Kd01 = numpy.zeros((self.Ns[0], self.Ns[1]),
                                     dtype=numpy.float64, order='F')
         self.Kd11 = numpy.zeros((self.Ns[1], self.Ns[1]),
@@ -172,9 +175,8 @@ class band_system:
         self.Kd12 = numpy.zeros((self.Ns[1], self.Ns[2]),
                                     dtype=numpy.float64, order='F')
 
-    def set_population_propagation_matrix(self, Ueet2):
+    def set_population_propagation_matrix(self, Ueet2: Any) -> None:
         """Set the population evolution matrix of certain t2 time
 
         """
         self.Ueet2 = numpy.asfortranarray(Ueet2)
-

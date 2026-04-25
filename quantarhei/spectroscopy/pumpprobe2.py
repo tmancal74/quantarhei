@@ -1,123 +1,123 @@
-# -*- coding: utf-8 -*-
 
-import numpy
-import scipy
+from __future__ import annotations
+
 import copy
-
-from .twodcontainer import TwoDSpectrumContainer
-from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
-from ..core.dfunction import DFunction
-from ..core.managers import Manager
-from ..core.managers import energy_units
-from quantarhei import convert
-from .. import COMPLEX
-
-from ..utils import derived_type
-from ..builders.aggregates import Aggregate
-from ..builders.molecules import Molecule
-from ..core.time import TimeAxis
-from ..core.frequency import FrequencyAxis
-
+from typing import Any
 
 import matplotlib.pyplot as plt
+import numpy
+import scipy
+
+from quantarhei import convert
+
+from .. import COMPLEX
+from ..builders.aggregates import Aggregate
+from ..builders.molecules import Molecule
+from ..core.dfunction import DFunction
+from ..core.frequency import FrequencyAxis
+from ..core.managers import Manager, energy_units
+from ..core.time import TimeAxis
+from ..utils import derived_type
+from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
+from .twodcontainer import TwoDSpectrumContainer
 
 
 class PumpProbeSpectrum(DFunction):
     """Class representing pump-probe spectra
-    
-    
-    
+
+
+
     """
-    
+
     #data = None
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.t2 = -1.0
         self.data = None
         self._has_imag = False
-        
-    def set_axis(self, axis):
+
+    def set_axis(self, axis: Any) -> None:
         self.xaxis = axis
         self.axis = self.xaxis
-        
-    def set_data(self, data):
+
+    def set_data(self, data: Any) -> None:
         self.data = data
 
-    def get_PumpProbeSpectrum(self):
+    def get_PumpProbeSpectrum(self) -> PumpProbeSpectrum:
         """Returns self
-        
+
         This method is here to override the one inherented from TwoDSpectrum
-        
+
         """
         return self
 
 
-    def set_t2(self, t2):
+    def set_t2(self, t2: float) -> None:
         """Sets the t2 (waiting time) of the spectrum
-        
-        
+
+
         """
         self.t2 = t2
 
 
-    def get_t2(self):
+    def get_t2(self) -> float:
         """Returns the t2 (waiting time) of the spectrum
-        
+
         """
         return self.t2
-    
-    
-    def _add_data(self,data):
+
+
+    def _add_data(self, data: Any) -> None:
         if self.data is None:
             self.set_data(data)
         else:
             if self.data.size != len(data):
-                raise IOError("Added data length does not match the current" +
+                raise OSError("Added data length does not match the current"
                               "one")
             self.data += data
-    
+
     #FIXME: Add function _add_data (if data None = set_data, else add)
 
 
 
 class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
     """Container for a set of pump-probe spectra
-    
+
     """
-    def __init__(self, t2axis=None):
-        
+    def __init__(self, t2axis: Any = None) -> None:
+
         self.t2axis = t2axis
-        self.spectra = {}
-        
-    def plot(self):
-        
+        self.spectra: dict[Any, Any] = {}
+
+    def plot(self) -> None:
+
         plt.clf()
         spctr = self.get_spectra()
         for sp in spctr:
             plt.plot(sp.xaxis.data,sp.data)
-            
-    def set_spectrum(self, spec, tag):
+
+    def set_spectrum(self, spec: Any, tag: Any) -> None:
         self.spectra[tag] = spec
-        
-    def amax(self):
+
+    def amax(self) -> Any:
         mxs = []
-        for s in self.get_spectra():       
-            spect = numpy.real(s.data)   
+        for s in self.get_spectra():
+            spect = numpy.real(s.data)
             mx = numpy.amax(spect)
             mxs.append(mx)
-        return numpy.amax(numpy.array(mxs))   
-     
-    def amin(self):
+        return numpy.amax(numpy.array(mxs))
+
+    def amin(self) -> Any:
         mxs = []
-        for s in self.get_spectra():       
-            spect = numpy.real(s.data)   
+        for s in self.get_spectra():
+            spect = numpy.real(s.data)
             mx = numpy.amin(spect)
             mxs.append(mx)
-        return numpy.amin(numpy.array(mxs))   
+        return numpy.amin(numpy.array(mxs))
 
 
-    def plot2D(self, axis = None, units = "nm", zero_centered = True, lines = None):
-        
+    def plot2D(self, axis: Any = None, units: str = "nm", zero_centered: bool = True, lines: Any = None) -> None:
+
         t2ax = self.t2axis
         freqax = self.spectra[t2ax.data[0]].axis
         # use only positive frequency axis
@@ -129,37 +129,37 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             for T2 in t2ax.data:
                 ppspec2D[count] += self.spectra[T2].data
                 count += 1
-        
+
             # plot pump-probe spectra
             X,Y =  numpy.meshgrid(t2ax.data,freqax.data[min_ind:])
             fig, ax = plt.subplots(figsize=(18,9))
-            
+
             if zero_centered:
-                p = ax.contourf(X, Y, ppspec2D.T[min_ind:], 60, cmap=plt.cm.jet, 
-                                vmin=-abs(ppspec2D).max(), vmax=abs(ppspec2D).max()) #, vmin=ppspec2D.min(), vmax=ppspec2D.max())  
+                p = ax.contourf(X, Y, ppspec2D.T[min_ind:], 60, cmap=plt.cm.jet,
+                                vmin=-abs(ppspec2D).max(), vmax=abs(ppspec2D).max()) #, vmin=ppspec2D.min(), vmax=ppspec2D.max())
             else:
-                p = ax.contourf(X, Y, ppspec2D.T[min_ind:], 60, cmap=plt.cm.jet, 
+                p = ax.contourf(X, Y, ppspec2D.T[min_ind:], 60, cmap=plt.cm.jet,
                                 vmin=ppspec2D.min(), vmax=ppspec2D.max())
-            
+
             if isinstance(lines,list):
                 for line_freq in lines:
                     plt.plot(t2ax.data,numpy.ones(t2ax.length)*line_freq,"w",linewidth=2)
-            
+
             if axis is not None:
-                ax.axes.set_ylim(axis[1][0],axis[1][1])   
+                ax.axes.set_ylim(axis[1][0],axis[1][1])
                 ax.axes.set_xlim(axis[0][0],axis[0][1])
             else:
-                ax.axes.set_ylim(400,750)   
+                ax.axes.set_ylim(400,750)
                 ax.axes.set_xlim(0,500)
             plt.xlabel("Time [fs]")
             plt.ylabel("Wavelength [" + units + "]")
-            
+
             ax.legend()
             plt.colorbar(p,ax=ax)
             fig.savefig('PP_2D_spectra.png', format='png', dpi=1200)
-            
-    def plot_slices(self,freqs,expRes=None,units="nm"):
-        
+
+    def plot_slices(self, freqs: Any, expRes: Any = None, units: str = "nm") -> numpy.ndarray:
+
         # Initialize frequency cuts of PP spectra
         spectra_freq = numpy.zeros((len(freqs),self.t2axis.length),dtype="f8")
         count = 0
@@ -170,7 +170,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             freq_int = convert(freqs,units,"int")
             spectra_freq[:,count] = self.spectra[T2].at(freq_int)
             count+=1
-        
+
         with energy_units(units):
             fig = plt.figure(figsize=(18,9))
             Nsp = len(freqs)
@@ -186,56 +186,56 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                     PP_exp_freq = expRes["frequency"]
                     PP_exp_spec = expRes["intensity"]
                     plt.plot(PP_exp_freq[ii],PP_exp_spec[ii])
-                    
+
                 plt.xscale('symlog', linthreshx= (0.1))
             plt.subplots_adjust(hspace=0.6, wspace=0.6)
             plt.show()
             fig.savefig('PP_slices_spectra.png', format='png', dpi=1200)
         return spectra_freq
-            
-        
-    def make_movie(self, filename, axis=None,
-                   cmap=None, vmax=None, vmin=None,
-                   frate=20, dpi=100, start=None, end=None,
-                   show_states=None, progressbar=False):
-        
-        import matplotlib.pyplot as plt
+
+
+    def make_movie(self, filename: str, axis: Any = None,
+                   cmap: Any = None, vmax: Any = None, vmin: Any = None,
+                   frate: int = 20, dpi: int = 100, start: Any = None, end: Any = None,
+                   show_states: Any = None, progressbar: bool = False) -> None:
+
         import matplotlib.animation as manimation
-        
+        import matplotlib.pyplot as plt
+
         FFMpegWriter = manimation.writers["ffmpeg"]
 
         metadata = dict(title="Test Movie", artist='Matplotlib',
                 comment='Movie support!')
         writer = FFMpegWriter(fps=frate, metadata=metadata)
-        
-        fig = plt.figure() 
-        
+
+        fig = plt.figure()
+
         spctr = self.get_spectra()
         l = len(spctr)
         last_t2 = spctr[l-1].get_t2()
         first_t2 = spctr[0].get_t2()
-        
+
         if vmax is None:
             mx = self.amax()
         else:
             mx = vmax
-            
+
         if vmin is None:
             mn = self.amin()
         else:
             mn = vmin
-            
+
         mxabs = max(numpy.abs(mx), numpy.abs(mn))
         mx = mx+0.05*mxabs
         mn = mn-0.05*mxabs
-        
+
         if start is None:
             start = first_t2
         if end is None:
             end = last_t2
-        
-                
-        with writer.saving(fig, filename, dpi):  
+
+
+        with writer.saving(fig, filename, dpi):
             k = 0
             # Initial call to print 0% progress
             sp2write = self.get_spectra(start=start, end=end)
@@ -252,41 +252,41 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                 if progressbar:
                     self._printProgressBar(k + 1, l, prefix = 'Progress:',
                                            suffix = 'Complete', length = 50)
-                
+
                 k += 1
 
 
-class PumpProbeSpectrumCalculator():
-    
+class PumpProbeSpectrumCalculator:
+
     t2axis = derived_type("t2axis",TimeAxis)
     t3axis = derived_type("t3axis",TimeAxis)
-    
+
     system = derived_type("system",[Molecule,Aggregate])
-    
-    def __init__(self, t2axis, t3axis,
-                 system=None,
-                 dynamics="secular",
-                 relaxation_tensor=None,
-                 rate_matrix=None,
-                 effective_hamiltonian=None,
-                 separate_relax_pwy=True):
-            
-            
+
+    def __init__(self, t2axis: Any, t3axis: Any,
+                 system: Any = None,
+                 dynamics: str = "secular",
+                 relaxation_tensor: Any = None,
+                 rate_matrix: Any = None,
+                 effective_hamiltonian: Any = None,
+                 separate_relax_pwy: bool = True) -> None:
+
+
         self.t2axis = t2axis
         self.t3axis = t3axis
-        
+
         if system is not None:
             self.system = copy.deepcopy(system)
-        
+
         #FIXME: properties to be protected
         self.dynamics = dynamics
-        
+
         # whether to treat differently pwy with jumps or not
-        self._separate_relax = separate_relax_pwy 
-        
+        self._separate_relax = separate_relax_pwy
+
         # unprotected properties
         self.data = None
-        
+
         self._relaxation_tensor = None
         self._rate_matrix = None
         self._relaxation_hamiltonian = None
@@ -303,83 +303,80 @@ class PumpProbeSpectrumCalculator():
             self._has_rate_matrix = True
         self.goft_matrix = None
         self.reorg_matrix = None
-        
+
         # after bootstrap information
         self.lab = None
         self.t3s = None
         self.pathways = None
         self.rwa = None
-        
+
         self.verbose = False
-        
+
         self.tc = 0
-    
-    def bootstrap(self, rwa=0.0, pathways=None, lab=None, verbose=False, adiabatic=None):
+
+    def bootstrap(self, rwa: float = 0.0, pathways: Any = None, lab: Any = None, verbose: bool = False, adiabatic: Any = None) -> None:
         """Sets up the environment for pump-probe calculation
-        
+
         """
-
-
         self.verbose = verbose
-            
+
         if isinstance(self.system, Aggregate):
-        
+
             pass
-        
+
         else:
-            
+
             raise Exception("Molecule pump-probe not implememted")
-            
-        
+
+
         self.verbose = verbose
         self.rwa = Manager().convert_energy_2_internal_u(rwa)
         self.pathways = pathways
-        
+
         if adiabatic is not None:
             if adiabatic != False:
                 self._is_adiabatic = True
             else:
                 self._is_adiabatic = False
-            
+
             if (adiabatic == "SubtractBath") or (adiabatic == "NoBath"):
                 self._adiabatic_noBath = True
-        
+
         with energy_units("int"):
             #atype = self.t3axis.atype
             #self.t3axis.atype = 'complete'
-            #self.oa3 = self.t3axis.get_FrequencyAxis() 
+            #self.oa3 = self.t3axis.get_FrequencyAxis()
             #self.oa3.data += self.rwa
             #self.oa3.start += self.rwa
-            #self.t3axis.atype = atype  
-            
+            #self.t3axis.atype = atype
+
             # we only want to retain the upper half of the spectrum
             freq = self.t3axis.get_FrequencyAxis()
-            freq.data += self.rwa 
-            Nt = len(freq.data)//2        
+            freq.data += self.rwa
+            Nt = len(freq.data)//2
             do = freq.data[1]-freq.data[0]
             st = freq.data[Nt//2]
             # we represent the Frequency axis anew
-            self.oa3 = FrequencyAxis(st,Nt,do)      
-        
+            self.oa3 = FrequencyAxis(st,Nt,do)
+
         self.tc = 0
         self.lab = lab
-        
-    
-    def set_pathways(self, pathways):
+
+
+    def set_pathways(self, pathways: Any) -> None:
         self.pathways = pathways
-        
-    def bath_reorg(self,cfm,indx):
+
+    def bath_reorg(self, cfm: Any, indx: Any) -> float:
         coft = cfm.cfuncs[cfm.get_index_by_where((indx,indx))]
         reorg_bath = 0.0
         for parm in coft.params:
             if parm['ftype'] == 'OverdampedBrownian':
                 reorg_bath += parm['reorg']
         return reorg_bath
-    
-    def _excitonic_reorg_diag(self, SS, subtract_bath=True):
-        """ Returns the reorganisation energy of an exciton state
-        """
 
+    def _excitonic_reorg_diag(self, SS: numpy.ndarray, subtract_bath: bool = True) -> numpy.ndarray:
+        """Returns the reorganisation energy of an exciton state
+        """
         # SystemBathInteraction
         sbi = self.system.get_SystemBathInteraction()
         AG = self.system
@@ -392,16 +389,16 @@ class PumpProbeSpectrumCalculator():
         elst = numpy.where(AG.which_band == 1)[0]
         for n in range(1,AG.Nb[1]+1):
             for el1 in elst:
-                
+
                 if subtract_bath:
                     reorgB = self.bath_reorg(cfm,el1-1)
                 else:
                     reorgB = 0.0
-                
+
                 reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
                 for kk in AG.vibindices[el1]:
                     reorg_exct[n] += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
-                                
+
         elst_dbl1 = numpy.where(AG.which_band == 2)[0]
         elst_dbl2 = numpy.where(AG.which_band == 2)[0]
         for n in range(AG.Nb[0]+AG.Nb[1],AG.Ntot):
@@ -414,17 +411,16 @@ class PumpProbeSpectrumCalculator():
                         reorgB = 0.0
 
                     reorg = cfm.get_reorganization_energy(el1-1,el2-1) - reorgB
-                    
+
                     for kk in AG.vibindices[el1]:
                         for ll in AG.vibindices[el2]:
                             reorg_exct[n] += ((SS[kk,n]**2)*(SS[ll,n]**2)*reorg)
-    
-        return reorg_exct
-    
-    def _site_reorg_diag(self, subtract_bath=True):
-        """ Returns the reorganisation energy of an exciton state
-        """
 
+        return reorg_exct
+
+    def _site_reorg_diag(self, subtract_bath: bool = True) -> numpy.ndarray:
+        """Returns the reorganisation energy of an exciton state
+        """
         # SystemBathInteraction
         sbi = self.system.get_SystemBathInteraction()
         AG = self.system
@@ -436,153 +432,154 @@ class PumpProbeSpectrumCalculator():
         # electronic states corresponding to single excited states
         elst = numpy.where(AG.which_band == 1)[0]
         for el1 in elst:
-            
+
             if subtract_bath:
                 reorgB = self.bath_reorg(cfm,el1-1)
             else:
                 reorgB = 0.0
-            
+
             reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
             for kk in AG.vibindices[el1]:
                 reorg_site[kk] += reorg
-                                
+
         elst_dbl1 = numpy.where(AG.which_band == 2)[0]
         for el1 in elst_dbl1:
-            
+
             if subtract_bath:
                 reorgB = self.bath_reorg(cfm,el1-1)
             else:
                 reorgB = 0.0
 
             reorg = cfm.get_reorganization_energy(el1-1,el1-1) - reorgB
-            
+
             for kk in AG.vibindices[el1]:
                 reorg_site[kk] += reorg
-    
+
         return reorg_site
-    
-    def calculate_all_system_approx(self, sys, rdmt, lab, show_progress=False,approx=None,spec=["Full"]):
+
+    def calculate_all_system_approx(self, sys: Any, rdmt: Any, lab: Any, show_progress: bool = False, approx: Any = None, spec: Any = None) -> Any:
         """Calculates all 2D spectra for a system and reduced density matrix
-           evolution. The approach assumes no diiference between pathways with
-           jumps and without the jumps.
-        
+        evolution. The approach assumes no diiference between pathways with
+        jumps and without the jumps.
+
         """
-        
+        if spec is None:
+            spec = ["Full"]
         # Check if the magic angle polarization is used
         if not numpy.isclose(lab.F4eM4[1:],[0,0],atol=1e-6).all():
-            message = "Lab is not set to the magic angle polarization which is" +\
-            "the only supported measurement setting for this calculation. Set " +\
-            "polarization angle between first two pulses and the last two to" +\
+            message = "Lab is not set to the magic angle polarization which is"\
+            "the only supported measurement setting for this calculation. Set "\
+            "polarization angle between first two pulses and the last two to"\
             "54.7356103 deg. and repeat the calculation."
-            raise IOError(message)
+            raise OSError(message)
 
         self.system = copy.deepcopy(sys)
-        
+
         if self.system._diagonalized and self._is_adiabatic:
             raise Warning("Not possible to use adiabatic eigenstate with diagonalized afggregate")
-        
+
         if self._is_adiabatic:
             #SS = numpy.identity(self.system.Ntot)
             reorg_site = self._site_reorg_diag(subtract_bath=self._adiabatic_noBath)
             #reorg_site = self._excitonic_reorg_diag(SS, subtract_bath=self._adiabatic_noBath)
             #print("site reorg :",numpy.isclose(reorg_site2,reorg_site).all())
             #print("site reorg2:",reorg_site2==reorg_site)
-            for kk in range(self.system.Ntot):              
+            for kk in range(self.system.Ntot):
                 self.system.HH[kk,kk] -= reorg_site[kk]
-        
+
         if not self.system._diagonalized:
             self.system.diagonalize()
-            
+
         if self._is_adiabatic:
             # get exciton reorganization energy
             reorg_excit = self._excitonic_reorg_diag(self.system.SS, subtract_bath=self._adiabatic_noBath)
             #reorg_excit = self._site2excit_reorg(reorg_site,self.system.SS)
-            
+
             # shift the diagonal of the exciton hamiltonian
             for ii in range(self.system.Ntot):
                 self.system.HH[ii,ii] += reorg_excit[ii]
 
-        
+
         tcont = PumpProbeSpectrumContainer(t2axis=self.t2axis)
-        
+
         kk = 0
         Nk = self.t2axis.length
-        
+
         rdm0 = rdmt.data[0,:,:].copy()
-        
+
         printProgressBar(kk,Nk,prefix="     - Progress:",suffix= "Complete", length = 50)
-        
+
 
         for T2 in self.t2axis.data:
-            
+
             if show_progress:
                 print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
-            
+
             rdm = rdmt.data[kk,:,:].copy()
-            
+
             if approx=="Novoderezhkin":
                 ppspec1 = self.calculate_pathways_rdm_novoderezhkin(rdm0, rdm, T2, lab, ptol=1.0e-6,spec=spec)
             else:
                 ppspec1 = self.calculate_pathways_rdm(rdm0, rdm, T2,lab,spec=spec)
-            
-            
-            
+
+
+
             tcont.set_spectrum(ppspec1, tag=T2)
-            
+
             kk += 1
             printProgressBar(kk,Nk,prefix="     - Progress:",suffix= "Complete", length = 50)
-            
-        
+
+
         return tcont
-        
-    
-    def calculate_all_system(self, sys, eUt, lab, show_progress=False):
+
+
+    def calculate_all_system(self, sys: Any, eUt: Any, lab: Any, show_progress: bool = False) -> Any:
         """Calculates all 2D spectra for a system and evolution superoperator
-        
+
         """
         tcont = PumpProbeSpectrumContainer(t2axis=self.t2axis)
-        
+
         kk = 1
         Nk = self.t2axis.length
-        
+
         printProgressBar(0,Nk,prefix="     - Progress:",suffix= "Complete", length = 50)
         for T2 in self.t2axis.data:
-            
+
             if show_progress:
                 print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
-            
+
             ppspec1 = self.calculate_one_system(T2, sys, eUt, lab)
-            
+
             tcont.set_spectrum(ppspec1, tag=T2)
-            
+
             printProgressBar(kk,Nk,prefix="     - Progress:",suffix= "Complete", length = 50)
             kk += 1
-        
+
         return tcont
-    
-    def calculate_one_system(self, t2, sys, eUt, lab, pways=None):
-        """Returns pump-probe spectrum at t2 for a system and evolution 
+
+    def calculate_one_system(self, t2: float, sys: Any, eUt: Any, lab: Any, pways: Any = None) -> Any:
+        """Returns pump-probe spectrum at t2 for a system and evolution
         superoperator
-        
+
         """
         try:
             #print(t2)
             Uin = eUt.at(t2)
             #print(Uin.data.shape)
-        except:
+        except (AttributeError, IndexError):
             Uin = eUt
             #print("False")
-            
+
         temp = sys.get_temperature()
         # FIXME: Delete zero temperature
         #temp = 0.0
         rho0 = sys.get_DensityMatrix(condition_type="thermal",
                                      temperature=temp)
-        
+
         # if the Hamiltonian is larger than eUt, we will calculate ESA
         has_ESA = True
         H = self.system.get_Hamiltonian()
-        
+
         # get Liouville pathways
         if has_ESA:
             pws = sys.liouville_pathways_3T(ptype=(
@@ -595,35 +592,35 @@ class PumpProbeSpectrumCalculator():
                                                    lab=lab)
         else:
             pws = sys.liouville_pathways_3T(ptype=("R1g", "R2g", "R3g",
-                                                   "R4g", "R1f*E","R2f*E"), 
+                                                   "R4g", "R1f*E","R2f*E"),
                                                    eUt=eUt, ham=H, t2=t2,
                                                    lab=lab)
 
         self.set_pathways(pws)
-        
+
         SS  = self.system.SS.copy()
         self.goft_matrix = self._SE_excitonic_gofts(SS,self.system, tau = 0.0)
-        
+
         if pways is not None:
             pways[str(t2)] = pws
-            
+
         pprobe1 = self.calculate_next(t2)
-        
+
         return pprobe1
-    
-    def calculate_next(self,t2):
+
+    def calculate_next(self, t2: float) -> Any:
 
         sone = self.calculate_one(self.tc,t2)
         #print(self.tc, sone)
         self.tc += 1
         return sone
-    
-    def calculate_one(self, tc, t2):
+
+    def calculate_one(self, tc: int, t2: float) -> Any:
         """Calculate the 2D spectrum for all pathways
-        
+
         """
         #import time
-        
+
         onepp = PumpProbeSpectrum()
         onepp.set_axis(self.oa3)
 
@@ -633,29 +630,27 @@ class PumpProbeSpectrumCalculator():
         #print("Single spectra calculation:", end - start)
         onepp._add_data(data)
 
-        onepp.set_t2(self.t2axis.data[tc])    
-        
+        onepp.set_t2(self.t2axis.data[tc])
+
         return onepp
-    
-    def _c2g(self,timeaxis,coft):
-        """ Converts correlation function to lineshape function
-        
+
+    def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
+        """Converts correlation function to lineshape function
+
         Explicit numerical double integration of the correlation
         function to form a lineshape function.
 
         Parameters
         ----------
-
         timeaxis : cu.oqs.time.TimeAxis
             TimeAxis of the correlation function
-            
+
         coft : complex numpy array
             Values of correlation function given at points specified
             in the TimeAxis object
-            
-        
+
+
         """
-        
         ta = timeaxis
         rr = numpy.real(coft)
         ri = numpy.imag(coft)
@@ -670,21 +665,20 @@ class PumpProbeSpectrumCalculator():
         gt = sr + 1j*si
         return gt
 
-    def _excitonic_coft(self,SS,AG,n):
-        """ Returns energy gap correlation function data of an exciton state n
-        
+    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
+        """Returns energy gap correlation function data of an exciton state n
+
         """
-        
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
         cfm = sbi.CC
-        
+
         # get number of monomeric basis states
         Na = 0
         for monomer in AG.monomers:
             Na += monomer.nel-1
-    
+
         ct = numpy.zeros((self.t3axis.length),dtype=numpy.complex128)
 
         # electronic states corresponding to single excited states
@@ -700,33 +694,32 @@ class PumpProbeSpectrumCalculator():
 #        ct3 = coft.at(self.t3axis.data)
 #        print(numpy.isclose(ct,ct3).all())
         return ct
-    
-    def _SE_excitonic_cofts(self,SS,AG,tau = 0):
-        """ Returns energy gap correlation function data of an exciton state n
-        
+
+    def _SE_excitonic_cofts(self, SS: numpy.ndarray, AG: Any, tau: float = 0) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """Returns energy gap correlation function data of an exciton state n
+
         """
-        
         c0 = AG.monomers[0].get_egcf((0,1))
         Nt = len(c0)
-        
+
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
         cfm = sbi.CC
         ctimeAxis = cfm.timeAxis
-        
+
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise IOError("Correlation function should be defined on interval"+ 
+            raise OSError("Correlation function should be defined on interval"
                           " (0, t2_max+t3_max).")
-        
+
         # get number of monomeric basis states
         Na = 0
         for monomer in AG.monomers:
             Na += monomer.nel-1
-        
+
         ct3 = numpy.zeros((AG.Ntot,AG.Ntot,self.t3axis.length),dtype=numpy.complex128)
         ct3tau = numpy.zeros((AG.Ntot,AG.Ntot,self.t3axis.length),dtype=numpy.complex128)
-        
+
         # electronic states corresponding to single excited states
         elst = numpy.where(AG.which_band == 1)[0]
         #print(elst)
@@ -737,7 +730,7 @@ class PumpProbeSpectrumCalculator():
                 coft_t3 = coft.at(self.t3axis.data)
                 coft_t3tau = coft.at(self.t3axis.data+tau)
                 # FIXME: both at time t3 and t3+tau
-                
+
                 for kk in AG.vibindices[el1]:
                     for ll in AG.vibindices[el2]:
                         for n in range(AG.Nb[0], AG.Nb[0]+AG.Nb[1]):
@@ -748,7 +741,7 @@ class PumpProbeSpectrumCalculator():
             for m in range(n+1, AG.Nb[0]+AG.Nb[1]):
                 ct3[m,n] += ct3[n,m]
                 ct3tau[m,n] += ct3tau[n,m]
-        
+
         # electronic states corresponding to double excited states
         elstd = numpy.where(AG.which_band == 2)[0]
         for el1 in elstd:
@@ -767,7 +760,7 @@ class PumpProbeSpectrumCalculator():
             for m in range(n+1, numpy.sum(AG.Nb[0:3])):
                 ct3[m,n] += ct3[n,m]
                 ct3tau[m,n] += ct3tau[n,m]
-        
+
         # Mixed sigle-double excited state correlation functions
         for el1 in elst:
             for el2 in elstd:
@@ -786,37 +779,36 @@ class PumpProbeSpectrumCalculator():
             for m in range(numpy.sum(AG.Nb[0:2]), numpy.sum(AG.Nb[0:3])):
                 ct3[m,n] += ct3[n,m]
                 ct3tau[m,n] += ct3tau[n,m]
-            
+
         return ct3,ct3tau
-    
-    
-    def _SE_excitonic_cofts_test(self,SS,AG,tau = 0):
-        """ Returns energy gap correlation function data of an exciton state n
-        
+
+
+    def _SE_excitonic_cofts_test(self, SS: numpy.ndarray, AG: Any, tau: float = 0) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """Returns energy gap correlation function data of an exciton state n
+
         """
-        
         c0 = AG.monomers[0].get_egcf((0,1))
         Nt = len(c0)
-        
+
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
         cfm = sbi.CC
         ctimeAxis = cfm.timeAxis
-        
+
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise IOError("Correlation function should be defined on interval"+ 
+            raise OSError("Correlation function should be defined on interval"
                           " (0, t2_max+t3_max).")
-        
+
         # get number of monomeric basis states
         Na = 0
         for monomer in AG.monomers:
             Na += monomer.nel-1
-        
+
         ct = numpy.zeros((AG.Ntot,AG.Ntot,cfm.timeAxis.length),dtype=numpy.complex128)
         gt3 = numpy.zeros((AG.Ntot,AG.Ntot,self.t3axis.length),dtype=numpy.complex128)
         gt3tau = numpy.zeros((AG.Ntot,AG.Ntot,self.t3axis.length),dtype=numpy.complex128)
-        
+
         # electronic states corresponding to single excited states
         elst = numpy.where(AG.which_band == 1)[0]
         #print(elst)
@@ -839,7 +831,7 @@ class PumpProbeSpectrumCalculator():
                 #ct[m,n] += ct[n,m]
                 gt3[m,n] += gt3[n,m]
                 gt3tau[m,n] += gt3tau[n,m]
-        
+
         # electronic states corresponding to double excited states
         elstd = numpy.where(AG.which_band == 2)[0]
         for el1 in elstd:
@@ -860,7 +852,7 @@ class PumpProbeSpectrumCalculator():
                 #ct[m,n] += ct[n,m]
                 gt3[m,n] += gt3[n,m]
                 gt3tau[m,n] += gt3tau[n,m]
-        
+
         # Mixed sigle-double excited state correlation functions
         for el1 in elst:
             for el2 in elstd:
@@ -882,8 +874,8 @@ class PumpProbeSpectrumCalculator():
                 #ct[m,n] += ct[n,m]
                 gt3[m,n] += gt3[n,m]
                 gt3tau[m,n] += gt3tau[n,m]
-                
-        if 0:        
+
+        if 0:
             #check if gts correctly defined
             for ii in range(AG.Nb[0],AG.Ntot):
                 for jj in range(AG.Nb[0],AG.Ntot):
@@ -891,31 +883,30 @@ class PumpProbeSpectrumCalculator():
                     if not numpy.isclose(gt3[ii,jj],goft.at(self.t3axis.data)).all():
                         print(ii,jj,False)
                         print(gt3[ii,jj] - goft.at(self.t3axis.data))
-            
-        return gt3,gt3tau
-    
-    def _SE_excitonic_gofts(self,SS,AG,tau = 0,_diag_double_only=False):
-        """ Returns energy gap correlation function data of an exciton state n
-        
-        """
 
+        return gt3,gt3tau
+
+    def _SE_excitonic_gofts(self, SS: numpy.ndarray, AG: Any, tau: float = 0, _diag_double_only: bool = False) -> numpy.ndarray:
+        """Returns energy gap correlation function data of an exciton state n
+
+        """
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
         cfm = sbi.CC
         ctimeAxis = cfm.timeAxis
-        
+
         if self.t3axis.max + tau > ctimeAxis.max:
-            raise IOError("Correlation function should be defined on interval"+ 
+            raise OSError("Correlation function should be defined on interval"
                           " (0, t2_max+t3_max).")
-        
+
         # get number of monomeric basis states
         Na = 0
         for monomer in AG.monomers:
             Na += monomer.nel-1
-        
+
         gt3tau = numpy.zeros((AG.Ntot,AG.Ntot,self.t3axis.length),dtype=numpy.complex128)
-        
+
         # electronic states corresponding to single excited states
         elst = numpy.where(AG.which_band == 1)[0]
         #print(elst)
@@ -933,7 +924,7 @@ class PumpProbeSpectrumCalculator():
         for n in range(AG.Nb[0], AG.Nb[0]+AG.Nb[1]):
             for m in range(n+1, AG.Nb[0]+AG.Nb[1]):
                 gt3tau[m,n] += gt3tau[n,m]
-        
+
         # electronic states corresponding to double excited states
         elstd = numpy.where(AG.which_band == 2)[0]
         for el1 in elstd:
@@ -953,7 +944,7 @@ class PumpProbeSpectrumCalculator():
             for n in range(numpy.sum(AG.Nb[0:2]), numpy.sum(AG.Nb[0:3])):
                 for m in range(n+1, numpy.sum(AG.Nb[0:3])):
                     gt3tau[m,n] += gt3tau[n,m]
-        
+
         # Mixed sigle-double excited state correlation functions
         for el1 in elst:
             for el2 in elstd:
@@ -987,21 +978,20 @@ class PumpProbeSpectrumCalculator():
             for m in range(numpy.sum(AG.Nb[0:2]), numpy.sum(AG.Nb[0:3])):
                 gt3tau[m,n] += gt3tau[n,m]
 
-            
+
         return gt3tau
-    
-    def _excitonic_reorg_energy(self, SS, AG):
-        """ Returns the reorganisation energy of an exciton state
+
+    def _excitonic_reorg_energy(self, SS: numpy.ndarray, AG: Any) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """Returns the reorganisation energy of an exciton state
         """
-        
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
         cfm = sbi.CC
-        
+
         reorg_exct = numpy.zeros(AG.Nb[0]+AG.Nb[1])
         reorg_exct_sd = numpy.zeros((AG.Nb[0]+AG.Nb[1],AG.Ntot))
-        
+
         # electronic states corresponding to single excited states
         elst = numpy.where(AG.which_band == 1)[0]
         for n in range(reorg_exct.size):
@@ -1009,7 +999,7 @@ class PumpProbeSpectrumCalculator():
                 reorg = cfm.get_reorganization_energy(el1-1,el1-1)
                 for kk in AG.vibindices[el1]:
                     reorg_exct[n] += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
-                    
+
         elst_sgl = numpy.where(AG.which_band == 1)[0]
         elst_dbl = numpy.where(AG.which_band == 2)[0]
         for n in range(AG.Nb[0]+AG.Nb[1]):
@@ -1020,27 +1010,25 @@ class PumpProbeSpectrumCalculator():
                         for kk in AG.vibindices[el1]:
                             for ll in AG.vibindices[el2]:
                                 reorg_exct_sd[n,m] += ((SS[kk,n]**2)*(SS[ll,m]**2)*reorg)
-                    
-                
-                    
+
+
+
         return reorg_exct,reorg_exct_sd
-    
-    def calculate_pathways(self, pathways, tau):
+
+    def calculate_pathways(self, pathways: Any, tau: float) -> numpy.ndarray:
         """Calculate the shape of a Liouville pathway
-        
+
         """
-        import time
-        
         # we can calculate empty pathway
         if pathways is None:
-            N3 = self.oa3.length            
+            N3 = self.oa3.length
             ppspec = numpy.zeros(N3, dtype=COMPLEX)
             return ppspec
-            
+
         N3 = self.oa3.length
-        
+
         SS  = self.system.SS.copy()
-        
+
         # precalculate single excited state correlation functions
 #        start = time.time()
 #        ct3,ct3tau = self._SE_excitonic_cofts(SS,self.system, tau = tau)
@@ -1053,7 +1041,7 @@ class PumpProbeSpectrumCalculator():
         gt3tau = self._SE_excitonic_gofts(SS,self.system, tau = tau,_diag_double_only=True)
 #        end = time.time()
 #        print("Calculation of coft:", end - start)
-        
+
 #        start = time.time()
 #        # convert correlation functions to lineshape functions
 #        ngs = self.system.Nb[0]
@@ -1068,7 +1056,7 @@ class PumpProbeSpectrumCalculator():
 #
 #        end = time.time()
 #        print("Conversion coft 2 goft:", end - start)
-        
+
 #        start = time.time()
         ppspec = numpy.zeros(self.t3axis.length,dtype=numpy.complex128)
         for pwy in self.pathways:
@@ -1078,29 +1066,29 @@ class PumpProbeSpectrumCalculator():
                 _is_relax = True
                 if pwy.relaxations[0][0] == pwy.relaxations[0][1]:
                     _is_jump = False
-            
+
             om = pwy.frequency[-2] - self.rwa
             pref = pwy.pref
             if _is_relax:
                 omtau = pwy.frequency[-3]
             else:
                 omtau = pwy.frequency[1]
-            
+
             if pwy.pathway_name not in ["R1f*", "R2f*"]:
 #                pass
                 if _is_relax and _is_jump and self._separate_relax: # Pathways with relaxation
                     n = pwy.states[-2][0]
                     #print(om,n,pwy.states[2],pwy.relaxations[0],pwy.pathway_name)
                     ppspec += pref*numpy.exp(-gt3s[n,n] - 1j*om*self.t3axis.data)
-                
-                else:   # Pathways without relaxation                    
+
+                else:   # Pathways without relaxation
                     if pwy.pathway_name in ["R1g","R2g"]: # Stimulated emission
                         if _is_relax:
                             state = pwy.states[-3]
                         else:
                             state = pwy.states[1]
                         ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
-#                        coft = (ct3tau[state[0],state[0]] 
+#                        coft = (ct3tau[state[0],state[0]]
 #                                 - numpy.conj(ct3tau[state[0],state[1]])
 #                                 + numpy.conj(ct3[state[1],state[0]]))
 #                        goft = self._c2g(self.t3axis,coft)
@@ -1108,19 +1096,19 @@ class PumpProbeSpectrumCalculator():
                         gt2 = numpy.conj(gt3tau[state[1],state[1],0]) - gt3tau[state[0],state[1],0]
                         gt3 = numpy.conj(gt3s[state[1],state[0]])
                         ft -= gt1 + gt2 + gt3
-                        
-#                        gt1 = self._c2g(self.t3axis,ct3tau[state[0],state[0]] 
+
+#                        gt1 = self._c2g(self.t3axis,ct3tau[state[0],state[0]]
 #                                    - numpy.conj(ct3tau[state[0],state[1]]))
 #                        gt2 = self._c2g(self.t3axis,numpy.conj(ct3tau[state[1],state[1]])
 #                                    - ct3tau[state[0],state[1]])
 #                        gt3 = numpy.conj(gt3s[state[1],state[0]])
 ##                        print(numpy.isclose(goft,gt1+gt3).all())
 #                        ft -= gt1 + gt2[0] + gt3
-##                        
+##
 ##                        ft -= goft + gt2[0]
                         ppspec += pref*numpy.exp(ft)
-                        
-                    elif pwy.pathway_name in ["R3g","R4g"]: # Ground state bleach 
+
+                    elif pwy.pathway_name in ["R3g","R4g"]: # Ground state bleach
                         ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
                         state = pwy.states[-2]
                         n = max(state)
@@ -1136,7 +1124,7 @@ class PumpProbeSpectrumCalculator():
                     ft -= gt3s[n,n] + numpy.conj(gt3s[m,m])
                     ft += gt3s[n,m] + numpy.conj(gt3s[m,n])
                     ppspec += pref*numpy.exp(ft)
-                    
+
                 else:   # Pathways without relaxation
                     # Ecxited state absorption
                     Fl = pwy.states[-2][0]
@@ -1145,7 +1133,7 @@ class PumpProbeSpectrumCalculator():
                         Ej = pwy.states[-3][0]
                     else:
                         Ej = pwy.states[1][0]
-                    
+
 #                    ######### TEST  ###########
 #                    sbi = self.system.get_SystemBathInteraction()
 #                    # CorrelationFunctionMatrix
@@ -1155,26 +1143,26 @@ class PumpProbeSpectrumCalculator():
 #                    coft = cfm.get_coft(1,1)
 #                    goft2 = DFunction(cfm.timeAxis,self._c2g(cfm.timeAxis,coft))
 #                    ###########################
-                    
-                    
+
+
                     ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
-                    
+
                     if 0:   # Safer (smaller numerical errors), but slower
                         gt1 = self._c2g(self.t3axis,
                             ct3[Fl,Fl] - ct3[Fl,Ek] + ct3[Ej,Ek] - ct3[Ej,Fl])
                     else:   # Faster, but might cause numerical errors.
                         gt1 = gt3s[Fl,Fl] - gt3s[Fl,Ek] + gt3s[Ej,Ek] - gt3s[Ej,Fl]
-                        
+
                     gt2 = (gt3tau[Ej,Ej,0] - numpy.conj(gt3tau[Ej,Ek,0])
                                     - gt3tau[Fl,Ej,0] + numpy.conj(gt3tau[Fl,Ek,0]))
-                                    
+
                     gt3 = (numpy.conj(gt3tau[Ek,Ek]) - gt3tau[Ek,Ej]
                                     + gt3tau[Fl,Ej] - numpy.conj(gt3tau[Fl,Ek]))
                     ft -= gt1 + gt2 + gt3
-                    
+
 #                    if tau == 0.0:
 #                        print(Ej,Ek,Fl)
-#                        
+#
 #                        ft2 = (goft1.data[:ft.size] - SS[1,2]**2*numpy.conj(goft1.data[:ft.size])) * SS[2,2]**2
 #                        ft2 += (goft2.data[:ft.size] - SS[2,2]**2*numpy.conj(goft2.data[:ft.size])) * SS[1,2]**2
 #                        print("real:",numpy.isclose(numpy.real(gt1 + gt2 + gt3),numpy.real(ft2)))
@@ -1197,33 +1185,34 @@ class PumpProbeSpectrumCalculator():
 #        print("Calculation of the pathways:", end - start)
 
         ppspec = -ppspec
-        
-        
+
+
         # Fourier transform the result
         ft = numpy.fft.hfft(ppspec)*self.t3axis.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
-        ft = numpy.flipud(ft)   
+        ft = numpy.flipud(ft)
         # cut the center of the spectrum
-        Nt = self.t3axis.length #len(ta.data)        
-        
+        Nt = self.t3axis.length #len(ta.data)
+
         data = numpy.real(ft[Nt//2:Nt+Nt//2])
 
         data = self.oa3.data*data
-        
-        return data
-    
-    def calculate_pathways_rdm(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=["Full"]):
-        """Calculate the shape of a Liouville pathway
-            so far implemented only for electronic 
-            aggregate.
-        """
 
+        return data
+
+    def calculate_pathways_rdm(self, rdm0: Any, rdm: Any, tau: float, lab: Any, ptol: float = 1.0e-6, spec: Any = None) -> Any:
+        """Calculate the shape of a Liouville pathway
+        so far implemented only for electronic
+        aggregate.
+        """
+        if spec is None:
+            spec = ["Full"]
         onepp = PumpProbeSpectrum()
-        onepp.set_axis(self.oa3) 
+        onepp.set_axis(self.oa3)
 
         SS  = self.system.SS.copy()
-        
+
         # precalculate single excited state correlation functions
         if self.goft_matrix is not None:
             gt3s = self.goft_matrix
@@ -1234,13 +1223,13 @@ class PumpProbeSpectrumCalculator():
 
         # initialize the spectra
         ppspec = numpy.zeros(self.t3axis.length,dtype=numpy.complex128)
-        
+
         # Compute the spectra
-        # Make sure that the aggregate was diagonalized or we are working in 
+        # Make sure that the aggregate was diagonalized or we are working in
         # the eigenbais => self.system.DD[nf,ni,:] would be proper transition
-        # dipoles between eigenstates. 
+        # dipoles between eigenstates.
         dim = self.system.Nb[1] + self.system.Nb[0]
-        
+
         # GSB (Ground state bleach)
         if "Full" in spec or "GSB" in spec:
             for jj in range(1,dim):
@@ -1249,123 +1238,124 @@ class PumpProbeSpectrumCalculator():
                 pref_GSB *= numpy.sum(numpy.diag(rdm0)) # The GSB signal is dependent only on the last state
                                                             # => prefactor can be computed as a sum before
                 pref_GSB *= numpy.dot(self.system.DD[jj,0,:],self.system.DD[jj,0,:])
-                
+
                 om = self.system.HH[jj,jj]-self.system.HH[0,0] - self.rwa
                 omtau = 0 # during the t2 time bra and ket both in the ground state
-                
+
                 ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
 
                 ft -= gt3s[jj,jj]
                 ppspec += pref_GSB*numpy.exp(ft)
-            
+
         # SE
         if "Full" in spec or "SE" in spec:
             for ii in range(1,dim):
-            
+
                 om = self.system.HH[ii,ii]-self.system.HH[0,0] - self.rwa
-                
+
                 for jj in range(1,dim):
                     if rdm[ii,jj] < ptol:
                         continue
 
                     state = [ii,jj]
                     omtau = self.system.HH[ii,ii]-self.system.HH[jj,jj]
-                    
+
                     pref_SE = lab.F4eM4[0]
                     pref_SE *= 2 # There are two pathways leading to the same results R1 and R2 (therefore twice)
                     pref_SE *= rdm[ii,jj] # It should include excitation weighted by evolution
                     pref_SE *= numpy.dot(self.system.DD[ii,0,:],self.system.DD[jj,0,:])
-    
+
                     ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
 
                     gt1 = gt3tau[state[0],state[0]] - numpy.conj(gt3tau[state[0],state[1]])
                     gt2 = numpy.conj(gt3tau[state[1],state[1],0]) - gt3tau[state[0],state[1],0]
                     gt3 = numpy.conj(gt3s[state[1],state[0]])
                     ft -= gt1 + gt2 + gt3
-                    
+
                     ppspec += pref_SE*numpy.exp(ft)
-        
+
         # ESA
         if "Full" in spec or "ESA" in spec:
             for ii in range(1,dim):
                 for jj in range(1,dim):
                     if numpy.abs(rdm[ii,jj]) < ptol:
                         continue
-                    
-                    for ll in range(dim,self.system.Ntot): 
-                        
+
+                    for ll in range(dim,self.system.Ntot):
+
                         # Ek Ek      =   jj jj
                         # Fl Ek      =   ll jj
                         # Ei Ek      =   ii jj
-                        
+
                         om = self.system.HH[ll,ll]-self.system.HH[jj,jj] - self.rwa
                         omtau = self.system.HH[ii,ii]-self.system.HH[jj,jj]
-                        
+
                         pref_ESA = lab.F4eM4[0]
                         pref_ESA *= 2 # There are two pathways leading to the same results R1* and R2* (therefore twice)
                         pref_ESA *= rdm[ii,jj] # It should include excitation weighted by evolution
                         pref_ESA *= numpy.dot(self.system.DD[ll,ii,:],self.system.DD[jj,ll,:])
-                        
-                        
+
+
                         Fl = ll
                         Ek = jj
                         Ej = ii
-                        
+
                         ft = - 1j*om*self.t3axis.data - 1j*omtau*tau
-                        
+
                         gt1 = gt3s[Fl,Fl] - gt3s[Fl,Ek] + gt3s[Ej,Ek] - gt3s[Ej,Fl]
-                            
+
                         gt2 = (gt3tau[Ej,Ej,0] - numpy.conj(gt3tau[Ej,Ek,0])
                                         - gt3tau[Fl,Ej,0] + numpy.conj(gt3tau[Fl,Ek,0]))
-                                        
+
                         gt3 = (numpy.conj(gt3tau[Ek,Ek]) - gt3tau[Ek,Ej]
                                         + gt3tau[Fl,Ej] - numpy.conj(gt3tau[Fl,Ek]))
                         ft -= gt1 + gt2 + gt3
-                        
+
                         ppspec -= pref_ESA*numpy.exp(ft)
-                
-        
+
+
         ppspec = -ppspec
-        
-        
+
+
         # Fourier transform the result
         ft = numpy.fft.hfft(ppspec)*self.t3axis.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
-        ft = numpy.flipud(ft)   
+        ft = numpy.flipud(ft)
         # cut the center of the spectrum
-        Nt = self.t3axis.length #len(ta.data)        
-        
+        Nt = self.t3axis.length #len(ta.data)
+
         data = numpy.real(ft[Nt//2:Nt+Nt//2])
 
         data = self.oa3.data*data
-        
-        
-                
+
+
+
         onepp._add_data(data)
-        onepp.set_t2(tau) 
-                
+        onepp.set_t2(tau)
+
         return onepp
 
 
-    def calculate_pathways_rdm_novoderezhkin(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=["Full"]):
+    def calculate_pathways_rdm_novoderezhkin(self, rdm0: Any, rdm: Any, tau: float, lab: Any, ptol: float = 1.0e-6, spec: Any = None) -> Any:
         """Calculate the shape of a Liouville pathway
-            so far implemented only for electronic 
-            aggregate.
+        so far implemented only for electronic
+        aggregate.
         """
-
+        if spec is None:
+            spec = ["Full"]
         onepp = PumpProbeSpectrum()
-        onepp.set_axis(self.oa3) 
+        onepp.set_axis(self.oa3)
 
         SS  = self.system.SS.copy()
-        
+
         # precalculate single excited state correlation functions
         if self.goft_matrix is not None:
             gt3s = self.goft_matrix
         else:
             gt3s = self._SE_excitonic_gofts(SS,self.system, tau = 0.0,_diag_double_only=True)
             self.goft_matrix = gt3s
-            
+
         if self.reorg_matrix is not None:
             reorg_exct = self.reorg_matrix[0]
             reorg_exct_sd = self.reorg_matrix[1]
@@ -1375,13 +1365,13 @@ class PumpProbeSpectrumCalculator():
 
         # initialize the spectra
         ppspec = numpy.zeros(self.t3axis.length,dtype=numpy.complex128)
-        
+
         # Compute the spectra
-        # Make sure that the aggregate was diagonalized or we are working in 
+        # Make sure that the aggregate was diagonalized or we are working in
         # the eigenbais => self.system.DD[nf,ni,:] would be proper transition
-        # dipoles between eigenstates. 
+        # dipoles between eigenstates.
         dim = self.system.Nb[1] + self.system.Nb[0]
-        
+
         # GSB (Ground state bleach)
         if "Full" in spec or "GSB" in spec:
             for jj in range(1,dim):
@@ -1390,162 +1380,157 @@ class PumpProbeSpectrumCalculator():
                 pref_GSB *= numpy.sum(numpy.diag(rdm0)) # The GSB signal is dependent only on the last state
                                                             # => prefactor can be computed as a sum before
                 pref_GSB *= numpy.dot(self.system.DD[jj,0,:],self.system.DD[jj,0,:])
-                
+
                 om = self.system.HH[jj,jj]-self.system.HH[0,0] - self.rwa
-                
+
                 ft = - 1j*om*self.t3axis.data
 
                 ft -= gt3s[jj,jj]
                 ppspec += pref_GSB*numpy.exp(ft)
-            
+
         # SE
         if "Full" in spec or "SE" in spec:
             for ii in range(1,dim):
-            
+
                 om = self.system.HH[ii,ii]-self.system.HH[0,0] - self.rwa
                 state = [ii,ii]
-                
+
                 pref_SE = lab.F4eM4[0]
                 pref_SE *= 2 # There are two pathways leading to the same results R1 and R2 (therefore twice)
                 pref_SE *= rdm[ii,ii] # It should include excitation weighted by evolution
                 pref_SE *= numpy.dot(self.system.DD[ii,0,:],self.system.DD[ii,0,:])
-                
+
                 ft = - 1j*om*self.t3axis.data +2*1j*reorg_exct[ii]*self.t3axis.data
                 ft -= numpy.conj(gt3s[state[0],state[0]])
-                
+
                 ppspec += pref_SE*numpy.exp(ft)
-            
-        
+
+
         # ESA
         if "Full" in spec or "ESA" in spec:
             for ii in range(1,dim):
                 if numpy.abs(rdm[ii,ii]) < ptol:
                     continue
-                for ll in range(dim,self.system.Ntot): 
-            
+                for ll in range(dim,self.system.Ntot):
+
                     # Ek Ek      =   jj jj
                     # Fl Ek      =   ll jj
                     # Ei Ek      =   ii jj
-                    
+
                     om = self.system.HH[ll,ll]-self.system.HH[ii,ii] - self.rwa
-                    
+
                     pref_ESA = lab.F4eM4[0]
                     pref_ESA *= 2 # There are two pathways leading to the same results R1* and R2* (therefore twice)
                     pref_ESA *= rdm[ii,ii] # It should include excitation weighted by evolution
                     pref_ESA *= numpy.dot(self.system.DD[ll,ii,:],self.system.DD[ii,ll,:])
 
                     Fl = ll
-                    Ek = ii   
+                    Ek = ii
 
-                    ft = - 1j*om*self.t3axis.data + 2*1j*( reorg_exct_sd[Ek,Fl] - reorg_exct[Ek])*self.t3axis.data 
+                    ft = - 1j*om*self.t3axis.data + 2*1j*( reorg_exct_sd[Ek,Fl] - reorg_exct[Ek])*self.t3axis.data
                     ft -= gt3s[Ek,Ek] + gt3s[Fl,Fl] - 2*gt3s[Fl,Ek]
-                        
+
                     ppspec -= pref_ESA*numpy.exp(ft)
-                
+
         ppspec = -ppspec
-        
-        
+
+
         # Fourier transform the result
         ft = numpy.fft.hfft(ppspec)*self.t3axis.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
-        ft = numpy.flipud(ft)   
+        ft = numpy.flipud(ft)
         # cut the center of the spectrum
-        Nt = self.t3axis.length #len(ta.data)        
-        
+        Nt = self.t3axis.length #len(ta.data)
+
         data = numpy.real(ft[Nt//2:Nt+Nt//2])
 
         data = self.oa3.data*data
-        
-        
-                
+
+
+
         onepp._add_data(data)
-        onepp.set_t2(tau) 
-                
+        onepp.set_t2(tau)
+
         return onepp
 
 
 
 
-def calculate_from_2D(twod):
+def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     """Calculates pump-probe spectrum from 2D spectrum
-    
+
     Calculates pump-probe spectrum from 2D spectrum
     using projection theorem
-    
+
     Parameters
     ----------
-    
     twod: TwoDSpectrum
         2D spectrum from which pump-probe will be calculated
-        
+
     """
-    
     pp = PumpProbeSpectrum()
-    
+
     # waiting time
     t2 = twod.get_t2()
     pp.set_t2(t2)
-    
+
     # time step for integration
     xaxis = twod.xaxis
     dw = xaxis.step
-    
+
     # real part of the total 2D spectrum
     tddata = numpy.real(twod.d__data)
-    
+
     # integration over omega_1 axis
     ppdata = -numpy.sum(tddata,axis=1)*dw
-    
+
     # setting pump-probe data
     pp.set_data(ppdata)
     pp.set_axis(twod.yaxis)
-    
+
     return pp
-    
+
 
 
 class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
     """Effective line shape pump-probe spectrum calculator
-    
-    
+
+
     """
-    
-    
-    def calculate_all_system(self, sys, H, eUt, lab):
+
+
+    def calculate_all_system(self, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
         """Calculates all spectra corresponding to a specified t2axis
-        
+
         """
-        
         temporary_fix = True
-        
+
         if temporary_fix:
             # calculation via 2D spectrum
             tcont = super().calculate_all_system(sys, H, eUt, lab)
             return tcont.get_PumpProbeSpectrumContainer()
-      
-    
-    def calculate_one_system(self, t2, sys, H, eUt, lab):
+
+
+    def calculate_one_system(self, t2: float, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
         """Calculates one spectru corresponding to a specified t2 time
-        
+
         """
-        
         temporary_fix = True
-        
+
         if temporary_fix:
             # calculation via 2D spectrum
             tcont = super().calculate_one_system(t2, sys, H, eUt, lab)
             return tcont.get_PumpProbeSpectrum()
 
 
-def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'): # █ = U-219 
-    """
-    Call n a loop to create terminal progress bar
+def printProgressBar(iteration: int, total: int, prefix: str = '', suffix: str = '', decimals: int = 1, length: int = 100, fill: str = '█') -> None: # █ = U-219
+    """Call n a loop to create terminal progress bar
 
     Parameters
-    --------  
+    --------
     iteration: int (Required)
-        Current iteration 
+        Current iteration
     total: int (Required)
         Total interactions
     prefix: string (optional)
@@ -1559,11 +1544,10 @@ def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, l
     fill: str (optional)
         Fill bar character
     """
-    
     percent = ("{:0." + str(decimals) + "f}").format(100* (iteration/float(total)))
     filledlength = int(length * iteration // total)
     bar = fill * filledlength + "-" * (length - filledlength)
-    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = '\r')
     # print New line after completition
     if iteration == total:
         print()

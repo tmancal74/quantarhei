@@ -1,132 +1,127 @@
-# -*- coding: utf-8 -*-
-"""
-*******************************************************************************
+from __future__ import annotations
+
+"""*******************************************************************************
 
       REDFIELD RATE MATRIX
 
 *******************************************************************************
-"""  
+"""
 
 import numpy
 import scipy
 
+from .... import COMPLEX, REAL
 from ....core.implementations import implementation
+from ....core.time import TimeDependent
 from ....core.units import cm2int
-
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
-from ....core.time import TimeDependent
-from .... import REAL
-from .... import COMPLEX
 
-   
 class TDRedfieldRateMatrix(TimeDependent):
     """Redfield relaxation rate matrix
-    
-    Redfield population relaxation rate matrix is calculated from the 
+
+    Redfield population relaxation rate matrix is calculated from the
     Hamiltonian and system-system bath interation. The bath
     correlation functions are Fourier transformed by FFT and the negative
     frequency part is calculated from the expected thermodynamic
-    symmetry. 
-    
+    symmetry.
+
     Parameters
     ----------
-    
     ham : Hamiltonian
-        Hamiltonian object 
-        
+        Hamiltonian object
+
     sbi : SystemBathInteraction
         SystemBathInteraction object
-        
+
     initialize : bool (default True)
         If true, the rates will be calculated when the object is created
-        
+
     cutoff_time : float
         If cutoff time is specified, the tensor is integrated only up to the
         cutoff time
-    
-    
+
+
     """
-    
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
-        
+
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None) -> None:
+
         if not isinstance(ham,Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
-            
+
         if not isinstance(sbi,SystemBathInteraction):
             raise Exception("Second argument must be a SystemBathInteraction")
-            
-        self._is_initialized = False            
+
+        self._is_initialized = False
         self._has_cutoff_time = False
-        
+
         if cutoff_time is not None:
             self.cutoff_time = cutoff_time
-            self._has_cutoff_time = True            
-            
+            self._has_cutoff_time = True
+
         self.Hamiltonian = ham
         self.sbi = sbi
-        
-        if initialize: 
-            self._set_rates(ham,sbi)          
+
+        if initialize:
+            self._set_rates(ham,sbi)
             self._is_initialized = True
-                
-                
-    def _set_rates(self,ham,sbi):
-        """ Reference implementation, completely in Python
-        
+
+
+    def _set_rates(self, ham: Hamiltonian, sbi: SystemBathInteraction) -> None:
+        """Reference implementation, completely in Python
+
         """
-        
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         Na = ham.data.shape[0]
-     
+
         # number of components
-        Nk = self.sbi.N  
-        
+        Nk = self.sbi.N
+
         # number of steps in time
         time = self.sbi.TimeAxis
         tm = time.data
         Nt = time.length
-        
+
         if Nk <= 0:
             raise Exception("No system bath intraction components present")
-        
+
         # Eigen problem
-        hD,SS = numpy.linalg.eigh(ham.data) 
+        hD,SS = numpy.linalg.eigh(ham.data)
         S1 = numpy.linalg.inv(SS)
-        
+
         # component operators
         KI = self.sbi.KK.copy()
-        
+
         #FIXME: This has to be made configurable
         # frequency cut-off
         freq_cutoff = 3000.0*cm2int
         #print("freq. cut-off",freq_cutoff)
-     
-        
+
+
         # transform interaction operators
         for i in range(Nk):
             KI[i,:,:] = numpy.dot(S1,numpy.dot(KI[i,:,:],SS))
-            
-        #  Find all eigenfrequencies 
+
+        #  Find all eigenfrequencies
         Om = numpy.zeros((Na,Na))
         for a in range(0,Na):
             for b in range(0,Na):
                 Om[a,b] = hD[a] - hD[b]
-                
+
         # calculate values of the spectral density at frequencies
         cc = numpy.zeros((Nt,Nk,Na,Na),dtype=COMPLEX)
-        
+
         # loop over components
         for k in range(Nk):
 
             # correlation function
             cf = self.sbi.CC.get_correlation_function(k,k)
-            
+
             # Ft correlation function
             # cw = cf.get_Fourier_transform()
-            
+
 
             # Spectral density at all frequencies
             for i in range(Na):
@@ -143,66 +138,66 @@ class TDRedfieldRateMatrix(TimeDependent):
                             si = scipy.interpolate.UnivariateSpline(tm,
                                     ri, s=0).antiderivative()(tm)
                             cc[:,k,i,j] =  sr + 1.0j*si
-                                
 
-        """ To submit: 
+
+        """ To submit:
                         Na
                         Nk
                         KI[Nk,Na,Na]
                         cc[Nk,Na,Na]
-                        
-             
+
+
             To return:
                         RR
-                        
+
         """
-        
+
         warning = []
         error = []
         rtol = 1.0e-6
         self.data = ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol,
                                            warning, error)
         for w in error:
-            print(w)     
-                               
+            print(w)
+
         self._is_initialized = True
-        
-        
+
+
 
 @implementation("tdredfield","ssTDRedfieldRateMatrix",
                 at_runtime=True,
                 fallback_local=True,
                 always_local=True)
-def ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol, warning, error):
-    
+def ssTDRedfieldRateMatrix(Na: int, Nk: int, Nt: int, KI: numpy.ndarray, cc: numpy.ndarray, rtol: float, warning: list, error: list) -> numpy.ndarray:
+
     # output relaxatio rate matrix
     RR = numpy.zeros((Nt,Na,Na),dtype=REAL)
-    
-    # real part of FT correlation function = 2Re of the half FT of 
+
+    # real part of FT correlation function = 2Re of the half FT of
     # the correlation function - no factor of 2 here!
     cc = numpy.real(cc)
-    
+
     # loop over components
     for k in range(Nk):
-        
+
         # interaction operator
         KK = KI[k,:,:]
 
         for i in range(Na):
             for j in range(Na):
-                
+
                 # calculate rates, i.e. off diagonal elements
-                if i != j:                                
-                            
+                if i != j:
+
                     RR[:,i,j] += 2.0*numpy.real(cc[:,k,i,j]*KK[i,j]*KK[j,i])
-                    
-    # calculate the diagonal elements (the depopulation rates)            
+
+    # calculate the diagonal elements (the depopulation rates)
     for i in range(Na):
         for j in range(Na):
             if i != j:
                 RR[:,j,j] -= RR[:,i,j]
-                    
+
     return RR
-                    
-                    
+
+
 

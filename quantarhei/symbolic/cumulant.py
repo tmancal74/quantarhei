@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-from sympy.physics.quantum import Operator, Dagger
-from sympy.physics.quantum.qexpr import QExpr
-from sympy import I, conjugate
-from sympy import S
-from sympy import Function, Wild, Mul, Pow
-from sympy import sympify
+from __future__ import annotations
 
-import sympy as sp
+from typing import Any
 
 import numpy
+import sympy as sp
+from sympy import Function, I, Mul, Pow, S, Wild, conjugate, sympify
+from sympy.physics.quantum import Dagger, Operator
+from sympy.physics.quantum.qexpr import QExpr
 
 
 class CumulantException(Exception):
@@ -24,25 +22,24 @@ class CumulantException(Exception):
 class CumulantExpr(QExpr):
 
 
-    def _eval_simplify(self, ratio, measure, rational, inverse, doit):
+    def _eval_simplify(self, ratio: Any, measure: Any, rational: Any, inverse: Any, doit: Any) -> Any:
         return self._evaluate_second_order_rules()
         #return A._getExpr()
 
 
-    def getOrder(self,n):
+    def getOrder(self, n: int) -> Any:
         if n == self._calculate_order(self):
             return self
-        else:
-            add = self.args[0]
-            A = sympify(0)
-            for aa in add.args:
-                if self._calculate_order(aa) == 2 :
-                    A = A + aa
+        add = self.args[0]
+        A = sympify(0)
+        for aa in add.args:
+            if self._calculate_order(aa) == 2 :
+                A = A + aa
 
-            return CumulantExpr(A)
+        return CumulantExpr(A)
 
 
-    def evaluate(self,large=False):
+    def evaluate(self, large: bool = False) -> Any:
         expr = self.expand()
         expr = expr.getOrder(2)
         #print(expr)
@@ -64,9 +61,8 @@ class CumulantExpr(QExpr):
 
 
 
-    def _evaluate_second_order_rules(self):
-        """
-        Evaluates second order terms in terms of the line shape function
+    def _evaluate_second_order_rules(self) -> Any:
+        """Evaluates second order terms in terms of the line shape function
 
         """
         a = Wild('a')
@@ -98,7 +94,7 @@ class CumulantExpr(QExpr):
                          w*(conjugate(-gg(b,a,t1) \
                            +gg(b,a,t1+t2)-gg(b,a,t2))))
 
-        """
+        r"""
         Replacement rules for ggs
 
         First daggered ggs
@@ -133,7 +129,7 @@ class CumulantExpr(QExpr):
 
         return A
 
-    def _make_positive(self,arg):
+    def _make_positive(self, arg: Any) -> Any:
         a = Wild('a')
         b = Wild('b')
         w = Wild('w')
@@ -146,7 +142,7 @@ class CumulantExpr(QExpr):
         A = A.replace(w*g2(a,b,-arg),w*conjugate(g2(b,a,arg)))
         return A
 
-    def _expand_in_large(self,arg):
+    def _expand_in_large(self, arg: Any) -> Any:
         a = Wild('a')
         b = Wild('b')
         w = Wild('w')
@@ -156,7 +152,7 @@ class CumulantExpr(QExpr):
         A = A.replace(w*g2(a,b,arg+t1),0)
         return A
 
-    def _leading_index(self,arg):
+    def _leading_index(self, arg: Any) -> Any:
         a = Wild('a')
         w = Wild('w')
         t1 = Wild('t1')
@@ -167,15 +163,14 @@ class CumulantExpr(QExpr):
         A = A.replace(w*lam(a,arg),w*lam(arg,a))
         return A
 
-    def _eliminate_off_diagonal(self):
+    def _eliminate_off_diagonal(self) -> Any:
         return self
 
-    def _getExpr(self):
+    def _getExpr(self) -> Any:
         return self.args[0]
 
-    def _calculate_order(self,expr):
-        """
-        Calculates a perturbation order of the expression expr
+    def _calculate_order(self, expr: Any) -> int:
+        """Calculates a perturbation order of the expression expr
 
         """
         content = expr
@@ -186,17 +181,16 @@ class CumulantExpr(QExpr):
                 order += self._calculate_order(aa)
             return order
 
-        elif content.func is Pow:
+        if content.func is Pow:
             sorder = self._calculate_order(content.args[0])
             return sorder*content.args[1]
 
-        elif content.func in (hh_plus,hh_minus,gg_plus,gg_minus,dV):
+        if content.func in (hh_plus,hh_minus,gg_plus,gg_minus,dV):
             return content.order()
 
-        elif content.func is Dagger:
+        if content.func is Dagger:
             return self._calculate_order(content.args[0])
-        else:
-            return 0
+        return 0
 
 
 """
@@ -205,52 +199,52 @@ class CumulantExpr(QExpr):
 """
 class Ugde(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1-I*hh_plus(a,t)-gg_plus(a,a,t))
 
 class Uedg(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1+I*hh_plus(a,t)-Dagger(gg_plus(a,a,t)))
 
 class Uged(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1+I*hh_minus(a,t)-gg_minus(a,a,t))
 
 class Uegd(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1-I*hh_minus(a,t)-Dagger(gg_minus(a,a,t)))
 
 class ExpdV(Operator):
     nargs = 3
-    def _eval_rewrite_as_gg(self,a,t,x):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any, x: Any) -> Any:
         return (1+x*dV(a,t)+x**2*dV(a,t)*dV(a,t))
 
 class hh_plus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 1
 
 class hh_minus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 1
 
 class gg_plus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 2
 
 class gg_minus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 2
 
 class dV(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 1
 
 """
@@ -263,19 +257,19 @@ class gg(Function):
     nargs = (1,2,3)
 
     @classmethod
-    def eval(cls, a, b, x):
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
         #if not (a is b):
         #    return S.Zero
-        
+
 """ First derivative of gg """
 class g21(Function):
     nargs = (1,2,3)
 
     @classmethod
-    def eval(cls,a,b,x):
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -284,7 +278,7 @@ class g1(Function):
     nargs = (1,2,3)
 
     @classmethod
-    def eval(cls,a,b,x):
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -302,38 +296,39 @@ class g2(Function):
 class dd(Function):
     nargs = (1,2)
 
-    def _eval_is_real(self):
+    def _eval_is_real(self) -> bool:
         return True
 
 """ Reorganization energy """
 class lam(Function):
     nargs = (1,2)
 
-    def _eval_is_real(self):
+    def _eval_is_real(self) -> bool:
         return True
 
 """High level cumulant evaluation function """
-def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
-                      lang = None, arrays=None):
-    """
-    
+def evaluate_cumulant(cuml: Any, positive_times: list[Any] | None = None, leading_index: Any | None = None,
+                      lang: str | None = None, arrays: list[str] | None = None) -> Any:
     """
 
-    from .lang import python_code
-    from .lang import fortran_code
+    """
+    if positive_times is None:
+        positive_times = []
+
+    from .lang import fortran_code, python_code
 
     A = cuml.rewrite(gg)
     expr = CumulantExpr(A)
     expr = expr.evaluate()
-    
+
     for tt in positive_times:
-        expr = CumulantExpr(expr)._make_positive(tt)    
-        
+        expr = CumulantExpr(expr)._make_positive(tt)
+
     #a = leading_index[0]
     if leading_index is not None:
         D = expr._leading_index(leading_index)
         expr = D._getExpr()
-        
+
     if lang is None:
         ss = expr
     elif lang == "Fortran":
@@ -342,25 +337,25 @@ def evaluate_cumulant(cuml, positive_times = [], leading_index=None,
         ss = python_code(expr.__str__(),arrays=arrays)
     else:
         raise Exception("Unknown language")
-    
+
     return ss
 
 
-def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
-    """ Transforms the sympy cumulant evaluation into a matrix Python code
-    
+def transform_to_Python_vec(expr: Any, target_name: str = "gf.gg", conj_func: str = "numpy.conj") -> Any:
+    """Transforms the sympy cumulant evaluation into a matrix Python code
+
     Transform gg(int1, int2, time_vars) into target_name_t1_t2_t3["int1int2"]
     Convert conjugate(gg(...)) into conj_func(target_name_t1_t2_t3["int1int2"]).
-    
+
     Parameters:
     -----------
     - expr: The SymPy expression to transform
     - target_name: The base string to replace `gg` with (default: "gf.gg")
     - conj_func: The function name for complex conjugation (default: "numpy.conj")
-    
+
     """
     import re
-    
+
     # Define conjugate function dynamically
     conjugate = sp.conjugate  # Allows flexible handling of conjugation
 
@@ -373,7 +368,7 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
     # Handle gg(int1, int2, times)
     if isinstance(expr, sp.Basic) and expr.func == gg:
         args = expr.args  # Extract function arguments
-        
+
         if len(args) != 3:  # Ensure it has exactly three arguments (two indices + one time argument)
             raise ValueError(f"Expected gg(int1, int2, times), but got {expr}")
 
@@ -389,13 +384,13 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
             terms = [str(term) for term in time_arg.args]
         else:
             terms = [str(time_arg)]
-        
+
         # Convert negative time variables by replacing '-' with 'm' without an underscore
         time_vars = [term.replace('-', 'm') if term.startswith('-') else term for term in terms]
-        
+
         # Sort time variables based on the integer within their names
         time_vars.sort(key=lambda var: int(re.search(r'\d+', var).group()))
-        
+
         # Construct the formatted time string
         time_str = "_".join(time_vars) if time_vars else "0"
 
@@ -403,11 +398,11 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
         return sp.Symbol(f'{target_name}_{time_str}[{indices_str}]')
 
     # Apply transformation recursively to sub-expressions
-    return expr.replace(lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate}, 
+    return expr.replace(lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate},
                         lambda subexpr: transform_to_Python_vec(subexpr, target_name, conj_func))
 
 
-def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimensions=None):
+def transform_to_einsum_expr(expr: Any, participation_matrix: Any | None = None, index: int = 0, dimensions: dict[str, int] | None = None) -> Any:
     """Transforms a SymPy expression with gg(a,b,t) into numpy einsum form.
 
     Generalized to arbitrary number of time axes with shape and einsum alignment.
@@ -427,7 +422,6 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
             "t5": 2
         }
     """
-
     import sympy as sp
 
     conjugate = sp.conjugate
@@ -437,10 +431,10 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
     use_exciton = participation_matrix is not None
     MM = participation_matrix if use_exciton else None
 
-    def get_time_str(t_expr):
+    def get_time_str(t_expr: Any) -> str:
         return str(sp.simplify(t_expr)).replace(" ", "")
 
-    def parse_axes(t_expr):
+    def parse_axes(t_expr: Any) -> set[int]:
         """Return a set of active axes for a time expression."""
         if dimensions is None:
             return set()
@@ -453,7 +447,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
                 axes.add(dim)
         return axes
 
-    def build_reshape_string(axes):
+    def build_reshape_string(axes: set[int]) -> str:
         """Convert axis set to reshape string based on all used dimensions."""
         if dimensions is None:
             return ""
@@ -472,7 +466,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
 
         return "[" + ",".join(full_shape) + "]"
 
-    def get_einsum_string(reshape):
+    def get_einsum_string(reshape: str) -> str:
         """Produce einsum string, assuming first axis of gg is i (summation index)."""
         reshape_clean = reshape.replace(" ", "").strip("[]")
         if not reshape_clean:
@@ -486,7 +480,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
         rhs_indices = "i" + index_labels[:num_dims]  # e.g., ijk
         return f'"i,{rhs_indices}"'
 
-    def convert_gg(a, b, t):
+    def convert_gg(a: Any, b: Any, t: Any) -> Any:
         t_str = get_time_str(t)
         axes = parse_axes(t)
         reshape = build_reshape_string(axes)
@@ -497,8 +491,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
             einsum_string = get_einsum_string(reshape)
             einsum_expr = einsum(sp.Symbol(einsum_string), M_part, gg_part)
             return sp.Symbol(f'({einsum_expr}){reshape}') if reshape else einsum_expr
-        else:
-            return sp.Symbol(f'gg[{index},"{t_str}"]{reshape}')
+        return sp.Symbol(f'gg[{index},"{t_str}"]{reshape}')
 
     # Handle conjugate(gg(...))
     if isinstance(expr, sp.Basic) and expr.func == conjugate:
@@ -516,18 +509,17 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
         lambda subexpr: isinstance(subexpr, sp.Basic) and subexpr.func in {gg, conjugate},
         lambda subexpr: transform_to_einsum_expr(subexpr, participation_matrix, index, dimensions)
     )
-    
+
     return ret
 
 
 
 class GFInitiator:
-    """A helper class to precalculate the values of line shape functions 
-    
-    
+    """A helper class to precalculate the values of line shape functions
+
+
     Parameters
     ----------
-
     t1s : array
         Array of t1 times
 
@@ -535,11 +527,11 @@ class GFInitiator:
         Arrax of t3 times
 
     gg : function
-        Function that returns the lineshape function value at arbitrary time 
+        Function that returns the lineshape function value at arbitrary time
 
     """
 
-    def __init__(self, t1s, t3s, gdict):
+    def __init__(self, t1s: numpy.ndarray, t3s: numpy.ndarray, gdict: dict[str, Any]) -> None:
 
         self.t2 = -1.0
         self.t3 = -1.0
@@ -550,16 +542,16 @@ class GFInitiator:
         #self.gg_t2 = dict()
         #self.gg_t3 = dict()
         #self.gg_t1_t2 = dict()
-        #self.gg_t1_t3 = dict() 
-        #self.gg_t2_t3 = dict() 
+        #self.gg_t1_t3 = dict()
+        #self.gg_t2_t3 = dict()
         #self.gg_t1_t2_t3 = dict()
-        
+
         self.set_lineshape_functions(gdict)
 
 
-    def set_lineshape_functions(self, gdict):
+    def set_lineshape_functions(self, gdict: dict[str, Any]) -> None:
         """Sets the lineshape functions.
-        
+
         Parameters:
         gdict (dict): A dictionary containing lineshape functions.
 
@@ -570,13 +562,12 @@ class GFInitiator:
             raise TypeError(f"Expected a dictionary, but got {type(gdict).__name__}")
 
         self.gg = gdict
-        
-        
-    def set_t2(self, t2):
-        """Sets the waiting time t2 and precalculates values of the response functions
-        
-        """
 
+
+    def set_t2(self, t2: float) -> None:
+        """Sets the waiting time t2 and precalculates values of the response functions
+
+        """
         # for every t2 we precalculate all necessary combinations of g(t) arguments
         if t2 != self.t2:
             self.t2 = t2
@@ -597,17 +588,16 @@ class GFInitiator:
                 self.gg_t2_t3[key] = self.eval_gg_t2_tn(key, t2, self.t1s, self.t3s, zero=1)
                 self.gg_t1_t3[key] = self.eval_gg_t1_t2_t3(key, self.t1s, 0.0, self.t3s)
                 self.gg_t1_t2_t3[key] = self.eval_gg_t1_t2_t3(key, self.t1s, t2, self.t3s)
-            
 
 
-    def eval_gg_t2_tn(self, key, t2, t1, t3, zero=0):
+
+    def eval_gg_t2_tn(self, key: str, t2: float, t1: numpy.ndarray, t3: numpy.ndarray, zero: int = 0) -> numpy.ndarray:
         """Lineshape function g(t1 + t2) or g(t2 + t3)
 
         It covers all the combinations g(t1), g(t3), g(t1 + t2) and g(t2 + t3)
 
         Parameters
         ----------
-
         t2 : float
             Time t2
 
@@ -636,10 +626,10 @@ class GFInitiator:
         return ret
 
 
-    def eval_gg_t1_t2_t3(self, key, t1, t2, t3):
+    def eval_gg_t1_t2_t3(self, key: str, t1: numpy.ndarray, t2: float, t3: numpy.ndarray) -> numpy.ndarray:
         """Lineshape function g(t1 + t2 + t3)
-        
-        
+
+
         """
         N1 = t1.shape[0]
         N3 = t3.shape[0]
@@ -647,7 +637,7 @@ class GFInitiator:
         #ret = numpy.zeros((N1, N3), dtype=complex)
         #for ii in range(N1):
         #    ret[ii,:] = gg(t2 + t1[ii] + t3)
-            
+
         tt = numpy.broadcast_to(t1[:,numpy.newaxis],(N1,N3)) \
             +numpy.broadcast_to(t3[numpy.newaxis,:],(N1,N3))
 
@@ -662,54 +652,54 @@ class GFInitiator:
 #
 
 class Uop:
-    
 
-    def __init__(self,state="g", times=dict(t1=1, t2=0, t3=0), negative=None, dagger=False):
+
+    def __init__(self, state: str = "g", times: dict[str, int] | None = None, negative: dict[str, int] | None = None, dagger: bool = False) -> None:
+        if times is None:
+            times = {"t1": 1, "t2": 0, "t3": 0}
         self.state=state
         self.times = {}
         if dagger:
             self.dagger = -1
         else:
             self.dagger = 1
-        
+
         try:
             for key in times:
                 self.times[key]=1
-        except:
+        except TypeError:
             raise Exception("'times' argument has to be a dictionary")
 
         if negative is not None:
             try:
                 for key in negative:
                     self.times[key]=-1
-            except:
-                raise Exception("'negative' argument has to be a dictionary")     
+            except TypeError:
+                raise Exception("'negative' argument has to be a dictionary")
 
-    
-    def is_unity(self):
+
+    def is_unity(self) -> bool:
         """Returns True of the operator represents unity operator
 
         """
         tot = 0
         for tm in self.times:
             tot += numpy.abs(self.times[tm])
-           
+
         if tot == 0:
             return True
-        else:
-            return False
-        
-            
-            
-    def __str__(self):
+        return False
+
+
+
+    def __str__(self) -> str:
         """String representation of the evolution operator
 
 
         """
-
         if self.is_unity():
             return "1"
-            
+
         if self.state == "g":
             txt_left = "U"+self.state
         else:
@@ -722,11 +712,11 @@ class Uop:
             txt = ""
         else:
             txt = self.state+","
-            
+
         tk = 0
         nk = len(self.times)
         assgn = 0
-        
+
         for tm in self.times:
 
             txtl = ""
@@ -743,24 +733,22 @@ class Uop:
                 txt += "+"+txtl
             else:
                 txt += txtl
-                
+
             #if tk < nk - 1:
             #    if self.times[tm] > 0:
             #        if assgn >= 1:
             #            txt += "+"
 
             tk += 1
-            
-        return txt_left+txt+")"
-        
 
-    
-    def merge(self, u):
+        return txt_left+txt+")"
+
+
+
+    def merge(self, u: Uop) -> None:
         """Merge two operators of the same type
 
         """
-        
-        
         if self.state != u.state:
             raise Exception("Cannot merge "+self.state+" with "+u.state)
 
@@ -768,17 +756,17 @@ class Uop:
         sgn = self.dagger*u.dagger
         for tm in self.times:
             new_times[tm] = self.times[tm]
-            
+
         for tm in u.times:
             if tm in new_times:
-                new_times[tm] = new_times[tm] + sgn*u.times[tm] 
+                new_times[tm] = new_times[tm] + sgn*u.times[tm]
             else:
                 new_times[tm] = sgn*u.times[tm]
-                
+
         self.times = new_times
 
 
-    def add(self, u):
+    def add(self, u: Uop) -> Uop:
         """Add two operators and return  new entity
 
         """
@@ -789,16 +777,15 @@ class Uop:
 
         return cp
 
-    def dagger_bool(self):
+    def dagger_bool(self) -> bool:
         """Returns bool value of the dagger property
 
         """
         if self.dagger == -1:
             return True
-        elif self.dagger == 1:
+        if self.dagger == 1:
             return False
-        else:
-            raise Exception("'dagger' property must be +/- 1")
+        raise Exception("'dagger' property must be +/- 1")
 
 
 
@@ -807,14 +794,14 @@ class UopEater:
 
     """
 
-    def __init__(self):
-    
-        self.eaten = False
-        
+    def __init__(self) -> None:
 
-    def _create_pair(self, ee):
+        self.eaten = False
+
+
+    def _create_pair(self, ee: str) -> None:
         import copy
-        
+
         u_out = Uop(ee, [], dagger=not self.uop_current.dagger_bool())
         u_out.times = copy.copy(self.uop_current.times)
 
@@ -826,7 +813,7 @@ class UopEater:
 
         #
         # we create a further operator to compensate for the one we added
-        # before. We will set it as the current operator and continue 
+        # before. We will set it as the current operator and continue
         # the procedure
         #
         u_new = Uop(ee, [], dagger=self.uop_current.dagger_bool())
@@ -834,9 +821,8 @@ class UopEater:
         self.uop_current = u_new
 
 
-        
-    def eat(self, u_list):
-        import copy
+
+    def eat(self, u_list: list[Uop]) -> list[Uop]:
 
         self.in_list = u_list
         self.out_list = []
@@ -851,14 +837,14 @@ class UopEater:
         loopi = 0
         while self.next():
             loopi += 1
-            
+
             if self.uop_current.state == self.uop_next.state:
                 #
                 # if the next one has the same state, we merge
                 #
                 self.uop_current.merge(self.uop_next)
                 self.pointer += 1
-                
+
             else:
                 #
                 # if the next one has a different state, the next step depends
@@ -866,11 +852,11 @@ class UopEater:
                 #
 
                 #
-                # If the current operator is "g", the next one is excited, 
+                # If the current operator is "g", the next one is excited,
                 # and one only needs to make sure it has the same time argument
                 #
                 if self.uop_current.state == "g":
-                    
+
                     #
                     # we create a new operator with the same time and the required index
                     #
@@ -887,7 +873,7 @@ class UopEater:
 
                     #
                     # we create a further operator to compensate for the one we added
-                    # before. We will set it as the current operator and continue 
+                    # before. We will set it as the current operator and continue
                     # the procedure
                     #
                     u_new = Uop(ee, [], dagger=self.uop_current.dagger_bool())
@@ -901,7 +887,7 @@ class UopEater:
 
 
                 #
-                # If the current operator corresponds to excited state, the next one can be 
+                # If the current operator corresponds to excited state, the next one can be
                 # both ground and excited state, and the two situations require different handling
                 #
                 else:
@@ -915,33 +901,32 @@ class UopEater:
                     ee = "g"
                     self._create_pair(ee)
 
-            
-            
+
+
         # if nothing found, we are at the end of the list
         if not self.uop_current.is_unity():
             self.out_list.append(self.uop_current)
 
         self.eaten = True
-        
+
         return self.out_list
-        
-            
-    def next(self):
-        
+
+
+    def next(self) -> bool:
+
         if self.pointer + 1 <= len(self.in_list)-1:
             self.uop_next = self.in_list[self.pointer + 1]
             return True
 
-        else:
-            return False
+        return False
 
-    
-    def spit_pairs(self):
+
+    def spit_pairs(self) -> list[list[Uop]]:
         """
 
         """
         if self.eaten:
-            
+
             pairs = []
             count = 0
             for op in self.out_list:
@@ -954,20 +939,20 @@ class UopEater:
                     pairs.append(pair)
                 else:
                     raise Exception("This cannot happen")
-    
+
             return pairs
 
 
-    def spit_coherence_GF(self):
+    def spit_coherence_GF(self) -> str:
 
         if self.eaten:
-            
+
             pairs = self.spit_pairs()
             N = len(pairs)
             outtext = ""
             k = 0
             for pair in pairs:
-                
+
                 txt = "U"
                 sti = ""
                 if pair[0].state == "g":
@@ -1003,6 +988,6 @@ class UopEater:
                 outtext += txt
             return outtext
 
-    def cumulant_expansion(self):
+    def cumulant_expansion(self) -> None:
         pass
-    
+

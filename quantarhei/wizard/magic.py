@@ -1,59 +1,57 @@
-# -*- coding: utf-8 -*-
-"""
-    IPython magic commands and their equivalents for Python console
-    
-    
-    Magic commands
-    --------------
-    
-    %template {list, fetch} [template_name]
-        Lists available templates, or fetches a template by its name
-        
-        
-        
-    Console functions
-    -----------------
-    
-    fetch_template(template_name)
-        Fetches a template by its name
-        
-    list_templates()
-        Lists available templates
-        
+"""IPython magic commands and their equivalents for Python console
+
+
+Magic commands
+--------------
+
+%template {list, fetch} [template_name]
+Lists available templates, or fetches a template by its name
+
+
+
+Console functions
+-----------------
+
+fetch_template(template_name)
+Fetches a template by its name
+
+list_templates()
+Lists available templates
+
 
 
 """
+from __future__ import annotations
+
 from importlib.resources import files
 
-
 try:
-    
-    # if IPython is not present, 
+
+    # if IPython is not present,
     # we fail here and continue in the except section
-    ip = get_ipython()
+    ip = get_ipython()  # type: ignore[name-defined]
     _have_ip_ = True
     from IPython.core.magic import register_line_magic
-    
+
     @register_line_magic
-    def template(line):
+    def template(line: str) -> None:
         """Quantarhei template magic command
-        
+
         Commands
         ---------
-        
+
         list
             Lists the available templates
-        
+
         fetch template_name
             Opens a new cell and writes a template of given template_name
             into it
-        
-        
-        """
 
+
+        """
         # split the line of the magic command
         words = line.split()
-        
+
         # get command
         try:
             command = words[0]
@@ -64,14 +62,14 @@ try:
             print("*** Printing __doc__ string ***\n")
             _print_template_help()
             return
-        
+
         # process the command
         if command == "list":
-            
+
             list_templates()
-            
+
         elif command == "fetch":
-            
+
             try:
                 tname = words[1]
             except IndexError:
@@ -79,84 +77,78 @@ try:
                 print("*** Printing __doc__ string ***\n")
                 _print_template_help()
                 return
-            
+
             fetch_template(tname)
 
     @register_line_magic
-    def example(line):
+    def example(line: str) -> None:
         """Quantarhei example magic command
-        
+
         Commands
         ---------
-        
+
         list
             Lists the available examples
-            
+
         fetch example_name
             Opens a new cell and writes an example of given example_name
             into it
-        
-        
-        """    
+
+
+        """
         words = line.split()
         for w in words:
-            print(w)    
+            print(w)
 
-    
-    
+
+
 except NameError:
     _have_ip_ = False
 
-    
-    
-def _print_template_help():
+
+
+def _print_template_help() -> None:
     """Prints doc string
-    
+
     """
     print(template.__doc__)
 
 
-def list_templates():
+def list_templates() -> None:
     print("""
 List of templates
 -----------------
-    
+
 ExcitonDynamics_Lindblad :
-    Exciton dynamics calculated with relaxation specified by Lindblad form 
-    
+    Exciton dynamics calculated with relaxation specified by Lindblad form
+
     """)
 
-    
-    
-def fetch_template(tname):
+
+
+def fetch_template(tname: str) -> None:
     """Reads template file from the template directory
-    
-    
+
+
     """
-    templates = {}
+    templates: dict[str, str] = {}
     templates["ExcitonDynamics_Lindblad"] = "excitondynamics_lindblad.py"
-    
-    resource_package = "quantarhei"  
+
+    resource_package = "quantarhei"
     try:
         tfile = templates[tname]
     except KeyError:
         raise Exception("Template error: "+tname+" no such template")
-        
-    resource_path = '/'.join(('wizard', 'templates', tfile))  
+
+    resource_path = '/'.join(('wizard', 'templates', tfile))
 
     template = files(resource_package).joinpath(resource_path).read_bytes()  # pragma: no cover
-     
+
     if _have_ip_:
-        
+
         # if we have IPython, we put the template into the next cell
-        ip = get_ipython()
+        ip = get_ipython()  # type: ignore[name-defined]
         ip.set_next_input(template.decode("utf-8"))
-        
+
     else:
         print(template.decode("utf-8"))
-
-    
-          
-        
-
-

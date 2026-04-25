@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 
 import subprocess
 import sys
 
-def execute_paver(args, util="paver"):
+
+def execute_paver(args: list[str], util: str = "paver") -> None:
     """Executes 'paver' utility
-    
+
     """
     pargs = ['paver']+args
     process = subprocess.Popen(pargs,
