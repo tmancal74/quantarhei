@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy
 
@@ -10,7 +12,7 @@ class example_data_defined_array(DataDefinedEntry):
     identificator = "Example 1"
     units = "1/cm"
 
-    def get_data(self):
+    def get_data(self) -> numpy.ndarray:
 
         data = numpy.array([
 

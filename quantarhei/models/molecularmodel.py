@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ..core.managers import EnergyUnitsManaged
@@ -10,7 +14,7 @@ class MolecularModel(EnergyUnitsManaged):
 
     """
 
-    def __init__(self, model_type=None):
+    def __init__(self, model_type: str | None = None) -> None:
 
         self.model_type = model_type
         self.nstate = 2
@@ -19,13 +23,13 @@ class MolecularModel(EnergyUnitsManaged):
                                                   dtype=numpy.float64)
 
 
-    def set_default_energies(self, elenergies):
+    def set_default_energies(self, elenergies: Any) -> None:
         k = 0
         for en in elenergies:
             self.default_energies[k] = self.convert_2_internal_u(en)
             k += 1
 
 
-    def set_default_dipole_length(self,transition, val):
+    def set_default_dipole_length(self, transition: tuple[int, int], val: float) -> None:
         self.default_dipole_lengths[transition[0],transition[1]] = val
         self.default_dipole_lengths[transition[1],transition[0]] = val

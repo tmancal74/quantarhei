@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 
 class DatabaseEntry:
     """Database entry in the database of spectral densities and correlation functions
@@ -12,13 +16,13 @@ class DatabaseEntry:
 
 
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def get_CorrelationFunction(self, temperature):
+    def get_CorrelationFunction(self, temperature: Any) -> Any:
         pass
 
-    def get_SpectralDensity(self):
+    def get_SpectralDensity(self) -> Any:
         pass
 
 
@@ -33,7 +37,7 @@ class SpectralDensityDatabaseEntry(DatabaseEntry):
 
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
 
-    def get_CorrelationFunction(self, temperature):
+    def get_CorrelationFunction(self, temperature: Any) -> Any:
         """Returns CorrelationFunction based on SpectralDensity
 
         """
@@ -49,7 +53,7 @@ class CorrelationFunctionDatabaseEntry(DatabaseEntry):
     """
     direct_implementation = DatabaseEntry.CORRELATION_FUNCTION
 
-    def get_SpectralDensity(self):
+    def get_SpectralDensity(self) -> Any:
         """Returns SpectralDensity on CorrelationFunction based
 
         """
@@ -61,7 +65,7 @@ class DataDefinedEntry(DatabaseEntry):
 
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self._have_data = False
 
@@ -104,7 +108,7 @@ class DataDefinedEntry(DatabaseEntry):
             raise Exception("Data not defined in any expected way")
 
 
-    def get_data(self):
+    def get_data(self) -> Any:
         """Returns spectral density data
 
         Should return a numpy array with two columns of data to construct the
@@ -113,7 +117,7 @@ class DataDefinedEntry(DatabaseEntry):
         """
         return None
 
-    def get_data_string(self):
+    def get_data_string(self) -> str | None:
         """Returns spectral density data as a string
 
         Should return a string containing two columns of data to construct the
@@ -133,7 +137,7 @@ class SpectralDensityDB:
 
     """
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose: bool = False) -> None:
 
         import importlib
         import inspect
@@ -144,8 +148,8 @@ class SpectralDensityDB:
         if verbose:
             print("Initializing Spectral Density Database")
 
-        self.entries = {}
-        self.loaded = {}
+        self.entries: dict[str, Any] = {}
+        self.loaded: dict[str, bool] = {}
         self.entry_count = 0
 
         count = 0
@@ -219,7 +223,7 @@ class SpectralDensityDB:
             print("Database initialized and ready!")
 
 
-    def get_status_string(self):
+    def get_status_string(self) -> str:
         """Returns a status report of the database
 
         """
@@ -236,7 +240,7 @@ class SpectralDensityDB:
         return out
 
 
-    def get_SpectralDensity(self, axis, ident=None):
+    def get_SpectralDensity(self, axis: Any, ident: str | None = None) -> Any:
         """Returns spectral density based on an identificator
 
         """
@@ -273,4 +277,3 @@ class CorrelationFunctionDB(SpectralDensityDB):
 
     """
     pass
-

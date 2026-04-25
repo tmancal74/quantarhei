@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+
+import numpy
 
 from ..builders import pdb
 from ..core.managers import EnergyUnitsManaged
@@ -8,7 +13,7 @@ from .molecularmodel import MolecularModel
 
 class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
 
-    def __init__(self, model_type=None):
+    def __init__(self, model_type: str | None = None) -> None:
         super().__init__(model_type=model_type)
 
         self.pdbname = "BCL"
@@ -17,20 +22,20 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
         self.default_dipole_lengths[0,1] = 5.8
         self.default_dipole_lengths[1,0] = 5.8
 
-    def set_default_energies(self, elenergies):
+    def set_default_energies(self, elenergies: Any) -> None:
         k = 0
         for en in elenergies:
             self.default_energies[k] = self.convert_2_internal_u(en)
             k += 1
 
 
-    def set_default_dipole_length(self,transition, val):
+    def set_default_dipole_length(self, transition: tuple[int, int], val: float) -> None:
         self.default_dipole_lengths[transition[0],transition[1]] = val
         self.default_dipole_lengths[transition[1],transition[0]] = val
 
 
 
-    def transition_dipole(self, transition=(0,1), data_type=None, data=None):
+    def transition_dipole(self, transition: tuple[int, int] = (0,1), data_type: str | None = None, data: Any = None) -> numpy.ndarray:
         """Returns transition dipole moment vector
 
         """
@@ -60,7 +65,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
         return d
 
 
-    def position_of_center(self, data_type=None, data=None):
+    def position_of_center(self, data_type: str | None = None, data: Any = None) -> numpy.ndarray:
         """Returns the position of the molecular center
 
         """
@@ -95,7 +100,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
         return pos
 
 
-    def pi_conjugated_system(self, data_type=None, data=None):
+    def pi_conjugated_system(self, data_type: str | None = None, data: Any = None) -> None:
         """Returns the atoms and atom types in the pi-conjugated system
 
         Calculates and returns positions of all atoms in the pi-conjugated
@@ -120,7 +125,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
             raise Exception("Unknown data type")
 
 
-    def _check_data_type(self, data_type):
+    def _check_data_type(self, data_type: str | None) -> str:
         """If non data_type is specified, the default is taken (if known)
 
         """
@@ -131,4 +136,3 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
                 return self.model_type
         else:
             return data_type
-
