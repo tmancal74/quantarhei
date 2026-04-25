@@ -11,10 +11,10 @@ pip install -e .
 pip install -r requirements_devel.txt
 ```
 
-Optionally, activate the local commit-msg hook that enforces issue numbers at the start of every commit message (e.g. `#123 fix: description`):
+Optionally, activate the commit-msg hook that enforces issue numbers at the start of every commit message (e.g. `#123 fix: description`). The hook script lives in `.githooks/` in the repo, but git does not activate it automatically — each developer runs this once per clone to opt in:
 
 ```bash
-git config core.hooksPath .githooks   # local only — not pushed to remote
+git config core.hooksPath .githooks
 ```
 
 Before pushing, make sure the code is formatted and lint-clean:
