@@ -1613,7 +1613,7 @@ class LabField:
             lfc = 4.0*numpy.log(2.0)
             pi = numpy.pi
 
-            def env(tt):
+            def env(tt: Any) -> Any:
 
                 val = (2.0/fwhm)*numpy.sqrt(numpy.log(2.0)/pi) \
                     *amp*numpy.exp(-lfc*(tt/fwhm)**2)
