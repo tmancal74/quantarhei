@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from typing import Any
+
+import numpy
+
 from .. import COMPLEX
 
 
-def R1g(t2, t1, t3, lab, system, evol, KK):
+def R1g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -68,7 +74,7 @@ def R1g(t2, t1, t3, lab, system, evol, KK):
 
 
 
-def R2g(t2, t1, t3, lab, system, evol, KK):
+def R2g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -134,7 +140,7 @@ def R2g(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 
-def R3g(t2, t1, t3, lab, system, evol, KK):
+def R3g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -199,7 +205,7 @@ def R3g(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 
-def R4g(t2, t1, t3, lab, system, evol, KK):
+def R4g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -264,7 +270,7 @@ def R4g(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 
-def R1f(t2, t1, t3, lab, system, evol, KK):
+def R1f(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -344,7 +350,7 @@ def R1f(t2, t1, t3, lab, system, evol, KK):
 
     return np.transpose(ret)
 
-def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
+def R1f_wrong(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -425,7 +431,7 @@ def R1f_wrong(t2, t1, t3, lab, system, evol, KK):
 
 
 
-def R2f(t2, t1, t3, lab, system, evol, KK):
+def R2f(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -506,7 +512,7 @@ def R2f(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 
-def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
+def R2f_wrong(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -589,7 +595,7 @@ def R2f_wrong(t2, t1, t3, lab, system, evol, KK):
 
 
 
-def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
+def R1g_scM0g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -652,7 +658,7 @@ def R1g_scM0g(t2, t1, t3, lab, system, evol, KK):
 
 
 
-def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
+def R2g_scM0g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -715,7 +721,7 @@ def R2g_scM0g(t2, t1, t3, lab, system, evol, KK):
 
 
 
-def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
+def R1f_scM0g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -787,7 +793,7 @@ def R1f_scM0g(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 
-def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
+def R2f_scM0g(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -866,7 +872,7 @@ def R2f_scM0g(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 
-def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
+def R1f_scM0e(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -938,7 +944,7 @@ def R1f_scM0e(t2, t1, t3, lab, system, evol, KK):
     return np.transpose(ret)
 
 
-def R2f_scM0e(t2, t1, t3, lab, system, evol, KK):
+def R2f_scM0e(t2: float, t1: numpy.ndarray, t3: numpy.ndarray, lab: Any, system: Any, evol: Any, KK: Any) -> numpy.ndarray:
     """Returns a matrix of the respose function values for given t1 and t3
 
     Parameters:
@@ -1040,7 +1046,7 @@ dc["R2f_scM0g"] = R2f_scM0g
 dc["R1f_scM0e"] = R1f_scM0e
 dc["R2f_scM0e"] = R2f_scM0e
 
-def get_implementation(name):
+def get_implementation(name: str) -> Any:
     """Returns a dictionary of functions
 
 
