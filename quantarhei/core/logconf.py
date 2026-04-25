@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import io
 from queue import LifoQueue
 from typing import IO
 

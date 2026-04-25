@@ -273,7 +273,7 @@ class TimeAxis(ValueAxis):
             self.start = 0.0
 
 
-    def get_FrequencyAxis(self) -> "FrequencyAxis":
+    def get_FrequencyAxis(self) -> FrequencyAxis:
         """Returns corresponding FrequencyAxis object
 
 

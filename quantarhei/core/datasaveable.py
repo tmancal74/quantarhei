@@ -9,7 +9,7 @@ represented as a `data` property of the class.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy
 import scipy.io as io

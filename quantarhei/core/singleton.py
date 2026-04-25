@@ -16,7 +16,7 @@ class Singleton(type):
 
     """
 
-    _instances: dict[type, "Singleton"] = {}
+    _instances: dict[type, Singleton] = {}
 
     def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls not in cls._instances:
