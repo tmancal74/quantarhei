@@ -1,31 +1,32 @@
-# -*- coding: utf-8 -*-
 
-from quantarhei.symbolic.cumulant import Uged, Uegd, Ugde,Uedg, ExpdV
-from quantarhei.symbolic.cumulant import gg, g1, g2
-from quantarhei.symbolic.cumulant import CumulantExpr
-from quantarhei.symbolic.lang import python_code, fortran_code
-from quantarhei.symbolic.abc import a, b, c, d, e, t, T, tau, x, y
+from sympy import S, Symbol, collect, diff, exp, sympify
 
+from quantarhei.symbolic.abc import T, a, b, c, e, t, tau, x, y
+from quantarhei.symbolic.cumulant import (
+    CumulantExpr,
+    ExpdV,
+    Uedg,
+    Uegd,
+    Ugde,
+    Uged,
+    gg,
+)
+from quantarhei.symbolic.lang import fortran_code, python_code
 
-from sympy import S, Symbol
-from sympy import sympify, collect
-from sympy import diff
-from sympy import exp
-
-""" 
+r"""
 Test of cumulant expansion method on the second order term of non-secular
 Modified Redfield equation.
 
     <a|H(t)|b><c|H(t-tau)|d><d|W|e>
-    
+
     = <\Psi_e|<a|H(t)|b><c|H(t-tau)|d>|\Psi_d>
     = <\Psi_g|Dagger(U_e(T))Dagger(U_a(t))<a|dV|b>U_b(t)Dagger(U_c(t-tau))
       <c|dV|d>U_d(t-tau)U_d(T)|\Psi_g>
-      
+
     = <\Psi_g|[U_g(T)Dagger(U_e(T))][Dagger(U_a(t))U_g(t)][Dagger(U_g(t)U_b(t)]
     x [Dagger(U_c(t-tau))U_g(t-tau)][Dagger(U_g(t-tau)U_d(t-tau)]
     x [U_d(T)Dagger(U_g(T))]|\Psi_g>
-    
+
     = Uged(e,T)*Uedg(a,t)*Ugde(b,t)*Uedg(c,t-tau)*Ugde(d,t-tau)*Uegd(d,T)
 
 """
@@ -62,30 +63,30 @@ if part == "M1_K":
     *ExpdV(n,t-tau,y)*Ugde(b,t-tau)*Uegd(b,T)
 
     use_norm = False
-    Anorm = Uged(n,T)*Uegd(n,T)  
+    Anorm = Uged(n,T)*Uegd(n,T)
     nderiv = 2
 
     filename = "m1_K.txt"
 
 elif part == "M1_H":
-    
+
     pass
 
 
 elif part == "K_bk":
-    
+
     A = Uged(a,t)*ExpdV(m,0,x)*Uegd(c,t)
     nderiv = 1
 
     filename = "K_bk.txt"
 
 elif part == "norm":
-    
+
     A = Uged(a,t)*Uegd(b,t)
     nderiv = 0
 
     filename = "norm"
-    
+
 elif part == "test1":
     nderiv = 2
     filename = "test1"
@@ -99,14 +100,14 @@ elif part == "test2":
     A =Uedg(a,t)*ExpdV(m,t,x)*Ugde(a,t) #m=ac
     use_norm =True
     Anorm = Uedg(a,t)*Ugde(a,t)
-    
+
 elif part == "test":
     nderiv = 1
     filename = "test"
     A = ExpdV(a,t,x)*Ugde(a,t)
     use_norm =True
     Anorm = Ugde(a,t)
-    
+
 elif part == "Kab,c":
     nderiv = 1
     filename = "Kabc"
@@ -120,15 +121,15 @@ elif part == "Kc,ab":
     A = Uedg(c,t)*ExpdV(m,t,x)*Ugde(a,t) #m=cb
     use_norm =True
     Anorm = Uedg(c,t)*Ugde(a,t)
-    
+
 elif part == "Jeff":
     nderiv = 0
     filename = "jeff"
     use_norm = False
     A = Ugde(e,t1)*Uedg(e,t2)*Ugde(f,t2)*Uedg(f,t3)*Ugde(e,t3)*Uedg(e,t4)
-   
+
     A = Ugde(e,t1)*Uedg(e,t2)*Ugde(e,t3)*Uedg(e,t4)
-    
+
 elif part == "test3":
     nderiv = 1
     filename = "jeff"
@@ -147,7 +148,7 @@ if verbatim:
     print("The expression is normalized by:")
     print(" ")
     print("    Tr_bath{",Anorm,"W_eq}")
-    print(" ")  
+    print(" ")
 
 
 
@@ -168,23 +169,23 @@ if use_norm:
     norm = CumulantExpr(A)
 
     """ use option large=T to evaluate in T --> oo """
-    norm = norm.evaluate(large=T) 
+    norm = norm.evaluate(large=T)
     """ use the symetry of lineshape function in the exciton indices """
     #D = CumulantExpr(expr)._leading_index(a)
     #expr = D._getExpr()
     print("Norm: ", norm)
 
     expr = (expr-norm).subs(t1,0).simplify()
-    
+
 else:
 
-    #expr = expr.subs(t1,0).simplify()    
+    #expr = expr.subs(t1,0).simplify()
     pass
-    
+
 
 info = False
 
-""" 
+"""
 Test of cumulant expansion method
 
 """
@@ -195,7 +196,7 @@ if info:
     print(expr)
     print(" ")
     print(" ")
-    
+
     print("Analyzing the cumulant exponent and sorting parameters")
     print(" ")
     terms = collect(expr,[x,y],evaluate=False)
@@ -221,7 +222,7 @@ if info:
     print(" ")
     print(" ")
 
-if verbatim:     
+if verbatim:
     print("Cumulant: ")
     print(" ")
     print(expr)
@@ -258,7 +259,7 @@ print("Python code:")
 print(" ")
 print(sr)
 
-f = open(filename,'wt')
+f = open(filename,'w')
 f.write(sr)
 f.close()
 

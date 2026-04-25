@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 _show_plots_ = False
 
 print("""
-***********************************************************      
+***********************************************************
 *
 *
 *          Integrodifferential Propagator Demo
@@ -12,9 +11,11 @@ print("""
 """)
 
 import time
+
 import matplotlib.pyplot as plt
-import quantarhei as qr
 import numpy
+
+import quantarhei as qr
 
 ##########################################################
 #
@@ -36,7 +37,7 @@ om = (2.0*numpy.pi)*numpy.fft.fftfreq(tt.length, tt.step)
 aom = numpy.zeros(tt.length, dtype=qr.COMPLEX)
 for ii in range(tt.length):
     aom[ii] = a0/(-1j*om[ii] + 1j*Om + g1 + gg)
-    
+
 
 at = numpy.fft.fft(aom)*numpy.exp(gg*tt.data)/tt.data[tt.length-1]
 
@@ -53,54 +54,52 @@ if _show_plots_:
     tshow = tt.data[:tt.length//2]
     atshow = at[:tt.length//2]
     atsolshow = atsol[:tt.length//2]
-    
+
     plt.plot(tshow, numpy.real(atshow))
     plt.plot(tshow, numpy.real(atsolshow))
     plt.show()
 
 
 ###############################################################
-#  
+#
 #   SOLVING LIOUVILLE-VON NEUMANN EQUATION BY FFT METHOD
 #
 ###############################################################
 def test_kernel(timeaxis, ham, operators, rates, ctime):
     """Returns a simple kernel for tests
-    
+
     """
-    
     dim = ham.dim
     Nt = timeaxis.length
-    
+
     MM = numpy.zeros((Nt, dim, dim, dim, dim), dtype=qr.COMPLEX)
     gamma = 1.0/ctime
 
     if dim == 2:
-        
+
         sys_ops = operators
         sbi = qr.qm.SystemBathInteraction(sys_operators=sys_ops, rates=rates)
         lbf = qr.qm.LindbladForm(ham, sbi, as_operators=False)
         #return lbf.data
-        
+
         for ti in range(Nt):
             tm = timeaxis.data[ti]
             MM[ti,:,:,:,:] = -lbf.data*numpy.exp(-gamma*tm)
-            
+
         return MM
 
-from quantarhei.qm.liouvillespace.integrodiff.integrodiff \
-     import IntegrodiffPropagator
+from quantarhei.qm.liouvillespace.integrodiff.integrodiff import IntegrodiffPropagator
 
 timea = qr.TimeAxis(0.0, 200, 0.5)
 Nt = timea.length
-ham = qr.Hamiltonian(data=[[0.0, 0.1], 
+ham = qr.Hamiltonian(data=[[0.0, 0.1],
                            [0.1, 0.01]])
 
 #
 # Propagation without relaxation
 #
 
-ip1 = IntegrodiffPropagator(timea, ham, 
+ip1 = IntegrodiffPropagator(timea, ham,
                             timefac=3, decay_fraction=2.0)
 np = qr.ReducedDensityMatrixPropagator(timea, ham)
 
@@ -130,7 +129,7 @@ if _show_plots_:
 #
 #  Propagation with relaxation kernel
 #
-    
+
 K01 = qr.qm.ProjectionOperator(0,1,ham.dim)
 K10 = qr.qm.ProjectionOperator(1,0,ham.dim)
 
@@ -140,11 +139,11 @@ rates = [1.0/30.0, 1.0/20.0]
 ker = test_kernel(timea, ham, sys_ops, rates, ctime=20.0)
 
 # time domain propagator
-ip2 = IntegrodiffPropagator(timea, ham, kernel=ker, 
+ip2 = IntegrodiffPropagator(timea, ham, kernel=ker,
                             fft=False, cutoff_time=80)
 
 # frequency domain propagator
-ip3 = IntegrodiffPropagator(timea, ham, kernel=ker, 
+ip3 = IntegrodiffPropagator(timea, ham, kernel=ker,
                             fft=True, timefac=3, decay_fraction=2.0)
 
 t1 = time.time()

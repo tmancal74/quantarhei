@@ -32,14 +32,14 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "numpy",
-  "scipy",
-  "matplotlib",
-  "dill",
-  "terminaltables",
-  "gherkin-official<5",
-  "pyyaml",
-  "packaging",
+  "numpy>=1.24,<3",
+  "scipy>=1.9,<2",
+  "matplotlib>=3.5,<4",
+  "dill>=0.3.6,<1",
+  "terminaltables>=3.1,<4",
+  "gherkin-official>=4.1,<5",
+  "pyyaml>=6.0,<7",
+  "packaging>=21.0,<27",
 ]
 
 [project.urls]
@@ -58,14 +58,216 @@ testpaths = ["tests/unit"]
 addopts = "-v --tb=short"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
 
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = [
+    "examples/",
+    "pavement.py",
+    "setup.py",
+    "tutorials/",
+    "docs/",
+    "tests/behave/",
+    "tests/matplotlib/",
+]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "UP", "I", "B", "D208", "D202", "D412", "D210", "D212", "RET505", "ISC003", "RUF"]
+ignore = [
+    # ── Intentional permanent suppressions ────────────────────────────────────
+
+    # E741 — ambiguous variable name
+    # Single-letter variables (E, H, N, l, I) are standard physics/math notation
+    # throughout the codebase (Hamiltonian H, identity I, etc.). Renaming them
+    # would hurt readability for the scientific audience, not help it.
+    "E741",
+
+    # E402 — module-level import not at top of file
+    # Several modules use conditional or deferred imports intentionally (e.g. to
+    # break circular dependencies or guard optional dependencies). Enforcing
+    # top-of-file imports in all cases would require larger refactoring.
+    "E402",
+
+    # B017 — assertRaises(Exception) too broad
+    # Test suite uses assertRaises(Exception) deliberately to test that *some*
+    # exception is raised without caring about the specific type. Tracked in #186
+    # if the team decides to tighten this in future.
+    "B017",
+
+    # ── Deferred: large batches — safe to fix, just not done yet ──────────────
+    # These rules have no false-positive risk; they are suppressed only because
+    # the batch is large enough to warrant its own dedicated PR and review.
+
+    # E501 — line too long (416 violations)
+    # Formatter (ruff format) does not break long strings or comments, only
+    # expressions. Fixing all 416 requires manual review. Deferred to a follow-up.
+    "E501",
+
+    # F821 — undefined name (87 violations)
+    # Most are dynamic attributes set via __init__ or descriptor patterns that
+    # ruff cannot statically resolve. A handful may be genuine bugs — needs
+    # manual triage before enabling. Tracked in #189.
+    "F821",
+
+    # F841 — local variable assigned but never used (76 violations)
+    # Includes intentional loop variables and intermediate debug assignments.
+    # Safe to fix in bulk but needs a quick scan to avoid removing intentional
+    # assignments (e.g. side-effect calls whose result is stored for clarity).
+    "F841",
+
+    # B007 — loop control variable unused (66 violations)
+    # for i in range(N): ... where i is not used in the body. Conventionally
+    # replaced with for _ in range(N):. Large batch, purely stylistic, deferred.
+    "B007",
+
+    # ── Deferred: medium-risk — needs human review before enabling ─────────────
+    # These rules touch semantics, not just style. Each violation needs a human
+    # to confirm the fix is correct before the rule is turned on in bulk.
+
+    # B904 — raise without `from` inside except (61 violations)
+    # `raise SomeError(...)` inside an `except` block should be
+    # `raise SomeError(...) from e` to preserve the exception chain. Suppressed
+    # because adding `from e` vs `from None` is a semantic choice per callsite.
+    # Tracked in #185 / #186.
+    "B904",
+
+    # RUF059 — unused unpacked variable (49 violations)
+    # `a, b = func()` where one of a/b is unused. Could indicate a bug (wrong
+    # variable used downstream) or intentional unpacking for clarity. Needs
+    # per-case review.
+    "RUF059",
+
+    # RUF012 — mutable class-level default (11 violations)
+    # Class attributes like `data = []` are shared across instances — a classic
+    # Python footgun. Tracked explicitly in #213. Fixing requires adding
+    # `field(default_factory=...)` or moving to `__init__`, which touches
+    # public API surface.
+    "RUF012",
+
+    # E712 — comparison to True/False using == (16 violations)
+    # `if x == True:` should be `if x:`. Safe to fix but some comparisons in
+    # scientific code are intentional (e.g. checking a numpy bool scalar).
+    # Needs per-case review to avoid changing semantics.
+    "E712",
+
+    # E711 — comparison to None using == (4 violations)
+    # `if x == None:` should be `if x is None:`. Almost always safe to fix;
+    # suppressed to keep this PR focused. Easy follow-up.
+    "E711",
+
+    # B905 — zip() without explicit strict= (4 violations)
+    # zip(a, b) silently truncates to the shorter iterable. Adding strict=True
+    # raises if lengths differ. Each callsite needs a human to decide whether
+    # mismatched lengths are expected or a bug.
+    "B905",
+
+    # RUF002 — ambiguous unicode character in docstring (2 violations)
+    # Likely curly quotes or dashes from copy-paste. Low risk, easy to fix,
+    # deferred for a dedicated cleanup pass.
+    "RUF002",
+
+    # B028 — no explicit stacklevel in warnings.warn() (2 violations)
+    # Without stacklevel=2 the warning points at the library internals rather
+    # than the caller's code. Needs checking that the correct stacklevel is used.
+    "B028",
+
+    # B008 — function call in default argument (2 violations)
+    # `def f(x=some_func()):` evaluates once at definition time, not per call —
+    # a common Python footgun. Tracked in #213. Fixing may change behaviour if
+    # the mutable default is relied upon.
+    "B008",
+
+    # UP028 — yield-in-for-loop (1 violation)
+    # `for x in y: yield x` can be replaced with `yield from y`. Trivial fix,
+    # deferred to keep this PR focused.
+    "UP028",
+
+    # F811 — redefined-while-unused (5 violations)
+    # Name defined earlier in the file is shadowed. Usually an import that was
+    # overwritten by a later import or local def. Needs per-case check.
+    "F811",
+
+    # RUF005 — collection-literal-concatenation (1 violation)
+    # `[*a] + [b]` can be written as `[*a, b]`. Trivial, deferred.
+    "RUF005",
+
+    # B018 — useless expression (1 violation)
+    # A statement like `x.attr` with no assignment or call — probably dead code
+    # or a typo. Needs human review to confirm it is safe to delete.
+    "B018",
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+no_strict_optional = true
+exclude = [
+    "quantarhei/wizard/examples",
+    "quantarhei/wizard/benchmarks",
+    "quantarhei/scripts/codelets",
+]
+
+# Modules with unresolvable [misc] errors from multiple inheritance chains
+# through untyped base classes — suppressed until #189 type annotation pass
+[[tool.mypy.overrides]]
+module = [
+    "quantarhei.qm.liouvillespace.tdredfieldtensor",
+    "quantarhei.qm.liouvillespace.tdredfieldfoerster",
+    "quantarhei.qm.liouvillespace.tdfoerstertensor",
+    "quantarhei.qm.liouvillespace.redfieldfoerster",
+    "quantarhei.spectroscopy.twod22",
+    "quantarhei.spectroscopy.twodspect",
+    "quantarhei.spectroscopy.twodresponse",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["quantarhei.utils.*"]
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["quantarhei.core.managers", "quantarhei.core.parallel"]
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "quantarhei.core.datasaveable",
+    "quantarhei.core.dfunction",
+    "quantarhei.core.frequency",
+    "quantarhei.core.genconf",
+    "quantarhei.core.implementations",
+    "quantarhei.core.logconf",
+    "quantarhei.core.matrixdata",
+    "quantarhei.core.numconf",
+    "quantarhei.core.parcel",
+    "quantarhei.core.plottable",
+    "quantarhei.core.saveable",
+    "quantarhei.core.singleton",
+    "quantarhei.core.stochastics",
+    "quantarhei.core.time",
+    "quantarhei.core.triangle",
+    "quantarhei.core.unique",
+    "quantarhei.core.units",
+    "quantarhei.core.valueaxis",
+    "quantarhei.core.wrappers",
+    "quantarhei.core.conf.qrhei",
+]
+disallow_untyped_defs = true
+
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests"]
 
 [tool.setuptools.package-data]
 quantarhei = [
+  "py.typed",
   "testing/resources/behave/*.feature",
   "wizard/examples/*.py",
   "wizard/examples/*.yaml",
   "wizard/examples/*.pdb",
   "wizard/examples/*.ipynb",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
 ]

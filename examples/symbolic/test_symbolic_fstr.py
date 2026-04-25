@@ -1,29 +1,24 @@
-# -*- coding: utf-8 -*-
-from quantarhei.symbolic.cumulant import Uged, Ugde, Uedg, Uegd
-from quantarhei.symbolic.cumulant import gg
-from quantarhei.symbolic.cumulant import CumulantExpr
-from quantarhei.symbolic.abc import a, b, c, d, e, t, T, tau
+from quantarhei.symbolic.abc import T, a, b, c, d, t, tau
+from quantarhei.symbolic.cumulant import CumulantExpr, Uedg, Uegd, Ugde, Uged, gg
 
-from sympy import Symbol
-
-""" 
+"""
 Cummulant expression for the time-non-local Förster theory
 
     U_a(t-tau)U_c(tau) W_eq Dagger(U_d(tau))Dagger(U_b(t-tau))
-    
+
     =         Dagger(U_d(tau))   Dagger(U_b(t-tau))            U_a(t-tau) U_c(tau) W_eq
-    
+
     =[U_g(tau)Dagger(U_d(tau))] [Dagger(U_b(t-tau))U_g(t-tau)]
      [Dagger(U_g(t-tau))U_a(t-tau)] [U_c(tau)Dagger(U_g(tau))]W_eq
-    
-    
+
+
     = Uged(d,tau) * Uedg(b,t-tau) * Ugde(a,t-tau) * Uegd(c,tau)
 
 """
 
 
 A = Uged(d,tau)*Uedg(b,t-tau)*Ugde(a,t-tau)*Uegd(c,tau)
-Anorm = Uged(d,tau)*Uegd(c,tau)  
+Anorm = Uged(d,tau)*Uegd(c,tau)
 
 verbatim = True
 
@@ -42,7 +37,7 @@ if verbatim:
 A = A.rewrite(gg)
 expr = CumulantExpr(A)
 """ use option large=T to evaluate in T --> oo """
-expr = expr.evaluate(large=T) 
+expr = expr.evaluate(large=T)
 """ use the symetry of lineshape function in the exciton indices """
 #D = CumulantExpr(expr)._leading_index(a)
 #expr = D._getExpr()
@@ -50,14 +45,14 @@ expr = expr.evaluate(large=T)
 A = Anorm.rewrite(gg)
 norm = CumulantExpr(A)
 """ use option large=T to calculate evaluate in T --> oo """
-norm = norm.evaluate(large=T) 
+norm = norm.evaluate(large=T)
 """ use the symetry of lineshape function in the exciton indices """
 #D = CumulantExpr(expr)._leading_index(a)
 #expr = D._getExpr()
 
 expr = (expr-norm).simplify()
 
-if verbatim:     
+if verbatim:
     print("\nCumulant: ")
     print(" ")
     print(expr)
