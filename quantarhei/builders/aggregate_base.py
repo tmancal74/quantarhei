@@ -995,7 +995,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return WPM
 
 
-    def get_transition_width(self, state1: object, state2: object = None) -> float:
+    def get_transition_width(self, state1: object, state2: object | None = None) -> float:
         """Returns phenomenological width of a given transition
 
 
@@ -1098,7 +1098,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return 0.0
 
 
-    def get_transition_dephasing(self, state1: object, state2: object = None) -> float:
+    def get_transition_dephasing(self, state1: object, state2: object | None = None) -> float:
         """Returns phenomenological dephasing of a given transition
 
 
