@@ -1,21 +1,22 @@
+from __future__ import annotations
 
 import os
 import shlex
 import subprocess
 
 
-def run_unit_test(toexec):
+def run_unit_test(toexec: str) -> int:
 
     cmd = "nosetests --nocapture -v "
     return subprocess.call(shlex.split(cmd+toexec))
 
-def run_doc_test(toexec):
+def run_doc_test(toexec: str) -> int:
 
     cmd = "nosetests -v --with-doctest "
     return subprocess.call(shlex.split(cmd+toexec))
 
 
-def main():
+def main() -> None:
 
     docpath = "quantarhei"
     unitpath = "tests/unit"

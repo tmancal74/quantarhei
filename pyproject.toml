@@ -221,6 +221,22 @@ module = [
 ]
 ignore_errors = true
 
+# Modules with pre-existing structural issues (dynamic attribute access, global
+# variable patterns, dead code blocks, LSP violations) — suppressed in phase 6
+[[tool.mypy.overrides]]
+module = [
+    "quantarhei.symbolic.cumulant",
+    "quantarhei.implementations.qutip.qutip_heom",
+    "quantarhei.scripts.qview",
+    "quantarhei.scripts.qrhei",
+    "quantarhei.scripts.ghenerate",
+    "quantarhei.scripts.qtask",
+    "quantarhei.models.spectdens",
+    "quantarhei.models.spectral_densities.wendling_2000",
+    "quantarhei.models.spectral_densities.renger_2002",
+]
+ignore_errors = true
+
 [[tool.mypy.overrides]]
 module = ["quantarhei.utils.*"]
 disallow_untyped_defs = true

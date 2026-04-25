@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 import sympy as sp
 from sympy import Function, I, Mul, Pow, S, Wild, conjugate, sympify
@@ -18,12 +22,12 @@ class CumulantException(Exception):
 class CumulantExpr(QExpr):
 
 
-    def _eval_simplify(self, ratio, measure, rational, inverse, doit):
+    def _eval_simplify(self, ratio: Any, measure: Any, rational: Any, inverse: Any, doit: Any) -> Any:
         return self._evaluate_second_order_rules()
         #return A._getExpr()
 
 
-    def getOrder(self,n):
+    def getOrder(self, n: int) -> Any:
         if n == self._calculate_order(self):
             return self
         add = self.args[0]
@@ -35,7 +39,7 @@ class CumulantExpr(QExpr):
         return CumulantExpr(A)
 
 
-    def evaluate(self,large=False):
+    def evaluate(self, large: bool = False) -> Any:
         expr = self.expand()
         expr = expr.getOrder(2)
         #print(expr)
@@ -57,7 +61,7 @@ class CumulantExpr(QExpr):
 
 
 
-    def _evaluate_second_order_rules(self):
+    def _evaluate_second_order_rules(self) -> Any:
         """Evaluates second order terms in terms of the line shape function
 
         """
@@ -125,7 +129,7 @@ class CumulantExpr(QExpr):
 
         return A
 
-    def _make_positive(self,arg):
+    def _make_positive(self, arg: Any) -> Any:
         a = Wild('a')
         b = Wild('b')
         w = Wild('w')
@@ -138,7 +142,7 @@ class CumulantExpr(QExpr):
         A = A.replace(w*g2(a,b,-arg),w*conjugate(g2(b,a,arg)))
         return A
 
-    def _expand_in_large(self,arg):
+    def _expand_in_large(self, arg: Any) -> Any:
         a = Wild('a')
         b = Wild('b')
         w = Wild('w')
@@ -148,7 +152,7 @@ class CumulantExpr(QExpr):
         A = A.replace(w*g2(a,b,arg+t1),0)
         return A
 
-    def _leading_index(self,arg):
+    def _leading_index(self, arg: Any) -> Any:
         a = Wild('a')
         w = Wild('w')
         t1 = Wild('t1')
@@ -159,13 +163,13 @@ class CumulantExpr(QExpr):
         A = A.replace(w*lam(a,arg),w*lam(arg,a))
         return A
 
-    def _eliminate_off_diagonal(self):
+    def _eliminate_off_diagonal(self) -> Any:
         return self
 
-    def _getExpr(self):
+    def _getExpr(self) -> Any:
         return self.args[0]
 
-    def _calculate_order(self,expr):
+    def _calculate_order(self, expr: Any) -> int:
         """Calculates a perturbation order of the expression expr
 
         """
@@ -195,52 +199,52 @@ class CumulantExpr(QExpr):
 """
 class Ugde(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1-I*hh_plus(a,t)-gg_plus(a,a,t))
 
 class Uedg(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1+I*hh_plus(a,t)-Dagger(gg_plus(a,a,t)))
 
 class Uged(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1+I*hh_minus(a,t)-gg_minus(a,a,t))
 
 class Uegd(Operator):
     nargs = 2
-    def _eval_rewrite_as_gg(self,a,t):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
         return (1-I*hh_minus(a,t)-Dagger(gg_minus(a,a,t)))
 
 class ExpdV(Operator):
     nargs = 3
-    def _eval_rewrite_as_gg(self,a,t,x):
+    def _eval_rewrite_as_gg(self, a: Any, t: Any, x: Any) -> Any:
         return (1+x*dV(a,t)+x**2*dV(a,t)*dV(a,t))
 
 class hh_plus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 1
 
 class hh_minus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 1
 
 class gg_plus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 2
 
 class gg_minus(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 2
 
 class dV(Operator):
 
-    def order(self):
+    def order(self) -> int:
         return 1
 
 """
@@ -253,7 +257,7 @@ class gg(Function):
     nargs = (1,2,3)
 
     @classmethod
-    def eval(cls, a, b, x):
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -265,7 +269,7 @@ class g21(Function):
     nargs = (1,2,3)
 
     @classmethod
-    def eval(cls,a,b,x):
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -274,7 +278,7 @@ class g1(Function):
     nargs = (1,2,3)
 
     @classmethod
-    def eval(cls,a,b,x):
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -292,19 +296,19 @@ class g2(Function):
 class dd(Function):
     nargs = (1,2)
 
-    def _eval_is_real(self):
+    def _eval_is_real(self) -> bool:
         return True
 
 """ Reorganization energy """
 class lam(Function):
     nargs = (1,2)
 
-    def _eval_is_real(self):
+    def _eval_is_real(self) -> bool:
         return True
 
 """High level cumulant evaluation function """
-def evaluate_cumulant(cuml, positive_times=None, leading_index=None,
-                      lang = None, arrays=None):
+def evaluate_cumulant(cuml: Any, positive_times: list[Any] | None = None, leading_index: Any | None = None,
+                      lang: str | None = None, arrays: list[str] | None = None) -> Any:
     """
 
     """
@@ -337,7 +341,7 @@ def evaluate_cumulant(cuml, positive_times=None, leading_index=None,
     return ss
 
 
-def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
+def transform_to_Python_vec(expr: Any, target_name: str = "gf.gg", conj_func: str = "numpy.conj") -> Any:
     """Transforms the sympy cumulant evaluation into a matrix Python code
 
     Transform gg(int1, int2, time_vars) into target_name_t1_t2_t3["int1int2"]
@@ -398,7 +402,7 @@ def transform_to_Python_vec(expr, target_name="gf.gg", conj_func="numpy.conj"):
                         lambda subexpr: transform_to_Python_vec(subexpr, target_name, conj_func))
 
 
-def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimensions=None):
+def transform_to_einsum_expr(expr: Any, participation_matrix: Any | None = None, index: int = 0, dimensions: dict[str, int] | None = None) -> Any:
     """Transforms a SymPy expression with gg(a,b,t) into numpy einsum form.
 
     Generalized to arbitrary number of time axes with shape and einsum alignment.
@@ -427,10 +431,10 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
     use_exciton = participation_matrix is not None
     MM = participation_matrix if use_exciton else None
 
-    def get_time_str(t_expr):
+    def get_time_str(t_expr: Any) -> str:
         return str(sp.simplify(t_expr)).replace(" ", "")
 
-    def parse_axes(t_expr):
+    def parse_axes(t_expr: Any) -> set[int]:
         """Return a set of active axes for a time expression."""
         if dimensions is None:
             return set()
@@ -443,7 +447,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
                 axes.add(dim)
         return axes
 
-    def build_reshape_string(axes):
+    def build_reshape_string(axes: set[int]) -> str:
         """Convert axis set to reshape string based on all used dimensions."""
         if dimensions is None:
             return ""
@@ -462,7 +466,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
 
         return "[" + ",".join(full_shape) + "]"
 
-    def get_einsum_string(reshape):
+    def get_einsum_string(reshape: str) -> str:
         """Produce einsum string, assuming first axis of gg is i (summation index)."""
         reshape_clean = reshape.replace(" ", "").strip("[]")
         if not reshape_clean:
@@ -476,7 +480,7 @@ def transform_to_einsum_expr(expr, participation_matrix=None, index=0, dimension
         rhs_indices = "i" + index_labels[:num_dims]  # e.g., ijk
         return f'"i,{rhs_indices}"'
 
-    def convert_gg(a, b, t):
+    def convert_gg(a: Any, b: Any, t: Any) -> Any:
         t_str = get_time_str(t)
         axes = parse_axes(t)
         reshape = build_reshape_string(axes)
@@ -527,7 +531,7 @@ class GFInitiator:
 
     """
 
-    def __init__(self, t1s, t3s, gdict):
+    def __init__(self, t1s: numpy.ndarray, t3s: numpy.ndarray, gdict: dict[str, Any]) -> None:
 
         self.t2 = -1.0
         self.t3 = -1.0
@@ -545,7 +549,7 @@ class GFInitiator:
         self.set_lineshape_functions(gdict)
 
 
-    def set_lineshape_functions(self, gdict):
+    def set_lineshape_functions(self, gdict: dict[str, Any]) -> None:
         """Sets the lineshape functions.
 
         Parameters:
@@ -560,7 +564,7 @@ class GFInitiator:
         self.gg = gdict
 
 
-    def set_t2(self, t2):
+    def set_t2(self, t2: float) -> None:
         """Sets the waiting time t2 and precalculates values of the response functions
 
         """
@@ -587,7 +591,7 @@ class GFInitiator:
 
 
 
-    def eval_gg_t2_tn(self, key, t2, t1, t3, zero=0):
+    def eval_gg_t2_tn(self, key: str, t2: float, t1: numpy.ndarray, t3: numpy.ndarray, zero: int = 0) -> numpy.ndarray:
         """Lineshape function g(t1 + t2) or g(t2 + t3)
 
         It covers all the combinations g(t1), g(t3), g(t1 + t2) and g(t2 + t3)
@@ -622,7 +626,7 @@ class GFInitiator:
         return ret
 
 
-    def eval_gg_t1_t2_t3(self, key, t1, t2, t3):
+    def eval_gg_t1_t2_t3(self, key: str, t1: numpy.ndarray, t2: float, t3: numpy.ndarray) -> numpy.ndarray:
         """Lineshape function g(t1 + t2 + t3)
 
 
@@ -650,7 +654,7 @@ class GFInitiator:
 class Uop:
 
 
-    def __init__(self,state="g", times=None, negative=None, dagger=False):
+    def __init__(self, state: str = "g", times: dict[str, int] | None = None, negative: dict[str, int] | None = None, dagger: bool = False) -> None:
         if times is None:
             times = {"t1": 1, "t2": 0, "t3": 0}
         self.state=state
@@ -674,7 +678,7 @@ class Uop:
                 raise Exception("'negative' argument has to be a dictionary")
 
 
-    def is_unity(self):
+    def is_unity(self) -> bool:
         """Returns True of the operator represents unity operator
 
         """
@@ -688,7 +692,7 @@ class Uop:
 
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the evolution operator
 
 
@@ -741,7 +745,7 @@ class Uop:
 
 
 
-    def merge(self, u):
+    def merge(self, u: "Uop") -> None:
         """Merge two operators of the same type
 
         """
@@ -762,7 +766,7 @@ class Uop:
         self.times = new_times
 
 
-    def add(self, u):
+    def add(self, u: "Uop") -> "Uop":
         """Add two operators and return  new entity
 
         """
@@ -773,7 +777,7 @@ class Uop:
 
         return cp
 
-    def dagger_bool(self):
+    def dagger_bool(self) -> bool:
         """Returns bool value of the dagger property
 
         """
@@ -790,12 +794,12 @@ class UopEater:
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.eaten = False
 
 
-    def _create_pair(self, ee):
+    def _create_pair(self, ee: str) -> None:
         import copy
 
         u_out = Uop(ee, [], dagger=not self.uop_current.dagger_bool())
@@ -818,7 +822,7 @@ class UopEater:
 
 
 
-    def eat(self, u_list):
+    def eat(self, u_list: list[Uop]) -> list[Uop]:
 
         self.in_list = u_list
         self.out_list = []
@@ -908,7 +912,7 @@ class UopEater:
         return self.out_list
 
 
-    def next(self):
+    def next(self) -> bool:
 
         if self.pointer + 1 <= len(self.in_list)-1:
             self.uop_next = self.in_list[self.pointer + 1]
@@ -917,7 +921,7 @@ class UopEater:
         return False
 
 
-    def spit_pairs(self):
+    def spit_pairs(self) -> list[list[Uop]]:
         """
 
         """
@@ -939,7 +943,7 @@ class UopEater:
             return pairs
 
 
-    def spit_coherence_GF(self):
+    def spit_coherence_GF(self) -> str:
 
         if self.eaten:
 
@@ -984,6 +988,6 @@ class UopEater:
                 outtext += txt
             return outtext
 
-    def cumulant_expansion(self):
+    def cumulant_expansion(self) -> None:
         pass
 

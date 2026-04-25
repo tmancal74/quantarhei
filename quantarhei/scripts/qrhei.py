@@ -6,17 +6,20 @@ email: mancal@karlov.mff.cuni.cz
 
 
 """
+from __future__ import annotations
+
 import argparse
 import fnmatch
 import os
 import subprocess
 import traceback
 from importlib.resources import files
+from typing import Any
 
 import quantarhei as qr
 
 
-def do_command_run(args):
+def do_command_run(args: Any) -> None:
     """Runs a script
 
 
@@ -285,7 +288,7 @@ def do_command_run(args):
 
 
 
-def do_command_test(args):
+def do_command_test(args: Any) -> None:
     """Runs Quantarhei tests
 
     """
@@ -331,7 +334,7 @@ def do_command_test(args):
     qr.printlog("mpiexec available:", mpiexec)
 
 
-def _try_cmd(cmd):
+def _try_cmd(cmd: str) -> bool:
     ret = False
     try:
         p = subprocess.Popen(cmd,
@@ -355,7 +358,7 @@ def _try_cmd(cmd):
     return ret
 
 
-def _match_filenames(filenames, pattern, add_stars=False):
+def _match_filenames(filenames: list[str], pattern: str, add_stars: bool = False) -> list[str]:
 
     if add_stars:
         if not pattern.startswith("*"):
@@ -366,7 +369,7 @@ def _match_filenames(filenames, pattern, add_stars=False):
     return fnmatch.filter(filenames, pattern)
 
 
-def do_command_list(args):
+def do_command_list(args: Any) -> None:
     """Lists files for Quantarhei
 
     """
@@ -392,13 +395,13 @@ def do_command_list(args):
         parser_list.print_help()
 
 
-def do_command_fetch(args):
+def do_command_fetch(args: Any) -> None:
     """Fetches files for Quantarhei
 
     """
     global parser_fetch
 
-    def get_number(file):
+    def get_number(file: str) -> str:
         """Returns the number part of the file name
 
         """
@@ -463,21 +466,21 @@ def do_command_fetch(args):
         parser_fetch.print_help()
 
 
-def do_command_config(args):
+def do_command_config(args: Any) -> None:
     """Configures Quantarhei
 
     """
     qr.printlog("Setting configuration", loglevel=1)
 
 
-def do_command_report(args):
+def do_command_report(args: Any) -> None:
     """Reports on Quantarhei and the system
 
     """
     qr.printlog("Probing system configuration", loglevel=1)
 
 
-def do_command_file(args):
+def do_command_file(args: Any) -> None:
     """Report on the content of a file
 
     """
@@ -511,7 +514,7 @@ def do_command_file(args):
         #print(traceback.format_exc())
 
 
-def do_command_script(args):
+def do_command_script(args: Any) -> None:
     """Provides script management functionality
 
 
@@ -557,7 +560,7 @@ def do_command_script(args):
 
 
 
-def main():
+def main() -> None:
 
     global parser_list
     global parser_fetch

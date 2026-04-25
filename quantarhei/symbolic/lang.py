@@ -1,11 +1,16 @@
-def rename_function(ss, oldname, newname):
+from __future__ import annotations
+
+from typing import Any
+
+
+def rename_function(ss: str, oldname: str, newname: str) -> str:
     """Replaces all occurences of a name by a new name
 
     """
     #return ss.replace("conjugate","numpy.conj")
     return ss.replace(oldname, newname)
 
-def fce2array(sr, pat):
+def fce2array(sr: str, pat: str) -> str:
     """Converts functions into arrays
 
     """
@@ -39,7 +44,7 @@ def fce2array(sr, pat):
     so += se
     return so
 
-def python_code(ss, arrays=None):
+def python_code(ss: str, arrays: list[str] | None = None) -> str:
     """Generate Python code with numpy functions
 
     """
@@ -50,7 +55,7 @@ def python_code(ss, arrays=None):
             sr = fce2array(sr,ar)
     return sr
 
-def fortran_code(ss, arrays=None):
+def fortran_code(ss: str, arrays: list[str] | None = None) -> str:
     """Generate Fortran code with numpy functions
 
     """

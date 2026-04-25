@@ -1,8 +1,9 @@
+from __future__ import annotations
 
 import numpy
 
 
-def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
+def ssRedfieldRateMatrix(Na: int, Nk: int, KI: numpy.ndarray, cc: numpy.ndarray, rtol: float, werror: numpy.ndarray, RR: numpy.ndarray, corrM: numpy.ndarray | None = None) -> None:
     """Standard redfield rates
 
 
@@ -66,4 +67,3 @@ def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR, corrM = None):
 
             if i != j:
                 RR[j,j] -= RR[i,j]
-

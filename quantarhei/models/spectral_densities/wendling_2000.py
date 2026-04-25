@@ -1,4 +1,8 @@
 
+from __future__ import annotations
+
+from typing import Any
+
 from quantarhei import SpectralDensity, energy_units
 from quantarhei.models.spectdens import SpectralDensityDatabaseEntry
 
@@ -18,13 +22,13 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
 
 
     """
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.identificator = "Wendling_JPCB_104_2000_5825"
         self.alt_ident = ["Wendling", "Wendling2000"]
 
 
-    def get_SpectralDensity(self, axis):
+    def get_SpectralDensity(self, axis: Any) -> Any:
 
         #
         # Data from the paper

@@ -21,6 +21,8 @@ Lists available templates
 
 
 """
+from __future__ import annotations
+
 from importlib.resources import files
 
 try:
@@ -32,7 +34,7 @@ try:
     from IPython.core.magic import register_line_magic
 
     @register_line_magic
-    def template(line):
+    def template(line: str) -> None:
         """Quantarhei template magic command
 
         Commands
@@ -79,7 +81,7 @@ try:
             fetch_template(tname)
 
     @register_line_magic
-    def example(line):
+    def example(line: str) -> None:
         """Quantarhei example magic command
 
         Commands
@@ -105,14 +107,14 @@ except NameError:
 
 
 
-def _print_template_help():
+def _print_template_help() -> None:
     """Prints doc string
 
     """
     print(template.__doc__)
 
 
-def list_templates():
+def list_templates() -> None:
     print("""
 List of templates
 -----------------
@@ -124,12 +126,12 @@ ExcitonDynamics_Lindblad :
 
 
 
-def fetch_template(tname):
+def fetch_template(tname: str) -> None:
     """Reads template file from the template directory
 
 
     """
-    templates = {}
+    templates: dict[str, str] = {}
     templates["ExcitonDynamics_Lindblad"] = "excitondynamics_lindblad.py"
 
     resource_package = "quantarhei"
@@ -145,14 +147,8 @@ def fetch_template(tname):
     if _have_ip_:
 
         # if we have IPython, we put the template into the next cell
-        ip = get_ipython()
+        ip = get_ipython()  # type: ignore[name-defined]
         ip.set_next_input(template.decode("utf-8"))
 
     else:
         print(template.decode("utf-8"))
-
-
-
-
-
-
