@@ -467,7 +467,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
 
-    def __propagate_short_exp(self, rhoi, L=4):
+    def __propagate_short_exp(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Short expansion of an exponention to integrate equations of motion
 
 
@@ -570,17 +570,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             pr.is_in_rwa = True
 
 
-    def __propagate_short_exp_efield(self, rhoi,L=4):
+    def __propagate_short_exp_efield(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
 
         raise Exception("NOT IMPLEMENTED")
 
 
-    def __propagate_short_exp_EField(self, rhoi,L=4):
+    def __propagate_short_exp_EField(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
 
         raise Exception("NOT IMPLEMENTED")
 
 
-    def __propagate_short_exp_with_relaxation(self, rhoi, L=4):
+    def __propagate_short_exp_with_relaxation(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Integration by short exponentional expansion
 
         Integration by expanding exponential to Lth order. Time independent
@@ -719,7 +719,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return rho2*self.expo*numpy.exp(-self.t0*tt)
 
 
-    def __propagate_short_exp_with_rel_operators(self, rhoi, L=4):
+    def __propagate_short_exp_with_rel_operators(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Integration by short exponentional expansion
 
         Integration by expanding exponential to Lth order.
@@ -866,7 +866,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
 
-    def __propagate_short_exp_with_TD_relaxation(self,rhoi,L=4):
+    def __propagate_short_exp_with_TD_relaxation(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Short exp integration
 
         This is the propagator used with the Time-dependent relaxation
@@ -980,7 +980,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
 
-    def __propagate_short_exp_with_TDrel_operators(self, rhoi, L=4):
+    def __propagate_short_exp_with_TDrel_operators(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Short exp integration with time-dependent relaxation tensor
 
         The tensor is in operator form.
@@ -1061,7 +1061,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
 
-    def __propagate_short_exp_with_TD_relaxation_field(self,rhoi,L=4):
+    def __propagate_short_exp_with_TD_relaxation_field(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Short exp integration of the density matrix with external driving
 
 
@@ -1184,7 +1184,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
 
-    def __propagate_short_exp_TDrelax_field_oper(self, rhoi, L=4):
+    def __propagate_short_exp_TDrelax_field_oper(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """
 
         """
@@ -1192,7 +1192,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
 
-    def __propagate_short_exp_with_TD_relaxation_EField(self,rhoi,L=4):
+    def __propagate_short_exp_with_TD_relaxation_EField(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Short exp integration of the density matrix with external driving
 
 
@@ -1314,7 +1314,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
 
 
-    def __propagate_short_exp_TDrelax_EField_oper(self, rhoi, L=4):
+    def __propagate_short_exp_TDrelax_EField_oper(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """
 
         """
@@ -1341,7 +1341,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self._has_field_RWA = False
 
 
-    def __propagate_short_exp_with_relaxation_field(self, rhoi, L=4):
+    def __propagate_short_exp_with_relaxation_field(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Short exponential integration with relaxation and array field
 
         Propagates the system defined by the Hamiltonian and the relaxation
@@ -1470,12 +1470,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
 
-    def __propagate_short_exp_with_relaxation_field_oper(self, rhoi, L=4):
+    def __propagate_short_exp_with_relaxation_field_oper(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
 
         debug("(12)")
 
 
-    def __propagate_short_exp_with_relaxation_EField(self,rhoi,L=4):
+    def __propagate_short_exp_with_relaxation_EField(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
         """Short exponential integration with relaxation and EField like object
 
         Propagates the system defined by Hamiltonian and the relaxation
@@ -1622,7 +1622,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
 
-    def __propagate_short_exp_with_relaxation_EField_oper(self, rhoi, L=4):
+    def __propagate_short_exp_with_relaxation_EField_oper(self, rhoi: numpy.ndarray, L: int = 4) -> ReducedDensityMatrixEvolution:
 
         debug("(13")
 
