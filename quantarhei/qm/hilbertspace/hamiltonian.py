@@ -1,14 +1,10 @@
-# -*- coding: utf-8 -*-
-
-from .operators import SelfAdjointOperator
-from ...core.managers import BasisManaged
-from ...core.managers import energy_units
-from ...core.managers import EnergyUnitsManaged
-from ...utils.types import ManagedRealArray
-from .operators import Operator
-from ... import REAL
 
 import numpy
+
+from ... import REAL
+from ...core.managers import BasisManaged, EnergyUnitsManaged, energy_units
+from ...utils.types import ManagedRealArray
+from .operators import Operator, SelfAdjointOperator
 
 
 class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
@@ -28,7 +24,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if not ((dim is None) and (data is None)):
             Operator.__init__(self, dim=dim, data=data)
             if not self.check_selfadjoint():
-                raise Exception("The data of this operator have"+
+                raise Exception("The data of this operator have"
                                 "to be represented by a selfadjoint matrix")
 
         self.rwa_indices = None
@@ -45,7 +41,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Examples
         --------
-
         >>> import quantarhei as qr
         >>> agg = qr.TestAggregate(name="trimer-2")
         >>> agg.build()
@@ -67,7 +62,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
          [ 0.          0.          0.          2.32630969]]
 
         """
-
         if rwa_indices[0] != 0:
             raise Exception("First element in 'rwa_indices' has to be zero")
         self.rwa_indices = numpy.array(rwa_indices, dtype=int)
@@ -138,7 +132,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         coupling_cutoff : float, optional
             Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
@@ -147,7 +140,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Returns
         -------
-
         SS : numpy array
             The diagonalization matrix of the Hamiltonian
 
@@ -163,17 +155,16 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
             self.SS = SS
             return SS
-        else:
-            self.remove_cutoff_coupling(coupling_cutoff)
-            # diagonalize the strong coupling part
-            dd,SS = numpy.linalg.eigh(self.data)
-            self.data = numpy.zeros(self.data.shape,dtype=REAL)
-            for ii in range(0,self.data.shape[0]):
-                self.data[ii,ii] = dd[ii]
-            # transform the remainder of couling correspondingly
-            self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
-            self.SS = SS
-            return self.SS, self.JR
+        self.remove_cutoff_coupling(coupling_cutoff)
+        # diagonalize the strong coupling part
+        dd,SS = numpy.linalg.eigh(self.data)
+        self.data = numpy.zeros(self.data.shape,dtype=REAL)
+        for ii in range(0,self.data.shape[0]):
+            self.data[ii,ii] = dd[ii]
+        # transform the remainder of couling correspondingly
+        self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
+        self.SS = SS
+        return self.SS, self.JR
 
 
 
@@ -199,7 +190,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         coupling_cutoff : float, optional
             Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
@@ -237,7 +227,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         coupling_cutoff : float, optional
             Specifies the smallest (absolute) value of coupling
             which is taken into account. Smaller couplings are removed
@@ -309,7 +298,6 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         Parameters
         ----------
-
         SS : matrix, numpy.ndarray
             transformation matrix
 
@@ -318,7 +306,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         """
         if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operator '%s' changes basis" %self.name)
+                print(f"\nQr >>> Operator '{self.name}' changes basis")
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -334,7 +322,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     def __str__(self):
         out  = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
-        out += "\nunits of energy %s" % self.unit_repr()
+        out += f"\nunits of energy {self.unit_repr()}"
         out += "\nRotating Wave Approximation (RWA) enabled : "\
             +str(self.has_rwa)
         if self.has_rwa:
@@ -349,8 +337,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
 
 def _find_band(x, starts):
-    """
-    Given an integer x and a sorted list of interval starts (starting with 0),
+    """Given an integer x and a sorted list of interval starts (starting with 0),
     returns the index of the interval x belongs to.
 
     Parameters

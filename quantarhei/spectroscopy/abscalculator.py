@@ -1,33 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
-    Linear absorption spectrum
+"""Linear absorption spectrum
 
-    Linear absorption spectrum of a molecule or an aggregate of molecules.
+Linear absorption spectrum of a molecule or an aggregate of molecules.
 
 
 """
-import numpy
-import scipy
 import copy
 
-from ..utils import derived_type
-from ..builders import Molecule
-from ..builders import Aggregate
-from ..builders import OpenSystem
-from ..core.time import TimeAxis
+import numpy
+import scipy
+
+from .. import COMPLEX
+from ..builders import Aggregate, Molecule, OpenSystem
 from ..core.frequency import FrequencyAxis
-from ..core.managers import energy_units
-from ..core.managers import EnergyUnitsManaged
-from ..core.time import TimeDependent
-from ..core.managers import eigenbasis_of
-from ..core.units import convert,kB_intK
-
-from .linear_spectra import LinSpectrum
+from ..core.managers import EnergyUnitsManaged, eigenbasis_of, energy_units
+from ..core.time import TimeAxis, TimeDependent
+from ..core.units import kB_intK
 from ..core.wrappers import prevent_basis_context
-
 from ..qm.hilbertspace.operators import ReducedDensityMatrix
+from ..utils import derived_type
 from .abs2 import AbsSpectrum
-from .. import COMPLEX, REAL
+from .linear_spectra import LinSpectrum
 
 #TODO: move _c2g from the calculator and use _c2g instead self._c2g
 
@@ -45,7 +37,6 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
     Examples
     --------
-
     Calcutor has to be created using a Molecule, Aggregate or OpenSystem
 
     >>> time = TimeAxis(0.0, 1000, 1.0)
@@ -158,7 +149,6 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             ...
         Exception: RWA not set by system nor explicitely.
         """
-
         self.prop = prop
 
         HH = self.system.get_Hamiltonian()
@@ -230,13 +220,12 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
     @prevent_basis_context
     def calculate(self, raw=False, from_dynamics=False, alt=False):
-        """ Calculates the absorption spectrum
+        """Calculates the absorption spectrum
 
 
         """
-
         if not self.bootstrapped:
-            raise Exception("Calculator must be bootstrapped first: "+
+            raise Exception("Calculator must be bootstrapped first: "
                             "call bootstrap() method of this object.")
 
         with energy_units("int"):
@@ -292,12 +281,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return rho0
 
     def one_transition_spectrum_abs(self,tr):
-        """ Calculates spectrum of one transition
+        """Calculates spectrum of one transition
 
 
         """
-
-
         ta = tr["ta"] # TimeAxis
         dd = tr["dd"] # transition dipole strength
         om = tr["om"] # frequency - rwa
@@ -352,12 +339,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return ft[Nt//2:Nt+Nt//2]
 
     def one_transition_spectrum_ld(self,tr):
-        """ Calculates spectrum of one transition
+        """Calculates spectrum of one transition
 
 
         """
-
-
         ta = tr["ta"] # TimeAxis
         ld = tr["ld"] # linear dichroism strength
         om = tr["om"] # frequency - rwa
@@ -402,13 +387,11 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return ft[Nt//2:Nt+Nt//2]
 
     def one_transition_spectrum_gauss(self,tr):
-        """ Calculates spectrum of one transition using gaussian broadening
+        """Calculates spectrum of one transition using gaussian broadening
         of the stick spectra. The definition is the same as for  exat tools:
         https://doi.org/10.1002/jcc.25118
 
         """
-
-
         fa = tr["fa"]     # Frequency axis
         HWHH = tr["HWHH"] # Half width at the half hight (maximum)
         dd = tr["dd"]     # transition dipole strength
@@ -431,12 +414,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
 
     def one_transition_spectrum_fluor(self,tr):
-        """ Calculates spectrum of one transition
+        """Calculates spectrum of one transition
 
 
         """
-
-
         ta = tr["ta"] # TimeAxis
         dd = tr["dd"] # transition dipole strength
         om = tr["om"] # frequency - rwa
@@ -491,12 +472,10 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return ft[Nt//2:Nt+Nt//2]
 
     def one_transition_spectrum_cd(self,tr):
-        """ Calculates spectrum of one transition
+        """Calculates spectrum of one transition
 
 
         """
-
-
         ta = tr["ta"] # TimeAxis
         rr = tr["rr"] # transition dipole strength
         om = tr["om"] # frequency - rwa
@@ -551,10 +530,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
 
     def _excitonic_coft_old(self,SS,AG,n):
-        """ Returns energy gap correlation function data of an exciton state
+        """Returns energy gap correlation function data of an exciton state
 
         """
-
         # FIXME: works only for 2 level molecules
 
         c0 = AG.monomers[0].get_transition_environment((0,1)).data #get_egcf((0,1))
@@ -586,10 +564,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return ct
 
     def _excitonic_coft(self,SS,AG,n):
-        """ Returns energy gap correlation function data of an exciton state n
+        """Returns energy gap correlation function data of an exciton state n
 
         """
-
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -613,10 +590,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return ct
 
     def _excitonic_coft_all(self,SS,AG):
-        """ Returns energy gap correlation function data of an exciton state n
+        """Returns energy gap correlation function data of an exciton state n
 
         """
-
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -649,9 +625,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return ct
 
     def _excitonic_reorg_energy(self, SS, AG, n):
-        """ Returns the reorganisation energy of an exciton state
+        """Returns the reorganisation energy of an exciton state
         """
-
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
@@ -772,7 +747,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return reorg_exct
 
     def _calculate_monomer(self, raw=False):
-        """ Calculates the absorption spectrum of a monomer
+        """Calculates the absorption spectrum of a monomer
 
 
         """
@@ -857,7 +832,6 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         """Calculates the absorption spectrum of a molecule from its dynamics
 
         """
-
         #
         # Frequency axis
         #
@@ -872,7 +846,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         system = self.system
         HH = system.get_Hamiltonian()
         if not HH.has_rwa:
-            raise Exception("Hamiltonian has to define"+
+            raise Exception("Hamiltonian has to define"
                             " Rotating Wave Approximation")
 
 
@@ -933,7 +907,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
     def _calculate_aggregate(self, relaxation_tensor=None,
                              relaxation_hamiltonian=None, rate_matrix=None,
                              raw=False):
-        """ Calculates the absorption spectrum of a molecular aggregate
+        """Calculates the absorption spectrum of a molecular aggregate
 
 
 
@@ -1155,9 +1129,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
                     "LD": LD_spect, "LD gauss": LD_spect_gauss,
                     "abs gauss": abs_spect_gauss, "CD gauss": CD_spect_gauss}
-        else:
-            return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
-                    "LD":  LD_spect}
+        return {"abs": abs_spect, "fluor": fluor_spect, "CD":  CD_spect,
+                "LD":  LD_spect}
 
 
 class AbsSpectrumCalculator(LinSpectrumCalculator):
@@ -1179,7 +1152,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
     def calculate(self, raw=False, from_dynamics=False, alt=False):
 
         if not self.bootstrapped:
-            raise Exception("Calculator must be bootstrapped first: "+
+            raise Exception("Calculator must be bootstrapped first: "
                             "call bootstrap() method of this object.")
 
         with energy_units("int"):
@@ -1333,14 +1306,13 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
 
 
 def _c2g(timeaxis, coft):
-    """ Converts correlation function to lineshape function
+    """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation
     function to form a lineshape function.
 
     Parameters
     ----------
-
     timeaxis : TimeAxis
         TimeAxis of the correlation function
 
@@ -1350,7 +1322,6 @@ def _c2g(timeaxis, coft):
 
 
     """
-
     ta = timeaxis
     rr = numpy.real(coft)
     ri = numpy.imag(coft)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy
 
 from quantarhei import *
@@ -31,8 +30,8 @@ with e_units:
     m2.set_dipole(0,1,[0.0,1.0,2.0])
     m2.set_transition_environment((0,1), cfce1)
     m3 = Molecule([0.0, 12500])
-    m3.set_dipole(0,1,[0.0,1.0,1.0])    
-    m3.set_transition_environment((0,1), cfce1)    
+    m3.set_dipole(0,1,[0.0,1.0,1.0])
+    m3.set_transition_environment((0,1), cfce1)
 
 
 m1.position = [0.0,0.0,0.0]
@@ -60,7 +59,7 @@ AG.build()
 HH = AG.get_Hamiltonian()
 with e_units:
     print(HH)
-    
+
 (RRf,hamf) = AG.get_RelaxationTensor(ta,
                                    relaxation_theory="standard_Foerster",
                                    time_dependent=True)
@@ -73,7 +72,7 @@ with e_units:
                                    relaxation_theory="combined_RedfieldFoerster",
                                    time_dependent=True,
                                    coupling_cutoff=30.0)
-    
+
 
 a1 = AbsSpect(ta, AG, relaxation_tensor=RRf, effective_hamiltonian=hamf)
 a2 = AbsSpect(ta, AG, relaxation_tensor=RRr, effective_hamiltonian=hamr)

@@ -1,24 +1,19 @@
-"""
+"""Quantarhei file viewer
 
-    Quantarhei file viewer
-
-    Loads *.qrp, *.png, and other files and shows their content
+Loads *.qrp, *.png, and other files and shows their content
 
 
 """
-from tkinter import Tk
-from tkinter import Label, Button, Frame, Menu
-from tkinter import YES, BOTH, SUNKEN, BOTTOM, RIGHT, X
-from tkinter.messagebox import showerror, askyesno
+from tkinter import BOTH, BOTTOM, RIGHT, SUNKEN, YES, Button, Frame, Label, Menu, X
 from tkinter.filedialog import askopenfilename
-import matplotlib
+from tkinter.messagebox import askyesno, showerror
+
 #matplotlib.use("TkAgg")
 #from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 #from matplotlib.figure import Figure
-
 import quantarhei as qr
-from quantarhei import printlog as print
+
 
 class Viewer(Frame):
     def __init__(self, parent=None, numrow=5, numcol=5):
@@ -59,7 +54,6 @@ class Viewer(Frame):
             Frame.quit(self)
 
     def onOpen(self):
-        import matplotlib.pyplot as plt
         file = askopenfilename()
         #print(file, loglevel=qr.LOG_REPORT)
         obj = qr.load_parcel(file)
@@ -82,7 +76,6 @@ class Viewer(Frame):
 
 
 def main():
-    import sys
     #root = Tk()
     #root.title("Open file")
     #Viewer().mainloop()

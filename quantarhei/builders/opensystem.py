@@ -1,25 +1,18 @@
-# -*- coding: utf-8 -*-
+
 import numpy
-from copy import deepcopy
 
-from ..core.managers import Manager
-from ..utils import array_property
-from ..qm.hilbertspace.hamiltonian import Hamiltonian
-from ..qm.liouvillespace.heom import KTHierarchy
-from ..qm.liouvillespace.heom import KTHierarchyPropagator
-from ..core.managers import eigenbasis_of
-from ..core.managers import energy_units
-from ..qm import SelfAdjointOperator
-from ..qm import ReducedDensityMatrix
+from .. import COMPLEX, REAL
 from ..core.dfunction import DFunction
+from ..core.managers import Manager, eigenbasis_of, energy_units
 from ..core.triangle import triangle
-from ..core.units import kB_intK
-from .. import REAL
-from .. import COMPLEX
+from ..core.units import c_int, eps0_int, kB_intK
+from ..qm import ReducedDensityMatrix, SelfAdjointOperator
+from ..qm.hilbertspace.hamiltonian import Hamiltonian
+from ..qm.liouvillespace.heom import KTHierarchy, KTHierarchyPropagator
+from ..utils import array_property
 
-from ..core.units import eps0_int, c_int
 
-class OpenSystem():
+class OpenSystem:
     """The class representing a general open quantum system
 
     It provides routines to store and extract the most interesting
@@ -51,7 +44,7 @@ class OpenSystem():
                     i_en.append(ssub)
                     which_band.append(nband)
                 nband += 1
-            except:
+            except TypeError:
                 count += 1
                 i_en.append(sub)
                 which_band.append(nband)
@@ -159,26 +152,24 @@ class OpenSystem():
 
 
     def get_Hamiltonian(self):
-        """ Returns the Hamiltonian operator
+        """Returns the Hamiltonian operator
 
         """
         if self._built:
 
             return self.HamOp
 
-        else:
 
-            raise Exception("System has to be built first")
+        raise Exception("System has to be built first")
 
 
     def get_TransitionDipoleMoment(self):
-        """ Returns the asystem's transition dipole moment operator
+        """Returns the asystem's transition dipole moment operator
 
         """
         if self._built:
             return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
-        else:
-            raise Exception("Aggregate object not built")
+        raise Exception("Aggregate object not built")
 
 
     def set_transition_environment(self, transition, egcf):
@@ -196,10 +187,9 @@ class OpenSystem():
         (Should go to Open System)
 
         """
-
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This system is mapped"
-                            + " on a CorrelationFunctionMatrix")
+                             " on a CorrelationFunctionMatrix")
 
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
@@ -212,7 +202,7 @@ class OpenSystem():
             self._has_system_bath_coupling = True
 
         else:
-            raise Exception("Correlation function already speficied" +
+            raise Exception("Correlation function already speficied"
                             " for this monomer")
 
 
@@ -230,10 +220,9 @@ class OpenSystem():
         (Should go to OpenSystem)
 
         """
-
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped"
-                            + " on a CorrelationFunctionMatrix")
+                             " on a CorrelationFunctionMatrix")
 
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
 
@@ -258,7 +247,6 @@ class OpenSystem():
         (Should go to OpenSystem)
 
         """
-
         if self._has_egcf[self.triangle.locate(transition[0] ,transition[1])]:
             return self.egcf[self.triangle.locate(transition[0],
                                                   transition[1])]
@@ -274,7 +262,7 @@ class OpenSystem():
 
 
     def set_egcf_mapping(self, transition, correlation_matrix, position):
-        """ Sets a correlation function mapping for a selected transition.
+        """Sets a correlation function mapping for a selected transition.
 
         The monomer can either have a correlation function assigned to it,
         or it can be a part of a correlation matrix. Here the mapping to the
@@ -297,7 +285,6 @@ class OpenSystem():
         (Should go to OpenSystems)
 
         """
-
         if not (self._has_egcf[self.triangle.locate(transition[0],
                                                     transition[1])]):
 
@@ -337,10 +324,9 @@ class OpenSystem():
 
 
     def get_band(self, band=1):
-        """ Returns a tuple of state indices for a given band of states
+        """Returns a tuple of state indices for a given band of states
 
         """
-
         Nbefore = 0
         for ii in range(band):
             Nbefore += self.Nb[ii]
@@ -373,7 +359,6 @@ class OpenSystem():
 
         Examples
         --------
-
         >>> m = OpenSystem([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
@@ -395,7 +380,7 @@ class OpenSystem():
         try:
             self.dmoments[n, m, :] = vc
             self.dmoments[m, n, :] = numpy.conj(vc)
-        except:
+        except (IndexError, AttributeError):
             raise Exception()
 
 
@@ -420,8 +405,6 @@ class OpenSystem():
 
         Examples
         --------
-
-
         >>> m = OpenSystem([0.0, 1.0])
         >>> m.set_dipole((0,1),[1.0, 0.0, 0.0])
         >>> m.get_dipole((0,1))
@@ -438,7 +421,7 @@ class OpenSystem():
 
         try:
             return self.dmoments[n, m, :]
-        except:
+        except (IndexError, AttributeError):
             raise Exception()
 
 
@@ -447,7 +430,6 @@ class OpenSystem():
     # FIXME: There are two functions with similar results
     def map_egcf_to_states(self, mpx):
         """Returns a mapping between states and correlation functions"""
-
         ss = self.SS
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
@@ -476,13 +458,12 @@ class OpenSystem():
         in classes that inherite from here.
 
         """
-
         ss = self.SS
         Ng = self.Nb[0]
         Ne1 = self.Nb[1] + Ng
 
         if self.mult > 1:
-            raise Exception("Participation matrix not implemented for"+
+            raise Exception("Participation matrix not implemented for"
                             "multiplicity higher than mult=1.")
 
         WPM = numpy.einsum("na,nb,ni->abi",ss[Ng:Ne1,Ng:Ne1]**2,
@@ -529,7 +510,6 @@ class OpenSystem():
 
         Parameters
         ----------
-
         which : string
             A string characterizing the type of dipole moment product
 
@@ -615,8 +595,7 @@ class OpenSystem():
         """
         if self._built:
             return self.sbi
-        else:
-            raise Exception("The object not built.")
+        raise Exception("The object not built.")
 
 
 
@@ -635,7 +614,6 @@ class OpenSystem():
 
         Parameters
         ----------
-
         timeaxis : TimeAxis
             Time axis of the relaxation tensor calculation. It has to be
             compatible with the time axis of the correlation functions
@@ -652,7 +630,6 @@ class OpenSystem():
 
         Returns
         -------
-
         RR : RelaxationTensor
             Relaxation tensor of the aggregate
 
@@ -662,19 +639,19 @@ class OpenSystem():
 
 
         """
-
-        from ..qm import RedfieldRelaxationTensor
-        from ..qm import TDRedfieldRelaxationTensor
-        from ..qm import ModRedfieldRelaxationTensor
-        from ..qm import TDModRedfieldRelaxationTensor
-        from ..qm import FoersterRelaxationTensor
-        from ..qm import TDFoersterRelaxationTensor
-        from ..qm import NEFoersterRelaxationTensor
-        from ..qm import RedfieldFoersterRelaxationTensor
-        from ..qm import TDRedfieldFoersterRelaxationTensor
-        from ..qm import LindbladForm
-
         from ..core.managers import eigenbasis_of
+        from ..qm import (
+            FoersterRelaxationTensor,
+            LindbladForm,
+            ModRedfieldRelaxationTensor,
+            NEFoersterRelaxationTensor,
+            RedfieldFoersterRelaxationTensor,
+            RedfieldRelaxationTensor,
+            TDFoersterRelaxationTensor,
+            TDModRedfieldRelaxationTensor,
+            TDRedfieldFoersterRelaxationTensor,
+            TDRedfieldRelaxationTensor,
+        )
 
         if self._built:
             ham = self.get_Hamiltonian()
@@ -762,7 +739,7 @@ class OpenSystem():
 
             return relaxT, ham
 
-        elif relaxation_theory in theories["modified_Redfield"]:
+        if relaxation_theory in theories["modified_Redfield"]:
 
             if time_dependent:
 
@@ -802,7 +779,7 @@ class OpenSystem():
             return relaxT, ham
 
 
-        elif relaxation_theory in theories["standard_Foerster"]:
+        if relaxation_theory in theories["standard_Foerster"]:
 
             if time_dependent:
 
@@ -839,7 +816,7 @@ class OpenSystem():
 
             return relaxT, ham_0
 
-        elif relaxation_theory in theories["noneq_Foerster"]:
+        if relaxation_theory in theories["noneq_Foerster"]:
 
             if time_dependent:
 
@@ -884,12 +861,12 @@ class OpenSystem():
 
             return relaxT, ham_0
 
-        elif relaxation_theory in theories["combined_RedfieldFoerster"]:
+        if relaxation_theory in theories["combined_RedfieldFoerster"]:
 
             if adiabatic is not None and adiabatic != False:
                 ham.subtract_cutoff_coupling(coupling_cutoff)
                 # When adiabatic hamiltonian is used
-                val,SS = self._get_exciton_prop2(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath" 
+                val,SS = self._get_exciton_prop2(adiabatic=adiabatic,HH_in=ham._data) # adiabatic="NoBath"
                 SS1 = numpy.linalg.inv(SS)
                 HH_new = numpy.dot(SS,numpy.dot(numpy.diag(val),SS1))
                 ham._data[:,:] = HH_new.copy()
@@ -943,7 +920,7 @@ class OpenSystem():
 
             return relaxT, ham
 
-        elif relaxation_theory in theories["combined_WeakStrong"]:
+        if relaxation_theory in theories["combined_WeakStrong"]:
 
             pass
 
@@ -1006,7 +983,7 @@ class OpenSystem():
 
                         sbi.KK = vKK
                     else:
-                        raise Exception("SystemBathInteraction object has to"+
+                        raise Exception("SystemBathInteraction object has to"
                                         " purely electronic")
 
                     relaxT = LindbladForm(ham, sbi)
@@ -1042,10 +1019,8 @@ class OpenSystem():
 
 
         """
-
-
-        from ..qm import ReducedDensityMatrixPropagator
         from ..core.managers import eigenbasis_of
+        from ..qm import ReducedDensityMatrixPropagator
 
 
         relaxT, ham = self.get_RelaxationTensor(timeaxis,
@@ -1076,9 +1051,8 @@ class OpenSystem():
         """Returns Redfield rate matrix
 
         """
-
-        from ..qm import RedfieldRateMatrix
         from ..core.managers import eigenbasis_of
+        from ..qm import RedfieldRateMatrix
 
         if self._built:
             ham = self.get_Hamiltonian()
@@ -1099,7 +1073,6 @@ class OpenSystem():
 
 
         """
-
         from ..qm import FoersterRateMatrix
 
         if self._built:
@@ -1116,7 +1089,6 @@ class OpenSystem():
         """Returns the Kubo-Tanimura hierarchy of an open system
 
         """
-
         HH = self.get_Hamiltonian()
         HH.set_rwa([0,1])
         sbi = self.get_SystemBathInteraction()
@@ -1127,7 +1099,6 @@ class OpenSystem():
         """Returns a propagator based on the Kubo-Tanimura hierarchy
 
         """
-
         kth = self.get_KTHierarchy(depth)
         ta = kth.sbi.TimeAxis
 
@@ -1139,7 +1110,6 @@ class OpenSystem():
 
 
         """
-
         dip = self.get_TransitionDipoleMoment()
         if polarization is None:
             dip = dip.get_dipole_length_operator()
@@ -1165,7 +1135,7 @@ class OpenSystem():
 
             return rhoi
 
-        elif cond == "pulse_spectrum":
+        if cond == "pulse_spectrum":
 
             spectrum = condition[1]
 
@@ -1195,10 +1165,9 @@ class OpenSystem():
 
                 return rhoi
 
-            else:
 
-                raise Exception("Spectrum must be specified through"+
-                                " a DFunction object")
+            raise Exception("Spectrum must be specified through"
+                            " a DFunction object")
 
         else:
             print("Excitation condition:", condition)
@@ -1210,7 +1179,6 @@ class OpenSystem():
         """Returns equilibrium density matrix for a give temparature
 
         """
-
         H = self.get_Hamiltonian()
         T = self.get_temperature()
         dat = numpy.zeros(H._data.shape,dtype=COMPLEX)
@@ -1236,7 +1204,7 @@ class OpenSystem():
 
 
     def integrate_deposited_energy(self, rho_t, field, ome=None):
-        """ Integrates the energy deposited into the system by light
+        r"""Integrates the energy deposited into the system by light
 
         By default, rho_t and field contain the optical frequency. If ome and dt are defined,
         it is assumed that rho_t was calculated using a single frequency (global) RWA. In that
@@ -1244,7 +1212,6 @@ class OpenSystem():
 
         Parameters
         ----------
-
         rho_t : DensityMatrixEvolution
             The dynamics of the system in terms of its time-dependent density matrix
 
@@ -1259,7 +1226,6 @@ class OpenSystem():
             Time step on which rho_t and field are defined
 
         """
-
         # transition dipole moment
         DD = self.get_TransitionDipoleMoment()
 
@@ -1310,7 +1276,7 @@ class OpenSystem():
             HH = HH_in.copy()
 
         if self._diagonalized:
-            raise IOError("Not possible to obtain the exciton properties for diagonalized aggregate")
+            raise OSError("Not possible to obtain the exciton properties for diagonalized aggregate")
 
         if adiabatic is not None:
             if adiabatic != False:
@@ -1353,7 +1319,7 @@ class OpenSystem():
 
                 rate += dip2*(ome**3)/(3.0*numpy.pi*eps*(c_int**3))
 
-        except:
+        except (IndexError, AttributeError, ValueError, ZeroDivisionError):
             raise Exception("Calculation of rate failed")
 
         if rate > 0.0:
@@ -1408,8 +1374,6 @@ class OpenSystem():
 
 
         """
-
-
         if not self._has_nat_lifetime[N]:
             self.set_electronic_natural_lifetime(N,epsilon_r=epsilon_r)
 
@@ -1423,8 +1387,7 @@ class OpenSystem():
 # Auxiliary routines
 #
 def integral_g_dfdt(g,f):
-    """
-    Numerically compute ∫ g(t) * df/dt(t) dt using central differences.
+    """Numerically compute ∫ g(t) * df/dt(t) dt using central differences.
     Assumes df/dt = 0 at boundaries.
 
     Parameters:
@@ -1444,8 +1407,7 @@ def integral_g_dfdt(g,f):
 
 
 def integral_g_f(g, f, dt):
-    """
-    Numerically compute ∫ g(t) * f(t) dt using the trapezoidal rule.
+    """Numerically compute ∫ g(t) * f(t) dt using the trapezoidal rule.
     Assumes uniform time step (dt cancels out, as in the df/dt version).
 
     Parameters:

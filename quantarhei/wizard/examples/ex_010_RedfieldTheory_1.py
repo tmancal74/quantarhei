@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 #
 # Demo settings
@@ -15,7 +14,7 @@ print("""
 *******************************************************************************
 *                                                                             *
 *                         Redfield Theory Demo                                *
-*                                                                             *                  
+*                                                                             *
 *******************************************************************************
 """)
 
@@ -44,12 +43,12 @@ print("""
 *******************************************************************************
 
                     Calculating relaxation tensor
-                  
+
 *******************************************************************************
 """)
 
 m = qr.Manager()
-m.warn_about_basis_change = False 
+m.warn_about_basis_change = False
 
 sb_reference = qr.BasisReferenceOperator(ham.dim,
                                       name="site basis reference")
@@ -60,16 +59,16 @@ sb_reference = qr.BasisReferenceOperator(ham.dim,
 
 ham.protect_basis()
 with qr.eigenbasis_of(ham):
-    
+
     RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
-    
+
     print("\nRelaxation times from the full relaxation tensor")
     for i in range(1, ham.dim):
         for j in range(1, ham.dim):
             print(i, "<-", j, ":", 1.0/numpy.real(RRT.data[i,i,j,j]))
-        
+
     print("\nCalculating relaxation rates")
-    
+
     RRM = qr.qm.RedfieldRateMatrix(ham, sbi)
     print("\nRelaxation times from the rate matrix")
     for i in range(1,ham.dim):
@@ -89,7 +88,7 @@ with qr.eigenbasis_of(ham):
 
 ham.unprotect_basis()
 with qr.eigenbasis_of(ham):
-    
+
     #
     # Evolution of reduced density matrix
     #
@@ -98,10 +97,10 @@ with qr.eigenbasis_of(ham):
 
     rho_i = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
     rho_i.data[3,3] = 1.0
-   
+
     # FIXME: unprotecting does not work correctly
     #RRT.unprotect_basis()
-    
+
     with qr.eigenbasis_of(sb_reference):
         print(" Relaxation time site basis: ", 1.0/RRT.data[1,1,2,2])
 
@@ -111,11 +110,11 @@ with qr.eigenbasis_of(ham):
 
     if _show_plots_:
         rho_t.plot(coherences=False)
-    
+
     rho_i1 = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
-    rho_i1.data[3,3] = 1.0   
-    
- 
+    rho_i1.data[3,3] = 1.0
+
+
 #rho_t.plot(coherences=False)
 
 
@@ -138,6 +137,6 @@ if _show_plots_:
 #with eigenbasis_of(ham):
 #    print(RRT.data[2,2,3,3])
 
-   
+
 
 

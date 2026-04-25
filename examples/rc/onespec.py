@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import os
 
@@ -36,15 +35,15 @@ oset = qr.load_parcel(os.path.join(dirn,"A_saved_state.qrp"))
 
 with qr.energy_units("1/cm"):
     print(pw)
-    twod.plot(window=plot_window, Npos_contours=10,              
+    twod.plot(window=plot_window, Npos_contours=10,
               stype="total", spart="real")
     plt.show()
-    
+
 ham = oset[4].get_Hamiltonian()
 with qr.eigenbasis_of(ham):
     plt.plot(eUt.time.data, eUt.data[:,7,7,6,6])
     plt.plot(eUt.time.data, eUt.data[:,9,9,6,6])
-    
+
     #plt.plot(eUt.time.data, eUt.data[:,7,9,6,6])
     #plt.plot(eUt.time.data, eUt.data[:,9,9,9,9])
     #plt.plot(eUt.time.data, eUt.data[:,6,6,6,6])

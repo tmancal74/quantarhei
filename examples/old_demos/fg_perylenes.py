@@ -1,24 +1,27 @@
-# -*- coding: utf-8 -*-
 
-import numpy
-import matplotlib.pylab as plt
 import time as tm
 
-from quantarhei import TimeAxis
-from quantarhei.qm import ReducedDensityMatrix
-from quantarhei.qm import RedfieldRelaxationTensor, RedfieldRateMatrix
-##from cu.oqs.liouvillespace import TDRedfieldRelaxationTensor                                 
-from quantarhei.qm import RDMPropagator
+import matplotlib.pylab as plt
+import numpy
 
-from quantarhei import CorrelationFunction
-from quantarhei.qm.corfunctions import CorrelationFunctionMatrix
-from quantarhei import Aggregate
-from quantarhei import Molecule
-from quantarhei import AbsSpect
-from quantarhei import energy_units
-
-from quantarhei.utils import normalize2 
+from quantarhei import (
+    AbsSpect,
+    Aggregate,
+    CorrelationFunction,
+    Molecule,
+    TimeAxis,
+    energy_units,
+)
 from quantarhei.core.units import cm2int, kB_intK
+
+##from cu.oqs.liouvillespace import TDRedfieldRelaxationTensor
+from quantarhei.qm import (
+    RDMPropagator,
+    RedfieldRelaxationTensor,
+    ReducedDensityMatrix,
+)
+from quantarhei.qm.corfunctions import CorrelationFunctionMatrix
+from quantarhei.utils import normalize2
 
 """ Create monomers """
 # state energies
@@ -54,7 +57,7 @@ with energy_units("1/cm"):
     m11.set_dipole(0,1,d1)
     m12 = Molecule("M12",en1) #,[d0,d1])
     m12.set_dipole(0,1,d1)
-    
+
 #possitions in space
 a = 0.1   # C-C distance
 b = 2 * a * numpy.sin(numpy.pi/3.)
@@ -108,14 +111,14 @@ with energy_units("1/cm"):
 explicit_mapping = False
 
 if explicit_mapping:
-    
+
     cm = CorrelationFunctionMatrix(time,12)
     i = cm.set_correlation_function(cfce1, [(1,1),(2,2)]) #,
                             #iof=1)
-    cm.set_correlation_function(cfce1, [(4,4),(6,6),(7,7),(11,11)]) 
+    cm.set_correlation_function(cfce1, [(4,4),(6,6),(7,7),(11,11)])
     cm.set_correlation_function(cfce2, [(0,0),(3,3),(5,5),(8,8),(9,9),(10,10)]) #,
                             #iof=2)
-    # Mapping of the correlation functions on the transitions in monomers 
+    # Mapping of the correlation functions on the transitions in monomers
     m1.set_egcf_mapping((0,1),cm,0)
     m2.set_egcf_mapping((0,1),cm,1)
     m3.set_egcf_mapping((0,1),cm,2)
@@ -128,9 +131,9 @@ if explicit_mapping:
     m10.set_egcf_mapping((0,1),cm,9)
     m11.set_egcf_mapping((0,1),cm,10)
     m12.set_egcf_mapping((0,1),cm,11)
-    
+
 else:
-    
+
     m1.set_transition_environment((0,1),cfce2)
     m2.set_transition_environment((0,1),cfce1)
     m3.set_transition_environment((0,1),cfce1)
@@ -142,8 +145,8 @@ else:
     m9.set_transition_environment((0,1),cfce2)
     m10.set_transition_environment((0,1),cfce2)
     m11.set_transition_environment((0,1),cfce2)
-    m12.set_transition_environment((0,1),cfce1)    
-    
+    m12.set_transition_environment((0,1),cfce1)
+
 
 # create an aggregate
 AG = Aggregate("TestAggregate")
@@ -217,13 +220,13 @@ with energy_units("1/cm"):
     aAnth.plot(axis=[10000,15000,0.0,1.1])
 
 
-# Redfield Tensor 
+# Redfield Tensor
 print("Calculating relaxation tensor ...")
 start = tm.time()
 # System bath interaction
 #sbi = AG.get_system_bath_coupling()
 sbi = AG.get_SystemBathInteraction()
-# Hamiltonian 
+# Hamiltonian
 HH = AG.get_Hamiltonian()
 
 # Relaxation tensor
@@ -237,7 +240,7 @@ print("... done in ",tm.time()-start)
 #
 #RR = RedfieldRateMatrix(HH,sbi)
 #for n in range(4):
-#    print(numpy.real(RR.data[n,5]))    
+#    print(numpy.real(RR.data[n,5]))
 
 """
 
@@ -257,7 +260,7 @@ rho.normalize2()
 
 print("Propagating density matrix ...")
 start = tm.time()
-# Convert to exciton basis in which RT was calculated 
+# Convert to exciton basis in which RT was calculated
 ss = HH.diagonalize()  # Relaxation tensors are defined in the eigenstate basis
 prop = RDMPropagator(time,HH,RTensor=RT)
 #prop.setDtRefinement(10)
@@ -266,7 +269,7 @@ pr2 = prop.propagate(rho,method="short-exp")
 print("... done in ", tm.time()-start)
 #pr2.transform(ss.T)
 
-""" 
+"""
 
 Plotting the time evolution
 
@@ -278,9 +281,9 @@ pr2.plot(coherences=False,how='-')
 
     IMPLEMENT AG.get_cannonical_equilibrium_RDM()
               AG.get_cannonical_populations()
-              
+
 """
-""" 
+"""
 
 Calculate termal cannonical distribution for comparison
 
@@ -294,7 +297,7 @@ for i in range(1,HH.dim):
 prtot = 0.0
 for i in range(1,HH.dim):
     prtot += pr2.data[time.length-1,i,i]
-    
+
 pop[:,:] = numpy.real((pop[:,:]/tpop)*prtot)
 
 # plot the termal distrubution
@@ -311,6 +314,6 @@ plt.plot(time.data,pop[:,9],'--',color='darkviolet')
 plt.plot(time.data,pop[:,10],'--',color='dimgrey')
 plt.plot(time.data,pop[:,11],'--',color='firebrick')
 plt.plot(time.data,pop[:,12],'--',color='gold')
-plt.ylim((0.0,1.0)) 
+plt.ylim((0.0,1.0))
 
 #plt.savefig('L12per_pbl.pdf')
