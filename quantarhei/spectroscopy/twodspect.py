@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import warnings
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy
@@ -15,7 +18,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     dtypes = TWOD_SIGNALS
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.xaxis = None
         self.yaxis = None
@@ -27,21 +30,21 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.params = None
 
 
-    def set_axis_1(self, axis):
+    def set_axis_1(self, axis: Any) -> None:
         """Sets the x-axis of te spectrum (omega_1 axis)
 
         """
         self.xaxis = axis
 
 
-    def set_axis_3(self, axis):
+    def set_axis_3(self, axis: Any) -> None:
         """Sets the y-axis of te spectrum (omega_3 axis)
 
         """
         self.yaxis = axis
 
 
-    def set_data_type(self, dtype=signal_TOTL): #"Tot"):
+    def set_data_type(self, dtype: str = signal_TOTL) -> None: #"Tot"):
         """Sets the data type for this 2D spectrum
 
         Parameters
@@ -55,12 +58,12 @@ class TwoDSpectrum(DataSaveable, Saveable):
             raise Exception("Unknown data type for TwoDSpectrum object")
 
 
-    def get_spectrum_type(self):
+    def get_spectrum_type(self) -> Any:
 
         return self.dtype
 
 
-    def set_data(self, data, dtype=signal_TOTL): #"Tot"):
+    def set_data(self, data: numpy.ndarray, dtype: str = signal_TOTL) -> None: #"Tot"):
         """Sets the data of the 2D spectrum
 
         Sets the object data depending on the specified type and stores the
@@ -96,7 +99,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
                             "data shape = "+str(data.shape))
 
 
-    def add_data(self, data):
+    def add_data(self, data: numpy.ndarray) -> None:
         """Sets the data of the 2D spectrum
 
 
@@ -106,7 +109,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.data += data
 
 
-    def overlay_pulses(self, lab):
+    def overlay_pulses(self, lab: Any) -> None:
         """Use labsetup class to overlay pulse spectra over this 2D spectrum
 
 
@@ -127,7 +130,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
 
-    def set_t2(self, t2):
+    def set_t2(self, t2: float) -> None:
         """Sets the t2 (waiting time) of the spectrum
 
 
@@ -135,14 +138,14 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.t2 = t2
 
 
-    def get_t2(self):
+    def get_t2(self) -> float:
         """Returns the t2 (waiting time) of the spectrum
 
         """
         return self.t2
 
 
-    def log_params(self, params=None):
+    def log_params(self, params: Any = None) -> None:
         """Store custom information about the spectrum
 
 
@@ -153,12 +156,12 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.params = params
 
 
-    def get_log_params(self):
+    def get_log_params(self) -> Any:
         return self.params
 
 
 
-    def get_value_at(self, x, y):
+    def get_value_at(self, x: float, y: float) -> Any:
         """Returns value of the spectrum at a given coordinate
 
         """
@@ -171,7 +174,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return self.data[iy,ix]
 
 
-    def get_cut_along_x(self, y0):
+    def get_cut_along_x(self, y0: float) -> DFunction:
         """Returns a DFunction with the cut of the spectrum along the x axis
 
         """
@@ -185,7 +188,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return DFunction(ax, vals)
 
 
-    def get_cut_along_y(self, x0):
+    def get_cut_along_y(self, x0: float) -> DFunction:
         """Returns a DFunction with the cut of the spectrum along the y axis
 
         """
@@ -199,7 +202,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return DFunction(ay, vals)
 
 
-    def get_cut_along_line(self, point1, point2, which_step=None, step=None):
+    def get_cut_along_line(self, point1: list, point2: list,
+                           which_step: str | None = None,
+                           step: float | None = None) -> DFunction:
         """Returns a cut along a line specified by two points
 
         """
@@ -250,7 +255,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return DFunction(axis, vals)
 
 
-    def get_diagonal_cut(self):
+    def get_diagonal_cut(self) -> DFunction:
         """Returns cut of the spectrum along the diagonal
 
 
@@ -265,12 +270,12 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return fce
 
 
-    def get_anti_diagonal_cut(self, point):
+    def get_anti_diagonal_cut(self, point: Any) -> None:
 
         pass
 
 
-    def get_max_value(self, dpart=part_REAL):
+    def get_max_value(self, dpart: str = part_REAL) -> float:
         """Maximum value of the real part of the spectrum
 
 
@@ -284,7 +289,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         raise Exception("Unknown data part")
 
 
-    def get_min_value(self, dpart=part_REAL):
+    def get_min_value(self, dpart: str = part_REAL) -> float:
         """Minimum value of the real part of the spectrum
 
 
@@ -298,11 +303,13 @@ class TwoDSpectrum(DataSaveable, Saveable):
         raise Exception("Unknown data part")
 
 
-    def get_area_integral(self, area, dpart=part_REAL):
+    def get_area_integral(self, area: Any, dpart: str = part_REAL) -> Any:
         """Returns an integral of a given area in the 2D spectrum
 
         """
-        def integral_square(x1, x2, y1, y2, data, dx, dy):
+        def integral_square(x1: float, x2: float, y1: float, y2: float,
+                            data: numpy.ndarray, dx: float,
+                            dy: float) -> float:
             (n1, n2) = data.shape
             data.reshape(n1*n2)
             return numpy.sum(data)*dy*dy
@@ -337,14 +344,19 @@ class TwoDSpectrum(DataSaveable, Saveable):
         raise Exception("Unknown data part")
 
 
-    def get_area_max(self, area, dpart=part_REAL, loc=None):
+    def get_area_max(self, area: Any, dpart: str = part_REAL,
+                    loc: list | None = None) -> Any:
         """Returns a max value in a given area in the 2D spectrum
 
         """
-        def find_in_square(x1, x2, y1, y2, data, dx, dy):
+        def find_in_square(x1: float, x2: float, y1: float, y2: float,
+                           data: numpy.ndarray, dx: float,
+                           dy: float) -> float:
             return numpy.amax(data)
 
-        def loc_in_square(x1, x2, y1, y2, data, dx, dy):
+        def loc_in_square(x1: float, x2: float, y1: float, y2: float,
+                          data: numpy.ndarray, dx: float,
+                          dy: float) -> tuple:
             loc = numpy.unravel_index(numpy.argmax(data),
                                       data.shape)
             x = x1 + loc[1]*dx
@@ -388,7 +400,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         raise Exception("Unknown data part")
 
 
-    def normalize2(self, norm=1.0, dpart=part_REAL, nmax=None, use_max=False):
+    def normalize2(self, norm: float = 1.0, dpart: str = part_REAL,
+                   nmax: list | None = None, use_max: bool = False) -> None:
         """Normalizes the spectrum to the given maximum.
 
         Normalizes the spectrum to the maximum of a given part of the spectrum.
@@ -427,7 +440,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             self.data = (self.data/mx)*norm
 
 
-    def devide_by(self, val):
+    def devide_by(self, val: float | int) -> None:
         """Devides the total spectrum by a value
 
 
@@ -440,7 +453,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.data = self.data/val
 
 
-    def _interpolate(self):
+    def _interpolate(self) -> None:
         """Interpolate the spectrum by splines
 
 
@@ -448,7 +461,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         pass
 
 
-    def zeropad(self, fac=1):
+    def zeropad(self, fac: int = 1) -> None:
         if fac == 1:
             return
 
@@ -466,7 +479,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         print("New length y: ", nNya)
 
 
-    def shift_energy(self, dE, interpolation="linear"):
+    def shift_energy(self, dE: float, interpolation: str = "linear") -> None:
         """Shift the spectrum in both frequency axis by certain amount
 
         The shift is specified as the energy that has to be added to the
@@ -567,7 +580,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
 
     # FIXME: implement this
-    def get_PumpProbeSpectrum(self):
+    def get_PumpProbeSpectrum(self) -> Any:
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum
 
         """
@@ -580,18 +593,19 @@ class TwoDSpectrum(DataSaveable, Saveable):
         return pp.calculate_from_2D(self)
 
 
-    def plot(self, fig=None, window=None,
-             stype=None, spart=part_REAL,
-             vmax=None, vmin_ratio=0.5,
-             colorbar=True, colorbar_loc="right",
-             cmap=None, Npos_contours=10,
-             show_states=None,
-             text_loc=None, fontsize="20", label=None,
-             show=False,
-             show_diagonal=None,
-             xlabel=None,
-             ylabel=None,
-             axis_label_font=None):
+    def plot(self, fig: Any = None, window: list | None = None,
+             stype: str | None = None, spart: str = part_REAL,
+             vmax: float | None = None, vmin_ratio: float = 0.5,
+             colorbar: bool = True, colorbar_loc: str = "right",
+             cmap: Any = None, Npos_contours: int = 10,
+             show_states: Any = None,
+             text_loc: list | None = None, fontsize: str = "20",
+             label: Any = None,
+             show: bool = False,
+             show_diagonal: Any = None,
+             xlabel: str | None = None,
+             ylabel: str | None = None,
+             axis_label_font: Any = None) -> None:
         """Plots the 2D spectrum
 
         Parameters
@@ -853,7 +867,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             self.show()
 
 
-    def show(self):
+    def show(self) -> None:
         """Show the plot of 2D spectrum
 
         By default, plots are not shown. It is waited until explicit show()
@@ -863,14 +877,14 @@ class TwoDSpectrum(DataSaveable, Saveable):
         plt.show()
 
 
-    def savefig(self, filename):
+    def savefig(self, filename: str) -> None:
         """Saves the fige of the plot into a file
 
         """
         plt.savefig(filename, bbox_inches="tight")
 
 
-    def trim_to(self, window=None):
+    def trim_to(self, window: list | None = None) -> None:
         """Trims the 2D spectrum to a specified region
 
         Parameters
