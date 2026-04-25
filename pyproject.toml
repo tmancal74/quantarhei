@@ -61,6 +61,15 @@ doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+exclude = [
+    "examples/",
+    "pavement.py",
+    "setup.py",
+    "tutorials/",
+    "docs/",
+    "tests/behave/",
+    "tests/matplotlib/",
+]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "UP", "I", "B", "D208", "D202", "D412", "D210", "D212", "RET505", "ISC003", "RUF"]
@@ -91,6 +100,7 @@ ignore = [
     "B018",    # useless-expression (1 violation)
     # B006 — fully resolved
     "B007",    # unused-loop-control-variable (66 violations)
+    "B017",    # assertRaises(Exception) — intentional in test suite
 ]
 
 [tool.mypy]

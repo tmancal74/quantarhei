@@ -1,4 +1,3 @@
-# coding: utf-8
 #
 # Purely electronic model of the Reaction Center
 #
@@ -11,13 +10,16 @@
 # In[1]:
 
 import os
+
 import numpy
 
 import quantarhei as qr
+
 print(qr.Manager().version)
 
 
 import matplotlib.pyplot as plt
+
 plt.switch_backend('agg')
 
 # In[2]:
@@ -38,7 +40,7 @@ if not os.path.isdir(pre_out):
 # Model from Jordanides at al. Ref. 1 is adjusted and extended by two CT states
 #
 #
-jordanides = False 
+jordanides = False
 
 if jordanides:
     offset = 0.0
@@ -310,7 +312,7 @@ with qr.energy_units("1/cm"):
 
 # absorption from effective theory
 from quantarhei import LabSetup
-from quantarhei.utils.vectors import X, Y, Z
+from quantarhei.utils.vectors import X
 
 lab = LabSetup()
 lab.set_polarizations(pulse_polarizations=[X,X,X], detection_polarization=X)
@@ -550,7 +552,7 @@ with qr.eigenbasis_of(HH):
 #
 indices_of_components = []
 names_of_components = ["PM", "PL", "BM", "BL","PCT1", "PCT2"] #["BM", "BL"] # "HL", "HM", "BL", , "BCT"
-names_of_components3 = ["PM", "PL", "BL"] 
+names_of_components3 = ["PM", "PL", "BL"]
 components = []
 for name in names_of_components3:
     indx = agg_eff.get_Molecule_index(name)

@@ -1,13 +1,13 @@
 
-# coding: utf-8
 
 # In[26]:
 import os
 import time
 
+import matplotlib.pyplot as plt
+
 import quantarhei as qr
 
-import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
 print(qr.Manager().version)
@@ -33,8 +33,8 @@ PM = frac.get_Molecule_by_name("PM")
 PL = frac.get_Molecule_by_name("PL")
 BL = frac.get_Molecule_by_name("BL")
 
-include_second_B = False 
-vib_at_second_B = False 
+include_second_B = False
+vib_at_second_B = False
 
 if include_second_B:
     BM = frac.get_Molecule_by_name("BM")
@@ -55,12 +55,12 @@ with qr.energy_units("1/cm"):
     mod_BM = qr.Mode(omega_B)
     mod_BL = qr.Mode(omega_B)
 
-Nmax_e = 1 
-Nmax_g = 1 
+Nmax_e = 1
+Nmax_g = 1
 
 HRF = 0.0111
-vib_P = False 
-vib_B = True 
+vib_P = False
+vib_B = True
 
 if vib_P:
     PM.add_Mode(mod_PM)
@@ -126,6 +126,7 @@ print("Total number of electronic states:", frac.Nel, frac_electronic.Ntot)
 # Internals of the aggregates have to be converted to excitonic basis
 #
 import time
+
 t1 = time.time()
 frac.diagonalize()
 t2 = time.time()
@@ -236,7 +237,7 @@ with qr.energy_units("1/cm"):
 #
 # # In[46]:
 #
-# 
+#
 # omega_B = 572
 #
 # with qr.energy_units("1/cm"):
