@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy
@@ -19,18 +22,18 @@ class PumpProbeSpectrum(DFunction):
 
     #data = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.t2 = -1.0
 
-    def set_axis(self, axis):
+    def set_axis(self, axis: Any) -> None:
         self.xaxis = axis
         self.axis = self.xaxis
 
-    def set_data(self, data):
+    def set_data(self, data: Any) -> None:
         self.data = data
 
 
-    def get_PumpProbeSpectrum(self):
+    def get_PumpProbeSpectrum(self) -> PumpProbeSpectrum:
         """Returns self
 
         This method is here to override the one inherented from TwoDSpectrum
@@ -39,7 +42,7 @@ class PumpProbeSpectrum(DFunction):
         return self
 
 
-    def set_t2(self, t2):
+    def set_t2(self, t2: float) -> None:
         """Sets the t2 (waiting time) of the spectrum
 
 
@@ -47,7 +50,7 @@ class PumpProbeSpectrum(DFunction):
         self.t2 = t2
 
 
-    def get_t2(self):
+    def get_t2(self) -> float:
         """Returns the t2 (waiting time) of the spectrum
 
         """
@@ -59,23 +62,23 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
     """Container for a set of pump-probe spectra
 
     """
-    def __init__(self, t2axis=None):
+    def __init__(self, t2axis: Any = None) -> None:
 
         self.t2axis = t2axis
-        self.spectra = {}
+        self.spectra: dict[str, Any] = {}
         self.itype = None
 
-    def plot(self):
+    def plot(self) -> None:
 
         plt.clf()
         spctr = self.get_spectra()
         for sp in spctr:
             plt.plot(sp.xaxis.data,sp.data)
 
-    def set_spectrum(self, spec, tag):
+    def set_spectrum(self, spec: Any, tag: Any) -> None:
         self.spectra[tag] = spec
 
-    def amax(self):
+    def amax(self) -> float:
         mxs = []
         for s in self.get_spectra():
             spect = numpy.real(s.data)
@@ -83,7 +86,7 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
             mxs.append(mx)
         return numpy.amax(numpy.array(mxs))
 
-    def amin(self):
+    def amin(self) -> float:
         mxs = []
         for s in self.get_spectra():
             spect = numpy.real(s.data)
@@ -93,10 +96,10 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
 
 
 
-    def make_movie(self, filename, axis=None,
-                   cmap=None, vmax=None, vmin=None,
-                   frate=20, dpi=100, start=None, end=None,
-                   show_states=None, progressbar=False):
+    def make_movie(self, filename: str, axis: Any = None,
+                   cmap: Any = None, vmax: Any = None, vmin: Any = None,
+                   frate: int = 20, dpi: int = 100, start: Any = None, end: Any = None,
+                   show_states: Any = None, progressbar: bool = False) -> None:
 
         import matplotlib.animation as manimation
         import matplotlib.pyplot as plt
@@ -157,12 +160,12 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
 
 class PumpProbeSpectrumCalculator(TwoDResponseCalculator):
 
-    def __init__(self, t1axis, t2axis, t3axis):
+    def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any) -> None:
         pass
 
 
 
-def calculate_from_2D(twod):
+def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     """Calculates pump-probe spectrum from 2D spectrum
 
     Calculates pump-probe spectrum from 2D spectrum
@@ -206,7 +209,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDResponseCalculator):
     """
 
 
-    def calculate_all_system(self, sys, H, eUt, lab):
+    def calculate_all_system(self, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
         """Calculates all spectra corresponding to a specified t2axis
 
         """
@@ -218,7 +221,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDResponseCalculator):
             return tcont.get_PumpProbeSpectrumContainer()
 
 
-    def calculate_one_system(self, t2, sys, H, eUt, lab):
+    def calculate_one_system(self, t2: float, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
         """Calculates one spectru corresponding to a specified t2 time
 
         """

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -24,7 +27,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     """
 
 
-    def __init__(self, t1axis, t2axis, t3axis,temp=None):
+    def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any, temp: Any = None) -> None:
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
         self.widthy = convert(300, "1/cm", "int")
@@ -33,8 +36,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         self.temp = temp # Temperature
 
 
-    def bootstrap(self,rwa=0.0, pathways=None, verbose=False,
-                  shape="Gaussian"):
+    def bootstrap(self, rwa: float = 0.0, pathways: Any = None, verbose: bool = False,
+                  shape: str = "Gaussian") -> None:
 
         self.shape = shape
 
@@ -59,25 +62,25 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         self.tc = 0
 
-    def get_storage(self):
+    def get_storage(self) -> Any:
         return storage
 
-    def set_width(self, val):
+    def set_width(self, val: float) -> None:
         m = Manager()
         self.widthx = m.convert_energy_2_internal_u(val)
         self.widthy = m.convert_energy_2_internal_u(val)
 
-    def set_deph(self, val):
+    def set_deph(self, val: float) -> None:
         m = Manager()
         self.dephx = m.convert_energy_2_internal_u(val)
         self.dephy = m.convert_energy_2_internal_u(val)
 
 
-    def set_pathways(self, pathways):
+    def set_pathways(self, pathways: Any) -> None:
         self.pathways = pathways
 
 
-    def calculate_next(self):
+    def calculate_next(self) -> Any:
         """Calculate next spectrum and increment t2 time
 
         """
@@ -85,13 +88,13 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         self.tc += 1
         return sone
 
-    def set_next(self, tc):
+    def set_next(self, tc: int) -> None:
         """Set next current t2 time
 
         """
         self.tc = tc
 
-    def calculate_one(self, tc):
+    def calculate_one(self, tc: int) -> Any:
         """Calculate the 2D spectrum for all pathways
 
         """
@@ -123,7 +126,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         return onetwod
 
 
-    def calculate(self):
+    def calculate(self) -> Any:
         """Calculate the 2D spectrum for all pathways
 
         """
@@ -156,8 +159,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         return onetwod
 
 
-    def calculate_all_system(self, sys, eUt, lab,
-                             selection=None, show_progress=False, dtol=0.0001):
+    def calculate_all_system(self, sys: Any, eUt: Any, lab: Any,
+                             selection: Any = None, show_progress: bool = False, dtol: float = 0.0001) -> Any:
         """Calculates all 2D spectra for a system and evolution superoperator
 
         """
@@ -198,8 +201,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         return tcont
 
 
-    def calculate_one_system(self, t2, sys, eUt, lab,
-                             selection=None, pways=None, dtol=1.0e-12):
+    def calculate_one_system(self, t2: float, sys: Any, eUt: Any, lab: Any,
+                             selection: Any = None, pways: Any = None, dtol: float = 1.0e-12) -> Any:
         """Returns 2D spectrum at t2 for a system and evolution superoperator
 
         """
@@ -304,7 +307,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         return twod1
 
 
-    def calculate_pathway(self, pathway, shape="Gaussian"):
+    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian") -> numpy.ndarray:
         """Calculate the shape of a Liouville pathway
 
         """

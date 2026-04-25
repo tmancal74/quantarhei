@@ -568,7 +568,7 @@ from .utils.vectors import normalize2 as normalize2
 from .wizard.input.input import Input as Input
 
 
-def exit(msg=None):
+def exit(msg: str | None = None) -> None:
     """Exit to the level above the script with SystemExit exception
 
     """
@@ -578,7 +578,7 @@ def exit(msg=None):
     sys.exit()
 
 
-def stop(msg=None):
+def stop(msg: str | None = None) -> None:
     """Stop execution and leave to level above
 
     """
@@ -586,7 +586,7 @@ def stop(msg=None):
 
 
 
-def show_plot(block=True):
+def show_plot(block: bool = True) -> None:
     """Shows current plot
 
     This function is used to avoid explicit import of matplotlib
@@ -596,7 +596,7 @@ def show_plot(block=True):
 
 
 
-def savefig(fname):
+def savefig(fname: str) -> None:
     """Saves current plot to a file
 
     This function is used to avoid explicit import of matplotlib
@@ -605,13 +605,13 @@ def savefig(fname):
     plt.savefig(fname)
 
 
-def assert_version(check, vno):
+def assert_version(check: str, vno: str) -> None:
     """Throws an exception if the condition is not satisfied
 
     """
     from packaging import version
 
-    def ext():
+    def ext() -> None:
         exit("Version requirement not satisfied.")
 
     if check == ">=":
