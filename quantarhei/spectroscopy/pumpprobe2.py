@@ -1,5 +1,8 @@
 
+from __future__ import annotations
+
 import copy
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy
@@ -28,19 +31,19 @@ class PumpProbeSpectrum(DFunction):
 
     #data = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.t2 = -1.0
         self.data = None
         self._has_imag = False
 
-    def set_axis(self, axis):
+    def set_axis(self, axis: Any) -> None:
         self.xaxis = axis
         self.axis = self.xaxis
 
-    def set_data(self, data):
+    def set_data(self, data: Any) -> None:
         self.data = data
 
-    def get_PumpProbeSpectrum(self):
+    def get_PumpProbeSpectrum(self) -> PumpProbeSpectrum:
         """Returns self
 
         This method is here to override the one inherented from TwoDSpectrum
@@ -49,7 +52,7 @@ class PumpProbeSpectrum(DFunction):
         return self
 
 
-    def set_t2(self, t2):
+    def set_t2(self, t2: float) -> None:
         """Sets the t2 (waiting time) of the spectrum
 
 
@@ -57,14 +60,14 @@ class PumpProbeSpectrum(DFunction):
         self.t2 = t2
 
 
-    def get_t2(self):
+    def get_t2(self) -> float:
         """Returns the t2 (waiting time) of the spectrum
 
         """
         return self.t2
 
 
-    def _add_data(self,data):
+    def _add_data(self, data: Any) -> None:
         if self.data is None:
             self.set_data(data)
         else:
@@ -81,22 +84,22 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
     """Container for a set of pump-probe spectra
 
     """
-    def __init__(self, t2axis=None):
+    def __init__(self, t2axis: Any = None) -> None:
 
         self.t2axis = t2axis
-        self.spectra = {}
+        self.spectra: dict[Any, Any] = {}
 
-    def plot(self):
+    def plot(self) -> None:
 
         plt.clf()
         spctr = self.get_spectra()
         for sp in spctr:
             plt.plot(sp.xaxis.data,sp.data)
 
-    def set_spectrum(self, spec, tag):
+    def set_spectrum(self, spec: Any, tag: Any) -> None:
         self.spectra[tag] = spec
 
-    def amax(self):
+    def amax(self) -> Any:
         mxs = []
         for s in self.get_spectra():
             spect = numpy.real(s.data)
@@ -104,7 +107,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             mxs.append(mx)
         return numpy.amax(numpy.array(mxs))
 
-    def amin(self):
+    def amin(self) -> Any:
         mxs = []
         for s in self.get_spectra():
             spect = numpy.real(s.data)
@@ -113,7 +116,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         return numpy.amin(numpy.array(mxs))
 
 
-    def plot2D(self, axis = None, units = "nm", zero_centered = True, lines = None):
+    def plot2D(self, axis: Any = None, units: str = "nm", zero_centered: bool = True, lines: Any = None) -> None:
 
         t2ax = self.t2axis
         freqax = self.spectra[t2ax.data[0]].axis
@@ -155,7 +158,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             plt.colorbar(p,ax=ax)
             fig.savefig('PP_2D_spectra.png', format='png', dpi=1200)
 
-    def plot_slices(self,freqs,expRes=None,units="nm"):
+    def plot_slices(self, freqs: Any, expRes: Any = None, units: str = "nm") -> numpy.ndarray:
 
         # Initialize frequency cuts of PP spectra
         spectra_freq = numpy.zeros((len(freqs),self.t2axis.length),dtype="f8")
@@ -191,10 +194,10 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         return spectra_freq
 
 
-    def make_movie(self, filename, axis=None,
-                   cmap=None, vmax=None, vmin=None,
-                   frate=20, dpi=100, start=None, end=None,
-                   show_states=None, progressbar=False):
+    def make_movie(self, filename: str, axis: Any = None,
+                   cmap: Any = None, vmax: Any = None, vmin: Any = None,
+                   frate: int = 20, dpi: int = 100, start: Any = None, end: Any = None,
+                   show_states: Any = None, progressbar: bool = False) -> None:
 
         import matplotlib.animation as manimation
         import matplotlib.pyplot as plt
@@ -260,13 +263,13 @@ class PumpProbeSpectrumCalculator:
 
     system = derived_type("system",[Molecule,Aggregate])
 
-    def __init__(self, t2axis, t3axis,
-                 system=None,
-                 dynamics="secular",
-                 relaxation_tensor=None,
-                 rate_matrix=None,
-                 effective_hamiltonian=None,
-                 separate_relax_pwy=True):
+    def __init__(self, t2axis: Any, t3axis: Any,
+                 system: Any = None,
+                 dynamics: str = "secular",
+                 relaxation_tensor: Any = None,
+                 rate_matrix: Any = None,
+                 effective_hamiltonian: Any = None,
+                 separate_relax_pwy: bool = True) -> None:
 
 
         self.t2axis = t2axis
@@ -311,7 +314,7 @@ class PumpProbeSpectrumCalculator:
 
         self.tc = 0
 
-    def bootstrap(self, rwa=0.0, pathways=None, lab=None, verbose=False, adiabatic=None):
+    def bootstrap(self, rwa: float = 0.0, pathways: Any = None, lab: Any = None, verbose: bool = False, adiabatic: Any = None) -> None:
         """Sets up the environment for pump-probe calculation
 
         """
@@ -360,10 +363,10 @@ class PumpProbeSpectrumCalculator:
         self.lab = lab
 
 
-    def set_pathways(self, pathways):
+    def set_pathways(self, pathways: Any) -> None:
         self.pathways = pathways
 
-    def bath_reorg(self,cfm,indx):
+    def bath_reorg(self, cfm: Any, indx: Any) -> float:
         coft = cfm.cfuncs[cfm.get_index_by_where((indx,indx))]
         reorg_bath = 0.0
         for parm in coft.params:
@@ -371,7 +374,7 @@ class PumpProbeSpectrumCalculator:
                 reorg_bath += parm['reorg']
         return reorg_bath
 
-    def _excitonic_reorg_diag(self, SS, subtract_bath=True):
+    def _excitonic_reorg_diag(self, SS: numpy.ndarray, subtract_bath: bool = True) -> numpy.ndarray:
         """Returns the reorganisation energy of an exciton state
         """
         # SystemBathInteraction
@@ -415,7 +418,7 @@ class PumpProbeSpectrumCalculator:
 
         return reorg_exct
 
-    def _site_reorg_diag(self, subtract_bath=True):
+    def _site_reorg_diag(self, subtract_bath: bool = True) -> numpy.ndarray:
         """Returns the reorganisation energy of an exciton state
         """
         # SystemBathInteraction
@@ -454,7 +457,7 @@ class PumpProbeSpectrumCalculator:
 
         return reorg_site
 
-    def calculate_all_system_approx(self, sys, rdmt, lab, show_progress=False,approx=None,spec=None):
+    def calculate_all_system_approx(self, sys: Any, rdmt: Any, lab: Any, show_progress: bool = False, approx: Any = None, spec: Any = None) -> Any:
         """Calculates all 2D spectra for a system and reduced density matrix
         evolution. The approach assumes no diiference between pathways with
         jumps and without the jumps.
@@ -530,7 +533,7 @@ class PumpProbeSpectrumCalculator:
         return tcont
 
 
-    def calculate_all_system(self, sys, eUt, lab, show_progress=False):
+    def calculate_all_system(self, sys: Any, eUt: Any, lab: Any, show_progress: bool = False) -> Any:
         """Calculates all 2D spectra for a system and evolution superoperator
 
         """
@@ -554,7 +557,7 @@ class PumpProbeSpectrumCalculator:
 
         return tcont
 
-    def calculate_one_system(self, t2, sys, eUt, lab, pways=None):
+    def calculate_one_system(self, t2: float, sys: Any, eUt: Any, lab: Any, pways: Any = None) -> Any:
         """Returns pump-probe spectrum at t2 for a system and evolution
         superoperator
 
@@ -605,14 +608,14 @@ class PumpProbeSpectrumCalculator:
 
         return pprobe1
 
-    def calculate_next(self,t2):
+    def calculate_next(self, t2: float) -> Any:
 
         sone = self.calculate_one(self.tc,t2)
         #print(self.tc, sone)
         self.tc += 1
         return sone
 
-    def calculate_one(self, tc, t2):
+    def calculate_one(self, tc: int, t2: float) -> Any:
         """Calculate the 2D spectrum for all pathways
 
         """
@@ -631,7 +634,7 @@ class PumpProbeSpectrumCalculator:
 
         return onepp
 
-    def _c2g(self,timeaxis,coft):
+    def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
         """Converts correlation function to lineshape function
 
         Explicit numerical double integration of the correlation
@@ -662,7 +665,7 @@ class PumpProbeSpectrumCalculator:
         gt = sr + 1j*si
         return gt
 
-    def _excitonic_coft(self,SS,AG,n):
+    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
         """Returns energy gap correlation function data of an exciton state n
 
         """
@@ -692,7 +695,7 @@ class PumpProbeSpectrumCalculator:
 #        print(numpy.isclose(ct,ct3).all())
         return ct
 
-    def _SE_excitonic_cofts(self,SS,AG,tau = 0):
+    def _SE_excitonic_cofts(self, SS: numpy.ndarray, AG: Any, tau: float = 0) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns energy gap correlation function data of an exciton state n
 
         """
@@ -780,7 +783,7 @@ class PumpProbeSpectrumCalculator:
         return ct3,ct3tau
 
 
-    def _SE_excitonic_cofts_test(self,SS,AG,tau = 0):
+    def _SE_excitonic_cofts_test(self, SS: numpy.ndarray, AG: Any, tau: float = 0) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns energy gap correlation function data of an exciton state n
 
         """
@@ -883,7 +886,7 @@ class PumpProbeSpectrumCalculator:
 
         return gt3,gt3tau
 
-    def _SE_excitonic_gofts(self,SS,AG,tau = 0,_diag_double_only=False):
+    def _SE_excitonic_gofts(self, SS: numpy.ndarray, AG: Any, tau: float = 0, _diag_double_only: bool = False) -> numpy.ndarray:
         """Returns energy gap correlation function data of an exciton state n
 
         """
@@ -978,7 +981,7 @@ class PumpProbeSpectrumCalculator:
 
         return gt3tau
 
-    def _excitonic_reorg_energy(self, SS, AG):
+    def _excitonic_reorg_energy(self, SS: numpy.ndarray, AG: Any) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns the reorganisation energy of an exciton state
         """
         # SystemBathInteraction
@@ -1012,7 +1015,7 @@ class PumpProbeSpectrumCalculator:
 
         return reorg_exct,reorg_exct_sd
 
-    def calculate_pathways(self, pathways, tau):
+    def calculate_pathways(self, pathways: Any, tau: float) -> numpy.ndarray:
         """Calculate the shape of a Liouville pathway
 
         """
@@ -1198,7 +1201,7 @@ class PumpProbeSpectrumCalculator:
 
         return data
 
-    def calculate_pathways_rdm(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=None):
+    def calculate_pathways_rdm(self, rdm0: Any, rdm: Any, tau: float, lab: Any, ptol: float = 1.0e-6, spec: Any = None) -> Any:
         """Calculate the shape of a Liouville pathway
         so far implemented only for electronic
         aggregate.
@@ -1334,7 +1337,7 @@ class PumpProbeSpectrumCalculator:
         return onepp
 
 
-    def calculate_pathways_rdm_novoderezhkin(self, rdm0, rdm, tau, lab, ptol=1.0e-6,spec=None):
+    def calculate_pathways_rdm_novoderezhkin(self, rdm0: Any, rdm: Any, tau: float, lab: Any, ptol: float = 1.0e-6, spec: Any = None) -> Any:
         """Calculate the shape of a Liouville pathway
         so far implemented only for electronic
         aggregate.
@@ -1454,7 +1457,7 @@ class PumpProbeSpectrumCalculator:
 
 
 
-def calculate_from_2D(twod):
+def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     """Calculates pump-probe spectrum from 2D spectrum
 
     Calculates pump-probe spectrum from 2D spectrum
@@ -1497,7 +1500,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
     """
 
 
-    def calculate_all_system(self, sys, H, eUt, lab):
+    def calculate_all_system(self, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
         """Calculates all spectra corresponding to a specified t2axis
 
         """
@@ -1509,7 +1512,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
             return tcont.get_PumpProbeSpectrumContainer()
 
 
-    def calculate_one_system(self, t2, sys, H, eUt, lab):
+    def calculate_one_system(self, t2: float, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
         """Calculates one spectru corresponding to a specified t2 time
 
         """
@@ -1521,7 +1524,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
             return tcont.get_PumpProbeSpectrum()
 
 
-def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'): # █ = U-219
+def printProgressBar(iteration: int, total: int, prefix: str = '', suffix: str = '', decimals: int = 1, length: int = 100, fill: str = '█') -> None: # █ = U-219
     """Call n a loop to create terminal progress bar
 
     Parameters

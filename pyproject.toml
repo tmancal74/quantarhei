@@ -201,6 +201,7 @@ ignore = [
 python_version = "3.10"
 ignore_missing_imports = true
 no_strict_optional = true
+disallow_untyped_defs = true
 exclude = [
     "quantarhei/wizard/examples",
     "quantarhei/wizard/benchmarks",
@@ -244,50 +245,19 @@ module = [
     "quantarhei.spectroscopy.dsfeynman",
     "quantarhei.spectroscopy.response_implementations",
     "quantarhei.spectroscopy.pathwayanalyzer",
+    "quantarhei.spectroscopy.abscalculator",
+    "quantarhei.spectroscopy.twodcontainer",
+    "quantarhei.spectroscopy.fluorescence",
+    "quantarhei.spectroscopy.circular_dichroism",
+    "quantarhei.spectroscopy.linear_dichroism",
+    "quantarhei.spectroscopy.pumpprobe2",
+    "quantarhei.spectroscopy.labsetup",
     "quantarhei.wizard.input.input",
+    "quantarhei.wizard.simulations.simulation",
+    "quantarhei.wizard.simulations.excitondynamics",
+    "quantarhei.implementations.aceto.band_system",
 ]
 ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = ["quantarhei.utils.*"]
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["quantarhei.core.managers", "quantarhei.core.parallel"]
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = [
-    "quantarhei.core.datasaveable",
-    "quantarhei.core.dfunction",
-    "quantarhei.core.frequency",
-    "quantarhei.core.genconf",
-    "quantarhei.core.implementations",
-    "quantarhei.core.logconf",
-    "quantarhei.core.matrixdata",
-    "quantarhei.core.numconf",
-    "quantarhei.core.parcel",
-    "quantarhei.core.plottable",
-    "quantarhei.core.saveable",
-    "quantarhei.core.singleton",
-    "quantarhei.core.stochastics",
-    "quantarhei.core.time",
-    "quantarhei.core.triangle",
-    "quantarhei.core.unique",
-    "quantarhei.core.units",
-    "quantarhei.core.valueaxis",
-    "quantarhei.core.wrappers",
-    "quantarhei.core.conf.qrhei",
-]
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["quantarhei.qm.*"]
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["quantarhei.builders.*"]
-disallow_untyped_defs = true
 
 # Modules in builders/ with pre-existing structural issues (LSP violations,
 # descriptor chains, object-typed params with attr access, unusual PiMolecule

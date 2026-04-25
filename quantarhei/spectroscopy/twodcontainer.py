@@ -6,7 +6,10 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
 import numbers
+from typing import Any
 
 #import matplotlib.pyplot as plt
 import numpy
@@ -52,7 +55,7 @@ class TwoDResponseContainer(Saveable):
 
     """
 
-    def __init__(self, t2axis=None, keep_pathways=False, keep_stypes=True):
+    def __init__(self, t2axis: Any = None, keep_pathways: bool = False, keep_stypes: bool = True) -> None:
 
         self.t2axis = t2axis
         self.keep_pathways = keep_pathways
@@ -74,7 +77,7 @@ class TwoDResponseContainer(Saveable):
             self.use_indexing_type(itype=t2axis)
 
 
-    def use_indexing_type(self, itype):
+    def use_indexing_type(self, itype: Any) -> None:
         """Sets the type of indices used to identify spectra
 
         Parameters
@@ -111,7 +114,7 @@ class TwoDResponseContainer(Saveable):
             raise Exception("Unknown indexing type")
 
 
-    def set_spectrum(self, spect, tag=None):
+    def set_spectrum(self, spect: Any, tag: Any = None) -> Any:
         """Stores spectrum with a tag (time, index, etc.)
 
         Stores the spectrum according to present indexing scheme
@@ -173,7 +176,7 @@ class TwoDResponseContainer(Saveable):
         raise Exception("Unknown type of indexing")
 
 
-    def _lousy_equal(self, x1, x2, dx, frac=0.25):
+    def _lousy_equal(self, x1: float, x2: float, dx: float, frac: float = 0.25) -> bool:
         """Equals up to fraction of dx
 
         This function returns True if x1 is closer to x2 than `frac` of
@@ -190,7 +193,7 @@ class TwoDResponseContainer(Saveable):
         return False
 
 
-    def get_spectrum_by_index(self, indx):
+    def get_spectrum_by_index(self, indx: int) -> Any:
         """Returns spectrum by integet index
 
         The integer index is assigned to all spectra in the order they were
@@ -210,14 +213,14 @@ class TwoDResponseContainer(Saveable):
         return self.spectra[self.tags[indx]]
 
 
-    def get_response(self, tag):
+    def get_response(self, tag: Any) -> Any:
         """Same as get_spectrum, but the name more sense for a response container
 
         """
         return self.get_spectrum(tag)
 
 
-    def get_spectrum(self, tag):
+    def get_spectrum(self, tag: Any) -> Any:
         """Returns spectrum corresponing to time t2
 
         Checks if the time t2 is present in the t2axis
@@ -256,7 +259,7 @@ class TwoDResponseContainer(Saveable):
             raise Exception("Unknown type of indexing")
 
 
-    def set_data_flag(self, flag):
+    def set_data_flag(self, flag: Any) -> None:
         """Sets data flag for all spectra in the container
 
 
@@ -267,7 +270,7 @@ class TwoDResponseContainer(Saveable):
             sp.set_data_flag(flag)
 
 
-    def get_TwoDSpectrumContainer(self, stype=signal_TOTL):
+    def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:
         """Returns a container with specific spectra
 
         """
@@ -287,7 +290,7 @@ class TwoDResponseContainer(Saveable):
         raise Exception("")
 
 
-    def get_nearest(self, val):
+    def get_nearest(self, val: float) -> Any:
 
         if self.itype == "FrequencyAxis":
             #print(Manager().current_units["frequency"])
@@ -308,7 +311,7 @@ class TwoDResponseContainer(Saveable):
             return self.spectra[self.tags[imin]], imin
 
 
-    def length(self):
+    def length(self) -> int:
         """Returns the length of the container
 
 
@@ -316,7 +319,7 @@ class TwoDResponseContainer(Saveable):
         return len(self.spectra.keys())
 
 
-    def get_spectra(self, start=None, end=None):
+    def get_spectra(self, start: Any = None, end: Any = None) -> list[Any]:
         """Returns a list of the calculated spectra
 
         Returns all spectra or an interval of spectra when `start` and `end`
@@ -343,7 +346,7 @@ class TwoDResponseContainer(Saveable):
         return ven2
 
 
-    def get_PumpProbeSpectrumContainer(self, skip=0):
+    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
         """Converts this container into PumpProbeSpectrumContainer
 
         """
@@ -380,7 +383,7 @@ class TwoDResponseContainer(Saveable):
         return ppcont
 
 
-    def get_integrated_area_evolution(self, times, area, dpart=part_REAL):
+    def get_integrated_area_evolution(self, times: Any, area: Any, dpart: Any = part_REAL) -> Any:
         """Returns the integrated area of the 2D spectra as a function of their index
 
         """
@@ -400,7 +403,7 @@ class TwoDResponseContainer(Saveable):
         return DFunction(times, vals)
 
 
-    def get_point_evolution(self, x, y, times):
+    def get_point_evolution(self, x: float, y: float, times: Any) -> Any:
         """Tracks an evolution of a single point on the 2D spectrum
 
 
@@ -432,7 +435,7 @@ class TwoDResponseContainer(Saveable):
         return DFunction(times, vals)
 
 
-    def global_fit_exponential(self, guess=None):
+    def global_fit_exponential(self, guess: Any = None) -> Any:
         """Global fit of the data with exponentials
 
 
@@ -452,8 +455,8 @@ class TwoDResponseContainer(Saveable):
 
 
 
-    def fft(self, ffttype="complex-positive", window=None, offset=0.0,
-            dtype=None, dpart=part_COMPLEX, tag=None):
+    def fft(self, ffttype: str = "complex-positive", window: Any = None, offset: float = 0.0,
+            dtype: Any = None, dpart: Any = part_COMPLEX, tag: Any = None) -> Any:
         """Fourier transform in t2 time
 
         This method performs FFT on the container data determined by the
@@ -597,18 +600,18 @@ class TwoDResponseContainer(Saveable):
         return new_container
 
 
-    def _create_root_group(self, start, name):
+    def _create_root_group(self, start: Any, name: str) -> Any:
         return start.create_group(name)
 
 
-    def _save_axis(self, rt, name, ax):
+    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
         axdir = rt.create_group(name)
         axdir.attrs.create("start",ax.start)
         axdir.attrs.create("length",ax.length)
         axdir.attrs.create("step",ax.step)
 
 
-    def _load_axis(self, rt, name):
+    def _load_axis(self, rt: Any, name: str) -> Any:
         axdir = rt[name]
         start = axdir.attrs["start"]
         length = axdir.attrs["length"]
@@ -616,7 +619,7 @@ class TwoDResponseContainer(Saveable):
         return TimeAxis(start, length, step)
 
 
-    def trimall_to(self, window=None):
+    def trimall_to(self, window: Any = None) -> None:
         """Trims all spectra in the container
 
         Parameters
@@ -632,7 +635,7 @@ class TwoDResponseContainer(Saveable):
                 s.trim_to(window=axes)
 
     # FIXME: this is still legacy version
-    def amax(self, spart=part_REAL):
+    def amax(self, spart: Any = part_REAL) -> Any:
         """Returns maximum amplitude of the spectra in the container
 
         """
@@ -653,10 +656,10 @@ class TwoDResponseContainer(Saveable):
 
 
     # Print iterations progress
-    def _printProgressBar(self, iteration, total,
-                          prefix = '', suffix = '',
-                          decimals = 1, length = 100,
-                          fill='*'):
+    def _printProgressBar(self, iteration: int, total: int,
+                          prefix: str = '', suffix: str = '',
+                          decimals: int = 1, length: int = 100,
+                          fill: str = '*') -> None:
         """Call in a loop to create terminal progress bar
         @params:
             iteration   - Required  : current iteration (Int)
@@ -681,25 +684,25 @@ class TwoDResponseContainer(Saveable):
 
 
 
-    def make_movie(self, filename, window=None,
-                   stype=signal_TOTL, spart=part_REAL,
-                   cmap=None,
-                   Npos_contours=10,
-                   vmax=None, vmin_ratio=0.5,
-                   xlabel=None,
-                   ylabel=None,
-                   axis_label_font=None,
-                   start=None, end=None,
-                   frate=20, dpi=100,
-                   show_states=None,
-                   show_states_func=None,
-                   label=None,
-                   label_func=None,
-                   text_loc=None,
-                   progressbar=False,
-                   use_t2=True,
-                   title="Quantarhei movie",
-                   comment="Created with Quantarhei"):
+    def make_movie(self, filename: str, window: Any = None,
+                   stype: Any = signal_TOTL, spart: Any = part_REAL,
+                   cmap: Any = None,
+                   Npos_contours: int = 10,
+                   vmax: Any = None, vmin_ratio: float = 0.5,
+                   xlabel: Any = None,
+                   ylabel: Any = None,
+                   axis_label_font: Any = None,
+                   start: Any = None, end: Any = None,
+                   frate: int = 20, dpi: int = 100,
+                   show_states: Any = None,
+                   show_states_func: Any = None,
+                   label: Any = None,
+                   label_func: Any = None,
+                   text_loc: Any = None,
+                   progressbar: bool = False,
+                   use_t2: bool = True,
+                   title: str = "Quantarhei movie",
+                   comment: str = "Created with Quantarhei") -> None:
         """Creates a movie out of the spectra in the container
 
 
@@ -782,7 +785,7 @@ class TwoDResponseContainer(Saveable):
 #                    return
 
 
-def _exp_2D_data0(params, times=None, cont=None):
+def _exp_2D_data0(params: Any, times: Any = None, cont: Any = None) -> numpy.ndarray:
     """Returns a residue between time dependent matrix data and a matrix
     multipled by a sum of exponentials
 
@@ -829,7 +832,7 @@ def _exp_2D_data0(params, times=None, cont=None):
 
 class TwoDSpectrumContainer(TwoDResponseContainer):
 
-    def __init__(self, t2axis=None, dtype=signal_TOTL):
+    def __init__(self, t2axis: Any = None, dtype: Any = signal_TOTL) -> None:
 
         self.t2axis = t2axis
 
@@ -847,7 +850,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             self.use_indexing_type(itype=t2axis)
 
 
-    def set_data_flag(self, flag):
+    def set_data_flag(self, flag: Any) -> None:
         """Sets data flag for all spectra in the container
 
 
@@ -856,7 +859,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             raise Exception("Cannot change spectra type")
 
 
-    def get_TwoDSpectrumContainer(self, stype=signal_TOTL):
+    def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:
         """Returns a container with specific spectra
 
         """
@@ -866,7 +869,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
 
     # FIXME: This needs to be reimplemented
-    def get_PumpProbeSpectrumContainer(self, skip=0):
+    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
         """Converts this container into PumpProbeSpectrumContainer
 
         """
@@ -907,7 +910,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         raise Exception("Cannot calculate Pump-probe from 2D"
                         " spectra of type"+self.dtype)
 
-    def normalize2(self, norm=1.0, each=False, dpart=part_REAL):
+    def normalize2(self, norm: float = 1.0, each: bool = False, dpart: Any = part_REAL) -> Any:
         """Normalize the whole container of spectra
 
         Normalization of the whole container so that the maximum
@@ -950,8 +953,8 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         return nmax
 
 
-    def fft(self, ffttype="complex-positive", window=None, offset=0.0,
-            dtype=None, dpart=part_COMPLEX, tag=None):
+    def fft(self, ffttype: str = "complex-positive", window: Any = None, offset: float = 0.0,
+            dtype: Any = None, dpart: Any = part_COMPLEX, tag: Any = None) -> Any:
         """Fourier transform in t2 time
 
         This method performs FFT on the container data determined by the
@@ -1096,7 +1099,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         return new_container
 
 
-    def unitedir(self, dname):
+    def unitedir(self, dname: str) -> Any:
 
         clist = self.loaddir(dname)
 

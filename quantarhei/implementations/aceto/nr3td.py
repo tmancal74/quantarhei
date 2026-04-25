@@ -3,6 +3,10 @@ multi-level system
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 #import numpy
 
 #import aceto.nr3td_fic as nr3td_fic
@@ -15,7 +19,7 @@ multi-level system
 #
 #
 
-def nr3_r1g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r1g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R2g response function
 
 
@@ -27,7 +31,7 @@ def nr3_r1g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 
-def nr3_r2g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r2g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R2g response function
 
 
@@ -84,7 +88,7 @@ def nr3_r2g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
     pass
 
 
-def nr3_r2gt10(lab, sys, it2, t3s, rwa, rmin, resp):
+def nr3_r2gt10(lab: Any, sys: Any, it2: int, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R2g response function
 
 
@@ -123,7 +127,7 @@ def nr3_r2gt10(lab, sys, it2, t3s, rwa, rmin, resp):
     pass
 
 
-def nr3_r3g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r3g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R3g response function
 
 
@@ -155,7 +159,7 @@ def nr3_r3g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
     pass
 
 
-def nr3_r4g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r4g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R4g response function
 
 
@@ -166,7 +170,7 @@ def nr3_r4g(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
     pass
 
 
-def nr3_r1fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
+def nr3_r1fs(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any, plist: bool = False) -> None:
     """Calculates R1f* response function
 
     """
@@ -185,7 +189,7 @@ def nr3_r1fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
     pass
 
 
-def nr3_r2fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
+def nr3_r2fs(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any, plist: bool = False) -> None:
     """Calculates R2f* response function
 
     """
@@ -209,7 +213,7 @@ def nr3_r2fs(lab, sys, it2, t1s, t3s, rwa, rmin, resp, plist=False):
 #  Energy transfer pathways
 #
 #
-def nr3_r2g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r2g_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R2g response function
 
 
@@ -251,7 +255,7 @@ def nr3_r2g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
     pass
 
 
-def nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r2g_trN(lab: Any, sys: Any, No: int, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R2g response function with energy transfer
 
     Calculates R2g response function with energy transfer to the No-th
@@ -300,7 +304,7 @@ def nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp):
 
 
 
-def nr3_r1g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r1g_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R2g response function
 
 
@@ -343,7 +347,7 @@ def nr3_r1g_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 
-def nr3_r1fs_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r1fs_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R1f* transfer response function
 
     """
@@ -356,7 +360,7 @@ def nr3_r1fs_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
 
 
 
-def nr3_r2fs_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
+def nr3_r2fs_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
     """Calculates R1f* transfer response function
 
     """
@@ -366,4 +370,3 @@ def nr3_r2fs_trans(lab, sys, it2, t1s, t3s, rwa, rmin, resp):
     #                        sys.SS1, sys.SS2, sys.Ueet2, it2+1, t1s, t3s, rwa,
     #                        rmin, resp)
     pass
-
