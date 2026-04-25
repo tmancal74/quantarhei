@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy
 
 #from ...core.managers import Manager
@@ -34,8 +36,9 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
 
 
     """
-    def __init__(self, ham, sbi, initialize=True,
-                 cutoff_time=None, coupling_cutoff=None):
+    def __init__(self, ham: object, sbi: object, initialize: bool = True,
+                 cutoff_time: float | None = None,
+                 coupling_cutoff: float | None = None) -> None:
 
         super().__init__(ham, sbi, initialize=False,
                              cutoff_time=cutoff_time,
@@ -52,7 +55,7 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
         self.is_time_dependent = True
 
 
-    def _reference_implementation(self):
+    def _reference_implementation(self) -> None:
         """Reference all Python implementation
 
         """
@@ -180,5 +183,3 @@ class TDRedfieldFoersterRelaxationTensor(RedfieldFoersterRelaxationTensor,
 
         self._is_initialized = True
         self._data_initialized = True
-
-
