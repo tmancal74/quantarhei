@@ -17,6 +17,8 @@ jobs:
         cache: 'pip'
     - name: Install pre-commit
       run: pip install pre-commit
+    - name: Check formatting
+      run: ruff format --check .
     - name: Run pre-commit hooks
       run: pre-commit run --all-files
 
