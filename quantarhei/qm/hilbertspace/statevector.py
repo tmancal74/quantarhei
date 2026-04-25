@@ -27,7 +27,7 @@ class StateVector(BasisManaged):
     2
 
 
-    >>> vec = numpy.zeros((1,3), dtype=REAL)
+    >>> vec = numpy.zeros((1,3), dtype=float)
     >>> psi = StateVector(data=vec)
     Traceback (most recent call last):
     ...

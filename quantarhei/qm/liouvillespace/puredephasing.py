@@ -16,6 +16,7 @@ Examples
 --------
     >>> from quantarhei import energy_units
 >>> from quantarhei import Molecule
+>>> from quantarhei import Aggregate
 
 >>> d_rates = [[0.0, 1.0/100.0], [1.0/100.0, 0.0]]
 >>> pd = PureDephasing(d_rates)
