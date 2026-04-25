@@ -15,8 +15,10 @@ jobs:
       with:
         python-version: "3.12"
         cache: 'pip'
-    - name: Install pre-commit
-      run: pip install pre-commit
+    - name: Install pre-commit and ruff
+      run: pip install pre-commit ruff
+    - name: Check formatting
+      run: ruff format --check quantarhei/
     - name: Run pre-commit hooks
       run: pre-commit run --all-files
 
