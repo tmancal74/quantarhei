@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 _available_examples = ["ex_001_Molecule_Hamiltonian.py",
                        "ex_002_Molecule_Aggregate.py",

@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
 
 
-"""
-
-    Propagation with Redfield theory using Aggregate object
+"""Propagation with Redfield theory using Aggregate object
 
 """
 
@@ -11,18 +8,18 @@ _show_plots_ = False
 
 import time
 
+import matplotlib.pyplot as plt
 import numpy
 
 import quantarhei as qr
 import quantarhei.models as models
-import matplotlib.pyplot as plt
 
 print("""
 *******************************************************************************
 *                                                                             *
 *                         Redfield Theory Demo                                *
 *            ... a more user friendly way of using Redfield                   *
-*                                                                             *                  
+*                                                                             *
 *******************************************************************************
 """)
 
@@ -53,7 +50,7 @@ print("Setting up Redfield propagator:")
 t1 = time.time()
 prop_Redfield = agg.get_ReducedDensityMatrixPropagator(timea,
                            relaxation_theory="standard_Redfield",
-                           time_dependent=False, secular_relaxation=True)   
+                           time_dependent=False, secular_relaxation=True)
 t2 = time.time()
 print("...done in", t2-t1, "sec")
 
@@ -63,21 +60,21 @@ print("...done in", t2-t1, "sec")
 print("Initial condition for the density matrix")
 shp = H.dim
 rho_i1 = qr.ReducedDensityMatrix(dim=shp, name="Initial DM")
-rho_i1.data[shp-1,shp-1] = 1.0   
+rho_i1.data[shp-1,shp-1] = 1.0
 print("...done")
-   
+
 #
 # Propagation of the density matrix
 #
-print("Propagating density matrix:")  
-t1 = time.time() 
+print("Propagating density matrix:")
+t1 = time.time()
 rho_t1 = prop_Redfield.propagate(rho_i1,
                                  name="Redfield evolution from aggregate")
 t2 = time.time()
 print("...done in", t2-t1, "sec")
 
-if _show_plots_: 
-    
+if _show_plots_:
+
     rho_t1.plot(coherences=False, axis=[0,Nt*dt,0,1.0], show=False)
 
     #
@@ -87,9 +84,9 @@ if _show_plots_:
         rho0 = agg.get_DensityMatrix(condition_type="thermal_excited_state",
                                      relaxation_theory_limit="weak_coupling",
                                      temperature=300)
-      
+
     pop = numpy.zeros((timea.length,shp),dtype=numpy.float64)
     for i in range(1, H.dim):
-        pop[:,i] = numpy.real(rho0.data[i,i]) 
+        pop[:,i] = numpy.real(rho0.data[i,i])
         plt.plot(timea.data,pop[:,i],'--k')
 

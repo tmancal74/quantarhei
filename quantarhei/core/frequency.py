@@ -1,137 +1,139 @@
-# -*- coding: utf-8 -*-
-"""
-    Class representing frequency axis of calculations
-    
-    
-    Examples
-    --------
+"""Class representing frequency axis of calculations
 
+
+Examples
+--------
     The default type of the `FrequencyAxis` is `complete`. See the discussion
-    of the types in the `TimeAxis` documentation.
+of the types in the `TimeAxis` documentation.
 
-    >>> wa = FrequencyAxis(0.0,100,0.05)
-    >>> ta = wa.get_TimeAxis()
-    >>> print(ta.length)
-    100
+>>> wa = FrequencyAxis(0.0,100,0.05)
+>>> ta = wa.get_TimeAxis()
+>>> print(ta.length)
+100
 
-    The type `upper-half` only refers to the corresponding TimeAxis. Everything
-    about the FrequencyAxis remains the same as with `complete`.
+The type `upper-half` only refers to the corresponding TimeAxis. Everything
+about the FrequencyAxis remains the same as with `complete`.
 
-    >>> wa = FrequencyAxis(0.0, 100, 0.05, atype = "upper-half")
-    >>> ta = wa.get_TimeAxis()
-    >>> print(ta.length)
-    50
+>>> wa = FrequencyAxis(0.0, 100, 0.05, atype = "upper-half")
+>>> ta = wa.get_TimeAxis()
+>>> print(ta.length)
+50
 
-    #>>> print(ta.step,2.0*numpy.pi/(100*wa.step))
-    
-    >>> print(numpy.allclose(ta.step,2.0*numpy.pi/(100*wa.step)))
-    True
+#>>> print(ta.step,2.0*numpy.pi/(100*wa.step))
 
-    For `complete`, everything should work also for an odd number of points
+>>> print(numpy.allclose(ta.step,2.0*numpy.pi/(100*wa.step)))
+True
 
-    >>> wa = FrequencyAxis(0.0,99,0.05)
-    >>> ta = wa.get_TimeAxis()
-    >>> print(ta.length)
-    99
+For `complete`, everything should work also for an odd number of points
 
-    But `upper-half` throws an exception, because by definition its number of
-    points is `2*N`, where `N` is an integer.
+>>> wa = FrequencyAxis(0.0,99,0.05)
+>>> ta = wa.get_TimeAxis()
+>>> print(ta.length)
+99
 
-    >>> wa = FrequencyAxis(0.0,99,0.05,atype="upper-half")
-    >>> ta = wa.get_TimeAxis()
-    Traceback (most recent call last):
-    ...
-    Exception: Cannot create upper-half TimeAxis from an odd number of points
+But `upper-half` throws an exception, because by definition its number of
+points is `2*N`, where `N` is an integer.
+
+>>> wa = FrequencyAxis(0.0,99,0.05,atype="upper-half")
+>>> ta = wa.get_TimeAxis()
+Traceback (most recent call last):
+...
+Exception: Cannot create upper-half TimeAxis from an odd number of points
 
 
-    Relation between TimeAxis and FrequencyAxis
-    -------------------------------------------
+Relation between TimeAxis and FrequencyAxis
+-------------------------------------------
 
-    Complete FrequencyAxis and even number of points
+Complete FrequencyAxis and even number of points
 
-    >>> wa = FrequencyAxis(0.0,10,0.1,atype="complete")
-    >>> frequencies = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
-    >>> print(numpy.allclose(wa.data,frequencies))
-    True
+>>> wa = FrequencyAxis(0.0,10,0.1,atype="complete")
+>>> frequencies = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+>>> print(numpy.allclose(wa.data,frequencies))
+True
 
-    >>> ta = wa.get_TimeAxis()
-    >>> times = 2.0*numpy.pi*numpy.fft.fftshift(numpy.fft.fftfreq(10,0.1))
-    >>> print(numpy.allclose(ta.data,times))
-    True
+>>> ta = wa.get_TimeAxis()
+>>> times = 2.0*numpy.pi*numpy.fft.fftshift(numpy.fft.fftfreq(10,0.1))
+>>> print(numpy.allclose(ta.data,times))
+True
 
-    >>> print(numpy.allclose(ta.step,times[1]-times[0]))
-    True
+>>> print(numpy.allclose(ta.step,times[1]-times[0]))
+True
 
-    >>> wb = ta.get_FrequencyAxis()
-    >>> print(numpy.allclose(wb.data,frequencies))
-    True
+>>> wb = ta.get_FrequencyAxis()
+>>> print(numpy.allclose(wb.data,frequencies))
+True
 
-    >>> tb = wb.get_TimeAxis()
-    >>> print(numpy.allclose(tb.data,times))
-    True
+>>> tb = wb.get_TimeAxis()
+>>> print(numpy.allclose(tb.data,times))
+True
 
-    Complete FrequencyAxis and odd number of points
+Complete FrequencyAxis and odd number of points
 
-    >>> wa = FrequencyAxis(0.0,11,0.1,atype="complete")
-    >>> frequencies = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
-    >>> print(numpy.allclose(wa.data,frequencies))
-    True
+>>> wa = FrequencyAxis(0.0,11,0.1,atype="complete")
+>>> frequencies = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+>>> print(numpy.allclose(wa.data,frequencies))
+True
 
-    >>> ta = wa.get_TimeAxis()
-    >>> times = 2.0*numpy.pi*numpy.fft.fftshift(numpy.fft.fftfreq(11,0.1))
-    >>> print(numpy.allclose(ta.data,times))
-    True
+>>> ta = wa.get_TimeAxis()
+>>> times = 2.0*numpy.pi*numpy.fft.fftshift(numpy.fft.fftfreq(11,0.1))
+>>> print(numpy.allclose(ta.data,times))
+True
 
-    >>> print(numpy.allclose(ta.step,times[1]-times[0]))
-    True
+>>> print(numpy.allclose(ta.step,times[1]-times[0]))
+True
 
-    >>> wb = ta.get_FrequencyAxis()
-    >>> print(numpy.allclose(wb.data,frequencies))
-    True
+>>> wb = ta.get_FrequencyAxis()
+>>> print(numpy.allclose(wb.data,frequencies))
+True
 
-    >>> tb = wb.get_TimeAxis()
-    >>> print(numpy.allclose(tb.data,times))
-    True
+>>> tb = wb.get_TimeAxis()
+>>> print(numpy.allclose(tb.data,times))
+True
 
-    Upper-half FrequencyAxis and even number of points
+Upper-half FrequencyAxis and even number of points
 
-    >>> wa = FrequencyAxis(0.0,10,0.1,atype="upper-half")
-    >>> frequencies = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
-    >>> print(numpy.allclose(wa.data,frequencies))
-    True
+>>> wa = FrequencyAxis(0.0,10,0.1,atype="upper-half")
+>>> frequencies = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+>>> print(numpy.allclose(wa.data,frequencies))
+True
 
-    >>> ta = wa.get_TimeAxis()
-    >>> times = 2.0*numpy.pi*numpy.fft.fftshift(numpy.fft.fftfreq(10,0.1))
-    >>> print(numpy.allclose(ta.data,times[5:10]))
-    True
+>>> ta = wa.get_TimeAxis()
+>>> times = 2.0*numpy.pi*numpy.fft.fftshift(numpy.fft.fftfreq(10,0.1))
+>>> print(numpy.allclose(ta.data,times[5:10]))
+True
 
-    >>> print(numpy.allclose(ta.step,times[1]-times[0]))
-    True
+>>> print(numpy.allclose(ta.step,times[1]-times[0]))
+True
 
-    >>> wb = ta.get_FrequencyAxis()
-    >>> print(numpy.allclose(wb.data,frequencies))
-    True
+>>> wb = ta.get_FrequencyAxis()
+>>> print(numpy.allclose(wb.data,frequencies))
+True
 
-    >>> tb = wb.get_TimeAxis()
-    >>> print(numpy.allclose(tb.data,times[5:10]))
-    True
+>>> tb = wb.get_TimeAxis()
+>>> print(numpy.allclose(tb.data,times[5:10]))
+True
 
-    
-    Class Details
-    -------------
+
+Class Details
+-------------
 
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy
 
+from ..utils.types import UnitsManagedReal, UnitsManagedRealArray
+from .managers import EnergyUnitsManaged, energy_units
 from .valueaxis import ValueAxis
-from .managers import EnergyUnitsManaged
-from .managers import energy_units
-from ..utils.types import UnitsManagedRealArray
-from ..utils.types import UnitsManagedReal
+
+if TYPE_CHECKING:
+    from .time import TimeAxis
 
 
 class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
-    """Class representing frequency axis of calculations 
+    """Class representing frequency axis of calculations
 
     Parameters
     ----------
@@ -153,8 +155,8 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
     start = UnitsManagedReal("start")
     step = UnitsManagedReal("step")
 
-    def __init__(self, start=0.0, length=1, step=1.0,
-                 atype='complete', time_start=0.0):
+    def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0,
+                 atype: str = 'complete', time_start: float = 0.0) -> None:
 
         #if step > 0:
         if True:
@@ -181,13 +183,13 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         else:
             raise Exception("Unknown frequency axis type")
 
-    def copy(self):
+    def copy(self) -> FrequencyAxis:
         axis = FrequencyAxis(self.start, self.length, self.step,
                              atype=self.atype, time_start=self.time_start)
         return axis
-        
-        
-    def get_TimeAxis(self):
+
+
+    def get_TimeAxis(self) -> TimeAxis:
         """Returns the corresponding TimeAxis object
 
         """
@@ -211,7 +213,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
 
                 if (self.length % 2) != 0:
                     raise Exception("Cannot create upper-half TimeAxis"
-                                    + " from an odd number of points")
+                                     " from an odd number of points")
 
                 times = numpy.fft.fftshift(
                     (2.0*numpy.pi)*numpy.fft.fftfreq(self.length, self.step))

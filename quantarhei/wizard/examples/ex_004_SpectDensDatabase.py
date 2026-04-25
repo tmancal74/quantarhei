@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 
 import numpy
-from quantarhei.models.spectdens import SpectralDensityDB 
+
 #from quantarhei.models.spectdens import CorrelationFunctionDB
-from quantarhei import SpectralDensity
-from quantarhei import TimeAxis, energy_units
+from quantarhei import SpectralDensity, TimeAxis, energy_units
+from quantarhei.models.spectdens import SpectralDensityDB
 
 _show_plots_ = True
 
@@ -30,7 +29,7 @@ with energy_units("1/cm"):
 
     # here we get correlation function at a given temperature in K
     cf = sd_tot.get_CorrelationFunction(300.0)
-    
+
 print(db.get_status_string())
 
 if _show_plots_:

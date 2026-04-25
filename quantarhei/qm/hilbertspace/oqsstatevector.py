@@ -1,18 +1,20 @@
-# -*- coding: utf-8 -*-
-"""
-    
-    State vector of the open quantum system
+"""State vector of the open quantum system
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
-from ... import REAL, COMPLEX
+from ... import REAL
 from .operators import ReducedDensityMatrix
 
-class OQSStateVector():
-    """Represents a quantum mechanical state of an open system 
-    
+
+class OQSStateVector:
+    """Represents a quantum mechanical state of an open system
+
     In this representation we keep state vector coefficients separate
     from the state of the bath representation.
 
@@ -23,7 +25,6 @@ class OQSStateVector():
 
     Examples
     --------
-
     >>> psi = OQSStateVector(2)
     >>> print(psi.dim)
     2
@@ -36,53 +37,51 @@ class OQSStateVector():
     Exception: Data has to be a vector
 
 
-    """    
-    
-    
-    def __init__(self, dim=None, data=None):
-        
+    """
+
+
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+
         self._initialized = False
-        
+
         if data is not None:
-            
+
             ddat = numpy.array(data)
-            
+
             if len(ddat.shape) > 1:
                 raise Exception("Data has to be a vector")
-                
+
             if dim is not None:
                 if dim != ddat.shape[0]:
                     print("Dimension specification different from data: ignored.")
-                
-            self.data = ddat 
+
+            self.data = ddat
             self.dim = ddat.shape[0]
             self._initialized = True
-            
+
         elif dim is not None:
-            
+
             self.dim = dim
             self.data = numpy.zeros(self.dim, dtype=REAL)
             self._initialized = True
-            
-            
-    def norm(self):
-        """Norm of the state vector 
-        
+
+
+    def norm(self) -> Any:
+        """Norm of the state vector
+
         """
-        
         return numpy.sqrt(numpy.dot(self.data,self.data))
 
 
-    def puredot(self, psi):
+    def puredot(self, psi: OQSStateVector) -> Any:
         """Dot product concerning only the system part
-        
+
         """
-        
         return numpy.dot(self.data, psi.data)
-    
-    
-    def get_ReducedDensityMatrix(self, decoherence=False):
-        """ Converts the state vector into the density matrix
+
+
+    def get_ReducedDensityMatrix(self, decoherence: bool = False) -> ReducedDensityMatrix:
+        """Converts the state vector into the density matrix
 
         Parameters
         ----------
@@ -100,8 +99,8 @@ class OQSStateVector():
         for ii in range(self.dim):
             for jj in range(self.dim):
                 rho.data[ii,jj] = self.data[ii]*self.data[jj]
-                
+
         return rho
-                
-        
-        
+
+
+

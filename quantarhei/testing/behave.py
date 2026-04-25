@@ -1,18 +1,16 @@
-# -*- coding: utf-8 -*-
-"""
-    Support module for tests using `behave` package
+"""Support module for tests using `behave` package
 
 
 
 """
 # standard imports
 import os
-import tempfile
 import re
-from subprocess import check_output
+import tempfile
 
 # non-standard imports
 from importlib.resources import files
+from subprocess import check_output
 
 
 def quantarhei_installed(context, version=None):
@@ -21,7 +19,6 @@ def quantarhei_installed(context, version=None):
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -43,7 +40,6 @@ def shell_command(context, cmd, err_msg="Shell command error"):
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -60,7 +56,7 @@ def shell_command(context, cmd, err_msg="Shell command error"):
         output = check_output(cmd, shell=True, cwd=os.getcwd())
         context.output = output
 
-    except:
+    except Exception:
         raise Exception(err_msg)
 
 
@@ -70,7 +66,6 @@ def check_output_contains(context, text, err_msg):
 
     Parameters
     ----------
-
     context :
         context object of behave
 
@@ -100,15 +95,14 @@ def cleanup_temp_dir(context):
 
 
     """
-
     try:
         os.chdir(context.cwd)
-    except:
+    except (AttributeError, OSError):
         print("Current working file record does not exist")
 
     try:
         context.tempdir.cleanup()
-    except:
+    except (AttributeError, OSError):
         print("Temporary directory cannot be cleaned up - does it exist?")
 
 
@@ -127,7 +121,7 @@ def fetch_test_feature_file(context, filename):
     context.output = ""
 
 
-class testdir():
+class testdir:
     """Context manager for test directory
 
     With this context manager we enter temporary directory which was
@@ -143,7 +137,7 @@ class testdir():
             tempdir = context.tempdir
             if tempdir is None:
                 raise Exception()
-        except:
+        except Exception:
             raise Exception("Context does not contain info about tempdir")
 
 

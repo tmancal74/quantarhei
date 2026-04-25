@@ -1,22 +1,22 @@
-# -*- coding: utf-8 -*-
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
-    spectraldensities module
+spectraldensities module
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ...core.dfunction import DFunction
-from ...core.managers import UnitsManaged
-from ...core.managers import energy_units
+from ...core.managers import UnitsManaged, energy_units
 from ...core.time import TimeAxis
+from ...core.units import convert, kB_int
+
 #from ...core.frequency import FrequencyAxis
-from .correlationfunctions import CorrelationFunction
-from .correlationfunctions import FTCorrelationFunction
-from ...core.units import kB_int
-from ...core.units import convert
+from .correlationfunctions import CorrelationFunction, FTCorrelationFunction
 
 #from .correlationfunctions import c2h
 
@@ -25,7 +25,6 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     Parameters
     ----------
-
     axis : TimeAxis, FrequencyAxis
         ValueAxis object specifying the frequency range directly or through
         Fourier transform frequencies corresponding to a TimeAxis
@@ -36,7 +35,6 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     Methods
     -------
-
 ....is_analytical()
         Returns `True` if the spectral density is calculated from an analytical
         formula, `False` otherwise.
@@ -67,7 +65,6 @@ class SpectralDensity(DFunction, UnitsManaged):
 
     Examples
     --------
-
     `SpectralDensity` object can be ctreated with the same parameters as
     `CorrelationFunction`. The temperature can be set, but it is not
     a compulsory parameter.
@@ -119,11 +116,11 @@ class SpectralDensity(DFunction, UnitsManaged):
                      "freq1", "freq2", "gamma")
     analytical_types = ("OverdampedBrownian")
 
-    def __init__(self, axis=None, params=None, values=None):
+    def __init__(self, axis: Any = None, params: Any = None, values: Any = None) -> None:
         super().__init__()
 
         if (axis is not None) and (params is not None):
-            
+
             if isinstance(axis, TimeAxis):
                 # protect the frequency axis creation from units management
                 with energy_units("int"):
@@ -131,9 +128,9 @@ class SpectralDensity(DFunction, UnitsManaged):
                 self.axis = faxis
             else:
                 self.axis = axis
-    
+
             self.lim_omega = numpy.zeros(2)
-            
+
             if values is not None:
                 self.params = params
                 self.data = values
@@ -141,10 +138,10 @@ class SpectralDensity(DFunction, UnitsManaged):
                 for p in self.params:
                     self.lamb += p["reorg"]
                 return
-    
-    
+
+
             self._splines_initialized = False
-    
+
             # handle params
             self.params = []  # this will always be a list of components
             p2calc = []
@@ -153,28 +150,28 @@ class SpectralDensity(DFunction, UnitsManaged):
                 params.keys()
                 self._is_composed = False
                 p2calc.append(params)
-                
-            except:
-                # othewise we assume it is a list of dictionaries 
+
+            except AttributeError:
+                # othewise we assume it is a list of dictionaries
                 self._is_composed = True
                 for p in params:
                     p2calc.append(p)
-                    
-    
+
+
             self.lamb = 0.0
             self.temperature = -1.0
             #self.cutoff_time = 0.0
-            
+
             #
             # loop over parameter sets
             #
             for params in p2calc:
-    
+
                 try:
                     ftype = params["ftype"]
                     if ftype not in CorrelationFunction.allowed_types:
                         raise Exception("Unknown Correlation Function Type")
-    
+
                     # we mutate the parameters into internal units
                     prms = {}
                     for key in params.keys():
@@ -183,50 +180,50 @@ class SpectralDensity(DFunction, UnitsManaged):
                             self.convert_energy_2_internal_u(params[key])
                         else:
                             prms[key] = params[key]
-        
-                except:
+
+                except KeyError:
                     raise Exception
-        
+
                 if "T" in params.keys():
                     self.temperature = params["T"]
-        
+
                 if ftype == "OverdampedBrownian":
-        
+
                     self._make_overdamped_brownian(prms, values)
-        
+
                 elif ftype == "UnderdampedBrownian":
-        
+
                     self._make_underdamped_brownian(prms, values)
-                    
+
                 elif ftype == "Underdamped":
-           
+
                     self._make_underdamped(params)
-                    
+
                 elif ftype == "B777":
-                    
+
                     self._make_B777(prms)
-                    
+
                 elif ftype == "CP29":
-                    
+
                     self._make_CP29_spectral_density(params, values)
-                    
+
                 elif ftype == "Value-defined":
-        
+
                     self._make_value_defined(prms, values=values)
-        
+
                 else:
-                    raise Exception("Unknown correlation function type or"+
+                    raise Exception("Unknown correlation function type or"
                                     " type domain combination.")
-    
+
                 self.params.append(prms)
 
-    def _make_overdamped_brownian(self, params, values=None):
-        """ Sets the Overdamped Brownian oscillator spectral density
+    def _make_overdamped_brownian(self, params: dict, values: Any = None) -> None:
+        """Sets the Overdamped Brownian oscillator spectral density
 
         """
         try:
             ctime = params["cortime"]
-        except:
+        except KeyError:
             gamma = params["gamma"]
             ctime = 1/gamma
         lamb = params["reorg"]
@@ -250,21 +247,21 @@ class SpectralDensity(DFunction, UnitsManaged):
         for i in range(2):
             self.lim_omega[i] += lim_omega[i]
 
-    def _make_underdamped_brownian(self, params, values=None):
-         
+    def _make_underdamped_brownian(self, params: dict, values: Any = None) -> None:
+
         #temperature = params["T"]
         ctime = params["gamma"]
         # use the units in which params was defined
         omega0 = params["freq"]
         lamb = params["reorg"]
-        
+
         # protect calculation from units management
         with energy_units("int"):
             omega = self.axis.data
             #cfce = (lamb*ctime)*omega/((omega-omega0)**2 + (ctime)**2) \
             #      +(lamb*ctime)*omega/((omega+omega0)**2 + (ctime)**2)
             cfce = (2.0*lamb*ctime)*(omega0**2)*\
-                  (omega/(((omega**2)-(omega0**2))**2 + (omega**2)*(ctime**2))) 
+                  (omega/(((omega**2)-(omega0**2))**2 + (omega**2)*(ctime**2)))
                   #+omega/((omega**2+omega0**2)**2 + (omega**2)*(ctime)**2))
 
 
@@ -274,23 +271,23 @@ class SpectralDensity(DFunction, UnitsManaged):
             self._add_me(self.axis, cfce)
 
         # this is in internal units
-        self.lamb += lamb     
-        
+        self.lamb += lamb
+
         lim_omega = numpy.zeros(2)
         lim_omega[0] = 0.0
         lim_omega[1] = 0.0
         for i in range(2):
             self.lim_omega[i] += lim_omega[i]
-            
-    # See Valkunas, Abramavicius, Mančal, 2013, Wiley-VCH  
-    def _make_underdamped(self, params, values=None):
+
+    # See Valkunas, Abramavicius, Mančal, 2013, Wiley-VCH
+    def _make_underdamped(self, params: dict, values: Any = None) -> None:
         SPEED_OF_LIGHT = 2.99*(10**8)
- 
+
         # use the units in which params was defined
         omega0 = params["freq"]
         lamb = params["reorg"]
         gamma = params["gamma"]
-        
+
         # protect calculation from units management
         with energy_units("int"):
             omega = self.axis.data
@@ -303,16 +300,16 @@ class SpectralDensity(DFunction, UnitsManaged):
             self._make_me(self.axis, cfce)
 
         # this is in internal units
-        self.lamb = lamb            
+        self.lamb = lamb
         self.lim_omega = numpy.zeros(2)
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 4*(gamma*(omega0**2))/((omega0**2)**2)
-        
+
     # See Renger, Journal of Chemical Physics 2002
     # See Jang, Newton, Silbey, J Chem Phys. 2007 for alternate form
-    # (See Kell et al, 2013, J. Phys. Chem. B.) 
-    def _make_B777(self, params, values=None):
-        
+    # (See Kell et al, 2013, J. Phys. Chem. B.)
+    def _make_B777(self, params: dict, values: Any = None) -> None:
+
         with energy_units("int"):
             omega = self.axis.data
             cfce=0
@@ -322,7 +319,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                 try:
                     ss = [params['s1'], params['s2']]
                     freq = [params["freq1"], params["freq2"]]
-                except:
+                except KeyError:
                     ss = [0.8, 0.5]
                     freq = [convert(0.56, "1/cm", "int"), convert(1.9, "1/cm", "int")]
 
@@ -340,11 +337,11 @@ class SpectralDensity(DFunction, UnitsManaged):
 
                 #This form is taken from Jang, Newton, Silbey, J Chem Phys. 2007.
                 #It gives a polynomial form of the B777 spectral density
-                try: 
+                try:
                     omega1c = convert(params['om1'], "1/cm", "int")
                     omega2c = convert(params['om2'], "1/cm", "int")
                     omega3c = convert(params['om3'], "1/cm", "int")
-                except:
+                except KeyError:
                     omega1c = convert(170, "1/cm", "int")
                     omega2c = convert(34, "1/cm", "int")
                     omega3c = convert(69, "1/cm", "int")
@@ -368,48 +365,48 @@ class SpectralDensity(DFunction, UnitsManaged):
         else:
             self._make_me(self.axis, cfce)
 
-        self.lamb = params["reorg"]            
+        self.lamb = params["reorg"]
         self.lim_omega = numpy.zeros(2)
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 0.0
-        
-    def _make_CP29_spectral_density(self, params, values = None):
-    #This pectral density is based on the one calculated from FLN by 
-    #Rätsep et al. J. Phys. Chem. B 2008, 112, 110-118. It consist of a 
-    #Gaussian on the low-frequency side and a Lagrangian on the high-frequency 
-    #side, with the change point between the functions at 22 per cm. The 
-    #spectral density is scaled by the user-supplied reorg energy and 
+
+    def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:
+    #This pectral density is based on the one calculated from FLN by
+    #Rätsep et al. J. Phys. Chem. B 2008, 112, 110-118. It consist of a
+    #Gaussian on the low-frequency side and a Lagrangian on the high-frequency
+    #side, with the change point between the functions at 22 per cm. The
+    #spectral density is scaled by the user-supplied reorg energy and
     #prefactors are therefore ignored in the analytical calculations.
     #default values (1/cm) are: function_change_point=22, g_FWHM = 20,
-    #l_FWHM=60 
-        
+    #l_FWHM=60
+
         try:
             function_change_point = params['fcp']
             g_FWHM = params['g_FWHM']
             l_FWHM = params['l_FWHM']
-        except:
+        except KeyError:
             function_change_point = self.manager.iu_energy(22,
                                        units="1/cm")
             g_FWHM = self.manager.iu_energy(20,
                                        units="1/cm")
             l_FWHM = self.manager.iu_energy(60,
                                        units="1/cm")
-            
+
         lamb = params["reorg"]
         cfce = numpy.zeros(self.axis.data.shape)
-       
+
         with energy_units("int"):
             omega = self.axis.data
             g = numpy.where(numpy.abs(omega) < function_change_point)
             l = numpy.where(numpy.abs(omega) >= function_change_point)
             cfce[g] = numpy.exp((-(numpy.abs(omega[g]) - \
-                function_change_point)**2)/(2*0.1803*g_FWHM**2))      
+                function_change_point)**2)/(2*0.1803*g_FWHM**2))
             cfce[l] = 1/((numpy.abs(omega[l]) - \
-                function_change_point)**2 + (l_FWHM/2)**2)      
-            cfce[g] = cfce[g] * (numpy.amax(cfce[l])/numpy.amax(cfce[g]))     
-            cfce[numpy.where(omega < 0)] = -1*cfce[numpy.where(omega < 0)]     
+                function_change_point)**2 + (l_FWHM/2)**2)
+            cfce[g] = cfce[g] * (numpy.amax(cfce[l])/numpy.amax(cfce[g]))
+            cfce[numpy.where(omega < 0)] = -1*cfce[numpy.where(omega < 0)]
             cfce[numpy.isclose(omega, 0, atol=1e-05)] = 0
-            
+
         if values is not None:
             self._make_me(self.axis, values)
             print('spectral density made from correlation function values')
@@ -421,18 +418,18 @@ class SpectralDensity(DFunction, UnitsManaged):
             cfce = (lamb/meareorg)*cfce
             self._make_me(self.axis, cfce)
 
-        self.lamb = lamb     
+        self.lamb = lamb
         self.lim_omega = numpy.zeros(2)
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 0.0
-            
-    def _make_value_defined(self, values=None):
-        """ Value defined spectral density
+
+    def _make_value_defined(self, values: Any = None) -> None:
+        """Value defined spectral density
 
         """
         if values is None:
             raise Exception()
-            
+
         self._add_me(self.axis, values)
         self.lamb += self.params["reorg"]
 
@@ -445,122 +442,120 @@ class SpectralDensity(DFunction, UnitsManaged):
     #
     # Aritmetic operations
     #
-    
-    def __add__(self, other):
+
+    def __add__(self, other: SpectralDensity) -> SpectralDensity:
         """Addition of two correlation functions
-        
+
         """
         t1 = self.axis
         t2 = other.axis
         if t1 == t2:
-                      
+
             f = SpectralDensity(t1, params=self.params)
             f.add_to_data(other)
-            
+
         else:
             raise Exception("In addition, functions have to share"
-                            +" the same FrequencyAxis object")
-            
+                            " the same FrequencyAxis object")
+
         return f
-    
-    def __iadd__(self, other):
+
+    def __iadd__(self, other: SpectralDensity) -> SpectralDensity:
         """Inplace addition of two correlation functions
-        
-        """  
-        self.add_to_data2(other)       
+
+        """
+        self.add_to_data2(other)
         return self
-    
-            
-    def add_to_data(self, other):
+
+
+    def add_to_data(self, other: SpectralDensity) -> None:
         """Addition of data from a specified CorrelationFunction to this object
-        
+
         """
         t1 = self.axis
         t2 = other.axis
         if t1 == t2:
-            
+
             self.data += other.data
             self.lamb += other.lamb  # reorganization energy is additive
             for i in range(2):
-                self.lim_omega[i] += other.lim_omega[i] 
-                
+                self.lim_omega[i] += other.lim_omega[i]
+
             # cutoff time is take as the longer one of the two
             #self.cutoff_time = max(self.cutoff_time, other.cutoff_time)
-            
+
 
             for p in other.params:
-                self.params.append(p)            
-            
+                self.params.append(p)
+
             self._is_composed = True
             self._is_empty = False
-           
+
 
         else:
             raise Exception("In the operation of addition, functions "
-                           +"have to share the same FrequencyAxis object")
+                           "have to share the same FrequencyAxis object")
 
 
-    def add_to_data2(self, other):
+    def add_to_data2(self, other: SpectralDensity) -> None:
         """Addition of data from a specified SpectralDensity to this object
-        
+
         """
         if self == other:
             ocor = SpectralDensity(other.axis, other.params)
         else:
             ocor = other
-            
+
         t1 = self.axis
         t2 = ocor.axis
         if t1 == t2:
-            
+
             self.data += ocor.data
             self.lamb += ocor.lamb  # reorganization energy is additive
-            #if ocor.cutoff_time > self.cutoff_time: 
-            #    self.cutoff_time = ocor.cutoff_time  
-                
+            #if ocor.cutoff_time > self.cutoff_time:
+            #    self.cutoff_time = ocor.cutoff_time
+
             #if self.temperature != ocor.temperature:
             #    raise Exception("Cannot add two correlation functions "
             #                   +"on different temperatures")
-    
+
 
             for p in ocor.params:
                 self.params.append(p)
-            
+
             self._is_composed = True
             self._is_empty = False
-            
+
 
         else:
             raise Exception("In the operation of addition, functions "
-                           +"have to share the same FrequencyAxis object")
-            
-    def is_analytical(self):
+                           "have to share the same FrequencyAxis object")
+
+    def is_analytical(self) -> bool:
         """Returns `True` if analytical
 
         Returns `True` if the CorrelationFunction object is constructed
         by analytical formula. Returns `False` if the object was constructed
         by numerical transformation from spectral density.
         """
-
         return bool(self.params["ftype"] in self.analytical_types)
 
 
-    def get_temperature(self):
+    def get_temperature(self) -> float:
         """Returns the temperature of the correlation function
 
         """
         if self.temperature > 0.0:
             return self.temperature
-        else:
-            raise Exception("SpectralDensity was not assigned temperature")
+        raise Exception("SpectralDensity was not assigned temperature")
 
-    def get_reorganization_energy(self):
+    def get_reorganization_energy(self) -> float:
         """Returns the reorganization energy of the cspectral density
 
         """
         return self.convert_energy_2_current_u(self.lamb)
 
-    def measure_reorganization_energy(self):
+    def measure_reorganization_energy(self) -> float:
         """Calculates the reorganization energy of the spectral density
 
         Calculates the reorganization energy of the spectral density by
@@ -576,20 +571,19 @@ class SpectralDensity(DFunction, UnitsManaged):
         return integ
 
 
-    def copy(self):
+    def copy(self) -> SpectralDensity:
         """Creates a copy of the current correlation function
 
         """
         return SpectralDensity(self.axis, self.params)
 
 
-    def get_CorrelationFunction(self, temperature=None, ta=None):
+    def get_CorrelationFunction(self, temperature: float | None = None, ta: Any = None) -> CorrelationFunction:
         """Returns correlation function corresponding to the spectral density.
         If a TimeAxis object is included, the CorrelationFunction
         object will be returned with that TimeAxis instance as its time axis.
 
         """
-
         params = []
         for pdict in self.params:
             newdict = pdict.copy()
@@ -599,7 +593,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             params.append(newdict)
 
         time = self.axis.get_TimeAxis()
-        
+
         if ta is not None:
             if numpy.all(numpy.isclose(ta.data, time.data, 1e-5)):
                 time = ta
@@ -615,7 +609,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         return cfce
 
 
-    def get_FTCorrelationFunction(self, temperature=None):
+    def get_FTCorrelationFunction(self, temperature: float | None = None) -> FTCorrelationFunction:
         """Returns Fourier transformed correlation function
 
         Fourier transformed correlation function is calculated from the
@@ -624,34 +618,32 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         Parameters
         ----------
-
         temperature : optional
             Temperature which can be missing among the spectral density
             parameters
 
 
         """
-        
         #
         # copy the parameters and change temperature if needed
         #
         k = 0
         newpars = []
         for prms in self.params:
-            
+
             #params = self.params.copy()
             if temperature is not None:
                 prms["T"] = temperature
-    
+
             # FIXME: check that all temperatures are the same
             if k == 0:
                 temp = prms["T"]
             elif temp != prms["T"]:
                 raise Exception("Temperature of all components has to be the same")
             k += 1
-            
+
             newpars.append(prms)
-    
+
         ind_of_zero, diff = self.axis.locate(0.0)
         atol = 1.0e-7
         twokbt = 2.0*kB_int*temp
@@ -680,8 +672,8 @@ class SpectralDensity(DFunction, UnitsManaged):
                 spect = data[ind_of_zero+1:self.axis.length]
                 auxi = (1.0 + (1.0/numpy.tanh(omega/twokbt)))*spect
                 vals[ind_of_zero+1:self.axis.length] = auxi
-                
-                # and used L'Hospital ruĺe to calculate the limit at zero 
+
+                # and used L'Hospital ruĺe to calculate the limit at zero
                 vals[ind_of_zero] = twokbt*(data[ind_of_zero+1]
                     -data[ind_of_zero-1])/(2.0*self.axis.step)
 

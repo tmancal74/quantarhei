@@ -9,7 +9,6 @@
 #
 import quantarhei as qr
 
-
 #
 # Read QTask input file
 #
