@@ -135,13 +135,13 @@ set_current_units .. function to set current units globally
 #
 # Fix used numerical types
 #
-#import numpy
+# import numpy
 from .core.managers import Manager
 
 m = Manager()
 
-REAL = m.get_real_type() #numpy.float64
-COMPLEX = m.get_complex_type() #numpy.complex128
+REAL = m.get_real_type()  # numpy.float64
+COMPLEX = m.get_complex_type()  # numpy.complex128
 
 LOG_URGENT = 1
 LOG_REPORT = 3
@@ -158,10 +158,12 @@ signal_NONR = "nonrephasing_2D_signal"
 signal_TOTL = "total_2D_signal"
 signal_DC = "double_coherence_signal"
 
-TWOD_SIGNALS = dict(signal_REPH = "rephasing_2D_signal",
-                    signal_NONR = "nonrephasing_2D_signal",
-                    signal_TOTL = "total_2D_signal",
-                    signal_DC = "double_coherence_signal")
+TWOD_SIGNALS = dict(
+    signal_REPH="rephasing_2D_signal",
+    signal_NONR="nonrephasing_2D_signal",
+    signal_TOTL="total_2D_signal",
+    signal_DC="double_coherence_signal",
+)
 
 #
 # Parts of the complex data/signal
@@ -172,11 +174,13 @@ part_COMPLEX = "complex"
 part_ABS = "absolute_value"
 part_PHASE = "phase"
 
-SIGNAL_PARTS = dict(part_REAL = "real_part",
-                    part_IMAGINARY= "imaginary_part",
-                    part_COMPLEX = "complex",
-                    part_ABS = "absolute_value",
-                    part_PHASE = "phase")
+SIGNAL_PARTS = dict(
+    part_REAL="real_part",
+    part_IMAGINARY="imaginary_part",
+    part_COMPLEX="complex",
+    part_ABS="absolute_value",
+    part_PHASE="phase",
+)
 
 DATA_PARTS = SIGNAL_PARTS
 
@@ -192,14 +196,16 @@ ptype_R2f = "pathway_type_R2f*"
 ptype_R3f = "pathway_type_R3f"
 ptype_R4f = "pathway_type_R4f"
 
-PATHWAY_TYPES = dict(ptype_R1g = "pathway_type_R1g",
-                     ptype_R2g = "pathway_type_R2g",
-                     ptype_R3g = "pathway_type_R3g",
-                     ptype_R4g = "pathway_type_R4g",
-                     ptype_R1f = "pathway_type_R1f*",
-                     ptype_R2f = "pathway_type_R2f*",
-                     ptype_R3f = "pathway_type_R3f",
-                     ptype_R4f = "pathway_type_R4f")
+PATHWAY_TYPES = dict(
+    ptype_R1g="pathway_type_R1g",
+    ptype_R2g="pathway_type_R2g",
+    ptype_R3g="pathway_type_R3g",
+    ptype_R4g="pathway_type_R4g",
+    ptype_R1f="pathway_type_R1f*",
+    ptype_R2f="pathway_type_R2f*",
+    ptype_R3f="pathway_type_R3f",
+    ptype_R4f="pathway_type_R4f",
+)
 
 LIOUVILLE_PATHWAY_TYPES = PATHWAY_TYPES
 
@@ -273,14 +279,14 @@ from .core.parallel import (
 ###############################################################################
 # Convenience functions
 ###############################################################################
-#from .core.saveable import load
-#from .core.saveable import read_info
+# from .core.saveable import load
+# from .core.saveable import read_info
 from .core.parcel import Parcel as Parcel
 from .core.parcel import check_parcel as check_parcel
 from .core.parcel import load_parcel as load_parcel
 from .core.parcel import save_parcel as save_parcel
 
-#from .core.saveable import Saveable
+# from .core.saveable import Saveable
 from .core.saveable import Saveable as Saveable
 
 #
@@ -569,21 +575,17 @@ from .wizard.input.input import Input as Input
 
 
 def exit(msg: str | None = None) -> None:
-    """Exit to the level above the script with SystemExit exception
-
-    """
+    """Exit to the level above the script with SystemExit exception"""
     import sys
+
     if msg is not None:
-        printlog("\n(SystemExit) Message: "+msg+"\n", loglevel=0)
+        printlog("\n(SystemExit) Message: " + msg + "\n", loglevel=0)
     sys.exit()
 
 
 def stop(msg: str | None = None) -> None:
-    """Stop execution and leave to level above
-
-    """
+    """Stop execution and leave to level above"""
     exit("Execution stopped")
-
 
 
 def show_plot(block: bool = True) -> None:
@@ -592,8 +594,8 @@ def show_plot(block: bool = True) -> None:
     This function is used to avoid explicit import of matplotlib
     """
     import matplotlib.pyplot as plt
-    plt.show(block=block)
 
+    plt.show(block=block)
 
 
 def savefig(fname: str) -> None:
@@ -602,13 +604,12 @@ def savefig(fname: str) -> None:
     This function is used to avoid explicit import of matplotlib
     """
     import matplotlib.pyplot as plt
+
     plt.savefig(fname)
 
 
 def assert_version(check: str, vno: str) -> None:
-    """Throws an exception if the condition is not satisfied
-
-    """
+    """Throws an exception if the condition is not satisfied"""
     from packaging import version
 
     def ext() -> None:
@@ -619,7 +620,7 @@ def assert_version(check: str, vno: str) -> None:
             ext()
 
     elif check == "==":
-         if not (version.parse(Manager().version) == version.parse(vno)):
+        if not (version.parse(Manager().version) == version.parse(vno)):
             ext()
 
     elif check == "<=":
@@ -635,6 +636,4 @@ def assert_version(check: str, vno: str) -> None:
             ext()
 
     else:
-        raise Exception("Unknown comparison operator `"+check+"`")
-
-
+        raise Exception("Unknown comparison operator `" + check + "`")

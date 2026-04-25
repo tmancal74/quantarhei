@@ -11,6 +11,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 import numpy
@@ -20,16 +21,10 @@ from .aggregate_excitonanalysis import AggregateExcitonAnalysis
 
 
 class AggregatePureDephasing(AggregateExcitonAnalysis):
-    """Class calculation of PureDephasing object
-
-
-
-    """
+    """Class calculation of PureDephasing object"""
 
     def get_PureDephasing(self, dtype: str = "Lorentzian") -> object:
-        """Returns pure dephasing object of this aggregate
-
-        """
+        """Returns pure dephasing object of this aggregate"""
         from ..qm.liouvillespace.puredephasing import ElectronicPureDephasing
 
         # collect site basis dephasing rates
@@ -37,7 +32,6 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
         pdrates = numpy.zeros(self.nmono, dtype=REAL)
         k = 0
         if dtype == "Lorentzian":
-
             for mono in self.monomers:
                 if mono.dephs is not None:
                     # electronic optical dephasing rates from monomers
@@ -62,11 +56,11 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
         # self.Nel number of electronic states
         xiai = numpy.zeros((Na, self.Nel), dtype=REAL)
         for aa in range(Na):
-            st = 0 # st counts all states in the site basis
+            st = 0  # st counts all states in the site basis
             for ii in range(self.Nel):
-                xiai[aa,ii] = 0.0
+                xiai[aa, ii] = 0.0
                 for alph_i in self.vibindices[ii]:
-                    xiai[aa,ii] += self.SS[aa,st]**2
+                    xiai[aa, ii] += self.SS[aa, st] ** 2
                     st += 1
         self.xi = xiai
 

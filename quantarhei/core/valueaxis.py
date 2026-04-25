@@ -1,6 +1,3 @@
-
-
-
 # -*- coding: utf-8 -*-
 """Linear array of values which are used as variables of numerical functions
 and parameter dependent matrices
@@ -129,36 +126,29 @@ class ValueAxis(Saveable):
     start = Float("start")
     length = Integer("length")
 
-    def __init__(self, start: float = 0.0, length: int = 1,
-                 step: float = 1.0) -> None:
+    def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0) -> None:
 
-        #if step > 0:
+        # if step > 0:
         if True:
             self.step = step
-        #else:
+        # else:
         #    raise Exception("Parameter step has to be > 0")
         self.start = start
         self.length = length
 
-        self.data: numpy.ndarray = numpy.linspace(start,
-                                   start+(length-1)*step, length,
-                                   dtype=REAL)
-
+        self.data: numpy.ndarray = numpy.linspace(
+            start, start + (length - 1) * step, length, dtype=REAL
+        )
 
     @property
     def min(self) -> float:
-        """Returns the minimum value on the axis
-
-        """
+        """Returns the minimum value on the axis"""
         return self.start
 
     @property
     def max(self) -> float:
-        """Returns the maximum value on the axis
-
-        """
-        return self.data[self.length-1]
-
+        """Returns the maximum value on the axis"""
+        return self.data[self.length - 1]
 
     def locate(self, val: float) -> tuple[int, float]:
         """Returns the index of the lower neigbor of the ``val``
@@ -173,16 +163,14 @@ class ValueAxis(Saveable):
 
         """
         # nearest smaller neighbor index
-        nsni = int(numpy.floor((val-self.start)/self.step))
+        nsni = int(numpy.floor((val - self.start) / self.step))
 
         # if n0 is within bounds calculate distance
         # from the lower neighbor
         if (nsni >= 0) and (nsni < self.length):
-            dval = val-self.data[nsni]
+            dval = val - self.data[nsni]
             return nsni, dval
         raise Exception("Value out of bounds")
-
-
 
     def nearest(self, val: float) -> int:
         """Returns the index of the nearest neighbor to ``val``
@@ -198,26 +186,24 @@ class ValueAxis(Saveable):
 
         """
         # nearest smaller neighbor index
-        nsni = int(numpy.floor((val-self.start)/self.step))
-
+        nsni = int(numpy.floor((val - self.start) / self.step))
 
         if (nsni >= 0) and (nsni < self.length):
-
             # if n0 is with bounds calculate difference
             # from the lower neighbor
-            diff1 = numpy.abs(val-self.data[nsni])
+            diff1 = numpy.abs(val - self.data[nsni])
 
             # if the upper neighbor is within bounds calculate difference
             # from the upper neighbor
-            if nsni+1 < self.length:
-                diff2 = numpy.abs(val - self.data[nsni+1])
+            if nsni + 1 < self.length:
+                diff2 = numpy.abs(val - self.data[nsni + 1])
             else:
-                diff2 = 5*self.step
+                diff2 = 5 * self.step
 
             # return the closer neighbor
             if diff1 < diff2:
                 return nsni
-            if nsni+1 < self.length:
+            if nsni + 1 < self.length:
                 return nsni + 1
             # if the upper neigbor is out of bounds
             # return the lower one
@@ -225,23 +211,19 @@ class ValueAxis(Saveable):
 
         raise Exception("Value out of bounds")
 
-
     def is_equal_to(self, axis: ValueAxis) -> bool:
-        """Returns True if the axis is equal to this ValueAxis
-
-        """
-        return ((self.start == axis.start) and (self.step == axis.step)
-                and (self.length == axis.length))
-
+        """Returns True if the axis is equal to this ValueAxis"""
+        return (
+            (self.start == axis.start)
+            and (self.step == axis.step)
+            and (self.length == axis.length)
+        )
 
     def __eq__(self, other: object) -> bool:
         return self.is_equal_to(other)  # type: ignore[arg-type]
 
-
     def is_extension_of(self, axis: ValueAxis) -> bool:
-        """Returns True if the axis is contained in this ValueAxis
-
-        """
+        """Returns True if the axis is contained in this ValueAxis"""
         ret = True
         ret = ret and (self.start <= axis.start)
         ret = ret and (self.step == axis.step)
@@ -261,9 +243,7 @@ class ValueAxis(Saveable):
         return ret
 
     def is_subsection_of(self, axis: ValueAxis) -> bool:
-        """Returns True if the axis contains this ValueAxis
-
-        """
+        """Returns True if the axis contains this ValueAxis"""
         ret = True
         ret = ret and (self.start in axis.data)
         ret = ret and (self.step == axis.step)
@@ -312,14 +292,12 @@ class ValueAxis(Saveable):
         """
         ret = True
 
-        Nst = round(self.step/axis.step)
-        ret = ret and (Nst*axis.step == self.step)
+        Nst = round(self.step / axis.step)
+        ret = ret and (Nst * axis.step == self.step)
         ret = ret and ((self.start in axis.data) and (self.start < axis.max))
         ret = ret and (self.max in axis.data)
 
         return ret
-
-
 
     def is_superset_of(self, axis: ValueAxis) -> bool:
         """Returns True if the ValueAxis is a superset of axis
@@ -362,24 +340,19 @@ class ValueAxis(Saveable):
         """
         ret = True
 
-        Nst = round(axis.step/self.step)
-        ret = ret and (Nst*self.step == axis.step)
+        Nst = round(axis.step / self.step)
+        ret = ret and (Nst * self.step == axis.step)
         ret = ret and ((axis.start in self.data) and (axis.start < self.max))
         ret = ret and (axis.max in self.data)
 
         return ret
 
     def __str__(self) -> str:
-        """String representation of the ValueAxis object
-
-        """
-        out  = "\nquantarhei.ValueAxis object"
+        """String representation of the ValueAxis object"""
+        out = "\nquantarhei.ValueAxis object"
         out += "\n=========================="
-        out += "\nstart = "+str(self.start)
-        out += "\nlength = "+str(self.length)
-        out += "\nstep = "+str(self.step)
-
+        out += "\nstart = " + str(self.start)
+        out += "\nlength = " + str(self.length)
+        out += "\nstep = " + str(self.step)
 
         return out
-
-

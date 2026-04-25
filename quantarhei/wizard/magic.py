@@ -21,12 +21,12 @@ Lists available templates
 
 
 """
+
 from __future__ import annotations
 
 from importlib.resources import files
 
 try:
-
     # if IPython is not present,
     # we fail here and continue in the except section
     ip = get_ipython()  # type: ignore[name-defined]
@@ -65,11 +65,9 @@ try:
 
         # process the command
         if command == "list":
-
             list_templates()
 
         elif command == "fetch":
-
             try:
                 tname = words[1]
             except IndexError:
@@ -101,16 +99,12 @@ try:
             print(w)
 
 
-
 except NameError:
     _have_ip_ = False
 
 
-
 def _print_template_help() -> None:
-    """Prints doc string
-
-    """
+    """Prints doc string"""
     print(template.__doc__)
 
 
@@ -125,12 +119,8 @@ ExcitonDynamics_Lindblad :
     """)
 
 
-
 def fetch_template(tname: str) -> None:
-    """Reads template file from the template directory
-
-
-    """
+    """Reads template file from the template directory"""
     templates: dict[str, str] = {}
     templates["ExcitonDynamics_Lindblad"] = "excitondynamics_lindblad.py"
 
@@ -138,14 +128,15 @@ def fetch_template(tname: str) -> None:
     try:
         tfile = templates[tname]
     except KeyError:
-        raise Exception("Template error: "+tname+" no such template")
+        raise Exception("Template error: " + tname + " no such template")
 
-    resource_path = '/'.join(('wizard', 'templates', tfile))
+    resource_path = "/".join(("wizard", "templates", tfile))
 
-    template = files(resource_package).joinpath(resource_path).read_bytes()  # pragma: no cover
+    template = (
+        files(resource_package).joinpath(resource_path).read_bytes()
+    )  # pragma: no cover
 
     if _have_ip_:
-
         # if we have IPython, we put the template into the next cell
         ip = get_ipython()  # type: ignore[name-defined]
         ip.set_next_input(template.decode("utf-8"))

@@ -1,4 +1,3 @@
-
 import quantarhei as qr
 
 print("""
@@ -26,8 +25,8 @@ for N in Ns:
     print("TimeAxis type       :", tmaxs1.atype)
     print("start, length, step :", tmaxs1.start, tmaxs1.length, tmaxs1.step)
     fraxs1 = tmaxs1.get_FrequencyAxis()
-    print("FrequencyAxis type  :",fraxs1.atype)
-    print("start, length, step :",fraxs1.start, fraxs1.length, fraxs1.step)
+    print("FrequencyAxis type  :", fraxs1.atype)
+    print("start, length, step :", fraxs1.start, fraxs1.length, fraxs1.step)
 
 print("Starting with FrequencyAxis:")
 for N in Ns:
@@ -51,8 +50,8 @@ for N in Ns:
     print("TimeAxis type       :", tmaxs1.atype)
     print("start, length, step :", tmaxs1.start, tmaxs1.length, tmaxs1.step)
     fraxs1 = tmaxs1.get_FrequencyAxis()
-    print("FrequencyAxis type  :",fraxs1.atype)
-    print("start, length, step :",fraxs1.start, fraxs1.length, fraxs1.step)
+    print("FrequencyAxis type  :", fraxs1.atype)
+    print("start, length, step :", fraxs1.start, fraxs1.length, fraxs1.step)
 
 print("\nStarting with FrequencyAxis of `upper-half` type:")
 for N in Ns:
@@ -65,5 +64,7 @@ for N in Ns:
         tmaxs2 = fraxs2.get_TimeAxis()
         print("TimeAxis type       :", tmaxs2.atype)
     except Exception:
-        print("*** Exception occurs when you try to get TimeAxis from "
-              "FrequencyAxis of the upper-half type and odd number of points")
+        print(
+            "*** Exception occurs when you try to get TimeAxis from "
+            "FrequencyAxis of the upper-half type and odd number of points"
+        )

@@ -1,4 +1,3 @@
-
 from .aggregate_states import ElectronicState as ElectronicState
 from .aggregate_states import VibronicState as VibronicState
 from .aggregates import Aggregate as Aggregate

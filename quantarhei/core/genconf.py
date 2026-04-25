@@ -1,6 +1,4 @@
-
 class GenConf:
-
     def __init__(self) -> None:
 
         self.conf_file_name = "qrconf.py"

@@ -33,11 +33,11 @@ Class Details
 -------------
 
 """
+
 from .aggregate_pdeph import AggregatePureDephasing
 
 
 class Aggregate(AggregatePureDephasing):
-
     """This clas wraps up the definition of the Aggregate class. It is the end
     of a long series of mutually inheriting classes starting with
     AggregateBase.

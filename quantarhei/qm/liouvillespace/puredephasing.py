@@ -80,16 +80,14 @@ import numpy
 
 from ... import REAL
 
-#from ...builders.molecules import Molecule
+# from ...builders.molecules import Molecule
 from ...core.managers import eigenbasis_of
 from ...qm.hilbertspace.operators import Operator
 from ..liouvillespace.superoperator import SuperOperator
 
 
 def _eigenb() -> Any:
-    """Pointer to eigenbasis property
-
-    """
+    """Pointer to eigenbasis property"""
 
     @property  # type: ignore[misc]
     def prop(self: Any) -> Any:
@@ -97,70 +95,64 @@ def _eigenb() -> Any:
 
     @prop.setter  # type: ignore[misc]
     def prop(self: Any, value: Any) -> None:
-        raise Exception("The property 'eigenbasis' is protected"
-                        " and cannot be set.")
+        raise Exception("The property 'eigenbasis' is protected and cannot be set.")
 
     return prop
 
 
-
-
-class PureDephasing: #(BasisManaged):
-
+class PureDephasing:  # (BasisManaged):
     dtypes = ["Lorentzian", "Gaussian"]
 
     eigenbasis = _eigenb()
 
-    def __init__(self, drates: Any = None, dtype: str = "Lorentzian", system: Any = None,
-                 cutoff_time: float | None = None) -> None:
+    def __init__(
+        self,
+        drates: Any = None,
+        dtype: str = "Lorentzian",
+        system: Any = None,
+        cutoff_time: float | None = None,
+    ) -> None:
         from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if drates is None:
             raise Exception("Dephasing rates must be specified.")
 
-        self.data=numpy.array(drates, dtype=REAL)
+        self.data = numpy.array(drates, dtype=REAL)
 
         if system is not None:
-
             self.system = system
-
 
             self.system_is_aggregate = False
             self.system_is_molecule = False
 
             if isinstance(self.system, Aggregate):
-
                 self.system_is_aggregate = True
 
             # FIXME: we have a circular reference problem with Molecule
-            #if isinstance(self.system, Molecule):
+            # if isinstance(self.system, Molecule):
             #
             #    self.system_is_molecule = True
 
             else:
-
                 raise Exception("Non-Aggregate systems not implemented yet.")
 
             HH = self.system.get_Hamiltonian()
-            if (HH.dim != self.data.shape[0]):
-                raise Exception("Incompatible dimension of the rate matrix:"
-                                " system has dimension = "+str(HH.dim))
+            if HH.dim != self.data.shape[0]:
+                raise Exception(
+                    "Incompatible dimension of the rate matrix:"
+                    " system has dimension = " + str(HH.dim)
+                )
 
         else:
-
             self.system = None
 
-
         if dtype in self.dtypes:
-
-
             self.dim = self.data.shape[0]
-            self.dtype=dtype
-            self.cutoff_time=cutoff_time
+            self.dtype = dtype
+            self.cutoff_time = cutoff_time
 
         else:
             raise Exception("Unknown dephasing type")
-
 
     def get_SuperOperator(self) -> SuperOperator:
         """Returns a superoperator representing the pure dephasing
@@ -173,10 +165,9 @@ class PureDephasing: #(BasisManaged):
         sup = SuperOperator(dim=dim, real=True)
         for aa in range(dim):
             for bb in range(dim):
-                sup.data[aa,bb,aa,bb] = self.data[aa,bb]
+                sup.data[aa, bb, aa, bb] = self.data[aa, bb]
 
         return sup
-
 
     def convert_to(self, dtype: str | None = None) -> None:
         """Converts between Lorenzian and Gaussian dephasings
@@ -193,19 +184,17 @@ class PureDephasing: #(BasisManaged):
 
         """
         if dtype in self.dtypes:
-
-            #factor = 2.0*numpy.sqrt(numpy.log(2.0))
+            # factor = 2.0*numpy.sqrt(numpy.log(2.0))
             factor = numpy.sqrt(numpy.log(2.0))
             if dtype == "Lorentzian" and self.dtype == "Gaussian":
-                self.data = numpy.sqrt(self.data)*factor
+                self.data = numpy.sqrt(self.data) * factor
                 self.dtype = dtype
             elif dtype == "Gaussian" and self.dtype == "Lorenzian":
-                self.data = (self.data**2)/(factor**2)
+                self.data = (self.data**2) / (factor**2)
                 self.dtype = dtype
 
         else:
             raise Exception("Unknown dephasing type")
-
 
     def _eigenbasis(self) -> Any:
         """Returns the context for the eigenbasis in which pure dephasing
@@ -220,25 +209,23 @@ class PureDephasing: #(BasisManaged):
 
         """
         if self.system is not None:
-
             ham = self.system.get_Hamiltonian()
             return eigenbasis_of(ham)
-
 
         op = Operator(dim=self.dim)
         return eigenbasis_of(op)
 
 
-
-
-
 class ElectronicPureDephasing(PureDephasing):
-    """Electronic pure dephasing for one-exciton states
+    """Electronic pure dephasing for one-exciton states"""
 
-    """
-
-    def __init__(self, system: Any, drates: Any = None, dtype: str = "Lorentzian",
-                 cutoff_time: float | None = None) -> None:
+    def __init__(
+        self,
+        system: Any,
+        drates: Any = None,
+        dtype: str = "Lorentzian",
+        cutoff_time: float | None = None,
+    ) -> None:
 
         if drates is None:
             HH = system.get_Hamiltonian()
@@ -248,19 +235,17 @@ class ElectronicPureDephasing(PureDephasing):
             rates = drates
         super().__init__(rates, dtype, system, cutoff_time)
 
-
         if self.system_is_aggregate:
-
             Nstates = self.system.Ntot
-            Nel = self.system.number_of_electronic_states_in_band(1)+1
+            Nel = self.system.number_of_electronic_states_in_band(1) + 1
             self.data = numpy.zeros((Nstates, Nstates), dtype=REAL)
             widths = numpy.zeros(Nel, dtype=REAL)
 
             for ii in range(Nel):
                 if ii > 0:
-                    widths[ii] = (((self.system.monomers[ii
-                                      -1].get_transition_width((0,1)))**2)/
-                                  (8.0*numpy.log(2.0)))
+                    widths[ii] = (
+                        (self.system.monomers[ii - 1].get_transition_width((0, 1))) ** 2
+                    ) / (8.0 * numpy.log(2.0))
 
             self.system.diagonalize()
 
@@ -269,9 +254,6 @@ class ElectronicPureDephasing(PureDephasing):
             for aa in range(Nstates):
                 for bb in range(Nstates):
                     for ii in range(Nel):
-                        self.data[aa,bb] += \
-                        widths[ii]*(Xi[aa,ii]**2 - Xi[bb,ii]**2)**2
-
-
-
-
+                        self.data[aa, bb] += (
+                            widths[ii] * (Xi[aa, ii] ** 2 - Xi[bb, ii] ** 2) ** 2
+                        )

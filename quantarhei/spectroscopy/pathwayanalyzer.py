@@ -19,6 +19,7 @@ max_amplitude(pathways)
 
 
 """
+
 from __future__ import annotations
 
 import os
@@ -67,26 +68,17 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
     def __init__(self, pathways: Any = None) -> None:
         self.pathways = pathways
 
-
     def set_pathways(self, pathways: Any) -> None:
-        """Sets pathways to be analyzed
-
-        """
+        """Sets pathways to be analyzed"""
         self.pathways = pathways
 
-
     def get_pathways(self) -> Any:
-        """Returns Liouville pathways
-
-        """
+        """Returns Liouville pathways"""
         return self.pathways
 
     def get_number_of_pathways(self) -> int:
-        """Returns the number of available pathways
-
-        """
-        return(len(self.pathways))
-
+        """Returns the number of available pathways"""
+        return len(self.pathways)
 
     @deprecated
     def max_pref(self, pathways: Any) -> tuple[float, int]:
@@ -124,7 +116,6 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
 
         return (pmax, rec)
 
-
     def max_amplitude(self) -> tuple[float, int]:
         """Return the maximum of pathway prefactors
 
@@ -146,13 +137,15 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         """
         return max_amplitude(self.pathways)
 
-
     @deprecated
-    def select_pref_GT(self, val: float, pathways: Any = None, replace: bool = True,
-                       verbose: bool = False) -> Any:
-        """Select all pathways with prefactors greater than a value
-
-        """
+    def select_pref_GT(
+        self,
+        val: float,
+        pathways: Any = None,
+        replace: bool = True,
+        verbose: bool = False,
+    ) -> Any:
+        """Select all pathways with prefactors greater than a value"""
         if pathways is None:
             pthways = self.pathways
         else:
@@ -173,13 +166,11 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
 
         return selected
 
-
-    def select_amplitude_GT(self, val: float, replace: bool = True,
-                       verbose: bool = False) -> Any:
-        """Select all pathways with abs value of prefactors greater than a value
-
-        """
-        selected =  select_amplitude_GT(val, self.pathways, verbose=verbose)
+    def select_amplitude_GT(
+        self, val: float, replace: bool = True, verbose: bool = False
+    ) -> Any:
+        """Select all pathways with abs value of prefactors greater than a value"""
+        selected = select_amplitude_GT(val, self.pathways, verbose=verbose)
         # if the pathways were not specified from argument then return selected
         # to self
         if replace:
@@ -187,12 +178,10 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         else:
             return selected
 
-
-    def select_frequency_window(self, window: Any, replace: bool = True,
-                                verbose: bool = False) -> Any:
-        """Selects pathways with omega_1 and omega_3 in a certain range
-
-        """
+    def select_frequency_window(
+        self, window: Any, replace: bool = True, verbose: bool = False
+    ) -> Any:
+        """Selects pathways with omega_1 and omega_3 in a certain range"""
         selected = select_frequency_window(window, self.pathways, verbose)
 
         if replace:
@@ -200,11 +189,10 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
         else:
             return selected
 
-
-    def select_omega2(self, interval: Any, replace: bool = True, verbose: bool = False) -> Any:
-        """Selects pathways with omega_2 in a certain interval
-
-        """
+    def select_omega2(
+        self, interval: Any, replace: bool = True, verbose: bool = False
+    ) -> Any:
+        """Selects pathways with omega_2 in a certain interval"""
         selected = select_omega2(interval, self.pathways, verbose)
 
         if replace:
@@ -214,12 +202,9 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
 
     @deprecated
     def order_by_pref(self, pthways: Any) -> Any:
-        """Orders the list of pathways by pathway prefactors
-
-        """
+        """Orders the list of pathways by pathway prefactors"""
         lst = sorted(pthways, key=lambda pway: abs(pway.pref), reverse=True)
         return lst
-
 
     def order_by_amplitude(self, replace: bool = True) -> Any:
 
@@ -228,7 +213,6 @@ class LiouvillePathwayAnalyzer(UnitsManaged):
             self.pathways = orderred
         else:
             return orderred
-
 
     def select_sign(self, sign: float, replace: bool = True) -> Any:
 
@@ -311,14 +295,13 @@ def select_amplitude_GT(val: float, pathways: Any, verbose: bool = False) -> lis
     if verbose:
         print("Selected", len(selected), "pathways")
 
-
     return selected
 
 
-def select_frequency_window(window: Any, pathways: Any, verbose: bool = False) -> list[Any]:
-    """Selects pathways with omega_1 and omega_3 in a certain range
-
-    """
+def select_frequency_window(
+    window: Any, pathways: Any, verbose: bool = False
+) -> list[Any]:
+    """Selects pathways with omega_1 and omega_3 in a certain range"""
     pthways = pathways
     m = Manager()
 
@@ -327,18 +310,18 @@ def select_frequency_window(window: Any, pathways: Any, verbose: bool = False) -
     om3_low = m.convert_energy_2_internal_u(window[2])
     om3_upp = m.convert_energy_2_internal_u(window[3])
 
-
     selected = []
 
     for pway in pthways:
         ne = len(pway.frequency)
-        #om1 = numpy.abs(pway.frequency[0])
+        # om1 = numpy.abs(pway.frequency[0])
         om1 = numpy.abs(pway.get_interval_frequency(0))
-        #om3 = pway.frequency[ne-2]
-        om3 = numpy.abs(pway.get_interval_frequency(ne-2))
+        # om3 = pway.frequency[ne-2]
+        om3 = numpy.abs(pway.get_interval_frequency(ne - 2))
 
-        if (((om1 >= om1_low) and (om1 <= om1_upp)) and
-            ((om3 >= om3_low) and (om3 <= om3_upp))):
+        if ((om1 >= om1_low) and (om1 <= om1_upp)) and (
+            (om3 >= om3_low) and (om3 <= om3_upp)
+        ):
             selected.append(pway)
 
     if verbose:
@@ -347,11 +330,14 @@ def select_frequency_window(window: Any, pathways: Any, verbose: bool = False) -
     return selected
 
 
-def select_omega2(interval: Any, pathways: Any, secular: bool = True,
-                  tolerance: float = 10.0*cm2int, verbose: bool = False) -> list[Any]:
-    """Selects pathways with omega_2 in a certain interval
-
-    """
+def select_omega2(
+    interval: Any,
+    pathways: Any,
+    secular: bool = True,
+    tolerance: float = 10.0 * cm2int,
+    verbose: bool = False,
+) -> list[Any]:
+    """Selects pathways with omega_2 in a certain interval"""
     pthways = pathways
     m = Manager()
 
@@ -362,37 +348,36 @@ def select_omega2(interval: Any, pathways: Any, secular: bool = True,
 
     for pway in pthways:
         ne = len(pway.frequency)
-        #print("Number of frequencies: ", ne)
-        om2 = pway.get_interval_frequency(ne-3)
+        # print("Number of frequencies: ", ne)
+        om2 = pway.get_interval_frequency(ne - 3)
 
         # pathways with transfer
         if ne > 4:
             # check previous frequency (feeding)
-            om2_2 =  pway.get_interval_frequency(ne-4)
+            om2_2 = pway.get_interval_frequency(ne - 4)
 
             if secular:
                 # case with feeding frequency small
                 if numpy.abs(om2_2) <= tolerance:
                     if (om2 >= om2_low) and (om2 <= om2_upp):
                         selected.append(pway)
-                        #print("selected")
+                        # print("selected")
 
                 # case of fast feeding frequency
                 elif numpy.abs(om2 - om2_2) <= tolerance:
                     if (om2 >= om2_low) and (om2 <= om2_upp):
                         selected.append(pway)
-                        #print("selected")
+                        # print("selected")
 
             else:
-               if (om2 >= om2_low) and (om2 <= om2_upp):
-                   selected.append(pway)
-                   #print("selected")
+                if (om2 >= om2_low) and (om2 <= om2_upp):
+                    selected.append(pway)
+                    # print("selected")
 
         else:
             if (om2 >= om2_low) and (om2 <= om2_upp):
                 selected.append(pway)
-                #print("selected")
-
+                # print("selected")
 
     if verbose:
         print("Selected", len(selected), "pathways")
@@ -400,15 +385,13 @@ def select_omega2(interval: Any, pathways: Any, secular: bool = True,
     return selected
 
 
-#def select_incoherent(pathways):
+# def select_incoherent(pathways):
 #
 #    for pway in pathways:
 
 
 def order_by_amplitude(pthways: Any) -> list[Any]:
-    """Orders the list of pathways by pathway prefactors
-
-    """
+    """Orders the list of pathways by pathway prefactors"""
     lst = sorted(pthways, key=lambda pway: abs(pway.pref), reverse=True)
     return lst
 
@@ -499,14 +482,14 @@ def select_by_states(pathways: Any, states: Any) -> Any:
     """
     # loop over all pathways
     for pw in pathways:
-
         ch = -1
         # loop over the Feynman diagram
         for k in range(pw.states.shape[0]):
-
             # check if prescribed states match the pathway states
-            if not ((pw.states[k, 0] == states[k+1][0]) &
-                    (pw.states[k, 1] == states[k+1][1])):
+            if not (
+                (pw.states[k, 0] == states[k + 1][0])
+                & (pw.states[k, 1] == states[k + 1][1])
+            ):
                 # leave if there is a mismatch
                 break
 
@@ -517,22 +500,21 @@ def select_by_states(pathways: Any, states: Any) -> Any:
             return pw
 
 
-def look_for_pathways(name: str = "pathways", ext: str = "qrp",
-                      check: bool = False, directory: str = ".") -> numpy.ndarray:
-    """Load pathways by t2
-
-    """
+def look_for_pathways(
+    name: str = "pathways", ext: str = "qrp", check: bool = False, directory: str = "."
+) -> numpy.ndarray:
+    """Load pathways by t2"""
     # get all files with the name_*.ext pattern
     import glob
     import os.path
 
-    path = os.path.join(directory,name+"_*."+ext)
+    path = os.path.join(directory, name + "_*." + ext)
     files = glob.glob(path)
 
     # get a list of t2s
     t2s = []
     for fl in files:
-        t2 = float(fl.split("_")[1].split("."+ext)[0])
+        t2 = float(fl.split("_")[1].split("." + ext)[0])
         t2s.append(t2)
 
     t2s = numpy.array(t2s)
@@ -541,17 +523,19 @@ def look_for_pathways(name: str = "pathways", ext: str = "qrp",
     if check:
         pass
 
-
     return t2s
 
 
-def load_pathways_by_t2(t2: float, name: str = "pathways", ext: str = "qrp", directory: str = ".",
-                        tag_type: Any = REAL) -> list[Any]:
-    """Load pathways by t2 time
-
-    """
+def load_pathways_by_t2(
+    t2: float,
+    name: str = "pathways",
+    ext: str = "qrp",
+    directory: str = ".",
+    tag_type: Any = REAL,
+) -> list[Any]:
+    """Load pathways by t2 time"""
     t2_str = str(t2)
-    fname = name+"_"+t2_str+"."+ext
+    fname = name + "_" + t2_str + "." + ext
     path = os.path.join(directory, fname)
     try:
         pw = load_parcel(path)
@@ -562,19 +546,27 @@ def load_pathways_by_t2(t2: float, name: str = "pathways", ext: str = "qrp", dir
     return pw
 
 
-def save_pathways_by_t2(t2: float, name: str = "pathways", ext: str = "qrp", directory: str = ".",
-                        tag_type: Any = REAL) -> None:
+def save_pathways_by_t2(
+    t2: float,
+    name: str = "pathways",
+    ext: str = "qrp",
+    directory: str = ".",
+    tag_type: Any = REAL,
+) -> None:
     pass
 
 
 # FIXME: This is done in an inefficient way, loading the files multiply
-def get_evolution_from_saved_pathways(states: Any, name: str = "pathways", ext: str = "qrp",
-                                      directory: str = ".", tag_type: Any = REAL, repl: float = 0.0) -> Any:
-    """Reconstructs the evolution of the pathway contribution in t2 time
-
-    """
+def get_evolution_from_saved_pathways(
+    states: Any,
+    name: str = "pathways",
+    ext: str = "qrp",
+    directory: str = ".",
+    tag_type: Any = REAL,
+    repl: float = 0.0,
+) -> Any:
+    """Reconstructs the evolution of the pathway contribution in t2 time"""
     t2s = look_for_pathways(name=name, ext=ext, directory=directory)
-
 
     # order t2s
     t2s = numpy.sort(t2s)
@@ -588,22 +580,27 @@ def get_evolution_from_saved_pathways(states: Any, name: str = "pathways", ext: 
     ii = 0
     for tt in t2s:
         if tt != taxis.data[ii]:
-            raise Exception("The set of available times"
-                            " does not correspond to a continuous time axis")
+            raise Exception(
+                "The set of available times"
+                " does not correspond to a continuous time axis"
+            )
         ii += 1
 
     return DFunction(x=taxis, y=evol)
 
-    #return t2s, evol
+    # return t2s, evol
 
 
-def get_prefactors_from_saved_pathways(states: Any, name: str = "pathways", ext: str = "qrp",
-                                      directory: str = ".", tag_type: Any = REAL, repl: float = 0.0) -> Any:
-    """Reconstructs the evolution of the pathway contribution in t2 time
-
-    """
+def get_prefactors_from_saved_pathways(
+    states: Any,
+    name: str = "pathways",
+    ext: str = "qrp",
+    directory: str = ".",
+    tag_type: Any = REAL,
+    repl: float = 0.0,
+) -> Any:
+    """Reconstructs the evolution of the pathway contribution in t2 time"""
     t2s = look_for_pathways(name=name, ext=ext, directory=directory)
-
 
     # order t2s
     t2s = numpy.sort(t2s)
@@ -617,21 +614,28 @@ def get_prefactors_from_saved_pathways(states: Any, name: str = "pathways", ext:
     ii = 0
     for tt in t2s:
         if tt != taxis.data[ii]:
-            raise Exception("The set of available times"
-                            " does not correspond to a continuous time axis")
+            raise Exception(
+                "The set of available times"
+                " does not correspond to a continuous time axis"
+            )
         ii += 1
 
     return DFunction(x=taxis, y=evol)
 
 
-def get_TwoDSpectrum_from_saved_pathways(t2: float, t1axis: Any, t3axis: Any, name: str = "pathways",
-                                         ext: str = "qrp", directory: str = ".",
-                                         tag_type: Any = REAL) -> Any:
-    """Returns a 2D spectrum calculated based on the saved Liouville pathways
-
-    """
-    pwt2 = load_pathways_by_t2(t2, name=name, ext=ext,
-                               directory=directory, tag_type=tag_type)
+def get_TwoDSpectrum_from_saved_pathways(
+    t2: float,
+    t1axis: Any,
+    t3axis: Any,
+    name: str = "pathways",
+    ext: str = "qrp",
+    directory: str = ".",
+    tag_type: Any = REAL,
+) -> Any:
+    """Returns a 2D spectrum calculated based on the saved Liouville pathways"""
+    pwt2 = load_pathways_by_t2(
+        t2, name=name, ext=ext, directory=directory, tag_type=tag_type
+    )
 
     # calculate 2D spectrum from the loaded pathways
     twod = get_TwoDSpectrum_from_pathways(pwt2, t1axis, t3axis)
@@ -641,40 +645,40 @@ def get_TwoDSpectrum_from_saved_pathways(t2: float, t1axis: Any, t3axis: Any, na
 
 
 def get_TwoDSpectrum_from_pathways(pathways: Any, t1axis: Any, t3axis: Any) -> Any:
-    """Returns a 2D spectrum calculated based on submitted Liouville pathways
-
-    """
+    """Returns a 2D spectrum calculated based on submitted Liouville pathways"""
     from .mocktwodcalculator import MockTwoDSpectrumCalculator
-    t2axis = TimeAxis(0.0,1,1.0)
+
+    t2axis = TimeAxis(0.0, 1, 1.0)
     mcalc = MockTwoDSpectrumCalculator(t1axis, t2axis, t3axis)
-    mcalc.bootstrap(rwa = convert(12000.0,"1/cm","int"), pathways=pathways)
+    mcalc.bootstrap(rwa=convert(12000.0, "1/cm", "int"), pathways=pathways)
     twod = mcalc.calculate()
 
     return twod
 
 
-def get_TwoDSpectrumContainer_from_saved_pathways(t1axis: Any, t3axis: Any,
-                                                  name: str = "pathways", ext: str = "qrp",
-                                                  directory: str = ".",
-                                                  tag_type: Any = REAL) -> Any:
-    """Returns a container with 2D spectra calculated from saved pathways
-
-    """
+def get_TwoDSpectrumContainer_from_saved_pathways(
+    t1axis: Any,
+    t3axis: Any,
+    name: str = "pathways",
+    ext: str = "qrp",
+    directory: str = ".",
+    tag_type: Any = REAL,
+) -> Any:
+    """Returns a container with 2D spectra calculated from saved pathways"""
     from .twodcontainer import TwoDSpectrumContainer
 
     t2s = look_for_pathways(name=name, ext=ext, directory=directory)
 
-
     # order t2s
     t2s = numpy.sort(t2s)
-    time2 = TimeAxis(t2s[0], len(t2s), t2s[1]-t2s[0])
+    time2 = TimeAxis(t2s[0], len(t2s), t2s[1] - t2s[0])
     tcont = TwoDSpectrumContainer(t2axis=time2)
     tcont.use_indexing_type(itype=time2)
 
     for t2 in t2s:
-        pwt2 = load_pathways_by_t2(t2, name=name, ext=ext,
-                                   directory=directory, tag_type=tag_type)
-
+        pwt2 = load_pathways_by_t2(
+            t2, name=name, ext=ext, directory=directory, tag_type=tag_type
+        )
 
         # calculate 2D spectrum from saved pathways
         twod = get_TwoDSpectrum_from_pathways(pwt2, t1axis, t3axis)
@@ -686,15 +690,8 @@ def get_TwoDSpectrumContainer_from_saved_pathways(t1axis: Any, t3axis: Any,
     return tcont
 
 
-
-
-
-
-
 def _is_tuple_of_dyads(states: Any) -> bool:
-    """Check if the object is a tuple or list of dyads
-
-    """
+    """Check if the object is a tuple or list of dyads"""
 
     def _is_a_dyad(dd: Any) -> bool:
         return len(dd) == 2
@@ -710,16 +707,21 @@ def _is_tuple_of_dyads(states: Any) -> bool:
     return ret
 
 
-def _get_evol(t2s: numpy.ndarray, states: Any, name: str, ext: str, directory: str, repl: float = 0.0) -> numpy.ndarray:
-    """Return evolution of a single pathway
-
-    """
+def _get_evol(
+    t2s: numpy.ndarray,
+    states: Any,
+    name: str,
+    ext: str,
+    directory: str,
+    repl: float = 0.0,
+) -> numpy.ndarray:
+    """Return evolution of a single pathway"""
     N = 1
     if _is_tuple_of_dyads(states):
         evol = numpy.zeros(len(t2s), dtype=COMPLEX)
     else:
         N = len(states)
-        evol = numpy.zeros((len(t2s),N), dtype=COMPLEX)
+        evol = numpy.zeros((len(t2s), N), dtype=COMPLEX)
 
     k = 0
     for t2 in t2s:
@@ -736,25 +738,31 @@ def _get_evol(t2s: numpy.ndarray, states: Any, name: str, ext: str, directory: s
             for st in states:
                 pw = select_by_states(pws, st)
                 if pw is None:
-                    evol[k,l] = repl
+                    evol[k, l] = repl
                 else:
-                    evol[k,l] = pw.evolfac
+                    evol[k, l] = pw.evolfac
                 l += 1
 
         k += 1
 
     return evol
 
-def _get_pref(t2s: numpy.ndarray, states: Any, name: str, ext: str, directory: str, repl: float = 0.0) -> numpy.ndarray:
-    """Return evolution of a single pathway
 
-    """
+def _get_pref(
+    t2s: numpy.ndarray,
+    states: Any,
+    name: str,
+    ext: str,
+    directory: str,
+    repl: float = 0.0,
+) -> numpy.ndarray:
+    """Return evolution of a single pathway"""
     N = 1
     if _is_tuple_of_dyads(states):
         evol = numpy.zeros(len(t2s), dtype=COMPLEX)
     else:
         N = len(states)
-        evol = numpy.zeros((len(t2s),N), dtype=COMPLEX)
+        evol = numpy.zeros((len(t2s), N), dtype=COMPLEX)
 
     k = 0
     for t2 in t2s:
@@ -771,13 +779,11 @@ def _get_pref(t2s: numpy.ndarray, states: Any, name: str, ext: str, directory: s
             for st in states:
                 pw = select_by_states(pws, st)
                 if pw is None:
-                    evol[k,l] = repl
+                    evol[k, l] = repl
                 else:
-                    evol[k,l] = pw.pref
+                    evol[k, l] = pw.pref
                 l += 1
 
         k += 1
 
     return evol
-
-

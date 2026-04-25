@@ -3,13 +3,14 @@ multi-level system
 
 
 """
+
 from __future__ import annotations
 
 from typing import Any
 
-#import numpy
+# import numpy
 
-#import aceto.nr3td_fic as nr3td_fic
+# import aceto.nr3td_fic as nr3td_fic
 
 
 #
@@ -19,19 +20,20 @@ from typing import Any
 #
 #
 
-def nr3_r1g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
-    """Calculates R2g response function
 
-
-    """
+def nr3_r1g(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
+    """Calculates R2g response function"""
     # nr3td_fic.nr3_r1g_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, it2+1, t1s, t3s, rwa, rmin, resp)
     pass
 
 
-
-def nr3_r2g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
+def nr3_r2g(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
     """Calculates R2g response function
 
 
@@ -67,20 +69,19 @@ def nr3_r2g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: 
         Non-linear response
 
     """
-#
-#    For debugging, check if all arrays are fortran continuous
-#
-#    print(lab.orient_aver.flags['F_CONTIGUOUS'])
-#    print(sys.Ns.flags['F_CONTIGUOUS'])
-#    print(sys.om01.flags['F_CONTIGUOUS'])
-#    print(sys.nn01.flags['F_CONTIGUOUS'])
-#    print(sys.dd01.flags['F_CONTIGUOUS'])
-#    print(sys.Kd01.flags['F_CONTIGUOUS'])
-#    print(sys.Kd11.flags['F_CONTIGUOUS'])
-#    print(t1s.flags['F_CONTIGUOUS'])
-#    print(t3s.flags['F_CONTIGUOUS'])
-#    print(resp.flags['F_CONTIGUOUS'])
-
+    #
+    #    For debugging, check if all arrays are fortran continuous
+    #
+    #    print(lab.orient_aver.flags['F_CONTIGUOUS'])
+    #    print(sys.Ns.flags['F_CONTIGUOUS'])
+    #    print(sys.om01.flags['F_CONTIGUOUS'])
+    #    print(sys.nn01.flags['F_CONTIGUOUS'])
+    #    print(sys.dd01.flags['F_CONTIGUOUS'])
+    #    print(sys.Kd01.flags['F_CONTIGUOUS'])
+    #    print(sys.Kd11.flags['F_CONTIGUOUS'])
+    #    print(t1s.flags['F_CONTIGUOUS'])
+    #    print(t3s.flags['F_CONTIGUOUS'])
+    #    print(resp.flags['F_CONTIGUOUS'])
 
     # nr3td_fic.nr3_r2g_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
@@ -88,7 +89,9 @@ def nr3_r2g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: 
     pass
 
 
-def nr3_r2gt10(lab: Any, sys: Any, it2: int, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
+def nr3_r2gt10(
+    lab: Any, sys: Any, it2: int, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
     """Calculates R2g response function
 
 
@@ -127,31 +130,30 @@ def nr3_r2gt10(lab: Any, sys: Any, it2: int, t3s: Any, rwa: float, rmin: float, 
     pass
 
 
-def nr3_r3g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
-    """Calculates R3g response function
-
-
-    """
-#
-#    For debugging, check if all arrays are fortran continuous
-#
-#    print(lab.orient_aver.flags['F_CONTIGUOUS'])
-#    print(sys.Ns.flags['F_CONTIGUOUS'])
-#    print(sys.om01.flags['F_CONTIGUOUS'])
-#    print(sys.nn01.flags['F_CONTIGUOUS'])
-#    print(sys.dd01.flags['F_CONTIGUOUS'])
-#    print(sys.Kd01.flags['F_CONTIGUOUS'])
-#    print(sys.Kd11.flags['F_CONTIGUOUS'])
-#    print(sys.gofts.flags['F_CONTIGUOUS'])
-#    print(sys.fptn.flags['F_CONTIGUOUS'])
-#    print(sys.SS1.flags['F_CONTIGUOUS'])
-#    print(t1s.flags['F_CONTIGUOUS'])
-#    print(t3s.flags['F_CONTIGUOUS'])
-#    print(resp.flags['F_CONTIGUOUS'])
-#
-#    it2_in = it2+1
-#
-#    print(type(sys.Ns), sys.Ns.dtype)
+def nr3_r3g(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
+    """Calculates R3g response function"""
+    #
+    #    For debugging, check if all arrays are fortran continuous
+    #
+    #    print(lab.orient_aver.flags['F_CONTIGUOUS'])
+    #    print(sys.Ns.flags['F_CONTIGUOUS'])
+    #    print(sys.om01.flags['F_CONTIGUOUS'])
+    #    print(sys.nn01.flags['F_CONTIGUOUS'])
+    #    print(sys.dd01.flags['F_CONTIGUOUS'])
+    #    print(sys.Kd01.flags['F_CONTIGUOUS'])
+    #    print(sys.Kd11.flags['F_CONTIGUOUS'])
+    #    print(sys.gofts.flags['F_CONTIGUOUS'])
+    #    print(sys.fptn.flags['F_CONTIGUOUS'])
+    #    print(sys.SS1.flags['F_CONTIGUOUS'])
+    #    print(t1s.flags['F_CONTIGUOUS'])
+    #    print(t3s.flags['F_CONTIGUOUS'])
+    #    print(resp.flags['F_CONTIGUOUS'])
+    #
+    #    it2_in = it2+1
+    #
+    #    print(type(sys.Ns), sys.Ns.dtype)
 
     # nr3td_fic.nr3_r3g_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
@@ -159,21 +161,28 @@ def nr3_r3g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: 
     pass
 
 
-def nr3_r4g(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
-    """Calculates R4g response function
-
-
-    """
+def nr3_r4g(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
+    """Calculates R4g response function"""
     # nr3td_fic.nr3_r4g_fic(lab.orient_aver, sys.Ns, sys.om01, sys.nn01,
     #                     sys.dd01, sys.Kd01, sys.Kd11, sys.gofts, sys.fptn,
     #                     sys.SS1, it2+1, t1s, t3s, rwa, rmin, resp)
     pass
 
 
-def nr3_r1fs(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any, plist: bool = False) -> None:
-    """Calculates R1f* response function
-
-    """
+def nr3_r1fs(
+    lab: Any,
+    sys: Any,
+    it2: int,
+    t1s: Any,
+    t3s: Any,
+    rwa: float,
+    rmin: float,
+    resp: Any,
+    plist: bool = False,
+) -> None:
+    """Calculates R1f* response function"""
     # if plist:
     #     nr3td_fic.nr3_r1fs_list_fic(lab.orient_aver, sys.Ns, sys.om01,
     #                                 sys.om12, sys.nn01, sys.dd01, sys.nn12,
@@ -189,10 +198,18 @@ def nr3_r1fs(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin:
     pass
 
 
-def nr3_r2fs(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any, plist: bool = False) -> None:
-    """Calculates R2f* response function
-
-    """
+def nr3_r2fs(
+    lab: Any,
+    sys: Any,
+    it2: int,
+    t1s: Any,
+    t3s: Any,
+    rwa: float,
+    rmin: float,
+    resp: Any,
+    plist: bool = False,
+) -> None:
+    """Calculates R2f* response function"""
     # if plist:
     #     nr3td_fic.nr3_r2fs_list_fic(lab.orient_aver, sys.Ns, sys.om01,
     #                                 sys.om12, sys.nn01, sys.dd01, sys.nn12,
@@ -213,7 +230,9 @@ def nr3_r2fs(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin:
 #  Energy transfer pathways
 #
 #
-def nr3_r2g_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
+def nr3_r2g_trans(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
     """Calculates R2g response function
 
 
@@ -255,7 +274,17 @@ def nr3_r2g_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, 
     pass
 
 
-def nr3_r2g_trN(lab: Any, sys: Any, No: int, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
+def nr3_r2g_trN(
+    lab: Any,
+    sys: Any,
+    No: int,
+    it2: int,
+    t1s: Any,
+    t3s: Any,
+    rwa: float,
+    rmin: float,
+    resp: Any,
+) -> None:
     """Calculates R2g response function with energy transfer
 
     Calculates R2g response function with energy transfer to the No-th
@@ -303,8 +332,9 @@ def nr3_r2g_trN(lab: Any, sys: Any, No: int, it2: int, t1s: Any, t3s: Any, rwa: 
     pass
 
 
-
-def nr3_r1g_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
+def nr3_r1g_trans(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
     """Calculates R2g response function
 
 
@@ -346,11 +376,10 @@ def nr3_r1g_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, 
     pass
 
 
-
-def nr3_r1fs_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
-    """Calculates R1f* transfer response function
-
-    """
+def nr3_r1fs_trans(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
+    """Calculates R1f* transfer response function"""
     # nr3td_fic.nr3_r1fs_trans_fic(lab.orient_aver, sys.Ns, sys.om01, sys.om12,
     #                        sys.nn01, sys.dd01, sys.nn12, sys.dd12, sys.Kd01,
     #                        sys.Kd11, sys.Kd12, sys.gofts, sys.fptn,
@@ -359,11 +388,10 @@ def nr3_r1fs_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float,
     pass
 
 
-
-def nr3_r2fs_trans(lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any) -> None:
-    """Calculates R1f* transfer response function
-
-    """
+def nr3_r2fs_trans(
+    lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
+) -> None:
+    """Calculates R1f* transfer response function"""
     # nr3td_fic.nr3_r2fs_trans_fic(lab.orient_aver, sys.Ns, sys.om01, sys.om12,
     #                        sys.nn01, sys.dd01, sys.nn12, sys.dd12, sys.Kd01,
     #                        sys.Kd11, sys.Kd12, sys.gofts, sys.fptn,

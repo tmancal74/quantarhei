@@ -124,8 +124,8 @@ from .time import TimeAxis
 from .valueaxis import ValueAxis
 
 
-#FIXME Check the posibility to set a derivative of the spline at the edges
-#FIXME Enable vectorial arguments and values
+# FIXME Check the posibility to set a derivative of the spline at the edges
+# FIXME Enable vectorial arguments and values
 class DFunction(Saveable, DataSaveable):
     """Discrete function with interpolation
 
@@ -181,16 +181,15 @@ class DFunction(Saveable, DataSaveable):
 
     allowed_interp_types = ("linear", "spline", "default")
 
-    def __init__(self, x: ValueAxis | None = None,
-                 y: numpy.ndarray | None = None) -> None:
+    def __init__(
+        self, x: ValueAxis | None = None, y: numpy.ndarray | None = None
+    ) -> None:
 
-        self._loc_init__(x,y)
+        self._loc_init__(x, y)
 
-
-
-    def _loc_init__(self, x: ValueAxis | None = None,
-                    y: numpy.ndarray | None = None) -> None:
-
+    def _loc_init__(
+        self, x: ValueAxis | None = None, y: numpy.ndarray | None = None
+    ) -> None:
 
         self._has_imag: bool | None = None
         self._is_empty = False
@@ -203,10 +202,7 @@ class DFunction(Saveable, DataSaveable):
         self._splines_initialized = False
 
     def _make_me(self, x: ValueAxis, y: numpy.ndarray) -> None:
-        """Creates the DFunction internals
-
-
-        """
+        """Creates the DFunction internals"""
         self._has_imag = False
 
         if isinstance(x, ValueAxis):
@@ -215,13 +211,11 @@ class DFunction(Saveable, DataSaveable):
             raise Exception("First argument has to be of a ValueAxis type")
 
         if isinstance(y, numpy.ndarray):
-
             if len(y.shape) == 1:
                 if y.shape[0] != self.axis.length:
-                    raise Exception("Wrong number of elements"
-                     " in 1D numpy.ndarray")
+                    raise Exception("Wrong number of elements in 1D numpy.ndarray")
 
-                #Set values of the function
+                # Set values of the function
                 self.data = y
 
                 if isinstance(self.data[0], numbers.Real):
@@ -230,59 +224,53 @@ class DFunction(Saveable, DataSaveable):
                     self._has_imag = True
 
             else:
-                raise Exception("Second argument has to be"
-                 " one-dimensional numpy.ndarray")
+                raise Exception(
+                    "Second argument has to be one-dimensional numpy.ndarray"
+                )
 
         else:
-            raise Exception("Second argument has to be"
-             " one-dimensional numpy.ndarray")
-
+            raise Exception("Second argument has to be one-dimensional numpy.ndarray")
 
     def _add_me(self, x: ValueAxis, y: numpy.ndarray) -> None:
-        """Adds data to the DFunction
-
-        """
+        """Adds data to the DFunction"""
         # if the DFunction is not initialized, call _make_me
         if self._has_imag is None:
-            self._make_me(x,y)
+            self._make_me(x, y)
 
         # otherwise do the job of adding
         else:
-
             if isinstance(x, ValueAxis):
                 xaxis = x
             else:
                 raise Exception("First argument has to be of a ValueAxis type")
 
             if isinstance(y, numpy.ndarray):
-
                 if len(y.shape) == 1:
                     if y.shape[0] != xaxis.length:
-                        raise Exception("Wrong number of elements"
-                         " in 1D numpy.ndarray")
+                        raise Exception("Wrong number of elements in 1D numpy.ndarray")
 
-                    #Set values of the function
+                    # Set values of the function
                     data = y
 
                     if not isinstance(data[0], numbers.Real):
                         self._has_imag = True
 
                 else:
-                    raise Exception("Second argument has to be"
-                     " one-dimensional numpy.ndarray")
+                    raise Exception(
+                        "Second argument has to be one-dimensional numpy.ndarray"
+                    )
 
             else:
-                raise Exception("Second argument has to be"
-                 " one-dimensional numpy.ndarray")
+                raise Exception(
+                    "Second argument has to be one-dimensional numpy.ndarray"
+                )
 
             # check axis
             if self.axis == xaxis:
                 # add data
                 self.data += data
             else:
-                raise Exception("On addition, axis objects have to be"
-                                " identical")
-
+                raise Exception("On addition, axis objects have to be identical")
 
     def change_axis(self, axis: ValueAxis) -> None:
         """Replaces the axis object with a compatible one, zero pads or trims the values
@@ -334,7 +322,6 @@ class DFunction(Saveable, DataSaveable):
             self.axis = axis
 
         elif self.axis.is_extension_of(axis):
-
             # we trim to the new axis
             ndata = numpy.zeros(axis.length, dtype=self.data.dtype)
             for ii in range(axis.length):
@@ -356,7 +343,6 @@ class DFunction(Saveable, DataSaveable):
 
         else:
             raise Exception("Incompatible axis")
-
 
     def at(self, x: Any, approx: str = "default") -> Any:
         """Returns the function value at the argument `x`
@@ -413,11 +399,8 @@ class DFunction(Saveable, DataSaveable):
         if approx == "spline":
             return self._get_spline_approx(x)
 
-
     def as_spline_function(self) -> Callable[[Any], Any]:
-        """Returns this function as a normal function of one argument
-
-        """
+        """Returns this function as a normal function of one argument"""
         if not self._splines_initialized:
             self._set_splines()
 
@@ -426,7 +409,6 @@ class DFunction(Saveable, DataSaveable):
 
         return func
 
-
     #
     #
     # Implementations of various interpolation types
@@ -434,9 +416,7 @@ class DFunction(Saveable, DataSaveable):
     #
 
     def _get_linear_approx(self, x_in: Any) -> Any:
-        """Returns linear interpolation of the function
-
-        """
+        """Returns linear interpolation of the function"""
         # FIXME: we need qr.FLOAT or more flexible, here
         try:
             ln = len(x_in)
@@ -444,17 +424,16 @@ class DFunction(Saveable, DataSaveable):
             ln = 0
 
         if ln > 0:
-
             val = numpy.zeros(len(x_in), dtype=self.data.dtype)
             k_i = 0
             for x in x_in:
-#                n,dval = self.axis.locate(x)
-#                if n+1 >= self.axis.length:
-#                    val[k_i] = self.data[n] \
-#                    + dval/self.axis.step*(self.data[n]-self.data[n-1])
-#                else:
-#                    val[k_i] = self.data[n] \
-#                    + dval/self.axis.step*(self.data[n+1]-self.data[n])
+                #                n,dval = self.axis.locate(x)
+                #                if n+1 >= self.axis.length:
+                #                    val[k_i] = self.data[n] \
+                #                    + dval/self.axis.step*(self.data[n]-self.data[n-1])
+                #                else:
+                #                    val[k_i] = self.data[n] \
+                #                    + dval/self.axis.step*(self.data[n+1]-self.data[n])
                 val[k_i] = self._approx_point(x)
                 k_i += 1
         else:
@@ -462,49 +441,42 @@ class DFunction(Saveable, DataSaveable):
 
         return val
 
-
     def _approx_point(self, x: float) -> Any:
 
         n, dval = self.axis.locate(x)
-        if n+1 >= self.axis.length:
-            val = self.data[n] \
-            + dval/self.axis.step*(self.data[n]-self.data[n-1])
+        if n + 1 >= self.axis.length:
+            val = self.data[n] + dval / self.axis.step * (
+                self.data[n] - self.data[n - 1]
+            )
         else:
-            val = self.data[n] \
-            + dval/self.axis.step*(self.data[n+1]-self.data[n])
+            val = self.data[n] + dval / self.axis.step * (
+                self.data[n + 1] - self.data[n]
+            )
         return val
 
-
     def _get_spline_approx(self, x: Any) -> Any:
-        """Returns spline interpolation of the function
-
-        """
+        """Returns spline interpolation of the function"""
         if not self._splines_initialized:
             self._set_splines()
         return self._spline_value(x)
 
     def _set_splines(self) -> None:
-        """Calculates the spline representation of the function
-
-
-        """
-        self._spline_r = \
-               scipy.interpolate.UnivariateSpline(
-                  self.axis.data, numpy.real(self.data),s=0)
+        """Calculates the spline representation of the function"""
+        self._spline_r = scipy.interpolate.UnivariateSpline(
+            self.axis.data, numpy.real(self.data), s=0
+        )
         if self._has_imag:
-            self._spline_i = \
-               scipy.interpolate.UnivariateSpline(
-                  self.axis.data, numpy.imag(self.data),s=0)
+            self._spline_i = scipy.interpolate.UnivariateSpline(
+                self.axis.data, numpy.imag(self.data), s=0
+            )
 
         self._splines_initialized = True
-        #print("Calculating splines")
+        # print("Calculating splines")
 
     def _spline_value(self, x: Any) -> Any:
-        """Returns the splie interpolated value of the function
-
-        """
+        """Returns the splie interpolated value of the function"""
         if self._has_imag:
-            ret = self._spline_r(x) + 1j*self._spline_i(x)
+            ret = self._spline_r(x) + 1j * self._spline_i(x)
         else:
             ret = self._spline_r(x)
         return ret
@@ -536,11 +508,9 @@ class DFunction(Saveable, DataSaveable):
         if other.axis == self.axis:
             f.data += other.data
         else:
-            raise Exception("axis attribute of both"
-                             " functions has to be identical")
+            raise Exception("axis attribute of both functions has to be identical")
 
         return f
-
 
     def apply_to_data(self, func: Callable[[numpy.ndarray], numpy.ndarray]) -> None:
         """Applies a submitted function to the data
@@ -564,7 +534,6 @@ class DFunction(Saveable, DataSaveable):
         self.data = func(self.data)
         if self._splines_initialized:
             self._splines_initiated = False
-
 
     #
     #
@@ -624,68 +593,62 @@ class DFunction(Saveable, DataSaveable):
         y = self.data
 
         if isinstance(t, TimeAxis):
-
             if window is None:
-                winfce = DFunction(self.axis,
-                                   numpy.ones(self.axis.length, dtype=REAL))
+                winfce = DFunction(self.axis, numpy.ones(self.axis.length, dtype=REAL))
             else:
                 winfce = window
 
-            y = y*winfce.data
+            y = y * winfce.data
 
             w = t.get_FrequencyAxis()
 
             if t.atype == "complete":
-
-                Y = t.length*numpy.fft.fftshift(numpy.fft.ifft(
-                numpy.fft.fftshift(y)))*t.step
+                Y = (
+                    t.length
+                    * numpy.fft.fftshift(numpy.fft.ifft(numpy.fft.fftshift(y)))
+                    * t.step
+                )
 
             elif t.atype == "upper-half":
-
                 yy = numpy.zeros(w.length, dtype=y.dtype)
-                yy[0:w.length//2] = y
+                yy[0 : w.length // 2] = y
                 # fill the negative side of the axis according to the symmetry
                 # FIXME: No choice of symmetry provided !!!!
-                for k in range(0, t.length-1):
-                    yy[w.length-k-1] = numpy.conj(y[k+1])
+                for k in range(0, t.length - 1):
+                    yy[w.length - k - 1] = numpy.conj(y[k + 1])
 
-                Y = 2.0*t.length*numpy.fft.fftshift(numpy.fft.ifft(yy))*t.step
+                Y = 2.0 * t.length * numpy.fft.fftshift(numpy.fft.ifft(yy)) * t.step
 
             else:
-                raise Exception("Unknown axis type"
-                                " (must be complete or upper-half)")
+                raise Exception("Unknown axis type (must be complete or upper-half)")
 
             F = DFunction(w, Y)
 
-
         elif isinstance(t, FrequencyAxis):
-
             w = t
             t = w.get_TimeAxis()
 
-            Y = w.length*numpy.fft.fftshift(numpy.fft.ifft(
-                numpy.fft.fftshift(y)))*w.step/(numpy.pi*2.0)
+            Y = (
+                w.length
+                * numpy.fft.fftshift(numpy.fft.ifft(numpy.fft.fftshift(y)))
+                * w.step
+                / (numpy.pi * 2.0)
+            )
 
             if w.atype == "complete":
-
                 F = DFunction(t, Y)
 
             elif w.atype == "upper-half":
-
-                Y = Y[t.length:2*t.length]
+                Y = Y[t.length : 2 * t.length]
                 F = DFunction(t, Y)
 
             else:
-                raise Exception("Unknown axis type"
-                                " (must be complete or upper-half)")
-
+                raise Exception("Unknown axis type (must be complete or upper-half)")
 
         else:
             raise Exception("Function must have TimeAxis or FrequencyAxis.")
 
-
         return F
-
 
     def get_inverse_Fourier_transform(self) -> DFunction:
         """Returns inverse Fourier transform of the DFunction
@@ -714,69 +677,60 @@ class DFunction(Saveable, DataSaveable):
         y = self.data
 
         if isinstance(t, TimeAxis):
-
             w = t.get_FrequencyAxis()
 
             if t.atype == "complete":
-
-                #Y = t.length*numpy.fft.fftshift(numpy.fft.ifft(
+                # Y = t.length*numpy.fft.fftshift(numpy.fft.ifft(
                 #    numpy.fft.fftshift(y)))*t.step
-                Y = numpy.fft.fftshift(numpy.fft.fft(
-                    numpy.fft.fftshift(y)))*t.step
+                Y = numpy.fft.fftshift(numpy.fft.fft(numpy.fft.fftshift(y))) * t.step
 
             elif t.atype == "upper-half":
-
                 yy = numpy.zeros(w.length, dtype=y.dtype)
-                yy[0:w.length//2] = y
+                yy[0 : w.length // 2] = y
                 # fill the negative side of the axis according to the symmetry
                 # FIXME: No choice of symmetry provided !!!!
-                for k in range(0, t.length-1):
-                    yy[w.length-k-1] = numpy.conj(y[k+1])
+                for k in range(0, t.length - 1):
+                    yy[w.length - k - 1] = numpy.conj(y[k + 1])
 
-                Y = 2.0*numpy.fft.fftshift(numpy.fft.fft(yy))*t.step
+                Y = 2.0 * numpy.fft.fftshift(numpy.fft.fft(yy)) * t.step
 
             else:
-                raise Exception("Unknown axis type"
-                                " (must be complete or upper-half)")
+                raise Exception("Unknown axis type (must be complete or upper-half)")
 
             F = DFunction(w, Y)
 
-
         elif isinstance(t, FrequencyAxis):
-
             w = t
             t = w.get_TimeAxis()
 
-            Y = numpy.fft.fftshift(numpy.fft.fft(
-            numpy.fft.fftshift(y)))*w.step/(numpy.pi*2.0)
+            Y = (
+                numpy.fft.fftshift(numpy.fft.fft(numpy.fft.fftshift(y)))
+                * w.step
+                / (numpy.pi * 2.0)
+            )
 
             if t.atype == "complete":
-
                 F = DFunction(t, Y)
 
             elif t.atype == "upper-half":
-
                 # this is a temporary fix - whole this part needs
                 # rethinking
-                y = numpy.zeros(t.length,dtype=numpy.complex128)
+                y = numpy.zeros(t.length, dtype=numpy.complex128)
 
                 # Vlada's suggestion
-                #y[0:t.length-1] = Y[t.length+1:2*t.length]
-                #y[t.length-1] = 0.0
+                # y[0:t.length-1] = Y[t.length+1:2*t.length]
+                # y[t.length-1] = 0.0
 
-                y[0:t.length] = Y[t.length:2*t.length]
+                y[0 : t.length] = Y[t.length : 2 * t.length]
                 F = DFunction(t, y)
 
             else:
-                raise Exception("Unknown axis type"
-                                " (must be complete or upper-half)")
+                raise Exception("Unknown axis type (must be complete or upper-half)")
 
         else:
             pass
 
-
         return F
-
 
     def fit_exponential(self, guess: list[float] | None = None) -> numpy.ndarray:
         """Exponential fit of the function
@@ -795,17 +749,17 @@ class DFunction(Saveable, DataSaveable):
 
         if guess is None:
             # we make a guess with one exponential of 100 fs decay time
-            guess = [self.data[0], 1.0/100.0, 0.0]
+            guess = [self.data[0], 1.0 / 100.0, 0.0]
 
         popt, pcov = curve_fit(_exp_fcion, self.axis.data, self.data, p0=guess)
 
         return popt
 
-
-    def fit_gaussian(self, N: int = 1, guess: list[float] | None = None,
-                     Nsvf: int = 251) -> numpy.ndarray:
-        #from scipy.signal import savgol_filter
-        #from scipy.interpolate import UnivariateSpline
+    def fit_gaussian(
+        self, N: int = 1, guess: list[float] | None = None, Nsvf: int = 251
+    ) -> numpy.ndarray:
+        # from scipy.signal import savgol_filter
+        # from scipy.interpolate import UnivariateSpline
         """Performs a Gaussian fit of the spectrum based on an initial guess
 
 
@@ -831,7 +785,6 @@ class DFunction(Saveable, DataSaveable):
         y = self.data
 
         if guess is None:
-
             raise Exception("Guess is required at this time")
             # FIXME: create a reasonable guess
             # guess = [1.0, 11000.0, 300.0, 0.2,
@@ -857,22 +810,19 @@ class DFunction(Saveable, DataSaveable):
 
             # # find positions of optima by looking for zeros of y1sm
 
-
             # # isolate maxima by looking at the value of y2sm
-
 
             # #plt.plot(x, der(x))
             # #plt.plot(x, y1sm)
             # plt.plot(x, y2sm)
             # plt.show()
 
-
-
         def funcf(x: Any, *p: Any) -> Any:
             return _n_gaussians(x, *p)
 
         # minimize, leastsq,
         from scipy.optimize import curve_fit
+
         popt, pcov = curve_fit(funcf, x, y, p0=guess)
 
         # if plot:
@@ -890,26 +840,28 @@ class DFunction(Saveable, DataSaveable):
 
         # FIXME: Create a readable report
 
-        return popt #, pcov
+        return popt  # , pcov
 
-
-
-    def plot(self, fig: Any = None, title: str | None = None,
-             title_font: Any = None,
-             axis: list[float] | None = None,
-             vmax: float | None = None,
-             vmin: float | None = None,
-             xlabel: str | None = None,
-             ylabel: str | None = None,
-             label_font: Any = None,
-             text: Any = None,
-             text_font: Any = None,
-             label: str | None = None,
-             text_loc: list[float] | None = None,
-             fontsize: str = "20",
-             real_only: bool = True,
-             show: bool = False,
-             color: Any = None) -> None:
+    def plot(
+        self,
+        fig: Any = None,
+        title: str | None = None,
+        title_font: Any = None,
+        axis: list[float] | None = None,
+        vmax: float | None = None,
+        vmin: float | None = None,
+        xlabel: str | None = None,
+        ylabel: str | None = None,
+        label_font: Any = None,
+        text: Any = None,
+        text_font: Any = None,
+        label: str | None = None,
+        text_loc: list[float] | None = None,
+        fontsize: str = "20",
+        real_only: bool = True,
+        show: bool = False,
+        color: Any = None,
+    ) -> None:
         """Plotting of the DFunction's data against the ValueAxis.
 
 
@@ -929,10 +881,10 @@ class DFunction(Saveable, DataSaveable):
         #  How to treat the figures
         #
         if fig is None:
-            fig, ax = plt.subplots(1,1)
+            fig, ax = plt.subplots(1, 1)
         else:
             fig.clear()
-            fig.add_subplot(1,1,1)
+            fig.add_subplot(1, 1, 1)
             ax = fig.axes[0]
 
         if axis is None:
@@ -960,10 +912,12 @@ class DFunction(Saveable, DataSaveable):
         pos = text_loc
         if label is not None:
             label = label
-            ax.text((prvo-levo)*pos[0]+levo,
-                (hore-dole)*pos[1]+dole,
+            ax.text(
+                (prvo - levo) * pos[0] + levo,
+                (hore - dole) * pos[1] + dole,
                 label,
-                fontsize=str(fontsize))
+                fontsize=str(fontsize),
+            )
 
         if color is not None:
             if (len(color) == 1) or isinstance(color, str):
@@ -984,7 +938,7 @@ class DFunction(Saveable, DataSaveable):
 
         else:
             if color is not None:
-                plt.plot(self.axis.data, self.data,clr[0])
+                plt.plot(self.axis.data, self.data, clr[0])
             else:
                 plt.plot(self.axis.data, self.data)
 
@@ -996,15 +950,14 @@ class DFunction(Saveable, DataSaveable):
 
         if text is not None:
             if text_font is not None:
-                plt.text(text[0],text[1],
-                     text[2], fontdict=text_font)
+                plt.text(text[0], text[1], text[2], fontdict=text_font)
             else:
                 plt.text(text[0], text[1], text[2])
 
         if label_font is not None:
             font = label_font
         else:
-            font={'size':20}
+            font = {"size": 20}
 
         if xlabel is None:
             xl = ""
@@ -1012,15 +965,15 @@ class DFunction(Saveable, DataSaveable):
             yl = ""
 
         if xlabel is not None:
-            xl = r'$\omega$ [fs$^{-1}$]'
+            xl = r"$\omega$ [fs$^{-1}$]"
 
         if isinstance(self.axis, FrequencyAxis):
             units = self.axis.unit_repr_latex()
-            xl = r'$\omega$ ['+units+']'
-            yl = r'$F(\omega)$'
+            xl = r"$\omega$ [" + units + "]"
+            yl = r"$F(\omega)$"
         if isinstance(self.axis, TimeAxis):
-            xl = r'$t$ [fs]'
-            yl = r'$f(t)$'
+            xl = r"$t$ [fs]"
+            yl = r"$f(t)$"
 
         if xlabel is not None:
             xl = xlabel
@@ -1035,31 +988,23 @@ class DFunction(Saveable, DataSaveable):
         if show:
             plt.show()
 
-
     def savefig(self, filename: str) -> None:
-        """Saves current figure into a file
-
-
-        """
+        """Saves current figure into a file"""
         fig = plt.gcf()
-        fig.savefig(filename, bbox_inches='tight')
-
-
+        fig.savefig(filename, bbox_inches="tight")
 
     def _fname_ext(self, filename: str, ext: str | None) -> tuple[str, str | None]:
-        """
-
-        """
+        """ """
         # find out if filename has an extension
         fname, ex = os.path.splitext(filename)
         ex = ex[1:]
-        has_ext = not (ex[1:] == '')
+        has_ext = not (ex[1:] == "")
 
         if has_ext and (ext is None):
             fname = filename
             ext = ex
         elif (not has_ext) and (ext is None):
-            ext = 'npy'
+            ext = "npy"
         elif ext is not None:
             fname = filename + "." + ext
 
@@ -1070,21 +1015,22 @@ def _exp_fcion(t: Any, *params: Any) -> Any:
 
     np = len(params)
     ret = 0.0
-    nexp = int((np - 1)/2)
+    nexp = int((np - 1) / 2)
     kp = 0
     for kk in range(nexp):
-        #print(kp, params[kp])
-        #print(kp+1,params[kp+1], t)
-        ret += params[kp]*numpy.exp(-params[kp+1]*t)
+        # print(kp, params[kp])
+        # print(kp+1,params[kp+1], t)
+        ret += params[kp] * numpy.exp(-params[kp + 1] * t)
         kp += 2
-    #print(kp, params[kp])
+    # print(kp, params[kp])
     ret += params[kp]
 
     return ret
 
 
-def _gaussian(x: Any, height: float, center: float, fwhm: float,
-              offset: float = 0.0) -> Any:
+def _gaussian(
+    x: Any, height: float, center: float, fwhm: float, offset: float = 0.0
+) -> Any:
     """Gaussian function with a possible offset
 
 
@@ -1107,8 +1053,10 @@ def _gaussian(x: Any, height: float, center: float, fwhm: float,
 
 
     """
-    return height*numpy.exp(-(((x - center)**2)*4.0*numpy.log(2.0))/
-                            (fwhm**2)) + offset
+    return (
+        height * numpy.exp(-(((x - center) ** 2) * 4.0 * numpy.log(2.0)) / (fwhm**2))
+        + offset
+    )
 
 
 def _n_gaussians(x: Any, *params: Any) -> Any:
@@ -1125,18 +1073,17 @@ def _n_gaussians(x: Any, *params: Any) -> Any:
 
     """
     n = len(params)
-    k = n//3
+    k = n // 3
 
-    if k*3 + 1 == n:
+    if k * 3 + 1 == n:
         res = 0.0
         pp = numpy.zeros(3)
         for i in range(k):
-            pp[0:3] = params[3*i:3*i+3]
-            #pp[3] = 0.0
+            pp[0:3] = params[3 * i : 3 * i + 3]
+            # pp[3] = 0.0
             arg = tuple(pp)
             res += _gaussian(x, *arg)
-        res += params[n-1] # last parameter is an offset
+        res += params[n - 1]  # last parameter is an offset
         return res
 
     raise Exception("Inconsistend number of parameters")
-

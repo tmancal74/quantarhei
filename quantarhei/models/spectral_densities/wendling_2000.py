@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from typing import Any
@@ -22,34 +21,90 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
 
 
     """
+
     def __init__(self) -> None:
 
         self.identificator = "Wendling_JPCB_104_2000_5825"
         self.alt_ident = ["Wendling", "Wendling2000"]
-
 
     def get_SpectralDensity(self, axis: Any) -> Any:
 
         #
         # Data from the paper
         #
-        omegas = [36,   70,   117, 173, 185, 195, 237, 260, 284, 327,
-                  365, 381, 479, 541, 565, 580, 635, 714, 723, 730,
-                  747, 759, 768, 777, 819, 859, 896, 1158, 1176, 1216]
-        fcfs   = [0.01, 0.01, 0.0055, 0.008, 0.008, 0.011, 0.005,
-                  0.0025, 0.005, 0.0015,
-                  0.002, 0.002, 0.001, 0.001, 0.002, 0.001, 0.003,
-                  0.002, 0.003, 0.001, 0.002, 0.002, 0.004, 0.0015,
-                  0.002, 0.0025, 0.002, 0.004, 0.003, 0.002]
+        omegas = [
+            36,
+            70,
+            117,
+            173,
+            185,
+            195,
+            237,
+            260,
+            284,
+            327,
+            365,
+            381,
+            479,
+            541,
+            565,
+            580,
+            635,
+            714,
+            723,
+            730,
+            747,
+            759,
+            768,
+            777,
+            819,
+            859,
+            896,
+            1158,
+            1176,
+            1216,
+        ]
+        fcfs = [
+            0.01,
+            0.01,
+            0.0055,
+            0.008,
+            0.008,
+            0.011,
+            0.005,
+            0.0025,
+            0.005,
+            0.0015,
+            0.002,
+            0.002,
+            0.001,
+            0.001,
+            0.002,
+            0.001,
+            0.003,
+            0.002,
+            0.003,
+            0.001,
+            0.002,
+            0.002,
+            0.004,
+            0.0015,
+            0.002,
+            0.0025,
+            0.002,
+            0.004,
+            0.003,
+            0.002,
+        ]
 
         #
         # Guessed dephasing times of the oscillators
         #
-        gammas = [1.0/3000.0]*len(omegas)
+        gammas = [1.0 / 3000.0] * len(omegas)
 
         data = []
         for i in range(len(omegas)):
-            data.append((omegas[i],fcfs[i],gammas[i]))
+            data.append((omegas[i], fcfs[i], gammas[i]))
 
         #
         # All contributions consist of underdamped harmonic oscillators
@@ -61,10 +116,9 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
         #
         k = 0
         for d in data:
-
             params["freq"] = d[0]
-            params["reorg"] = d[0]*d[1]
-            params["gamma"] = d[2] #1.0/3000.0
+            params["reorg"] = d[0] * d[1]
+            params["gamma"] = d[2]  # 1.0/3000.0
 
             with energy_units("1/cm"):
                 sd = SpectralDensity(axis, params)
@@ -75,8 +129,6 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
             else:
                 sd.axis = ax
                 ret = ret + sd
-            k +=1
+            k += 1
 
         return ret
-
-

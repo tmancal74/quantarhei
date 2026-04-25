@@ -41,14 +41,11 @@ class SubMode(UnitsManaged, Saveable):
 
     """
 
-    omega = Float('omega')
-    shift = Float('shift')
-    nmax  = Integer('nmax')
+    omega = Float("omega")
+    shift = Float("shift")
+    nmax = Integer("nmax")
 
     def __init__(self, omega: float = 1.0, shift: float = 0.0, nmax: int = 2) -> None:
         self.omega = self.convert_energy_2_internal_u(omega)
         self.shift = shift
-        self.nmax  = nmax
-
-
-
+        self.nmax = nmax

@@ -11,8 +11,6 @@ from .absbase import AbsSpectrumBase
 
 
 class LinSpectrum(AbsSpectrumBase):
-    """Class representing absorption spectrum
+    """Class representing absorption spectrum"""
 
-
-    """
     pass

@@ -1,4 +1,3 @@
-
 import quantarhei as qr
 
 
@@ -23,7 +22,3 @@ def main():
     agg.build(mult=1)
 
     print(agg.Ntot)
-
-
-
-

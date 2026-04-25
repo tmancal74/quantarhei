@@ -1,7 +1,5 @@
-"""Calculation of pump-probe spectra with effective lineshapes
+"""Calculation of pump-probe spectra with effective lineshapes"""
 
-
-"""
 import copy
 
 import quantarhei as qr
@@ -23,22 +21,22 @@ with qr.energy_units("1/cm"):
     m3 = qr.Molecule([0.0, 12600.0])
 
     # transitions will have Gaussian lineshape with a width specified here
-    m1.set_transition_width((0,1), 150.0)
-    m2.set_transition_width((0,1), 150.0)
-    m3.set_transition_width((0,1), 200.0)
+    m1.set_transition_width((0, 1), 150.0)
+    m2.set_transition_width((0, 1), 150.0)
+    m3.set_transition_width((0, 1), 200.0)
 
 # we create an aggregate from the two molecules
 agg = qr.Aggregate(molecules=[m1, m2, m3])
 
 # we set transition dipole moment orientations for the two molecules
-m1.set_dipole(0,1,[1.0, 0.8, 0.8])
-m2.set_dipole(0,1,[0.8, 0.8, 0.0])
-m3.set_dipole(0,1,[0.0, 2.0, 0.0])
+m1.set_dipole(0, 1, [1.0, 0.8, 0.8])
+m2.set_dipole(0, 1, [0.8, 0.8, 0.0])
+m3.set_dipole(0, 1, [0.0, 2.0, 0.0])
 
 # resonance coupling is set by hand
 with qr.energy_units("1/cm"):
-    agg.set_resonance_coupling(0,1, 100.0)
-    agg.set_resonance_coupling(1,2, 50.0)
+    agg.set_resonance_coupling(0, 1, 100.0)
+    agg.set_resonance_coupling(1, 2, 50.0)
 
 # we copy the aggregate before it is built. For the calculation of 2D
 # spectrum, we need to build the aggregate so that it contains two-exciton
@@ -68,9 +66,9 @@ t2_axis = qr.TimeAxis(0.0, 300, 10.0)
 
 # Lindblad relaxation operator
 with qr.eigenbasis_of(H):
-    K1 = qr.qm.ProjectionOperator(1,2,dim=H.dim)
-    K2 = qr.qm.ProjectionOperator(2,3,dim=H.dim)
-rates = [1.0/500.0, 1.0/100.0]
+    K1 = qr.qm.ProjectionOperator(1, 2, dim=H.dim)
+    K2 = qr.qm.ProjectionOperator(2, 3, dim=H.dim)
+rates = [1.0 / 500.0, 1.0 / 100.0]
 
 sbi = qr.qm.SystemBathInteraction(sys_operators=[K1, K2], rates=rates)
 
@@ -85,10 +83,10 @@ with qr.eigenbasis_of(H):
 
 if _show_plots_:
     with qr.eigenbasis_of(H):
-        eUt.plot_element((2,2,2,2), show=False)
-        eUt.plot_element((1,1,1,1), show=False)
-        eUt.plot_element((1,1,2,2))
-        eUt.plot_element((1,2,1,2))
+        eUt.plot_element((2, 2, 2, 2), show=False)
+        eUt.plot_element((1, 1, 1, 1), show=False)
+        eUt.plot_element((1, 1, 2, 2))
+        eUt.plot_element((1, 2, 1, 2))
 
 
 ###############################################################################
@@ -107,7 +105,7 @@ agg_2D.diagonalize()
 
 # laboratory settings
 lab = qr.LabSetup()
-lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
+lab.set_polarizations(pulse_polarizations=(X, X, X), detection_polarization=X)
 
 #
 # Given a molecular system (only Aggregate class so far), we calculate
@@ -121,4 +119,4 @@ pcont3 = pcalc.calculate_all_system(agg_2D, H, eUt, lab)
 
 if _movie_:
     with qr.energy_units("1/cm"):
-        pcont3.make_movie("pprob2.mp4") #, axis=[10500, 13500, -600, 100])
+        pcont3.make_movie("pprob2.mp4")  # , axis=[10500, 13500, -600, 100])

@@ -5,11 +5,12 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 from typing import Any
 
-#import time
+# import time
 import numpy
 import scipy
 
@@ -24,7 +25,7 @@ from ...core.parallel import (
     start_parallel_region,
 )
 
-#from ...core.managers import BasisManaged
+# from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 from ..hilbertspace.hamiltonian import Hamiltonian
 from .relaxationtensor import RelaxationTensor
@@ -75,14 +76,20 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
     """
 
-    #data = BasisManagedComplexArray("data")
+    # data = BasisManagedComplexArray("data")
     Km = BasisManagedComplexArray("Km")
     Lm = BasisManagedComplexArray("Lm")
     Ld = BasisManagedComplexArray("Ld")
 
-    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True,
-                 cutoff_time: float | None = None, as_operators: bool = False,
-                 name: str = "") -> None:
+    def __init__(
+        self,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
+        initialize: bool = True,
+        cutoff_time: float | None = None,
+        as_operators: bool = False,
+        name: str = "",
+    ) -> None:
 
         self._initialize_basis()
 
@@ -97,8 +104,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # SystemBathInteraction
         if not isinstance(sbi, SystemBathInteraction):
             if sbi is not None:
-                raise Exception("Second argument must be of"
-                            " the SystemBathInteraction type")
+                raise Exception(
+                    "Second argument must be of the SystemBathInteraction type"
+                )
 
         self.Hamiltonian = ham
         self.SystemBathInteraction = sbi
@@ -112,8 +120,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self.as_operators = as_operators
 
         if not self.as_operators:
-            self.data = numpy.zeros((self.dim,self.dim,self.dim,self.dim),
-                                    dtype=numpy.complex128)
+            self.data = numpy.zeros(
+                (self.dim, self.dim, self.dim, self.dim), dtype=numpy.complex128
+            )
         # set cut-off time
         if cutoff_time is not None:
             self.cutoff_time = cutoff_time
@@ -121,30 +130,24 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         # initialize the tensor right at creation
         if initialize:
-
             try:
                 pass
             except Exception:
                 pass
 
-
             with energy_units("int"):
                 self._implementation(ham, sbi)
-
 
         self.Iterm = None
         self.has_Iterm = False
 
-
     def apply(self, oper: Any, copy: bool = True) -> Any:
-        """Applies the relaxation tensor on a superoperator
-
-        """
+        """Applies the relaxation tensor on a superoperator"""
         if self.as_operators:
-
             print("Applying Relaxation tensor")
             if copy:
                 import copy
+
                 oper_ven = copy.copy(oper)
             else:
                 oper_ven = oper
@@ -163,55 +166,43 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 Kd[mm, :, :] = numpy.transpose(Km[mm, :, :])
 
                 ven += (
-                numpy.dot(Km[mm,:,:],numpy.dot(rho1, Ld[:,:,mm]))
-                +numpy.dot(Lm[:,:,mm],numpy.dot(rho1, Kd[mm,:,:]))
-                -numpy.dot(numpy.dot(Kd[mm,:,:],Lm[:,:,mm]), rho1)
-                -numpy.dot(rho1, numpy.dot(Ld[:,:,mm],Km[mm,:,:])))
+                    numpy.dot(Km[mm, :, :], numpy.dot(rho1, Ld[:, :, mm]))
+                    + numpy.dot(Lm[:, :, mm], numpy.dot(rho1, Kd[mm, :, :]))
+                    - numpy.dot(numpy.dot(Kd[mm, :, :], Lm[:, :, mm]), rho1)
+                    - numpy.dot(rho1, numpy.dot(Ld[:, :, mm], Km[mm, :, :]))
+                )
 
             oper_ven.data = ven
 
             return oper_ven
 
-
         return super().apply(oper, copy=copy)
 
-
     def get_population_rate(self, N: int, M: int) -> Any:
-        """Returns the relaxation rate between states N -> M
-
-
-        """
+        """Returns the relaxation rate between states N -> M"""
         if self.as_operators:
-
             rt = 0.0
             for ii in range(self.Lm.shape[2]):
-                rt += 2.0*numpy.real(self.Lm[N,M,ii]*self.Km[ii,N,M])
+                rt += 2.0 * numpy.real(self.Lm[N, M, ii] * self.Km[ii, N, M])
 
             return rt
 
         return super().get_population_rate(N, M)
 
-
     def get_dephasing_rate(self, N: int, M: int) -> Any:
-        """Returns the dephasing rate of a coherence between states N and M
-
-
-        """
+        """Returns the dephasing rate of a coherence between states N and M"""
         if self.as_operators:
-
             rt = 0.0
             for ii in range(self.Lm.shape[2]):
-
-                A_a = numpy.dot(self.Km[ii,N,:],self.Lm[:,N,ii])
-                A_b = numpy.dot(self.Ld[M,:,ii],self.Km[ii,:,M])
-                KL = self.Km[ii,N,N]*self.Ld[M,M,ii]
-                LK = self.Lm[N,N,ii]*self.Km[ii,M,M]
+                A_a = numpy.dot(self.Km[ii, N, :], self.Lm[:, N, ii])
+                A_b = numpy.dot(self.Ld[M, :, ii], self.Km[ii, :, M])
+                KL = self.Km[ii, N, N] * self.Ld[M, M, ii]
+                LK = self.Lm[N, N, ii] * self.Km[ii, M, M]
                 rt += A_a + A_b - KL - LK
 
             return rt
 
         return super().get_dephasing_rate(N, M)
-
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the tensor by a given matrix
@@ -230,10 +221,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         """
         if self.as_operators:
-
-            if (self.manager.warn_about_basis_change):
-                print("\nQr >>> Operators of relaxation"
-                      f" in Redfield tensor '{self.name}' changes basis")
+            if self.manager.warn_about_basis_change:
+                print(
+                    "\nQr >>> Operators of relaxation"
+                    f" in Redfield tensor '{self.name}' changes basis"
+                )
 
             if inv is None:
                 S1 = numpy.linalg.inv(SS)
@@ -244,18 +236,16 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             _Ld = numpy.zeros_like(self._Ld, dtype=COMPLEX)
             _Km = numpy.zeros_like(self._Km, dtype=COMPLEX)
             for m in range(self._Km.shape[0]):
-                _Lm[:,:,m] = numpy.dot(S1,numpy.dot(self._Lm[:,:,m], SS))
-                _Ld[:,:,m] = numpy.dot(S1,numpy.dot(self._Ld[:,:,m], SS))
-                _Km[m,:,:] = numpy.dot(S1,numpy.dot(self._Km[m,:,:], SS))
+                _Lm[:, :, m] = numpy.dot(S1, numpy.dot(self._Lm[:, :, m], SS))
+                _Ld[:, :, m] = numpy.dot(S1, numpy.dot(self._Ld[:, :, m], SS))
+                _Km[m, :, :] = numpy.dot(S1, numpy.dot(self._Km[m, :, :], SS))
 
             self._Lm = _Lm
             self._Ld = _Ld
             self._Km = _Km
 
         else:
-
             super().transform(SS)
-
 
     def _implementation(self, ham: Hamiltonian, sbi: SystemBathInteraction) -> None:
         r"""Reference implementation, completely in Python
@@ -278,12 +268,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         """
         qr.log_detail("Reference time-independent Redfield tensor calculation")
-        #print("Reference Redfield implementation ...")
+        # print("Reference Redfield implementation ...")
         #
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         #
-        Na = ham.dim #data.shape[0]
+        Na = ham.dim  # data.shape[0]
 
         # time axis
         ta = sbi.TimeAxis
@@ -338,7 +328,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         Om = numpy.zeros((Na, Na))
         for a in range(Na):
             for b in range(Na):
-                Om[a,b] = hD[a] - hD[b]
+                Om[a, b] = hD[a] - hD[b]
 
         # number of baths - one per monomer
         Nb = sbi.N
@@ -348,21 +338,20 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #
         Nex = Nb
         if multi_ex:
-            Nex = 2*Nb
+            Nex = 2 * Nb
 
         Km = numpy.zeros((Nex, Na, Na), dtype=numpy.float64)
         # Transform site operators
         S1 = scipy.linalg.inv(SS)
-        #FIXME: SBI should also be basis controlled
+        # FIXME: SBI should also be basis controlled
         for ns in range(Nb):
-            Km[ns,:,:] = numpy.dot(S1, numpy.dot(sbi.KK[ns,:,:],SS))
+            Km[ns, :, :] = numpy.dot(S1, numpy.dot(sbi.KK[ns, :, :], SS))
 
         if multi_ex:
-
             try:
-                ii = sbi.system.twoex_state[0,0]
-                #print(ii)
-                #if ii >= 0:
+                ii = sbi.system.twoex_state[0, 0]
+                # print(ii)
+                # if ii >= 0:
                 #    print("Something is wrong")
                 #    raise Exception("twoex_state property ill-defined.")
             except AttributeError:
@@ -372,20 +361,23 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             Nb2 = sbi.N
 
             # projectors to two-exciton states
-            K2 = numpy.zeros((Nb2,Na,Na), dtype=REAL)
+            K2 = numpy.zeros((Nb2, Na, Na), dtype=REAL)
             i_start = ham.rwa_indices[2]  # here the two-exciton bands starts
             ii = 0
             for ms in range(i_start, ham.dim):
-                K2[ii,ms,ms] = 1.0
+                K2[ii, ms, ms] = 1.0
                 ii += 1
 
             # here we do two-exciton projectors
             for ns in range(Nb):
                 for ms in range(Nb):
                     if ms != ns:
-                        n2ex = sbi.system.twoex_state[ms,ns] - Nb - 1  # we number the K2 projectors from zero
-                        Km[Nb + ns,:,:] += numpy.dot(S1, numpy.dot(K2[n2ex,:,:],SS))
-
+                        n2ex = (
+                            sbi.system.twoex_state[ms, ns] - Nb - 1
+                        )  # we number the K2 projectors from zero
+                        Km[Nb + ns, :, :] += numpy.dot(
+                            S1, numpy.dot(K2[n2ex, :, :], SS)
+                        )
 
         #
         # \Lambda_m operator
@@ -395,25 +387,25 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         if not multi_ex:
             Lm = numpy.zeros((Na, Na, Nb), dtype=numpy.complex128)
         else:
-            Lm = numpy.zeros((Na, Na, 2*Nb), dtype=numpy.complex128)
-            Nex = 2*Nb
+            Lm = numpy.zeros((Na, Na, 2 * Nb), dtype=numpy.complex128)
+            Nex = 2 * Nb
 
         #######################################################################
         # PARALLELIZATION
         #######################################################################
 
         start_parallel_region()
-        for ms in block_distributed_range(0, Nb): #range(Nb):
+        for ms in block_distributed_range(0, Nb):  # range(Nb):
             qr.log_quick("Calculating bath component", ms, "of", Nb, end="\r")
-            #print(ms, "of", Nb)
-            #for ns in range(Nb):
+            # print(ms, "of", Nb)
+            # for ns in range(Nb):
 
             ns = ms
 
             # correlation function of site ns (if ns == ms)
             # or a cross-correlation function of sites ns and ms
 
-            #FIXME: reaching correct correlation function is a nightmare!!!
+            # FIXME: reaching correct correlation function is a nightmare!!!
             rc1 = sbi.CC.get_coft(ms, ns)
 
             self._guts_Cmplx_Splines(ms, Lm, Km, Na, Om, length, rc1, tm)
@@ -426,46 +418,50 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #######################################################################
         #  END PARALLELIZATION
         #######################################################################
-        eexp = numpy.exp(-1.0j*Om[:,:, numpy.newaxis]*tm[numpy.newaxis,numpy.newaxis,:])
+        eexp = numpy.exp(
+            -1.0j * Om[:, :, numpy.newaxis] * tm[numpy.newaxis, numpy.newaxis, :]
+        )
 
         if multi_ex:
             for ms in range(Nb):
                 ns = ms
-                #print("two-ex", ns, ":")
-                rc1 = sbi.get_coft(ms+1, ns+1)
+                # print("two-ex", ns, ":")
+                rc1 = sbi.get_coft(ms + 1, ns + 1)
                 rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
                 cc_mnab = _integrate_last_axis(rc, dt)
-                Lm[:,:,Nb + ms] = numpy.einsum("ij,ij->ij",cc_mnab[:,:,-1],Km[Nb + ms,:,:])
+                Lm[:, :, Nb + ms] = numpy.einsum(
+                    "ij,ij->ij", cc_mnab[:, :, -1], Km[Nb + ms, :, :]
+                )
 
         # create the Hermite conjuged version of \Lamnda_m
         if not multi_ex:
             Ld = numpy.zeros((Na, Na, Nb), dtype=numpy.complex128)
             Nex = Nb
         else:
-            Ld = numpy.zeros((Na, Na, 2*Nb), dtype=numpy.complex128)
-            Nex = 2*Nb
+            Ld = numpy.zeros((Na, Na, 2 * Nb), dtype=numpy.complex128)
+            Nex = 2 * Nb
 
         for ms in range(Nex):
-            Ld[:, :, ms] += numpy.conj(numpy.transpose(Lm[:,:,ms]))
+            Ld[:, :, ms] += numpy.conj(numpy.transpose(Lm[:, :, ms]))
 
         self._post_implementation(Km, Lm, Ld)
 
         qr.log_detail("... Redfield done")
 
-    def _post_implementation(self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray) -> None:
+    def _post_implementation(
+        self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray
+    ) -> None:
         """When components of the tensor are calculated, should they be
         saved or converted into full tensor?
 
         """
         if self.as_operators:
-
             # save the operators - propagation methods must know about them
             self.Km = Km
             self.Lm = Lm
             self.Ld = Ld
 
         else:
-
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
 
@@ -475,76 +471,105 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         self._is_initialized = True
 
-
-    def _guts_Cmplx_Splines(self, ms: int, Lm: numpy.ndarray, Km: numpy.ndarray, Na: int, Om: numpy.ndarray, length: int, rc1: numpy.ndarray, tm: numpy.ndarray) -> None:
+    def _guts_Cmplx_Splines(
+        self,
+        ms: int,
+        Lm: numpy.ndarray,
+        Km: numpy.ndarray,
+        Na: int,
+        Om: numpy.ndarray,
+        length: int,
+        rc1: numpy.ndarray,
+        tm: numpy.ndarray,
+    ) -> None:
 
         for a in range(Na):
             for b in range(Na):
-
                 # argument of the integration
-                eexp = numpy.exp(-1.0j*Om[a,b]*tm)
-                rc = rc1[0:length]*eexp
+                eexp = numpy.exp(-1.0j * Om[a, b] * tm)
+                rc = rc1[0:length] * eexp
 
                 # spline integration instead of FFT
                 rr = numpy.real(rc)
                 ri = numpy.imag(rc)
-                sr = scipy.interpolate.UnivariateSpline(tm,
-                            rr, s=0).antiderivative()(tm)
-                si = scipy.interpolate.UnivariateSpline(tm,
-                            ri, s=0).antiderivative()(tm)
+                sr = scipy.interpolate.UnivariateSpline(tm, rr, s=0).antiderivative()(
+                    tm
+                )
+                si = scipy.interpolate.UnivariateSpline(tm, ri, s=0).antiderivative()(
+                    tm
+                )
 
                 # we take the last value (integral to infinity)
-                cc_mnab = (sr[length-1] + 1.0j*si[length-1])
+                cc_mnab = sr[length - 1] + 1.0j * si[length - 1]
 
                 # \Lambda_m operators
-                Lm[a,b,ms] += cc_mnab*Km[ms,a,b]
+                Lm[a, b, ms] += cc_mnab * Km[ms, a, b]
 
-
-    def _guts_Cmplx_Sum(self, ms: int, Lm: numpy.ndarray, Km: numpy.ndarray, Na: int, Om: numpy.ndarray, length: int, rc1: numpy.ndarray, tm: numpy.ndarray) -> None:
+    def _guts_Cmplx_Sum(
+        self,
+        ms: int,
+        Lm: numpy.ndarray,
+        Km: numpy.ndarray,
+        Na: int,
+        Om: numpy.ndarray,
+        length: int,
+        rc1: numpy.ndarray,
+        tm: numpy.ndarray,
+    ) -> None:
 
         import scipy
 
-        dt = tm[1]-tm[0]
+        dt = tm[1] - tm[0]
         for a in range(Na):
             for b in range(Na):
-
                 # argument of the integration
-                eexp = numpy.exp(-1.0j*Om[a,b]*tm)
-                rc = rc1[0:length]*eexp
+                eexp = numpy.exp(-1.0j * Om[a, b] * tm)
+                rc = rc1[0:length] * eexp
 
                 # we take integral to infinity
-                #cc_mnab = numpy.sum(rc)*dt
+                # cc_mnab = numpy.sum(rc)*dt
                 cc_mnab = scipy.integrate.trapz(rc, dx=dt)
 
                 # \Lambda_m operators
-                Lm[a,b,ms] += cc_mnab*Km[ms,a,b]
+                Lm[a, b, ms] += cc_mnab * Km[ms, a, b]
 
-
-    def _guts_Cmplx_FFT(self, ms: int, Lm: numpy.ndarray, Km: numpy.ndarray, Na: int, Om: numpy.ndarray, length: int, rc1: numpy.ndarray, tm: numpy.ndarray) -> None:
+    def _guts_Cmplx_FFT(
+        self,
+        ms: int,
+        Lm: numpy.ndarray,
+        Km: numpy.ndarray,
+        Na: int,
+        Om: numpy.ndarray,
+        length: int,
+        rc1: numpy.ndarray,
+        tm: numpy.ndarray,
+    ) -> None:
 
         for a in range(Na):
             for b in range(Na):
-
                 # argument of the integration
-                eexp = numpy.exp(-1.0j*Om[a,b]*tm)
-                rc = rc1[0:length]*eexp
+                eexp = numpy.exp(-1.0j * Om[a, b] * tm)
+                rc = rc1[0:length] * eexp
 
                 # spline integration instead of FFT
                 rr = numpy.real(rc)
                 ri = numpy.imag(rc)
-                sr = scipy.interpolate.UnivariateSpline(tm,
-                            rr, s=0).antiderivative()(tm)
-                si = scipy.interpolate.UnivariateSpline(tm,
-                            ri, s=0).antiderivative()(tm)
+                sr = scipy.interpolate.UnivariateSpline(tm, rr, s=0).antiderivative()(
+                    tm
+                )
+                si = scipy.interpolate.UnivariateSpline(tm, ri, s=0).antiderivative()(
+                    tm
+                )
 
                 # we take the last value (integral to infinity)
-                cc_mnab = (sr[length-1] + 1.0j*si[length-1])
+                cc_mnab = sr[length - 1] + 1.0j * si[length - 1]
 
                 # \Lambda_m operators
-                Lm[a,b,ms] += cc_mnab*Km[ms,a,b]
+                Lm[a, b, ms] += cc_mnab * Km[ms, a, b]
 
-
-    def _convert_operators_2_tensor(self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray) -> numpy.ndarray:
+    def _convert_operators_2_tensor(
+        self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray
+    ) -> numpy.ndarray:
         r"""Converts operator representation to the tensor one
 
         Convertes operator representation of the Redfield tensor
@@ -563,7 +588,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         """
         Na = self.Hamiltonian.data.shape[0]
-        Nb = Lm.shape[2] #self.SystemBathInteraction.N
+        Nb = Lm.shape[2]  # self.SystemBathInteraction.N
 
         RR = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
 
@@ -571,52 +596,45 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # PARALLELIZATION
         #######################################################################
 
-        #from ...implementations.cython.loopit import loopit
-
+        # from ...implementations.cython.loopit import loopit
 
         start_parallel_region()
-        #tt1 = time.time()
+        # tt1 = time.time()
 
-        for m in block_distributed_range(0,Nb): #range(Nb):
-
-            Kd = numpy.transpose(Km[m,:,:])
-#            KdLm = numpy.dot(Kd,Lm[m,:,:])
-#            LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
-#            for a in range(Na):
-#                print(a)
-#                for b in range(Na):
-#                    for c in range(Na):
-#                        for d in range(Na):
-#
-#                            RR[a,b,c,d] += (Km[m,a,c]*Ld[m,d,b]
-#                                            + Lm[m,a,c]*Kd[d,b])
-#                            if b == d:
-#                                RR[a,b,c,d] -= KdLm[a,c]
-#                            if a == c:
-#                                RR[a,b,c,d] -= LdKm[d,b]
+        for m in block_distributed_range(0, Nb):  # range(Nb):
+            Kd = numpy.transpose(Km[m, :, :])
+            #            KdLm = numpy.dot(Kd,Lm[m,:,:])
+            #            LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
+            #            for a in range(Na):
+            #                print(a)
+            #                for b in range(Na):
+            #                    for c in range(Na):
+            #                        for d in range(Na):
+            #
+            #                            RR[a,b,c,d] += (Km[m,a,c]*Ld[m,d,b]
+            #                                            + Lm[m,a,c]*Kd[d,b])
+            #                            if b == d:
+            #                                RR[a,b,c,d] -= KdLm[a,c]
+            #                            if a == c:
+            #                                RR[a,b,c,d] -= LdKm[d,b]
 
             _loopit(Km, Kd, Lm, Ld, Na, RR, m)
 
         # perform reduction of the RR
         distributed_configuration().allreduce(RR, operation="sum")
-        #tt2 = time.time()
+        # tt2 = time.time()
 
         close_parallel_region()
         #######################################################################
         # END PARALLELIZATION
         #######################################################################
 
-        #print(tt2-tt1)
+        # print(tt2-tt1)
         return RR
 
-
     def initialize(self) -> None:
-        """Initializes the Redfield tensor with values
-
-        """
-        self._implementation(self.Hamiltonian,
-                             self.SystemBathInteraction)
-
+        """Initializes the Redfield tensor with values"""
+        self._implementation(self.Hamiltonian, self.SystemBathInteraction)
 
     def convert_2_tensor(self) -> None:
         """Converts internally the operator representation to a tensor one
@@ -626,7 +644,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         """
         if self.as_operators:
-
             RR = self._convert_operators_2_tensor(self.Km, self.Lm, self.Ld)
             if True:
                 self.data = RR
@@ -635,23 +652,27 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self.as_operators = False
 
 
+def _loopit(
+    Km: numpy.ndarray,
+    Kd: numpy.ndarray,
+    Lm: numpy.ndarray,
+    Ld: numpy.ndarray,
+    Na: int,
+    RR: numpy.ndarray,
+    m: int,
+) -> None:
 
-def _loopit(Km: numpy.ndarray, Kd: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray, Na: int, RR: numpy.ndarray, m: int) -> None:
-
-
-    KdLm = numpy.dot(Kd,Lm[:,:,m])
-    LdKm = numpy.dot(Ld[:,:,m],Km[m,:,:])
+    KdLm = numpy.dot(Kd, Lm[:, :, m])
+    LdKm = numpy.dot(Ld[:, :, m], Km[m, :, :])
     for a in range(Na):
         for b in range(Na):
             for c in range(Na):
                 for d in range(Na):
-
-                    RR[a,b,c,d] += (Km[m,a,c]*Ld[d,b,m]
-                                    + Lm[a,c,m]*Kd[d,b])
+                    RR[a, b, c, d] += Km[m, a, c] * Ld[d, b, m] + Lm[a, c, m] * Kd[d, b]
                     if b == d:
-                        RR[a,b,c,d] -= KdLm[a,c]
+                        RR[a, b, c, d] -= KdLm[a, c]
                     if a == c:
-                        RR[a,b,c,d] -= LdKm[d,b]
+                        RR[a, b, c, d] -= LdKm[d, b]
 
 
 def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:

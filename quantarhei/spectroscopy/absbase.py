@@ -49,7 +49,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         """
         self.data = data
 
-    #def add_data(self, data):
+    # def add_data(self, data):
     #    self.data += data
 
     def set_by_interpolation(self, x: Any, y: Any, xaxis: str = "frequency") -> None:
@@ -74,31 +74,29 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         from scipy import interpolate
 
         if xaxis == "frequency":
-
             om = self.convert_2_internal_u(x)
 
         elif xaxis == "wavelength":
             # convert to internal (nano meters) units of wavelength
 
-
             # convert to energy (internal units)
             # to cm
-            om = 1.0e-7*x
+            om = 1.0e-7 * x
             # to 1/cm
-            om = 1.0/om
+            om = 1.0 / om
             # to 1/fs
-            om = om*cm2int
+            om = om * cm2int
 
         if om[1] > om[2]:  # type: ignore[index]
             # reverse order
-            om = numpy.flip(om,0)
-            y = numpy.flip(y,0)
+            om = numpy.flip(om, 0)
+            y = numpy.flip(y, 0)
 
         # equidistant points on the x-axis
         omin = numpy.amin(om)
         omax = numpy.amax(om)
         length = om.shape[0]  # type: ignore[union-attr]
-        step = (omax-omin)/length
+        step = (omax - omin) / length
 
         # new frequency axis
         waxis = FrequencyAxis(omin, length, step)
@@ -111,33 +109,23 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         self.axis = waxis
         self.data = ynew
 
-
     def clear_data(self) -> None:
-        """Sets spectrum data to zero
-
-        """
+        """Sets spectrum data to zero"""
         shp = self.data.shape
         self.data = numpy.zeros(shp, dtype=numpy.float64)
 
     def normalize2(self, norm: float = 1.0) -> None:
-        """Normalizes spectrum to a given value
-
-        """
+        """Normalizes spectrum to a given value"""
         mx = numpy.max(self.data)
-        self.data = norm*self.data/mx
+        self.data = norm * self.data / mx
 
     def normalize(self) -> None:
-        """Normalization to one
-
-        """
+        """Normalization to one"""
         self.normalize2(norm=1.0)
 
     def subtract(self, val: Any) -> None:
-        """Subtracts a value from the spectrum to shift its base line
-
-        """
+        """Subtracts a value from the spectrum to shift its base line"""
         self.data -= val
-
 
     def add_to_data(self, spect: Any) -> None:
         """Performs addition on the data.
@@ -190,45 +178,33 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
             self.axis = spect.axis.copy()
 
         if not numpy.allclose(spect.axis.data, self.axis.data):
-            #numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
-            #numpy.savetxt("self_data_wrong.dat", self.axis.data)
+            # numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
+            # numpy.savetxt("self_data_wrong.dat", self.axis.data)
             raise Exception("Incompatible axis")
 
         if self.data is None:
-            self.data = numpy.zeros(len(spect.data),
-                                    dtype=spect.axis.data.dtype)
+            self.data = numpy.zeros(len(spect.data), dtype=spect.axis.data.dtype)
 
         self.data += spect.data
 
-    #save method is inherited from DFunction
+    # save method is inherited from DFunction
 
     def save_data(self, filename: str) -> None:
-        """Saves the data of this absorption spectrum
-
-        """
+        """Saves the data of this absorption spectrum"""
         super().save_data(filename, with_axis=self.axis)
 
-
     def load_data(self, filename: str) -> None:
-        """Loads data from file into this absorption spectrum
-
-        """
+        """Loads data from file into this absorption spectrum"""
         if self.axis is None:
             raise Exception("The property `axis` has to be defined")
         super().load_data(filename, with_axis=self.axis)
 
-
     def plot(self, **kwargs: Any) -> Any:
-        """Plotting absorption spectrum using the DFunction plot method
-
-        """
+        """Plotting absorption spectrum using the DFunction plot method"""
         if "ylabel" not in kwargs:
-            ylabel = r'$\alpha(\omega)$ [a.u.]'
+            ylabel = r"$\alpha(\omega)$ [a.u.]"
             kwargs["ylabel"] = ylabel
 
         fig = super().plot(**kwargs)
         if fig is not None:
             return fig
-
-
-

@@ -8,12 +8,13 @@ import subprocess
 def run_unit_test(toexec: str) -> int:
 
     cmd = "nosetests --nocapture -v "
-    return subprocess.call(shlex.split(cmd+toexec))
+    return subprocess.call(shlex.split(cmd + toexec))
+
 
 def run_doc_test(toexec: str) -> int:
 
     cmd = "nosetests -v --with-doctest "
-    return subprocess.call(shlex.split(cmd+toexec))
+    return subprocess.call(shlex.split(cmd + toexec))
 
 
 def main() -> None:
@@ -21,22 +22,24 @@ def main() -> None:
     docpath = "quantarhei"
     unitpath = "tests/unit"
 
-
     #
     # FIXME: test definition will go to a file
     #
-    testlist_abs = dict(doctest=["spectroscopy/abscalculator.py"],
-                        unit=["spectroscopy/abs_test.py",
-                              "spectroscopy/abs2_test.py"])
-    testlist_prop = dict(doctest=["qm/propagators/rdmpropagator.py"],
-                         unit=["qm/propagators/rdmpropagator_test.py",
-                               "qm/propagators/test_rdm_propagator_usage.py"])
+    testlist_abs = dict(
+        doctest=["spectroscopy/abscalculator.py"],
+        unit=["spectroscopy/abs_test.py", "spectroscopy/abs2_test.py"],
+    )
+    testlist_prop = dict(
+        doctest=["qm/propagators/rdmpropagator.py"],
+        unit=[
+            "qm/propagators/rdmpropagator_test.py",
+            "qm/propagators/test_rdm_propagator_usage.py",
+        ],
+    )
 
-    testlist_lab = dict(doctest=[],
-                        unit=["spectroscopy/test_labsetup.py"])
+    testlist_lab = dict(doctest=[], unit=["spectroscopy/test_labsetup.py"])
 
-    testdef = dict(abscalc=testlist_abs, propag=testlist_prop,
-                   labsetup=testlist_lab)
+    testdef = dict(abscalc=testlist_abs, propag=testlist_prop, labsetup=testlist_lab)
 
     #
     #
@@ -48,7 +51,7 @@ def main() -> None:
 
     testname = "propag"
 
-    which = ["unit"] #, "doc"]
+    which = ["unit"]  # , "doc"]
 
     tests = testdef[testname]
 
@@ -58,8 +61,7 @@ def main() -> None:
 
     if "doc" in which:
         for file in tests["doctest"]:
-
-            toexec = os.path.join(docpath,file)
+            toexec = os.path.join(docpath, file)
             print("\n*** Running doc tests:", toexec)
             if run_doc_test(toexec) == 0:
                 print("\n... doc tests finished 0K")
@@ -67,10 +69,8 @@ def main() -> None:
                 failures += 1
 
     if failures == 0:
-
         if "unit" in which:
             for file in tests["unit"]:
-
                 toexec = os.path.join(unitpath, file)
                 print("\n*** Running unit tests:", toexec)
                 if run_unit_test(toexec) == 0:

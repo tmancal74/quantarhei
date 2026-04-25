@@ -36,4 +36,3 @@ class LogConf:
         """
         if self.log_file_opened and self.log_file is not None:
             self.log_file.close()
-

@@ -5,15 +5,10 @@ from .simulation import Simulation
 
 
 class ExcitonDynamics(Simulation):
-    """Excitonic Dynamics Simulation
-
-
-    """
+    """Excitonic Dynamics Simulation"""
 
     def _build(self) -> None:
-        """Here we prepare objects for the simulation
-
-        """
+        """Here we prepare objects for the simulation"""
         self._printlog("Building aggregate", loglevel=0)
 
         try:
@@ -21,7 +16,7 @@ class ExcitonDynamics(Simulation):
         except Exception:
             raise Exception("Aggregate construction failed")
 
-        #try:
+        # try:
         #    if self.coupling_matrix
 
         try:
@@ -30,7 +25,9 @@ class ExcitonDynamics(Simulation):
             raise Exception("Aggregate build failed: exciton_multiplicity not defined")
 
         self._incr_indent_level()
-        self._printlog("Number of monomers          :", self.aggregate.nmono, loglevel=0)
+        self._printlog(
+            "Number of monomers          :", self.aggregate.nmono, loglevel=0
+        )
         self._printlog("Number of electronic states :", self.aggregate.Nel, loglevel=0)
         self._printlog("Total number of states      :", self.aggregate.Ntot, loglevel=0)
         self._decr_indent_level()
@@ -41,15 +38,16 @@ class ExcitonDynamics(Simulation):
         #  Lindblad is done all here. Redfield is calculated in implementation method
         #
         if self.relaxation_theory == "Lindblad_form":
-
-            #from ..qm import LindbladForm
+            # from ..qm import LindbladForm
             from ...qm import SystemBathInteraction
 
             ham = self.aggregate.get_Hamiltonian()
             try:
                 sysops = self.sys_operators
             except AttributeError:
-                raise Exception("``sys_operators`` have to be speficied for Lindblad form")
+                raise Exception(
+                    "``sys_operators`` have to be speficied for Lindblad form"
+                )
             try:
                 rates = self.rates
             except AttributeError:
@@ -59,17 +57,14 @@ class ExcitonDynamics(Simulation):
             sbi = SystemBathInteraction(sys_operators=sysops, rates=rates)
             self.aggregate.set_SystemBathInteraction(sbi)
             # FIXME: use self.use_sitebasis to allow definition of Lindblad in excitonic basis
-            self._relaxation_tensor, ham = self.aggregate.get_RelaxationTensor(self.timeaxis,
-                                                                               relaxation_theory="Lindblad_form")
+            self._relaxation_tensor, ham = self.aggregate.get_RelaxationTensor(
+                self.timeaxis, relaxation_theory="Lindblad_form"
+            )
             self._ham = ham
             self._printlog("...tensor constructed", loglevel=0)
 
-
-
     def _implementation(self) -> None:
-        """Here the main simulation tasks are performed
-
-        """
+        """Here the main simulation tasks are performed"""
         self._printlog("Simulating excitonic dynamics", loglevel=0)
 
         if self.relaxation_theory == "Standard_Redfield":
@@ -87,27 +82,26 @@ class ExcitonDynamics(Simulation):
         tasks = self.tasks
 
         for task in tasks:
-
             if task["task"] == "density_matrix_dynamics":
-
                 from ...qm import ReducedDensityMatrixPropagator
 
                 self._printlog("Calculating density matrix dynamics")
-                rdmprop = ReducedDensityMatrixPropagator(timeaxis=self.timeaxis,
-                                                         Ham=self._ham,
-                                                         RTensor=self._relaxation_tensor)
+                rdmprop = ReducedDensityMatrixPropagator(
+                    timeaxis=self.timeaxis,
+                    Ham=self._ham,
+                    RTensor=self._relaxation_tensor,
+                )
 
                 rhot = rdmprop.propagate(self.rho0)
                 self._rhot = rhot
 
                 try:
                     objfile = task["object_file"]
-                    self._printlog("Saving RDM dynamics into file:", objfile, loglevel=0)
+                    self._printlog(
+                        "Saving RDM dynamics into file:", objfile, loglevel=0
+                    )
                     self._rhot.save(objfile)
                 except (KeyError, AttributeError, OSError):
                     pass
 
                 self._printlog("...done")
-
-
-

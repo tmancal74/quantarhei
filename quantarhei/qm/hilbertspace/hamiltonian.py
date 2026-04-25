@@ -11,24 +11,22 @@ from .operators import Operator, SelfAdjointOperator
 
 
 class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
-    """Hamiltonian operator
-
-
-
-    """
+    """Hamiltonian operator"""
 
     _has_remainder_coupling = False
 
     data = ManagedRealArray("data")
 
     def __init__(self, dim: int | None = None, data: Any = None) -> None:
-        #self.data = data
-#FIXME: how to avoid the Operator breaking the EnergyUnits management ????
+        # self.data = data
+        # FIXME: how to avoid the Operator breaking the EnergyUnits management ????
         if not ((dim is None) and (data is None)):
             Operator.__init__(self, dim=dim, data=data)
             if not self.check_selfadjoint():
-                raise Exception("The data of this operator have"
-                                "to be represented by a selfadjoint matrix")
+                raise Exception(
+                    "The data of this operator have"
+                    "to be represented by a selfadjoint matrix"
+                )
 
         self.rwa_indices = None
         self.rwa_energies = None
@@ -73,7 +71,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         if rwa_energy is not None:
             rwa_energy_loc = self.convert_2_current_u(rwa_energy)
-        #self.Nblocks = len(self.rwa_indices)
+        # self.Nblocks = len(self.rwa_indices)
         self.Nblocks = len(self.rwa_indices) - Null_blocks
 
         self.rwa_energies = numpy.zeros(self.data.shape[0], dtype=REAL)
@@ -82,24 +80,23 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         with energy_units("int"):
             en_block = numpy.zeros(self.Nblocks, dtype=REAL)
             for block in range(self.Nblocks):
-                if block < self.Nblocks-1:
-                    upper = self.rwa_indices[block+1]
+                if block < self.Nblocks - 1:
+                    upper = self.rwa_indices[block + 1]
                 else:
                     upper = self.data.shape[0]
                 k = 0
                 # calculate average energy in the block
-                for ii in range(self.rwa_indices[block],upper):
+                for ii in range(self.rwa_indices[block], upper):
                     if rwa_energy is None:
-                        en_block[block] += numpy.real(self.data[ii,ii])
+                        en_block[block] += numpy.real(self.data[ii, ii])
                     else:
-                        en_block[block] += block*rwa_energy_loc
+                        en_block[block] += block * rwa_energy_loc
                     k += 1
-                #if k==0:
+                # if k==0:
                 #    continue
-                en_block[block] = en_block[block]/float(k)
+                en_block[block] = en_block[block] / float(k)
                 # set rwa_energies within the block
-                for ii in range(self.rwa_indices[block],upper):
-
+                for ii in range(self.rwa_indices[block], upper):
                     self.rwa_energies[ii] = en_block[block]
 
         # set which_band information
@@ -110,11 +107,8 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         # we have information on RWA
         self.has_rwa = True
 
-
     def get_RWA_skeleton(self) -> numpy.ndarray:
-        """Returns the Hamiltonian matrix with RWA energies
-
-        """
+        """Returns the Hamiltonian matrix with RWA energies"""
         HH = self.data
         shape = HH.shape[0]
         HOmega = numpy.zeros(shape, dtype=REAL)
@@ -122,13 +116,9 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             HOmega[ii] = self.convert_2_current_u(self.rwa_energies[ii])
         return HOmega
 
-
     def get_RWA_data(self) -> numpy.ndarray:
-        """Returns Hamiltonian matrix with RWA energies subtracted
-
-        """
+        """Returns Hamiltonian matrix with RWA energies subtracted"""
         return self.data - numpy.diag(self.get_RWA_skeleton())
-
 
     def diagonalize(self, coupling_cutoff: float | None = None) -> Any:
         """Diagonalizes the Hamiltonian matrix
@@ -155,21 +145,19 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if coupling_cutoff is None:
             SS = super().diagonalize()
             if self._has_remainder_coupling:
-                self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
+                self.JR = numpy.dot(SS.T, numpy.dot(self.JR, SS))
             self.SS = SS
             return SS
         self.remove_cutoff_coupling(coupling_cutoff)
         # diagonalize the strong coupling part
-        dd,SS = numpy.linalg.eigh(self.data)
-        self.data = numpy.zeros(self.data.shape,dtype=REAL)
-        for ii in range(0,self.data.shape[0]):
-            self.data[ii,ii] = dd[ii]
+        dd, SS = numpy.linalg.eigh(self.data)
+        self.data = numpy.zeros(self.data.shape, dtype=REAL)
+        for ii in range(0, self.data.shape[0]):
+            self.data[ii, ii] = dd[ii]
         # transform the remainder of couling correspondingly
-        self.JR = numpy.dot(SS.T,numpy.dot(self.JR,SS))
+        self.JR = numpy.dot(SS.T, numpy.dot(self.JR, SS))
         self.SS = SS
         return self.SS, self.JR
-
-
 
     def undiagonalize(self, with_remainder: bool = True) -> None:
         """Transformed the Hamiltonian to the basis before diagonalization
@@ -181,12 +169,11 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             used in diagonalization back to the Hamiltonian.
 
         """
-        self.data = numpy.dot(self.SS,numpy.dot(self.data,self.SS.T))
+        self.data = numpy.dot(self.SS, numpy.dot(self.data, self.SS.T))
         if self._has_remainder_coupling:
-            self.JR = numpy.dot(self.SS,numpy.dot(self.JR,self.SS.T))
+            self.JR = numpy.dot(self.SS, numpy.dot(self.JR, self.SS.T))
         if with_remainder and self._has_remainder_coupling:
             self.data += self.JR
-
 
     def remove_cutoff_coupling(self, coupling_cutoff: float | None) -> None:
         """Removes the couplings smaller than a specified cutoff
@@ -205,19 +192,17 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if coupling_cutoff < 0.0:
             raise Exception("Coupling cutoff value must be positive")
 
-        JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
+        JR = numpy.zeros((self.dim, self.dim), dtype=REAL)
         # go through all couplings and remove small ones
         for ii in range(self.dim):
-            for jj in range(ii+1,self.dim):
-                if (numpy.abs(self.data[ii,jj])
-                        < numpy.abs(coupling_cutoff)):
-                    JR[ii,jj] = self._data[ii,jj]
-                    JR[jj,ii] = self._data[jj,ii]
-                    self._data[ii,jj] = 0.0
-                    self._data[jj,ii] = 0.0
+            for jj in range(ii + 1, self.dim):
+                if numpy.abs(self.data[ii, jj]) < numpy.abs(coupling_cutoff):
+                    JR[ii, jj] = self._data[ii, jj]
+                    JR[jj, ii] = self._data[jj, ii]
+                    self._data[ii, jj] = 0.0
+                    self._data[jj, ii] = 0.0
         self.JR = JR
         self._has_remainder_coupling = True
-
 
     def subtract_cutoff_coupling(self, coupling_cutoff: Any) -> None:
         """Subtracts the cut-off coupling from all coupling elements
@@ -241,56 +226,49 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             coupling_cutoff = 0.0
 
         if type(coupling_cutoff) in (list, tuple, numpy.ndarray):
-
             raise Exception("Variable coupling cutoff not implemented yet")
 
         else:
-
             if coupling_cutoff < 0.0:
                 raise Exception("Coupling cutoff value must be positive")
 
             coupcut = self.convert_2_internal_u(coupling_cutoff)
 
-            JR = numpy.zeros((self.dim,self.dim),dtype=REAL)
+            JR = numpy.zeros((self.dim, self.dim), dtype=REAL)
             # go through all couplings and remove small ones
             for ii in range(self.dim):
-                for jj in range(ii+1,self.dim):
+                for jj in range(ii + 1, self.dim):
                     #
                     # if the coupling <= coupling_cutoff -> remove it
                     #
-                    if (numpy.abs(self._data[ii,jj])
-                            <= numpy.abs(coupcut)):
-                        JR[ii,jj] = self._data[ii,jj]
-                        JR[jj,ii] = self._data[jj,ii]
-                        self._data[ii,jj] = 0.0
-                        self._data[jj,ii] = 0.0
+                    if numpy.abs(self._data[ii, jj]) <= numpy.abs(coupcut):
+                        JR[ii, jj] = self._data[ii, jj]
+                        JR[jj, ii] = self._data[jj, ii]
+                        self._data[ii, jj] = 0.0
+                        self._data[jj, ii] = 0.0
                     #
                     # if the coupling > coupling_cutoff -> suppress it
                     #
                     else:
-                        absv = numpy.abs(self._data[ii,jj])
-                        sign = self._data[ii,jj]/absv
+                        absv = numpy.abs(self._data[ii, jj])
+                        sign = self._data[ii, jj] / absv
                         val = absv - coupcut
                         if val < 0.0:
                             val = 0.0
-                        JR[ii,jj] = sign*coupcut
-                        self._data[ii,jj] = sign*val
-                        JR[jj,ii] = JR[ii,jj]
-                        self._data[jj,ii] = self._data[ii,jj]
+                        JR[ii, jj] = sign * coupcut
+                        self._data[ii, jj] = sign * val
+                        JR[jj, ii] = JR[ii, jj]
+                        self._data[jj, ii] = self._data[ii, jj]
 
         self.JR = JR
         self._has_remainder_coupling = True
 
-
     def recover_cutoff_coupling(self) -> None:
-        """
-
-        """
+        """ """
         if self._has_remainder_coupling:
             self._data += self.JR
-            self.JR[:,:] = 0.0
+            self.JR[:, :] = 0.0
             self._has_remainder_coupling = False
-
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the Hamiltonian and the remainder coupling
@@ -308,32 +286,36 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             inverse of the transformation matrix
 
         """
-        if (self.manager.warn_about_basis_change):
-                print(f"\nQr >>> Operator '{self.name}' changes basis")
+        if self.manager.warn_about_basis_change:
+            print(f"\nQr >>> Operator '{self.name}' changes basis")
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
             S1 = inv
 
-        self._data = numpy.dot(S1,numpy.dot(self._data,SS))
+        self._data = numpy.dot(S1, numpy.dot(self._data, SS))
 
         if self._has_remainder_coupling:
-            self.JR = numpy.dot(S1,numpy.dot(self.JR,SS))
-
+            self.JR = numpy.dot(S1, numpy.dot(self.JR, SS))
 
     def __str__(self) -> str:
-        out  = "\nquantarhei.Hamiltonian object"
+        out = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
         out += f"\nunits of energy {self.unit_repr()}"
-        out += "\nRotating Wave Approximation (RWA) enabled : "\
-            +str(self.has_rwa)
+        out += "\nRotating Wave Approximation (RWA) enabled : " + str(self.has_rwa)
         if self.has_rwa:
-            out += "\nNumber of blocks : "+str(self.Nblocks)
+            out += "\nNumber of blocks : " + str(self.Nblocks)
             out += "\nBlock average energies:"
             for k in range(self.Nblocks):
-                out += "\n "+str(k)+" : "\
-                +str(self.convert_2_current_u(self.rwa_energies[self.rwa_indices[k]]))
+                out += (
+                    "\n "
+                    + str(k)
+                    + " : "
+                    + str(
+                        self.convert_2_current_u(self.rwa_energies[self.rwa_indices[k]])
+                    )
+                )
         out += "\ndata =\n"
         out += str(self.data)
         return out

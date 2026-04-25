@@ -9,11 +9,12 @@ Created on Mon Apr  9 14:26:16 2018
 
 @author: Johan
 """
+
 from __future__ import annotations
 
 from typing import Any
 
-#import h5py
+# import h5py
 import matplotlib.pyplot as plt
 import numpy
 import scipy
@@ -26,14 +27,12 @@ from ..core.saveable import Saveable
 from ..core.time import TimeAxis, TimeDependent
 from ..core.units import cm2int
 
-#from scipy.optimize import minimize, leastsq, curve_fit
+# from scipy.optimize import minimize, leastsq, curve_fit
 from ..utils import derived_type
 
 
 class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
-    """Provides basic container for fluorescence spectrum
-
-    """
+    """Provides basic container for fluorescence spectrum"""
 
     def __init__(self, axis: Any = None, data: Any = None) -> None:
         super().__init__()
@@ -67,31 +66,29 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         from scipy import interpolate
 
         if xaxis == "frequency":
-
             om = self.convert_2_internal_u(x)
 
         elif xaxis == "wavelength":
             # convert to internal (nano meters) units of wavelength
 
-
             # convert to energy (internal units)
             # to cm
-            om = 1.0e-7*x
+            om = 1.0e-7 * x
             # to 1/cm
-            om = 1.0/om
+            om = 1.0 / om
             # to 1/fs
-            om = om*cm2int
+            om = om * cm2int
 
         if om[1] > om[2]:
             # reverse order
-            om = numpy.flip(om,0)
-            y = numpy.flip(y,0)
+            om = numpy.flip(om, 0)
+            y = numpy.flip(y, 0)
 
         # equidistant points on the x-axis
         omin = numpy.amin(om)
         omax = numpy.amax(om)
         length = om.shape[0]
-        step = (omax-omin)/length
+        step = (omax - omin) / length
 
         # new frequency axis
         waxis = FrequencyAxis(omin, length, step)
@@ -104,33 +101,23 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         self.axis = waxis
         self.data = ynew
 
-
     def clear_data(self) -> None:
-        """Sets spectrum data to zero
-
-        """
+        """Sets spectrum data to zero"""
         shp = self.data.shape
         self.data = numpy.zeros(shp, dtype=numpy.float64)
 
     def normalize2(self, norm: float = 1.0) -> None:
-        """Normalizes spectrum to a given value
-
-        """
+        """Normalizes spectrum to a given value"""
         mx = numpy.max(self.data)
-        self.data = norm*self.data/mx
+        self.data = norm * self.data / mx
 
     def normalize(self) -> None:
-        """Normalization to one
-
-        """
+        """Normalization to one"""
         self.normalize2(norm=1.0)
 
     def subtract(self, val: float) -> None:
-        """Subtracts a value from the spectrum to shift its base line
-
-        """
+        """Subtracts a value from the spectrum to shift its base line"""
         self.data -= val
-
 
     def add_to_data(self, spect: Any) -> None:
         """Performs addition on the data.
@@ -153,11 +140,9 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
             raise Exception("Incompatible axis")
 
         if self.data is None:
-            self.data = numpy.zeros(len(spect.data),
-                                    dtype=spect.axis.data.dtype)
+            self.data = numpy.zeros(len(spect.data), dtype=spect.axis.data.dtype)
 
         self.data += spect.data
-
 
     def load_data(self, filename: str, ext: Any = None, replace: bool = False) -> None:
         """Load the spectrum from a file
@@ -170,29 +155,26 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         ----------
 
         """
-        super().load_data(filename, ext=ext, axis='frequency', replace=replace)
+        super().load_data(filename, ext=ext, axis="frequency", replace=replace)
 
-    #save method is inherited from DFunction
-
-
+    # save method is inherited from DFunction
 
     def plot(self, **kwargs: Any) -> Any:
-        """Plotting fluorescence spectrum using the DFunction plot method
-
-        """
+        """Plotting fluorescence spectrum using the DFunction plot method"""
         if "ylabel" not in kwargs:
-            ylabel = r'$\alpha(\omega)$ [a.u.]'
+            ylabel = r"$\alpha(\omega)$ [a.u.]"
             kwargs["ylabel"] = ylabel
 
         fig = super().plot(**kwargs)
         if fig is not None:
             return fig
 
-
-
-    def gaussian_fit(self, N: int = 1, guess: Any = None, plot: bool = False, Nsvf: int = 251) -> Any:
+    def gaussian_fit(
+        self, N: int = 1, guess: Any = None, plot: bool = False, Nsvf: int = 251
+    ) -> Any:
         from scipy.interpolate import UnivariateSpline
         from scipy.signal import savgol_filter
+
         """Performs a Gaussian fit of the spectrum based on an initial guess
 
 
@@ -208,11 +190,9 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         y = self.data
 
         if guess is None:
-
             raise Exception("Guess is required at this time")
             # FIXME: create a reasonable guess
-            guess = [1.0, 11000.0, 300.0, 0.2,
-                     11800, 400, 0.2, 12500, 300]
+            guess = [1.0, 11000.0, 300.0, 0.2, 11800, 400, 0.2, 12500, 300]
 
             #
             # Find local maxima and guess their parameters
@@ -226,48 +206,45 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
             # get first derivative and smooth it
             der = self._spline_r.derivative()
             y1 = der(x)
-            y1sm = savgol_filter(y1,Nsvf,polyorder=3)
+            y1sm = savgol_filter(y1, Nsvf, polyorder=3)
 
             # get second derivative and smooth it
-            y1sm_spl_der = UnivariateSpline(x,y1sm,s=0).derivative()(x)
-            y2sm = savgol_filter(y1sm_spl_der,Nsvf,polyorder=3)
+            y1sm_spl_der = UnivariateSpline(x, y1sm, s=0).derivative()(x)
+            y2sm = savgol_filter(y1sm_spl_der, Nsvf, polyorder=3)
 
             # find positions of optima by looking for zeros of y1sm
 
-
             # isolate maxima by looking at the value of y2sm
 
-
-            #plt.plot(x, der(x))
-            #plt.plot(x, y1sm)
+            # plt.plot(x, der(x))
+            # plt.plot(x, y1sm)
             plt.plot(x, y2sm)
             plt.show()
-
-
 
         def funcf(x: Any, *p: Any) -> Any:
             return _n_gaussians(x, N, *p)
 
         # minimize, leastsq,
         from scipy.optimize import curve_fit
+
         popt, pcov = curve_fit(funcf, x, y, p0=guess)
 
         if plot:
-
-            plt.plot(x,y)
-            plt.plot(x,_n_gaussians(x, N, *popt))
+            plt.plot(x, y)
+            plt.plot(x, _n_gaussians(x, N, *popt))
             for i in range(N):
-                a = popt[3*i]
+                a = popt[3 * i]
                 print(i, a)
-                b = popt[3*i+1]
-                c = popt[3*i+2]
+                b = popt[3 * i + 1]
+                c = popt[3 * i + 2]
                 y = _gaussian(x, a, b, c)
-                plt.plot(x, y,'-r')
+                plt.plot(x, y, "-r")
             plt.show()
 
         # FIXME: Create a readable report
 
         return popt, pcov
+
 
 #    def convert_to_energy(self, eaxis, units):
 #        """
@@ -297,7 +274,10 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
 #            # evaluate at points if eaxis
 #
 
-def _gaussian(x: Any, height: float, center: float, fwhm: float, offset: float = 0.0) -> numpy.ndarray:
+
+def _gaussian(
+    x: Any, height: float, center: float, fwhm: float, offset: float = 0.0
+) -> numpy.ndarray:
     """Gaussian function with a possible offset
 
 
@@ -320,8 +300,10 @@ def _gaussian(x: Any, height: float, center: float, fwhm: float, offset: float =
 
 
     """
-    return height*numpy.exp(-(((x - center)**2)*4.0*numpy.log(2.0))/
-                            (fwhm**2)) + offset
+    return (
+        height * numpy.exp(-(((x - center) ** 2) * 4.0 * numpy.log(2.0)) / (fwhm**2))
+        + offset
+    )
 
 
 def _n_gaussians(x: Any, N: int, *params: float) -> Any:
@@ -341,29 +323,27 @@ def _n_gaussians(x: Any, N: int, *params: float) -> Any:
 
     """
     n = len(params)
-    k = n//3
+    k = n // 3
 
-    if (k*3 == n) and (k == N):
-
+    if (k * 3 == n) and (k == N):
         res = 0.0
         pp = numpy.zeros(3)
         for i in range(k):
-            pp[0:3] = params[3*i:3*i+3]
-            #pp[3] = 0.0
+            pp[0:3] = params[3 * i : 3 * i + 3]
+            # pp[3] = 0.0
             arg = tuple(pp)
             res += _gaussian(x, *arg)
-        res += params[n-1] # last parameter is an offset
+        res += params[n - 1]  # last parameter is an offset
         return res
 
     raise Exception("Inconsistend number of parameters")
 
 
 class FluorSpectrum(FluorSpectrumBase):
-    """Class representing fluorescence spectrum
+    """Class representing fluorescence spectrum"""
 
-
-    """
     pass
+
 
 #    def _non_data_attributes(self):
 #
@@ -415,10 +395,7 @@ class FluorSpectrum(FluorSpectrumBase):
 #        self.set_data(data)
 
 
-
-
 class FluorSpectrumContainer(Saveable):
-
     def __init__(self, axis: Any = None) -> None:
 
         self.axis = axis
@@ -449,7 +426,6 @@ class FluorSpectrumContainer(Saveable):
         else:
             raise Exception("Incompatible time axis (equal axis required)")
 
-
     def get_spectrum(self, tag: Any) -> Any:
         """Returns spectrum corresponing to time t2
 
@@ -463,13 +439,11 @@ class FluorSpectrumContainer(Saveable):
             return self.spectra[tag]
         raise Exception("Unknown spectrum")
 
-
     def get_spectra(self) -> list[Any]:
-        """Returns a list or tuple of the calculated spectra
-
-        """
+        """Returns a list or tuple of the calculated spectra"""
         ven = [value for (key, value) in sorted(self.spectra.items())]
         return ven
+
 
 #    def save(self, filename):
 #        """Save the whole set of spectra into an hdf5 file
@@ -551,26 +525,29 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
 
     """
 
-    TimeAxis = derived_type("TimeAxis",TimeAxis)
-    system = derived_type("system",[Molecule,Aggregate])
+    TimeAxis = derived_type("TimeAxis", TimeAxis)
+    system = derived_type("system", [Molecule, Aggregate])
 
-    def __init__(self, timeaxis: Any,
-                 system: Any = None,
-                 dynamics: str = "secular",
-                 relaxation_tensor: Any = None,
-                 rate_matrix: Any = None,
-                 effective_hamiltonian: Any = None,
-                 temperature: float = 300) -> None:
+    def __init__(
+        self,
+        timeaxis: Any,
+        system: Any = None,
+        dynamics: str = "secular",
+        relaxation_tensor: Any = None,
+        rate_matrix: Any = None,
+        effective_hamiltonian: Any = None,
+        temperature: float = 300,
+    ) -> None:
 
         # protected properties
         self.TimeAxis = timeaxis
         self.system = system
 
-        #FIXME: properties to be protected
+        # FIXME: properties to be protected
         self.dynamics = dynamics
 
         # unprotected properties
-        #self.data = None
+        # self.data = None
 
         self._relaxation_tensor = None
         self._rate_matrix = None
@@ -588,40 +565,30 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         self.rwa = 0.0
 
     def bootstrap(self, rwa: float = 0.0) -> None:
-        """
-
-        """
+        """ """
         self.rwa = self.convert_2_internal_u(rwa)
         with energy_units("int"):
             # sets the frequency axis for plottig
             self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
             self.frequencyAxis.data += self.rwa
 
-
-
     def calculate(self) -> Any:
-        """Calculates the fluorescence spectrum
-
-
-        """
+        """Calculates the fluorescence spectrum"""
         with energy_units("int"):
             if self.system is not None:
-                if isinstance(self.system,Molecule):
-                    #self._calculate_Molecule(rwa)
+                if isinstance(self.system, Molecule):
+                    # self._calculate_Molecule(rwa)
                     spect = self._calculate_monomer()
-                elif isinstance(self.system,Aggregate):
+                elif isinstance(self.system, Aggregate):
                     spect = self._calculate_aggregate(
-                                              relaxation_tensor=
-                                              self._relaxation_tensor,
-                                              rate_matrix=
-                                              self._rate_matrix,
-                                              relaxation_hamiltonian=
-                                              self._relaxation_hamiltonian)
+                        relaxation_tensor=self._relaxation_tensor,
+                        rate_matrix=self._rate_matrix,
+                        relaxation_hamiltonian=self._relaxation_hamiltonian,
+                    )
             else:
                 raise Exception("System to calculate spectrum for not defined")
 
         return spect
-
 
     def _calculateMolecule(self, rwa: float) -> None:
 
@@ -630,8 +597,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         else:
             # calculating stick spectra
 
-            stick_width = 1.0/0.1
-
+            stick_width = 1.0 / 0.1
 
     def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
         """Converts correlation function to lineshape function
@@ -653,78 +619,80 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         ta = timeaxis
         rr = numpy.real(coft)
         ri = numpy.imag(coft)
-        sr = scipy.interpolate.UnivariateSpline(ta.data,
-                            rr,s=0).antiderivative()(ta.data)
-        sr = scipy.interpolate.UnivariateSpline(ta.data,
-                            sr,s=0).antiderivative()(ta.data)
-        si = scipy.interpolate.UnivariateSpline(ta.data,
-                            ri,s=0).antiderivative()(ta.data)
-        si = scipy.interpolate.UnivariateSpline(ta.data,
-                            si,s=0).antiderivative()(ta.data)
-        gt = sr + 1j*si
+        sr = scipy.interpolate.UnivariateSpline(ta.data, rr, s=0).antiderivative()(
+            ta.data
+        )
+        sr = scipy.interpolate.UnivariateSpline(ta.data, sr, s=0).antiderivative()(
+            ta.data
+        )
+        si = scipy.interpolate.UnivariateSpline(ta.data, ri, s=0).antiderivative()(
+            ta.data
+        )
+        si = scipy.interpolate.UnivariateSpline(ta.data, si, s=0).antiderivative()(
+            ta.data
+        )
+        gt = sr + 1j * si
         return gt
 
     def one_transition_spectrum(self, tr: dict[str, Any]) -> numpy.ndarray:
-        """Calculates spectrum of one transition
-
-
-        """
-        ta = tr["ta"] # TimeAxis
-        dd = tr["dd"] # transition dipole moment
-        om = tr["om"] # frequency - rwa
-        gg = tr["gg"] # natural broadening (constant or time dependent)
+        """Calculates spectrum of one transition"""
+        ta = tr["ta"]  # TimeAxis
+        dd = tr["dd"]  # transition dipole moment
+        om = tr["om"]  # frequency - rwa
+        gg = tr["gg"]  # natural broadening (constant or time dependent)
 
         if self.system._has_system_bath_coupling:
-            ct = tr["ct"] # correlation function
-            re = tr["re"] # reorganisation energy
+            ct = tr["ct"]  # correlation function
+            re = tr["re"]  # reorganisation energy
 
             # convert correlation function to lineshape function
-            gt = self._c2g(ta,ct.data)
+            gt = self._c2g(ta, ct.data)
             # calculate time dependent response
-            at = numpy.exp(-numpy.conjugate(gt) -1j*om*ta.data + 2j*re*ta.data)
+            at = numpy.exp(-numpy.conjugate(gt) - 1j * om * ta.data + 2j * re * ta.data)
         else:
             # calculate time dependent response
-            at = numpy.exp(-1j*om*ta.data)
+            at = numpy.exp(-1j * om * ta.data)
 
         if len(gg) == 1:
             gam = gg[0]
-            rt = numpy.exp(gam*ta.data)
+            rt = numpy.exp(gam * ta.data)
             at *= rt
-            #print("Constant: ", rt[20], len(at))
+            # print("Constant: ", rt[20], len(at))
         else:
-            rt = numpy.exp((gg)*ta.data)
+            rt = numpy.exp((gg) * ta.data)
             at *= rt
-            #print("Time dependent: len = ", rt[20], len(rt))
+            # print("Time dependent: len = ", rt[20], len(rt))
 
         # Fourier transform the result
-        ft = dd*numpy.fft.hfft(at)*ta.step
+        ft = dd * numpy.fft.hfft(at) * ta.step
         ft = numpy.fft.fftshift(ft)
         # invert the order because hfft is a transform with -i
         ft = numpy.flipud(ft)
         # cut the center of the spectrum
-        Nt = ta.length #len(ta.data)
-        return ft[Nt//2:Nt+Nt//2]
+        Nt = ta.length  # len(ta.data)
+        return ft[Nt // 2 : Nt + Nt // 2]
 
-    def _equilibrium_populations(self, AG: Any, temperature: float = 4.0,
-                                 relaxation_hamiltonian: Any = None) -> Any:
+    def _equilibrium_populations(
+        self, AG: Any, temperature: float = 4.0, relaxation_hamiltonian: Any = None
+    ) -> Any:
         if relaxation_hamiltonian:
             H = relaxation_hamiltonian
         else:
             H = AG.get_Hamiltonian()
         with eigenbasis_of(H):
-            rho0 = AG.get_DensityMatrix(condition_type="thermal_excited_state",
-                             relaxation_theory_limit="weak_coupling",
-                             temperature=temperature,
-                             relaxation_hamiltonian=relaxation_hamiltonian)
+            rho0 = AG.get_DensityMatrix(
+                condition_type="thermal_excited_state",
+                relaxation_theory_limit="weak_coupling",
+                temperature=temperature,
+                relaxation_hamiltonian=relaxation_hamiltonian,
+            )
         return rho0
 
     def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
-        """Returns energy gap correlation function data of an exciton state
-
-        """
+        """Returns energy gap correlation function data of an exciton state"""
         # FIXME: works only for 2 level molecules
 
-        c0 = AG.monomers[0].get_egcf((0,1))
+        c0 = AG.monomers[0].get_egcf((0, 1))
         Nt = len(c0)
 
         # SystemBathInteraction
@@ -732,98 +700,98 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         # CorrelationFunctionMatrix
         cfm = sbi.CC
 
-        ct = numpy.zeros((Nt),dtype=numpy.complex128)
+        ct = numpy.zeros((Nt), dtype=numpy.complex128)
 
         # electronic states corresponding to single excited states
         elst = numpy.where(AG.which_band == 1)[0]
         for el1 in elst:
             for el2 in elst:
-                if cfm.cpointer[el1-1,el2-1] == 0:
+                if cfm.cpointer[el1 - 1, el2 - 1] == 0:
                     continue
-                coft = cfm.get_coft(el1-1,el2-1)
+                coft = cfm.get_coft(el1 - 1, el2 - 1)
                 for kk in AG.vibindices[el1]:
                     for ll in AG.vibindices[el2]:
-                        ct += ((SS[kk,n]**2)*(SS[ll,n]**2)*coft)
+                        ct += (SS[kk, n] ** 2) * (SS[ll, n] ** 2) * coft
 
         return ct
 
     def _excitonic_reorg_energy(self, SS: numpy.ndarray, AG: Any, n: int) -> float:
-        """Returns the reorganisation energy of an exciton state
-        """
+        """Returns the reorganisation energy of an exciton state"""
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
         # CorrelationFunctionMatrix
         cfm = sbi.CC
 
-        #reorg = numpy.zeros((Nt),dtype=numpy.complex128)
-        #Na = AG.nmono
-        #for kk in range(Na):
+        # reorg = numpy.zeros((Nt),dtype=numpy.complex128)
+        # Na = AG.nmono
+        # for kk in range(Na):
         #    reorg += ((SS[kk+1,n+1]**2)*(SS[kk+1,n+1]**2)*cfm.get_reorganization_energy(kk,kk))
-        #return reorg
+        # return reorg
 
         rg = 0.0
 
         # electronic states corresponding to single excited states
         elst = numpy.where(AG.which_band == 1)[0]
         for el1 in elst:
-            reorg = cfm.get_reorganization_energy(el1-1,el1-1)
+            reorg = cfm.get_reorganization_energy(el1 - 1, el1 - 1)
             for kk in AG.vibindices[el1]:
-                rg += ((SS[kk,n]**2)*(SS[kk,n]**2)*reorg)
+                rg += (SS[kk, n] ** 2) * (SS[kk, n] ** 2) * reorg
         return rg
 
     def _calculate_monomer(self) -> Any:
-        """Calculates the fluorescence spectrum of a monomer
-
-
-        """
+        """Calculates the fluorescence spectrum of a monomer"""
         ta = self.TimeAxis
-
 
         # FIXME: transition frequencies have to be calculate from the full
         #        Hamiltonian
 
         HH = self.system.get_Hamiltonian()
         # transition frequency
-        om = self.system.elenergies[1]-self.system.elenergies[0]
+        om = self.system.elenergies[1] - self.system.elenergies[0]
         # transition dipole moment
-        dm = self.system.dmoments[0,1,:]
+        dm = self.system.dmoments[0, 1, :]
         # dipole^2
-        dd = numpy.dot(dm,dm)
+        dd = numpy.dot(dm, dm)
         # natural life-time from the dipole moment
-        gama = [-1.0/self.system.get_electronic_natural_lifetime(1)]
+        gama = [-1.0 / self.system.get_electronic_natural_lifetime(1)]
 
         if self.system._has_system_bath_coupling:
             # correlation function
-            ct = self.system.get_egcf((0,1))
-            sbi = self.system.get_SystemBathInteraction() #(ta)
-            re = sbi.CC.get_reorganization_energy(0,0)
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"ct":ct,"gg":gama, "re":re}
+            ct = self.system.get_egcf((0, 1))
+            sbi = self.system.get_SystemBathInteraction()  # (ta)
+            re = sbi.CC.get_reorganization_energy(0, 0)
+            tr = {
+                "ta": ta,
+                "dd": dd,
+                "om": om - self.rwa,
+                "ct": ct,
+                "gg": gama,
+                "re": re,
+            }
         else:
-            tr = {"ta":ta,"dd":dd,"om":om-self.rwa,"gg":gama}
+            tr = {"ta": ta, "dd": dd, "om": om - self.rwa, "gg": gama}
 
         # calculates the one transition of the monomer
         data = numpy.real(self.one_transition_spectrum(tr))
 
-
         # we only want to retain the upper half of the spectrum
-        Nt = len(self.frequencyAxis.data)//2
-        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
-        st = self.frequencyAxis.data[Nt//2]
+        Nt = len(self.frequencyAxis.data) // 2
+        do = self.frequencyAxis.data[1] - self.frequencyAxis.data[0]
+        st = self.frequencyAxis.data[Nt // 2]
         # we represent the Frequency axis anew
-        axis = FrequencyAxis(st,Nt,do)
+        axis = FrequencyAxis(st, Nt, do)
 
         spect = FluorSpectrum(axis=axis, data=data)
 
         return spect
 
-
-    def _calculate_aggregate(self, relaxation_tensor: Any = None,
-                             relaxation_hamiltonian: Any = None, rate_matrix: Any = None) -> Any:
-        """Calculates the fluorescence spectrum of a molecular aggregate
-
-
-
-        """
+    def _calculate_aggregate(
+        self,
+        relaxation_tensor: Any = None,
+        relaxation_hamiltonian: Any = None,
+        rate_matrix: Any = None,
+    ) -> Any:
+        """Calculates the fluorescence spectrum of a molecular aggregate"""
         ta = self.TimeAxis
 
         # Hamiltonian of the system
@@ -832,9 +800,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         else:
             HH = relaxation_hamiltonian
 
-
-        SS = HH.diagonalize() # transformed into eigenbasis
-
+        SS = HH.diagonalize()  # transformed into eigenbasis
 
         # Transition dipole moment operator
         DD = self.system.get_TransitionDipoleMoment()
@@ -842,7 +808,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         DD.transform(SS)
 
         # TimeAxis
-        tr = {"ta":ta}
+        tr = {"ta": ta}
 
         if relaxation_tensor is not None:
             RR = relaxation_tensor
@@ -850,87 +816,88 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
             gg = []
             if isinstance(RR, TimeDependent):
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:,ii,ii,ii,ii])
+                    gg.append(RR.data[:, ii, ii, ii, ii])
             else:
                 for ii in range(HH.dim):
-                    gg.append([RR.data[ii,ii,ii,ii]])
+                    gg.append([RR.data[ii, ii, ii, ii]])
             tr["gg"] = gg[1]
         elif rate_matrix is not None:
             RR = rate_matrix  # rate matrix is in excitonic basis
             gg = []
             if isinstance(RR, TimeDependent):
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:,ii,ii])
+                    gg.append(RR.data[:, ii, ii])
             else:
                 for ii in range(HH.dim):
-                    gg.append([RR.data[ii,ii]])
+                    gg.append([RR.data[ii, ii]])
             tr["gg"] = gg[1]
         else:
             tr["gg"] = [0.0]
 
         # get square of transition dipole moment here    #print(H_RC)
-        #tr.append(DD.dipole_strength(0,1))
-        tr["dd"] = DD.dipole_strength(0,1)
+        # tr.append(DD.dipole_strength(0,1))
+        tr["dd"] = DD.dipole_strength(0, 1)
         # first transition energy
-        #tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
-        tr["om"] = HH.data[1,1]-HH.data[0,0]-self.rwa
+        # tr.append(HH.data[1,1]-HH.data[0,0]-rwa)
+        tr["om"] = HH.data[1, 1] - HH.data[0, 0] - self.rwa
         # get a transformed ct here
-        ct = self._excitonic_coft(SS,self.system,1)
-        #tr.append(ct)
+        ct = self._excitonic_coft(SS, self.system, 1)
+        # tr.append(ct)
         tr["ct"] = ct
         self.system._has_system_bath_coupling = True
 
-        re = self._excitonic_reorg_energy(SS,self.system,1)
+        re = self._excitonic_reorg_energy(SS, self.system, 1)
         tr["re"] = re
-        rho_eq = self._equilibrium_populations(self.system,
-                                               temperature=self.temperature)
+        rho_eq = self._equilibrium_populations(
+            self.system, temperature=self.temperature
+        )
         #
         # Calculates spectrum of a single transition
         #
-        data = rho_eq.data[1, 1]*numpy.real(self.one_transition_spectrum(tr))
+        data = rho_eq.data[1, 1] * numpy.real(self.one_transition_spectrum(tr))
 
         # FOR THE VIBRONIC SYSTEM THE SPECTRA HAVE TO BE SUMED THROUGH THE GROUND STATES (VIBRONIC)
-        for jj in range(1,min(1,self.system.Nb[0])): # sum over the ground states
-            tr["dd"] = DD.dipole_strength(jj,1)
+        for jj in range(1, min(1, self.system.Nb[0])):  # sum over the ground states
+            tr["dd"] = DD.dipole_strength(jj, 1)
             # first transition energy
-            tr["om"] = HH.data[1,1]-HH.data[jj,jj]-self.rwa
-            data += rho_eq.data[1, 1]*self.one_transition_spectrum_fluor(tr)
+            tr["om"] = HH.data[1, 1] - HH.data[jj, jj] - self.rwa
+            data += rho_eq.data[1, 1] * self.one_transition_spectrum_fluor(tr)
 
-        for ii in range(2,HH.dim):
+        for ii in range(2, HH.dim):
             if relaxation_tensor is not None:
                 tr["gg"] = gg[ii]
             elif rate_matrix is not None:
                 tr["gg"] = gg[ii]
             else:
                 tr["gg"] = [0.0]
-            #tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
-            tr["dd"] = DD.dipole_strength(0,ii)
-            #tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
-            tr["om"] = HH.data[ii,ii]-HH.data[0,0]-self.rwa
-            #tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
-            tr["ct"] = self._excitonic_coft(SS,self.system,ii)
-            tr["re"] = self._excitonic_reorg_energy(SS,self.system,ii)
-
+            # tr[1] = DD.dipole_strength(0,ii) # update transition dipole moment
+            tr["dd"] = DD.dipole_strength(0, ii)
+            # tr[2] = HH.data[ii,ii]-HH.data[0,0]-rwa
+            tr["om"] = HH.data[ii, ii] - HH.data[0, 0] - self.rwa
+            # tr[3] = self._excitonic_coft(SS,self.system,ii-1) # update ct here
+            tr["ct"] = self._excitonic_coft(SS, self.system, ii)
+            tr["re"] = self._excitonic_reorg_energy(SS, self.system, ii)
 
             #
             # Calculates spectrum of a single transition
             #
-            data += rho_eq.data[ii, ii]*numpy.real(self.one_transition_spectrum(tr))
+            data += rho_eq.data[ii, ii] * numpy.real(self.one_transition_spectrum(tr))
 
             # FOR THE VIBRONIC SYSTEM THE SPECTRA HAVE TO BE SUMED THROUGH THE GROUND STATES (VIBRONIC)
-            for jj in range(1,min(ii,self.system.Nb[0])): # sum over the ground states
-                tr["dd"] = DD.dipole_strength(jj,ii)
+            for jj in range(
+                1, min(ii, self.system.Nb[0])
+            ):  # sum over the ground states
+                tr["dd"] = DD.dipole_strength(jj, ii)
                 # first transition energy
-                tr["om"] = HH.data[ii,ii]-HH.data[jj,jj]-self.rwa
-                data += rho_eq.data[ii, ii]*self.one_transition_spectrum(tr)
+                tr["om"] = HH.data[ii, ii] - HH.data[jj, jj] - self.rwa
+                data += rho_eq.data[ii, ii] * self.one_transition_spectrum(tr)
 
         # we only want to retain the upper half of the spectrum
-        Nt = len(self.frequencyAxis.data)//2
-        do = self.frequencyAxis.data[1]-self.frequencyAxis.data[0]
-        st = self.frequencyAxis.data[Nt//2]
+        Nt = len(self.frequencyAxis.data) // 2
+        do = self.frequencyAxis.data[1] - self.frequencyAxis.data[0]
+        st = self.frequencyAxis.data[Nt // 2]
         # we represent the Frequency axis anew
-        axis = FrequencyAxis(st,Nt,do)
-
+        axis = FrequencyAxis(st, Nt, do)
 
         # transform all quantities back
         S1 = numpy.linalg.inv(SS)
@@ -943,5 +910,3 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         spect = FluorSpectrum(axis=axis, data=data)
 
         return spect
-
-

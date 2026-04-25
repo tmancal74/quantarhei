@@ -7,6 +7,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 from .modes import Mode
@@ -44,18 +45,14 @@ class TestMolecule(Molecule):
 
     def __init__(self, name: str | None = None) -> None:
 
-
         if name is None:
             raise Exception("TestMolecule name not specified")
 
-
         if name == "two-levels-1-mode":
-
             super().__init__([0.0, 1.0], name=name)
 
             mod = Mode()
             self.add_Mode(mod)
 
         else:
-
             raise Exception("Unknown TestMolecule")

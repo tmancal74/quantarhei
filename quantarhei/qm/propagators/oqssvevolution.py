@@ -9,13 +9,9 @@ from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 
 
 class OQSStateVectorEvolution:
-
-
     def __init__(self, timeaxis: Any = None, psii: Any = None) -> None:
 
-
         if timeaxis is not None:
-
             self.TimeAxis = timeaxis
 
             if psii is not None:
@@ -25,27 +21,19 @@ class OQSStateVectorEvolution:
             else:
                 self.dim = 0
 
-
-
     def set_initial_condition(self, psii: Any) -> None:
-        """
-
-
-        """
+        """ """
         self.dim = psii.data.shape[0]
-        self.data = numpy.zeros((self.TimeAxis.length, \
-                    self.dim),dtype=numpy.float64)
-        self.data[0,:] = psii.data
-
+        self.data = numpy.zeros((self.TimeAxis.length, self.dim), dtype=numpy.float64)
+        self.data[0, :] = psii.data
 
     def get_norm(self) -> numpy.ndarray:
-        """Time dependent norm of the state vector
+        """Time dependent norm of the state vector"""
+        return numpy.sum(self.data * self.data, axis=1)
 
-        """
-        return numpy.sum(self.data*self.data, axis=1)
-
-
-    def get_ReducedDensityMatrixEvolution(self, decoherence: bool = False) -> ReducedDensityMatrixEvolution:
+    def get_ReducedDensityMatrixEvolution(
+        self, decoherence: bool = False
+    ) -> ReducedDensityMatrixEvolution:
         """Returns the corresponding reduced density matrix
 
 
@@ -55,12 +43,10 @@ class OQSStateVectorEvolution:
         if decoherence:
             raise Exception("Decoherence not yet implemented.")
 
-        rhoi = numpy.zeros((self.dim, self.dim),
-                           dtype=REAL)
+        rhoi = numpy.zeros((self.dim, self.dim), dtype=REAL)
         rhot = ReducedDensityMatrixEvolution(timeaxis=self.TimeAxis, rhoi=rhoi)
         for ii in range(self.dim):
             for jj in range(self.dim):
-                rhot.data[:,ii,jj] = self.data[:,ii]*self.data[:,jj]
+                rhot.data[:, ii, jj] = self.data[:, ii] * self.data[:, jj]
 
         return rhot
-

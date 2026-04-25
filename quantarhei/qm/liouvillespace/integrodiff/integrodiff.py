@@ -56,10 +56,20 @@ class IntegrodiffPropagator:
 
     """
 
-    def __init__(self, timeaxis: Any, ham: Any, kernel: Any = None, cutoff_time: float = -1,
-                 inhom: Any = None, fft: bool = True, save_fft_kernel: bool = False,
-                 timefac: int = 3, decay_fraction: float = 2.0,
-                 correct_short_time: bool = False, correction_length: float = 0.0) -> None:
+    def __init__(
+        self,
+        timeaxis: Any,
+        ham: Any,
+        kernel: Any = None,
+        cutoff_time: float = -1,
+        inhom: Any = None,
+        fft: bool = True,
+        save_fft_kernel: bool = False,
+        timefac: int = 3,
+        decay_fraction: float = 2.0,
+        correct_short_time: bool = False,
+        correction_length: float = 0.0,
+    ) -> None:
 
         self.timeaxis = timeaxis
         self.ham = ham
@@ -73,18 +83,17 @@ class IntegrodiffPropagator:
             self.kernel_is_tdependent = True
 
         self._kernel = self.kernel  # we make the _kernel same as kernel if
-                                    # the kernel does not depend on time
-                                    # independently
+        # the kernel does not depend on time
+        # independently
 
         if self.kernel_is_tdependent:
             # get the kernel at t=0.0
             self._kernel = self.kernel(0.0)
 
-
-        if cutoff_time > 0 and cutoff_time <= \
-                               self._kernel.shape[0]*timeaxis.step:
-            self.kernel_cutoff = min(int(cutoff_time/timeaxis.step),
-                                     self._kernel.shape[0])
+        if cutoff_time > 0 and cutoff_time <= self._kernel.shape[0] * timeaxis.step:
+            self.kernel_cutoff = min(
+                int(cutoff_time / timeaxis.step), self._kernel.shape[0]
+            )
         elif self._kernel is not None:
             self.kernel_cutoff = self._kernel.shape[0]
         else:
@@ -97,29 +106,25 @@ class IntegrodiffPropagator:
         else:
             self.fft = fft
 
-
         if self.fft:
-
             self.resolv: numpy.ndarray | None = None
 
             # FFT on timeaxis twice as long as defines (we add negative times)
-            tlen = timefac*self.timeaxis.length
+            tlen = timefac * self.timeaxis.length
             tstart = self.timeaxis.data[0]
-            tstop = tstart + self.timeaxis.step*(tlen-1)
+            tstop = tstart + self.timeaxis.step * (tlen - 1)
 
             tt = numpy.linspace(tstart, tstop, tlen)
 
-            gamma = decay_fraction/self.timeaxis.data[self.timeaxis.length-1]
+            gamma = decay_fraction / self.timeaxis.data[self.timeaxis.length - 1]
             self.gamma = gamma
-
 
             # FFT of the kernel
             N1 = self.ham.dim
 
             self.om: numpy.ndarray = numpy.zeros(len(tt), REAL)
             # calculate frequencies
-            self.om[:] = (2.0*numpy.pi)* \
-                         numpy.fft.fftfreq(tlen, self.timeaxis.step)
+            self.om[:] = (2.0 * numpy.pi) * numpy.fft.fftfreq(tlen, self.timeaxis.step)
             om = self.om
 
             # Superoperator unity
@@ -134,50 +139,45 @@ class IntegrodiffPropagator:
                 with_kernel = False
 
             if with_kernel:
-
                 # if kernel is present, we use it for calculation
                 MM: numpy.ndarray = numpy.zeros((tlen, N1, N1, N1, N1), dtype=COMPLEX)
-                MM[:self.timeaxis.length,:,:,:,:] = self._kernel
+                MM[: self.timeaxis.length, :, :, :, :] = self._kernel
 
                 # we renormalize the kernel by a e^{-gam*t} decay
                 for tm in range(len(tt)):
-                    MM[tm,:,:,:,:] = MM[tm,:,:,:,:]*numpy.exp(-gamma*tt[tm])
+                    MM[tm, :, :, :, :] = MM[tm, :, :, :, :] * numpy.exp(-gamma * tt[tm])
 
-                MM = numpy.fft.ifft(MM, axis=0)*self.timeaxis.step*tlen*2.0
+                MM = numpy.fft.ifft(MM, axis=0) * self.timeaxis.step * tlen * 2.0
                 if save_fft_kernel:
                     self.fftKernel = MM
 
                 # this is now going over frequencies
                 self.resolv = numpy.zeros(MM.shape, COMPLEX)
                 for io in range(len(tt)):
-                    self.resolv[io,:,:,:,:] = (-1j*om[io] + gamma)*unity \
-                                               +1j*LL + MM[io,:,:,:,:]
-                    A = self.resolv[io,:,:,:,:].reshape(N1**2, N1**2)
+                    self.resolv[io, :, :, :, :] = (
+                        (-1j * om[io] + gamma) * unity + 1j * LL + MM[io, :, :, :, :]
+                    )
+                    A = self.resolv[io, :, :, :, :].reshape(N1**2, N1**2)
                     A = numpy.linalg.inv(A)
-                    self.resolv[io,:,:,:,:] = A.reshape(N1, N1, N1, N1)
+                    self.resolv[io, :, :, :, :] = A.reshape(N1, N1, N1, N1)
 
             else:
-
                 # if kernel is not present, we calculate with Hamiltonian only
                 self.resolv = numpy.zeros((tlen, N1, N1, N1, N1), COMPLEX)
                 for io in range(len(tt)):
-                    self.resolv[io,:,:,:,:] = (-1j*om[io] + gamma)*unity \
-                                               +1j*LL
-                    A = self.resolv[io,:,:,:,:].reshape(N1**2, N1**2)
+                    self.resolv[io, :, :, :, :] = (
+                        -1j * om[io] + gamma
+                    ) * unity + 1j * LL
+                    A = self.resolv[io, :, :, :, :].reshape(N1**2, N1**2)
                     A = numpy.linalg.inv(A)
-                    self.resolv[io,:,:,:,:] = A.reshape(N1, N1, N1, N1)
+                    self.resolv[io, :, :, :, :] = A.reshape(N1, N1, N1, N1)
 
         else:
-
             # prepare propagation in time domain
             pass
 
-
     def propagate(self, rhoi: Any) -> Any:
-        """Propagates initial condition of an integro-differential eq.
-
-
-        """
+        """Propagates initial condition of an integro-differential eq."""
         N1 = rhoi.data.shape[0]
         rhot = ReducedDensityMatrixEvolution(self.timeaxis, rhoi)
 
@@ -190,24 +190,25 @@ class IntegrodiffPropagator:
 
             rhOm: numpy.ndarray = numpy.zeros((Nt, N1, N1), dtype=COMPLEX)
 
-            rho0 = rhoi.data #.reshape(N1**2)
+            rho0 = rhoi.data  # .reshape(N1**2)
 
             for ii in range(Nt):
-                G = self.resolv[ii,:,:,:,:]
-                #Gr = G.reshape(N1**2, N1**2)
-                rhOm[ii,:,:] = numpy.tensordot(G, rho0)
+                G = self.resolv[ii, :, :, :, :]
+                # Gr = G.reshape(N1**2, N1**2)
+                rhOm[ii, :, :] = numpy.tensordot(G, rho0)
 
-            rhOm = numpy.fft.fft(rhOm, axis=0) \
-                    *((self.om[1]-self.om[0])/(2.0*numpy.pi))
+            rhOm = numpy.fft.fft(rhOm, axis=0) * (
+                (self.om[1] - self.om[0]) / (2.0 * numpy.pi)
+            )
 
             # lift the gamma damping
             Nt = self.timeaxis.length
-            for ii in range(1,Nt):
-                rhot.data[ii,:,:] = rhOm[ii,:,:]* \
-                numpy.exp(self.gamma*self.timeaxis.data[ii])
+            for ii in range(1, Nt):
+                rhot.data[ii, :, :] = rhOm[ii, :, :] * numpy.exp(
+                    self.gamma * self.timeaxis.data[ii]
+                )
 
             return rhot
-
 
         #
         # propagation in time domain by short exponential approximation
@@ -217,7 +218,7 @@ class IntegrodiffPropagator:
         rho2 = rhoi.data
 
         self.Nref = 1  # we need to calculate integral from the saved
-                       # values, and correspondingly, dt has to be small
+        # values, and correspondingly, dt has to be small
 
         L = 4
         self.last_tn = -1
@@ -225,68 +226,52 @@ class IntegrodiffPropagator:
         indx = 1
 
         if self._kernel is None:
-
             #
             # Propagation without kernel
             #
-            for ii in range(1,self.timeaxis.length):
-
+            for ii in range(1, self.timeaxis.length):
                 for jj in range(0, self.Nref):
-
-                    for ll in range(1, L+1):
-
-                        rho1 = (dt/ll)* \
-                               self._no_kernel_rhs(ii, rho1, rhot)
+                    for ll in range(1, L + 1):
+                        rho1 = (dt / ll) * self._no_kernel_rhs(ii, rho1, rhot)
 
                         rho2 = rho2 + rho1
                     rho1 = rho2
 
-                rhot.data[indx,:,:] = rho2
+                rhot.data[indx, :, :] = rho2
                 indx += 1
 
         else:
-
             #
             # Propagation with the kernel
             #
-            for ii in range(1,self.timeaxis.length):
-
+            for ii in range(1, self.timeaxis.length):
                 for jj in range(0, self.Nref):
-
-                    for ll in range(1, L+1):
-
-                        rho1 = (dt/ll)* \
-                               self._right_hand_side(ii, rho1, rhot)
+                    for ll in range(1, L + 1):
+                        rho1 = (dt / ll) * self._right_hand_side(ii, rho1, rhot)
 
                         rho2 = rho2 + rho1
                     rho1 = rho2
 
-                rhot.data[indx,:,:] = rho2
+                rhot.data[indx, :, :] = rho2
 
                 indx += 1
 
-                #print(indx, ii)
+                # print(indx, ii)
 
         return rhot
 
-
-
-    def _convolution_with_kernel(self, tn: int, rho_in: numpy.ndarray, rhot: Any) -> numpy.ndarray:
-        """Convolution of the density matrix with integration kernel
-
-
-        """
+    def _convolution_with_kernel(
+        self, tn: int, rho_in: numpy.ndarray, rhot: Any
+    ) -> numpy.ndarray:
+        """Convolution of the density matrix with integration kernel"""
         dim = rhot.data.shape[1]
 
-
-        #self.kernel_cutoff = self._kernel.shape[0]
+        # self.kernel_cutoff = self._kernel.shape[0]
 
         if tn == self.last_tn:
-
             rho = self.last_int
 
         else:
-
             if self.kernel_is_tdependent:
                 # updating the kernel if it depends on t independently
                 self._kernel = self.kernel(tn)
@@ -294,44 +279,37 @@ class IntegrodiffPropagator:
             rho = numpy.zeros((dim, dim), dtype=COMPLEX)
             self.last_int = numpy.zeros((dim, dim), dtype=COMPLEX)
 
-            for nn in range(1, min(tn+1, self.kernel_cutoff)):
+            for nn in range(1, min(tn + 1, self.kernel_cutoff)):
                 nr = tn - nn
-                rho += self.timeaxis.step* \
-                   numpy.tensordot(self._kernel[nn,:,:,:,:],rhot.data[nr,:,:])
+                rho += self.timeaxis.step * numpy.tensordot(
+                    self._kernel[nn, :, :, :, :], rhot.data[nr, :, :]
+                )
 
-            self.last_int[:,:] = rho
+            self.last_int[:, :] = rho
 
-        rho += \
-            self.timeaxis.step*numpy.tensordot(self._kernel[0,:,:,:,:],rho_in)
+        rho += self.timeaxis.step * numpy.tensordot(self._kernel[0, :, :, :, :], rho_in)
 
         self.last_tn = tn
 
         return rho
 
-
     def _right_hand_side(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:
-        """Right-hand side of the master equation
-
-        """
+        """Right-hand side of the master equation"""
         ham = self.ham.data
-        drho = -1j*(numpy.dot(ham, rho) - numpy.dot(rho, ham))
+        drho = -1j * (numpy.dot(ham, rho) - numpy.dot(rho, ham))
         drho += -self._convolution_with_kernel(tn, rho, rhot)
 
         return drho
 
-
     def _no_kernel_rhs(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:
-        """Right-hand side of the master equation without the kernel
-
-        """
-        #M0 = self.kernel
+        """Right-hand side of the master equation without the kernel"""
+        # M0 = self.kernel
 
         ham = self.ham.data
-        drho = -1j*(numpy.dot(ham, rho) - numpy.dot(rho, ham))
-        #drho += -self.timeaxis.stop*M0*numpy.sum(rhot.data[:,:,:],axis=0)
+        drho = -1j * (numpy.dot(ham, rho) - numpy.dot(rho, ham))
+        # drho += -self.timeaxis.stop*M0*numpy.sum(rhot.data[:,:,:],axis=0)
 
         return drho
-
 
     def check_solution(self, rhot: Any) -> numpy.ndarray:
         """Masures the difference between the right- and left-hand-side
@@ -339,27 +317,22 @@ class IntegrodiffPropagator:
 
         """
         N1 = self.ham.dim
-        diff: numpy.ndarray = numpy.zeros((self.timeaxis.length, N1, N1),
-                                          dtype=COMPLEX)
+        diff: numpy.ndarray = numpy.zeros((self.timeaxis.length, N1, N1), dtype=COMPLEX)
         for tn in range(self.timeaxis.length):
-
             # time derivative
             if tn == 0:
-                lhs = (rhot.data[tn+1]-rhot.data[tn])/self.timeaxis.step
-            elif tn == self.timeaxis.length-1:
-                lhs = (rhot.data[tn]-rhot.data[tn-1])/self.timeaxis.step
+                lhs = (rhot.data[tn + 1] - rhot.data[tn]) / self.timeaxis.step
+            elif tn == self.timeaxis.length - 1:
+                lhs = (rhot.data[tn] - rhot.data[tn - 1]) / self.timeaxis.step
             else:
-                lhs = (rhot.data[tn+1]-rhot.data[tn-1])/ \
-                      (2.0*self.timeaxis.step)
+                lhs = (rhot.data[tn + 1] - rhot.data[tn - 1]) / (
+                    2.0 * self.timeaxis.step
+                )
 
             # right-hand-side
-            rho = rhot.data[tn, :,:]
+            rho = rhot.data[tn, :, :]
             rhs = self._right_hand_side(tn, rho, rhot)
 
-            diff[tn, :,:] = lhs - rhs
+            diff[tn, :, :] = lhs - rhs
 
         return diff
-
-
-
-

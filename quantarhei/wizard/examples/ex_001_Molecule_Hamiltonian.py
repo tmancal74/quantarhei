@@ -1,7 +1,6 @@
-
-#<remove>
+# <remove>
 _show_plots_ = False
-#</remove>
+# </remove>
 
 import quantarhei as qr
 

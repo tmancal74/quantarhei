@@ -26,18 +26,21 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
     """
 
-
     def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any, temp: Any = None) -> None:
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
         self.widthy = convert(300, "1/cm", "int")
         self.dephx = convert(300, "1/cm", "int")
         self.dephy = convert(300, "1/cm", "int")
-        self.temp = temp # Temperature
+        self.temp = temp  # Temperature
 
-
-    def bootstrap(self, rwa: float = 0.0, pathways: Any = None, verbose: bool = False,
-                  shape: str = "Gaussian") -> None:
+    def bootstrap(
+        self,
+        rwa: float = 0.0,
+        pathways: Any = None,
+        verbose: bool = False,
+        shape: str = "Gaussian",
+    ) -> None:
 
         self.shape = shape
 
@@ -47,14 +50,14 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         with energy_units("int"):
             atype = self.t1axis.atype
-            self.t1axis.atype = 'complete'
+            self.t1axis.atype = "complete"
             self.oa1 = self.t1axis.get_FrequencyAxis()
             self.oa1.data += self.rwa
             self.oa1.start += self.rwa
             self.t1axis.atype = atype
 
             atype = self.t3axis.atype
-            self.t3axis.atype = 'complete'
+            self.t3axis.atype = "complete"
             self.oa3 = self.t3axis.get_FrequencyAxis()
             self.oa3.data += self.rwa
             self.oa3.start += self.rwa
@@ -75,29 +78,21 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         self.dephx = m.convert_energy_2_internal_u(val)
         self.dephy = m.convert_energy_2_internal_u(val)
 
-
     def set_pathways(self, pathways: Any) -> None:
         self.pathways = pathways
 
-
     def calculate_next(self) -> Any:
-        """Calculate next spectrum and increment t2 time
-
-        """
+        """Calculate next spectrum and increment t2 time"""
         sone = self.calculate_one(self.tc)
         self.tc += 1
         return sone
 
     def set_next(self, tc: int) -> None:
-        """Set next current t2 time
-
-        """
+        """Set next current t2 time"""
         self.tc = tc
 
     def calculate_one(self, tc: int) -> Any:
-        """Calculate the 2D spectrum for all pathways
-
-        """
+        """Calculate the 2D spectrum for all pathways"""
         onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
@@ -111,7 +106,6 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         if self.pathways is not None:
             for pwy in self.pathways:
-
                 data = self.calculate_pathway(pwy, shape=self.shape)
 
                 if pwy.pathway_type == "R":
@@ -125,11 +119,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return onetwod
 
-
     def calculate(self) -> Any:
-        """Calculate the 2D spectrum for all pathways
-
-        """
+        """Calculate the 2D spectrum for all pathways"""
         onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
@@ -137,7 +128,6 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         k = 0
         for pwy in self.pathways:
-
             data = self.calculate_pathway(pwy, shape=self.shape)
 
             if pwy.pathway_type == "R":
@@ -158,12 +148,16 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return onetwod
 
-
-    def calculate_all_system(self, sys: Any, eUt: Any, lab: Any,
-                             selection: Any = None, show_progress: bool = False, dtol: float = 0.0001) -> Any:
-        """Calculates all 2D spectra for a system and evolution superoperator
-
-        """
+    def calculate_all_system(
+        self,
+        sys: Any,
+        eUt: Any,
+        lab: Any,
+        selection: Any = None,
+        show_progress: bool = False,
+        dtol: float = 0.0001,
+    ) -> Any:
+        """Calculates all 2D spectra for a system and evolution superoperator"""
         self.tc = 0
 
         try:
@@ -176,18 +170,17 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         kk = 1
         Nk = self.t2axis.length
         for T2 in self.t2axis.data:
-
             if show_progress:
                 print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
 
             pways = dict()
-            twod1 = self.calculate_one_system(T2, sys, eUt, lab,
-                                              selection=selection, pways=pways,
-                                              dtol=dtol)
+            twod1 = self.calculate_one_system(
+                T2, sys, eUt, lab, selection=selection, pways=pways, dtol=dtol
+            )
 
             if show_progress:
                 try:
-                    print("   "+str(len(pways[str(T2)])), "pathways used")
+                    print("   " + str(len(pways[str(T2)])), "pathways used")
                 except KeyError:
                     pass
 
@@ -200,12 +193,17 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return tcont
 
-
-    def calculate_one_system(self, t2: float, sys: Any, eUt: Any, lab: Any,
-                             selection: Any = None, pways: Any = None, dtol: float = 1.0e-12) -> Any:
-        """Returns 2D spectrum at t2 for a system and evolution superoperator
-
-        """
+    def calculate_one_system(
+        self,
+        t2: float,
+        sys: Any,
+        eUt: Any,
+        lab: Any,
+        selection: Any = None,
+        pways: Any = None,
+        dtol: float = 1.0e-12,
+    ) -> Any:
+        """Returns 2D spectrum at t2 for a system and evolution superoperator"""
         try:
             Uin = eUt.at(t2)
         except (AttributeError, IndexError):
@@ -220,46 +218,44 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         # FIXME: this needs to be set differently, and it mu
         # density matrix stored into sys.rho0
-        #temp = sys.get_temperature()
+        # temp = sys.get_temperature()
         if self.temp is None:
-            rho0 = sys.get_DensityMatrix(condition_type="thermal",
-                                     temperature=0.0)
+            rho0 = sys.get_DensityMatrix(condition_type="thermal", temperature=0.0)
         else:
-            rho0 = sys.get_DensityMatrix(condition_type="thermal",
-                                     temperature=self.temp)
+            rho0 = sys.get_DensityMatrix(
+                condition_type="thermal", temperature=self.temp
+            )
 
         # if the Hamiltonian is larger than eUt, we will calculate ESA
         has_ESA = True
         H1 = sys.get_Hamiltonian()
-#        if H1.dim == eUt.dim:
-#            has_ESA = False
+        #        if H1.dim == eUt.dim:
+        #            has_ESA = False
 
         if H1.Nblocks == 2:
             has_ESA = False
 
-        #print("HAS ESA:", has_ESA)
+        # print("HAS ESA:", has_ESA)
         # get Liouville pathways
         if has_ESA:
             tps = ("R1g", "R2g", "R3g", "R4g", "R1f*", "R2f*", "R1gE", "R2gE")
-            pws = sys.liouville_pathways_3T(ptype=tps,
-                                                   eUt=Uin, ham=H, t2=t2,
-                                                   lab=lab, dtol=dtol)
+            pws = sys.liouville_pathways_3T(
+                ptype=tps, eUt=Uin, ham=H, t2=t2, lab=lab, dtol=dtol
+            )
         else:
             tps = ("R1g", "R2g", "R3g", "R4g", "R1gE", "R2gE")
-            pws = sys.liouville_pathways_3T(ptype=tps,
-                                                   eUt=Uin, ham=H, t2=t2,
-                                                   lab=lab, dtol=dtol)
+            pws = sys.liouville_pathways_3T(
+                ptype=tps, eUt=Uin, ham=H, t2=t2, lab=lab, dtol=dtol
+            )
 
-        #print("Number of pathways:", len(pws))
+        # print("Number of pathways:", len(pws))
 
         if selection is not None:
-
             anl = LiouvillePathwayAnalyzer()
             anl.pathways = pws
             pws = anl.order_by_amplitude(replace=False)
 
             for rule in selection:
-
                 if rule[0] == "omega2":
                     interval = rule[1]
                     anl.pathways = pws
@@ -272,10 +268,10 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                 if rule[0] == "number":
                     N = rule[1]
                     if len(pws) > N:
-                        pws = pws[0:N-1]
+                        pws = pws[0 : N - 1]
 
                 if rule[0] == "percent":
-                    mx = pws[0].pref*rule[1]/100.0
+                    mx = pws[0].pref * rule[1] / 100.0
                     print(mx, numpy.abs(mx))
                     anl.pathways = pws
                     pws = anl.select_amplitude_GT(numpy.abs(mx))
@@ -290,9 +286,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                         states = pw.get_states()
                         pair = states[2]
                         if pair[0] == pair[1]:
-                            #print(ii, pair)
+                            # print(ii, pair)
                             pws.append(pw)
-
 
         print("Number of pathways:", len(pws))
         self.set_pathways(pws)
@@ -306,11 +301,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return twod1
 
-
     def calculate_pathway(self, pathway: Any, shape: str = "Gaussian") -> numpy.ndarray:
-        """Calculate the shape of a Liouville pathway
-
-        """
+        """Calculate the shape of a Liouville pathway"""
         # we can calculate empty pathway
         if pathway is None:
             N1 = self.oa1.length
@@ -321,10 +313,10 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         # FIXME: remove the old version sometime soon
         oldv = False
 
-        noe = 1+pathway.order+pathway.relax_order
+        noe = 1 + pathway.order + pathway.relax_order
 
         cen1 = pathway.frequency[0]
-        cen3 = pathway.frequency[noe-2]
+        cen3 = pathway.frequency[noe - 2]
 
         pref = pathway.pref
 
@@ -352,14 +344,12 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             dephy = pathway.dephs[3]
 
         if (widthx < 1e-5) or (widthy < 1e-5):
-            print("Shape, widthx, widthy:",shape, widthx, widthy)
+            print("Shape, widthx, widthy:", shape, widthx, widthy)
 
-        prefk = 4.0*numpy.log(2.0)
+        prefk = 4.0 * numpy.log(2.0)
 
         if pathway.pathway_type == "R":
-
             reph2D = numpy.zeros((N1, N3), dtype=COMPLEX)
-
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -368,20 +358,23 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     for i1 in range(N1):
                         o1 = -self.oa1.data[i1]
 
-                        reph2D[:, i1] = \
-                            prefk*pref*numpy.exp(
-                                    -prefk*(((o1-cen1)/widthx)**2
-                                           +((oo3-cen3)/widthy)**2))\
-                            /(numpy.pi*widthx*widthy)
+                        reph2D[:, i1] = (
+                            prefk
+                            * pref
+                            * numpy.exp(
+                                -prefk
+                                * (
+                                    ((o1 - cen1) / widthx) ** 2
+                                    + ((oo3 - cen3) / widthy) ** 2
+                                )
+                            )
+                            / (numpy.pi * widthx * widthy)
+                        )
 
                 else:
-
-
                     oo1 = -self.oa1.data[:]
 
-                    reph2D = pref*gaussian2D(oo1, cen1, widthx,
-                                                 oo3, cen3, widthy)
-
+                    reph2D = pref * gaussian2D(oo1, cen1, widthx, oo3, cen3, widthy)
 
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
@@ -390,24 +383,23 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     for i1 in range(N1):
                         o1 = -self.oa1.data[i1]
 
-                        reph2D[:, i1] = \
-                        pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
-                            *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
+                        reph2D[:, i1] = (
+                            pref
+                            * ((dephx / numpy.pi) / ((o1 - cen1) ** 2 + dephx**2))
+                            * ((dephy / numpy.pi) / ((oo3 - cen3) ** 2 + dephy**2))
+                        )
 
                 else:
-
                     oo1 = -self.oa1.data[:]
 
-                    reph2D = pref*lorentzian2D(oo1, cen1, dephx,
-                                               oo3, cen3, dephy)
+                    reph2D = pref * lorentzian2D(oo1, cen1, dephx, oo3, cen3, dephy)
 
             else:
-                raise Exception("Unknown line shape: "+shape)
+                raise Exception("Unknown line shape: " + shape)
 
             return reph2D
 
         if pathway.pathway_type == "NR":
-
             nonr2D = numpy.zeros((N1, N3), dtype=COMPLEX)
 
             if shape == "Gaussian":
@@ -417,17 +409,17 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     for i1 in range(N1):
                         o1 = self.oa1.data[i1]
 
-                        nonr2D[:, i1] = \
-                        pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                            *numpy.exp(-((oo3-cen3)/widthy)**2)\
-                                /(numpy.pi*widthx*widthy)
+                        nonr2D[:, i1] = (
+                            pref
+                            * numpy.exp(-(((o1 - cen1) / widthx) ** 2))
+                            * numpy.exp(-(((oo3 - cen3) / widthy) ** 2))
+                            / (numpy.pi * widthx * widthy)
+                        )
 
                 else:
-
                     oo1 = self.oa1.data[:]
 
-                    nonr2D = pref*gaussian2D(oo1, cen1, widthx,
-                                               oo3, cen3, widthy)
+                    nonr2D = pref * gaussian2D(oo1, cen1, widthx, oo3, cen3, widthy)
 
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
@@ -436,18 +428,18 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     for i1 in range(N1):
                         o1 = self.oa1.data[i1]
 
-                        nonr2D[:, i1] = \
-                        pref*((dephx/numpy.pi)/((o1-cen1)**2 + dephx**2))\
-                                *((dephy/numpy.pi)/((oo3-cen3)**2 + dephy**2))
+                        nonr2D[:, i1] = (
+                            pref
+                            * ((dephx / numpy.pi) / ((o1 - cen1) ** 2 + dephx**2))
+                            * ((dephy / numpy.pi) / ((oo3 - cen3) ** 2 + dephy**2))
+                        )
 
                 else:
-
                     oo1 = self.oa1.data[:]
 
-                    nonr2D = pref*lorentzian2D(oo1, cen1, dephx,
-                                               oo3, cen3, dephy)
+                    nonr2D = pref * lorentzian2D(oo1, cen1, dephx, oo3, cen3, dephy)
 
             else:
-                raise Exception("Unknown line shape: "+shape)
+                raise Exception("Unknown line shape: " + shape)
 
             return nonr2D

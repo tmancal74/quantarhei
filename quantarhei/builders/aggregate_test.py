@@ -116,18 +116,15 @@ class TestAggregate(Aggregate):
         if name is None:
             raise Exception("Aggregate name not specified")
 
-
         #
         # Test dimer
         #
         if name == "dimer-2-env":
-
             m1, m2 = self._molecules(N=2, nst=2)
 
             # set their environment
             time = TimeAxis(0, 1000, 1.0)
-            cpar = dict(ftype="OverdampedBrownian", reorg=20,
-                        cortime=100, T=300)
+            cpar = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=300)
             with energy_units("1/cm"):
                 cfce = CorrelationFunction(time, cpar)
 
@@ -137,13 +134,11 @@ class TestAggregate(Aggregate):
             super().__init__(molecules=[m1, m2])
 
         elif name == "trimer-2-env":
-
             m1, m2, m3 = self._molecules(N=3, nst=2)
 
             # set their environment
             time = TimeAxis(0, 1000, 1.0)
-            cpar = dict(ftype="OverdampedBrownian", reorg=20,
-                        cortime=100, T=300)
+            cpar = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=300)
             with energy_units("1/cm"):
                 cfce = CorrelationFunction(time, cpar)
 
@@ -154,7 +149,6 @@ class TestAggregate(Aggregate):
             super().__init__(molecules=[m1, m2, m3])
 
         elif name == "dimer-2":
-
             m1, m2 = self._molecules(N=2, nst=2)
 
             # set their environment
@@ -163,19 +157,16 @@ class TestAggregate(Aggregate):
             super().__init__(molecules=[m1, m2])
 
         elif name == "trimer-2":
-
             m1, m2, m3 = self._molecules(N=3, nst=2, homo=False)
 
             super().__init__(molecules=[m1, m2, m3])
 
         elif name == "homodimer-2-env":
-
             m1, m2 = self._molecules(N=2, nst=2, homo=True)
 
             # set their environment
             time = TimeAxis(0, 1000, 1.0)
-            cpar = dict(ftype="OverdampedBrownian", reorg=20,
-                        cortime=100, T=300)
+            cpar = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=300)
             with energy_units("1/cm"):
                 cfce = CorrelationFunction(time, cpar)
 
@@ -185,7 +176,6 @@ class TestAggregate(Aggregate):
             super().__init__(molecules=[m1, m2])
 
         elif name == "homodimer-2":
-
             m1, m2 = self._molecules(N=2, nst=2, homo=True)
 
             # set their environment
@@ -194,20 +184,18 @@ class TestAggregate(Aggregate):
             super().__init__(molecules=[m1, m2])
 
         elif name == "dimer-2-vib":
-
             m1, m2 = self._molecules(N=2, nst=2)
 
             with energy_units("1/cm"):
                 mod1 = Mode(100.0)
                 m1.add_Mode(mod1)
-                mod1.set_HR(1,0.1)
+                mod1.set_HR(1, 0.1)
 
                 mod2 = Mode(100.0)
                 m2.add_Mode(mod2)
-                mod2.set_HR(1,0.1)
+                mod2.set_HR(1, 0.1)
 
             super().__init__(molecules=[m1, m2])
-
 
     def _molecules(self, N: int, nst: int, homo: bool = False) -> list | None:
         """Creates molecules to be filled into Aggregate
@@ -221,7 +209,6 @@ class TestAggregate(Aggregate):
 
         """
         if (N == 2) and (nst == 2):
-
             nstates = nst
 
             # check inputs
@@ -229,20 +216,20 @@ class TestAggregate(Aggregate):
                 raise Exception()
 
             # set parameters
-            gap1 = convert(12000,"1/cm", to="int")
+            gap1 = convert(12000, "1/cm", to="int")
 
             energies1 = numpy.zeros(nstates)
             for s in range(nstates):
-                energies1[s] = s*gap1
+                energies1[s] = s * gap1
 
             if homo:
-                gap2 = convert(12000,"1/cm", to="int")
+                gap2 = convert(12000, "1/cm", to="int")
             else:
-                gap2 = convert(12300,"1/cm", to="int")
+                gap2 = convert(12300, "1/cm", to="int")
 
             energies2 = numpy.zeros(nstates)
             for s in range(nstates):
-                energies2[s] = s*gap2
+                energies2[s] = s * gap2
 
             # molecules
             m1 = Molecule(elenergies=energies1)
@@ -254,7 +241,7 @@ class TestAggregate(Aggregate):
             m1.set_dipole(0, 1, dip1)
             m2.set_dipole(0, 1, dip2)
 
-            #set molecular positions
+            # set molecular positions
             r1 = [0.0, 0.0, 0.0]
             r2 = [5.0, 0.0, 0.0]
             m1.position = r1
@@ -263,7 +250,6 @@ class TestAggregate(Aggregate):
             return [m1, m2]
 
         if (N == 3) and (nst == 2):
-
             nstates = nst
 
             # check inputs
@@ -274,7 +260,7 @@ class TestAggregate(Aggregate):
             gap1 = convert(12000, "1/cm", to="int")
             energies1 = numpy.zeros(nstates)
             for s in range(nstates):
-                energies1[s] = s*gap1
+                energies1[s] = s * gap1
 
             if homo:
                 gap2 = convert(12000, "1/cm", to="int")
@@ -285,8 +271,8 @@ class TestAggregate(Aggregate):
             energies2 = numpy.zeros(nstates)
             energies3 = numpy.zeros(nstates)
             for s in range(nstates):
-                energies2[s] = s*gap2
-                energies3[s] = s*gap3
+                energies2[s] = s * gap2
+                energies3[s] = s * gap3
 
             # molecules
             m1 = Molecule(elenergies=energies1)
@@ -301,7 +287,7 @@ class TestAggregate(Aggregate):
             m2.set_dipole(0, 1, dip2)
             m3.set_dipole(0, 1, dip3)
 
-            #set molecular positions
+            # set molecular positions
             r1 = [0.0, 0.0, 0.0]
             r2 = [5.0, 0.0, 0.0]
             r3 = [0.0, 0.0, 5.0]
@@ -311,6 +297,4 @@ class TestAggregate(Aggregate):
 
             return [m1, m2, m3]
 
-
         return None
-

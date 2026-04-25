@@ -87,35 +87,33 @@ class SuperOperator(BasisManaged):
     _data: numpy.ndarray
     name: str = ""
 
-    def __init__(self, dim: int | None = None, data: Any = None, real: bool = False) -> None:
+    def __init__(
+        self, dim: int | None = None, data: Any = None, real: bool = False
+    ) -> None:
 
         # Set the currently used basis
         cb = self.manager.get_current_basis()
         self.set_current_basis(cb)
         # unless it is the basis outside any context
         if cb != 0:
-            self.manager.register_with_basis(cb,self)
+            self.manager.register_with_basis(cb, self)
 
         self._data_initialized = False
 
         self.dim = dim
         if dim is not None:
             if real:
-                self.data = numpy.zeros((dim, dim, dim, dim),
-                                        dtype=qr.REAL)
+                self.data = numpy.zeros((dim, dim, dim, dim), dtype=qr.REAL)
             else:
-                self.data = numpy.zeros((dim, dim, dim, dim),
-                                        dtype=qr.COMPLEX)
+                self.data = numpy.zeros((dim, dim, dim, dim), dtype=qr.COMPLEX)
         elif data is not None:
             self.data = data
             if len(data.shape) != 4:
                 raise Exception("The data do not represent a superoperator")
             Nd = data.shape[0]
             if numpy.any(numpy.array(data.shape) - Nd):
-                raise Exception("`data` has to be `square` "
-                                "four-dimensional matrix")
+                raise Exception("`data` has to be `square` four-dimensional matrix")
             self.dim = data.shape[0]
-
 
     def apply(self, oper: Any, copy: bool = True) -> Any:
         """Applies superoperator to an operator
@@ -195,7 +193,6 @@ class SuperOperator(BasisManaged):
             return oper_ven
         oper.data = numpy.tensordot(self.data, oper.data)
         return oper
-
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transforms the superoperator to a new basis
@@ -283,9 +280,8 @@ class SuperOperator(BasisManaged):
         --------
 
         """
-        if (self.manager.warn_about_basis_change):
-            print("\nQr >>> SuperOperator "
-                  f"'{self.name}' changes basis")
+        if self.manager.warn_about_basis_change:
+            print(f"\nQr >>> SuperOperator '{self.name}' changes basis")
 
         #
         # if inverse matrix not present, we create it
@@ -304,27 +300,29 @@ class SuperOperator(BasisManaged):
         if self._data.ndim == 4:
             for c in range(dim):
                 for d in range(dim):
-                    self._data[:,:,c,d] = \
-                    numpy.dot(S1,numpy.dot(self._data[:,:,c,d],SS))
+                    self._data[:, :, c, d] = numpy.dot(
+                        S1, numpy.dot(self._data[:, :, c, d], SS)
+                    )
 
             for a in range(dim):
                 for b in range(dim):
-                    self._data[a,b,:,:] = \
-                    numpy.dot(S1,numpy.dot(self._data[a,b,:,:],SS))
+                    self._data[a, b, :, :] = numpy.dot(
+                        S1, numpy.dot(self._data[a, b, :, :], SS)
+                    )
 
         #
         # Larger dimension means more superoperators or time dependence
         #
         else:
-
             for tt in range(self._data.shape[0]):
                 for c in range(dim):
                     for d in range(dim):
-                        self._data[tt,:,:,c,d] = \
-                            numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
+                        self._data[tt, :, :, c, d] = numpy.dot(
+                            S1, numpy.dot(self._data[tt, :, :, c, d], SS)
+                        )
 
                 for a in range(dim):
                     for b in range(dim):
-                        self._data[tt,a,b,:,:] = \
-                            numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))
-
+                        self._data[tt, a, b, :, :] = numpy.dot(
+                            S1, numpy.dot(self._data[tt, a, b, :, :], SS)
+                        )
