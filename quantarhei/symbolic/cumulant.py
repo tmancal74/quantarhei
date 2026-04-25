@@ -745,7 +745,7 @@ class Uop:
 
 
 
-    def merge(self, u: "Uop") -> None:
+    def merge(self, u: Uop) -> None:
         """Merge two operators of the same type
 
         """
@@ -766,7 +766,7 @@ class Uop:
         self.times = new_times
 
 
-    def add(self, u: "Uop") -> "Uop":
+    def add(self, u: Uop) -> Uop:
         """Add two operators and return  new entity
 
         """

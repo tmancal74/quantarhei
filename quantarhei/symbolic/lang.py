@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 
 def rename_function(ss: str, oldname: str, newname: str) -> str:
     """Replaces all occurences of a name by a new name

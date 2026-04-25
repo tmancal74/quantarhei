@@ -9,11 +9,11 @@ from __future__ import annotations
 import os
 import re
 import tempfile
-from typing import Any
 
 # non-standard imports
 from importlib.resources import files
 from subprocess import check_output
+from typing import Any
 
 
 def quantarhei_installed(context: Any, version: str | None = None) -> None:
