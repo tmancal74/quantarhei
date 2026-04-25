@@ -284,6 +284,7 @@ module = [
 ]
 ignore_errors = true
 
+
 # Modules with pre-existing structural issues (None-typed attributes, descriptor-based
 # data storage, copy-module shadowing, deep multiple-inheritance chains) — suppressed
 # until #231 annotation pass can address root causes
