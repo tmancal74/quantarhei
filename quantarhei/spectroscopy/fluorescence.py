@@ -1,17 +1,14 @@
-"""Created on Mon Apr  9 14:26:16 2018
-
-@author: Johan
-"""
-
 # -*- coding: utf-8 -*-
-"""
-    Quantarhei package (http://www.github.com/quantarhei)
+"""Quantarhei package (http://www.github.com/quantarhei)
 
     fluor module
 
     This module contains classes to support calculation of linear fluorescence
     spectra.
 
+Created on Mon Apr  9 14:26:16 2018
+
+@author: Johan
 """
 #import h5py
 import matplotlib.pyplot as plt

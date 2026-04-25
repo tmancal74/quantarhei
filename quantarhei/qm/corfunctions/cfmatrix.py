@@ -484,7 +484,7 @@ class CorrelationFunctionMatrix(Saveable):
 
             try:
                 ic = fce.axis.nearest(fce.cutoff_time)
-            except AttributeError:
+            except Exception:
                 ic = fce.axis.data[fce.axis.length-1]
 
             ic = int(ic)

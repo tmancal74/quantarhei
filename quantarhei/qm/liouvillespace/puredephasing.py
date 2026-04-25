@@ -74,7 +74,6 @@ Exception: The property 'eigenbasis' is protected and cannot be set.
 import numpy
 
 from ... import REAL
-from ...builders.aggregates import Aggregate
 
 #from ...builders.molecules import Molecule
 from ...core.managers import eigenbasis_of
@@ -109,6 +108,7 @@ class PureDephasing: #(BasisManaged):
 
     def __init__(self, drates=None, dtype="Lorentzian", system=None,
                  cutoff_time=None):
+        from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if drates is None:
             raise Exception("Dephasing rates must be specified.")

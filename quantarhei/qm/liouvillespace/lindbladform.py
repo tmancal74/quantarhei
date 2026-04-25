@@ -5,7 +5,6 @@
 import numpy
 
 from ... import REAL
-from ...builders.aggregates import Aggregate
 from ..hilbertspace.operators import ProjectionOperator
 from .redfieldtensor import RedfieldRelaxationTensor
 from .systembathinteraction import SystemBathInteraction
@@ -88,6 +87,7 @@ class ElectronicLindbladForm(LindbladForm):
 
     def __init__(self, ham, sbi, initialize=True,
                  as_operators=True, name=""):
+        from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if isinstance(sbi.system, Aggregate):
             agg = sbi.system
@@ -236,6 +236,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
 
     def __init__(self, ham, sbi, initialize=True,
                  as_operators=True, name=""):
+        from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if isinstance(sbi.system, Aggregate):
             agg = sbi.system
