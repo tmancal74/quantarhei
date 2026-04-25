@@ -9,10 +9,13 @@ git clone https://github.com/tmancal74/quantarhei
 cd quantarhei
 pip install -e .
 pip install -r requirements_devel.txt
-git config core.hooksPath .githooks
 ```
 
-`git config core.hooksPath .githooks` activates the shared commit-msg hook that enforces issue numbers at the start of every commit message (e.g. `#123 fix: description`).
+Optionally, activate the local commit-msg hook that enforces issue numbers at the start of every commit message (e.g. `#123 fix: description`):
+
+```bash
+git config core.hooksPath .githooks   # local only — not pushed to remote
+```
 
 Before pushing, make sure the code is formatted and lint-clean:
 
