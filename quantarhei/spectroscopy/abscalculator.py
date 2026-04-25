@@ -4,7 +4,10 @@ Linear absorption spectrum of a molecule or an aggregate of molecules.
 
 
 """
+from __future__ import annotations
+
 import copy
+from typing import Any
 
 import numpy
 import scipy
@@ -93,12 +96,12 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
     TimeAxis = derived_type("TimeAxis",TimeAxis)
     system = derived_type("system",[Molecule,Aggregate,OpenSystem])
 
-    def __init__(self, timeaxis,
-                 system=None,
-                 dynamics="secular",
-                 relaxation_tensor=None,
-                 rate_matrix=None,
-                 effective_hamiltonian=None):
+    def __init__(self, timeaxis: Any,
+                 system: Any = None,
+                 dynamics: str = "secular",
+                 relaxation_tensor: Any = None,
+                 rate_matrix: Any = None,
+                 effective_hamiltonian: Any = None) -> None:
 
         # protected properties
         self.TimeAxis = timeaxis
@@ -135,7 +138,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self.bootstrapped = False
 
 
-    def bootstrap(self, rwa=0.0, prop=None, lab=None, HWHH = None, axis=None, gauss=None, adiabatic=None, fluor=None):
+    def bootstrap(self, rwa: float = 0.0, prop: Any = None, lab: Any = None, HWHH: Any = None, axis: Any = None, gauss: Any = None, adiabatic: Any = None, fluor: Any = None) -> None:
         """This function sets some additional information before calculation
 
 
@@ -219,7 +222,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         self.bootstrapped = True
 
     @prevent_basis_context
-    def calculate(self, raw=False, from_dynamics=False, alt=False):
+    def calculate(self, raw: bool = False, from_dynamics: bool = False, alt: bool = False) -> Any:
         """Calculates the absorption spectrum
 
 
@@ -257,7 +260,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         return spect
 
-    def _calculateMolecule(self,rwa):
+    def _calculateMolecule(self, rwa: float) -> None:
 
         if self.system._has_system_bath_coupling:
             raise Exception("Not yet implemented")
@@ -267,8 +270,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             stick_width = 1.0/0.1
 
 
-    def _equilibrium_excit_populations(self, AG, temperature=300,
-                                 relaxation_hamiltonian=None):
+    def _equilibrium_excit_populations(self, AG: Any, temperature: float = 300,
+                                 relaxation_hamiltonian: Any = None) -> Any:
         if relaxation_hamiltonian:
             H = relaxation_hamiltonian
         else:
@@ -280,7 +283,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                              relaxation_hamiltonian=relaxation_hamiltonian)
         return rho0
 
-    def one_transition_spectrum_abs(self,tr):
+    def one_transition_spectrum_abs(self, tr: dict[str, Any]) -> numpy.ndarray:
         """Calculates spectrum of one transition
 
 
@@ -338,7 +341,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         Nt = ta.length #len(ta.data)
         return ft[Nt//2:Nt+Nt//2]
 
-    def one_transition_spectrum_ld(self,tr):
+    def one_transition_spectrum_ld(self, tr: dict[str, Any]) -> numpy.ndarray:
         """Calculates spectrum of one transition
 
 
@@ -386,7 +389,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         Nt = ta.length #len(ta.data)
         return ft[Nt//2:Nt+Nt//2]
 
-    def one_transition_spectrum_gauss(self,tr):
+    def one_transition_spectrum_gauss(self, tr: dict[str, Any]) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
         """Calculates spectrum of one transition using gaussian broadening
         of the stick spectra. The definition is the same as for  exat tools:
         https://doi.org/10.1002/jcc.25118
@@ -413,7 +416,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return data_abs,data_CD, data_LD
 
 
-    def one_transition_spectrum_fluor(self,tr):
+    def one_transition_spectrum_fluor(self, tr: dict[str, Any]) -> numpy.ndarray:
         """Calculates spectrum of one transition
 
 
@@ -471,7 +474,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         Nt = ta.length #len(ta.data)
         return ft[Nt//2:Nt+Nt//2]
 
-    def one_transition_spectrum_cd(self,tr):
+    def one_transition_spectrum_cd(self, tr: dict[str, Any]) -> numpy.ndarray:
         """Calculates spectrum of one transition
 
 
@@ -529,7 +532,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return ft[Nt//2:Nt+Nt//2]
 
 
-    def _excitonic_coft_old(self,SS,AG,n):
+    def _excitonic_coft_old(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
         """Returns energy gap correlation function data of an exciton state
 
         """
@@ -563,7 +566,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         return ct
 
-    def _excitonic_coft(self,SS,AG,n):
+    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
         """Returns energy gap correlation function data of an exciton state n
 
         """
@@ -589,7 +592,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                         ct += ((SS[kk,n]**2)*(SS[ll,n]**2)*coft)
         return ct
 
-    def _excitonic_coft_all(self,SS,AG):
+    def _excitonic_coft_all(self, SS: numpy.ndarray, AG: Any) -> numpy.ndarray:
         """Returns energy gap correlation function data of an exciton state n
 
         """
@@ -624,7 +627,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         print(stop-start,stop-start - timecount)
         return ct
 
-    def _excitonic_reorg_energy(self, SS, AG, n):
+    def _excitonic_reorg_energy(self, SS: numpy.ndarray, AG: Any, n: int) -> float:
         """Returns the reorganisation energy of an exciton state
         """
         # SystemBathInteraction
@@ -643,7 +646,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return rg
 
 
-    def _excitonic_rotatory_strength(self,SS,AG,energy,n):
+    def _excitonic_rotatory_strength(self, SS: numpy.ndarray, AG: Any, energy: numpy.ndarray, n: int) -> float:
         # Initialize rotatory strength
         Rot_n = 0
 
@@ -676,7 +679,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 #        print(Rot_n,energy,n)
         return Rot_n
 
-    def _excitonic_rotatory_strength_fullv(self,SS,AG,energy,n):
+    def _excitonic_rotatory_strength_fullv(self, SS: numpy.ndarray, AG: Any, energy: numpy.ndarray, n: int) -> Any:
         # Initialize rotatory strength
         Rot_n = 0
 #        Rot_nm = 0
@@ -706,7 +709,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         return Rot_n#,Rot_nm
 
-    def _subtract_site_reorg(self,AG,Hin,subtract_bath=True):
+    def _subtract_site_reorg(self, AG: Any, Hin: Any, subtract_bath: bool = True) -> tuple[Any, numpy.ndarray]:
         # Subtract the reorganisation energy from the sites
 
         sbi = AG.get_SystemBathInteraction()
@@ -736,7 +739,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         return HH,reorg_site
 
-    def _site2excit_reorg(self,reorg_site,SS):
+    def _site2excit_reorg(self, reorg_site: numpy.ndarray, SS: numpy.ndarray) -> numpy.ndarray:
         # Get exciton reorganization energy from the site one
 
         reorg_exct = numpy.zeros(SS.shape[1])
@@ -746,7 +749,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         return reorg_exct
 
-    def _calculate_monomer(self, raw=False):
+    def _calculate_monomer(self, raw: bool = False) -> Any:
         """Calculates the absorption spectrum of a monomer
 
 
@@ -828,7 +831,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return spect
 
 
-    def _calculate_abs_from_dynamics(self, raw=False, alt=False):
+    def _calculate_abs_from_dynamics(self, raw: bool = False, alt: bool = False) -> Any:
         """Calculates the absorption spectrum of a molecule from its dynamics
 
         """
@@ -904,9 +907,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         return {"abs": spect_abs, "fluor": fluor_spect}
         #return spect
 
-    def _calculate_aggregate(self, relaxation_tensor=None,
-                             relaxation_hamiltonian=None, rate_matrix=None,
-                             raw=False):
+    def _calculate_aggregate(self, relaxation_tensor: Any = None,
+                             relaxation_hamiltonian: Any = None, rate_matrix: Any = None,
+                             raw: bool = False) -> dict[str, Any]:
         """Calculates the absorption spectrum of a molecular aggregate
 
 
@@ -1134,12 +1137,12 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
 
 class AbsSpectrumCalculator(LinSpectrumCalculator):
-    def __init__(self, timeaxis,
-                 system=None,
-                 dynamics="secular",
-                 relaxation_tensor=None,
-                 rate_matrix=None,
-                 effective_hamiltonian=None):
+    def __init__(self, timeaxis: Any,
+                 system: Any = None,
+                 dynamics: str = "secular",
+                 relaxation_tensor: Any = None,
+                 rate_matrix: Any = None,
+                 effective_hamiltonian: Any = None) -> None:
 
         super().__init__(timeaxis,
                  system=system,
@@ -1149,7 +1152,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
                  effective_hamiltonian=effective_hamiltonian)
 
     @prevent_basis_context
-    def calculate(self, raw=False, from_dynamics=False, alt=False):
+    def calculate(self, raw: bool = False, from_dynamics: bool = False, alt: bool = False) -> Any:
 
         if not self.bootstrapped:
             raise Exception("Calculator must be bootstrapped first: "
@@ -1181,7 +1184,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
 
         return spect
 
-def _spect_from_dyn(time, HH, DD, prop, rhoeq, secular=False):
+def _spect_from_dyn(time: Any, HH: Any, DD: Any, prop: Any, rhoeq: Any, secular: bool = False) -> numpy.ndarray:
     """Calculation of the first order signal field.
 
 
@@ -1242,7 +1245,7 @@ def _spect_from_dyn(time, HH, DD, prop, rhoeq, secular=False):
         return at
 
 
-def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
+def _spect_from_dyn_single(time: Any, HH: Any, DD: Any, prop: Any, rhoeq: Any, secular: bool = False) -> numpy.ndarray:
     """Calculation of the first order signal field.
 
     Calculation in a single propagation
@@ -1305,7 +1308,7 @@ def _spect_from_dyn_single(time, HH, DD, prop, rhoeq, secular=False):
     return at
 
 
-def _c2g(timeaxis, coft):
+def _c2g(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
     """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation

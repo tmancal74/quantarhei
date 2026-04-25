@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 import scipy.signal.windows as signal
@@ -32,7 +35,7 @@ class Cos(DFunction):
     >>> numpy.testing.assert_almost_equal(a, b, decimal=7)
 
     """
-    def __init__(self, x, omega, phi=0.0):
+    def __init__(self, x: Any, omega: float, phi: float = 0.0) -> None:
         super().__init__()
         self._make_me(x, numpy.cos(omega*x.data + phi))
 
@@ -71,7 +74,7 @@ class Tukey(DFunction):
 
     """
 
-    def __init__(self, x, r, sym=True, x_offset=0.0):
+    def __init__(self, x: Any, r: float, sym: bool = True, x_offset: float = 0.0) -> None:
         super().__init__()
         L = x.length
 

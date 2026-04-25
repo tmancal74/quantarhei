@@ -26,6 +26,8 @@ Load the definition file, instantiate it and run it as:
 
 """
 
+from __future__ import annotations
+
 from quantarhei.wizard.simulations import ExcitonDynamics
 
 
@@ -59,7 +61,7 @@ class mySimulation(ExcitonDynamics):
 
     """
 
-    def setup(self):
+    def setup(self) -> None:
         """Simulation definition
 
 

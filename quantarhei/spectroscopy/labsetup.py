@@ -10,7 +10,9 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
 
+from typing import Any
 
 import numpy
 
@@ -44,7 +46,7 @@ class LabSetup:
 
     number_of_pulses = Integer("number_of_pulses")
 
-    def __init__(self, nopulses = 3):
+    def __init__(self, nopulses: int = 3) -> None:
 
         # number of pulses in the set-up
         self.number_of_pulses = nopulses
@@ -97,7 +99,7 @@ class LabSetup:
         self.saved_params = None
 
 
-    def reset_pulse_shape(self):
+    def reset_pulse_shape(self) -> None:
         """Recalculates the pulse shapes
 
         """
@@ -108,7 +110,7 @@ class LabSetup:
 
 
 
-    def set_pulse_shapes(self, axis, params):
+    def set_pulse_shapes(self, axis: Any, params: Any) -> None:
         """Sets the pulse properties
 
 
@@ -434,8 +436,8 @@ class LabSetup:
 
 
 
-    def set_pulse_polarizations(self, pulse_polarizations=(X, X, X),
-                         detection_polarization=X):
+    def set_pulse_polarizations(self, pulse_polarizations: Any = (X, X, X),
+                         detection_polarization: Any = X) -> None:
         """Sets polarizations of the experimental pulses
 
 
@@ -497,7 +499,7 @@ class LabSetup:
         self.detection_polarization = detection_polarization
 
 
-    def get_pulse_polarizations(self):
+    def get_pulse_polarizations(self) -> list[Any]:
         """Returns polarizations of the laser pulses
 
 
@@ -520,7 +522,7 @@ class LabSetup:
         return pols
 
 
-    def get_detection_polarization(self):
+    def get_detection_polarization(self) -> Any:
         """Returns detection polarizations
 
 
@@ -539,7 +541,7 @@ class LabSetup:
         return self.e[3,:]
 
 
-    def convert_to_time(self):
+    def convert_to_time(self) -> None:
         """Converts pulse information from frequency domain to time domain
 
 
@@ -659,7 +661,7 @@ class LabSetup:
                             "frequency domain not set")
 
 
-    def convert_to_frequency(self):
+    def convert_to_frequency(self) -> None:
         """Converts pulse information from time domain to frequency domain
 
 
@@ -735,7 +737,7 @@ class LabSetup:
                             "time domain not set")
 
 
-    def get_pulse_envelop(self, k, t):
+    def get_pulse_envelop(self, k: int, t: Any) -> Any:
         """Returns a numpy array with the pulse time-domain envelope
 
 
@@ -794,7 +796,7 @@ class LabSetup:
         return self.pulse_t[k].at(t)
 
 
-    def get_pulse_spectrum(self, k, omega):
+    def get_pulse_spectrum(self, k: int, omega: Any) -> Any:
         """Returns a numpy array with the pulse frequency-domain spectrum
 
         Parameters
@@ -854,7 +856,7 @@ class LabSetup:
         return self.pulse_f[k].at(omega)
 
 
-    def set_pulse_frequencies(self, omegas):
+    def set_pulse_frequencies(self, omegas: Any) -> None:
         """Sets pulse frequencies
 
 
@@ -889,7 +891,7 @@ class LabSetup:
                             str(self.number_of_pulses)+" required")
 
 
-    def get_pulse_frequency(self, k):
+    def get_pulse_frequency(self, k: int) -> Any:
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -908,7 +910,7 @@ class LabSetup:
         return self.omega[k]
 
 
-    def set_pulse_arrival_times(self, times):
+    def set_pulse_arrival_times(self, times: Any) -> None:
         """Sets the arrival time (i.e. centers) of the pulses
 
         Parameters
@@ -943,7 +945,7 @@ class LabSetup:
                             str(self.number_of_pulses)+" required")
 
 
-    def get_pulse_arrival_times(self):
+    def get_pulse_arrival_times(self) -> Any:
         """Returns frequency of the pulse with index k
 
 
@@ -958,7 +960,7 @@ class LabSetup:
         return self.pulse_centers
 
 
-    def get_pulse_arrival_time(self, k):
+    def get_pulse_arrival_time(self, k: int) -> Any:
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -977,7 +979,7 @@ class LabSetup:
         return self.pulse_centers[k]
 
 
-    def set_pulse_phases(self, phases):
+    def set_pulse_phases(self, phases: Any) -> None:
         """Sets the phases of the individual pulses
 
         Parameters
@@ -1010,7 +1012,7 @@ class LabSetup:
                             str(self.number_of_pulses)+" required")
 
 
-    def get_pulse_phases(self):
+    def get_pulse_phases(self) -> Any:
         """Returns frequency of the pulse with index k
 
 
@@ -1025,7 +1027,7 @@ class LabSetup:
         return self.phases
 
 
-    def get_pulse_phase(self, k):
+    def get_pulse_phase(self, k: int) -> Any:
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -1069,12 +1071,12 @@ class LabSetup:
 
     #     return fields
 
-    def get_labfield(self, k):
+    def get_labfield(self, k: int) -> LabField:
         return LabField(self, k)
 
 
 
-    def get_labfields(self):
+    def get_labfields(self) -> list[Any]:
         """Retruns a list of EField objects for the lab's pulses
 
         """
@@ -1088,14 +1090,14 @@ class LabSetup:
         return fields
 
 
-    def set_rwa(self, om):
+    def set_rwa(self, om: float) -> None:
 
         self.saved_omega = numpy.zeros((self.number_of_pulses), dtype=REAL)
 
         self.saved_omega[:] = self.omega[:]
         self.omega[:] -= om
 
-    def restore_rwa(self):
+    def restore_rwa(self) -> None:
 
         if self.saved_omega is None:
             raise Exception("RWA has to be set first")
@@ -1103,7 +1105,7 @@ class LabSetup:
         self.omega[:] = self.saved_omega[:]
 
 
-    def get_field(self, kk=None, rwa_frequency=None):
+    def get_field(self, kk: Any = None, rwa_frequency: Any = None) -> Any:
         """Returns the total field of the lab or a single field
 
         """
@@ -1135,7 +1137,7 @@ class LabSetup:
 
 
 
-    def get_field_derivative(self):
+    def get_field_derivative(self) -> Any:
         """Returns the time derivative of the total field
 
         """
@@ -1166,7 +1168,7 @@ class labsetup(LabSetup):
 
 
 
-def _labattr(name, target, flag=None):
+def _labattr(name: str, target: str, flag: Any = None) -> Any:
     """Pointer to a field attribute of the LabSep object
 
     """
@@ -1187,7 +1189,7 @@ def _labattr(name, target, flag=None):
 
     return prop
 
-def _labarray(name, target):
+def _labarray(name: str, target: str) -> Any:
     """Pointer to a field array attribute of the LabSep object
 
     """
@@ -1206,7 +1208,7 @@ def _labarray(name, target):
     return prop
 
 
-def _fieldprop(name, flag, sign):
+def _fieldprop(name: str, flag: str, sign: int) -> Any:
     """Property returning field values over time
 
     """
@@ -1234,7 +1236,7 @@ def _fieldprop(name, flag, sign):
     return prop
 
 
-def _get_example_lab():
+def _get_example_lab() -> LabSetup:
     """Returns a LabSetup instance for doctests
 
     """
@@ -1426,7 +1428,7 @@ class LabField:
     field_m = _fieldprop("field_p","_field_set", -1)
     field = _fieldprop("field","_field_set", 0)
 
-    def __init__(self, labsetup, k):
+    def __init__(self, labsetup: Any, k: int) -> None:
 
         self.labsetup = labsetup
         self.index = k
@@ -1436,27 +1438,27 @@ class LabField:
         self.set_delay_phase(self.tc)
 
 
-    def get_phase(self):
+    def get_phase(self) -> Any:
         """Returns the phase of the pulse
 
         """
         return self.labsetup.phases[self.index]
 
 
-    def get_delay_phase(self):
+    def get_delay_phase(self) -> Any:
         """Returns the phase caused by the pulse delay
 
         """
         return self.labsetup.delay_phases[self.index]
 
 
-    def get_total_phase(self):
+    def get_total_phase(self) -> Any:
 
         return (self.labsetup.delay_phases[self.index]
                 +self.labsetup.phases[self.index])
 
 
-    def set_phase(self, val):
+    def set_phase(self, val: float) -> None:
         """Sets the phase of the pulse
 
         Parameters
@@ -1469,21 +1471,21 @@ class LabField:
         # FIXME: The pulse field has to be updated
 
 
-    def set_delay_phase(self, val):
+    def set_delay_phase(self, val: float) -> None:
         """Returns the phase caused by the pulse delay
 
         """
         raise Exception("Setting delay phases independently is not allowed")
 
 
-    def get_center(self):
+    def get_center(self) -> Any:
         """Returns the pulse center time
 
         """
         return self.labsetup.pulse_centers[self.index]
 
 
-    def set_center(self, val):
+    def set_center(self, val: float) -> None:
         """Sets the pulse center time
 
         val: float
@@ -1504,7 +1506,7 @@ class LabField:
         self._center_changed = False
 
 
-    def set_delay_phase(self, val):  # type: ignore[no-redef]
+    def set_delay_phase(self, val: float) -> None:  # type: ignore[no-redef]
         """Calculate and set delay phases
 
         """
@@ -1515,23 +1517,23 @@ class LabField:
         self.labsetup.delay_phases[self.index] = phi
 
 
-    def get_frequency(self):
+    def get_frequency(self) -> Any:
         return self.labsetup.omega[self.index]
 
-    def set_frequency(self, val):
+    def set_frequency(self, val: float) -> None:
         self.labsetup.omega[self.index] = val
 
-    def get_polarization(self):
+    def get_polarization(self) -> Any:
         return self.labsetup.e[self.index,:]
 
-    def set_polarization(self, pol):
+    def set_polarization(self, pol: Any) -> None:
         self.labsetup.e[self.index,:] = pol
 
-    def get_fwhm(self):
+    def get_fwhm(self) -> Any:
         return self.labsetup.saved_params[self.index]["FWHM"]
 
 
-    def get_field(self, time=None, sign=1):
+    def get_field(self, time: Any = None, sign: int = 1) -> Any:
         """Returns the electric field of the pulses
 
         """
@@ -1554,21 +1556,21 @@ class LabField:
         return self.labsetup.pulse_t[self.index].at(time)
 
 
-    def get_time_axis(self):
+    def get_time_axis(self) -> Any:
         return self.labsetup.timeaxis
 
 
-    def set_rwa(self, om):
+    def set_rwa(self, om: float) -> None:
 
         self.labsetup.set_rwa(om)
 
 
-    def restore_rwa(self):
+    def restore_rwa(self) -> None:
 
         self.labsetup.restore_rwa()
 
 
-    def as_spline_function(self):
+    def as_spline_function(self) -> Any:
         """Returns the spline represention of this field
 
         """
@@ -1576,7 +1578,7 @@ class LabField:
         return df.as_spline_function()
 
 
-    def get_pulse_envelop(self, tt):
+    def get_pulse_envelop(self, tt: Any) -> Any:
         """Returns the envelop values
 
 
@@ -1600,7 +1602,7 @@ class LabField:
         raise Exception()
 
 
-    def get_pulse_envelop_function(self):
+    def get_pulse_envelop_function(self) -> Any:
         """Return a function to be called later
 
 

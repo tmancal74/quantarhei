@@ -6,6 +6,10 @@ This module contains classes to support calculation of linear dichroism
 spectra.
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 #import h5py
 import matplotlib.pyplot as plt
 import numpy
@@ -28,12 +32,12 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
     """
 
-    def __init__(self, axis=None, data=None):
+    def __init__(self, axis: Any = None, data: Any = None) -> None:
         super().__init__()
         self.axis = axis
         self.data = data
 
-    def set_axis(self, axis):
+    def set_axis(self, axis: Any) -> None:
         """Sets axis atribute
 
         Parameters
@@ -44,7 +48,7 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
         """
         self.axis = axis
 
-    def set_data(self, data):
+    def set_data(self, data: Any) -> None:
         """Sets data atribute
 
         Parameters
@@ -55,7 +59,7 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
         """
         self.data = data
 
-    def set_by_interpolation(self, x, y, xaxis="frequency"):
+    def set_by_interpolation(self, x: Any, y: Any, xaxis: str = "frequency") -> None:
 
         from scipy import interpolate
 
@@ -98,34 +102,34 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
         self.data = ynew
 
 
-    def clear_data(self):
+    def clear_data(self) -> None:
         """Sets spectrum data to zero
 
         """
         shp = self.data.shape
         self.data = numpy.zeros(shp, dtype=numpy.float64)
 
-    def normalize2(self,norm=1.0):
+    def normalize2(self, norm: float = 1.0) -> None:
         """Normalizes spectrum to a given value
 
         """
         mx = numpy.max(self.data)
         self.data = norm*self.data/mx
 
-    def normalize(self):
+    def normalize(self) -> None:
         """Normalization to one
 
         """
         self.normalize2(norm=1.0)
 
-    def subtract(self, val):
+    def subtract(self, val: float) -> None:
         """Subtracts a value from the spectrum to shift its base line
 
         """
         self.data -= val
 
 
-    def add_to_data(self, spect):
+    def add_to_data(self, spect: Any) -> None:
         """Performs addition on the data.
 
         Expects a compatible object holding linear dichroism spectrum
@@ -152,7 +156,7 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
         self.data += spect.data
 
 
-    def load_data(self, filename, ext=None, replace=False):
+    def load_data(self, filename: str, ext: Any = None, replace: bool = False) -> None:
         """Load the spectrum from a file
 
         Uses the load method of the DFunction class to load the linear dichroism
@@ -169,7 +173,7 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
 
 
-    def plot(self, **kwargs):
+    def plot(self, **kwargs: Any) -> Any:
         """Plotting linear dichroism spectrum using the DFunction plot method
 
         """
@@ -183,7 +187,7 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
 
 
-    def gaussian_fit(self, N=1, guess=None, plot=False, Nsvf=251):
+    def gaussian_fit(self, N: int = 1, guess: Any = None, plot: bool = False, Nsvf: int = 251) -> Any:
         from scipy.interpolate import UnivariateSpline
         from scipy.signal import savgol_filter
         """Performs a Gaussian fit of the spectrum based on an initial guess
@@ -290,7 +294,7 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 #            # evaluate at points if eaxis
 #
 
-def _gaussian(x, height, center, fwhm, offset=0.0):
+def _gaussian(x: Any, height: float, center: float, fwhm: float, offset: float = 0.0) -> numpy.ndarray:
     """Gaussian function with a possible offset
 
 
@@ -317,7 +321,7 @@ def _gaussian(x, height, center, fwhm, offset=0.0):
                             (fwhm**2)) + offset
 
 
-def _n_gaussians(x, N, *params):
+def _n_gaussians(x: Any, N: int, *params: float) -> Any:
     """Sum of N Gaussian functions plus an offset from zero
 
     Parameters
@@ -412,16 +416,16 @@ class LinDichSpectrum(LinDichSpectrumBase):
 
 class LinDichSpectrumContainer(Saveable):
 
-    def __init__(self, axis=None):
+    def __init__(self, axis: Any = None) -> None:
 
         self.axis = axis
         self.count = 0
-        self.spectra = {}
+        self.spectra: dict[str, Any] = {}
 
-    def set_axis(self, axis):
+    def set_axis(self, axis: Any) -> None:
         self.axis = axis
 
-    def set_spectrum(self, spect, tag=None):
+    def set_spectrum(self, spect: Any, tag: Any = None) -> None:
         """Stores linear dichroism spectrum
 
         Checks compatibility of its frequency axis
@@ -443,7 +447,7 @@ class LinDichSpectrumContainer(Saveable):
             raise Exception("Incompatible time axis (equal axis required)")
 
 
-    def get_spectrum(self, tag):
+    def get_spectrum(self, tag: Any) -> Any:
         """Returns spectrum corresponing to time t2
 
         Checks if the time t2 is present in the t2axis
@@ -457,7 +461,7 @@ class LinDichSpectrumContainer(Saveable):
         raise Exception("Unknown spectrum")
 
 
-    def get_spectra(self):
+    def get_spectra(self) -> list[Any]:
         """Returns a list or tuple of the calculated spectra
 
         """
@@ -547,13 +551,13 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
     TimeAxis = derived_type("TimeAxis",TimeAxis)
     system = derived_type("system",[Molecule,Aggregate])
 
-    def __init__(self, timeaxis,
-                 system=None,
-                 dynamics="secular",
-                 relaxation_tensor=None,
-                 rate_matrix=None,
-                 effective_hamiltonian=None,
-                 vector_perp_to_membrane = numpy.array([-1, -4, 1])):
+    def __init__(self, timeaxis: Any,
+                 system: Any = None,
+                 dynamics: str = "secular",
+                 relaxation_tensor: Any = None,
+                 rate_matrix: Any = None,
+                 effective_hamiltonian: Any = None,
+                 vector_perp_to_membrane: numpy.ndarray = numpy.array([-1, -4, 1])) -> None:
 
         # protected properties
         self.TimeAxis = timeaxis
@@ -584,7 +588,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
         self.rwa = 0.0
 
-    def bootstrap(self,rwa=0.0):
+    def bootstrap(self, rwa: float = 0.0) -> None:
         """
 
         """
@@ -596,7 +600,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
 
-    def calculate(self):
+    def calculate(self) -> Any:
         """Calculates the linear dichroism spectrum
 
 
@@ -620,7 +624,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
         return spect
 
 
-    def _calculateMolecule(self,rwa):
+    def _calculateMolecule(self, rwa: float) -> None:
 
         if self.system._has_system_bath_coupling:
             raise Exception("Not yet implemented")
@@ -630,7 +634,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
             stick_width = 1.0/0.1
 
 
-    def _c2g(self,timeaxis,coft):
+    def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
         """Converts correlation function to lineshape function
 
         Explicit numerical double integration of the correlation
@@ -661,7 +665,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
         gt = sr + 1j*si
         return gt
 
-    def one_transition_spectrum(self,tr):
+    def one_transition_spectrum(self, tr: dict[str, Any]) -> numpy.ndarray:
         """Calculates spectrum of one transition
 
 
@@ -704,7 +708,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
         return ft[Nt//2:Nt+Nt//2]
 
 
-    def _excitonic_coft(self,SS,AG,n):
+    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
         """Returns energy gap correlation function data of an exciton state
 
         """
@@ -735,7 +739,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
 
-    def _calculate_monomer(self):
+    def _calculate_monomer(self) -> Any:
         """Calculates the circular dichroism spectrum of a monomer
 
 
@@ -745,8 +749,8 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
 
 
 
-    def _calculate_aggregate(self, relaxation_tensor=None,
-                             relaxation_hamiltonian=None, rate_matrix=None):
+    def _calculate_aggregate(self, relaxation_tensor: Any = None,
+                             relaxation_hamiltonian: Any = None, rate_matrix: Any = None) -> Any:
         """Calculates the linear dichroism spectrum of a molecular aggregate
 
 
