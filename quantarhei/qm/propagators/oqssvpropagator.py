@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -11,8 +14,8 @@ from .oqssvevolution import OQSStateVectorEvolution
 class OQSStateVectorPropagator:
 
 
-    def __init__(self, timeaxis=None, current_matrix=None, agg=None,
-                 theory_type="Redfield"):
+    def __init__(self, timeaxis: Any = None, current_matrix: Any = None, agg: Any = None,
+                 theory_type: str = "Redfield") -> None:
 
 
         self.TimeAxis = timeaxis
@@ -26,7 +29,7 @@ class OQSStateVectorPropagator:
         self.agg = agg
 
 
-    def setDtRefinement(self, Nref):
+    def setDtRefinement(self, Nref: int) -> None:
         """The TimeAxis object specifies at what times the propagation
         should be stored. We can tell the propagator to use finer
         time step for the calculation by setting the refinement. The
@@ -46,7 +49,7 @@ class OQSStateVectorPropagator:
         self.dt = self.Odt/self.Nref
 
 
-    def propagate(self, psii, L=4):
+    def propagate(self, psii: Any, L: int = 4) -> Any:
 
        """Short expansion of an exponention to integrate equations of motion
 
@@ -62,7 +65,7 @@ class OQSStateVectorPropagator:
        return pr
 
 
-    def get_secular_dynamics(self, psii, L=4):
+    def get_secular_dynamics(self, psii: Any, L: int = 4) -> Any:
        """Here we obtain the secular dynamics for self-consistent methodology
 
        """
@@ -97,7 +100,7 @@ class OQSStateVectorPropagator:
            return pr
 
 
-    def get_c0(self, psii, L=4):
+    def get_c0(self, psii: Any, L: int = 4) -> Any:
         """Returns the zero's order solution to the iterative problem
 
         """
@@ -105,7 +108,7 @@ class OQSStateVectorPropagator:
 
 
 #@njit(cache=True)
-def _CALC(KK, psii, Nt, Nref, L, dt, out):
+def _CALC(KK: numpy.ndarray, psii: numpy.ndarray, Nt: int, Nref: int, L: int, dt: float, out: numpy.ndarray) -> None:
     """Propagation numerics
 
     """

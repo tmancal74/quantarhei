@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import COMPLEX
@@ -16,8 +20,8 @@ class FoersterRelaxationTensor(RelaxationTensor):
 
 
     """
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None,
-                 pure_dephasing=False):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None,
+                 pure_dephasing: bool = False) -> None:
 
         self._initialize_basis()
 
@@ -53,7 +57,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             self._data_initialized = False
 
 
-    def initialize(self):
+    def initialize(self) -> None:
 
         #
         # Tensor data
@@ -93,7 +97,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
                 self.add_dephasing()
 
 
-    def add_dephasing(self):
+    def add_dephasing(self) -> None:
 
 
         # line shape function derivatives

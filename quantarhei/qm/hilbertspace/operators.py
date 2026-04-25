@@ -1,5 +1,7 @@
+from __future__ import annotations
 
 import numbers
+from typing import Any
 
 import numpy
 
@@ -24,7 +26,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
     data = BasisManagedComplexArray("data")
 
-    def __init__(self, dim=None, data=None, real=False, name=""):
+    def __init__(self, dim: int | None = None, data: Any = None, real: bool = False, name: str = "") -> None:
 
         if not ((dim is None) and (data is None)):
             # Set the currently used basis
@@ -61,7 +63,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
                 self.dim = dim
 
 
-    def __add__(self, other):
+    def __add__(self, other: Operator) -> Operator:
         """Addition of two operators. Returns self.
 
         """
@@ -69,7 +71,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
         return self
 
 
-    def apply(self, obj):
+    def apply(self, obj: Any) -> Any:
         """Apply the operator to vector or operator on the right
 
         """
@@ -85,7 +87,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
         raise Exception("Cannot apply operator to the object")
 
 
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
 
 
@@ -113,7 +115,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
         self._data = numpy.dot(S1,numpy.dot(self._data,SS))
 
 
-    def assert_square_matrix(A):
+    def assert_square_matrix(A: Any) -> bool:
         if isinstance(A,numpy.ndarray):
             if A.ndim == 2:
                 if A.shape[0] == A.shape[1]:
@@ -122,14 +124,14 @@ class Operator(MatrixData, BasisManaged, Saveable):
             return False
         return False
 
-    def is_diagonal(self):
+    def is_diagonal(self) -> bool:
         dat = self._data.copy()
         for i in range(self.dim):
             dat[i,i] = 0.0
         return numpy.allclose(dat, numpy.zeros(self.dim))
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.Operator object"
         out += "\n=========================="
         out += "\ndata = \n"
@@ -147,7 +149,7 @@ class SelfAdjointOperator(Operator):
 
     """
 
-    def __init__(self, dim=None, data=None, name=""):
+    def __init__(self, dim: int | None = None, data: Any = None, name: str = "") -> None:
 
         if not ((dim is None) and (data is None)):
             Operator.__init__(self,dim=dim,data=data,name=name)
@@ -156,11 +158,11 @@ class SelfAdjointOperator(Operator):
                 "to be represented by a selfadjoint matrix")
 
 
-    def check_selfadjoint(self):
+    def check_selfadjoint(self) -> bool:
         return (numpy.isclose(numpy.transpose(numpy.conj(self.data)),
                               self.data)).all()
 
-    def diagonalize(self):
+    def diagonalize(self) -> numpy.ndarray:
         # first use is of "data", the rest of "_data"
         dd,SS = numpy.linalg.eigh(self.data)
         self._data = numpy.zeros(self._data.shape)
@@ -168,11 +170,11 @@ class SelfAdjointOperator(Operator):
             self._data[ii,ii] = dd[ii]
         return SS
 
-    def get_diagonalization_matrix(self):
+    def get_diagonalization_matrix(self) -> numpy.ndarray:
         dd, SS = numpy.linalg.eigh(self._data)
         return SS
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.SelfAdjointOperator object"
         out += "\n====================================="
         out += "\ndata = \n"
@@ -182,7 +184,7 @@ class SelfAdjointOperator(Operator):
 
 class UnityOperator(SelfAdjointOperator):
 
-    def __init__(self, dim=None, name=""):
+    def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
         series = numpy.array([1 for i in range(dim)], dtype=COMPLEX)
@@ -192,7 +194,7 @@ class UnityOperator(SelfAdjointOperator):
 
 class BasisReferenceOperator(SelfAdjointOperator):
 
-    def __init__(self, dim=None, name=""):
+    def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
         series = numpy.array([i for i in range(dim)], dtype=REAL)
@@ -207,7 +209,7 @@ class ProjectionOperator(Operator):
     |n\rangle \\langle m|
 
     """
-    def __init__(self, to_state=-1, from_state=-1, dim=0):
+    def __init__(self, to_state: int = -1, from_state: int = -1, dim: int = 0) -> None:
         # here the operator is create and it will know about basis
 
         if dim > 0:
@@ -221,7 +223,7 @@ class ProjectionOperator(Operator):
             raise Exception("Wrong operator dimension")
 
 
-    def __mult__(self, other):
+    def __mult__(self, other: Any) -> numpy.ndarray:
         """Multiplication of operator by scalar
 
         """
@@ -231,7 +233,7 @@ class ProjectionOperator(Operator):
             raise Exception("Only multiplication by scalar is allowed")
         return self._data
 
-    def __rmult__(self, other):
+    def __rmult__(self, other: Any) -> numpy.ndarray:
         """Multiplication from right
 
         """
@@ -250,13 +252,13 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
     """
 
 
-    def normalize2(self,norm=1.0):
+    def normalize2(self, norm: float = 1.0) -> None:
         # using self.data to allow transformation
         tr = numpy.trace(self.data)
         # using data because any transformation needed was already done
         self._data = self._data*(norm/tr)
 
-    def get_populations(self):
+    def get_populations(self) -> numpy.ndarray:
         """Returns a vector of diagonal elements of the density matrix
 
         """
@@ -270,7 +272,7 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
 
         return pvec
 
-    def excite_delta(self,dmoment,epolarization=None):
+    def excite_delta(self, dmoment: Any, epolarization: Any = None) -> ReducedDensityMatrix:
         """Returns a density matrix obtained by delta-pulse excitation
 
         """
@@ -288,7 +290,7 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         return ReducedDensityMatrix(data=dat)
 
 
-    def normalize(self):
+    def normalize(self) -> None:
         """Normalize the trace of the density matrix
 
         """
@@ -296,7 +298,7 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         self.data = self.data/tr
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.DensityMatrix object"
         out += "\n==============================="
         out += "\ndata = \n"
@@ -313,7 +315,7 @@ class ReducedDensityMatrix(DensityMatrix):
 
     """
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.ReducedDensityMatrix object"
         out += "\n======================================"
         out += "\ndata = \n"

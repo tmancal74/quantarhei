@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -16,7 +19,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
     is_time_dependent = False
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self._initialize_basis()
 
@@ -24,14 +27,14 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         self.name = ""
         self.as_operators = False
 
-        self.Iterm = None
+        self.Iterm: Any = None
         self.has_Iterm = False
 
-        self.Hamiltonian = None
+        self.Hamiltonian: Any = None
 
 
 
-    def _initialize_basis(self):
+    def _initialize_basis(self) -> None:
 
         # Set the currently used basis
         cb = self.manager.get_current_basis()
@@ -42,7 +45,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
 
 
-    def secularize(self, legacy=True):
+    def secularize(self, legacy: bool = True) -> None:  # type: ignore[override]
         """Secularizes the relaxation tensor
 
 
@@ -78,13 +81,13 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             super().secularize()
 
 
-    def _set_population_rates_from_operators(self):
+    def _set_population_rates_from_operators(self) -> None:
         raise Exception("Method _set_population_rates_from_operators()"
                         " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
-    def _set_population_rates_from_tensor(self):
+    def _set_population_rates_from_tensor(self) -> None:
         """
 
         """
@@ -94,13 +97,13 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             self.secular_KK = numpy.einsum("hiijj->hij", self.data)
 
 
-    def _set_dephasing_rates_from_operators(self):
+    def _set_dephasing_rates_from_operators(self) -> None:
         raise Exception("Method _set_dephasing_rates_from_operators()"
                         " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
-    def _set_dephasing_rates_from_tensor(self):
+    def _set_dephasing_rates_from_tensor(self) -> None:
         """
 
         """
@@ -117,14 +120,14 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                 self.secular_GG[:,ii,ii] = 0.0
 
 
-    def get_population_rate(self, N, M):
+    def get_population_rate(self, N: int, M: int) -> Any:
         """Returns the relaxation rate from state M -> N
 
 
         """
         return self.data[N,N,M,M]
 
-    def set_population_rate(self, N, M, val):
+    def set_population_rate(self, N: int, M: int, val: Any) -> None:
         """Sets the relaxation rate from state M -> N
 
 
@@ -132,7 +135,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         self.data[N,N,M,M] = val
 
 
-    def get_dephasing_rate(self, N, M):
+    def get_dephasing_rate(self, N: int, M: int) -> Any:
         """Returns the dephasing rate of a coherence between states N and M
 
 
@@ -140,7 +143,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         return -self.data[N,M,N,M]
 
 
-    def set_dephasing_rate(self, N, M, val):
+    def set_dephasing_rate(self, N: int, M: int, val: Any) -> None:
         """Sets the dephasing rate of a coherence between states N and M
 
 
@@ -148,7 +151,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         self.data[N,M,N,M] = -val
 
 
-    def get_depopulation_rate(self, N):
+    def get_depopulation_rate(self, N: int) -> float:
         """Returns the rate of depopulation of the state N
 
 
@@ -162,7 +165,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         return dep_rate
 
 
-    def get_pure_dephasing_rate(self, N, M):
+    def get_pure_dephasing_rate(self, N: int, M: int) -> float:
         """Isolate the pure dephasing part of the rate
 
         """
@@ -180,7 +183,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         return delta_rate
 
 
-    def enforce_detailed_balance(self, temperature=0.0, secularize=True):
+    def enforce_detailed_balance(self, temperature: float = 0.0, secularize: bool = True) -> None:
         """Enforces uphill rates to comply with the canonical detailed balace
 
         """
@@ -232,7 +235,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
 
 
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the tensor by a given matrix
 
 
@@ -281,14 +284,14 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                             numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))
 
 
-    def convert_2_tensor(self):
+    def convert_2_tensor(self) -> None:
         """Converts from operator to tensor form
 
         """
         pass
 
 
-    def updateStructure(self):
+    def updateStructure(self) -> None:
         """Recalculates dephasing and depopulation rates
 
         """
@@ -326,7 +329,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                     self._data[:,mm,nn,mm,nn] = self._data[:,nn,mm,nn,mm]
 
 
-    def __mult__(self, scalar):
+    def __mult__(self, scalar: Any) -> RelaxationTensor:
         """Multiplication of the Tensor by a scalar
 
         """
@@ -342,20 +345,20 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         return self
 
 
-    def __rmult__(self, scalar):
+    def __rmult__(self, scalar: Any) -> RelaxationTensor:
         return self.__mult__(scalar)
 
 
-    def __add__(self, other):
+    def __add__(self, other: RelaxationTensor) -> RelaxationTensor:
         self._data += other._data
         return self
 
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: RelaxationTensor) -> RelaxationTensor:
         return self.__add__(other)
 
 
-    def _rhs(self, rho):
+    def _rhs(self, rho: Any) -> Any:
         """Applies the tensor to a given matrix
 
         """
@@ -367,7 +370,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         return self._rhs_as_tensor(rho)
 
 
-    def _rhs_as_operators(self, rho):
+    def _rhs_as_operators(self, rho: Any) -> Any:
         """Applies the tensor in form of a set of operators to a given matrix
 
         Parameters
@@ -385,7 +388,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         pass
 
 
-    def _rhs_as_tensor(self, rho):
+    def _rhs_as_tensor(self, rho: Any) -> Any:
         """Applies the tensor to a given matrix
 
         Parameters

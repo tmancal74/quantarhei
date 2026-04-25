@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import time
 
 import numpy
@@ -20,8 +24,8 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
     """
-    def __init__(self, ham, sbi, as_kernel=False,
-                 initialize=True, cutoff_time=None):
+    def __init__(self, ham: Any, sbi: Any, as_kernel: bool = False,
+                 initialize: bool = True, cutoff_time: float | None = None) -> None:
         """Initiation is the same as for the TDFoerster tensor
 
         """
@@ -29,7 +33,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         super().__init__(ham, sbi, initialize, cutoff_time)
 
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Initilization of the tensor data or its kernel
 
 
@@ -113,7 +117,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
 
-    def td_reference_implementation(self, Na, Nt, HH, tt, gt, ll):
+    def td_reference_implementation(self, Na: int, Nt: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray) -> Any:
         """Overloaded implementation method replacing the standard kernel
         corresponding to the normal Redfield with its non-equilibrium
         version
@@ -158,7 +162,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
 
-    def _initial_term_pre(self, Na, Nt, HH, tt, gt, ll):
+    def _initial_term_pre(self, Na: int, Nt: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray) -> None:
         """Quantities to easily calculate initial term with known initial
         condition
 
@@ -179,7 +183,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         self.has_Iterm = True
 
 
-    def initial_term(self, rhoi):
+    def initial_term(self, rhoi: Any) -> None:
         """Inhomogeneous (initial condition) term
         of the non-equilibrium Foerster theory
 
@@ -199,7 +203,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         self.has_Iterm = True
 
 
-    def _initial_term_pre_nsc(self, Na, Nt, HH, tt, gt, ll):
+    def _initial_term_pre_nsc(self, Na: int, Nt: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray) -> None:
         """Quantities to easily calculate initial term in non-secular theory
         with known initial condition
 
@@ -229,7 +233,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
 
-    def initial_term_nsc(self, rhoi):
+    def initial_term_nsc(self, rhoi: Any) -> None:
         """Inhomogeneous (initial condition) term
         of the effective non-secular non-equilibrium Foerster theory
 
@@ -251,7 +255,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
 
 
-def _kernel_at_t(ti, tt, gtd, gta, ed, ea, ld):
+def _kernel_at_t(ti: int, tt: numpy.ndarray, gtd: numpy.ndarray, gta: numpy.ndarray, ed: float, ea: float, ld: float) -> numpy.ndarray:
     """Two-time kernel to be integrated
 
 
@@ -268,7 +272,7 @@ def _kernel_at_t(ti, tt, gtd, gta, ed, ea, ld):
     return prod
 
 
-def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
+def _nsc_kernel_at_t(ti: int, tt: numpy.ndarray, aa: int, bb: int, cc: int, dd: int, HH: numpy.ndarray, gt: numpy.ndarray) -> numpy.ndarray:
     """Two-time kernel to be integrated
 
 
@@ -318,7 +322,7 @@ def _nsc_kernel_at_t(ti, tt, aa, bb, cc, dd, HH, gt):
 
 
 
-def _integrate_kernel(tt, fce):
+def _integrate_kernel(tt: numpy.ndarray, fce: numpy.ndarray) -> numpy.ndarray:
     """Spline integration of a complex function
 
     """
@@ -333,7 +337,7 @@ def _integrate_kernel(tt, fce):
 
 
 
-def _integrate_kernel_to_t(ti, tt, fce, margin=10):
+def _integrate_kernel_to_t(ti: int, tt: numpy.ndarray, fce: numpy.ndarray, margin: int = 10) -> Any:
     """Spline partial integration of a complex function
 
     A function of variables tau is integrated from zero to t.
@@ -368,7 +372,7 @@ def _integrate_kernel_to_t(ti, tt, fce, margin=10):
     return inte
 
 
-def _integrate_three_to_t(ti, tt, fce_t, fce_tau, fce_ttau):
+def _integrate_three_to_t(ti: int, tt: numpy.ndarray, fce_t: numpy.ndarray, fce_tau: numpy.ndarray, fce_ttau: numpy.ndarray) -> Any:
     """Integrate the product of three functions
 
     The product of functions of variables t, tau and t-tau, respectively,
@@ -397,7 +401,7 @@ def _integrate_three_to_t(ti, tt, fce_t, fce_tau, fce_ttau):
 
 
 
-def _ne_fintegral(tt, gtd, gta, ed, ea, ld):
+def _ne_fintegral(tt: numpy.ndarray, gtd: numpy.ndarray, gta: numpy.ndarray, ed: float, ea: float, ld: float) -> numpy.ndarray:
     """Time dependent non-equilibrium Foerster integral
 
 
@@ -454,7 +458,7 @@ def _ne_fintegral(tt, gtd, gta, ed, ea, ld):
     return ret
 
 
-def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
+def _nsc_reference_implementation(Na: int, Nt: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray, fce: Any) -> numpy.ndarray:
     """Relaxation tensor including all non-secular terms
 
 
@@ -517,7 +521,7 @@ def _nsc_reference_implementation(Na, Nt, HH, tt, gt, ll, fce):
 
 
 
-def _nsc_kernel_implementation(Na, Nt, HH, tt, gt, ll, fce):
+def _nsc_kernel_implementation(Na: int, Nt: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray, fce: Any) -> Any:
     """Here we return a function that returns integration kernel
 
     We use the implementation that we normally calcultes the relaxation
@@ -539,7 +543,7 @@ def _nsc_kernel_implementation(Na, Nt, HH, tt, gt, ll, fce):
     return fkernel
 
 
-def _nsc_fintegral(tt, a, b, c, d, HH, gt):
+def _nsc_fintegral(tt: numpy.ndarray, a: int, b: int, c: int, d: int, HH: numpy.ndarray, gt: numpy.ndarray) -> numpy.ndarray:
     """Time dependent non-secular effective non-equilibrium Foerster integral
 
 

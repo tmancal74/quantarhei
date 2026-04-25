@@ -7,6 +7,10 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 from ..hilbertspace.operators import UnityOperator
 from .superoperator import SuperOperator
 
@@ -35,7 +39,7 @@ class Liouvillian(SuperOperator):
 
     """
 
-    def __init__(self, ham):
+    def __init__(self, ham: Any) -> None:
         super().__init__(dim=ham.dim)
         dim = ham.dim
         delta = UnityOperator(dim=dim)

@@ -6,7 +6,12 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
+from numpy import ndarray
 
 from ...core.managers import Manager
 
@@ -89,7 +94,12 @@ class Secular:
     secular_reversible = False
 
     # operator whose eigenstates for the basis in which this object is secular
-    secular_basis_op = None
+    secular_basis_op: Any = None
+
+    # These attributes are expected to be defined by concrete subclasses
+    data: Any
+    as_operators: bool
+    _has_rates: bool
 
 
     #
@@ -97,10 +107,10 @@ class Secular:
     #
 
     # coherence decay rates
-    secular_GG = None
+    secular_GG: ndarray | None = None
 
     # population tranfer rates
-    secular_KK = None
+    secular_KK: Any = None
 
     ###########################################################################
     #
@@ -108,7 +118,7 @@ class Secular:
     #
     ###########################################################################
 
-    def secularize(self, reversible=False, use_data=True):
+    def secularize(self, reversible: bool = False, use_data: bool = True) -> None:
         """Secularizes the SuperOperator in current basis
 
 
@@ -152,7 +162,7 @@ class Secular:
             self.is_secular = True
 
 
-    def recover_nonsecular(self):
+    def recover_nonsecular(self) -> None:
 
         if self.is_secular:
             if self.secular_reversible:
@@ -173,7 +183,7 @@ class Secular:
 
 
 
-    def get_secular_basis_operator(self):
+    def get_secular_basis_operator(self) -> Any:
         """Returns the operator to ensure the correct basis context
 
         """
@@ -187,31 +197,34 @@ class Secular:
     #
     ###########################################################################
 
-    def _set_population_rates_from_operators(self):
+    def _set_population_rates_from_operators(self) -> None:
         raise Exception("Method _set_population_rates_from_operators()"
                         " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
-    def _set_population_rates_from_tensor(self):
+    def _set_population_rates_from_tensor(self) -> None:
         raise Exception("Method _set_population_rates_from_tensor()"
                         " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
-    def _set_dephasing_rates_from_operators(self):
+    def _set_dephasing_rates_from_operators(self) -> None:
         raise Exception("Method _set_dephasing_rates_from_operators()"
                         " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
-    def _set_dephasing_rates_from_tensor(self):
+    def _set_dephasing_rates_from_tensor(self) -> None:
         raise Exception("Method _set_dephasing_rates_from_tensor()"
                         " needs to be implemented in a class inheriting"
                         " from Secular")
 
 
-    def _secularize_data(self):
+    def convert_2_tensor(self) -> None:
+        raise NotImplementedError
+
+    def _secularize_data(self) -> None:
 
         # FIXME: temporary fix
         if self.as_operators:
@@ -237,7 +250,7 @@ class Secular:
                                     self.data[:,ii,jj,kk,ll] = 0
 
 
-    def apply(self, rho):
+    def apply(self, rho: Any) -> Any:
         """Application of the secular tensor on the statistical operator
 
 
@@ -251,7 +264,7 @@ class Secular:
         return self._apply(rho.data)
 
 
-    def _apply(self, rho):
+    def _apply(self, rho: Any) -> Any:
         """Application of the tensor directly to an array
 
         """
@@ -267,7 +280,7 @@ class Secular:
     #
     ###########################################################################
 
-    def _get_current_basis_op(self):
+    def _get_current_basis_op(self) -> Any:
         """Returns the operator which defines the currently used basis
 
         """

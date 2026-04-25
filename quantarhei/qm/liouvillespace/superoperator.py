@@ -12,6 +12,11 @@ Class Details
 
 """
 
+from __future__ import annotations
+
+import copy as _copy_module
+from typing import Any
+
 # dependencies imports
 import numpy
 
@@ -79,8 +84,10 @@ class SuperOperator(BasisManaged):
     """
 
     data = BasisManagedComplexArray("data")
+    _data: numpy.ndarray
+    name: str = ""
 
-    def __init__(self, dim=None, data=None, real=False):
+    def __init__(self, dim: int | None = None, data: Any = None, real: bool = False) -> None:
 
         # Set the currently used basis
         cb = self.manager.get_current_basis()
@@ -110,7 +117,7 @@ class SuperOperator(BasisManaged):
             self.dim = data.shape[0]
 
 
-    def apply(self, oper, copy=True):
+    def apply(self, oper: Any, copy: bool = True) -> Any:
         """Applies superoperator to an operator
 
 
@@ -177,8 +184,7 @@ class SuperOperator(BasisManaged):
         True
         """
         if copy:
-            import copy
-            oper_ven = copy.copy(oper)
+            oper_ven = _copy_module.copy(oper)
             try:
                 # if oper is Quantarhei operator
                 oper_ven.data = numpy.tensordot(self.data, oper.data)
@@ -191,7 +197,7 @@ class SuperOperator(BasisManaged):
         return oper
 
 
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transforms the superoperator to a new basis
 
 

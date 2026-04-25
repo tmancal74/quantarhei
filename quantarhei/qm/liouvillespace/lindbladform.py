@@ -2,6 +2,10 @@
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import REAL
@@ -17,13 +21,13 @@ class LindbladForm(RedfieldRelaxationTensor):
 
     """
 
-    def __init__(self, ham, sbi, initialize=True,
-                 as_operators=True, name=""):
+    def __init__(self, ham: Any, sbi: Any, initialize: bool = True,
+                 as_operators: bool = True, name: str = "") -> None:
         super().__init__(ham, sbi, initialize=initialize,
                          as_operators=as_operators, name=name)
 
 
-    def _implementation(self, ham, sbi):
+    def _implementation(self, ham: Any, sbi: Any) -> None:
         """Very simple implementation of Lindblad form
 
         """
@@ -85,8 +89,8 @@ class ElectronicLindbladForm(LindbladForm):
 
     """
 
-    def __init__(self, ham, sbi, initialize=True,
-                 as_operators=True, name=""):
+    def __init__(self, ham: Any, sbi: Any, initialize: bool = True,
+                 as_operators: bool = True, name: str = "") -> None:
         from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if isinstance(sbi.system, Aggregate):
@@ -172,7 +176,7 @@ class ElectronicLindbladForm(LindbladForm):
             raise Exception("SystemBathInteraction has to have `system`"
                             " attribute set to an Aggregate")
 
-    def cast_to_vibronic(agg, KK):
+    def cast_to_vibronic(agg: Any, KK: Any) -> numpy.ndarray:
         newkk = numpy.zeros((agg.Ntot, agg.Ntot),
                             dtype=numpy.float64)
 
@@ -234,8 +238,8 @@ class VibrationalDecayLindbladForm(LindbladForm):
 
     """
 
-    def __init__(self, ham, sbi, initialize=True,
-                 as_operators=True, name=""):
+    def __init__(self, ham: Any, sbi: Any, initialize: bool = True,
+                 as_operators: bool = True, name: str = "") -> None:
         from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if isinstance(sbi.system, Aggregate):
@@ -322,7 +326,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
                          as_operators=as_operators, name=name)
 
 
-    def _same_regardless_of_one(self, a, b, k):
+    def _same_regardless_of_one(self, a: Any, b: Any, k: int) -> bool | None:
 
         if (a[:k] == b[:k]) and (a[k+1:] == b[k+1:]):
             return True

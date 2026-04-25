@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 """*******************************************************************************
 
     REDUCED DENSITY MATRIX PROPAGATOR
@@ -29,7 +33,7 @@ from ..liouvillespace.redfieldtensor import RelaxationTensor
 from .dmevolution import ReducedDensityMatrixEvolution
 
 _show_debug = False
-def debug(msg):
+def debug(msg: str) -> None:
 
     if _show_debug:
         print(msg)
@@ -42,8 +46,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
     """
 
-    def __init__(self, timeaxis=None, Ham=None, RTensor=None, Iterm=None,
-                 Efield=None, Trdip=None, PDeph=None, NonHerm=None):
+    def __init__(self, timeaxis: Any = None, Ham: Any = None, RTensor: Any = None, Iterm: Any = None,
+                 Efield: Any = None, Trdip: Any = None, PDeph: Any = None, NonHerm: Any = None) -> None:
         """Creates a Reduced Density Matrix propagator which can propagate
         a given initial density matrix with the given Hamiltonian and
         relaxation tensor.Time axis of the propagation is specied by
@@ -188,7 +192,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                             " initialize the propagator.")
 
 
-    def setDtRefinement(self, Nref):
+    def setDtRefinement(self, Nref: int) -> None:
         """The TimeAxis object specifies at what times the propagation
         should be stored. We can tell the propagator to use finer
         time step for the calculation by setting the refinement. The
@@ -207,7 +211,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self.dt = self.Odt/self.Nref
 
 
-    def propagate(self, rhoi, method="short-exp", mdata=None, Nref=1):
+    def propagate(self, rhoi: Any, method: str = "short-exp", mdata: Any = None, Nref: int = 1) -> Any:
         """>>> T0   = 0
         >>> Tmax = 100
         >>> dt   = 1
@@ -498,7 +502,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
 
-    def _INIT_EXP(self, rhoi):
+    def _INIT_EXP(self, rhoi: Any) -> tuple:
         """Parameters
         ----------
         rhoi : TYPE
@@ -521,7 +525,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return (pr, rho1, rho2)
 
 
-    def _INIT_RWA(self):
+    def _INIT_RWA(self) -> numpy.ndarray:
         """Create Hamiltonian matrix respecting RWA settings
 
         Parameters
@@ -547,7 +551,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return HH
 
 
-    def _CLOSE_RWA(self, pr):
+    def _CLOSE_RWA(self, pr: Any) -> None:
         """Closes the RWA treatment
 
         Parameters
@@ -663,7 +667,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return pr
 
 
-    def _GET_IR(self, indx):
+    def _GET_IR(self, indx: int) -> Any:
         """Returns in value of the initial term at a give time
 
         Parameters
@@ -684,7 +688,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         return IR
 
 
-    def _BOOT_DEPH(self):
+    def _BOOT_DEPH(self) -> None:
         """Returns
         -------
         None.
@@ -698,7 +702,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             self.t0 = self.PDeph.data*self.dt
 
 
-    def _APPLY_DEPH(self, tt, rho2):
+    def _APPLY_DEPH(self, tt: float, rho2: numpy.ndarray) -> numpy.ndarray:
         """Parameters
         ----------
         tt : TYPE
@@ -1317,7 +1321,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         debug("(9)")
 
 
-    def set_global_rwa(self, rwa):
+    def set_global_rwa(self, rwa: float) -> None:
         """Set the single frequency Rotating Wave Approximation
 
         """
@@ -1330,7 +1334,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self._has_field_RWA = True
 
 
-    def remove_global_rwa(self):
+    def remove_global_rwa(self) -> None:
         """Switch off the single frequency RWA
 
         """
@@ -1623,7 +1627,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         debug("(13")
 
 
-def _OTI(rhoY, Km, Kd, Lm, Ld, ll, dt, rho1):
+def _OTI(rhoY: numpy.ndarray, Km: numpy.ndarray, Kd: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray, ll: int, dt: float, rho1: numpy.ndarray) -> None:
     """Operator form of the Time Indepedent relaxation tensor
 
     Parameters
@@ -1662,7 +1666,7 @@ def _OTI(rhoY, Km, Kd, Lm, Ld, ll, dt, rho1):
        )
 
 
-def _COM(HH, ll, dt, rho1, has_NonHerm=False):
+def _COM(HH: numpy.ndarray, ll: int, dt: float, rho1: numpy.ndarray, has_NonHerm: bool = False) -> numpy.ndarray:
     """Commutator with the a given operator (e.g. Hamiltonian)
 
     Parameters
@@ -1693,7 +1697,7 @@ def _COM(HH, ll, dt, rho1, has_NonHerm=False):
     return ret
 
 
-def _TTI(rhoY, RR, IR, ll, dt, rho1, L=4):
+def _TTI(rhoY: numpy.ndarray, RR: numpy.ndarray, IR: Any, ll: int, dt: float, rho1: numpy.ndarray, L: int = 4) -> None:
     """Tensor form of the Time Indendent relaxation tensor
 
     Parameters

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -10,7 +13,7 @@ from .operators import SelfAdjointOperator
 
 class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
 
-    def __init__(self, dim=None, data=None):
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:
 
         if not ((dim is None) and (data is None)):
             # Set the currently used basis
@@ -31,7 +34,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
                 " to be represented by 3 selfadjoint matrices")
 
 
-    def check_selfadjoint(self):
+    def check_selfadjoint(self) -> bool:
         a = numpy.allclose(numpy.transpose(numpy.conj(self._data[:,:,0])),
          self._data[:,:,0])
         b = numpy.allclose(numpy.transpose(numpy.conj(self._data[:,:,1])),
@@ -40,7 +43,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
          self._data[:,:,2])
         return (a and b) and c
 
-    def transform(self,SS,inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """This function transforms the Operator into a different basis, using
         a given transformation matrix.
         """
@@ -53,7 +56,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
             self._data[:,:,i] = numpy.dot(S1,numpy.dot(self._data[:,:,i],SS))
 
 
-    def dipole_strength(self, from_state=None, to_state=None, transition=None):
+    def dipole_strength(self, from_state: int | None = None, to_state: int | None = None, transition: Any = None) -> float:
         """Calculates transition dipole strength between two states
 
         Current usage is:
@@ -77,19 +80,19 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
             d[i] = self.data[fstate,tstate,i]
         return numpy.dot(d,d)
 
-    def get_compoment_data(self, n):
+    def get_compoment_data(self, n: int) -> numpy.ndarray:
         """Returns a component data of the transition dipole moment operator
 
         """
         return self.data[:,:,n]
 
-    def get_component(self, n):
+    def get_component(self, n: int) -> SelfAdjointOperator:
         """Returns a component of the transition dipole moment operator
 
         """
         return SelfAdjointOperator(dim=self.dim, data=self.data[:,:,n])
 
-    def get_dipole_length_operator(self):
+    def get_dipole_length_operator(self) -> SelfAdjointOperator:
         """Returns operator composed of the dipole strengths
 
         """

@@ -2,6 +2,9 @@
 
 
 """
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -14,7 +17,7 @@ from .statevectorevolution import StateVectorEvolution
 
 class StateVectorPropagator:
 
-    def __init__(self, timeaxis, ham):
+    def __init__(self, timeaxis: Any, ham: Any) -> None:
         self.timeaxis = timeaxis
         self.ham = ham
 
@@ -29,7 +32,7 @@ class StateVectorPropagator:
         self.data = numpy.zeros((self.Nt,N),dtype=numpy.complex64)
 
 
-    def setDtRefinement(self, Nref):
+    def setDtRefinement(self, Nref: int) -> None:
         """The TimeAxis object specifies at what times the propagation
         should be stored. We can tell the propagator to use finer
         time step for the calculation by setting the refinement. The
@@ -49,7 +52,7 @@ class StateVectorPropagator:
         self.dt = self.Odt/self.Nref
 
 
-    def propagate(self, psii, L=4, hfce=None, nonlinear=False):
+    def propagate(self, psii: Any, L: int = 4, hfce: Any = None, nonlinear: bool = False) -> Any:
         """Propagates the state vector
 
 
@@ -84,7 +87,7 @@ class StateVectorPropagator:
         return self._propagate_short_exp(psii, L=L)
 
 
-    def get_evolution_operator(self):
+    def get_evolution_operator(self) -> Any:
         """Returns the evolution operator corresponding to the propagator
 
 

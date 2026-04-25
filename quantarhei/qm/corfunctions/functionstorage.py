@@ -1,5 +1,7 @@
+from __future__ import annotations
 
 from itertools import combinations
+from typing import Any
 
 import numpy
 
@@ -21,8 +23,8 @@ class FunctionStorage:
 
     import numpy
 
-    def __init__(self, N=1, timeaxis=None, dtype=numpy.complex64,
-                 show_config=False, config=None):
+    def __init__(self, N: int = 1, timeaxis: Any = None, dtype: Any = numpy.complex64,
+                 show_config: bool = False, config: dict | None = None) -> None:
 
         #
         # Storage configuration
@@ -310,7 +312,7 @@ class FunctionStorage:
             print("\n")
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the storage
 
         """
@@ -319,7 +321,7 @@ class FunctionStorage:
                +" data size: "+str(self.data_size)+" "+self.size_units)
 
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, index: Any, value: Any) -> None:
         """Set the value(s) of the storage
 
         """
@@ -346,7 +348,7 @@ class FunctionStorage:
             raise Exception()
 
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: Any) -> Any:
         """Returns the stored function
 
 
@@ -406,7 +408,7 @@ class FunctionStorage:
             raise Exception()
 
 
-    def set_goft(self, N, func=None):
+    def set_goft(self, N: Any, func: Any = None) -> None:
         """Sets the values for a given stored function.
 
 
@@ -483,7 +485,7 @@ class FunctionStorage:
                 self.Nf += 1
 
 
-    def _check_and_make_space(self, nn):
+    def _check_and_make_space(self, nn: int) -> None:
         """Check if the required position is outside the allocated mapping
         and if so, make more space.
 
@@ -501,7 +503,7 @@ class FunctionStorage:
             self.mapping = mapping
 
 
-    def _fce_already_stored(self, func):
+    def _fce_already_stored(self, func: Any) -> int:
         """If the function was already stored in the object, the function returns its position,
         otherwise it returns -1.
 
@@ -519,7 +521,7 @@ class FunctionStorage:
 
 
     # FIXME: allow multiple reset times
-    def create_data(self, reset=None):
+    def create_data(self, reset: dict | None = None) -> None:
         """We create data for all submitted functions
 
 
@@ -604,28 +606,28 @@ class FunctionStorage:
                                  func(tt_matrix[kk]).reshape(self._N[kk]))
 
 
-    def effective_size(self):
+    def effective_size(self) -> int:
             """Effective size of the storage. Some stored functions have the same functional form
 
             """
             return len(self.mapping)
 
 
-    def get_number_of_functions(self):
+    def get_number_of_functions(self) -> int:
         """Returns the number of different stored functions
 
         """
         return numpy.max(self.mapping)+1
 
 
-    def get_number_of_sites(self):
+    def get_number_of_sites(self) -> int:
         """Returns the number of assigned sites
 
         """
         return (self.mapping >= 0).sum()
 
 
-    def get_mapping_matrix(self):
+    def get_mapping_matrix(self) -> numpy.ndarray:
         """Returns a matrix that maps site index on the function index
 
 
@@ -653,7 +655,7 @@ class FunctionStorage:
         return mtrx
 
 
-    def get_reorganization_energies(self):
+    def get_reorganization_energies(self) -> numpy.ndarray:
         """Returns the estimate of the reoganization energies of the stored functions
 
         """
@@ -672,7 +674,7 @@ class FastFunctionStorage(FunctionStorage):
 
     """
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: Any) -> Any:
         i, j = index
 
         # if the index is integer
@@ -702,13 +704,13 @@ class SingleGoft(FunctionStorage):
     """Storage of a single lineshape function
 
     """
-    def __init__(self, timeaxis=None, dtype=numpy.complex64,
-                 show_config=False, config=None):
+    def __init__(self, timeaxis: Any = None, dtype: Any = numpy.complex64,
+                 show_config: bool = False, config: dict | None = None) -> None:
         super().__init__(N=1, timeaxis=timeaxis,
                          dtype=dtype, show_config=show_config, config=config)
 
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: Any) -> Any:
         """Returns the stored function
 
 

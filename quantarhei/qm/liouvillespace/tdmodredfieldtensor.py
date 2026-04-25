@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import numpy
 
@@ -18,8 +21,8 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
 
 
     """
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None,
-                 theory="mod_eq"):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None,
+                 theory: str = "mod_eq") -> None:
 
         self._initialize_basis()
 
@@ -60,7 +63,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
         self.is_time_dependent = True
 
 
-    def initialize(self):
+    def initialize(self) -> None:
 
         tdep = True
 
@@ -136,7 +139,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
 
 
 
-def intfull(F, dt, omega):
+def intfull(F: numpy.ndarray, dt: float, omega: float) -> Any:
     """Discrete integration of an oscillating function
 
     """
@@ -148,7 +151,7 @@ def intfull(F, dt, omega):
     return I
 
 
-def intrun(F, dt, omega):
+def intrun(F: numpy.ndarray, dt: float, omega: float) -> numpy.ndarray:
     """Running intergration of an oscillating function of one parameter"""
     Nt = F.shape[0]
     I = numpy.zeros(Nt, dtype=COMPLEX)
@@ -162,7 +165,7 @@ def intrun(F, dt, omega):
 
     return I
 
-def intruntrap(F, dt):
+def intruntrap(F: numpy.ndarray, dt: float) -> numpy.ndarray:
     Nt = F.shape[0]
     I = numpy.zeros(Nt, dtype=COMPLEX)
     for ii in range(1,Nt):
@@ -172,7 +175,7 @@ def intruntrap(F, dt):
 
 
 
-def intfullsec(F, dt, omega, Nt):
+def intfullsec(F: numpy.ndarray, dt: float, omega: float, Nt: int) -> Any:
     """Integrate only a section of a give function F
 
     This is used when the function depends explicitely on time (the upper limit)
@@ -189,7 +192,7 @@ def intfullsec(F, dt, omega, Nt):
 
 
 
-def ssmodr(Na, ee, ll, ss, tt, cofts, hofts, gofts, pntr, tdep=False, theory="std"):
+def ssmodr(Na: int, ee: numpy.ndarray, ll: numpy.ndarray, ss: numpy.ndarray, tt: numpy.ndarray, cofts: numpy.ndarray, hofts: numpy.ndarray, gofts: numpy.ndarray, pntr: numpy.ndarray, tdep: bool = False, theory: str = "std") -> tuple:
     """Various version of the Redfield relaxation rate calculation
 
         1) Standard Redfield theory in time-dependent and time-independent versions
