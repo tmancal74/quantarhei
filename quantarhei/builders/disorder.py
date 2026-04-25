@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy
 
 
@@ -5,8 +7,8 @@ class Disorder:
 
 
 
-    def __init__(self, data=None, distribution="Gaussian", dtype="diagonal",
-                 seed=None):
+    def __init__(self, data: numpy.ndarray | None = None, distribution: str = "Gaussian",
+                 dtype: str = "diagonal", seed: int | None = None) -> None:
 
         if data is None:
             raise Exception("Data not specified")
@@ -20,7 +22,7 @@ class Disorder:
         if seed is not None:
             numpy.random.seed(seed)
 
-    def disorder_update(self, i_dis, H, ignore_first=False):
+    def disorder_update(self, i_dis: int, H: object, ignore_first: bool = False) -> None:
         """Adds disorder to an excitonic Hamiltonian
 
         """
@@ -50,7 +52,7 @@ class Disorder:
             raise Exception("Unknown disorder type")
 
 
-    def set_distribution(self, distribution, params):
+    def set_distribution(self, distribution: str, params: dict) -> None:
 
         if distribution == "Gaussian":
 

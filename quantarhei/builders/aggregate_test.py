@@ -40,6 +40,8 @@ Class Details
 
 """
 
+from __future__ import annotations
+
 import numpy
 
 from ..core.managers import energy_units
@@ -101,7 +103,7 @@ class TestAggregate(Aggregate):
 
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name: str | None = None) -> None:
         """Some more doctests
 
         >>> TestAggregate()
@@ -207,7 +209,7 @@ class TestAggregate(Aggregate):
             super().__init__(molecules=[m1, m2])
 
 
-    def _molecules(self, N, nst, homo=False):
+    def _molecules(self, N: int, nst: int, homo: bool = False) -> list | None:
         """Creates molecules to be filled into Aggregate
 
         Testing that None is returned for wrong arguments

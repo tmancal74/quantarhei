@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 import numpy as np
 import scipy.constants as const
@@ -5,7 +6,7 @@ import scipy.constants as const
 from ..core.units import eps0_int
 
 
-def dipole_dipole_interaction(r1, r2, d1, d2, epsr):
+def dipole_dipole_interaction(r1: np.ndarray, r2: np.ndarray, d1: np.ndarray, d2: np.ndarray, epsr: float) -> float:
     """Calculates interaction between two dipoles
 
 
@@ -39,7 +40,7 @@ def dipole_dipole_interaction(r1, r2, d1, d2, epsr):
     return prf*cc/epsr
 
 
-def dipole_dipole(center1,dipole1,center2,dipole2,*args):
+def dipole_dipole(center1: np.ndarray, dipole1: np.ndarray, center2: np.ndarray, dipole2: np.ndarray, *args: str) -> float:
     '''Calculates interaction between two dipoles
 
     Pro dipoly v AU = naboj*Bohr a polohy b Bohrech vypocita
@@ -67,8 +68,9 @@ def dipole_dipole(center1,dipole1,center2,dipole2,*args):
 
     return Edip_dip_cm1
 
-def Oscilator3D(rr1, bond1, AtType1, NMN1, TotDip1, rr2, bond2, AtType2,
-                NMN2, TotDip2, *args):
+def Oscilator3D(rr1: np.ndarray, bond1: np.ndarray, AtType1: list, NMN1: int, TotDip1: np.ndarray,
+                rr2: np.ndarray, bond2: np.ndarray, AtType2: list, NMN2: int, TotDip2: np.ndarray,
+                *args: str) -> float:
     '''Interaction energy in inverse centimeters
 
     For position and dipole in atomic units (position in bohr radius and
@@ -115,7 +117,7 @@ def Oscilator3D(rr1, bond1, AtType1, NMN1, TotDip1, rr2, bond2, AtType2,
 #        rr2=pos.prepare_alkene(len(rr2),Position=center,vec_x=VecX,vec_y=VecY)
 #
 
-    def molecule_osc_3D(rr,bond,factor,NMN,TotDip,*args):
+    def molecule_osc_3D(rr: np.ndarray, bond: np.ndarray, factor: np.ndarray, NMN: int, TotDip: np.ndarray, *args: str) -> tuple[np.ndarray, np.ndarray]:
         only_next_neighbour=False
         TotDip_norm=np.sqrt(np.dot(TotDip,TotDip))
 
@@ -217,7 +219,7 @@ def Oscilator3D(rr1, bond1, AtType1, NMN1, TotDip1, rr2, bond2, AtType2,
 
     return res
 
-def GuessBonds(rr, bond_length=4.0, **kwargs):
+def GuessBonds(rr: np.ndarray, bond_length: float = 4.0, **kwargs: object) -> np.ndarray:
     '''Function guesses pairs of atoms between which bond might occure.
 
 
