@@ -1176,12 +1176,12 @@ def _labattr(name: str, target: str, flag: Any = None) -> Any:
     access_flag = flag
 
     @property
-    def prop(self):
+    def prop(self: Any) -> Any:
         at = getattr(self.labsetup,storage_name)
         return at[self.index]
 
     @prop.setter
-    def prop(self,value):
+    def prop(self: Any, value: Any) -> None:
         at = getattr(self.labsetup,storage_name)
         if access_flag is not None:
             setattr(self, access_flag, True)
@@ -1196,12 +1196,12 @@ def _labarray(name: str, target: str) -> Any:
     storage_name = target
 
     @property
-    def prop(self):
+    def prop(self: Any) -> Any:
         at = getattr(self.labsetup,storage_name)
         return at[self.index,:]
 
     @prop.setter
-    def prop(self,value):
+    def prop(self: Any, value: Any) -> None:
         at = getattr(self.labsetup,storage_name)
         at[self.index,:] = value
 
@@ -1215,7 +1215,7 @@ def _fieldprop(name: str, flag: str, sign: int) -> Any:
     cmplx_sign = sign
 
     @property
-    def prop(self):
+    def prop(self: Any) -> Any:
         if getattr(self.labsetup, flag):
             if cmplx_sign == 1:
                 return self.get_field()
@@ -1229,7 +1229,7 @@ def _fieldprop(name: str, flag: str, sign: int) -> Any:
             raise Exception("The property '"+name+"' is not initialited.")
 
     @prop.setter
-    def prop(self, value):
+    def prop(self: Any, value: Any) -> None:
         raise Exception("The property '"+name+"' is protected"+
                         " and cannot be set.")
 
