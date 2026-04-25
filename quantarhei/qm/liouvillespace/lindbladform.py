@@ -14,6 +14,7 @@ from .redfieldtensor import RedfieldRelaxationTensor
 from .systembathinteraction import SystemBathInteraction
 
 
+
 class LindbladForm(RedfieldRelaxationTensor):
     """Lindblad form of relaxation tensor
 
