@@ -245,7 +245,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
 
 
 
-        def funcf(x, *p):
+        def funcf(x: Any, *p: Any) -> Any:
             return _n_gaussians(x, N, *p)
 
         # minimize, leastsq,
