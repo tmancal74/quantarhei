@@ -516,10 +516,10 @@ class OpenSystem:
 
         """
 
-        def DD(aa,bb):
+        def DD(aa: Any, bb: Any) -> numpy.ndarray:
             return numpy.dot(self.DD[aa[1],aa[0]],self.DD[bb[1],bb[0]])
 
-        def _setF4(F4, x1, x2, x3, x4):
+        def _setF4(F4: Any, x1: Any, x2: Any, x3: Any, x4: Any) -> None:
             F4[0] = DD(x4,x3)*DD(x2,x1)
             F4[1] = DD(x4,x2)*DD(x3,x1)
             F4[2] = DD(x4,x1)*DD(x3,x2)
