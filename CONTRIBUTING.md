@@ -32,16 +32,49 @@ coverage run -m behave tests/behave/features
 
 CI runs all three suites on Python 3.10, 3.11, and 3.12. Please verify unit tests pass locally before submitting.
 
-## Pre-commit hooks
+## Developer tools
 
-The repository uses [pre-commit](https://pre-commit.com) to catch common issues before they reach review:
+The repository uses three tools to enforce code quality. All three are installed by `pip install -r requirements_devel.txt`.
+
+### pre-commit
+
+[pre-commit](https://pre-commit.com) runs lightweight checks automatically on every commit. After installing the dev requirements, wire it up once per clone:
 
 ```bash
-# Run hooks manually across all files (same as CI)
+pre-commit install
+```
+
+To run the full suite manually (same as CI):
+
+```bash
 pre-commit run --all-files
 ```
 
-Hooks check for: valid YAML/TOML, valid Python AST, merge conflict markers, accidentally large files, and leftover debug statements.
+Hooks check for: valid YAML/TOML, valid Python AST, merge conflict markers, accidentally large files, leftover debug statements, ruff lint violations, and mypy type errors.
+
+### ruff
+
+[ruff](https://docs.astral.sh/ruff/) is the linter and formatter. It runs automatically via pre-commit, but you can also run it directly:
+
+```bash
+# Check for violations
+ruff check quantarhei/
+
+# Auto-fix violations (safe fixes only)
+ruff check quantarhei/ --fix
+```
+
+Configuration lives in `[tool.ruff]` in `pyproject.toml`.
+
+### mypy
+
+[mypy](https://mypy.readthedocs.io) checks static types. It runs automatically via pre-commit, but you can also run it directly:
+
+```bash
+mypy quantarhei/
+```
+
+Configuration lives in `[tool.mypy]` in `pyproject.toml`. The entire package is annotated and `mypy quantarhei/` should exit with `Success: no issues found`.
 
 ## Submitting changes
 
