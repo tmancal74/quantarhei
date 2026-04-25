@@ -1,11 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-    Basic data type of Quantarhei
+"""Basic data type of Quantarhei
 
 
 """
-import numpy
+from __future__ import annotations
+
 import os
+from typing import Any
+
+import numpy
+
 
 class MatrixData:
     """MatrixData type
@@ -13,7 +16,6 @@ class MatrixData:
 
     Parameters
     ----------
-
     dims : list or tuple
         Dimensions of the data in form of a tuple or list
 
@@ -25,7 +27,8 @@ class MatrixData:
 
     """
 
-    def __init__(self, dims=(0), name=None, data=None):
+    def __init__(self, dims: Any = (0), name: str | None = None,
+                 data: Any = None) -> None:
 
         if name is None:
             self.name = ""
@@ -41,84 +44,79 @@ class MatrixData:
                 self.data = data
 
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         """Sets the object name
 
         Parameters
         ----------
-
         name : str
             Name of of the object
 
         """
         self.name = name
 
-    def get_name(self):
+    def get_name(self) -> str:
         """Returns the object name
 
         """
         return self.name
 
-    def get_dim(self, n):
+    def get_dim(self, n: int) -> int:
         """Returns dimension of the nth index of the matrix
 
         Parameters
         ----------
-
         n : int
             matrix index
 
         """
         return self.data.shape[n]
 
-    def get_shape(self):
+    def get_shape(self) -> tuple[int, ...]:
         """Returns the data shape
 
         """
         return self.data.shape
 
-    def get_rank(self):
+    def get_rank(self) -> int:
         """Returns the matrix rank, i.e. the number of its indices
 
         """
         return self.data.ndim
 
-    def set_data(self, data):
+    def set_data(self, data: numpy.ndarray) -> None:
         """Sets the data of the object
 
         Parameters
         ----------
-
         data : array like
             Data to be set in the object
 
         """
         self.data = data
 
-    def save_data(self, name):
+    def save_data(self, name: str) -> None:
         """Saves the data into a format determined by the file name extension
 
         Parameters
         ----------
-
         name : str
             Name of the file to be saved into
-            
-        
+
+
         Notes
         -----
-        
         This method knows the following file extensions
-        
-        .dat 
+
+        .dat
             text
-            
+
         .txt
             text, same as .dat
-            
+
         .npy
             binary numpy format, no compression
-            
+
         .npz
             compressed numpy format
 
@@ -139,20 +137,19 @@ class MatrixData:
 
 
 
-    def load_data(self, name):
+    def load_data(self, name: str) -> None:
         """Loads the data in a format determined by the file name extension
 
         Parameters
         ----------
-
         name : str
             Name of the file to be loaded from
 
         """
         filename, extension = os.path.splitext(name)
-        
+
         if extension not in [".dat",".txt",".npy",".npz"]:
-            raise Exception("Unknown data format")        
+            raise Exception("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
             self._importDataFromText(name)
@@ -164,38 +161,38 @@ class MatrixData:
             self._loadBinaryData_compressed(name)
 
 
-    def _saveBinaryData(self, file):
+    def _saveBinaryData(self, file: str) -> None:
         """Saves uncompressed binary data to an file
 
         """
         numpy.save(file, self.data)
 
-    def _saveBinaryData_compressed(self, file):
+    def _saveBinaryData_compressed(self, file: str) -> None:
         """Saves compressed binary data to an file
 
         """
         numpy.savez_compressed(file, data=self.data)
 
-    def _loadBinaryData(self, filename):
+    def _loadBinaryData(self, filename: str) -> None:
         """Imports binary data from a file
 
-        """          
+        """
         self.data = numpy.load(filename)
 
-    def _loadBinaryData_compressed(self, filename):
+    def _loadBinaryData_compressed(self, filename: str) -> None:
         """Imports binary data from a file
 
-        """          
+        """
         self.data = numpy.load(filename)["data"]
-        
-    def _exportDataToText(self, file):
+
+    def _exportDataToText(self, file: str) -> None:
         """Saves textual data to a file
 
         """
         numpy.savetxt(file, self.data)
 
-    def _importDataFromText(self, filename):
+    def _importDataFromText(self, filename: str) -> None:
         """Imports textual data to a file
 
-        """        
+        """
         self.data = numpy.loadtxt(filename)

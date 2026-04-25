@@ -1,42 +1,37 @@
-# -*- coding: utf-8 -*-
-import unittest
 import os.path as path
-
+import unittest
 
 
 class TestExamples(unittest.TestCase):
     """Tests for the units package
-    
-    
+
+
     """
 
     def test_examples_001_005(self):
         """Testing examples 001 - 005
         """
-
         # example files
         efiles = ["ex_001_Molecule_Hamiltonian.py",
                   "ex_002_Molecule_Aggregate.py",
                  ]
-        
+
         do_the_work(efiles)
 
     def test_examples_006_009(self):
         """Testing examples 006 - 009
         """
-
         # example files
         efiles = [
                   "ex_006_Absorption_1.py",
                  ]
-        
+
         do_the_work(efiles)
-        
+
 
     def test_examples_010_019(self):
         """Testing examples 010 - 019
         """
-
         # example files
 #        efiles = [
 #                  "ex_010_RedfieldTheory_1.py",
@@ -57,20 +52,19 @@ class TestExamples(unittest.TestCase):
                   "ex_016_FoersterTheory_1.py",
                   "ex_018_ModifiedRefieldTheory_1.py"
                  ]
-        
+
         do_the_work(efiles)
-        
+
     def test_examples_020_029(self):
         """Testing examples 020 - 029
         """
-
         # example files
         efiles = [
                   "ex_020_EvolutionSuperOperator_1.py"
                  ]
-        
+
         do_the_work(efiles)
- 
+
 #    def test_examples_050_059(self):
 #        """Testing examples 050 - 059
 #        """
@@ -79,26 +73,25 @@ class TestExamples(unittest.TestCase):
 #        efiles = [
 #                  "ex_050_PDB_FMO1.py"
 #                 ]
-#           
-#        
+#
+#
 #        do_the_work(efiles)
- 
+
     def test_examples_800_809(self):
         """Testing examples 800 - 809
         """
-
         # example files
         efiles = [
                   "ex_800_DiagProblem.py"
                  ]
-        
+
         do_the_work(efiles)
-      
+
 def do_the_work(efiles):
 
-    import traceback
     import subprocess
-    
+    import traceback
+
     for efile in efiles:
         resource_path = path.join('wizard', 'examples', efile)
         #filename = pkg_resources.resource_filename("quantarhei", resource_path)
@@ -106,9 +99,9 @@ def do_the_work(efiles):
         try:
             #exec(open(filename).read())
             subprocess.call("coverage run "+filename+" >test.log", shell=True)
-        except:
+        except Exception:
             traceback.print_exc()
             raise Exception("Example "+efile+" failed")
-        
-        
-        
+
+
+

@@ -1,37 +1,35 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 14 13:50:05 2017
+"""Created on Thu Sep 14 13:50:05 2017
 
 @author: Johan
 """
 
 # -*- coding: utf-8 -*-
 
-from ..core.units import cm2int
-from .molecularmodel import MolecularModel
 from ..builders import pdb
+from ..core.units import cm2int
 from ..utils.vectors import normalize2
+from .molecularmodel import MolecularModel
+
 
 class ChlorophyllA(MolecularModel):
-    
+
     def __init__(self, model_type=None, dp_length=4.582):
         super().__init__(model_type=model_type)
-        
+
         self.pdbname = "CLA"
-       
+
         self.set_default_energies([0.0, 15200.0*cm2int])
-        # These values are taken from Muh, Lindorfer, et al. 
+        # These values are taken from Muh, Lindorfer, et al.
         # Physical Chemistry Chemical Physics, 2014. Chla: 4.58, Chlb 3.83:
-        
+
         self.set_default_dipole_length((0,1), dp_length)
-        
+
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
-        """ Returns transition dipole moment vector
-        
+        """Returns transition dipole moment vector
+
         """
-        
         data_type = self._check_data_type(data_type)
-        
+
         if data_type == "PDB":
             k1 = 0
             k2 = 0
@@ -49,20 +47,19 @@ class ChlorophyllA(MolecularModel):
             else:
                 #print(k1,k2)
                 raise Exception("No unique direction of"
-                                +" a molecule's dipole found")
+                                " a molecule's dipole found")
         else:
             raise Exception("Unknown data type")
 
-        return d   
-                                
-        
+        return d
+
+
     def position_of_center(self, data_type=None, data=None):
-        """ Returns the position of the molecular center 
-        
+        """Returns the position of the molecular center
+
         """
-        
         data_type = self._check_data_type(data_type)
-        
+
         if data_type == "PDB":
             k1 = 0
             k2 = 0
@@ -89,38 +86,37 @@ class ChlorophyllA(MolecularModel):
         else:
             raise Exception("Unknown data type")
 
-        return pos   
-        
-        
+        return pos
+
+
     def pi_conjugated_system(self, data_type=None, data=None):
         """Returns the atoms and atom types in the pi-conjugated system
-        
+
         Calculates and returns positions of all atoms in the pi-conjugated
-        system of the molecule and the types of the atoms. 
-        
+        system of the molecule and the types of the atoms.
+
         Parameters
         ----------
-        
         data_type : string
             Type of the data; can be e.g. PDB
-            
-        data : 
+
+        data :
             Data corresponding to the data type
-        
+
         """
         data_type = self._check_data_type(data_type)
-        
+
         if data_type == "PDB":
-            
+
             pass
 
         else:
             raise Exception("Unknown data type")
-        
-        
+
+
     def _check_data_type(self, data_type):
         """If non data_type is specified, the default is taken (if known)
-        
+
         """
         if data_type is None:
             if self.model_type is None:
@@ -129,29 +125,28 @@ class ChlorophyllA(MolecularModel):
                 return self.model_type
         else:
             return data_type
-        
-        
+
+
 class ChlorophyllB(MolecularModel):
-    
+
     def __init__(self, model_type=None, dp_length=3.834):
         super().__init__(model_type=model_type)
-        
+
         self.pdbname = "CHL"
-        
+
         self.set_default_energies([0.0, 15700.0*cm2int])
         #These values are taken from Muh, Lindorfer, et al. Physical Chemistry Chemical Physics, 2014
-        
+
         self.set_default_dipole_length((0,1), dp_length)
-        
-       
-    
+
+
+
     def transition_dipole(self, transition=(0,1), data_type=None, data=None):
-        """ Returns transition dipole moment vector
-        
+        """Returns transition dipole moment vector
+
         """
-        
         data_type = self._check_data_type(data_type)
-        
+
         if data_type == "PDB":
             k1 = 0
             k2 = 0
@@ -169,20 +164,19 @@ class ChlorophyllB(MolecularModel):
             else:
                 #print(k1,k2)
                 raise Exception("No unique direction of"
-                                +" a molecule's dipole found")
+                                " a molecule's dipole found")
         else:
             raise Exception("Unknown data type")
 
-        return d   
-                                
-        
+        return d
+
+
     def position_of_center(self, data_type=None, data=None):
-        """ Returns the position of the molecular center 
-        
+        """Returns the position of the molecular center
+
         """
-        
         data_type = self._check_data_type(data_type)
-        
+
         if data_type == "PDB":
             k1 = 0
             k2 = 0
@@ -209,38 +203,37 @@ class ChlorophyllB(MolecularModel):
         else:
             raise Exception("Unknown data type")
 
-        return pos   
-        
-        
+        return pos
+
+
     def pi_conjugated_system(self, data_type=None, data=None):
         """Returns the atoms and atom types in the pi-conjugated system
-        
+
         Calculates and returns positions of all atoms in the pi-conjugated
-        system of the molecule and the types of the atoms. 
-        
+        system of the molecule and the types of the atoms.
+
         Parameters
         ----------
-        
         data_type : string
             Type of the data; can be e.g. PDB
-            
-        data : 
+
+        data :
             Data corresponding to the data type
-        
+
         """
         data_type = self._check_data_type(data_type)
-        
+
         if data_type == "PDB":
-            
+
             pass
 
         else:
             raise Exception("Unknown data type")
-        
-        
+
+
     def _check_data_type(self, data_type):
         """If non data_type is specified, the default is taken (if known)
-        
+
         """
         if data_type is None:
             if self.model_type is None:
@@ -249,4 +242,4 @@ class ChlorophyllB(MolecularModel):
                 return self.model_type
         else:
             return data_type
-            
+

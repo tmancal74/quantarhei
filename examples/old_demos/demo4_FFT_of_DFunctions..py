@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-*******************************************************************************
+"""*******************************************************************************
 
     Demonstration of the Fourier transforms with DFunctions
 
@@ -11,8 +9,8 @@
 *******************************************************************************
 """
 
-import numpy
 import matplotlib.pyplot as plt
+import numpy
 
 from quantarhei import TimeAxis
 from quantarhei.core.dfunction import DFunction
@@ -27,13 +25,13 @@ print("*****************************************************************")
 
     Parameters of Lorenzian functions which serve as tests of our ability to
     correctly Fourier transform numerically. We use
-    
+
     e^(-|gg|*t)
-    
+
     and
-    
+
     e^(-|gg|*t -i*om0*t)
-    
+
 """
 gg = 1.0/50.0
 om0 = 0.4
@@ -41,31 +39,31 @@ om0 = 0.4
 """
 
     Numerics is done with a step `dt` abd `Ns` steps
-    
+
 """
 dt = 5.0
 Ns = 1000
 
 print(
-"""    
+r"""
 
 ***
         Fourier transform of a function defined
-        on a symmetrical time interval          
+        on a symmetrical time interval
 ***
 
-    First we try the TimeAxis of the `complete` type. This represents 
+    First we try the TimeAxis of the `complete` type. This represents
     an arbitrary time interval and behaves as generally expected when
     the function (DFunction) defined on the interval is Fourier transformed.
-    
-    We Fourier transform a simple even exponential with 
+
+    We Fourier transform a simple even exponential with
     decay constant \gamma = 1/50 1/fs
 """)
 
 # symmetrically defined TimeAxis
 t = TimeAxis(-(Ns//2)*dt,Ns,dt,atype="complete")
 
-""" 
+"""
 
     Function no. 1
 
@@ -75,7 +73,7 @@ t = TimeAxis(-(Ns//2)*dt,Ns,dt,atype="complete")
 # Function values
 y = numpy.exp(-numpy.abs(t.time)*gg)
 
-# we define DFunction 
+# we define DFunction
 f = DFunction(t,y)
 
 # DFunction can return its Fourier transform
@@ -92,8 +90,8 @@ plt.ylabel('$f(t)$',**font)
 plt.show()
 
 print(
-"""    
-    The result of the Fast Fourier transform is a Lorentzian function. 
+"""
+    The result of the Fast Fourier transform is a Lorentzian function.
     We compare the numerical values (in blue) with analytical result
     which is in green.
 """)
@@ -109,7 +107,7 @@ for x in F.axis.frequency:
     ff[k] = 2.0*gg/(gg**2 + x**2)
     #print(x,ff[k])
     k += 1
-    
+
 # plot of the analytical transform (in the same figure)
 fd = DFunction(F.axis,ff)
 fd.plot(color="-g",axis=[-0.6,0.6,0.0,120],
@@ -127,17 +125,17 @@ fd.plot(color="-g",axis=[-0.6,0.6,0.0,120],
 #plt.ylabel('$F(\omega)$',**font)
 #plt.show()
 
-""" 
-    
-    Function no. 2 
-    
-    
+"""
+
+    Function no. 2
+
+
 """
 
 print(
-"""    
-    Next, we Fourier transform the same exponential with 
-    and addition fast oscillation with frequency \omega_0 = 0.4 
+r"""
+    Next, we Fourier transform the same exponential with
+    and addition fast oscillation with frequency \omega_0 = 0.4
 """)
 # Highly oscillating function; otherwise the same as before
 y = numpy.exp(-numpy.abs(t.time)*gg-1j*om0*t.time)
@@ -155,7 +153,7 @@ plt.ylabel('$f(t)$',**font)
 plt.show()
 
 print(
-"""    
+"""
     Again, we can see an excellent agreement between analytical and
     numerical Fourier transform. Also the frequency of the function
     was correctly identified by the Fourier transform to be 0.4.
@@ -169,7 +167,7 @@ ff = numpy.zeros(F.axis.length)
 for x in F.axis.frequency:
     ff[k] = 2.0*gg/(gg**2 + (x-om0)**2)
     k += 1
-    
+
 plt.plot(F.axis.frequency,numpy.real(ff))
 plt.plot(F.axis.frequency,ff,"-g")
 plt.axis([-0.6,0.6,0.0,120])
@@ -178,13 +176,13 @@ plt.text(-0.5,80,
          r'$F(\omega) = \frac{2\gamma}{\gamma^2 + (\omega-\omega_0)^2}}}$',
          fontdict={'size':20})
 font={'size':20}
-plt.xlabel('$\omega$ [fs$^{-1}$]',**font)
-plt.ylabel('$F(\omega)$',**font)
+plt.xlabel(r'$\omega$ [fs$^{-1}$]',**font)
+plt.ylabel(r'$F(\omega)$',**font)
 plt.show()
 
 print(
-"""    
-    Now we try to inverse Fourier transform our numerical result. 
+"""
+    Now we try to inverse Fourier transform our numerical result.
     On a zoomed in figure, we can see an excellent agreement between
     the inverted function, and the original.
 """)
@@ -202,20 +200,20 @@ plt.ylabel('$f(t)$',**font)
 plt.show()
 
 print(
-"""    
-*** 
+"""
+***
         Fourier transform of a function defined
-        on the upper-half of a time interval    
+        on the upper-half of a time interval
 ***
 """)
 
 # by default atype="upper-half"
-t = TimeAxis(0.0,Ns,dt) 
+t = TimeAxis(0.0,Ns,dt)
 
 # Function values
 y = numpy.exp(-numpy.abs(t.time)*gg)
 
-# we define DFunction 
+# we define DFunction
 f = DFunction(t,y)
 
 # plot of the original function to be transformed
@@ -238,7 +236,7 @@ ff = numpy.zeros(F.axis.length)
 for x in F.axis.frequency:
     ff[k] = 2.0*gg/(gg**2 + x**2)
     k += 1
-    
+
 # plot of the analytical transform (in the same figure)
 df = DFunction(F.axis,ff)
 df.plot()

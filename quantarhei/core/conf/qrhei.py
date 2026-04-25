@@ -1,16 +1,15 @@
-"""
-###############################################################################
+"""###############################################################################
 
        Quantarhei computation and logging configuration file
-       
+
 ###############################################################################
 
 Purpose of this file
 --------------------
 
-This file, if placed to the working directory of the computation (default 
+This file, if placed to the working directory of the computation (default
 search path), is read, and its ``configure`` function is called the
-first time ``Manager`` class is instantiated. 
+first time ``Manager`` class is instantiated.
 
 
 Name and location of Quantarhei configuration file
@@ -46,12 +45,15 @@ On the other hand, GPU usage can be switched on and off during the
 computation.
 
 """
+from __future__ import annotations
 
-def configure(manager):
+from typing import Any
+
+
+def configure(manager: Any) -> None:
     """Configuration of quantarhei computation and logging
-    
-    """
 
+    """
     ###########################################################################
     # configuration of numerics
     ###########################################################################
@@ -59,25 +61,25 @@ def configure(manager):
     ###########################################################################
 
     # usage of mpi
-    conf.mpi_acceleration = False 
-    
+    conf.mpi_acceleration = False
+
     # here one can prevent competing multithreating if necessary
     conf.cpu_acceleration = True
     conf.num_threads = -1 # -1 means to be determined optimally
-        
+
     # use gpu acceleration (if gpu available)
     # this requires pytorch, but it does
     # not switch on pytorch usage for
     # other than GPU computations
-    conf.gpu_acceleration = False 
-    
+    conf.gpu_acceleration = False
+
     # restrict yourself only to certain GPUs
     conf.available_gpus = [0, 1]
-    
+
     # enables pytorch as an alternative
     # to numpy even without GPUs
-    conf.enable_pytorch = False 
-    
+    conf.enable_pytorch = False
+
 
     ###########################################################################
     # logging configuration
@@ -87,11 +89,11 @@ def configure(manager):
     conf.log_on_screen = True
     conf.log_to_file = False
     #conf.log_file_name = "./qrhei.log"
-    
+
     # verbosity is a number from 0 to 10
     # 0 == no information written
     # 10 == all information is written
-    conf.verbosity = 5 
+    conf.verbosity = 5
     conf.verbose=True
 
     ###########################################################################

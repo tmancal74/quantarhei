@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 
 import numpy
@@ -27,4 +26,4 @@ for J in Js:
 
 #    print(" + energy =", (E1+E2)/2.0 + esh)
 #    print(" - energy =", (E1+E2)/2.0 - esh)
-#    print("delta e = ", ) 
+#    print("delta e = ", )
