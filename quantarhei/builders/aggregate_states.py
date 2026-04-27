@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy
 
 from ..core.managers import UnitsManaged, energy_units
@@ -37,7 +39,7 @@ class ElectronicState(UnitsManaged):
 
     nmono = Integer('nmono')
 
-    def __init__(self, aggregate, elsignature, index=None):
+    def __init__(self, aggregate: object, elsignature: tuple, index: int | None = None) -> None:
 
         Nsig = len(elsignature)
         nmono = len(aggregate.monomers)
@@ -77,18 +79,18 @@ class ElectronicState(UnitsManaged):
         self.vibgen_approximation = None
 
 
-    def get_signature(self):
+    def get_signature(self) -> tuple:
         """Returns electronic signature of this state
 
         """
         return self.elsignature
 
 
-    def signature(self):
+    def signature(self) -> tuple:
         return self.get_signature()
 
 
-    def get_excited_sites(self):
+    def get_excited_sites(self) -> list:
         """Returns a list of excited sites corresponding to this state
 
 
@@ -103,7 +105,7 @@ class ElectronicState(UnitsManaged):
         return sites
 
 
-    def get_shared_sites(self, state):
+    def get_shared_sites(self, state: object) -> list:
         """Returns a touple of sites shared by the two states
 
 
@@ -122,7 +124,7 @@ class ElectronicState(UnitsManaged):
         return sites
 
 
-    def energy(self, vsig=None):
+    def energy(self, vsig: tuple | None = None) -> float:
         """Returns energy of the state (electronic + vibrational)
 
         """
@@ -146,7 +148,7 @@ class ElectronicState(UnitsManaged):
         return en
 
 
-    def _energy(self, vsig=None):
+    def _energy(self, vsig: tuple | None = None) -> float:
         """Returns energy of the state (electronic + vibrational) in internal units
 
         """
@@ -168,7 +170,7 @@ class ElectronicState(UnitsManaged):
         return en
 
 
-    def vibenergy(self, vsig=None):
+    def vibenergy(self, vsig: tuple | None = None) -> float:
         """Returns vibrational energy of a state
 
         """
@@ -187,7 +189,7 @@ class ElectronicState(UnitsManaged):
         return en
 
 
-    def _spa_ndindex(self, tup, ecut=None):
+    def _spa_ndindex(self, tup: tuple, ecut: float | None = None) -> tuple:
         """Generates vibrational signatures in SPA
 
         """
@@ -220,7 +222,7 @@ class ElectronicState(UnitsManaged):
         return tuple(ret)
 
 
-    def _sppma_ndindex(self, tup, ecut=None):
+    def _sppma_ndindex(self, tup: tuple, ecut: float | None = None) -> object:
         """Generates vibrational signatures in SP per mode Aproximation (SPPMA)
 
         """
@@ -246,21 +248,21 @@ class ElectronicState(UnitsManaged):
             return numpy.ndindex(shp)
 
 
-    def _tpa_ndindex(self, tup, ecut=None):
+    def _tpa_ndindex(self, tup: tuple, ecut: float | None = None) -> object:
         """Generates vibrational signature in Two Particle Approximation (TPA)
 
         """
         return self._npa_ndindex(tup, N=2, ecut=ecut)
 
 
-    def _tppma_ndindex(self, tup, ecut=None):
+    def _tppma_ndindex(self, tup: tuple, ecut: float | None = None) -> object:
         """Generates vibrational signatures in TP per mode Aproximation (TPPMA)
 
         """
         return self._nppma_ndindex(tup, N=2, ecut=ecut)
 
 
-    def _npa_ndindex(self, tup, N=None, ecut=None):
+    def _npa_ndindex(self, tup: tuple, N: int | None = None, ecut: float | None = None) -> object:
         """Generates vibrational signature in N Particle Approximation (NPA)
 
         """
@@ -285,7 +287,7 @@ class ElectronicState(UnitsManaged):
                    yield tpl
 
 
-    def _nppma_ndindex(self, tup, N=None, ecut=None):
+    def _nppma_ndindex(self, tup: tuple, N: int | None = None, ecut: float | None = None) -> object:
         """Generates vibrational signatures in NP per mode Aproximation (NPPMA)
 
         """
@@ -316,7 +318,7 @@ class ElectronicState(UnitsManaged):
                 yield sig
 
 
-    def vsignatures(self, approx=None, N=None, vibenergy_cutoff=None):
+    def vsignatures(self, approx: str | None = None, N: int | None = None, vibenergy_cutoff: float | None = None) -> object:
         """Generator of the vibrational signatures
 
         Parameters
@@ -369,7 +371,7 @@ class ElectronicState(UnitsManaged):
                         "state generation approximation")
 
 
-    def number_of_states(self):
+    def number_of_states(self) -> int:
         """Number of vibrational sub-states in the electronic state
 
 
@@ -380,7 +382,7 @@ class ElectronicState(UnitsManaged):
         return n
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.ElectronicStateobject"
         out += "\n=================================="
         out += f"\nenergy = {self.energy():f}"
@@ -398,7 +400,7 @@ class VibronicState(UnitsManaged):
 
     """
 
-    def __init__(self, elstate, vsig):
+    def __init__(self, elstate: object, vsig: tuple) -> None:
         self.elstate = elstate
         self.vsig = vsig
 
@@ -409,21 +411,21 @@ class VibronicState(UnitsManaged):
             self.index = None
 
 
-    def get_ElectronicState(self):
+    def get_ElectronicState(self) -> object:
         """Returns corresponding electronic state
 
         """
         return self.elstate
 
 
-    def get_vibsignature(self):
+    def get_vibsignature(self) -> tuple:
         """Returns corresponding vibrational signature
 
         """
         return self.vsig
 
 
-    def get_shared_sites(self, state):
+    def get_shared_sites(self, state: object) -> list:
         """Returns a touple of sites shared by the two states
 
 
@@ -442,7 +444,7 @@ class VibronicState(UnitsManaged):
         return sites
 
 
-    def get_excited_sites(self):
+    def get_excited_sites(self) -> list:
         """Returns a list of excited sites corresponding to this state
 
 
@@ -457,13 +459,13 @@ class VibronicState(UnitsManaged):
         return sites
 
 
-    def energy(self):
+    def energy(self) -> float:
         """Returns the energy of the state
 
         """
         return self.elstate.energy(self.vsig)
 
-    def _energy(self):
+    def _energy(self) -> float:
         """Returns the energy of the state
 
         """
@@ -471,7 +473,7 @@ class VibronicState(UnitsManaged):
 
 
 
-    def vibenergy(self):
+    def vibenergy(self) -> float:
         """Returns vibrational energy of a state
 
         """
@@ -490,21 +492,21 @@ class VibronicState(UnitsManaged):
         return en
 
 
-    def signature(self):
+    def signature(self) -> tuple:
         """Returns a signature of the state
 
         """
         return (self.elstate.elsignature, self.vsig)
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.VibronicState object"
         out += "\n=================================="
         out += f"\nenergy = {self.energy():f}"
         out += f"\nmember of an aggregate of {self.elstate.aggregate.nmono:d} molecules"
         return out
 
-    def get_monomer(self):
+    def get_monomer(self) -> int:
         elsig = self.signature()[0]
         nz = numpy.nonzero(elsig)[0]
         if len(nz)==1:
@@ -531,7 +533,7 @@ class Coherence:
 
     """
 
-    def __init__(self, state1, state2):
+    def __init__(self, state1: object, state2: object) -> None:
 
         self.state1 = state1
         self.state2 = state2
@@ -549,7 +551,7 @@ class Coherence:
         self.system = system1
 
 
-    def get_coherence_character(self):
+    def get_coherence_character(self) -> dict:
         """Returns a dictionary describing the character of a given coherence
 
         """

@@ -7,6 +7,8 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
 from .modes import Mode
 from .molecules import Molecule
 
@@ -40,7 +42,7 @@ class TestMolecule(Molecule):
 
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name: str | None = None) -> None:
 
 
         if name is None:

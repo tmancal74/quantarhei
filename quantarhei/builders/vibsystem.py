@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy
 
 from .. import COMPLEX, REAL, Manager
@@ -25,7 +27,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
     """
 
-    def __init__(self, modes=None, name=""):
+    def __init__(self, modes: list | None = None, name: str = "") -> None:
 
         self.modes = modes
         self.Nmodes = len(self.modes)
@@ -55,7 +57,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         self.has_Iterm = False
 
 
-    def set_mode_coupling(self, N, M, val):
+    def set_mode_coupling(self, N: int, M: int, val: float) -> None:
         """Sets bilinear coupling between the modes
 
 
@@ -82,7 +84,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         self.coupling[M,N] = val_int
 
 
-    def get_mode_coupling(self, N, M):
+    def get_mode_coupling(self, N: int, M: int) -> float:
         """Returns the value of the intermode coupling coefficient in current units
 
         >>> import quantarhei as qr
@@ -100,11 +102,11 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         return Manager().convert_energy_2_current_u(self.coupling[N,M])
 
 
-    def _embed_operator(self, res_tot, member):
+    def _embed_operator(self, res_tot: object, member: object) -> None:
 
         pass
 
-    def _embed_bilinear_interaction(self, i, j, kappa=1.0):
+    def _embed_bilinear_interaction(self, i: int, j: int, kappa: float = 1.0) -> numpy.ndarray:
         """Embed a bilinear interaction term kappa * K1 ⊗ K2
         between subsystem i and j (0-based indices).
 
@@ -146,7 +148,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         return kappa * interaction
 
 
-    def build(self):
+    def build(self) -> None:
         """Build the VibrationalSystem based on its components
 
         The VibrationalSystem can be built without system-bath interaction
@@ -357,7 +359,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
 
 
-def group_energies_by_gap(energies, threshold=None, gap_factor=3.0):
+def group_energies_by_gap(energies: numpy.ndarray, threshold: float | None = None, gap_factor: float = 3.0) -> tuple[list, list]:
     """Groups sorted energies into bands separated by significant energy gaps.
 
     Parameters
@@ -404,7 +406,7 @@ def group_energies_by_gap(energies, threshold=None, gap_factor=3.0):
     return band_sizes, gap_indices
 
 
-def reorder_operators_by_energy(H, operators):
+def reorder_operators_by_energy(H: numpy.ndarray, operators: list) -> tuple[numpy.ndarray, list, numpy.ndarray]:
     """Reorders a Hamiltonian and other operators according to ascending energies (diagonal elements of H).
 
     Parameters
@@ -434,7 +436,7 @@ def reorder_operators_by_energy(H, operators):
     return H_sorted, ops_sorted, perm
 
 
-def reorder_hamiltonian_by_energy(H):
+def reorder_hamiltonian_by_energy(H: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
     """Reorders a Hamiltonian according to ascending energies (diagonal elements of H).
 
     Parameters
@@ -463,7 +465,7 @@ def reorder_hamiltonian_by_energy(H):
 
 
 
-def reorder_operators_by_perm(perm, operators):
+def reorder_operators_by_perm(perm: numpy.ndarray, operators: list) -> list:
     """Reorders operators according to a specified order.
 
     """

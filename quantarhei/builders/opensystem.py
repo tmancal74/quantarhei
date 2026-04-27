@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 import numpy
 
@@ -28,7 +29,7 @@ class OpenSystem:
     # transition dipole moments
     dmoments = array_property('dmoments')
 
-    def __init__(self, elen):
+    def __init__(self, elen: list) -> None:
 
         #
         # Analyze energies
@@ -134,7 +135,7 @@ class OpenSystem:
         self._has_wpm = False
 
 
-    def diagonalize(self):
+    def diagonalize(self) -> None:
         """Prepage the diagonal form of the Hamiltonian
 
         In the present case, it is already diagonal
@@ -151,7 +152,7 @@ class OpenSystem:
         self._diagonalized = True
 
 
-    def get_Hamiltonian(self):
+    def get_Hamiltonian(self) -> object:
         """Returns the Hamiltonian operator
 
         """
@@ -163,7 +164,7 @@ class OpenSystem:
         raise Exception("System has to be built first")
 
 
-    def get_TransitionDipoleMoment(self):
+    def get_TransitionDipoleMoment(self) -> object:
         """Returns the asystem's transition dipole moment operator
 
         """
@@ -172,7 +173,7 @@ class OpenSystem:
         raise Exception("Aggregate object not built")
 
 
-    def set_transition_environment(self, transition, egcf):
+    def set_transition_environment(self, transition: tuple, egcf: object) -> None:
         """Sets a correlation function for a transition on this monomer
 
         Parameters
@@ -206,7 +207,7 @@ class OpenSystem:
                             " for this monomer")
 
 
-    def unset_transition_environment(self, transition):
+    def unset_transition_environment(self, transition: tuple) -> None:
         """Unsets correlation function from a transition on this monomer
 
         This is needed if the environment is to be replaced
@@ -235,7 +236,7 @@ class OpenSystem:
         self._has_system_bath_coupling = False
 
 
-    def get_transition_environment(self, transition):
+    def get_transition_environment(self, transition: tuple) -> object:
         """Returns energy gap correlation function of a monomer
 
         Parameters
@@ -261,7 +262,7 @@ class OpenSystem:
         raise Exception("No environment set for the transition")
 
 
-    def set_egcf_mapping(self, transition, correlation_matrix, position):
+    def set_egcf_mapping(self, transition: tuple, correlation_matrix: object, position: int) -> None:
         """Sets a correlation function mapping for a selected transition.
 
         The monomer can either have a correlation function assigned to it,
@@ -308,7 +309,7 @@ class OpenSystem:
             raise Exception("Monomer has a correlation function already")
 
 
-    def get_RWA_suggestion(self):
+    def get_RWA_suggestion(self) -> float:
         """Returns a suggestion of the RWA frequency
 
         """
@@ -323,7 +324,7 @@ class OpenSystem:
         return self.convert_energy_2_current_u(e_av)
 
 
-    def get_band(self, band=1):
+    def get_band(self, band: int = 1) -> tuple:
         """Returns a tuple of state indices for a given band of states
 
         """
@@ -336,7 +337,7 @@ class OpenSystem:
         return tuple(lst)
 
 
-    def set_dipole(self, N, M, vec=None):
+    def set_dipole(self, N: object, M: object, vec: object = None) -> None:
         """Sets transition dipole moment for an electronic transition
 
 
@@ -384,7 +385,7 @@ class OpenSystem:
             raise Exception()
 
 
-    def get_dipole(self, N, M=None):
+    def get_dipole(self, N: object, M: object = None) -> numpy.ndarray:
         """Returns the dipole vector for a given electronic transition
 
         There are two ways how to use this function:
@@ -428,7 +429,7 @@ class OpenSystem:
 
 
     # FIXME: There are two functions with similar results
-    def map_egcf_to_states(self, mpx):
+    def map_egcf_to_states(self, mpx: numpy.ndarray) -> numpy.ndarray:
         """Returns a mapping between states and correlation functions"""
         ss = self.SS
         Ng = self.Nb[0]
@@ -442,7 +443,7 @@ class OpenSystem:
         return WPM
 
 
-    def get_lineshape_functions(self):
+    def get_lineshape_functions(self) -> object:
         """Returns lineshape functions defined for this system
 
         """
@@ -450,7 +451,7 @@ class OpenSystem:
         return sbi.get_goft_storage()
 
 
-    def map_lineshape_to_states(self, mpx):
+    def map_lineshape_to_states(self, mpx: numpy.ndarray) -> numpy.ndarray:
         """Maps the participation matrix on g(t) functions storage
 
         This should work for a simple mapping matrix and first excited band.
@@ -472,7 +473,7 @@ class OpenSystem:
         return WPM
 
 
-    def get_weighted_participation(self):
+    def get_weighted_participation(self) -> numpy.ndarray:
         """Returns a participation matrix weighted by the mapping onto g(t) storage
 
 
@@ -493,7 +494,7 @@ class OpenSystem:
         return self.WPM
 
 
-    def get_eigenstate_energies(self):
+    def get_eigenstate_energies(self) -> numpy.ndarray:
         """Returns the energies of the system's eigenstates
 
         """
@@ -502,7 +503,7 @@ class OpenSystem:
         return self.HD
 
 
-    def get_F4d(self, which="bbaa"):
+    def get_F4d(self, which: str = "bbaa") -> numpy.ndarray:
         """Get vector of transition dipole moments for 4 wave-mixing
 
         F4 is one of the vectors/matrices needed for orientational average
@@ -515,10 +516,10 @@ class OpenSystem:
 
         """
 
-        def DD(aa,bb):
+        def DD(aa: Any, bb: Any) -> numpy.ndarray:
             return numpy.dot(self.DD[aa[1],aa[0]],self.DD[bb[1],bb[0]])
 
-        def _setF4(F4, x1, x2, x3, x4):
+        def _setF4(F4: Any, x1: Any, x2: Any, x3: Any, x4: Any) -> None:
             F4[0] = DD(x4,x3)*DD(x2,x1)
             F4[1] = DD(x4,x2)*DD(x3,x1)
             F4[2] = DD(x4,x1)*DD(x3,x2)
@@ -589,7 +590,7 @@ class OpenSystem:
         return F4
 
 
-    def get_SystemBathInteraction(self):
+    def get_SystemBathInteraction(self) -> object:
         """Returns the aggregate SystemBathInteraction object
 
         """
@@ -599,16 +600,16 @@ class OpenSystem:
 
 
 
-    def get_RelaxationTensor(self, timeaxis,
-                       relaxation_theory=None,
-                       as_convolution_kernel=False,
-                       time_dependent=False,
-                       secular_relaxation=False,
-                       relaxation_cutoff_time=None,
-                       coupling_cutoff=None,
-                       recalculate=True,
-                       as_operators=False,
-                       adiabatic=None):
+    def get_RelaxationTensor(self, timeaxis: object,
+                       relaxation_theory: str | None = None,
+                       as_convolution_kernel: bool = False,
+                       time_dependent: bool = False,
+                       secular_relaxation: bool = False,
+                       relaxation_cutoff_time: float | None = None,
+                       coupling_cutoff: float | None = None,
+                       recalculate: bool = True,
+                       as_operators: bool = False,
+                       adiabatic: object = None) -> tuple:
         """Returns a relaxation tensor corresponding to the system
 
 
@@ -1005,15 +1006,15 @@ class OpenSystem:
             raise Exception("Theory not implemented")
 
 
-    def get_ReducedDensityMatrixPropagator(self, timeaxis,
-                       relaxation_theory=None,
-                       time_nonlocal=False,
-                       time_dependent=False,
-                       secular_relaxation=False,
-                       relaxation_cutoff_time=None,
-                       coupling_cutoff=None,
-                       as_operators=False,
-                       recalculate=True):
+    def get_ReducedDensityMatrixPropagator(self, timeaxis: object,
+                       relaxation_theory: str | None = None,
+                       time_nonlocal: bool = False,
+                       time_dependent: bool = False,
+                       secular_relaxation: bool = False,
+                       relaxation_cutoff_time: float | None = None,
+                       coupling_cutoff: float | None = None,
+                       as_operators: bool = False,
+                       recalculate: bool = True) -> object:
         """Returns propagator of the density matrix
 
 
@@ -1047,7 +1048,7 @@ class OpenSystem:
 
 
     #FIXME: There must be a general theory here
-    def get_RedfieldRateMatrix(self,corr_mat=None):
+    def get_RedfieldRateMatrix(self, corr_mat: object = None) -> object:
         """Returns Redfield rate matrix
 
         """
@@ -1068,7 +1069,7 @@ class OpenSystem:
         return RR
 
 
-    def get_FoersterRateMatrix(self):
+    def get_FoersterRateMatrix(self) -> object:
         """Returns Förster rate matrix for the open system
 
 
@@ -1085,7 +1086,7 @@ class OpenSystem:
 
 
 
-    def get_KTHierarchy(self, depth=2):
+    def get_KTHierarchy(self, depth: int = 2) -> object:
         """Returns the Kubo-Tanimura hierarchy of an open system
 
         """
@@ -1095,7 +1096,7 @@ class OpenSystem:
         return KTHierarchy(HH, sbi, depth=depth)
 
 
-    def get_KTHierarchyPropagator(self, depth=2):
+    def get_KTHierarchyPropagator(self, depth: int = 2) -> object:
         """Returns a propagator based on the Kubo-Tanimura hierarchy
 
         """
@@ -1105,7 +1106,7 @@ class OpenSystem:
         return KTHierarchyPropagator(ta, kth)
 
 
-    def get_excited_density_matrix(self, condition="delta", polarization=None):
+    def get_excited_density_matrix(self, condition: object = "delta", polarization: numpy.ndarray | None = None) -> object:
         """Returns the density matrix corresponding to excitation condition
 
 
@@ -1175,7 +1176,7 @@ class OpenSystem:
 
 
 
-    def get_thermal_ReducedDensityMatrix(self):
+    def get_thermal_ReducedDensityMatrix(self) -> object:
         """Returns equilibrium density matrix for a give temparature
 
         """
@@ -1203,7 +1204,7 @@ class OpenSystem:
         return rdm
 
 
-    def integrate_deposited_energy(self, rho_t, field, ome=None):
+    def integrate_deposited_energy(self, rho_t: object, field: numpy.ndarray, ome: float | None = None) -> float:
         r"""Integrates the energy deposited into the system by light
 
         By default, rho_t and field contain the optical frequency. If ome and dt are defined,
@@ -1265,7 +1266,7 @@ class OpenSystem:
         return Manager().convert_energy_2_current_u(val)
 
 
-    def _get_exciton_prop(self,adiabatic=None,HH_in=None):
+    def _get_exciton_prop(self, adiabatic: object = None, HH_in: numpy.ndarray | None = None) -> tuple:
 
         is_adiabatic = False
         adiabatic_noBath = False
@@ -1305,7 +1306,7 @@ class OpenSystem:
         return val,SS
 
 
-    def set_electronic_natural_lifetime(self, N, epsilon_r=1.0):
+    def set_electronic_natural_lifetime(self, N: int, epsilon_r: float = 1.0) -> None:
 
         rate = 0.0
         eps = eps0_int*epsilon_r
@@ -1337,7 +1338,7 @@ class OpenSystem:
             self._nat_lifetime[N] = numpy.inf
 
 
-    def get_electronic_natural_lifetime(self, N, epsilon_r=1.0):
+    def get_electronic_natural_lifetime(self, N: int, epsilon_r: float = 1.0) -> float:
         """Returns natural lifetime of a given electronic state
 
 
@@ -1386,7 +1387,7 @@ class OpenSystem:
 #
 # Auxiliary routines
 #
-def integral_g_dfdt(g,f):
+def integral_g_dfdt(g: numpy.ndarray, f: numpy.ndarray) -> complex:
     """Numerically compute ∫ g(t) * df/dt(t) dt using central differences.
     Assumes df/dt = 0 at boundaries.
 
@@ -1406,7 +1407,7 @@ def integral_g_dfdt(g,f):
     return numpy.sum(g*dfdt)
 
 
-def integral_g_f(g, f, dt):
+def integral_g_f(g: numpy.ndarray, f: numpy.ndarray, dt: float) -> complex:
     """Numerically compute ∫ g(t) * f(t) dt using the trapezoidal rule.
     Assumes uniform time step (dt cancels out, as in the df/dt version).
 

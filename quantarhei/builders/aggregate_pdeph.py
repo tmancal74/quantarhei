@@ -11,6 +11,8 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
 import numpy
 
 from .. import REAL
@@ -24,7 +26,7 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
 
     """
 
-    def get_PureDephasing(self, dtype="Lorentzian"):
+    def get_PureDephasing(self, dtype: str = "Lorentzian") -> object:
         """Returns pure dephasing object of this aggregate
 
         """
