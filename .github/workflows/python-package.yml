@@ -164,12 +164,13 @@ jobs:
     - name: Test report
       uses: dorny/test-reporter@v1
       if: always()
+      # Fork PRs get a read-only token; the check-run write will 403 but that
+      # should not block the job — the actual test results are what matters.
+      continue-on-error: true
       with:
         name: Unit + Doc Tests (Python ${{ matrix.python-version }})
         path: results-*.xml
         reporter: java-junit
-        # Fork PRs have a read-only token and cannot write check runs
-        fail-on-error: false
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
@@ -262,11 +263,11 @@ jobs:
     - name: Test report
       uses: dorny/test-reporter@v1
       if: always()
+      continue-on-error: true
       with:
         name: Integration Tests (Python ${{ matrix.python-version }})
         path: results-*.xml
         reporter: java-junit
-        fail-on-error: false
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
