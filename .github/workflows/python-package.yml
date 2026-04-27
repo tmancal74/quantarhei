@@ -15,10 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v5
       with:
         python-version: "3.12"
-        cache: 'pip'
     - name: Check PR title
       if: github.event_name == 'pull_request'
       run: |
@@ -26,10 +25,12 @@ jobs:
         echo "PR title: $TITLE"
         echo "$TITLE" | grep -qE '^#[0-9]+ ' || \
           { echo "PR title must start with '#N ' (e.g. '#243 ci: add feature')"; exit 1; }
-    - name: Install pre-commit
-      run: pip install pre-commit
+    - name: Install dev dependencies
+      run: uv sync --extra dev
+    - name: Check formatting
+      run: uv run ruff format --check .
     - name: Run pre-commit hooks
-      run: pre-commit run --all-files
+      run: uv run pre-commit run --all-files
 
   # Detects which subpackages changed so downstream jobs can skip unchanged paths.
   # On pushes to master we skip filtering and always run the full test matrix.
@@ -97,18 +98,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -r requirements_devel.txt
-        pip install -e .
+      run: uv sync --extra dev
 
     - name: Select unit test paths
       id: paths
@@ -137,7 +132,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        pytest -v \
+        uv run pytest -v \
           --cov=quantarhei \
           --cov-report=term \
           --cov-report=xml:coverage1.xml \
@@ -146,7 +141,7 @@ jobs:
 
     - name: Run doc tests
       run: |
-        pytest --doctest-modules -v \
+        uv run pytest --doctest-modules -v \
           --cov=quantarhei \
           --cov-append \
           --cov-report=xml:coverage2.xml \
@@ -203,17 +198,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -r requirements_devel.txt
-        pip install -e .
+      run: uv sync --extra dev
 
     - name: Select behave features
       id: features
@@ -254,12 +244,12 @@ jobs:
 
     - name: Run behave tests
       run: |
-        coverage run --data-file=.coverage.behave \
-          $(which behave) ${{ steps.features.outputs.feature_paths }}
+        uv run coverage run --data-file=.coverage.behave \
+          $(uv run which behave) ${{ steps.features.outputs.feature_paths }}
         # .coveragerc has parallel=True so coverage run writes .coverage.behave.<host>.<pid>;
         # combine merges those files back into .coverage.behave before xml export.
-        coverage combine --data-file=.coverage.behave
-        coverage xml --data-file=.coverage.behave -o coverage3.xml
+        uv run coverage combine --data-file=.coverage.behave
+        uv run coverage xml --data-file=.coverage.behave -o coverage3.xml
 
     - name: Test report
       uses: dorny/test-reporter@v1
