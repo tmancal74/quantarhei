@@ -79,11 +79,17 @@ jobs:
     - name: Run behave tests
       run: |
         uv run coverage run --data-file=.coverage.behave $(uv run which behave) tests/behave/features
+        # .coveragerc has parallel=True so coverage run writes .coverage.behave.<host>.<pid>;
+        # combine merges those files back into .coverage.behave before xml export.
+        uv run coverage combine --data-file=.coverage.behave
         uv run coverage xml --data-file=.coverage.behave -o coverage3.xml
 
     - name: Test report
       uses: dorny/test-reporter@v1
       if: always()
+      # Fork PRs get a read-only token; the check-run write will 403 —
+      # continue-on-error prevents that from blocking the job.
+      continue-on-error: true
       with:
         name: Test Results (Python ${{ matrix.python-version }})
         path: results-*.xml
