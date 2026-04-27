@@ -2,13 +2,14 @@
 
 """
 import time
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 # correlation functions
-def cor(lam, g, a, b, t):
+def cor(lam: float, g: float, a: float, b: float, t: Any) -> Any:
     #return lam*(a-1j*b)*np.exp(-g*np.abs(t))
     #om = a
     #T = b
@@ -23,7 +24,7 @@ def cor(lam, g, a, b, t):
     return re + 1j*im
 
 
-def run():
+def run() -> tuple[Any, Any, Any]:
     g11 = 1.0/200
     l11 = 0.2
     l12 = 0.2

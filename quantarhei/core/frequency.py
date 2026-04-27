@@ -118,11 +118,18 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy
 
 from ..utils.types import UnitsManagedReal, UnitsManagedRealArray
 from .managers import EnergyUnitsManaged, energy_units
 from .valueaxis import ValueAxis
+
+if TYPE_CHECKING:
+    from .time import TimeAxis
 
 
 class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
@@ -148,8 +155,8 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
     start = UnitsManagedReal("start")
     step = UnitsManagedReal("step")
 
-    def __init__(self, start=0.0, length=1, step=1.0,
-                 atype='complete', time_start=0.0):
+    def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0,
+                 atype: str = 'complete', time_start: float = 0.0) -> None:
 
         #if step > 0:
         if True:
@@ -176,13 +183,13 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         else:
             raise Exception("Unknown frequency axis type")
 
-    def copy(self):
+    def copy(self) -> FrequencyAxis:
         axis = FrequencyAxis(self.start, self.length, self.step,
                              atype=self.atype, time_start=self.time_start)
         return axis
 
 
-    def get_TimeAxis(self):
+    def get_TimeAxis(self) -> TimeAxis:
         """Returns the corresponding TimeAxis object
 
         """

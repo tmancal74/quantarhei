@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import IO, Any
 
 import dill as pickle
 
@@ -6,7 +9,7 @@ from .managers import Manager
 
 class Parcel:
 
-    def set_content(self, obj):
+    def set_content(self, obj: Any) -> None:
         """Set the content of the parcel
 
         """
@@ -16,7 +19,7 @@ class Parcel:
         self.comment = ""
 
 
-    def set_comment(self, comm):
+    def set_comment(self, comm: str | None) -> None:
         """Sets a string value to a comment saved togethet with the object
 
         """
@@ -24,7 +27,7 @@ class Parcel:
             self.comment = comm
 
 
-    def save(self, filename):
+    def save(self, filename: str | IO[bytes]) -> None:
         """Saves the parcel to a file
 
         Parameters
@@ -42,7 +45,8 @@ class Parcel:
             pickle.dump(self, filename)
 
 
-def save_parcel(obj, filename, comment=None):
+def save_parcel(obj: Any, filename: str | IO[bytes],
+                comment: str | None = None) -> None:
     """Saves a given object as a parcel
 
     Parameters
@@ -63,7 +67,7 @@ def save_parcel(obj, filename, comment=None):
     p.save(filename)
 
 
-def load_parcel(filename):
+def load_parcel(filename: str | IO[bytes]) -> Any:
     """Loads the object saved as parcel
 
     Parameters
@@ -84,7 +88,7 @@ def load_parcel(filename):
     raise Exception("Only Quantarhei Parcels can be loaded")
 
 
-def check_parcel(filename):
+def check_parcel(filename: str | IO[bytes]) -> dict[str, Any]:
     """Checks the content of a Quantarhei parcel
 
     Parameters
@@ -104,5 +108,3 @@ def check_parcel(filename):
         return dict(class_name=obj.class_name, qrversion=obj.qrversion,
                     comment=obj.comment)
     raise Exception("The file does not represent a Quantarhei parcel")
-
-

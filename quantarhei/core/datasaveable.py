@@ -6,10 +6,16 @@ represented as a `data` property of the class.
 
 
 """
+from __future__ import annotations
+
 import os
+from typing import TYPE_CHECKING
 
 import numpy
 import scipy.io as io
+
+if TYPE_CHECKING:
+    from .valueaxis import ValueAxis
 
 
 class DataSaveable:
@@ -18,7 +24,7 @@ class DataSaveable:
     """
 
 
-    def save_data(self, name, with_axis=None):
+    def save_data(self, name: str, with_axis: ValueAxis | None = None) -> None:
         """Saves the data into a format determined by the file name extension
 
         Parameters
@@ -66,7 +72,7 @@ class DataSaveable:
 
 
 
-    def load_data(self, name, with_axis=None):
+    def load_data(self, name: str, with_axis: ValueAxis | None = None) -> None:
         """Loads the data in a format determined by the file name extension
 
         Parameters
@@ -93,44 +99,45 @@ class DataSaveable:
             self._loadMatlab(name, with_axis)
 
 
-    def set_data_writable(self):
+    def set_data_writable(self) -> None:
         """Implement this method to lift existing protection of data property
 
         """
         pass
 
 
-    def set_data_protected(self):
+    def set_data_protected(self) -> None:
         """Implement this method to put protections on data property
 
         """
         pass
 
 
-    def _data_with_axis(self, axis):
+    def _data_with_axis(self, axis: ValueAxis) -> numpy.ndarray:
         """Constructs data array which contains also data from the axis
 
         """
-        shpl = list(self.data.shape)
+        shpl = list(self.data.shape)  # type: ignore[attr-defined]
 
         if len(shpl) == 2:
             shpl[1] += 1
             shp = tuple(shpl)
-            data = numpy.zeros(shp,dtype=self.data.dtype)
-            data[:,1:] = self.data
+            data = numpy.zeros(shp,dtype=self.data.dtype)  # type: ignore[attr-defined]
+            data[:,1:] = self.data  # type: ignore[attr-defined]
             data[:,0] = axis.data
         elif len(shpl) == 1:
             shpl.append(2)
             shp = tuple(shpl)
-            data = numpy.zeros(shp,dtype=self.data.dtype)
-            data[:,1] = self.data
+            data = numpy.zeros(shp,dtype=self.data.dtype)  # type: ignore[attr-defined]
+            data[:,1] = self.data  # type: ignore[attr-defined]
             data[:,0] = axis.data
         else:
             raise Exception("Other shapes than (N,) and (N,M) not implemented")
         return data
 
 
-    def _extract_data_with_axis(self, data, axis):
+    def _extract_data_with_axis(self, data: numpy.ndarray,
+                                axis: ValueAxis | None) -> numpy.ndarray:
         """Extracts data part and the axis data from the `data` array
 
         """
@@ -154,7 +161,8 @@ class DataSaveable:
 
 
 
-    def _saveBinaryData(self, file, with_axis=None):
+    def _saveBinaryData(self, file: str,
+                        with_axis: ValueAxis | None = None) -> None:
         """Saves uncompressed binary data to an file
 
         """
@@ -162,41 +170,45 @@ class DataSaveable:
             data = self._data_with_axis(with_axis)
             numpy.save(file, data)
         else:
-            numpy.save(file, self.data)
+            numpy.save(file, self.data)  # type: ignore[attr-defined]
 
 
-    def _saveBinaryData_compressed(self, file, with_axis=None):
+    def _saveBinaryData_compressed(self, file: str,
+                                   with_axis: ValueAxis | None = None) -> None:
         """Saves compressed binary data to an file
 
         """
         if with_axis is not None:
             data = self._data_with_axis(with_axis)
-            numpy.save_compressed(file, data=data)
+            numpy.savez_compressed(file, data=data)  # type: ignore[attr-defined]
         else:
-            numpy.savez_compressed(file, data=self.data)
+            numpy.savez_compressed(file, data=self.data)  # type: ignore[attr-defined]
 
 
-    def _loadBinaryData(self, filename, with_axis=None):
+    def _loadBinaryData(self, filename: str,
+                        with_axis: ValueAxis | None = None) -> None:
         """Imports binary data from a file
 
         """
         self.set_data_writable()
         _data = numpy.load(filename)
-        self.data = self._extract_data_with_axis(_data, with_axis)
+        self.data = self._extract_data_with_axis(_data, with_axis)  # type: ignore[attr-defined]
         self.set_data_protected()
 
 
-    def _loadBinaryData_compressed(self, filename, with_axis=None):
+    def _loadBinaryData_compressed(self, filename: str,
+                                   with_axis: ValueAxis | None = None) -> None:
         """Imports binary data from a file
 
         """
         self.set_data_writable()
         _data = numpy.load(filename)["data"]
-        self.data = self._extract_data_with_axis(_data, with_axis)
+        self.data = self._extract_data_with_axis(_data, with_axis)  # type: ignore[attr-defined]
         self.set_data_protected()
 
 
-    def _exportDataToText(self, file, with_axis=None):
+    def _exportDataToText(self, file: str,
+                          with_axis: ValueAxis | None = None) -> None:
         """Saves textual data to a file
 
         """
@@ -204,10 +216,11 @@ class DataSaveable:
             data = self._data_with_axis(with_axis)
             numpy.savetxt(file, data)
         else:
-            numpy.savetxt(file, self.data)
+            numpy.savetxt(file, self.data)  # type: ignore[attr-defined]
 
 
-    def _importDataFromText(self, filename, with_axis=None):
+    def _importDataFromText(self, filename: str,
+                            with_axis: ValueAxis | None = None) -> None:
         """Imports textual data to a file
 
         """
@@ -217,11 +230,12 @@ class DataSaveable:
         except ValueError:
             _data = numpy.loadtxt(filename, dtype=complex)
 
-        self.data = self._extract_data_with_axis(_data, with_axis)
+        self.data = self._extract_data_with_axis(_data, with_axis)  # type: ignore[attr-defined]
         self.set_data_protected()
 
 
-    def _saveMatlab(self, file, with_axis=None):
+    def _saveMatlab(self, file: str,
+                    with_axis: ValueAxis | None = None) -> None:
         """Saves data as a Matlab file
 
         """
@@ -229,15 +243,15 @@ class DataSaveable:
             data = self._data_with_axis(with_axis)
             io.savemat(file, {"data":data})
         else:
-            io.savemat(file, {"data":self.data})
+            io.savemat(file, {"data":self.data})  # type: ignore[attr-defined]
 
 
-    def _loadMatlab(self, file, with_axis=None):
+    def _loadMatlab(self, file: str,
+                    with_axis: ValueAxis | None = None) -> None:
         """Loads a matrix called `data` from a matlab file
 
         """
         self.set_data_writable()
         _data = io.loadmat(file)["data"]
-        self.data = self._extract_data_with_axis(_data, with_axis)
+        self.data = self._extract_data_with_axis(_data, with_axis)  # type: ignore[attr-defined]
         self.set_data_protected()
-

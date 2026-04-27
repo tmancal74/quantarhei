@@ -1,28 +1,32 @@
+from __future__ import annotations
+
+from collections.abc import Callable
 from functools import wraps
 from importlib import import_module
+from typing import Any
 
 from .managers import Manager
 
 
-def implementation(package="",
-                   taskname="",
-                   at_runtime=False,
-                   fallback_local=False,
-                   always_local=False):
+def implementation(package: str = "",
+                   taskname: str = "",
+                   at_runtime: bool = False,
+                   fallback_local: bool = False,
+                   always_local: bool = False) -> Callable[[Any], Any]:
     """Decorator to select numerical implememtation
 
 
     """
     m = Manager()
 
-    def decorate_at_runtime(func):
+    def decorate_at_runtime(func: Callable[..., Any]) -> Callable[..., Any]:
         """Decoration at run time
 
         The wrapper decides which function to return at runtime.
 
         """
         @wraps(func)
-        def wrapper(*arg,**kwargs):
+        def wrapper(*arg: Any, **kwargs: Any) -> Any:
             fc = get_function(func, package, taskname,
                               default_local=fallback_local,
                               always_local=always_local)
@@ -31,7 +35,7 @@ def implementation(package="",
         return wrapper
 
 
-    def decorate_at_loadtime(func):
+    def decorate_at_loadtime(func: Callable[..., Any]) -> Callable[..., Any]:
         """Decoration at load time
 
         The wrapper decides which function to return when the Manager module
@@ -43,7 +47,7 @@ def implementation(package="",
                           always_local=always_local)
 
         @wraps(func)
-        def wrapper(*arg,**kwargs):
+        def wrapper(*arg: Any, **kwargs: Any) -> Any:
             return fc(*arg,**kwargs)
 
         return wrapper
@@ -62,7 +66,7 @@ def implementation(package="",
 #  Auxiliary function
 #
 
-def load_function(lib,fce):
+def load_function(lib: str, fce: str) -> Callable[..., Any]:
     """Load the module and get the desired function
 
     """
@@ -79,7 +83,9 @@ def load_function(lib,fce):
 
     return fc
 
-def get_function(func, package, taskname, default_local, always_local):
+def get_function(func: Callable[..., Any], package: str, taskname: str,
+                 default_local: bool,
+                 always_local: bool) -> Callable[..., Any]:
     """Decide which function to use
 
 

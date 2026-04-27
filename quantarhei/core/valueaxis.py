@@ -98,6 +98,8 @@ Class Details
 
 """
 
+from __future__ import annotations
+
 import numpy
 
 from .. import REAL
@@ -127,7 +129,8 @@ class ValueAxis(Saveable):
     start = Float("start")
     length = Integer("length")
 
-    def __init__(self, start=0.0, length=1, step=1.0):
+    def __init__(self, start: float = 0.0, length: int = 1,
+                 step: float = 1.0) -> None:
 
         #if step > 0:
         if True:
@@ -143,21 +146,21 @@ class ValueAxis(Saveable):
 
 
     @property
-    def min(self):
+    def min(self) -> float:
         """Returns the minimum value on the axis
 
         """
         return self.start
 
     @property
-    def max(self):
+    def max(self) -> float:
         """Returns the maximum value on the axis
 
         """
         return self.data[self.length-1]
 
 
-    def locate(self, val):
+    def locate(self, val: float) -> tuple[int, float]:
         """Returns the index of the lower neigbor of the ``val``
 
         Returns the index of the lower neigbor of the value x and the
@@ -181,7 +184,7 @@ class ValueAxis(Saveable):
 
 
 
-    def nearest(self, val):
+    def nearest(self, val: float) -> int:
         """Returns the index of the nearest neighbor to ``val``
 
         Returns the index of the nearest neighbor of ``val``. If ``val``
@@ -223,7 +226,7 @@ class ValueAxis(Saveable):
         raise Exception("Value out of bounds")
 
 
-    def is_equal_to(self, axis):
+    def is_equal_to(self, axis: ValueAxis) -> bool:
         """Returns True if the axis is equal to this ValueAxis
 
         """
@@ -231,11 +234,11 @@ class ValueAxis(Saveable):
                 and (self.length == axis.length))
 
 
-    def __eq__(self, other):
-        return self.is_equal_to(other)
+    def __eq__(self, other: object) -> bool:
+        return self.is_equal_to(other)  # type: ignore[arg-type]
 
 
-    def is_extension_of(self, axis):
+    def is_extension_of(self, axis: ValueAxis) -> bool:
         """Returns True if the axis is contained in this ValueAxis
 
         """
@@ -257,7 +260,7 @@ class ValueAxis(Saveable):
 
         return ret
 
-    def is_subsection_of(self, axis):
+    def is_subsection_of(self, axis: ValueAxis) -> bool:
         """Returns True if the axis contains this ValueAxis
 
         """
@@ -268,7 +271,7 @@ class ValueAxis(Saveable):
 
         return ret
 
-    def is_subset_of(self, axis):
+    def is_subset_of(self, axis: ValueAxis) -> bool:
         """Returns True if the ValueAxis is a subset of axis
 
         We check if all values of this axis are also values of the submitted
@@ -318,7 +321,7 @@ class ValueAxis(Saveable):
 
 
 
-    def is_superset_of(self, axis):
+    def is_superset_of(self, axis: ValueAxis) -> bool:
         """Returns True if the ValueAxis is a superset of axis
 
         We check if all values of this axis are also values of the submitted
@@ -366,7 +369,7 @@ class ValueAxis(Saveable):
 
         return ret
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the ValueAxis object
 
         """

@@ -4,7 +4,7 @@ class NumConf:
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         # Message Passing Parallelization
         self.mpi_acceleration = False
