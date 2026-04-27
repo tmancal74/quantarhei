@@ -1,4 +1,3 @@
-
 import unittest
 
 import numpy
@@ -26,20 +25,17 @@ from quantarhei.qm import (
 
 
 class TestLindblad(unittest.TestCase):
-    """Tests for the LindbladForm class
+    """Tests for the LindbladForm class"""
 
-
-    """
-
-    def setUp(self,verbose=False):
+    def setUp(self, verbose=False):
 
         self.verbose = verbose
 
         #
         # Lindblad projection operators
         #
-        K12 = numpy.array([[0.0, 1.0],[0.0, 0.0]],dtype=REAL)
-        K21 = numpy.array([[0.0, 0.0],[1.0, 0.0]],dtype=REAL)
+        K12 = numpy.array([[0.0, 1.0], [0.0, 0.0]], dtype=REAL)
+        K21 = numpy.array([[0.0, 0.0], [1.0, 0.0]], dtype=REAL)
 
         KK12 = Operator(data=K12)
         KK21 = Operator(data=K21)
@@ -50,40 +46,33 @@ class TestLindblad(unittest.TestCase):
         #
         # Linbdlad rates
         #
-        self.rates = (1.0/100.0, 1.0/200.0)
+        self.rates = (1.0 / 100.0, 1.0 / 200.0)
 
         #
         # System-bath interaction using operators and rates in site basis
         #
-        self.sbi1 = SystemBathInteraction([KK12,KK21],
-                                          rates=self.rates)
-        self.sbi2 = SystemBathInteraction([KK12,KK21],
-                                          rates=self.rates)
+        self.sbi1 = SystemBathInteraction([KK12, KK21], rates=self.rates)
+        self.sbi2 = SystemBathInteraction([KK12, KK21], rates=self.rates)
 
         #
         # Test Hamiltonians
         #
         with energy_units("1/cm"):
-            h1 = [[100.0, 0.0],[0.0, 0.0]]
-            h2 = [[100.0, 0.0],[0.0, 0.0]]
+            h1 = [[100.0, 0.0], [0.0, 0.0]]
+            h2 = [[100.0, 0.0], [0.0, 0.0]]
             self.H1 = Hamiltonian(data=h1)
             self.H2 = Hamiltonian(data=h2)
 
-            h3 = [[100.0, 20.0],[20.0, 0.0]]
+            h3 = [[100.0, 20.0], [20.0, 0.0]]
             self.H3 = Hamiltonian(data=h3)
 
             # less trivial Hamiltonian
-            h4 = [[100.0, 200.0, 30.0  ],
-                  [200.0, 50.0,  -100.0],
-                  [30.0, -100.0,  0.0 ]]
+            h4 = [[100.0, 200.0, 30.0], [200.0, 50.0, -100.0], [30.0, -100.0, 0.0]]
             self.H4 = Hamiltonian(data=h4)
 
-            h4s = [[100.0, 0.0, 0.0  ],
-                  [0.0, 50.0,  0.0],
-                  [0.0, 0.0,  0.0 ]]
+            h4s = [[100.0, 0.0, 0.0], [0.0, 50.0, 0.0], [0.0, 0.0, 0.0]]
 
             self.H4s = Hamiltonian(data=h4s)
-
 
         #
         # Projection operators in eigenstate basis
@@ -105,56 +94,48 @@ class TestLindblad(unittest.TestCase):
         Ks_23 = ProjectionOperator(1, 2, dim=3)
         Ks_32 = ProjectionOperator(2, 1, dim=3)
 
-        self.rates4 = [1.0/100, 1.0/200, 1.0/150, 1.0/300]
+        self.rates4 = [1.0 / 100, 1.0 / 200, 1.0 / 150, 1.0 / 300]
 
         #
         # System-bath operators defined in exciton basis
         #
-        self.sbi3 = SystemBathInteraction([K_12, K_21],
-                                          rates=self.rates)
+        self.sbi3 = SystemBathInteraction([K_12, K_21], rates=self.rates)
 
-        self.sbi4e = SystemBathInteraction([Ke_12, Ke_21, Ke_23, Ke_32],
-                                          rates=self.rates4)
-        self.sbi4s = SystemBathInteraction([Ks_12, Ks_21, Ks_23, Ks_32],
-                                          rates=self.rates4)
-
-
+        self.sbi4e = SystemBathInteraction(
+            [Ke_12, Ke_21, Ke_23, Ke_32], rates=self.rates4
+        )
+        self.sbi4s = SystemBathInteraction(
+            [Ks_12, Ks_21, Ks_23, Ks_32], rates=self.rates4
+        )
 
     def test_comparison_of_rates(self):
-        """Testing that Lindblad tensor and rate matrix are compatible
-
-
-        """
+        """Testing that Lindblad tensor and rate matrix are compatible"""
         tensor = True
-#        matrix = True
+        #        matrix = True
 
         dim = self.H1.dim
-        KT = numpy.zeros((dim,dim), dtype=REAL)
-        KM = numpy.zeros((dim,dim), dtype=REAL)
+        KT = numpy.zeros((dim, dim), dtype=REAL)
+        KM = numpy.zeros((dim, dim), dtype=REAL)
 
         if tensor:
-            #print(self.H1)
+            # print(self.H1)
             LT = LindbladForm(self.H1, self.sbi1, as_operators=False)
 
             for n in range(2):
                 for m in range(2):
-                    #print(n,m,numpy.real(RT.data[n,n,m,m]))
-                    KT[n,m] = numpy.real(LT.data[n,n,m,m])
+                    # print(n,m,numpy.real(RT.data[n,n,m,m]))
+                    KT[n, m] = numpy.real(LT.data[n, n, m, m])
 
-        KM = numpy.zeros((dim,dim))
-        KM[0,0] = -self.rates[1]
-        KM[1,1] = -self.rates[0]
-        KM[0,1] = self.rates[0]
-        KM[1,0] = self.rates[1]
+        KM = numpy.zeros((dim, dim))
+        KM[0, 0] = -self.rates[1]
+        KM[1, 1] = -self.rates[0]
+        KM[0, 1] = self.rates[0]
+        KM[1, 0] = self.rates[1]
 
-
-        numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
-
+        numpy.testing.assert_allclose(KT, KM, rtol=1.0e-2)
 
     def test_comparison_of_dynamics(self):
-        """Testing site basis dynamics by Lindblad
-
-        """
+        """Testing site basis dynamics by Lindblad"""
         LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
         LT2 = LindbladForm(self.H1, self.sbi1, as_operators=False)
 
@@ -164,18 +145,15 @@ class TestLindblad(unittest.TestCase):
         prop2 = ReducedDensityMatrixPropagator(time, self.H1, LT2)
 
         rho0 = ReducedDensityMatrix(dim=self.H1.dim)
-        rho0.data[1,1] = 1.0
+        rho0.data[1, 1] = 1.0
 
         rhot1 = prop1.propagate(rho0)
         rhot2 = prop2.propagate(rho0)
 
-        numpy.testing.assert_allclose(rhot1.data,rhot2.data) #, rtol=1.0e-2)
-
+        numpy.testing.assert_allclose(rhot1.data, rhot2.data)  # , rtol=1.0e-2)
 
     def test_propagation_in_different_basis(self):
-        """(LINDBLAD) Testing comparison of propagations in different bases
-
-        """
+        """(LINDBLAD) Testing comparison of propagations in different bases"""
         LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
         LT2 = LindbladForm(self.H1, self.sbi1, as_operators=False)
 
@@ -185,7 +163,7 @@ class TestLindblad(unittest.TestCase):
         prop2 = ReducedDensityMatrixPropagator(time, self.H1, LT2)
 
         rho0 = ReducedDensityMatrix(dim=self.H1.dim)
-        rho0.data[1,1] = 1.0
+        rho0.data[1, 1] = 1.0
 
         with eigenbasis_of(self.H1):
             rhot1_e = prop1.propagate(rho0)
@@ -198,24 +176,20 @@ class TestLindblad(unittest.TestCase):
 
         numpy.testing.assert_allclose(rhot1_l.data, rhot1_e.data)
         numpy.testing.assert_allclose(rhot2_l.data, rhot2_e.data)
-        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data) #, rtol=1.0e-2)
-
+        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data)  # , rtol=1.0e-2)
 
     def test_transformation_in_different_basis(self):
-        """(LINDBLAD) Testing transformations into different bases
-
-        """
-        #Manager().warn_about_basis_change = True
-        #Manager().warn_about_basis_changing_objects = True
+        """(LINDBLAD) Testing transformations into different bases"""
+        # Manager().warn_about_basis_change = True
+        # Manager().warn_about_basis_changing_objects = True
 
         LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True, name="LT1")
         LT2 = LindbladForm(self.H1, self.sbi1, as_operators=False, name="LT2")
 
         rho0 = ReducedDensityMatrix(dim=self.H1.dim, name="ahoj")
         with eigenbasis_of(self.H1):
-            rho0.data[1,1] = 0.7
-            rho0.data[0,0] = 0.3
-
+            rho0.data[1, 1] = 0.7
+            rho0.data[0, 0] = 0.3
 
         with eigenbasis_of(self.H1):
             rhot1_e = LT1.apply(rho0, copy=True)
@@ -228,14 +202,10 @@ class TestLindblad(unittest.TestCase):
 
         numpy.testing.assert_allclose(rhot1_l.data, rhot1_e.data)
         numpy.testing.assert_allclose(rhot2_l.data, rhot2_e.data)
-        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data) #, rtol=1.0e-2)
-
-
+        numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data)  # , rtol=1.0e-2)
 
     def test_comparison_of_exciton_dynamics(self):
-        """Testing exciton basis dynamics by Lindblad
-
-        """
+        """Testing exciton basis dynamics by Lindblad"""
         # site basis form to be compared with
         LT1 = LindbladForm(self.H1, self.sbi1, as_operators=True)
 
@@ -261,16 +231,16 @@ class TestLindblad(unittest.TestCase):
         # Initial conditions
         #
         rho0 = ReducedDensityMatrix(dim=self.H3.dim)
-        rho0c = ReducedDensityMatrix(dim=self.H1.dim) # excitonic
+        rho0c = ReducedDensityMatrix(dim=self.H1.dim)  # excitonic
         with eigenbasis_of(self.H3):
-            rho0c.data[1,1] = 1.0
-        rho0.data[1,1] = 1.0
+            rho0c.data[1, 1] = 1.0
+        rho0.data[1, 1] = 1.0
 
         rho04e = ReducedDensityMatrix(dim=self.H4.dim)
         rho04s = ReducedDensityMatrix(dim=self.H4.dim)
         with eigenbasis_of(self.H4):
-            rho04e.data[2,2] = 1.0
-        rho04s.data[2,2] = 1.0
+            rho04e.data[2, 2] = 1.0
+        rho04s.data[2, 2] = 1.0
 
         #
         # Propagations
@@ -283,7 +253,7 @@ class TestLindblad(unittest.TestCase):
         rhot4s = prop4s.propagate(rho04s)
 
         # propagation with operator- and tensor forms should be the same
-        numpy.testing.assert_allclose(rhot1.data,rhot2.data) #, rtol=1.0e-2)
+        numpy.testing.assert_allclose(rhot1.data, rhot2.data)  # , rtol=1.0e-2)
 
         #
         # Population time evolution by Lindblad is independent
@@ -299,55 +269,50 @@ class TestLindblad(unittest.TestCase):
 
         with eigenbasis_of(self.H3):
             for i in range(time.length):
-                P[0,i] = numpy.real(rhot1.data[i,0,0])  # population of exciton 0
-                P[1,i] = numpy.real(rhot1.data[i,1,1])  # population of exciton 1
-
+                P[0, i] = numpy.real(rhot1.data[i, 0, 0])  # population of exciton 0
+                P[1, i] = numpy.real(rhot1.data[i, 1, 1])  # population of exciton 1
 
         for i in range(time.length):
-            Pc[0,i] = numpy.real(rhotc.data[i,0,0])  # population of exciton 0
-            Pc[1,i] = numpy.real(rhotc.data[i,1,1])  # population of exciton 1
+            Pc[0, i] = numpy.real(rhotc.data[i, 0, 0])  # population of exciton 0
+            Pc[1, i] = numpy.real(rhotc.data[i, 1, 1])  # population of exciton 1
 
         # we compare populations
-        numpy.testing.assert_allclose(Pc,P) #, rtol=1.0e-2)
+        numpy.testing.assert_allclose(Pc, P)  # , rtol=1.0e-2)
 
         with eigenbasis_of(self.H4):
             for i in range(time.length):
-                P4e[0,i] = numpy.real(rhot4e.data[i,0,0])  # population of exciton 0
-                P4e[1,i] = numpy.real(rhot4e.data[i,1,1])  # population of exciton 1
-                P4e[2,i] = numpy.real(rhot4e.data[i,2,2])  # population of exciton 1
+                P4e[0, i] = numpy.real(rhot4e.data[i, 0, 0])  # population of exciton 0
+                P4e[1, i] = numpy.real(rhot4e.data[i, 1, 1])  # population of exciton 1
+                P4e[2, i] = numpy.real(rhot4e.data[i, 2, 2])  # population of exciton 1
 
         for i in range(time.length):
-            P4s[0,i] = numpy.real(rhot4s.data[i,0,0])  # population of exciton 0
-            P4s[1,i] = numpy.real(rhot4s.data[i,1,1])  # population of exciton 1
-            P4s[2,i] = numpy.real(rhot4s.data[i,2,2])  # population of exciton 1
+            P4s[0, i] = numpy.real(rhot4s.data[i, 0, 0])  # population of exciton 0
+            P4s[1, i] = numpy.real(rhot4s.data[i, 1, 1])  # population of exciton 1
+            P4s[2, i] = numpy.real(rhot4s.data[i, 2, 2])  # population of exciton 1
 
-
-#        import matplotlib.pyplot as plt
+        #        import matplotlib.pyplot as plt
         #
-#        plt.plot(time.data,P4s[0,:], "-r")
-#        plt.plot(time.data,P4s[1,:], "-r")
-#        plt.plot(time.data,P4s[2,:], "-r")
-#        plt.plot(time.data,P4e[0,:], "-g")
-#        plt.plot(time.data,P4e[1,:], "-g")
-#        plt.plot(time.data,P4e[2,:], "-g")
+        #        plt.plot(time.data,P4s[0,:], "-r")
+        #        plt.plot(time.data,P4s[1,:], "-r")
+        #        plt.plot(time.data,P4s[2,:], "-r")
+        #        plt.plot(time.data,P4e[0,:], "-g")
+        #        plt.plot(time.data,P4e[1,:], "-g")
+        #        plt.plot(time.data,P4e[2,:], "-g")
 
-#        plt.show()
+        #        plt.show()
 
         numpy.testing.assert_allclose(P4e, P4s, atol=1.0e-8)
 
 
-
 from quantarhei import Aggregate, Mode, Molecule
 
-#from quantarhei.qm import ProjectionOperator
+# from quantarhei.qm import ProjectionOperator
+
 
 class TestElectronicLindblad(unittest.TestCase):
-    """Tests for the ElectronicLindbladForm class
+    """Tests for the ElectronicLindbladForm class"""
 
-
-    """
-
-    def setUp(self,verbose=False):
+    def setUp(self, verbose=False):
 
         self.verbose = verbose
 
@@ -360,7 +325,7 @@ class TestElectronicLindblad(unittest.TestCase):
 
         agg = Aggregate(molecules=[m1, m2])
 
-        agg.set_resonance_coupling(0,1, 0.1)
+        agg.set_resonance_coupling(0, 1, 0.1)
 
         agg.build()
 
@@ -369,10 +334,9 @@ class TestElectronicLindblad(unittest.TestCase):
         KK12 = ProjectionOperator(1, 2, dim=self.ham.dim)
         KK21 = ProjectionOperator(2, 1, dim=self.ham.dim)
 
-        self.rates = (1.0/100.0, 1.0/200.0)
+        self.rates = (1.0 / 100.0, 1.0 / 200.0)
 
-        self.sbi = SystemBathInteraction([KK12,KK21],
-                                          rates=self.rates)
+        self.sbi = SystemBathInteraction([KK12, KK21], rates=self.rates)
         self.sbi.set_system(agg)
 
         #
@@ -402,7 +366,6 @@ class TestElectronicLindblad(unittest.TestCase):
         self.vsbi = SystemBathInteraction([KK12, KK21], rates=self.rates)
         self.vsbi.set_system(vagg)
 
-
     def test_comparison_of_rates_in_electronic(self):
         """Testing that ElectronicLindblad and rate matrix are compatible
 
@@ -411,43 +374,37 @@ class TestElectronicLindblad(unittest.TestCase):
 
         """
         dim = self.ham.dim
-        KT = numpy.zeros((dim,dim), dtype=REAL)
-        KM = numpy.zeros((dim,dim), dtype=REAL)
+        KT = numpy.zeros((dim, dim), dtype=REAL)
+        KM = numpy.zeros((dim, dim), dtype=REAL)
 
         LT = ElectronicLindbladForm(self.ham, self.sbi, as_operators=False)
 
         for n in range(dim):
             for m in range(dim):
-                KT[n,m] = numpy.real(LT.data[n,n,m,m])
+                KT[n, m] = numpy.real(LT.data[n, n, m, m])
 
-        KM = numpy.zeros((dim,dim))
-        KM[1,1] = -self.rates[1]
-        KM[2,2] = -self.rates[0]
-        KM[1,2] = self.rates[0]
-        KM[2,1] = self.rates[1]
+        KM = numpy.zeros((dim, dim))
+        KM[1, 1] = -self.rates[1]
+        KM[2, 2] = -self.rates[0]
+        KM[1, 2] = self.rates[0]
+        KM[2, 1] = self.rates[1]
 
-        #print("KT = ", KT)
-        #print("KM = ", KM)
-        #print("LT = ", LT.data)
+        # print("KT = ", KT)
+        # print("KM = ", KM)
+        # print("LT = ", LT.data)
 
-        numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
-
+        numpy.testing.assert_allclose(KT, KM, rtol=1.0e-2)
 
     def test_construction_electronic_lindblad(self):
-        """Testing construction of electronic Lindblad form for vibronic system
-
-        """
+        """Testing construction of electronic Lindblad form for vibronic system"""
         LT = ElectronicLindbladForm(self.vham, self.vsbi, as_operators=False)
 
         dim = self.vham.dim
         zer = numpy.zeros((dim, dim, dim, dim), dtype=REAL)
-        numpy.testing.assert_array_equal(LT._data-LT._data, zer)
-
+        numpy.testing.assert_array_equal(LT._data - LT._data, zer)
 
     def test_comparison_with_and_without_vib(self):
-        """Testing ElectronicLindbladForm in propagation
-
-        """
+        """Testing ElectronicLindbladForm in propagation"""
         # Lindblad forms
         LT = ElectronicLindbladForm(self.ham, self.sbi, as_operators=False)
         vLT = ElectronicLindbladForm(self.vham, self.vsbi, as_operators=False)
@@ -459,7 +416,7 @@ class TestElectronicLindblad(unittest.TestCase):
 
         # electronic initial condition
         rho0 = ReducedDensityMatrix(dim=self.ham.dim)
-        rho0.data[2,2] = 1.0
+        rho0.data[2, 2] = 1.0
 
         # vibronic intial condition
         vrho0 = ReducedDensityMatrix(dim=self.vham.dim)
@@ -477,13 +434,11 @@ class TestElectronicLindblad(unittest.TestCase):
         aver_vrhot0 = agg.trace_over_vibrations(vrho0)
 
         # Test
-        numpy.testing.assert_allclose(rhot._data[0,:,:], rho0._data)
-        numpy.testing.assert_allclose(rhot._data[0,:,:], aver_vrhot0._data)
+        numpy.testing.assert_allclose(rhot._data[0, :, :], rho0._data)
+        numpy.testing.assert_allclose(rhot._data[0, :, :], aver_vrhot0._data)
 
         aver_vrhot10 = agg.trace_over_vibrations(vrhot, 10)
-        numpy.testing.assert_allclose(rhot._data[10,:,:],
-                                         aver_vrhot10._data)
+        numpy.testing.assert_allclose(rhot._data[10, :, :], aver_vrhot10._data)
 
         aver_vrhot800 = agg.trace_over_vibrations(vrhot, 800)
-        numpy.testing.assert_allclose(rhot._data[800,:,:],
-                                         aver_vrhot800._data)
+        numpy.testing.assert_allclose(rhot._data[800, :, :], aver_vrhot800._data)

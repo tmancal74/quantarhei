@@ -1,4 +1,3 @@
-
 import unittest
 
 """
@@ -17,29 +16,20 @@ from quantarhei.qm.liouvillespace.systembathinteraction_test import (
 
 
 class SBITest(unittest.TestCase):
-    """Tests for the SystemBathInteraction class
+    """Tests for the SystemBathInteraction class"""
 
-
-    """
-
-    def setUp(self,verbose=False):
+    def setUp(self, verbose=False):
 
         self.verbose = verbose
 
-
     def test_system_bath_interaction_creation(self):
-        """(SystemBathInteraction) Testing creation
-
-        """
+        """(SystemBathInteraction) Testing creation"""
         sbi = TestSystemBathInteraction(name="dimer-2-env")
 
         self.assertEqual(sbi.sbitype, "Linear_Coupling")
 
-
     def test_get_temperature_and_has_temperature(self):
-        """(SystemBathInteraction) Testing has_temperature() and get_temperature()
-
-        """
+        """(SystemBathInteraction) Testing has_temperature() and get_temperature()"""
         sbi = TestSystemBathInteraction(name="dimer-2-env")
 
         self.assertTrue(sbi.has_temperature())
@@ -47,9 +37,5 @@ class SBITest(unittest.TestCase):
         T = sbi.get_temperature()
         self.assertAlmostEqual(300.0, T)
 
-
         sbi = TestSystemBathInteraction(name="dimer-2-lind")
         self.assertFalse(sbi.has_temperature())
-
-
-

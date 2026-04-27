@@ -13,10 +13,7 @@ from quantarhei.core.wrappers import (
 
 
 class TestWrappers(unittest.TestCase):
-    """Test for function wrappers
-
-
-    """
+    """Test for function wrappers"""
 
     def test_eigenbasis_of_prevention(self):
         """(Wrappers) Testing eigenbasis_of context prevention"""
@@ -29,15 +26,13 @@ class TestWrappers(unittest.TestCase):
 
         self.assertEqual(func("Ciao"), "Ahoj")
 
-        HH = Hamiltonian(data=[[0.0, 0.0],[0.0, 1.0]])
+        HH = Hamiltonian(data=[[0.0, 0.0], [0.0, 1.0]])
 
         with self.assertRaises(Exception) as context:
             with eigenbasis_of(HH):
                 func("Ham")
 
-        self.assertTrue("This function MUST NOT be called "
-                        in str(context.exception))
-
+        self.assertTrue("This function MUST NOT be called " in str(context.exception))
 
     def test_eigenbasis_of_enforcement(self):
         """(Wrappers) Testing eigenbasis_of context enforcement"""
@@ -48,8 +43,7 @@ class TestWrappers(unittest.TestCase):
         def func(text):
             return "Ahoj"
 
-
-        HH = Hamiltonian(data=[[0.0, 0.0],[0.0, 1.0]])
+        HH = Hamiltonian(data=[[0.0, 0.0], [0.0, 1.0]])
 
         with eigenbasis_of(HH):
             self.assertEqual(func("Ciao"), "Ahoj")
@@ -57,9 +51,7 @@ class TestWrappers(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             func("Ham")
 
-        self.assertTrue("This function MUST be called "
-                        in str(context.exception))
-
+        self.assertTrue("This function MUST be called " in str(context.exception))
 
     def test_units_context_prevention(self):
         """(Wrappers) Testing energy_units context prevention"""
@@ -76,8 +68,7 @@ class TestWrappers(unittest.TestCase):
             with energy_units("1/cm"):
                 func("Ham")
 
-        self.assertTrue("This function MUST NOT be called "
-                        in str(context.exception))
+        self.assertTrue("This function MUST NOT be called " in str(context.exception))
 
     def test_units_context_enforcement(self):
         """(Wrappers) Testing energy_units context enforcement"""
@@ -94,29 +85,20 @@ class TestWrappers(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             func("Ham")
 
-        self.assertTrue("This function MUST be called "
-                        in str(context.exception))
-
+        self.assertTrue("This function MUST be called " in str(context.exception))
 
     def test_units_enforcement_corrfce(self):
-        """(Wrappers) Testing enforcement of units in CorrelationFunction
-
-        """
-        params = dict(ftype="OverdampedBrownian",
-                       reorg = 30.0,
-                       cortime = 100.0,
-                       T = 300.0)
+        """(Wrappers) Testing enforcement of units in CorrelationFunction"""
+        params = dict(ftype="OverdampedBrownian", reorg=30.0, cortime=100.0, T=300.0)
 
         time = TimeAxis(0.0, 1000, 1.0)
 
         with self.assertRaises(Exception) as context:
             cf = CorrelationFunction(time, params)
 
-        self.assertTrue("This function MUST be called "
-                        in str(context.exception))
+        self.assertTrue("This function MUST be called " in str(context.exception))
 
         with energy_units("1/cm"):
             cf = CorrelationFunction(time, params)
 
         self.assertTrue(numpy.abs(cf.at(100.0)) > 0.0)
-

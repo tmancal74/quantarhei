@@ -24,13 +24,9 @@ TEST_DIR = Path(__file__).parent
 
 
 class TestTwod(unittest.TestCase):
-    """Tests for the twod package
+    """Tests for the twod package"""
 
-
-    """
-
-    def setUp(self,verbose=False):
-
+    def setUp(self, verbose=False):
 
         #######################################################################
         #
@@ -44,28 +40,25 @@ class TestTwod(unittest.TestCase):
         E0 = 12000.0
         E1 = E0 + 100.0
 
-
         self.E0 = E0
         self.E1 = E1
-
 
         with qr.energy_units("1/cm"):
             m1 = qr.Molecule([0.0, E0])
             m2 = qr.Molecule([0.0, E1])
 
-            m1.set_dipole(0,1,[2.0, 0.0, 0.0])
-            m2.set_dipole(0,1,[0.5, 0.5, 0.0])
+            m1.set_dipole(0, 1, [2.0, 0.0, 0.0])
+            m2.set_dipole(0, 1, [0.5, 0.5, 0.0])
 
             m1.position = [0.0, 0.0, 0.0]
             m2.position = [0.0, 0.0, 2.0]
-
 
         agg = qr.Aggregate(molecules=[m1, m2])
         agg.set_coupling_by_dipole_dipole()
 
         with qr.energy_units("1/cm"):
-            m1.set_transition_width((0,1), 200)
-            m2.set_transition_width((0,1), 200)
+            m1.set_transition_width((0, 1), 200)
+            m2.set_transition_width((0, 1), 200)
 
         self.agg2D = agg.deepcopy()
 
@@ -73,23 +66,16 @@ class TestTwod(unittest.TestCase):
 
         self.H = agg.get_Hamiltonian()
 
-        gammas = [1.0/200.0]
+        gammas = [1.0 / 200.0]
         with qr.eigenbasis_of(self.H):
-
             K = qr.qm.ProjectionOperator(1, 2, dim=self.H.dim)
 
-        sbi = qr.qm.SystemBathInteraction(sys_operators=[K], rates=gammas,
-                                          system=agg)
+        sbi = qr.qm.SystemBathInteraction(sys_operators=[K], rates=gammas, system=agg)
 
         self.LL = qr.qm.LindbladForm(self.H, sbi)
 
-
-
-
     def test_MockTwoD(self):
-        """Testing calculation with artificial lineshapes
-
-        """
+        """Testing calculation with artificial lineshapes"""
         agg2D = self.agg2D
         H = self.H
         LL = self.LL
@@ -103,15 +89,17 @@ class TestTwod(unittest.TestCase):
         eUt.calculate()
 
         msc = qr.MockTwoDResponseCalculator(t1axis, t2axis, t3axis)
-        msc.bootstrap(rwa=qr.convert((self.E0+self.E1)/2.0,"1/cm","int"),
-                      shape="Gaussian")
+        msc.bootstrap(
+            rwa=qr.convert((self.E0 + self.E1) / 2.0, "1/cm", "int"), shape="Gaussian"
+        )
 
         agg2D.build(mult=2)
         agg2D.diagonalize()
 
         lab = qr.LabSetup()
-        lab.set_pulse_polarizations(pulse_polarizations=[X,X,X],
-                              detection_polarization=X)
+        lab.set_pulse_polarizations(
+            pulse_polarizations=[X, X, X], detection_polarization=X
+        )
 
         #
         # Calculation one by one
@@ -135,7 +123,6 @@ class TestTwod(unittest.TestCase):
         save_data = False
         if save_data:
             sp.save_data(file_path_1)
-
 
         #
         # Here we load spectrum for comparison
@@ -166,8 +153,6 @@ class TestTwod(unittest.TestCase):
         npt.assert_allclose(sp800.data, sp.data)
         npt.assert_allclose(sp800.data, sp2.data)
 
-
-
         """
         with qr.energy_units("1/cm"):
             sp2.plot(show=True)
@@ -195,9 +180,7 @@ class TestTwod(unittest.TestCase):
         """
 
     def test_TwoDSpectrumBase(self):
-        """Testing basic functions of the TwoDSpectrumBase class
-
-        """
+        """Testing basic functions of the TwoDSpectrumBase class"""
         t1 = qr.TimeAxis(0.0, 1000, 1.0)
         t3 = qr.TimeAxis(0.0, 1000, 1.0)
 
@@ -207,13 +190,13 @@ class TestTwod(unittest.TestCase):
         data1 = numpy.zeros((t1.length, t3.length), dtype=qr.COMPLEX)
         data2 = numpy.zeros((t1.length, t3.length), dtype=qr.COMPLEX)
 
-        data1[:,:] = 1.1
+        data1[:, :] = 1.1
 
         twodB._add_data(data1, resolution="off", dtype=qr.signal_TOTL)
 
         numpy.testing.assert_equal(twodB.data, data1)
 
-        data2[:,:] = 2.2
+        data2[:, :] = 2.2
 
         with assert_raises(Exception):
             twodB.data = data2
@@ -224,10 +207,9 @@ class TestTwod(unittest.TestCase):
         numpy.testing.assert_equal(twodB.data, data2)
 
         with tempfile.TemporaryDirectory() as tdir:
-
             names = ["data.mat", "data.npy"]
             for name in names:
-                fname = os.path.join(tdir,name)
+                fname = os.path.join(tdir, name)
                 twodB.save_data(fname)
 
                 twodB2 = TwoDSpectrumBase()
@@ -238,18 +220,11 @@ class TestTwod(unittest.TestCase):
 
                 numpy.testing.assert_equal(twodB.data, twodB2.data)
 
-
-
     def test_TwoDResponseCalculator(self):
-        """Testing basic functions of the TwoDSpectrumCalculator class
-
-        """
+        """Testing basic functions of the TwoDSpectrumCalculator class"""
         t1 = qr.TimeAxis(0.0, 1000, 1.0)
         t3 = qr.TimeAxis(0.0, 1000, 1.0)
 
         t2 = qr.TimeAxis(30, 10, 10.0)
 
         twod_calc = qr.TwoDResponseCalculator(t1, t2, t3)
-
-
-
