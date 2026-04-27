@@ -56,7 +56,7 @@ def run() -> tuple[Any, Any, Any]:
             cov[iTmax + it1, it2] = np.imag(val[itau])
             cov[it1, iTmax + it2] = np.imag(val[itau])
             cov[iTmax + it1, iTmax + it2] = np.real(val[itau])
-    cov = cov / 2.0
+    cov /= 2.0
 
     t2 = time.time()
 
@@ -92,7 +92,7 @@ def run() -> tuple[Any, Any, Any]:
         for it in range(1, iTmax):
             rhoeg[it] = np.exp(-1j * np.real(zi[it - 1, k]) * dt) * rhoeg[it - 1]
         rhoav += rhoeg
-    rhoav = rhoav / (Nreal)
+    rhoav /= (Nreal)
 
     plt.plot(tt, np.real(ct))
     plt.plot(tt, np.real(cor(l11, g11, a, b, tt)))

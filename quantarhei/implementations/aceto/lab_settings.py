@@ -22,7 +22,7 @@ class lab_settings:
             [[4.0, -1.0, -1.0], [-1.0, 4.0, -1.0], [-1.0, -1.0, 4.0]],
             dtype=numpy.float64,
         )
-        M4 = M4 / 30.0
+        M4 /= 30.0
         F4 = numpy.zeros(3)
         F4[0] = numpy.dot(e4, e3) * numpy.dot(e2, e1)
         F4[1] = numpy.dot(e4, e2) * numpy.dot(e3, e1)
