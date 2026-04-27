@@ -11,6 +11,7 @@ and after the simulation is done it is returned back with the suffix .out.
 
 
 """
+from __future__ import annotations
 
 import argparse
 import sys
@@ -18,7 +19,7 @@ import sys
 import quantarhei as qr
 
 
-def do_launch():
+def do_launch() -> None:
 
 
     # check for default configuration file: qlaunch.conf
@@ -27,7 +28,7 @@ def do_launch():
     pass
 
 
-def main():
+def main() -> None:
 
     parser = argparse.ArgumentParser(
             description='Quantarhei Remote Launcher')

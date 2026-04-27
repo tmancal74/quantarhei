@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 from ...builders.aggregates import Aggregate
 from .simulation import Simulation
@@ -9,7 +10,7 @@ class ExcitonDynamics(Simulation):
 
     """
 
-    def _build(self):
+    def _build(self) -> None:
         """Here we prepare objects for the simulation
 
         """
@@ -65,7 +66,7 @@ class ExcitonDynamics(Simulation):
 
 
 
-    def _implementation(self):
+    def _implementation(self) -> None:
         """Here the main simulation tasks are performed
 
         """

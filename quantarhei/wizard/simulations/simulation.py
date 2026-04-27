@@ -1,5 +1,7 @@
+from __future__ import annotations
 
 import datetime
+from typing import Any
 
 from ...core.managers import Manager
 from ...core.saveable import Saveable
@@ -15,7 +17,7 @@ class Simulation(Saveable):
     WARNING = 5
     ERROR   = 1
 
-    def __init__(self, loglevel=0):
+    def __init__(self, loglevel: int = 0) -> None:
         self._loglevel = loglevel
         self._indent_width = 4
         self._set_indent_string()
@@ -25,10 +27,10 @@ class Simulation(Saveable):
         self._indent = ""
         self._starline = "\n************************************************\n"
 
-    def setup(self):
+    def setup(self) -> None:
         pass
 
-    def run(self):
+    def run(self) -> None:
 
         # greeting
         self._open_logfile()
@@ -71,15 +73,15 @@ class Simulation(Saveable):
         self._close_logfile()
 
 
-    def _open_logfile(self):
+    def _open_logfile(self) -> None:
         pass
 
 
-    def _close_logfile(self):
+    def _close_logfile(self) -> None:
         pass
 
 
-    def _get_timestamp(self, filename=False):
+    def _get_timestamp(self, filename: bool = False) -> str:
         """Returns current time stemp
 
         """
@@ -88,7 +90,7 @@ class Simulation(Saveable):
         return f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
 
 
-    def _print_greetings(self):
+    def _print_greetings(self) -> None:
         """Prints opening greeting of the simulation
 
         """
@@ -103,7 +105,7 @@ class Simulation(Saveable):
         self._printlog(grstring, loglevel=0)
 
 
-    def _print_goodbye(self):
+    def _print_goodbye(self) -> None:
         """Prints the last message before leaving
 
         """
@@ -116,7 +118,7 @@ class Simulation(Saveable):
         self._printlog(grstring, loglevel=0)
 
 
-    def _printlog(self, *args, loglevel=0):
+    def _printlog(self, *args: Any, loglevel: int = 0) -> None:
         """Logs output on screen and into a file
 
         """
@@ -130,7 +132,7 @@ class Simulation(Saveable):
                 print(self._indent, args, file=self._file)
 
 
-    def _set_indent_string(self, indent_character=" "):
+    def _set_indent_string(self, indent_character: str = " ") -> None:
         """Sets the form of indent
 
         """
@@ -139,7 +141,7 @@ class Simulation(Saveable):
             self._indent_string += indent_character
 
 
-    def _set_indent_level(self, level):
+    def _set_indent_level(self, level: int) -> None:
         """Sets the indent level and creates the indent
 
         """
@@ -148,31 +150,31 @@ class Simulation(Saveable):
         for i in range(self._indent_level):
             self._indent += self._indent_string
 
-    def _incr_indent_level(self):
+    def _incr_indent_level(self) -> None:
         self._set_indent_level(self._indent_level + 1)
 
-    def _decr_indent_level(self):
+    def _decr_indent_level(self) -> None:
         self._set_indent_level(self._indent_level - 1)
 
 
-    def _evaluate_setup(self):
+    def _evaluate_setup(self) -> None:
 
         self.setup()
 
 
-    def _build(self):
+    def _build(self) -> None:
         pass
 
 
-    def _implementation(self):
+    def _implementation(self) -> None:
         pass
 
 
     # Print iterations progress
-    def _printProgressBar(self, iteration, total,
-                          prefix = '', suffix = '',
-                          decimals = 1, length = 100,
-                          fill='*'):
+    def _printProgressBar(self, iteration: int, total: int,
+                          prefix: str = '', suffix: str = '',
+                          decimals: int = 1, length: int = 100,
+                          fill: str = '*') -> None:
         """Call in a loop to create terminal progress bar
         @params:
             iteration   - Required  : current iteration (Int)

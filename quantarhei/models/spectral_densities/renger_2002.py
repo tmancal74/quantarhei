@@ -1,4 +1,8 @@
 
+from __future__ import annotations
+
+from typing import Any
+
 from quantarhei import SpectralDensity, energy_units
 from quantarhei.models.spectdens import SpectralDensityDatabaseEntry
 
@@ -14,13 +18,13 @@ class renger_2002a(SpectralDensityDatabaseEntry):
     spectra" Journal of Chemical Physics, 2002, 116, 9997-10017
 
     """
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.identificator = "Renger_JCP_2002"
         self.alt_ident = ["Renger", "Renger2002"]
 
 
-    def get_SpectralDensity(self, axis):
+    def get_SpectralDensity(self, axis: Any) -> Any:
 
         # Calling the spec dens calculated from b777 in rengers paper
         # alternative_form gives the polynomial version of the same spec dens

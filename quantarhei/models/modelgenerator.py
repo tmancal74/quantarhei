@@ -2,6 +2,8 @@
 
 
 """
+from __future__ import annotations
+
 import numpy
 
 from ..builders.aggregates import Aggregate
@@ -13,12 +15,12 @@ from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 
 class ModelGenerator:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = ""
-        self.molecules = []
+        self.molecules: list[Molecule] = []
 
 
-    def get_Aggregate(self, name="dimer-1"):
+    def get_Aggregate(self, name: str = "dimer-1") -> Aggregate:
 
         if name == "dimer-1":
             agg = Aggregate(name=name)
@@ -114,8 +116,8 @@ class ModelGenerator:
         return agg
 
 
-    def get_Aggregate_with_environment(self, name="dimer-1_env",
-                                       timeaxis=None):
+    def get_Aggregate_with_environment(self, name: str = "dimer-1_env",
+                                       timeaxis: TimeAxis | None = None) -> Aggregate:
 
 
         if name == "dimer-1_env":

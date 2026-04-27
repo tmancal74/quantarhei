@@ -2,8 +2,11 @@
 
 
 """
+from __future__ import annotations
+
 import numbers
 from functools import partial
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy
@@ -56,7 +59,7 @@ _total = signal_TOTL
 _resolutions = ["off", "signals", "processes", "types", "pathways"]
 
 
-def _resolution2number(res):
+def _resolution2number(res: str) -> int:
     """Converts resolution string to number
 
     Parameters
@@ -94,7 +97,7 @@ def _resolution2number(res):
     raise Exception("Unknow resolution level in TwoDSpectrum")
 
 
-def _get_type_and_tag(obj, storage):
+def _get_type_and_tag(obj: Any, storage: dict) -> dict:
 
     if obj.current_dtype not in _ptypes:
         # check the current_type attribute
@@ -115,7 +118,7 @@ def _get_type_and_tag(obj, storage):
     return piece
 
 
-def _pathways_to_processes(obj, process):
+def _pathways_to_processes(obj: Any, process: str) -> numpy.ndarray | None:
 
     if obj.storage_initialized:
         data = numpy.zeros((obj.xaxis.length,
@@ -144,7 +147,7 @@ def _pathways_to_processes(obj, process):
     return data
 
 
-def _pathways_to_signals(obj, signal):
+def _pathways_to_signals(obj: Any, signal: str) -> numpy.ndarray | None:
 
     if obj.storage_initialized:
         data = numpy.zeros((obj.xaxis.length,
@@ -173,7 +176,7 @@ def _pathways_to_signals(obj, signal):
     return data
 
 
-def _pathways_to_total(obj):
+def _pathways_to_total(obj: Any) -> numpy.ndarray | None:
 
     if obj.storage_initialized:
         data = numpy.zeros((obj.xaxis.length,
@@ -189,7 +192,7 @@ def _pathways_to_total(obj):
     return data
 
 
-def _types_to_processes(obj, process):
+def _types_to_processes(obj: Any, process: str) -> numpy.ndarray | None:
     """Sums pathways of different types into a specified process spectrum
 
 
@@ -222,7 +225,7 @@ def _types_to_processes(obj, process):
     return data
 
 
-def _types_to_signals(obj, signal):
+def _types_to_signals(obj: Any, signal: str) -> numpy.ndarray | None:
     """Sums pathways of different types into a specified signal spectrum
 
 
@@ -255,7 +258,7 @@ def _types_to_signals(obj, signal):
     return data
 
 
-def _signals_to_total(obj):
+def _signals_to_total(obj: Any) -> numpy.ndarray | None:
     """Sums spectra corresponding to different signals into the total spectrum
 
 
@@ -279,7 +282,7 @@ def _signals_to_total(obj):
     return data
 
 
-def _processes_to_total(obj):
+def _processes_to_total(obj: Any) -> numpy.ndarray | None:
     """Sums spectra corresponding to different processes into the total spectrum
 
 
@@ -303,7 +306,7 @@ def _processes_to_total(obj):
     return data
 
 
-def _types_to_total(obj):
+def _types_to_total(obj: Any) -> numpy.ndarray | None:
     """Sums all pathways into the total spectrum
 
 
@@ -324,7 +327,7 @@ def _types_to_total(obj):
     return data
 
 
-def twodspectrum_dictionary(name, dtype):
+def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
     """Defines operations of setting and retrieving (getting) data
 
     Operations on the storage of two-dimensional spectral data
@@ -334,7 +337,7 @@ def twodspectrum_dictionary(name, dtype):
     storage_name = '_'+name
 
     @property
-    def prop(self):
+    def prop(self) -> Any:
 
         storage = getattr(self, storage_name)
 
@@ -506,7 +509,7 @@ def twodspectrum_dictionary(name, dtype):
 
 
     @prop.setter
-    def prop(self, value):
+    def prop(self, value: Any) -> None:
 
         ini = self.storage_initialized
         if not ini:
@@ -603,18 +606,18 @@ TwoDSpectrumDataArray = partial(twodspectrum_dictionary,
                                 dtype=numbers.Complex)
 
 
-def twod_data_wrapper(dtype):
+def twod_data_wrapper(dtype: Any) -> Any:
     """Handles access to the d__data property of TwoDSpectrum
 
     """
     storage_name = "d__data"
 
     @property
-    def prop(self):
+    def prop(self) -> Any:
         return getattr(self,storage_name)
 
     @prop.setter
-    def prop(self, value):
+    def prop(self, value: Any) -> None:
         if self._allow_data_writing:
             try:
                 vl = check_numpy_array(value)
@@ -659,7 +662,7 @@ class TwoDSpectrumBase(DataSaveable):
 
     _allow_data_writing = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         self.xaxis = None
@@ -686,7 +689,7 @@ class TwoDSpectrumBase(DataSaveable):
         self.address_length = 1
 
 
-    def set_data_writable(self):
+    def set_data_writable(self) -> None:
         """Lifts the protection of the data property
 
         """
@@ -695,20 +698,20 @@ class TwoDSpectrumBase(DataSaveable):
 
         self._allow_data_writing = True
 
-    def set_data_protected(self):
+    def set_data_protected(self) -> None:
         """Sets back the protection of the data property
 
         """
         self._allow_data_writing = False
 
-    def set_axis_1(self, axis):
+    def set_axis_1(self, axis: Any) -> None:
         """Sets the x-axis of te spectrum (omega_1 axis)
 
         """
         self.xaxis = axis
 
 
-    def set_axis_3(self, axis):
+    def set_axis_3(self, axis: Any) -> None:
         """Sets the y-axis of te spectrum (omega_3 axis)
 
         """
@@ -720,7 +723,7 @@ class TwoDSpectrumBase(DataSaveable):
 
 
     # FIXME: to be deprecated
-    def set_data_type(self, dtype=signal_TOTL): #"Tot"):
+    def set_data_type(self, dtype: str = signal_TOTL) -> None: #"Tot"):
         """Sets the data type for this 2D spectrum
 
         Parameters
@@ -734,7 +737,7 @@ class TwoDSpectrumBase(DataSaveable):
             raise Exception("Unknown data type for TwoDSpectrum object")
 
     # FIXME: to be replaced
-    def set_data(self, data, dtype=signal_TOTL): #"Tot"):
+    def set_data(self, data: numpy.ndarray, dtype: str = signal_TOTL) -> None: #"Tot"):
         """Sets the data of the 2D spectrum
 
         Sets the object data depending on the specified type and stores the
@@ -774,7 +777,7 @@ class TwoDSpectrumBase(DataSaveable):
             raise Exception("Unknow type of data: "+dtype)
 
     # FIMXE: to be relaced
-    def add_data(self, data, dtype=signal_TOTL): #"Tot"):
+    def add_data(self, data: numpy.ndarray, dtype: str = signal_TOTL) -> None: #"Tot"):
 
         if dtype is None:
             if dtype in self.dtypes:
@@ -804,7 +807,7 @@ class TwoDSpectrumBase(DataSaveable):
             raise Exception("Unknow type of data: "+dtype)
 
 
-    def set_data_flag(self, flag):
+    def set_data_flag(self, flag: str | list) -> None:
         """Sets a flag by which date will be retrieved and save to `data`
         attribute
 
@@ -824,7 +827,7 @@ class TwoDSpectrumBase(DataSaveable):
             self.address_length = 1
 
 
-    def get_all_tags(self):
+    def get_all_tags(self) -> list:
         """Retunrs tags of the pathways stored under `pathways` resolution
 
         The tags are returned in a two membered list with its type, i.e.
@@ -848,7 +851,7 @@ class TwoDSpectrumBase(DataSaveable):
 
 
     # FIXME: maybe set_storage_resolution ?
-    def set_resolution(self, resolution):
+    def set_resolution(self, resolution: str) -> None:
         """Sets the storage resolution attribute of TwoDSpectrum
 
 
@@ -933,14 +936,14 @@ class TwoDSpectrumBase(DataSaveable):
 
 
     # FIXME: maybe get_storage_resolution
-    def get_resolution(self):
+    def get_resolution(self) -> str:
         """Returns storage resolution
 
         """
         return self.storage_resolution
 
 
-    def _convert_resolution(self, old, new):
+    def _convert_resolution(self, old: int, new: int) -> None:
         """Converts storage from one level of resolution to another
 
         """
@@ -965,7 +968,7 @@ class TwoDSpectrumBase(DataSaveable):
                 start = end
 
 
-    def _convert_res_elementary(self, old, new):
+    def _convert_res_elementary(self, old: int, new: int) -> None:
         """Performs simple storage conversions involving only one step conversion
 
         """
@@ -1050,7 +1053,8 @@ class TwoDSpectrumBase(DataSaveable):
 
 
     # FIXME: this will become the main add_data method
-    def _add_data(self, data, resolution=None, dtype=_total, tag=None):
+    def _add_data(self, data: numpy.ndarray, resolution: str | None = None,
+                  dtype: str = _total, tag: str | None = None) -> None:
         """Adds data to this 2D spectrum
 
         This method is used when partial data are stored in this spectrum
@@ -1210,7 +1214,8 @@ class TwoDSpectrumBase(DataSaveable):
 
 
     # FIXME: implement
-    def _set_data(self, data, dtype=_total, tag=None):
+    def _set_data(self, data: numpy.ndarray, dtype: str = _total,
+                  tag: str | None = None) -> None:
         """Sets the 2D spectrum data
 
         Depending on the storage resolution inferred from the combination
@@ -1233,7 +1238,7 @@ class TwoDSpectrumBase(DataSaveable):
         pass
 
 
-    def get_all_data(self):
+    def get_all_data(self) -> dict:
         """Returns a dictionary of all data stored in the object
 
         The data are returned as a dictionary with keys corresponding
@@ -1320,14 +1325,15 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
     """
 
-    def __init__(self, keep_pathways=False, keep_stypes=True):
+    def __init__(self, keep_pathways: bool = False,
+                 keep_stypes: bool = True) -> None:
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
         self.t2 = -1.0
         super().__init__()
 
 
-    def set_t2(self, t2):
+    def set_t2(self, t2: float) -> None:
         """Sets the t2 (waiting time) of the spectrum
 
 
@@ -1335,14 +1341,14 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         self.t2 = t2
 
 
-    def get_t2(self):
+    def get_t2(self) -> float:
         """Returns the t2 (waiting time) of the spectrum
 
         """
         return self.t2
 
 
-    def get_value_at(self, x, y):
+    def get_value_at(self, x: float, y: float) -> Any:
         """Returns value of the spectrum at a given coordinate
 
         """
@@ -1375,11 +1381,13 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
             return self.d__data[iy, ix]
 
 
-    def get_area_integral(self, area, dpart=part_REAL):
+    def get_area_integral(self, area: Any, dpart: str = part_REAL) -> Any:
         """Returns an integral of a given area in the 2D spectrum
 
         """
-        def integral_square(x1, x2, y1, y2, data, dx, dy):
+        def integral_square(x1: float, x2: float, y1: float, y2: float,
+                            data: numpy.ndarray, dx: float,
+                            dy: float) -> float:
             (n1, n2) = data.shape
             data.reshape(n1*n2)
             return numpy.sum(data)*dy*dy
@@ -1414,7 +1422,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         raise Exception("Unknown data part")
 
 
-    def get_cut_along_x(self, y0):
+    def get_cut_along_x(self, y0: float) -> DFunction:
         """Returns a DFunction with the cut of the spectrum along the x axis
 
         """
@@ -1428,7 +1436,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         return DFunction(ax, vals)
 
 
-    def get_cut_along_y(self, x0):
+    def get_cut_along_y(self, x0: float) -> DFunction:
         """Returns a DFunction with the cut of the spectrum along the y axis
 
         """
@@ -1442,7 +1450,9 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         return DFunction(ay, vals)
 
 
-    def get_cut_along_line(self, point1, point2, which_step=None, step=None):
+    def get_cut_along_line(self, point1: list, point2: list,
+                           which_step: str | None = None,
+                           step: float | None = None) -> DFunction:
         """Returns a cut along a line specified by two points
 
         """
@@ -1493,7 +1503,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         return DFunction(axis, vals)
 
 
-    def get_diagonal_cut(self):
+    def get_diagonal_cut(self) -> DFunction:
         """Returns cut of the spectrum along the diagonal
 
 
@@ -1508,12 +1518,12 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         return fce
 
 
-    def get_anti_diagonal_cut(self, point):
+    def get_anti_diagonal_cut(self, point: Any) -> None:
 
         pass
 
 
-    def get_max_value(self):
+    def get_max_value(self) -> float:
         """Maximum value of the real part of the spectrum
 
 
@@ -1526,7 +1536,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         return numpy.amax(numpy.real(self.d__data))
 
 
-    def get_min_value(self):
+    def get_min_value(self) -> float:
         """Minimum value of the real part of the spectrum
 
 
@@ -1540,7 +1550,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
 
     #FIXME: introduce new storage scheme
-    def devide_by(self, val):
+    def devide_by(self, val: float | int) -> None:
         """Devides the total spectrum by a value
 
 
@@ -1563,7 +1573,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
 
 
-    def get_PumpProbeSpectrum(self):
+    def get_PumpProbeSpectrum(self) -> Any:
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum
 
         """
@@ -1577,7 +1587,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
 
 
-    def get_TwoDSpectrum(self, dtype=None):
+    def get_TwoDSpectrum(self, dtype: str | None = None) -> TwoDSpectrum:
         """Returns a 2D spectrum based on this response
 
         """
@@ -1596,17 +1606,18 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         return twod
 
 
-    def plot(self, fig=None, window=None,
-             stype=_total, spart=part_REAL,
-             vmax=None, vmin_ratio=0.5,
-             colorbar=True, colorbar_loc="right",
-             cmap=None, Npos_contours=10,
-             show_states=None,
-             text_loc=None, fontsize="20", label=None,
-             xlabel=None,
-             ylabel=None,
-             axis_label_font=None,
-             show=False, savefig=None):
+    def plot(self, fig: Any = None, window: list | None = None,
+             stype: str = _total, spart: str = part_REAL,
+             vmax: float | None = None, vmin_ratio: float = 0.5,
+             colorbar: bool = True, colorbar_loc: str = "right",
+             cmap: Any = None, Npos_contours: int = 10,
+             show_states: Any = None,
+             text_loc: list | None = None, fontsize: str = "20",
+             label: Any = None,
+             xlabel: str | None = None,
+             ylabel: str | None = None,
+             axis_label_font: Any = None,
+             show: bool = False, savefig: str | None = None) -> None:
         """Plots the 2D spectrum
 
         Parameters
@@ -1868,7 +1879,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
             self.savefig(savefig)
 
 
-    def show(self):
+    def show(self) -> None:
         """Show the plot of 2D spectrum
 
         By default, plots are not shown. It is waited until explicit show()
@@ -1878,14 +1889,14 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         plt.show()
 
 
-    def savefig(self, filename):
+    def savefig(self, filename: str) -> None:
         """Saves the fige of the plot into a file
 
         """
         plt.savefig(filename)
 
 
-    def trim_to(self, window=None):
+    def trim_to(self, window: list | None = None) -> None:
         """Trims the 2D spectrum to a specified region
 
         Parameters

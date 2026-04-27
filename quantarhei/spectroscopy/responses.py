@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from .. import REAL
@@ -24,7 +28,7 @@ class NonLinearResponse:
 
     """
 
-    def __init__(self, lab, system, diagram, t1s, t2s, t3s):
+    def __init__(self, lab: Any, system: Any, diagram: str, t1s: Any, t2s: Any, t3s: Any) -> None:
 
         # info about pulse polarizations
         self.lab = lab
@@ -51,7 +55,7 @@ class NonLinearResponse:
         self.set_rate_matrix(KK)
 
 
-    def calculate_matrix(self, t2):
+    def calculate_matrix(self, t2: float) -> Any:
         """Calculates the matrix of response values in t1 and t3 times
 
 
@@ -77,14 +81,14 @@ class NonLinearResponse:
                              self.KK)
 
 
-    def set_rwa(self, rwa):
+    def set_rwa(self, rwa: float) -> None:
         """Sets rotating wave approximation frequency
 
         """
         pass  # rwa is set through the system class, at least for now
 
 
-    def set_rate_matrix(self, KK):
+    def set_rate_matrix(self, KK: numpy.ndarray) -> None:
         """Sets the rate matrix and the corresponding evolution coefficients
 
         """
@@ -166,7 +170,7 @@ class LiouvillePathway:
     """
 
 
-    def __init__(self, ptype):
+    def __init__(self, ptype: str) -> None:
 
         self.ptype = ptype
 
@@ -202,7 +206,7 @@ class LiouvillePathway:
 
 
 
-    def set_dipoles(self, d1, d2=None, d3=None, d4=None):
+    def set_dipoles(self, d1: numpy.ndarray, d2: numpy.ndarray | None = None, d3: numpy.ndarray | None = None, d4: numpy.ndarray | None = None) -> None:
         """Sets the transition dipole moments of the response
 
         Parameters:
@@ -245,7 +249,7 @@ class LiouvillePathway:
         self.dd = d
 
 
-    def set_frequencies(self, omega1, omega3):
+    def set_frequencies(self, omega1: float, omega3: float) -> None:
         """Sets the frequencies of the response
 
 
@@ -259,7 +263,7 @@ class LiouvillePathway:
         self._frequencies_set = True
 
 
-    def get_frequencies(self):
+    def get_frequencies(self) -> tuple[float, float]:
         """Returns the two main frequencies of the response
 
         """
@@ -271,7 +275,7 @@ class LiouvillePathway:
         raise Exception("Frequencies not set.")
 
 
-    def set_rwa(self, rwa):
+    def set_rwa(self, rwa: float) -> None:
         """Sets the RWA frequency
 
         """
@@ -289,7 +293,7 @@ class LiouvillePathway:
         self._rwa_set = True
 
 
-    def reset_rwa(self):
+    def reset_rwa(self) -> None:
         """Resets the RWA setting
 
 
@@ -302,7 +306,7 @@ class LiouvillePathway:
             self._rwa_set = False
 
 
-    def get_rwa(self):
+    def get_rwa(self) -> float:
         """Returns the RWA frequency
 
 
@@ -321,7 +325,7 @@ class ResponseFunction(LiouvillePathway):
 
     """
 
-    def calculate_matrix(self, lab, sys, t2, t1s, t3s, rwa):
+    def calculate_matrix(self, lab: Any, sys: Any, t2: float, t1s: Any, t3s: Any, rwa: float) -> Any:
         """Calculates the matrix of response values in t1 and t3 times
 
 
@@ -370,14 +374,14 @@ class ResponseFunction(LiouvillePathway):
         return dip*val*et13
 
 
-    def set_evaluation_function (self, func):
+    def set_evaluation_function(self, func: Any) -> None:
         """Sets the function to be evaluated to get the response matrix
 
         """
         self.func = func
 
 
-    def set_auxliary_arguments(self, args):
+    def set_auxliary_arguments(self, args: tuple[Any, ...]) -> None:
         """Sets additional arguments and their values for evaluation calls
 
 

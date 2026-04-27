@@ -1,15 +1,17 @@
 #
 # This module defines several normalized lineshapes for 1D and 2D spectroscopy
 #
+from __future__ import annotations
+
 import numpy
 from scipy import special
 
 
 class Storage:
-    def __init__(self, rel_tol=1e-8):
-        self.params = []        # list of parameter tuples
-        self.results = []       # list of 2D matrices
-        self.positions = []
+    def __init__(self, rel_tol: float = 1e-8) -> None:
+        self.params: list[tuple[float, ...]] = []
+        self.results: list[numpy.ndarray] = []
+        self.positions: list[tuple[float, float]] = []
         self.rel_tol = rel_tol  # relative tolerance for parameter comparison
         self.lookup_count = 0
         self.ok_count = 0
@@ -17,11 +19,11 @@ class Storage:
         self.flip_count = 0
         self.lookup_on = False
 
-    def _is_close(self, a, b):
+    def _is_close(self, a: tuple[float, ...], b: tuple[float, ...]) -> bool:
         """Check if two 4-tuples are close within relative tolerance."""
         return all(numpy.isclose(a_i, b_i, rtol=self.rel_tol, atol=0.0) for a_i, b_i in zip(a, b))
 
-    def lookup(self, param_tuple):
+    def lookup(self, param_tuple: tuple[float, ...]) -> int:
         """Return the index of param_tuple if found, else -1."""
         self.lookup_count += 1
         for idx, existing in enumerate(self.params):
@@ -29,7 +31,7 @@ class Storage:
                 return idx
         return -1
 
-    def store(self, param_tuple, pos, matrix):
+    def store(self, param_tuple: tuple[float, ...], pos: tuple[float, float], matrix: numpy.ndarray) -> None:
         """Store new parameters and corresponding matrix."""
         self.params.append(param_tuple)
         self.results.append(matrix)
@@ -48,7 +50,7 @@ storage = Storage()
 #
 ###############################################################################
 
-def gaussian(omega, cent, delta):
+def gaussian(omega: numpy.ndarray, cent: float, delta: float) -> numpy.ndarray:
     """Normalized Gaussian line shape
 
     """
@@ -57,21 +59,21 @@ def gaussian(omega, cent, delta):
                      /delta
 
 
-def lorentzian(omega, cent, gamma):
+def lorentzian(omega: numpy.ndarray, cent: float, gamma: float) -> numpy.ndarray:
     """Normalized Lorenzian line shape
 
     """
     return (gamma/numpy.pi)/((omega-cent)**2 + gamma**2)
 
 
-def lorentzian_im(omega, cent, gamma):
+def lorentzian_im(omega: numpy.ndarray, cent: float, gamma: float) -> numpy.ndarray:
     """Imaginary part of a normalized Lorenzian line shape
 
     """
     return 1j*((omega-cent)/numpy.pi)/((omega-cent)**2 + gamma**2)
 
 
-def voigt(omega, cent, delta, gamma=0.0):
+def voigt(omega: numpy.ndarray, cent: float, delta: float, gamma: float = 0.0) -> numpy.ndarray:
     """Normalized Voigt line shape for absorption
 
     """
@@ -82,7 +84,7 @@ def voigt(omega, cent, delta, gamma=0.0):
                       /(numpy.sqrt(numpy.pi)*delta)
 
 
-def cvoigt(omega, cent, delta, gamma=0.0):
+def cvoigt(omega: numpy.ndarray, cent: float, delta: float, gamma: float = 0.0) -> numpy.ndarray:
     """Complex normalized Voigt line shape
 
     """
@@ -100,7 +102,7 @@ def cvoigt(omega, cent, delta, gamma=0.0):
 ###############################################################################
 
 
-def gaussian2D(omega1, cent1, delta1, omega2, cent2, delta2, corr=0.0):
+def gaussian2D(omega1: numpy.ndarray, cent1: float, delta1: float, omega2: numpy.ndarray, cent2: float, delta2: float, corr: float = 0.0) -> numpy.ndarray:
     """Two-dimensional complex Gaussian lineshape
 
     """
@@ -110,8 +112,8 @@ def gaussian2D(omega1, cent1, delta1, omega2, cent2, delta2, corr=0.0):
                    omega2, cent2, delta2, gamma2, corr=corr)
 
 
-def voigt2D(omega1, cent1, delta1, gamma1,
-            omega2, cent2, delta2, gamma2, corr=0.0):
+def voigt2D(omega1: numpy.ndarray, cent1: float, delta1: float, gamma1: float,
+            omega2: numpy.ndarray, cent2: float, delta2: float, gamma2: float, corr: float = 0.0) -> numpy.ndarray:
     """Two-dimensional complex Voigt lineshape
 
     Parameters
@@ -179,7 +181,7 @@ def voigt2D(omega1, cent1, delta1, gamma1,
     return data
 
 
-def lorentzian2D(omega1, cent1, gamma1, omega2, cent2, gamma2, corr=0.0):
+def lorentzian2D(omega1: numpy.ndarray, cent1: float, gamma1: float, omega2: numpy.ndarray, cent2: float, gamma2: float, corr: float = 0.0) -> numpy.ndarray:
     """Two-dimensional complex Lorentzian lineshape
 
     """

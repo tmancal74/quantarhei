@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy
 import scipy
 
@@ -13,7 +15,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
     Ld = None
     Km = None
 
-    def _implementation(self, ham, sbi):
+    def _implementation(self, ham: object, sbi: object) -> None:
         r"""Reference implementation, completely in Python
 
         Implementation of Redfield relaxation tensor according to
@@ -207,7 +209,9 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         self.is_time_dependent = True
 
 
-    def _convert_operators_2_tensor(self, Km, Lm, Ld):
+    def _convert_operators_2_tensor(self, Km: numpy.ndarray,
+                                    Lm: numpy.ndarray,
+                                    Ld: numpy.ndarray) -> numpy.ndarray:
         r"""Converts operator representation to the tensor one
 
         Convertes operator representation of the Redfield tensor
@@ -278,7 +282,8 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         return RR
 
 
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray,
+                  inv: numpy.ndarray | None = None) -> None:
         """Transformation of the tensor by a given matrix
 
 
@@ -329,7 +334,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                         numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))
 
 
-    def secularize(self):
+    def secularize(self) -> None:
         """Secularizes the relaxation tensor
 
 
@@ -349,7 +354,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
 
 
-def _integrate(f, dt):
+def _integrate(f: numpy.ndarray, dt: float) -> numpy.ndarray:
     """Cummulative simpson rule for integration (even number of points also handled)
 
     """
@@ -373,7 +378,7 @@ def _integrate(f, dt):
     return F
 
 
-def _integrate_last_axis(f, dt):
+def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:
     """Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
 
     Parameters:

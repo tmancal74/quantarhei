@@ -1,11 +1,13 @@
+from __future__ import annotations
 
 import argparse
 import traceback
+from typing import Any
 
 import quantarhei as qr
 
 
-def code_hamiltonian(INP, status):
+def code_hamiltonian(INP: Any, status: Any) -> str:
 
     code = "# Ahoj"
 
@@ -13,11 +15,11 @@ def code_hamiltonian(INP, status):
 
 
 
-def tasks(tlist, INP):
+def tasks(tlist: Any, INP: Any) -> str:
     """Go through the list of tasks
 
     """
-    status = []
+    status: list[Any] = []
     code = ""
 
     if isinstance(tlist, str):
@@ -32,7 +34,7 @@ def tasks(tlist, INP):
     return code
 
 
-def do_process(args):
+def do_process(args: Any) -> None:
     """Process arguments of the script
 
     """
@@ -58,7 +60,7 @@ def do_process(args):
 
 
 
-def main():
+def main() -> None:
 
     global parser_list
     global parser_fetch
@@ -81,29 +83,6 @@ def main():
     #
     args = parser.parse_args()
 
-#    #
-#    # show longer info
-#    #
-#    if args.info:
-#        qr.printlog("\n"
-#                   +"qtask: Quantarhei Task Compiler\n",
-#                   verbose=True, loglevel=0)
-##                   +"\n"
-##                   +"MPI parallelization enabled: ", flag_parallel,
-##                    verbose=True, loglevel=0)
-#        if not args.version:
-#            qr.printlog("Package version: ", qr.Manager().version, "\n",
-#                  verbose=True, loglevel=0)
-#        return
-#
-#    #
-#    # show just Quantarhei version number
-#    #
-#    if args.version:
-#        qr.printlog("Quantarhei package version: ", qr.Manager().version, "\n",
-#                  verbose=True, loglevel=0)
-#        return
-#
     print("\nQTask: Quantarhei Task Compilator\n")
 
     try:

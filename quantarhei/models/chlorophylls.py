@@ -2,8 +2,12 @@
 
 @author: Johan
 """
+from __future__ import annotations
 
 # -*- coding: utf-8 -*-
+from typing import Any
+
+import numpy
 
 from ..builders import pdb
 from ..core.units import cm2int
@@ -13,7 +17,7 @@ from .molecularmodel import MolecularModel
 
 class ChlorophyllA(MolecularModel):
 
-    def __init__(self, model_type=None, dp_length=4.582):
+    def __init__(self, model_type: str | None = None, dp_length: float = 4.582) -> None:
         super().__init__(model_type=model_type)
 
         self.pdbname = "CLA"
@@ -24,7 +28,7 @@ class ChlorophyllA(MolecularModel):
 
         self.set_default_dipole_length((0,1), dp_length)
 
-    def transition_dipole(self, transition=(0,1), data_type=None, data=None):
+    def transition_dipole(self, transition: tuple[int, int] = (0,1), data_type: str | None = None, data: Any = None) -> numpy.ndarray:
         """Returns transition dipole moment vector
 
         """
@@ -54,7 +58,7 @@ class ChlorophyllA(MolecularModel):
         return d
 
 
-    def position_of_center(self, data_type=None, data=None):
+    def position_of_center(self, data_type: str | None = None, data: Any = None) -> numpy.ndarray:
         """Returns the position of the molecular center
 
         """
@@ -89,7 +93,7 @@ class ChlorophyllA(MolecularModel):
         return pos
 
 
-    def pi_conjugated_system(self, data_type=None, data=None):
+    def pi_conjugated_system(self, data_type: str | None = None, data: Any = None) -> None:
         """Returns the atoms and atom types in the pi-conjugated system
 
         Calculates and returns positions of all atoms in the pi-conjugated
@@ -114,7 +118,7 @@ class ChlorophyllA(MolecularModel):
             raise Exception("Unknown data type")
 
 
-    def _check_data_type(self, data_type):
+    def _check_data_type(self, data_type: str | None) -> str:
         """If non data_type is specified, the default is taken (if known)
 
         """
@@ -129,7 +133,7 @@ class ChlorophyllA(MolecularModel):
 
 class ChlorophyllB(MolecularModel):
 
-    def __init__(self, model_type=None, dp_length=3.834):
+    def __init__(self, model_type: str | None = None, dp_length: float = 3.834) -> None:
         super().__init__(model_type=model_type)
 
         self.pdbname = "CHL"
@@ -141,7 +145,7 @@ class ChlorophyllB(MolecularModel):
 
 
 
-    def transition_dipole(self, transition=(0,1), data_type=None, data=None):
+    def transition_dipole(self, transition: tuple[int, int] = (0,1), data_type: str | None = None, data: Any = None) -> numpy.ndarray:
         """Returns transition dipole moment vector
 
         """
@@ -171,7 +175,7 @@ class ChlorophyllB(MolecularModel):
         return d
 
 
-    def position_of_center(self, data_type=None, data=None):
+    def position_of_center(self, data_type: str | None = None, data: Any = None) -> numpy.ndarray:
         """Returns the position of the molecular center
 
         """
@@ -206,7 +210,7 @@ class ChlorophyllB(MolecularModel):
         return pos
 
 
-    def pi_conjugated_system(self, data_type=None, data=None):
+    def pi_conjugated_system(self, data_type: str | None = None, data: Any = None) -> None:
         """Returns the atoms and atom types in the pi-conjugated system
 
         Calculates and returns positions of all atoms in the pi-conjugated
@@ -231,7 +235,7 @@ class ChlorophyllB(MolecularModel):
             raise Exception("Unknown data type")
 
 
-    def _check_data_type(self, data_type):
+    def _check_data_type(self, data_type: str | None) -> str:
         """If non data_type is specified, the default is taken (if known)
 
         """
@@ -242,4 +246,3 @@ class ChlorophyllB(MolecularModel):
                 return self.model_type
         else:
             return data_type
-

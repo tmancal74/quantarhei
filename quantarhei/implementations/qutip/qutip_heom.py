@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import time
+from collections.abc import Generator
+from typing import Any
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -21,7 +25,7 @@ import quantarhei as qr
 
 
 @contextlib.contextmanager
-def timer(label):
+def timer(label: str) -> Generator[None, None, None]:
     """Simple utility for timing functions:
 
     with timer("name"):
@@ -47,7 +51,7 @@ fmo_ham = numpy.array([
 
 """
 
-def prepare_simulation(Ham, sbi, depth):
+def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:
 
     qutip_data = dict(depth=depth)
 
@@ -109,7 +113,7 @@ def prepare_simulation(Ham, sbi, depth):
     return qutip_data
 
 
-def run_simulation(kthprop, rhoi, options=None):
+def run_simulation(kthprop: Any, rhoi: Any, options: dict[str, Any] | None = None) -> Any:
 
     timea = kthprop.hy.sbi.get_time_axis()
 

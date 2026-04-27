@@ -7,8 +7,11 @@
 
 
 """
+from __future__ import annotations
+
 #import h5py
 import time
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy
@@ -49,16 +52,16 @@ class DFunction2:
     It handles basic saving and loading operatoins of a two-dimensional
     discrete function
     """
-    def __init__(self, x=None, y=None, z=None):
+    def __init__(self, x: Any = None, y: Any = None, z: Any = None) -> None:
         pass
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
         pass
 
-    def load(self, filename):
+    def load(self, filename: str) -> None:
         pass
 
-    def plot(self,**kwargs):
+    def plot(self, **kwargs: Any) -> None:
         pass
 
 
@@ -80,7 +83,7 @@ class TwoDSpectrumBase(DFunction2):
     # to keep stypes separate?
     keep_stypes = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         self.data = None
@@ -91,19 +94,19 @@ class TwoDSpectrumBase(DFunction2):
         self.nonr2D = None
 
 
-    def set_axis_1(self, axis):
+    def set_axis_1(self, axis: Any) -> None:
         """Sets the x-axis of te spectrum (omega_1 axis)
 
         """
         self.xaxis = axis
 
-    def set_axis_3(self, axis):
+    def set_axis_3(self, axis: Any) -> None:
         """Sets the y-axis of te spectrum (omega_3 axis)
 
         """
         self.yaxis = axis
 
-    def set_data(self, data, dtype="Tot"):
+    def set_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:
         if dtype == "Tot":
             self.data = data
 
@@ -119,7 +122,7 @@ class TwoDSpectrumBase(DFunction2):
 
             raise Exception("Unknow type of data: "+dtype)
 
-    def add_data(self, data, dtype="Tot"):
+    def add_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:
         if dtype == "Tot":
 
             if self.data is None:
@@ -142,10 +145,10 @@ class TwoDSpectrumBase(DFunction2):
             raise Exception("Unknow type of data: "+dtype)
 
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
         super().save(filename)
 
-    def load(self, filename):
+    def load(self, filename: str) -> None:
         super().load(filename)
 
 
@@ -165,27 +168,28 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
     """
 
-    def __init__(self, keep_pathways=False, keep_stypes=True):
+    def __init__(self, keep_pathways: bool = False,
+                 keep_stypes: bool = True) -> None:
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
         self.t2 = -1.0
         super().__init__()
 
-    def set_t2(self, t2):
+    def set_t2(self, t2: float) -> None:
         """Sets the t2 (waiting time) of the spectrum
 
 
         """
         self.t2 = t2
 
-    def get_t2(self):
+    def get_t2(self) -> float:
         """Returns the t2 (waiting time) of the spectrum
 
         """
         return self.t2
 
 
-    def get_value_at(self, x, y):
+    def get_value_at(self, x: float, y: float) -> float:
         """Returns value of the spectrum at a given coordinate
 
         """
@@ -194,12 +198,12 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
         return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
 
-    def get_max_value(self):
+    def get_max_value(self) -> float:
 
         return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
 
 
-    def devide_by(self, val):
+    def devide_by(self, val: float | int) -> None:
         """Devides the total spectrum by a value
 
         """
@@ -207,7 +211,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         self.nonr2D = self.nonr2D/val
 
 
-    def get_PumpProbeSpectrum(self):
+    def get_PumpProbeSpectrum(self) -> Any:
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum
 
         """
@@ -218,13 +222,15 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
 
 
-    def plot(self, fig=None, window=None, stype="total", spart="real",
-             vmax=None, vmin_ratio=0.5,
-             colorbar=True, colorbar_loc="right",
-             cmap=None, Npos_contours=10,
-             show_states=None,
-             text_loc=None, fontsize="20", label=None, zero_contour=True,
-             plot_units=r'cm$^{-1}$'):
+    def plot(self, fig: Any = None, window: list | None = None,
+             stype: str = "total", spart: str = "real",
+             vmax: float | None = None, vmin_ratio: float = 0.5,
+             colorbar: bool = True, colorbar_loc: str = "right",
+             cmap: Any = None, Npos_contours: int = 10,
+             show_states: Any = None,
+             text_loc: list | None = None, fontsize: str = "20",
+             label: Any = None, zero_contour: bool = True,
+             plot_units: str = r'cm$^{-1}$') -> None:
         """Plots the 2D spectrum
 
         Parameters
@@ -374,7 +380,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
                 plt.plot([levo,prvo],[en,en],'--k',linewidth=1.0)
 
 
-    def trim_to(self, window=None):
+    def trim_to(self, window: list | None = None) -> None:
         """Trims the 2D spectrum to a specified region
 
         """
@@ -431,18 +437,18 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
             # some automatic trimming in the future
             pass
 
-    def show(self):
+    def show(self) -> None:
 
         plt.show()
 
-    def savefig(self, filename, dpi):
+    def savefig(self, filename: str, dpi: int) -> None:
 
         plt.savefig(filename,dpi=dpi)
 
-    def _create_root_group(self, start, name):
+    def _create_root_group(self, start: Any, name: str) -> Any:
         return start.create_group(name)
 
-    def _save_attributes(self,rt):
+    def _save_attributes(self, rt: Any) -> None:
         rt.attrs.create("t2", self.t2)
         keeps = []
         if self.keep_pathways:
@@ -456,34 +462,34 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
         rt.attrs.create("keeps",keeps)
 
-    def _load_attributes(self,rt):
+    def _load_attributes(self, rt: Any) -> None:
         self.t2 = rt.attrs["t2"]
         keeps = rt.attrs["keeps"]
         self.keep_pathways = (keeps[0] == 1)
         self.keep_stypes = (keeps[1] == 1)
 
-    def _save_data(self,rt):
+    def _save_data(self, rt: Any) -> None:
         if self.keep_stypes:
             rt.create_dataset("reph2D",data=self.reph2D)
             rt.create_dataset("nonr2D",data=self.nonr2D)
         else:
             rt.create_dataset("data",data=self.data)
 
-    def _load_data(self,rt):
+    def _load_data(self, rt: Any) -> None:
         if self.keep_stypes:
             self.reph2D = numpy.array(rt["reph2D"])
             self.nonr2D = numpy.array(rt["nonr2D"])
         else:
             self.data = numpy.array(rt["data"])
 
-    def _save_axis(self, rt, name, ax):
+    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
         axdir = rt.create_group(name)
         axdir.attrs.create("start",ax.start)
         axdir.attrs.create("length",ax.length)
         axdir.attrs.create("step",ax.step)
         #FIXME: atype and time_start
 
-    def _load_axis(self, rt, name):
+    def _load_axis(self, rt: Any, name: str) -> FrequencyAxis:
         axdir = rt[name]
         start = axdir.attrs["start"]
         length = axdir.attrs["length"]
@@ -540,7 +546,8 @@ class TwoDSpectrumContainer(Saveable):
 
     """
 
-    def __init__(self, t2axis=None, keep_pathways=False, keep_stypes=True):
+    def __init__(self, t2axis: Any = None, keep_pathways: bool = False,
+                 keep_stypes: bool = True) -> None:
 
         self.t2axis = t2axis
         self.keep_pathways = keep_pathways
@@ -553,7 +560,7 @@ class TwoDSpectrumContainer(Saveable):
         self.spectra = {}
 
 
-    def set_spectrum(self, spect):
+    def set_spectrum(self, spect: TwoDSpectrum) -> None:
         """Stores spectrum for time t2
 
         Checks if the time t2 is present in the t2axis
@@ -566,7 +573,7 @@ class TwoDSpectrumContainer(Saveable):
             raise Exception("Waiting time not compatible with the t2 axis")
 
 
-    def get_spectrum(self, t2):
+    def get_spectrum(self, t2: float) -> TwoDSpectrum:
         """Returns spectrum corresponing to time t2
 
         Checks if the time t2 is present in the t2axis
@@ -576,10 +583,11 @@ class TwoDSpectrumContainer(Saveable):
             return self.spectra[t2]
         raise Exception("Waiting time not compatible with the t2 axis")
 
-    def length(self):
+    def length(self) -> int:
         return len(self.spectra.keys())
 
-    def get_spectra(self, start=None, end=None):
+    def get_spectra(self, start: float | None = None,
+                    end: float | None = None) -> list:
         """Returns a list or tuple of the calculated spectra
 
         """
@@ -594,7 +602,7 @@ class TwoDSpectrumContainer(Saveable):
                 ven2.append(self.spectra[k])
         return ven2
 
-    def get_PumpProbeSpectrumContainer(self, skip=0):
+    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
         """Converts this container into PumpProbeSpectrumContainer
 
         """
@@ -622,7 +630,8 @@ class TwoDSpectrumContainer(Saveable):
 
         return ppcont
 
-    def get_point_evolution(self, x, y, times):
+    def get_point_evolution(self, x: float, y: float,
+                           times: Any) -> numpy.ndarray:
         """Tracks an evolution of a single point on the 2D spectrum
 
         """
@@ -636,16 +645,16 @@ class TwoDSpectrumContainer(Saveable):
 
         return vals
 
-    def _create_root_group(self, start, name):
+    def _create_root_group(self, start: Any, name: str) -> Any:
         return start.create_group(name)
 
-    def _save_axis(self, rt, name, ax):
+    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
         axdir = rt.create_group(name)
         axdir.attrs.create("start",ax.start)
         axdir.attrs.create("length",ax.length)
         axdir.attrs.create("step",ax.step)
 
-    def _load_axis(self, rt, name):
+    def _load_axis(self, rt: Any, name: str) -> TimeAxis:
         axdir = rt[name]
         start = axdir.attrs["start"]
         length = axdir.attrs["length"]
@@ -694,7 +703,7 @@ class TwoDSpectrumContainer(Saveable):
 #
 #                    self.set_spectrum(sp)
 
-    def trimall_to(self,window=None):
+    def trimall_to(self, window: list | None = None) -> None:
         """Trims all spectra in the container
 
         """
@@ -703,7 +712,7 @@ class TwoDSpectrumContainer(Saveable):
             for s in self.get_spectra():
                 s.trim_to(window=axes)
 
-    def amax(self, spart="real"):
+    def amax(self, spart: str = "real") -> float:
         """Returns maximum amplitude of the spectra in the container
 
         """
@@ -715,10 +724,10 @@ class TwoDSpectrumContainer(Saveable):
         return numpy.amax(numpy.array(mxs))
 
     # Print iterations progress
-    def _printProgressBar(self, iteration, total,
-                          prefix = '', suffix = '',
-                          decimals = 1, length = 100,
-                          fill='*'):
+    def _printProgressBar(self, iteration: int, total: int,
+                          prefix: str = '', suffix: str = '',
+                          decimals: int = 1, length: int = 100,
+                          fill: str = '*') -> None:
         """Call in a loop to create terminal progress bar
         @params:
             iteration   - Required  : current iteration (Int)
@@ -742,11 +751,13 @@ class TwoDSpectrumContainer(Saveable):
             print()
 
 
-    def make_movie(self, filename, window=None,
-                   stype="total", spart="real",
-                   cmap=None, Npos_contours=10,
-                   frate=20, dpi=100, start=None, end=None,
-                   show_states=None, progressbar=False):
+    def make_movie(self, filename: str, window: list | None = None,
+                   stype: str = "total", spart: str = "real",
+                   cmap: Any = None, Npos_contours: int = 10,
+                   frate: int = 20, dpi: int = 100,
+                   start: float | None = None, end: float | None = None,
+                   show_states: Any = None,
+                   progressbar: bool = False) -> None:
 
         import matplotlib.animation as manimation
         import matplotlib.pyplot as plt
@@ -818,17 +829,17 @@ class TwoDSpectrumCalculator:
 
     system = derived_type("system",[Molecule,Aggregate])
 
-    def __init__(self, t1axis, t2axis, t3axis,
-                 system=None,
-                 dynamics="secular",
-                 relaxation_tensor=None,
-                 rate_matrix=None,
-                 effective_hamiltonian=None,
-                 twodtype="2DES",
-                 gamma_factor=None,
-                 Population_factors=None,
-                 ee_states=None, f_states=None,
-                 no_transfer=False):
+    def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any,
+                 system: Any = None,
+                 dynamics: str = "secular",
+                 relaxation_tensor: Any = None,
+                 rate_matrix: Any = None,
+                 effective_hamiltonian: Any = None,
+                 twodtype: str = "2DES",
+                 gamma_factor: float | None = None,
+                 Population_factors: Any = None,
+                 ee_states: Any = None, f_states: Any = None,
+                 no_transfer: bool = False) -> None:
 
 
         self.t1axis = t1axis
@@ -882,14 +893,15 @@ class TwoDSpectrumCalculator:
         self.tc = 0
 
 
-    def _vprint(self, string):
+    def _vprint(self, string: str) -> None:
         """Prints a string if the self.verbose attribute is True
 
         """
         if self.verbose:
             print(string)
 
-    def bootstrap(self,rwa=0.0, lab=None, verbose=False):
+    def bootstrap(self, rwa: float = 0.0, lab: Any = None,
+                  verbose: bool = False) -> None:
         """Sets up the environment for 2D calculation
 
         """
@@ -1056,14 +1068,14 @@ class TwoDSpectrumCalculator:
 
         self.tc = 0
 
-    def calculate_next(self):
+    def calculate_next(self) -> TwoDSpectrum:
 
         sone = self.calculate_one(self.tc)
         self.tc += 1
         return sone
 
 
-    def calculate_one(self, tc):
+    def calculate_one(self, tc: int) -> TwoDSpectrum:
 
         tt2 = self.t2axis.data[tc]
         Nr1 = self.t1axis.length
@@ -1212,7 +1224,7 @@ class TwoDSpectrumCalculator:
 
 
 
-    def calculate(self):
+    def calculate(self) -> TwoDSpectrumContainer:
         """Returns 2D spectrum
 
         Calculates and returns TwoDSpectrumContainer containing 2D spectrum
@@ -1250,7 +1262,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
 
     """
 
-    def __init__(self, t1axis, t3axis):
+    def __init__(self, t1axis: Any, t3axis: Any) -> None:
         t2axis = TimeAxis()
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
@@ -1259,8 +1271,10 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.dephy = convert(300, "1/cm", "int")
 
 
-    def bootstrap(self,rwa=0.0, pathways=None, verbose=False,
-                  shape="Gaussian", all_positive=False):
+    def bootstrap(self, rwa: float = 0.0, pathways: Any = None,
+                  verbose: bool = False,
+                  shape: str = "Gaussian",
+                  all_positive: bool = False) -> None:
 
         self.shape = shape
         self.all_positive = all_positive
@@ -1284,16 +1298,16 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.t3axis.atype = atype
 
 
-    def set_width(self, val):
+    def set_width(self, val: float) -> None:
         self.widthx = val
         self.widthy = val
 
-    def set_deph(self, val):
+    def set_deph(self, val: float) -> None:
         self.dephx = val
         self.dephy = val
 
 
-    def calculate(self):
+    def calculate(self) -> TwoDSpectrum:
         """Calculate the 2D spectrum for all pathways
 
         """
@@ -1317,7 +1331,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         return onetwod
 
 
-    def calculate_pathway(self, pathway, shape="Gaussian"):
+    def calculate_pathway(self, pathway: Any,
+                          shape: str = "Gaussian") -> numpy.ndarray:
         """Calculate the shape of a Liouville pathway
 
         """

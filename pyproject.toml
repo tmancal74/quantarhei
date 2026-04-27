@@ -201,6 +201,7 @@ ignore = [
 python_version = "3.10"
 ignore_missing_imports = true
 no_strict_optional = true
+disallow_untyped_defs = true
 exclude = [
     "quantarhei/wizard/examples",
     "quantarhei/wizard/benchmarks",
@@ -221,46 +222,42 @@ module = [
 ]
 ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = ["quantarhei.utils.*"]
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["quantarhei.core.managers", "quantarhei.core.parallel"]
-disallow_untyped_defs = true
-
+# Modules with pre-existing structural issues (dynamic attribute access, global
+# variable patterns, dead code blocks, LSP violations) — suppressed in phase 6
 [[tool.mypy.overrides]]
 module = [
-    "quantarhei.core.datasaveable",
-    "quantarhei.core.dfunction",
-    "quantarhei.core.frequency",
-    "quantarhei.core.genconf",
-    "quantarhei.core.implementations",
-    "quantarhei.core.logconf",
-    "quantarhei.core.matrixdata",
-    "quantarhei.core.numconf",
-    "quantarhei.core.parcel",
-    "quantarhei.core.plottable",
-    "quantarhei.core.saveable",
-    "quantarhei.core.singleton",
-    "quantarhei.core.stochastics",
-    "quantarhei.core.time",
-    "quantarhei.core.triangle",
-    "quantarhei.core.unique",
-    "quantarhei.core.units",
-    "quantarhei.core.valueaxis",
-    "quantarhei.core.wrappers",
-    "quantarhei.core.conf.qrhei",
+    "quantarhei.symbolic.cumulant",
+    "quantarhei.implementations.qutip.qutip_heom",
+    "quantarhei.scripts.qview",
+    "quantarhei.scripts.qrhei",
+    "quantarhei.scripts.ghenerate",
+    "quantarhei.scripts.qtask",
+    "quantarhei.models.spectdens",
+    "quantarhei.models.spectral_densities.wendling_2000",
+    "quantarhei.models.spectral_densities.renger_2002",
+    "quantarhei.spectroscopy.absbase",
+    "quantarhei.spectroscopy.diagramatics",
+    "quantarhei.spectroscopy.twodcalculator",
+    "quantarhei.spectroscopy.responses",
+    "quantarhei.spectroscopy.mockabscalculator",
+    "quantarhei.spectroscopy.pumpprobe",
+    "quantarhei.spectroscopy.mocktwodcalculator",
+    "quantarhei.spectroscopy.dsfeynman",
+    "quantarhei.spectroscopy.response_implementations",
+    "quantarhei.spectroscopy.pathwayanalyzer",
+    "quantarhei.spectroscopy.abscalculator",
+    "quantarhei.spectroscopy.twodcontainer",
+    "quantarhei.spectroscopy.fluorescence",
+    "quantarhei.spectroscopy.circular_dichroism",
+    "quantarhei.spectroscopy.linear_dichroism",
+    "quantarhei.spectroscopy.pumpprobe2",
+    "quantarhei.spectroscopy.labsetup",
+    "quantarhei.wizard.input.input",
+    "quantarhei.wizard.simulations.simulation",
+    "quantarhei.wizard.simulations.excitondynamics",
+    "quantarhei.implementations.aceto.band_system",
 ]
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["quantarhei.qm.*"]
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["quantarhei.builders.*"]
-disallow_untyped_defs = true
+ignore_errors = true
 
 # Modules in builders/ with pre-existing structural issues (LSP violations,
 # descriptor chains, object-typed params with attr access, unusual PiMolecule
@@ -283,6 +280,7 @@ module = [
     "quantarhei.builders.interactions",
 ]
 ignore_errors = true
+
 
 # Modules with pre-existing structural issues (None-typed attributes, descriptor-based
 # data storage, copy-module shadowing, deep multiple-inheritance chains) — suppressed

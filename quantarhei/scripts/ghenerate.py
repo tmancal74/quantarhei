@@ -5,12 +5,15 @@ email: mancal@karlov.mff.cuni.cz
 
 
 """
+from __future__ import annotations
+
 # standard imports
 import argparse
 import datetime
 import os
 import re
 import time
+from typing import IO, Any
 
 from gherkin.parser import Parser
 
@@ -21,7 +24,7 @@ from gherkin.token_scanner import TokenScanner
 import quantarhei as qr
 
 
-def parsing():
+def parsing() -> dict[str, Any] | int:
     """This function handles parsing command line arguments
 
 
@@ -124,7 +127,7 @@ def parsing():
                 steps_pass=steps_pass, filename=filename, k_from=k_from)
 
 
-def analyze_children(children):
+def analyze_children(children: list[Any]) -> None:
     """Analyzes children of the feature and prints info
 
     """
@@ -149,7 +152,7 @@ def analyze_children(children):
         print("")
 
 
-def check_outputfile_exists(ddir, filename):
+def check_outputfile_exists(ddir: str, filename: str) -> str | int:
     """Checks the existance of destination directory and the target file
 
     """
@@ -176,7 +179,7 @@ def check_outputfile_exists(ddir, filename):
     return ofile
 
 
-def write_func_def(myfile, step, textrep, args, current, k_step):
+def write_func_def(myfile: IO[str], step: dict[str, Any], textrep: str, args: str, current: str, k_step: int) -> str:
     """Write step function implementation header
 
     """
@@ -227,7 +230,7 @@ def write_func_def(myfile, step, textrep, args, current, k_step):
     return current
 
 
-def write_header(myfile):
+def write_header(myfile: IO[str]) -> None:
     """Write the output file header
 
     """
@@ -254,7 +257,7 @@ from behave import then
 ''')
 
 
-def main():
+def main() -> int:
     """Script's main function
 
 
