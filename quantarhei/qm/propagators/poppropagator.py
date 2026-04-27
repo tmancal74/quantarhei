@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ..liouvillespace.rates.ratematrix import RateMatrix
@@ -24,7 +28,7 @@ class PopulationPropagator:
 
     """
 
-    def __init__(self, timeaxis, rate_matrix=None):
+    def __init__(self, timeaxis: Any, rate_matrix: Any = None) -> None:
 
         self.timeAxis = timeaxis
         self.Nref = 1
@@ -37,7 +41,7 @@ class PopulationPropagator:
             else:
                 self.KK = rate_matrix
 
-    def propagate(self, pini):
+    def propagate(self, pini: Any) -> numpy.ndarray:
         """Propagates a given initional population vector
 
         """
@@ -47,7 +51,7 @@ class PopulationPropagator:
         return self._propagate_short_exp(pini)
 
 
-    def _propagate_short_exp(self,pini,L=4):
+    def _propagate_short_exp(self, pini: numpy.ndarray, L: int = 4) -> numpy.ndarray:
         """Propagation of the initial pop vector by short time expansion
 
         Propagates initial population vector by a give rate matrix with
@@ -81,7 +85,7 @@ class PopulationPropagator:
 
         return pops
 
-    def _split_relaxation_matrix(self):
+    def _split_relaxation_matrix(self) -> tuple:
         """Splits the relaxation matrix into diagonal and transfer parts
 
         """
@@ -93,7 +97,7 @@ class PopulationPropagator:
         KKT = self.KK+numpy.diag(KKD)
         return KKD, KKT
 
-    def _integrateK0(self,timeaxis,Kab,Ka,Kb):
+    def _integrateK0(self, timeaxis: Any, Kab: float, Ka: float, Kb: float) -> numpy.ndarray:
         """Returns an integral of transfer matrix element
 
         """
@@ -103,7 +107,7 @@ class PopulationPropagator:
             integ[i] = numpy.sum(expK[0:i])
         return Kab*integ*timeaxis.step
 
-    def _integrateKn(self,timeaxis,Kab,Ka,Kb,Kbc):
+    def _integrateKn(self, timeaxis: Any, Kab: float, Ka: float, Kb: float, Kbc: numpy.ndarray) -> numpy.ndarray:
         """Returns an integral of transfer matrix element multiplied by
         a result of previous order of expansion
 
@@ -115,7 +119,7 @@ class PopulationPropagator:
             integ[i] = numpy.sum(expK[0:i]*Kbc[0:i])
         return Kab*integ*timeaxis.step
 
-    def get_PropagationMatrix(self, timeaxis, corrections=-1, exact=False):
+    def get_PropagationMatrix(self, timeaxis: Any, corrections: int = -1, exact: bool = False) -> Any:
         """Returns propagation matrix corresponding to the present propagator
 
         This function also returns perturbative expansion of the propagation

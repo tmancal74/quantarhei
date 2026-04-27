@@ -254,6 +254,51 @@ module = [
 ]
 disallow_untyped_defs = true
 
+[[tool.mypy.overrides]]
+module = ["quantarhei.qm.*"]
+disallow_untyped_defs = true
+
+# Modules with pre-existing structural issues (None-typed attributes, descriptor-based
+# data storage, copy-module shadowing, deep multiple-inheritance chains) — suppressed
+# until #231 annotation pass can address root causes
+[[tool.mypy.overrides]]
+module = [
+    "quantarhei.qm.corfunctions.cfmatrix",
+    "quantarhei.qm.corfunctions.correlationfunctions",
+    "quantarhei.qm.corfunctions.functionstorage",
+    "quantarhei.qm.corfunctions.spectraldensities",
+    "quantarhei.qm.corfunctions.distributions",
+    "quantarhei.qm.hilbertspace.hamiltonian",
+    "quantarhei.qm.hilbertspace.operators",
+    "quantarhei.qm.hilbertspace.statevector",
+    "quantarhei.qm.hilbertspace.oqsstatevector",
+    "quantarhei.qm.oscillators.ho",
+    "quantarhei.qm.propagators.dmevolution",
+    "quantarhei.qm.propagators.oqssvevolution",
+    "quantarhei.qm.propagators.oqssvpropagator",
+    "quantarhei.qm.propagators.rdmpropagator",
+    "quantarhei.qm.propagators.statevectorevolution",
+    "quantarhei.qm.propagators.svpropagator",
+    "quantarhei.qm.liouvillespace.Mockevolutionsuperoperator",
+    "quantarhei.qm.liouvillespace.evolutionsuperoperator",
+    "quantarhei.qm.liouvillespace.foerstertensor",
+    "quantarhei.qm.liouvillespace.heom",
+    "quantarhei.qm.liouvillespace.lindbladform",
+    "quantarhei.qm.liouvillespace.modredfieldtensor",
+    "quantarhei.qm.liouvillespace.nefoerstertensor",
+    "quantarhei.qm.liouvillespace.puredephasing",
+    "quantarhei.qm.liouvillespace.rates.foersterrates",
+    "quantarhei.qm.liouvillespace.rates.modifiedredfieldrates",
+    "quantarhei.qm.liouvillespace.rates.redfieldrates",
+    "quantarhei.qm.liouvillespace.rates.tdredfieldrates",
+    "quantarhei.qm.liouvillespace.redfieldtensor",
+    "quantarhei.qm.liouvillespace.superoperator_test",
+    "quantarhei.qm.liouvillespace.systembathinteraction",
+    "quantarhei.qm.liouvillespace.systembathinteraction_test",
+    "quantarhei.qm.liouvillespace.tdmodredfieldtensor",
+]
+ignore_errors = true
+
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests"]
 

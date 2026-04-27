@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ....core.matrixdata import MatrixData
@@ -9,7 +13,7 @@ class RateMatrix(MatrixData):
 
     """
 
-    def __init__(self, dim=None, data=None):
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:
 
         self.N = 0
 
@@ -38,7 +42,7 @@ class RateMatrix(MatrixData):
 
 
 
-    def set_rate(self, pos, value):
+    def set_rate(self, pos: Any, value: float) -> None:
         """Sets a value of a rate between two states
 
         Diagonal depopulation rates are automatically updated

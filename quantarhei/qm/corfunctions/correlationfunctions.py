@@ -41,9 +41,13 @@ Details of Classes Provided
 
 """
 
+from __future__ import annotations
+
 from copy import deepcopy
+from typing import Any
 
 import numpy
+import numpy.typing
 import scipy.interpolate as interp
 
 from ...core.dfunction import DFunction
@@ -90,7 +94,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                      "freq1", "freq2", "gamma")
 
     @enforce_energy_units_context
-    def __init__(self, axis=None, params=None , values=None):
+    def __init__(self, axis: Any = None, params: Any = None, values: Any = None) -> None:
         super().__init__()
 
         if (axis is not None) and (params is not None):
@@ -227,7 +231,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
 
 
-    def _matsubara(self, kBT, ctime, nof):
+    def _matsubara(self, kBT: float, ctime: float, nof: int) -> numpy.ndarray:
         """Matsubara frequency part of the Brownian correlation function
 
         """
@@ -239,7 +243,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             msf += nut*n*numpy.exp(-nut*n*time)/((nut*n)**2-(1.0/ctime)**2)
         return msf
 
-    def _set_temperature_and_cutoff_time(self, temperature, ctime):
+    def _set_temperature_and_cutoff_time(self, temperature: float, ctime: float) -> None:
         """Sets the temperature and cutoff time of for the component
 
         """
@@ -257,7 +261,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self.cutoff_time = new_cutoff_time
 
 
-    def _make_overdamped_brownian(self, params): #, values=None):
+    def _make_overdamped_brownian(self, params: dict) -> None:  # , values=None):
         """Creates the overdamped Brownian oscillator component
         of the correlation function
 
@@ -297,7 +301,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
 
 
-    def _make_overdamped_brownian_ht(self, params): # , values=None):
+    def _make_overdamped_brownian_ht(self, params: dict) -> None:  # , values=None):
         """Creates the high temperature overdamped Brownian oscillator
         component of the correlation function
 
@@ -327,7 +331,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)
 
 
-    def _make_underdamped_brownian(self, params): #, values=None):
+    def _make_underdamped_brownian(self, params: dict) -> None:  # , values=None):
         """Creates underdamped Brownian oscillator component of the correlation
         function
 
@@ -368,7 +372,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self._set_temperature_and_cutoff_time(temperature, 5.0/ctime)
 
 
-    def _make_underdamped(self, params, values=None):
+    def _make_underdamped(self, params: dict, values: Any = None) -> None:
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
@@ -400,7 +404,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
 
 
-    def _make_B777(self, params, values=None):
+    def _make_B777(self, params: dict, values: Any = None) -> None:
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
@@ -431,7 +435,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)
 
 
-    def _make_CP29_spectral_density(self, params, values=None):
+    def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
@@ -464,7 +468,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0*ctime)
 
-    def _make_value_defined(self, params, values):
+    def _make_value_defined(self, params: dict, values: Any) -> None:
 
         lamb = params["reorg"]
         temperature = params["T"]
@@ -495,7 +499,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
     # Aritmetic operations
     #
 
-    def __add__(self, other):
+    def __add__(self, other: CorrelationFunction) -> CorrelationFunction:
         """Addition of two correlation functions
 
         """
@@ -520,7 +524,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         return f
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: CorrelationFunction) -> CorrelationFunction:
         """Inplace addition of two correlation functions
 
         """
@@ -528,7 +532,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return self
 
 
-    def add_to_data(self, other):
+    def add_to_data(self, other: CorrelationFunction) -> None:
         """Addition of data from a specified CorrelationFunction to this object
 
         """
@@ -555,7 +559,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             raise Exception("In addition, functions have to share"
                             " the same TimeAxis object")
 
-    def add_to_data2(self, other):
+    def add_to_data2(self, other: CorrelationFunction) -> None:
         """Addition of data from a specified CorrelationFunction to this object
 
         """
@@ -592,7 +596,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                             " the same TimeAxis object")
 
 
-    def reorganization_energy_consistent(self, rtol=1.0e-3):
+    def reorganization_energy_consistent(self, rtol: float = 1.0e-3) -> bool:
         """Checks if the reorganization energy is consistent with the data
 
         Calculates reorganization energy from the data and checks if it
@@ -605,7 +609,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return False
 
 
-    def is_analytical(self):
+    def is_analytical(self) -> bool:
         """Returns `True` if analytical
 
         Returns `True` if the CorrelationFunction object is constructed
@@ -615,26 +619,26 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return bool(self.params["ftype"] in self.analytical_types)
 
 
-    def get_temperature(self):
+    def get_temperature(self) -> float:
         """Returns the temperature of the correlation function
 
         """
         return self.temperature
 
 
-    def get_reorganization_energy(self):
+    def get_reorganization_energy(self) -> float:
         """Returns the reorganization energy of the correlation function
 
         """
         return self.convert_energy_2_current_u(self.lamb)
 
-    def get_correlation_time(self):
+    def get_correlation_time(self) -> float:
         """Returns correlation time associated with the first component
         of the bath correlation function
         """
         return self.params[0]["cortime"]
 
-    def measure_reorganization_energy(self):
+    def measure_reorganization_energy(self) -> float:
         """Calculates the reorganization energy of the correlation function
 
         Calculates the reorganization energy of the correlation function by
@@ -647,7 +651,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return self.convert_energy_2_current_u(lamb)
 
 
-    def copy(self):
+    def copy(self) -> CorrelationFunction:
         """Creates a copy of the current correlation function
 
         """
@@ -656,7 +660,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return cfce
 
 
-    def get_SpectralDensity(self, fa=None):
+    def get_SpectralDensity(self, fa: FrequencyAxis | None = None) -> Any:
         """Returns a SpectralDensity corresponding to this CorrelationFunction.
         If a FrequencyAxis object is included, the SpectralDensity
         object will be returned with that FrequencyAxis instance as its
@@ -686,7 +690,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return spectd
 
 
-    def get_FTCorrelationFunction(self):
+    def get_FTCorrelationFunction(self) -> FTCorrelationFunction:
         """Returns a Fourier transform of the correlation function
 
         Returns a Fourier transform of the correlation function in form
@@ -698,7 +702,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return ftcf
 
 
-    def get_OddFTCorrelationFunction(self):
+    def get_OddFTCorrelationFunction(self) -> OddFTCorrelationFunction:
         """Returns a odd part of the Fourier transform of correlation function
 
         Returns the odd part of a Fourier transform of the correlation
@@ -711,7 +715,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return oftcf
 
 
-    def get_EvenFTCorrelationFunction(self):
+    def get_EvenFTCorrelationFunction(self) -> EvenFTCorrelationFunction:
         """Returns a even part of the Fourier transform of correlation function
 
         Returns the even part of a Fourier transform of the correlation
@@ -730,7 +734,7 @@ class LineshapeFunction(DFunction, UnitsManaged):
     """
 
     @enforce_energy_units_context
-    def __init__(self, axis=None, params=None, values=None, lfactor=1):
+    def __init__(self, axis: Any = None, params: Any = None, values: Any = None, lfactor: int = 1) -> None:
         """Currently we do not use 'values'
 
         Parameters
@@ -811,7 +815,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
     """
     energy_params = ("reorg", "omega", "freq")
 
-    def __init__(self, axis, params, values=None):
+    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:
         super().__init__()
 
         if not isinstance(axis, FrequencyAxis):
@@ -898,7 +902,7 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis, params, values=None):
+    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:
         super().__init__()
 
         if not isinstance(axis, FrequencyAxis):
@@ -975,7 +979,7 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis, params, values=None):
+    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:
         super().__init__()
 
         if not isinstance(axis, FrequencyAxis):
@@ -1028,7 +1032,7 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
 
 #FIXME: these functions can go to DFunction
-def c2g(timeaxis, coft):
+def c2g(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
     """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation
@@ -1060,7 +1064,7 @@ def c2g(timeaxis, coft):
     return goft
 
 
-def c2h(timeaxis, coft):
+def c2h(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
     """Integrates correlation function in time with an open upper limit
 
     Explicit numerical integration of the correlation
@@ -1086,7 +1090,7 @@ def c2h(timeaxis, coft):
 
     return hoft
 
-def h2g(timeaxis, coft):
+def h2g(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
     """Integrates and integrated correlation function
 
     Explicit numerical integration of the correlation
@@ -1104,8 +1108,8 @@ def h2g(timeaxis, coft):
     return c2h(timeaxis, coft)
 
 
-def oscillator_scalled_CorrelationFunction(time, params, omega, target_time,
-                                           Nmax=5, HR=0.01, silent=True):
+def oscillator_scalled_CorrelationFunction(time: TimeAxis, params: dict, omega: float, target_time: float,
+                                           Nmax: int = 5, HR: float = 0.01, silent: bool = True) -> CorrelationFunction:
     """Scales reorganization energy of the system-bath interaction
 
     Returns a bath correlation function with reorganization energy scalled

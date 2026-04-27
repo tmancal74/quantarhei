@@ -2,6 +2,10 @@
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import REAL
@@ -36,7 +40,7 @@ class OQSStateVector:
     """
 
 
-    def __init__(self, dim=None, data=None):
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:
 
         self._initialized = False
 
@@ -62,21 +66,21 @@ class OQSStateVector:
             self._initialized = True
 
 
-    def norm(self):
+    def norm(self) -> Any:
         """Norm of the state vector
 
         """
         return numpy.sqrt(numpy.dot(self.data,self.data))
 
 
-    def puredot(self, psi):
+    def puredot(self, psi: OQSStateVector) -> Any:
         """Dot product concerning only the system part
 
         """
         return numpy.dot(self.data, psi.data)
 
 
-    def get_ReducedDensityMatrix(self, decoherence=False):
+    def get_ReducedDensityMatrix(self, decoherence: bool = False) -> ReducedDensityMatrix:
         """Converts the state vector into the density matrix
 
         Parameters

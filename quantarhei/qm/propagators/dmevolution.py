@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import matplotlib.pylab as plt
 import numpy
@@ -15,7 +18,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
     data = BasisManagedComplexArray("data")
 
-    def __init__(self, timeaxis=None, rhoi=None, is_in_rwa=False, name=None):
+    def __init__(self, timeaxis: Any = None, rhoi: Any = None, is_in_rwa: bool = False, name: str | None = None) -> None:
 
         if timeaxis is not None:
 
@@ -36,7 +39,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         self.is_in_rwa = is_in_rwa
 
 
-    def set_initial_condition(self, rhoi):
+    def set_initial_condition(self, rhoi: Any) -> None:
         """
 
 
@@ -47,7 +50,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         self.data[0,:,:] = rhoi.data
 
 
-    def at(self, time):
+    def at(self, time: float) -> DensityMatrix:
         """Returns density matrix at a given time
 
 
@@ -63,7 +66,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         return DensityMatrix(data=self.data[ti, :, :])
 
 
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
 
 
@@ -93,20 +96,20 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
                     numpy.dot(self._data[ii,:,:],SS))
 
 
-    def normalize(self):
+    def normalize(self) -> None:
 
         tr = numpy.trace(self.data[0,:,:])
         self.data = self.data/tr
 
 
-    def get_TimeAxis(self):
+    def get_TimeAxis(self) -> Any:
         """Returns the TimeAxis of the present evolution
 
         """
         return self.TimeAxis
 
 
-    def convert_from_RWA(self, ham, sgn=1):
+    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:
         """Converts density matrix evolution from RWA to standard repre
 
 
@@ -136,7 +139,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             self.is_in_rwa = False
 
 
-    def convert_to_RWA(self, ham):
+    def convert_to_RWA(self, ham: Any) -> None:
         """Converts density matrix evolution from standard repre to RWA
 
 
@@ -151,9 +154,9 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             self.is_in_rwa = True
 
 
-    def plot(self, populations=True, popselection="All", trace=False,
-                   coherences=True, cohselection="All", how='-',
-                   axis=None, show=True, legend=False, start=1, shiftcolor=0):
+    def plot(self, populations: bool = True, popselection: str = "All", trace: bool = False,
+                   coherences: bool = True, cohselection: str = "All", how: str = '-',
+                   axis: Any = None, show: bool = True, legend: bool = False, start: int = 1, shiftcolor: int = 0) -> None:
         """Plots selected data.
         Return figure so that it can be manipulated
         """
@@ -224,7 +227,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             plt.show()
 
 
-    def _exportDataToText(self, file):
+    def _exportDataToText(self, file: Any) -> None:
         """Saves textual data to a file
 
         """
@@ -258,7 +261,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         numpy.savetxt(file, out)
 
 
-    def _importDataFromText(self, filename):
+    def _importDataFromText(self, filename: str) -> None:
         """Imports textual data to a file
 
         """
@@ -292,7 +295,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
 class ReducedDensityMatrixEvolution(DensityMatrixEvolution):
 
-    def at(self, time):
+    def at(self, time: float) -> ReducedDensityMatrix:
         """Returns density matrix at a given time
 
 

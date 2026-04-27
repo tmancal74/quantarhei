@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy
 import scipy.interpolate as interp
 
@@ -30,7 +32,7 @@ class FoersterRateMatrix:
 
     """
 
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None) -> None:
 
         if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -53,7 +55,7 @@ class FoersterRateMatrix:
             self._is_initialized = True
 
 
-    def initialize(self):
+    def initialize(self) -> None:
 
         HH = self.ham.data
         Na = self.ham.dim
@@ -77,7 +79,7 @@ class FoersterRateMatrix:
         self.data = _reference_implementation(Na, HH, tt, gt, ll)
 
 
-def _reference_implementation(Na, HH, tt, gt, ll):
+def _reference_implementation(Na: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray) -> numpy.ndarray:
     """Reference implementation of Foerster rates
 
     Calculate the rates between specified sites using standard Foerster
@@ -134,7 +136,7 @@ def _reference_implementation(Na, HH, tt, gt, ll):
 
 
 
-def _fintegral(tt, gtd, gta, ed, ea, ld):
+def _fintegral(tt: numpy.ndarray, gtd: numpy.ndarray, gta: numpy.ndarray, ed: float, ea: float, ld: float) -> float:
     """Foerster integral
 
 

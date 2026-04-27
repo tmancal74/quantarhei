@@ -72,6 +72,10 @@ Exception: The property 'eigenbasis' is protected and cannot be set.
 #
 
 #
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import REAL
@@ -82,17 +86,17 @@ from ...qm.hilbertspace.operators import Operator
 from ..liouvillespace.superoperator import SuperOperator
 
 
-def _eigenb():
+def _eigenb() -> Any:
     """Pointer to eigenbasis property
 
     """
 
-    @property
-    def prop(self):
+    @property  # type: ignore[misc]
+    def prop(self: Any) -> Any:
         return self._eigenbasis()
 
-    @prop.setter
-    def prop(self, value):
+    @prop.setter  # type: ignore[misc]
+    def prop(self: Any, value: Any) -> None:
         raise Exception("The property 'eigenbasis' is protected"
                         " and cannot be set.")
 
@@ -107,8 +111,8 @@ class PureDephasing: #(BasisManaged):
 
     eigenbasis = _eigenb()
 
-    def __init__(self, drates=None, dtype="Lorentzian", system=None,
-                 cutoff_time=None):
+    def __init__(self, drates: Any = None, dtype: str = "Lorentzian", system: Any = None,
+                 cutoff_time: float | None = None) -> None:
         from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if drates is None:
@@ -158,7 +162,7 @@ class PureDephasing: #(BasisManaged):
             raise Exception("Unknown dephasing type")
 
 
-    def get_SuperOperator(self):
+    def get_SuperOperator(self) -> SuperOperator:
         """Returns a superoperator representing the pure dephasing
 
         The return superoperator is always time-independent, i.e. in the
@@ -174,7 +178,7 @@ class PureDephasing: #(BasisManaged):
         return sup
 
 
-    def convert_to(self, dtype=None):
+    def convert_to(self, dtype: str | None = None) -> None:
         """Converts between Lorenzian and Gaussian dephasings
 
         The conversion is done approximatively, so that the FWHM of
@@ -203,7 +207,7 @@ class PureDephasing: #(BasisManaged):
             raise Exception("Unknown dephasing type")
 
 
-    def _eigenbasis(self):
+    def _eigenbasis(self) -> Any:
         """Returns the context for the eigenbasis in which pure dephasing
         is defined
 
@@ -233,8 +237,8 @@ class ElectronicPureDephasing(PureDephasing):
 
     """
 
-    def __init__(self, system, drates=None, dtype="Lorentzian",
-                 cutoff_time=None):
+    def __init__(self, system: Any, drates: Any = None, dtype: str = "Lorentzian",
+                 cutoff_time: float | None = None) -> None:
 
         if drates is None:
             HH = system.get_Hamiltonian()

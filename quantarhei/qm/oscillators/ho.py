@@ -7,6 +7,10 @@ ho (harmonic oscillator) module
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import COMPLEX, REAL
@@ -21,28 +25,28 @@ class fcstorage(Saveable):
     they can be stored here, and retrieved when needed again
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Constructor"""
         self._shifts = []
         self._fcs = []
 
 
-    def lookup(self,shift):
+    def lookup(self, shift: float) -> bool:
         """Returns true if the FC factors for a given shift are available"""
         if self._shifts.count(shift) > 0:
             return True
         return False
 
-    def index(self,shift):
+    def index(self, shift: float) -> int:
         """Returns an index of the FC factors with a given shift"""
         return self._shifts.index(shift)
 
-    def add(self,shift,fcmatrix):
+    def add(self, shift: float, fcmatrix: numpy.ndarray) -> None:
         """Adds the matrix of FC factors to the storage"""
         self._shifts.append(shift)
         self._fcs.append(fcmatrix)
 
-    def get(self,ii):
+    def get(self, ii: int) -> numpy.ndarray:
         """Returns a stored FC matrix"""
         return self._fcs[ii]
 
@@ -56,13 +60,13 @@ class operator_factory(Saveable):
 
     Creation and anihilation operators
     """
-    def __init__(self, N=100):
+    def __init__(self, N: int = 100) -> None:
         # we choose a number of state
         # to represent all operators
         self.N = N
 
 
-    def anihilation_operator(self):
+    def anihilation_operator(self) -> numpy.ndarray:
         N = self.N
         aa = numpy.zeros((N,N),dtype=REAL) # matrix N x N full of zeros
 
@@ -73,7 +77,7 @@ class operator_factory(Saveable):
 
         return aa
 
-    def creation_operator(self):
+    def creation_operator(self) -> numpy.ndarray:
         N = self.N
         ad = numpy.zeros((N,N),dtype=REAL)
 
@@ -85,7 +89,7 @@ class operator_factory(Saveable):
         return ad
 
 
-    def shift_operator(self,dd_):
+    def shift_operator(self, dd_: Any) -> numpy.ndarray:
         """Calculates the Shift Operator based on the size N_ of the basis
         of states and the shift dd_.
 
@@ -191,7 +195,7 @@ class operator_factory(Saveable):
         return numpy.dot(S,numpy.dot(Dd_large,S1))
 
 
-    def unity_operator(self):
+    def unity_operator(self) -> numpy.ndarray:
 
         ones = numpy.ones(self.N, dtype=REAL)
         ret = numpy.diag(ones)
@@ -205,20 +209,20 @@ class qrepresentation:
 
     """
 
-    def __init__(self, qaxis):
+    def __init__(self, qaxis: Any) -> None:
 
         self.qaxis = qaxis
         self.ho_eigenfce_generated = False
 
 
-    def generate_ho_eigenfunctions(self):
+    def generate_ho_eigenfunctions(self) -> None:
         """Generated q-representation of HO eigenfunctions
 
         """
         self.ho_eigenfce_generated = True
 
 
-    def get_ho_eigenfunction(self, N):
+    def get_ho_eigenfunction(self, N: int) -> None:
         """Returns q-representation of HO eigenfunction
 
         """
@@ -228,7 +232,7 @@ class qrepresentation:
             raise Exception("HO Eigenfunctions must be generated first")
 
 
-    def get_ho_ground_state(self):
+    def get_ho_ground_state(self) -> DFunction:
         """Returns the ground state wavefunction of the Harmonic oscillator
 
 
@@ -240,7 +244,7 @@ class qrepresentation:
         return psi0
 
 
-    def get_coherent_state(self, alpha):
+    def get_coherent_state(self, alpha: Any) -> DFunction:
         """Returns q-representation of a coherent state with a given alpha
 
         """
@@ -257,7 +261,7 @@ class qrepresentation:
         return psi_alpha
 
 
-    def get_probability_distribution(self, wfce):
+    def get_probability_distribution(self, wfce: Any) -> DFunction:
         """Returns probability distribution for a given wavefunction
 
         """

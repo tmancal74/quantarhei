@@ -4,6 +4,10 @@ spectraldensities module
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ...core.dfunction import DFunction
@@ -112,7 +116,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                      "freq1", "freq2", "gamma")
     analytical_types = ("OverdampedBrownian")
 
-    def __init__(self, axis=None, params=None, values=None):
+    def __init__(self, axis: Any = None, params: Any = None, values: Any = None) -> None:
         super().__init__()
 
         if (axis is not None) and (params is not None):
@@ -213,7 +217,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
                 self.params.append(prms)
 
-    def _make_overdamped_brownian(self, params, values=None):
+    def _make_overdamped_brownian(self, params: dict, values: Any = None) -> None:
         """Sets the Overdamped Brownian oscillator spectral density
 
         """
@@ -243,7 +247,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         for i in range(2):
             self.lim_omega[i] += lim_omega[i]
 
-    def _make_underdamped_brownian(self, params, values=None):
+    def _make_underdamped_brownian(self, params: dict, values: Any = None) -> None:
 
         #temperature = params["T"]
         ctime = params["gamma"]
@@ -276,7 +280,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             self.lim_omega[i] += lim_omega[i]
 
     # See Valkunas, Abramavicius, Mančal, 2013, Wiley-VCH
-    def _make_underdamped(self, params, values=None):
+    def _make_underdamped(self, params: dict, values: Any = None) -> None:
         SPEED_OF_LIGHT = 2.99*(10**8)
 
         # use the units in which params was defined
@@ -304,7 +308,7 @@ class SpectralDensity(DFunction, UnitsManaged):
     # See Renger, Journal of Chemical Physics 2002
     # See Jang, Newton, Silbey, J Chem Phys. 2007 for alternate form
     # (See Kell et al, 2013, J. Phys. Chem. B.)
-    def _make_B777(self, params, values=None):
+    def _make_B777(self, params: dict, values: Any = None) -> None:
 
         with energy_units("int"):
             omega = self.axis.data
@@ -366,7 +370,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 0.0
 
-    def _make_CP29_spectral_density(self, params, values = None):
+    def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:
     #This pectral density is based on the one calculated from FLN by
     #Rätsep et al. J. Phys. Chem. B 2008, 112, 110-118. It consist of a
     #Gaussian on the low-frequency side and a Lagrangian on the high-frequency
@@ -419,7 +423,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 0.0
 
-    def _make_value_defined(self, values=None):
+    def _make_value_defined(self, values: Any = None) -> None:
         """Value defined spectral density
 
         """
@@ -439,7 +443,7 @@ class SpectralDensity(DFunction, UnitsManaged):
     # Aritmetic operations
     #
 
-    def __add__(self, other):
+    def __add__(self, other: SpectralDensity) -> SpectralDensity:
         """Addition of two correlation functions
 
         """
@@ -456,7 +460,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         return f
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: SpectralDensity) -> SpectralDensity:
         """Inplace addition of two correlation functions
 
         """
@@ -464,7 +468,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         return self
 
 
-    def add_to_data(self, other):
+    def add_to_data(self, other: SpectralDensity) -> None:
         """Addition of data from a specified CorrelationFunction to this object
 
         """
@@ -493,7 +497,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                            "have to share the same FrequencyAxis object")
 
 
-    def add_to_data2(self, other):
+    def add_to_data2(self, other: SpectralDensity) -> None:
         """Addition of data from a specified SpectralDensity to this object
 
         """
@@ -527,7 +531,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             raise Exception("In the operation of addition, functions "
                            "have to share the same FrequencyAxis object")
 
-    def is_analytical(self):
+    def is_analytical(self) -> bool:
         """Returns `True` if analytical
 
         Returns `True` if the CorrelationFunction object is constructed
@@ -537,7 +541,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         return bool(self.params["ftype"] in self.analytical_types)
 
 
-    def get_temperature(self):
+    def get_temperature(self) -> float:
         """Returns the temperature of the correlation function
 
         """
@@ -545,13 +549,13 @@ class SpectralDensity(DFunction, UnitsManaged):
             return self.temperature
         raise Exception("SpectralDensity was not assigned temperature")
 
-    def get_reorganization_energy(self):
+    def get_reorganization_energy(self) -> float:
         """Returns the reorganization energy of the cspectral density
 
         """
         return self.convert_energy_2_current_u(self.lamb)
 
-    def measure_reorganization_energy(self):
+    def measure_reorganization_energy(self) -> float:
         """Calculates the reorganization energy of the spectral density
 
         Calculates the reorganization energy of the spectral density by
@@ -567,14 +571,14 @@ class SpectralDensity(DFunction, UnitsManaged):
         return integ
 
 
-    def copy(self):
+    def copy(self) -> SpectralDensity:
         """Creates a copy of the current correlation function
 
         """
         return SpectralDensity(self.axis, self.params)
 
 
-    def get_CorrelationFunction(self, temperature=None, ta=None):
+    def get_CorrelationFunction(self, temperature: float | None = None, ta: Any = None) -> CorrelationFunction:
         """Returns correlation function corresponding to the spectral density.
         If a TimeAxis object is included, the CorrelationFunction
         object will be returned with that TimeAxis instance as its time axis.
@@ -605,7 +609,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         return cfce
 
 
-    def get_FTCorrelationFunction(self, temperature=None):
+    def get_FTCorrelationFunction(self, temperature: float | None = None) -> FTCorrelationFunction:
         """Returns Fourier transformed correlation function
 
         Fourier transformed correlation function is calculated from the

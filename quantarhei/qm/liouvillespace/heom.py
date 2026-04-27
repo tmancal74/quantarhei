@@ -2,6 +2,10 @@
 
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from ... import COMPLEX, REAL
@@ -95,7 +99,7 @@ class KTHierarchy:
 
     """
 
-    def __init__(self, ham, sbi, depth=2):
+    def __init__(self, ham: Any, sbi: Any, depth: int = 2) -> None:
 
         self.ham = ham
         self.sbi = sbi
@@ -174,7 +178,7 @@ class KTHierarchy:
 
 
 
-    def generate_indices(self, N, level=0):
+    def generate_indices(self, N: int, level: int = 0) -> list:
         """Generates indices of the hierarchy up a certain level
 
 
@@ -239,7 +243,7 @@ class KTHierarchy:
 
 
 
-    def _generate_indices_2_0to4(self, N=2, level=0):
+    def _generate_indices_2_0to4(self, N: int = 2, level: int = 0) -> list:
         """Generation of hierarchy indices for a give problem
 
         """
@@ -287,7 +291,7 @@ class KTHierarchy:
         return lret
 
 
-    def _convert_2_matrix(self, indxs):
+    def _convert_2_matrix(self, indxs: list) -> numpy.ndarray:
         """Convert the list of levels of the hierarchy into an numpy array
 
 
@@ -318,7 +322,7 @@ class KTHierarchy:
         return mat
 
 
-    def _make_nmp1(self):
+    def _make_nmp1(self) -> None:
         """Makes the list of indices obtained from n by -1 or +1 operations
 
         """
@@ -345,7 +349,7 @@ class KTHierarchy:
                 self.np1[nn, kk] = venp
 
 
-    def _make_Gamma(self):
+    def _make_Gamma(self) -> None:
         """Decay factor of a given ADO
 
         """
@@ -354,7 +358,7 @@ class KTHierarchy:
                 self.Gamma[nn] += self.hinds[nn,kk]*self.gamma[kk]
 
 
-    def reset_ados(self):
+    def reset_ados(self) -> None:
         """Creates memory of ADOs and sets them to zero
 
         """
@@ -362,7 +366,7 @@ class KTHierarchy:
                                dtype=COMPLEX)
 
 
-    def get_kernel(self, timeaxis):
+    def get_kernel(self, timeaxis: Any) -> numpy.ndarray:
         """Returns integration kernel for the time-non-local equation
 
         """
@@ -393,7 +397,7 @@ class KTHierarchy:
         return kernel
 
 
-    def _QHPsop(self):
+    def _QHPsop(self) -> numpy.ndarray:
 
         N = self.dim
         delta = UnityOperator(dim=N).data
@@ -430,7 +434,7 @@ class KTHierarchy:
         return qhp
 
 
-    def _PHQsop(self):
+    def _PHQsop(self) -> numpy.ndarray:
 
         N = self.dim
         delta = UnityOperator(dim=N).data
@@ -492,7 +496,7 @@ class KTHierarchyPropagator:
 
     """
 
-    def __init__(self, timeaxis, hierarchy):
+    def __init__(self, timeaxis: Any, hierarchy: Any) -> None:
 
         self.timeaxis = timeaxis
         self.Nt = timeaxis.length
@@ -520,8 +524,8 @@ class KTHierarchyPropagator:
             raise Exception("Hamiltonian does not have RWA.")
 
 
-    def propagate(self, rhoi, L=4, report_hierarchy=False,
-                                   free_hierarchy=False):
+    def propagate(self, rhoi: Any, L: int = 4, report_hierarchy: bool = False,
+                                   free_hierarchy: bool = False) -> Any:
         """Propagates the Kubo-Tanimura Hierarchy including the RDO
 
         """
@@ -589,7 +593,7 @@ class KTHierarchyPropagator:
         return rhot
 
 
-    def _ado_self_rhs(self, ado1, dt, slevel=0):
+    def _ado_self_rhs(self, ado1: numpy.ndarray, dt: float, slevel: int = 0) -> numpy.ndarray:
         """Self contribution of the equation for the hierarchy ADOs
 
         """
@@ -612,7 +616,7 @@ class KTHierarchyPropagator:
 
 
 
-    def _ado_cros_rhs(self, ado1, dt, slevel=0):
+    def _ado_cros_rhs(self, ado1: numpy.ndarray, dt: float, slevel: int = 0) -> numpy.ndarray:
         """All cross-terms of the Hierarchy
 
         """
@@ -688,13 +692,13 @@ class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
 
     """
 
-    def __init__(self, timeaxis, hierarchy):
+    def __init__(self, timeaxis: Any, hierarchy: Any) -> None:
 
         super().__init__(timeaxis, hierarchy)
         self._is_prepared = False
 
 
-    def propagate(self, rhoi, options=None, report_hierarchy=False):
+    def propagate(self, rhoi: Any, options: Any = None, report_hierarchy: bool = False) -> Any:
         """Propagates the Kubo-Tanimura Hierarchy using QuTip implementation
 
         """

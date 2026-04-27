@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 """*******************************************************************************
 
@@ -47,7 +50,7 @@ class ModifiedRedfieldRateMatrix:
 
     """
 
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None) -> None:
 
         if not isinstance(ham,Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -69,7 +72,7 @@ class ModifiedRedfieldRateMatrix:
             self._set_rates2()
             self._is_initialized = True
 
-    def _set_rates2(self,force_detbalance=True):
+    def _set_rates2(self, force_detbalance: bool = True) -> None:
         """
 
         """
@@ -170,7 +173,7 @@ class ModifiedRedfieldRateMatrix:
         self.rates = rates
         self.data = rates
 
-    def _set_rates(self):
+    def _set_rates(self) -> None:
         """Setting Modified Redfield rates for an electronic system
 
         We assume a single exciton band only!!!
@@ -248,7 +251,7 @@ class ModifiedRedfieldRateMatrix:
         self.data = rates
 
 
-def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt):
+def ssModifiedRedfieldRateMatrix(Na: int, Nc: int, Nt: int, hD: numpy.ndarray, lam4: numpy.ndarray, g4: numpy.ndarray, h4: numpy.ndarray, c4: numpy.ndarray, tt: numpy.ndarray) -> numpy.ndarray:
                                  #rtol, werror, RR):
         """Modified redfield rates
 
@@ -384,7 +387,7 @@ def ssModifiedRedfieldRateMatrix(Na, Nc, Nt, hD, lam4, g4, h4, c4, tt):
 
         #qr.stop()
 
-def _c2g(timeaxis,coft):
+def _c2g(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
     """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation
@@ -415,7 +418,7 @@ def _c2g(timeaxis,coft):
     gt = sr + 1j*si
     return gt
 
-def _c2h(timeaxis,coft):
+def _c2h(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
     """Converts correlation function to derivative of lineshape function
 
     Explicit numerical single integration of the correlation
@@ -442,7 +445,7 @@ def _c2h(timeaxis,coft):
     ht = sr + 1j*si
     return ht
 
-def ssModifiedRRM(Na, Nt, en, ln, SS, tt, ct, ht, gt, method="ModifiedRedfield"):
+def ssModifiedRRM(Na: int, Nt: int, en: numpy.ndarray, ln: numpy.ndarray, SS: numpy.ndarray, tt: numpy.ndarray, ct: numpy.ndarray, ht: numpy.ndarray, gt: numpy.ndarray, method: str = "ModifiedRedfield") -> numpy.ndarray:
     """Modifield Redfield rates
 
     Na : integer

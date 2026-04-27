@@ -5,6 +5,10 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
+
+from typing import Any
+
 #import time
 import numpy
 import scipy
@@ -76,9 +80,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
     Lm = BasisManagedComplexArray("Lm")
     Ld = BasisManagedComplexArray("Ld")
 
-    def __init__(self, ham, sbi, initialize=True,
-                 cutoff_time=None, as_operators=False,
-                 name=""):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True,
+                 cutoff_time: float | None = None, as_operators: bool = False,
+                 name: str = "") -> None:
 
         self._initialize_basis()
 
@@ -132,7 +136,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self.has_Iterm = False
 
 
-    def apply(self, oper, copy=True):
+    def apply(self, oper: Any, copy: bool = True) -> Any:
         """Applies the relaxation tensor on a superoperator
 
         """
@@ -172,7 +176,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         return super().apply(oper, copy=copy)
 
 
-    def get_population_rate(self, N, M):
+    def get_population_rate(self, N: int, M: int) -> Any:
         """Returns the relaxation rate between states N -> M
 
 
@@ -188,7 +192,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         return super().get_population_rate(N, M)
 
 
-    def get_dephasing_rate(self, N, M):
+    def get_dephasing_rate(self, N: int, M: int) -> Any:
         """Returns the dephasing rate of a coherence between states N and M
 
 
@@ -209,7 +213,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         return super().get_dephasing_rate(N, M)
 
 
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the tensor by a given matrix
 
 
@@ -253,7 +257,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             super().transform(SS)
 
 
-    def _implementation(self, ham, sbi):
+    def _implementation(self, ham: Hamiltonian, sbi: SystemBathInteraction) -> None:
         r"""Reference implementation, completely in Python
 
         Implementation of Redfield relaxation tensor according to
@@ -448,7 +452,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         qr.log_detail("... Redfield done")
 
-    def _post_implementation(self, Km, Lm, Ld):
+    def _post_implementation(self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray) -> None:
         """When components of the tensor are calculated, should they be
         saved or converted into full tensor?
 
@@ -472,7 +476,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self._is_initialized = True
 
 
-    def _guts_Cmplx_Splines(self, ms, Lm, Km, Na, Om, length, rc1, tm):
+    def _guts_Cmplx_Splines(self, ms: int, Lm: numpy.ndarray, Km: numpy.ndarray, Na: int, Om: numpy.ndarray, length: int, rc1: numpy.ndarray, tm: numpy.ndarray) -> None:
 
         for a in range(Na):
             for b in range(Na):
@@ -496,7 +500,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 Lm[a,b,ms] += cc_mnab*Km[ms,a,b]
 
 
-    def _guts_Cmplx_Sum(self, ms, Lm, Km, Na, Om, length, rc1, tm):
+    def _guts_Cmplx_Sum(self, ms: int, Lm: numpy.ndarray, Km: numpy.ndarray, Na: int, Om: numpy.ndarray, length: int, rc1: numpy.ndarray, tm: numpy.ndarray) -> None:
 
         import scipy
 
@@ -516,7 +520,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 Lm[a,b,ms] += cc_mnab*Km[ms,a,b]
 
 
-    def _guts_Cmplx_FFT(self, ms, Lm, Km, Na, Om, length, rc1, tm):
+    def _guts_Cmplx_FFT(self, ms: int, Lm: numpy.ndarray, Km: numpy.ndarray, Na: int, Om: numpy.ndarray, length: int, rc1: numpy.ndarray, tm: numpy.ndarray) -> None:
 
         for a in range(Na):
             for b in range(Na):
@@ -540,7 +544,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 Lm[a,b,ms] += cc_mnab*Km[ms,a,b]
 
 
-    def _convert_operators_2_tensor(self, Km, Lm, Ld):
+    def _convert_operators_2_tensor(self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray) -> numpy.ndarray:
         r"""Converts operator representation to the tensor one
 
         Convertes operator representation of the Redfield tensor
@@ -606,7 +610,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         return RR
 
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Initializes the Redfield tensor with values
 
         """
@@ -614,7 +618,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                              self.SystemBathInteraction)
 
 
-    def convert_2_tensor(self):
+    def convert_2_tensor(self) -> None:
         """Converts internally the operator representation to a tensor one
 
         Converst the representation of the relaxation tensor through a set
@@ -632,7 +636,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
 
 
-def _loopit(Km, Kd, Lm, Ld, Na, RR, m):
+def _loopit(Km: numpy.ndarray, Kd: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray, Na: int, RR: numpy.ndarray, m: int) -> None:
 
 
     KdLm = numpy.dot(Kd,Lm[:,:,m])
@@ -650,7 +654,7 @@ def _loopit(Km, Kd, Lm, Ld, Na, RR, m):
                         RR[a,b,c,d] -= LdKm[d,b]
 
 
-def _integrate_last_axis(f, dt):
+def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:
     """Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
 
     Parameters:

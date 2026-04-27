@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Any
 
 import matplotlib.pylab as plt
 import numpy
@@ -14,7 +17,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
 
     data = BasisManagedComplexArray("data")
 
-    def __init__(self, timeaxis, psii):
+    def __init__(self, timeaxis: Any, psii: Any) -> None:
 
         if not isinstance(timeaxis, TimeAxis):
             raise Exception
@@ -27,7 +30,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         self.data[0,:] = psii.data
 
 
-    def convert_from_RWA(self, ham, sgn=1):
+    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:
         """Converts density matrix evolution from RWA to standard repre
 
 
@@ -56,7 +59,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
             self.is_in_rwa = False
 
 
-    def convert_to_RWA(self, ham):
+    def convert_to_RWA(self, ham: Any) -> None:
         """Converts density matrix evolution from standard repre to RWA
 
 
@@ -71,7 +74,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
             self.is_in_rwa = True
 
 
-    def plot(self, show=True, ptype="real"):
+    def plot(self, show: bool = True, ptype: str = "real") -> None:
 
         if ptype == "real":
             for i in range(self.data.shape[1]):
@@ -91,7 +94,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
             plt.show()
 
 
-    def transform(self, SS, inv=None):
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
 
 
@@ -116,7 +119,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
             self._data[nt,:] = numpy.dot(S1,self._data[nt,:])
 
 
-    def get_DensityMatrixEvolution(self):
+    def get_DensityMatrixEvolution(self) -> DensityMatrixEvolution:
         """Constructs DensityMatrix from the present StateVector
 
         """
@@ -140,7 +143,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
 
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.StateVectorEvolution object"
         out += "\n======================================"
         out += "\nTimeAxis parameters: "

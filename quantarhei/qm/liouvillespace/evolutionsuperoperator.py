@@ -180,9 +180,11 @@ Class Details
 -------------
 
 """
+from __future__ import annotations
 
 # standard library imports
 import numbers
+from typing import Any
 
 import matplotlib.pyplot as plt
 
@@ -234,8 +236,8 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
     """
 
-    def __init__(self, time=None, ham=None, relt=None,
-                 pdeph=None, mode="all", block=None):
+    def __init__(self, time: Any = None, ham: Any = None, relt: Any = None,
+                 pdeph: Any = None, mode: str = "all", block: Any = None) -> None:
         super().__init__()
 
         self.time = time
@@ -301,13 +303,13 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.now = 0
 
 
-    def get_Hamiltonian(self):
+    def get_Hamiltonian(self) -> Any:
         """Returns the Hamiltonian associated with thise evolution
 
         """
         return self.ham
 
-    def set_dense_dt(self, Nt):
+    def set_dense_dt(self, Nt: int) -> None:
         """Set a denser time axis for calculations between two points of the superoperator
 
         Parameters
@@ -320,7 +322,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.dense_time = TimeAxis(0.0, Nt+1, self.time.step/Nt)
 
 
-    def update_dense_time(self, i):
+    def update_dense_time(self, i: int) -> None:
         """Update the start time of the dense_time
 
 
@@ -333,14 +335,14 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                                    self.dense_time.step)
 
 
-    def set_PureDephasing(self, pdeph):
+    def set_PureDephasing(self, pdeph: Any) -> None:
         """Sets the PureDephasing object for the dynamic calculation
 
         """
         self.pdeph = pdeph
 
 
-    def has_PureDephasing(self):
+    def has_PureDephasing(self) -> bool:
         """Return True if the EvolutionSuperOperator has pure dephasing
 
         """
@@ -349,7 +351,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return True
 
 
-    def _initialize_data(self, save=False):
+    def _initialize_data(self, save: bool = False) -> None:
         """Initializes EvolutionSuperOperator data
 
         """
@@ -389,7 +391,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     self.data[i,j,i,j] = 1.0
 
 
-    def calculate(self, show_progress=False):
+    def calculate(self, show_progress: bool = False) -> None:
         """Calculates the data of the evolution superoperator
 
 
@@ -465,7 +467,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             self.is_in_rwa = True
 
 
-    def _elemental_step_TimeIndep(self, t0, dens_dt, Nt):
+    def _elemental_step_TimeIndep(self, t0: float, dens_dt: float, Nt: int) -> numpy.ndarray:
         """Single elemental step of propagation with the dense time step
 
         """
@@ -486,7 +488,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Ut1
 
 
-    def _elemental_step_TimeDependent(self, t0):
+    def _elemental_step_TimeDependent(self, t0: float) -> numpy.ndarray:
         """Single step of propagation with the dense time step
 
         assuming time dependent relaxation tensor
@@ -511,7 +513,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Ut1
 
 
-    def _all_steps_time_dep(self):
+    def _all_steps_time_dep(self) -> None:
         """Calculates a complete evolution superoperator
 
         """
@@ -568,7 +570,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
 
 
-    def _one_step_with_dense_TimeIndep(self, t0, Ndense, dens_dt, Nt):
+    def _one_step_with_dense_TimeIndep(self, t0: float, Ndense: int, dens_dt: float, Nt: int) -> numpy.ndarray:
         """One step of propagation over the standard time step
 
         This step is componsed of Ndense time steps
@@ -585,7 +587,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return Udt
 
 
-    def _calculate_remainig_using_first_interval(self, Nt):
+    def _calculate_remainig_using_first_interval(self, Nt: int) -> None:
         """Calculate the rest of the superoperator with known first interval
 
 
@@ -598,7 +600,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
 
 
-    def calculate_next(self, save=False):
+    def calculate_next(self, save: bool = False) -> None:
         """Calculates one point of data of the superopetor
 
         """
@@ -677,7 +679,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 self.now += 1
 
 
-    def at(self, time=None):
+    def at(self, time: float | None = None) -> SuperOperator:
         """Retruns evolution superoperator tensor at a given time
 
 
@@ -696,7 +698,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return SuperOperator(data=self.data)
 
 
-    def apply(self, time, target, copy=True):
+    def apply(self, time: Any, target: Any, copy: bool = True) -> Any:
         """Applies the evolution superoperator at a given time
 
 
@@ -786,7 +788,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         raise Exception("Invalid argument: time")
 
 
-    def plot_element(self, elem, part="REAL", show=True):
+    def plot_element(self, elem: Any, part: str = "REAL", show: bool = True) -> None:
         """Plots a selected element of the evolution superoperator
 
 
@@ -824,7 +826,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             print("Nothing to plot")
 
 
-    def get_element_fft(self, elem, window=None):
+    def get_element_fft(self, elem: Any, window: Any = None) -> Any:
         """Returns a DFunction with the FFT of the element evolution
 
         """
@@ -848,7 +850,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
 
     # FIXME: In principle, we can define Greens function and return it
-    def get_fft(self, window=None, subtract_last=True):
+    def get_fft(self, window: Any = None, subtract_last: bool = True) -> tuple:
         """Returns Fourier transform of the whole evolution superoperator
 
 
@@ -882,7 +884,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return fdat, freq
 
 
-    def convert_from_RWA(self, ham=None, sgn=1):
+    def convert_from_RWA(self, ham: Any = None, sgn: int = 1) -> None:
         """Converts evolution superoperator from RWA to standard repre
 
 
@@ -923,7 +925,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             self.is_in_rwa = False
 
 
-    def convert_to_RWA(self, ham):
+    def convert_to_RWA(self, ham: Any) -> None:
         """Converts evolution superoperator from standard repre to RWA
 
 
@@ -940,7 +942,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         out  = "\nquantarhei.EvolutionSuperOperator object"
         out += "\n========================================"
 #        out += "\nunits of energy %s" % self.unit_repr()

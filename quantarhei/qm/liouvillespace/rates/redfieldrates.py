@@ -5,6 +5,10 @@
 *******************************************************************************
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 
 from .... import REAL
@@ -41,7 +45,7 @@ class RedfieldRateMatrix:
 
     """
 
-    def __init__(self, ham, sbi, initialize=True, cutoff_time=None, corr_mat=None):
+    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None, corr_mat: Any = None) -> None:
 
         if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -66,7 +70,7 @@ class RedfieldRateMatrix:
             self._is_initialized = True
 
 
-    def _set_rates(self):
+    def _set_rates(self) -> None:
         """Prepares all data for rate calculation, and calls an implementation code
 
         """
@@ -171,7 +175,7 @@ class RedfieldRateMatrix:
                 at_runtime=True,
                 fallback_local=False,
                 always_local=False)
-def ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, RR):
+def ssRedfieldRateMatrix(Na: int, Nk: int, KI: numpy.ndarray, cc: numpy.ndarray, rtol: float, werror: numpy.ndarray, RR: numpy.ndarray) -> None:
     """Standard redfield rates
 
 
