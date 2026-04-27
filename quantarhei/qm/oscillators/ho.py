@@ -7,6 +7,7 @@ ho (harmonic oscillator) module
 
 
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -30,7 +31,6 @@ class fcstorage(Saveable):
         self._shifts = []
         self._fcs = []
 
-
     def lookup(self, shift: float) -> bool:
         """Returns true if the FC factors for a given shift are available"""
         if self._shifts.count(shift) > 0:
@@ -51,8 +51,6 @@ class fcstorage(Saveable):
         return self._fcs[ii]
 
 
-
-
 class operator_factory(Saveable):
     """Class providing useful operators
 
@@ -60,34 +58,33 @@ class operator_factory(Saveable):
 
     Creation and anihilation operators
     """
+
     def __init__(self, N: int = 100) -> None:
         # we choose a number of state
         # to represent all operators
         self.N = N
 
-
     def anihilation_operator(self) -> numpy.ndarray:
         N = self.N
-        aa = numpy.zeros((N,N),dtype=REAL) # matrix N x N full of zeros
+        aa = numpy.zeros((N, N), dtype=REAL)  # matrix N x N full of zeros
 
         for ng in range(N):
             for mg in range(N):
                 if ng == mg - 1:
-                    aa[ng,mg] = numpy.sqrt(numpy.real(mg))
+                    aa[ng, mg] = numpy.sqrt(numpy.real(mg))
 
         return aa
 
     def creation_operator(self) -> numpy.ndarray:
         N = self.N
-        ad = numpy.zeros((N,N),dtype=REAL)
+        ad = numpy.zeros((N, N), dtype=REAL)
 
         for ng in range(N):
             for mg in range(N):
                 if ng == mg + 1:
-                    ad[ng,mg] = numpy.sqrt(numpy.real(mg+1))
+                    ad[ng, mg] = numpy.sqrt(numpy.real(mg + 1))
 
         return ad
-
 
     def shift_operator(self, dd_: Any) -> numpy.ndarray:
         """Calculates the Shift Operator based on the size N_ of the basis
@@ -181,19 +178,18 @@ class operator_factory(Saveable):
         ad = self.creation_operator()
 
         # construct the Shift Operator
-        Dd_large = numpy.zeros((N_,N_),dtype=COMPLEX)
-        Dd_large = (dd_*ad-numpy.conj(dd_)*aa)/numpy.sqrt(2.0)
+        Dd_large = numpy.zeros((N_, N_), dtype=COMPLEX)
+        Dd_large = (dd_ * ad - numpy.conj(dd_) * aa) / numpy.sqrt(2.0)
 
         # Diagonalize and obtain transformation matrix
-        A,S = numpy.linalg.eig(Dd_large)
+        A, S = numpy.linalg.eig(Dd_large)
         S1 = numpy.linalg.inv(S)
 
         # Exponentiate
         Dd_large = numpy.diag(numpy.exp(A))
 
         # Transform back and reduce to the lower number of states
-        return numpy.dot(S,numpy.dot(Dd_large,S1))
-
+        return numpy.dot(S, numpy.dot(Dd_large, S1))
 
     def unity_operator(self) -> numpy.ndarray:
 
@@ -202,69 +198,48 @@ class operator_factory(Saveable):
         return ret
 
 
-
 class qrepresentation:
-    """Coordinate representation of the HO wavefunctions
-
-
-    """
+    """Coordinate representation of the HO wavefunctions"""
 
     def __init__(self, qaxis: Any) -> None:
 
         self.qaxis = qaxis
         self.ho_eigenfce_generated = False
 
-
     def generate_ho_eigenfunctions(self) -> None:
-        """Generated q-representation of HO eigenfunctions
-
-        """
+        """Generated q-representation of HO eigenfunctions"""
         self.ho_eigenfce_generated = True
 
-
     def get_ho_eigenfunction(self, N: int) -> None:
-        """Returns q-representation of HO eigenfunction
-
-        """
+        """Returns q-representation of HO eigenfunction"""
         if self.ho_eigenfce_generated:
             pass
         else:
             raise Exception("HO Eigenfunctions must be generated first")
 
-
     def get_ho_ground_state(self) -> DFunction:
-        """Returns the ground state wavefunction of the Harmonic oscillator
-
-
-        """
-        data = numpy.exp(-(self.qaxis.data**2)/2)\
-            /numpy.sqrt(numpy.sqrt(numpy.pi))
+        """Returns the ground state wavefunction of the Harmonic oscillator"""
+        data = numpy.exp(-(self.qaxis.data**2) / 2) / numpy.sqrt(numpy.sqrt(numpy.pi))
         psi0 = DFunction(x=self.qaxis, y=data)
 
         return psi0
 
-
     def get_coherent_state(self, alpha: Any) -> DFunction:
-        """Returns q-representation of a coherent state with a given alpha
-
-        """
+        """Returns q-representation of a coherent state with a given alpha"""
         ar = numpy.real(alpha)
         ai = numpy.imag(alpha)
         sq2 = numpy.sqrt(2.0)
         q = self.qaxis.data
-        data = numpy.exp(-((q+sq2*ar)**2)/2)*\
-                            numpy.exp(-1j*ar*ai + 1j*sq2*ai*q)\
-                            /numpy.sqrt(numpy.sqrt(numpy.pi))
+        data = (
+            numpy.exp(-((q + sq2 * ar) ** 2) / 2)
+            * numpy.exp(-1j * ar * ai + 1j * sq2 * ai * q)
+            / numpy.sqrt(numpy.sqrt(numpy.pi))
+        )
 
         psi_alpha = DFunction(x=self.qaxis, y=data)
 
         return psi_alpha
 
-
     def get_probability_distribution(self, wfce: Any) -> DFunction:
-        """Returns probability distribution for a given wavefunction
-
-        """
-        return DFunction(x=wfce.axis, y=numpy.abs(wfce.data)**2)
-
-
+        """Returns probability distribution for a given wavefunction"""
+        return DFunction(x=wfce.axis, y=numpy.abs(wfce.data) ** 2)

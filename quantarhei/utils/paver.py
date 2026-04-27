@@ -1,23 +1,19 @@
-
 import subprocess
 import sys
 
 
 def execute_paver(args: list[str], util: str = "paver") -> None:
-    """Executes 'paver' utility
-
-    """
-    pargs = ['paver']+args
-    process = subprocess.Popen(pargs,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               universal_newlines=True)
+    """Executes 'paver' utility"""
+    pargs = ["paver"] + args
+    process = subprocess.Popen(
+        pargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
+    )
 
     for line in process.stdout:
         sys.stdout.write(line)
         sys.stdout.flush()
 
-    #while True:
+    # while True:
     #    output = process.stdout.readline()
     #    print(output.strip())
     #    # Do something else

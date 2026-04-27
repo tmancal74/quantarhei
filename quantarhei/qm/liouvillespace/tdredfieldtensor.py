@@ -9,7 +9,6 @@ from .redfieldtensor import RedfieldRelaxationTensor
 
 
 class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
-
     # FIXME: mimick the time-independent case
     Lm = None  # we isolate the operators defined by inheritance as time-independent
     Ld = None
@@ -39,7 +38,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         #
-        Na = ham.dim #data.shape[0]
+        Na = ham.dim  # data.shape[0]
 
         # time axis
         ta = sbi.TimeAxis
@@ -86,7 +85,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         Om = numpy.zeros((Na, Na))
         for a in range(Na):
             for b in range(Na):
-                Om[a,b] = hD[a] - hD[b]
+                Om[a, b] = hD[a] - hD[b]
 
         # number of baths - one per monomer
         Nb = sbi.N
@@ -101,19 +100,18 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         if not multi_ex:
             Km = numpy.zeros((Nb, Na, Na), dtype=numpy.float64)
         else:
-            Km = numpy.zeros((2*Nb, Na, Na), dtype=numpy.float64)
+            Km = numpy.zeros((2 * Nb, Na, Na), dtype=numpy.float64)
         # Transform site operators
         S1 = scipy.linalg.inv(SS)
-        #FIXME: SBI should also be basis controlled
+        # FIXME: SBI should also be basis controlled
         for ns in range(Nb):
-            Km[ns,:,:] = numpy.dot(S1, numpy.dot(sbi.KK[ns,:,:],SS))
+            Km[ns, :, :] = numpy.dot(S1, numpy.dot(sbi.KK[ns, :, :], SS))
 
         if multi_ex:
-
             try:
-                ii = sbi.system.twoex_state[0,0]
-                #print(ii)
-                #if ii >= 0:
+                ii = sbi.system.twoex_state[0, 0]
+                # print(ii)
+                # if ii >= 0:
                 #    print("Something is wrong")
                 #    raise Exception("twoex_state property ill-defined.")
             except AttributeError:
@@ -123,19 +121,23 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             Nb2 = sbi.N
 
             # projectors to two-exciton states
-            K2 = numpy.zeros((Nb2,Na,Na), dtype=REAL)
+            K2 = numpy.zeros((Nb2, Na, Na), dtype=REAL)
             i_start = ham.rwa_indices[2]  # here the two-exciton bands starts
             ii = 0
             for ms in range(i_start, ham.dim):
-                K2[ii,ms,ms] = 1.0
+                K2[ii, ms, ms] = 1.0
                 ii += 1
 
             # here we do two-exciton projectors
             for ns in range(Nb):
                 for ms in range(Nb):
                     if ms != ns:
-                        n2ex = sbi.system.twoex_state[ms,ns] - Nb - 1  # we number the K2 projectors from zero
-                        Km[Nb + ns,:,:] += numpy.dot(S1, numpy.dot(K2[n2ex,:,:],SS))
+                        n2ex = (
+                            sbi.system.twoex_state[ms, ns] - Nb - 1
+                        )  # we number the K2 projectors from zero
+                        Km[Nb + ns, :, :] += numpy.dot(
+                            S1, numpy.dot(K2[n2ex, :, :], SS)
+                        )
 
         #
         # \Lambda_m operator
@@ -146,60 +148,60 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         if not multi_ex:
             Lm = numpy.zeros((Na, Na, Nb, Nt), dtype=numpy.complex128)
         else:
-            Lm = numpy.zeros((Na, Na, 2*Nb, Nt), dtype=numpy.complex128)
+            Lm = numpy.zeros((Na, Na, 2 * Nb, Nt), dtype=numpy.complex128)
 
-
-        #print("FAST INTEGRATION")
-        eexp = numpy.exp(-1.0j*Om[:,:, numpy.newaxis]*tm[numpy.newaxis,numpy.newaxis,:])
+        # print("FAST INTEGRATION")
+        eexp = numpy.exp(
+            -1.0j * Om[:, :, numpy.newaxis] * tm[numpy.newaxis, numpy.newaxis, :]
+        )
 
         for ms in range(Nb):
-            #for ns in range(Nb):
-                ns = ms
+            # for ns in range(Nb):
+            ns = ms
 
-                # correlation function of site ns (if ns == ms)
-                # or a cross-correlation function of sites ns and ms
-                # ms counts baths and it starts from 0, but the excited states are counted from 1
-                rc1 = sbi.get_coft(ms, ns) #(ms+1, ns+1)
+            # correlation function of site ns (if ns == ms)
+            # or a cross-correlation function of sites ns and ms
+            # ms counts baths and it starts from 0, but the excited states are counted from 1
+            rc1 = sbi.get_coft(ms, ns)  # (ms+1, ns+1)
 
-                #print("MAX:", ms, numpy.max(numpy.abs(rc1)) )
-                rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
+            # print("MAX:", ms, numpy.max(numpy.abs(rc1)) )
+            rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
 
-                cc_mnab = _integrate_last_axis(rc, dt)
-                Lm[:,:,ms,:] = numpy.einsum("ijt,ij->ijt",cc_mnab,Km[ns,:,:])
+            cc_mnab = _integrate_last_axis(rc, dt)
+            Lm[:, :, ms, :] = numpy.einsum("ijt,ij->ijt", cc_mnab, Km[ns, :, :])
 
         if multi_ex:
             for ms in range(Nb):
                 ns = ms
-                #print("two-ex", ns, ":")
-                rc1 = sbi.get_coft(ms+1, ns+1)
+                # print("two-ex", ns, ":")
+                rc1 = sbi.get_coft(ms + 1, ns + 1)
                 rc = numpy.einsum("t,ijt->ijt", rc1[0:length], eexp)
                 cc_mnab = _integrate_last_axis(rc, dt)
-                Lm[:,:,Nb + ms,:] = numpy.einsum("ijt,ij->ijt",cc_mnab,Km[Nb + ms,:,:])
+                Lm[:, :, Nb + ms, :] = numpy.einsum(
+                    "ijt,ij->ijt", cc_mnab, Km[Nb + ms, :, :]
+                )
 
         # create the Hermite conjuged version of \Lamnda_m
         if not multi_ex:
             Ld = numpy.zeros((Na, Na, Nb, Nt), dtype=numpy.complex128)
             Nthrough = Nb
         else:
-            Ld = numpy.zeros((Na, Na, 2*Nb, Nt), dtype=numpy.complex128)
-            Nthrough = 2*Nb
+            Ld = numpy.zeros((Na, Na, 2 * Nb, Nt), dtype=numpy.complex128)
+            Nthrough = 2 * Nb
 
         for tt in range(Nt):
             for ms in range(Nthrough):
-                Ld[:, :,ms,tt] += numpy.conj(numpy.transpose(Lm[:,:,ms,tt]))
+                Ld[:, :, ms, tt] += numpy.conj(numpy.transpose(Lm[:, :, ms, tt]))
 
         if self.as_operators:
-
             # save the operators - propagation methods must know about them
             self.Km = Km
             self.Lm = Lm
             self.Ld = Ld
 
         else:
-
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
-
 
             if True:
                 self.data = RR
@@ -208,10 +210,9 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         self._is_initialized = True
         self.is_time_dependent = True
 
-
-    def _convert_operators_2_tensor(self, Km: numpy.ndarray,
-                                    Lm: numpy.ndarray,
-                                    Ld: numpy.ndarray) -> numpy.ndarray:
+    def _convert_operators_2_tensor(
+        self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray
+    ) -> numpy.ndarray:
         r"""Converts operator representation to the tensor one
 
         Convertes operator representation of the Redfield tensor
@@ -233,7 +234,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         Nb = self.SystemBathInteraction.N
         Nt = self.Nt
 
-        #if self.SystemBathInteraction.system.mult > 1:
+        # if self.SystemBathInteraction.system.mult > 1:
         #    Nb = 2*Nb
         # Introduced a safer way to figure out if there are more projection operators than sites
         Nb = Km.shape[0]
@@ -241,22 +242,23 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         RR = numpy.zeros((Nt, Na, Na, Na, Na), dtype=numpy.complex128)
 
         for m in range(Nb):
-            #print("m =", m ,"of", Nb)
+            # print("m =", m ,"of", Nb)
             for tt in range(Nt):
-                KmLm = numpy.dot(Km[m,:,:],Lm[:,:,m,tt])
-                LdKm = numpy.dot(Ld[:,:,m,tt],Km[m,:,:])
+                KmLm = numpy.dot(Km[m, :, :], Lm[:, :, m, tt])
+                LdKm = numpy.dot(Ld[:, :, m, tt], Km[m, :, :])
                 for a in range(Na):
                     for b in range(Na):
                         for c in range(Na):
-                            RR[tt,a,b,c,b] -= KmLm[a,c]
-                            RR[tt,a,b,a,c] -= LdKm[c,b]
+                            RR[tt, a, b, c, b] -= KmLm[a, c]
+                            RR[tt, a, b, a, c] -= LdKm[c, b]
                             for d in range(Na):
-
-                                RR[tt,a,b,c,d] += (Km[m,a,c]*Ld[d,b,m,tt]
-                                                + Lm[a,c,m,tt]*Km[m,d,b])
-                                #if b == d:
+                                RR[tt, a, b, c, d] += (
+                                    Km[m, a, c] * Ld[d, b, m, tt]
+                                    + Lm[a, c, m, tt] * Km[m, d, b]
+                                )
+                                # if b == d:
                                 #    RR[tt,a,b,c,d] -= KmLm[a,c]
-                                #if a == c:
+                                # if a == c:
                                 #    RR[tt,a,b,c,d] -= LdKm[d,b]
 
         """
@@ -281,9 +283,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
         return RR
 
-
-    def transform(self, SS: numpy.ndarray,
-                  inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the tensor by a given matrix
 
 
@@ -308,37 +308,35 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         if not self._data_initialized:
             for tt in range(self.Nt):
                 for m in range(self.Km.shape[0]):
-                    self.Lm[:, :,m,tt] = \
-                    numpy.dot(S1,numpy.dot(self.Lm[:, :, m, tt],SS))
-                    self.Ld[:, :,m,tt] = \
-                    numpy.dot(S1,numpy.dot(self.Ld[:, :, m, tt],SS))
+                    self.Lm[:, :, m, tt] = numpy.dot(
+                        S1, numpy.dot(self.Lm[:, :, m, tt], SS)
+                    )
+                    self.Ld[:, :, m, tt] = numpy.dot(
+                        S1, numpy.dot(self.Ld[:, :, m, tt], SS)
+                    )
             for m in range(self.Km.shape[0]):
-                self.Km[m, :, :] = numpy.dot(S1,numpy.dot(self.Km[m, :, :],SS))
+                self.Km[m, :, :] = numpy.dot(S1, numpy.dot(self.Km[m, :, :], SS))
 
             return
 
-
-        if (self.manager.warn_about_basis_change):
-                print(f"\nQr >>> Relaxation tensor '{self.name}' changes basis")
-
+        if self.manager.warn_about_basis_change:
+            print(f"\nQr >>> Relaxation tensor '{self.name}' changes basis")
 
         for tt in range(self.Nt):
             for c in range(dim):
                 for d in range(dim):
-                    self._data[tt,:,:,c,d] = \
-                        numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
+                    self._data[tt, :, :, c, d] = numpy.dot(
+                        S1, numpy.dot(self._data[tt, :, :, c, d], SS)
+                    )
 
             for a in range(dim):
                 for b in range(dim):
-                    self._data[tt,a,b,:,:] = \
-                        numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))
-
+                    self._data[tt, a, b, :, :] = numpy.dot(
+                        S1, numpy.dot(self._data[tt, a, b, :, :], SS)
+                    )
 
     def secularize(self) -> None:
-        """Secularizes the relaxation tensor
-
-
-        """
+        """Secularizes the relaxation tensor"""
         if self.as_operators:
             raise Exception("Cannot be secularized in an opeator form")
 
@@ -348,16 +346,15 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 for jj in range(N):
                     for kk in range(N):
                         for ll in range(N):
-                            if not (((ii == jj) and (kk == ll))
-                                or ((ii == kk) and (jj == ll))) :
-                                    self.data[:,ii,jj,kk,ll] = 0
-
+                            if not (
+                                ((ii == jj) and (kk == ll))
+                                or ((ii == kk) and (jj == ll))
+                            ):
+                                self.data[:, ii, jj, kk, ll] = 0
 
 
 def _integrate(f: numpy.ndarray, dt: float) -> numpy.ndarray:
-    """Cummulative simpson rule for integration (even number of points also handled)
-
-    """
+    """Cummulative simpson rule for integration (even number of points also handled)"""
     N = len(f)
     if N < 2:
         raise ValueError("Need at least two points for integration")

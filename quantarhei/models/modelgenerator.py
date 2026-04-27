@@ -1,7 +1,5 @@
-"""Model Generator for Examples and Tests
+"""Model Generator for Examples and Tests"""
 
-
-"""
 from __future__ import annotations
 
 import numpy
@@ -14,11 +12,9 @@ from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 
 
 class ModelGenerator:
-
     def __init__(self) -> None:
         self.name = ""
         self.molecules: list[Molecule] = []
-
 
     def get_Aggregate(self, name: str = "dimer-1") -> Aggregate:
 
@@ -26,15 +22,14 @@ class ModelGenerator:
             agg = Aggregate(name=name)
 
             with energy_units("1/cm"):
-
                 m1 = Molecule(name="Mol 1", elenergies=[0.0, 10100.0])
                 m2 = Molecule(name="Mol 2", elenergies=[0.0, 10050.0])
 
                 m1.position = [0.0, 0.0, 0.0]
                 m2.position = [15.0, 0.0, 0.0]
 
-                m1.set_dipole(0,1,[5.8, 0.0, 0.0])
-                m2.set_dipole(0,1,[5.8, 0.0, 0.0])
+                m1.set_dipole(0, 1, [5.8, 0.0, 0.0])
+                m2.set_dipole(0, 1, [5.8, 0.0, 0.0])
 
                 agg.add_Molecule(m1)
                 agg.add_Molecule(m2)
@@ -47,18 +42,16 @@ class ModelGenerator:
             agg = Aggregate(name=name)
 
             with energy_units("1/cm"):
-
                 m1 = Molecule(name="Mol 1", elenergies=[0.0, 10100.0])
                 m2 = Molecule(name="Mol 2", elenergies=[0.0, 10050.0])
                 m3 = Molecule(name="Mol 3", elenergies=[0.0, 10000.0])
 
-
                 m1.position = [0.0, 0.0, 0.0]
                 m2.position = [15.0, 0.0, 0.0]
                 m3.position = [10.0, 10.0, 0.0]
-                m1.set_dipole(0,1,[5.8, 0.0, 0.0])
-                m2.set_dipole(0,1,[5.8, 0.0, 0.0])
-                m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
+                m1.set_dipole(0, 1, [5.8, 0.0, 0.0])
+                m2.set_dipole(0, 1, [5.8, 0.0, 0.0])
+                m3.set_dipole(0, 1, [numpy.sqrt(12.0), 0.0, 0.0])
 
                 agg.add_Molecule(m1)
                 agg.add_Molecule(m2)
@@ -66,14 +59,14 @@ class ModelGenerator:
 
                 self.molecules = [m1, m2, m3]
 
-            #    m4 = Molecule("Mol 4", [0.0, 11000.0])
-            #    m5 = Molecule("Mol 5", [0.0, 11000.0])
-            #    m4.position = [15.0, 15.0, 0.0]
-            #    m5.position = [15.0, 10.0, 0.0]
-            #    m4.set_dipole(0,1,[5.8, 0.0, 0.0])
-            #    m5.set_dipole(0,1,[5.8, 0.0, 0.0])
-            #    agg.add_Molecule(m4)
-            #    agg.add_Molecule(m5)
+                #    m4 = Molecule("Mol 4", [0.0, 11000.0])
+                #    m5 = Molecule("Mol 5", [0.0, 11000.0])
+                #    m4.position = [15.0, 15.0, 0.0]
+                #    m5.position = [15.0, 10.0, 0.0]
+                #    m4.set_dipole(0,1,[5.8, 0.0, 0.0])
+                #    m5.set_dipole(0,1,[5.8, 0.0, 0.0])
+                #    agg.add_Molecule(m4)
+                #    agg.add_Molecule(m5)
 
                 agg.set_coupling_by_dipole_dipole()
 
@@ -81,7 +74,6 @@ class ModelGenerator:
             agg = Aggregate(name=name)
 
             with energy_units("1/cm"):
-
                 m1 = Molecule(name="Mol 1", elenergies=[0.0, 10100.0])
                 m2 = Molecule(name="Mol 2", elenergies=[0.0, 10050.0])
                 m3 = Molecule(name="Mol 3", elenergies=[0.0, 10000.0])
@@ -94,11 +86,11 @@ class ModelGenerator:
                 m4.position = [15.0, 15.0, 0.0]
                 m5.position = [0, 10.0, 10.0]
 
-                m1.set_dipole(0,1,[5.8, 0.0, 0.0])
-                m2.set_dipole(0,1,[5.8, 0.0, 0.0])
-                m3.set_dipole(0,1,[numpy.sqrt(12.0), 0.0, 0.0])
-                m4.set_dipole(0,1,[5.8, 0.0, 0.0])
-                m5.set_dipole(0,1,[5.8, 0.0, 0.0])
+                m1.set_dipole(0, 1, [5.8, 0.0, 0.0])
+                m2.set_dipole(0, 1, [5.8, 0.0, 0.0])
+                m3.set_dipole(0, 1, [numpy.sqrt(12.0), 0.0, 0.0])
+                m4.set_dipole(0, 1, [5.8, 0.0, 0.0])
+                m5.set_dipole(0, 1, [5.8, 0.0, 0.0])
 
                 agg.add_Molecule(m1)
                 agg.add_Molecule(m2)
@@ -115,10 +107,9 @@ class ModelGenerator:
 
         return agg
 
-
-    def get_Aggregate_with_environment(self, name: str = "dimer-1_env",
-                                       timeaxis: TimeAxis | None = None) -> Aggregate:
-
+    def get_Aggregate_with_environment(
+        self, name: str = "dimer-1_env", timeaxis: TimeAxis | None = None
+    ) -> Aggregate:
 
         if name == "dimer-1_env":
             agg = self.get_Aggregate(name="dimer-1")
@@ -130,15 +121,14 @@ class ModelGenerator:
                 time = timeaxis
 
             with energy_units("1/cm"):
-                params = dict(ftype="OverdampedBrownian", reorg=100,
-                              cortime=100, T=300)
+                params = dict(ftype="OverdampedBrownian", reorg=100, cortime=100, T=300)
                 print(time)
                 cf = CorrelationFunction(time, params)
 
             m1 = self.molecules[0]
-            m1.set_transition_environment((0,1), cf)
+            m1.set_transition_environment((0, 1), cf)
             m2 = self.molecules[1]
-            m2.set_transition_environment((0,1), cf)
+            m2.set_transition_environment((0, 1), cf)
 
         elif name == "trimer-1_env":
             agg = self.get_Aggregate(name="trimer-1")
@@ -150,17 +140,16 @@ class ModelGenerator:
                 time = timeaxis
 
             with energy_units("1/cm"):
-                params = dict(ftype="OverdampedBrownian", reorg=20,
-                              cortime=100, T=300)
+                params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=300)
                 print(time)
                 cf = CorrelationFunction(time, params)
 
             m1 = self.molecules[0]
-            m1.set_transition_environment((0,1), cf)
+            m1.set_transition_environment((0, 1), cf)
             m2 = self.molecules[1]
-            m2.set_transition_environment((0,1), cf)
+            m2.set_transition_environment((0, 1), cf)
             m3 = self.molecules[2]
-            m3.set_transition_environment((0,1), cf)
+            m3.set_transition_environment((0, 1), cf)
 
         elif name == "pentamer-1_env":
             agg = self.get_Aggregate(name="pentamer-1")
@@ -172,12 +161,11 @@ class ModelGenerator:
                 time = timeaxis
 
             with energy_units("1/cm"):
-                params = dict(ftype="OverdampedBrownian", reorg=20,
-                              cortime=100, T=300)
+                params = dict(ftype="OverdampedBrownian", reorg=20, cortime=100, T=300)
                 cf = CorrelationFunction(time, params)
 
             for m in self.molecules:
-                m.set_transition_environment((0,1), cf)
+                m.set_transition_environment((0, 1), cf)
 
         else:
             raise Exception(f"Unknown model name {name}")

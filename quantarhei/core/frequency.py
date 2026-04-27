@@ -118,6 +118,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -155,23 +156,28 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
     start = UnitsManagedReal("start")
     step = UnitsManagedReal("step")
 
-    def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0,
-                 atype: str = 'complete', time_start: float = 0.0) -> None:
+    def __init__(
+        self,
+        start: float = 0.0,
+        length: int = 1,
+        step: float = 1.0,
+        atype: str = "complete",
+        time_start: float = 0.0,
+    ) -> None:
 
-        #if step > 0:
+        # if step > 0:
         if True:
             self.step = step
-        #else:
+        # else:
         #    raise Exception("Parameter step has to be > 0")
         self.start = start
         self.length = length
 
-        super().__init__(start=start,
-                         length=length, step=step)
+        super().__init__(start=start, length=length, step=step)
 
         # This would be the alternative if calling super()__init__ would
         # break the units management
-        #self.data = numpy.linspace(start,
+        # self.data = numpy.linspace(start,
         #                           start+(length-1)*step, length,
         #                           dtype=numpy.float)
 
@@ -184,49 +190,50 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
             raise Exception("Unknown frequency axis type")
 
     def copy(self) -> FrequencyAxis:
-        axis = FrequencyAxis(self.start, self.length, self.step,
-                             atype=self.atype, time_start=self.time_start)
+        axis = FrequencyAxis(
+            self.start,
+            self.length,
+            self.step,
+            atype=self.atype,
+            time_start=self.time_start,
+        )
         return axis
 
-
     def get_TimeAxis(self) -> TimeAxis:
-        """Returns the corresponding TimeAxis object
-
-        """
+        """Returns the corresponding TimeAxis object"""
         from .time import TimeAxis
 
         with energy_units("int"):
-
-            if self.atype == 'complete':
-
+            if self.atype == "complete":
                 times = numpy.fft.fftshift(
-                    numpy.fft.fftfreq(self.length, self.step/(2.0*numpy.pi)))
+                    numpy.fft.fftfreq(self.length, self.step / (2.0 * numpy.pi))
+                )
 
-                step = times[1]-times[0]
-                start = self.time_start  + times[0]
+                step = times[1] - times[0]
+                start = self.time_start + times[0]
                 nosteps = self.length
 
-                frequency_start = self.data[self.length//2]
+                frequency_start = self.data[self.length // 2]
 
-
-            elif self.atype == 'upper-half':
-
+            elif self.atype == "upper-half":
                 if (self.length % 2) != 0:
-                    raise Exception("Cannot create upper-half TimeAxis"
-                                     " from an odd number of points")
+                    raise Exception(
+                        "Cannot create upper-half TimeAxis from an odd number of points"
+                    )
 
                 times = numpy.fft.fftshift(
-                    (2.0*numpy.pi)*numpy.fft.fftfreq(self.length, self.step))
+                    (2.0 * numpy.pi) * numpy.fft.fftfreq(self.length, self.step)
+                )
 
-                start = times[int(self.length/2)] + self.time_start
-                nosteps = int(self.length/2)
-                step = times[1]-times[0]
+                start = times[int(self.length / 2)] + self.time_start
+                nosteps = int(self.length / 2)
+                step = times[1] - times[0]
 
-                frequency_start = self.data[self.length//2]
+                frequency_start = self.data[self.length // 2]
 
             else:
                 raise Exception("Unknown frequency axis type")
 
-
-        return TimeAxis(start, nosteps, step,
-                        atype=self.atype, frequency_start=frequency_start)
+        return TimeAxis(
+            start, nosteps, step, atype=self.atype, frequency_start=frequency_start
+        )

@@ -5,7 +5,7 @@ import numpy
 from ... import COMPLEX
 from ...core.managers import eigenbasis_of, energy_units
 
-#import scipy.interpolate as interp
+# import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .rates.modifiedredfieldrates import ModifiedRedfieldRateMatrix
@@ -13,20 +13,25 @@ from .relaxationtensor import RelaxationTensor
 
 
 class ModRedfieldRelaxationTensor(RelaxationTensor):
-    """Modified Redfield Theory
+    """Modified Redfield Theory"""
 
-
-
-    """
-    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None,
-                 as_operators: bool = False) -> None:
+    def __init__(
+        self,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
+        initialize: bool = True,
+        cutoff_time: float | None = None,
+        as_operators: bool = False,
+    ) -> None:
 
         if as_operators:
             import warnings
-            warnings.warn("Modiefied Redfield Tensor does not have "
-                          "operator form: using tensor form.")
-            as_operators = False
 
+            warnings.warn(
+                "Modiefied Redfield Tensor does not have "
+                "operator form: using tensor form."
+            )
+            as_operators = False
 
         self._initialize_basis()
 
@@ -34,8 +39,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             raise Exception("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of"
-                           " type SystemBathInteraction")
+            raise Exception("Second argument must be of type SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -50,7 +54,6 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         self.SystemBathInteraction = sbi
         self.TimeAxis = sbi.TimeAxis
 
-
         if initialize:
             self.initialize()
             self._data_initialized = True
@@ -59,32 +62,32 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         else:
             self._data_initialized = False
 
-
     def initialize(self) -> None:
 
         #
         # Tensor data
         #
         Na = self.dim
-        self.data = numpy.zeros((Na,Na,Na,Na),dtype=COMPLEX)
-
+        self.data = numpy.zeros((Na, Na, Na, Na), dtype=COMPLEX)
 
         with energy_units("int"):
-
             HH = self.Hamiltonian
             sbi = self.SystemBathInteraction
 
-            #HH.protect_basis()
-            #with eigenbasis_of(HH):
+            # HH.protect_basis()
+            # with eigenbasis_of(HH):
             if True:
                 if self._has_cutoff_time:
                     cft = self.cut_off_time
                 else:
                     cft = None
 
-                frm = ModifiedRedfieldRateMatrix(HH, sbi, # sbi.TimeAxis,
-                                                 initialize=True,
-                                                 cutoff_time=cft)
+                frm = ModifiedRedfieldRateMatrix(
+                    HH,
+                    sbi,  # sbi.TimeAxis,
+                    initialize=True,
+                    cutoff_time=cft,
+                )
 
             with eigenbasis_of(HH):
                 #
@@ -93,12 +96,11 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
                 for aa in range(self.dim):
                     for bb in range(self.dim):
                         if aa != bb:
-                            self.data[aa,aa,bb,bb] = frm.data[aa,bb]
+                            self.data[aa, aa, bb, bb] = frm.data[aa, bb]
 
                 #
                 # calculate dephasing rates and depopulation rates
                 #
                 self.updateStructure()
 
-            #HH.unprotect_basis()
-
+            # HH.unprotect_basis()

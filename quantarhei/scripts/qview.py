@@ -4,36 +4,36 @@ Loads *.qrp, *.png, and other files and shows their content
 
 
 """
+
 from __future__ import annotations
 
 from tkinter import BOTH, BOTTOM, RIGHT, SUNKEN, YES, Button, Frame, Label, Menu, X
 from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import askyesno, showerror
 
-#matplotlib.use("TkAgg")
-#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-#from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
-#from matplotlib.figure import Figure
+# matplotlib.use("TkAgg")
+# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+# from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+# from matplotlib.figure import Figure
 import quantarhei as qr
 
 
 class Viewer(Frame):
     def __init__(self, parent: object = None, numrow: int = 5, numcol: int = 5) -> None:
         Frame.__init__(self, parent)
-        self.pack(expand=YES,fill=BOTH)
+        self.pack(expand=YES, fill=BOTH)
         self.makeWidgets()
         self.master.title("Quantarhei File Viewer")
-
 
     def makeWidgets(self) -> None:
         self.makeMenuBar()
         self.makeToolBar()
-        L = Label(self, text="Quantarhei version "+str(qr.Manager().version))
+        L = Label(self, text="Quantarhei version " + str(qr.Manager().version))
         L.config(relief=SUNKEN, width=40, height=5, bg="white")
         L.pack(expand=YES, fill=BOTH)
 
     def makeMenuBar(self) -> None:
-        self.menubar= Menu(self.master)
+        self.menubar = Menu(self.master)
         self.master.config(menu=self.menubar)
         self.fileMenu()
 
@@ -57,15 +57,16 @@ class Viewer(Frame):
 
     def onOpen(self) -> None:
         file = askopenfilename()
-        #print(file, loglevel=qr.LOG_REPORT)
+        # print(file, loglevel=qr.LOG_REPORT)
         obj = qr.load_parcel(file)
         self.figure(obj)
 
     def figure(self, obj: object) -> None:
         import matplotlib.pyplot as plt
-        f = plt.figure(figsize=(5,5), dpi=100)
-        #a = f.add_subplot(111)
-        #a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
+
+        f = plt.figure(figsize=(5, 5), dpi=100)
+        # a = f.add_subplot(111)
+        # a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
         with qr.energy_units("1/cm"):
             obj.plot(fig=f, spart=qr.part_ABS)
 
@@ -76,9 +77,8 @@ class Viewer(Frame):
         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
 
 
-
 def main() -> None:
-    #root = Tk()
-    #root.title("Open file")
-    #Viewer().mainloop()
+    # root = Tk()
+    # root.title("Open file")
+    # Viewer().mainloop()
     pass

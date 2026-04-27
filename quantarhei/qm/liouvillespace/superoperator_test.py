@@ -19,6 +19,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 import numpy
@@ -50,22 +51,18 @@ class TestSuperOperator(SuperOperator):
 
     """
 
-
     def __init__(self, name: str | None = None) -> None:
 
         if name is None:
-            raise Exception("Name of the test super operator "
-                            "must be specified")
+            raise Exception("Name of the test super operator must be specified")
 
         if name == "dim-2-AOA":
-
             dim = 2
 
             super().__init__(dim=dim)
             self._AOA(dim)
 
-        elif name ==  "dim-3-AOA":
-
+        elif name == "dim-3-AOA":
             dim = 3
 
             super().__init__(dim=dim)
@@ -74,36 +71,25 @@ class TestSuperOperator(SuperOperator):
         else:
             raise Exception("Unknown test name")
 
-
     def _def_A(self, dim: int) -> numpy.ndarray:
-        """Defines the matrix A for constuction of a super operator
-
-        """
-        A = numpy.zeros((dim,dim), dtype=qr.COMPLEX)
+        """Defines the matrix A for constuction of a super operator"""
+        A = numpy.zeros((dim, dim), dtype=qr.COMPLEX)
 
         for k_i in range(dim):
-            A[k_i,k_i] = k_i
+            A[k_i, k_i] = k_i
 
         for k_i in range(dim):
             if k_i > 0:
-                A[k_i-1,k_i] = 0.1
-                A[k_i,k_i-1] = 0.1
+                A[k_i - 1, k_i] = 0.1
+                A[k_i, k_i - 1] = 0.1
         return A
 
-
     def _AOA(self, dim: int) -> None:
-        """Multiplication by matrix A from left and right
-
-        """
+        """Multiplication by matrix A from left and right"""
         A = self._def_A(dim)
 
         for i_i in range(dim):
             for i_j in range(dim):
                 for i_k in range(dim):
                     for i_l in range(dim):
-                        self.data[i_i, i_j, i_k, i_l] = \
-                        A[i_i, i_k]*A[i_l, i_j]
-
-
-
-
+                        self.data[i_i, i_j, i_k, i_l] = A[i_i, i_k] * A[i_l, i_j]

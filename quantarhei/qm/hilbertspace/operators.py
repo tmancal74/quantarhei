@@ -26,7 +26,13 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
     data = BasisManagedComplexArray("data")
 
-    def __init__(self, dim: int | None = None, data: Any = None, real: bool = False, name: str = "") -> None:
+    def __init__(
+        self,
+        dim: int | None = None,
+        data: Any = None,
+        real: bool = False,
+        name: str = "",
+    ) -> None:
 
         if not ((dim is None) and (data is None)):
             # Set the currently used basis
@@ -36,56 +42,46 @@ class Operator(MatrixData, BasisManaged, Saveable):
             if cb != 0:
                 self.manager.register_with_basis(cb, self)
 
-            self.name=name
+            self.name = name
 
             # set data
             if (dim is None) and (data is None):
-                raise Exception() #HilbertSpaceException
+                raise Exception()  # HilbertSpaceException
 
             if data is not None:
-                if isinstance(data,list):
+                if isinstance(data, list):
                     data = numpy.array(data)
                 if Operator.assert_square_matrix(data):
                     if dim is not None:
                         # shape 1 is OK even for time dependent operators
                         # and time dependent StateVector
                         if data.shape[1] != dim:
-                            raise Exception() #HilbertSpaceException
+                            raise Exception()  # HilbertSpaceException
                     self.data = data
                     self.dim = self._data.shape[1]
                 else:
-                    raise Exception() #HilbertSpaceException
+                    raise Exception()  # HilbertSpaceException
             else:
                 if real:
-                    self.data = numpy.zeros((dim,dim),dtype=REAL)
+                    self.data = numpy.zeros((dim, dim), dtype=REAL)
                 else:
-                    self.data = numpy.zeros((dim,dim),dtype=COMPLEX)
+                    self.data = numpy.zeros((dim, dim), dtype=COMPLEX)
                 self.dim = dim
 
-
     def __add__(self, other: Operator) -> Operator:
-        """Addition of two operators. Returns self.
-
-        """
+        """Addition of two operators. Returns self."""
         self.data += other.data
         return self
 
-
     def apply(self, obj: Any) -> Any:
-        """Apply the operator to vector or operator on the right
-
-        """
+        """Apply the operator to vector or operator on the right"""
         if isinstance(obj, Operator):
-
-            return Operator(data=numpy.dot(self.data,obj.data))
+            return Operator(data=numpy.dot(self.data, obj.data))
 
         if isinstance(obj, StateVector):
-
-            return StateVector(data=numpy.dot(self.data,obj.data))
-
+            return StateVector(data=numpy.dot(self.data, obj.data))
 
         raise Exception("Cannot apply operator to the object")
-
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
@@ -103,20 +99,19 @@ class Operator(MatrixData, BasisManaged, Saveable):
             inverse of the transformation matrix
 
         """
-        if (self.manager.warn_about_basis_change):
-                print(f"\nQr >>> Operator '{self.name}' changes basis")
+        if self.manager.warn_about_basis_change:
+            print(f"\nQr >>> Operator '{self.name}' changes basis")
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
         else:
             S1 = inv
 
-        #S1 = scipy.linalg.inv(SS)
-        self._data = numpy.dot(S1,numpy.dot(self._data,SS))
-
+        # S1 = scipy.linalg.inv(SS)
+        self._data = numpy.dot(S1, numpy.dot(self._data, SS))
 
     def assert_square_matrix(A: Any) -> bool:
-        if isinstance(A,numpy.ndarray):
+        if isinstance(A, numpy.ndarray):
             if A.ndim == 2:
                 if A.shape[0] == A.shape[1]:
                     return True
@@ -127,12 +122,11 @@ class Operator(MatrixData, BasisManaged, Saveable):
     def is_diagonal(self) -> bool:
         dat = self._data.copy()
         for i in range(self.dim):
-            dat[i,i] = 0.0
+            dat[i, i] = 0.0
         return numpy.allclose(dat, numpy.zeros(self.dim))
 
-
     def __str__(self) -> str:
-        out  = "\nquantarhei.Operator object"
+        out = "\nquantarhei.Operator object"
         out += "\n=========================="
         out += "\ndata = \n"
         out += str(self.data)
@@ -149,25 +143,27 @@ class SelfAdjointOperator(Operator):
 
     """
 
-    def __init__(self, dim: int | None = None, data: Any = None, name: str = "") -> None:
+    def __init__(
+        self, dim: int | None = None, data: Any = None, name: str = ""
+    ) -> None:
 
         if not ((dim is None) and (data is None)):
-            Operator.__init__(self,dim=dim,data=data,name=name)
+            Operator.__init__(self, dim=dim, data=data, name=name)
             if not self.check_selfadjoint():
-                raise Exception("The data of this operator have"
-                "to be represented by a selfadjoint matrix")
-
+                raise Exception(
+                    "The data of this operator have"
+                    "to be represented by a selfadjoint matrix"
+                )
 
     def check_selfadjoint(self) -> bool:
-        return (numpy.isclose(numpy.transpose(numpy.conj(self.data)),
-                              self.data)).all()
+        return (numpy.isclose(numpy.transpose(numpy.conj(self.data)), self.data)).all()
 
     def diagonalize(self) -> numpy.ndarray:
         # first use is of "data", the rest of "_data"
-        dd,SS = numpy.linalg.eigh(self.data)
+        dd, SS = numpy.linalg.eigh(self.data)
         self._data = numpy.zeros(self._data.shape)
         for ii in range(self._data.shape[0]):
-            self._data[ii,ii] = dd[ii]
+            self._data[ii, ii] = dd[ii]
         return SS
 
     def get_diagonalization_matrix(self) -> numpy.ndarray:
@@ -175,7 +171,7 @@ class SelfAdjointOperator(Operator):
         return SS
 
     def __str__(self) -> str:
-        out  = "\nquantarhei.SelfAdjointOperator object"
+        out = "\nquantarhei.SelfAdjointOperator object"
         out += "\n====================================="
         out += "\ndata = \n"
         out += str(self.data)
@@ -183,23 +179,21 @@ class SelfAdjointOperator(Operator):
 
 
 class UnityOperator(SelfAdjointOperator):
-
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
         series = numpy.array([1 for i in range(dim)], dtype=COMPLEX)
         data = numpy.diag(series)
-        super().__init__(dim=dim,data=data,name=name)
+        super().__init__(dim=dim, data=data, name=name)
 
 
 class BasisReferenceOperator(SelfAdjointOperator):
-
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
         series = numpy.array([i for i in range(dim)], dtype=REAL)
         data = numpy.diag(series)
-        super().__init__(dim=dim,data=data,name=name)
+        super().__init__(dim=dim, data=data, name=name)
 
 
 class ProjectionOperator(Operator):
@@ -209,36 +203,32 @@ class ProjectionOperator(Operator):
     |n\rangle \\langle m|
 
     """
+
     def __init__(self, to_state: int = -1, from_state: int = -1, dim: int = 0) -> None:
         # here the operator is create and it will know about basis
 
         if dim > 0:
             super().__init__(dim=dim, real=True)
-            if ((to_state >= 0) and (to_state < dim)) \
-                and ((from_state >= 0) and (from_state < dim)):
+            if ((to_state >= 0) and (to_state < dim)) and (
+                (from_state >= 0) and (from_state < dim)
+            ):
                 self.data[to_state, from_state] = 1.0
-            #else:
+            # else:
             #    raise Exception("Indices out of range")
         else:
             raise Exception("Wrong operator dimension")
 
-
     def __mult__(self, other: Any) -> numpy.ndarray:
-        """Multiplication of operator by scalar
-
-        """
+        """Multiplication of operator by scalar"""
         if isinstance(other, numbers.Number):
-            self._data = self._data*other
+            self._data = self._data * other
         else:
             raise Exception("Only multiplication by scalar is allowed")
         return self._data
 
     def __rmult__(self, other: Any) -> numpy.ndarray:
-        """Multiplication from right
-
-        """
+        """Multiplication from right"""
         return self.__mult__(other)
-
 
 
 class DensityMatrix(SelfAdjointOperator, Saveable):
@@ -251,60 +241,52 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
 
     """
 
-
     def normalize2(self, norm: float = 1.0) -> None:
         # using self.data to allow transformation
         tr = numpy.trace(self.data)
         # using data because any transformation needed was already done
-        self._data = self._data*(norm/tr)
+        self._data = self._data * (norm / tr)
 
     def get_populations(self) -> numpy.ndarray:
-        """Returns a vector of diagonal elements of the density matrix
-
-        """
+        """Returns a vector of diagonal elements of the density matrix"""
         # using self.data to allow transformation of the basis
-        pvec = numpy.zeros(self.data.shape[0],dtype=REAL)
+        pvec = numpy.zeros(self.data.shape[0], dtype=REAL)
         # using self._data because transformations are irrelevant
         for n in range(self._data.shape[0]):
             # using self._data because any transformation needed was already
             # made above
-            pvec[n] = numpy.real(self._data[n,n])
+            pvec[n] = numpy.real(self._data[n, n])
 
         return pvec
 
-    def excite_delta(self, dmoment: Any, epolarization: Any = None) -> ReducedDensityMatrix:
-        """Returns a density matrix obtained by delta-pulse excitation
-
-        """
+    def excite_delta(
+        self, dmoment: Any, epolarization: Any = None
+    ) -> ReducedDensityMatrix:
+        """Returns a density matrix obtained by delta-pulse excitation"""
         if epolarization is None:
             epolarization = [1.0, 0.0, 0.0]
         # using .data to allow transformation
         dd = dmoment.data
-        etimesd = numpy.zeros((dd.shape[0],dd.shape[1]),dtype=REAL)
+        etimesd = numpy.zeros((dd.shape[0], dd.shape[1]), dtype=REAL)
         for i in range(3):
-            etimesd += dd[:,:,i]*epolarization[i]
+            etimesd += dd[:, :, i] * epolarization[i]
 
         # using self.data to allow transformation to current basis
-        dat = numpy.dot(etimesd,numpy.dot(self.data,etimesd))
+        dat = numpy.dot(etimesd, numpy.dot(self.data, etimesd))
 
         return ReducedDensityMatrix(data=dat)
 
-
     def normalize(self) -> None:
-        """Normalize the trace of the density matrix
-
-        """
+        """Normalize the trace of the density matrix"""
         tr = numpy.trace(self.data)
-        self.data = self.data/tr
-
+        self.data = self.data / tr
 
     def __str__(self) -> str:
-        out  = "\nquantarhei.DensityMatrix object"
+        out = "\nquantarhei.DensityMatrix object"
         out += "\n==============================="
         out += "\ndata = \n"
         out += str(self.data)
         return out
-
 
 
 class ReducedDensityMatrix(DensityMatrix):
@@ -316,7 +298,7 @@ class ReducedDensityMatrix(DensityMatrix):
     """
 
     def __str__(self) -> str:
-        out  = "\nquantarhei.ReducedDensityMatrix object"
+        out = "\nquantarhei.ReducedDensityMatrix object"
         out += "\n======================================"
         out += "\ndata = \n"
         out += str(self.data)

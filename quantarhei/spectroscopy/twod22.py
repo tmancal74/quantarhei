@@ -7,9 +7,10 @@
 
 
 """
+
 from __future__ import annotations
 
-#import h5py
+# import h5py
 import time
 from typing import Any
 
@@ -29,10 +30,10 @@ from ..qm.propagators.poppropagator import PopulationPropagator
 from ..utils import derived_type
 
 try:
-
     import aceto.nr3td as nr3td
     from aceto.band_system import band_system
     from aceto.lab_settings import lab_settings
+
     _have_aceto = True
 
 except ImportError:
@@ -40,8 +41,8 @@ except ImportError:
     # FIXME: There should be an optional warning and a fall back onto
     # quantarhei.implementations.aceto module
     #
-    #raise Exception("Aceto not available")
-    #from ..implementations.aceto import nr3td
+    # raise Exception("Aceto not available")
+    # from ..implementations.aceto import nr3td
     _have_aceto = False
 
 
@@ -52,6 +53,7 @@ class DFunction2:
     It handles basic saving and loading operatoins of a two-dimensional
     discrete function
     """
+
     def __init__(self, x: Any = None, y: Any = None, z: Any = None) -> None:
         pass
 
@@ -66,16 +68,13 @@ class DFunction2:
 
 
 class TwoDSpectrumBase(DFunction2):
-    """Basic class of a two-dimensional spectrum
-
-
-    """
+    """Basic class of a two-dimensional spectrum"""
 
     # spectral types
-    stypes = ["rephasing","non-rephasing","nonrephasing", "total"]
+    stypes = ["rephasing", "non-rephasing", "nonrephasing", "total"]
 
     # spectral parts
-    sparts = ["real","imaginary"]
+    sparts = ["real", "imaginary"]
 
     # to keep Liouville pathways separate?
     keep_pathways = False
@@ -93,17 +92,12 @@ class TwoDSpectrumBase(DFunction2):
         self.reph2D = None
         self.nonr2D = None
 
-
     def set_axis_1(self, axis: Any) -> None:
-        """Sets the x-axis of te spectrum (omega_1 axis)
-
-        """
+        """Sets the x-axis of te spectrum (omega_1 axis)"""
         self.xaxis = axis
 
     def set_axis_3(self, axis: Any) -> None:
-        """Sets the y-axis of te spectrum (omega_3 axis)
-
-        """
+        """Sets the y-axis of te spectrum (omega_3 axis)"""
         self.yaxis = axis
 
     def set_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:
@@ -111,20 +105,16 @@ class TwoDSpectrumBase(DFunction2):
             self.data = data
 
         elif dtype == "Reph":
-
             self.reph2D = data
 
         elif dtype == "Nonr":
-
             self.nonr2D = data
 
         else:
-
-            raise Exception("Unknow type of data: "+dtype)
+            raise Exception("Unknow type of data: " + dtype)
 
     def add_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:
         if dtype == "Tot":
-
             if self.data is None:
                 self.data = numpy.zeros(data.shape, dtype=data.dtype)
             self.data += data
@@ -139,18 +129,14 @@ class TwoDSpectrumBase(DFunction2):
                 self.nonr2D = numpy.zeros(data.shape, dtype=data.dtype)
             self.nonr2D += data
 
-
         else:
-
-            raise Exception("Unknow type of data: "+dtype)
-
+            raise Exception("Unknow type of data: " + dtype)
 
     def save(self, filename: str) -> None:
         super().save(filename)
 
     def load(self, filename: str) -> None:
         super().load(filename)
-
 
 
 class TwoDSpectrum(TwoDSpectrumBase, Saveable):
@@ -168,69 +154,62 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
     """
 
-    def __init__(self, keep_pathways: bool = False,
-                 keep_stypes: bool = True) -> None:
+    def __init__(self, keep_pathways: bool = False, keep_stypes: bool = True) -> None:
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
         self.t2 = -1.0
         super().__init__()
 
     def set_t2(self, t2: float) -> None:
-        """Sets the t2 (waiting time) of the spectrum
-
-
-        """
+        """Sets the t2 (waiting time) of the spectrum"""
         self.t2 = t2
 
     def get_t2(self) -> float:
-        """Returns the t2 (waiting time) of the spectrum
-
-        """
+        """Returns the t2 (waiting time) of the spectrum"""
         return self.t2
 
-
     def get_value_at(self, x: float, y: float) -> float:
-        """Returns value of the spectrum at a given coordinate
-
-        """
+        """Returns value of the spectrum at a given coordinate"""
         (ix, dist) = self.xaxis.locate(x)
         (iy, dist) = self.yaxis.locate(y)
 
-        return numpy.real(self.reph2D[ix,iy]+self.nonr2D[ix,iy])
+        return numpy.real(self.reph2D[ix, iy] + self.nonr2D[ix, iy])
 
     def get_max_value(self) -> float:
 
-        return numpy.amax(numpy.real(self.reph2D+self.nonr2D))
-
+        return numpy.amax(numpy.real(self.reph2D + self.nonr2D))
 
     def devide_by(self, val: float | int) -> None:
-        """Devides the total spectrum by a value
-
-        """
-        self.reph2D = self.reph2D/val
-        self.nonr2D = self.nonr2D/val
-
+        """Devides the total spectrum by a value"""
+        self.reph2D = self.reph2D / val
+        self.nonr2D = self.nonr2D / val
 
     def get_PumpProbeSpectrum(self) -> Any:
-        """Returns a PumpProbeSpectrum corresponding to the 2D spectrum
-
-        """
+        """Returns a PumpProbeSpectrum corresponding to the 2D spectrum"""
         from .pumpprobe import PumpProbeSpectrumCalculator
+
         ppc = PumpProbeSpectrumCalculator()
         return ppc.calculate_from_2D(self)
 
-
-
-
-    def plot(self, fig: Any = None, window: list | None = None,
-             stype: str = "total", spart: str = "real",
-             vmax: float | None = None, vmin_ratio: float = 0.5,
-             colorbar: bool = True, colorbar_loc: str = "right",
-             cmap: Any = None, Npos_contours: int = 10,
-             show_states: Any = None,
-             text_loc: list | None = None, fontsize: str = "20",
-             label: Any = None, zero_contour: bool = True,
-             plot_units: str = r'cm$^{-1}$') -> None:
+    def plot(
+        self,
+        fig: Any = None,
+        window: list | None = None,
+        stype: str = "total",
+        spart: str = "real",
+        vmax: float | None = None,
+        vmin_ratio: float = 0.5,
+        colorbar: bool = True,
+        colorbar_loc: str = "right",
+        cmap: Any = None,
+        Npos_contours: int = 10,
+        show_states: Any = None,
+        text_loc: list | None = None,
+        fontsize: str = "20",
+        label: Any = None,
+        zero_contour: bool = True,
+        plot_units: str = r"cm$^{-1}$",
+    ) -> None:
         """Plots the 2D spectrum
 
         Parameters
@@ -258,13 +237,12 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
             elif self.nonr2D is not None:
                 spect2D = self.nonr2D
 
-
         elif stype == "rephasing":
             spect2D = self.reph2D
         elif stype == "non-rephasing":
             spect2D = self.nonr2D
         else:
-            raise Exception("Undefined spectrum type"+stype)
+            raise Exception("Undefined spectrum type" + stype)
 
         if spart == "real":
             spect2D = numpy.real(spect2D)
@@ -273,8 +251,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         elif spart == "abs":
             spect2D = numpy.abs(spect2D)
         else:
-            raise Exception("Undefined part of the spectrum: "+spart)
-
+            raise Exception("Undefined part of the spectrum: " + spart)
 
         if window is not None:
             axis = window
@@ -295,18 +272,17 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
             i3_min = 0
             i3_max = self.yaxis.length
 
-
         #
         # Plotting with given units on axes
         #
 
-        realout = spect2D[i3_min:i3_max,i1_min:i1_max]
+        realout = spect2D[i3_min:i3_max, i1_min:i1_max]
 
         if fig is None:
-            fig, ax = plt.subplots(1,1)
+            fig, ax = plt.subplots(1, 1)
         else:
             fig.clear()
-            fig.add_subplot(1,1,1)
+            fig.add_subplot(1, 1, 1)
             ax = fig.axes[0]
 
         if cmap is None:
@@ -316,74 +292,92 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
             vmax = numpy.amax(realout)
 
         vmin = numpy.amin(realout)
-        if vmin < -vmax*vmin_ratio:
+        if vmin < -vmax * vmin_ratio:
             vmax = -vmin
         else:
-            vmin = -vmax*vmin_ratio
+            vmin = -vmax * vmin_ratio
 
         Npos = Npos_contours
-        poslevels = [i*vmax/Npos for i in range(1, Npos)]
-        neglevels = [-i*vmax/Npos for i in range(Npos,1,-1)]
+        poslevels = [i * vmax / Npos for i in range(1, Npos)]
+        neglevels = [-i * vmax / Npos for i in range(Npos, 1, -1)]
 
         levo = self.xaxis.data[i1_min]
-        prvo = self.xaxis.data[i1_max-1]
+        prvo = self.xaxis.data[i1_max - 1]
         dole = self.yaxis.data[i3_min]
-        hore = self.yaxis.data[i3_max-1]
+        hore = self.yaxis.data[i3_max - 1]
 
-        cm = plt.imshow(realout, extent=[self.xaxis.data[i1_min],
-                                    self.xaxis.data[i1_max-1],
-                                    self.yaxis.data[i3_min],
-                                    self.yaxis.data[i3_max-1]],
-                   origin='lower', vmax=vmax, vmin=vmin,
-                   interpolation='bilinear', cmap=cmap)
+        cm = plt.imshow(
+            realout,
+            extent=[
+                self.xaxis.data[i1_min],
+                self.xaxis.data[i1_max - 1],
+                self.yaxis.data[i3_min],
+                self.yaxis.data[i3_max - 1],
+            ],
+            origin="lower",
+            vmax=vmax,
+            vmin=vmin,
+            interpolation="bilinear",
+            cmap=cmap,
+        )
 
         pos = text_loc
 
         # text
         if label is not None:
             label = label
-            ax.text((prvo-levo)*pos[0]+levo,
-                (hore-dole)*pos[1]+dole,
+            ax.text(
+                (prvo - levo) * pos[0] + levo,
+                (hore - dole) * pos[1] + dole,
                 label,
-                fontsize=str(fontsize))
+                fontsize=str(fontsize),
+            )
 
-        #axis labels
-        plt.xlabel(r'$\omega_{1}$ ('+plot_units+')')
-        plt.ylabel(r'$\omega_{3}$ ('+plot_units+')')
+        # axis labels
+        plt.xlabel(r"$\omega_{1}$ (" + plot_units + ")")
+        plt.ylabel(r"$\omega_{3}$ (" + plot_units + ")")
         # positive contours
-        plt.contour(self.xaxis.data[i1_min:i1_max],
-                     self.yaxis.data[i3_min:i3_max],
-                     realout, levels=poslevels, colors="k",
-                     linewidth=1)
+        plt.contour(
+            self.xaxis.data[i1_min:i1_max],
+            self.yaxis.data[i3_min:i3_max],
+            realout,
+            levels=poslevels,
+            colors="k",
+            linewidth=1,
+        )
 
         if zero_contour:
             # zero contour
-            plt.contour(self.xaxis.data[i1_min:i1_max],
-                         self.yaxis.data[i3_min:i3_max],
-                         realout, levels=[0],colors="b",
-                         linewidth=1)
+            plt.contour(
+                self.xaxis.data[i1_min:i1_max],
+                self.yaxis.data[i3_min:i3_max],
+                realout,
+                levels=[0],
+                colors="b",
+                linewidth=1,
+            )
 
         # negatove contours
-        plt.contour(self.xaxis.data[i1_min:i1_max],
-                     self.yaxis.data[i3_min:i3_max],
-                     realout, levels=neglevels,colors="k",
-                     linewidth=1)
-
+        plt.contour(
+            self.xaxis.data[i1_min:i1_max],
+            self.yaxis.data[i3_min:i3_max],
+            realout,
+            levels=neglevels,
+            colors="k",
+            linewidth=1,
+        )
 
         if colorbar:
-            plt.clim(vmin=vmin,vmax=vmax)
+            plt.clim(vmin=vmin, vmax=vmax)
             fig.colorbar(cm)
 
         if show_states is not None:
             for en in show_states:
-                plt.plot([en,en],[dole,hore],'--k',linewidth=1.0)
-                plt.plot([levo,prvo],[en,en],'--k',linewidth=1.0)
-
+                plt.plot([en, en], [dole, hore], "--k", linewidth=1.0)
+                plt.plot([levo, prvo], [en, en], "--k", linewidth=1.0)
 
     def trim_to(self, window: list | None = None) -> None:
-        """Trims the 2D spectrum to a specified region
-
-        """
+        """Trims the 2D spectrum to a specified region"""
         if window is not None:
             axis = window
             w1_min = axis[0]
@@ -398,39 +392,46 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
             (i3_max, dist) = self.yaxis.locate(w3_max)
 
             # create minimal off-set
-            i1_min -=1
-            i1_max +=1
-            i3_min -=1
-            i3_max +=1
+            i1_min -= 1
+            i1_max += 1
+            i3_min -= 1
+            i3_max += 1
 
             # reconstruct xaxis
             start_1 = self.xaxis.data[i1_min]
             length_1 = i1_max - i1_min
             step_1 = self.xaxis.step
-            xaxis = FrequencyAxis(start_1,length_1,step_1,
-                                  atype=self.xaxis.atype,
-                                  time_start=self.xaxis.time_start)
+            xaxis = FrequencyAxis(
+                start_1,
+                length_1,
+                step_1,
+                atype=self.xaxis.atype,
+                time_start=self.xaxis.time_start,
+            )
             self.xaxis = xaxis
 
             # reconstruct yaxis
             start_3 = self.yaxis.data[i3_min]
             length_3 = i3_max - i3_min
             step_3 = self.yaxis.step
-            yaxis = FrequencyAxis(start_3,length_3,step_3,
-                                  atype=self.yaxis.atype,
-                                  time_start=self.yaxis.time_start)
+            yaxis = FrequencyAxis(
+                start_3,
+                length_3,
+                step_3,
+                atype=self.yaxis.atype,
+                time_start=self.yaxis.time_start,
+            )
             self.yaxis = yaxis
-
 
             # reconstruct data
             if self.keep_stypes:
-                reph2D = self.reph2D[i1_min:i1_max,i3_min:i3_max]
+                reph2D = self.reph2D[i1_min:i1_max, i3_min:i3_max]
                 self.reph2D = reph2D
-                nonr2D = self.nonr2D[i1_min:i1_max,i3_min:i3_max]
+                nonr2D = self.nonr2D[i1_min:i1_max, i3_min:i3_max]
                 self.nonr2D = nonr2D
 
             else:
-                data = self.data[i1_min:i1_max,i3_min:i3_max]
+                data = self.data[i1_min:i1_max, i3_min:i3_max]
                 self.data = data
 
         else:
@@ -443,7 +444,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
     def savefig(self, filename: str, dpi: int) -> None:
 
-        plt.savefig(filename,dpi=dpi)
+        plt.savefig(filename, dpi=dpi)
 
     def _create_root_group(self, start: Any, name: str) -> Any:
         return start.create_group(name)
@@ -460,20 +461,20 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         else:
             keeps.append(0)
 
-        rt.attrs.create("keeps",keeps)
+        rt.attrs.create("keeps", keeps)
 
     def _load_attributes(self, rt: Any) -> None:
         self.t2 = rt.attrs["t2"]
         keeps = rt.attrs["keeps"]
-        self.keep_pathways = (keeps[0] == 1)
-        self.keep_stypes = (keeps[1] == 1)
+        self.keep_pathways = keeps[0] == 1
+        self.keep_stypes = keeps[1] == 1
 
     def _save_data(self, rt: Any) -> None:
         if self.keep_stypes:
-            rt.create_dataset("reph2D",data=self.reph2D)
-            rt.create_dataset("nonr2D",data=self.nonr2D)
+            rt.create_dataset("reph2D", data=self.reph2D)
+            rt.create_dataset("nonr2D", data=self.nonr2D)
         else:
-            rt.create_dataset("data",data=self.data)
+            rt.create_dataset("data", data=self.data)
 
     def _load_data(self, rt: Any) -> None:
         if self.keep_stypes:
@@ -484,10 +485,10 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
     def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
         axdir = rt.create_group(name)
-        axdir.attrs.create("start",ax.start)
-        axdir.attrs.create("length",ax.length)
-        axdir.attrs.create("step",ax.step)
-        #FIXME: atype and time_start
+        axdir.attrs.create("start", ax.start)
+        axdir.attrs.create("length", ax.length)
+        axdir.attrs.create("step", ax.step)
+        # FIXME: atype and time_start
 
     def _load_axis(self, rt: Any, name: str) -> FrequencyAxis:
         axdir = rt[name]
@@ -495,6 +496,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         length = axdir.attrs["length"]
         step = axdir.attrs["step"]
         return FrequencyAxis(start, length, step)
+
 
 #    def save(self, filename, units="int"):
 #        """Saves the whole object into file
@@ -546,19 +548,18 @@ class TwoDSpectrumContainer(Saveable):
 
     """
 
-    def __init__(self, t2axis: Any = None, keep_pathways: bool = False,
-                 keep_stypes: bool = True) -> None:
+    def __init__(
+        self, t2axis: Any = None, keep_pathways: bool = False, keep_stypes: bool = True
+    ) -> None:
 
         self.t2axis = t2axis
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
 
-
         if self.keep_pathways:
             raise Exception("Container keeping pathways not available yet")
 
         self.spectra = {}
-
 
     def set_spectrum(self, spect: TwoDSpectrum) -> None:
         """Stores spectrum for time t2
@@ -571,7 +572,6 @@ class TwoDSpectrumContainer(Saveable):
             self.spectra[t2] = spect
         else:
             raise Exception("Waiting time not compatible with the t2 axis")
-
 
     def get_spectrum(self, t2: float) -> TwoDSpectrum:
         """Returns spectrum corresponing to time t2
@@ -586,11 +586,8 @@ class TwoDSpectrumContainer(Saveable):
     def length(self) -> int:
         return len(self.spectra.keys())
 
-    def get_spectra(self, start: float | None = None,
-                    end: float | None = None) -> list:
-        """Returns a list or tuple of the calculated spectra
-
-        """
+    def get_spectra(self, start: float | None = None, end: float | None = None) -> list:
+        """Returns a list or tuple of the calculated spectra"""
         ven = [value for (key, value) in sorted(self.spectra.items())]
 
         if (start is None) and (end is None):
@@ -603,9 +600,7 @@ class TwoDSpectrumContainer(Saveable):
         return ven2
 
     def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
-        """Converts this container into PumpProbeSpectrumContainer
-
-        """
+        """Converts this container into PumpProbeSpectrumContainer"""
         from .pumpprobe import PumpProbeSpectrumContainer
 
         k = 0
@@ -620,9 +615,9 @@ class TwoDSpectrumContainer(Saveable):
 
         length = len(ppc)
         start = ppc[0].get_t2()
-        step = ppc[1].get_t2()-start
+        step = ppc[1].get_t2() - start
 
-        naxis = TimeAxis(start,length,step)
+        naxis = TimeAxis(start, length, step)
         ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
 
         for sp in ppc:
@@ -630,18 +625,14 @@ class TwoDSpectrumContainer(Saveable):
 
         return ppcont
 
-    def get_point_evolution(self, x: float, y: float,
-                           times: Any) -> numpy.ndarray:
-        """Tracks an evolution of a single point on the 2D spectrum
-
-        """
+    def get_point_evolution(self, x: float, y: float, times: Any) -> numpy.ndarray:
+        """Tracks an evolution of a single point on the 2D spectrum"""
         vals = numpy.zeros(times.length)
         k = 0
         for t2 in times.data:
-
             sp = self.get_spectrum(t2)
-            vals[k] = sp.get_value_at(x,y)
-            k +=1
+            vals[k] = sp.get_value_at(x, y)
+            k += 1
 
         return vals
 
@@ -650,9 +641,9 @@ class TwoDSpectrumContainer(Saveable):
 
     def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
         axdir = rt.create_group(name)
-        axdir.attrs.create("start",ax.start)
-        axdir.attrs.create("length",ax.length)
-        axdir.attrs.create("step",ax.step)
+        axdir.attrs.create("start", ax.start)
+        axdir.attrs.create("length", ax.length)
+        axdir.attrs.create("step", ax.step)
 
     def _load_axis(self, rt: Any, name: str) -> TimeAxis:
         axdir = rt[name]
@@ -661,61 +652,57 @@ class TwoDSpectrumContainer(Saveable):
         step = axdir.attrs["step"]
         return TimeAxis(start, length, step)
 
-#    def save(self, filename):
-#        """Saves the whole object into file
-#
-#
-#        """
-#        with energy_units("int"):
-#            with h5py.File(filename,"w") as f:
-#                self._save_axis(f,"t2axis",self.t2axis)
-#                rt = self._create_root_group(f, "spectra")
-#                for sp in self.get_spectra():
-#                    t2 = sp.get_t2
-#                    rgname = "spectrum_"+str(t2)
-#                    srt = sp._create_root_group(rt,rgname)
-#                    sp._save_attributes(srt)
-#                    sp._save_data(srt)
-#                    sp._save_axis(srt,"xaxis",sp.xaxis,)
-#                    sp._save_axis(srt,"yaxis",sp.yaxis)
-#
-#
-#
-#
-#
-#
-#    def load(self, filename):
-#        """Loads the whole object from a file
-#
-#
-#        """
-#        with energy_units("int"):
-#            with h5py.File(filename,"r") as f:
-#                self.t2axis = self._load_axis(f, "t2axis")
-#                rt = f["spectra"]
-#                for key in rt.keys():
-#                    sp = TwoDSpectrum()
-#                    srt = rt[key]
-#                    sp._load_attributes(srt)
-#                    sp._load_data(srt)
-#                    sp.xaxis = sp._load_axis(srt,"xaxis")
-#                    sp.yaxis = sp._load_axis(srt,"yaxis")
-#
-#                    self.set_spectrum(sp)
+    #    def save(self, filename):
+    #        """Saves the whole object into file
+    #
+    #
+    #        """
+    #        with energy_units("int"):
+    #            with h5py.File(filename,"w") as f:
+    #                self._save_axis(f,"t2axis",self.t2axis)
+    #                rt = self._create_root_group(f, "spectra")
+    #                for sp in self.get_spectra():
+    #                    t2 = sp.get_t2
+    #                    rgname = "spectrum_"+str(t2)
+    #                    srt = sp._create_root_group(rt,rgname)
+    #                    sp._save_attributes(srt)
+    #                    sp._save_data(srt)
+    #                    sp._save_axis(srt,"xaxis",sp.xaxis,)
+    #                    sp._save_axis(srt,"yaxis",sp.yaxis)
+    #
+    #
+    #
+    #
+    #
+    #
+    #    def load(self, filename):
+    #        """Loads the whole object from a file
+    #
+    #
+    #        """
+    #        with energy_units("int"):
+    #            with h5py.File(filename,"r") as f:
+    #                self.t2axis = self._load_axis(f, "t2axis")
+    #                rt = f["spectra"]
+    #                for key in rt.keys():
+    #                    sp = TwoDSpectrum()
+    #                    srt = rt[key]
+    #                    sp._load_attributes(srt)
+    #                    sp._load_data(srt)
+    #                    sp.xaxis = sp._load_axis(srt,"xaxis")
+    #                    sp.yaxis = sp._load_axis(srt,"yaxis")
+    #
+    #                    self.set_spectrum(sp)
 
     def trimall_to(self, window: list | None = None) -> None:
-        """Trims all spectra in the container
-
-        """
+        """Trims all spectra in the container"""
         if window is not None:
             axes = window
             for s in self.get_spectra():
                 s.trim_to(window=axes)
 
     def amax(self, spart: str = "real") -> float:
-        """Returns maximum amplitude of the spectra in the container
-
-        """
+        """Returns maximum amplitude of the spectra in the container"""
         mxs = []
         for s in self.get_spectra():
             spect2D = numpy.real(s.reph2D) + numpy.real(s.nonr2D)
@@ -724,10 +711,16 @@ class TwoDSpectrumContainer(Saveable):
         return numpy.amax(numpy.array(mxs))
 
     # Print iterations progress
-    def _printProgressBar(self, iteration: int, total: int,
-                          prefix: str = '', suffix: str = '',
-                          decimals: int = 1, length: int = 100,
-                          fill: str = '*') -> None:
+    def _printProgressBar(
+        self,
+        iteration: int,
+        total: int,
+        prefix: str = "",
+        suffix: str = "",
+        decimals: int = 1,
+        length: int = 100,
+        fill: str = "*",
+    ) -> None:
         """Call in a loop to create terminal progress bar
         @params:
             iteration   - Required  : current iteration (Int)
@@ -741,37 +734,47 @@ class TwoDSpectrumContainer(Saveable):
         Based on:
         https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
         """
-#                          fill = '█'):
-        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+        #                          fill = '█'):
+        percent = ("{0:." + str(decimals) + "f}").format(
+            100 * (iteration / float(total))
+        )
         filledLength = int(length * iteration // total)
-        bar = fill * filledLength + '-' * (length - filledLength)
-        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = '\r')
+        bar = fill * filledLength + "-" * (length - filledLength)
+        print(f"\r{prefix} |{bar}| {percent}% {suffix}", end="\r")
         # Print New Line on Complete
         if iteration == total:
             print()
 
-
-    def make_movie(self, filename: str, window: list | None = None,
-                   stype: str = "total", spart: str = "real",
-                   cmap: Any = None, Npos_contours: int = 10,
-                   frate: int = 20, dpi: int = 100,
-                   start: float | None = None, end: float | None = None,
-                   show_states: Any = None,
-                   progressbar: bool = False) -> None:
+    def make_movie(
+        self,
+        filename: str,
+        window: list | None = None,
+        stype: str = "total",
+        spart: str = "real",
+        cmap: Any = None,
+        Npos_contours: int = 10,
+        frate: int = 20,
+        dpi: int = 100,
+        start: float | None = None,
+        end: float | None = None,
+        show_states: Any = None,
+        progressbar: bool = False,
+    ) -> None:
 
         import matplotlib.animation as manimation
         import matplotlib.pyplot as plt
 
         FFMpegWriter = manimation.writers["ffmpeg"]
-        metadata = dict(title="Test Movie", artist='Matplotlib',
-                comment='Movie support!')
+        metadata = dict(
+            title="Test Movie", artist="Matplotlib", comment="Movie support!"
+        )
         writer = FFMpegWriter(fps=frate, metadata=metadata)
 
         fig = plt.figure()
 
         spctr = self.get_spectra()
         l = len(spctr)
-        last_t2 = spctr[l-1].get_t2()
+        last_t2 = spctr[l - 1].get_t2()
         first_t2 = spctr[0].get_t2()
 
         mx = self.amax()
@@ -781,27 +784,36 @@ class TwoDSpectrumContainer(Saveable):
         if end is None:
             end = last_t2
 
-
         with writer.saving(fig, filename, dpi):
             k = 0
             # Initial call to print 0% progress
             sp2write = self.get_spectra(start=start, end=end)
             l = len(sp2write)
             if progressbar:
-                self._printProgressBar(0, l, prefix = 'Progress:',
-                                       suffix = 'Complete', length = 50)
+                self._printProgressBar(
+                    0, l, prefix="Progress:", suffix="Complete", length=50
+                )
             for sp in self.get_spectra(start=start, end=end):
-                sp.plot(fig=fig, window=window, cmap=cmap, vmax=mx,
-                        Npos_contours=Npos_contours,
-                        stype=stype,spart=spart,
-                        show_states=show_states,
-                        label="T="+str(sp.get_t2())+"fs")
+                sp.plot(
+                    fig=fig,
+                    window=window,
+                    cmap=cmap,
+                    vmax=mx,
+                    Npos_contours=Npos_contours,
+                    stype=stype,
+                    spart=spart,
+                    show_states=show_states,
+                    label="T=" + str(sp.get_t2()) + "fs",
+                )
                 writer.grab_frame()
                 if progressbar:
-                    self._printProgressBar(k + 1, l, prefix = 'Progress:',
-                                           suffix = 'Complete', length = 50)
+                    self._printProgressBar(
+                        k + 1, l, prefix="Progress:", suffix="Complete", length=50
+                    )
 
                 k += 1
+
+
 #                if k == 20:
 #                    return
 
@@ -823,41 +835,46 @@ class TwoDSpectrumCalculator:
 
     """
 
-    t1axis = derived_type("t1axis",TimeAxis)
-    t2axis = derived_type("t2axis",TimeAxis)
-    t3axis = derived_type("t3axis",TimeAxis)
+    t1axis = derived_type("t1axis", TimeAxis)
+    t2axis = derived_type("t2axis", TimeAxis)
+    t3axis = derived_type("t3axis", TimeAxis)
 
-    system = derived_type("system",[Molecule,Aggregate])
+    system = derived_type("system", [Molecule, Aggregate])
 
-    def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any,
-                 system: Any = None,
-                 dynamics: str = "secular",
-                 relaxation_tensor: Any = None,
-                 rate_matrix: Any = None,
-                 effective_hamiltonian: Any = None,
-                 twodtype: str = "2DES",
-                 gamma_factor: float | None = None,
-                 Population_factors: Any = None,
-                 ee_states: Any = None, f_states: Any = None,
-                 no_transfer: bool = False) -> None:
-
+    def __init__(
+        self,
+        t1axis: Any,
+        t2axis: Any,
+        t3axis: Any,
+        system: Any = None,
+        dynamics: str = "secular",
+        relaxation_tensor: Any = None,
+        rate_matrix: Any = None,
+        effective_hamiltonian: Any = None,
+        twodtype: str = "2DES",
+        gamma_factor: float | None = None,
+        Population_factors: Any = None,
+        ee_states: Any = None,
+        f_states: Any = None,
+        no_transfer: bool = False,
+    ) -> None:
 
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
         self.twodtype = twodtype
         self.gamma_factor = gamma_factor
-        self.Population_factors=Population_factors
-        self.ee_states=ee_states
-        self.f_states=f_states
-        self.no_transfer=no_transfer
+        self.Population_factors = Population_factors
+        self.ee_states = ee_states
+        self.f_states = f_states
+        self.no_transfer = no_transfer
 
-        #FIXME: check the compatibility of the axes
+        # FIXME: check the compatibility of the axes
 
         if system is not None:
             self.system = system
 
-        #FIXME: properties to be protected
+        # FIXME: properties to be protected
         self.dynamics = dynamics
 
         # unprotected properties
@@ -876,7 +893,7 @@ class TwoDSpectrumCalculator:
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
 
-        #self._have_aceto = False
+        # self._have_aceto = False
 
         # after bootstrap information
         self.sys = None
@@ -892,24 +909,18 @@ class TwoDSpectrumCalculator:
 
         self.tc = 0
 
-
     def _vprint(self, string: str) -> None:
-        """Prints a string if the self.verbose attribute is True
-
-        """
+        """Prints a string if the self.verbose attribute is True"""
         if self.verbose:
             print(string)
 
-    def bootstrap(self, rwa: float = 0.0, lab: Any = None,
-                  verbose: bool = False) -> None:
-        """Sets up the environment for 2D calculation
-
-        """
+    def bootstrap(
+        self, rwa: float = 0.0, lab: Any = None, verbose: bool = False
+    ) -> None:
+        """Sets up the environment for 2D calculation"""
         self.verbose = verbose
 
-
         if True:
-
             # calculate 2D spectrum using aceto library
 
             ###############################################################################
@@ -919,11 +930,9 @@ class TwoDSpectrumCalculator:
             ###############################################################################
 
             if isinstance(self.system, Aggregate):
-
                 pass
 
             else:
-
                 raise Exception("Molecule 2D not implememted")
 
             agg = self.system
@@ -934,7 +943,6 @@ class TwoDSpectrumCalculator:
             H = agg.get_Hamiltonian()
             D = agg.get_TransitionDipoleMoment()
 
-
             #
             # Construct band_system object
             #
@@ -942,37 +950,36 @@ class TwoDSpectrumCalculator:
             Ns = numpy.zeros(Nb, dtype=numpy.int)
             Ns[0] = 1
             Ns[1] = agg.nmono
-            Ns[2] = Ns[1]*(Ns[1]-1)/2
+            Ns[2] = Ns[1] * (Ns[1] - 1) / 2
             self.sys = band_system(Nb, Ns)
-            self.Ns=Ns
-
+            self.Ns = Ns
 
             #
             # Set energies
             #
             en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
-            #if True:
+            # if True:
             with eigenbasis_of(H):
                 for i in range(self.sys.Ne):
-                    en[i] = H.data[i,i]
+                    en[i] = H.data[i, i]
                 self.sys.set_energies(en)
 
                 #
                 # Set transition dipole moments
                 #
-                dge_wr = D.data[0:Ns[0],Ns[0]:Ns[0]+Ns[1],:]
-                def_wr = D.data[Ns[0]:Ns[0]+Ns[1],
-                                (Ns[0]+Ns[1]):(Ns[0]+Ns[1]+Ns[2]),:]
+                dge_wr = D.data[0 : Ns[0], Ns[0] : Ns[0] + Ns[1], :]
+                def_wr = D.data[
+                    Ns[0] : Ns[0] + Ns[1], (Ns[0] + Ns[1]) : (Ns[0] + Ns[1] + Ns[2]), :
+                ]
 
-                dge = numpy.zeros((3,Ns[0],Ns[1]), dtype=numpy.float64)
-                deff = numpy.zeros((3,Ns[1],Ns[2]), dtype=numpy.float64)
+                dge = numpy.zeros((3, Ns[0], Ns[1]), dtype=numpy.float64)
+                deff = numpy.zeros((3, Ns[1], Ns[2]), dtype=numpy.float64)
 
                 for i in range(3):
-                    dge[i,:,:] = dge_wr[:,:,i]
-                    deff[i,:,:] = def_wr[:,:,i]
-                self.sys.set_dipoles(0,1,dge)
-                self.sys.set_dipoles(1,2,deff)
-
+                    dge[i, :, :] = dge_wr[:, :, i]
+                    deff[i, :, :] = def_wr[:, :, i]
+                self.sys.set_dipoles(0, 1, dge)
+                self.sys.set_dipoles(1, 2, deff)
 
             #
             # Relaxation rates
@@ -980,12 +987,11 @@ class TwoDSpectrumCalculator:
             KK = agg.get_RedfieldRateMatrix()
 
             # relaxation rate in single exciton band
-            Kr = KK.data[Ns[0]:Ns[0]+Ns[1],Ns[0]:Ns[0]+Ns[1]] #*10.0
-            #print(1.0/Kr)
+            Kr = KK.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
+            # print(1.0/Kr)
 
             self.sys.init_dephasing_rates()
-            self.sys.set_relaxation_rates(1,Kr)
-
+            self.sys.set_relaxation_rates(1, Kr)
 
             #
             # Lineshape functions
@@ -994,36 +1000,34 @@ class TwoDSpectrumCalculator:
             cfm = sbi.CC
             cfm.create_double_integral()
 
-
             #
             # Transformation matrices
             #
             SS = H.diagonalize()
-            SS1 = SS[1:Ns[1]+1,1:Ns[1]+1]
-            SS2 = SS[Ns[1]+1:,Ns[1]+1:]
+            SS1 = SS[1 : Ns[1] + 1, 1 : Ns[1] + 1]
+            SS2 = SS[Ns[1] + 1 :, Ns[1] + 1 :]
             H.undiagonalize()
 
-            self.sys.set_gofts(cfm._gofts)    # line shape functions
+            self.sys.set_gofts(cfm._gofts)  # line shape functions
             self.sys.set_sitep(cfm.cpointer)  # pointer to sites
-            self.sys.set_transcoef(1,SS1)  # matrix of transformation coefficients
-            self.sys.set_transcoef(2,SS2)  # matrix of transformation coefficients
+            self.sys.set_transcoef(1, SS1)  # matrix of transformation coefficients
+            self.sys.set_transcoef(2, SS2)  # matrix of transformation coefficients
 
             #
             # Finding population evolution matrix
             #
             prop = PopulationPropagator(self.t1axis, Kr)
-      #      Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
-      #                                            corrections=True)
-            self.Uee, cor = prop.get_PropagationMatrix(self.t2axis,
-                                                  corrections=3)
+            #      Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
+            #                                            corrections=True)
+            self.Uee, cor = prop.get_PropagationMatrix(self.t2axis, corrections=3)
 
             # FIXME: Order of transfer is set by hand here - needs to be moved
             # to some reasonable place
 
-            #Ucor = Uee
+            # Ucor = Uee
             self.Uc0 = cor[0]
 
-            #for ko in range(No+1):
+            # for ko in range(No+1):
             #    print("Subtracting ", ko)
             #    Ucor[:,:,tc] -= cor[ko]
 
@@ -1033,37 +1037,34 @@ class TwoDSpectrumCalculator:
             if lab is None:
                 self.lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
                 X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
-                self.lab.set_laser_polarizations(X,X,X,X)
+                self.lab.set_laser_polarizations(X, X, X, X)
             else:
                 self.lab = lab
 
             #
             # Other parameters
             #
-            #dt = self.t1axis.step
+            # dt = self.t1axis.step
             self.rmin = 0.0001
             self.t1s = self.t1axis.data
             self.t3s = self.t3axis.data
             self.rwa = rwa
 
-
-
             atype = self.t1axis.atype
-            self.t1axis.atype = 'complete'
+            self.t1axis.atype = "complete"
             self.oa1 = self.t1axis.get_FrequencyAxis()
             self.oa1.data += self.rwa
             self.oa1.start += self.rwa
             self.t1axis.atype = atype
 
             atype = self.t3axis.atype
-            self.t3axis.atype = 'complete'
+            self.t3axis.atype = "complete"
             self.oa3 = self.t3axis.get_FrequencyAxis()
             self.oa3.data += self.rwa
             self.oa3.start += self.rwa
             self.t3axis.atype = atype
 
         else:
-
             raise Exception("So far, no 2D outside aceto")
 
         self.tc = 0
@@ -1074,7 +1075,6 @@ class TwoDSpectrumCalculator:
         self.tc += 1
         return sone
 
-
     def calculate_one(self, tc: int) -> TwoDSpectrum:
 
         tt2 = self.t2axis.data[tc]
@@ -1083,25 +1083,23 @@ class TwoDSpectrumCalculator:
         #
         # Initialize response storage
         #
-        resp_r = numpy.zeros((Nr1, Nr3),
-                             dtype=numpy.complex128, order='F')
-        resp_n = numpy.zeros((Nr1, Nr3),
-                             dtype=numpy.complex128, order='F')
-        #additional response storage for the ESAs
-        respf_r = numpy.zeros((Nr1, Nr3),
-                             dtype=numpy.complex128, order='F')
-        respf_n = numpy.zeros((Nr1, Nr3),
-                             dtype=numpy.complex128, order='F')
-        #additional response storage for the ESAs with state indices
-        respf_r_i = numpy.zeros((self.Ns[2],Nr1, Nr3),
-                             dtype=numpy.complex128, order='F')
-        respf_n_i = numpy.zeros((self.Ns[2],Nr1, Nr3),
-                             dtype=numpy.complex128, order='F')
+        resp_r = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order="F")
+        resp_n = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order="F")
+        # additional response storage for the ESAs
+        respf_r = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order="F")
+        respf_n = numpy.zeros((Nr1, Nr3), dtype=numpy.complex128, order="F")
+        # additional response storage for the ESAs with state indices
+        respf_r_i = numpy.zeros(
+            (self.Ns[2], Nr1, Nr3), dtype=numpy.complex128, order="F"
+        )
+        respf_n_i = numpy.zeros(
+            (self.Ns[2], Nr1, Nr3), dtype=numpy.complex128, order="F"
+        )
 
         # FIXME: on which axis we should be looking for it2 ???
         (it2, err) = self.t1axis.locate(tt2)
-        self._vprint("t2 = "+str(tt2)+"fs (it2 = "+str(it2)+")")
-        #tc = it2
+        self._vprint("t2 = " + str(tt2) + "fs (it2 = " + str(it2) + ")")
+        # tc = it2
 
         #
         # calcute response
@@ -1112,81 +1110,145 @@ class TwoDSpectrumCalculator:
 
         self._vprint(" - ground state bleach")
         # GSB
-        nr3td.nr3_r3g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-        nr3td.nr3_r4g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+        nr3td.nr3_r3g(
+            self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r
+        )
+        nr3td.nr3_r4g(
+            self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n
+        )
 
         self._vprint(" - stimulated emission")
         # SE
-        nr3td.nr3_r1g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-        nr3td.nr3_r2g(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+        nr3td.nr3_r1g(
+            self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n
+        )
+        nr3td.nr3_r2g(
+            self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r
+        )
 
         self._vprint(" - excited state absorption")
         # ESA
-#        nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-#        nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-        nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, respf_r_i, plist=True)
-        nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, respf_n_i, plist=True)
+        #        nr3td.nr3_r1fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+        #        nr3td.nr3_r2fs(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+        nr3td.nr3_r1fs(
+            self.lab,
+            self.sys,
+            it2,
+            self.t1s,
+            self.t3s,
+            self.rwa,
+            self.rmin,
+            respf_r_i,
+            plist=True,
+        )
+        nr3td.nr3_r2fs(
+            self.lab,
+            self.sys,
+            it2,
+            self.t1s,
+            self.t3s,
+            self.rwa,
+            self.rmin,
+            respf_n_i,
+            plist=True,
+        )
 
         # Transfer
-        #with current version of ACETO works only for 2DES#
-        #because the transfer pathways don't return list of pathways#
-        #easy to fix in Aceto if needed#
+        # with current version of ACETO works only for 2DES#
+        # because the transfer pathways don't return list of pathways#
+        # easy to fix in Aceto if needed#
 
         if self.twodtype == "2DES":
-            Utr = self.Uee[:,:,self.tc]-self.Uc0[:,:,self.tc] #-Uc1[:,:,tc]-Uc2[:,:,tc]
+            Utr = (
+                self.Uee[:, :, self.tc] - self.Uc0[:, :, self.tc]
+            )  # -Uc1[:,:,tc]-Uc2[:,:,tc]
             self.sys.set_population_propagation_matrix(Utr)
 
             if not self.no_transfer:
                 self._vprint(" - stimulated emission with transfer")
                 # SE
-                nr3td.nr3_r1g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-                nr3td.nr3_r2g_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+                nr3td.nr3_r1g_trans(
+                    self.lab,
+                    self.sys,
+                    it2,
+                    self.t1s,
+                    self.t3s,
+                    self.rwa,
+                    self.rmin,
+                    resp_n,
+                )
+                nr3td.nr3_r2g_trans(
+                    self.lab,
+                    self.sys,
+                    it2,
+                    self.t1s,
+                    self.t3s,
+                    self.rwa,
+                    self.rmin,
+                    resp_r,
+                )
 
-        #                # This contributes only when No > 0
-        #                nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
-        #
+                #                # This contributes only when No > 0
+                #                nr3td.nr3_r2g_trN(lab, sys, No, it2, t1s, t3s, rwa, rmin, resp_r)
+                #
 
                 self._vprint(" - excited state absorption with transfer")
 
                 # ESA
-        #        nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
-        #        nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
-                nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, respf_r)
-                nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, respf_n)
+                #        nr3td.nr3_r1fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_r)
+                #        nr3td.nr3_r2fs_trans(self.lab, self.sys, it2, self.t1s, self.t3s, self.rwa, self.rmin, resp_n)
+                nr3td.nr3_r1fs_trans(
+                    self.lab,
+                    self.sys,
+                    it2,
+                    self.t1s,
+                    self.t3s,
+                    self.rwa,
+                    self.rmin,
+                    respf_r,
+                )
+                nr3td.nr3_r2fs_trans(
+                    self.lab,
+                    self.sys,
+                    it2,
+                    self.t1s,
+                    self.t3s,
+                    self.rwa,
+                    self.rmin,
+                    respf_n,
+                )
 
-
-
-        #Normal ESA is summed over all states
-        for i in range(0,self.Ns[2]):
-            respf_n+=respf_n_i[i,:,:]
-            respf_r+=respf_r_i[i,:,:]
+        # Normal ESA is summed over all states
+        for i in range(0, self.Ns[2]):
+            respf_n += respf_n_i[i, :, :]
+            respf_r += respf_r_i[i, :, :]
 
         if self.twodtype == "2DES":
-            resp_n=resp_n+respf_n
-            resp_r=resp_r+respf_r
+            resp_n = resp_n + respf_n
+            resp_r = resp_r + respf_r
 
         elif self.twodtype == "F-2DES":
             if self.gamma_factor is not None:
-                resp_n=resp_n+(self.gamma_factor-1)*respf_n
-                resp_r=resp_r+(self.gamma_factor-1)*respf_r
-                self._vprint("Using gamma of: "+str(self.gamma_factor))
+                resp_n = resp_n + (self.gamma_factor - 1) * respf_n
+                resp_r = resp_r + (self.gamma_factor - 1) * respf_r
+                self._vprint("Using gamma of: " + str(self.gamma_factor))
             elif self.Population_factors is not None:
-                Pe=self.Population_factors[0]
-                Pee=self.Population_factors[1]
-                Pf=self.Population_factors[2]
-                resp_n=(resp_n-respf_n)*Pe
-                resp_r=(resp_r-respf_r)*Pe
-                #distinguishing the ee and f states - to be made more general, by construction
+                Pe = self.Population_factors[0]
+                Pee = self.Population_factors[1]
+                Pf = self.Population_factors[2]
+                resp_n = (resp_n - respf_n) * Pe
+                resp_r = (resp_r - respf_r) * Pe
+                # distinguishing the ee and f states - to be made more general, by construction
                 if self.ee_states is None:
-                    self.ee_states=range(0,1)
+                    self.ee_states = range(0, 1)
                 if self.f_states is None:
-                    self.f_states=range(1,self.Ns[2])
+                    self.f_states = range(1, self.Ns[2])
                 for i in self.ee_states:
-                        resp_n+=Pee*respf_n_i[i,:,:]
-                        resp_r+=Pee*respf_r_i[i,:,:]
+                    resp_n += Pee * respf_n_i[i, :, :]
+                    resp_r += Pee * respf_r_i[i, :, :]
                 for i in self.f_states:
-                        resp_n+=Pf*respf_n_i[i,:,:]
-                        resp_r+=Pf*respf_r_i[i,:,:]
+                    resp_n += Pf * respf_n_i[i, :, :]
+                    resp_r += Pf * respf_r_i[i, :, :]
 
             else:
                 raise Exception("Not enough parameters for F-2DES")
@@ -1195,21 +1257,19 @@ class TwoDSpectrumCalculator:
             raise Exception("Unknown type of 2DES")
 
         t2 = time.time()
-        self._vprint("... calculated in "+str(t2-t1)+" sec")
-
+        self._vprint("... calculated in " + str(t2 - t1) + " sec")
 
         #
         # Calculate corresponding 2D spectrum
         #
 
-        ftresp = numpy.fft.fft(resp_r,axis=1)
-        ftresp = numpy.fft.ifft(ftresp,axis=0)
+        ftresp = numpy.fft.fft(resp_r, axis=1)
+        ftresp = numpy.fft.ifft(ftresp, axis=0)
         reph2D = numpy.fft.fftshift(ftresp)
 
-        ftresp = numpy.fft.ifft(resp_n,axis=1)
-        ftresp = numpy.fft.ifft(ftresp,axis=0)*ftresp.shape[1]
+        ftresp = numpy.fft.ifft(resp_n, axis=1)
+        ftresp = numpy.fft.ifft(ftresp, axis=0) * ftresp.shape[1]
         nonr2D = numpy.fft.fftshift(ftresp)
-
 
         onetwod = TwoDSpectrum()
         onetwod.set_axis_1(self.oa1)
@@ -1219,10 +1279,7 @@ class TwoDSpectrumCalculator:
 
         onetwod.set_t2(self.t2axis.data[tc])
 
-
         return onetwod
-
-
 
     def calculate(self) -> TwoDSpectrumContainer:
         """Returns 2D spectrum
@@ -1233,22 +1290,18 @@ class TwoDSpectrumCalculator:
 
         """
         if _have_aceto:
-
             twods = TwoDSpectrumContainer(self.t2axis)
 
             teetoos = self.t2axis.data
             for tt2 in teetoos:
-
                 onetwod = self.calculate_next()
                 twods.set_spectrum(onetwod)
 
             return twods
 
-
         # fall back on quantarhei's own implementation
 
         ret = TwoDSpectrumContainer()
-
 
         return ret
 
@@ -1270,11 +1323,14 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.dephx = convert(300, "1/cm", "int")
         self.dephy = convert(300, "1/cm", "int")
 
-
-    def bootstrap(self, rwa: float = 0.0, pathways: Any = None,
-                  verbose: bool = False,
-                  shape: str = "Gaussian",
-                  all_positive: bool = False) -> None:
+    def bootstrap(
+        self,
+        rwa: float = 0.0,
+        pathways: Any = None,
+        verbose: bool = False,
+        shape: str = "Gaussian",
+        all_positive: bool = False,
+    ) -> None:
 
         self.shape = shape
         self.all_positive = all_positive
@@ -1284,19 +1340,18 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.pathways = pathways
 
         atype = self.t1axis.atype
-        self.t1axis.atype = 'complete'
+        self.t1axis.atype = "complete"
         self.oa1 = self.t1axis.get_FrequencyAxis()
         self.oa1.data += self.rwa
         self.oa1.start += self.rwa
         self.t1axis.atype = atype
 
         atype = self.t3axis.atype
-        self.t3axis.atype = 'complete'
+        self.t3axis.atype = "complete"
         self.oa3 = self.t3axis.get_FrequencyAxis()
         self.oa3.data += self.rwa
         self.oa3.start += self.rwa
         self.t3axis.atype = atype
-
 
     def set_width(self, val: float) -> None:
         self.widthx = val
@@ -1306,17 +1361,13 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.dephx = val
         self.dephy = val
 
-
     def calculate(self) -> TwoDSpectrum:
-        """Calculate the 2D spectrum for all pathways
-
-        """
+        """Calculate the 2D spectrum for all pathways"""
         onetwod = TwoDSpectrum()
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
 
         for pwy in self.pathways:
-
             data = self.calculate_pathway(pwy, shape=self.shape)
 
             if pwy.pathway_type == "R":
@@ -1330,16 +1381,12 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
 
         return onetwod
 
-
-    def calculate_pathway(self, pathway: Any,
-                          shape: str = "Gaussian") -> numpy.ndarray:
-        """Calculate the shape of a Liouville pathway
-
-        """
-        noe = 1+pathway.order+pathway.relax_order
+    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian") -> numpy.ndarray:
+        """Calculate the shape of a Liouville pathway"""
+        noe = 1 + pathway.order + pathway.relax_order
 
         cen1 = pathway.frequency[0]
-        cen3 = pathway.frequency[noe-2]
+        cen3 = pathway.frequency[noe - 2]
         if self.all_positive:
             pref = numpy.abs(pathway.pref)
         else:
@@ -1368,10 +1415,9 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         else:
             dephy = pathway.dephs[3]
 
-        #print(shape, widthx, widthy)
+        # print(shape, widthx, widthy)
 
         if pathway.pathway_type == "R":
-
             reph2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
 
             if shape == "Gaussian":
@@ -1379,26 +1425,29 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                 for i1 in range(N1):
                     o1 = -self.oa1.data[i1]
 
-                    reph2D[:, i1] = \
-                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/widthy)**2)
+                    reph2D[:, i1] = (
+                        pref
+                        * numpy.exp(-(((o1 - cen1) / widthx) ** 2))
+                        * numpy.exp(-(((oo3 - cen3) / widthy) ** 2))
+                    )
 
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
                 for i1 in range(N1):
                     o1 = -self.oa1.data[i1]
 
-                    reph2D[:, i1] = \
-                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
-                        *(dephy/((oo3-cen3)**2 + dephy**2))
+                    reph2D[:, i1] = (
+                        pref
+                        * (dephx / ((o1 - cen1) ** 2 + dephx**2))
+                        * (dephy / ((oo3 - cen3) ** 2 + dephy**2))
+                    )
 
             else:
-                raise Exception("Unknown line shape: "+shape)
+                raise Exception("Unknown line shape: " + shape)
 
             return reph2D
 
         if pathway.pathway_type == "NR":
-
             nonr2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
 
             if shape == "Gaussian":
@@ -1406,24 +1455,24 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                 for i1 in range(N1):
                     o1 = self.oa1.data[i1]
 
-                    nonr2D[:, i1] = \
-                    pref*numpy.exp(-((o1-cen1)/widthx)**2)\
-                        *numpy.exp(-((oo3-cen3)/widthy)**2)
+                    nonr2D[:, i1] = (
+                        pref
+                        * numpy.exp(-(((o1 - cen1) / widthx) ** 2))
+                        * numpy.exp(-(((oo3 - cen3) / widthy) ** 2))
+                    )
 
             elif shape == "Lorentzian":
                 oo3 = self.oa3.data[:]
                 for i1 in range(N1):
                     o1 = self.oa1.data[i1]
 
-                    nonr2D[:, i1] = \
-                    pref*(dephx/((o1-cen1)**2 + dephx**2))\
-                        *(dephy/((oo3-cen3)**2 + dephy**2))
+                    nonr2D[:, i1] = (
+                        pref
+                        * (dephx / ((o1 - cen1) ** 2 + dephx**2))
+                        * (dephy / ((oo3 - cen3) ** 2 + dephy**2))
+                    )
 
             else:
-                raise Exception("Unknown line shape: "+shape)
+                raise Exception("Unknown line shape: " + shape)
 
             return nonr2D
-
-
-
-

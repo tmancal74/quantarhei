@@ -1,4 +1,3 @@
-
 from .cfmatrix import CorrelationFunctionMatrix as CorrelationFunctionMatrix
 from .correlationfunctions import CorrelationFunction as CorrelationFunction
 from .correlationfunctions import LineshapeFunction as LineshapeFunction

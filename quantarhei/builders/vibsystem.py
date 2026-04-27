@@ -56,7 +56,6 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         self._has_relaxation_tensor = False
         self.has_Iterm = False
 
-
     def set_mode_coupling(self, N: int, M: int, val: float) -> None:
         """Sets bilinear coupling between the modes
 
@@ -80,9 +79,8 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             self._mode_couping_init = True
 
         val_int = Manager().convert_energy_2_internal_u(val)
-        self.coupling[N,M] = val_int
-        self.coupling[M,N] = val_int
-
+        self.coupling[N, M] = val_int
+        self.coupling[M, N] = val_int
 
     def get_mode_coupling(self, N: int, M: int) -> float:
         """Returns the value of the intermode coupling coefficient in current units
@@ -99,14 +97,15 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         ...     print(vsys.get_mode_coupling(0,1))
         10.0
         """
-        return Manager().convert_energy_2_current_u(self.coupling[N,M])
-
+        return Manager().convert_energy_2_current_u(self.coupling[N, M])
 
     def _embed_operator(self, res_tot: object, member: object) -> None:
 
         pass
 
-    def _embed_bilinear_interaction(self, i: int, j: int, kappa: float = 1.0) -> numpy.ndarray:
+    def _embed_bilinear_interaction(
+        self, i: int, j: int, kappa: float = 1.0
+    ) -> numpy.ndarray:
         """Embed a bilinear interaction term kappa * K1 ⊗ K2
         between subsystem i and j (0-based indices).
 
@@ -124,12 +123,12 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         # Ensure i < j for simpler indexing
         if i > j:
             i, j = j, i
-            #K1, K2 = K2, K1
+            # K1, K2 = K2, K1
 
         # K1 and K2 are both coordinate operators
-        qq = (self.ad + self.aa)/numpy.sqrt(2.0)
-        K1 = qq[:self.dims[i],:self.dims[i]]
-        K2 = qq[:self.dims[j],:self.dims[j]]
+        qq = (self.ad + self.aa) / numpy.sqrt(2.0)
+        K1 = qq[: self.dims[i], : self.dims[i]]
+        K2 = qq[: self.dims[j], : self.dims[j]]
 
         ops = []
         for k in range(N):
@@ -146,7 +145,6 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             interaction = numpy.kron(interaction, op)
 
         return kappa * interaction
-
 
     def build(self) -> None:
         """Build the VibrationalSystem based on its components
@@ -195,7 +193,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         H_list = []
         D_list = []
         for md in self.modes:
-            #print("Mode:", mcount)
+            # print("Mode:", mcount)
             md.build()
             Ham = md.get_Hamiltonian()
             H_list.append(Ham._data)
@@ -233,15 +231,14 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
         self.Nb = numpy.array(Nbl)
 
-        self.which_band = numpy.zeros(self.Ntot,dtype=numpy.int32)
+        self.which_band = numpy.zeros(self.Ntot, dtype=numpy.int32)
         ll = 0
         for kk in range(self.Ntot):
-
             # fix for the case that the band index grows too much
-            if ll+1 < len(indxs):
-                uind = indxs[ll+1]
+            if ll + 1 < len(indxs):
+                uind = indxs[ll + 1]
             else:
-                uind = self.Ntot+1
+                uind = self.Ntot + 1
 
             if (kk >= indxs[ll]) and (kk < uind):
                 self.which_band[kk] = ll
@@ -253,11 +250,10 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         if self._mode_couping_init:
             H_int = numpy.zeros_like(self.HH)
             for ii in range(Nl):
-                for jj in range(ii+1, Nl):
-                    kap = self.coupling[ii,jj]
+                for jj in range(ii + 1, Nl):
+                    kap = self.coupling[ii, jj]
                     if numpy.abs(kap) > 0.0:
                         H_int += self._embed_bilinear_interaction(ii, jj, kappa=kap)
-
 
             out = reorder_operators_by_perm(perm, [H_int])
             H_int = out[0]
@@ -272,13 +268,12 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         D_tot_mx = numpy.zeros((numpy.prod(dims), numpy.prod(dims), 3), dtype=COMPLEX)
 
         for i, DD in enumerate(D_list):
-
             to_be_sorted = []
             for kk in range(3):
                 ops = []
                 for j in range(Nl):
                     if j == i:
-                        ops.append(DD[:,:,kk])
+                        ops.append(DD[:, :, kk])
                     else:
                         ops.append(numpy.eye(self.dims[j], dtype=COMPLEX))
                 Di_full = ops[0]
@@ -289,7 +284,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             sorted = reorder_operators_by_perm(perm, to_be_sorted)
             for kk in range(3):
                 Di_full = sorted[kk]
-                D_tot_mx[:,:,kk] += Di_full
+                D_tot_mx[:, :, kk] += Di_full
 
         self.DD = D_tot_mx
         self.TrDMOp = TransitionDipoleMoment(data=D_tot_mx)
@@ -298,13 +293,12 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         # Relaxation
         #
 
-        #print("Dims = ", self.dims)
+        # print("Dims = ", self.dims)
         ops = []
         rts = []
         mcount = 0
         skip_relaxation = False
         for mm, md in enumerate(self.modes):
-
             try:
                 sbi = md.get_SystemBathInteraction()
 
@@ -315,19 +309,18 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
                 nops = sbi.KK.shape[0]
 
                 for ii in range(nops):
-
-                    #print("Current operator is:", ii)
-                    oper = sbi.KK[ii,:,:]
+                    # print("Current operator is:", ii)
+                    oper = sbi.KK[ii, :, :]
 
                     # here we have to stretch the operator to a new system basis
                     all_ops = []
                     for j in range(Nl):
                         if j == mm:
                             all_ops.append(oper)
-                            #print("Shape oper -", j, oper.shape)
+                            # print("Shape oper -", j, oper.shape)
                         else:
                             all_ops.append(numpy.eye(self.dims[j], dtype=complex))
-                            #print("Dims -", j, self.dims[j])
+                            # print("Dims -", j, self.dims[j])
 
                     oper_full = all_ops[0]
                     for op in all_ops[1:]:
@@ -344,22 +337,24 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
             mcount += 1
 
         if len(ops) > 0:
-
             sbi = SystemBathInteraction(sys_operators=ops, rates=rts)
 
             self.sbi = sbi
             self._has_sbi = True
 
         if self._has_sbi:
-            self.RelaxationTensor = LindbladForm(self.HamOp, self.sbi, as_operators=True)
+            self.RelaxationTensor = LindbladForm(
+                self.HamOp, self.sbi, as_operators=True
+            )
         else:
             self.RelaxationTensor = None
 
         self._built = True
 
 
-
-def group_energies_by_gap(energies: numpy.ndarray, threshold: float | None = None, gap_factor: float = 3.0) -> tuple[list, list]:
+def group_energies_by_gap(
+    energies: numpy.ndarray, threshold: float | None = None, gap_factor: float = 3.0
+) -> tuple[list, list]:
     """Groups sorted energies into bands separated by significant energy gaps.
 
     Parameters
@@ -379,6 +374,7 @@ def group_energies_by_gap(energies: numpy.ndarray, threshold: float | None = Non
         Indices at which bands start (for reference).
     """
     import numpy as np
+
     energies = np.asarray(energies)
     gaps = np.diff(energies)
 
@@ -406,7 +402,9 @@ def group_energies_by_gap(energies: numpy.ndarray, threshold: float | None = Non
     return band_sizes, gap_indices
 
 
-def reorder_operators_by_energy(H: numpy.ndarray, operators: list) -> tuple[numpy.ndarray, list, numpy.ndarray]:
+def reorder_operators_by_energy(
+    H: numpy.ndarray, operators: list
+) -> tuple[numpy.ndarray, list, numpy.ndarray]:
     """Reorders a Hamiltonian and other operators according to ascending energies (diagonal elements of H).
 
     Parameters
@@ -436,7 +434,9 @@ def reorder_operators_by_energy(H: numpy.ndarray, operators: list) -> tuple[nump
     return H_sorted, ops_sorted, perm
 
 
-def reorder_hamiltonian_by_energy(H: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+def reorder_hamiltonian_by_energy(
+    H: numpy.ndarray,
+) -> tuple[numpy.ndarray, numpy.ndarray]:
     """Reorders a Hamiltonian according to ascending energies (diagonal elements of H).
 
     Parameters
@@ -453,7 +453,7 @@ def reorder_hamiltonian_by_energy(H: numpy.ndarray) -> tuple[numpy.ndarray, nump
     permutation : np.ndarray
         The permutation array applied (indices of ascending diagonal values).
     """
-    #if not all(op.shape == H.shape for op in operators):
+    # if not all(op.shape == H.shape for op in operators):
     #    raise ValueError("All operators must have the same shape as the Hamiltonian")
 
     energies = numpy.diag(H)
@@ -464,10 +464,7 @@ def reorder_hamiltonian_by_energy(H: numpy.ndarray) -> tuple[numpy.ndarray, nump
     return H_sorted, perm
 
 
-
 def reorder_operators_by_perm(perm: numpy.ndarray, operators: list) -> list:
-    """Reorders operators according to a specified order.
-
-    """
+    """Reorders operators according to a specified order."""
     ops_sorted = [op[numpy.ix_(perm, perm)] for op in operators]
     return ops_sorted

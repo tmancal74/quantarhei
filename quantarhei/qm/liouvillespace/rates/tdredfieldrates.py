@@ -45,12 +45,18 @@ class TDRedfieldRateMatrix(TimeDependent):
 
     """
 
-    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None) -> None:
+    def __init__(
+        self,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
+        initialize: bool = True,
+        cutoff_time: float | None = None,
+    ) -> None:
 
-        if not isinstance(ham,Hamiltonian):
+        if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
 
-        if not isinstance(sbi,SystemBathInteraction):
+        if not isinstance(sbi, SystemBathInteraction):
             raise Exception("Second argument must be a SystemBathInteraction")
 
         self._is_initialized = False
@@ -64,14 +70,11 @@ class TDRedfieldRateMatrix(TimeDependent):
         self.sbi = sbi
 
         if initialize:
-            self._set_rates(ham,sbi)
+            self._set_rates(ham, sbi)
             self._is_initialized = True
 
-
     def _set_rates(self, ham: Hamiltonian, sbi: SystemBathInteraction) -> None:
-        """Reference implementation, completely in Python
-
-        """
+        """Reference implementation, completely in Python"""
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         Na = ham.data.shape[0]
@@ -88,57 +91,55 @@ class TDRedfieldRateMatrix(TimeDependent):
             raise Exception("No system bath intraction components present")
 
         # Eigen problem
-        hD,SS = numpy.linalg.eigh(ham.data)
+        hD, SS = numpy.linalg.eigh(ham.data)
         S1 = numpy.linalg.inv(SS)
 
         # component operators
         KI = self.sbi.KK.copy()
 
-        #FIXME: This has to be made configurable
+        # FIXME: This has to be made configurable
         # frequency cut-off
-        freq_cutoff = 3000.0*cm2int
-        #print("freq. cut-off",freq_cutoff)
-
+        freq_cutoff = 3000.0 * cm2int
+        # print("freq. cut-off",freq_cutoff)
 
         # transform interaction operators
         for i in range(Nk):
-            KI[i,:,:] = numpy.dot(S1,numpy.dot(KI[i,:,:],SS))
+            KI[i, :, :] = numpy.dot(S1, numpy.dot(KI[i, :, :], SS))
 
         #  Find all eigenfrequencies
-        Om = numpy.zeros((Na,Na))
-        for a in range(0,Na):
-            for b in range(0,Na):
-                Om[a,b] = hD[a] - hD[b]
+        Om = numpy.zeros((Na, Na))
+        for a in range(0, Na):
+            for b in range(0, Na):
+                Om[a, b] = hD[a] - hD[b]
 
         # calculate values of the spectral density at frequencies
-        cc = numpy.zeros((Nt,Nk,Na,Na),dtype=COMPLEX)
+        cc = numpy.zeros((Nt, Nk, Na, Na), dtype=COMPLEX)
 
         # loop over components
         for k in range(Nk):
-
             # correlation function
-            cf = self.sbi.CC.get_correlation_function(k,k)
+            cf = self.sbi.CC.get_correlation_function(k, k)
 
             # Ft correlation function
             # cw = cf.get_Fourier_transform()
-
 
             # Spectral density at all frequencies
             for i in range(Na):
                 for j in range(Na):
                     if i != j:
-                        if numpy.abs(Om[j,i]) > freq_cutoff:
-                            cc[:,k,i,j] = 0.0
+                        if numpy.abs(Om[j, i]) > freq_cutoff:
+                            cc[:, k, i, j] = 0.0
                         else:
-                            ff = cf.data*numpy.exp(1.0j*Om[j,i]*tm)
+                            ff = cf.data * numpy.exp(1.0j * Om[j, i] * tm)
                             rr = numpy.real(ff)
                             ri = numpy.imag(ff)
-                            sr = scipy.interpolate.UnivariateSpline(tm,
-                                    rr, s=0).antiderivative()(tm)
-                            si = scipy.interpolate.UnivariateSpline(tm,
-                                    ri, s=0).antiderivative()(tm)
-                            cc[:,k,i,j] =  sr + 1.0j*si
-
+                            sr = scipy.interpolate.UnivariateSpline(
+                                tm, rr, s=0
+                            ).antiderivative()(tm)
+                            si = scipy.interpolate.UnivariateSpline(
+                                tm, ri, s=0
+                            ).antiderivative()(tm)
+                            cc[:, k, i, j] = sr + 1.0j * si
 
         """ To submit:
                         Na
@@ -155,23 +156,33 @@ class TDRedfieldRateMatrix(TimeDependent):
         warning = []
         error = []
         rtol = 1.0e-6
-        self.data = ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol,
-                                           warning, error)
+        self.data = ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol, warning, error)
         for w in error:
             print(w)
 
         self._is_initialized = True
 
 
-
-@implementation("tdredfield","ssTDRedfieldRateMatrix",
-                at_runtime=True,
-                fallback_local=True,
-                always_local=True)
-def ssTDRedfieldRateMatrix(Na: int, Nk: int, Nt: int, KI: numpy.ndarray, cc: numpy.ndarray, rtol: float, warning: list, error: list) -> numpy.ndarray:
+@implementation(
+    "tdredfield",
+    "ssTDRedfieldRateMatrix",
+    at_runtime=True,
+    fallback_local=True,
+    always_local=True,
+)
+def ssTDRedfieldRateMatrix(
+    Na: int,
+    Nk: int,
+    Nt: int,
+    KI: numpy.ndarray,
+    cc: numpy.ndarray,
+    rtol: float,
+    warning: list,
+    error: list,
+) -> numpy.ndarray:
 
     # output relaxatio rate matrix
-    RR = numpy.zeros((Nt,Na,Na),dtype=REAL)
+    RR = numpy.zeros((Nt, Na, Na), dtype=REAL)
 
     # real part of FT correlation function = 2Re of the half FT of
     # the correlation function - no factor of 2 here!
@@ -179,25 +190,21 @@ def ssTDRedfieldRateMatrix(Na: int, Nk: int, Nt: int, KI: numpy.ndarray, cc: num
 
     # loop over components
     for k in range(Nk):
-
         # interaction operator
-        KK = KI[k,:,:]
+        KK = KI[k, :, :]
 
         for i in range(Na):
             for j in range(Na):
-
                 # calculate rates, i.e. off diagonal elements
                 if i != j:
-
-                    RR[:,i,j] += 2.0*numpy.real(cc[:,k,i,j]*KK[i,j]*KK[j,i])
+                    RR[:, i, j] += 2.0 * numpy.real(
+                        cc[:, k, i, j] * KK[i, j] * KK[j, i]
+                    )
 
     # calculate the diagonal elements (the depopulation rates)
     for i in range(Na):
         for j in range(Na):
             if i != j:
-                RR[:,j,j] -= RR[:,i,j]
+                RR[:, j, j] -= RR[:, i, j]
 
     return RR
-
-
-

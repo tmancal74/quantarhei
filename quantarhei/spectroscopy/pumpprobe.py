@@ -9,18 +9,14 @@ from ..core.dfunction import DFunction
 from .mocktwodcalculator import MockTwoDResponseCalculator
 from .twodcalculator import TwoDResponseCalculator
 
-#from .twodspect import TwoDSpectrum
+# from .twodspect import TwoDSpectrum
 from .twodcontainer import TwoDResponseContainer
 
 
 class PumpProbeSpectrum(DFunction):
-    """Class representing pump-probe spectra
+    """Class representing pump-probe spectra"""
 
-
-
-    """
-
-    #data = None
+    # data = None
 
     def __init__(self) -> None:
         self.t2 = -1.0
@@ -32,7 +28,6 @@ class PumpProbeSpectrum(DFunction):
     def set_data(self, data: Any) -> None:
         self.data = data
 
-
     def get_PumpProbeSpectrum(self) -> PumpProbeSpectrum:
         """Returns self
 
@@ -41,27 +36,18 @@ class PumpProbeSpectrum(DFunction):
         """
         return self
 
-
     def set_t2(self, t2: float) -> None:
-        """Sets the t2 (waiting time) of the spectrum
-
-
-        """
+        """Sets the t2 (waiting time) of the spectrum"""
         self.t2 = t2
 
-
     def get_t2(self) -> float:
-        """Returns the t2 (waiting time) of the spectrum
-
-        """
+        """Returns the t2 (waiting time) of the spectrum"""
         return self.t2
 
 
-
 class PumpProbeSpectrumContainer(TwoDResponseContainer):
-    """Container for a set of pump-probe spectra
+    """Container for a set of pump-probe spectra"""
 
-    """
     def __init__(self, t2axis: Any = None) -> None:
 
         self.t2axis = t2axis
@@ -73,7 +59,7 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
         plt.clf()
         spctr = self.get_spectra()
         for sp in spctr:
-            plt.plot(sp.xaxis.data,sp.data)
+            plt.plot(sp.xaxis.data, sp.data)
 
     def set_spectrum(self, spec: Any, tag: Any) -> None:
         self.spectra[tag] = spec
@@ -94,27 +80,36 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
             mxs.append(mx)
         return numpy.amin(numpy.array(mxs))
 
-
-
-    def make_movie(self, filename: str, axis: Any = None,
-                   cmap: Any = None, vmax: Any = None, vmin: Any = None,
-                   frate: int = 20, dpi: int = 100, start: Any = None, end: Any = None,
-                   show_states: Any = None, progressbar: bool = False) -> None:
+    def make_movie(
+        self,
+        filename: str,
+        axis: Any = None,
+        cmap: Any = None,
+        vmax: Any = None,
+        vmin: Any = None,
+        frate: int = 20,
+        dpi: int = 100,
+        start: Any = None,
+        end: Any = None,
+        show_states: Any = None,
+        progressbar: bool = False,
+    ) -> None:
 
         import matplotlib.animation as manimation
         import matplotlib.pyplot as plt
 
         FFMpegWriter = manimation.writers["ffmpeg"]
 
-        metadata = dict(title="Test Movie", artist='Matplotlib',
-                comment='Movie support!')
+        metadata = dict(
+            title="Test Movie", artist="Matplotlib", comment="Movie support!"
+        )
         writer = FFMpegWriter(fps=frate, metadata=metadata)
 
         fig = plt.figure()
 
         spctr = self.get_spectra()
         l = len(spctr)
-        last_t2 = spctr[l-1].get_t2()
+        last_t2 = spctr[l - 1].get_t2()
         first_t2 = spctr[0].get_t2()
 
         if vmax is None:
@@ -128,14 +123,13 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
             mn = vmin
 
         mxabs = max(numpy.abs(mx), numpy.abs(mn))
-        mx = mx+0.05*mxabs
-        mn = mn-0.05*mxabs
+        mx = mx + 0.05 * mxabs
+        mn = mn - 0.05 * mxabs
 
         if start is None:
             start = first_t2
         if end is None:
             end = last_t2
-
 
         with writer.saving(fig, filename, dpi):
             k = 0
@@ -143,26 +137,27 @@ class PumpProbeSpectrumContainer(TwoDResponseContainer):
             sp2write = self.get_spectra(start=start, end=end)
             l = len(sp2write)
             if progressbar:
-                self._printProgressBar(0, l, prefix = 'Progress:',
-                                       suffix = 'Complete', length = 50)
+                self._printProgressBar(
+                    0, l, prefix="Progress:", suffix="Complete", length=50
+                )
             for sp in self.get_spectra(start=start, end=end):
                 # FIXME: this does not work as it should yet
-                sp.plot(show=False, fig=fig, axis=axis,
-                        label="T="+str(sp.get_t2())+"fs") #, vmax=mx, vmin=mn,
-                          #)
+                sp.plot(
+                    show=False, fig=fig, axis=axis, label="T=" + str(sp.get_t2()) + "fs"
+                )  # , vmax=mx, vmin=mn,
+                # )
                 writer.grab_frame()
                 if progressbar:
-                    self._printProgressBar(k + 1, l, prefix = 'Progress:',
-                                           suffix = 'Complete', length = 50)
+                    self._printProgressBar(
+                        k + 1, l, prefix="Progress:", suffix="Complete", length=50
+                    )
 
                 k += 1
 
 
 class PumpProbeSpectrumCalculator(TwoDResponseCalculator):
-
     def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any) -> None:
         pass
-
 
 
 def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
@@ -188,11 +183,11 @@ def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     dw = xaxis.step
 
     # real part of the total 2D spectrum
-    #tddata = numpy.real(twod.d__data)
+    # tddata = numpy.real(twod.d__data)
     tddata = numpy.real(twod.data)
 
     # integration over omega_1 axis
-    ppdata = -numpy.sum(tddata,axis=1)*dw
+    ppdata = -numpy.sum(tddata, axis=1) * dw
 
     # setting pump-probe data
     pp.set_data(ppdata)
@@ -201,18 +196,11 @@ def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     return pp
 
 
-
 class MockPumpProbeSpectrumCalculator(MockTwoDResponseCalculator):
-    """Effective line shape pump-probe spectrum calculator
-
-
-    """
-
+    """Effective line shape pump-probe spectrum calculator"""
 
     def calculate_all_system(self, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
-        """Calculates all spectra corresponding to a specified t2axis
-
-        """
+        """Calculates all spectra corresponding to a specified t2axis"""
         temporary_fix = True
 
         if temporary_fix:
@@ -220,17 +208,13 @@ class MockPumpProbeSpectrumCalculator(MockTwoDResponseCalculator):
             tcont = super().calculate_all_system(sys, H, eUt, lab)
             return tcont.get_PumpProbeSpectrumContainer()
 
-
-    def calculate_one_system(self, t2: float, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
-        """Calculates one spectru corresponding to a specified t2 time
-
-        """
+    def calculate_one_system(
+        self, t2: float, sys: Any, H: Any, eUt: Any, lab: Any
+    ) -> Any:
+        """Calculates one spectru corresponding to a specified t2 time"""
         temporary_fix = True
 
         if temporary_fix:
             # calculation via 2D spectrum
             tcont = super().calculate_one_system(t2, sys, H, eUt, lab)
             return tcont.get_PumpProbeSpectrum()
-
-
-

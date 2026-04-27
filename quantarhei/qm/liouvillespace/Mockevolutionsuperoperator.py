@@ -180,6 +180,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 # standard library imports
@@ -205,19 +206,22 @@ from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from .superoperator import SuperOperator
 
-#from ...utils.types import BasisManagedComplexArray
+# from ...utils.types import BasisManagedComplexArray
+
 
 class MockSuperOperator:
-    def __init__(self, data_pop: Any = None, data_coh: Any = None, ham: Any = None) -> None:
+    def __init__(
+        self, data_pop: Any = None, data_coh: Any = None, ham: Any = None
+    ) -> None:
         self.data_pop = data_pop
         self.data_coh = data_coh
         self.ham = ham
 
     def data(self, i: int, j: int, k: int, l: int) -> Any:
-        if i==j and k==l: # population
-            return self.data_pop[i,k]
-        if i==k and j==l:
-            return self.data_coh[i,j]
+        if i == j and k == l:  # population
+            return self.data_pop[i, k]
+        if i == k and j == l:
+            return self.data_coh[i, j]
         return 0.0
 
 
@@ -245,14 +249,22 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
     """
 
-    def __init__(self, time: Any = None, ham: Any = None, rates: Any = None, relt: Any = None, pdeph: Any = None, mode: str = "all") -> None:
+    def __init__(
+        self,
+        time: Any = None,
+        ham: Any = None,
+        rates: Any = None,
+        relt: Any = None,
+        pdeph: Any = None,
+        mode: str = "all",
+    ) -> None:
 
         self.time = time
         self.ham = ham
         self.relt = relt
         self.mode = mode
         self.pdeph = pdeph
-        self.rates = rates # in excitonic basis
+        self.rates = rates  # in excitonic basis
 
         try:
             self.dim = ham.dim
@@ -263,47 +275,40 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.set_dense_dt(1)
 
         if (self.time is not None) and (self.mode == "all"):
+            self.data_pop = numpy.zeros(
+                (self.time.length, self.dim, self.dim), dtype=qr.COMPLEX
+            )
 
-            self.data_pop = numpy.zeros((self.time.length, self.dim, self.dim),
-                                     dtype=qr.COMPLEX)
-
-            self.data_coh = numpy.zeros((self.time.length, self.dim, self.dim),
-                                     dtype=qr.COMPLEX)
-
+            self.data_coh = numpy.zeros(
+                (self.time.length, self.dim, self.dim), dtype=qr.COMPLEX
+            )
 
             #
             # zero time value (unity superoperator)
             #
             dim = self.dim
             for i in range(dim):
-                self.data_pop[0,i,i] = 1.0
+                self.data_pop[0, i, i] = 1.0
                 for j in range(dim):
-                    self.data_coh[0,i,j] = 1.0
-
+                    self.data_coh[0, i, j] = 1.0
 
         else:
+            self.data_pop = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
 
-            self.data_pop = numpy.zeros((self.dim, self.dim),
-                                dtype=qr.COMPLEX)
-
-            self.data_coh = numpy.zeros((self.dim, self.dim),
-                                dtype=qr.COMPLEX)
+            self.data_coh = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
             #
             # zero time value (unity superoperator)
             #
             dim = self.dim
             for i in range(dim):
-                self.data_pop[i,i] = 1.0
+                self.data_pop[i, i] = 1.0
                 for j in range(dim):
-                    self.data_coh[i,j] = 1.0
+                    self.data_coh[i, j] = 1.0
 
         self.now = 0
 
-
     def get_Hamiltonian(self) -> Any:
-        """Returns the Hamiltonian associated with thise evolution
-
-        """
+        """Returns the Hamiltonian associated with thise evolution"""
         return self.ham
 
     def set_dense_dt(self, Nt: int) -> None:
@@ -316,89 +321,69 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             for numerical propagation
 
         """
-        self.dense_time = TimeAxis(0.0, Nt+1, self.time.step/Nt)
-
+        self.dense_time = TimeAxis(0.0, Nt + 1, self.time.step / Nt)
 
     def update_dense_time(self, i: int) -> None:
-        """Update the start time of the dense_time
-
-
-        """
+        """Update the start time of the dense_time"""
         start = self.time.data[i]
 
         self.dense_time.start = start
-        self.dense_time = TimeAxis(self.dense_time.start,
-                                   self.dense_time.length,
-                                   self.dense_time.step)
-
+        self.dense_time = TimeAxis(
+            self.dense_time.start, self.dense_time.length, self.dense_time.step
+        )
 
     def set_PureDephasing(self, pdeph: Any) -> None:
-        """Sets the PureDephasing object for the dynamic calculation
-
-        """
+        """Sets the PureDephasing object for the dynamic calculation"""
         self.pdeph = pdeph
 
-
     def has_PureDephasing(self) -> bool:
-        """Return True if the EvolutionSuperOperator has pure dephasing
-
-        """
+        """Return True if the EvolutionSuperOperator has pure dephasing"""
         if self.pdeph is None:
             return False
         return True
 
-
     def _initialize_data(self, save: bool = False) -> None:
-        """Initializes EvolutionSuperOperator data
-
-        """
+        """Initializes EvolutionSuperOperator data"""
         #
         # Create new data
         #
 
         if (self.mode == "all") or save:
-
             # if we are supposed to save all time steps
             Nt = self.time.length
-            self.data_pop = numpy.zeros((Nt, self.dim, self.dim),
-                                     dtype=qr.COMPLEX)
+            self.data_pop = numpy.zeros((Nt, self.dim, self.dim), dtype=qr.COMPLEX)
 
-            self.data_coh = numpy.zeros((Nt, self.dim, self.dim),
-                                     dtype=qr.COMPLEX)
-
+            self.data_coh = numpy.zeros((Nt, self.dim, self.dim), dtype=qr.COMPLEX)
 
             #
             # zero time value (unity superoperator)
             #
             dim = self.dim
             for i in range(dim):
-                self.data_pop[0,i,i] = 1.0
+                self.data_pop[0, i, i] = 1.0
                 for j in range(dim):
-                    self.data_coh[0,i,j] = 1.0
+                    self.data_coh[0, i, j] = 1.0
 
         elif self.mode == "jit":
-
             # if we need to keep only the last state
             if self.dim != self.data.shape[0]:
-                self.data_pop = numpy.zeros((self.dim, self.dim),
-                                    dtype=qr.COMPLEX)
+                self.data_pop = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
 
-                self.data_coh = numpy.zeros((self.dim, self.dim),
-                                    dtype=qr.COMPLEX)
+                self.data_coh = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
             #
             # zero time value (unity superoperator)
             #
             dim = self.dim
             for i in range(dim):
-                self.data_pop[i,i] = 1.0
+                self.data_pop[i, i] = 1.0
                 for j in range(dim):
-                    self.data_coh[i,j] = 1.0
+                    self.data_coh[i, j] = 1.0
 
     def data(self, ti: int, i: int, j: int, k: int, l: int) -> Any:  # type: ignore[override]
-        if i==j and k==l: # population
-            return self.data_pop[ti,i,k]
-        if i==k and j==l:
-            return self.data_coh[ti,i,j]
+        if i == j and k == l:  # population
+            return self.data_pop[ti, i, k]
+        if i == k and j == l:
+            return self.data_coh[ti, i, j]
         return 0.0
 
     def calculate(self, show_progress: bool = False) -> None:
@@ -413,8 +398,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         if self.mode != "all":
-            raise Exception("This method (calculate()) can be used only"
-                            " with mode='all'")
+            raise Exception(
+                "This method (calculate()) can be used only with mode='all'"
+            )
         Nt = self.time.length
 
         self._initialize_data()
@@ -428,98 +414,96 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #
 
         if (self.pdeph is not None) and (self.pdeph.dtype == "Gaussian"):
-
             #
             # We calculate every interval completely
             #
             for ti in range(1, Nt):
-
-                t0 = self.time.data[ti-1] # initial time of the propagation
+                t0 = self.time.data[ti - 1]  # initial time of the propagation
 
                 Ut1_pop, Ut1_coh = self._elemental_step_TimeDependent(t0)
 
-                self.data_pop[ti,:,:] = \
-                    numpy.dot(Ut1_pop, self.data_pop[ti-1,:,:])
+                self.data_pop[ti, :, :] = numpy.dot(
+                    Ut1_pop, self.data_pop[ti - 1, :, :]
+                )
 
-                self.data_coh[ti,:,:] = \
-                    numpy.dot(Ut1_coh, self.data_coh[ti-1,:,:])
+                self.data_coh[ti, :, :] = numpy.dot(
+                    Ut1_coh, self.data_coh[ti - 1, :, :]
+                )
 
                 if show_progress:
                     print("propagation: ", ti, "of", Nt)
 
         else:
-
             #
             # We calculate the first step of the first interval
             #
             t0 = 0.0
 
-
             # population evolution in exciton basis
             Nrate = self.rates.shape[0]
             for n in range(self.time.length):
                 tn = self.time.data[n]
-                self.data_pop[n,:Nrate,:Nrate] = expm(tn*self.rates)
+                self.data_pop[n, :Nrate, :Nrate] = expm(tn * self.rates)
 
             # Coherence evolution in excitonic basis
-            engdiff = numpy.zeros((self.ham.dim,self.ham.dim),dtype="f8")
-            ratediff = numpy.zeros((self.ham.dim,self.ham.dim),dtype="f8")
+            engdiff = numpy.zeros((self.ham.dim, self.ham.dim), dtype="f8")
+            ratediff = numpy.zeros((self.ham.dim, self.ham.dim), dtype="f8")
             for ii in range(self.ham.dim):
-                for jj in range(ii+1,self.ham.dim):
-                    engdiff[ii,jj] = self.ham.data[jj,jj]-self.ham.data[ii,ii] # excitonic basis
-                    #engdiff[ii,jj] = aggreg.HamOp.data[jj,jj] - aggreg.HamOp.data[ii,ii] s# site basis
-                    engdiff[jj,ii] = -engdiff[ii,jj]
+                for jj in range(ii + 1, self.ham.dim):
+                    engdiff[ii, jj] = (
+                        self.ham.data[jj, jj] - self.ham.data[ii, ii]
+                    )  # excitonic basis
+                    # engdiff[ii,jj] = aggreg.HamOp.data[jj,jj] - aggreg.HamOp.data[ii,ii] s# site basis
+                    engdiff[jj, ii] = -engdiff[ii, jj]
             for ii in range(self.rates.shape[0]):
-                for jj in range(ii+1,self.rates.shape[0]):
-                    ratediff[ii,jj] = (self.rates[ii,ii]+self.rates[jj,jj])/2.0
-                    ratediff[jj,ii] = ratediff[ii,jj]
+                for jj in range(ii + 1, self.rates.shape[0]):
+                    ratediff[ii, jj] = (self.rates[ii, ii] + self.rates[jj, jj]) / 2.0
+                    ratediff[jj, ii] = ratediff[ii, jj]
             for n in range(self.time.length):
                 tn = self.time.data[n]
-                self.data_coh[n,:,:] = numpy.exp(1j*tn*engdiff+tn*ratediff)
+                self.data_coh[n, :, :] = numpy.exp(1j * tn * engdiff + tn * ratediff)
 
-#            self.data_pop[1,:,:] = self._one_step_with_dense_TimeIndep(t0,
-#                                                    self.dense_time.length,
-#                                                    self.dense_time.step,
-#                                                    Nt,
-#                                                    show_progress)
-#
-#            self.data_coh[1,:,:] = self._one_step_with_dense_TimeIndep(t0,
-#                                                    self.dense_time.length,
-#                                                    self.dense_time.step,
-#                                                    Nt,
-#                                                    show_progress)
-#
-#            #
-#            # repeat propagation over the longer interval
-#            #
-#            self._calculate_remainig_using_first_interval(Nt,
-#                                                          show_progress)
+        #            self.data_pop[1,:,:] = self._one_step_with_dense_TimeIndep(t0,
+        #                                                    self.dense_time.length,
+        #                                                    self.dense_time.step,
+        #                                                    Nt,
+        #                                                    show_progress)
+        #
+        #            self.data_coh[1,:,:] = self._one_step_with_dense_TimeIndep(t0,
+        #                                                    self.dense_time.length,
+        #                                                    self.dense_time.step,
+        #                                                    Nt,
+        #                                                    show_progress)
+        #
+        #            #
+        #            # repeat propagation over the longer interval
+        #            #
+        #            self._calculate_remainig_using_first_interval(Nt,
+        #                                                          show_progress)
 
         if show_progress:
             print("...done")
 
-
-    def _elemental_step_TimeIndep(self, t0: float, dens_dt: float, Nt: int, show_progress: bool = False) -> numpy.ndarray:
-        """Single elemental step of propagation with the dense time step
-
-        """
+    def _elemental_step_TimeIndep(
+        self, t0: float, dens_dt: float, Nt: int, show_progress: bool = False
+    ) -> numpy.ndarray:
+        """Single elemental step of propagation with the dense time step"""
         dim = self.ham.dim
         one_step_time = TimeAxis(t0, 2, self.dense_time.step)
-        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                              RTensor=self.relt,
-                                              PDeph=self.pdeph)
+        prop = ReducedDensityMatrixPropagator(
+            one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
+        )
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
             if show_progress:
                 self._progress(Nt, dim, 0, n, 0)
             for m in range(dim):
-                rhonm0.data[n,m] = 1.0
+                rhonm0.data[n, m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                rhonm0.data[n,m] = 0.0
+                Ut1[:, :, n, m] = rhot.data[one_step_time.length - 1, :, :]
+                rhonm0.data[n, m] = 0.0
         return Ut1
-
 
     def _elemental_step_TimeDependent(self, t0: float) -> numpy.ndarray:
         """Single step of propagation with the dense time step
@@ -528,33 +512,38 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         dim = self.dim
-        one_step_time = TimeAxis(t0, self.dense_time.length,
-                                 self.dense_time.step)
+        one_step_time = TimeAxis(t0, self.dense_time.length, self.dense_time.step)
 
-        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                              RTensor=self.relt,
-                                              PDeph=self.pdeph)
+        prop = ReducedDensityMatrixPropagator(
+            one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
+        )
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
             for m in range(dim):
-                rhonm0.data[n,m] = 1.0
+                rhonm0.data[n, m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                rhonm0.data[n,m] = 0.0
-                #self.now += 1
+                Ut1[:, :, n, m] = rhot.data[one_step_time.length - 1, :, :]
+                rhonm0.data[n, m] = 0.0
+                # self.now += 1
         return Ut1
 
-
-    def _one_step_with_dense_TimeIndep(self, t0: float, Ndense: int, dens_dt: float, Nt: int,
-                                     show_progress: bool = False) -> numpy.ndarray:
+    def _one_step_with_dense_TimeIndep(
+        self,
+        t0: float,
+        Ndense: int,
+        dens_dt: float,
+        Nt: int,
+        show_progress: bool = False,
+    ) -> numpy.ndarray:
         """One step of propagation over the standard time step
 
         This step is componsed of Ndense time steps
 
         """
-        Ut1 = self._elemental_step_TimeIndep(t0, dens_dt, Nt,
-                                           show_progress=show_progress)
+        Ut1 = self._elemental_step_TimeIndep(
+            t0, dens_dt, Nt, show_progress=show_progress
+        )
         #
         # propagation to the end of the first interval
         #
@@ -563,38 +552,31 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             Udt = numpy.tensordot(Ut1, Udt)
         return Udt
 
-
-    def _calculate_remainig_using_first_interval(self, Nt: int,
-                                                 show_progress: bool = False) -> None:
-        """Calculate the rest of the superoperator with known first interval
-
-
-        """
-        Udt = self.data[1,:,:,:,:]
+    def _calculate_remainig_using_first_interval(
+        self, Nt: int, show_progress: bool = False
+    ) -> None:
+        """Calculate the rest of the superoperator with known first interval"""
+        Udt = self.data[1, :, :, :, :]
 
         for ti in range(2, Nt):
             if show_progress:
                 print("Self propagation: ", ti, "of", Nt)
 
-            self.data[ti,:,:,:,:] = \
-                numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
-
+            self.data[ti, :, :, :, :] = numpy.tensordot(
+                Udt, self.data[ti - 1, :, :, :, :]
+            )
 
     def calculate_next(self, save: bool = False) -> None:
-        """Calculates one point of data of the superopetor
-
-        """
+        """Calculates one point of data of the superopetor"""
         if self.mode != "jit":
-            raise Exception("This method (calculate_next()) can be used only"
-                            " with mode='jit'")
+            raise Exception(
+                "This method (calculate_next()) can be used only with mode='jit'"
+            )
 
         Nt = self.time.length
 
         if (self.pdeph is not None) and (self.pdeph.dtype == "Gaussian"):
-
-
             if self.now == 0:
-
                 #
                 # Create new data
                 #
@@ -605,21 +587,20 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             #
             ti = self.now + 1
 
-            t0 = self.time.data[ti-1] # initial time of the propagation
+            t0 = self.time.data[ti - 1]  # initial time of the propagation
 
             Ut1 = self._elemental_step_TimeDependent(t0)
 
             if save:
-                self.data[ti, :,:,:,:] = \
-                numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
+                self.data[ti, :, :, :, :] = numpy.tensordot(
+                    Ut1, self.data[ti - 1, :, :, :, :]
+                )
             else:
-                self.data[:,:,:,:] = \
-                    numpy.tensordot(Ut1, self.data[:,:,:,:])
+                self.data[:, :, :, :] = numpy.tensordot(Ut1, self.data[:, :, :, :])
 
             self.now += 1
 
         else:
-
             #
             # Propagation in the first interval
             #
@@ -631,15 +612,18 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
                 t0 = 0.0
 
-                self.Udt = self._one_step_with_dense_TimeIndep(t0,
-                                                    self.dense_time.length,
-                                                    self.dense_time.step, Nt,
-                                                    show_progress=False)
+                self.Udt = self._one_step_with_dense_TimeIndep(
+                    t0,
+                    self.dense_time.length,
+                    self.dense_time.step,
+                    Nt,
+                    show_progress=False,
+                )
 
                 if save:
-                    self.data[1,:,:,:,:] = self.Udt[:,:,:,:]
+                    self.data[1, :, :, :, :] = self.Udt[:, :, :, :]
                 else:
-                    self.data[:,:,:,:] = self.Udt[:,:,:,:]
+                    self.data[:, :, :, :] = self.Udt[:, :, :, :]
 
                 self.now += 1
 
@@ -647,18 +631,18 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # Propagations of the later intervals
             #
             else:
-
                 ti = self.now + 1
 
                 if save:
-                    self.data[ti, :,:,:,:] = \
-                        numpy.tensordot(self.Udt, self.data[ti-1,:,:,:,:])
+                    self.data[ti, :, :, :, :] = numpy.tensordot(
+                        self.Udt, self.data[ti - 1, :, :, :, :]
+                    )
                 else:
-                    self.data[:,:,:,:] = \
-                        numpy.tensordot(self.Udt, self.data[:,:,:,:])
+                    self.data[:, :, :, :] = numpy.tensordot(
+                        self.Udt, self.data[:, :, :, :]
+                    )
 
                 self.now += 1
-
 
     def at(self, time: float | None = None) -> MockSuperOperator:
         """Retruns evolution superoperator tensor at a given time
@@ -675,8 +659,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if time is not None:
             ti, dt = self.time.locate(time)
 
-            return MockSuperOperator(data_pop=self.data_pop[ti],data_coh=self.data_coh[ti])
-
+            return MockSuperOperator(
+                data_pop=self.data_pop[ti], data_coh=self.data_coh[ti]
+            )
 
     def apply(self, time: Any, target: Any, copy: bool = True) -> Any:
         """Applies the evolution superoperator at a given time
@@ -698,26 +683,23 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         if isinstance(time, numbers.Real):
-
             #
             # Apply at a single point in time and return ReducedDensityMatrix
             #
             ti, dt = self.time.locate(time)
             if copy:
                 import copy
+
                 oper_ven = copy.copy(target)
-                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                                target.data)
+                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
                 return oper_ven
-            target.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                          target.data)
+            target.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
             return target
 
         # Probably evaluation at more than one time
         # here, `copy` parameter is irrelevant
 
         if isinstance(time, str) or (id(time) == id(self.time)):
-
             #
             # Either we say time="all" or time= exactly the time axis
             # of the evolution superoperator
@@ -727,22 +709,21 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             if isinstance(time, str):
                 if time != "all":
-                    raise Exception("When argument time is a string, "
-                                    "it must be equal to 'all'")
+                    raise Exception(
+                        "When argument time is a string, it must be equal to 'all'"
+                    )
 
-            rhot = ReducedDensityMatrixEvolution(timeaxis=self.time,
-                                                 rhoi=target)
+            rhot = ReducedDensityMatrixEvolution(timeaxis=self.time, rhoi=target)
             k_i = 0
             for tt in time.data:
-                rhot.data[k_i,:,:] = \
-                numpy.tensordot(self.data[k_i,:,:,:,:],
-                                target.data)
+                rhot.data[k_i, :, :] = numpy.tensordot(
+                    self.data[k_i, :, :, :, :], target.data
+                )
                 k_i += 1
 
             return rhot
 
         if isinstance(time, (list, numpy.array, tuple, TimeAxis)):
-
             #
             # we apply at points specified by TimeAxis
             #
@@ -750,23 +731,21 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 ntime = time
             else:
                 length = len(time)
-                dt = time[1]-time[0]
+                dt = time[1] - time[0]
                 t0 = time[0]
                 ntime = TimeAxis(t0, length, dt)
 
-            rhot = ReducedDensityMatrixEvolution(timeaxis=ntime,
-                                                 rhoi=target)
+            rhot = ReducedDensityMatrixEvolution(timeaxis=ntime, rhoi=target)
 
             k_i = 0
             for tt in ntime.data:
                 Ut = self.at(tt)
-                rhot.data[k_i,:,:] = numpy.tensordot(Ut.data, target.data)
+                rhot.data[k_i, :, :] = numpy.tensordot(Ut.data, target.data)
                 k_i += 1
 
             return rhot
 
         raise Exception("Invalid argument: time")
-
 
     def plot_element(self, elem: Any, show: bool = True) -> None:
         """Plots a selected element of the evolution superoperator
@@ -780,26 +759,25 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
         shape = self.data.shape
         tl = self.time.length
-        if (len(elem) == len(shape)-1) and (len(elem) == 4):
-
+        if (len(elem) == len(shape) - 1) and (len(elem) == 4):
             if tl == shape[0]:
-                plt.plot(self.time.data,
-                         self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                plt.plot(
+                    self.time.data, self.data[:, elem[0], elem[1], elem[2], elem[3]]
+                )
                 if show:
                     plt.show()
 
         else:
             print("Nothing to plot")
 
-
-
     #
     # Calculation `progressbar`
     #
 
-    def _estimate_remaining_loops(self, Nt: int, dim: int, ti: int, n: int, m: int) -> int:
-        return (dim-n)*dim
-
+    def _estimate_remaining_loops(
+        self, Nt: int, dim: int, ti: int, n: int, m: int
+    ) -> int:
+        return (dim - n) * dim
 
     def _init_progress(self) -> None:
         self.ccount = 0
@@ -807,50 +785,57 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self.oldtime = self.strtime
         self.remlast = 0
 
-
     def _progress(self, Nt: int, dim: int, ti: int, n: int, m: int) -> None:
 
         curtime = time.time()
-        #dt = curtime - self.oldtime
+        # dt = curtime - self.oldtime
         Dt = curtime - self.strtime
         self.oldtime = curtime
         self.ccount += 1
 
-        dt_past = Dt/(self.ccount*dim)
+        dt_past = Dt / (self.ccount * dim)
 
         remloops = self._estimate_remaining_loops(Nt, dim, ti, n, m)
 
-        remtime = int(remloops*(dt_past))
+        remtime = int(remloops * (dt_past))
 
-        txt1 = "Propagation cycle "+str(ti)+" of "+str(Nt)+ \
-               " : ("+str(n)+" of "+str(dim)+")"
+        txt1 = (
+            "Propagation cycle "
+            + str(ti)
+            + " of "
+            + str(Nt)
+            + " : ("
+            + str(n)
+            + " of "
+            + str(dim)
+            + ")"
+        )
         if True:
-        #if remtime <= self.remlast:
-            txt2 = " : remaining time "+str(remtime)+" sec"
-        #else:
+            # if remtime <= self.remlast:
+            txt2 = " : remaining time " + str(remtime) + " sec"
+        # else:
         #    txt2 = " : remaining time ... calculating"
         tlen1 = len(txt1)
         tlen2 = len(txt2)
 
         rem = 65 - tlen1 - tlen2
-        txt = "\r"+txt1+(" "*rem)+txt2
+        txt = "\r" + txt1 + (" " * rem) + txt2
         print(txt, end="\r")
 
         self.remlast = remtime
 
-
     def __str__(self) -> str:
-        out  = "\nquantarhei.EvolutionSuperOperator object"
+        out = "\nquantarhei.EvolutionSuperOperator object"
         out += "\n========================================"
-#        out += "\nunits of energy %s" % self.unit_repr()
-#        out += "\nRotating Wave Approximation (RWA) enabled : "\
-#            +str(self.has_rwa)
-#        if self.has_rwa:
-#            out += "\nNumber of blocks : "+str(self.Nblocks)
-#            out += "\nBlock average energies:"
-#            for k in range(self.Nblocks):
-#                out += "\n "+str(k)+" : "\
-#                +str(self.rwa_energies[self.rwa_indices[k]])
-        #out += "\ndata = \n"
-        #out += str(self.data)
+        #        out += "\nunits of energy %s" % self.unit_repr()
+        #        out += "\nRotating Wave Approximation (RWA) enabled : "\
+        #            +str(self.has_rwa)
+        #        if self.has_rwa:
+        #            out += "\nNumber of blocks : "+str(self.Nblocks)
+        #            out += "\nBlock average energies:"
+        #            for k in range(self.Nblocks):
+        #                out += "\n "+str(k)+" : "\
+        #                +str(self.rwa_energies[self.rwa_indices[k]])
+        # out += "\ndata = \n"
+        # out += str(self.data)
         return out

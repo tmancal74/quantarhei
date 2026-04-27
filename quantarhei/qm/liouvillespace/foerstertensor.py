@@ -5,7 +5,7 @@ import numpy
 from ... import COMPLEX
 from ...core.managers import energy_units
 
-#import scipy.interpolate as interp
+# import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .rates.foersterrates import FoersterRateMatrix
@@ -13,13 +13,16 @@ from .relaxationtensor import RelaxationTensor
 
 
 class FoersterRelaxationTensor(RelaxationTensor):
-    """Weak resonance coupling relaxation tensor by Foerster theory
+    """Weak resonance coupling relaxation tensor by Foerster theory"""
 
-
-
-    """
-    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None,
-                 pure_dephasing: bool = False) -> None:
+    def __init__(
+        self,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
+        initialize: bool = True,
+        cutoff_time: float | None = None,
+        pure_dephasing: bool = False,
+    ) -> None:
 
         self._initialize_basis()
 
@@ -27,8 +30,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             raise Exception("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of"
-                           " type SystemBathInteraction")
+            raise Exception("Second argument must be of type SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -45,7 +47,6 @@ class FoersterRelaxationTensor(RelaxationTensor):
         self.SystemBathInteraction = sbi
         self.TimeAxis = sbi.TimeAxis
 
-
         if initialize:
             self.initialize()
             self._data_initialized = True
@@ -54,18 +55,15 @@ class FoersterRelaxationTensor(RelaxationTensor):
         else:
             self._data_initialized = False
 
-
     def initialize(self) -> None:
 
         #
         # Tensor data
         #
         Na = self.dim
-        self.data = numpy.zeros((Na,Na,Na,Na),dtype=COMPLEX)
-
+        self.data = numpy.zeros((Na, Na, Na, Na), dtype=COMPLEX)
 
         with energy_units("int"):
-
             HH = self.Hamiltonian
             sbi = self.SystemBathInteraction
 
@@ -74,8 +72,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             else:
                 cft = None
 
-            frm = FoersterRateMatrix(HH, sbi, initialize=True,
-                                     cutoff_time=cft)
+            frm = FoersterRateMatrix(HH, sbi, initialize=True, cutoff_time=cft)
 
             #
             # Transfer rates
@@ -83,7 +80,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             for aa in range(self.dim):
                 for bb in range(self.dim):
                     if aa != bb:
-                        self.data[aa,aa,bb,bb] = frm.data[aa,bb]
+                        self.data[aa, aa, bb, bb] = frm.data[aa, bb]
 
             #
             # calculate dephasing rates and depopulation rates
@@ -94,26 +91,21 @@ class FoersterRelaxationTensor(RelaxationTensor):
                 # additional pure dephasing
                 self.add_dephasing()
 
-
     def add_dephasing(self) -> None:
-
 
         # line shape function derivatives
         sbi = self.SystemBathInteraction
         Na = self.dim
         Nt = sbi.TimeAxis.length
 
-        ht = numpy.zeros((Na, Nt),
-                         dtype=numpy.complex64)
+        ht = numpy.zeros((Na, Nt), dtype=numpy.complex64)
 
         sbi.CC.create_one_integral()
 
         for ii in range(1, Na):
-           ht[ii,:] = sbi.CC.get_hoft(ii-1,ii-1)
-
+            ht[ii, :] = sbi.CC.get_hoft(ii - 1, ii - 1)
 
         for aa in range(self.dim):
             for bb in range(self.dim):
                 if aa != bb:
-
-                    self.data[aa,bb,aa,bb] -= (ht[aa,Nt-1]+ht[bb,Nt-1])
+                    self.data[aa, bb, aa, bb] -= ht[aa, Nt - 1] + ht[bb, Nt - 1]

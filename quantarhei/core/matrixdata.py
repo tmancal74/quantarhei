@@ -1,7 +1,5 @@
-"""Basic data type of Quantarhei
+"""Basic data type of Quantarhei"""
 
-
-"""
 from __future__ import annotations
 
 import os
@@ -27,8 +25,9 @@ class MatrixData:
 
     """
 
-    def __init__(self, dims: Any = (0), name: str | None = None,
-                 data: Any = None) -> None:
+    def __init__(
+        self, dims: Any = (0), name: str | None = None, data: Any = None
+    ) -> None:
 
         if name is None:
             self.name = ""
@@ -43,7 +42,6 @@ class MatrixData:
             else:
                 self.data = data
 
-
     def set_name(self, name: str) -> None:
         """Sets the object name
 
@@ -56,9 +54,7 @@ class MatrixData:
         self.name = name
 
     def get_name(self) -> str:
-        """Returns the object name
-
-        """
+        """Returns the object name"""
         return self.name
 
     def get_dim(self, n: int) -> int:
@@ -73,15 +69,11 @@ class MatrixData:
         return self.data.shape[n]
 
     def get_shape(self) -> tuple[int, ...]:
-        """Returns the data shape
-
-        """
+        """Returns the data shape"""
         return self.data.shape
 
     def get_rank(self) -> int:
-        """Returns the matrix rank, i.e. the number of its indices
-
-        """
+        """Returns the matrix rank, i.e. the number of its indices"""
         return self.data.ndim
 
     def set_data(self, data: numpy.ndarray) -> None:
@@ -123,7 +115,7 @@ class MatrixData:
         """
         filename, extension = os.path.splitext(name)
 
-        if extension not in [".dat",".txt",".npy",".npz"]:
+        if extension not in [".dat", ".txt", ".npy", ".npz"]:
             raise Exception("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
@@ -134,8 +126,6 @@ class MatrixData:
 
         elif extension == ".npz":
             self._saveBinaryData_compressed(name)
-
-
 
     def load_data(self, name: str) -> None:
         """Loads the data in a format determined by the file name extension
@@ -148,7 +138,7 @@ class MatrixData:
         """
         filename, extension = os.path.splitext(name)
 
-        if extension not in [".dat",".txt",".npy",".npz"]:
+        if extension not in [".dat", ".txt", ".npy", ".npz"]:
             raise Exception("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
@@ -160,39 +150,26 @@ class MatrixData:
         elif extension == ".npz":
             self._loadBinaryData_compressed(name)
 
-
     def _saveBinaryData(self, file: str) -> None:
-        """Saves uncompressed binary data to an file
-
-        """
+        """Saves uncompressed binary data to an file"""
         numpy.save(file, self.data)
 
     def _saveBinaryData_compressed(self, file: str) -> None:
-        """Saves compressed binary data to an file
-
-        """
+        """Saves compressed binary data to an file"""
         numpy.savez_compressed(file, data=self.data)
 
     def _loadBinaryData(self, filename: str) -> None:
-        """Imports binary data from a file
-
-        """
+        """Imports binary data from a file"""
         self.data = numpy.load(filename)
 
     def _loadBinaryData_compressed(self, filename: str) -> None:
-        """Imports binary data from a file
-
-        """
+        """Imports binary data from a file"""
         self.data = numpy.load(filename)["data"]
 
     def _exportDataToText(self, file: str) -> None:
-        """Saves textual data to a file
-
-        """
+        """Saves textual data to a file"""
         numpy.savetxt(file, self.data)
 
     def _importDataFromText(self, filename: str) -> None:
-        """Imports textual data to a file
-
-        """
+        """Imports textual data to a file"""
         self.data = numpy.loadtxt(filename)

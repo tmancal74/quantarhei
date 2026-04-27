@@ -21,12 +21,12 @@
 #         basis: eigenstates
 #         file: ham.dat
 
+
 class QTaskException(Exception):
     pass
 
 
 if INP.hamiltonian:
-
     #
     # Get multiplicity
     #
@@ -42,7 +42,6 @@ if INP.hamiltonian:
         units = INP.hamiltonian["units"]
     else:
         units = "int"
-
 
     #
     # Either matrix or file keywords have to be specified
@@ -69,5 +68,4 @@ if INP.hamiltonian:
         H = qr.Hamiltonian(data=data)
 
 else:
-
     raise QTaskException("Hamiltonian is not provided")

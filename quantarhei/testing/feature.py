@@ -3,11 +3,11 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-match_number = r'(\d+(?:\.\d+)?)'
+match_number = r"(\d+(?:\.\d+)?)"
 match_word = r'([^"]*)'
 
-class FeatureFileGenerator:
 
+class FeatureFileGenerator:
     def __init__(self, feature: str) -> None:
 
         self._begin = "#begin_feature"
@@ -22,7 +22,6 @@ class FeatureFileGenerator:
 
         self._examples: str | None = None
         self._has_examples = False
-
 
         self._givens: list[Any] = []
         self._has_givens = False
@@ -40,13 +39,12 @@ class FeatureFileGenerator:
             if strip == "Examples:":
                 save_directly = False
             if save_directly:
-                out += line+"\n"
+                out += line + "\n"
             else:
-                ex += line+"\n"
+                ex += line + "\n"
         self.examples = ex
         self._has_examples = True
         return out
-
 
     def _set_examples(self, ex: str) -> None:
         if self._has_thens:
@@ -64,7 +62,7 @@ class FeatureFileGenerator:
                 self._save = False
             else:
                 if self._save:
-                    self._out += line+"\n"
+                    self._out += line + "\n"
 
     def add_Given(self, func: Callable[..., Any]) -> None:
         if not self._has_feature:
@@ -72,7 +70,9 @@ class FeatureFileGenerator:
         string = func.__doc__
         self._save_string(string)
         if self._save == True:
-            raise Exception("Feature file content did not finish before end of the string")
+            raise Exception(
+                "Feature file content did not finish before end of the string"
+            )
         self._givens.append(func.__doc__)
         self._has_givens = True
 
@@ -82,7 +82,9 @@ class FeatureFileGenerator:
         string = func.__doc__
         self._save_string(string)
         if self._save == True:
-            raise Exception("Feature file content did not finish before end of the string")
+            raise Exception(
+                "Feature file content did not finish before end of the string"
+            )
         self._whens.append(func.__doc__)
         self._has_whens = True
 
@@ -92,13 +94,14 @@ class FeatureFileGenerator:
         string = func.__doc__
         self._save_string(string)
         if self._save == True:
-            raise Exception("Feature file content did not finish before end of the string")
+            raise Exception(
+                "Feature file content did not finish before end of the string"
+            )
         self._thens.append(func.__doc__)
         self._has_thens = True
 
-
     def generate_feature_file(self, filename: str) -> None:
         self._set_examples(self.examples)
-        #print(self._out)
-        with open(filename,"w") as file:
+        # print(self._out)
+        with open(filename, "w") as file:
             file.write(self._out)

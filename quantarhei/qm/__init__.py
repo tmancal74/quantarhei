@@ -1,4 +1,3 @@
-
 #
 #   HILBERT SPACE STATES
 #
@@ -143,8 +142,3 @@ from .propagators.statevectorevolution import (
     StateVectorEvolution as StateVectorEvolution,
 )
 from .propagators.svpropagator import StateVectorPropagator as StateVectorPropagator
-
-
-
-
-

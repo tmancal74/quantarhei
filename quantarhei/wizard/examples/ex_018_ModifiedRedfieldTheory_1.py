@@ -1,4 +1,3 @@
-
 #
 #
 #       IN CONSTRUCTION  !!!
@@ -31,8 +30,7 @@ time = qr.TimeAxis(0.0, Nt, dt)
 
 
 mg = ModelGenerator()
-agg = mg.get_Aggregate_with_environment(name="pentamer-1_env",
-                                        timeaxis=time)
+agg = mg.get_Aggregate_with_environment(name="pentamer-1_env", timeaxis=time)
 
 
 agg.build()
@@ -54,42 +52,37 @@ print("""
 *******************************************************************************
 """)
 
-#m = qr.Manager()
-#m.warn_about_basis_change = False
+# m = qr.Manager()
+# m.warn_about_basis_change = False
 
 
-#ham.protect_basis()
-#with qr.eigenbasis_of(ham):
+# ham.protect_basis()
+# with qr.eigenbasis_of(ham):
 if True:
-
     print("\nCalculating relaxation rates")
 
     RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi, time)
     RRT = qr.qm.ModRedfieldRelaxationTensor(ham, sbi)
 
-    #numpy.save('mod_red_rates_pentamer-1_env', RRM.rates)
-#ham.unprotect_basis()
+    # numpy.save('mod_red_rates_pentamer-1_env', RRM.rates)
+# ham.unprotect_basis()
 
 print("\nRelaxation times from the rate matrix")
 
-#with qr.eigenbasis_of(ham):
+# with qr.eigenbasis_of(ham):
 if True:
-    for i in range(1,ham.dim-1):
-        for j in range(1,ham.dim-1):
-            #if numpy.abs(RRM.rates[i,j]) > 1.0e-10:
-            print(i, "<-", j, ":", 1.0/numpy.real(RRM.data[i,j]))
-                      #, 1.0/numpy.real(RRT.data[i,i,j,j]), numpy.real(RRT.data[i,j,j,j]))
+    for i in range(1, ham.dim - 1):
+        for j in range(1, ham.dim - 1):
+            # if numpy.abs(RRM.rates[i,j]) > 1.0e-10:
+            print(i, "<-", j, ":", 1.0 / numpy.real(RRM.data[i, j]))
+            # , 1.0/numpy.real(RRT.data[i,i,j,j]), numpy.real(RRT.data[i,j,j,j]))
 
-            #else:
+            # else:
             #    print(i, "<-", j, ": inf")
-
-
-
 
 
 if _show_plots_:
     with qr.eigenbasis_of(ham):
-
         #
         # Evolution of reduced density matrix
         #
@@ -97,7 +90,7 @@ if _show_plots_:
         prop = qr.ReducedDensityMatrixPropagator(time, ham, RRT)
 
         rho_i = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
-        rho_i.data[3,3] = 1.0
+        rho_i.data[3, 3] = 1.0
 
         rho_t = prop.propagate(rho_i, name="ModifiedRedfield evolution")
 
@@ -105,8 +98,7 @@ if _show_plots_:
             rho_t.plot(coherences=False)
 
         rho_i1 = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
-        rho_i1.data[3,3] = 1.0
-
+        rho_i1.data[3, 3] = 1.0
 
     #
     #  Evolution of populations
@@ -122,4 +114,3 @@ if _show_plots_:
         plt.plot(time.data, pop_t[:,3],'--r')
         plt.show()
     """
-

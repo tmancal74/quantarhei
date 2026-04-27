@@ -110,9 +110,9 @@ class mySimulation(ExcitonDynamics):
 
         # couplings between molecules
         #
-        #self.coupling_matrix = [[0.0, 100.0],
+        # self.coupling_matrix = [[0.0, 100.0],
         #                        [100.0, 0.0]]
-        #self.energy_units = "1/cm"
+        # self.energy_units = "1/cm"
         #
         # or
         #
@@ -130,7 +130,7 @@ class mySimulation(ExcitonDynamics):
 
         # here we define what kind of problem we calculate
         self.exciton_type = "electronic"
-        #self.exciton_type = "vibronic"
+        # self.exciton_type = "vibronic"
 
         # exciton multiplicity specifies if we handle only single
         # exciton band (value 1) or also include two-exciton band (value 2)
@@ -148,11 +148,11 @@ class mySimulation(ExcitonDynamics):
         from quantarhei.qm import Operator
 
         o1 = Operator(dim=7, real=True)
-        o1.data[1,2] = 1.0
-        o1.data[2,3] = 1.0
+        o1.data[1, 2] = 1.0
+        o1.data[2, 3] = 1.0
 
         self.sys_operators = [o1]
-        self.rates = (1.0/300,)
+        self.rates = (1.0 / 300,)
         self.relaxation_theory = "Lindblad_form"
 
         # Use it in site or excitonic basis
@@ -161,14 +161,13 @@ class mySimulation(ExcitonDynamics):
         #
         # Redfield theory
         #
-        #self.relaxation_theory = "Standard_Redfield"
+        # self.relaxation_theory = "Standard_Redfield"
         #
         # Nothings else needs to be specified; it was defined on molecules
         #
         # Redfield is calculated strictly in excitonic basis
         # The  ``use_sitebasis`` attribute does not affect anything
         #
-
 
         #############################################################
         #
@@ -178,7 +177,7 @@ class mySimulation(ExcitonDynamics):
         from quantarhei import ReducedDensityMatrix
 
         rho0 = ReducedDensityMatrix(dim=7)
-        rho0.data[3,3] = 1.0
+        rho0.data[3, 3] = 1.0
 
         self.rho0 = rho0
 
@@ -188,7 +187,7 @@ class mySimulation(ExcitonDynamics):
         #
         #############################################################
 
-        #task_1 = dict(task="density_matrix_dynamics",
+        # task_1 = dict(task="density_matrix_dynamics",
         #              object_file="rdm"+self._get_timestamp(filename=True)
         #              +".hdf5")
 

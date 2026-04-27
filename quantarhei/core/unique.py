@@ -63,8 +63,7 @@ class unique_list:
             self._indices: list[int] = []
         else:
             self._storage = []
-            self._indices = [-1]*N
-
+            self._indices = [-1] * N
 
     def append(self, obj: Any) -> None:
         """Appends a new object to the list
@@ -86,9 +85,7 @@ class unique_list:
             self._indices.append(ind)
 
     def set_element(self, i: int, obj: Any) -> None:
-        """Sets an object to the specified position
-
-        """
+        """Sets an object to the specified position"""
         # FIXME: when replacing an element, the list may get corrupted
 
         # old index of the object which sits under i
@@ -99,19 +96,15 @@ class unique_list:
         except ValueError:
             self._storage.append(obj)
             ind = self._storage.index(obj)
-            self._indices[i]= ind
-
+            self._indices[i] = ind
 
     def get_element(self, i: int) -> Any:
-        """Returns an element residing on a given position
-
-        """
+        """Returns an element residing on a given position"""
         k = self._indices[i]
         if k == -1:
             raise Exception("Element not set")
         else:
             return self._storage[k]
-
 
     def get_number_of_unique_elements(self) -> int:
         """Returns a number of unique elements stored
@@ -131,7 +124,7 @@ class unique_list:
         """
         return len(self._storage)
 
-    #@deprecated
+    # @deprecated
     def get_unique_element(self) -> list[Any]:
         return self._storage
 
@@ -156,24 +149,23 @@ class unique_list:
 
 
 class unique_triangle_array:
-
     def __init__(self, N: int) -> None:
         self.N = N
         self.triangle = triangle(self.N)
         self._storgage = unique_list(N=N)
 
     def set_element(self, i: int, j: int, obj: Any) -> None:
-        I = self.triangle.locate(i,j)
-        self._storgage.set_element(I,obj)
+        I = self.triangle.locate(i, j)
+        self._storgage.set_element(I, obj)
 
     def get_element(self, i: int, j: int) -> Any:
-        I = self.triangle.locate(i,j)
+        I = self.triangle.locate(i, j)
         return self._storgage.get_element(I)
 
     def get_number_of_unique_elements(self) -> int:
         return len(self._storgage._storage)
 
-    #@deprecated
+    # @deprecated
     def get_unique_element(self) -> list[Any]:
         return self._storgage._storage
 
@@ -182,28 +174,26 @@ class unique_triangle_array:
 
 
 class unique_array:
-
     def __init__(self, N: int, M: int) -> None:
         self.N = N
         self.M = M
-        self._storage = unique_list(N=self.N*self.M)
-
+        self._storage = unique_list(N=self.N * self.M)
 
     def get_element(self, i: int, j: int) -> Any:
-        if ((i<self.N) and (j < self.M)) and ((i>=0) and (j>=0)) :
-            return self._storage.get_element((self.M-1)*i+j)
+        if ((i < self.N) and (j < self.M)) and ((i >= 0) and (j >= 0)):
+            return self._storage.get_element((self.M - 1) * i + j)
         raise Exception("Index out of range")
 
     def set_element(self, i: int, j: int, obj: Any) -> None:
-        if ((i<self.N) and (j < self.M)) and ((i>=0) and (j>=0)) :
-            self._storage.set_element((self.M-1)*i+j,obj)
+        if ((i < self.N) and (j < self.M)) and ((i >= 0) and (j >= 0)):
+            self._storage.set_element((self.M - 1) * i + j, obj)
         else:
             raise Exception("Index out of range")
 
     def get_number_of_unique_elements(self) -> int:
         return len(self._storgage._storage)  # type: ignore[attr-defined]
 
-    #@deprecated
+    # @deprecated
     def get_unique_element(self) -> list[Any]:
         return self._storage._storage
 

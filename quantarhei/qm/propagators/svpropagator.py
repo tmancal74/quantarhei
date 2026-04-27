@@ -1,7 +1,5 @@
-"""StateVector propagator
+"""StateVector propagator"""
 
-
-"""
 from __future__ import annotations
 
 from typing import Any
@@ -11,17 +9,15 @@ import numpy
 from ..hilbertspace.evolutionoperator import EvolutionOperator
 from .statevectorevolution import StateVectorEvolution
 
-#from ... import REAL
-
+# from ... import REAL
 
 
 class StateVectorPropagator:
-
     def __init__(self, timeaxis: Any, ham: Any) -> None:
         self.timeaxis = timeaxis
         self.ham = ham
 
-        self.Odt = self.timeaxis.data[1]-self.timeaxis.data[0]
+        self.Odt = self.timeaxis.data[1] - self.timeaxis.data[0]
         self.dt = self.Odt
         self.Nref = 1
 
@@ -29,8 +25,7 @@ class StateVectorPropagator:
 
         N = self.ham.data.shape[0]
         self.N = N
-        self.data = numpy.zeros((self.Nt,N),dtype=numpy.complex64)
-
+        self.data = numpy.zeros((self.Nt, N), dtype=numpy.complex64)
 
     def setDtRefinement(self, Nref: int) -> None:
         """The TimeAxis object specifies at what times the propagation
@@ -49,10 +44,11 @@ class StateVectorPropagator:
 
         """
         self.Nref = Nref
-        self.dt = self.Odt/self.Nref
+        self.dt = self.Odt / self.Nref
 
-
-    def propagate(self, psii: Any, L: int = 4, hfce: Any = None, nonlinear: bool = False) -> Any:
+    def propagate(
+        self, psii: Any, L: int = 4, hfce: Any = None, nonlinear: bool = False
+    ) -> Any:
         """Propagates the state vector
 
 
@@ -73,7 +69,6 @@ class StateVectorPropagator:
 
         """
         if hfce is not None:
-
             # propagation with the Hamiltonian defined through a function
 
             if nonlinear:
@@ -86,21 +81,14 @@ class StateVectorPropagator:
         # standard propagation with time independent Hamiltonian
         return self._propagate_short_exp(psii, L=L)
 
-
     def get_evolution_operator(self) -> Any:
-        """Returns the evolution operator corresponding to the propagator
-
-
-        """
+        """Returns the evolution operator corresponding to the propagator"""
         # FIXME: not yet implemented
         eop = 0.0
         return EvolutionOperator(self.timeaxis, data=eop)
 
-
     def _propagate_short_exp(self, psii: Any, L: int = 4) -> StateVectorEvolution:
-        """Short exp integration
-
-        """
+        """Short exp integration"""
         pr = StateVectorEvolution(self.timeaxis, psii)
 
         psi1 = psii.data
@@ -115,18 +103,16 @@ class StateVectorPropagator:
             HH = self.ham.data
 
         indx = 1
-        for ii in range(1,self.Nt):
-
-            for jj in range(0,self.Nref):
-
-                for ll in range(1,L+1):
-                    pref = (self.dt/ll)
-                    psi1 = -1j*pref*numpy.dot(HH,psi1)
+        for ii in range(1, self.Nt):
+            for jj in range(0, self.Nref):
+                for ll in range(1, L + 1):
+                    pref = self.dt / ll
+                    psi1 = -1j * pref * numpy.dot(HH, psi1)
                     psi2 = psi2 + psi1
 
                 psi1 = psi2
 
-            pr.data[indx,:] = psi2
+            pr.data[indx, :] = psi2
             indx += 1
 
         if self.ham.has_rwa:
@@ -134,10 +120,10 @@ class StateVectorPropagator:
 
         return pr
 
-    def _propagate_short_exp_nonlin(self, psii: Any, hfce: Any, L: int = 4) -> StateVectorEvolution:
-        """Short exp integration with non-linear "Hamiltonian"
-
-        """
+    def _propagate_short_exp_nonlin(
+        self, psii: Any, hfce: Any, L: int = 4
+    ) -> StateVectorEvolution:
+        """Short exp integration with non-linear Hamiltonian"""
         # here we will store the results
         pr = StateVectorEvolution(self.timeaxis, psii)
 
@@ -162,20 +148,18 @@ class StateVectorPropagator:
             HH = self.ham.data
 
         indx = 1
-        for ii in range(1,self.Nt):
-
-            for jj in range(0,self.Nref):
-
+        for ii in range(1, self.Nt):
+            for jj in range(0, self.Nref):
                 hh = hfce(HH, psi1)
 
-                for ll in range(1,L+1):
-                    pref = (self.dt/ll)
-                    psi1 = -1j*pref*numpy.dot(hh,psi1)
+                for ll in range(1, L + 1):
+                    pref = self.dt / ll
+                    psi1 = -1j * pref * numpy.dot(hh, psi1)
                     psi2 = psi2 + psi1
 
                 psi1 = psi2
 
-            pr.data[indx,:] = psi2
+            pr.data[indx, :] = psi2
             indx += 1
 
         if self.ham.has_rwa:
@@ -183,11 +167,10 @@ class StateVectorPropagator:
 
         return pr
 
-
-    def _propagate_short_exp_tdep(self, psii: Any, hfce: Any, L: int = 4) -> StateVectorEvolution:
-        """Short exp integration with time-dependent Hamiltonian
-
-        """
+    def _propagate_short_exp_tdep(
+        self, psii: Any, hfce: Any, L: int = 4
+    ) -> StateVectorEvolution:
+        """Short exp integration with time-dependent Hamiltonian"""
         pr = StateVectorEvolution(self.timeaxis, psii)
 
         psi1 = psii.data
@@ -202,23 +185,19 @@ class StateVectorPropagator:
             HH = self.ham.data
 
         indx = 1
-        for ii in range(1,self.Nt):
-
-            for jj in range(0,self.Nref):
-
-                for ll in range(1,L+1):
-                    pref = (self.dt/ll)
-                    psi1 = -1j*pref*numpy.dot(HH,psi1)
+        for ii in range(1, self.Nt):
+            for jj in range(0, self.Nref):
+                for ll in range(1, L + 1):
+                    pref = self.dt / ll
+                    psi1 = -1j * pref * numpy.dot(HH, psi1)
                     psi2 = psi2 + psi1
 
                 psi1 = psi2
 
-            pr.data[indx,:] = psi2
+            pr.data[indx, :] = psi2
             indx += 1
 
         if self.ham.has_rwa:
             pr.is_in_rwa = True
 
         return pr
-
-

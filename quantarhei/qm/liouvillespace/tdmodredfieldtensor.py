@@ -7,22 +7,26 @@ import numpy
 from ... import COMPLEX, REAL
 from ...core.managers import eigenbasis_of, energy_units
 
-#from .rates.foersterrates import FoersterRateMatrix
+# from .rates.foersterrates import FoersterRateMatrix
 from ...core.time import TimeDependent
 
-#import scipy.interpolate as interp
+# import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .relaxationtensor import RelaxationTensor
 
 
 class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
-    """Time-dependent Modifield Redfield Tensor
+    """Time-dependent Modifield Redfield Tensor"""
 
-
-    """
-    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None,
-                 theory: str = "mod_eq") -> None:
+    def __init__(
+        self,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
+        initialize: bool = True,
+        cutoff_time: float | None = None,
+        theory: str = "mod_eq",
+    ) -> None:
 
         self._initialize_basis()
 
@@ -30,8 +34,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
             raise Exception("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of"
-                           " type SystemBathInteraction")
+            raise Exception("Second argument must be of type SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -48,7 +51,6 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
         self.SystemBathInteraction = sbi
         self.TimeAxis = sbi.TimeAxis
 
-
         if initialize:
             self.initialize()
             self._data_initialized = True
@@ -57,11 +59,9 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
         else:
             self._data_initialized = False
 
-
         self.has_Iterm = False
 
         self.is_time_dependent = True
-
 
     def initialize(self) -> None:
 
@@ -74,40 +74,48 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
         sbi = self.SystemBathInteraction
         timea = self.TimeAxis
         if HH.Nblocks == 2:
-            Na = HH._data.shape[0]-1
+            Na = HH._data.shape[0] - 1
         else:
             raise Exception("Theory is not implemented beyond single exciton block")
 
-        ll = numpy.zeros(Na+1,dtype=REAL)
+        ll = numpy.zeros(Na + 1, dtype=REAL)
         cfce = sbi.CC
 
         cfce.create_one_integral()
-        cfce.create_double_integral() #g(t)
+        cfce.create_double_integral()  # g(t)
 
         #
         # Tensor data
         #
         if tdep:
-            self.data = numpy.zeros((timea.length, Na+1,Na+1,Na+1,Na+1),
-                                    dtype=COMPLEX)
+            self.data = numpy.zeros(
+                (timea.length, Na + 1, Na + 1, Na + 1, Na + 1), dtype=COMPLEX
+            )
         else:
-            self.data = numpy.zeros((Na+1,Na+1,Na+1,Na+1),dtype=COMPLEX)
-
+            self.data = numpy.zeros((Na + 1, Na + 1, Na + 1, Na + 1), dtype=COMPLEX)
 
         with energy_units("int"):
-
             for ii in range(Na):
-                ll[ii+1] = cfce.get_reorganization_energy(ii,ii)
+                ll[ii + 1] = cfce.get_reorganization_energy(ii, ii)
             ee, ss = numpy.linalg.eigh(HH._data)
 
-            #t1 = time.time()
-            RR, Iterm = ssmodr(Na, ee, ll, ss, timea.data, cfce._cofts,
-                        cfce._hofts, cfce._gofts,
-                        cfce.cpointer, tdep=tdep, theory=self.theory)
+            # t1 = time.time()
+            RR, Iterm = ssmodr(
+                Na,
+                ee,
+                ll,
+                ss,
+                timea.data,
+                cfce._cofts,
+                cfce._hofts,
+                cfce._gofts,
+                cfce.cpointer,
+                tdep=tdep,
+                theory=self.theory,
+            )
             self.RR = RR
-            #t2 = time.time()
-            #print("Redfield: '"+self.theory+"' calculated in", t2-t1, "sec")
-
+            # t2 = time.time()
+            # print("Redfield: '"+self.theory+"' calculated in", t2-t1, "sec")
 
             #
             # Transfer rates
@@ -115,38 +123,36 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
             with eigenbasis_of(HH):
                 for aa in range(self.dim):
                     for bb in range(self.dim):
-                        self.Iterm[:,aa,bb] = Iterm[aa,bb,:]
+                        self.Iterm[:, aa, bb] = Iterm[aa, bb, :]
                         if aa != bb:
-                            self.data[:,aa,aa,bb,bb] = RR[aa,bb,:]
+                            self.data[:, aa, aa, bb, bb] = RR[aa, bb, :]
 
                 #
                 # calculate dephasing rates and depopulation rates
                 #
-                #self.updateStructure()
+                # self.updateStructure()
                 # depopulation rates
                 for nn in range(self.dim):
-                    self.data[:,nn,nn,nn,nn] -= (numpy.trace(self.data[:,:,:,nn,nn],
-                                                              axis1=1,axis2=2)
-                                                - self.data[:,nn,nn,nn,nn])
+                    self.data[:, nn, nn, nn, nn] -= (
+                        numpy.trace(self.data[:, :, :, nn, nn], axis1=1, axis2=2)
+                        - self.data[:, nn, nn, nn, nn]
+                    )
 
                 # dephasing rates
                 for nn in range(self.dim):
-                    for mm in range(nn+1,self.dim):
-                        self.data[:,nn,mm,nn,mm] = (self.data[:,nn,nn,nn,nn]
-                                                  +self.data[:,mm,mm,mm,mm])/2.0
-                        self.data[:,mm,nn,mm,nn] = self.data[:,nn,mm,nn,mm]
-
-
+                    for mm in range(nn + 1, self.dim):
+                        self.data[:, nn, mm, nn, mm] = (
+                            self.data[:, nn, nn, nn, nn] + self.data[:, mm, mm, mm, mm]
+                        ) / 2.0
+                        self.data[:, mm, nn, mm, nn] = self.data[:, nn, mm, nn, mm]
 
 
 def intfull(F: numpy.ndarray, dt: float, omega: float) -> Any:
-    """Discrete integration of an oscillating function
-
-    """
+    """Discrete integration of an oscillating function"""
     Nt = F.shape[0]
-    x = (1.0 - numpy.exp(-1j*omega*dt))/(1j*omega*dt)
-    y = 1j*(1.0 - x)/omega
-    I = 2.0*numpy.real(y)*numpy.sum(F)-numpy.conj(y)*F[Nt-1] - y*F[0]
+    x = (1.0 - numpy.exp(-1j * omega * dt)) / (1j * omega * dt)
+    y = 1j * (1.0 - x) / omega
+    I = 2.0 * numpy.real(y) * numpy.sum(F) - numpy.conj(y) * F[Nt - 1] - y * F[0]
 
     return I
 
@@ -155,24 +161,24 @@ def intrun(F: numpy.ndarray, dt: float, omega: float) -> numpy.ndarray:
     """Running intergration of an oscillating function of one parameter"""
     Nt = F.shape[0]
     I = numpy.zeros(Nt, dtype=COMPLEX)
-    x = (1.0 - numpy.exp(-1j*omega*dt))/(1j*omega*dt)
-    y = (1.0 - x)/(1j*omega)
+    x = (1.0 - numpy.exp(-1j * omega * dt)) / (1j * omega * dt)
+    y = (1.0 - x) / (1j * omega)
 
-    for ii in range(1,Nt):
-        I[ii] = I[ii-1] + y*F[ii] + numpy.conj(y)*F[ii-1]
+    for ii in range(1, Nt):
+        I[ii] = I[ii - 1] + y * F[ii] + numpy.conj(y) * F[ii - 1]
 
     print(dt, omega, numpy.conj(y), y)
 
     return I
 
+
 def intruntrap(F: numpy.ndarray, dt: float) -> numpy.ndarray:
     Nt = F.shape[0]
     I = numpy.zeros(Nt, dtype=COMPLEX)
-    for ii in range(1,Nt):
-        I[ii] = I[ii-1]+ F[ii]*dt/2.0 + F[ii-1]*dt/2.0
+    for ii in range(1, Nt):
+        I[ii] = I[ii - 1] + F[ii] * dt / 2.0 + F[ii - 1] * dt / 2.0
 
     return I
-
 
 
 def intfullsec(F: numpy.ndarray, dt: float, omega: float, Nt: int) -> Any:
@@ -181,18 +187,32 @@ def intfullsec(F: numpy.ndarray, dt: float, omega: float, Nt: int) -> Any:
     This is used when the function depends explicitely on time (the upper limit)
 
     """
-    x = (1.0 - numpy.exp(-1j*omega*dt))/(1j*omega*dt)
-    y = 1j*(1.0 - x)/omega
+    x = (1.0 - numpy.exp(-1j * omega * dt)) / (1j * omega * dt)
+    y = 1j * (1.0 - x) / omega
     if Nt > 0:
-        I = 2.0*numpy.real(y)*numpy.sum(F[:Nt])-numpy.conj(y)*F[Nt-1] - y*F[0]
+        I = (
+            2.0 * numpy.real(y) * numpy.sum(F[:Nt])
+            - numpy.conj(y) * F[Nt - 1]
+            - y * F[0]
+        )
     else:
         I = 0.0
     return I
 
 
-
-
-def ssmodr(Na: int, ee: numpy.ndarray, ll: numpy.ndarray, ss: numpy.ndarray, tt: numpy.ndarray, cofts: numpy.ndarray, hofts: numpy.ndarray, gofts: numpy.ndarray, pntr: numpy.ndarray, tdep: bool = False, theory: str = "std") -> tuple:
+def ssmodr(
+    Na: int,
+    ee: numpy.ndarray,
+    ll: numpy.ndarray,
+    ss: numpy.ndarray,
+    tt: numpy.ndarray,
+    cofts: numpy.ndarray,
+    hofts: numpy.ndarray,
+    gofts: numpy.ndarray,
+    pntr: numpy.ndarray,
+    tdep: bool = False,
+    theory: str = "std",
+) -> tuple:
     """Various version of the Redfield relaxation rate calculation
 
         1) Standard Redfield theory in time-dependent and time-independent versions
@@ -245,57 +265,55 @@ def ssmodr(Na: int, ee: numpy.ndarray, ll: numpy.ndarray, ss: numpy.ndarray, tt:
 
 
     """
-    #ee, ss = numpy.linalg.eigh(hh)
+    # ee, ss = numpy.linalg.eigh(hh)
 
     # number of time steps
     Nt = tt.shape[0]
 
     # Relaxation rate matrix (may be time-dependent)
     if tdep:
-        RR = numpy.zeros((Na+1,Na+1,Nt), dtype=REAL)
-        Iterm = numpy.zeros((Na+1,Na+1,Nt), dtype=COMPLEX)
+        RR = numpy.zeros((Na + 1, Na + 1, Nt), dtype=REAL)
+        Iterm = numpy.zeros((Na + 1, Na + 1, Nt), dtype=COMPLEX)
     else:
-        RR = numpy.zeros((Na+1,Na+1), dtype=REAL)
-        Iterm = numpy.zeros((Na+1,Na+1), dtype=REAL)
+        RR = numpy.zeros((Na + 1, Na + 1), dtype=REAL)
+        Iterm = numpy.zeros((Na + 1, Na + 1), dtype=REAL)
 
     # Various storage variables
     cbaab = numpy.zeros(Nt, dtype=COMPLEX)
     Nab = numpy.zeros(Nt, dtype=COMPLEX)
 
     # time step
-    dt = tt[1]-tt[0]
+    dt = tt[1] - tt[0]
 
     if theory == "std":
         #
         # Standard Redfield theory
         # [FINISHED]
         #
-        for a in range(Na+1):
-
-            aa = -1j*ee[a]*tt
+        for a in range(Na + 1):
+            aa = -1j * ee[a] * tt
             Aa = numpy.exp(aa)
 
-            for b in range(Na+1):
-
+            for b in range(Na + 1):
                 if a != b:
-
-                    fb = -1j*ee[b]*tt
+                    fb = -1j * ee[b] * tt
                     Fb = numpy.exp(fb)
 
                     cbaab[:] = 0.0
                     for n in range(Na):
-                        cbaab += (ss[b,n]**2)*(ss[a,n]**2)*cofts[pntr[n,n],:]
+                        cbaab += (
+                            (ss[b, n] ** 2) * (ss[a, n] ** 2) * cofts[pntr[n, n], :]
+                        )
 
                     Nab = cbaab
 
-                    kab = numpy.conj(Fb)*Nab*Aa
+                    kab = numpy.conj(Fb) * Nab * Aa
 
-                    om = ee[b]-ee[a]
+                    om = ee[b] - ee[a]
                     if tdep:
-                        RR[a,b,:] = 2.0*numpy.real(intrun(kab, dt, om))
+                        RR[a, b, :] = 2.0 * numpy.real(intrun(kab, dt, om))
                     else:
-                        RR[a,b] = 2.0*numpy.real(intfull(kab, dt, om))
-
+                        RR[a, b] = 2.0 * numpy.real(intfull(kab, dt, om))
 
     elif theory == "std_test":
         #
@@ -303,37 +321,36 @@ def ssmodr(Na: int, ee: numpy.ndarray, ll: numpy.ndarray, ss: numpy.ndarray, tt:
         # This is only to test intfullsec() routine and make shure the
         # [FINISHED]
         #
-        for a in range(Na+1):
-
-            aa = -1j*ee[a]*tt
+        for a in range(Na + 1):
+            aa = -1j * ee[a] * tt
             Aa = numpy.exp(aa)
 
-            for b in range(Na+1):
-
+            for b in range(Na + 1):
                 if a != b:
-
                     cbaab[:] = 0.0
 
                     for n in range(Na):
-                        cbaab += (ss[b,n]**2)*(ss[a,n]**2)*cofts[pntr[n,n],:]
+                        cbaab += (
+                            (ss[b, n] ** 2) * (ss[a, n] ** 2) * cofts[pntr[n, n], :]
+                        )
 
                     Nab[:] = 0.0
                     for it in range(Nt):
-
                         tm = it + 1
-                        fb = -1j*ee[b]*tt[:tm]
+                        fb = -1j * ee[b] * tt[:tm]
                         Fb = numpy.exp(fb)
 
-                        Nab[:tm] = cbaab[:tm] #
+                        Nab[:tm] = cbaab[:tm]  #
 
-                        kab = numpy.conj(Fb)*Nab[:(tm)]*Aa[:(tm)]
+                        kab = numpy.conj(Fb) * Nab[:(tm)] * Aa[:(tm)]
 
-                        om = ee[b]-ee[a]
+                        om = ee[b] - ee[a]
                         if tdep:
-                            RR[a,b,it] = 2.0*numpy.real(intfullsec(kab, dt, om, it+1))
+                            RR[a, b, it] = 2.0 * numpy.real(
+                                intfullsec(kab, dt, om, it + 1)
+                            )
                         else:
-                            RR[a,b] = 2.0*numpy.real(intfullsec(kab, dt, om, it+1))
-
+                            RR[a, b] = 2.0 * numpy.real(intfullsec(kab, dt, om, it + 1))
 
     elif theory == "mod_eq":
         #
@@ -342,46 +359,55 @@ def ssmodr(Na: int, ee: numpy.ndarray, ll: numpy.ndarray, ss: numpy.ndarray, tt:
         #
         mm = numpy.zeros(Nt, dtype=COMPLEX)
 
-        for a in range(Na+1):
-
-            aa = -1j*ee[a]*tt
+        for a in range(Na + 1):
+            aa = -1j * ee[a] * tt
             for n in range(Na):
-                aa -= (ss[a,n]*ss[a,n]*ss[a,n]*ss[a,n])*gofts[pntr[n,n],:]
+                aa -= (ss[a, n] * ss[a, n] * ss[a, n] * ss[a, n]) * gofts[pntr[n, n], :]
             Aa = numpy.exp(aa)
 
-            for b in range(Na+1):
-
+            for b in range(Na + 1):
                 if a != b:
-
-                    fb = -1j*ee[b]*tt
+                    fb = -1j * ee[b] * tt
                     for n in range(Na):
-                        fb -= (ss[b,n]*ss[b,n]*ss[b,n]*ss[b,n]) \
-                        *(numpy.conj(gofts[pntr[n,n],:])-2.0*1j*ll[n]*tt)
+                        fb -= (ss[b, n] * ss[b, n] * ss[b, n] * ss[b, n]) * (
+                            numpy.conj(gofts[pntr[n, n], :]) - 2.0 * 1j * ll[n] * tt
+                        )
                     Fb = numpy.exp(fb)
 
                     cbaab[:] = 0.0
                     for n in range(Na):
-                        cbaab += (ss[b,n]**2)*(ss[a,n]**2)*cofts[pntr[n,n],:]
+                        cbaab += (
+                            (ss[b, n] ** 2) * (ss[a, n] ** 2) * cofts[pntr[n, n], :]
+                        )
 
                     Nab[:] = 0.0  # we use Nab storage for nab quantity
                     for n in range(Na):
-                        Nab += 2.0*(ss[b,n]**2)*(ss[a,n]**2)*(gofts[pntr[n,n],:]+ 1j*ll[n]*tt)
+                        Nab += (
+                            2.0
+                            * (ss[b, n] ** 2)
+                            * (ss[a, n] ** 2)
+                            * (gofts[pntr[n, n], :] + 1j * ll[n] * tt)
+                        )
 
                     mm[:] = 0.0
                     for n in range(Na):
-                        mm += ss[a,n]*ss[b,n]*((ss[b,n]**2) - (ss[a,n]**2))*hofts[pntr[n,n],:] \
-                               + 2.0*1j*ss[a,n]*ss[b,n]*(ss[b,n]**2)*ll[n]
+                        mm += (
+                            ss[a, n]
+                            * ss[b, n]
+                            * ((ss[b, n] ** 2) - (ss[a, n] ** 2))
+                            * hofts[pntr[n, n], :]
+                            + 2.0 * 1j * ss[a, n] * ss[b, n] * (ss[b, n] ** 2) * ll[n]
+                        )
 
-                    Nab = numpy.exp(Nab)*(cbaab - mm**2)
+                    Nab = numpy.exp(Nab) * (cbaab - mm**2)
 
-                    kab = numpy.conj(Fb)*Nab*Aa
+                    kab = numpy.conj(Fb) * Nab * Aa
 
-                    om = ee[b]-ee[a]
+                    om = ee[b] - ee[a]
                     if tdep:
-                        RR[a,b,:] = 2.0*numpy.real(intrun(kab, dt, om))
+                        RR[a, b, :] = 2.0 * numpy.real(intrun(kab, dt, om))
                     else:
-                        RR[a,b] = 2.0*numpy.real(intfull(kab, dt, om))
-
+                        RR[a, b] = 2.0 * numpy.real(intfull(kab, dt, om))
 
     elif theory == "mod_eq_test":
         #
@@ -391,53 +417,67 @@ def ssmodr(Na: int, ee: numpy.ndarray, ll: numpy.ndarray, ss: numpy.ndarray, tt:
         mm = numpy.zeros(Nt, dtype=COMPLEX)
         fb = numpy.zeros(Nt, dtype=COMPLEX)
 
-        for a in range(Na+1):
-
-            aa = -1j*ee[a]*tt
+        for a in range(Na + 1):
+            aa = -1j * ee[a] * tt
             for n in range(Na):
-                aa -= (ss[a,n]*ss[a,n]*ss[a,n]*ss[a,n])*gofts[pntr[n,n],:]
+                aa -= (ss[a, n] * ss[a, n] * ss[a, n] * ss[a, n]) * gofts[pntr[n, n], :]
             Aa = numpy.exp(aa)
 
-            for b in range(Na+1):
-
+            for b in range(Na + 1):
                 if a != b:
-
                     cbaab[:] = 0.0
                     for n in range(Na):
-                        cbaab += (ss[b,n]**2)*(ss[a,n]**2)*cofts[pntr[n,n],:]
+                        cbaab += (
+                            (ss[b, n] ** 2) * (ss[a, n] ** 2) * cofts[pntr[n, n], :]
+                        )
 
                     for it in range(Nt):
-
                         tm = it + 1
 
-                        fb[:tm] = -1j*ee[b]*tt[:tm]
+                        fb[:tm] = -1j * ee[b] * tt[:tm]
                         for n in range(Na):
-                            fb[:tm] -= (ss[b,n]*ss[b,n]*ss[b,n]*ss[b,n]) \
-                            *(numpy.conj(gofts[pntr[n,n],:tm])-2.0*1j*ll[n]*tt[:tm])
+                            fb[:tm] -= (ss[b, n] * ss[b, n] * ss[b, n] * ss[b, n]) * (
+                                numpy.conj(gofts[pntr[n, n], :tm])
+                                - 2.0 * 1j * ll[n] * tt[:tm]
+                            )
                         Fb = numpy.exp(fb)
-
 
                         Nab[:] = 0.0  # we use Nab storage for nab quantity
                         for n in range(Na):
-                            Nab[:tm] += 2.0*(ss[b,n]**2)*(ss[a,n]**2)*(gofts[pntr[n,n],:tm]+ 1j*ll[n]*tt[:tm])
+                            Nab[:tm] += (
+                                2.0
+                                * (ss[b, n] ** 2)
+                                * (ss[a, n] ** 2)
+                                * (gofts[pntr[n, n], :tm] + 1j * ll[n] * tt[:tm])
+                            )
 
                         mm[:] = 0.0
                         for n in range(Na):
                             # the complex conjugation fixes the result of Seibt et al. 2017
-                            mm[:tm] += ss[a,n]*ss[b,n]*((ss[b,n]**2)*hofts[pntr[n,n],:tm]
-                                                - (ss[a,n]**2)*(hofts[pntr[n,n],:tm])) \
-                                    + 2.0*1j*ss[a,n]*ss[b,n]*(ss[b,n]**2)*ll[n]
+                            mm[:tm] += (
+                                ss[a, n]
+                                * ss[b, n]
+                                * (
+                                    (ss[b, n] ** 2) * hofts[pntr[n, n], :tm]
+                                    - (ss[a, n] ** 2) * (hofts[pntr[n, n], :tm])
+                                )
+                                + 2.0
+                                * 1j
+                                * ss[a, n]
+                                * ss[b, n]
+                                * (ss[b, n] ** 2)
+                                * ll[n]
+                            )
 
-                        Nab[:tm] = numpy.exp(Nab[:tm])*(cbaab[:tm] - (mm[:tm]**2))
+                        Nab[:tm] = numpy.exp(Nab[:tm]) * (cbaab[:tm] - (mm[:tm] ** 2))
 
-                        kab = numpy.conj(Fb)*Nab*Aa
+                        kab = numpy.conj(Fb) * Nab * Aa
 
-                        om = ee[b]-ee[a]
+                        om = ee[b] - ee[a]
                         if tdep:
-                            RR[a,b,it] = 2.0*numpy.real(intfullsec(kab, dt, om, tm))
+                            RR[a, b, it] = 2.0 * numpy.real(intfullsec(kab, dt, om, tm))
                         else:
-                            RR[a,b] = 2.0*numpy.real(intfullsec(kab, dt, om, tm))
-
+                            RR[a, b] = 2.0 * numpy.real(intfullsec(kab, dt, om, tm))
 
     elif theory == "mod_noneq":
         #
@@ -448,84 +488,89 @@ def ssmodr(Na: int, ee: numpy.ndarray, ll: numpy.ndarray, ss: numpy.ndarray, tt:
         mr = numpy.zeros(Nt, dtype=COMPLEX)
         fb = numpy.zeros(Nt, dtype=COMPLEX)
 
-        for a in range(Na+1):
-
-            aa = -1j*ee[a]*tt
+        for a in range(Na + 1):
+            aa = -1j * ee[a] * tt
             for n in range(Na):
-                aa -= (ss[a,n]*ss[a,n]*ss[a,n]*ss[a,n])*gofts[pntr[n,n],:]
+                aa -= (ss[a, n] * ss[a, n] * ss[a, n] * ss[a, n]) * gofts[pntr[n, n], :]
             Aa = numpy.exp(aa)
 
-            for b in range(Na+1):
-
+            for b in range(Na + 1):
                 if a != b:
-
                     cbaab[:] = 0.0
                     for n in range(Na):
-                        cbaab += (ss[b,n]**2)*(ss[a,n]**2)*cofts[pntr[n,n],:]
+                        cbaab += (
+                            (ss[b, n] ** 2) * (ss[a, n] ** 2) * cofts[pntr[n, n], :]
+                        )
 
                     # here we integrate over time
                     for it in range(Nt):
-
                         tm = it + 1
 
                         Nab[:] = 0.0  # we use Nab storage for nab quantity
                         mm[:] = 0.0
                         mr[:] = 0.0
 
-                        fb[:tm] = -1j*ee[b]*tt[:tm]
+                        fb[:tm] = -1j * ee[b] * tt[:tm]
                         for n in range(Na):
+                            hrev = numpy.flipud(hofts[pntr[n, n], :tm])
+                            grev = numpy.flipud(gofts[pntr[n, n], :tm])
+                            reorg_term = numpy.imag(gofts[pntr[n, n], it] - grev)
 
-                            hrev = numpy.flipud(hofts[pntr[n,n],:tm])
-                            grev = numpy.flipud(gofts[pntr[n,n],:tm])
-                            reorg_term = numpy.imag(gofts[pntr[n,n],it] - grev)
+                            fb[:tm] -= (ss[b, n] * ss[b, n] * ss[b, n] * ss[b, n]) * (
+                                numpy.conj(gofts[pntr[n, n], :tm])
+                                + 2.0 * 1j * reorg_term
+                            )
 
-                            fb[:tm] -= (ss[b,n]*ss[b,n]*ss[b,n]*ss[b,n]) \
-                                *(numpy.conj(gofts[pntr[n,n],:tm])
-                                +2.0*1j*reorg_term)
+                            Nab[:tm] += (
+                                2.0
+                                * (ss[b, n] ** 2)
+                                * (ss[a, n] ** 2)
+                                * (gofts[pntr[n, n], :tm] - 1j * reorg_term)
+                            )
 
-                            Nab[:tm] += 2.0*(ss[b,n]**2)*(ss[a,n]**2)*(gofts[pntr[n,n],:tm]
-                                                                           - 1j*reorg_term)
+                            mm[:tm] += ss[a, n] * ss[b, n] * (
+                                (ss[b, n] ** 2) - (ss[a, n] ** 2)
+                            ) * hofts[pntr[n, n], :tm] - 2.0 * 1j * ss[a, n] * ss[
+                                b, n
+                            ] * (ss[b, n] ** 2) * numpy.imag(hofts[pntr[n, n], it])
 
-                            mm[:tm] += ss[a,n]*ss[b,n]*((ss[b,n]**2) - (ss[a,n]**2))*hofts[pntr[n,n],:tm] \
-                                    - 2.0*1j*ss[a,n]*ss[b,n]*(ss[b,n]**2)*numpy.imag(hofts[pntr[n,n],it])
-
-                            mr[:tm] += ss[a,n]*ss[b,n]*((ss[b,n]**2) - (ss[a,n]**2))*hofts[pntr[n,n],:tm] \
-                                    - 2.0*1j*ss[a,n]*ss[b,n]*(ss[b,n]**2)*numpy.imag(hrev)
+                            mr[:tm] += ss[a, n] * ss[b, n] * (
+                                (ss[b, n] ** 2) - (ss[a, n] ** 2)
+                            ) * hofts[pntr[n, n], :tm] - 2.0 * 1j * ss[a, n] * ss[
+                                b, n
+                            ] * (ss[b, n] ** 2) * numpy.imag(hrev)
 
                         Fb = numpy.exp(fb)
-                        Nab[:tm] = numpy.exp(Nab[:tm])*(cbaab[:tm] - mm[:tm]*mr[:tm])
+                        Nab[:tm] = numpy.exp(Nab[:tm]) * (
+                            cbaab[:tm] - mm[:tm] * mr[:tm]
+                        )
 
-                        kab = numpy.conj(Fb)*Nab*Aa
+                        kab = numpy.conj(Fb) * Nab * Aa
 
-                        om = ee[b]-ee[a]
+                        om = ee[b] - ee[a]
                         if tdep:
-                            RR[a,b,it] = 2.0*numpy.real(intfullsec(kab, dt, om, tm))
+                            RR[a, b, it] = 2.0 * numpy.real(intfullsec(kab, dt, om, tm))
                         else:
-                            RR[a,b] = 2.0*numpy.real(intfullsec(kab, dt, om, tm))
-
+                            RR[a, b] = 2.0 * numpy.real(intfullsec(kab, dt, om, tm))
 
     else:
-
         raise Exception("Theory type not implemented")
 
     #
     # diagonal elements
     #
     if tdep:
-        for a in range(Na+1):
-            for b in range(Na+1):
+        for a in range(Na + 1):
+            for b in range(Na + 1):
                 if b != a:
-                    RR[a,a,:] -= RR[b,a,:]
+                    RR[a, a, :] -= RR[b, a, :]
     else:
-        for a in range(Na+1):
-            for b in range(Na+1):
+        for a in range(Na + 1):
+            for b in range(Na + 1):
                 if b != a:
-                    RR[a,a] -= RR[b,a]
+                    RR[a, a] -= RR[b, a]
 
     # FIXME: where is the factor of 2.0 comming from?
-    RR = 2.0*RR
+    RR = 2.0 * RR
 
     return RR, Iterm
-
-
-

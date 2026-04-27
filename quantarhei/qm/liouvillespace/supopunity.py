@@ -5,6 +5,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -74,17 +75,12 @@ class SOpUnity(SuperOperator):
 
         # initialize the data
         if dim is not None:
-
             import quantarhei as qr
+
             self.data = numpy.zeros((dim, dim, dim, dim), qr.REAL)
             for i in range(self.dim):
                 for j in range(self.dim):
-                    self.data[i,j,i,j] = 1.0
+                    self.data[i, j, i, j] = 1.0
 
         else:
-
             raise Exception("Dimension of the superoperator has to be defined")
-
-
-
-

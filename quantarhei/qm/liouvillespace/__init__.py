@@ -17,5 +17,5 @@
 """
 
 
-#.. inheritance-diagram:: quantarhei.qm.liouvillespace.evolutionsuperoperator
+# .. inheritance-diagram:: quantarhei.qm.liouvillespace.evolutionsuperoperator
 #   :parts: 1

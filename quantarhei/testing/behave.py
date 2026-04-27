@@ -1,8 +1,5 @@
-"""Support module for tests using `behave` package
+"""Support module for tests using `behave` package"""
 
-
-
-"""
 from __future__ import annotations
 
 # standard imports
@@ -30,6 +27,7 @@ def quantarhei_installed(context: Any, version: str | None = None) -> None:
 
     """
     import quantarhei as qr
+
     context.version = qr.Manager().version
     if version is None:
         assert isinstance(context.version, str)
@@ -54,7 +52,6 @@ def shell_command(context: Any, cmd: str, err_msg: str = "Shell command error") 
 
     """
     try:
-
         context.last_cmd = cmd
         output = check_output(cmd, shell=True, cwd=os.getcwd())
         context.output = output
@@ -79,25 +76,20 @@ def check_output_contains(context: Any, text: str, err_msg: str) -> None:
         message to be used for Exception if the text is not found
 
     """
-    res = re.search(text, context.output.decode('utf-8'))
+    res = re.search(text, context.output.decode("utf-8"))
     if res is None:
-        print(context.output.decode('utf-8'))
+        print(context.output.decode("utf-8"))
         raise Exception(err_msg)
 
 
 def secure_temp_dir(context: Any) -> None:
-    """Creates temporary directory and stores its info into context
-
-    """
+    """Creates temporary directory and stores its info into context"""
     tmpd = tempfile.TemporaryDirectory()
     context.tempdir = tmpd
 
 
 def cleanup_temp_dir(context: Any) -> None:
-    """Cleans up temporary directory
-
-
-    """
+    """Cleans up temporary directory"""
     try:
         os.chdir(context.cwd)
     except (AttributeError, OSError):
@@ -110,11 +102,9 @@ def cleanup_temp_dir(context: Any) -> None:
 
 
 def fetch_test_feature_file(context: Any, filename: str) -> None:
-    """Fetches the file with a given name from the storage of test files
-
-    """
+    """Fetches the file with a given name from the storage of test files"""
     resource_package = "quantarhei"
-    resource_path = '/'.join(('testing', 'resources', 'behave', filename))
+    resource_path = "/".join(("testing", "resources", "behave", filename))
 
     content = files(resource_package).joinpath(resource_path).read_bytes()
 
@@ -142,7 +132,6 @@ class testdir:
                 raise Exception()
         except Exception:
             raise Exception("Context does not contain info about tempdir")
-
 
     def __enter__(self) -> None:
         self.context.cwd = os.getcwd()

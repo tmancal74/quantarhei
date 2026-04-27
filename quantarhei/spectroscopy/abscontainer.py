@@ -6,7 +6,6 @@ from ..core.saveable import Saveable
 
 
 class AbsSpectrumContainer(Saveable):
-
     def __init__(self, axis: Any = None) -> None:
 
         self.axis = axis
@@ -37,7 +36,6 @@ class AbsSpectrumContainer(Saveable):
         else:
             raise Exception("Incompatible time axis (equal axis required)")
 
-
     def get_spectrum(self, tag: Any) -> Any:
         """Returns spectrum corresponing to time t2
 
@@ -51,10 +49,7 @@ class AbsSpectrumContainer(Saveable):
             return self.spectra[tag]
         raise Exception("Unknown spectrum")
 
-
     def get_spectra(self) -> list[Any]:
-        """Returns a list or tuple of the calculated spectra
-
-        """
+        """Returns a list or tuple of the calculated spectra"""
         ven = [value for (key, value) in sorted(self.spectra.items())]
         return ven

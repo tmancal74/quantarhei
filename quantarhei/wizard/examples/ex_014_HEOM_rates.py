@@ -26,15 +26,13 @@ agg = qr.Aggregate([m1, m2, m3])
 
 #   Couplings between them are set
 with qr.energy_units("1/cm"):
-    agg.set_resonance_coupling(0,1,80.0)
-    agg.set_resonance_coupling(0,2,100.0)
+    agg.set_resonance_coupling(0, 1, 80.0)
+    agg.set_resonance_coupling(0, 2, 100.0)
 
 #   Interaction with the bath is set through bath correlation functions
 timea = qr.TimeAxis(0.0, 1000, 1.0)
-cpar1 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=70,
-            cortime=50, T=300)
-cpar2 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50,
-            cortime=50, T=300)
+cpar1 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=70, cortime=50, T=300)
+cpar2 = dict(ftype="OverdampedBrownian-HighTemperature", reorg=50, cortime=50, T=300)
 
 with qr.energy_units("1/cm"):
     cfce1 = qr.CorrelationFunction(timea, cpar1)
@@ -59,8 +57,8 @@ ham = agg.get_Hamiltonian()
 sbi = agg.get_SystemBathInteraction()
 
 #    We define the hierarchy
-#Hy3 = qr.KTHierarchy(ham, sbi, 3)
-#Hy4 = qr.KTHierarchy(ham, sbi, 4)
-#Hy5 = qr.KTHierarchy(ham, sbi, 5)
+# Hy3 = qr.KTHierarchy(ham, sbi, 3)
+# Hy4 = qr.KTHierarchy(ham, sbi, 4)
+# Hy5 = qr.KTHierarchy(ham, sbi, 5)
 Hy6 = qr.KTHierarchy(ham, sbi, 3)
-print("Size of hierarchy of depth",Hy6.depth,"is",Hy6.hsize)
+print("Size of hierarchy of depth", Hy6.depth, "is", Hy6.hsize)

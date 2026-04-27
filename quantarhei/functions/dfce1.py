@@ -35,9 +35,10 @@ class Cos(DFunction):
     >>> numpy.testing.assert_almost_equal(a, b, decimal=7)
 
     """
+
     def __init__(self, x: Any, omega: float, phi: float = 0.0) -> None:
         super().__init__()
-        self._make_me(x, numpy.cos(omega*x.data + phi))
+        self._make_me(x, numpy.cos(omega * x.data + phi))
 
 
 class Tukey(DFunction):
@@ -74,7 +75,9 @@ class Tukey(DFunction):
 
     """
 
-    def __init__(self, x: Any, r: float, sym: bool = True, x_offset: float = 0.0) -> None:
+    def __init__(
+        self, x: Any, r: float, sym: bool = True, x_offset: float = 0.0
+    ) -> None:
         super().__init__()
         L = x.length
 
@@ -82,7 +85,7 @@ class Tukey(DFunction):
             data = signal.tukey(L, r, sym=sym)
 
         else:
-            data = signal.tukey(2*L, r*2, sym=sym)
+            data = signal.tukey(2 * L, r * 2, sym=sym)
             data = data[L:]
 
         ii = 0

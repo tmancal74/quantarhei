@@ -4,6 +4,7 @@ statevector module
 
 
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -48,10 +49,9 @@ class StateVector(BasisManaged):
 
         # check and save data
         if data is not None:
-
-#            # list is accepted
-#            if isinstance(data, list):
-#                data = numpy.array(data)
+            #            # list is accepted
+            #            if isinstance(data, list):
+            #                data = numpy.array(data)
             self.data = data
 
             if len(self.data.shape) != 1:
@@ -65,27 +65,19 @@ class StateVector(BasisManaged):
                 self._initialized = True
 
         else:
-
             # check and save dim
             if dim is not None:
                 self.dim = dim
                 self.data = numpy.zeros(dim, dtype=COMPLEX)
                 self._initialized = True
 
-
-
     def dot(self, vec: StateVector) -> Any:
-        """Scalar product of two StateVectors
-
-        """
+        """Scalar product of two StateVectors"""
         return numpy.dot(self.data, vec.data)
 
     def norm(self) -> Any:
-        """Returns the norm of the StateVector
-
-        """
+        """Returns the norm of the StateVector"""
         return numpy.sqrt(numpy.dot(self.data, self.data))
-
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
@@ -108,26 +100,22 @@ class StateVector(BasisManaged):
         else:
             S1 = inv
 
-        self._data = numpy.dot(S1,self._data)
-
+        self._data = numpy.dot(S1, self._data)
 
     def get_DensityMatrix(self) -> Any:
-        """Constructs DensityMatrix from the present StateVector
-
-        """
+        """Constructs DensityMatrix from the present StateVector"""
         from .operators import DensityMatrix
 
         rho = DensityMatrix(dim=self.dim)
 
         for ii in range(self.dim):
             for jj in range(self.dim):
-                rho.data[ii,jj] = self.data[ii]*numpy.conj(self.data[jj])
+                rho.data[ii, jj] = self.data[ii] * numpy.conj(self.data[jj])
 
         return rho
 
-
     def __str__(self) -> str:
-        out  = "\nquantarhei.StateVector object"
+        out = "\nquantarhei.StateVector object"
         out += "\n============================="
         out += "\ndata = \n"
         out += str(self.data)

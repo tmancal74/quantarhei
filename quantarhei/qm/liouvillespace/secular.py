@@ -6,6 +6,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -101,7 +102,6 @@ class Secular:
     as_operators: bool
     _has_rates: bool
 
-
     #
     # Data are stored in these two properties if the object is secular
     #
@@ -141,16 +141,13 @@ class Secular:
             self.secular_data = True
 
         if not self.is_secular:
-
             self.secular_basis_op = self._get_current_basis_op()
 
             if self.secular_data:
-
                 # do it to data
                 self._secularize_data()
 
             else:
-
                 # create rate matrices
                 if self.as_operators:
                     self._set_population_rates_from_operators()
@@ -161,12 +158,10 @@ class Secular:
 
             self.is_secular = True
 
-
     def recover_nonsecular(self) -> None:
 
         if self.is_secular:
             if self.secular_reversible:
-
                 self.is_secular = False
                 self.secular_basis_op = None
                 self.secular_reversible = False
@@ -176,19 +171,14 @@ class Secular:
                 self.secular_KK = None
 
             else:
-
-                raise Exception("Cannot recover non-secular data:"
-                                " secularization was performed irreversibly")
-
-
-
+                raise Exception(
+                    "Cannot recover non-secular data:"
+                    " secularization was performed irreversibly"
+                )
 
     def get_secular_basis_operator(self) -> Any:
-        """Returns the operator to ensure the correct basis context
-
-        """
+        """Returns the operator to ensure the correct basis context"""
         return self.secular_basis_op
-
 
     ###########################################################################
     #
@@ -198,28 +188,32 @@ class Secular:
     ###########################################################################
 
     def _set_population_rates_from_operators(self) -> None:
-        raise Exception("Method _set_population_rates_from_operators()"
-                        " needs to be implemented in a class inheriting"
-                        " from Secular")
-
+        raise Exception(
+            "Method _set_population_rates_from_operators()"
+            " needs to be implemented in a class inheriting"
+            " from Secular"
+        )
 
     def _set_population_rates_from_tensor(self) -> None:
-        raise Exception("Method _set_population_rates_from_tensor()"
-                        " needs to be implemented in a class inheriting"
-                        " from Secular")
-
+        raise Exception(
+            "Method _set_population_rates_from_tensor()"
+            " needs to be implemented in a class inheriting"
+            " from Secular"
+        )
 
     def _set_dephasing_rates_from_operators(self) -> None:
-        raise Exception("Method _set_dephasing_rates_from_operators()"
-                        " needs to be implemented in a class inheriting"
-                        " from Secular")
-
+        raise Exception(
+            "Method _set_dephasing_rates_from_operators()"
+            " needs to be implemented in a class inheriting"
+            " from Secular"
+        )
 
     def _set_dephasing_rates_from_tensor(self) -> None:
-        raise Exception("Method _set_dephasing_rates_from_tensor()"
-                        " needs to be implemented in a class inheriting"
-                        " from Secular")
-
+        raise Exception(
+            "Method _set_dephasing_rates_from_tensor()"
+            " needs to be implemented in a class inheriting"
+            " from Secular"
+        )
 
     def convert_2_tensor(self) -> None:
         raise NotImplementedError
@@ -236,43 +230,38 @@ class Secular:
                 for jj in range(N):
                     for kk in range(N):
                         for ll in range(N):
-                            if not (((ii == jj) and (kk == ll))
-                                or ((ii == kk) and (jj == ll))) :
-                                    self.data[ii,jj,kk,ll] = 0
+                            if not (
+                                ((ii == jj) and (kk == ll))
+                                or ((ii == kk) and (jj == ll))
+                            ):
+                                self.data[ii, jj, kk, ll] = 0
         else:
             N = self.data.shape[1]
             for ii in range(N):
                 for jj in range(N):
                     for kk in range(N):
                         for ll in range(N):
-                            if not (((ii == jj) and (kk == ll))
-                                or ((ii == kk) and (jj == ll))) :
-                                    self.data[:,ii,jj,kk,ll] = 0
-
+                            if not (
+                                ((ii == jj) and (kk == ll))
+                                or ((ii == kk) and (jj == ll))
+                            ):
+                                self.data[:, ii, jj, kk, ll] = 0
 
     def apply(self, rho: Any) -> Any:
-        """Application of the secular tensor on the statistical operator
-
-
-        """
-#        rhoret = -self.secular_GG*rho.data
-#        if self._has_rates:
-#            rhoret += numpy.diagflat(numpy.einsum("ij,jj",
-#                                     self.secular_KK.data, rho.data))
+        """Application of the secular tensor on the statistical operator"""
+        #        rhoret = -self.secular_GG*rho.data
+        #        if self._has_rates:
+        #            rhoret += numpy.diagflat(numpy.einsum("ij,jj",
+        #                                     self.secular_KK.data, rho.data))
 
         # FIXME: time this to find out how bad is to call additional function
         return self._apply(rho.data)
 
-
     def _apply(self, rho: Any) -> Any:
-        """Application of the tensor directly to an array
-
-        """
-        rhoret = -self.secular_GG*rho
+        """Application of the tensor directly to an array"""
+        rhoret = -self.secular_GG * rho
         if self._has_rates:
-            rhoret += numpy.diagflat(numpy.einsum("ij,jj",
-                                     self.secular_KK.data, rho))
-
+            rhoret += numpy.diagflat(numpy.einsum("ij,jj", self.secular_KK.data, rho))
 
     ###########################################################################
     #
@@ -281,12 +270,5 @@ class Secular:
     ###########################################################################
 
     def _get_current_basis_op(self) -> Any:
-        """Returns the operator which defines the currently used basis
-
-        """
+        """Returns the operator which defines the currently used basis"""
         return Manager().current_basis_operator
-
-
-
-
-

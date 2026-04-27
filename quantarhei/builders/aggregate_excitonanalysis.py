@@ -32,6 +32,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 import numpy
@@ -42,12 +43,7 @@ from .aggregate_spectroscopy import AggregateSpectroscopy
 
 
 class AggregateExcitonAnalysis(AggregateSpectroscopy):
-    """Class adding exciton analysis on molecular aggregates
-
-
-
-    """
-
+    """Class adding exciton analysis on molecular aggregates"""
 
     def get_expansion_squares(self, state: int = 0) -> tuple:
         """Returns the squares of expansion coefficients of an excitonic state.
@@ -74,13 +70,14 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
 
         """
-        coefs = self.SS[:,state]
-        sqrs  = self.SS[:,state]**2
+        coefs = self.SS[:, state]
+        sqrs = self.SS[:, state] ** 2
         indx = [i for i in range(self.HH.shape[0])]
         return indx, coefs, sqrs
 
-
-    def report_on_expansion(self, file: object = None, state: int = 0, N: int = 5) -> None:
+    def report_on_expansion(
+        self, file: object = None, state: int = 0, N: int = 5
+    ) -> None:
         """Prints a short report on the composition of an exciton state
 
         Parameters
@@ -116,14 +113,12 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         try:
             from terminaltables import AsciiTable
         except ImportError:
-            raise Exception("Get terminaltables package "
-                            "for this functionality")
+            raise Exception("Get terminaltables package for this functionality")
 
         indx, coefs, sqrs = self.get_expansion_squares(state)
 
         table_data = []
-        table_data.append(["index","squares", "coefficients",
-                           "state signatures"])
+        table_data.append(["index", "squares", "coefficients", "state signatures"])
         for i in range(N):
             imax, sqr = _strip_max_coef(indx, sqrs)
             coef = coefs[imax]
@@ -134,11 +129,10 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             sta = self.get_state_signature_by_index(imax)
             table_data.append([imax, sqr_s, coef_s, sta])
 
-            #print(imax, "\t", coef,"\t", sta)
+            # print(imax, "\t", coef,"\t", sta)
 
         table = AsciiTable(table_data)
         print(table.table, file=file)
-
 
     def get_intersite_mixing(self, state1: int = 0, state2: int = 0) -> float:
         """Returns inter site mixing ration
@@ -175,8 +169,8 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         0.8362
 
         """
-        ci = self.SS[:,state1]
-        cj = self.SS[:,state2]
+        ci = self.SS[:, state1]
+        cj = self.SS[:, state2]
 
         xi = 1.0
 
@@ -185,11 +179,10 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             # loop over all vibrational states in a given electronic state
             for n_nu in self.vibindices[n_el]:
                 for n_mu in self.vibindices[n_el]:
-                    x = (ci[n_nu]**2)*(cj[n_mu]**2)
+                    x = (ci[n_nu] ** 2) * (cj[n_mu] ** 2)
                     xi -= x
 
         return xi
-
 
     def get_transition_dipole(self, state1: int = 0, state2: int = 0) -> float:
         """Returns transition dipole moment between two state.
@@ -227,7 +220,6 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         raise Exception("Aggregate has to be diagonalized")
 
-
     def get_state_energy(self, state: int = 0) -> float:
         """Return the energy of a state with a given index
 
@@ -261,8 +253,14 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             return self.convert_energy_2_current_u(self.HD[state])
         raise Exception("Aggregate has to be diagonalized")
 
-
-    def exciton_report(self, file: object = None, start: int = 1, stop: int | None = None, Nrep: int = 5, criterium: object = None) -> None:
+    def exciton_report(
+        self,
+        file: object = None,
+        start: int = 1,
+        stop: int | None = None,
+        Nrep: int = 5,
+        criterium: object = None,
+    ) -> None:
         """Prints a report on excitonic properties of the aggregate
 
         Parameters
@@ -326,20 +324,17 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         start_at = start
         stop_at = stop
 
-
         print("Report on excitonic properties", file=file)
         print("------------------------------\n", file=file)
-        N01 = self.Nb[0]+self.Nb[1]
+        N01 = self.Nb[0] + self.Nb[1]
         if self.mult > 1:
             N01 += self.Nb[2]
 
         for Nst in range(N01):
-
             if stop_at is None:
                 stop_at = N01 + 1
 
             if (Nst >= start_at) and (Nst <= stop_at):
-
                 with qr.energy_units("1/cm"):
                     tre = self.get_state_energy(Nst) - self.get_state_energy(0)
                 dip = self.get_transition_dipole(0, Nst)
@@ -351,20 +346,17 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     cond = True
 
                 if cond:
-                    txt = "Exciton "+str(Nst)
+                    txt = "Exciton " + str(Nst)
                     Nlength = len(txt)
-                    line = "="*Nlength
+                    line = "=" * Nlength
                     print(txt, file=file)
                     print(line, file=file)
                     print("", file=file)
                     with qr.energy_units("1/cm"):
-                        print("Transition energy        "
-                              f": {tre:.8f} 1/cm", file=file)
-                        print("Transition dipole moment "
-                              f": {dip:.8f} D", file=file)
+                        print(f"Transition energy        : {tre:.8f} 1/cm", file=file)
+                        print(f"Transition dipole moment : {dip:.8f} D", file=file)
                     self.report_on_expansion(file=file, state=Nst, N=Nrep)
                     print("", file=file)
-
 
     #
     #  The following routine does not work with excitons, but rather with
@@ -413,4 +405,3 @@ def _strip_max_coef(indx: list, sqrs: numpy.ndarray) -> tuple:
     sqrs[imax] = -1.0
 
     return imax, sqr
-

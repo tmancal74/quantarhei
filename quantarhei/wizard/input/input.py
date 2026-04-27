@@ -15,8 +15,10 @@ import yaml  # type: ignore[import-untyped]
 #
 def ahoj(a: float) -> None:
     import numpy
+
     print("A teď dělám, co mě napadne")
     print(numpy.cos(a))
+
 
 a = 5.0
 
@@ -45,24 +47,24 @@ def expr(code: str, context: dict[str, Any] | None = None) -> Any:
 
     # An especial case for my own when using percents values.
     # TODO: Fail if you are not comparing same type value like "50 > 20%" haves to fail
-    code = re.sub('%', '', code)
+    code = re.sub("%", "", code)
 
     # FIXME: is there any way to protect against arbitrary code execution?
-    expr = ast.parse(code, mode='eval')
-    code_object = compile(expr, '<string>', 'eval')
+    expr = ast.parse(code, mode="eval")
+    code_object = compile(expr, "<string>", "eval")
 
     return eval(code_object)
 
 
-
 class Input:
-    """A class representing a json or yaml input file
+    """A class representing a json or yaml input file"""
 
-
-
-    """
-
-    def __init__(self, file_or_dict: str | dict[str, Any], math_allowed_in: list[Any] | None = None, show_input: bool = False) -> None:
+    def __init__(
+        self,
+        file_or_dict: str | dict[str, Any],
+        math_allowed_in: list[Any] | None = None,
+        show_input: bool = False,
+    ) -> None:
 
         if math_allowed_in is None:
             math_allowed_in = []
@@ -82,13 +84,11 @@ class Input:
 
             # json
             if ext in [".json"]:
-
                 with open(filename) as f:
                     self.data = json.load(f)
 
             # yaml
             elif ext in [".yaml", ".yml"]:
-
                 with open(filename) as f:
                     self.data = yaml.safe_load(f)
 
@@ -98,12 +98,13 @@ class Input:
             self._from_file = True
 
         elif isinstance(file_or_dict, dict):
-             self.data = file_or_dict
-             self._from_file = False
+            self.data = file_or_dict
+            self._from_file = False
 
         else:
-            raise Exception("Input file name (string) or "
-                            "a dictionary hs to be specified")
+            raise Exception(
+                "Input file name (string) or a dictionary hs to be specified"
+            )
 
         data = self.data
         for piece in data:
@@ -112,7 +113,6 @@ class Input:
             else:
                 setattr(self, piece, data[piece])
 
-
         conversions += self._math_allowed_in
 
         #
@@ -120,7 +120,6 @@ class Input:
         # as mathematical expressions
         #
         for cnv in conversions:
-
             if isinstance(cnv, list) or isinstance(cnv, tuple):
                 prop = cnv[0]
                 keys = cnv[1]
@@ -154,11 +153,10 @@ class Input:
             print("\nInput file summary:\n")
             print(self.data)
 
-
-    def strings_2_floats_dictionary(self, dictionary: dict[str, Any], keys: list[str]) -> dict[str, Any]:
-        """Converts selected keys of a dictionary from string expression to float
-
-        """
+    def strings_2_floats_dictionary(
+        self, dictionary: dict[str, Any], keys: list[str]
+    ) -> dict[str, Any]:
+        """Converts selected keys of a dictionary from string expression to float"""
         ndict = {}
         for key in dictionary:
             val = dictionary[key]
@@ -170,9 +168,7 @@ class Input:
         return ndict
 
     def strings_2_floats_lists(self, inlist: list[Any]) -> None:
-        """Converts every string in a list into float
-
-        """
+        """Converts every string in a list into float"""
         N = len(inlist)
 
         for k in range(N):
@@ -180,22 +176,17 @@ class Input:
             val = self.string_2_float_prop(val)
             inlist[k] = val
 
-
     def string_2_float_prop(self, prop: Any) -> Any:
-        """If the submitted object is a string it is converted to float
-
-        """
+        """If the submitted object is a string it is converted to float"""
         if isinstance(prop, str):
             val = expr(prop)
         else:
             val = prop
         return val
 
-
     def dump_yaml(self, filename: str) -> None:
 
         yaml.dump(self.data, open(filename, "w"), default_flow_style=False)
-
 
     def find_usecases(self) -> None:
         """Finds replacements for values defined in the input file
@@ -219,15 +210,15 @@ class Input:
             defined_usecases = []
 
         for duname in defined_usecases:
-            #print("Usecase", "'"+duname+"'","has possible values:")
+            # print("Usecase", "'"+duname+"'","has possible values:")
             defs = definitions[duname]["values"]
             vars = definitions[duname]["variables"]
             cass = definitions[duname]["cases"]
             for df in defs:
-                #print(df,":")
+                # print(df,":")
                 kk = 0
                 for var in vars:
-                    #print(var, "=", cass[df][kk])
+                    # print(var, "=", cass[df][kk])
                     kk += 1
 
             try:
@@ -244,6 +235,3 @@ class Input:
                     print(var, "=", cass[usecase_value][kk])
                     setattr(self, var, cass[usecase_value][kk])
                     kk += 1
-
-
-
