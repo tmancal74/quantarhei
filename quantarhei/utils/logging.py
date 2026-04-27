@@ -3,12 +3,15 @@
 
 
 """
+from __future__ import annotations
+
 import traceback
+from typing import Any
 
 import quantarhei as qr
 
 
-def init_logging():
+def init_logging() -> None:
     """Initialization of logging
 
     We test if the logging is parallel or not
@@ -30,30 +33,30 @@ def init_logging():
     manager.initialized = True
 
 
-def log_urgent(*args, **kwargs):
+def log_urgent(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_URGENT, **kwargs)
 
 
-def log_report(*args, **kwargs):
+def log_report(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_REPORT, **kwargs)
 
 
-def log_info(*args, **kwargs):
+def log_info(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_INFO, **kwargs)
 
 
-def log_detail(*args, **kwargs):
+def log_detail(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_DETAIL, **kwargs)
 
 
-def log_quick(*args, verbose=True, **kwargs):
+def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:
     if not verbose:
         return
     printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)
 
 
-def printlog(*args, verbose=True, loglevel=5,
-             incr_indent=0, use_indent=True, **kwargs):
+def printlog(*args: Any, verbose: bool = True, loglevel: int = 5,
+             incr_indent: int = 0, use_indent: bool = True, **kwargs: Any) -> None:
     """Prints logging information
 
 
@@ -141,7 +144,7 @@ def printlog(*args, verbose=True, loglevel=5,
             print(indent, *args, **kwargs, file=manager.log_file)
 
 
-def loglevels2bool(loglevs, verbose=False):
+def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
     """Converts a list of loglevels to a list of bools
 
     This function converts loglevels to books (True or False values).
@@ -200,7 +203,7 @@ def loglevels2bool(loglevs, verbose=False):
     return verb
 
 
-def tprint(var, messg=None, default=None):
+def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
     """Test the existence of the variable with the name `var`
 
 
@@ -229,7 +232,7 @@ def tprint(var, messg=None, default=None):
             print(var,"=", val, "# (default)")
 
 
-def log_to_file(filename="qrhei.log"):
+def log_to_file(filename: str = "qrhei.log") -> None:
     """Set logging to file
 
     """

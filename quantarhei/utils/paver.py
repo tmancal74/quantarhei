@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 
-def execute_paver(args, util="paver"):
+def execute_paver(args: list[str], util: str = "paver") -> None:
     """Executes 'paver' utility
 
     """
