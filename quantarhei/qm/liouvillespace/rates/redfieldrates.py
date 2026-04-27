@@ -45,7 +45,14 @@ class RedfieldRateMatrix:
 
     """
 
-    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None, corr_mat: Any = None) -> None:
+    def __init__(
+        self,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
+        initialize: bool = True,
+        cutoff_time: float | None = None,
+        corr_mat: Any = None,
+    ) -> None:
 
         if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -69,11 +76,8 @@ class RedfieldRateMatrix:
             self._set_rates()
             self._is_initialized = True
 
-
     def _set_rates(self) -> None:
-        """Prepares all data for rate calculation, and calls an implementation code
-
-        """
+        """Prepares all data for rate calculation, and calls an implementation code"""
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         Na = self.ham._data.shape[0]
@@ -85,63 +89,61 @@ class RedfieldRateMatrix:
             raise Exception("No system bath intraction components present")
 
         # Eigen problem
-        hD,SS = numpy.linalg.eigh(self.ham._data)
+        hD, SS = numpy.linalg.eigh(self.ham._data)
         S1 = numpy.linalg.inv(SS)
 
         # component operators
         KI = self.sbi.KK.copy()
 
-        #FIXME: This has to be made configurable
+        # FIXME: This has to be made configurable
         # frequency cut-off
-        freq_cutoff = 3000.0*cm2int
-        #print("freq. cut-off",freq_cutoff)
+        freq_cutoff = 3000.0 * cm2int
+        # print("freq. cut-off",freq_cutoff)
 
         # temperature
-        #FIXME: This has to be easier
-        Temp = self.sbi.CC.get_correlation_function(0,0).temperature
+        # FIXME: This has to be easier
+        Temp = self.sbi.CC.get_correlation_function(0, 0).temperature
 
         # transform interaction operators
         for i in range(Nk):
-            KI[i,:,:] = numpy.dot(S1,numpy.dot(KI[i,:,:],SS))
+            KI[i, :, :] = numpy.dot(S1, numpy.dot(KI[i, :, :], SS))
 
         #  Find all eigenfrequencies
-        Om = numpy.zeros((Na,Na))
-        for a in range(0,Na):
-            for b in range(0,Na):
-                Om[a,b] = hD[a] - hD[b]
+        Om = numpy.zeros((Na, Na))
+        for a in range(0, Na):
+            for b in range(0, Na):
+                Om[a, b] = hD[a] - hD[b]
 
         # calculate values of the spectral density at frequencies
-        cc = numpy.zeros((Nk,Na,Na),dtype=REAL)
+        cc = numpy.zeros((Nk, Na, Na), dtype=REAL)
 
         # loop over components
         for k in range(Nk):
-
             # correlation function
-            cf = self.sbi.CC.get_correlation_function(k,k)
+            cf = self.sbi.CC.get_correlation_function(k, k)
 
             # Ft correlation function
             cw = cf.get_Fourier_transform()
-
 
             # Spectral density at all frequencies
             for i in range(Na):
                 for j in range(Na):
                     if i != j:
-                        if numpy.abs(Om[j,i]) > freq_cutoff:
-                            cc[k,i,j] = 0.0
+                        if numpy.abs(Om[j, i]) > freq_cutoff:
+                            cc[k, i, j] = 0.0
                         else:
-                            if Om[j,i] < 0.0:
-                                cc[k,i,j] = numpy.real(cw.at(Om[i,j],
-                                approx="spline")
-                                *numpy.exp(-Om[i,j]/(kB_intK*Temp)))
+                            if Om[j, i] < 0.0:
+                                cc[k, i, j] = numpy.real(
+                                    cw.at(Om[i, j], approx="spline")
+                                    * numpy.exp(-Om[i, j] / (kB_intK * Temp))
+                                )
                             else:
-                                cc[k,i,j] = numpy.real(cw.at(Om[j,i],
-                                approx="spline"))
-
-
+                                cc[k, i, j] = numpy.real(
+                                    cw.at(Om[j, i], approx="spline")
+                                )
 
         # create storage for the rates
-        self.data = numpy.zeros((Na,Na), dtype=REAL)
+        self.data = numpy.zeros((Na, Na), dtype=REAL)
 
         # calculate rate matrix
         #
@@ -155,13 +157,11 @@ class RedfieldRateMatrix:
         #    To return:
         #                RR
         #
-        werror = numpy.zeros(2,dtype=numpy.int8)
+        werror = numpy.zeros(2, dtype=numpy.int8)
         rtol = 1.0e-6
 
         # FIXME: call serial version if no parallelism is required
-        ssRedfieldRateMatrix(Na, Nk, KI,
-                             cc, rtol, werror, self.data)
-
+        ssRedfieldRateMatrix(Na, Nk, KI, cc, rtol, werror, self.data)
 
         if werror[1] == -1:
             print("Warning: Redfield rates signicantly smaller than 0")
@@ -169,13 +169,22 @@ class RedfieldRateMatrix:
         self._is_initialized = True
 
 
-
-@implementation("redfieldrates",
-                "ssRedfieldRateMatrix",
-                at_runtime=True,
-                fallback_local=False,
-                always_local=False)
-def ssRedfieldRateMatrix(Na: int, Nk: int, KI: numpy.ndarray, cc: numpy.ndarray, rtol: float, werror: numpy.ndarray, RR: numpy.ndarray) -> None:
+@implementation(
+    "redfieldrates",
+    "ssRedfieldRateMatrix",
+    at_runtime=True,
+    fallback_local=False,
+    always_local=False,
+)
+def ssRedfieldRateMatrix(
+    Na: int,
+    Nk: int,
+    KI: numpy.ndarray,
+    cc: numpy.ndarray,
+    rtol: float,
+    werror: numpy.ndarray,
+    RR: numpy.ndarray,
+) -> None:
     """Standard redfield rates
 
 
@@ -206,4 +215,3 @@ def ssRedfieldRateMatrix(Na: int, Nk: int, KI: numpy.ndarray, cc: numpy.ndarray,
 
     """
     pass
-

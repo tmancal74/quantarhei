@@ -14,11 +14,8 @@ def code_hamiltonian(INP: Any, status: Any) -> str:
     return code
 
 
-
 def tasks(tlist: Any, INP: Any) -> str:
-    """Go through the list of tasks
-
-    """
+    """Go through the list of tasks"""
     status: list[Any] = []
     code = ""
 
@@ -35,9 +32,7 @@ def tasks(tlist: Any, INP: Any) -> str:
 
 
 def do_process(args: Any) -> None:
-    """Process arguments of the script
-
-    """
+    """Process arguments of the script"""
     if args.filename:
         fname = args.filename[0]
         print("Processing file: ", fname)
@@ -50,14 +45,11 @@ def do_process(args: Any) -> None:
             return
 
     if args.output:
-
         print("Script saved as: ", args.output)
 
     else:
-
         print("\nResulting code:\n")
         print(code)
-
 
 
 def main() -> None:
@@ -65,17 +57,21 @@ def main() -> None:
     global parser_list
     global parser_fetch
 
-    parser = argparse.ArgumentParser(
-            description='Quantarhei Task Compiler')
-
+    parser = argparse.ArgumentParser(description="Quantarhei Task Compiler")
 
     #
     # Driver options
     #
-    parser.add_argument("-o", "--output", metavar="output", type=str,
-                        help="output file")
-    parser.add_argument("filename", metavar='filename', type=str,
-                        help='task file to be processed', nargs=1)
+    parser.add_argument(
+        "-o", "--output", metavar="output", type=str, help="output file"
+    )
+    parser.add_argument(
+        "filename",
+        metavar="filename",
+        type=str,
+        help="task file to be processed",
+        nargs=1,
+    )
     parser.set_defaults(func=do_process)
 
     #

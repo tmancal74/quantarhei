@@ -12,10 +12,7 @@ from .superoperator import SuperOperator
 
 
 class RelaxationTensor(SuperOperator, Secular, Saveable):
-    """Basic class representing a relaxation tensor
-
-
-    """
+    """Basic class representing a relaxation tensor"""
 
     is_time_dependent = False
 
@@ -32,8 +29,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         self.Hamiltonian: Any = None
 
-
-
     def _initialize_basis(self) -> None:
 
         # Set the currently used basis
@@ -43,18 +38,12 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         if cb != 0:
             self.manager.register_with_basis(cb, self)
 
-
-
     def secularize(self, legacy: bool = True) -> None:  # type: ignore[override]
-        """Secularizes the relaxation tensor
-
-
-        """
+        """Secularizes the relaxation tensor"""
         if legacy:
-
             if self.as_operators:
                 self.convert_2_tensor()
-                #raise Exception("Cannot be secularized in the operator form")
+                # raise Exception("Cannot be secularized in the operator form")
 
             if True:
                 if self.data.ndim == 4:
@@ -63,99 +52,79 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                         for jj in range(N):
                             for kk in range(N):
                                 for ll in range(N):
-                                    if not (((ii == jj) and (kk == ll))
-                                        or ((ii == kk) and (jj == ll))) :
-                                            self.data[ii,jj,kk,ll] = 0
+                                    if not (
+                                        ((ii == jj) and (kk == ll))
+                                        or ((ii == kk) and (jj == ll))
+                                    ):
+                                        self.data[ii, jj, kk, ll] = 0
                 else:
                     N = self.data.shape[1]
                     for ii in range(N):
                         for jj in range(N):
                             for kk in range(N):
                                 for ll in range(N):
-                                    if not (((ii == jj) and (kk == ll))
-                                        or ((ii == kk) and (jj == ll))) :
-                                            self.data[:,ii,jj,kk,ll] = 0
+                                    if not (
+                                        ((ii == jj) and (kk == ll))
+                                        or ((ii == kk) and (jj == ll))
+                                    ):
+                                        self.data[:, ii, jj, kk, ll] = 0
 
         else:
-
             super().secularize()
 
-
     def _set_population_rates_from_operators(self) -> None:
-        raise Exception("Method _set_population_rates_from_operators()"
-                        " needs to be implemented in a class inheriting"
-                        " from Secular")
-
+        raise Exception(
+            "Method _set_population_rates_from_operators()"
+            " needs to be implemented in a class inheriting"
+            " from Secular"
+        )
 
     def _set_population_rates_from_tensor(self) -> None:
-        """
-
-        """
+        """ """
         if self.data.ndim == 4:
             self.secular_KK = numpy.einsum("iijj->ij", self.data)
         else:
             self.secular_KK = numpy.einsum("hiijj->hij", self.data)
 
-
     def _set_dephasing_rates_from_operators(self) -> None:
-        raise Exception("Method _set_dephasing_rates_from_operators()"
-                        " needs to be implemented in a class inheriting"
-                        " from Secular")
-
+        raise Exception(
+            "Method _set_dephasing_rates_from_operators()"
+            " needs to be implemented in a class inheriting"
+            " from Secular"
+        )
 
     def _set_dephasing_rates_from_tensor(self) -> None:
-        """
-
-        """
+        """ """
         if self.data.ndim == 4:
             N = self.data.shape[0]
 
             self.secular_GG = numpy.einsum("ijij->ij", self.data)
             for ii in range(N):
-                self.secular_GG[ii,ii] = 0.0
+                self.secular_GG[ii, ii] = 0.0
         else:
             N = self.data.shape[1]
             self.secular_GG = numpy.einsum("hijij->hij", self.data)
             for ii in range(N):
-                self.secular_GG[:,ii,ii] = 0.0
-
+                self.secular_GG[:, ii, ii] = 0.0
 
     def get_population_rate(self, N: int, M: int) -> Any:
-        """Returns the relaxation rate from state M -> N
-
-
-        """
-        return self.data[N,N,M,M]
+        """Returns the relaxation rate from state M -> N"""
+        return self.data[N, N, M, M]
 
     def set_population_rate(self, N: int, M: int, val: Any) -> None:
-        """Sets the relaxation rate from state M -> N
-
-
-        """
-        self.data[N,N,M,M] = val
-
+        """Sets the relaxation rate from state M -> N"""
+        self.data[N, N, M, M] = val
 
     def get_dephasing_rate(self, N: int, M: int) -> Any:
-        """Returns the dephasing rate of a coherence between states N and M
-
-
-        """
-        return -self.data[N,M,N,M]
-
+        """Returns the dephasing rate of a coherence between states N and M"""
+        return -self.data[N, M, N, M]
 
     def set_dephasing_rate(self, N: int, M: int, val: Any) -> None:
-        """Sets the dephasing rate of a coherence between states N and M
-
-
-        """
-        self.data[N,M,N,M] = -val
-
+        """Sets the dephasing rate of a coherence between states N and M"""
+        self.data[N, M, N, M] = -val
 
     def get_depopulation_rate(self, N: int) -> float:
-        """Returns the rate of depopulation of the state N
-
-
-        """
+        """Returns the rate of depopulation of the state N"""
         Ns = self.data.shape[0]
         dep_rate = 0.0
         for ii in range(Ns):
@@ -164,15 +133,12 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         return dep_rate
 
-
     def get_pure_dephasing_rate(self, N: int, M: int) -> float:
-        """Isolate the pure dephasing part of the rate
-
-        """
+        """Isolate the pure dephasing part of the rate"""
         Ns = self.data.shape[0]
-        tot_rate_1 = self.get_depopulation_rate(N)+self.get_depopulation_rate(M)
-        exp_deph_rate = tot_rate_1/2.0
-        act_deph_rate = self.get_dephasing_rate(N,M)
+        tot_rate_1 = self.get_depopulation_rate(N) + self.get_depopulation_rate(M)
+        exp_deph_rate = tot_rate_1 / 2.0
+        act_deph_rate = self.get_dephasing_rate(N, M)
 
         delta_rate = 0.0
         if act_deph_rate >= exp_deph_rate:
@@ -182,46 +148,44 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         return delta_rate
 
-
-    def enforce_detailed_balance(self, temperature: float = 0.0, secularize: bool = True) -> None:
-        """Enforces uphill rates to comply with the canonical detailed balace
-
-        """
+    def enforce_detailed_balance(
+        self, temperature: float = 0.0, secularize: bool = True
+    ) -> None:
+        """Enforces uphill rates to comply with the canonical detailed balace"""
         with eigenbasis_of(self.Hamiltonian):
-
             if secularize:
                 self.secularize()
 
             if self.as_operators:
-
                 pass
 
             else:
                 Ns = self.data.shape[0]
                 HH = self.Hamiltonian.data
-                kbT = kB_int*temperature
+                kbT = kB_int * temperature
 
                 # save pure dephasing matrix
                 Rdep = numpy.zeros_like(HH)
                 for ii in range(Ns):
                     for jj in range(Ns):
                         if ii != jj:
-                            Rdep[ii,jj] = self.get_dephasing_rate(ii,jj) \
-                                - 0.5*(self.get_depopulation_rate(ii)+self.get_depopulation_rate(jj))
-
+                            Rdep[ii, jj] = self.get_dephasing_rate(ii, jj) - 0.5 * (
+                                self.get_depopulation_rate(ii)
+                                + self.get_depopulation_rate(jj)
+                            )
 
                 # set uphill rates
                 for ii in range(Ns):
-                    for jj in range(ii+1,Ns):
-                        downhill = self.get_population_rate(ii,jj)
+                    for jj in range(ii + 1, Ns):
+                        downhill = self.get_population_rate(ii, jj)
                         if downhill > 0.0:
                             if temperature == 0.0:
                                 coef = 0.0
                             else:
-                                coef = numpy.exp(-(HH[jj,jj]-HH[ii,ii])/kbT)
-                            self.set_population_rate(jj,ii, downhill*coef)
-                            #uphill = self.get_population_rate(jj,ii)
-                            #print(ii,jj, downhill, uphill, Rdep[ii,jj])
+                                coef = numpy.exp(-(HH[jj, jj] - HH[ii, ii]) / kbT)
+                            self.set_population_rate(jj, ii, downhill * coef)
+                            # uphill = self.get_population_rate(jj,ii)
+                            # print(ii,jj, downhill, uphill, Rdep[ii,jj])
 
                 # update the dephasing and depopulation
                 self.updateStructure()
@@ -230,10 +194,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                 for ii in range(Ns):
                     for jj in range(Ns):
                         if ii != jj:
-                            self.data[ii,jj,ii,jj] += Rdep[ii,jj]
-
-
-
+                            self.data[ii, jj, ii, jj] += Rdep[ii, jj]
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the tensor by a given matrix
@@ -251,8 +212,8 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             inverse of the transformation matrix
 
         """
-        if (self.manager.warn_about_basis_change):
-                print(f"\nQr >>> Relaxation tensor '{self.name}' changes basis")
+        if self.manager.warn_about_basis_change:
+            print(f"\nQr >>> Relaxation tensor '{self.name}' changes basis")
 
         if inv is None:
             S1 = numpy.linalg.inv(SS)
@@ -263,76 +224,74 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         if self._data.ndim == 4:
             for c in range(dim):
                 for d in range(dim):
-                    self._data[:,:,c,d] = \
-                    numpy.dot(S1,numpy.dot(self._data[:,:,c,d],SS))
+                    self._data[:, :, c, d] = numpy.dot(
+                        S1, numpy.dot(self._data[:, :, c, d], SS)
+                    )
 
             for a in range(dim):
                 for b in range(dim):
-                    self._data[a,b,:,:] = \
-                    numpy.dot(S1,numpy.dot(self._data[a,b,:,:],SS))
+                    self._data[a, b, :, :] = numpy.dot(
+                        S1, numpy.dot(self._data[a, b, :, :], SS)
+                    )
         else:
-
             for tt in range(self._data.shape[0]):
                 for c in range(dim):
                     for d in range(dim):
-                        self._data[tt,:,:,c,d] = \
-                            numpy.dot(S1,numpy.dot(self._data[tt,:,:,c,d],SS))
+                        self._data[tt, :, :, c, d] = numpy.dot(
+                            S1, numpy.dot(self._data[tt, :, :, c, d], SS)
+                        )
 
                 for a in range(dim):
                     for b in range(dim):
-                        self._data[tt,a,b,:,:] = \
-                            numpy.dot(S1,numpy.dot(self._data[tt,a,b,:,:],SS))
-
+                        self._data[tt, a, b, :, :] = numpy.dot(
+                            S1, numpy.dot(self._data[tt, a, b, :, :], SS)
+                        )
 
     def convert_2_tensor(self) -> None:
-        """Converts from operator to tensor form
-
-        """
+        """Converts from operator to tensor form"""
         pass
 
-
     def updateStructure(self) -> None:
-        """Recalculates dephasing and depopulation rates
-
-        """
+        """Recalculates dephasing and depopulation rates"""
         if self._data.ndim == 4:
             # depopulation rates
             for nn in range(self.dim):
-                #for ii in range(0,self.data.shape[1]):
+                # for ii in range(0,self.data.shape[1]):
                 #    if ii != nn:
                 #        self.data[nn,nn,nn,nn] -= self.data[ii,ii,nn,nn]
-                self._data[nn,nn,nn,nn] -= (numpy.trace(self._data[:,:,nn,nn])
-                                            - self._data[nn,nn,nn,nn])
+                self._data[nn, nn, nn, nn] -= (
+                    numpy.trace(self._data[:, :, nn, nn]) - self._data[nn, nn, nn, nn]
+                )
 
             # dephasing rates
             for nn in range(self.dim):
-                for mm in range(nn+1,self.dim):
-                    self._data[nn,mm,nn,mm] = (self._data[nn,nn,nn,nn]
-                                              +self._data[mm,mm,mm,mm])/2.0
-                    self._data[mm,nn,mm,nn] = self._data[nn,mm,nn,mm]
+                for mm in range(nn + 1, self.dim):
+                    self._data[nn, mm, nn, mm] = (
+                        self._data[nn, nn, nn, nn] + self._data[mm, mm, mm, mm]
+                    ) / 2.0
+                    self._data[mm, nn, mm, nn] = self._data[nn, mm, nn, mm]
 
         else:
             # depopulation rates
             for nn in range(self.dim):
-                #for ii in range(0,self.data.shape[1]):
+                # for ii in range(0,self.data.shape[1]):
                 #    if ii != nn:
                 #        self.data[nn,nn,nn,nn] -= self.data[ii,ii,nn,nn]
-                self._data[:,nn,nn,nn,nn] -= (numpy.trace(self._data[:,:,:,nn,nn],
-                                                          axis1=1,axis2=2)
-                                            - self._data[:,nn,nn,nn,nn])
+                self._data[:, nn, nn, nn, nn] -= (
+                    numpy.trace(self._data[:, :, :, nn, nn], axis1=1, axis2=2)
+                    - self._data[:, nn, nn, nn, nn]
+                )
 
             # dephasing rates
             for nn in range(self.dim):
-                for mm in range(nn+1,self.dim):
-                    self._data[:,nn,mm,nn,mm] = (self._data[:,nn,nn,nn,nn]
-                                              +self._data[:,mm,mm,mm,mm])/2.0
-                    self._data[:,mm,nn,mm,nn] = self._data[:,nn,mm,nn,mm]
-
+                for mm in range(nn + 1, self.dim):
+                    self._data[:, nn, mm, nn, mm] = (
+                        self._data[:, nn, nn, nn, nn] + self._data[:, mm, mm, mm, mm]
+                    ) / 2.0
+                    self._data[:, mm, nn, mm, nn] = self._data[:, nn, mm, nn, mm]
 
     def __mult__(self, scalar: Any) -> RelaxationTensor:
-        """Multiplication of the Tensor by a scalar
-
-        """
+        """Multiplication of the Tensor by a scalar"""
         import numbers
 
         if not isinstance(scalar, numbers.Number):
@@ -341,34 +300,25 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         if self.as_operators:
             raise Exception("Multiplication in operator form not implemented")
 
-        self._data = self._data*scalar
+        self._data = self._data * scalar
         return self
-
 
     def __rmult__(self, scalar: Any) -> RelaxationTensor:
         return self.__mult__(scalar)
-
 
     def __add__(self, other: RelaxationTensor) -> RelaxationTensor:
         self._data += other._data
         return self
 
-
     def __iadd__(self, other: RelaxationTensor) -> RelaxationTensor:
         return self.__add__(other)
 
-
     def _rhs(self, rho: Any) -> Any:
-        """Applies the tensor to a given matrix
-
-        """
+        """Applies the tensor to a given matrix"""
         if self.as_operators:
-
             return self._rhs_as_operators(rho)
 
-
         return self._rhs_as_tensor(rho)
-
 
     def _rhs_as_operators(self, rho: Any) -> Any:
         """Applies the tensor in form of a set of operators to a given matrix
@@ -387,7 +337,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         """
         pass
 
-
     def _rhs_as_tensor(self, rho: Any) -> Any:
         """Applies the tensor to a given matrix
 
@@ -404,5 +353,3 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
 
         """
         return numpy.tensordot(self.data, rho)
-
-

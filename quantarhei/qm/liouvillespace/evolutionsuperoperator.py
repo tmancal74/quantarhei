@@ -180,6 +180,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 # standard library imports
@@ -202,7 +203,8 @@ from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 from ..propagators.rdmpropagator import ReducedDensityMatrixPropagator
 from .superoperator import SuperOperator
 
-#from ...utils.types import BasisManagedComplexArray
+# from ...utils.types import BasisManagedComplexArray
+
 
 class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     """Class representing evolution superoperator
@@ -236,8 +238,15 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
     """
 
-    def __init__(self, time: Any = None, ham: Any = None, relt: Any = None,
-                 pdeph: Any = None, mode: str = "all", block: Any = None) -> None:
+    def __init__(
+        self,
+        time: Any = None,
+        ham: Any = None,
+        relt: Any = None,
+        pdeph: Any = None,
+        mode: str = "all",
+        block: Any = None,
+    ) -> None:
         super().__init__()
 
         self.time = time
@@ -268,7 +277,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             N1 = self.dim
             N2 = self.dim
 
-        elif self.block == (0,1):
+        elif self.block == (0, 1):
             N1 = self.dim
             N2 = self.dim
 
@@ -278,7 +287,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             self.ham.rwa_indices
 
         if (self.time is not None) and (self.mode == "all"):
-
             self.data = numpy.zeros((Nt, N1, N2, N1, N2), dtype=COMPLEX)
             #
             # zero time value (unity superoperator)
@@ -286,27 +294,24 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             dim = self.dim
             for i in range(dim):
                 for j in range(dim):
-                    self.data[0,i,j,i,j] = 1.0
+                    self.data[0, i, j, i, j] = 1.0
 
         else:
-
-            self.data = numpy.zeros((self.dim, self.dim, self.dim, self.dim),
-                                dtype=COMPLEX)
+            self.data = numpy.zeros(
+                (self.dim, self.dim, self.dim, self.dim), dtype=COMPLEX
+            )
             #
             # zero time value (unity superoperator)
             #
             dim = self.dim
             for i in range(dim):
                 for j in range(dim):
-                    self.data[i,j,i,j] = 1.0
+                    self.data[i, j, i, j] = 1.0
 
         self.now = 0
 
-
     def get_Hamiltonian(self) -> Any:
-        """Returns the Hamiltonian associated with thise evolution
-
-        """
+        """Returns the Hamiltonian associated with thise evolution"""
         return self.ham
 
     def set_dense_dt(self, Nt: int) -> None:
@@ -319,68 +324,53 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             for numerical propagation
 
         """
-        self.dense_time = TimeAxis(0.0, Nt+1, self.time.step/Nt)
-
+        self.dense_time = TimeAxis(0.0, Nt + 1, self.time.step / Nt)
 
     def update_dense_time(self, i: int) -> None:
-        """Update the start time of the dense_time
-
-
-        """
+        """Update the start time of the dense_time"""
         start = self.time.data[i]
 
         self.dense_time.start = start
-        self.dense_time = TimeAxis(self.dense_time.start,
-                                   self.dense_time.length,
-                                   self.dense_time.step)
-
+        self.dense_time = TimeAxis(
+            self.dense_time.start, self.dense_time.length, self.dense_time.step
+        )
 
     def set_PureDephasing(self, pdeph: Any) -> None:
-        """Sets the PureDephasing object for the dynamic calculation
-
-        """
+        """Sets the PureDephasing object for the dynamic calculation"""
         self.pdeph = pdeph
 
-
     def has_PureDephasing(self) -> bool:
-        """Return True if the EvolutionSuperOperator has pure dephasing
-
-        """
+        """Return True if the EvolutionSuperOperator has pure dephasing"""
         if self.pdeph is None:
             return False
         return True
 
-
     def _initialize_data(self, save: bool = False) -> None:
-        """Initializes EvolutionSuperOperator data
-
-        """
+        """Initializes EvolutionSuperOperator data"""
         #
         # Create new data
         #
 
         if (self.mode == "all") or save:
-
             # if we are supposed to save all time steps
             Nt = self.time.length
-            self.data = numpy.zeros((Nt, self.dim, self.dim,
-                                         self.dim, self.dim),
-                                         dtype=COMPLEX)
+            self.data = numpy.zeros(
+                (Nt, self.dim, self.dim, self.dim, self.dim), dtype=COMPLEX
+            )
             #
             # zero time value (unity superoperator)
             #
             dim = self.dim
             for i in range(dim):
                 for j in range(dim):
-                    self.data[0,i,j,i,j] = 1.0
+                    self.data[0, i, j, i, j] = 1.0
 
         elif self.mode == "jit":
-
             # if we need to keep only the last state
             if self.dim != self.data.shape[0]:
-                self.data = numpy.zeros((self.dim, self.dim,
-                                         self.dim, self.dim),
-                                         dtype=COMPLEX)
+                self.data = numpy.zeros(
+                    (self.dim, self.dim, self.dim, self.dim), dtype=COMPLEX
+                )
 
             #
             # zero time value (unity superoperator)
@@ -388,8 +378,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             dim = self.dim
             for i in range(dim):
                 for j in range(dim):
-                    self.data[i,j,i,j] = 1.0
-
+                    self.data[i, j, i, j] = 1.0
 
     def calculate(self, show_progress: bool = False) -> None:
         """Calculates the data of the evolution superoperator
@@ -407,86 +396,79 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #
         #  FIXME: This functionality should be achieved by a decorator
         #
-        #if Manager()._in_eigenbasis_of_context:
+        # if Manager()._in_eigenbasis_of_context:
         #    raise Exception("This function MUST be called outside"+
         #                    " a basis context")
 
         if self.mode != "all":
-            raise Exception("This method (calculate()) can be used only"
-                            " with mode='all'")
+            raise Exception(
+                "This method (calculate()) can be used only with mode='all'"
+            )
         Nt = self.time.length
 
         self._initialize_data()
-
 
         #
         # Let us propagate from t0 to t0+dt*(self.dense_time.length-1)
         #
 
         if (self.pdeph is not None) and (self.pdeph.dtype == "Gaussian"):
-
             #
             # We calculate every interval completely
             #
             for ti in range(1, Nt):
-
-                t0 = self.time.data[ti-1] # initial time of the propagation
+                t0 = self.time.data[ti - 1]  # initial time of the propagation
 
                 Ut1 = self._elemental_step_TimeDependent(t0)
 
-                self.data[ti,:,:,:,:] = \
-                    numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
+                self.data[ti, :, :, :, :] = numpy.tensordot(
+                    Ut1, self.data[ti - 1, :, :, :, :]
+                )
 
         elif (self.relt is not None) and self.relt.is_time_dependent:
-
             #
             # Time dependent relaxation tensor requires a complete calculation
             #
             self._all_steps_time_dep()
 
         else:
-
             #
             # We calculate the first step of the first interval
             #
             t0 = 0.0
 
-            self.data[1,:,:,:,:] = self._one_step_with_dense_TimeIndep(t0,
-                                                    self.dense_time.length,
-                                                    self.dense_time.step,Nt)
-
+            self.data[1, :, :, :, :] = self._one_step_with_dense_TimeIndep(
+                t0, self.dense_time.length, self.dense_time.step, Nt
+            )
 
             #
             # repeat propagation over the longer interval
             #
             self._calculate_remainig_using_first_interval(Nt)
 
-
         if self.ham.has_rwa:
             # evolution was calculated in RWA
             self.is_in_rwa = True
 
-
-    def _elemental_step_TimeIndep(self, t0: float, dens_dt: float, Nt: int) -> numpy.ndarray:
-        """Single elemental step of propagation with the dense time step
-
-        """
+    def _elemental_step_TimeIndep(
+        self, t0: float, dens_dt: float, Nt: int
+    ) -> numpy.ndarray:
+        """Single elemental step of propagation with the dense time step"""
         dim = self.ham.dim
         one_step_time = TimeAxis(t0, 2, self.dense_time.step)
-        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                              RTensor=self.relt,
-                                              PDeph=self.pdeph)
+        prop = ReducedDensityMatrixPropagator(
+            one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
+        )
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
             for m in range(dim):
-                rhonm0.data[n,m] = 1.0
+                rhonm0.data[n, m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                Ut1[:,:,n,m] = rhot.data[1,:,:]
-                rhonm0.data[n,m] = 0.0
+                Ut1[:, :, n, m] = rhot.data[1, :, :]
+                rhonm0.data[n, m] = 0.0
 
         return Ut1
-
 
     def _elemental_step_TimeDependent(self, t0: float) -> numpy.ndarray:
         """Single step of propagation with the dense time step
@@ -495,28 +477,24 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         dim = self.dim
-        one_step_time = TimeAxis(t0, self.dense_time.length,
-                                 self.dense_time.step)
+        one_step_time = TimeAxis(t0, self.dense_time.length, self.dense_time.step)
 
-        prop = ReducedDensityMatrixPropagator(one_step_time, self.ham,
-                                              RTensor=self.relt,
-                                              PDeph=self.pdeph)
+        prop = ReducedDensityMatrixPropagator(
+            one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
+        )
         rhonm0 = ReducedDensityMatrix(dim=dim)
         Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
             for m in range(dim):
-                rhonm0.data[n,m] = 1.0
+                rhonm0.data[n, m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                Ut1[:,:,n,m] = rhot.data[one_step_time.length-1,:,:]
-                rhonm0.data[n,m] = 0.0
-                #self.now += 1
+                Ut1[:, :, n, m] = rhot.data[one_step_time.length - 1, :, :]
+                rhonm0.data[n, m] = 0.0
+                # self.now += 1
         return Ut1
 
-
     def _all_steps_time_dep(self) -> None:
-        """Calculates a complete evolution superoperator
-
-        """
+        """Calculates a complete evolution superoperator"""
         dim = self.dim
         time = self.time
 
@@ -524,9 +502,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         systime = self.relt.SystemBathInteraction.TimeAxis
 
         if not time.is_subset_of(systime):
-
-            raise Exception("Incompatible time axes"
-                            " (RelaxationTensor vs. EvolutionSuperOperator)")
+            raise Exception(
+                "Incompatible time axes (RelaxationTensor vs. EvolutionSuperOperator)"
+            )
 
         # # requested number of refinement steps
         # if self.dense_time is not None:
@@ -545,32 +523,29 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #           " neatly into a step of", time.step,"fs")
         #     raise Exception("Incompatible number of refinement steps")
 
-
         # print("A stride over system time:", stride)
 
+        prop = ReducedDensityMatrixPropagator(time, self.ham, RTensor=self.relt)
 
-        prop = ReducedDensityMatrixPropagator(time, self.ham,
-                                              RTensor=self.relt)
-
-        Nref = self.dense_time.length-1
+        Nref = self.dense_time.length - 1
         prop.setDtRefinement(Nref)
 
-        #print(time.length, time.step, self.dense_time.length-1)
+        # print(time.length, time.step, self.dense_time.length-1)
 
         rhonm0 = ReducedDensityMatrix(dim=dim)
 
         for n in range(dim):
             for m in range(dim):
-                rhonm0.data[n,m] = 1.0
+                rhonm0.data[n, m] = 1.0
                 rhot = prop.propagate(rhonm0)
-                self.data[:,:,:,n,m] = rhot.data[:,:,:]
-                #if n != m:
+                self.data[:, :, :, n, m] = rhot.data[:, :, :]
+                # if n != m:
                 #    self.data[:,:,:,m,n] = numpy.conj()
-                rhonm0.data[n,m] = 0.0
+                rhonm0.data[n, m] = 0.0
 
-
-
-    def _one_step_with_dense_TimeIndep(self, t0: float, Ndense: int, dens_dt: float, Nt: int) -> numpy.ndarray:
+    def _one_step_with_dense_TimeIndep(
+        self, t0: float, Ndense: int, dens_dt: float, Nt: int
+    ) -> numpy.ndarray:
         """One step of propagation over the standard time step
 
         This step is componsed of Ndense time steps
@@ -581,40 +556,31 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         # propagation to the end of the first interval
         #
         Udt = numpy.zeros(Ut1.shape, dtype=COMPLEX)
-        Udt[:,:,:,:] = Ut1[:,:,:,:]
+        Udt[:, :, :, :] = Ut1[:, :, :, :]
         for ti in range(2, self.dense_time.length):
             Udt = numpy.tensordot(Ut1, Udt)
         return Udt
 
-
     def _calculate_remainig_using_first_interval(self, Nt: int) -> None:
-        """Calculate the rest of the superoperator with known first interval
-
-
-        """
-        Udt = self.data[1,:,:,:,:]
+        """Calculate the rest of the superoperator with known first interval"""
+        Udt = self.data[1, :, :, :, :]
 
         for ti in range(2, Nt):
-
-            self.data[ti,:,:,:,:] = \
-                numpy.tensordot(Udt, self.data[ti-1,:,:,:,:])
-
+            self.data[ti, :, :, :, :] = numpy.tensordot(
+                Udt, self.data[ti - 1, :, :, :, :]
+            )
 
     def calculate_next(self, save: bool = False) -> None:
-        """Calculates one point of data of the superopetor
-
-        """
+        """Calculates one point of data of the superopetor"""
         if self.mode != "jit":
-            raise Exception("This method (calculate_next()) can be used only"
-                            " with mode='jit'")
+            raise Exception(
+                "This method (calculate_next()) can be used only with mode='jit'"
+            )
 
         Nt = self.time.length
 
         if (self.pdeph is not None) and (self.pdeph.dtype == "Gaussian"):
-
-
             if self.now == 0:
-
                 #
                 # Create new data
                 #
@@ -625,21 +591,20 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             #
             ti = self.now + 1
 
-            t0 = self.time.data[ti-1] # initial time of the propagation
+            t0 = self.time.data[ti - 1]  # initial time of the propagation
 
             Ut1 = self._elemental_step_TimeDependent(t0)
 
             if save:
-                self.data[ti, :,:,:,:] = \
-                numpy.tensordot(Ut1, self.data[ti-1,:,:,:,:])
+                self.data[ti, :, :, :, :] = numpy.tensordot(
+                    Ut1, self.data[ti - 1, :, :, :, :]
+                )
             else:
-                self.data[:,:,:,:] = \
-                    numpy.tensordot(Ut1, self.data[:,:,:,:])
+                self.data[:, :, :, :] = numpy.tensordot(Ut1, self.data[:, :, :, :])
 
             self.now += 1
 
         else:
-
             #
             # Propagation in the first interval
             #
@@ -651,14 +616,14 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
                 t0 = 0.0
 
-                self.Udt = self._one_step_with_dense_TimeIndep(t0,
-                                                    self.dense_time.length,
-                                                    self.dense_time.step, Nt)
+                self.Udt = self._one_step_with_dense_TimeIndep(
+                    t0, self.dense_time.length, self.dense_time.step, Nt
+                )
 
                 if save:
-                    self.data[1,:,:,:,:] = self.Udt[:,:,:,:]
+                    self.data[1, :, :, :, :] = self.Udt[:, :, :, :]
                 else:
-                    self.data[:,:,:,:] = self.Udt[:,:,:,:]
+                    self.data[:, :, :, :] = self.Udt[:, :, :, :]
 
                 self.now += 1
 
@@ -666,18 +631,18 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # Propagations of the later intervals
             #
             else:
-
                 ti = self.now + 1
 
                 if save:
-                    self.data[ti, :,:,:,:] = \
-                        numpy.tensordot(self.Udt, self.data[ti-1,:,:,:,:])
+                    self.data[ti, :, :, :, :] = numpy.tensordot(
+                        self.Udt, self.data[ti - 1, :, :, :, :]
+                    )
                 else:
-                    self.data[:,:,:,:] = \
-                        numpy.tensordot(self.Udt, self.data[:,:,:,:])
+                    self.data[:, :, :, :] = numpy.tensordot(
+                        self.Udt, self.data[:, :, :, :]
+                    )
 
                 self.now += 1
-
 
     def at(self, time: float | None = None) -> SuperOperator:
         """Retruns evolution superoperator tensor at a given time
@@ -696,7 +661,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             return SuperOperator(data=self.data[ti, :, :, :, :])
         return SuperOperator(data=self.data)
-
 
     def apply(self, time: Any, target: Any, copy: bool = True) -> Any:
         """Applies the evolution superoperator at a given time
@@ -718,26 +682,23 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         if isinstance(time, numbers.Real):
-
             #
             # Apply at a single point in time and return ReducedDensityMatrix
             #
             ti, dt = self.time.locate(time)
             if copy:
                 import copy
+
                 oper_ven = copy.copy(target)
-                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                                target.data)
+                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
                 return oper_ven
-            target.data = numpy.tensordot(self.data[ti, :, :, :, :],
-                                          target.data)
+            target.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
             return target
 
         # Probably evaluation at more than one time
         # here, `copy` parameter is irrelevant
 
         if isinstance(time, str) or (id(time) == id(self.time)):
-
             #
             # Either we say time="all" or time= exactly the time axis
             # of the evolution superoperator
@@ -747,22 +708,21 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             if isinstance(time, str):
                 if time != "all":
-                    raise Exception("When argument time is a string, "
-                                    "it must be equal to 'all'")
+                    raise Exception(
+                        "When argument time is a string, it must be equal to 'all'"
+                    )
 
-            rhot = ReducedDensityMatrixEvolution(timeaxis=self.time,
-                                                 rhoi=target)
+            rhot = ReducedDensityMatrixEvolution(timeaxis=self.time, rhoi=target)
             k_i = 0
             for tt in time.data:
-                rhot.data[k_i,:,:] = \
-                numpy.tensordot(self.data[k_i,:,:,:,:],
-                                target.data)
+                rhot.data[k_i, :, :] = numpy.tensordot(
+                    self.data[k_i, :, :, :, :], target.data
+                )
                 k_i += 1
 
             return rhot
 
         if isinstance(time, (list, numpy.array, tuple, TimeAxis)):
-
             #
             # we apply at points specified by TimeAxis
             #
@@ -770,23 +730,21 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 ntime = time
             else:
                 length = len(time)
-                dt = time[1]-time[0]
+                dt = time[1] - time[0]
                 t0 = time[0]
                 ntime = TimeAxis(t0, length, dt)
 
-            rhot = ReducedDensityMatrixEvolution(timeaxis=ntime,
-                                                 rhoi=target)
+            rhot = ReducedDensityMatrixEvolution(timeaxis=ntime, rhoi=target)
 
             k_i = 0
             for tt in ntime.data:
                 Ut = self.at(tt)
-                rhot.data[k_i,:,:] = numpy.tensordot(Ut.data, target.data)
+                rhot.data[k_i, :, :] = numpy.tensordot(Ut.data, target.data)
                 k_i += 1
 
             return rhot
 
         raise Exception("Invalid argument: time")
-
 
     def plot_element(self, elem: Any, part: str = "REAL", show: bool = True) -> None:
         """Plots a selected element of the evolution superoperator
@@ -800,20 +758,19 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         """
         shape = self.data.shape
         tl = self.time.length
-        if (len(elem) == len(shape)-1) and (len(elem) == 4):
-
+        if (len(elem) == len(shape) - 1) and (len(elem) == 4):
             if tl == shape[0]:
                 if part == "REAL":
-                    dat1 = numpy.real(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat1 = numpy.real(self.data[:, elem[0], elem[1], elem[2], elem[3]])
                     dat2 = None
                 elif part == "IMAG":
-                    dat1 = numpy.imag(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat1 = numpy.imag(self.data[:, elem[0], elem[1], elem[2], elem[3]])
                     dat2 = None
                 elif part == "BOTH":
-                    dat1 = numpy.real(self.data[:,elem[0],elem[1],elem[2],elem[3]])
-                    dat2 = numpy.imag(self.data[:,elem[0],elem[1],elem[2],elem[3]])
+                    dat1 = numpy.real(self.data[:, elem[0], elem[1], elem[2], elem[3]])
+                    dat2 = numpy.imag(self.data[:, elem[0], elem[1], elem[2], elem[3]])
                 else:
-                    raise Exception("Unknown data part: "+part)
+                    raise Exception("Unknown data part: " + part)
 
                 plt.plot(self.time.data, dat1)
                 if dat2 is not None:
@@ -825,20 +782,16 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         else:
             print("Nothing to plot")
 
-
     def get_element_fft(self, elem: Any, window: Any = None) -> Any:
-        """Returns a DFunction with the FFT of the element evolution
-
-        """
+        """Returns a DFunction with the FFT of the element evolution"""
         if window is None:
-            winfce = DFunction(self.time,
-                               numpy.ones(self.time.length, dtype=REAL))
+            winfce = DFunction(self.time, numpy.ones(self.time.length, dtype=REAL))
         else:
             winfce = window
 
-        dat = self.data[:,elem[0],elem[1],elem[2],elem[3]]
+        dat = self.data[:, elem[0], elem[1], elem[2], elem[3]]
 
-        fdat = numpy.fft.ifft(dat*winfce.data)
+        fdat = numpy.fft.ifft(dat * winfce.data)
         fdat = numpy.fft.fftshift(fdat)
 
         time = self.time
@@ -847,7 +800,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         ffce = DFunction(freq, fdat)
 
         return ffce
-
 
     # FIXME: In principle, we can define Greens function and return it
     def get_fft(self, window: Any = None, subtract_last: bool = True) -> tuple:
@@ -865,24 +817,22 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         if window is None:
-            winfce = DFunction(self.time,
-                               numpy.ones(self.time.length, dtype=REAL))
+            winfce = DFunction(self.time, numpy.ones(self.time.length, dtype=REAL))
         else:
             winfce = window
 
         dat = self.data
         if subtract_last:
-            dat = dat - dat[-1,:,:,:,:]
+            dat = dat - dat[-1, :, :, :, :]
 
         # FIXME: Implement windowing
-        fdat = numpy.fft.ifft(dat, axis=0) #*winfce.data)
+        fdat = numpy.fft.ifft(dat, axis=0)  # *winfce.data)
         fdat = numpy.fft.fftshift(fdat, axes=0)
 
         time = self.time
         freq = time.get_FrequencyAxis()
 
         return fdat, freq
-
 
     def convert_from_RWA(self, ham: Any = None, sgn: int = 1) -> None:
         """Converts evolution superoperator from RWA to standard repre
@@ -904,26 +854,23 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             ham = self.ham
 
         if (self.is_in_rwa and sgn == 1) or sgn == -1:
-
             HOmega = ham.get_RWA_skeleton()
 
             for i, t in enumerate(self.time.data):
                 # evolution operator
-                Ut = numpy.diag(numpy.diag(numpy.exp(-sgn*1j*HOmega*t)))
+                Ut = numpy.diag(numpy.diag(numpy.exp(-sgn * 1j * HOmega * t)))
                 Uc = numpy.conj(Ut)
 
                 # revert RWA
                 dim = self.ham.dim
                 for aa in range(dim):
                     for bb in range(dim):
-
-                        self.data[i,aa,bb,:,:] = \
-                            Ut[aa]*Uc[bb]*self.data[i,aa,bb,:,:]
-
+                        self.data[i, aa, bb, :, :] = (
+                            Ut[aa] * Uc[bb] * self.data[i, aa, bb, :, :]
+                        )
 
         if sgn == 1:
             self.is_in_rwa = False
-
 
     def convert_to_RWA(self, ham: Any) -> None:
         """Converts evolution superoperator from standard repre to RWA
@@ -939,21 +886,18 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             self.convert_from_RWA(ham, sgn=-1)
             self.is_in_rwa = True
 
-
-
-
     def __str__(self) -> str:
-        out  = "\nquantarhei.EvolutionSuperOperator object"
+        out = "\nquantarhei.EvolutionSuperOperator object"
         out += "\n========================================"
-#        out += "\nunits of energy %s" % self.unit_repr()
-#        out += "\nRotating Wave Approximation (RWA) enabled : "\
-#            +str(self.has_rwa)
-#        if self.has_rwa:
-#            out += "\nNumber of blocks : "+str(self.Nblocks)
-#            out += "\nBlock average energies:"
-#            for k in range(self.Nblocks):
-#                out += "\n "+str(k)+" : "\
-#                +str(self.rwa_energies[self.rwa_indices[k]])
-        #out += "\ndata = \n"
-        #out += str(self.data)
+        #        out += "\nunits of energy %s" % self.unit_repr()
+        #        out += "\nRotating Wave Approximation (RWA) enabled : "\
+        #            +str(self.has_rwa)
+        #        if self.has_rwa:
+        #            out += "\nNumber of blocks : "+str(self.Nblocks)
+        #            out += "\nBlock average energies:"
+        #            for k in range(self.Nblocks):
+        #                out += "\n "+str(k)+" : "\
+        #                +str(self.rwa_energies[self.rwa_indices[k]])
+        # out += "\ndata = \n"
+        # out += str(self.data)
         return out

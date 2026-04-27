@@ -1,8 +1,5 @@
-"""Logging module of the Quantarhei package
+"""Logging module of the Quantarhei package"""
 
-
-
-"""
 from __future__ import annotations
 
 import traceback
@@ -20,6 +17,7 @@ def init_logging() -> None:
     manager = qr.Manager().log_conf
     try:
         from mpi4py import MPI
+
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
@@ -27,7 +25,7 @@ def init_logging() -> None:
             manager.is_serial = True
         else:
             manager.is_serial = False
-            manager.log_file_appendix = "."+str(rank)
+            manager.log_file_appendix = "." + str(rank)
     except ImportError:
         manager.is_serial = True
     manager.initialized = True
@@ -55,8 +53,14 @@ def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:
     printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)
 
 
-def printlog(*args: Any, verbose: bool = True, loglevel: int = 5,
-             incr_indent: int = 0, use_indent: bool = True, **kwargs: Any) -> None:
+def printlog(
+    *args: Any,
+    verbose: bool = True,
+    loglevel: int = 5,
+    incr_indent: int = 0,
+    use_indent: bool = True,
+    **kwargs: Any,
+) -> None:
     """Prints logging information
 
 
@@ -109,7 +113,6 @@ def printlog(*args: Any, verbose: bool = True, loglevel: int = 5,
     if (loglevel > 10) or (loglevel < 0):
         raise Exception("Loglevel must be between 0 and 10")
 
-
     manager = qr.Manager().log_conf
     if not manager.initialized:
         init_logging()
@@ -120,23 +123,22 @@ def printlog(*args: Any, verbose: bool = True, loglevel: int = 5,
     manager.log_indent += incr_indent
 
     if loglevel <= manager.verbosity:
-
         if manager.log_on_screen:
             if use_indent:
-                indent = " "*manager.log_indent
+                indent = " " * manager.log_indent
             else:
                 indent = ""
             print(indent, *args, **kwargs)
 
     if loglevel <= manager.fverbosity:
-
         if manager.log_to_file:
             if not manager.log_file_opened:
-                manager.log_file = open(manager.log_file_name
-                                        +manager.log_file_appendix, "w")
+                manager.log_file = open(
+                    manager.log_file_name + manager.log_file_appendix, "w"
+                )
                 manager.log_file_opened = True
             if use_indent:
-                indent = " "*manager.log_indent
+                indent = " " * manager.log_indent
             else:
                 indent = ""
             if "end" in kwargs.keys():
@@ -190,7 +192,7 @@ def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
     [False, False, False, False, False]
 
     """
-    verb = [False]*len(loglevs)
+    verb = [False] * len(loglevs)
 
     if verbose:
         m = qr.Manager().log_conf
@@ -216,7 +218,7 @@ def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
             print("#", messg)
         val = eval(globals()[var])
         if isinstance(val, str):
-            val = '"'+val+'"'
+            val = '"' + val + '"'
         print(var, "=", val)
 
     except Exception:
@@ -228,15 +230,13 @@ def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
             globals()[var] = default
             val = eval(globals()[var])
             if isinstance(val, str):
-                val = '"'+val+'"'
-            print(var,"=", val, "# (default)")
+                val = '"' + val + '"'
+            print(var, "=", val, "# (default)")
 
 
 def log_to_file(filename: str = "qrhei.log") -> None:
-    """Set logging to file
-
-    """
+    """Set logging to file"""
     manager = qr.Manager().log_conf
-    #manager.log_on_screen = False
+    # manager.log_on_screen = False
     manager.log_to_file = True
     manager.log_file_name = filename

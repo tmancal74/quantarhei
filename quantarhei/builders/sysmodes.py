@@ -26,13 +26,8 @@ class HarmonicMode(SubMode, OpenSystem):
         self.gamma = 0.0
         self.RT = None
 
-
     def build(self, nmax: int | None = None, build_relaxation: bool = False) -> None:
-        """Building all necessary quantities
-
-
-
-        """
+        """Building all necessary quantities"""
         # if provided, we reset nmax
         if nmax is not None:
             self.nmax = nmax
@@ -47,11 +42,11 @@ class HarmonicMode(SubMode, OpenSystem):
         # Hamiltonian
         #
         EE = ofac.unity_operator()
-        hh = self.omega*(numpy.dot(ad,aa) + EE*0.5)
-        HH = numpy.zeros((N,N), dtype=REAL)
-        HH[:,:] = hh[:N,:N]
+        hh = self.omega * (numpy.dot(ad, aa) + EE * 0.5)
+        HH = numpy.zeros((N, N), dtype=REAL)
+        HH[:, :] = hh[:N, :N]
 
-        HH -= HH[0,0]*EE[:N,:N]
+        HH -= HH[0, 0] * EE[:N, :N]
 
         self.HH = HH
 
@@ -76,38 +71,39 @@ class HarmonicMode(SubMode, OpenSystem):
         self._built = True
         self._diagonalized = True
 
-
     def diagonalize(self) -> None:
-        """This problem is diagonal from the begining
-
-        """
+        """This problem is diagonal from the begining"""
         if self._diagonalized:
             return
 
-
         self._diagonalized = True
 
+    def _setup_dipole_moment(
+        self,
+        N: int,
+        ad: numpy.ndarray,
+        aa: numpy.ndarray,
+        ss: numpy.ndarray | None = None,
+        pfac: float = 1.0,
+    ) -> None:
 
-    def _setup_dipole_moment(self, N: int, ad: numpy.ndarray, aa: numpy.ndarray, ss: numpy.ndarray | None = None, pfac: float = 1.0) -> None:
-
-        DD = numpy.zeros((N,N,3), dtype=REAL)
+        DD = numpy.zeros((N, N, 3), dtype=REAL)
 
         # FIXME: In what units we define transition dipole moment?
-        dip = pfac*(ad + aa)/numpy.sqrt(2.0)
+        dip = pfac * (ad + aa) / numpy.sqrt(2.0)
 
         # transform if needed
         if ss is not None:
             s1 = numpy.linalg.inv(ss)
-            dip = numpy.dot(s1, numpy.dot(dip,ss))
+            dip = numpy.dot(s1, numpy.dot(dip, ss))
 
-        DD[:,:,0] = numpy.real(dip[:N,:N])
+        DD[:, :, 0] = numpy.real(dip[:N, :N])
         self.DD = DD
 
         # FIXME: make this on-demand (if poissible)
-        trdata = numpy.zeros((DD.shape[0],DD.shape[1],DD.shape[2]),dtype=REAL)
-        trdata[:,:,:] = DD[:,:,:]
+        trdata = numpy.zeros((DD.shape[0], DD.shape[1], DD.shape[2]), dtype=REAL)
+        trdata[:, :, :] = DD[:, :, :]
         self.TrDMOp = TransitionDipoleMoment(data=trdata)
-
 
     # def get_Hamiltonian(self):
     #     """Returns the system Hamiltonian
@@ -117,7 +113,6 @@ class HarmonicMode(SubMode, OpenSystem):
     #         return self.HamOp
     #     else:
     #         raise Exception("The Mode has to be built first.")
-
 
     # def get_TransitionDipoleMoment(self):
     #     """Returns the aggregate transition dipole moment operator
@@ -135,15 +130,10 @@ class HarmonicMode(SubMode, OpenSystem):
     #     else:
     #         raise Exception("The Mode has to be built first.")
 
-
-
     def set_mode_environment(self, environ: object, pdeph: float | None = None) -> None:
-        """
-
-        """
+        """ """
 
         if isinstance(environ, (int, float)):
-
             self.gamma = environ
             self.pdeph = pdeph
 
@@ -152,71 +142,62 @@ class HarmonicMode(SubMode, OpenSystem):
 
             # relaxation
             if self.gamma > 0.0:
-                for kk in range(self.nmax-1):
-                    op = ProjectionOperator(to_state=kk, from_state=kk+1, dim=self.nmax)
+                for kk in range(self.nmax - 1):
+                    op = ProjectionOperator(
+                        to_state=kk, from_state=kk + 1, dim=self.nmax
+                    )
                     ops.append(op)
-                    rts.append(numpy.sqrt(float(kk+1))*self.gamma)
+                    rts.append(numpy.sqrt(float(kk + 1)) * self.gamma)
 
             # pure dephasing
             if (self.pdeph is not None) and (self.pdeph > 0.0):
                 for kk in range(self.nmax):
                     op = ProjectionOperator(to_state=kk, from_state=kk, dim=self.nmax)
                     ops.append(op)
-                    rts.append(numpy.sqrt(float(kk))*self.pdeph)
-
+                    rts.append(numpy.sqrt(float(kk)) * self.pdeph)
 
             self.sbi = SystemBathInteraction(sys_operators=ops, rates=rts)
 
             self._has_sbi = True
 
         else:
-
             raise Exception("Environment not implemented")
 
 
-
-
 class AnharmonicMode(HarmonicMode):
-    """
+    """ """
 
-
-
-    """
     def __init__(self, omega: float = 1.0, shift: float = 0.0, nmax: int = 2) -> None:
-        """In this case, omega is the difference between levels 1 and 0
-
-        """
+        """In this case, omega is the difference between levels 1 and 0"""
         super().__init__(omega=omega, shift=shift, nmax=nmax)
 
         # unharmonicity
         self.xi = 0.0
-        self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
+        self.om0 = self.omega * (1.0 / (1.0 - 2.0 * self.xi))
         self.dom = self.om0 - self.omega
 
         self._diagonalized = True
 
-
     def set_anharmonicity(self, xi: float) -> None:
-        """Sets the ocillator anharmonicity
-
-        """
+        """Sets the ocillator anharmonicity"""
         self.xi = xi
         # corresponding harmonic frequency
-        self.om0 = self.omega*(1.0/(1.0-2.0*self.xi))
+        self.om0 = self.omega * (1.0 / (1.0 - 2.0 * self.xi))
         self.dom = self.om0 - self.omega
 
-
     def get_anharmonicity(self, dom: float | None = None) -> float:
-        """Returns the ahnarmonicity set previously, or calculates anharmonicity from frequency difference
-
-        """
+        """Returns the ahnarmonicity set previously, or calculates anharmonicity from frequency difference"""
         if dom is None:
             return self.xi
         dom_int = self.convert_energy_2_internal_u(dom)
-        return dom_int/(2.0*(self.omega + dom_int))
+        return dom_int / (2.0 * (self.omega + dom_int))
 
-
-    def build(self, nmax: int | None = None, xi: float | None = None, build_relaxation: bool = False) -> None:
+    def build(
+        self,
+        nmax: int | None = None,
+        xi: float | None = None,
+        build_relaxation: bool = False,
+    ) -> None:
         """Building all necessary quantities"""
         # if provided, we reset nmax
         if nmax is not None:
@@ -230,14 +211,14 @@ class AnharmonicMode(HarmonicMode):
         #
         #  Exact Hamiltonian
         #
-        HH = numpy.zeros((N,N), dtype=REAL)
+        HH = numpy.zeros((N, N), dtype=REAL)
 
         # energy levels are known exactly
         for nn in range(N):
-            HH[nn,nn] = self.om0*(nn + 0.5) - self.om0*self.xi*((nn + 0.5)**2)
+            HH[nn, nn] = self.om0 * (nn + 0.5) - self.om0 * self.xi * ((nn + 0.5) ** 2)
             if nn == 0:
-                hzer = HH[0,0]
-            HH[nn,nn] -= hzer
+                hzer = HH[0, 0]
+            HH[nn, nn] -= hzer
 
         # saving the exact Hamiltonian (this line will be removed later)
         self.HamOp_ex = Hamiltonian(data=HH)
@@ -249,35 +230,37 @@ class AnharmonicMode(HarmonicMode):
         ad = ofac.creation_operator()
         aa = ofac.anihilation_operator()
         EE = ofac.unity_operator()
-        qq = (ad + aa)/numpy.sqrt(2.0)
-        pp = 1j*(ad - aa)/numpy.sqrt(2.0)
+        qq = (ad + aa) / numpy.sqrt(2.0)
+        pp = 1j * (ad - aa) / numpy.sqrt(2.0)
 
-        hm = (self.omega/2.0)*(numpy.dot(pp,pp) + numpy.dot(qq,qq))
+        hm = (self.omega / 2.0) * (numpy.dot(pp, pp) + numpy.dot(qq, qq))
 
         # potential
-        earg = numpy.sqrt(2.0*self.xi)*qq
+        earg = numpy.sqrt(2.0 * self.xi) * qq
         de, ss = numpy.linalg.eigh(earg)
 
         # e^{-a q}
-        e_argd = numpy.dot(ss, numpy.dot(numpy.diag(numpy.exp(-de)), numpy.linalg.inv(ss)))
+        e_argd = numpy.dot(
+            ss, numpy.dot(numpy.diag(numpy.exp(-de)), numpy.linalg.inv(ss))
+        )
         # 1 - e^{-a q}
         sqrtV = EE - e_argd
         # De*(1- e^{-a q})
-        V_morse = (self.om0/(4.0*self.xi))*numpy.dot(sqrtV,sqrtV)
+        V_morse = (self.om0 / (4.0 * self.xi)) * numpy.dot(sqrtV, sqrtV)
 
-        hm = (self.om0/2.0)*numpy.dot(pp,pp) + V_morse
+        hm = (self.om0 / 2.0) * numpy.dot(pp, pp) + V_morse
 
         hd, SS = numpy.linalg.eigh(hm)
 
         # saving transformation coefficients
-        self.SS = SS[:N,:N]
+        self.SS = SS[:N, :N]
 
-        HM = numpy.zeros((N,N), dtype=REAL)
-        HM[:,:] = numpy.real(numpy.diag(hd[:N]))
+        HM = numpy.zeros((N, N), dtype=REAL)
+        HM[:, :] = numpy.real(numpy.diag(hd[:N]))
 
-        hzer = HM[0,0]
+        hzer = HM[0, 0]
         for nn in range(N):
-            HM[nn,nn] -= hzer
+            HM[nn, nn] -= hzer
 
         self.HH = HM
 
@@ -289,7 +272,6 @@ class AnharmonicMode(HarmonicMode):
         #  Dipole moment
         #
         self._setup_dipole_moment(N, ad, aa, ss=SS)
-
 
         #
         # Relaxation
@@ -303,5 +285,3 @@ class AnharmonicMode(HarmonicMode):
         self._built = True
         # this system is prepared in its eigenstate basis
         self._diagonalized = True
-
-

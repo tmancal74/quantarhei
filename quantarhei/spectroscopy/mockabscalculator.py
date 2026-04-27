@@ -13,14 +13,15 @@ from .abscalculator import AbsSpectrumCalculator
 
 
 class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
-
-
-    def bootstrap(self, rwa: float = 0.0, pathways: Any = None, lab: Any = None,
-                  shape: str = "Gaussian", verbose: bool = False) -> None:
-        """Prepare for the spectrum calculation
-
-
-        """
+    def bootstrap(
+        self,
+        rwa: float = 0.0,
+        pathways: Any = None,
+        lab: Any = None,
+        shape: str = "Gaussian",
+        verbose: bool = False,
+    ) -> None:
+        """Prepare for the spectrum calculation"""
         self.shape = shape
 
         self.verbose = verbose
@@ -29,7 +30,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
 
         # TimeAxis is set in the constructor (__init__ method)
         atype = self.TimeAxis.atype
-        self.TimeAxis.atype = 'complete'
+        self.TimeAxis.atype = "complete"
         self.oa1 = self.TimeAxis.get_FrequencyAxis()
         self.oa1.data += self.rwa
         self.oa1.start += self.rwa
@@ -45,58 +46,45 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
 
         if pathways is None:
             # FIXME: this needs to be made in a more transparent manner
-            rho0 = self.system.get_DensityMatrix(condition_type="thermal",
-                                                 temperature=0.0)
+            rho0 = self.system.get_DensityMatrix(
+                condition_type="thermal", temperature=0.0
+            )
             ham = self.system.get_Hamiltonian()
-            pthways = self.system.liouville_pathways_1(lab=lab, ham=ham,
-                                                       etol=1.0e-5,
-                                                       verbose=0)
+            pthways = self.system.liouville_pathways_1(
+                lab=lab, ham=ham, etol=1.0e-5, verbose=0
+            )
             self.set_pathways(pthways)
 
     # FIXME: energy/frequency units
     def set_width(self, val: float) -> None:
-        """Set the spectral width as FWHM
-
-
-        """
+        """Set the spectral width as FWHM"""
         self.widthx = val
 
-
     def set_deph(self, val: float) -> None:
-        """Set dephasing rate as 1/(dephasing time)
-
-
-        """
+        """Set dephasing rate as 1/(dephasing time)"""
         self.dephx = val
 
-
     def set_pathways(self, pathways: Any) -> None:
-        """Set Liouville pathways to be used for spectral calculation
-
-        """
+        """Set Liouville pathways to be used for spectral calculation"""
         self.pathways = pathways
 
-
     def calculate(self, raw: bool = False) -> Any:
-        """Calculate the absorption spectrum for all pathways
-
-        """
+        """Calculate the absorption spectrum for all pathways"""
         one = AbsSpectrum()
         one.set_axis(self.oa1)
-        one.set_data(numpy.zeros(self.TimeAxis.length,
-                                dtype=REAL))
+        one.set_data(numpy.zeros(self.TimeAxis.length, dtype=REAL))
 
         k = 0
         for pwy in self.pathways:
-
             data = self.calculate_pathway(pwy, shape=self.shape, raw=raw)
             one.data += data
             k += 1
 
         return one
 
-
-    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian", raw: bool = False) -> numpy.ndarray:
+    def calculate_pathway(
+        self, pathway: Any, shape: str = "Gaussian", raw: bool = False
+    ) -> numpy.ndarray:
         """Calculate the shape of a Liouville pathway
 
 
@@ -131,14 +119,12 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         o1 = self.oa1.data
 
         if shape == "Gaussian":
-
-            data[:] = pref*lineshapes.gaussian(o1, cen1, widthx)
-                      #numpy.sqrt(numpy.log(2.0)/numpy.pi)\
-                      #*numpy.exp(-numpy.log(2.0)*((o1-cen1)/widthx)**2) \
-                      #/widthx
+            data[:] = pref * lineshapes.gaussian(o1, cen1, widthx)
+            # numpy.sqrt(numpy.log(2.0)/numpy.pi)\
+            # *numpy.exp(-numpy.log(2.0)*((o1-cen1)/widthx)**2) \
+            # /widthx
 
         elif shape == "Lorentzian":
-
             if (dephx is None) or (dephx <= 0.0):
                 if pathway.widths[1] < 0.0:
                     widthx = self.widthx
@@ -146,29 +132,23 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
                     widthx = pathway.widths[1]
 
                 # by width we specify FWHM, but gamma is HWHM
-                dephx = 2.0*widthx
+                dephx = 2.0 * widthx
 
-            data[:] = pref*lineshapes.lorentzian(o1, cen1, dephx)
-                      #(dephx/numpy.pi)/((o1-cen1)**2 + dephx**2)
+            data[:] = pref * lineshapes.lorentzian(o1, cen1, dephx)
+            # (dephx/numpy.pi)/((o1-cen1)**2 + dephx**2)
 
         elif shape == "Voigt":
+            # z = (o1 - cen1 + 1j*dephx)*numpy.sqrt(numpy.log(2.0))/widthx
 
-            #z = (o1 - cen1 + 1j*dephx)*numpy.sqrt(numpy.log(2.0))/widthx
-
-            data[:] = pref*lineshapes.voigt(o1, cen1, widthx, dephx)
-                      #numpy.sqrt(numpy.log(2.0))*\
-                      #numpy.real(special.wofz(z)) \
-                      #/(numpy.sqrt(numpy.pi)*widthx)
+            data[:] = pref * lineshapes.voigt(o1, cen1, widthx, dephx)
+            # numpy.sqrt(numpy.log(2.0))*\
+            # numpy.real(special.wofz(z)) \
+            # /(numpy.sqrt(numpy.pi)*widthx)
 
         else:
-            raise Exception("Unknown line shape: "+shape)
+            raise Exception("Unknown line shape: " + shape)
 
         if not raw:
-            data = o1*data
+            data = o1 * data
 
         return data
-
-
-
-
-

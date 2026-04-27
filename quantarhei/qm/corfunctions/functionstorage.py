@@ -23,8 +23,14 @@ class FunctionStorage:
 
     import numpy
 
-    def __init__(self, N: int = 1, timeaxis: Any = None, dtype: Any = numpy.complex64,
-                 show_config: bool = False, config: dict | None = None) -> None:
+    def __init__(
+        self,
+        N: int = 1,
+        timeaxis: Any = None,
+        dtype: Any = numpy.complex64,
+        show_config: bool = False,
+        config: dict | None = None,
+    ) -> None:
 
         #
         # Storage configuration
@@ -32,11 +38,14 @@ class FunctionStorage:
         # This dictionary describes what g(t) values will be stored and how
         #
         if config is None:
-            self.config = {"response_times":{
-                            "t1":{"reset":False,"integral":{"s1"},"axis":0},
-                            "t2":{"reset":True, "integral":None},
-                            "t3":{"reset":False,"integral":{"s3"},"axis":1}}} #,
-                            #"t4":{"reset":False,"integral":None,"axis":2}}}
+            self.config = {
+                "response_times": {
+                    "t1": {"reset": False, "integral": {"s1"}, "axis": 0},
+                    "t2": {"reset": True, "integral": None},
+                    "t3": {"reset": False, "integral": {"s3"}, "axis": 1},
+                }
+            }  # ,
+            # "t4":{"reset":False,"integral":None,"axis":2}}}
 
         else:
             self.config = config
@@ -103,17 +112,20 @@ class FunctionStorage:
         if len(oned_times) != tlen:
             print("Storage configuration:")
             print(self.config)
-            raise Exception("The number of time axes has"
-                           " to be consistent with storage conguration.")
+            raise Exception(
+                "The number of time axes has to be consistent with storage conguration."
+            )
 
         self.oned_times = oned_times
 
         # find all combinations with 2 or more times and calculate their dimension
-        for tpl, tstr in zip(self.time_combination_tuples, self.time_combination_strings):
+        for tpl, tstr in zip(
+            self.time_combination_tuples, self.time_combination_strings
+        ):
             if len(tpl) > 1:
                 dim = []
                 for tm in tpl:
-                    #if time_index[tm] >= 0:     # we add even -1 to time_index
+                    # if time_index[tm] >= 0:     # we add even -1 to time_index
                     dim.append(time_index[tm])
                 if len(dim) == 1:
                     time_index[tstr] = dim[0]
@@ -127,15 +139,20 @@ class FunctionStorage:
         # - First, sort by type: Integers should come before tuples
         # - Second, for integers: Sort numerically
         # - Third, for tuples: Sort by length
-        sorted_items = sorted(time_index.items(),
-                    key=lambda x: (isinstance(x[1], tuple), x[1] if isinstance(x[1], int) else len(x[1])))
+        sorted_items = sorted(
+            time_index.items(),
+            key=lambda x: (
+                isinstance(x[1], tuple),
+                x[1] if isinstance(x[1], int) else len(x[1]),
+            ),
+        )
 
         # Convert back to a dictionary (optional)
         time_index = dict(sorted_items)
 
         if show_config:
             print("Property 'time_index': ", time_index)
-            #print(self.time_combination_tuples)
+            # print(self.time_combination_tuples)
 
         ##########################################################################
         #
@@ -162,7 +179,9 @@ class FunctionStorage:
             dim = numpy.zeros(self.Ndim, dtype=numpy.int32)
             for ii, ta in enumerate(timeaxis):
                 if not isinstance(ta, TimeAxis):
-                    raise Exception("'timeaxis' argument must be a list/tuple of Quantarhei TimeAxis objects.")
+                    raise Exception(
+                        "'timeaxis' argument must be a list/tuple of Quantarhei TimeAxis objects."
+                    )
                 dim[ii] = ta.length
         self.dim = dim
 
@@ -177,7 +196,7 @@ class FunctionStorage:
         # its representation has a size of 1 element (this is the meaning of -1). The value stored
         # under index 6 is the one of g(t1+t2+t3) with a length of dim[0]*dim[1] (this what the values
         # in the tuple define).
-        #self.time_index = {"t2":-1,"t1":0,"t1+t2":0, "t3":1,"t2+t3":1,"t1+t3":(0,1),"t1+t2+t3":(0,1)}
+        # self.time_index = {"t2":-1,"t1":0,"t1+t2":0, "t3":1,"t2+t3":1,"t1+t3":(0,1),"t1+t2+t3":(0,1)}
         self.time_index = time_index
 
         reshapes = dict()
@@ -194,9 +213,7 @@ class FunctionStorage:
                 dcount = 0
                 kl = 0
                 for kk, dims in enumerate(val):
-
                     if dims >= 0:
-
                         rlist.append(self.dim[dims])
                         dcount += 1
                         kl += 1
@@ -207,7 +224,6 @@ class FunctionStorage:
         self.reshapes = []
         for key in self.reshapes_dic:
             self.reshapes.append(self.reshapes_dic[key])
-
 
         # The number of time arguments
         self.Nt = len(self.time_index)
@@ -234,7 +250,7 @@ class FunctionStorage:
                 for sz in ival:
                     if sz >= 0:
                         self._N[kk] *= dim[sz]
-            elif isinstance(ival,int):
+            elif isinstance(ival, int):
                 if ival == -1:
                     self._N[kk] = 1
                 else:
@@ -247,13 +263,14 @@ class FunctionStorage:
             self.data_stride += self._N[kk]
 
         # total number of values
-        self.data_dim = self.N*self.data_stride
+        self.data_dim = self.N * self.data_stride
 
         # data size in MB
-        #print(self.data_dim)
-        #print(numpy.dtype(self.dtype))
-        self.data_size = \
-            self.data_dim*numpy.dtype(self.dtype).itemsize/(1024*1024)
+        # print(self.data_dim)
+        # print(numpy.dtype(self.dtype))
+        self.data_size = (
+            self.data_dim * numpy.dtype(self.dtype).itemsize / (1024 * 1024)
+        )
         self.size_units = "MB"
 
         #
@@ -283,7 +300,7 @@ class FunctionStorage:
             if kk == 0:
                 self.start[kk] = 0
             else:
-                self.start[kk] = self.start[kk-1] + self._N[kk-1]
+                self.start[kk] = self.start[kk - 1] + self._N[kk - 1]
 
         # filling the ends
         for ii in range(self.Nt):
@@ -304,34 +321,34 @@ class FunctionStorage:
         # Mapping between the actual stored functions and the index representing
         # the functions for the outside world.
         #
-        self.mapping = numpy.zeros(self.Nmax+1,dtype=numpy.int32)
+        self.mapping = numpy.zeros(self.Nmax + 1, dtype=numpy.int32)
         for kk in range(self.N):
             self.mapping[kk] = -1
 
         if show_config:
             print("\n")
 
-
     def __str__(self) -> str:
-        """String representation of the storage
-
-        """
-        return ("Correlation function storage\n"
-               " dimension: "+str(self.dim)+"\n"
-               +" data size: "+str(self.data_size)+" "+self.size_units)
-
+        """String representation of the storage"""
+        return (
+            "Correlation function storage\n"
+            " dimension: "
+            + str(self.dim)
+            + "\n"
+            + " data size: "
+            + str(self.data_size)
+            + " "
+            + self.size_units
+        )
 
     def __setitem__(self, index: Any, value: Any) -> None:
-        """Set the value(s) of the storage
-
-        """
+        """Set the value(s) of the storage"""
         if isinstance(index, tuple):
-
             if len(index) == 2:
                 i, j = index
-                start = i*self.data_stride
+                start = i * self.data_stride
 
-                if isinstance(j,int):
+                if isinstance(j, int):
                     sta = start + self.start[j]
                     end = start + self.end[j]
 
@@ -347,24 +364,17 @@ class FunctionStorage:
         else:
             raise Exception()
 
-
     def __getitem__(self, index: Any) -> Any:
-        """Returns the stored function
-
-
-        """
+        """Returns the stored function"""
         if isinstance(index, tuple):
-
             if len(index) == 2:
-
                 i, j = index
 
                 # if i is an integer, we return one array
                 if isinstance(i, int):
+                    start = self.mapping[i] * self.data_stride
 
-                    start = self.mapping[i]*self.data_stride
-
-                    if isinstance(j,int):
+                    if isinstance(j, int):
                         sta = start + self.start[j]
                         end = start + self.end[j]
 
@@ -374,7 +384,7 @@ class FunctionStorage:
 
                     if sta + 1 == end:
                         return self.data[sta]
-                    if isinstance(j,int):
+                    if isinstance(j, int):
                         tpl = self.reshapes[j]
                     else:
                         tpl = self.reshapes_dic[j]
@@ -383,8 +393,7 @@ class FunctionStorage:
 
                 # if i is a slice :, we return a view an all arrays
                 if isinstance(i, slice) and i == slice(None):
-
-                    if isinstance(j,int):
+                    if isinstance(j, int):
                         sta = self.start[j]
                         end = self.end[j]
 
@@ -394,10 +403,10 @@ class FunctionStorage:
 
                     if sta + 1 == end:
                         return self._data2d[i, sta]
-                    if isinstance(j,int):
-                        tpl = [self._data2d.shape[0]]+self.reshapes[j]
+                    if isinstance(j, int):
+                        tpl = [self._data2d.shape[0]] + self.reshapes[j]
                     else:
-                        tpl = [self._data2d.shape[0]]+self.reshapes_dic[j]
+                        tpl = [self._data2d.shape[0]] + self.reshapes_dic[j]
 
                     return self._data2d[i, sta:end].reshape(tpl)
 
@@ -407,31 +416,29 @@ class FunctionStorage:
         else:
             raise Exception()
 
-
     def set_goft(self, N: Any, func: Any = None) -> None:
-        """Sets the values for a given stored function.
-
-
-        """
+        """Sets the values for a given stored function."""
         #
         # The argument N must be an integer or a list of indices by which the function should
         # represented for the outside world
         #
         if not isinstance(N, (int, list, tuple, numpy.ndarray)):
-            raise Exception("Argument N has to be an integer or an array (list, tuple) of integers")
+            raise Exception(
+                "Argument N has to be an integer or an array (list, tuple) of integers"
+            )
 
         #
         # Check the consistency of the submitted time axes
         #
-        self.ta = [] # This is a synonym for the self.timeaxis
+        self.ta = []  # This is a synonym for the self.timeaxis
         if isinstance(self.timeaxis, (tuple, list)):
             self.ta = self.timeaxis
-            #self.t1a = self.timeaxis[0]
-            #self.t3a = self.timeaxis[1]
+            # self.t1a = self.timeaxis[0]
+            # self.t3a = self.timeaxis[1]
         else:
             self.ta = [self.timeaxis]
-            #self.t1a = self.timeaxis
-            #self.t3a = self.timeaxis
+            # self.t1a = self.timeaxis
+            # self.t3a = self.timeaxis
 
         # for an integer
         if isinstance(N, int):
@@ -439,7 +446,7 @@ class FunctionStorage:
 
             # FIXME: mapping has to be merged with the previous mappings
             if self.mapping[N] > 0:
-                raise Exception("Function already set for "+str(N))
+                raise Exception("Function already set for " + str(N))
             # set the function to the first available position
             if self.Nf > self.N:
                 raise Exception("The storage full. Unable to add additional functions")
@@ -465,7 +472,6 @@ class FunctionStorage:
 
                 # if the position is free
                 if self.mapping[nn] < 0:
-
                     # check that the same function was not submitted before
                     pos = self._fce_already_stored(func)
                     if pos == -1:
@@ -478,12 +484,11 @@ class FunctionStorage:
                         self.mapping[nn] = pos
 
                 else:
-                    raise Exception("Function already set for "+str(nn))
+                    raise Exception("Function already set for " + str(nn))
 
             # we added just one function
             if added:
                 self.Nf += 1
-
 
     def _check_and_make_space(self, nn: int) -> None:
         """Check if the required position is outside the allocated mapping
@@ -492,16 +497,15 @@ class FunctionStorage:
         """
         if nn > self.Nmax:
             # create more space
-            mapping = numpy.zeros(nn+1,dtype=numpy.int32)
+            mapping = numpy.zeros(nn + 1, dtype=numpy.int32)
             mapping[:] = -1
             # copy earlier values
-            #print(nn, self.Nmax, mapping.shape, self.mapping.shape)
-            mapping[:self.Nmax+1] = self.mapping
+            # print(nn, self.Nmax, mapping.shape, self.mapping.shape)
+            mapping[: self.Nmax + 1] = self.mapping
             # set new Nmax
             self.Nmax = nn
             # make larger variables the object properties
             self.mapping = mapping
-
 
     def _fce_already_stored(self, func: Any) -> int:
         """If the function was already stored in the object, the function returns its position,
@@ -519,13 +523,9 @@ class FunctionStorage:
 
         return ret
 
-
     # FIXME: allow multiple reset times
     def create_data(self, reset: dict | None = None) -> None:
-        """We create data for all submitted functions
-
-
-        """
+        """We create data for all submitted functions"""
         if reset is None:
             reset = {"t2": 0.0}
         tt_matrix = []
@@ -535,7 +535,6 @@ class FunctionStorage:
         _colon_ = slice(None, None, None)
 
         for tm in self.time_index:
-
             # list of time axes from the time_index
             dms = self.time_index[tm]
 
@@ -548,7 +547,6 @@ class FunctionStorage:
 
             # handling tuples
             elif isinstance(dms, (tuple, list)):
-
                 # from tuples we need to eliminate -1
                 # to get the final dimension of the stored representation
                 tt_dim = []
@@ -582,8 +580,8 @@ class FunctionStorage:
                             #
                             # Here we have to figure out how to construct the index for broadcasting
                             #
-                            index = [None]*len(tt_dim)
-                            #index[ldm] = _colon_
+                            index = [None] * len(tt_dim)
+                            # index[ldm] = _colon_
                             index[dim_needed] = _colon_
                             index = tuple(index)
 
@@ -597,35 +595,23 @@ class FunctionStorage:
         # loop over all stored functions
         #
         for key in self.funcs:
-
             func = self.funcs[key]
-            #start = key*self.data_stride
+            # start = key*self.data_stride
 
             for kk, tm in zip(range(self.Nt), self.time_index):
-                self.__setitem__((key, tm),
-                                 func(tt_matrix[kk]).reshape(self._N[kk]))
-
+                self.__setitem__((key, tm), func(tt_matrix[kk]).reshape(self._N[kk]))
 
     def effective_size(self) -> int:
-            """Effective size of the storage. Some stored functions have the same functional form
-
-            """
-            return len(self.mapping)
-
+        """Effective size of the storage. Some stored functions have the same functional form"""
+        return len(self.mapping)
 
     def get_number_of_functions(self) -> int:
-        """Returns the number of different stored functions
-
-        """
-        return numpy.max(self.mapping)+1
-
+        """Returns the number of different stored functions"""
+        return numpy.max(self.mapping) + 1
 
     def get_number_of_sites(self) -> int:
-        """Returns the number of assigned sites
-
-        """
+        """Returns the number of assigned sites"""
         return (self.mapping >= 0).sum()
-
 
     def get_mapping_matrix(self) -> numpy.ndarray:
         """Returns a matrix that maps site index on the function index
@@ -644,45 +630,41 @@ class FunctionStorage:
         Nsites = self.get_number_of_sites()
 
         if Nsites != len(self.mapping):
-            raise Exception("Mapping has to be complete."
-                        " All of its elements have to be set without gaps.")
+            raise Exception(
+                "Mapping has to be complete."
+                " All of its elements have to be set without gaps."
+            )
 
-        mtrx = numpy.zeros((Nsites,Nstore), dtype=numpy.int32)
+        mtrx = numpy.zeros((Nsites, Nstore), dtype=numpy.int32)
         for ii in range(Nsites):
             jj_ind = self.mapping[ii]
-            mtrx[ii,jj_ind] = 1.0
+            mtrx[ii, jj_ind] = 1.0
 
         return mtrx
 
-
     def get_reorganization_energies(self) -> numpy.ndarray:
-        """Returns the estimate of the reoganization energies of the stored functions
-
-        """
-        index = (slice(None,None,None),"t1")
+        """Returns the estimate of the reoganization energies of the stored functions"""
+        index = (slice(None, None, None), "t1")
         igg = -numpy.imag(self.__getitem__(index))
         tal = self.ta[0].length - 1
-        #print("t1_max = ", self.ta[0].data[tal])
-        lam = igg[:,tal]/self.ta[0].data[tal]
+        # print("t1_max = ", self.ta[0].data[tal])
+        lam = igg[:, tal] / self.ta[0].data[tal]
 
         return lam
 
 
-
 class FastFunctionStorage(FunctionStorage):
-    """Function storage with no overhead retrieval
-
-    """
+    """Function storage with no overhead retrieval"""
 
     def __getitem__(self, index: Any) -> Any:
         i, j = index
 
         # if the index is integer
         if isinstance(i, int):
-            start = self.mapping[i]*self.data_stride
+            start = self.mapping[i] * self.data_stride
             sta = start + self.start[j]
             end = start + self.end[j]
-            if sta + 1== end:
+            if sta + 1 == end:
                 return self.data[sta]
             return self.data[sta:end]
 
@@ -697,28 +679,26 @@ class FastFunctionStorage(FunctionStorage):
         raise Exception("Integer or slice : required as a first index")
 
 
-
-
-
 class SingleGoft(FunctionStorage):
-    """Storage of a single lineshape function
+    """Storage of a single lineshape function"""
 
-    """
-    def __init__(self, timeaxis: Any = None, dtype: Any = numpy.complex64,
-                 show_config: bool = False, config: dict | None = None) -> None:
-        super().__init__(N=1, timeaxis=timeaxis,
-                         dtype=dtype, show_config=show_config, config=config)
-
+    def __init__(
+        self,
+        timeaxis: Any = None,
+        dtype: Any = numpy.complex64,
+        show_config: bool = False,
+        config: dict | None = None,
+    ) -> None:
+        super().__init__(
+            N=1, timeaxis=timeaxis, dtype=dtype, show_config=show_config, config=config
+        )
 
     def __getitem__(self, index: Any) -> Any:
-        """Returns the stored function
-
-
-        """
+        """Returns the stored function"""
         j = index
         start = 0
 
-        if isinstance(j,int):
+        if isinstance(j, int):
             sta = start + self.start[j]
             end = start + self.end[j]
 

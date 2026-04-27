@@ -8,10 +8,7 @@ from ....core.matrixdata import MatrixData
 
 
 class RateMatrix(MatrixData):
-    """Represents a population transfer rate matrix
-
-
-    """
+    """Represents a population transfer rate matrix"""
 
     def __init__(self, dim: int | None = None, data: Any = None) -> None:
 
@@ -38,9 +35,7 @@ class RateMatrix(MatrixData):
                 raise Exception("One of the arguments has to be specified")
 
             else:
-                self.data = numpy.zeros((self.N,self.N), dtype=numpy.float64)
-
-
+                self.data = numpy.zeros((self.N, self.N), dtype=numpy.float64)
 
     def set_rate(self, pos: Any, value: float) -> None:
         """Sets a value of a rate between two states
@@ -55,10 +50,8 @@ class RateMatrix(MatrixData):
         if N == M:
             raise Exception("Diagonal (depopulation) rates cannot be set")
 
-        orig_val = self.data[N,M]
-        self.data[N,M] = value
+        orig_val = self.data[N, M]
+        self.data[N, M] = value
 
-        self.data[M,M] += orig_val
-        self.data[M,M] -= value
-
-
+        self.data[M, M] += orig_val
+        self.data[M, M] -= value

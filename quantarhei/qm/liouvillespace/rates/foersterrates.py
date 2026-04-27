@@ -32,7 +32,13 @@ class FoersterRateMatrix:
 
     """
 
-    def __init__(self, ham: Hamiltonian, sbi: SystemBathInteraction, initialize: bool = True, cutoff_time: float | None = None) -> None:
+    def __init__(
+        self,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
+        initialize: bool = True,
+        cutoff_time: float | None = None,
+    ) -> None:
 
         if not isinstance(ham, Hamiltonian):
             raise Exception("First argument must be a Hamiltonian")
@@ -54,7 +60,6 @@ class FoersterRateMatrix:
             self.initialize()
             self._is_initialized = True
 
-
     def initialize(self) -> None:
 
         HH = self.ham.data
@@ -64,22 +69,23 @@ class FoersterRateMatrix:
         tt = sbi.TimeAxis.data
 
         # line shape functions
-        gt = numpy.zeros((Na, sbi.TimeAxis.length),
-                         dtype=numpy.complex64)
+        gt = numpy.zeros((Na, sbi.TimeAxis.length), dtype=numpy.complex64)
 
         # SBI is defined with "sites"
         for ii in range(1, Na):
-            gt[ii,:] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii-1,ii-1))
+            gt[ii, :] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii - 1, ii - 1))
 
         # reorganization energies
         ll = numpy.zeros(Na)
         for ii in range(1, Na):
-            ll[ii] = sbi.CC.get_reorganization_energy(ii-1,ii-1)
+            ll[ii] = sbi.CC.get_reorganization_energy(ii - 1, ii - 1)
 
         self.data = _reference_implementation(Na, HH, tt, gt, ll)
 
 
-def _reference_implementation(Na: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray) -> numpy.ndarray:
+def _reference_implementation(
+    Na: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray
+) -> numpy.ndarray:
     """Reference implementation of Foerster rates
 
     Calculate the rates between specified sites using standard Foerster
@@ -116,27 +122,34 @@ def _reference_implementation(Na: int, HH: numpy.ndarray, tt: numpy.ndarray, gt:
     #
     # Rates between states a and b
     #
-    KK = numpy.zeros((Na,Na), dtype=numpy.float64)
+    KK = numpy.zeros((Na, Na), dtype=numpy.float64)
     for a in range(Na):
         for b in range(Na):
             if a != b:
-                ed = HH[b,b] # donor
-                ea = HH[a,a] # acceptor
-                KK[a,b] = (HH[a,b]**2)*_fintegral(tt, gt[a,:], gt[b,:],
-                                                  ed, ea, ll[b])
+                ed = HH[b, b]  # donor
+                ea = HH[a, a]  # acceptor
+                KK[a, b] = (HH[a, b] ** 2) * _fintegral(
+                    tt, gt[a, :], gt[b, :], ed, ea, ll[b]
+                )
     #
     # depopulation rates
     #
     Kaa = 0.0
     for a in range(Na):
-        Kaa = numpy.sum(KK[:,a])
-        KK[a,a] = -Kaa
+        Kaa = numpy.sum(KK[:, a])
+        KK[a, a] = -Kaa
 
     return KK
 
 
-
-def _fintegral(tt: numpy.ndarray, gtd: numpy.ndarray, gta: numpy.ndarray, ed: float, ea: float, ld: float) -> float:
+def _fintegral(
+    tt: numpy.ndarray,
+    gtd: numpy.ndarray,
+    gta: numpy.ndarray,
+    ed: float,
+    ea: float,
+    ld: float,
+) -> float:
     """Foerster integral
 
 
@@ -166,21 +179,18 @@ def _fintegral(tt: numpy.ndarray, gtd: numpy.ndarray, gta: numpy.ndarray, ed: fl
         The value of the Foerster integral
 
     """
-    #fl = numpy.exp(-gtd +1j*(ed-2.0*ld)*tm.data)
-    #ab = numpy.exp(-gta -1j*ea*tm.data)
-    #prod = ab*fl
+    # fl = numpy.exp(-gtd +1j*(ed-2.0*ld)*tm.data)
+    # ab = numpy.exp(-gta -1j*ea*tm.data)
+    # prod = ab*fl
 
-    prod = numpy.exp(-gtd-gta +1j*((ed-ea)-2.0*ld)*tt)
+    prod = numpy.exp(-gtd - gta + 1j * ((ed - ea) - 2.0 * ld) * tt)
 
     preal = numpy.real(prod)
     pimag = numpy.imag(prod)
-    splr = interp.UnivariateSpline(tt,
-                               preal, s=0).antiderivative()(tt)
-    spli = interp.UnivariateSpline(tt,
-                               pimag, s=0).antiderivative()(tt)
-    hoft = splr + 1j*spli
+    splr = interp.UnivariateSpline(tt, preal, s=0).antiderivative()(tt)
+    spli = interp.UnivariateSpline(tt, pimag, s=0).antiderivative()(tt)
+    hoft = splr + 1j * spli
 
-
-    ret = 2.0*numpy.real(hoft[len(tt)-1])
+    ret = 2.0 * numpy.real(hoft[len(tt) - 1])
 
     return ret

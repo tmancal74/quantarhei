@@ -20,15 +20,14 @@ from .response_implementations import get_implementation
 
 
 """
+
+
 class NonLinearResponse:
-    """Non-linear response function
+    """Non-linear response function"""
 
-
-
-
-    """
-
-    def __init__(self, lab: Any, system: Any, diagram: str, t1s: Any, t2s: Any, t3s: Any) -> None:
+    def __init__(
+        self, lab: Any, system: Any, diagram: str, t1s: Any, t2s: Any, t3s: Any
+    ) -> None:
 
         # info about pulse polarizations
         self.lab = lab
@@ -38,7 +37,7 @@ class NonLinearResponse:
 
         # which response to calculate; the function to calculate the respose
         self.diag = diagram
-        if self.diag in ["R1g","R4g", "R1f", "R1g_scM0g", "R1f_scM0g", "R1f_scM0e"]:
+        if self.diag in ["R1g", "R4g", "R1f", "R1g_scM0g", "R1f_scM0g", "R1f_scM0e"]:
             self.rtype = "NR"
         elif self.diag in ["R2g", "R3g", "R2f", "R2g_scM0g", "R2f_scM0g", "R2f_scM0e"]:
             self.rtype = "R"
@@ -51,9 +50,10 @@ class NonLinearResponse:
         self.t3s = t3s
 
         # setting zero rates for the case they are not set from outside
-        KK = numpy.zeros((system.Nb[1]+system.Nb[0],system.Nb[1]+system.Nb[0]),dtype=REAL)
+        KK = numpy.zeros(
+            (system.Nb[1] + system.Nb[0], system.Nb[1] + system.Nb[0]), dtype=REAL
+        )
         self.set_rate_matrix(KK)
-
 
     def calculate_matrix(self, t2: float) -> Any:
         """Calculates the matrix of response values in t1 and t3 times
@@ -72,67 +72,60 @@ class NonLinearResponse:
         t2i = out[0]
 
         # population decay factors at t2
-        U0t2 = self.U0_t2[:,t2i]
+        U0t2 = self.U0_t2[:, t2i]
 
-        return self.func(t2, self.t1s.data,
-                             self.t3s.data,
-                             self.lab, self.sys,
-                             (self.U0_t1,self.U0_t3,U0t2, self.Uee[:,:,t2i]),
-                             self.KK)
-
+        return self.func(
+            t2,
+            self.t1s.data,
+            self.t3s.data,
+            self.lab,
+            self.sys,
+            (self.U0_t1, self.U0_t3, U0t2, self.Uee[:, :, t2i]),
+            self.KK,
+        )
 
     def set_rwa(self, rwa: float) -> None:
-        """Sets rotating wave approximation frequency
-
-        """
+        """Sets rotating wave approximation frequency"""
         pass  # rwa is set through the system class, at least for now
 
-
     def set_rate_matrix(self, KK: numpy.ndarray) -> None:
-        """Sets the rate matrix and the corresponding evolution coefficients
-
-        """
+        """Sets the rate matrix and the corresponding evolution coefficients"""
         if KK.shape[0] == KK.shape[1]:
             self.KK = KK
 
-            self.U0_t2 = numpy.zeros((KK.shape[0], self.t2s.length),
-                                  dtype=REAL)
-            self.U0_t1 = numpy.zeros((KK.shape[0], self.t1s.length),
-                                  dtype=REAL)
-            self.U0_t3 = numpy.zeros((KK.shape[0], self.t3s.length),
-                                  dtype=REAL)
+            self.U0_t2 = numpy.zeros((KK.shape[0], self.t2s.length), dtype=REAL)
+            self.U0_t1 = numpy.zeros((KK.shape[0], self.t1s.length), dtype=REAL)
+            self.U0_t3 = numpy.zeros((KK.shape[0], self.t3s.length), dtype=REAL)
 
             if KK.shape[0] != self.sys.Ntot:
                 if self.sys.mult == 2:
-                    self.U0fe_t3 = numpy.zeros((self.sys.Nb[2],
-                                                KK.shape[0], self.t3s.length),
-                                                dtype=REAL)
+                    self.U0fe_t3 = numpy.zeros(
+                        (self.sys.Nb[2], KK.shape[0], self.t3s.length), dtype=REAL
+                    )
                 else:
-                    raise Exception("Relaxation matrix has a wrong size: "
-                                    +str(KK.shape[0]))
-
+                    raise Exception(
+                        "Relaxation matrix has a wrong size: " + str(KK.shape[0])
+                    )
 
         else:
             raise Exception("Square matrix must be submitted")
 
         # time independent rate matrix
         if len(KK.shape) == 2:
-
             #
             # Relaxation caused dephasing for single excitons
             #
             for aa in range(KK.shape[0]):
-                if KK[aa,aa] <= 0.0:
-                    self.U0_t2[aa,:] = numpy.exp(0.5*KK[aa,aa]*self.t2s.data)
-                    self.U0_t1[aa,:] = 1.0 #numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
-                    self.U0_t3[aa,:] = 1.0 #numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
+                if KK[aa, aa] <= 0.0:
+                    self.U0_t2[aa, :] = numpy.exp(0.5 * KK[aa, aa] * self.t2s.data)
+                    self.U0_t1[aa, :] = 1.0  # numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
+                    self.U0_t3[aa, :] = 1.0  # numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
                 else:
                     raise Exception("Depopulation rate must be negative.")
 
             #
             # Relaxation caused dephasing for double-excitons
             #
-
 
             #
             # Finding population evolution matrix
@@ -141,12 +134,9 @@ class NonLinearResponse:
             # FIXME: Make sure it works with all t2s
             prop = PopulationPropagator(self.t2s, self.KK)
 
-
-            self.Uee, cor = prop.get_PropagationMatrix(self.t2s,
-                                                  corrections=0)
+            self.Uee, cor = prop.get_PropagationMatrix(self.t2s, corrections=0)
 
             self.U1_t2 = cor[0]
-
 
         if len(KK.shape) == 3:
             # time dependent rate matrix
@@ -168,7 +158,6 @@ class LiouvillePathway:
 
 
     """
-
 
     def __init__(self, ptype: str) -> None:
 
@@ -204,9 +193,13 @@ class LiouvillePathway:
 
         self.F4n = numpy.zeros(3)
 
-
-
-    def set_dipoles(self, d1: numpy.ndarray, d2: numpy.ndarray | None = None, d3: numpy.ndarray | None = None, d4: numpy.ndarray | None = None) -> None:
+    def set_dipoles(
+        self,
+        d1: numpy.ndarray,
+        d2: numpy.ndarray | None = None,
+        d3: numpy.ndarray | None = None,
+        d4: numpy.ndarray | None = None,
+    ) -> None:
         """Sets the transition dipole moments of the response
 
         Parameters:
@@ -227,33 +220,29 @@ class LiouvillePathway:
             it is set to the value of the first transition dipole moment.
 
         """
-        d = numpy.zeros((4,3), dtype=float)
+        d = numpy.zeros((4, 3), dtype=float)
 
-        d[0,:] = d1
+        d[0, :] = d1
         if d2 is None:
-            d[1,:] = d1
+            d[1, :] = d1
         else:
-            d[1,:] = d2
+            d[1, :] = d2
         if d3 is None:
-            d[2,:] = d1
+            d[2, :] = d1
         else:
-            d[2,:] = d3
+            d[2, :] = d3
         if d4 is None:
-            d[3,:] = d1
+            d[3, :] = d1
         else:
-            d[3,:] = d4
+            d[3, :] = d4
 
-        self.F4n[0] = numpy.dot(d[3,:],d[2,:])*numpy.dot(d[1,:],d[0,:])
-        self.F4n[1] = numpy.dot(d[3,:],d[1,:])*numpy.dot(d[2,:],d[0,:])
-        self.F4n[2] = numpy.dot(d[3,:],d[0,:])*numpy.dot(d[2,:],d[1,:])
+        self.F4n[0] = numpy.dot(d[3, :], d[2, :]) * numpy.dot(d[1, :], d[0, :])
+        self.F4n[1] = numpy.dot(d[3, :], d[1, :]) * numpy.dot(d[2, :], d[0, :])
+        self.F4n[2] = numpy.dot(d[3, :], d[0, :]) * numpy.dot(d[2, :], d[1, :])
         self.dd = d
 
-
     def set_frequencies(self, omega1: float, omega3: float) -> None:
-        """Sets the frequencies of the response
-
-
-        """
+        """Sets the frequencies of the response"""
         if self._frequencies_set:
             raise Exception("Frequencies of are already set.")
 
@@ -262,23 +251,19 @@ class LiouvillePathway:
 
         self._frequencies_set = True
 
-
     def get_frequencies(self) -> tuple[float, float]:
-        """Returns the two main frequencies of the response
-
-        """
+        """Returns the two main frequencies of the response"""
         if self._frequencies_set:
-            fr = (Manager().convert_energy_2_current_u(self._omega1),
-                  Manager().convert_energy_2_current_u(self._omega3))
+            fr = (
+                Manager().convert_energy_2_current_u(self._omega1),
+                Manager().convert_energy_2_current_u(self._omega3),
+            )
 
             return fr
         raise Exception("Frequencies not set.")
 
-
     def set_rwa(self, rwa: float) -> None:
-        """Sets the RWA frequency
-
-        """
+        """Sets the RWA frequency"""
         if not self._frequencies_set:
             raise Exception("Frequencies must be set before setting RWA.")
 
@@ -292,12 +277,8 @@ class LiouvillePathway:
 
         self._rwa_set = True
 
-
     def reset_rwa(self) -> None:
-        """Resets the RWA setting
-
-
-        """
+        """Resets the RWA setting"""
         if self._frequencies_set and self._rwa_set:
             self._omega1 = self._omega1 + self._rwa
             self._omega3 = self._omega3 + self._rwa
@@ -305,27 +286,17 @@ class LiouvillePathway:
             self._rwa = 0.0
             self._rwa_set = False
 
-
     def get_rwa(self) -> float:
-        """Returns the RWA frequency
-
-
-        """
+        """Returns the RWA frequency"""
         return Manager().convert_energy_2_internal_u(self._rwa)
 
 
-
-
-
 class ResponseFunction(LiouvillePathway):
-    """Non-linear response function
+    """Non-linear response function"""
 
-
-
-
-    """
-
-    def calculate_matrix(self, lab: Any, sys: Any, t2: float, t1s: Any, t3s: Any, rwa: float) -> Any:
+    def calculate_matrix(
+        self, lab: Any, sys: Any, t2: float, t1s: Any, t3s: Any, rwa: float
+    ) -> Any:
         """Calculates the matrix of response values in t1 and t3 times
 
 
@@ -356,30 +327,22 @@ class ResponseFunction(LiouvillePathway):
         om3 = self._omega3
         om1 = self._omega1
 
-
         # create the dipole factor
-        dip = self.sign*numpy.dot(lab.F4eM4,self.F4n)
+        dip = self.sign * numpy.dot(lab.F4eM4, self.F4n)
 
         # construct the phase factors in t1 and t3
         if self.rtype == "R":
-            et13 = numpy.outer(numpy.exp(-1j*om3*t3s),
-                               numpy.exp(1j*om1*t1s))
+            et13 = numpy.outer(numpy.exp(-1j * om3 * t3s), numpy.exp(1j * om1 * t1s))
         elif self.rtype == "NR":
-            et13 = numpy.outer(numpy.exp(-1j*om3*t3s),
-                               numpy.exp(-1j*om1*t1s))
-
+            et13 = numpy.outer(numpy.exp(-1j * om3 * t3s), numpy.exp(-1j * om1 * t1s))
 
         val = self.func(t2, t3s, t1s, *self.args)
 
-        return dip*val*et13
-
+        return dip * val * et13
 
     def set_evaluation_function(self, func: Any) -> None:
-        """Sets the function to be evaluated to get the response matrix
-
-        """
+        """Sets the function to be evaluated to get the response matrix"""
         self.func = func
-
 
     def set_auxliary_arguments(self, args: tuple[Any, ...]) -> None:
         """Sets additional arguments and their values for evaluation calls
@@ -393,5 +356,3 @@ class ResponseFunction(LiouvillePathway):
 
         """
         self.args = args
-
-

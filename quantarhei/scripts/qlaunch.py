@@ -11,6 +11,7 @@ and after the simulation is done it is returned back with the suffix .out.
 
 
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,7 +22,6 @@ import quantarhei as qr
 
 def do_launch() -> None:
 
-
     # check for default configuration file: qlaunch.conf
     # check for configuration file within launch directory: DIR/qlaunch.conf
     #    at least one of them has to be provided
@@ -30,20 +30,28 @@ def do_launch() -> None:
 
 def main() -> None:
 
-    parser = argparse.ArgumentParser(
-            description='Quantarhei Remote Launcher')
+    parser = argparse.ArgumentParser(description="Quantarhei Remote Launcher")
 
-    parser.add_argument("directory", metavar='directory', type=str,
-                          help='job directory to launch', nargs='?')
+    parser.add_argument(
+        "directory",
+        metavar="directory",
+        type=str,
+        help="job directory to launch",
+        nargs="?",
+    )
 
     #
     # Driver options
     #
-    parser.add_argument("-v", "--version", action="store_true",
-                        help="shows Quantarhei package version")
-    parser.add_argument("-i", "--info", action='store_true',
-                        help="shows detailed information about Quantarhei"
-                        " installation")
+    parser.add_argument(
+        "-v", "--version", action="store_true", help="shows Quantarhei package version"
+    )
+    parser.add_argument(
+        "-i",
+        "--info",
+        action="store_true",
+        help="shows detailed information about Quantarhei installation",
+    )
 
     parser.set_defaults(func=do_launch)
 
@@ -51,7 +59,6 @@ def main() -> None:
     # Parsing all arguments
     #
     args = parser.parse_args()
-
 
     if len(sys.argv) < 2:
         parser.print_usage()
@@ -61,21 +68,29 @@ def main() -> None:
     # show longer info
     #
     if args.info:
-        qr.printlog("\n"
-                   "qrhei: Quantarhei Package Driver\n",
-                   verbose=True, loglevel=1)
-#                   +"\n"
-#                   +"MPI parallelization enabled: ", flag_parallel,
-#                    verbose=True, loglevel=0)
+        qr.printlog("\nqrhei: Quantarhei Package Driver\n", verbose=True, loglevel=1)
+        #                   +"\n"
+        #                   +"MPI parallelization enabled: ", flag_parallel,
+        #                    verbose=True, loglevel=0)
         if not args.version:
-            qr.printlog("Package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=1)
+            qr.printlog(
+                "Package version: ",
+                qr.Manager().version,
+                "\n",
+                verbose=True,
+                loglevel=1,
+            )
         return
 
     #
     # show just Quantarhei version number
     #
     if args.version:
-        qr.printlog("Quantarhei package version: ", qr.Manager().version, "\n",
-                  verbose=True, loglevel=1)
+        qr.printlog(
+            "Quantarhei package version: ",
+            qr.Manager().version,
+            "\n",
+            verbose=True,
+            loglevel=1,
+        )
         return

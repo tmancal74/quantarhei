@@ -213,15 +213,12 @@ if TYPE_CHECKING:
 
 
 class TimeDependent:
-
     _has_cutoff_time = False
     cutoff_time = None
 
     def set_cutoff_time(self, time: float) -> None:
         self.cutoff_time = time
         self._has_cutoff_time = True
-
-
 
 
 class TimeAxis(ValueAxis):
@@ -245,12 +242,16 @@ class TimeAxis(ValueAxis):
 
     """
 
-    def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0,
-                 atype: str = "upper-half", frequency_start: float = 0.0) -> None:
+    def __init__(
+        self,
+        start: float = 0.0,
+        length: int = 1,
+        step: float = 1.0,
+        atype: str = "upper-half",
+        frequency_start: float = 0.0,
+    ) -> None:
 
-
-        ValueAxis.__init__(self, start=start,
-                           length=length, step=step)
+        ValueAxis.__init__(self, start=start, length=length, step=step)
 
         self.frequency_start = frequency_start
 
@@ -260,11 +261,8 @@ class TimeAxis(ValueAxis):
         else:
             raise Exception("Unknown time axis type")
 
-
     def shift_to_zero(self) -> None:
-        """Shifts the values so that the first one is zero
-
-        """
+        """Shifts the values so that the first one is zero"""
         if self.start != self.data[0]:
             raise Exception("Inconsistent data")
 
@@ -272,29 +270,25 @@ class TimeAxis(ValueAxis):
             self.data[:] = self.data[:] - self.start
             self.start = 0.0
 
-
     def get_FrequencyAxis(self) -> FrequencyAxis:
-        """Returns corresponding FrequencyAxis object
-
-
-        """
+        """Returns corresponding FrequencyAxis object"""
         from .frequency import FrequencyAxis
 
-        if self.atype == 'complete':
-
+        if self.atype == "complete":
             frequencies = numpy.fft.fftshift(
-                (2.0*numpy.pi)*numpy.fft.fftfreq(self.length, self.step))
+                (2.0 * numpy.pi) * numpy.fft.fftfreq(self.length, self.step)
+            )
 
-            step = frequencies[1]-frequencies[0]
+            step = frequencies[1] - frequencies[0]
             start = frequencies[0] + self.frequency_start
 
             nosteps = len(frequencies)
-            time_start = self.data[self.length//2]
+            time_start = self.data[self.length // 2]
 
-        elif self.atype == 'upper-half':
-
+        elif self.atype == "upper-half":
             frequencies = numpy.fft.fftshift(
-                (2.0*numpy.pi)*numpy.fft.fftfreq(2*self.length, self.step))
+                (2.0 * numpy.pi) * numpy.fft.fftfreq(2 * self.length, self.step)
+            )
 
             start = frequencies[0] + self.frequency_start
             step = frequencies[1] - frequencies[0]
@@ -306,12 +300,14 @@ class TimeAxis(ValueAxis):
 
         # this creation has to be protected from units management
         with energy_units("int"):
-            faxis = FrequencyAxis(start, nosteps, step,
-                                  atype=self.atype, time_start=time_start)
+            faxis = FrequencyAxis(
+                start, nosteps, step, atype=self.atype, time_start=time_start
+            )
 
         return faxis
 
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

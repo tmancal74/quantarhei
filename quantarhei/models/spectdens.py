@@ -4,17 +4,14 @@ from typing import Any
 
 
 class DatabaseEntry:
-    """Database entry in the database of spectral densities and correlation functions
+    """Database entry in the database of spectral densities and correlation functions"""
 
-    """
-    SPECTRAL_DENSITY     = 0
+    SPECTRAL_DENSITY = 0
     CORRELATION_FUNCTION = 1
     direct_implementation: int | None = None
     identificator: str | None = None
     alt_ident: list[str] = []
     units = "int"
-
-
 
     def __init__(self) -> None:
         pass
@@ -24,7 +21,6 @@ class DatabaseEntry:
 
     def get_SpectralDensity(self) -> Any:
         pass
-
 
 
 class SpectralDensityDatabaseEntry(DatabaseEntry):
@@ -38,9 +34,7 @@ class SpectralDensityDatabaseEntry(DatabaseEntry):
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
 
     def get_CorrelationFunction(self, temperature: Any) -> Any:
-        """Returns CorrelationFunction based on SpectralDensity
-
-        """
+        """Returns CorrelationFunction based on SpectralDensity"""
         return self.get_SpectralDensity().get_CorrelationFunction(temperature)
 
 
@@ -51,18 +45,16 @@ class CorrelationFunctionDatabaseEntry(DatabaseEntry):
     function. Spectral density calculation has to be implemented.
 
     """
+
     direct_implementation = DatabaseEntry.CORRELATION_FUNCTION
 
     def get_SpectralDensity(self) -> Any:
-        """Returns SpectralDensity on CorrelationFunction based
-
-        """
+        """Returns SpectralDensity on CorrelationFunction based"""
         temperature = self.temperature
         return self.get_CorrelationFunction(temperature).get_SpectralDensity()
 
 
 class DataDefinedEntry(DatabaseEntry):
-
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
 
     def __init__(self) -> None:
@@ -77,7 +69,7 @@ class DataDefinedEntry(DatabaseEntry):
         if data is not None:
             self._rawdata = self.get_data()
             length = len(self._rawdata)
-            self._rawdata.shape = (length//2, 2)
+            self._rawdata.shape = (length // 2, 2)
             self._have_data = True
         else:
             #
@@ -93,20 +85,17 @@ class DataDefinedEntry(DatabaseEntry):
                 pass
 
         if self._have_data:
-
             if self.direct_implementation == DatabaseEntry.SPECTRAL_DENSITY:
                 pass
-            elif (self.direct_implementation
-                  == DatabaseEntry.CORRELATION_FUNCTION):
+            elif self.direct_implementation == DatabaseEntry.CORRELATION_FUNCTION:
                 pass
             else:
-                raise Exception("Don't know if this is spectral density or "
-                                "correlation function")
+                raise Exception(
+                    "Don't know if this is spectral density or correlation function"
+                )
 
         else:
-
             raise Exception("Data not defined in any expected way")
-
 
     def get_data(self) -> Any:
         """Returns spectral density data
@@ -157,19 +146,16 @@ class SpectralDensityDB:
         # walk trough the spectral_densities directory, importing all modules
         package = SD
         for importer, modname, ispkg in pkgutil.walk_packages(
-                    path=package.__path__, prefix=package.__name__+".",
-                    onerror=lambda x: None):
-
+            path=package.__path__, prefix=package.__name__ + ".", onerror=lambda x: None
+        ):
             # import a found module
             wen = importlib.import_module(modname)
 
             # find all present classes
             for name, obj in inspect.getmembers(wen):
-
-                if (inspect.isclass(obj) and
-                    (not ((name == "DataDefinedEntry")
-                    or (name == "DatabaseEntry")))):
-
+                if inspect.isclass(obj) and (
+                    not ((name == "DataDefinedEntry") or (name == "DatabaseEntry"))
+                ):
                     # get the class
                     cls = getattr(wen, name)
 
@@ -178,37 +164,34 @@ class SpectralDensityDB:
                     #
                     # Take only subclasses of the following four
                     #
-                    allowed_base_classes = [DatabaseEntry,
-                                    SpectralDensityDatabaseEntry,
-                                    CorrelationFunctionDatabaseEntry,
-                                    DataDefinedEntry]
+                    allowed_base_classes = [
+                        DatabaseEntry,
+                        SpectralDensityDatabaseEntry,
+                        CorrelationFunctionDatabaseEntry,
+                        DataDefinedEntry,
+                    ]
 
                     can_instantiate = False
                     for bcl in allowed_base_classes:
-                        can_instantiate = (can_instantiate or
-                                           (bcl in base_classes))
+                        can_instantiate = can_instantiate or (bcl in base_classes)
 
                     if can_instantiate:
-
                         # instantiate the class
                         inst = cls()
 
                         if isinstance(inst, DatabaseEntry):
-
                             if inst.identificator is not None:
                                 # print identificator
                                 if verbose:
-                                    print("... registering: ",
-                                          inst.identificator)
+                                    print("... registering: ", inst.identificator)
                                 count += 1
 
                                 #
                                 # WE DO NOT SAVE THE OBJECT ON THIS FIRST LOAD
                                 #
-                                #self.entries[inst.identificator] = inst
+                                # self.entries[inst.identificator] = inst
 
-                                self.entries[inst.identificator] = (modname,
-                                                                    name)
+                                self.entries[inst.identificator] = (modname, name)
                                 self.loaded[inst.identificator] = False
 
                         else:
@@ -222,11 +205,8 @@ class SpectralDensityDB:
             print(self.get_status_string())
             print("Database initialized and ready!")
 
-
     def get_status_string(self) -> str:
-        """Returns a status report of the database
-
-        """
+        """Returns a status report of the database"""
         # count loaded modules and print a report
         kount = 0
         for ld in self.loaded.keys():
@@ -234,20 +214,16 @@ class SpectralDensityDB:
                 kount += 1
 
         out = "Spectral Density Database Status"
-        out += "\n - "+str(self.entry_count)+" spectral densities registered"
-        out += "\n - "+str(kount)+" loaded"
+        out += "\n - " + str(self.entry_count) + " spectral densities registered"
+        out += "\n - " + str(kount) + " loaded"
 
         return out
 
-
     def get_SpectralDensity(self, axis: Any, ident: str | None = None) -> Any:
-        """Returns spectral density based on an identificator
-
-        """
+        """Returns spectral density based on an identificator"""
         import importlib
 
         if ident in self.entries.keys():
-
             # when class is not loaded and instantiated, create its instance
             if not self.loaded[ident]:
                 imodname, clname = self.entries[ident]
@@ -260,20 +236,19 @@ class SpectralDensityDB:
             else:
                 inst = self.entries[ident]
         else:
-            raise Exception("Identificator: "+ident+" not found")
+            raise Exception("Identificator: " + ident + " not found")
 
         try:
             sd = inst.get_SpectralDensity(axis)
         except Exception:
-            raise Exception("Could not obtain spectral density from "
-                            "definition class for : "+ident)
+            raise Exception(
+                "Could not obtain spectral density from definition class for : " + ident
+            )
 
         return sd
 
 
-
 class CorrelationFunctionDB(SpectralDensityDB):
-    """This class is identical to SectralDensityDB
+    """This class is identical to SectralDensityDB"""
 
-    """
     pass

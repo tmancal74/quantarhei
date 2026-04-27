@@ -2,16 +2,13 @@ from __future__ import annotations
 
 
 def rename_function(ss: str, oldname: str, newname: str) -> str:
-    """Replaces all occurences of a name by a new name
-
-    """
-    #return ss.replace("conjugate","numpy.conj")
+    """Replaces all occurences of a name by a new name"""
+    # return ss.replace("conjugate","numpy.conj")
     return ss.replace(oldname, newname)
 
-def fce2array(sr: str, pat: str) -> str:
-    """Converts functions into arrays
 
-    """
+def fce2array(sr: str, pat: str) -> str:
+    """Converts functions into arrays"""
     se = "".join(sr)
     so = ""
     ln = len(se)
@@ -42,23 +39,21 @@ def fce2array(sr: str, pat: str) -> str:
     so += se
     return so
 
-def python_code(ss: str, arrays: list[str] | None = None) -> str:
-    """Generate Python code with numpy functions
 
-    """
-    sr = rename_function(ss,"conjugate","numpy.conj")
-    sr = rename_function(sr,"exp","numpy.exp")
+def python_code(ss: str, arrays: list[str] | None = None) -> str:
+    """Generate Python code with numpy functions"""
+    sr = rename_function(ss, "conjugate", "numpy.conj")
+    sr = rename_function(sr, "exp", "numpy.exp")
     if arrays is not None:
         for ar in arrays:
-            sr = fce2array(sr,ar)
+            sr = fce2array(sr, ar)
     return sr
 
-def fortran_code(ss: str, arrays: list[str] | None = None) -> str:
-    """Generate Fortran code with numpy functions
 
-    """
-    sr = rename_function(ss,"conjugate","conjg")
-    #sr = rename_function(sr,"exp","numpy.exp")
-    #for ar in arrays:
+def fortran_code(ss: str, arrays: list[str] | None = None) -> str:
+    """Generate Fortran code with numpy functions"""
+    sr = rename_function(ss, "conjugate", "conjg")
+    # sr = rename_function(sr,"exp","numpy.exp")
+    # for ar in arrays:
     #    sr = fce2array(sr,ar)
     return sr

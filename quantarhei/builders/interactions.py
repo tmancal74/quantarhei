@@ -6,7 +6,9 @@ import scipy.constants as const
 from ..core.units import eps0_int
 
 
-def dipole_dipole_interaction(r1: np.ndarray, r2: np.ndarray, d1: np.ndarray, d2: np.ndarray, epsr: float) -> float:
+def dipole_dipole_interaction(
+    r1: np.ndarray, r2: np.ndarray, d1: np.ndarray, d2: np.ndarray, epsr: float
+) -> float:
     """Calculates interaction between two dipoles
 
 
@@ -30,48 +32,64 @@ def dipole_dipole_interaction(r1: np.ndarray, r2: np.ndarray, d1: np.ndarray, d2
 
     """
     R = r1 - r2
-    RR = np.sqrt(np.dot(R,R))
+    RR = np.sqrt(np.dot(R, R))
 
-    prf = 1.0/(4.0*const.pi*eps0_int)
+    prf = 1.0 / (4.0 * const.pi * eps0_int)
 
-    cc = (np.dot(d1,d2)/(RR**3)
-        - 3.0*np.dot(d1,R)*np.dot(d2,R)/(RR**5))
+    cc = np.dot(d1, d2) / (RR**3) - 3.0 * np.dot(d1, R) * np.dot(d2, R) / (RR**5)
 
-    return prf*cc/epsr
+    return prf * cc / epsr
 
 
-def dipole_dipole(center1: np.ndarray, dipole1: np.ndarray, center2: np.ndarray, dipole2: np.ndarray, *args: str) -> float:
-    '''Calculates interaction between two dipoles
+def dipole_dipole(
+    center1: np.ndarray,
+    dipole1: np.ndarray,
+    center2: np.ndarray,
+    dipole2: np.ndarray,
+    *args: str,
+) -> float:
+    """Calculates interaction between two dipoles
 
     Pro dipoly v AU = naboj*Bohr a polohy b Bohrech vypocita
     interakcni energii v cm-1
 
-    '''
-    r12=np.zeros(3)
-    r12=center2-center1
-    R=np.sqrt(np.dot(r12,r12))
+    """
+    r12 = np.zeros(3)
+    r12 = center2 - center1
+    R = np.sqrt(np.dot(r12, r12))
 
-    d12=np.dot(dipole1,dipole2)
-    dr1=np.dot(dipole1,r12)/R
-    dr2=np.dot(dipole2,r12)/R
+    d12 = np.dot(dipole1, dipole2)
+    dr1 = np.dot(dipole1, r12) / R
+    dr2 = np.dot(dipole2, r12) / R
 
-    Edip_dip_Ha=(d12 - 3*dr1*dr2)/(R**3)   # interaction energy in hartree
+    Edip_dip_Ha = (d12 - 3 * dr1 * dr2) / (R**3)  # interaction energy in hartree
     nma = 1.0
-    Edip_dip_cm1=Edip_dip_Ha*nma.HaToInvcm
+    Edip_dip_cm1 = Edip_dip_Ha * nma.HaToInvcm
 
     if args:
         for a in args:
-            if a=='Hartree':
+            if a == "Hartree":
                 return Edip_dip_Ha
-            if a=='cm-1':
+            if a == "cm-1":
                 return Edip_dip_cm1
 
     return Edip_dip_cm1
 
-def Oscilator3D(rr1: np.ndarray, bond1: np.ndarray, AtType1: list, NMN1: int, TotDip1: np.ndarray,
-                rr2: np.ndarray, bond2: np.ndarray, AtType2: list, NMN2: int, TotDip2: np.ndarray,
-                *args: str) -> float:
-    '''Interaction energy in inverse centimeters
+
+def Oscilator3D(
+    rr1: np.ndarray,
+    bond1: np.ndarray,
+    AtType1: list,
+    NMN1: int,
+    TotDip1: np.ndarray,
+    rr2: np.ndarray,
+    bond2: np.ndarray,
+    AtType2: list,
+    NMN2: int,
+    TotDip2: np.ndarray,
+    *args: str,
+) -> float:
+    """Interaction energy in inverse centimeters
 
     For position and dipole in atomic units (position in bohr radius and
     dipole in charge*bohr) calculates interaction energy in inverse centimeters
@@ -99,128 +117,139 @@ def Oscilator3D(rr1: np.ndarray, bond1: np.ndarray, AtType1: list, NMN1: int, To
         Units of result = 'Hartree' or 'cm-1'. If not defined interaction
         energy will be in inverse centimeters (cm-1)
 
-    '''
-    scale_by_overlap=False
-#    use_model_carotenoid=False
-#
-#    if use_model_carotenoid:
-#        center=np.sum(rr1,0)
-#        center=center/len(rr1)
-#        VecX=rr1[len(rr1)//2+2,:]-rr1[len(rr1)//2,:]
-#        VecY=rr1[len(rr1)//2+1,:]-rr1[len(rr1)//2,:]
-#        rr1=pos.prepare_alkene(len(rr1),Position=center,vec_x=VecX,vec_y=VecY)
-#
-#        center=np.sum(rr2,0)
-#        center=center/len(rr2)
-#        VecX=rr2[len(rr2)//2+2,:]-rr2[len(rr2)//2,:]
-#        VecY=rr2[len(rr2)//2+1,:]-rr2[len(rr2)//2,:]
-#        rr2=pos.prepare_alkene(len(rr2),Position=center,vec_x=VecX,vec_y=VecY)
-#
+    """
+    scale_by_overlap = False
+    #    use_model_carotenoid=False
+    #
+    #    if use_model_carotenoid:
+    #        center=np.sum(rr1,0)
+    #        center=center/len(rr1)
+    #        VecX=rr1[len(rr1)//2+2,:]-rr1[len(rr1)//2,:]
+    #        VecY=rr1[len(rr1)//2+1,:]-rr1[len(rr1)//2,:]
+    #        rr1=pos.prepare_alkene(len(rr1),Position=center,vec_x=VecX,vec_y=VecY)
+    #
+    #        center=np.sum(rr2,0)
+    #        center=center/len(rr2)
+    #        VecX=rr2[len(rr2)//2+2,:]-rr2[len(rr2)//2,:]
+    #        VecY=rr2[len(rr2)//2+1,:]-rr2[len(rr2)//2,:]
+    #        rr2=pos.prepare_alkene(len(rr2),Position=center,vec_x=VecX,vec_y=VecY)
+    #
 
-    def molecule_osc_3D(rr: np.ndarray, bond: np.ndarray, factor: np.ndarray, NMN: int, TotDip: np.ndarray, *args: str) -> tuple[np.ndarray, np.ndarray]:
-        only_next_neighbour=False
-        TotDip_norm=np.sqrt(np.dot(TotDip,TotDip))
+    def molecule_osc_3D(
+        rr: np.ndarray,
+        bond: np.ndarray,
+        factor: np.ndarray,
+        NMN: int,
+        TotDip: np.ndarray,
+        *args: str,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        only_next_neighbour = False
+        TotDip_norm = np.sqrt(np.dot(TotDip, TotDip))
 
-        Ndip=len(bond)
-        ro=np.zeros((Ndip,3),dtype='f8')
-        do=np.zeros((Ndip,3),dtype='f8')
+        Ndip = len(bond)
+        ro = np.zeros((Ndip, 3), dtype="f8")
+        do = np.zeros((Ndip, 3), dtype="f8")
 
         # Place unity dipole moments in centers of all bonds
         for ii in range(Ndip):
-            do[ii,:]=rr[bond[ii,1],:]-rr[bond[ii,0],:]
-            norm=np.sqrt(np.dot(do[ii,:],do[ii,:]))
+            do[ii, :] = rr[bond[ii, 1], :] - rr[bond[ii, 0], :]
+            norm = np.sqrt(np.dot(do[ii, :], do[ii, :]))
             # scaling dipole by defined value
-            do[ii,:]=do[ii,:]/norm*factor[ii]
-            ro[ii,:]=(rr[bond[ii,1],:]+rr[bond[ii,0],:])/2
+            do[ii, :] = do[ii, :] / norm * factor[ii]
+            ro[ii, :] = (rr[bond[ii, 1], :] + rr[bond[ii, 0], :]) / 2
 
         # Calculate dipole-dipole interaction energy between all dipoles
-        hh=np.zeros((Ndip,Ndip),dtype='f8')
+        hh = np.zeros((Ndip, Ndip), dtype="f8")
         for ii in range(Ndip):
-            for jj in range(ii+1,Ndip):
-                hh[ii,jj]=dipole_dipole(ro[ii,:],do[ii,:],ro[jj,:],do[jj,:])
-                hh[jj,ii]=hh[ii,jj]
+            for jj in range(ii + 1, Ndip):
+                hh[ii, jj] = dipole_dipole(ro[ii, :], do[ii, :], ro[jj, :], do[jj, :])
+                hh[jj, ii] = hh[ii, jj]
 
         if only_next_neighbour:
             for ii in range(Ndip):
-                for jj in range(ii+2,Ndip):
-                    hh[ii,jj]=0.0
-                    hh[jj,ii]=hh[ii,jj]
+                for jj in range(ii + 2, Ndip):
+                    hh[ii, jj] = 0.0
+                    hh[jj, ii] = hh[ii, jj]
 
         # Calculate normal modes (eigenvectors and eigenvalues of hh)
         # val= vector with eigenvalues and vec= matrix with
         # eigenvectors in columns
-        val,vec=np.linalg.eigh(hh)
-#        for ii in range(Ndip):
-#            print('Eigenvalue: ',val[ii])
-#            fig = plt.figure()
-#            plt.plot(range(Ndip),vec[:,ii])
-#            plt.show
-        Dip=np.dot(vec[:,NMN],do)
-        norm=np.sqrt(np.dot(Dip,Dip))
+        val, vec = np.linalg.eigh(hh)
+        #        for ii in range(Ndip):
+        #            print('Eigenvalue: ',val[ii])
+        #            fig = plt.figure()
+        #            plt.plot(range(Ndip),vec[:,ii])
+        #            plt.show
+        Dip = np.dot(vec[:, NMN], do)
+        norm = np.sqrt(np.dot(Dip, Dip))
 
         for ii in range(Ndip):
-            do[ii,:]=do[ii,:]*vec[ii,NMN]*TotDip_norm/norm
+            do[ii, :] = do[ii, :] * vec[ii, NMN] * TotDip_norm / norm
 
-        return ro,do
+        return ro, do
 
+    Ndip1 = len(bond1)
+    Ndip2 = len(bond2)
 
-    Ndip1=len(bond1)
-    Ndip2=len(bond2)
-
-    is_units=False
+    is_units = False
     if args:
         for a in args:
-            is_units=True
-            if a=='Hartree':
-                units='Hartree'
-            elif a=='cm-1':
-                units='cm-1'
+            is_units = True
+            if a == "Hartree":
+                units = "Hartree"
+            elif a == "cm-1":
+                units = "cm-1"
 
     # Elementary dipole size is dependent on atom types (dipole in center of N-C bond should be
     # different than dipole in center of C-C and also in centrer N-N). So far all dipoles are the
     # same for all atom types. This should be changed and be dependent on AtType
     if scale_by_overlap:
         pass
-#        factor1=np.zeros(Ndip1,dtype='f8')
-#        factor2=np.zeros(Ndip2,dtype='f8')
-#        coef=np.array([0.06899907,0.31642396,0.74430829])   # only for C-C bonds and for pz orbitals 6-31G basis
-#        exp=np.array([7.86827235,1.88128854,0.54424926])    # only for C-C bonds and for pz orbitals 6-31G basis
-#        r1=np.array([0.0,0.0,0.0])
-#        for ii in range(Ndip1):
-#            R=np.sqrt(np.dot(rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:],rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:]))
-#            r2=np.array([R,0.0,0.0])
-#            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation
-#            factor1[ii]=np.sqrt(np.dot(Dip,Dip))
-#        for ii in range(Ndip2):
-#            R=np.sqrt(np.dot(rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:],rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:]))
-#            r2=np.array([R,0.0,0.0])
-#            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation
-#            factor2[ii]=np.sqrt(np.dot(Dip,Dip))
+    #        factor1=np.zeros(Ndip1,dtype='f8')
+    #        factor2=np.zeros(Ndip2,dtype='f8')
+    #        coef=np.array([0.06899907,0.31642396,0.74430829])   # only for C-C bonds and for pz orbitals 6-31G basis
+    #        exp=np.array([7.86827235,1.88128854,0.54424926])    # only for C-C bonds and for pz orbitals 6-31G basis
+    #        r1=np.array([0.0,0.0,0.0])
+    #        for ii in range(Ndip1):
+    #            R=np.sqrt(np.dot(rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:],rr1[bond1[ii,1],:]-rr1[bond1[ii,0],:]))
+    #            r2=np.array([R,0.0,0.0])
+    #            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation
+    #            factor1[ii]=np.sqrt(np.dot(Dip,Dip))
+    #        for ii in range(Ndip2):
+    #            R=np.sqrt(np.dot(rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:],rr2[bond2[ii,1],:]-rr2[bond2[ii,0],:]))
+    #            r2=np.array([R,0.0,0.0])
+    #            Dip=qch.dipole_STO(r1,r2,coef,coef,exp,exp,[0,0,1],[0,0,1]) # only dependent on radial distance and not actual positions - it could be made more accurate this is only simplest approximation
+    #            factor2[ii]=np.sqrt(np.dot(Dip,Dip))
     else:
         # Possible scaling according to atom types (here everything is 1)
-        factor1=np.ones(Ndip1,dtype='f8')
-        factor2=np.ones(Ndip2,dtype='f8')
+        factor1 = np.ones(Ndip1, dtype="f8")
+        factor2 = np.ones(Ndip2, dtype="f8")
 
-    ro1,do1=molecule_osc_3D(rr1,bond1,factor1,NMN1,TotDip1)
-    ro2,do2=molecule_osc_3D(rr2,bond2,factor2,NMN2,TotDip2)
+    ro1, do1 = molecule_osc_3D(rr1, bond1, factor1, NMN1, TotDip1)
+    ro2, do2 = molecule_osc_3D(rr2, bond2, factor2, NMN2, TotDip2)
 
-    #print('TotalDip1:',np.sum(do1,0))
-    #print('TotalDip2:',np.sum(do2,0))
+    # print('TotalDip1:',np.sum(do1,0))
+    # print('TotalDip2:',np.sum(do2,0))
 
-    res=0.0
+    res = 0.0
     if is_units:
         for ii in range(Ndip1):
             for jj in range(Ndip2):
-                res += dipole_dipole(ro1[ii,:],do1[ii,:],ro2[jj,:],do2[jj,:],units)
+                res += dipole_dipole(
+                    ro1[ii, :], do1[ii, :], ro2[jj, :], do2[jj, :], units
+                )
     else:
         for ii in range(Ndip1):
             for jj in range(Ndip2):
-                res += dipole_dipole(ro1[ii,:],do1[ii,:],ro2[jj,:],do2[jj,:])
+                res += dipole_dipole(ro1[ii, :], do1[ii, :], ro2[jj, :], do2[jj, :])
 
     return res
 
-def GuessBonds(rr: np.ndarray, bond_length: float = 4.0, **kwargs: object) -> np.ndarray:
-    '''Function guesses pairs of atoms between which bond might occure.
+
+def GuessBonds(
+    rr: np.ndarray, bond_length: float = 4.0, **kwargs: object
+) -> np.ndarray:
+    """Function guesses pairs of atoms between which bond might occure.
 
 
     Parameters
@@ -242,31 +271,31 @@ def GuessBonds(rr: np.ndarray, bond_length: float = 4.0, **kwargs: object) -> np
             dictionary['AtType'] -> array([1, 2, 3, 4, 5]),
             list(dictionary.keys()) -> ['AtType']
 
-    '''
-    Nat=len(rr)
+    """
+    Nat = len(rr)
 
-    is_AtType=False
+    is_AtType = False
     for key in list(kwargs.keys()):
-        if key=='AtType':
-            AtType=kwargs['AtType']
-            is_AtType=True
+        if key == "AtType":
+            AtType = kwargs["AtType"]
+            is_AtType = True
 
-    Bonds=[]
+    Bonds = []
     if is_AtType:
         for ii in range(Nat):
-            for jj in range(ii+1,Nat):
-                dr=rr[jj,:]-rr[ii,:]
-                if AtType[ii]=='H' or AtType[jj]=='H':
-                    if np.sqrt(np.dot(dr,dr))<bond_length/1.8:
-                        Bonds.append([ii,jj])
+            for jj in range(ii + 1, Nat):
+                dr = rr[jj, :] - rr[ii, :]
+                if AtType[ii] == "H" or AtType[jj] == "H":
+                    if np.sqrt(np.dot(dr, dr)) < bond_length / 1.8:
+                        Bonds.append([ii, jj])
                 else:
-                    if np.sqrt(np.dot(dr,dr))<bond_length:
-                        Bonds.append([ii,jj])
+                    if np.sqrt(np.dot(dr, dr)) < bond_length:
+                        Bonds.append([ii, jj])
     else:
         for ii in range(Nat):
-            for jj in range(ii+1,Nat):
-                dr=rr[jj,:]-rr[ii,:]
-                if np.sqrt(np.dot(dr,dr))<bond_length:
-                    Bonds.append([ii,jj])
+            for jj in range(ii + 1, Nat):
+                dr = rr[jj, :] - rr[ii, :]
+                if np.sqrt(np.dot(dr, dr)) < bond_length:
+                    Bonds.append([ii, jj])
 
-    return np.array(Bonds,dtype='i8')
+    return np.array(Bonds, dtype="i8")

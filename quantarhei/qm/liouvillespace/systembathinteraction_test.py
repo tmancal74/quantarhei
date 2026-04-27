@@ -8,6 +8,7 @@ Class Details
 -------------
 
 """
+
 from __future__ import annotations
 
 from .systembathinteraction import SystemBathInteraction
@@ -35,7 +36,6 @@ class TestSystemBathInteraction(SystemBathInteraction):
 
         if name is None:
             raise Exception("Name of the test must be specified")
-
 
         from ...builders.aggregate_test import TestAggregate
         from ...qm.hilbertspace.operators import ProjectionOperator
@@ -70,10 +70,9 @@ class TestSystemBathInteraction(SystemBathInteraction):
             P2 = ProjectionOperator(2, 1, dim=N)
 
             sys_ops = [P1, P2]
-            rates = [1.0/100.0, 1.0/200]
+            rates = [1.0 / 100.0, 1.0 / 200]
 
             super().__init__(sys_operators=sys_ops, rates=rates)
-
 
         elif name == "trimer-2-lind":
             agg = TestAggregate(name="trimer-2")
@@ -89,25 +88,25 @@ class TestSystemBathInteraction(SystemBathInteraction):
             P6 = ProjectionOperator(3, 1, dim=N)
 
             sys_ops = [P1, P2, P3, P4, P5, P6]
-            rates = [1.0/100.0, 1.0/200, 1.0/100.0,
-                     1.0/300.0, 1.0/200, 1.0/500.0]
+            rates = [
+                1.0 / 100.0,
+                1.0 / 200,
+                1.0 / 100.0,
+                1.0 / 300.0,
+                1.0 / 200,
+                1.0 / 500.0,
+            ]
 
             super().__init__(sys_operators=sys_ops, rates=rates)
 
         elif name == "dimer-2-lorentz":
-
             N = agg.get_Hamiltonian().dim
 
             P1 = ProjectionOperator(1, 2, dim=N)
             P2 = ProjectionOperator(2, 1, dim=N)
 
             sys_ops = [P1, P2]
-            rates = [1.0/100.0, 1.0/200]
+            rates = [1.0 / 100.0, 1.0 / 200]
             ctimes = []
 
             super().__init__(sys_operators=sys_ops, rates=rates)
-
-
-
-
-

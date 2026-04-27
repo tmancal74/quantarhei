@@ -1,4 +1,3 @@
-
 #
 # Demo settings
 #
@@ -24,8 +23,7 @@ time = qr.TimeAxis(0.0, Nt, dt)
 
 
 mg = ModelGenerator()
-agg = mg.get_Aggregate_with_environment(name="pentamer-1_env",
-                                        timeaxis=time)
+agg = mg.get_Aggregate_with_environment(name="pentamer-1_env", timeaxis=time)
 
 
 agg.build()
@@ -50,8 +48,7 @@ print("""
 m = qr.Manager()
 m.warn_about_basis_change = False
 
-sb_reference = qr.BasisReferenceOperator(ham.dim,
-                                      name="site basis reference")
+sb_reference = qr.BasisReferenceOperator(ham.dim, name="site basis reference")
 
 #
 # Calculation of various relaxation tensors
@@ -59,36 +56,34 @@ sb_reference = qr.BasisReferenceOperator(ham.dim,
 
 ham.protect_basis()
 with qr.eigenbasis_of(ham):
-
     RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
 
     print("\nRelaxation times from the full relaxation tensor")
     for i in range(1, ham.dim):
         for j in range(1, ham.dim):
-            print(i, "<-", j, ":", 1.0/numpy.real(RRT.data[i,i,j,j]))
+            print(i, "<-", j, ":", 1.0 / numpy.real(RRT.data[i, i, j, j]))
 
     print("\nCalculating relaxation rates")
 
     RRM = qr.qm.RedfieldRateMatrix(ham, sbi)
     print("\nRelaxation times from the rate matrix")
-    for i in range(1,ham.dim):
+    for i in range(1, ham.dim):
         for j in range(1, ham.dim):
-            print(i, "<-", j, ":", 1.0/RRM.data[i,j])
+            print(i, "<-", j, ":", 1.0 / RRM.data[i, j])
 
     print("\nComparison of the results: ratio of rates")
     for i in range(1, ham.dim):
         for j in range(1, ham.dim):
-            print(i, "<-", j, ":", RRM.data[i,j]/numpy.real(RRT.data[i,i,j,j]))
+            print(i, "<-", j, ":", RRM.data[i, j] / numpy.real(RRT.data[i, i, j, j]))
 
     TDRRM = qr.qm.TDRedfieldRateMatrix(ham, sbi)
     print("\nRelaxation times from the rate matrix")
-    for i in range(1,ham.dim):
+    for i in range(1, ham.dim):
         for j in range(1, ham.dim):
-            print(i, "<-", j, ":", 1.0/TDRRM.data[time.length-1,i,j])
+            print(i, "<-", j, ":", 1.0 / TDRRM.data[time.length - 1, i, j])
 
 ham.unprotect_basis()
 with qr.eigenbasis_of(ham):
-
     #
     # Evolution of reduced density matrix
     #
@@ -96,27 +91,26 @@ with qr.eigenbasis_of(ham):
     prop = qr.ReducedDensityMatrixPropagator(time, ham, RRT)
 
     rho_i = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
-    rho_i.data[3,3] = 1.0
+    rho_i.data[3, 3] = 1.0
 
     # FIXME: unprotecting does not work correctly
-    #RRT.unprotect_basis()
+    # RRT.unprotect_basis()
 
     with qr.eigenbasis_of(sb_reference):
-        print(" Relaxation time site basis: ", 1.0/RRT.data[1,1,2,2])
+        print(" Relaxation time site basis: ", 1.0 / RRT.data[1, 1, 2, 2])
 
     RRT.secularize()
-    print(" Relaxation time exciton basis: ", 1.0/RRT.data[1,1,2,2])
+    print(" Relaxation time exciton basis: ", 1.0 / RRT.data[1, 1, 2, 2])
     rho_t = prop.propagate(rho_i)
 
     if _show_plots_:
         rho_t.plot(coherences=False)
 
     rho_i1 = qr.ReducedDensityMatrix(dim=ham.dim, name="Initial DM")
-    rho_i1.data[3,3] = 1.0
+    rho_i1.data[3, 3] = 1.0
 
 
-#rho_t.plot(coherences=False)
-
+# rho_t.plot(coherences=False)
 
 
 #
@@ -130,13 +124,10 @@ pop_t = prop.propagate(p0)
 
 if _show_plots_:
     import matplotlib.pyplot as plt
-    plt.plot(time.data, pop_t[:,3],'--r')
+
+    plt.plot(time.data, pop_t[:, 3], "--r")
     plt.show()
 
-#print(RRM.data[2,3])
-#with eigenbasis_of(ham):
+# print(RRM.data[2,3])
+# with eigenbasis_of(ham):
 #    print(RRT.data[2,2,3,3])
-
-
-
-

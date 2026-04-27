@@ -1,8 +1,5 @@
-
 class NumConf:
-    """Configuration of numerical processing in Quantarhei
-
-    """
+    """Configuration of numerical processing in Quantarhei"""
 
     def __init__(self) -> None:
 
@@ -18,4 +15,3 @@ class NumConf:
 
         # Libraries
         self.enable_pytorch = False
-

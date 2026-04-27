@@ -1,4 +1,3 @@
-
 _show_plots_ = False
 """
     Demo of the Lindblad form
@@ -45,15 +44,15 @@ agg.build()
 from quantarhei.qm import Operator
 
 HH = agg.get_Hamiltonian()
-K = Operator(dim=HH.dim,real=True)
-K.data[1,2] = 1.0
+K = Operator(dim=HH.dim, real=True)
+K.data[1, 2] = 1.0
 
 #
 # System bath interaction with prescribed rate
 #
 from quantarhei.qm import SystemBathInteraction
 
-sbi = SystemBathInteraction(sys_operators=[K], rates=(1.0/100,))
+sbi = SystemBathInteraction(sys_operators=[K], rates=(1.0 / 100,))
 agg.set_SystemBathInteraction(sbi)
 
 #
@@ -63,8 +62,8 @@ from quantarhei.qm import LindbladForm
 
 LF = LindbladForm(HH, sbi, as_operators=False)
 
-print(LF.data[1,1,2,2])
-print(LF.data[1,2,1,2])
+print(LF.data[1, 1, 2, 2])
+print(LF.data[1, 2, 1, 2])
 
 #
 # We can get it also from the aggregate
@@ -76,12 +75,11 @@ from quantarhei import TimeAxis
 time = TimeAxis()
 
 # time is not used here at all
-LFa, ham = agg.get_RelaxationTensor(time,
-           relaxation_theory="electronic_Lindblad")
+LFa, ham = agg.get_RelaxationTensor(time, relaxation_theory="electronic_Lindblad")
 LFa.convert_2_tensor()
 
-print(LFa.data[1,1,2,2])
-print(LFa.data[1,2,1,2])
+print(LFa.data[1, 1, 2, 2])
+print(LFa.data[1, 2, 1, 2])
 
 
 #
@@ -123,7 +121,7 @@ from quantarhei.qm import ProjectionOperator
 K12 = ProjectionOperator(1, 2, dim=4)
 K23 = ProjectionOperator(2, 3, dim=4)
 ops = [K12, K23]
-rates = [1.0/100.0, 1.0/150.0]
+rates = [1.0 / 100.0, 1.0 / 150.0]
 
 vsbi = SystemBathInteraction(sys_operators=ops, rates=rates)
 vsbi.set_system(vagg)
@@ -166,7 +164,7 @@ from quantarhei.qm import ProjectionOperator
 K12 = ProjectionOperator(1, 2, dim=4)
 K23 = ProjectionOperator(2, 3, dim=4)
 ops = [K12, K23]
-rates = [1.0/100.0, 1.0/150.0]
+rates = [1.0 / 100.0, 1.0 / 150.0]
 
 vsbi = SystemBathInteraction(sys_operators=ops, rates=rates)
 vsbi.set_system(vagg2)
@@ -196,13 +194,12 @@ rhot2 = vibprop.propagate(rho0)
 print("...done")
 
 print("Trace over vibrations")
-rhot1 = vagg.trace_over_vibrations(rhot) #, Nt=20)
+rhot1 = vagg.trace_over_vibrations(rhot)  # , Nt=20)
 print("...done")
 
-#print(rhot2.data[Nt,:,:])
-#print(rhot1.data)
+# print(rhot2.data[Nt,:,:])
+# print(rhot1.data)
 
 if _show_plots_:
     rhot2.plot(show=False)
     rhot1.plot(how="--")
-

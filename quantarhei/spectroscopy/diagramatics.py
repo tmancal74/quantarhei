@@ -1,8 +1,5 @@
-"""Liouville pathways and their analysis
+"""Liouville pathways and their analysis"""
 
-
-
-"""
 from __future__ import annotations
 
 from typing import Any
@@ -11,18 +8,25 @@ import numpy
 
 import quantarhei as qr
 
-#from ..core.units import cm2int
+# from ..core.units import cm2int
 from ..core.managers import UnitsManaged
 from ..utils.types import Integer
 
 
 class liouville_pathway(UnitsManaged):
-
     order = Integer("order")
     nint = Integer("nint")
 
-    def __init__(self, ptype: str, sinit: int, aggregate: Any = False,
-                 order: int = 3, pname: str = "", relax_order: int = 0, popt_band: int = 0) -> None:
+    def __init__(
+        self,
+        ptype: str,
+        sinit: int,
+        aggregate: Any = False,
+        order: int = 3,
+        pname: str = "",
+        relax_order: int = 0,
+        popt_band: int = 0,
+    ) -> None:
         """Liouville pathway through a molecular aggregate
 
 
@@ -51,7 +55,7 @@ class liouville_pathway(UnitsManaged):
             raise Exception("aggregate has to be specified")
 
         # initial state of the pathway
-        self.sinit = numpy.zeros(2,dtype=int)
+        self.sinit = numpy.zeros(2, dtype=int)
         self.sinit[0] = sinit
         self.sinit[1] = sinit
 
@@ -62,7 +66,7 @@ class liouville_pathway(UnitsManaged):
         self.relax_order = relax_order
 
         # list events associated with relaxations and light interations
-        self.event = [None]*(1+order+relax_order)
+        self.event = [None] * (1 + order + relax_order)
 
         # type of the pathway (rephasing, non-rephasing, double-coherence)
         self.pathway_type = ptype
@@ -74,7 +78,7 @@ class liouville_pathway(UnitsManaged):
         self.aggregate = aggregate
 
         # current state of the pathway (during building)
-        self.current = numpy.zeros(2,dtype=int)
+        self.current = numpy.zeros(2, dtype=int)
         self.current[0] = sinit
         self.current[1] = sinit
 
@@ -88,25 +92,25 @@ class liouville_pathway(UnitsManaged):
         self.ne = 0
 
         # light induced transitions
-        self.transitions = numpy.zeros((order+1,2), dtype=int)
+        self.transitions = numpy.zeros((order + 1, 2), dtype=int)
 
         # relaxation induced transitions
-        self.relaxations = [None]*relax_order
+        self.relaxations = [None] * relax_order
 
         # sides from which the transitions occurred
-        self.sides = numpy.zeros(order+1,dtype=int)
+        self.sides = numpy.zeros(order + 1, dtype=int)
 
-        self.states = numpy.zeros((1+order+relax_order,2),dtype=int)
+        self.states = numpy.zeros((1 + order + relax_order, 2), dtype=int)
 
         # transition dipole moments associated with the transition
-        self.dmoments = numpy.zeros((order+1,3))
+        self.dmoments = numpy.zeros((order + 1, 3))
 
         # FIXME: we probably do not need the energy property at all
         # energy of the transition
-        self.energy = numpy.zeros(order+1)
+        self.energy = numpy.zeros(order + 1)
 
         # frequency of the transition
-        self.frequency = numpy.zeros(1+order+relax_order)
+        self.frequency = numpy.zeros(1 + order + relax_order)
 
         # orientational prefactor (negative means that it is not initialized)
         self.pref = -1.0
@@ -131,38 +135,32 @@ class liouville_pathway(UnitsManaged):
 
     def _chars(self, lx: Any, rx: Any, char: str = " ") -> str:
         nsp = 10
-        if isinstance(lx,str):
+        if isinstance(lx, str):
             ln = 0
         else:
             lxs = f"{lx:d}"
             rxs = f"{rx:d}"
-            ln = len(lxs)+len(rxs)
+            ln = len(lxs) + len(rxs)
         spc = char
-        for scount in range(nsp-ln):
+        for scount in range(nsp - ln):
             spc += char
         return spc
 
     def __str__(self) -> str:
-        """String representation of the Liouville pathway
-
-
-
-        """
+        """String representation of the Liouville pathway"""
         k = 3
         # output string - starts empty
         out = ""
         # number of events (light interactions + relaxations)
         # equals to the number of horizotal lines in the diagram
-        noe = 1+self.order+self.relax_order
+        noe = 1 + self.order + self.relax_order
 
-        ii = 0 # index of light interactions
-        rr = 0 # index of relaxations
+        ii = 0  # index of light interactions
+        rr = 0  # index of relaxations
         # iterate over horizoltal lines
         for ee in range(noe):
-
             # what is the event type
             if self.event[ee] == "I":
-
                 # side on which the interaction occurs
                 sd = self.sides[ii]
                 # first we start with both sides from self.sinit
@@ -172,43 +170,43 @@ class liouville_pathway(UnitsManaged):
                     spc = self._chars(lx, rx)
                     out = f"    |{lx:d}{spc}{rx:d}|  \n"
                 # now it depends if the interaction is from left or right
-                if sd == 1: # interaction from left
-                    if ii != 3: # if this is not the last interaction print
-                                # also the frequency
-                        spc = self._chars(self.transitions[ii,0], rx)
+                if sd == 1:  # interaction from left
+                    if ii != 3:  # if this is not the last interaction print
+                        # also the frequency
+                        spc = self._chars(self.transitions[ii, 0], rx)
                         ene = self.convert_energy_2_current_u(self.frequency[ee])
-                        outr = f"    |{self.transitions[ii,0]:d}{spc}{rx:d}|      {numpy.round(ene)!r}\n"
+                        outr = f"    |{self.transitions[ii, 0]:d}{spc}{rx:d}|      {numpy.round(ene)!r}\n"
 
-                    else: # last interaction
-                        spc = self._chars(self.transitions[ii,0], rx)
-                        outr = f"    |{self.transitions[ii,0]:d}{spc}{rx:d}|  \n"
+                    else:  # last interaction
+                        spc = self._chars(self.transitions[ii, 0], rx)
+                        outr = f"    |{self.transitions[ii, 0]:d}{spc}{rx:d}|  \n"
                     # output the arrow
                     spc = self._chars("", "", char="-")
-                    outr += (f"--->|{spc}|  \n")
+                    outr += f"--->|{spc}|  \n"
                     # and an empty space
                     spc = self._chars("", "", char=" ")
-                    outr += (f"    |{spc}|  \n")
+                    outr += f"    |{spc}|  \n"
                     # all this is appended at the end
-                    out = outr+out
-                    lx = self.transitions[ii,0]
+                    out = outr + out
+                    lx = self.transitions[ii, 0]
                 else:  # interaction from the right
-                    if ii != 3: # if this is not the last interaction
-                                # print also the frequency
-                        spc = self._chars(lx, self.transitions[ii,0])
+                    if ii != 3:  # if this is not the last interaction
+                        # print also the frequency
+                        spc = self._chars(lx, self.transitions[ii, 0])
                         ene = self.convert_energy_2_current_u(self.frequency[ee])
-                        outl = f"    |{lx:d}{spc}{self.transitions[ii,0]:d}|      {numpy.round(ene)!r}\n"
+                        outl = f"    |{lx:d}{spc}{self.transitions[ii, 0]:d}|      {numpy.round(ene)!r}\n"
                     # actually, iteraction from the right as last does not
                     # occur by convention
 
                     # output the arrow
                     spc = self._chars("", "", char="-")
-                    outl += (f"    |{spc}|<---  \n") #, self.frequency[ee])
+                    outl += f"    |{spc}|<---  \n"  # , self.frequency[ee])
                     # and an empty space
                     spc = self._chars("", "", char=" ")
-                    outl += (f"    |{spc}|  \n")
+                    outl += f"    |{spc}|  \n"
                     # append everything at the end
-                    out = outl+out
-                    rx = self.transitions[ii,0]
+                    out = outl + out
+                    rx = self.transitions[ii, 0]
 
                 ii += 1
 
@@ -222,7 +220,7 @@ class liouville_pathway(UnitsManaged):
                 outR += f"  >>|{spc}|<< \n"
                 spc = self._chars("", "", char=" ")
                 outR += f"    |{spc}| \n"
-                out = outR+out
+                out = outR + out
 
                 lx = lf
                 rx = rf
@@ -233,22 +231,26 @@ class liouville_pathway(UnitsManaged):
 
             k -= 1
 
-
-        outd = (f"\n\nLiouville Pathway {self.pathway_name} (type = {self.pathway_type}) \n")
-        outd += (f"Weighting prefactor: {self.pref!r} \n")
-        outd += (f"(in absolute value): {numpy.abs(self.pref)!r} \n")
-        outd += (f"Evolution factor   : {self.evolfac!r} \n")
+        outd = (
+            f"\n\nLiouville Pathway {self.pathway_name} (type = {self.pathway_type}) \n"
+        )
+        outd += f"Weighting prefactor: {self.pref!r} \n"
+        outd += f"(in absolute value): {numpy.abs(self.pref)!r} \n"
+        outd += f"Evolution factor   : {self.evolfac!r} \n"
         outd += "\n"
 
-        out = outd+out
-
-
+        out = outd + out
 
         return out
 
-
-    def add_transition(self, transition: tuple[int, int], side: int,
-                       interval: int = 0, width: float = -1.0, deph: float = -1.0) -> None:
+    def add_transition(
+        self,
+        transition: tuple[int, int],
+        side: int,
+        interval: int = 0,
+        width: float = -1.0,
+        deph: float = -1.0,
+    ) -> None:
         """Adds a transition to the Liouville pathway.
 
         Parameters
@@ -272,17 +274,19 @@ class liouville_pathway(UnitsManaged):
         ni = transition[1]
 
         # which side is interacted on? Left or right?
-        sd = (abs(side)-side)//2
-        text = ["right","left"]
+        sd = (abs(side) - side) // 2
+        text = ["right", "left"]
 
         # check if the transition start is consistent with current state
         # in the diagram
-        if (self.current[sd] != ni):
-            raise Exception(f"Transition on the {text[sd]} hand"
-            f"side of the diagram has to start from state {self.current[sd]}")
+        if self.current[sd] != ni:
+            raise Exception(
+                f"Transition on the {text[sd]} hand"
+                f"side of the diagram has to start from state {self.current[sd]}"
+            )
 
         # save the transition associated with this interaction
-        self.transitions[self.nint,:] = transition
+        self.transitions[self.nint, :] = transition
         # save the side on which the transition occurs
         self.sides[self.nint] = side
 
@@ -299,22 +303,19 @@ class liouville_pathway(UnitsManaged):
 
         # save the current
         self.current[sd] = nf
-        self.states[self.ne,0] = self.current[0]
-        self.states[self.ne,1] = self.current[1]
+        self.states[self.ne, 0] = self.current[0]
+        self.states[self.ne, 1] = self.current[1]
 
         """
           Some values can be stored locally - they are also
           in the aggregate object
         """
-        #self.energy[self.nint] = \
+        # self.energy[self.nint] = \
         #       (self.aggregate.HH[nf,nf]/cm2int
         #       -self.aggregate.HH[ni,ni]/cm2int)
-        self.energy[self.nint] = \
-               (self.aggregate.HH[nf,nf]
-               -self.aggregate.HH[ni,ni])
+        self.energy[self.nint] = self.aggregate.HH[nf, nf] - self.aggregate.HH[ni, ni]
 
-        self.dmoments[self.nint,:] = \
-               self.aggregate.DD[nf,ni,:]
+        self.dmoments[self.nint, :] = self.aggregate.DD[nf, ni, :]
 
         # rescale dipoles according to the pulses
         lab = self.aggregate.lab
@@ -326,37 +327,34 @@ class liouville_pathway(UnitsManaged):
             else:
                 Np = 0
             if lab.dscaling is not None:
-                self.dmoments[self.nint,:] *= lab.dscaling[self.nint,nf,ni]
-            elif Np >0:
-    #            print("Scaling transition dipole")
+                self.dmoments[self.nint, :] *= lab.dscaling[self.nint, nf, ni]
+            elif Np > 0:
+                #            print("Scaling transition dipole")
                 # if pulses defined only in time domain transfer to the frequency one
                 if not lab.has_freqdomain:
                     self.lab.convert_to_frequency()
-    #            print("Pulses in frequeny domain")
-                if Np > self.nint and \
-                            lab.pulse_effects == "rescale_dip":
+                #            print("Pulses in frequeny domain")
+                if Np > self.nint and lab.pulse_effects == "rescale_dip":
                     # rescale dipole according to pulse intensity at transition frequency
                     tr_energy = numpy.abs(self.energy[self.nint])
                     pulse = lab.pulse_f[self.nint]
-    #                print("Pick pulse n.",self.nint,"Transition energy:",self.energy[self.nint])
-    #                print("Pulse at energy",self.energy[self.nint],"is",\
-    #                      numpy.real(pulse.at(tr_energy)))
+                    #                print("Pick pulse n.",self.nint,"Transition energy:",self.energy[self.nint])
+                    #                print("Pulse at energy",self.energy[self.nint],"is",\
+                    #                      numpy.real(pulse.at(tr_energy)))
 
-                    self.dmoments[self.nint,:] *= numpy.real(pulse.at(tr_energy))
-
+                    self.dmoments[self.nint, :] *= numpy.real(pulse.at(tr_energy))
 
         # check if the number of interactions is not larger than the order
         # of the pathway
         if self.nint < self.order:
             nl = self.current[0]
             np = self.current[1]
-            el = self.aggregate.HH[nl,nl]
-            ep = self.aggregate.HH[np,np]
+            el = self.aggregate.HH[nl, nl]
+            ep = self.aggregate.HH[np, np]
 
             self.frequency[self.ne] = el - ep
         elif self.nint > self.order:
-            etext = ("Number of interactions larger than the order"
-            " of the pathway.")
+            etext = "Number of interactions larger than the order of the pathway."
             raise Exception(etext)
 
         self.nint += 1
@@ -365,11 +363,7 @@ class liouville_pathway(UnitsManaged):
         self.ne += 1
 
     def add_transfer(self, fin: tuple[int, int], sta: tuple[int, int]) -> None:
-        """Adds an energy transfer compoment to the pathway
-
-
-
-        """
+        """Adds an energy transfer compoment to the pathway"""
         # final state of the transition
         nfl = fin[0]
         nfr = fin[1]
@@ -379,22 +373,20 @@ class liouville_pathway(UnitsManaged):
 
         # check if the transition start is consistent with current state
         # in the diagram
-        if ((self.current[0] != nil) or (self.current[1] != nir)):
-            raise Exception("Relaxation does not start"
-             "from the current state")
-
+        if (self.current[0] != nil) or (self.current[1] != nir):
+            raise Exception("Relaxation does not startfrom the current state")
 
         if self.nrel < self.relax_order:
-            self.relaxations[self.nrel] = (fin,sta)
+            self.relaxations[self.nrel] = (fin, sta)
         else:
             raise Exception("Expected number of relaxation events exceeded")
 
         self.current[0] = nfl
         self.current[1] = nfr
-        self.states[self.ne,0] = self.current[0]
-        self.states[self.ne,1] = self.current[1]
-        el = self.aggregate.HH[nfl,nfl]
-        ep = self.aggregate.HH[nfr,nfr]
+        self.states[self.ne, 0] = self.current[0]
+        self.states[self.ne, 1] = self.current[1]
+        el = self.aggregate.HH[nfl, nfl]
+        ep = self.aggregate.HH[nfr, nfr]
         self.frequency[self.ne] = el - ep
 
         self.nrel += 1
@@ -417,29 +409,24 @@ class liouville_pathway(UnitsManaged):
         d = self.dmoments
 
         if self.order == 3:
-            self.F4n[0] = numpy.dot(d[3,:],d[2,:])*numpy.dot(d[1,:],d[0,:])
-            self.F4n[1] = numpy.dot(d[3,:],d[1,:])*numpy.dot(d[2,:],d[0,:])
-            self.F4n[2] = numpy.dot(d[3,:],d[0,:])*numpy.dot(d[2,:],d[1,:])
+            self.F4n[0] = numpy.dot(d[3, :], d[2, :]) * numpy.dot(d[1, :], d[0, :])
+            self.F4n[1] = numpy.dot(d[3, :], d[1, :]) * numpy.dot(d[2, :], d[0, :])
+            self.F4n[2] = numpy.dot(d[3, :], d[0, :]) * numpy.dot(d[2, :], d[1, :])
 
             self.sign = numpy.prod(self.sides)
 
         elif self.order == 1:
-            self.or_av_1 = (1.0/3.0)*numpy.dot(d[0,:], d[1,:])
+            self.or_av_1 = (1.0 / 3.0) * numpy.dot(d[0, :], d[1, :])
             self.sign = 1.0
 
         self.built = True
 
-
     def get_current_state(self) -> numpy.ndarray:
-        """
-
-        """
+        """ """
         return self.current
 
     def get_transition(self, n: int) -> Any:
-        """Returns info on the transition occuring on the n-th interaction
-
-        """
+        """Returns info on the transition occuring on the n-th interaction"""
         return self.side[n], self.transitions[n]
 
     def orientational_averaging(self, lab: Any) -> None:
@@ -450,44 +437,38 @@ class liouville_pathway(UnitsManaged):
 
         """
         # weight in the initial state of the first transition
-        n0 = self.transitions[0,1]
+        n0 = self.transitions[0, 1]
 
         if self.order == 3:
-            self.pref = self.sign*(numpy.dot(lab.F4eM4,self.F4n)
-            *numpy.real(self.aggregate.rho0[n0,n0]))*self.evolfac
+            self.pref = (
+                self.sign
+                * (
+                    numpy.dot(lab.F4eM4, self.F4n)
+                    * numpy.real(self.aggregate.rho0[n0, n0])
+                )
+                * self.evolfac
+            )
         elif self.order == 1:
-            self.pref = numpy.real(self.aggregate.rho0[n0,n0])*self.or_av_1
-
+            self.pref = numpy.real(self.aggregate.rho0[n0, n0]) * self.or_av_1
 
     def get_transition_energy(self, n: int) -> float:
-        """Transition energy of a given interaction with light
-
-        """
+        """Transition energy of a given interaction with light"""
         return self.energy[n]
 
     def get_interval_frequency(self, n: int) -> float:
-        """Returns frequency corresponding to a given response interval
-
-        """
+        """Returns frequency corresponding to a given response interval"""
         return self.frequency[n]
 
     def get_dmoment(self, n: int) -> numpy.ndarray:
-        """Transition dipole moment of a given interaction with light
-
-        """
+        """Transition dipole moment of a given interaction with light"""
         return self.dmoments[n]
 
     def get_prefactor(self) -> float:
-        """Dipole and temperature dependent prefactor
-
-        """
+        """Dipole and temperature dependent prefactor"""
         return self.pref
 
     def get_states(self) -> tuple[Any, ...]:
-        """Returns a tuple of states through which the pathway passes
-
-
-        """
+        """Returns a tuple of states through which the pathway passes"""
         states = []
         self.current[0] = self.sinit[0]
         self.current[1] = self.sinit[0]
@@ -508,14 +489,10 @@ class liouville_pathway(UnitsManaged):
                 rr += 1
             states.append((self.current[0], self.current[1]))
 
-#        print(self.sinit)
-#        print(self.transitions)
-#        print(self.event)
-#        print(self.sides)
-#        print(self.relaxations)
+        #        print(self.sinit)
+        #        print(self.transitions)
+        #        print(self.event)
+        #        print(self.sides)
+        #        print(self.relaxations)
 
         return tuple(states)
-
-
-
-

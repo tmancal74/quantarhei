@@ -1,7 +1,5 @@
-"""State vector of the open quantum system
+"""State vector of the open quantum system"""
 
-
-"""
 from __future__ import annotations
 
 from typing import Any
@@ -39,13 +37,11 @@ class OQSStateVector:
 
     """
 
-
     def __init__(self, dim: int | None = None, data: Any = None) -> None:
 
         self._initialized = False
 
         if data is not None:
-
             ddat = numpy.array(data)
 
             if len(ddat.shape) > 1:
@@ -60,27 +56,21 @@ class OQSStateVector:
             self._initialized = True
 
         elif dim is not None:
-
             self.dim = dim
             self.data = numpy.zeros(self.dim, dtype=REAL)
             self._initialized = True
 
-
     def norm(self) -> Any:
-        """Norm of the state vector
-
-        """
-        return numpy.sqrt(numpy.dot(self.data,self.data))
-
+        """Norm of the state vector"""
+        return numpy.sqrt(numpy.dot(self.data, self.data))
 
     def puredot(self, psi: OQSStateVector) -> Any:
-        """Dot product concerning only the system part
-
-        """
+        """Dot product concerning only the system part"""
         return numpy.dot(self.data, psi.data)
 
-
-    def get_ReducedDensityMatrix(self, decoherence: bool = False) -> ReducedDensityMatrix:
+    def get_ReducedDensityMatrix(
+        self, decoherence: bool = False
+    ) -> ReducedDensityMatrix:
         """Converts the state vector into the density matrix
 
         Parameters
@@ -98,9 +88,6 @@ class OQSStateVector:
         rho = ReducedDensityMatrix(data=data)
         for ii in range(self.dim):
             for jj in range(self.dim):
-                rho.data[ii,jj] = self.data[ii]*self.data[jj]
+                rho.data[ii, jj] = self.data[ii] * self.data[jj]
 
         return rho
-
-
-

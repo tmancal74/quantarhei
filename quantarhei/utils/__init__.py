@@ -14,7 +14,3 @@ from .types import array_property as array_property
 from .types import check_numpy_array as check_numpy_array
 from .types import derived_type as derived_type
 from .vectors import normalize2 as normalize2
-
-
-
-
