@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 from quantarhei.spectroscopy.twod2 import TwoDSpectrumContainer
-from quantarhei import energy_units
-from quantarhei import TimeAxis
 
-from quantarhei.spectroscopy.pumpprobe import PumpProbeSpectrum
+from quantarhei import energy_units
 
 rwa_cm = 12000
 w1_min = rwa_cm - 700.0
@@ -25,9 +22,9 @@ newtw.load("allspectra.hdf5")
 
 with energy_units("1/cm"):
 
-    print("Making movie:")  
-    newtw.make_movie("test_movie.mp4", 
-                     cmap=plt.cm.jet, 
+    print("Making movie:")
+    newtw.make_movie("test_movie.mp4",
+                     cmap=plt.cm.jet,
                      dpi=200,
                      Npos_contours=10,
                      stype="total",

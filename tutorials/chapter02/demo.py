@@ -1,33 +1,34 @@
-# -*- coding: utf-8 -*-
 print(
 """
 
        Quantarhei Demo for the Chapter 2 of the Quantarhei Theory Text
 """)
 import numpy
+
 #import matplotlib
 #matplotlib.use("wx")
 #import matplotlib.pyplot as plt
 #plt.ion()
-
 #
 # Quantarhei objects needed below
 #
-from quantarhei import TimeAxis
-from quantarhei import Hamiltonian
-from quantarhei import StateVector
-from quantarhei import StateVectorPropagator
-    
 #
 # Context manager for basis management in Quantarhei
 #
-from quantarhei import eigenbasis_of
+from quantarhei import (
+    Hamiltonian,
+    StateVector,
+    StateVectorPropagator,
+    TimeAxis,
+    eigenbasis_of,
+)
+
 
 def pause(text=None):
     if text is not None:
         print(text)
     input('Press <ENTER> to continue')
-    
+
 pause()
 print("""
 ###############################################################################
@@ -45,8 +46,8 @@ We define a simple 2x2 Hamiltonian and an initial state vector with the
 excited state completely populated.
 """)
 
-h = [[0.0, 0.4], 
-     [0.4, 1.0]] 
+h = [[0.0, 0.4],
+     [0.4, 1.0]]
 H = Hamiltonian(data=h)
 
 #
@@ -70,7 +71,7 @@ Now we calculate the evolution of the system from the initial state. Read the
 code to see how this is done.
 """)
 #
-# Time interval on which things will be calculated 
+# Time interval on which things will be calculated
 #
 # TimeAxis(start, number of steps, stepsize)
 #
@@ -101,8 +102,8 @@ In the same plot, we plot the real parts of the same elements.
 with eigenbasis_of(H):
     psi_t.plot(ptype="square", show=False)
     psi_t.plot(ptype="real")
-    
-    
+
+
 pause("\nNext we plot the same in the original basis...")
 
 
