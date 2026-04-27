@@ -48,10 +48,15 @@ property needs to be basis managed, one should use a predefined type
 
 
 
-
 """
+from __future__ import annotations
+
 import os
 import warnings
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .parallel import DistributedConfiguration
 
 #
 # This stops future warnings, notably those in h5py library
@@ -128,7 +133,7 @@ class Manager(metaclass=Singleton):
                    "Ha":"Ha",
                    "a.u.":"a.u."}
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         try:
             # this is numpy 1.14
@@ -137,7 +142,7 @@ class Manager(metaclass=Singleton):
             # before there was no `sign` parameters
             numpy.set_printoptions(precision=8)
 
-        self.current_units = {}
+        self.current_units: dict[str, str] = {}
 
         # main configuration file
         cfile = "~/.quantarhei/quantarhei.json"
@@ -154,7 +159,7 @@ class Manager(metaclass=Singleton):
             os.mkdir(self.conf_path)
 
             # write default configuration
-            self.main_conf = {"units":"units.json",
+            self.main_conf: dict[str, Any] = {"units":"units.json",
                               "implementations":"implementations.json"
                              }
 
@@ -171,7 +176,7 @@ class Manager(metaclass=Singleton):
                 self.main_conf = json.load(f)
 
 
-        self.current_basis_operator = None
+        self.current_basis_operator: Any = None
 
         #
         # Flags for all contexts which are enforced or prevented by functions
@@ -189,7 +194,7 @@ class Manager(metaclass=Singleton):
         #
 
         # internal units are hardwired
-        self.internal_units = {"energy":"1/fs", "frequency":"1/fs",
+        self.internal_units: dict[str, str] = {"energy":"1/fs", "frequency":"1/fs",
                                "dipolemoment":"Debye",
                                "temperature":"Kelvin", "length":"A"}
 
@@ -216,7 +221,7 @@ class Manager(metaclass=Singleton):
         #  Setting implementations
         #
 
-        self.implementation_points = {
+        self.implementation_points: dict[str, str] = {
 
             "secular-standard-Redfield-rates":"redfield.ssRedfieldRateMatrix"
 
@@ -225,7 +230,7 @@ class Manager(metaclass=Singleton):
         #
         #  All available implementations
         #
-        self.all_implementations = {
+        self.all_implementations: dict[str, dict[str, str]] = {
            "redfieldrates.ssRedfieldRateMatrix": {
                '0':"quantarhei.implementations.python",
                '1':"quantarhei.implementations.cython"
@@ -237,21 +242,21 @@ class Manager(metaclass=Singleton):
              '1':"quantarhei.implementations.cython"}
 
 
-        self.default_implementations = {
+        self.default_implementations: dict[str, str] = {
             "redfieldrates.ssRedfieldRateMatrix":'0',
             "redfieldtensor.ssRedfieldRateTensor":'0'
             }
 
-        self.optimal_implementations = {
+        self.optimal_implementations: dict[str, str] = {
             "redfieldrates.ssRedfieldRateMatrix":'1'
             }
 
-        self.current_implementations = {
+        self.current_implementations: dict[str, str] = {
             "redfieldrates.ssRedfieldRateMatrix":'0',
             "redfieldtensor.ssRedfieldRateTensor":'0'
             }
 
-        self.parallel_implementations = {}
+        self.parallel_implementations: dict[str, dict[str, str]] = {}
         self.parallel_implementations["redfieldrates."
                                  "ssRedfieldRateMatrix"] = \
             {'0':"quantarhei.implementations.python.parallel",
@@ -268,18 +273,19 @@ class Manager(metaclass=Singleton):
 
         self.change_implementation_at_runtime = True
 
-        self.basis_stack = []
+        self.basis_stack: list[int] = []
         self.basis_stack.append(0)
-        self.basis_transformations = []
+        self.basis_transformations: list[Any] = []
         self.basis_transformations.append(1)
-        self.basis_registered = {}
+        self.basis_registered: dict[int, list[Any]] = {}
 
         self.warn_about_basis_change = False
         self.warn_about_basis_changing_objects = False
 
-        self.parallel_conf = None
+        self.parallel_conf: DistributedConfiguration | None = None
+        self._saved_units: dict[str, str] = {}
 
-        self.save_dict = {}
+        self.save_dict: dict[str, Any] = {}
 
 
         #
@@ -328,7 +334,7 @@ class Manager(metaclass=Singleton):
             self.parallel_conf = None
 
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Closes parallel environment if needed
 
         """
@@ -339,7 +345,7 @@ class Manager(metaclass=Singleton):
 
 
 
-    def load_conf(self):
+    def load_conf(self) -> None:
         """Loads configuration file
 
         This is to be called in scripts and notebooks
@@ -348,7 +354,7 @@ class Manager(metaclass=Singleton):
         self._read_uconf()
 
 
-    def _read_uconf(self):
+    def _read_uconf(self) -> None:
         """Reads user defined local config file
 
         From Stackoverflow recipe:
@@ -385,7 +391,7 @@ class Manager(metaclass=Singleton):
 
         #printlog("Configuration file: ", fpath, "loaded", loglevel=9)
 
-    def _load_uconf(self, fpath):
+    def _load_uconf(self, fpath: str) -> None:
         """
 
         """
@@ -402,7 +408,7 @@ class Manager(metaclass=Singleton):
         except Exception:
             raise Exception()
 
-    def save_settings(self):
+    def save_settings(self) -> None:
 
         # main configuration file
         with open(self.cfile,'w') as f:
@@ -415,7 +421,7 @@ class Manager(metaclass=Singleton):
 
 
 
-    def save_implementations(self):
+    def save_implementations(self) -> None:
             # set the implementations to standard
         implementations = {
             "imp_points":self.implementation_points,
@@ -429,7 +435,7 @@ class Manager(metaclass=Singleton):
         with open(imp_file,'w') as f:
             json.dump(implementations,f)
 
-    def load_implementations(self):
+    def load_implementations(self) -> None:
         imp_file = self.main_conf["implementations"]
         imp_file = os.path.join(self.conf_path,imp_file)
         with open(imp_file) as f:
@@ -441,26 +447,26 @@ class Manager(metaclass=Singleton):
             self.current_implementations = implementations["current"]
 
 
-    def save_units(self):
+    def save_units(self) -> None:
         units_file = self.main_conf["units"]
         units_file = os.path.join(self.conf_path,units_file)
         with open(units_file,'w') as f:
             json.dump(self.current_units,f)
 
-    def load_units(self):
+    def load_units(self) -> None:
         units_file = self.main_conf["units"]
         units_file = os.path.join(self.conf_path,units_file)
         with open(units_file) as f:
             self.current_units = json.load(f)
 
-    def get_real_type(self):
+    def get_real_type(self) -> type:
         """Returns default numpy float type
 
         """
         import numpy
         return numpy.float64
 
-    def get_complex_type(self):
+    def get_complex_type(self) -> type:
         """Returns default numpy complex type
 
         """
@@ -468,13 +474,13 @@ class Manager(metaclass=Singleton):
         return numpy.complex128
 
 
-    def store_current_basis_operator(self, op):
+    def store_current_basis_operator(self, op: Any) -> None:
         self.current_basis_operator = op
 
-    def remove_current_basis_operator(self):
+    def remove_current_basis_operator(self) -> None:
         self.current_basis_operator = None
 
-    def unit_repr(self,utype="energy",mode="current"):
+    def unit_repr(self, utype: str = "energy", mode: str = "current") -> str:
         """Returns a string representing the currently used units
 
 
@@ -489,7 +495,7 @@ class Manager(metaclass=Singleton):
         else:
             raise Exception("Unknown unit type")
 
-    def unit_repr_latex(self,utype="energy",mode="current"):
+    def unit_repr_latex(self, utype: str = "energy", mode: str = "current") -> str:
         """Returns a string representing the currently used units
 
 
@@ -506,12 +512,11 @@ class Manager(metaclass=Singleton):
 
 
 
-    def set_current_units(self, utype, units):
+    def set_current_units(self, utype: str, units: str) -> None:
         """Sets current units
 
 
         """
-        self._saved_units = {}
         self._saved_units[utype] = self.get_current_units(utype)
 
         if utype in self.allowed_utypes:
@@ -522,7 +527,7 @@ class Manager(metaclass=Singleton):
         else:
             raise Exception("Unknown type of units")
 
-    def unset_current_units(self, utype):
+    def unset_current_units(self, utype: str) -> None:
         """Restores previously saved units of a given type
 
         """
@@ -541,7 +546,7 @@ class Manager(metaclass=Singleton):
 
 
 
-    def get_current_units(self, utype):
+    def get_current_units(self, utype: str) -> str:
         """
 
         """
@@ -551,7 +556,7 @@ class Manager(metaclass=Singleton):
 
 
 #    @deprecated
-    def cu_energy(self,val,units="1/cm"):
+    def cu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:
         """Converst to current energy units
 
         """
@@ -567,7 +572,7 @@ class Manager(metaclass=Singleton):
             return i_val
 
 #    @deprecated
-    def iu_energy(self,val,units="1/cm"):
+    def iu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:
         """Converst to internal energy units
 
         """
@@ -577,7 +582,7 @@ class Manager(metaclass=Singleton):
             return i_val
 
 
-    def convert_energy_2_internal_u(self,val):
+    def convert_energy_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         """Convert energy from currently used units to internal units
 
         Parameters
@@ -593,8 +598,8 @@ class Manager(metaclass=Singleton):
         if units == "nm":
             # zero is interpretted as zero energy
             try:
-                ret = numpy.zeros(val.shape, dtype=val.dtype)
-                ret[val!=0.0] = 1.0/val[val!=0]
+                ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
+                ret[val!=0.0] = 1.0/val[val!=0]  # type: ignore[index]
                 return ret/cfact
             except AttributeError:
                 return (1.0/val)/cfact
@@ -605,7 +610,7 @@ class Manager(metaclass=Singleton):
             return val*cfact
 
 
-    def convert_energy_2_current_u(self,val):
+    def convert_energy_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         """Converts energy from internal units to currently used units
 
         Parameters
@@ -621,8 +626,8 @@ class Manager(metaclass=Singleton):
         if units == "nm":
             # zero is interpretted as zero energy
             try:
-                ret = numpy.zeros(val.shape, dtype=val.dtype)
-                ret[val!=0.0] = 1.0/val[val!=0]
+                ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
+                ret[val!=0.0] = 1.0/val[val!=0]  # type: ignore[index]
                 return ret/cfact
             except AttributeError:
                 return (1.0/val)/cfact
@@ -630,7 +635,7 @@ class Manager(metaclass=Singleton):
             return val/cfact
 
 
-    def convert_frequency_2_internal_u(self,val):
+    def convert_frequency_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         """Converts frequency from currently used units to internal units
 
         Parameters
@@ -642,7 +647,7 @@ class Manager(metaclass=Singleton):
         return val*conversion_facs_frequency[self.current_units["frequency"]]
 
 
-    def convert_frequency_2_current_u(self,val):
+    def convert_frequency_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         """Converts frequency from internal units to currently used units
 
         Parameters
@@ -654,7 +659,7 @@ class Manager(metaclass=Singleton):
         return val/conversion_facs_frequency[self.current_units["frequency"]]
 
 
-    def convert_length_2_internal_u(self,val):
+    def convert_length_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         """Converts length from currently used units to internal units
 
         Parameters
@@ -666,7 +671,7 @@ class Manager(metaclass=Singleton):
         return val*conversion_facs_length[self.current_units["length"]]
 
 
-    def convert_length_2_current_u(self,val):
+    def convert_length_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         """Converts frequency from internal units to currently used units
 
         Parameters
@@ -678,7 +683,7 @@ class Manager(metaclass=Singleton):
         return val/conversion_facs_length[self.current_units["length"]]
 
 
-    def get_implementation_prefix(self,package="",taskname=""):
+    def get_implementation_prefix(self, package: str = "", taskname: str = "") -> str:
         #default_imp_prefix = "quantarhei.implementations.python"
 
         pname = package+"."+taskname
@@ -688,47 +693,47 @@ class Manager(metaclass=Singleton):
         return imp_prefix
 
 
-    def get_implementation_points(self):
+    def get_implementation_points(self) -> dict[str, str]:
         return self.implementation_points
 
 
-    def get_all_implementations(self):
+    def get_all_implementations(self) -> dict[str, dict[str, str]]:
         return self.all_implementations
 
-    def get_all_implementations_of(self,imp):
+    def get_all_implementations_of(self, imp: str) -> dict[str, str]:
         imp_id = self.implementation_points[imp]
         return self.all_implementations[imp_id]
 
-    def get_current_implementation(self,imp):
+    def get_current_implementation(self, imp: str) -> str:
         imp_id = self.implementation_points[imp]
         whichone = self.current_implementations[imp_id]
         return self.all_implementations[imp_id][str(whichone)]
 
-    def set_current_implementation(self, imp, choice):
+    def set_current_implementation(self, imp: str, choice: str) -> None:
         imp_id = self.implementation_points[imp]
         self.current_implementations[imp_id] = choice
 
-    def register_implementation(self,imp_point,prefix,asint=None):
+    def register_implementation(self, imp_point: str, prefix: str, asint: Any = None) -> None:
         pass
 
-    def commit_implementation(self,imp_point,prefix,asint=None):
+    def commit_implementation(self, imp_point: str, prefix: str, asint: Any = None) -> None:
         pass
 
-    def get_current_basis(self):
+    def get_current_basis(self) -> int:
         """Returns the current basis id
 
         """
         l = len(self.basis_stack)
         return self.basis_stack[l-1]
 
-    def set_new_basis(self,SS):
+    def set_new_basis(self, SS: Any) -> int:
         nb = self.get_current_basis() + 1
         self.basis_stack.append(nb)
         self.basis_transformations.append(SS)
         self.basis_registered[nb] = []
         return nb
 
-    def transform_to_current_basis(self, operator):
+    def transform_to_current_basis(self, operator: Any) -> None:
         """Transforms an operator to the currently used basis
 
         Parameters
@@ -774,11 +779,11 @@ class Manager(metaclass=Singleton):
             self.register_with_basis(cb,operator)
 
 
-    def register_with_basis(self,nb,operator):
+    def register_with_basis(self, nb: int, operator: Any) -> None:
         self.basis_registered[nb].append(operator)
 
 
-    def get_DistributedConfiguration(self):
+    def get_DistributedConfiguration(self) -> DistributedConfiguration:
         """
 
         """
@@ -787,16 +792,6 @@ class Manager(metaclass=Singleton):
         if self.parallel_conf is None:
             self.parallel_conf = DistributedConfiguration()
         return self.parallel_conf
-
-
-
-
-
-
-
-
-
-
 
 
 class Managed:
@@ -816,22 +811,22 @@ class UnitsManaged(Managed):
 
     """
 
-    def convert_energy_2_internal_u(self, val):
+    def convert_energy_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_energy_2_internal_u(val)
 
-    def convert_energy_2_current_u(self, val):
+    def convert_energy_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_energy_2_current_u(val)
 
-    def convert_length_2_internal_u(self, val):
+    def convert_length_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_length_2_internal_u(val)
 
-    def convert_length_2_current_u(self, val):
+    def convert_length_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_length_2_current_u(val)
 
-    def unit_repr(self,utype="energy"):
+    def unit_repr(self, utype: str = "energy") -> str:
         return self.manager.unit_repr(utype)
 
-    def unit_repr_latex(self,utype="energy"):
+    def unit_repr_latex(self, utype: str = "energy") -> str:
         return self.manager.unit_repr_latex(utype)
 
 
@@ -840,16 +835,16 @@ class EnergyUnitsManaged(Managed):
     utype = "energy"
     units = "1/fs"
 
-    def convert_2_internal_u(self,val):
+    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_energy_2_internal_u(val)
 
-    def convert_2_current_u(self,val):
+    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_energy_2_current_u(val)
 
-    def unit_repr(self):
+    def unit_repr(self) -> str:
         return self.manager.unit_repr("energy")
 
-    def unit_repr_latex(self, utype="energy"):
+    def unit_repr_latex(self, utype: str = "energy") -> str:
         return self.manager.unit_repr_latex(utype)
 
 
@@ -861,16 +856,16 @@ class LengthUnitsManaged(Managed):
     utype = "length"
     units = "A"
 
-    def convert_2_internal_u(self, val):
+    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_length_2_internal_u(val)
 
-    def convert_2_current_u(self,val):
+    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
         return self.manager.convert_length_2_current_u(val)
 
-    def unit_repr(self):
+    def unit_repr(self) -> str:
         return self.manager.unit_repr(self.utype)
 
-    def unit_repr_latex(self):
+    def unit_repr_latex(self) -> str:
         return self.manager.unit_repr_latex(self.utype)
 
 
@@ -882,20 +877,17 @@ class BasisManaged(Managed):
     _current_basis = Manager().get_current_basis()
     is_basis_protected = False
 
-    def get_current_basis(self):
+    def get_current_basis(self) -> int:
         return self._current_basis
 
-    def set_current_basis(self,bb):
+    def set_current_basis(self, bb: int) -> None:
         self._current_basis = bb
 
-    def protect_basis(self):
+    def protect_basis(self) -> None:
         self.is_basis_protected = True
 
-    def unprotect_basis(self):
+    def unprotect_basis(self) -> None:
         self.is_basis_protected = False
-
-
-
 
 
 class units_context_manager:
@@ -904,17 +896,17 @@ class units_context_manager:
 
     """
 
-    def __init__(self,utype="energy"):
+    def __init__(self, utype: str = "energy") -> None:
         self.manager = Manager()
         if utype in self.manager.allowed_utypes:
             self.utype = utype
         else:
             raise Exception("Unknown units type")
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         pass
 
-    def __exit__(self):
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
         pass
 
 
@@ -924,7 +916,7 @@ class energy_units(units_context_manager):
 
     """
 
-    def __init__(self,units):
+    def __init__(self, units: str) -> None:
         super().__init__(utype="energy")
 
         if units in self.manager.units["energy"]:
@@ -932,14 +924,14 @@ class energy_units(units_context_manager):
         else:
             raise Exception("Unknown energy units")
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         # save current energy units
         self.units_backup = self.manager.get_current_units("energy")
         self.manager.set_current_units(self.utype,self.units)
         self.manager._in_energy_units_context = True
         self.manager._in_eu_count += 1
 
-    def __exit__(self,ext_ty,exc_val,tb):
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
         self.manager.set_current_units("energy",self.units_backup)
         self.manager._in_eu_count -= 1
         if self.manager._in_eu_count == 0:
@@ -961,7 +953,7 @@ class length_units(units_context_manager):
 
     """
 
-    def __init__(self, units):
+    def __init__(self, units: str) -> None:
         super().__init__(utype="length")
 
         if units in self.manager.units["length"]:
@@ -969,12 +961,12 @@ class length_units(units_context_manager):
         else:
             raise Exception("Unknown length units")
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         # save current energy units
         self.units_backup = self.manager.get_current_units("length")
         self.manager.set_current_units(self.utype,self.units)
 
-    def __exit__(self,ext_ty,exc_val,tb):
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
         self.manager.set_current_units("length",self.units_backup)
 
 
@@ -984,14 +976,14 @@ class basis_context_manager:
 
 
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.manager = Manager()
 
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         pass
 
-    def __exit__(self,ext_ty,exc_val,tb):
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
         pass
 
 
@@ -1002,13 +994,13 @@ class eigenbasis_of(basis_context_manager):
 
     """
 
-    def __init__(self, operator):
+    def __init__(self, operator: Any) -> None:
         super().__init__()
         self.op = operator
         self.manager.store_current_basis_operator(self.op)
 
 
-    def __enter__(self):
+    def __enter__(self) -> None:
 
         self.manager._in_eigenbasis_of_context = True
 
@@ -1035,7 +1027,7 @@ class eigenbasis_of(basis_context_manager):
 
 
 
-    def __exit__(self,ext_ty,exc_val,tb):
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> Returning from basis context manager. Cleaning ...")
@@ -1084,7 +1076,7 @@ class eigenbasis_of(basis_context_manager):
             print("\nQr >>> ... cleaning done")
 
 
-def set_current_units(units=None):
+def set_current_units(units: dict[str, str] | None = None) -> None:
     """Sets units globaly without the need for a context manager
 
     """
@@ -1110,4 +1102,3 @@ def set_current_units(units=None):
                 manager.set_current_units(utype,manager.internal_units[utype])
             else:
                 raise Exception(f"Unknown units type {utype}")
-
