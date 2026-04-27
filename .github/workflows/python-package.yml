@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -15,16 +19,22 @@ jobs:
       with:
         python-version: "3.12"
         cache: 'pip'
-    - name: Install pre-commit and ruff
-      run: pip install pre-commit ruff
-    - name: Check formatting
-      run: ruff format --check quantarhei/
+    - name: Check PR title
+      if: github.event_name == 'pull_request'
+      run: |
+        TITLE="${{ github.event.pull_request.title }}"
+        echo "PR title: $TITLE"
+        echo "$TITLE" | grep -qE '^#[0-9]+ ' || \
+          { echo "PR title must start with '#N ' (e.g. '#243 ci: add feature')"; exit 1; }
+    - name: Install pre-commit
+      run: pip install pre-commit
     - name: Run pre-commit hooks
       run: pre-commit run --all-files
 
   build:
-
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
     strategy:
       fail-fast: false
       matrix:
@@ -51,6 +61,7 @@ jobs:
           --cov=quantarhei \
           --cov-report=term \
           --cov-report=xml:coverage1.xml \
+          --junit-xml=results-unit.xml \
           tests/unit
 
     - name: Run doc tests
@@ -59,6 +70,7 @@ jobs:
           --cov=quantarhei \
           --cov-append \
           --cov-report=xml:coverage2.xml \
+          --junit-xml=results-doctest.xml \
           quantarhei/core \
           quantarhei/builders \
           quantarhei/qm/corfunctions \
@@ -71,12 +83,28 @@ jobs:
 
     - name: Run behave tests
       run: |
-        coverage run $(which behave) tests/behave/features
+        coverage run --data-file=.coverage.behave $(which behave) tests/behave/features
+        coverage xml --data-file=.coverage.behave -o coverage3.xml
+
+    - name: Test report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test Results (Python ${{ matrix.python-version }})
+        path: results-*.xml
+        reporter: java-junit
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
-        files: ./coverage1.xml,./coverage2.xml
+        files: ./coverage1.xml,./coverage2.xml,./coverage3.xml
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/dependency-review-action@v4
