@@ -254,6 +254,8 @@ jobs:
     - name: Test report
       uses: dorny/test-reporter@v1
       if: always()
+      # Fork PRs get a read-only token; the check-run write will 403 —
+      # continue-on-error prevents that from blocking the job.
       continue-on-error: true
       with:
         name: Integration Tests (Python ${{ matrix.python-version }})
