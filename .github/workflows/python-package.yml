@@ -168,6 +168,8 @@ jobs:
         name: Unit + Doc Tests (Python ${{ matrix.python-version }})
         path: results-*.xml
         reporter: java-junit
+        # Fork PRs have a read-only token and cannot write check runs
+        fail-on-error: false
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
@@ -252,6 +254,9 @@ jobs:
       run: |
         coverage run --data-file=.coverage.behave \
           $(which behave) ${{ steps.features.outputs.feature_paths }}
+        # .coveragerc has parallel=True so coverage run writes .coverage.behave.<host>.<pid>;
+        # combine merges those files back into .coverage.behave before xml export.
+        coverage combine --data-file=.coverage.behave
         coverage xml --data-file=.coverage.behave -o coverage3.xml
 
     - name: Test report
@@ -261,6 +266,7 @@ jobs:
         name: Integration Tests (Python ${{ matrix.python-version }})
         path: results-*.xml
         reporter: java-junit
+        fail-on-error: false
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
