@@ -16,7 +16,10 @@ from ..implementations.aceto.lab_settings import lab_settings
 from ..qm.propagators.poppropagator import PopulationPropagator
 
 # deprecated class
-from ..spectroscopy.responses import LiouvillePathway, NonLinearResponse
+from ..spectroscopy.responses import LiouvillePathway
+
+# This is how we calculate it now
+from ..spectroscopy.responses import NonLinearResponse
 from ..utils import derived_type
 from .twodresponse import TwoDResponse
 
