@@ -173,6 +173,7 @@ jobs:
         reporter: java-junit
 
     - name: Upload coverage to Codecov
+      if: github.event_name == 'push'
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
@@ -270,6 +271,7 @@ jobs:
         reporter: java-junit
 
     - name: Upload coverage to Codecov
+      if: github.event_name == 'push'
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
