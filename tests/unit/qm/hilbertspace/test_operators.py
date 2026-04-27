@@ -1,4 +1,3 @@
-
 import unittest
 
 import numpy
@@ -18,88 +17,81 @@ from quantarhei.qm import ReducedDensityMatrix
 
 
 class TestReducedDensityMatrix(unittest.TestCase):
-    """Tests for the Manager class
-
-
-    """
+    """Tests for the Manager class"""
 
     def setUp(self):
         self.en = [0.0, 1.0, 2.0]
-        self.m = Molecule(name="Molecule",elenergies=self.en)
-        self.m.set_dipole(0,1,[1.0,0.0,0.0])
-        self.m.set_dipole(0,2,[0.5,0.0,0.0])
+        self.m = Molecule(name="Molecule", elenergies=self.en)
+        self.m.set_dipole(0, 1, [1.0, 0.0, 0.0])
+        self.m.set_dipole(0, 2, [0.5, 0.0, 0.0])
 
         self.rho_eq = self.m.get_thermal_ReducedDensityMatrix()
 
     def test_excitation_by_delta(self):
-        """Testing reduced density matrix excitation by delta-pulse
+        """Testing reduced density matrix excitation by delta-pulse"""
+        rho_exp = numpy.zeros((3, 3), dtype=REAL)
+        rho_exp[0, 0] = 1.0
 
-
-        """
-        rho_exp = numpy.zeros((3,3),dtype=REAL)
-        rho_exp[0,0] = 1.0
-
-        self.assertTrue(numpy.allclose(self.rho_eq._data,rho_exp))
+        self.assertTrue(numpy.allclose(self.rho_eq._data, rho_exp))
 
         dd = self.m.get_TransitionDipoleMoment()
         epol = [1.0, 0.0, 0.0]
 
-        rho_ex = self.rho_eq.excite_delta(dmoment=dd,epolarization=epol)
+        rho_ex = self.rho_eq.excite_delta(dmoment=dd, epolarization=epol)
 
-        rho_exp = numpy.array([[ 0.00+0.j,  0.00+0.j,  0.00+0.j],
-                               [ 0.00+0.j,  1.00+0.j,  0.50+0.j],
-                               [ 0.00+0.j,  0.50+0.j,  0.25+0.j]])
+        rho_exp = numpy.array(
+            [
+                [0.00 + 0.0j, 0.00 + 0.0j, 0.00 + 0.0j],
+                [0.00 + 0.0j, 1.00 + 0.0j, 0.50 + 0.0j],
+                [0.00 + 0.0j, 0.50 + 0.0j, 0.25 + 0.0j],
+            ]
+        )
 
-        self.assertTrue(numpy.allclose(rho_exp,rho_ex._data))
+        self.assertTrue(numpy.allclose(rho_exp, rho_ex._data))
 
+        rho_ex2 = self.rho_eq.excite_delta(
+            dmoment=dd,
+            epolarization=[1.0 / numpy.sqrt(2.0), 1.0 / numpy.sqrt(2.0), 0.0],
+        )
 
+        rho_exp2 = numpy.array(
+            [
+                [0.000 + 0.0j, 0.000 + 0.0j, 0.000 + 0.0j],
+                [0.000 + 0.0j, 0.500 + 0.0j, 0.250 + 0.0j],
+                [0.000 + 0.0j, 0.250 + 0.0j, 0.125 + 0.0j],
+            ]
+        )
 
-        rho_ex2 = self.rho_eq.excite_delta(dmoment=dd,
-                                      epolarization=[1.0/numpy.sqrt(2.0),
-                                                     1.0/numpy.sqrt(2.0),0.0])
-
-        rho_exp2 = numpy.array([[ 0.000+0.j,  0.000+0.j,  0.000+0.j],
-                                [ 0.000+0.j,  0.500+0.j,  0.250+0.j],
-                                [ 0.000+0.j,  0.250+0.j,  0.125+0.j]])
-
-        self.assertTrue(numpy.allclose(rho_ex2._data,rho_exp2))
-
+        self.assertTrue(numpy.allclose(rho_ex2._data, rho_exp2))
 
     def test_conversion_2_populations(self):
-        """Testing conversion of reduced density matrix to population vector
-
-
-        """
-        rdm = ReducedDensityMatrix(data=[[0.5, 0.0, 0.1],
-                                         [0.0, 0.3, 0.0],
-                                         [0.1, 0.0, 0.2]])
+        """Testing conversion of reduced density matrix to population vector"""
+        rdm = ReducedDensityMatrix(
+            data=[[0.5, 0.0, 0.1], [0.0, 0.3, 0.0], [0.1, 0.0, 0.2]]
+        )
 
         pop = rdm.get_populations()
 
-        self.assertTrue(numpy.allclose(pop,[0.5,0.3,0.2]))
-
+        self.assertTrue(numpy.allclose(pop, [0.5, 0.3, 0.2]))
 
     def test_saveable(self):
-        """Testing reduced density matrix as Saveable
+        """Testing reduced density matrix as Saveable"""
+        rdm = ReducedDensityMatrix(
+            data=[[0.5, 0.0, 0.1], [0.0, 0.3, 0.0], [0.1, 0.0, 0.2]]
+        )
 
+        # import h5py
 
-        """
-        rdm = ReducedDensityMatrix(data=[[0.5, 0.0, 0.1],
-                                         [0.0, 0.3, 0.0],
-                                         [0.1, 0.0, 0.2]])
-
-        #import h5py
-
-        #with h5py.File("test_file_operators",driver="core",
+        # with h5py.File("test_file_operators",driver="core",
         #                   backing_store=False) as fid:
         import tempfile
-        with tempfile.TemporaryFile() as fid:
 
-            rdm.save(fid) #, test=True)
+        with tempfile.TemporaryFile() as fid:
+            rdm.save(fid)  # , test=True)
             fid.seek(0)
 
             rdm2 = ReducedDensityMatrix()
 
-            rdm2 = rdm2.load(fid) #, test=True)
+            rdm2 = rdm2.load(fid)  # , test=True)
 
-        self.assertTrue(numpy.allclose(rdm2.data,rdm.data))
+        self.assertTrue(numpy.allclose(rdm2.data, rdm.data))

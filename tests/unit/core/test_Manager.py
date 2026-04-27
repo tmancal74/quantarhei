@@ -1,4 +1,3 @@
-
 import unittest
 
 """
@@ -15,25 +14,15 @@ from quantarhei import Manager
 
 
 class TestManager(unittest.TestCase):
-    """Tests for the Manager class
-
-
-    """
+    """Tests for the Manager class"""
 
     def setUp(self):
         pass
 
-
     def test_that_Manager_is_a_singleton(self):
-        """Testing that Manager object is a singleton
-
-
-        """
+        """Testing that Manager object is a singleton"""
         m = Manager()
         n = Manager()
 
         if m is not n:
             raise Exception()
-
-
-

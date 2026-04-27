@@ -1,4 +1,3 @@
-
 import unittest
 
 """
@@ -19,15 +18,12 @@ from .test_UnitsManaged import UnitsManagedObject
 
 
 class TestEnergyUnits(unittest.TestCase):
-
     def setUp(self):
         # reusining class from previous test
         self.u = UnitsManagedObject()
 
     def test_using_different_units(self):
-        """Testing that 'energy_units' context manager works
-
-        """
+        """Testing that 'energy_units' context manager works"""
         # set value in 1/cm
         with energy_units("1/cm"):
             val = 100.0
@@ -38,13 +34,11 @@ class TestEnergyUnits(unittest.TestCase):
             w.set_value(val2)
 
         # compare it in internal units
-        self.assertEqual(self.u.value,val*cm2int)
-        self.assertEqual(w.value,val2*cm2int)
+        self.assertEqual(self.u.value, val * cm2int)
+        self.assertEqual(w.value, val2 * cm2int)
 
     def test_using_global_units_testing(self):
-        """Testing that 'set_current_units' works
-
-        """
+        """Testing that 'set_current_units' works"""
         a = UnitsManagedObject()
         a.set_value(1.0)
 
@@ -55,7 +49,7 @@ class TestEnergyUnits(unittest.TestCase):
 
         set_current_units(units)
 
-        self.assertEqual(a.get_value(),1.0/cm2int)
+        self.assertEqual(a.get_value(), 1.0 / cm2int)
 
         val1 = 100
         val2 = 50.0
@@ -68,11 +62,11 @@ class TestEnergyUnits(unittest.TestCase):
 
         set_current_units()
 
-        self.assertEqual(self.u.value, val2*cm2int)
-        self.assertEqual(w.value, val1*cm2int)
+        self.assertEqual(self.u.value, val2 * cm2int)
+        self.assertEqual(w.value, val1 * cm2int)
 
-        self.assertEqual(self.u.get_value(), val2*cm2int)
-        self.assertEqual(w.get_value(), val1*cm2int)
+        self.assertEqual(self.u.get_value(), val2 * cm2int)
+        self.assertEqual(w.get_value(), val1 * cm2int)
 
         #
         # Test of frequency units
@@ -81,7 +75,7 @@ class TestEnergyUnits(unittest.TestCase):
 
         set_current_units(units)
 
-        self.assertEqual(a.get_value(),1.0/cm2int)
+        self.assertEqual(a.get_value(), 1.0 / cm2int)
 
         val1 = 100
         val2 = 50.0
@@ -94,10 +88,8 @@ class TestEnergyUnits(unittest.TestCase):
 
         set_current_units()
 
-        self.assertEqual(self.u.value, val2*cm2int)
-        self.assertEqual(w.value, val1*cm2int)
+        self.assertEqual(self.u.value, val2 * cm2int)
+        self.assertEqual(w.value, val1 * cm2int)
 
-        self.assertEqual(self.u.get_value(), val2*cm2int)
-        self.assertEqual(w.get_value(), val1*cm2int)
-
-
+        self.assertEqual(self.u.get_value(), val2 * cm2int)
+        self.assertEqual(w.get_value(), val1 * cm2int)

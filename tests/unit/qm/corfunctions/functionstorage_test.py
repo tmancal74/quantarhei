@@ -1,53 +1,47 @@
-
 import unittest
 
 import numpy.testing as npt
 
-#import quantarhei as qr
+# import quantarhei as qr
 from quantarhei import FastFunctionStorage, FunctionStorage, TimeAxis
 
 
 class TestFunctionStorage(unittest.TestCase):
-    """Tests the FunctionStorage functionality
-
-
-    """
+    """Tests the FunctionStorage functionality"""
 
     def test_function_storage_1(self):
-        """Testing FunctionStorage test 1
-
-        """
+        """Testing FunctionStorage test 1"""
         t1 = TimeAxis(0.0, 100, 1.0)
         t3 = TimeAxis(0.0, 110, 1.0)
 
         # FIXME: Check the dimensionality of the storage
         # - it must be consistent with the self.configuration
-        gg = FunctionStorage(7, (t1,t3), show_config=False, config=None)
+        gg = FunctionStorage(7, (t1, t3), show_config=False, config=None)
 
-        gf = FastFunctionStorage(7, (t1,t3), show_config=False, config=None)
+        gf = FastFunctionStorage(7, (t1, t3), show_config=False, config=None)
 
         def goft_gamma(t):
-            return t/100.0
+            return t / 100.0
 
         def goft_delta(t):
-            return (t/50.0)**2
+            return (t / 50.0) ** 2
 
         list_fce = [goft_delta, goft_gamma]
 
         gg.set_goft(1, func=goft_gamma)
-        gg.set_goft([4,2], func=goft_delta)
+        gg.set_goft([4, 2], func=goft_delta)
         gg.set_goft(3, func=goft_delta)
         gg.set_goft(12, func=goft_gamma)
         gg.set_goft(0, func=goft_delta)
 
         gf.set_goft(1, func=goft_gamma)
-        gf.set_goft([4,2], func=goft_delta)
+        gf.set_goft([4, 2], func=goft_delta)
         gf.set_goft(3, func=goft_delta)
         gf.set_goft(12, func=goft_gamma)
         gf.set_goft(0, func=goft_delta)
 
         # FIXME: This does not work
-        #gg.set_goft([5,14], func=goft_even)
+        # gg.set_goft([5,14], func=goft_even)
 
         print("Number of functions:", gg.Nf)
         print("Effective size", gg.effective_size())
@@ -71,56 +65,56 @@ class TestFunctionStorage(unittest.TestCase):
             t2 = 5.0
 
             # test against the function
-            ggt2 = gg[kk,"t2"]
+            ggt2 = gg[kk, "t2"]
             npt.assert_allclose(ggt2, list_fce[kk](t2))
 
             # test index
-            g_int = gg[kk,0]
+            g_int = gg[kk, 0]
             npt.assert_allclose(ggt2, g_int)
 
             # test the slice notation
-            ggt2 = gg[:,"t2"]
-            g_int = gg[:,0]
+            ggt2 = gg[:, "t2"]
+            g_int = gg[:, 0]
             npt.assert_allclose(ggt2, g_int)
 
             #
             # test fast version
 
             # test index
-            ggt2 = gg[kk,"t2"]
-            g_int = gf[kk,0]
+            ggt2 = gg[kk, "t2"]
+            g_int = gf[kk, 0]
             npt.assert_allclose(ggt2, g_int)
 
             # test the slice notation
-            ggt2 = gg[:,"t2"]
-            g_int = gf[:,0]
+            ggt2 = gg[:, "t2"]
+            g_int = gf[:, 0]
             npt.assert_allclose(ggt2, g_int)
 
             print("OK")
 
             print("\n1D, t1")
-            ggt1 = gg[kk,"t1"]
+            ggt1 = gg[kk, "t1"]
             npt.assert_allclose(ggt1, list_fce[kk](t1.data))
 
-            g_int = gg[kk,1]
+            g_int = gg[kk, 1]
             npt.assert_allclose(ggt1, g_int)
 
             # test the slice notation
-            ggt1 = gg[:,"t1"]
-            g_int = gg[:,1]
+            ggt1 = gg[:, "t1"]
+            g_int = gg[:, 1]
             npt.assert_allclose(ggt1, g_int)
 
             #
             # test fast version
 
             # test index
-            ggt2 = gg[kk,"t1"]
-            g_int = gf[kk,1]
+            ggt2 = gg[kk, "t1"]
+            g_int = gf[kk, 1]
             npt.assert_allclose(ggt2, g_int)
 
             # test the slice notation
-            ggt2 = gg[:,"t1"]
-            g_int = gf[:,1]
+            ggt2 = gg[:, "t1"]
+            g_int = gf[:, 1]
             npt.assert_allclose(ggt2, g_int)
 
             print("OK")
@@ -131,44 +125,44 @@ class TestFunctionStorage(unittest.TestCase):
             print("OK")
 
             print("\n1D, t1+t2")
-            ggt1t2 = gg[kk,"t1+t2"]
-            npt.assert_allclose(ggt1t2, list_fce[kk](t2+t1.data),
-                                rtol=1.0e-6)
+            ggt1t2 = gg[kk, "t1+t2"]
+            npt.assert_allclose(ggt1t2, list_fce[kk](t2 + t1.data), rtol=1.0e-6)
             print("OK")
 
             print("\n2D, t1+t2+t3")
-            ggt1t2t3 = gg[kk,"t1+t2+t3"]
-            npt.assert_allclose(ggt1t2t3,
-                                gg[kk,gg.time_mapping["t1+t2+t3"]],
-                                rtol=1.0e-6)
-            npt.assert_allclose(ggt1t2t3,
-                        list_fce[kk](t2+t1.data[:,None]
-                        +t3.data[None,:]),
-                        rtol=1.0e-6)
-             #.reshape(t1.length*t3.length),
+            ggt1t2t3 = gg[kk, "t1+t2+t3"]
+            npt.assert_allclose(
+                ggt1t2t3, gg[kk, gg.time_mapping["t1+t2+t3"]], rtol=1.0e-6
+            )
+            npt.assert_allclose(
+                ggt1t2t3,
+                list_fce[kk](t2 + t1.data[:, None] + t3.data[None, :]),
+                rtol=1.0e-6,
+            )
+            # .reshape(t1.length*t3.length),
             print("OK")
 
-
     def test_function_storage_2(self):
-        """Testing FunctionStorage test 2
-
-        """
+        """Testing FunctionStorage test 2"""
         t1 = TimeAxis(0.0, 100, 1.0)
         t3 = TimeAxis(0.0, 110, 1.0)
 
         def goft_gamma(t):
-            return t/100.0
+            return t / 100.0
 
         def goft_delta(t):
-            return (t/50.0)**2
+            return (t / 50.0) ** 2
 
-        config = {"response_times":{
-                    "t1":{"reset":False,"integral":{"s1"},"axis":0},
-                    "t2":{"reset":True, "integral":None},
-                    "t3":{"reset":False,"integral":{"s3"},"axis":1},
-                    "t4":{"reset":False,"integral":None,"axis":2}}}
+        config = {
+            "response_times": {
+                "t1": {"reset": False, "integral": {"s1"}, "axis": 0},
+                "t2": {"reset": True, "integral": None},
+                "t3": {"reset": False, "integral": {"s3"}, "axis": 1},
+                "t4": {"reset": False, "integral": None, "axis": 2},
+            }
+        }
 
-        gg2 = FunctionStorage(7, (t1,t3,t3), show_config=False, config=config)
+        gg2 = FunctionStorage(7, (t1, t3, t3), show_config=False, config=config)
 
         t2 = 10.0
 
@@ -179,14 +173,13 @@ class TestFunctionStorage(unittest.TestCase):
         list_fce = [goft_gamma, goft_delta]
 
         for kk in range(2):
-
             print("\n0D, t2")
             t2 = 10.0
-            ggt2 = gg2[kk,"t2"]
+            ggt2 = gg2[kk, "t2"]
             print("OK")
 
             print("\n1D, t1")
-            ggt1 = gg2[kk,"t1"]
+            ggt1 = gg2[kk, "t1"]
             npt.assert_allclose(ggt1, list_fce[kk](t1.data))
             print("OK")
 
@@ -196,17 +189,20 @@ class TestFunctionStorage(unittest.TestCase):
             print("OK")
 
             print("\n1D, t1+t2")
-            ggt1t2 = gg2[kk,"t1+t2"]
-            npt.assert_allclose(ggt1t2, list_fce[kk](t2+t1.data),rtol=1.0e-6)
+            ggt1t2 = gg2[kk, "t1+t2"]
+            npt.assert_allclose(ggt1t2, list_fce[kk](t2 + t1.data), rtol=1.0e-6)
             print("OK")
 
             print("\n2D, t1+t2+t3")
-            ggt1t2t3 = gg2[kk,"t1+t2+t3"]
-            npt.assert_allclose(ggt1t2t3,
-                                gg2[kk,gg2.time_mapping["t1+t2+t3"]],
-                                rtol=1.0e-5)
-            npt.assert_allclose(ggt1t2t3,
-                        list_fce[kk](t2+t1.data[:,None]
-                        +t3.data[None,:]), # .reshape(t1.length*t3.length),
-                        rtol=1.0e-6)
+            ggt1t2t3 = gg2[kk, "t1+t2+t3"]
+            npt.assert_allclose(
+                ggt1t2t3, gg2[kk, gg2.time_mapping["t1+t2+t3"]], rtol=1.0e-5
+            )
+            npt.assert_allclose(
+                ggt1t2t3,
+                list_fce[kk](
+                    t2 + t1.data[:, None] + t3.data[None, :]
+                ),  # .reshape(t1.length*t3.length),
+                rtol=1.0e-6,
+            )
             print("OK")

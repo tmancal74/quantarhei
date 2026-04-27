@@ -1,4 +1,3 @@
-
 import unittest
 
 import numpy
@@ -35,33 +34,32 @@ from quantarhei.qm.corfunctions import CorrelationFunctionMatrix, SpectralDensit
 
 
 class TestRedfieldFoerster(unittest.TestCase):
-    """Tests for the RedfieldFoersterRelaxationTensor class
+    """Tests for the RedfieldFoersterRelaxationTensor class"""
 
-
-    """
-
-    def setUp(self,verbose=False):
+    def setUp(self, verbose=False):
 
         self.verbose = verbose
 
-        time = TimeAxis(0.0,1000,1.0)
+        time = TimeAxis(0.0, 1000, 1.0)
         with energy_units("1/cm"):
-            params = {"ftype":"OverdampedBrownian",
-                      "reorg":30.0,
-                      "T":300.0,
-                      "cortime":100.0}
+            params = {
+                "ftype": "OverdampedBrownian",
+                "reorg": 30.0,
+                "T": 300.0,
+                "cortime": 100.0,
+            }
 
-            cf1 = CorrelationFunction(time,params)
-            cf2 = CorrelationFunction(time,params)
-            sd = SpectralDensity(time,params)
+            cf1 = CorrelationFunction(time, params)
+            cf2 = CorrelationFunction(time, params)
+            sd = SpectralDensity(time, params)
 
-        cm1 = CorrelationFunctionMatrix(time,2,1)
-        cm1.set_correlation_function(cf1,[(0,0),(1,1)])
-        cm2 = CorrelationFunctionMatrix(time,2,1)
-        cm2.set_correlation_function(cf2,[(0,0),(1,1)])
+        cm1 = CorrelationFunctionMatrix(time, 2, 1)
+        cm1.set_correlation_function(cf1, [(0, 0), (1, 1)])
+        cm2 = CorrelationFunctionMatrix(time, 2, 1)
+        cm2.set_correlation_function(cf2, [(0, 0), (1, 1)])
 
-        K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
-        K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
+        K11 = numpy.array([[1.0, 0.0], [0.0, 0.0]], dtype=REAL)
+        K21 = numpy.array([[1.0, 0.0], [0.0, 0.0]], dtype=REAL)
         K12 = K11.copy()
         K22 = K21.copy()
 
@@ -70,100 +68,91 @@ class TestRedfieldFoerster(unittest.TestCase):
         KK12 = Operator(data=K12)
         KK22 = Operator(data=K22)
 
-        self.sbi1 = SystemBathInteraction([KK11,KK21],cm1)
-        self.sbi2 = SystemBathInteraction([KK12,KK22],cm2)
+        self.sbi1 = SystemBathInteraction([KK11, KK21], cm1)
+        self.sbi2 = SystemBathInteraction([KK12, KK22], cm2)
 
         with energy_units("1/cm"):
-            h1 = [[0.0, 100.0],[100.0, 0.0]]
-            h2 = [[0.0, 100.0],[100.0, 0.0]]
+            h1 = [[0.0, 100.0], [100.0, 0.0]]
+            h2 = [[0.0, 100.0], [100.0, 0.0]]
             self.H1 = Hamiltonian(data=h1)
             self.H2 = Hamiltonian(data=h2)
 
-        #sd.convert_2_spectral_density()
+        # sd.convert_2_spectral_density()
         with eigenbasis_of(self.H1):
-            de = self.H1.data[1,1]-self.H1.data[0,0]
-        self.c_omega_p = sd.at(de,approx="spline") #interp_data(de)
-        self.c_omega_m = sd.at(-de,approx="spline") #interp_data(-de)
-
-
+            de = self.H1.data[1, 1] - self.H1.data[0, 0]
+        self.c_omega_p = sd.at(de, approx="spline")  # interp_data(de)
+        self.c_omega_m = sd.at(-de, approx="spline")  # interp_data(-de)
 
     def test_comparison_of_rates(self):
-        """Testing that Redfield tensor and rate matrix are compatible
-
-
-        """
+        """Testing that Redfield tensor and rate matrix are compatible"""
         tensor = True
         matrix = True
 
         print("\n")
 
         dim = self.H1.dim
-        KT = numpy.zeros((dim,dim), dtype=REAL)
-        KM = numpy.zeros((dim,dim), dtype=REAL)
-        KF = numpy.zeros((dim,dim), dtype=REAL)
+        KT = numpy.zeros((dim, dim), dtype=REAL)
+        KM = numpy.zeros((dim, dim), dtype=REAL)
+        KF = numpy.zeros((dim, dim), dtype=REAL)
 
         if tensor:
-
             with energy_units("1/cm"):
-                 m = Manager()
-                 cutoff = m.convert_energy_2_internal_u(100.0)
+                m = Manager()
+                cutoff = m.convert_energy_2_internal_u(100.0)
             print(cutoff)
             # Time independent combined tensor
             ham = self.H1
             ham.subtract_cutoff_coupling(cutoff)
             ham.protect_basis()
             with eigenbasis_of(ham):
-                RT = \
-                         RedfieldFoersterRelaxationTensor(ham, self.sbi1,
-                                        coupling_cutoff=cutoff)
-                #if secular_relaxation:
+                RT = RedfieldFoersterRelaxationTensor(
+                    ham, self.sbi1, coupling_cutoff=cutoff
+                )
+                # if secular_relaxation:
                 #    relaxT.secularize()
             ham.unprotect_basis()
-            #ham.recover_cutoff_coupling()
+            # ham.recover_cutoff_coupling()
 
-            #print(self.H1)
+            # print(self.H1)
 
             with energy_units("1/cm"):
                 print(ham)
 
             with eigenbasis_of(ham):
-            #if True:
+                # if True:
                 for n in range(2):
                     for m in range(2):
-                        #print(n,m,numpy.real(RT.data[n,n,m,m]))
-                        KT[n,m] = numpy.real(RT.data[n,n,m,m])
-
+                        # print(n,m,numpy.real(RT.data[n,n,m,m]))
+                        KT[n, m] = numpy.real(RT.data[n, n, m, m])
 
         if matrix:
-            #print(self.H2)
-            RR = RedfieldRateMatrix(self.H2,self.sbi2)
+            # print(self.H2)
+            RR = RedfieldRateMatrix(self.H2, self.sbi2)
 
             for n in range(2):
                 for m in range(2):
-                    #print(n,m,numpy.real(RR.data[n,m]))
-                    KM[n,m] = numpy.real(RR.data[n,m])
+                    # print(n,m,numpy.real(RR.data[n,m]))
+                    KM[n, m] = numpy.real(RR.data[n, m])
 
-            RR = FoersterRateMatrix(self.H2,self.sbi2)
+            RR = FoersterRateMatrix(self.H2, self.sbi2)
 
             for n in range(2):
                 for m in range(2):
-                    #print(n,m,numpy.real(RR.data[n,m]))
-                    KF[n,m] = numpy.real(RR.data[n,m])
+                    # print(n,m,numpy.real(RR.data[n,m]))
+                    KF[n, m] = numpy.real(RR.data[n, m])
 
-
-        #print(self.c_omega_p)
-        #print(self.c_omega_m)
-        #KM = KT
+        # print(self.c_omega_p)
+        # print(self.c_omega_m)
+        # KM = KT
         print("Combined rate matrix:")
-        print(1.0/KT)
+        print(1.0 / KT)
         print("Redfield rate matrix (eigenbasis)")
-        print(1.0/KM)
+        print(1.0 / KM)
         print("Foerster rate matrix (site basis): ")
-        print(1.0/KF)
+        print(1.0 / KF)
         KT = KM
 
-        numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
-
+        numpy.testing.assert_allclose(KT, KM, rtol=1.0e-2)
 
     # def test_propagation_in_different_basis(self):
     #     """(REDFIELD) Testing comparison of propagations in different bases
@@ -197,4 +186,3 @@ class TestRedfieldFoerster(unittest.TestCase):
     #                                   rtol=1.0e-5, atol=1.0e-12)
     #     numpy.testing.assert_allclose(rhot1_e.data, rhot2_e.data,
     #                                   rtol=1.0e-5, atol=1.0e-12)
-

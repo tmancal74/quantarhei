@@ -32,33 +32,32 @@ from quantarhei.qm.corfunctions import CorrelationFunctionMatrix, SpectralDensit
 
 
 class TDTestRedfield(unittest.TestCase):
-    """Tests for the TDRedfieldRelaxationTensor class
+    """Tests for the TDRedfieldRelaxationTensor class"""
 
-
-    """
-
-    def setUp(self,verbose=False):
+    def setUp(self, verbose=False):
 
         self.verbose = verbose
 
-        time = TimeAxis(0.0,1000,1.0)
+        time = TimeAxis(0.0, 1000, 1.0)
         with energy_units("1/cm"):
-            params = {"ftype":"OverdampedBrownian",
-                      "reorg":30.0,
-                      "T":300.0,
-                      "cortime":100.0}
+            params = {
+                "ftype": "OverdampedBrownian",
+                "reorg": 30.0,
+                "T": 300.0,
+                "cortime": 100.0,
+            }
 
-            cf1 = CorrelationFunction(time,params)
-            cf2 = CorrelationFunction(time,params)
-            sd = SpectralDensity(time,params)
+            cf1 = CorrelationFunction(time, params)
+            cf2 = CorrelationFunction(time, params)
+            sd = SpectralDensity(time, params)
 
-        cm1 = CorrelationFunctionMatrix(time,2,1)
-        cm1.set_correlation_function(cf1,[(0,0),(1,1)])
-        cm2 = CorrelationFunctionMatrix(time,2,1)
-        cm2.set_correlation_function(cf2,[(0,0),(1,1)])
+        cm1 = CorrelationFunctionMatrix(time, 2, 1)
+        cm1.set_correlation_function(cf1, [(0, 0), (1, 1)])
+        cm2 = CorrelationFunctionMatrix(time, 2, 1)
+        cm2.set_correlation_function(cf2, [(0, 0), (1, 1)])
 
-        K11 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
-        K21 = numpy.array([[1.0, 0.0],[0.0, 0.0]],dtype=REAL)
+        K11 = numpy.array([[1.0, 0.0], [0.0, 0.0]], dtype=REAL)
+        K21 = numpy.array([[1.0, 0.0], [0.0, 0.0]], dtype=REAL)
         K12 = K11.copy()
         K22 = K21.copy()
 
@@ -67,37 +66,32 @@ class TDTestRedfield(unittest.TestCase):
         KK12 = Operator(data=K12)
         KK22 = Operator(data=K22)
 
-        self.sbi1 = SystemBathInteraction([KK11,KK21],cm1)
-        self.sbi2 = SystemBathInteraction([KK12,KK22],cm2)
+        self.sbi1 = SystemBathInteraction([KK11, KK21], cm1)
+        self.sbi2 = SystemBathInteraction([KK12, KK22], cm2)
 
         with energy_units("1/cm"):
-            h1 = [[0.0, 100.0],[100.0, 0.0]]
-            h2 = [[0.0, 100.0],[100.0, 0.0]]
+            h1 = [[0.0, 100.0], [100.0, 0.0]]
+            h2 = [[0.0, 100.0], [100.0, 0.0]]
             self.H1 = Hamiltonian(data=h1)
             self.H2 = Hamiltonian(data=h2)
 
-        #sd.convert_2_spectral_density()
+        # sd.convert_2_spectral_density()
         with eigenbasis_of(self.H1):
-            de = self.H1.data[1,1]-self.H1.data[0,0]
-        self.c_omega_p = sd.at(de,approx="spline") #interp_data(de)
-        self.c_omega_m = sd.at(-de,approx="spline") #interp_data(-de)
-
-
+            de = self.H1.data[1, 1] - self.H1.data[0, 0]
+        self.c_omega_p = sd.at(de, approx="spline")  # interp_data(de)
+        self.c_omega_m = sd.at(-de, approx="spline")  # interp_data(-de)
 
     def test_comparison_of_rates(self):
-        """Testing that Time-dependent Redfield tensor and rate matrix are compatible
-
-
-        """
+        """Testing that Time-dependent Redfield tensor and rate matrix are compatible"""
         tensor = True
         matrix = True
 
         dim = self.H1.dim
-        KT = numpy.zeros((dim,dim), dtype=REAL)
-        KM = numpy.zeros((dim,dim), dtype=REAL)
+        KT = numpy.zeros((dim, dim), dtype=REAL)
+        KM = numpy.zeros((dim, dim), dtype=REAL)
 
         if tensor:
-            #print(self.H1)
+            # print(self.H1)
             RT = TDRedfieldRelaxationTensor(self.H1, self.sbi1)
 
             timeaxis = self.sbi1.CC.timeAxis
@@ -105,23 +99,19 @@ class TDTestRedfield(unittest.TestCase):
 
             for n in range(2):
                 for m in range(2):
-                    #print(n,m,numpy.real(RT.data[n,n,m,m]))
-                    KT[n,m] = numpy.real(RT.data[Nt,n,n,m,m])
-
+                    # print(n,m,numpy.real(RT.data[n,n,m,m]))
+                    KT[n, m] = numpy.real(RT.data[Nt, n, n, m, m])
 
         if matrix:
-            #print(self.H2)
-            RR = RedfieldRateMatrix(self.H2,self.sbi2)
+            # print(self.H2)
+            RR = RedfieldRateMatrix(self.H2, self.sbi2)
 
             for n in range(2):
                 for m in range(2):
-                    #print(n,m,numpy.real(RR.data[n,m]))
-                    KM[n,m] = numpy.real(RR.data[n,m])
+                    # print(n,m,numpy.real(RR.data[n,m]))
+                    KM[n, m] = numpy.real(RR.data[n, m])
 
-        #print(self.c_omega_p)
-        #print(self.c_omega_m)
+        # print(self.c_omega_p)
+        # print(self.c_omega_m)
 
-        numpy.testing.assert_allclose(KT,KM, rtol=1.0e-2)
-
-
-
+        numpy.testing.assert_allclose(KT, KM, rtol=1.0e-2)
