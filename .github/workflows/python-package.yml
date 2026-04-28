@@ -53,19 +53,19 @@ jobs:
       with:
         filters: |
           utils:
-            - 'quantarhei/utils/**'
+            - 'src/quantarhei/utils/**'
           core:
-            - 'quantarhei/core/**'
+            - 'src/quantarhei/core/**'
           models:
-            - 'quantarhei/models/**'
+            - 'src/quantarhei/models/**'
           qm:
-            - 'quantarhei/qm/**'
+            - 'src/quantarhei/qm/**'
           spectroscopy:
-            - 'quantarhei/spectroscopy/**'
+            - 'src/quantarhei/spectroscopy/**'
           builders:
-            - 'quantarhei/builders/**'
+            - 'src/quantarhei/builders/**'
           wizard:
-            - 'quantarhei/wizard/**'
+            - 'src/quantarhei/wizard/**'
           deps:
             - 'pyproject.toml'
             - 'requirements*.txt'
@@ -146,15 +146,15 @@ jobs:
           --cov-append \
           --cov-report=xml:coverage2.xml \
           --junit-xml=results-doctest.xml \
-          quantarhei/core \
-          quantarhei/builders \
-          quantarhei/qm/corfunctions \
-          quantarhei/spectroscopy \
-          quantarhei/qm/liouvillespace \
-          quantarhei/functions \
-          quantarhei/qm/hilbertspace \
-          quantarhei/qm/propagators \
-          quantarhei/qm/propagators/poppropagator.py
+          src/quantarhei/core \
+          src/quantarhei/builders \
+          src/quantarhei/qm/corfunctions \
+          src/quantarhei/spectroscopy \
+          src/quantarhei/qm/liouvillespace \
+          src/quantarhei/functions \
+          src/quantarhei/qm/hilbertspace \
+          src/quantarhei/qm/propagators \
+          src/quantarhei/qm/propagators/poppropagator.py
 
     - name: Test report
       uses: dorny/test-reporter@v1

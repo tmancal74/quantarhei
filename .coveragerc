@@ -1,6 +1,6 @@
 [run]
 parallel = True
-source = ./quantarhei
+source = ./src/quantarhei
 
 [report]
 precision=2

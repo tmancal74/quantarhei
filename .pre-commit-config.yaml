@@ -9,7 +9,7 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=500']
       - id: debug-statements
-        exclude: ^quantarhei/builders/__init__\.py$
+        exclude: ^src/quantarhei/builders/__init__\.py$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.12
@@ -23,7 +23,7 @@ repos:
     hooks:
       - id: mypy
         args:
-          - quantarhei/
+          - src/quantarhei/
           - --ignore-missing-imports
           - --no-strict-optional
           - --no-error-summary

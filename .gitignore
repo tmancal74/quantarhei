@@ -7,6 +7,7 @@ __pycache__
 build
 dist
 quantarhei.egg-info
+src/quantarhei.egg-info
 .DS_Store
 tempfile
 *~

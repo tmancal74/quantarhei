@@ -70,6 +70,7 @@ qtest = "quantarhei.scripts.qtest:main"
 testpaths = ["tests/unit"]
 addopts = "-v --tb=short"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 88
@@ -215,10 +216,11 @@ python_version = "3.10"
 ignore_missing_imports = true
 no_strict_optional = true
 disallow_untyped_defs = true
+mypy_path = "src"
 exclude = [
-    "quantarhei/wizard/examples",
-    "quantarhei/wizard/benchmarks",
-    "quantarhei/scripts/codelets",
+    "src/quantarhei/wizard/examples",
+    "src/quantarhei/wizard/benchmarks",
+    "src/quantarhei/scripts/codelets",
 ]
 
 # Modules with unresolvable [misc] errors from multiple inheritance chains
@@ -337,6 +339,7 @@ module = [
 ignore_errors = true
 
 [tool.setuptools.packages.find]
+where = ["src"]
 exclude = ["contrib", "docs", "tests"]
 
 [tool.setuptools.package-data]

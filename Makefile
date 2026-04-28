@@ -21,15 +21,15 @@ doctest:
 		--cov-append \
 		--cov-report=xml:coverage2.xml \
 		--junit-xml=results-doctest.xml \
-		quantarhei/core \
-		quantarhei/builders \
-		quantarhei/qm/corfunctions \
-		quantarhei/spectroscopy \
-		quantarhei/qm/liouvillespace \
-		quantarhei/functions \
-		quantarhei/qm/hilbertspace \
-		quantarhei/qm/propagators \
-		quantarhei/qm/propagators/poppropagator.py
+		src/quantarhei/core \
+		src/quantarhei/builders \
+		src/quantarhei/qm/corfunctions \
+		src/quantarhei/spectroscopy \
+		src/quantarhei/qm/liouvillespace \
+		src/quantarhei/functions \
+		src/quantarhei/qm/hilbertspace \
+		src/quantarhei/qm/propagators \
+		src/quantarhei/qm/propagators/poppropagator.py
 
 behave:
 	uv run coverage run --data-file=.coverage.behave \
