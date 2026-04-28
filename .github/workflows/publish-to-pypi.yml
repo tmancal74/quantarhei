@@ -14,6 +14,17 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Validate version tag matches pyproject.toml
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])")
+          if [ "$TAG" != "$PKG" ]; then
+            echo "ERROR: git tag v$TAG does not match pyproject.toml version $PKG"
+            echo "Update pyproject.toml to $TAG before tagging."
+            exit 1
+          fi
+          echo "Version check passed: $TAG == $PKG"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
