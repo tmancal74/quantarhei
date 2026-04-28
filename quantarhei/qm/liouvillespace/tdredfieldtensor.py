@@ -60,9 +60,8 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         #
         # shorten the interval of integration if a cut-off time is set
         #
-        if self._has_cutoff_time:
+        if self.cutoff_time is not None:
             # index of the cut-off time on the time axis
-            assert self.cutoff_time is not None
             tcut = ta.nearest(self.cutoff_time)
             # select the section of the time axis up to the cut-off time
             tm = ta.data[0:tcut]

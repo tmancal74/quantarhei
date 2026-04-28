@@ -46,7 +46,6 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
         #
         # Tensor data
         #
-        assert self.dim is not None
         Na = self.dim
         self.data = numpy.zeros((Nt, Na, Na, Na, Na), dtype=numpy.complex128)
 
@@ -96,7 +95,6 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
 
         # line shape function derivatives
         sbi = self.SystemBathInteraction
-        assert self.dim is not None
         Na = self.dim
 
         ta = sbi.TimeAxis
