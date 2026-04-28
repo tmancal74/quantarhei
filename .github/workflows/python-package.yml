@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -15,18 +19,81 @@ jobs:
       with:
         python-version: "3.12"
         cache: 'pip'
+    - name: Check PR title
+      if: github.event_name == 'pull_request'
+      run: |
+        TITLE="${{ github.event.pull_request.title }}"
+        echo "PR title: $TITLE"
+        echo "$TITLE" | grep -qE '^#[0-9]+ ' || \
+          { echo "PR title must start with '#N ' (e.g. '#243 ci: add feature')"; exit 1; }
     - name: Install pre-commit
       run: pip install pre-commit
     - name: Run pre-commit hooks
       run: pre-commit run --all-files
 
-  build:
-
+  # Detects which subpackages changed so downstream jobs can skip unchanged paths.
+  # On pushes to master we skip filtering and always run the full test matrix.
+  changes:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    outputs:
+      utils: ${{ steps.filter.outputs.utils }}
+      core: ${{ steps.filter.outputs.core }}
+      models: ${{ steps.filter.outputs.models }}
+      qm: ${{ steps.filter.outputs.qm }}
+      spectroscopy: ${{ steps.filter.outputs.spectroscopy }}
+      builders: ${{ steps.filter.outputs.builders }}
+      wizard: ${{ steps.filter.outputs.wizard }}
+      deps: ${{ steps.filter.outputs.deps }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          utils:
+            - 'quantarhei/utils/**'
+          core:
+            - 'quantarhei/core/**'
+          models:
+            - 'quantarhei/models/**'
+          qm:
+            - 'quantarhei/qm/**'
+          spectroscopy:
+            - 'quantarhei/spectroscopy/**'
+          builders:
+            - 'quantarhei/builders/**'
+          wizard:
+            - 'quantarhei/wizard/**'
+          deps:
+            - 'pyproject.toml'
+            - 'requirements*.txt'
+            - 'setup.py'
+            - 'setup.cfg'
+
+  unit:
+    runs-on: ubuntu-latest
+    needs: [changes]
+    # On PRs: run only when relevant paths changed (or always if deps changed).
+    # On push to master: changes job is skipped so needs.changes.result == 'skipped';
+    # use || true to always run the full matrix in that case.
+    if: |
+      github.event_name == 'push' ||
+      needs.changes.outputs.deps == 'true' ||
+      needs.changes.outputs.utils == 'true' ||
+      needs.changes.outputs.core == 'true' ||
+      needs.changes.outputs.models == 'true' ||
+      needs.changes.outputs.qm == 'true' ||
+      needs.changes.outputs.spectroscopy == 'true' ||
+      needs.changes.outputs.builders == 'true' ||
+      needs.changes.outputs.wizard == 'true'
+    permissions:
+      checks: write
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        # PRs: 3.12 only for fast feedback. Master push: full matrix.
+        python-version: ${{ github.event_name == 'push' && fromJSON('["3.10","3.11","3.12"]') || fromJSON('["3.12"]') }}
 
     steps:
     - uses: actions/checkout@v4
@@ -43,13 +110,39 @@ jobs:
         pip install -r requirements.txt -r requirements_devel.txt
         pip install -e .
 
+    - name: Select unit test paths
+      id: paths
+      # On push to master run all unit tests. On a PR run only the
+      # subdirectories that correspond to changed subpackages (plus core/utils
+      # which are depended on by everything).
+      run: |
+        if [ "${{ github.event_name }}" = "push" ]; then
+          echo "unit_paths=tests/unit" >> "$GITHUB_OUTPUT"
+        else
+          PATHS=""
+          add() { PATHS="${PATHS:+$PATHS }$1"; }
+          # core and utils are foundational — include whenever any src changes
+          [ "${{ needs.changes.outputs.deps }}" = "true" ]          && add "tests/unit" && echo "unit_paths=$PATHS" >> "$GITHUB_OUTPUT" && exit 0
+          [ "${{ needs.changes.outputs.utils }}" = "true" ]         && add "tests/unit/core"
+          [ "${{ needs.changes.outputs.core }}" = "true" ]          && add "tests/unit/core"
+          [ "${{ needs.changes.outputs.models }}" = "true" ]        && add "tests/unit/models"
+          [ "${{ needs.changes.outputs.qm }}" = "true" ]            && add "tests/unit/qm"
+          [ "${{ needs.changes.outputs.spectroscopy }}" = "true" ]  && add "tests/unit/spectroscopy"
+          [ "${{ needs.changes.outputs.builders }}" = "true" ]      && add "tests/unit/builders"
+          [ "${{ needs.changes.outputs.wizard }}" = "true" ]        && add "tests/unit/wizard"
+          # Deduplicate and normalise
+          PATHS=$(echo "$PATHS" | tr ' ' '\n' | sort -u | tr '\n' ' ' | xargs)
+          echo "unit_paths=$PATHS" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Run unit tests
       run: |
         pytest -v \
           --cov=quantarhei \
           --cov-report=term \
           --cov-report=xml:coverage1.xml \
-          tests/unit
+          --junit-xml=results-unit.xml \
+          ${{ steps.paths.outputs.unit_paths }}
 
     - name: Run doc tests
       run: |
@@ -57,6 +150,7 @@ jobs:
           --cov=quantarhei \
           --cov-append \
           --cov-report=xml:coverage2.xml \
+          --junit-xml=results-doctest.xml \
           quantarhei/core \
           quantarhei/builders \
           quantarhei/qm/corfunctions \
@@ -67,14 +161,127 @@ jobs:
           quantarhei/qm/propagators \
           quantarhei/qm/propagators/poppropagator.py
 
-    - name: Run behave tests
-      run: |
-        coverage run $(which behave) tests/behave/features
+    - name: Test report
+      uses: dorny/test-reporter@v1
+      if: always()
+      # Fork PRs get a read-only token; the check-run write will 403 but that
+      # should not block the job — the actual test results are what matters.
+      continue-on-error: true
+      with:
+        name: Unit + Doc Tests (Python ${{ matrix.python-version }})
+        path: results-*.xml
+        reporter: java-junit
 
     - name: Upload coverage to Codecov
+      if: github.event_name == 'push'
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
         files: ./coverage1.xml,./coverage2.xml
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: [changes]
+    # Same logic as unit: always on push to master, path-filtered on PRs.
+    if: |
+      github.event_name == 'push' ||
+      needs.changes.outputs.deps == 'true' ||
+      needs.changes.outputs.qm == 'true' ||
+      needs.changes.outputs.spectroscopy == 'true' ||
+      needs.changes.outputs.builders == 'true' ||
+      needs.changes.outputs.wizard == 'true' ||
+      needs.changes.outputs.core == 'true'
+    permissions:
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ github.event_name == 'push' && fromJSON('["3.10","3.11","3.12"]') || fromJSON('["3.12"]') }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt -r requirements_devel.txt
+        pip install -e .
+
+    - name: Select behave features
+      id: features
+      # On push to master run all features. On a PR run only features that
+      # correspond to changed subpackages.
+      run: |
+        if [ "${{ github.event_name }}" = "push" ]; then
+          echo "feature_paths=tests/behave/features" >> "$GITHUB_OUTPUT"
+        else
+          FEATURES=""
+          add() { FEATURES="${FEATURES:+$FEATURES }$1"; }
+          BASE="tests/behave/features"
+          [ "${{ needs.changes.outputs.deps }}" = "true" ] && echo "feature_paths=$BASE" >> "$GITHUB_OUTPUT" && exit 0
+          [ "${{ needs.changes.outputs.qm }}" = "true" ] && \
+            add "$BASE/superoperator.feature" && \
+            add "$BASE/evolsuperoperator_basis.feature" && \
+            add "$BASE/evolsuperoperator_dephasing.feature" && \
+            add "$BASE/evolsuperoperator_jit.feature" && \
+            add "$BASE/evolsuperoperator_prop.feature"
+          [ "${{ needs.changes.outputs.spectroscopy }}" = "true" ] && \
+            add "$BASE/twod.feature" && \
+            add "$BASE/twodcontainer.feature"
+          [ "${{ needs.changes.outputs.builders }}" = "true" ] && \
+            add "$BASE/aggregate_pdeph.feature"
+          [ "${{ needs.changes.outputs.wizard }}" = "true" ] && \
+            add "$BASE/qrhei.feature" && \
+            add "$BASE/ghenerate.feature"
+          [ "${{ needs.changes.outputs.core }}" = "true" ] && \
+            add "$BASE"
+          # Deduplicate; if a full-suite path is already in the list simplify to it
+          if echo "$FEATURES" | grep -q "$BASE "; then
+            FEATURES="$BASE"
+          else
+            FEATURES=$(echo "$FEATURES" | tr ' ' '\n' | sort -u | tr '\n' ' ' | xargs)
+          fi
+          echo "feature_paths=$FEATURES" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Run behave tests
+      run: |
+        coverage run --data-file=.coverage.behave \
+          $(which behave) ${{ steps.features.outputs.feature_paths }}
+        # .coveragerc has parallel=True so coverage run writes .coverage.behave.<host>.<pid>;
+        # combine merges those files back into .coverage.behave before xml export.
+        coverage combine --data-file=.coverage.behave
+        coverage xml --data-file=.coverage.behave -o coverage3.xml
+
+    - name: Test report
+      uses: dorny/test-reporter@v1
+      if: always()
+      continue-on-error: true
+      with:
+        name: Integration Tests (Python ${{ matrix.python-version }})
+        path: results-*.xml
+        reporter: java-junit
+
+    - name: Upload coverage to Codecov
+      if: github.event_name == 'push'
+      uses: codecov/codecov-action@v5
+      with:
+        fail_ci_if_error: true
+        files: ./coverage3.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/dependency-review-action@v4
