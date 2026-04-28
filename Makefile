@@ -44,3 +44,5 @@ all: sync lint test
 clean-coverage:
 	rm -f .coverage .coverage.* coverage*.xml
 	rm -rf htmlcov
+
+clean: clean-coverage
