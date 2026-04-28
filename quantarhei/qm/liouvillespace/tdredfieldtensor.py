@@ -113,8 +113,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
         if multi_ex:
             try:
-                assert sbi.system is not None
-                ii = sbi.system.twoex_state[0, 0]  # type: ignore[union-attr, attr-defined]
+                ii = sbi.aggregate.twoex_state[0, 0]  # type: ignore[union-attr, attr-defined]
                 # print(ii)
                 # if ii >= 0:
                 #    print("Something is wrong")
@@ -141,7 +140,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 for ms in range(Nb):
                     if ms != ns:
                         n2ex = (
-                            sbi.system.twoex_state[ms, ns] - Nb - 1  # type: ignore[union-attr, attr-defined]
+                            sbi.aggregate.twoex_state[ms, ns] - Nb - 1  # type: ignore[union-attr, attr-defined]
                         )  # we number the K2 projectors from zero
                         Km[Nb + ns, :, :] += numpy.dot(
                             S1, numpy.dot(K2[n2ex, :, :], SS)

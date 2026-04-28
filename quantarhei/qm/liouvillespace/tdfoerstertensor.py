@@ -56,8 +56,7 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             sbi = self.SystemBathInteraction
             Na = self.dim
 
-            ta = sbi.TimeAxis
-            assert ta is not None
+            ta = sbi_ta
             cc = sbi.CC
             assert cc is not None, "SystemBathInteraction must have CC set"
 
