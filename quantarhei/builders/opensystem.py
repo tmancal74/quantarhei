@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import numpy
 
 from .. import COMPLEX, REAL
@@ -29,7 +31,7 @@ class OpenSystem:
     # transition dipole moments
     dmoments = array_property("dmoments")
 
-    def __init__(self, elen: list) -> None:
+    def __init__(self, elen: Any) -> None:
 
         #
         # Analyze energies
@@ -51,7 +53,7 @@ class OpenSystem:
                 which_band.append(nband)
                 nband += 1
 
-        self.which_band = which_band
+        self.which_band: Any = which_band
 
         #
         #  We have multiplicity of bands
@@ -83,24 +85,25 @@ class OpenSystem:
         #
         self._is_mapped_on_egcf_matrix = False
         self._has_egcf_matrix = False  #
-        self.egcf_matrix = None
+        self.egcf_matrix: Any = None
 
         self.triangle = triangle(self.Nel)
 
         self._egcf_initialized = True
         self._has_egcf = self.triangle.get_list(init=False)
-        self.egcf = self.triangle.get_empty_list()
+        self.egcf: Any = self.triangle.get_empty_list()
 
         #
         #   System-bath interaction
         #
         self._has_system_bath_interaction = False
+        self.sbi: Any = None
 
         #
         #  Relaxation tensor information
         #
-        self.RelaxationTensor = None
-        self.RelaxationHamiltonian = None
+        self.RelaxationTensor: Any = None
+        self.RelaxationHamiltonian: Any = None
         self._has_relaxation_tensor = False
         self._relaxation_theory = "standard_Redfield"
         self.has_Iterm = False
@@ -116,7 +119,7 @@ class OpenSystem:
         #
         self.dmoments = numpy.zeros((self.Nel, self.Nel, 3))
 
-        self.HH = None
+        self.HH: numpy.ndarray | None = None
 
         #
         # RWA
@@ -127,8 +130,34 @@ class OpenSystem:
         #
         #  Spectroscopic information
         #
-        self.WPM = None  # weighted participation matrix (for spectroscopy)
+        self.WPM: Any = None  # weighted participation matrix (for spectroscopy)
         self._has_wpm = False
+
+        # Operator objects set by subclasses after build()
+        self.HamOp: Any = None
+        self.TrDMOp: Any = None
+        self.DD: Any = None
+
+    def get_temperature(self) -> float:
+        """Returns the temperature of the system's environment
+
+        Overridden by subclasses (AggregateBase, Molecule).
+        """
+        raise NotImplementedError("get_temperature must be implemented by subclass")
+
+    def _site_reorg_diag(self, subtract_bath: bool = True) -> Any:
+        """Returns diagonal site reorganization energies. Overridden by AggregateBase."""
+        raise NotImplementedError("_site_reorg_diag must be implemented by subclass")
+
+    def _excitonic_reorg_diag(self, SS: Any, subtract_bath: bool = True) -> Any:
+        """Returns excitonic reorganization energies. Overridden by AggregateBase."""
+        raise NotImplementedError(
+            "_excitonic_reorg_diag must be implemented by subclass"
+        )
+
+    def _get_exciton_prop2(self, adiabatic: Any = None, HH_in: Any = None) -> Any:
+        """Returns exciton properties. Overridden by AggregateBase."""
+        raise NotImplementedError("_get_exciton_prop2 must be implemented by subclass")
 
     def diagonalize(self) -> None:
         """Prepage the diagonal form of the Hamiltonian
@@ -146,14 +175,14 @@ class OpenSystem:
 
         self._diagonalized = True
 
-    def get_Hamiltonian(self) -> object:
+    def get_Hamiltonian(self) -> Any:
         """Returns the Hamiltonian operator"""
         if self._built:
             return self.HamOp
 
         raise Exception("System has to be built first")
 
-    def get_TransitionDipoleMoment(self) -> object:
+    def get_TransitionDipoleMoment(self) -> Any:
         """Returns the asystem's transition dipole moment operator"""
         if self._built:
             return self.TrDMOp  # TransitionDipoleMoment(data=self.DD)
@@ -276,7 +305,7 @@ class OpenSystem:
         else:
             raise Exception("Monomer has a correlation function already")
 
-    def get_RWA_suggestion(self) -> float:
+    def get_RWA_suggestion(self) -> float | numpy.ndarray:
         """Returns a suggestion of the RWA frequency"""
         # return self.convert_energy_2_current_u(self.HH[1,1])
 
@@ -286,7 +315,7 @@ class OpenSystem:
             e_av += self.HH[ii, ii]
         e_av = e_av / len(indxs)
 
-        return self.convert_energy_2_current_u(e_av)
+        return Manager().convert_energy_2_current_u(e_av)
 
     def get_band(self, band: int = 1) -> tuple:
         """Returns a tuple of state indices for a given band of states"""
@@ -298,7 +327,7 @@ class OpenSystem:
 
         return tuple(lst)
 
-    def set_dipole(self, N: object, M: object, vec: object = None) -> None:
+    def set_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
         """Sets transition dipole moment for an electronic transition
 
 
@@ -345,7 +374,7 @@ class OpenSystem:
         except (IndexError, AttributeError):
             raise Exception()
 
-    def get_dipole(self, N: object, M: object = None) -> numpy.ndarray:
+    def get_dipole(self, *args: Any, **kwargs: Any) -> numpy.ndarray:
         """Returns the dipole vector for a given electronic transition
 
         There are two ways how to use this function:
@@ -373,6 +402,9 @@ class OpenSystem:
 
 
         """
+        N = args[0] if args else kwargs.get("N")
+        M = args[1] if len(args) > 1 else kwargs.get("M")
+
         if M is None:
             n = N[0]
             m = N[1]
@@ -400,7 +432,7 @@ class OpenSystem:
 
         return WPM
 
-    def get_lineshape_functions(self) -> object:
+    def get_lineshape_functions(self) -> Any:
         """Returns lineshape functions defined for this system"""
         sbi = self.get_SystemBathInteraction()
         return sbi.get_goft_storage()
@@ -537,7 +569,7 @@ class OpenSystem:
 
         return F4
 
-    def get_SystemBathInteraction(self) -> object:
+    def get_SystemBathInteraction(self) -> Any:
         """Returns the aggregate SystemBathInteraction object"""
         if self._built:
             return self.sbi
@@ -606,6 +638,8 @@ class OpenSystem:
             sbi = self.get_SystemBathInteraction()
         else:
             raise Exception()
+
+        relaxT: Any = None
 
         #
         # Dictionary of available theories
@@ -708,7 +742,6 @@ class OpenSystem:
                         ham,
                         sbi,
                         cutoff_time=relaxation_cutoff_time,
-                        as_operators=as_operators,
                     )
                     if secular_relaxation:
                         relaxT.secularize()
@@ -872,7 +905,7 @@ class OpenSystem:
             return relaxT, ham
 
         if relaxation_theory in theories["combined_WeakStrong"]:
-            pass
+            raise NotImplementedError("combined_WeakStrong theory not implemented yet")
 
         elif relaxation_theory in theories["Lindblad_form"]:
             if time_dependent:
@@ -1018,7 +1051,7 @@ class OpenSystem:
 
         return FoersterRateMatrix(ham, sbi)
 
-    def get_KTHierarchy(self, depth: int = 2) -> object:
+    def get_KTHierarchy(self, depth: int = 2) -> Any:
         """Returns the Kubo-Tanimura hierarchy of an open system"""
         HH = self.get_Hamiltonian()
         HH.set_rwa([0, 1])
@@ -1033,7 +1066,7 @@ class OpenSystem:
         return KTHierarchyPropagator(ta, kth)
 
     def get_excited_density_matrix(
-        self, condition: object = "delta", polarization: numpy.ndarray | None = None
+        self, condition: Any = "delta", polarization: numpy.ndarray | None = None
     ) -> object:
         """Returns the density matrix corresponding to excitation condition"""
         dip = self.get_TransitionDipoleMoment()
@@ -1092,7 +1125,7 @@ class OpenSystem:
             print("Excitation condition:", condition)
             raise Exception("Excition condition not implemented.")
 
-    def get_thermal_ReducedDensityMatrix(self) -> object:
+    def get_thermal_ReducedDensityMatrix(self) -> Any:
         """Returns equilibrium density matrix for a give temparature"""
         H = self.get_Hamiltonian()
         T = self.get_temperature()
@@ -1116,8 +1149,8 @@ class OpenSystem:
         return rdm
 
     def integrate_deposited_energy(
-        self, rho_t: object, field: numpy.ndarray, ome: float | None = None
-    ) -> float:
+        self, rho_t: Any, field: numpy.ndarray, ome: float | None = None
+    ) -> float | numpy.ndarray:
         r"""Integrates the energy deposited into the system by light
 
         By default, rho_t and field contain the optical frequency. If ome and dt are defined,

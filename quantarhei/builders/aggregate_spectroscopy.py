@@ -9,6 +9,8 @@ Class Details
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy
 
 import quantarhei as qr
@@ -43,7 +45,7 @@ class AggregateSpectroscopy(AggregateBase):
             dtol=dtol,
             ptol=ptol,
             lab=lab,
-            eUt2=qr.qm.SOpUnity(dim=ham.dim),
+            eUt=qr.qm.SOpUnity(dim=ham.dim),
             verbose=verbose,
         )
         #
@@ -54,11 +56,12 @@ class AggregateSpectroscopy(AggregateBase):
         dip_tol = numpy.sqrt(self.D2_max) * dtol
 
         # Check if the ptype is a tuple
+        ptype_tuple: Any
         if not isinstance(ptype, (tuple, list)):
             ptype_tuple = (ptype,)
         else:
             ptype_tuple = ptype
-        lst = []
+        lst: list[Any] = []
 
         for ptp in ptype_tuple:
             if ptp == "R3g":
@@ -627,14 +630,14 @@ class AggregateSpectroscopy(AggregateBase):
     def liouville_pathways_3T(
         self,
         ptype: str | tuple | list = "R3g",
-        eUt: object = None,
-        ham: object = None,
+        eUt: Any = None,
+        ham: Any = None,
         t2: float = 0.0,
         dtol: float = 1.0e-12,
         ptol: float = 1.0e-3,
         etol: float = 1.0e-6,
         verbose: int = 0,
-        lab: object = None,
+        lab: Any = None,
     ) -> list:
         """Generator of Liouville pathways with energy transfer
 
@@ -688,11 +691,12 @@ class AggregateSpectroscopy(AggregateBase):
         evf_tol = etol
 
         # Check if the ptype is a tuple
+        ptype_tuple: Any
         if not isinstance(ptype, (tuple, list)):
             ptype_tuple = (ptype,)
         else:
             ptype_tuple = ptype
-        lst = []
+        lst: list[Any] = []
 
         if verbose > 0:
             print("Pathways", ptype_tuple)
@@ -843,7 +847,7 @@ class AggregateSpectroscopy(AggregateBase):
         else:
             raise Exception("Not implemented yet")
 
-        lst = []
+        lst: list[Any] = []
 
         if sec:
             generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose)
@@ -858,7 +862,7 @@ class AggregateSpectroscopy(AggregateBase):
 
 
 def generate_R1g(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -928,7 +932,7 @@ def generate_R1g(
 
 
 def _generate_R1g(
-    self: object,
+    self: Any,
     i1g: int,
     i2e: int,
     i3e: int,
@@ -937,7 +941,7 @@ def _generate_R1g(
     i4g: int,
     evf: complex,
     verbose: int = 0,
-) -> object:
+) -> Any:
 
     #      Diagram R1g
     #
@@ -987,7 +991,7 @@ def _generate_R1g(
 
 
 def generate_R1gE(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1129,7 +1133,7 @@ def generate_R1gE(
 
 
 def generate_R2g(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1268,7 +1272,7 @@ def generate_R2g(
 
 
 def generate_R2gE(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1414,7 +1418,7 @@ def generate_R2gE(
 
 
 def generate_R3g(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1527,7 +1531,7 @@ def generate_R3g(
 
 
 def generate_R4g(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1646,7 +1650,7 @@ def generate_R4g(
 
 
 def generate_R1f(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1789,7 +1793,7 @@ def generate_R1f(
 
 
 def generate_R2f(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1932,7 +1936,7 @@ def generate_R2f(
 
 
 def generate_R1fE(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -2071,7 +2075,7 @@ def generate_R1fE(
 
 
 def generate_R2fE(
-    self: object,
+    self: Any,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -2209,7 +2213,7 @@ def generate_R2fE(
 
 
 def generate_1orderP_sec(
-    self: object, lst: list, pop_tol: float, dip_tol: float, verbose: int = 0
+    self: Any, lst: list, pop_tol: float, dip_tol: float, verbose: int = 0
 ) -> None:
 
     ngs = self.get_electronic_groundstate()

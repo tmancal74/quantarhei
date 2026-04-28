@@ -35,6 +35,8 @@ Class Details
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy
 
 import quantarhei as qr
@@ -75,9 +77,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         indx = [i for i in range(self.HH.shape[0])]
         return indx, coefs, sqrs
 
-    def report_on_expansion(
-        self, file: object = None, state: int = 0, N: int = 5
-    ) -> None:
+    def report_on_expansion(self, file: Any = None, state: int = 0, N: int = 5) -> None:
         """Prints a short report on the composition of an exciton state
 
         Parameters
@@ -117,7 +117,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         indx, coefs, sqrs = self.get_expansion_squares(state)
 
-        table_data = []
+        table_data: list[list[Any]] = []
         table_data.append(["index", "squares", "coefficients", "state signatures"])
         for i in range(N):
             imax, sqr = _strip_max_coef(indx, sqrs)
@@ -220,7 +220,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         raise Exception("Aggregate has to be diagonalized")
 
-    def get_state_energy(self, state: int = 0) -> float:
+    def get_state_energy(self, state: int = 0) -> float | numpy.ndarray:
         """Return the energy of a state with a given index
 
 
@@ -255,11 +255,11 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
     def exciton_report(
         self,
-        file: object = None,
+        file: Any = None,
         start: int = 1,
         stop: int | None = None,
         Nrep: int = 5,
-        criterium: object = None,
+        criterium: Any = None,
     ) -> None:
         """Prints a report on excitonic properties of the aggregate
 

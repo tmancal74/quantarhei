@@ -66,7 +66,7 @@ class liouville_pathway(UnitsManaged):
         self.relax_order = relax_order
 
         # list events associated with relaxations and light interations
-        self.event = [None] * (1 + order + relax_order)
+        self.event: list[Any] = [None] * (1 + order + relax_order)
 
         # type of the pathway (rephasing, non-rephasing, double-coherence)
         self.pathway_type = ptype
@@ -95,7 +95,7 @@ class liouville_pathway(UnitsManaged):
         self.transitions = numpy.zeros((order + 1, 2), dtype=int)
 
         # relaxation induced transitions
-        self.relaxations = [None] * relax_order
+        self.relaxations: list[Any] = [None] * relax_order
 
         # sides from which the transitions occurred
         self.sides = numpy.zeros(order + 1, dtype=int)
@@ -119,10 +119,10 @@ class liouville_pathway(UnitsManaged):
         self.evolfac = 1.0
 
         # transition widths
-        self.widths = None
+        self.widths: Any = None
 
         # transition dephasings
-        self.dephs = None
+        self.dephs: Any = None
 
         # band through which the pathway travels at population time
         self.popt_band = popt_band
@@ -332,7 +332,7 @@ class liouville_pathway(UnitsManaged):
                 #            print("Scaling transition dipole")
                 # if pulses defined only in time domain transfer to the frequency one
                 if not lab.has_freqdomain:
-                    self.lab.convert_to_frequency()
+                    lab.convert_to_frequency()
                 #            print("Pulses in frequeny domain")
                 if Np > self.nint and lab.pulse_effects == "rescale_dip":
                     # rescale dipole according to pulse intensity at transition frequency
@@ -394,7 +394,7 @@ class liouville_pathway(UnitsManaged):
         self.event[self.ne] = "R"
         self.ne += 1
 
-    def set_evolution_factor(self, evf: float) -> None:
+    def set_evolution_factor(self, evf: float | complex) -> None:
         self.evolfac = evf
 
     def build(self) -> None:
@@ -427,7 +427,7 @@ class liouville_pathway(UnitsManaged):
 
     def get_transition(self, n: int) -> Any:
         """Returns info on the transition occuring on the n-th interaction"""
-        return self.side[n], self.transitions[n]
+        return self.sides[n], self.transitions[n]
 
     def orientational_averaging(self, lab: Any) -> None:
         """Orientational averaging

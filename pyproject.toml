@@ -268,20 +268,12 @@ module = [
 ]
 ignore_errors = true
 
-# Modules in builders/ with pre-existing structural issues (LSP violations,
-# descriptor chains, object-typed params with attr access, unusual PiMolecule
-# function pattern) — suppressed for now
+# Modules in builders/ with pre-existing structural issues — suppressed for now
 [[tool.mypy.overrides]]
 module = [
     "quantarhei.builders.sysmodes",
     "quantarhei.builders.modes",
     "quantarhei.builders.aggregate_pdeph",
-    "quantarhei.builders.molecules",
-    "quantarhei.builders.aggregate_base",
-    "quantarhei.builders.aggregate_spectroscopy",
-    "quantarhei.builders.opensystem",
-    "quantarhei.builders.aggregate_states",
-    "quantarhei.builders.aggregate_excitonanalysis",
     "quantarhei.builders.pdb",
     "quantarhei.builders.vibsystem",
     "quantarhei.builders.aggregate_test",
@@ -289,7 +281,6 @@ module = [
     "quantarhei.builders.interactions",
 ]
 ignore_errors = true
-
 
 # Modules with pre-existing structural issues (None-typed attributes, descriptor-based
 # data storage, copy-module shadowing, deep multiple-inheritance chains) — suppressed
