@@ -572,7 +572,6 @@ from .utils.logging import (
 from .utils.logging import (
     tprint as tprint,
 )
-from .utils.paver import execute_paver as execute_paver
 from .utils.timing import done_in as done_in
 from .utils.timing import finished_in as finished_in
 from .utils.timing import timeit as timeit
