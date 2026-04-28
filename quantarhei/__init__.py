@@ -124,6 +124,14 @@ set_current_units .. function to set current units globally
 """
 
 
+from importlib.metadata import version as _version, PackageNotFoundError as _PackageNotFoundError
+
+try:
+    __version__ = _version("quantarhei")
+except _PackageNotFoundError:
+    __version__ = "unknown"
+
+
 ###############################################################################
 #
 #
