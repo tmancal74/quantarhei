@@ -592,7 +592,7 @@ def twod_data_wrapper(dtype: Any) -> Any:
 DataWrapper = partial(twod_data_wrapper, dtype=numbers.Complex)
 
 
-class TwoDSpectrumBase(DataSaveable):
+class TwoDResponseBase(DataSaveable):
     """Basic class of a two-dimensional spectrum"""
 
     # spectral types
@@ -1257,6 +1257,7 @@ class TwoDSpectrumBase(DataSaveable):
 
         return data_dict
 
+TwoDSpectrumBase = TwoDResponseBase  # temporary backwards-compatible alias
 
 class TwoDResponse(TwoDSpectrumBase, Saveable):
     """This class represents a single 2D spectrum
