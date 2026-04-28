@@ -92,7 +92,7 @@ def run() -> tuple[Any, Any, Any]:
         for it in range(1, iTmax):
             rhoeg[it] = np.exp(-1j * np.real(zi[it - 1, k]) * dt) * rhoeg[it - 1]
         rhoav += rhoeg
-    rhoav /= (Nreal)
+    rhoav /= Nreal
 
     plt.plot(tt, np.real(ct))
     plt.plot(tt, np.real(cor(l11, g11, a, b, tt)))

@@ -1,4 +1,3 @@
-
 import unittest
 
 """
@@ -11,29 +10,21 @@ import unittest
 *******************************************************************************
 """
 
-#legacy = False
-#import tempfile
+# legacy = False
+# import tempfile
 from quantarhei import TimeAxis
 from quantarhei.models.modelgenerator import ModelGenerator
 
 
 class TestModelGenerator(unittest.TestCase):
-    """(ModelGenerator) Tests for the model generator
-
-
-    """
+    """(ModelGenerator) Tests for the model generator"""
 
     def setUp(self):
 
         self.mgen = ModelGenerator()
 
-
-
-
     def testing_model_system_creation(self):
-        """(ModelGenerator) Testing generation of test aggregates
-
-        """
+        """(ModelGenerator) Testing generation of test aggregates"""
         mgen = self.mgen
 
         agg1 = mgen.get_Aggregate("dimer-1")
@@ -68,19 +59,14 @@ class TestModelGenerator(unittest.TestCase):
         H = agg1.get_Hamiltonian()
         self.assertEqual(H.dim, 16)
 
-
         with self.assertRaises(Exception) as context:
-        #if True:
+            # if True:
             agg1 = mgen.get_Aggregate("pentamer")
 
-        self.assertTrue("Unknown model name pentamer"
-                        in str(context.exception))
-
+        self.assertTrue("Unknown model name pentamer" in str(context.exception))
 
     def testing_model_system_creation_with_env(self):
-        """(ModelGenerator) Testing generation of aggregates with environment
-
-        """
+        """(ModelGenerator) Testing generation of aggregates with environment"""
         mgen = self.mgen
 
         agg1 = mgen.get_Aggregate_with_environment("dimer-1_env")
@@ -89,7 +75,7 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 3)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         ta = TimeAxis(0.0, 1000, 1.0)
         agg1 = mgen.get_Aggregate_with_environment("dimer-1_env", ta)
@@ -98,7 +84,7 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 3)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         agg1 = mgen.get_Aggregate_with_environment("dimer-1_env")
         agg1.build(mult=2)
@@ -106,7 +92,7 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 4)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         agg1 = mgen.get_Aggregate_with_environment("trimer-1_env")
         agg1.build(mult=1)
@@ -114,7 +100,7 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 4)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         agg1 = mgen.get_Aggregate_with_environment("trimer-1_env")
         agg1.build(mult=2)
@@ -122,7 +108,7 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 7)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         agg1 = mgen.get_Aggregate_with_environment("pentamer-1_env")
         agg1.build(mult=1)
@@ -130,7 +116,7 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 6)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         agg1 = mgen.get_Aggregate_with_environment("pentamer-1_env")
         agg1.build(mult=2)
@@ -138,7 +124,7 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 16)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         agg1 = mgen.get_Aggregate_with_environment("pentamer-1_env", ta)
         agg1.build(mult=2)
@@ -146,13 +132,10 @@ class TestModelGenerator(unittest.TestCase):
         self.assertEqual(H.dim, 16)
         sbi = agg1.get_SystemBathInteraction()
         T = sbi.get_temperature()
-        self.assertEqual(T,300)
+        self.assertEqual(T, 300)
 
         with self.assertRaises(Exception) as context:
-        #if True:
+            # if True:
             agg1 = mgen.get_Aggregate_with_environment("pentamer")
 
-        self.assertTrue("Unknown model name pentamer"
-                        in str(context.exception))
-
-
+        self.assertTrue("Unknown model name pentamer" in str(context.exception))

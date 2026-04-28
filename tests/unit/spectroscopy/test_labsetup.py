@@ -1,4 +1,3 @@
-
 import unittest
 
 import matplotlib.pyplot as plt
@@ -17,14 +16,12 @@ from quantarhei import (
     energy_units,
 )
 
-#import quantarhei as qr
+# import quantarhei as qr
 from quantarhei.utils.vectors import X, Y, Z
 
 
 class TestLabSetup(unittest.TestCase):
-    """Test of the laboratory setup
-
-    """
+    """Test of the laboratory setup"""
 
     def setUp(self):
 
@@ -42,29 +39,30 @@ class TestLabSetup(unittest.TestCase):
         # on a time axis starting at a specified time, with a certain number of steps
         # and a step size
         Nfr = 10
-        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+        time = TimeAxis(-500.0, Nfr * 1500, 1.0 / Nfr, atype="complete")
 
         # pulse shapes are specified below
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
         params = (pulse2, pulse2, pulse2)
 
-        #with self.assertRaises(Exception) as context:
+        # with self.assertRaises(Exception) as context:
         #
         #    lab.set_pulse_shapes(time, params)
         #
-        #self.assertTrue("Pulse arrival times have to specified"
+        # self.assertTrue("Pulse arrival times have to specified"
         #                in str(context.exception))
 
-
         # each pulse has a defined frequency
-        lab.set_pulse_polarizations(pulse_polarizations=(X,Y,Z), detection_polarization=X)
+        lab.set_pulse_polarizations(
+            pulse_polarizations=(X, Y, Z), detection_polarization=X
+        )
 
         # time of arrival
         lab.set_pulse_arrival_times([0.0, 0.0, 100.0])
 
         Om = 0.0
         # and polarization
-        ome = convert(10200.0-Om,"1/cm","int")
+        ome = convert(10200.0 - Om, "1/cm", "int")
         lab.set_pulse_frequencies([ome, ome, ome])
 
         # additional phases can be also controlled
@@ -76,35 +74,39 @@ class TestLabSetup(unittest.TestCase):
         self.time = time
 
         with energy_units("1/cm"):
-            m1 = Molecule([0.0, 10000.0-Om])
-            m1.set_dipole((0,1), [1.0, 0.0, 0.0])
-            m2 = Molecule([0.0, 10000.0-Om])
-            m2.set_dipole((0,1), [0.0, 0.0, 0.0])
+            m1 = Molecule([0.0, 10000.0 - Om])
+            m1.set_dipole((0, 1), [1.0, 0.0, 0.0])
+            m2 = Molecule([0.0, 10000.0 - Om])
+            m2.set_dipole((0, 1), [0.0, 0.0, 0.0])
 
             agg = Aggregate(molecules=[m1, m2])
 
-            agg.set_resonance_coupling(0,1, 200.0)
+            agg.set_resonance_coupling(0, 1, 200.0)
 
         agg.build()
 
-
         time_r = TimeAxis(0.0, 1000, 1.0)
         with energy_units("1/cm"):
-            m1 = Molecule([0.0, 10000.0-Om])
-            m1.set_dipole((0,1), [1.0, 0.0, 0.0])
-            m2 = Molecule([0.0, 10000.0-Om])
-            m2.set_dipole((0,1), [0.0, 0.0, 0.0])
+            m1 = Molecule([0.0, 10000.0 - Om])
+            m1.set_dipole((0, 1), [1.0, 0.0, 0.0])
+            m2 = Molecule([0.0, 10000.0 - Om])
+            m2.set_dipole((0, 1), [0.0, 0.0, 0.0])
 
             agg2 = Aggregate(molecules=[m1, m2])
 
-            params = dict(ftype="OverdampedBrownian", T=300.0, reorg=30.0,
-                          cortime=30.0, matsubara=30)
+            params = dict(
+                ftype="OverdampedBrownian",
+                T=300.0,
+                reorg=30.0,
+                cortime=30.0,
+                matsubara=30,
+            )
             cf = CorrelationFunction(time_r, params)
 
-            agg2.set_resonance_coupling(0,1, 200.0)
+            agg2.set_resonance_coupling(0, 1, 200.0)
 
-        m1.set_transition_environment((0,1), cf)
-        m2.set_transition_environment((0,1), cf)
+        m1.set_transition_environment((0, 1), cf)
+        m2.set_transition_environment((0, 1), cf)
 
         agg2.build()
 
@@ -112,12 +114,8 @@ class TestLabSetup(unittest.TestCase):
         self.aggB = agg2  # aggregate with bath
         self.time_r = time_r
 
-
-
     def test_lab_pulse_setters(self):
-        """(LabSetup) Testing LabSetup pulse properties setters
-
-        """
+        """(LabSetup) Testing LabSetup pulse properties setters"""
         lab = self.lab
         time = self.time
 
@@ -128,11 +126,9 @@ class TestLabSetup(unittest.TestCase):
         self.assertTrue(fld.om == fields[1].om)
         self.assertTrue(fld.phi == fields[1].phi)
 
-
         _plot_ = self._plot_
 
         if _plot_:
-
             fields[2].set_rwa(0.9)
             fields[2].phi = numpy.pi
 
@@ -146,51 +142,43 @@ class TestLabSetup(unittest.TestCase):
             plt.plot(time.data, numpy.real(fld))
             plt.show()
 
-
     def test_dm_propagation_with_fields(self):
-        """(LabSetup) Time evolution with explicit electric field
-
-        """
+        """(LabSetup) Time evolution with explicit electric field"""
         from quantarhei.qm import LindbladForm, Operator, SystemBathInteraction
 
         lab = self.lab
         time = self.time
         agg = self.agg
 
-
-
         HH = agg.get_Hamiltonian()
         DD = agg.get_TransitionDipoleMoment()
-        #print(DD.data.shape)
+        # print(DD.data.shape)
 
         ops = []
         KK = Operator(dim=HH.dim)
         with eigenbasis_of(HH):
-            KK.data[1,2] = 1.0
+            KK.data[1, 2] = 1.0
 
         ops.append(KK)
         rates = []
-        rates.append(1.0/1000.0)
+        rates.append(1.0 / 1000.0)
 
         SBI = SystemBathInteraction(sys_operators=ops, rates=rates, system=agg)
 
         LT = LindbladForm(HH, SBI, as_operators=False)
 
-
         ef = lab.get_labfield(0)
 
         rhoi = agg.get_thermal_ReducedDensityMatrix()
-
 
         #######################################################################
         #
         # Relaxation time-independent + LabField
         #
         #######################################################################
-        prop = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
-                                              Efield=ef, Trdip=DD,
-                                              RTensor=LT)
-
+        prop = ReducedDensityMatrixPropagator(
+            timeaxis=time, Ham=HH, Efield=ef, Trdip=DD, RTensor=LT
+        )
 
         #
         #
@@ -198,7 +186,7 @@ class TestLabSetup(unittest.TestCase):
         #
         rhot = prop.propagate(rhoi)
         self.assertTrue(rhot.is_in_rwa)
-        #rhot.convert_from_RWA(HH)
+        # rhot.convert_from_RWA(HH)
 
         ef1 = ef.field
 
@@ -208,10 +196,9 @@ class TestLabSetup(unittest.TestCase):
         #
         #######################################################################
 
-        prop2 = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
-                                              Efield=ef1, Trdip=DD,
-                                              RTensor=LT)
-
+        prop2 = ReducedDensityMatrixPropagator(
+            timeaxis=time, Ham=HH, Efield=ef1, Trdip=DD, RTensor=LT
+        )
 
         #
         # propagation has to be reimplemented with LabFields
@@ -222,29 +209,28 @@ class TestLabSetup(unittest.TestCase):
         _plot_ = self._plot_
 
         if _plot_:
-
             om = HH.rwa_energies[HH.rwa_indices[1]]
 
             with eigenbasis_of(HH):
-
-                plt.plot(time.data,numpy.real(rhot.data[:,1,1]),"-b")
-                plt.plot(time.data,numpy.real(rhot2.data[:,1,1]),"--g")
-                plt.plot(time.data,numpy.real(rhot.data[:,2,2]),"-r")
-                plt.plot(time.data,numpy.real(rhot2.data[:,2,2]),"--k")
-                plt.plot(time.data,numpy.real(rhot.data[:,1,2]),"-b")
-                plt.plot(time.data,numpy.real(rhot2.data[:,1,2]),"--g")
-                #ef.set_rwa(om)
-                #plt.plot(time.data, ef.field_p, "-m")
-                #ef.restore_rwa()
+                plt.plot(time.data, numpy.real(rhot.data[:, 1, 1]), "-b")
+                plt.plot(time.data, numpy.real(rhot2.data[:, 1, 1]), "--g")
+                plt.plot(time.data, numpy.real(rhot.data[:, 2, 2]), "-r")
+                plt.plot(time.data, numpy.real(rhot2.data[:, 2, 2]), "--k")
+                plt.plot(time.data, numpy.real(rhot.data[:, 1, 2]), "-b")
+                plt.plot(time.data, numpy.real(rhot2.data[:, 1, 2]), "--g")
+                # ef.set_rwa(om)
+                # plt.plot(time.data, ef.field_p, "-m")
+                # ef.restore_rwa()
 
             plt.show()
 
             with eigenbasis_of(HH):
-                plt.plot(time.data, numpy.real(rhot.data[:,0,2]), "-k")
-                plt.plot(time.data,
-                    numpy.real(rhot2.data[:,0,2]*numpy.exp(-1j*om*time.data)),
-                    "--g")
-
+                plt.plot(time.data, numpy.real(rhot.data[:, 0, 2]), "-k")
+                plt.plot(
+                    time.data,
+                    numpy.real(rhot2.data[:, 0, 2] * numpy.exp(-1j * om * time.data)),
+                    "--g",
+                )
 
             plt.show()
 
@@ -252,12 +238,13 @@ class TestLabSetup(unittest.TestCase):
         time_r = self.time_r
         HH = aggB.get_Hamiltonian()
         DD = aggB.get_TransitionDipoleMoment()
-        (RT, ham) = aggB.get_RelaxationTensor(time_r, relaxation_theory="stR",
-                                              time_dependent=False)
+        (RT, ham) = aggB.get_RelaxationTensor(
+            time_r, relaxation_theory="stR", time_dependent=False
+        )
 
-        propB = ReducedDensityMatrixPropagator(timeaxis=time, Ham=HH,
-                                               Efield=ef1, Trdip=DD,
-                                               RTensor=RT)
+        propB = ReducedDensityMatrixPropagator(
+            timeaxis=time, Ham=HH, Efield=ef1, Trdip=DD, RTensor=RT
+        )
 
         rhotB = propB.propagate(rhoi)
         self.assertFalse(rhot2.is_in_rwa)
@@ -265,21 +252,17 @@ class TestLabSetup(unittest.TestCase):
         _plot_ = False
         if _plot_:
             with eigenbasis_of(HH):
-
-                plt.plot(time.data,numpy.real(rhotB.data[:,1,1]),"-b")
-                plt.plot(time.data,numpy.real(rhotB.data[:,2,2]),"-r")
+                plt.plot(time.data, numpy.real(rhotB.data[:, 1, 1]), "-b")
+                plt.plot(time.data, numpy.real(rhotB.data[:, 2, 2]), "-r")
 
             plt.show()
 
-
     def test_phase_setting_and_time_shifts(self):
-        """(Labsetup) Phase and time-shift setting
-
-        """
+        """(Labsetup) Phase and time-shift setting"""
         lab = LabSetup(nopulses=4)
 
         Nfr = 10
-        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+        time = TimeAxis(-500.0, Nfr * 1500, 1.0 / Nfr, atype="complete")
 
         # pulse shapes are specified below
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
@@ -294,10 +277,12 @@ class TestLabSetup(unittest.TestCase):
         # pulse polarizations
         X = numpy.zeros(3, dtype=float)
         X[0] = 1
-        lab.set_pulse_polarizations(pulse_polarizations=(X,X,X,X), detection_polarization=X)
+        lab.set_pulse_polarizations(
+            pulse_polarizations=(X, X, X, X), detection_polarization=X
+        )
 
         # pulse frequencies
-        ome = convert(10200.0,"1/cm","int")
+        ome = convert(10200.0, "1/cm", "int")
         lab.set_pulse_frequencies([ome, ome, ome, ome])
 
         # additional phases can be also controlled
@@ -346,7 +331,6 @@ class TestLabSetup(unittest.TestCase):
             cntr = fields[ii].get_center()
             self.assertTrue(cntr == cntrs[ii])
 
-
         #
         # Check indiviual field values
         #
@@ -354,7 +338,6 @@ class TestLabSetup(unittest.TestCase):
             fld_f = fields[kk].get_field()
             fld_c = lab.get_field(kk)
             npt.assert_allclose(fld_f, fld_c)
-
 
         #
         # Check field values when resetting phase and time delay
@@ -369,19 +352,19 @@ class TestLabSetup(unittest.TestCase):
             fields[kk].set_phase(nphs)
             nfld = fields[kk].get_field()
 
-            npt.assert_allclose(fld, nfld*numpy.exp(-1j*phs_diff), rtol=0, atol=1.0e-10)
-
+            npt.assert_allclose(
+                fld, nfld * numpy.exp(-1j * phs_diff), rtol=0, atol=1.0e-10
+            )
 
         setthis = [20.0, 100.0, 80.0, 180.0]
         for kk in range(4):
-
             fld = fields[kk].get_field()
             cnt = fields[kk].get_center()
             dph = fields[kk].get_delay_phase()
 
             ncnt = setthis[kk]
 
-            cnt_diff = (ncnt - cnt)
+            cnt_diff = ncnt - cnt
 
             fields[kk].set_center(ncnt)
             ndph = fields[kk].get_delay_phase()
@@ -389,25 +372,21 @@ class TestLabSetup(unittest.TestCase):
             dph_diff = dph - ndph
             om = fields[kk].get_frequency()
 
-            exp_diff = -cnt_diff*om
+            exp_diff = -cnt_diff * om
 
-            #print(om, cnt_diff, dph_diff, exp_diff)
+            # print(om, cnt_diff, dph_diff, exp_diff)
 
             npt.assert_allclose(exp_diff, dph_diff)
 
-
     def test_from_scratch_vs_by_objects(self):
-        """(Labsetup) Phase and time-shift setting
-
-        """
+        """(Labsetup) Phase and time-shift setting"""
         Nfr = 10
-        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+        time = TimeAxis(-500.0, Nfr * 1500, 1.0 / Nfr, atype="complete")
         # pulse shapes are specified below
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
         params = (pulse2, pulse2, pulse2, pulse2)
 
-        ome = convert(10200.0,"1/cm","int")
-
+        ome = convert(10200.0, "1/cm", "int")
 
         lab = LabSetup(nopulses=4)
 
@@ -422,8 +401,7 @@ class TestLabSetup(unittest.TestCase):
         lab.set_pulse_frequencies([ome, ome, ome, ome])
 
         # additional phases can be also controlled
-        #lab.set_pulse_phases([0.0, 1.0, 0.0, 2.0])
-
+        # lab.set_pulse_phases([0.0, 1.0, 0.0, 2.0])
 
         for ii in range(4):
             self.assertEqual(0.0, lab.get_pulse_phase(ii))
@@ -432,11 +410,11 @@ class TestLabSetup(unittest.TestCase):
             fld.set_phase(10.0)
             self.assertEqual(10.0, lab.get_pulse_phase(ii))
 
-        npt.assert_allclose(arr_times,lab.get_pulse_arrival_times())
+        npt.assert_allclose(arr_times, lab.get_pulse_arrival_times())
 
         for ii in range(4):
             tp = lab.get_pulse_arrival_time(ii)
-            self.assertEqual(arr_times[ii],tp)
+            self.assertEqual(arr_times[ii], tp)
 
         tset = [-30.0, 0.0, 100.0, 200.0]
         lab.set_pulse_arrival_times(tset)
@@ -445,7 +423,7 @@ class TestLabSetup(unittest.TestCase):
 
         _plot = False
         if _plot:
-            plt.plot(time.data, numpy.real(fld1),"-r")
+            plt.plot(time.data, numpy.real(fld1), "-r")
             plt.show()
 
         zeros = [0.0, 0.0, 0.0, 0.0]
@@ -464,29 +442,22 @@ class TestLabSetup(unittest.TestCase):
 
         fld2 = lab.get_field()
 
-
         if _plot:
-            plt.plot(time.data, numpy.real(fld1),"-r")
-            plt.plot(time.data, numpy.real(fld2),"-b")
+            plt.plot(time.data, numpy.real(fld1), "-r")
+            plt.plot(time.data, numpy.real(fld2), "-b")
             plt.show()
-
 
         npt.assert_allclose(fld1, fld2, rtol=0, atol=1.0e-7)
 
-
-
     def test_comparing_fields(self):
-        """(Labsetup) Phase and time-shift setting
-
-        """
+        """(Labsetup) Phase and time-shift setting"""
         Nfr = 10
-        time = TimeAxis(-500.0, Nfr*1500, 1.0/Nfr, atype="complete")
+        time = TimeAxis(-500.0, Nfr * 1500, 1.0 / Nfr, atype="complete")
         # pulse shapes are specified below
         pulse2 = dict(ptype="Gaussian", FWHM=20, amplitude=0.1)
         params = (pulse2, pulse2, pulse2, pulse2)
 
-        ome = convert(10200.0,"1/cm","int")
-
+        ome = convert(10200.0, "1/cm", "int")
 
         lab = LabSetup(nopulses=4)
 
@@ -519,15 +490,16 @@ class TestLabSetup(unittest.TestCase):
             t2 = t1 + setthis[ii]
             fld.set_center(t2)
 
-            lfc = 4.0*numpy.log(2.0)
-            kappa = numpy.exp(-lfc*(2.0*(t1-t2)*time.data -(t1**2 - t2**2))/(fwhm**2) - 1j*om*(t1-t2))
+            lfc = 4.0 * numpy.log(2.0)
+            kappa = numpy.exp(
+                -lfc * (2.0 * (t1 - t2) * time.data - (t1**2 - t2**2)) / (fwhm**2)
+                - 1j * om * (t1 - t2)
+            )
 
             ef2 = fld.get_field()
 
-            npt.assert_allclose(ef2, ef1*kappa, rtol=0, atol=1.0e-7)
+            npt.assert_allclose(ef2, ef1 * kappa, rtol=0, atol=1.0e-7)
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
