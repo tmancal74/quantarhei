@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantarhei"
-version = "0.0.68"
+version = "0.0.69"
 description = "Quantarhei: Open Quantum System Theory for Molecular Systems"
 readme = "README.rst"
 license = { text = "MIT" }
