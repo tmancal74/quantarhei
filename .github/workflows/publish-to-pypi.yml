@@ -17,7 +17,7 @@ jobs:
       - name: Validate version tag matches pyproject.toml
         run: |
           TAG="${GITHUB_REF_NAME#v}"
-          PKG=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])")
+          PKG=$(grep '^version' pyproject.toml | head -1 | sed 's/.*= *"\(.*\)"/\1/')
           if [ "$TAG" != "$PKG" ]; then
             echo "ERROR: git tag v$TAG does not match pyproject.toml version $PKG"
             echo "Update pyproject.toml to $TAG before tagging."
