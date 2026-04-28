@@ -225,10 +225,6 @@ exclude = [
 # through untyped base classes — suppressed until #189 type annotation pass
 [[tool.mypy.overrides]]
 module = [
-    "quantarhei.qm.liouvillespace.tdredfieldtensor",
-    "quantarhei.qm.liouvillespace.tdredfieldfoerster",
-    "quantarhei.qm.liouvillespace.tdfoerstertensor",
-    "quantarhei.qm.liouvillespace.redfieldfoerster",
     "quantarhei.spectroscopy.twod22",
     "quantarhei.spectroscopy.twodspect",
     "quantarhei.spectroscopy.twodresponse",

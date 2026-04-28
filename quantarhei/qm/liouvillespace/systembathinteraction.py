@@ -6,16 +6,22 @@ systembathinteraction module
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
 
 from ... import REAL
 from ...core.dfunction import DFunction
 from ...core.saveable import Saveable
+from ...core.time import TimeAxis
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
 from ...qm.corfunctions.correlationfunctions import c2g
 from ...qm.corfunctions.functionstorage import FunctionStorage
+
+if TYPE_CHECKING:
+    from ...builders.aggregates import Aggregate
+    from ...builders.molecules import Molecule
+    from ...builders.opensystem import OpenSystem
 
 
 class SystemBathInteraction(Saveable):
@@ -86,18 +92,18 @@ class SystemBathInteraction(Saveable):
 
         # information about aggregate is needed when dealing with
         # multiple excitons
-        self.aggregate = None
-        self.molecule = None
-        self.system = None
-        self.rates = None
-        self.KK = None
-        self.CC = None  # correlation function matrix
-        self.GG = None  # lineshape function storage
-        self.TimeAxis = None
-        self.drates = None
+        self.aggregate: Aggregate | None = None
+        self.molecule: Molecule | None = None
+        self.system: Aggregate | Molecule | OpenSystem | None = None
+        self.rates: Any = None
+        self.KK: numpy.ndarray | None = None
+        self.CC: CorrelationFunctionMatrix | None = None  # correlation function matrix
+        self.GG: FunctionStorage | None = None  # lineshape function storage
+        self.TimeAxis: TimeAxis | None = None
+        self.drates: Any = None
         self.N = 0
-        self.osites = None
-        self.orates = None
+        self.osites: Any = None
+        self.orates: Any = None
         self.sbitype = "Linear_Coupling"
 
         self._has_gg_storage = False

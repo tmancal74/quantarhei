@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy
 import numpy.typing
 
@@ -9,9 +11,8 @@ import scipy.interpolate as interp
 from ...core.managers import energy_units
 from ...core.time import TimeDependent
 from ..corfunctions.correlationfunctions import c2g
-
-# from ..hilbertspace.hamiltonian import Hamiltonian
-# from ..liouvillespace.systembathinteraction import SystemBathInteraction
+from ..hilbertspace.hamiltonian import Hamiltonian
+from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .foerstertensor import FoersterRelaxationTensor
 
 
@@ -26,8 +27,8 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
 
     def __init__(
         self,
-        ham: object,
-        sbi: object,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
         initialize: bool = True,
         cutoff_time: float | None = None,
     ) -> None:
@@ -38,11 +39,14 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
 
     def initialize(self) -> None:
 
-        tt = self.SystemBathInteraction.TimeAxis.data
+        sbi_ta = self.SystemBathInteraction.TimeAxis
+        assert sbi_ta is not None, "SystemBathInteraction must have a TimeAxis set"
+        tt = sbi_ta.data
         Nt = len(tt)
         #
         # Tensor data
         #
+        assert self.dim is not None
         Na = self.dim
         self.data = numpy.zeros((Nt, Na, Na, Na, Na), dtype=numpy.complex128)
 
@@ -53,17 +57,22 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
             sbi = self.SystemBathInteraction
             Na = self.dim
 
+            ta = sbi.TimeAxis
+            assert ta is not None
+            cc = sbi.CC
+            assert cc is not None, "SystemBathInteraction must have CC set"
+
             # line shape functions
-            gt = numpy.zeros((Na, sbi.TimeAxis.length), dtype=numpy.complex64)
+            gt = numpy.zeros((Na, ta.length), dtype=numpy.complex64)
 
             # SBI is defined with "sites"
             for ii in range(1, Na):
-                gt[ii, :] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii - 1, ii - 1))
+                gt[ii, :] = c2g(ta, cc.get_coft(ii - 1, ii - 1))
 
             # reorganization energies
             ll = numpy.zeros(Na)
             for ii in range(1, Na):
-                ll[ii] = sbi.CC.get_reorganization_energy(ii - 1, ii - 1)
+                ll[ii] = cc.get_reorganization_energy(ii - 1, ii - 1)
 
             KK = self.td_reference_implementation(Na, Nt, HH, tt, gt, ll)
 
@@ -87,14 +96,20 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
 
         # line shape function derivatives
         sbi = self.SystemBathInteraction
+        assert self.dim is not None
         Na = self.dim
 
-        ht = numpy.zeros((Na, sbi.TimeAxis.length), dtype=numpy.complex64)
+        ta = sbi.TimeAxis
+        assert ta is not None
+        cc = sbi.CC
+        assert cc is not None
 
-        sbi.CC.create_one_integral()
+        ht = numpy.zeros((Na, ta.length), dtype=numpy.complex64)
+
+        cc.create_one_integral()
 
         for ii in range(1, Na):
-            ht[ii, :] = sbi.CC.get_hoft(ii - 1, ii - 1)
+            ht[ii, :] = cc.get_hoft(ii - 1, ii - 1)
 
         for aa in range(self.dim):
             for bb in range(self.dim):
@@ -120,7 +135,7 @@ def _td_reference_implementation(
     tt: numpy.ndarray,
     gt: numpy.ndarray,
     ll: numpy.ndarray,
-    fce: object,
+    fce: Callable[..., numpy.ndarray],
 ) -> numpy.ndarray:
 
     #

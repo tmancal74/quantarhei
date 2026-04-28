@@ -85,12 +85,12 @@ class TwoDSpectrumBase(DFunction2):
     def __init__(self) -> None:
         super().__init__()
 
-        self.data = None
-        self.xaxis = None
-        self.yaxis = None
+        self.data: numpy.ndarray | None = None
+        self.xaxis: Any = None
+        self.yaxis: Any = None
 
-        self.reph2D = None
-        self.nonr2D = None
+        self.reph2D: numpy.ndarray | None = None
+        self.nonr2D: numpy.ndarray | None = None
 
     def set_axis_1(self, axis: Any) -> None:
         """Sets the x-axis of te spectrum (omega_1 axis)"""

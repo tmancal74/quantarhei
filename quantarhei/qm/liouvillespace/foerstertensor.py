@@ -15,6 +15,11 @@ from .relaxationtensor import RelaxationTensor
 class FoersterRelaxationTensor(RelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory"""
 
+    _has_cutoff_time: bool
+    cutoff_time: float | None
+    _is_initialized: bool
+    SystemBathInteraction: SystemBathInteraction
+
     def __init__(
         self,
         ham: Hamiltonian,

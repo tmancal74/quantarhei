@@ -5,16 +5,18 @@ import scipy
 
 from ... import REAL
 from ...core.time import TimeDependent
+from ...qm.hilbertspace.hamiltonian import Hamiltonian
+from ...qm.liouvillespace.systembathinteraction import SystemBathInteraction
 from .redfieldtensor import RedfieldRelaxationTensor
 
 
 class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
-    # FIXME: mimick the time-independent case
-    Lm = None  # we isolate the operators defined by inheritance as time-independent
-    Ld = None
-    Km = None
+    # Shadow parent descriptors with plain ndarray attrs (time-dependent case stores full trajectories)
+    Lm: numpy.ndarray | None = None
+    Ld: numpy.ndarray | None = None
+    Km: numpy.ndarray | None = None
 
-    def _implementation(self, ham: object, sbi: object) -> None:
+    def _implementation(self, ham: Hamiltonian, sbi: SystemBathInteraction) -> None:
         r"""Reference implementation, completely in Python
 
         Implementation of Redfield relaxation tensor according to
@@ -38,10 +40,11 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
         #
-        Na = ham.dim  # data.shape[0]
+        Na = ham.dim  # type: ignore[has-type]
 
         # time axis
         ta = sbi.TimeAxis
+        assert ta is not None, "SystemBathInteraction must have a TimeAxis set"
 
         #
         # is this beyond single excitation band?
@@ -59,6 +62,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         #
         if self._has_cutoff_time:
             # index of the cut-off time on the time axis
+            assert self.cutoff_time is not None
             tcut = ta.nearest(self.cutoff_time)
             # select the section of the time axis up to the cut-off time
             tm = ta.data[0:tcut]
@@ -104,12 +108,14 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         # Transform site operators
         S1 = scipy.linalg.inv(SS)
         # FIXME: SBI should also be basis controlled
+        assert sbi.KK is not None, "SystemBathInteraction must have KK operators set"
         for ns in range(Nb):
             Km[ns, :, :] = numpy.dot(S1, numpy.dot(sbi.KK[ns, :, :], SS))
 
         if multi_ex:
             try:
-                ii = sbi.system.twoex_state[0, 0]
+                assert sbi.system is not None
+                ii = sbi.system.twoex_state[0, 0]  # type: ignore[union-attr, attr-defined]
                 # print(ii)
                 # if ii >= 0:
                 #    print("Something is wrong")
@@ -121,10 +127,13 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             Nb2 = sbi.N
 
             # projectors to two-exciton states
-            K2 = numpy.zeros((Nb2, Na, Na), dtype=REAL)
+            K2: numpy.ndarray = numpy.zeros((Nb2, Na, Na), dtype=REAL)
+            assert ham.rwa_indices is not None, (
+                "Hamiltonian must have rwa_indices set for multi-exciton"
+            )
             i_start = ham.rwa_indices[2]  # here the two-exciton bands starts
             ii = 0
-            for ms in range(i_start, ham.dim):
+            for ms in range(i_start, ham.dim):  # type: ignore[has-type]
                 K2[ii, ms, ms] = 1.0
                 ii += 1
 
@@ -133,7 +142,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 for ms in range(Nb):
                     if ms != ns:
                         n2ex = (
-                            sbi.system.twoex_state[ms, ns] - Nb - 1
+                            sbi.system.twoex_state[ms, ns] - Nb - 1  # type: ignore[union-attr, attr-defined]
                         )  # we number the K2 projectors from zero
                         Km[Nb + ns, :, :] += numpy.dot(
                             S1, numpy.dot(K2[n2ex, :, :], SS)
@@ -306,6 +315,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         dim = SS.shape[0]
 
         if not self._data_initialized:
+            assert self.Km is not None and self.Lm is not None and self.Ld is not None
             for tt in range(self.Nt):
                 for m in range(self.Km.shape[0]):
                     self.Lm[:, :, m, tt] = numpy.dot(
@@ -335,7 +345,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                         S1, numpy.dot(self._data[tt, a, b, :, :], SS)
                     )
 
-    def secularize(self) -> None:
+    def secularize(self) -> None:  # type: ignore[override]
         """Secularizes the relaxation tensor"""
         if self.as_operators:
             raise Exception("Cannot be secularized in an opeator form")

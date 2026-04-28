@@ -81,6 +81,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
     Lm = BasisManagedComplexArray("Lm")
     Ld = BasisManagedComplexArray("Ld")
 
+    _has_cutoff_time: bool
+    cutoff_time: float | None
+    _is_initialized: bool
+    SystemBathInteraction: SystemBathInteraction
+
     def __init__(
         self,
         ham: Hamiltonian,

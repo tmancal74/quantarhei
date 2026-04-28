@@ -28,8 +28,8 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                     "to be represented by a selfadjoint matrix"
                 )
 
-        self.rwa_indices = None
-        self.rwa_energies = None
+        self.rwa_indices: numpy.ndarray | None = None
+        self.rwa_energies: Any = None
         self.has_rwa = False
         # In future, the Hamiltonian should have a block structure
         # reflected in the data storage, for now we are fine just with
