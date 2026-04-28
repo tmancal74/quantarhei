@@ -95,7 +95,7 @@ from paver.tasks import needs, task
     > paver version-update
 
 """
-version = "0.0.68"
+version = "0.0.69"
 
 
 sys_name = platform.system()
