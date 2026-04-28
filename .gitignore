@@ -42,3 +42,4 @@ ghen/
 log
 test.log
 
+.worktrees/

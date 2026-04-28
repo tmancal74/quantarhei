@@ -8,18 +8,13 @@ from quantarhei import Input
 
 
 class TestInput(unittest.TestCase):
-    """Tests for the units package
-
-
-    """
+    """Tests for the units package"""
 
     def test_input(self):
-        """Testing Input class
-        """
+        """Testing Input class"""
         files = ["input.json", "input.yaml"]
 
         for fl in files:
-
             extsplt = os.path.splitext(fl)
 
             filejson = str(resource_files(__package__).joinpath(fl))
