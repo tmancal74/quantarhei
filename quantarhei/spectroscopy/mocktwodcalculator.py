@@ -28,18 +28,23 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
     def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any, temp: Any = None) -> None:
         super().__init__(t1axis, t2axis, t3axis)
-        self.widthx = convert(300, "1/cm", "int")
-        self.widthy = convert(300, "1/cm", "int")
-        self.dephx = convert(300, "1/cm", "int")
-        self.dephy = convert(300, "1/cm", "int")
+        self.widthx: Any = convert(300, "1/cm", "int")
+        self.widthy: Any = convert(300, "1/cm", "int")
+        self.dephx: Any = convert(300, "1/cm", "int")
+        self.dephy: Any = convert(300, "1/cm", "int")
         self.temp = temp  # Temperature
 
     def bootstrap(
         self,
         rwa: float = 0.0,
-        pathways: Any = None,
+        pad: int = 0,
+        lab: Any = None,
         verbose: bool = False,
+        write_resp: bool | str = False,
+        keep_resp: bool = False,
+        pathways: Any = None,
         shape: str = "Gaussian",
+        **kwargs: Any,
     ) -> None:
 
         self.shape = shape
@@ -173,7 +178,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             if show_progress:
                 print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
 
-            pways = dict()
+            pways: dict[Any, Any] = dict()
             twod1 = self.calculate_one_system(
                 T2, sys, eUt, lab, selection=selection, pways=pways, dtol=dtol
             )
@@ -237,6 +242,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         # print("HAS ESA:", has_ESA)
         # get Liouville pathways
+        tps: tuple[str, ...]
         if has_ESA:
             tps = ("R1g", "R2g", "R3g", "R4g", "R1f*", "R2f*", "R1gE", "R2gE")
             pws = sys.liouville_pathways_3T(
@@ -307,7 +313,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         if pathway is None:
             N1 = self.oa1.length
             N3 = self.oa3.length
-            reph2D = numpy.zeros((N1, N3), dtype=COMPLEX)
+            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
             return reph2D
 
         # FIXME: remove the old version sometime soon
@@ -400,7 +406,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             return reph2D
 
         if pathway.pathway_type == "NR":
-            nonr2D = numpy.zeros((N1, N3), dtype=COMPLEX)
+            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -443,3 +449,5 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                 raise Exception("Unknown line shape: " + shape)
 
             return nonr2D
+
+        raise Exception("Unknown pathway type: " + pathway.pathway_type)

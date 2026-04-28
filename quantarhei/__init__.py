@@ -148,8 +148,8 @@ from .core.managers import Manager
 
 m = Manager()
 
-REAL = m.get_real_type()  # numpy.float64
-COMPLEX = m.get_complex_type()  # numpy.complex128
+REAL: type = m.get_real_type()  # numpy.float64
+COMPLEX: type = m.get_complex_type()  # numpy.complex128
 
 LOG_URGENT = 1
 LOG_REPORT = 3
@@ -166,7 +166,7 @@ signal_NONR = "nonrephasing_2D_signal"
 signal_TOTL = "total_2D_signal"
 signal_DC = "double_coherence_signal"
 
-TWOD_SIGNALS = dict(
+TWOD_SIGNALS: dict[str, str] = dict(
     signal_REPH="rephasing_2D_signal",
     signal_NONR="nonrephasing_2D_signal",
     signal_TOTL="total_2D_signal",

@@ -16,10 +16,10 @@ class FoersterRelaxationTensor(RelaxationTensor):
     """Weak resonance coupling relaxation tensor by Foerster theory"""
 
     dim: int
+    data: numpy.ndarray
     _has_cutoff_time: bool
     cutoff_time: float | None
     _is_initialized: bool
-    SystemBathInteraction: SystemBathInteraction
 
     def __init__(
         self,
@@ -50,7 +50,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
 
         self.Hamiltonian = ham
         self.dim = ham.dim
-        self.SystemBathInteraction = sbi
+        self.SystemBathInteraction: SystemBathInteraction = sbi
         self.TimeAxis = sbi.TimeAxis
 
         if initialize:
@@ -74,7 +74,7 @@ class FoersterRelaxationTensor(RelaxationTensor):
             sbi = self.SystemBathInteraction
 
             if self._has_cutoff_time:
-                cft = self.cut_off_time
+                cft = self.cutoff_time
             else:
                 cft = None
 

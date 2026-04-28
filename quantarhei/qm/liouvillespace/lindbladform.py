@@ -269,7 +269,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
             ops = []
             rts = []
 
-            zero = numpy.zeros((Ntot, Ntot), dtype=REAL)
+            zero: numpy.ndarray = numpy.zeros((Ntot, Ntot), dtype=REAL)
             zrs = 0
 
             # we loop over sites in which we want to introduce relaxation
@@ -340,3 +340,4 @@ class VibrationalDecayLindbladForm(LindbladForm):
 
         if (a[:k] == b[:k]) and (a[k + 1 :] == b[k + 1 :]):
             return True
+        return None

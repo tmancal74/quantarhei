@@ -45,6 +45,8 @@ class RedfieldRateMatrix:
 
     """
 
+    _data: numpy.ndarray
+
     def __init__(
         self,
         ham: Hamiltonian,

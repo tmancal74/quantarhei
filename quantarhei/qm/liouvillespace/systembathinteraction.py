@@ -287,6 +287,7 @@ class SystemBathInteraction(Saveable):
             #
             # This returns zero correlation function, which is consistent
             #
+            assert self.CC is not None
             return self.CC._cofts[0, :]
 
         # First or higher excited state bands
@@ -301,6 +302,7 @@ class SystemBathInteraction(Saveable):
 
         # other bands return zero correlation function now
 
+        assert self.CC is not None
         return self.CC._cofts[0, :]
 
     def get_coft_elsig(self, n_sig: Any, m_sig: Any) -> Any:
@@ -332,6 +334,7 @@ class SystemBathInteraction(Saveable):
 
             return ret
 
+        assert self.CC is not None
         return self.CC._cofts[0, :]
 
     def get_goft_storage(self, config: dict | None = None) -> Any:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import numpy
 
 
@@ -17,16 +19,14 @@ class Disorder:
 
         self.dtype = dtype
         self.distribution = distribution
-        self.seed_pool = []
+        self.seed_pool: list[Any] = []
         self.data = data.copy()
         self.shape = self.data.shape
 
         if seed is not None:
             numpy.random.seed(seed)
 
-    def disorder_update(
-        self, i_dis: int, H: object, ignore_first: bool = False
-    ) -> None:
+    def disorder_update(self, i_dis: int, H: Any, ignore_first: bool = False) -> None:
         """Adds disorder to an excitonic Hamiltonian"""
         if (i_dis == 0) and ignore_first:
             return

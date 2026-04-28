@@ -137,7 +137,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
 
         self._pop_fluor = "vertical"
 
-        self.rwa = 0.0
+        self.rwa: float | numpy.ndarray = 0.0
         self.prop_has_rwa = False
 
         self.bootstrapped = False
@@ -152,6 +152,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         gauss: Any = None,
         adiabatic: Any = None,
         fluor: Any = None,
+        **kwargs: Any,
     ) -> None:
         """This function sets some additional information before calculation
 
@@ -602,7 +603,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         # electronic states corresponding to single excited states
         import time
 
-        timecount = 0
+        timecount: float = 0.0
         elst = numpy.where(AG.which_band == 1)[0]
         start = time.time()
         for el1 in elst:
@@ -970,25 +971,27 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             tr["fwhm"] = self.gauss
 
         if relaxation_tensor is not None:
-            RR = relaxation_tensor
+            RR: Any = relaxation_tensor
             RR.transform(SS)
             gg = []
+            RR_any: Any = RR
             if isinstance(RR, TimeDependent):
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:, ii, ii, ii, ii])
+                    gg.append(RR_any.data[:, ii, ii, ii, ii])
             else:
                 for ii in range(HH.dim):
-                    gg.append([RR.data[ii, ii, ii, ii]])
+                    gg.append([RR_any.data[ii, ii, ii, ii]])
             tr["gg"] = gg[1]
         elif rate_matrix is not None:
             RR = rate_matrix  # rate matrix is in excitonic basis
             gg = []
+            RR_any = RR
             if isinstance(RR, TimeDependent):
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:, ii, ii] / 2.0)
+                    gg.append(RR_any.data[:, ii, ii] / 2.0)
             else:
                 for ii in range(HH.dim):
-                    gg.append([RR.data[ii, ii] / 2.0])
+                    gg.append([RR_any.data[ii, ii] / 2.0])
             tr["gg"] = gg[1]
         else:
             tr["gg"] = [0.0]
@@ -1187,6 +1190,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
                 "call bootstrap() method of this object."
             )
 
+        spect: Any = None
         with energy_units("int"):
             if self.system is not None:
                 if from_dynamics:
@@ -1269,7 +1273,7 @@ def _spect_from_dyn(
                         d12 = numpy.dot(dvec_2, dvec_1)
                         at += (d12 / 3.0) * rhot.data[:, je, jg]
 
-        return at
+    return at
 
 
 def _spect_from_dyn_single(

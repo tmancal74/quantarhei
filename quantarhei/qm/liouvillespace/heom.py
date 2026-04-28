@@ -159,7 +159,7 @@ class KTHierarchy:
         #                                                 dtype=COMPLEX))
 
         # This needs to be basis controlled
-        self.ado = None
+        self.ado: numpy.ndarray | None = None
         self.reset_ados()
 
         #
@@ -177,7 +177,7 @@ class KTHierarchy:
         self.np1 = numpy.zeros((self.hsize, self.nbath), dtype=int)
         self._make_nmp1()
 
-        self.Gamma = numpy.zeros(self.hsize, dtype=REAL)
+        self.Gamma: numpy.ndarray = numpy.zeros(self.hsize, dtype=REAL)
         self._make_Gamma()
 
         self.hpop = None
@@ -665,7 +665,12 @@ class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
         self._is_prepared = False
 
     def propagate(
-        self, rhoi: Any, options: Any = None, report_hierarchy: bool = False
+        self,
+        rhoi: Any,
+        L: int = 4,
+        report_hierarchy: bool = False,
+        free_hierarchy: bool = False,
+        options: Any = None,
     ) -> Any:
         """Propagates the Kubo-Tanimura Hierarchy using QuTip implementation"""
         from ...implementations.qutip.qutip_heom import (

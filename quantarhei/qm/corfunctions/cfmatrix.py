@@ -59,26 +59,26 @@ class CorrelationFunctionMatrix(Saveable):
         self.cpointer[:, :] = 0
 
         # empty list for functions
-        self.cfuncs = None
+        self.cfuncs: list[Any] | None = None
 
         # FIXME: reorganization energies should be defined through _A2 and _A4
         # reorganization energies
-        self.lambdas = None
-        self.where = None
+        self.lambdas: numpy.ndarray | None = None
+        self.where: list[Any] | None = None
 
         # Actual storage of functions
         # here we store correlation functions
-        self._cofts = None
+        self._cofts: numpy.ndarray | None = None
 
         # here we store their first integrals
-        self._hofts = None
+        self._hofts: numpy.ndarray | None = None
         self._has_hofts = False
 
         # here we store their second integrals
-        self._gofts = None
+        self._gofts: numpy.ndarray | None = None
         self._has_gofts = False
 
-        self.data = None
+        self.data: numpy.ndarray | None = None
 
         # TimeAxis on which the functions are defined
         self.timeAxis = timeaxis
@@ -93,8 +93,8 @@ class CorrelationFunctionMatrix(Saveable):
 
         # FIXME: implement transformation of the matrix
         self._is_transformed = False
-        self._A2 = None
-        self._A4 = None
+        self._A2: numpy.ndarray | None = None
+        self._A4: numpy.ndarray | None = None
 
         self._initiate_storage()
 
@@ -163,8 +163,14 @@ class CorrelationFunctionMatrix(Saveable):
         #
         #  THIS WILL BE TRANSPLANTED TO OPEN SYSTEM
         #
+        assert self._A2 is not None
+        assert self.cfuncs is not None
+        assert self.lambdas is not None
+        assert self.where is not None
+        assert self._cofts is not None
         self._A2[:, :, 0 : nof + 1] = save_A2
         if self._is_transformed:
+            assert self._A4 is not None
             self._A4[:, :, :, :, 0:nof] = save_A4
 
         for i in range(nof + 1):
@@ -183,6 +189,7 @@ class CorrelationFunctionMatrix(Saveable):
         """
         temp = -1.0
         none_count = 0
+        assert self.cfuncs is not None
         for cf in self.cfuncs:
             if cf is not None:
                 T = cf.get_temperature()
@@ -224,9 +231,10 @@ class CorrelationFunctionMatrix(Saveable):
         # return self.data[self.cpointer[n,m],:]
         return self.cfuncs[self.cpointer[n, m]]
 
-    def get_reorganization_energy(self, n: int, m: int) -> float:
+    def get_reorganization_energy(self, n: int, m: int) -> float | numpy.ndarray:
         """Returns reorganization energie in the site basis"""
         # FIXME: should this use _A2  ????
+        assert self.lambdas is not None
         man = Manager()
         return man.convert_energy_2_current_u(self.lambdas[self.cpointer[n, m]])
 
@@ -243,6 +251,7 @@ class CorrelationFunctionMatrix(Saveable):
 
         """
         if self._is_transformed:
+            assert self._A4 is not None
             lm = 0.0
             for k in range(self.nof):
                 lm += self._A4[a, b, c, d, k]
@@ -257,6 +266,7 @@ class CorrelationFunctionMatrix(Saveable):
         n, m : int
             indices of the matrix
         """
+        assert self._cofts is not None
         return self._cofts[self.cpointer[n, m], :]
 
     def get_hoft(self, n: int, m: int) -> numpy.ndarray:
@@ -267,6 +277,7 @@ class CorrelationFunctionMatrix(Saveable):
         n, m : int
             indices of the matrix
         """
+        assert self._hofts is not None
         return self._hofts[self.cpointer[n, m], :]
 
     def get_goft(self, n: int, m: int) -> numpy.ndarray:
@@ -277,10 +288,13 @@ class CorrelationFunctionMatrix(Saveable):
         n, m : int
             indices of the matrix
         """
+        assert self._gofts is not None
         return self._gofts[self.cpointer[n, m], :]
 
     def get_coft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
         if self._is_transformed:
+            assert self._A4 is not None
+            assert self._cofts is not None
             ret = numpy.zeros(self.timeAxis.length, dtype=COMPLEX)
             for k in range(self.nof):
                 ret += self._A4[a, b, c, d, k] * self._cofts[k + 1, :]
@@ -303,6 +317,8 @@ class CorrelationFunctionMatrix(Saveable):
         """
         nos = self.nob + 1
         if self._is_transformed:
+            assert self._cofts is not None
+            assert self._A4 is not None
             if t is None:
                 Nt = self.max_cutoff_index + 1
 
@@ -330,6 +346,8 @@ class CorrelationFunctionMatrix(Saveable):
 
     def get_hoft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
         if self._is_transformed:
+            assert self._A4 is not None
+            assert self._hofts is not None
             ret = numpy.zeros(self.timeAxis.length, dtype=COMPLEX)
             for k in range(self.nof):
                 ret += self._A4[a, b, c, d, k] * self._hofts[k + 1, :]
@@ -352,6 +370,9 @@ class CorrelationFunctionMatrix(Saveable):
         """
         nos = self.nob + 1
         if self._is_transformed:
+            assert self._cofts is not None
+            assert self._hofts is not None
+            assert self._A4 is not None
             if t is None:
                 Nt = self.max_cutoff_index + 1
 
@@ -379,6 +400,8 @@ class CorrelationFunctionMatrix(Saveable):
     def get_goft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
         """Returns the matrix of the goft functions"""
         if self._is_transformed:
+            assert self._A4 is not None
+            assert self._gofts is not None
             ret = numpy.zeros(self.timeAxis.length, dtype=COMPLEX)
             for k in range(self.nof):
                 ret += self._A4[a, b, c, d, k] * self._gofts[k + 1, :]
@@ -401,6 +424,9 @@ class CorrelationFunctionMatrix(Saveable):
         """
         nos = self.nob + 1
         if self._is_transformed:
+            assert self._cofts is not None
+            assert self._gofts is not None
+            assert self._A4 is not None
             if t is None:
                 Nt = self.max_cutoff_index + 1
 
@@ -441,6 +467,9 @@ class CorrelationFunctionMatrix(Saveable):
             be essigned.
 
         """
+        assert self.cfuncs is not None
+        assert self.lambdas is not None
+        assert self.data is not None
         if fce in self.cfuncs:
             # if the function is already in, iof parameter is ignored
             i = self.cfuncs.index(fce)
@@ -484,6 +513,7 @@ class CorrelationFunctionMatrix(Saveable):
 
     def get_index_by_where(self, where: tuple) -> int:
         """Get the index of the correlation function corresponding a tuple where"""
+        assert self.where is not None
         ret = -1
         for i in range(self.nof + 1):
             if where in self.where[i]:
@@ -493,6 +523,8 @@ class CorrelationFunctionMatrix(Saveable):
 
     def _update_where(self, iof: int, fce: Any, where: list) -> None:
         """Updates the location information for a correlation function"""
+        assert self.where is not None
+        assert self._A2 is not None
         for loc in where:
             if loc in self.where[iof]:
                 raise Exception("Location in correlation matrix already taken")
@@ -510,6 +542,7 @@ class CorrelationFunctionMatrix(Saveable):
 
     def create_one_integral(self) -> None:
         """Calculates a time integral of all correlation functions"""
+        assert self._cofts is not None
         if not self._has_hofts:
             self._hofts = numpy.zeros(
                 (self.nof + 1, self.timeAxis.length), dtype=numpy.complex128
@@ -520,6 +553,7 @@ class CorrelationFunctionMatrix(Saveable):
 
     def create_double_integral(self) -> None:
         """Calculates a double time integral of all correlation functions"""
+        assert self._cofts is not None
         if not self._has_gofts:
             self._gofts = numpy.zeros(
                 (self.nof + 1, self.timeAxis.length), dtype=numpy.complex128
@@ -536,7 +570,7 @@ class CorrelationFunctionMatrix(Saveable):
     def init_site_mapping(self) -> None:
         """Initializes the internals to allow four-index correlation functions"""
         nos = self.nob + 1
-        one = numpy.eye(nos, dtype=REAL)
+        one: numpy.ndarray = numpy.eye(nos, dtype=REAL)
 
         self.transform(one)
 
@@ -554,8 +588,9 @@ class CorrelationFunctionMatrix(Saveable):
         nof = self.nof
 
         self._A4 = numpy.zeros((nos, nos, nos, nos, nof), dtype=REAL)
-        self._C4 = numpy.zeros((nos, nos, nos, nos, nos), dtype=REAL)
+        self._C4: numpy.ndarray = numpy.zeros((nos, nos, nos, nos, nos), dtype=REAL)
 
+        assert self._A2 is not None
         for a in range(nos):
             for b in range(nos):
                 for c in range(nos):

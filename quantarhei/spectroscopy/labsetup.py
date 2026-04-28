@@ -63,39 +63,38 @@ class LabSetup:
         )
 
         # auxiliary matrix for orientational averaging
-        self.F4eM4 = None
+        self.F4eM4: Any = None
 
         # pulse polarizations
-        self.e = None
+        self.e: numpy.ndarray = numpy.zeros((nopulses, 3), dtype=REAL)
 
-        self.timeaxis = None
-        self.freqaxis = None
+        self.timeaxis: TimeAxis | None = None
+        self.freqaxis: FrequencyAxis | None = None
 
         self.has_polarizations = False
         self.has_freqdomain = False
         self.has_timedomain = False
 
         # time or frequency
-        self.axis_type = None
+        self.axis_type: str | None = None
 
         # pulses in time- and frequency domain
-        self.pulse_t = [None] * nopulses
-        self.pulse_f = [None] * nopulses
+        self.pulse_t: list[Any] = [None] * nopulses
+        self.pulse_f: list[Any] = [None] * nopulses
 
         self._field_set = False
 
-        self.dscaling = None
+        self.dscaling: Any = None
 
         #
         # Pulse characteristics
         #
-        self.omega = numpy.zeros(nopulses, dtype=REAL)
-        self.saved_omega = None
-        self.pulse_centers = numpy.zeros(nopulses, dtype=REAL)
+        self.omega: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
+        self.saved_omega: numpy.ndarray | None = None
+        self.pulse_centers: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
         self._centers_set = False
-        self.phases = numpy.zeros(nopulses, dtype=REAL)
-        self.delay_phases = numpy.zeros(nopulses, dtype=REAL)
-        self.e = numpy.zeros((nopulses, 3), dtype=REAL)
+        self.phases: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
+        self.delay_phases: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
 
         self.saved_params = None
 
@@ -635,6 +634,7 @@ class LabSetup:
 
         """
         if self.has_freqdomain:
+            assert self.freqaxis is not None
             freq = self.freqaxis
             time = freq.get_TimeAxis()
 
@@ -708,6 +708,7 @@ class LabSetup:
 
         """
         if self.has_timedomain:
+            assert self.timeaxis is not None
             time = self.timeaxis
             freq = time.get_FrequencyAxis()
 
@@ -871,9 +872,10 @@ class LabSetup:
         """
         # FIXME: energy unit control has to be in place
         if len(omegas) == self.number_of_pulses:
-            self.omega = Manager().convert_energy_2_internal_u(
+            omega_val: Any = Manager().convert_energy_2_internal_u(
                 numpy.array(omegas, dtype=REAL)
             )
+            self.omega = omega_val
 
         else:
             raise Exception(
@@ -1061,7 +1063,7 @@ class LabSetup:
 
     def get_labfields(self) -> list[Any]:
         """Retruns a list of EField objects for the lab's pulses"""
-        fields = [None] * self.number_of_pulses
+        fields: list[Any] = [None] * self.number_of_pulses
 
         for kk in range(self.number_of_pulses):
             ff = self.get_labfield(kk)
@@ -1140,44 +1142,39 @@ def _labattr(name: str, target: str, flag: Any = None) -> Any:
     storage_name = target
     access_flag = flag
 
-    @property
-    def prop(self: Any) -> Any:
+    def prop_getter(self: Any) -> Any:
         at = getattr(self.labsetup, storage_name)
         return at[self.index]
 
-    @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:
         at = getattr(self.labsetup, storage_name)
         if access_flag is not None:
             setattr(self, access_flag, True)
         at[self.index] = value
 
-    return prop
+    return property(prop_getter, prop_setter)
 
 
 def _labarray(name: str, target: str) -> Any:
     """Pointer to a field array attribute of the LabSep object"""
     storage_name = target
 
-    @property
-    def prop(self: Any) -> Any:
+    def prop_getter(self: Any) -> Any:
         at = getattr(self.labsetup, storage_name)
         return at[self.index, :]
 
-    @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:
         at = getattr(self.labsetup, storage_name)
         at[self.index, :] = value
 
-    return prop
+    return property(prop_getter, prop_setter)
 
 
 def _fieldprop(name: str, flag: str, sign: int) -> Any:
     """Property returning field values over time"""
     cmplx_sign = sign
 
-    @property
-    def prop(self: Any) -> Any:
+    def prop_getter(self: Any) -> Any:
         if getattr(self.labsetup, flag):
             if cmplx_sign == 1:
                 return self.get_field()
@@ -1190,13 +1187,12 @@ def _fieldprop(name: str, flag: str, sign: int) -> Any:
         else:
             raise Exception("The property '" + name + "' is not initialited.")
 
-    @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:
         raise Exception(
             "The property '" + name + "' is protected" + " and cannot be set."
         )
 
-    return prop
+    return property(prop_getter, prop_setter)
 
 
 def _get_example_lab() -> LabSetup:

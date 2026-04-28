@@ -18,7 +18,7 @@ class DSFeynmanDiagram:
         self._pic_rep = "\n"
         self.finished = False
 
-        self.light_transitions = {}
+        self.light_transitions: dict[int, Any] = {}
         self.ltcount = 0
 
         if ptype in ptype_simple + ptype_relax:
@@ -34,7 +34,7 @@ class DSFeynmanDiagram:
         elif self.type in ptype_relax:
             self.dimensions = {"t1": 0, "t2": -1, "t3": -1, "t4": 1}
 
-        self.diag_name = None
+        self.diag_name: str | None = None
 
     def add_states_line(self) -> None:
         self._pic_rep = (
@@ -198,7 +198,7 @@ class DSFeynmanDiagram:
 
         kk = 0
         rUop = ""
-        rUops_list = []
+        rUops_list: list[Any] = []
 
         for key in self.states:
             if kk > 0 and kk < self.count + 1:
@@ -284,7 +284,7 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
 
         codes.append(code2)
 
-        local_vars = {}
+        local_vars: dict[str, Any] = {}
         for cod in codes:
             if verbose:
                 print(cod)

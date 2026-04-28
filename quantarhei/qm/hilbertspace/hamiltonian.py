@@ -14,6 +14,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     """Hamiltonian operator"""
 
     _has_remainder_coupling = False
+    JR: numpy.ndarray
 
     data = ManagedRealArray("data")
 
@@ -78,7 +79,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         # average energies in every block
         with energy_units("int"):
-            en_block = numpy.zeros(self.Nblocks, dtype=REAL)
+            en_block: numpy.ndarray = numpy.zeros(self.Nblocks, dtype=REAL)
             for block in range(self.Nblocks):
                 if block < self.Nblocks - 1:
                     upper = self.rwa_indices[block + 1]
@@ -192,7 +193,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if coupling_cutoff < 0.0:
             raise Exception("Coupling cutoff value must be positive")
 
-        JR = numpy.zeros((self.dim, self.dim), dtype=REAL)
+        JR: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)
         # go through all couplings and remove small ones
         for ii in range(self.dim):
             for jj in range(ii + 1, self.dim):
@@ -234,7 +235,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
             coupcut = self.convert_2_internal_u(coupling_cutoff)
 
-            JR = numpy.zeros((self.dim, self.dim), dtype=REAL)
+            JR: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)
             # go through all couplings and remove small ones
             for ii in range(self.dim):
                 for jj in range(ii + 1, self.dim):

@@ -59,6 +59,12 @@ def expr(code: str, context: dict[str, Any] | None = None) -> Any:
 class Input:
     """A class representing a json or yaml input file"""
 
+    # YAML-injected attributes — set dynamically via setattr in __init__
+    define_usecases: Any
+    tasks: Any
+    script: Any
+    path: Any
+
     def __init__(
         self,
         file_or_dict: str | dict[str, Any],

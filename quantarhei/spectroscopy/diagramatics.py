@@ -116,7 +116,7 @@ class liouville_pathway(UnitsManaged):
         self.pref = -1.0
 
         # factor from evolution (super)operator
-        self.evolfac = 1.0
+        self.evolfac: float | complex = 1.0
 
         # transition widths
         self.widths: Any = None

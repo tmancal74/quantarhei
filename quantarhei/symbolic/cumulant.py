@@ -857,11 +857,16 @@ class UopEater:
     def __init__(self) -> None:
 
         self.eaten = False
+        self.uop_current: Uop
+        self.uop_next: Uop | None = None
+        self.in_list: list[Uop] = []
+        self.out_list: list[Uop] = []
+        self.pointer: int = 0
 
     def _create_pair(self, ee: str) -> None:
         import copy
 
-        u_out = Uop(ee, [], dagger=not self.uop_current.dagger_bool())
+        u_out = Uop(ee, None, dagger=not self.uop_current.dagger_bool())
         u_out.times = copy.copy(self.uop_current.times)
 
         #
@@ -875,7 +880,7 @@ class UopEater:
         # before. We will set it as the current operator and continue
         # the procedure
         #
-        u_new = Uop(ee, [], dagger=self.uop_current.dagger_bool())
+        u_new = Uop(ee, None, dagger=self.uop_current.dagger_bool())
         u_new.times = copy.copy(self.uop_current.times)
         self.uop_current = u_new
 
@@ -893,6 +898,7 @@ class UopEater:
         loopi = 0
         while self.next():
             loopi += 1
+            assert self.uop_next is not None
 
             if self.uop_current.state == self.uop_next.state:
                 #
@@ -988,6 +994,8 @@ class UopEater:
 
             return pairs
 
+        return []
+
     def spit_coherence_GF(self) -> str:
 
         if self.eaten:
@@ -1030,6 +1038,8 @@ class UopEater:
                     txt += "*"
                 outtext += txt
             return outtext
+
+        return ""
 
     def cumulant_expansion(self) -> None:
         pass

@@ -5,7 +5,7 @@ import numpy
 from .. import COMPLEX, REAL, Manager
 from ..core.managers import UnitsManaged
 from ..core.saveable import Saveable
-from ..qm import LindbladForm
+from ..qm import LindbladForm, SystemBathInteraction
 from ..qm.oscillators.ho import operator_factory
 from .opensystem import OpenSystem
 
@@ -32,12 +32,12 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         self.modes = modes
         self.Nmodes = len(self.modes)
 
-        self.Nb = None
+        self.Nb: numpy.ndarray | None = None
 
-        self.sbi = None
+        self.sbi: SystemBathInteraction | None = None
         self._has_sbi = False
 
-        self.HH = None
+        self.HH: numpy.ndarray | None = None
 
         self._mode_couping_init = False
 
@@ -51,7 +51,7 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         #
         #  Relaxation tensor information
         #
-        self.RelaxationTensor = None
+        self.RelaxationTensor: LindbladForm | None = None
         self.RelaxationHamiltonian = None
         self._has_relaxation_tensor = False
         self.has_Iterm = False
@@ -75,14 +75,16 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
 
         """
         if not self._mode_couping_init:
-            self.coupling = numpy.zeros((self.Nmodes, self.Nmodes), dtype=REAL)
+            self.coupling: numpy.ndarray = numpy.zeros(
+                (self.Nmodes, self.Nmodes), dtype=REAL
+            )
             self._mode_couping_init = True
 
         val_int = Manager().convert_energy_2_internal_u(val)
         self.coupling[N, M] = val_int
         self.coupling[M, N] = val_int
 
-    def get_mode_coupling(self, N: int, M: int) -> float:
+    def get_mode_coupling(self, N: int, M: int) -> float | numpy.ndarray:
         """Returns the value of the intermode coupling coefficient in current units
 
         >>> import quantarhei as qr

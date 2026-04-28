@@ -692,7 +692,7 @@ class OpenSystem:
                 )  # adiabatic="NoBath"
                 SS1 = numpy.linalg.inv(SS)
                 HH_new = numpy.dot(SS, numpy.dot(numpy.diag(val), SS1))
-                ham._data = HH_new
+                ham.data = HH_new  # type: ignore[misc]
                 # ham=Hamiltonian(data=HH_new)
 
             if time_dependent:
@@ -1242,13 +1242,13 @@ class OpenSystem:
             for kk in range(self.Ntot):
                 HH[kk, kk] -= reorg_site[kk]
 
-            val, SS = numpy.linalg.eigh(HH.data)
+            val, SS = numpy.linalg.eigh(numpy.array(HH.data))
 
             reorg_excit = self._excitonic_reorg_diag(SS, subtract_bath=adiabatic_noBath)
 
             val += reorg_excit
         else:
-            val, SS = numpy.linalg.eigh(HH.data)
+            val, SS = numpy.linalg.eigh(numpy.array(HH.data))
 
         return val, SS
 

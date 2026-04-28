@@ -84,7 +84,10 @@ class RedfieldRelaxationTensor(RelaxationTensor):
     _has_cutoff_time: bool
     cutoff_time: float | None
     _is_initialized: bool
-    SystemBathInteraction: SystemBathInteraction
+    dim: int
+    _Km: numpy.ndarray
+    _Lm: numpy.ndarray
+    _Ld: numpy.ndarray
 
     def __init__(
         self,
@@ -114,7 +117,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 )
 
         self.Hamiltonian = ham
-        self.SystemBathInteraction = sbi
+        self.SystemBathInteraction: SystemBathInteraction = sbi
 
         self.dim = self.Hamiltonian.dim
         self.name = name
@@ -146,14 +149,14 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self.Iterm = None
         self.has_Iterm = False
 
-    def apply(self, oper: Any, copy: bool = True) -> Any:
+    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:
         """Applies the relaxation tensor on a superoperator"""
         if self.as_operators:
             print("Applying Relaxation tensor")
             if copy:
-                import copy
+                import copy as _copy
 
-                oper_ven = copy.copy(oper)
+                oper_ven = _copy.copy(oper)
             else:
                 oper_ven = oper
 
@@ -237,9 +240,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             else:
                 S1 = inv
 
-            _Lm = numpy.zeros_like(self._Lm, dtype=COMPLEX)
-            _Ld = numpy.zeros_like(self._Ld, dtype=COMPLEX)
-            _Km = numpy.zeros_like(self._Km, dtype=COMPLEX)
+            _Lm: numpy.ndarray = numpy.zeros_like(self._Lm, dtype=COMPLEX)
+            _Ld: numpy.ndarray = numpy.zeros_like(self._Ld, dtype=COMPLEX)
+            _Km: numpy.ndarray = numpy.zeros_like(self._Km, dtype=COMPLEX)
             for m in range(self._Km.shape[0]):
                 _Lm[:, :, m] = numpy.dot(S1, numpy.dot(self._Lm[:, :, m], SS))
                 _Ld[:, :, m] = numpy.dot(S1, numpy.dot(self._Ld[:, :, m], SS))
@@ -353,8 +356,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             Km[ns, :, :] = numpy.dot(S1, numpy.dot(sbi.KK[ns, :, :], SS))
 
         if multi_ex:
+            system_any: Any = sbi.system
             try:
-                ii = sbi.system.twoex_state[0, 0]
+                ii = system_any.twoex_state[0, 0]
                 # print(ii)
                 # if ii >= 0:
                 #    print("Something is wrong")
@@ -366,7 +370,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             Nb2 = sbi.N
 
             # projectors to two-exciton states
-            K2 = numpy.zeros((Nb2, Na, Na), dtype=REAL)
+            K2: numpy.ndarray = numpy.zeros((Nb2, Na, Na), dtype=REAL)
             i_start = ham.rwa_indices[2]  # here the two-exciton bands starts
             ii = 0
             for ms in range(i_start, ham.dim):
@@ -378,7 +382,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 for ms in range(Nb):
                     if ms != ns:
                         n2ex = (
-                            sbi.system.twoex_state[ms, ns] - Nb - 1
+                            system_any.twoex_state[ms, ns] - Nb - 1
                         )  # we number the K2 projectors from zero
                         Km[Nb + ns, :, :] += numpy.dot(
                             S1, numpy.dot(K2[n2ex, :, :], SS)

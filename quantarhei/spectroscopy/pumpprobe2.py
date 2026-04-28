@@ -80,10 +80,10 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         for sp in spctr:
             plt.plot(sp.xaxis.data, sp.data)
 
-    def set_spectrum(self, spec: Any, tag: Any) -> None:
+    def set_spectrum(self, spec: Any, tag: Any = None) -> None:
         self.spectra[tag] = spec
 
-    def amax(self) -> Any:
+    def amax(self, spart: Any = None) -> Any:
         mxs = []
         for s in self.get_spectra():
             spect = numpy.real(s.data)
@@ -129,7 +129,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                     Y,
                     ppspec2D.T[min_ind:],
                     60,
-                    cmap=plt.cm.jet,
+                    cmap=plt.cm.jet,  # type: ignore[attr-defined]
                     vmin=-abs(ppspec2D).max(),
                     vmax=abs(ppspec2D).max(),
                 )  # , vmin=ppspec2D.min(), vmax=ppspec2D.max())
@@ -139,7 +139,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
                     Y,
                     ppspec2D.T[min_ind:],
                     60,
-                    cmap=plt.cm.jet,
+                    cmap=plt.cm.jet,  # type: ignore[attr-defined]
                     vmin=ppspec2D.min(),
                     vmax=ppspec2D.max(),
                 )
@@ -203,16 +203,32 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
     def make_movie(
         self,
         filename: str,
-        axis: Any = None,
+        window: Any = None,
+        stype: Any = None,
+        spart: Any = None,
         cmap: Any = None,
+        Npos_contours: int = 10,
         vmax: Any = None,
-        vmin: Any = None,
-        frate: int = 20,
-        dpi: int = 100,
+        vmin_ratio: float = 0.5,
+        xlabel: Any = None,
+        ylabel: Any = None,
+        axis_label_font: Any = None,
         start: Any = None,
         end: Any = None,
+        frate: int = 20,
+        dpi: int = 100,
         show_states: Any = None,
+        show_states_func: Any = None,
+        label: Any = None,
+        label_func: Any = None,
+        text_loc: Any = None,
         progressbar: bool = False,
+        use_t2: bool = False,
+        title: str = "",
+        comment: str = "",
+        axis: Any = None,
+        vmin: Any = None,
+        **kwargs: Any,
     ) -> None:
 
         import matplotlib.animation as manimation
@@ -322,14 +338,14 @@ class PumpProbeSpectrumCalculator:
         if rate_matrix is not None:
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
-        self.goft_matrix = None
-        self.reorg_matrix = None
+        self.goft_matrix: Any = None
+        self.reorg_matrix: Any = None
 
         # after bootstrap information
-        self.lab = None
-        self.t3s = None
-        self.pathways = None
-        self.rwa = None
+        self.lab: Any = None
+        self.t3s: Any = None
+        self.pathways: Any = None
+        self.rwa: Any = None
 
         self.verbose = False
 
@@ -1125,7 +1141,7 @@ class PumpProbeSpectrumCalculator:
         # we can calculate empty pathway
         if pathways is None:
             N3 = self.oa3.length
-            ppspec = numpy.zeros(N3, dtype=COMPLEX)
+            ppspec: numpy.ndarray = numpy.zeros(N3, dtype=COMPLEX)
             return ppspec
 
         N3 = self.oa3.length
@@ -1262,13 +1278,8 @@ class PumpProbeSpectrumCalculator:
 
                     ft = -1j * om * self.t3axis.data - 1j * omtau * tau
 
-                    if 0:  # Safer (smaller numerical errors), but slower
-                        gt1 = self._c2g(
-                            self.t3axis,
-                            ct3[Fl, Fl] - ct3[Fl, Ek] + ct3[Ej, Ek] - ct3[Ej, Fl],
-                        )
-                    else:  # Faster, but might cause numerical errors.
-                        gt1 = gt3s[Fl, Fl] - gt3s[Fl, Ek] + gt3s[Ej, Ek] - gt3s[Ej, Fl]
+                    # Faster, but might cause numerical errors.
+                    gt1 = gt3s[Fl, Fl] - gt3s[Fl, Ek] + gt3s[Ej, Ek] - gt3s[Ej, Fl]
 
                     gt2 = (
                         gt3tau[Ej, Ej, 0]
@@ -1668,24 +1679,43 @@ def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
 class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
     """Effective line shape pump-probe spectrum calculator"""
 
-    def calculate_all_system(self, sys: Any, H: Any, eUt: Any, lab: Any) -> Any:
+    def calculate_all_system(
+        self,
+        sys: Any,
+        eUt: Any,
+        lab: Any,
+        selection: Any = None,
+        show_progress: bool = False,
+        dtol: float = 1.0e-12,
+        H: Any = None,
+        **kwargs: Any,
+    ) -> Any:
         """Calculates all spectra corresponding to a specified t2axis"""
         temporary_fix = True
 
         if temporary_fix:
             # calculation via 2D spectrum
-            tcont = super().calculate_all_system(sys, H, eUt, lab)
+            tcont = super().calculate_all_system(sys, eUt, lab)
             return tcont.get_PumpProbeSpectrumContainer()
 
     def calculate_one_system(
-        self, t2: float, sys: Any, H: Any, eUt: Any, lab: Any
+        self,
+        t2: float,
+        sys: Any,
+        eUt: Any,
+        lab: Any,
+        selection: Any = None,
+        pways: Any = None,
+        dtol: float = 1.0e-12,
+        H: Any = None,
+        **kwargs: Any,
     ) -> Any:
         """Calculates one spectru corresponding to a specified t2 time"""
         temporary_fix = True
 
         if temporary_fix:
             # calculation via 2D spectrum
-            tcont = super().calculate_one_system(t2, sys, H, eUt, lab)
+            tcont = super().calculate_one_system(t2, sys, eUt, lab)
             return tcont.get_PumpProbeSpectrum()
 
 

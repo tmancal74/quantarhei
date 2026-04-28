@@ -251,7 +251,7 @@ class LiouvillePathway:
 
         self._frequencies_set = True
 
-    def get_frequencies(self) -> tuple[float, float]:
+    def get_frequencies(self) -> tuple[float | numpy.ndarray, float | numpy.ndarray]:
         """Returns the two main frequencies of the response"""
         if self._frequencies_set:
             fr = (
@@ -286,7 +286,7 @@ class LiouvillePathway:
             self._rwa = 0.0
             self._rwa_set = False
 
-    def get_rwa(self) -> float:
+    def get_rwa(self) -> float | numpy.ndarray:
         """Returns the RWA frequency"""
         return Manager().convert_energy_2_internal_u(self._rwa)
 

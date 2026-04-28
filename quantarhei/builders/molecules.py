@@ -1585,7 +1585,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             self.vibsignatures = vsignatures
 
             # list o signatures of all states
-            self.all_states = []
+            self.all_states: list[tuple[Any, ...]] = []
             ks = 0
             ke = 0
             for vsig_it in vsignatures:

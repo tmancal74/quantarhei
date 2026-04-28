@@ -115,7 +115,7 @@ class SuperOperator(BasisManaged):
                 raise Exception("`data` has to be `square` four-dimensional matrix")
             self.dim = data.shape[0]
 
-    def apply(self, oper: Any, copy: bool = True) -> Any:
+    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:
         """Applies superoperator to an operator
 
 

@@ -24,6 +24,8 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
     """
 
+    _data: numpy.ndarray
+    dim: int
     data = BasisManagedComplexArray("data")
 
     def __init__(
@@ -156,7 +158,9 @@ class SelfAdjointOperator(Operator):
                 )
 
     def check_selfadjoint(self) -> bool:
-        return (numpy.isclose(numpy.transpose(numpy.conj(self.data)), self.data)).all()
+        return bool(
+            (numpy.isclose(numpy.transpose(numpy.conj(self.data)), self.data)).all()
+        )
 
     def diagonalize(self) -> numpy.ndarray:
         # first use is of "data", the rest of "_data"
@@ -182,7 +186,7 @@ class UnityOperator(SelfAdjointOperator):
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
-        series = numpy.array([1 for i in range(dim)], dtype=COMPLEX)
+        series: numpy.ndarray = numpy.array([1 for i in range(dim)], dtype=COMPLEX)
         data = numpy.diag(series)
         super().__init__(dim=dim, data=data, name=name)
 
@@ -191,7 +195,7 @@ class BasisReferenceOperator(SelfAdjointOperator):
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise Exception("Dimension parameters 'dim' has to be specified")
-        series = numpy.array([i for i in range(dim)], dtype=REAL)
+        series: numpy.ndarray = numpy.array([i for i in range(dim)], dtype=REAL)
         data = numpy.diag(series)
         super().__init__(dim=dim, data=data, name=name)
 
