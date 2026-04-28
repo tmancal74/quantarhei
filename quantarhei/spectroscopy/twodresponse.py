@@ -1257,7 +1257,9 @@ class TwoDResponseBase(DataSaveable):
 
         return data_dict
 
+
 TwoDSpectrumBase = TwoDResponseBase  # temporary backwards-compatible alias
+
 
 class TwoDResponse(TwoDSpectrumBase, Saveable):
     """This class represents a single 2D spectrum

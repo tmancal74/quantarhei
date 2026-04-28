@@ -499,16 +499,16 @@ from .spectroscopy.pathwayanalyzer import (
 #
 # Pump-probe spectrum
 #
-from .spectroscopy.pumpprobe import (
+from .spectroscopy.pumpprobe2 import (
     MockPumpProbeSpectrumCalculator as MockPumpProbeSpectrumCalculator,
 )
-from .spectroscopy.pumpprobe import (
+from .spectroscopy.pumpprobe2 import (
     PumpProbeSpectrum as PumpProbeSpectrum,
 )
-from .spectroscopy.pumpprobe import (
+from .spectroscopy.pumpprobe2 import (
     PumpProbeSpectrumCalculator as PumpProbeSpectrumCalculator,
 )
-from .spectroscopy.pumpprobe import (
+from .spectroscopy.pumpprobe2 import (
     PumpProbeSpectrumContainer as PumpProbeSpectrumContainer,
 )
 
