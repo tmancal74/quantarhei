@@ -1,0 +1,96 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Sync dev dependencies",
+      "type": "shell",
+      "command": "uv sync --extra dev",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run unit tests",
+      "type": "shell",
+      "command": "uv run pytest -v --cov=quantarhei --cov-report=term --cov-report=xml:coverage1.xml --junit-xml=results-unit.xml tests/unit",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run doc tests",
+      "type": "shell",
+      "command": "uv run pytest --doctest-modules -v --cov=quantarhei --cov-append --cov-report=xml:coverage2.xml --junit-xml=results-doctest.xml quantarhei/core quantarhei/builders quantarhei/qm/corfunctions quantarhei/spectroscopy quantarhei/qm/liouvillespace quantarhei/functions quantarhei/qm/hilbertspace quantarhei/qm/propagators quantarhei/qm/propagators/poppropagator.py",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run integration tests",
+      "type": "shell",
+      "command": "uv run coverage run --data-file=.coverage.behave $(uv run which behave) tests/behave/features && uv run coverage combine --data-file=.coverage.behave && uv run coverage xml --data-file=.coverage.behave -o coverage3.xml",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run all tests",
+      "type": "shell",
+      "command": "uv run pytest -v --cov=quantarhei --cov-report=term --cov-report=xml:coverage1.xml --junit-xml=results-unit.xml tests/unit && uv run pytest --doctest-modules -v --cov=quantarhei --cov-append --cov-report=xml:coverage2.xml --junit-xml=results-doctest.xml quantarhei/core quantarhei/builders quantarhei/qm/corfunctions quantarhei/spectroscopy quantarhei/qm/liouvillespace quantarhei/functions quantarhei/qm/hilbertspace quantarhei/qm/propagators quantarhei/qm/propagators/poppropagator.py && uv run coverage run --data-file=.coverage.behave $(uv run which behave) tests/behave/features && uv run coverage combine --data-file=.coverage.behave && uv run coverage xml --data-file=.coverage.behave -o coverage3.xml",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "uv run ruff format --check . && uv run pre-commit run --all-files",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run everything",
+      "type": "shell",
+      "command": "uv sync --extra dev && uv run ruff format --check . && uv run pre-commit run --all-files && uv run pytest -v --cov=quantarhei --cov-report=term tests/unit",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean coverage",
+      "type": "shell",
+      "command": "rm -f .coverage .coverage.* coverage*.xml && rm -rf htmlcov",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
