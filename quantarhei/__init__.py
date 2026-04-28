@@ -123,8 +123,8 @@ set_current_units .. function to set current units globally
 
 """
 
-
-from importlib.metadata import version as _version, PackageNotFoundError as _PackageNotFoundError
+from importlib.metadata import PackageNotFoundError as _PackageNotFoundError
+from importlib.metadata import version as _version
 
 try:
     __version__ = _version("quantarhei")
