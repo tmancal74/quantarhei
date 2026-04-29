@@ -7,6 +7,9 @@ lint:
 	uv run ruff format --check .
 	uv run pre-commit run --all-files
 
+pre-commit: lint
+
+
 lint-fix:
 	uv run ruff format .
 	uv run ruff check quantarhei/ --fix
