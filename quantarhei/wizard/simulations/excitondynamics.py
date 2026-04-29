@@ -1,11 +1,23 @@
 from __future__ import annotations
 
+from typing import Any
+
 from ...builders.aggregates import Aggregate
 from .simulation import Simulation
 
 
 class ExcitonDynamics(Simulation):
     """Excitonic Dynamics Simulation"""
+
+    # Attributes set dynamically from configuration input
+    molecules: Any
+    exciton_multiplicity: Any
+    relaxation_theory: Any
+    sys_operators: Any
+    rates: Any
+    timeaxis: Any
+    tasks: Any
+    rho0: Any
 
     def _build(self) -> None:
         """Here we prepare objects for the simulation"""

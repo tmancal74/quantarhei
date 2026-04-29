@@ -861,6 +861,7 @@ class DFunction(Saveable, DataSaveable):
         real_only: bool = True,
         show: bool = False,
         color: Any = None,
+        **kwargs: Any,
     ) -> None:
         """Plotting of the DFunction's data against the ValueAxis.
 

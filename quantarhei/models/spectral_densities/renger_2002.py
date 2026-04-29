@@ -23,7 +23,7 @@ class renger_2002a(SpectralDensityDatabaseEntry):
         self.identificator = "Renger_JCP_2002"
         self.alt_ident = ["Renger", "Renger2002"]
 
-    def get_SpectralDensity(self, axis: Any) -> Any:
+    def get_SpectralDensity(self, axis: Any = None) -> Any:
 
         # Calling the spec dens calculated from b777 in rengers paper
         # alternative_form gives the polynomial version of the same spec dens

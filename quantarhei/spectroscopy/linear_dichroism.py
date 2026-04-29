@@ -62,15 +62,16 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
         from scipy import interpolate
 
+        om: numpy.ndarray
         if xaxis == "frequency":
-            om = self.convert_2_internal_u(x)
+            om = numpy.asarray(self.convert_2_internal_u(x))
 
         elif xaxis == "wavelength":
             # convert to internal (nano meters) units of wavelength
 
             # convert to energy (internal units)
             # to cm
-            om = 1.0e-7 * x
+            om = numpy.asarray(1.0e-7 * x)
             # to 1/cm
             om = 1.0 / om
             # to 1/fs
@@ -141,7 +142,14 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
         self.data += spect.data
 
-    def load_data(self, filename: str, ext: Any = None, replace: bool = False) -> None:
+    def load_data(
+        self,
+        name: str,
+        with_axis: Any = None,
+        ext: Any = None,
+        replace: bool = False,
+        **kwargs: Any,
+    ) -> None:
         """Load the spectrum from a file
 
         Uses the load method of the DFunction class to load the linear dichroism
@@ -152,19 +160,55 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
         ----------
 
         """
-        super().load_data(filename, ext=ext, axis="frequency", replace=replace)
+        super().load_data(name, ext=ext, axis="frequency", replace=replace)
 
     # save method is inherited from DFunction
 
-    def plot(self, **kwargs: Any) -> Any:
+    def plot(
+        self,
+        fig: Any = None,
+        title: str | None = None,
+        title_font: Any = None,
+        axis: list[float] | None = None,
+        vmax: float | None = None,
+        vmin: float | None = None,
+        xlabel: str | None = None,
+        ylabel: str | None = None,
+        label_font: Any = None,
+        text: Any = None,
+        text_font: Any = None,
+        label: str | None = None,
+        text_loc: list[float] | None = None,
+        fontsize: str = "20",
+        real_only: bool = True,
+        show: bool = False,
+        color: Any = None,
+        **kwargs: Any,
+    ) -> None:
         """Plotting linear dichroism spectrum using the DFunction plot method"""
-        if "ylabel" not in kwargs:
+        if ylabel is None:
             ylabel = r"$\alpha(\omega)$ [a.u.]"
-            kwargs["ylabel"] = ylabel
 
-        fig = super().plot(**kwargs)
-        if fig is not None:
-            return fig
+        super().plot(
+            fig=fig,
+            title=title,
+            title_font=title_font,
+            axis=axis,
+            vmax=vmax,
+            vmin=vmin,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            label_font=label_font,
+            text=text,
+            text_font=text_font,
+            label=label,
+            text_loc=text_loc,
+            fontsize=fontsize,
+            real_only=real_only,
+            show=show,
+            color=color,
+            **kwargs,
+        )
 
     def gaussian_fit(
         self, N: int = 1, guess: Any = None, plot: bool = False, Nsvf: int = 251
@@ -323,7 +367,7 @@ def _n_gaussians(x: Any, N: int, *params: float) -> Any:
     k = n // 3
 
     if (k * 3 == n) and (k == N):
-        res = 0.0
+        res: float | numpy.ndarray = 0.0
         pp = numpy.zeros(3)
         for i in range(k):
             pp[0:3] = params[3 * i : 3 * i + 3]
@@ -563,7 +607,7 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
             1 / numpy.linalg.norm(vector_perp_to_membrane)
         )
 
-        self.rwa = 0.0
+        self.rwa: float | numpy.ndarray = 0.0
 
     def bootstrap(self, rwa: float = 0.0) -> None:
         """ """
@@ -740,8 +784,9 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
             RR.transform(SS)
             gg = []
             if isinstance(RR, TimeDependent):
+                RR_any: Any = RR
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:, ii, ii, ii, ii])
+                    gg.append(RR_any.data[:, ii, ii, ii, ii])
             else:
                 for ii in range(HH.dim):
                     gg.append([RR.data[ii, ii, ii, ii]])
@@ -750,8 +795,9 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
             RR = rate_matrix  # rate matrix is in excitonic basis
             gg = []
             if isinstance(RR, TimeDependent):
+                RR_any2: Any = RR
                 for ii in range(HH.dim):
-                    gg.append(RR.data[:, ii, ii])
+                    gg.append(RR_any2.data[:, ii, ii])
             else:
                 for ii in range(HH.dim):
                     gg.append([RR.data[ii, ii]])

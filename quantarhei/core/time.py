@@ -213,8 +213,8 @@ if TYPE_CHECKING:
 
 
 class TimeDependent:
-    _has_cutoff_time = False
-    cutoff_time = None
+    _has_cutoff_time: bool = False
+    cutoff_time: float | None = None
 
     def set_cutoff_time(self, time: float) -> None:
         self.cutoff_time = time

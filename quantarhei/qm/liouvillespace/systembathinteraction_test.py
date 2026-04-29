@@ -11,6 +11,8 @@ Class Details
 
 from __future__ import annotations
 
+from typing import Any
+
 from .systembathinteraction import SystemBathInteraction
 
 
@@ -64,7 +66,8 @@ class TestSystemBathInteraction(SystemBathInteraction):
             agg = TestAggregate(name="dimer-2")
             agg.build()
 
-            N = agg.get_Hamiltonian().dim
+            _ham: Any = agg.get_Hamiltonian()
+            N = _ham.dim
 
             P1 = ProjectionOperator(1, 2, dim=N)
             P2 = ProjectionOperator(2, 1, dim=N)
@@ -78,7 +81,8 @@ class TestSystemBathInteraction(SystemBathInteraction):
             agg = TestAggregate(name="trimer-2")
             agg.build()
 
-            N = agg.get_Hamiltonian().dim
+            _ham = agg.get_Hamiltonian()
+            N = _ham.dim
 
             P1 = ProjectionOperator(1, 2, dim=N)
             P2 = ProjectionOperator(2, 1, dim=N)
@@ -100,13 +104,16 @@ class TestSystemBathInteraction(SystemBathInteraction):
             super().__init__(sys_operators=sys_ops, rates=rates)
 
         elif name == "dimer-2-lorentz":
-            N = agg.get_Hamiltonian().dim
+            agg = TestAggregate(name="dimer-2")
+            agg.build()
+            _ham = agg.get_Hamiltonian()
+            N = _ham.dim
 
             P1 = ProjectionOperator(1, 2, dim=N)
             P2 = ProjectionOperator(2, 1, dim=N)
 
             sys_ops = [P1, P2]
             rates = [1.0 / 100.0, 1.0 / 200]
-            ctimes = []
+            ctimes: list[Any] = []
 
             super().__init__(sys_operators=sys_ops, rates=rates)

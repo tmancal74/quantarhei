@@ -9,6 +9,7 @@ from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
 
 class FoersterRateMatrix:
+    dim: int
     """Förster relaxation rate matrix
 
     Förster population relaxation rate matrix is calculated from the

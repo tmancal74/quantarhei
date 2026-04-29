@@ -302,8 +302,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
     """
     storage_name = "_" + name
 
-    @property
-    def prop(self) -> Any:
+    def prop_getter(self: Any) -> Any:
 
         storage = getattr(self, storage_name)
 
@@ -474,8 +473,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
         else:
             raise Exception("not implemented")
 
-    @prop.setter
-    def prop(self, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:
 
         ini = self.storage_initialized
         if not ini:
@@ -558,7 +556,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
                 dtype,
             )
 
-    return prop
+    return property(prop_getter, prop_setter)
 
 
 #
@@ -571,12 +569,10 @@ def twod_data_wrapper(dtype: Any) -> Any:
     """Handles access to the d__data property of TwoDSpectrum"""
     storage_name = "d__data"
 
-    @property
-    def prop(self) -> Any:
+    def prop_getter(self: Any) -> Any:
         return getattr(self, storage_name)
 
-    @prop.setter
-    def prop(self, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:
         if self._allow_data_writing:
             try:
                 vl = check_numpy_array(value)
@@ -586,7 +582,7 @@ def twod_data_wrapper(dtype: Any) -> Any:
         else:
             raise Exception("`data` property is for reading only")
 
-    return prop
+    return property(prop_getter, prop_setter)
 
 
 DataWrapper = partial(twod_data_wrapper, dtype=numbers.Complex)
@@ -614,23 +610,24 @@ class TwoDResponseBase(DataSaveable):
     #
     d__data = TwoDSpectrumDataArray("d__data")
     data = DataWrapper()
+    _d__data: Any
 
     _allow_data_writing = False
 
     def __init__(self) -> None:
         super().__init__()
 
-        self.xaxis = None
-        self.yaxis = None
+        self.xaxis: ValueAxis | None = None
+        self.yaxis: ValueAxis | None = None
 
         #
         # The followinh attributes will be removed
         ##########################################
-        self.reph2D = None
-        self.nonr2D = None
+        self.reph2D: numpy.ndarray | None = None
+        self.nonr2D: numpy.ndarray | None = None
         # self.data = None
 
-        self.dtype = None
+        self.dtype: str | None = None
         ##########################################
 
         # initially, the highest possible resolution is set
@@ -639,7 +636,7 @@ class TwoDResponseBase(DataSaveable):
 
         # if no dtype is specified, we return total spectrum
         self.current_dtype = signal_TOTL  # "total"
-        self.current_tag = None
+        self.current_tag: str | None = None
         self.address_length = 1
 
     def set_data_writable(self) -> None:
@@ -1201,6 +1198,7 @@ class TwoDResponseBase(DataSaveable):
         data_dict = {}
         if self.storage_resolution == "pathways":
             for typ in _ptypes:
+                piece: Any
                 try:
                     piece = self._d__data[typ]
                 except KeyError:
@@ -1359,7 +1357,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         if dpart == part_IMAGINARY:
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
         if dpart == part_ABS:
-            return int_fce(x1, x2, y1, y2, numpy.abs(data))
+            return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
         raise Exception("Unknown data part")
 
     def get_cut_along_x(self, y0: float) -> DFunction:
@@ -1658,7 +1656,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         # Color map
         #
         if cmap is None:
-            cmap = plt.cm.rainbow
+            cmap = plt.cm.rainbow  # type: ignore[attr-defined]
 
         #
         # Actual plotting
@@ -1683,12 +1681,12 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
         cm = plt.imshow(
             realout,
-            extent=[
-                self.xaxis.data[i1_min],
-                self.xaxis.data[i1_max - 1],
-                self.yaxis.data[i3_min],
-                self.yaxis.data[i3_max - 1],
-            ],
+            extent=(
+                float(self.xaxis.data[i1_min]),
+                float(self.xaxis.data[i1_max - 1]),
+                float(self.yaxis.data[i3_min]),
+                float(self.yaxis.data[i3_max - 1]),
+            ),
             origin="lower",
             vmax=vmax,
             vmin=vmin,
@@ -1863,13 +1861,17 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
             i3_max += 1
 
             # reconstruct xaxis
+            assert self.xaxis is not None
+            assert self.yaxis is not None
+            xaxis_fa: Any = self.xaxis
+            yaxis_fa: Any = self.yaxis
             start_1 = self.xaxis.data[i1_min]
             length_1 = i1_max - i1_min
             step_1 = self.xaxis.step
-            atype = self.xaxis.atype
+            atype = xaxis_fa.atype
 
             xaxis = FrequencyAxis(
-                start_1, length_1, step_1, atype=atype, time_start=self.xaxis.time_start
+                start_1, length_1, step_1, atype=atype, time_start=xaxis_fa.time_start
             )
             self.xaxis = xaxis
 
@@ -1881,8 +1883,8 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
                 start_3,
                 length_3,
                 step_3,
-                atype=self.yaxis.atype,
-                time_start=self.yaxis.time_start,
+                atype=yaxis_fa.atype,
+                time_start=yaxis_fa.time_start,
             )
             self.yaxis = yaxis
 

@@ -84,7 +84,7 @@ class OQSStateVector:
         Effectively it is in interaction picture.
 
         """
-        data = numpy.zeros((self.dim, self.dim), dtype=REAL)
+        data: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)
         rho = ReducedDensityMatrix(data=data)
         for ii in range(self.dim):
             for jj in range(self.dim):

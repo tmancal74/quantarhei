@@ -12,7 +12,7 @@ from __future__ import annotations
 
 # import h5py
 import time
-from typing import Any
+from typing import IO, Any
 
 import matplotlib.pyplot as plt
 import numpy
@@ -57,10 +57,12 @@ class DFunction2:
     def __init__(self, x: Any = None, y: Any = None, z: Any = None) -> None:
         pass
 
-    def save(self, filename: str) -> None:
+    def save(
+        self, filename: str | IO[bytes], comment: str | None = None, test: bool = False
+    ) -> None:
         pass
 
-    def load(self, filename: str) -> None:
+    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:
         pass
 
     def plot(self, **kwargs: Any) -> None:
@@ -85,12 +87,12 @@ class TwoDSpectrumBase(DFunction2):
     def __init__(self) -> None:
         super().__init__()
 
-        self.data = None
-        self.xaxis = None
-        self.yaxis = None
+        self.data: numpy.ndarray | None = None
+        self.xaxis: Any = None
+        self.yaxis: Any = None
 
-        self.reph2D = None
-        self.nonr2D = None
+        self.reph2D: numpy.ndarray | None = None
+        self.nonr2D: numpy.ndarray | None = None
 
     def set_axis_1(self, axis: Any) -> None:
         """Sets the x-axis of te spectrum (omega_1 axis)"""
@@ -132,10 +134,12 @@ class TwoDSpectrumBase(DFunction2):
         else:
             raise Exception("Unknow type of data: " + dtype)
 
-    def save(self, filename: str) -> None:
+    def save(
+        self, filename: str | IO[bytes], comment: str | None = None, test: bool = False
+    ) -> None:
         super().save(filename)
 
-    def load(self, filename: str) -> None:
+    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:
         super().load(filename)
 
 
@@ -170,26 +174,32 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
     def get_value_at(self, x: float, y: float) -> float:
         """Returns value of the spectrum at a given coordinate"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.reph2D is not None
+        assert self.nonr2D is not None
         (ix, dist) = self.xaxis.locate(x)
         (iy, dist) = self.yaxis.locate(y)
 
         return numpy.real(self.reph2D[ix, iy] + self.nonr2D[ix, iy])
 
     def get_max_value(self) -> float:
-
+        assert self.reph2D is not None
+        assert self.nonr2D is not None
         return numpy.amax(numpy.real(self.reph2D + self.nonr2D))
 
     def devide_by(self, val: float | int) -> None:
         """Devides the total spectrum by a value"""
+        assert self.reph2D is not None
+        assert self.nonr2D is not None
         self.reph2D = self.reph2D / val
         self.nonr2D = self.nonr2D / val
 
     def get_PumpProbeSpectrum(self) -> Any:
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum"""
-        from .pumpprobe import PumpProbeSpectrumCalculator
+        from .pumpprobe import calculate_from_2D
 
-        ppc = PumpProbeSpectrumCalculator()
-        return ppc.calculate_from_2D(self)
+        return calculate_from_2D(self)
 
     def plot(
         self,
@@ -209,6 +219,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         label: Any = None,
         zero_contour: bool = True,
         plot_units: str = r"cm$^{-1}$",
+        **kwargs: Any,
     ) -> None:
         """Plots the 2D spectrum
 
@@ -286,7 +297,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
             ax = fig.axes[0]
 
         if cmap is None:
-            cmap = plt.cm.rainbow
+            cmap = plt.cm.rainbow  # type: ignore[attr-defined]
 
         if vmax is None:
             vmax = numpy.amax(realout)
@@ -308,12 +319,12 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
         cm = plt.imshow(
             realout,
-            extent=[
-                self.xaxis.data[i1_min],
-                self.xaxis.data[i1_max - 1],
-                self.yaxis.data[i3_min],
-                self.yaxis.data[i3_max - 1],
-            ],
+            extent=(
+                float(self.xaxis.data[i1_min]),
+                float(self.xaxis.data[i1_max - 1]),
+                float(self.yaxis.data[i3_min]),
+                float(self.yaxis.data[i3_max - 1]),
+            ),
             origin="lower",
             vmax=vmax,
             vmin=vmin,
@@ -559,7 +570,7 @@ class TwoDSpectrumContainer(Saveable):
         if self.keep_pathways:
             raise Exception("Container keeping pathways not available yet")
 
-        self.spectra = {}
+        self.spectra: dict[Any, Any] = {}
 
     def set_spectrum(self, spect: TwoDSpectrum) -> None:
         """Stores spectrum for time t2
@@ -621,7 +632,7 @@ class TwoDSpectrumContainer(Saveable):
         ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
 
         for sp in ppc:
-            ppcont.set_spectrum(sp)
+            ppcont.set_spectrum(sp, tag=sp.get_t2())
 
         return ppcont
 
@@ -896,16 +907,16 @@ class TwoDSpectrumCalculator:
         # self._have_aceto = False
 
         # after bootstrap information
-        self.sys = None
-        self.lab = None
-        self.t1s = None
-        self.t3s = None
-        self.rmin = None
-        self.rwa = None
-        self.oa1 = None
-        self.oa3 = None
-        self.Uee = None
-        self.Uc0 = None
+        self.sys: Any = None
+        self.lab: Any = None
+        self.t1s: Any = None
+        self.t3s: Any = None
+        self.rmin: Any = None
+        self.rwa: Any = None
+        self.oa1: Any = None
+        self.oa3: Any = None
+        self.Uee: Any = None
+        self.Uc0: Any = None
 
         self.tc = 0
 
@@ -947,7 +958,7 @@ class TwoDSpectrumCalculator:
             # Construct band_system object
             #
             Nb = 3
-            Ns = numpy.zeros(Nb, dtype=numpy.int)
+            Ns = numpy.zeros(Nb, dtype=numpy.int_)
             Ns[0] = 1
             Ns[1] = agg.nmono
             Ns[2] = Ns[1] * (Ns[1] - 1) / 2
@@ -984,10 +995,10 @@ class TwoDSpectrumCalculator:
             #
             # Relaxation rates
             #
-            KK = agg.get_RedfieldRateMatrix()
+            KK_any: Any = agg.get_RedfieldRateMatrix()
 
             # relaxation rate in single exciton band
-            Kr = KK.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
+            Kr = KK_any.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
             # print(1.0/Kr)
 
             self.sys.init_dephasing_rates()
@@ -1281,7 +1292,7 @@ class TwoDSpectrumCalculator:
 
         return onetwod
 
-    def calculate(self) -> TwoDSpectrumContainer:
+    def calculate(self) -> TwoDSpectrumContainer | TwoDSpectrum:
         """Returns 2D spectrum
 
         Calculates and returns TwoDSpectrumContainer containing 2D spectrum
@@ -1418,7 +1429,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         # print(shape, widthx, widthy)
 
         if pathway.pathway_type == "R":
-            reph2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
+            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -1448,7 +1459,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             return reph2D
 
         if pathway.pathway_type == "NR":
-            nonr2D = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
+            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -1476,3 +1487,5 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                 raise Exception("Unknown line shape: " + shape)
 
             return nonr2D
+
+        raise Exception("Unknown pathway type: " + pathway.pathway_type)

@@ -29,7 +29,7 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
 
         # collect site basis dephasing rates
 
-        pdrates = numpy.zeros(self.nmono, dtype=REAL)
+        pdrates: numpy.ndarray = numpy.zeros(self.nmono, dtype=REAL)
         k = 0
         if dtype == "Lorentzian":
             for mono in self.monomers:
@@ -54,7 +54,7 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
         # Na is the number of states (vibronic origin)
         Na = self.Ntot
         # self.Nel number of electronic states
-        xiai = numpy.zeros((Na, self.Nel), dtype=REAL)
+        xiai: numpy.ndarray = numpy.zeros((Na, self.Nel), dtype=REAL)
         for aa in range(Na):
             st = 0  # st counts all states in the site basis
             for ii in range(self.Nel):

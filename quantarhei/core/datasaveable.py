@@ -10,7 +10,7 @@ represented as a `data` property of the class.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy
 import scipy.io as io
@@ -22,7 +22,9 @@ if TYPE_CHECKING:
 class DataSaveable:
     """This class defines saving and loading procedure for the data property"""
 
-    def save_data(self, name: str, with_axis: ValueAxis | None = None) -> None:
+    def save_data(
+        self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
+    ) -> None:
         """Saves the data into a format determined by the file name extension
 
         Parameters
@@ -68,7 +70,9 @@ class DataSaveable:
         elif extension == ".mat":
             self._saveMatlab(name, with_axis)
 
-    def load_data(self, name: str, with_axis: ValueAxis | None = None) -> None:
+    def load_data(
+        self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
+    ) -> None:
         """Loads the data in a format determined by the file name extension
 
         Parameters

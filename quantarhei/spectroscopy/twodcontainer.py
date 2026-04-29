@@ -64,17 +64,17 @@ class TwoDResponseContainer(Saveable):
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
 
-        self.axis = None
+        self.axis: ValueAxis | None = None
 
-        self.itype = None
+        self.itype: str | None = None
         self.index = 0
-        self.tags = []
+        self.tags: list[Any] = []
 
         if self.keep_pathways:
             raise Exception("Container keeping pathways not available yet")
 
-        self.spectra = {}
-        self._which = None
+        self.spectra: dict[Any, Any] = {}
+        self._which: float | None = None
 
         if t2axis is not None:
             self.use_indexing_type(itype=t2axis)
@@ -105,7 +105,7 @@ class TwoDResponseContainer(Saveable):
                 self.axis = itype
                 # This axis must FFT in the "standard" way
                 # -- it must of the "complete" type
-                self.axis.atype = "complete"
+                itype.atype = "complete"
             elif isinstance(itype, FrequencyAxis):
                 self.itype = "FrequencyAxis"
                 self.axis = itype
@@ -231,6 +231,7 @@ class TwoDResponseContainer(Saveable):
             return self.spectra[str(tag)]
 
         if self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
+            assert self.axis is not None
             with energy_units("int"):
                 if any(
                     self._lousy_equal(tag, li, self.axis.step) for li in self.axis.data
@@ -275,7 +276,7 @@ class TwoDResponseContainer(Saveable):
             # print(Manager().current_units["energy"])
             nval = Manager().convert_energy_2_internal_u(val)
             # get tags and convert them to numbers
-            ntags = numpy.zeros(len(self.tags), dtype=REAL)
+            ntags: numpy.ndarray = numpy.zeros(len(self.tags), dtype=REAL)
             k = 0
             for stag in self.tags:
                 # print(stag)
@@ -326,6 +327,7 @@ class TwoDResponseContainer(Saveable):
         ppc = []
         ttc = []
         ii = 0
+        assert self.axis is not None
         for sp in self.get_spectra():
             if k == 0:
                 pp = sp.get_PumpProbeSpectrum()
@@ -409,6 +411,7 @@ class TwoDResponseContainer(Saveable):
         if guess is None:
             guess = [1.0, 1.0 / 100.0, 0.0]
 
+        assert self.axis is not None
         _exp_2D_fcion = partial(_exp_2D_data0, times=self.axis.data, cont=self)
 
         params = least_squares(_exp_2D_fcion, guess)
@@ -455,6 +458,7 @@ class TwoDResponseContainer(Saveable):
         else:
             winfce = window
 
+        eff_axis: ValueAxis
         if isinstance(self.axis, TimeAxis):
             # restrict the time axis by the off-set
             tlist = []
@@ -470,6 +474,7 @@ class TwoDResponseContainer(Saveable):
             else:
                 raise Exception("Offset too large")
         else:
+            assert self.axis is not None
             eff_axis = self.axis
 
         # put all data into one array
@@ -509,6 +514,7 @@ class TwoDResponseContainer(Saveable):
         #
         axis = eff_axis  # = self.axis
 
+        new_axis: ValueAxis
         if isinstance(axis, TimeAxis):
             axis.shift_to_zero()
             new_axis = axis.get_FrequencyAxis()
@@ -533,7 +539,7 @@ class TwoDResponseContainer(Saveable):
         #
 
         # window function
-        ftdata = numpy.zeros(data.shape, dtype=data.dtype)
+        ftdata: numpy.ndarray = numpy.zeros(data.shape, dtype=data.dtype)
         Nwin = len(winfce.data)
         Ndat = data.shape[2]
         for i_n in range(data.shape[0]):
@@ -810,15 +816,15 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         self.t2axis = t2axis
 
-        self.axis = None
+        self.axis: ValueAxis | None = None
 
-        self.itype = None
+        self.itype: str | None = None
         self.index = 0
-        self.tags = []
+        self.tags: list[Any] = []
         self.dtype = dtype
 
-        self.spectra = {}
-        self._which = None
+        self.spectra: dict[Any, Any] = {}
+        self._which: float | None = None
 
         if t2axis is not None:
             self.use_indexing_type(itype=t2axis)
@@ -844,6 +850,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             ppc = []
             ttc = []
             ii = 0
+            assert self.axis is not None
             for sp in self.get_spectra():
                 if k == 0:
                     pp = sp.get_PumpProbeSpectrum()
@@ -899,7 +906,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         """
         nsp = len(self.spectra)
-        mxs = numpy.zeros(nsp, dtype=REAL)
+        mxs: numpy.ndarray = numpy.zeros(nsp, dtype=REAL)
         ii = 0
         for tag in self.spectra.keys():
             sp = self.get_spectrum(tag)
@@ -958,6 +965,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         else:
             winfce = window
 
+        eff_axis: ValueAxis
         if isinstance(self.axis, TimeAxis):
             # restrict the time axis by the off-set
             tlist = []
@@ -973,6 +981,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             else:
                 raise Exception("Offset too large")
         else:
+            assert self.axis is not None
             eff_axis = self.axis
 
         # put all data into one array
@@ -1011,6 +1020,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         #
         axis = eff_axis  # = self.axis
 
+        new_axis: ValueAxis
         if isinstance(axis, TimeAxis):
             axis.shift_to_zero()
             new_axis = axis.get_FrequencyAxis()
@@ -1035,7 +1045,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         #
 
         # window function
-        ftdata = numpy.zeros(data.shape, dtype=data.dtype)
+        ftdata: numpy.ndarray = numpy.zeros(data.shape, dtype=data.dtype)
         Nwin = len(winfce.data)
         Ndat = data.shape[2]
         for i_n in range(data.shape[0]):

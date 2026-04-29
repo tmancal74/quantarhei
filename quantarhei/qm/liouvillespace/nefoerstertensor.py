@@ -169,7 +169,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         condition
 
         """
-        II = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
 
         JJ = HH.data
 
@@ -197,7 +197,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
             self.initial_term_nsc(rhoi)
             return
 
-        II = numpy.zeros(self.II.shape, dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros(self.II.shape, dtype=COMPLEX)
         Na = self.II.shape[1]
 
         for aa in range(Na):
@@ -220,7 +220,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         with known initial condition
 
         """
-        II = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
         JJ = HH.data
         EE = numpy.eye(Na, Na)
 
@@ -253,7 +253,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         """
         Na = self.II.shape[1]
         Nt = self.II.shape[0]
-        II = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
 
         for aa in range(Na):
             for bb in range(Na):
@@ -333,7 +333,7 @@ def _nsc_kernel_at_t(
     else:
         # general expression for all indices
 
-        dl = numpy.eye(HH.shape[0], dtype=REAL)
+        dl: numpy.ndarray = numpy.eye(HH.shape[0], dtype=REAL)
 
         tt_i = tt[ti]
         prod = exp(
@@ -505,9 +505,9 @@ def _nsc_reference_implementation(
     #
     # Rates between states a and b
     #
-    KK = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
-    fKK = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
-    RR = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+    KK: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
+    fKK: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
+    RR: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
 
     # resonance coupling matrix
     JJ = numpy.zeros(HH.shape, dtype=REAL)

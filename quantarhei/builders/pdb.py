@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy
 
 from .molecules import Molecule
@@ -17,15 +19,15 @@ class PDBFile:
 
     def __init__(self, fname: str | None = None) -> None:
 
-        self.lines = []
+        self.lines: list[str] = []
         self.linecount = 0
 
-        self.molecules = []
+        self.molecules: list[Any] = []
 
-        self._resSeqs = []
-        self._uniqueIds = []
-        self._res_lines = dict()
-        self._unique_lines = dict()
+        self._resSeqs: list[Any] = []
+        self._uniqueIds: list[Any] = []
+        self._res_lines: dict[Any, Any] = dict()
+        self._unique_lines: dict[Any, Any] = dict()
 
         if fname is not None:
             # load file
@@ -48,7 +50,7 @@ class PDBFile:
                 k += 1
         return k
 
-    def get_Molecules(self, model: object = None) -> list:
+    def get_Molecules(self, model: Any = None) -> list:
         """Returns all molecules corresponding to a given model"""
         if model is None:
             return self.molecules
@@ -119,7 +121,7 @@ class PDBFile:
 
         return molecules
 
-    def get_chainId(self, molecule: object) -> str | None:
+    def get_chainId(self, molecule: Any) -> str | None:
         lines = molecule.data
         save = None
         for l in lines:

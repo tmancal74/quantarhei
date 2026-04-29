@@ -47,14 +47,14 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def __init__(self) -> None:
 
-        self.xaxis = None
-        self.yaxis = None
-        self.data = None
-        self.dtype = None
+        self.xaxis: ValueAxis | None = None
+        self.yaxis: ValueAxis | None = None
+        self.data: numpy.ndarray | None = None
+        self.dtype: str | None = None
 
         self.t2 = -1.0
 
-        self.params = None
+        self.params: Any = None
 
     def set_axis_1(self, axis: Any) -> None:
         """Sets the x-axis of te spectrum (omega_1 axis)"""
@@ -133,6 +133,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def overlay_pulses(self, lab: Any) -> None:
         """Use labsetup class to overlay pulse spectra over this 2D spectrum"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
         # first two pulses are on omega_1 axis
         ome1 = self.xaxis.data
         spect1 = lab.get_pulse_spectrum(0, ome1)
@@ -177,6 +180,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if self.dtype is None:
             raise Exception("Data type not set")
 
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
         (ix, dist) = self.xaxis.locate(x)
         (iy, dist) = self.yaxis.locate(y)
 
@@ -184,6 +190,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def get_cut_along_x(self, y0: float) -> DFunction:
         """Returns a DFunction with the cut of the spectrum along the x axis"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
         (iy, dist) = self.yaxis.locate(y0)
 
         ax = self.xaxis
@@ -195,6 +204,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def get_cut_along_y(self, x0: float) -> DFunction:
         """Returns a DFunction with the cut of the spectrum along the y axis"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
         (ix, dist) = self.xaxis.locate(x0)
 
         ay = self.yaxis
@@ -212,6 +224,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
         step: float | None = None,
     ) -> DFunction:
         """Returns a cut along a line specified by two points"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
         vx1 = point1[0]
         vy1 = point1[1]
         vx2 = point2[0]
@@ -260,6 +275,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def get_diagonal_cut(self) -> DFunction:
         """Returns cut of the spectrum along the diagonal"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
         point1 = [self.xaxis.min, self.yaxis.min]
         point2 = [self.xaxis.max, self.yaxis.max]
 
@@ -275,6 +292,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def get_max_value(self, dpart: str = part_REAL) -> float:
         """Maximum value of the real part of the spectrum"""
+        assert self.data is not None
         if dpart == part_REAL:
             return numpy.amax(numpy.real(self.data))
         if dpart == part_IMAGINARY:
@@ -285,6 +303,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def get_min_value(self, dpart: str = part_REAL) -> float:
         """Minimum value of the real part of the spectrum"""
+        assert self.data is not None
         if dpart == part_REAL:
             return numpy.amin(numpy.real(self.data))
         if dpart == part_IMAGINARY:
@@ -295,6 +314,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
     def get_area_integral(self, area: Any, dpart: str = part_REAL) -> Any:
         """Returns an integral of a given area in the 2D spectrum"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
 
         def integral_square(
             x1: float,
@@ -335,13 +357,16 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if dpart == part_IMAGINARY:
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
         if dpart == part_ABS:
-            return int_fce(x1, x2, y1, y2, numpy.abs(data))
+            return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
         raise Exception("Unknown data part")
 
     def get_area_max(
         self, area: Any, dpart: str = part_REAL, loc: list | None = None
     ) -> Any:
         """Returns a max value in a given area in the 2D spectrum"""
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
 
         def find_in_square(
             x1: float,
@@ -458,6 +483,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             Value by which we devide the spectrum
 
         """
+        assert self.data is not None
         self.data = self.data / val
 
     def _interpolate(self) -> None:
@@ -468,6 +494,9 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if fac == 1:
             return
 
+        assert self.xaxis is not None
+        assert self.yaxis is not None
+        assert self.data is not None
         Nxa = self.xaxis.length
         Nya = self.yaxis.length
 
@@ -691,7 +720,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         # Color map
         #
         if cmap is None:
-            cmap = plt.cm.rainbow
+            cmap = plt.cm.rainbow  # type: ignore[attr-defined]
 
         #
         # Actual plotting
@@ -716,12 +745,12 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         cm = plt.imshow(
             realout,
-            extent=[
-                self.xaxis.data[i1_min],
-                self.xaxis.data[i1_max - 1],
-                self.yaxis.data[i3_min],
-                self.yaxis.data[i3_max - 1],
-            ],
+            extent=(
+                float(self.xaxis.data[i1_min]),
+                float(self.xaxis.data[i1_max - 1]),
+                float(self.yaxis.data[i3_min]),
+                float(self.yaxis.data[i3_max - 1]),
+            ),
             origin="lower",
             vmax=vmax,
             vmin=vmin,
@@ -917,6 +946,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         """
         if window is not None:
+            assert self.xaxis is not None
+            assert self.yaxis is not None
+            xaxis_fa: Any = self.xaxis
+            yaxis_fa: Any = self.yaxis
             axis = window
             w1_min = axis[0]
             w1_max = axis[1]
@@ -939,10 +972,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
             start_1 = self.xaxis.data[i1_min]
             length_1 = i1_max - i1_min
             step_1 = self.xaxis.step
-            atype = self.xaxis.atype
+            atype = xaxis_fa.atype
 
             xaxis = FrequencyAxis(
-                start_1, length_1, step_1, atype=atype, time_start=self.xaxis.time_start
+                start_1, length_1, step_1, atype=atype, time_start=xaxis_fa.time_start
             )
             self.xaxis = xaxis
 
@@ -954,8 +987,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
                 start_3,
                 length_3,
                 step_3,
-                atype=self.yaxis.atype,
-                time_start=self.yaxis.time_start,
+                atype=yaxis_fa.atype,
+                time_start=yaxis_fa.time_start,
             )
             self.yaxis = yaxis
 

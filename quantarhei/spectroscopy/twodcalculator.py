@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, Literal
 
 import numpy
 
@@ -82,7 +82,7 @@ class TwoDResponseCalculator:
         # unprotected properties
         self.data = None
 
-        self.responses = []
+        self.responses: list[Any] = []
 
         self._relaxation_tensor = None
         self._rate_matrix = None
@@ -101,16 +101,16 @@ class TwoDResponseCalculator:
         #
         # after bootstrap information
         #
-        self.sys = None
-        self.lab = None
-        self.t1s = None
-        self.t3s = None
-        self.rmin = None
-        self.rwa = None
-        self.oa1 = None
-        self.oa3 = None
-        self.Uee = None
-        self.Uc0 = None
+        self.sys: Any = None
+        self.lab: Any = None
+        self.t1s: Any = None
+        self.t3s: Any = None
+        self.rmin: Any = None
+        self.rwa: Any = None
+        self.oa1: Any = None
+        self.oa3: Any = None
+        self.Uee: Any = None
+        self.Uc0: Any = None
 
         self.tc = 0
 
@@ -127,6 +127,7 @@ class TwoDResponseCalculator:
         verbose: bool = False,
         write_resp: bool | str = False,
         keep_resp: bool = False,
+        **kwargs: Any,
     ) -> None:
         """Sets up the environment for 2D calculation
         write_resp takes a string, creates a directory with the name of
@@ -145,7 +146,8 @@ class TwoDResponseCalculator:
         with qr.energy_units("int"):
             if self.write_resp:
                 try:
-                    os.mkdir(write_resp)
+                    if isinstance(write_resp, str):
+                        os.mkdir(write_resp)
                 except OSError:
                     print(
                         "Creation of the directory failed, "
@@ -184,7 +186,9 @@ class TwoDResponseCalculator:
                         # FIXME: This is a quick fix to make a zero rate matrix
                         class hlp:
                             def __init__(self, N: int) -> None:
-                                self.data = numpy.zeros((N, N), dtype=REAL)
+                                self.data: numpy.ndarray = numpy.zeros(
+                                    (N, N), dtype=REAL
+                                )
 
                         KK = hlp(Ns[1])
                 else:
@@ -316,7 +320,7 @@ class TwoDResponseCalculator:
         # if _have_aceto and self._has_system:
         #    order = 'F'
         # else:
-        order = "C"
+        order: Literal["C", "F"] = "C"
 
         ntype = numpy.complex128
 
@@ -459,13 +463,14 @@ class TwoDResponseCalculator:
                         raise Exception("Unknown response type")
 
                 elif isinstance(resp, LiouvillePathway):
+                    resp_any: Any = resp
                     if resp.rtype == "R":
-                        resp_Rgsb += resp.calculate_matrix(
+                        resp_Rgsb += resp_any.calculate_matrix(
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
                         )
 
                     elif resp.rtype == "NR":
-                        resp_Ngsb += resp.calculate_matrix(
+                        resp_Ngsb += resp_any.calculate_matrix(
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
                         )
                     else:
@@ -542,7 +547,7 @@ class TwoDResponseCalculator:
             }
             self.responses.append(resp)
 
-        if self.write_resp:
+        if self.write_resp and isinstance(self.write_resp, str):
             numpy.savez(
                 "./" + self.write_resp + "/respT" + str(int(tt2)) + ".npz",
                 time=self.t1axis.data,

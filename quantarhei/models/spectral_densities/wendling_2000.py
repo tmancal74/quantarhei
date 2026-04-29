@@ -27,7 +27,7 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
         self.identificator = "Wendling_JPCB_104_2000_5825"
         self.alt_ident = ["Wendling", "Wendling2000"]
 
-    def get_SpectralDensity(self, axis: Any) -> Any:
+    def get_SpectralDensity(self, axis: Any = None) -> Any:
 
         #
         # Data from the paper
@@ -109,7 +109,7 @@ class wendling_2000a(SpectralDensityDatabaseEntry):
         #
         # All contributions consist of underdamped harmonic oscillators
         #
-        params = dict(ftype="UnderdampedBrownian")
+        params: dict[str, Any] = dict(ftype="UnderdampedBrownian")
 
         #
         # Create and sum-up spectral densities

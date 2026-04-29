@@ -51,6 +51,9 @@ class ModifiedRedfieldRateMatrix:
 
     """
 
+    dim: int
+    _data: numpy.ndarray
+
     def __init__(
         self,
         ham: Hamiltonian,
@@ -94,8 +97,8 @@ class ModifiedRedfieldRateMatrix:
         time = self.sbi.CC.timeAxis
 
         time_full = numpy.zeros(Nt * 2)
-        time_full[time._length :] = tt.copy()
-        time_full[1 : time._length] = -tt[:0:-1]
+        time_full[time.length :] = tt.copy()
+        time_full[1 : time.length] = -tt[:0:-1]
         time_full[0] = time_full[1] - dt
 
         # fill the corr. matrix
@@ -224,7 +227,7 @@ class ModifiedRedfieldRateMatrix:
         #
         # HIDE THIS INTO: get_reorganization_energy_matrix()
         #
-        lam4 = numpy.zeros((Na, Na, Na, Na), dtype=REAL)
+        lam4: numpy.ndarray = numpy.zeros((Na, Na, Na, Na), dtype=REAL)
         for a in range(Na):
             for b in range(Na):
                 for c in range(Na):
@@ -332,13 +335,13 @@ def ssModifiedRedfieldRateMatrix(
     warnings and errors
 
     """
-    E_0k = numpy.zeros(Na, dtype=REAL)
-    F_k_t = numpy.zeros((Na, Nt), dtype=COMPLEX)
-    A_k_t = numpy.zeros((Na, Nt), dtype=COMPLEX)
-    N_kl_t = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
-    f = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
-    RR = numpy.zeros((Na, Na), dtype=COMPLEX)
-    RR1 = numpy.zeros((Na, Na), dtype=COMPLEX)
+    E_0k: numpy.ndarray = numpy.zeros(Na, dtype=REAL)
+    F_k_t: numpy.ndarray = numpy.zeros((Na, Nt), dtype=COMPLEX)
+    A_k_t: numpy.ndarray = numpy.zeros((Na, Nt), dtype=COMPLEX)
+    N_kl_t: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
+    f: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
+    RR: numpy.ndarray = numpy.zeros((Na, Na), dtype=COMPLEX)
+    RR1: numpy.ndarray = numpy.zeros((Na, Na), dtype=COMPLEX)
 
     # lam1 = (convert(numpy.imag(-h4[2,1,1,2,Nt-1]),"int","1/cm"))
     # lam2 = convert(lam4[2,1,1,2],"int","1/cm")
@@ -391,7 +394,7 @@ def ssModifiedRedfieldRateMatrix(
 
         """
 
-    f1 = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
+    f1: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
     for a in range(Na):
         for b in range(Na):
             f1[a, b, :] = numpy.conjugate(F_k_t[b, :]) * A_k_t[a, :] * N_kl_t[a, b, :]
@@ -499,11 +502,11 @@ def ssModifiedRRM(
 
 
     """
-    RR = numpy.zeros((Na, Na), dtype=REAL)
-    f = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
-    Ab = numpy.zeros(Nt, dtype=COMPLEX)
-    Fl = numpy.zeros(Nt, dtype=COMPLEX)
-    Nn = numpy.zeros(Nt, dtype=COMPLEX)
+    RR: numpy.ndarray = numpy.zeros((Na, Na), dtype=REAL)
+    f: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
+    Ab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    Fl: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    Nn: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
 
     if method == "ModifiedRedfield":
         for a in range(Na):

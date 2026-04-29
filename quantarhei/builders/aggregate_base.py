@@ -20,6 +20,8 @@ Issues:
 from __future__ import annotations
 
 import warnings
+from collections.abc import Generator, Iterator
+from typing import Any
 
 import numpy
 
@@ -69,22 +71,22 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         # OpenSystem.__init__(self)
 
-        self.mnames = {}  #
-        self.monomers = []
+        self.mnames: dict[str, int] = {}  #
+        self.monomers: list[Any] = []
         self.nmono = 0  #
         self.name = name  #
         self.mult = 0  #
-        self.lab = None  #
+        self.lab: Any = None  #
 
         self._has_egcf_matrix = False  #
-        self.egcf_matrix = None
+        self.egcf_matrix: Any = None
 
         self._has_system_bath_interaction = False  #
 
         self._has_lindich_axes = False
 
         self.coupling_initiated = False  #
-        self.resonance_coupling = None
+        self.resonance_coupling: Any = None
         self._has_velocity_dipoles = False
 
         if molecules is not None:
@@ -114,25 +116,27 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.sbi_mult = 0  #
         self.Nel = 0  #
         self.Ntot = 0  #
-        self.Nb = 0  #
+        self.Nb: Any = 0  #
 
-        self.vibindices = []
-        self.which_band = None
-        self.elsigs = None
+        self.vibindices: list[Any] = []
+        self.which_band: Any = None
+        self.elsigs: Any = None
 
-        self.HH = None
-        self.HamOp = None
-        self.DD = None
-        self.MM = None
-        self.RR = None
-        self.Wd = None
-        self.Dr = None
-        self.D2 = None
-        self.D2_max = 0
-        self.sbi = None
+        self.HH: Any = None
+        self.HamOp: Any = None
+        self.DD: Any = None
+        self.MM: Any = None
+        self.RR: Any = None
+        self.Wd: Any = None
+        self.Dr: Any = None
+        self.D2: Any = None
+        self.D2_max: float = 0.0
+        self.sbi: Any = None
 
         self._has_wpm = False
-        self.WPM = None
+        self.WPM: Any = None
+        self.sv0: Any = None
+        self.vibsigs: Any = None
 
     def clean(self) -> None:
         """Cleans the aggregate object of anything built
@@ -183,8 +187,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         # FIXME: Find better way how to store couplings for multilevel molecules!
 
-        self._coupling2mol = []
-        self._mol2coupling = []
+        self._coupling2mol: list[Any] = []
+        self._mol2coupling: list[Any] = []
 
         # index for coupling between mon1 init1 -> final1 and mon2 init2 -> final2
         # is self._mol2coupling[mon1][init1][final1-init1-1][mon2-mon1-1][init2][final2-init2-1]
@@ -224,7 +228,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def get_resonance_coupling_vec(
         self, mon1: int, init1: int, fin1: int, mon2: int, init2: int, fin2: int
-    ) -> float:
+    ) -> float | numpy.ndarray:
         """returns coupling between mon1 transition init1->fin1 and
         mon2 transition init2->fin2
 
@@ -536,7 +540,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     ######################## My new part end  #################################### @Vladislav Slama
 
-    def get_resonance_coupling(self, i: int, j: int) -> float:
+    def get_resonance_coupling(self, i: int, j: int) -> float | numpy.ndarray:
         """Returns resonance coupling value between two sites"""
         #
         # Replaced to use the new implementation of coupling storage
@@ -554,7 +558,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         if type(coupmat) in (list, tuple):
             coupmat = numpy.array(coupmat)
 
-        coup = self.convert_energy_2_internal_u(coupmat)
+        coup = self.convert_energy_2_internal_u(numpy.asarray(coupmat))
         self.resonance_coupling = coup
         if not self.coupling_initiated:
             self.coupling_initiated = True
@@ -563,7 +567,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def dipole_dipole_coupling(
         self, kk: int, ll: int, epsr: float = 1.0, delta: float = 1.0e-5
-    ) -> float:
+    ) -> float | numpy.ndarray:
         """Calculates dipole-dipole coupling"""
         if kk == ll:
             raise Exception(
@@ -594,7 +598,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         in2: int,
         fin2: int,
         epsr: float = 1.0,
-    ) -> float:
+    ) -> float | numpy.ndarray:
         """Calculates dipole-dipole coupling for multilevel monomers
 
         Parameters
@@ -706,7 +710,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     # Molecues
     #
-    def add_Molecule(self, mono: object) -> None:
+    def add_Molecule(self, mono: Any) -> None:
         """Adds monomer to the aggregate"""
         # If at least one monomer has energy gap correlation function
         # we will try to build system bath interaction for a the aggregate.
@@ -738,7 +742,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.monomers.remove(mono)
         self.nmono -= 1
 
-    def get_nearest_Molecule(self, molecule: object) -> tuple:
+    def get_nearest_Molecule(self, molecule: Any) -> tuple:
         """Returns a molecule nearest in the aggregate to a given molecule
 
         Parameters
@@ -791,7 +795,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         except (KeyError, IndexError):
             raise Exception()
 
-    def get_dipole(self, n: int, N: int, M: int) -> numpy.ndarray:
+    def get_dipole(
+        self, n: Any, N: Any = None, M: Any = None, **kwargs: Any
+    ) -> numpy.ndarray:
         nm = self.monomers[n]
         return nm.get_dipole(N, M)
 
@@ -826,13 +832,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         except (KeyError, IndexError):
             raise Exception()
 
-    def set_dipole(self, N: int, M: int, vec: numpy.ndarray) -> None:
+    def set_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
         """Sets the dipole moment of a given transition"""
         raise Exception(
             "Transition dipole moments cannot be set directly. Use aggregate components."
         )
 
-    def fc_factor(self, state1: object, state2: object) -> float:
+    def fc_factor(self, state1: Any, state2: Any) -> float:
         """Franck-Condon factors between two vibrational states
 
 
@@ -995,9 +1001,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return WPM
 
-    def get_transition_width(
-        self, state1: object, state2: object | None = None
-    ) -> float:
+    def get_transition_width(self, state1: Any, state2: Any | None = None) -> float:
         """Returns phenomenological width of a given transition
 
 
@@ -1046,7 +1050,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     # -------------------------------------------------------------------------------
 
                     return width
-                (indx1, indx2) = self._get_twoexindx(state1, state2)
+                twoex = self._get_twoexindx(state1, state2)
+                if isinstance(twoex, int):
+                    return -1.0
+                (indx1, indx2) = twoex
                 # print(state1.elstate.elsignature,
                 #      state2.elstate.elsignature, indx1, indx2)
                 exct1 = state1.elstate.elsignature[indx1]
@@ -1101,9 +1108,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         print("This should not be used")
         return 0.0
 
-    def get_transition_dephasing(
-        self, state1: object, state2: object | None = None
-    ) -> float:
+    def get_transition_dephasing(self, state1: Any, state2: Any | None = None) -> float:
         """Returns phenomenological dephasing of a given transition
 
 
@@ -1156,9 +1161,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return -1.0
 
-    def transition_dipole(
-        self, state1: object, state2: object
-    ) -> numpy.ndarray | float:
+    def transition_dipole(self, state1: Any, state2: Any) -> numpy.ndarray | float:
         """Transition dipole moment between two states
 
         Parameters
@@ -1197,7 +1200,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return eldip * fcfac
 
     def transition_velocity_dipole(
-        self, state1: object, state2: object
+        self, state1: Any, state2: Any
     ) -> numpy.ndarray | float:
         """Transition dipole moment between two states
 
@@ -1229,9 +1232,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return elvdip * fcfac
 
-    def transition_magnetic(
-        self, state1: object, state2: object
-    ) -> numpy.ndarray | float:
+    def transition_magnetic(self, state1: Any, state2: Any) -> numpy.ndarray | float:
         """Transition magnetic dipole moment between two states
 
         Parameters
@@ -1263,7 +1264,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return magdip * fcfac
 
-    def _get_twoexindx(self, state1: object, state2: object) -> tuple:
+    def _get_twoexindx(self, state1: Any, state2: Any) -> tuple | int:
         """Indices of two molecule with transitions or negative number
         if not found
 
@@ -1317,7 +1318,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return exindxs[0], exindxs[1]
 
-    def _get_exindx(self, state1: object, state2: object) -> int:
+    def _get_exindx(self, state1: Any, state2: Any) -> int:
         """Index of molecule with transition or negative number if not found
 
         Parameters
@@ -1441,7 +1442,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return nret
 
-    def get_ElectronicState(self, sig: tuple, index: int | None = None) -> object:
+    def get_ElectronicState(
+        self, sig: tuple, index: int | None = None
+    ) -> ElectronicState:
         """Returns electronic state corresponding to this aggregate
 
         Parameters
@@ -1458,7 +1461,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         return ElectronicState(self, sig, index)
 
-    def get_StateBand(self, state: object) -> int:
+    def get_StateBand(self, state: Any) -> int:
         """Returns band of the corresponding electronic state
 
         This effectively counts the number of excitations in the state
@@ -1478,13 +1481,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return band
 
-    def get_VibronicState(self, esig: tuple, vsig: tuple) -> object:
+    def get_VibronicState(self, esig: tuple, vsig: tuple) -> VibronicState:
         """Returns vibronic state corresponding to the two specified signatures"""
         elstate = self.get_ElectronicState(sig=esig)
 
         return VibronicState(elstate, vsig)
 
-    def coupling_vec(self, state1: object, state2: object) -> float:
+    def coupling_vec(self, state1: Any, state2: Any) -> float | numpy.ndarray:
         """Coupling between two aggregate states
 
 
@@ -1501,12 +1504,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         #
         # Coupling between two purely electronic states
         #
+        coup: float | numpy.ndarray = 0.0
         if isinstance(state1, ElectronicState) and isinstance(state2, ElectronicState):
             if self.nmono > 1:
                 # coupling within the bands
                 if state1.band == state2.band:
-                    els1 = state1.elstate.elsignature
-                    els2 = state1.elstate.elsignature
+                    els1 = state1.elsignature
+                    els2 = state2.elsignature
 
                     if state1.band == 1:
                         mon1 = numpy.nonzero(els1)[0][0]
@@ -1624,7 +1628,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return self.convert_energy_2_current_u(coup)
 
-    def coupling(self, state1: object, state2: object, full: bool = False) -> float:
+    def coupling(
+        self, state1: Any, state2: Any, full: bool = False
+    ) -> float | numpy.ndarray:
         """Coupling between two aggregate states
 
 
@@ -1785,7 +1791,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def elsignatures_old(
         self, mult: int = 1, mode: str = "LQ", emax: list | None = None
-    ) -> object:
+    ) -> Iterator[tuple[Any, ...]]:
         """Generator of electronic signatures
 
         Here we create signature tuples of electronic states. The signature
@@ -1874,7 +1880,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def elsignatures(
         self, mult: int = 1, mode: str = "LQ", emax: list | None = None
-    ) -> object:
+    ) -> Iterator[tuple[Any, ...]]:
         """Generator of electronic signatures
 
         Here we create signature tuples of electronic states. The signature
@@ -1965,7 +1971,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         k += 1
                 mlt += 1
 
-    def _add_excitation(self, inlists: list, strt: list, omax: list) -> object:
+    def _add_excitation(
+        self, inlists: list, strt: list, omax: list
+    ) -> Iterator[tuple[Any, Any]]:
         """Adds one excitation to all submitted electronic signatures"""
         k = 0
         # go through all signatures
@@ -1988,7 +1996,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     yield out, i
             k += 1
 
-    def vibsignatures(self, elsignature: tuple, approx: str | None = None) -> object:
+    def vibsignatures(self, elsignature: tuple, approx: str | None = None) -> Any:
         """Generator of vibrational signatures
 
         Parameters
@@ -2011,7 +2019,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         Nvib: int | None = None,
         vibenergy_cutoff: float | None = None,
         band_external: list | None = None,
-    ) -> object:
+    ) -> Generator[tuple[int, Any], None, None]:
         """Generator of all aggregate states
 
         Iterator generating all states of the aggregate given a set
@@ -2109,7 +2117,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     approx=vibgen_approx, N=Nvib, vibenergy_cutoff=vibenergy_cutoff
                 ):
                     # create vibronic state with a given signature
-                    s1 = VibronicState(es1, vsig1)
+                    s1: VibronicState | ElectronicState = VibronicState(es1, vsig1)
                     s1.band = bands[nn]
                     # s1.elstate.band = bands[nn]
 
@@ -2194,7 +2202,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def elstates(
         self, mult: int = 1, mode: str = "LQ", save_indices: bool = False
-    ) -> object:
+    ) -> Generator[tuple[int, Any], None, None]:
         """Generator of electronic states"""
         a = 0
         for ess1 in self.elsignatures(mult=mult, mode=mode):
@@ -2347,11 +2355,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # Matrix of Franck-Condon factors
         FC = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         # Matrix of the transition widths (their square roots)
-        Wd = numpy.zeros((Ntot, Ntot), dtype=REAL)
+        Wd: numpy.ndarray = numpy.zeros((Ntot, Ntot), dtype=REAL)
         # Matrix of dephasing rates
-        Dr = numpy.zeros((Ntot, Ntot), dtype=REAL)
+        Dr: numpy.ndarray = numpy.zeros((Ntot, Ntot), dtype=REAL)
         # Matrix of dephasing transformation coefficients
-        self.Xi = numpy.zeros((Ntot, self.Nel), dtype=REAL)
+        self.Xi: numpy.ndarray = numpy.zeros((Ntot, self.Nel), dtype=REAL)
 
         # electronic indices of twice excited state (zero for all other states)
         twoex_indx = numpy.zeros((Ntot, 2), dtype=int)
@@ -2449,15 +2457,16 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     if i_s != 0:  # allow the doubly excited states on single molecule
                         # we save indices of electronic states and
                         # 0 is taken by the ground state
-                        state_is = [
+                        state_is_list = [
                             0,
                         ] * self.nmono
-                        state_is[sig_position] = i_s
-                        state_is = tuple(state_is)
+                        state_is_list[sig_position] = i_s
+                        state_is = tuple(state_is_list)
                         els = self.get_ElectronicState(state_is)
 
                         # two alternatives (older vs. newer)
                         # twoex_indx[a, k_s] = sig_position + 1
+                        assert els.index is not None
                         twoex_indx[a, k_s] = els.index
                         # print("Making twoex_indx:", els.get_signature(), twoex_indx[a, k_s], a, k_s)
                         k_s += 1
@@ -2553,7 +2562,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # print("RR",self.RR,"RRv",self.RRv,"RRm",self.RRm,"RRm+RRv",self.RRm+self.RRv)
 
         # FIXME: make this on-demand (if poissible)
-        trdata = numpy.zeros((DD.shape[0], DD.shape[1], DD.shape[2]), dtype=REAL)
+        trdata: numpy.ndarray = numpy.zeros(
+            (DD.shape[0], DD.shape[1], DD.shape[2]), dtype=REAL
+        )
         trdata[:, :, :] = DD[:, :, :]
 
         self.TrDMOp = TransitionDipoleMoment(data=trdata)
@@ -2912,9 +2923,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     ###########################################################################
 
-    def convert_to_ground_vibbasis(
-        self, operator: object, Nt: int | None = None
-    ) -> object:
+    def convert_to_ground_vibbasis(self, operator: Any, Nt: int | None = None) -> Any:
         """Converts an operator to a ground state vibrational basis repre
 
         Default representation in Quantarhei is that with a specific shifted
@@ -2930,6 +2939,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         n_indices = 2
         evolution = False
         whole = False
+        nop: Any = None
         if operator.dim == self.Ntot:
             if isinstance(operator, ReducedDensityMatrix) or isinstance(
                 operator, DensityMatrix
@@ -2953,7 +2963,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     whole = False
                 else:
                     nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
-                    rhoi = ReducedDensityMatrix(dim=self.Ntotl)
+                    rhoi = ReducedDensityMatrix(dim=self.Ntot)
                     # we set zero initial condition, because this initialized
                     # the data storage
                     nop.set_initial_condition(rhoi)
@@ -3075,11 +3085,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             raise Exception("Incompatible operator")
 
-    def trace_converted(self, operator: object, Nt: int | None = None) -> object:
+    def trace_converted(self, operator: Any, Nt: int | None = None) -> Any:
 
         n_indices = 2
         evolution = False
         whole = False
+        nop: Any = None
 
         if operator.dim == self.Ntot:
             if isinstance(operator, ReducedDensityMatrix) or isinstance(
@@ -3127,7 +3138,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             raise Exception("Incompatible operator")
 
-    def trace_over_vibrations(self, operator: object, Nt: int | None = None) -> object:
+    def trace_over_vibrations(self, operator: Any, Nt: int | None = None) -> Any:
         """Average an operator over vibrational degrees of freedom
 
         Average MUST be done in site basis. Only in site basis
@@ -3137,6 +3148,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         n_indices = 2
         evolution = False
         whole = False
+        nop: Any = None
 
         if operator.dim == self.Ntot:
             if isinstance(operator, ReducedDensityMatrix) or isinstance(
@@ -3293,11 +3305,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         if trace_over_vibrations:
             if isinstance(psi, StateVector):
                 rho = psi.get_DensityMatrix()
-                rho = self.trace_over_vibrations()
+                rho = self.trace_over_vibrations(rho)
             elif isinstance(psi, StateVectorEvolution):
                 # FIXME: Implement direct conversion
                 rho = psi.get_DensityMatrixEvolution()
-                rho = self.trace_over_vibrations()
+                rho = self.trace_over_vibrations(rho)
 
         else:
             if isinstance(psi, StateVector):
@@ -3324,7 +3336,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 count += 1
         return esum / count
 
-    def _bath_reorg(self, cfm: object, indx: int) -> float:
+    def _bath_reorg(self, cfm: Any, indx: int) -> float:
         coft = cfm.cfuncs[cfm.get_index_by_where((indx, indx))]
         reorg_bath = 0.0
         for parm in coft.params:
@@ -3409,9 +3421,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         return reorg_exct
 
     # FIXME: All these properties have to be meaningfully defined for all open systems
-    def _get_exciton_prop(
-        self, adiabatic: object = None, HH_in: object = None
-    ) -> tuple:
+    def _get_exciton_prop(self, adiabatic: Any = None, HH_in: Any = None) -> tuple:
 
         is_adiabatic = False
         adiabatic_noBath = False
@@ -3612,7 +3622,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             #
             #  Below aa1 = A, aa2 = n, aa3 = K, st_k = k and st_l = l
             #
-            kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=REAL)
+            kappa: numpy.ndarray = numpy.zeros((self.Ntot, self.Ntot), dtype=REAL)
 
             if self.mult >= 2:
                 N2b = self.Nb[0] + self.Nb[1] + self.Nb[2]
@@ -3864,7 +3874,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 self.Wd[0:N1b, 0:N1b] = numpy.diag(Wd_b)
                 self.Dr[0:N1b, 0:N1b] = numpy.diag(Dr_b)
 
-                Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=REAL)
+                Wd_c: numpy.ndarray = numpy.zeros((self.Ntot, self.Ntot), dtype=REAL)
 
                 for aa in range(N1b, N2b):
                     for bb in range(N1b, N2b):
@@ -3889,7 +3899,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                     * kap2[bb, mm]
                                 )
 
-                W_cc = numpy.zeros(Wd_c.shape[0], dtype=REAL)
+                W_cc: numpy.ndarray = numpy.zeros(Wd_c.shape[0], dtype=REAL)
                 for k in range(N2b):
                     W_cc[k] = Wd_c[k, k]
                 W_aux = numpy.diag(numpy.sqrt(W_cc))
@@ -4052,7 +4062,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def get_StateVector(
         self, condition_type: str | None = None, DD: numpy.ndarray | None = None
-    ) -> object:
+    ) -> Any:
         """Returns state vector accordoing to specified conditions
 
         Parameters
@@ -4087,7 +4097,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             # abs value of the transition dipole moment
             dabs = numpy.sqrt(DD[:, :, 0] ** 2 + DD[:, :, 1] ** 2 + DD[:, :, 2] ** 2)
 
-            sv0 = numpy.zeros(self.Ntot, dtype=COMPLEX)
+            sv0: numpy.ndarray = numpy.zeros(self.Ntot, dtype=COMPLEX)
 
             # zero temperature
             sv0[0] = 1.0
@@ -4103,9 +4113,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         condition_type: str | None = None,
         relaxation_theory_limit: str = "weak_coupling",
         temperature: float | None = None,
-        relaxation_hamiltonian: object = None,
+        relaxation_hamiltonian: Any = None,
         DD: numpy.ndarray | None = None,
-    ) -> object:
+    ) -> Any:
         """Returns density matrix according to specified condition
 
         Returs density matrix to be used e.g. as initial condition for
@@ -4380,7 +4390,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     #     return tuple(lst)
 
-    def get_transition(self, Nf: object, Ni: object) -> tuple:
+    def get_transition(self, Nf: Any, Ni: Any) -> tuple:
         """Returns relevant info about the energetic transition
 
         Parameters
@@ -4433,32 +4443,32 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return False
 
-    def get_SystemBathInteraction(self) -> object:
+    def get_SystemBathInteraction(self) -> Any:
         """Returns the aggregate SystemBathInteraction object"""
         if self._built:
             return self.sbi
         raise Exception("Aggregate object not built.")
 
-    def set_SystemBathInteraction(self, sbi: object) -> None:
+    def set_SystemBathInteraction(self, sbi: Any) -> None:
         """Sets the SystemBathInteraction operator for this aggregate"""
         # FIXME: check its compatibility
         self.sbi = sbi
         self.sbi.set_system(self)
 
-    def get_Hamiltonian(self) -> object:
+    def get_Hamiltonian(self) -> Any:
         """Returns the aggregate Hamiltonian"""
         if self._built:
             return self.HamOp  # Hamiltonian(data=self.HH)
         raise Exception("Aggregate object not built")
 
-    def get_electronic_Hamiltonian(self, full: bool = False) -> object:
+    def get_electronic_Hamiltonian(self, full: bool = False) -> Any:
         """Returns the aggregate electronic Hamiltonian
 
         In case this is a purely electronic aggregate, the output
         is identical to get_Hamiltonian()
 
         """
-        HH = numpy.zeros((self.Nel, self.Nel), dtype=REAL)
+        HH: numpy.ndarray = numpy.zeros((self.Nel, self.Nel), dtype=REAL)
         for a, sta in self.elstates(mult=self.mult):
             HH[a, a] = sta.energy()
             for b, stb in self.elstates(mult=self.mult):
@@ -4468,13 +4478,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return HHel
 
-    def get_TransitionDipoleMoment(self) -> object:
+    def get_TransitionDipoleMoment(self) -> Any:
         """Returns the aggregate transition dipole moment operator"""
         if self._built:
             return self.TrDMOp  # TransitionDipoleMoment(data=self.DD)
         raise Exception("Aggregate object not built")
 
-    def get_TransitionMagneticDipoleMoment(self) -> object:
+    def get_TransitionMagneticDipoleMoment(self) -> Any:
         """Returns the aggregate transition dipole moment operator"""
         if self._built:
             return TransitionDipoleMoment(data=self.MM)
