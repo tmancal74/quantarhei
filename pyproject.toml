@@ -40,10 +40,12 @@ dependencies = [
   "gherkin-official>=4.1,<5",
   "pyyaml>=6.0,<7",
   "packaging>=21.0,<27",
-  "sympy>=1.12,<2",
 ]
 
 [project.optional-dependencies]
+symbolic = [
+  "sympy>=1.12,<2",
+]
 dev = [
   "pytest>=7.0",
   "pytest-cov>=4.0",
