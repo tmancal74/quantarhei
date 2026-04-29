@@ -117,7 +117,7 @@ class PureDephasing:  # (BasisManaged):
         if drates is None:
             raise Exception("Dephasing rates must be specified.")
 
-        self.data = numpy.array(drates, dtype=REAL)
+        self.data: numpy.ndarray = numpy.array(drates, dtype=REAL)
 
         if system is not None:
             self.system = system
@@ -136,7 +136,7 @@ class PureDephasing:  # (BasisManaged):
             else:
                 raise Exception("Non-Aggregate systems not implemented yet.")
 
-            HH = self.system.get_Hamiltonian()
+            HH: Any = self.system.get_Hamiltonian()
             if HH.dim != self.data.shape[0]:
                 raise Exception(
                     "Incompatible dimension of the rate matrix:"

@@ -14,22 +14,22 @@ class band_system:
         self.Ns = numpy.array(Ns, dtype=numpy.int32)
         self.Ne = numpy.sum(Ns)
 
-        self.en = None
-        self.om01 = None
-        self.om12 = None
-        self.nn01 = None
-        self.nn12 = None
-        self.dd01 = None
-        self.dd12 = None
-        self.Kr11 = None
-        self.Kr22 = None
-        self.Kd01 = None
-        self.Kd11 = None
-        self.Kd12 = None
-        self.gofts = None
-        self.ptn = None
-        self.SS1 = None
-        self.SS2 = None
+        self.en: numpy.ndarray | None = None
+        self.om01: numpy.ndarray | None = None
+        self.om12: numpy.ndarray | None = None
+        self.nn01: numpy.ndarray | None = None
+        self.nn12: numpy.ndarray | None = None
+        self.dd01: numpy.ndarray | None = None
+        self.dd12: numpy.ndarray | None = None
+        self.Kr11: numpy.ndarray | None = None
+        self.Kr22: numpy.ndarray | None = None
+        self.Kd01: numpy.ndarray | None = None
+        self.Kd11: numpy.ndarray | None = None
+        self.Kd12: numpy.ndarray | None = None
+        self.gofts: numpy.ndarray | None = None
+        self.ptn: numpy.ndarray | None = None
+        self.SS1: numpy.ndarray | None = None
+        self.SS2: numpy.ndarray | None = None
 
     def set_energies(self, en: Any) -> None:
         self.en = numpy.asfortranarray(en)
@@ -144,7 +144,11 @@ class band_system:
         self.update_dephasing_rates(Nb)
 
     def update_dephasing_rates(self, Nb: int) -> None:
+        assert self.Kd01 is not None
+        assert self.Kd11 is not None
+        assert self.Kd12 is not None
         if Nb == 1:
+            assert self.Kr11 is not None
             for i in range(self.Ns[0]):
                 for j in range(self.Ns[1]):
                     self.Kd01[i, j] -= self.Kr11[j, j] / 2.0
@@ -157,6 +161,7 @@ class band_system:
                         i, i
                     ]  # (self.Kr11[i,i] + self.Kr11[i,i])/2.0
         elif Nb == 2:
+            assert self.Kr22 is not None
             for i in range(self.Ns[1]):
                 for j in range(self.Ns[2]):
                     self.Kd12[i, j] -= self.Kr22[j, j] / 2.0

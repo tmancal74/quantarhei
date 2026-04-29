@@ -38,7 +38,7 @@ class FunctionStorage:
         # This dictionary describes what g(t) values will be stored and how
         #
         if config is None:
-            self.config = {
+            self.config: dict[str, Any] = {
                 "response_times": {
                     "t1": {"reset": False, "integral": {"s1"}, "axis": 0},
                     "t2": {"reset": True, "integral": None},
@@ -87,7 +87,7 @@ class FunctionStorage:
         #
         # creating time_index
         #
-        time_index = {}
+        time_index: dict[str, int | tuple[int, ...]] = {}
 
         # find all reset times
         reset_times = []
@@ -123,10 +123,11 @@ class FunctionStorage:
             self.time_combination_tuples, self.time_combination_strings
         ):
             if len(tpl) > 1:
-                dim = []
+                dim: list[int] = []
                 for tm in tpl:
                     # if time_index[tm] >= 0:     # we add even -1 to time_index
-                    dim.append(time_index[tm])
+                    val_tm = time_index[tm]
+                    dim.append(val_tm if isinstance(val_tm, int) else 0)
                 if len(dim) == 1:
                     time_index[tstr] = dim[0]
                 elif len(dim) > 1:
@@ -172,18 +173,18 @@ class FunctionStorage:
         # Storage dimensions; they correspond to the submitted time axes
         if isinstance(timeaxis, TimeAxis):
             self.Ndim = 1
-            dim = numpy.zeros(self.Ndim, dtype=numpy.int32)
-            dim[0] = timeaxis.length
+            dim_arr: numpy.ndarray = numpy.zeros(self.Ndim, dtype=numpy.int32)
+            dim_arr[0] = timeaxis.length
         else:
             self.Ndim = len(timeaxis)
-            dim = numpy.zeros(self.Ndim, dtype=numpy.int32)
+            dim_arr = numpy.zeros(self.Ndim, dtype=numpy.int32)
             for ii, ta in enumerate(timeaxis):
                 if not isinstance(ta, TimeAxis):
                     raise Exception(
                         "'timeaxis' argument must be a list/tuple of Quantarhei TimeAxis objects."
                     )
-                dim[ii] = ta.length
-        self.dim = dim
+                dim_arr[ii] = ta.length
+        self.dim = dim_arr
 
         # Data type of the storage (default is complex64)
         self.dtype = dtype
@@ -199,12 +200,12 @@ class FunctionStorage:
         # self.time_index = {"t2":-1,"t1":0,"t1+t2":0, "t3":1,"t2+t3":1,"t1+t3":(0,1),"t1+t2+t3":(0,1)}
         self.time_index = time_index
 
-        reshapes = dict()
+        reshapes: dict[str, list[Any]] = dict()
         for dms in self.time_index:
             val = self.time_index[dms]
             if isinstance(val, int):
                 if val == -1:
-                    reshapes[dms] = ""
+                    reshapes[dms] = []
                 else:
                     reshapes[dms] = [self.dim[val]]
 
@@ -249,12 +250,12 @@ class FunctionStorage:
                 self._N[kk] = 1
                 for sz in ival:
                     if sz >= 0:
-                        self._N[kk] *= dim[sz]
+                        self._N[kk] *= dim_arr[sz]
             elif isinstance(ival, int):
                 if ival == -1:
                     self._N[kk] = 1
                 else:
-                    self._N[kk] = dim[ival]
+                    self._N[kk] = dim_arr[ival]
             kk += 1
 
         # one function takes one dimensional array of length 'data_stride'
@@ -284,7 +285,7 @@ class FunctionStorage:
         #
         # Here the g(t) functions are stored
         #
-        self.funcs = {}
+        self.funcs: dict[Any, Any] = {}
 
         # The number of stored functions
         self.Nf = 0
@@ -430,9 +431,9 @@ class FunctionStorage:
         #
         # Check the consistency of the submitted time axes
         #
-        self.ta = []  # This is a synonym for the self.timeaxis
+        self.ta: list[Any] = []  # This is a synonym for the self.timeaxis
         if isinstance(self.timeaxis, (tuple, list)):
-            self.ta = self.timeaxis
+            self.ta = list(self.timeaxis)
             # self.t1a = self.timeaxis[0]
             # self.t3a = self.timeaxis[1]
         else:
@@ -550,7 +551,9 @@ class FunctionStorage:
                 # from tuples we need to eliminate -1
                 # to get the final dimension of the stored representation
                 tt_dim = []
-                for elem in self.time_index[tm]:
+                _tm_val = self.time_index[tm]
+                assert isinstance(_tm_val, tuple)
+                for elem in _tm_val:
                     if elem >= 0:
                         tt_dim.append(self.dim[elem])
 
@@ -580,10 +583,10 @@ class FunctionStorage:
                             #
                             # Here we have to figure out how to construct the index for broadcasting
                             #
-                            index = [None] * len(tt_dim)
-                            # index[ldm] = _colon_
-                            index[dim_needed] = _colon_
-                            index = tuple(index)
+                            index_list: list[slice | None] = [None] * len(tt_dim)
+                            # index_list[ldm] = _colon_
+                            index_list[dim_needed] = _colon_
+                            index = tuple(index_list)
 
                             tt += self.ta[ldm].data.__getitem__(index)
 
@@ -607,7 +610,7 @@ class FunctionStorage:
 
     def get_number_of_functions(self) -> int:
         """Returns the number of different stored functions"""
-        return numpy.max(self.mapping) + 1
+        return int(numpy.max(self.mapping)) + 1
 
     def get_number_of_sites(self) -> int:
         """Returns the number of assigned sites"""

@@ -512,12 +512,12 @@ def look_for_pathways(
     files = glob.glob(path)
 
     # get a list of t2s
-    t2s = []
+    t2s_list: list[float] = []
     for fl in files:
         t2 = float(fl.split("_")[1].split("." + ext)[0])
-        t2s.append(t2)
+        t2s_list.append(t2)
 
-    t2s = numpy.array(t2s)
+    t2s = numpy.array(t2s_list)
     t2s = numpy.sort(t2s)
     # if check == True load them all and check they are list of pathways
     if check:
@@ -646,11 +646,13 @@ def get_TwoDSpectrum_from_saved_pathways(
 
 def get_TwoDSpectrum_from_pathways(pathways: Any, t1axis: Any, t3axis: Any) -> Any:
     """Returns a 2D spectrum calculated based on submitted Liouville pathways"""
-    from .mocktwodcalculator import MockTwoDSpectrumCalculator
+    from .mocktwodcalculator import (
+        MockTwoDResponseCalculator as MockTwoDSpectrumCalculator,
+    )
 
     t2axis = TimeAxis(0.0, 1, 1.0)
     mcalc = MockTwoDSpectrumCalculator(t1axis, t2axis, t3axis)
-    mcalc.bootstrap(rwa=convert(12000.0, "1/cm", "int"), pathways=pathways)
+    mcalc.bootstrap(rwa=float(convert(12000.0, "1/cm", "int")), pathways=pathways)
     twod = mcalc.calculate()
 
     return twod
@@ -717,6 +719,7 @@ def _get_evol(
 ) -> numpy.ndarray:
     """Return evolution of a single pathway"""
     N = 1
+    evol: numpy.ndarray
     if _is_tuple_of_dyads(states):
         evol = numpy.zeros(len(t2s), dtype=COMPLEX)
     else:
@@ -758,6 +761,7 @@ def _get_pref(
 ) -> numpy.ndarray:
     """Return evolution of a single pathway"""
     N = 1
+    evol: numpy.ndarray
     if _is_tuple_of_dyads(states):
         evol = numpy.zeros(len(t2s), dtype=COMPLEX)
     else:

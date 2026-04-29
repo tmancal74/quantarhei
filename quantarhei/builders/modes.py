@@ -22,6 +22,8 @@ Class Details
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy
 
 from ..core.managers import UnitsManaged, energy_units
@@ -82,7 +84,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         # and a default no. of states)
         freq = self.convert_energy_2_internal_u(frequency)
         with energy_units("int"):
-            self.submodes.append(SubMode(freq))
+            self.submodes.append(SubMode(float(freq)))
 
         # monomer is not set at creation
         self.monomer_set = False
@@ -95,7 +97,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
     #   MODE AS A PART OF A MOLECULE
     #
 
-    def set_Molecule(self, monomer: object) -> None:
+    def set_Molecule(self, monomer: Any) -> None:
         """Assigns this mode to a given monomer.
 
         When set, the mode knows on how many electronic states
@@ -328,7 +330,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
     #
 
     @deprecated
-    def get_frequency(self, N: int) -> float:
+    def get_frequency(self, N: int) -> float | numpy.ndarray:
         """Returns vibrational frequency
 
         Usage of this method is deprecated, use `get_energy` instead
@@ -356,7 +358,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         """
         return self.get_energy(N)
 
-    def get_energy(self, N: int, no_conversion: bool = True) -> float:
+    def get_energy(self, N: int, no_conversion: bool = True) -> float | numpy.ndarray:
         """Returns frequency of the mode corresponding to Nth electronic state
 
 
@@ -544,7 +546,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         """
         return self.submodes[N]
 
-    def set_mode_environment(self, corfce: object) -> None:
+    def set_mode_environment(self, corfce: Any) -> None:
         """Set linear interaction with a bosonic environment"""
         self.egcf = corfce
         self.has_mode_environment = True

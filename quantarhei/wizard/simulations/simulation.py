@@ -14,6 +14,8 @@ class Simulation(Saveable):
     WARNING = 5
     ERROR = 1
 
+    _file: Any
+
     def __init__(self, loglevel: int = 0) -> None:
         self._loglevel = loglevel
         self._indent_width = 4

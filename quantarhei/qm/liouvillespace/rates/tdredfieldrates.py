@@ -153,8 +153,8 @@ class TDRedfieldRateMatrix(TimeDependent):
 
         """
 
-        warning = []
-        error = []
+        warning: list[str] = []
+        error: list[str] = []
         rtol = 1.0e-6
         self.data = ssTDRedfieldRateMatrix(Na, Nk, Nt, KI, cc, rtol, warning, error)
         for w in error:
@@ -182,7 +182,7 @@ def ssTDRedfieldRateMatrix(
 ) -> numpy.ndarray:
 
     # output relaxatio rate matrix
-    RR = numpy.zeros((Nt, Na, Na), dtype=REAL)
+    RR: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=REAL)
 
     # real part of FT correlation function = 2Re of the half FT of
     # the correlation function - no factor of 2 here!

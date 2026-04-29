@@ -44,7 +44,7 @@ Details of Classes Provided
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any
+from typing import Any, cast
 
 import numpy
 import numpy.typing
@@ -102,6 +102,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
         "gamma",
     )
 
+    energy_units: str
+    lamb: float | numpy.ndarray
+    temperature: float | numpy.ndarray
+    axis: TimeAxis
+
     @enforce_energy_units_context
     def __init__(
         self, axis: Any = None, params: Any = None, values: Any = None
@@ -111,7 +116,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         if (axis is not None) and (params is not None):
             # FIXME: values might also need handling according to specified
             # energy units
-            # self.energy_units = self.manager.get_current_units("energy")
+            self.energy_units = self.manager.get_current_units("energy")
 
             # handle axis (it can be TimeAxis or FrequencyAxis)
             if not isinstance(axis, TimeAxis):
@@ -234,7 +239,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
     def _matsubara(self, kBT: float, ctime: float, nof: int) -> numpy.ndarray:
         """Matsubara frequency part of the Brownian correlation function"""
-        msf = 0.0
+        msf: float | numpy.ndarray = 0.0
         nut = 2.0 * numpy.pi * kBT
         time = self.axis.data
         for i in range(0, nof):
@@ -245,7 +250,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 * numpy.exp(-nut * n * time)
                 / ((nut * n) ** 2 - (1.0 / ctime) ** 2)
             )
-        return msf
+        return numpy.asarray(msf)
 
     def _set_temperature_and_cutoff_time(
         self, temperature: float, ctime: float
@@ -494,8 +499,10 @@ class CorrelationFunction(DFunction, UnitsManaged):
     # Aritmetic operations
     #
 
-    def __add__(self, other: CorrelationFunction) -> CorrelationFunction:
+    def __add__(self, other: DFunction) -> CorrelationFunction:
         """Addition of two correlation functions"""
+        if not isinstance(other, CorrelationFunction):
+            raise TypeError("Can only add CorrelationFunction to CorrelationFunction")
         t1 = self.axis
         t2 = other.axis
         if t1 == t2:
@@ -517,8 +524,10 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         return f
 
-    def __iadd__(self, other: CorrelationFunction) -> CorrelationFunction:
+    def __iadd__(self, other: DFunction) -> CorrelationFunction:
         """Inplace addition of two correlation functions"""
+        if not isinstance(other, CorrelationFunction):
+            raise TypeError("Can only add CorrelationFunction to CorrelationFunction")
         self.add_to_data2(other)
         return self
 
@@ -601,23 +610,23 @@ class CorrelationFunction(DFunction, UnitsManaged):
         by analytical formula. Returns `False` if the object was constructed
         by numerical transformation from spectral density.
         """
-        return bool(self.params["ftype"] in self.analytical_types)
+        return bool(cast(dict[str, Any], self.params)["ftype"] in self.analytical_types)
 
-    def get_temperature(self) -> float:
+    def get_temperature(self) -> float | numpy.ndarray:
         """Returns the temperature of the correlation function"""
         return self.temperature
 
-    def get_reorganization_energy(self) -> float:
+    def get_reorganization_energy(self) -> float | numpy.ndarray:
         """Returns the reorganization energy of the correlation function"""
         return self.convert_energy_2_current_u(self.lamb)
 
-    def get_correlation_time(self) -> float:
+    def get_correlation_time(self) -> float | numpy.ndarray:
         """Returns correlation time associated with the first component
         of the bath correlation function
         """
         return self.params[0]["cortime"]
 
-    def measure_reorganization_energy(self) -> float:
+    def measure_reorganization_energy(self) -> float | numpy.ndarray:
         """Calculates the reorganization energy of the correlation function
 
         Calculates the reorganization energy of the correlation function by
@@ -796,7 +805,9 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
             self.axis = axis
 
         # handle params
-        self.params = []  # this will always be a list of components
+        self.params: (
+            list[Any] | dict[Any, Any]
+        ) = []  # this will always be a list of components
         p2calc = []
         try:
             # if this passes, we assume params is a dictionary

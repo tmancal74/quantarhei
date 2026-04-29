@@ -28,8 +28,8 @@ class fcstorage(Saveable):
 
     def __init__(self) -> None:
         """Constructor"""
-        self._shifts = []
-        self._fcs = []
+        self._shifts: list[float] = []
+        self._fcs: list[numpy.ndarray] = []
 
     def lookup(self, shift: float) -> bool:
         """Returns true if the FC factors for a given shift are available"""
@@ -66,7 +66,9 @@ class operator_factory(Saveable):
 
     def anihilation_operator(self) -> numpy.ndarray:
         N = self.N
-        aa = numpy.zeros((N, N), dtype=REAL)  # matrix N x N full of zeros
+        aa: numpy.ndarray = numpy.zeros(
+            (N, N), dtype=REAL
+        )  # matrix N x N full of zeros
 
         for ng in range(N):
             for mg in range(N):
@@ -77,7 +79,7 @@ class operator_factory(Saveable):
 
     def creation_operator(self) -> numpy.ndarray:
         N = self.N
-        ad = numpy.zeros((N, N), dtype=REAL)
+        ad: numpy.ndarray = numpy.zeros((N, N), dtype=REAL)
 
         for ng in range(N):
             for mg in range(N):
@@ -178,7 +180,7 @@ class operator_factory(Saveable):
         ad = self.creation_operator()
 
         # construct the Shift Operator
-        Dd_large = numpy.zeros((N_, N_), dtype=COMPLEX)
+        Dd_large: numpy.ndarray = numpy.zeros((N_, N_), dtype=COMPLEX)
         Dd_large = (dd_ * ad - numpy.conj(dd_) * aa) / numpy.sqrt(2.0)
 
         # Diagonalize and obtain transformation matrix
@@ -193,7 +195,7 @@ class operator_factory(Saveable):
 
     def unity_operator(self) -> numpy.ndarray:
 
-        ones = numpy.ones(self.N, dtype=REAL)
+        ones: numpy.ndarray = numpy.ones(self.N, dtype=REAL)
         ret = numpy.diag(ones)
         return ret
 

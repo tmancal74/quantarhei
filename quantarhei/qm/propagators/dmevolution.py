@@ -163,6 +163,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         population_sum = False
         # populations=False
 
+        howi: Any = ["-k", "-r", "-b", "-g", "-m", "-y", "-c"]
         if how == "-":
             howi = ["-k", "-r", "-b", "-g", "-m", "-y", "-c"]
         if how == "--":

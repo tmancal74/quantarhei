@@ -24,9 +24,16 @@ class HarmonicMode(SubMode, OpenSystem):
         self._has_sbi = False
         self._built = False
         self.gamma = 0.0
-        self.RT = None
+        self.RT: LindbladForm | None = None
+        self.HH: numpy.ndarray | None = None
+        self.sbi: SystemBathInteraction | None = None
 
-    def build(self, nmax: int | None = None, build_relaxation: bool = False) -> None:
+    def build(
+        self,
+        nmax: int | None = None,
+        xi: float | None = None,
+        build_relaxation: bool = False,
+    ) -> None:
         """Building all necessary quantities"""
         # if provided, we reset nmax
         if nmax is not None:
@@ -87,7 +94,7 @@ class HarmonicMode(SubMode, OpenSystem):
         pfac: float = 1.0,
     ) -> None:
 
-        DD = numpy.zeros((N, N, 3), dtype=REAL)
+        DD: numpy.ndarray = numpy.zeros((N, N, 3), dtype=REAL)
 
         # FIXME: In what units we define transition dipole moment?
         dip = pfac * (ad + aa) / numpy.sqrt(2.0)
@@ -101,7 +108,9 @@ class HarmonicMode(SubMode, OpenSystem):
         self.DD = DD
 
         # FIXME: make this on-demand (if poissible)
-        trdata = numpy.zeros((DD.shape[0], DD.shape[1], DD.shape[2]), dtype=REAL)
+        trdata: numpy.ndarray = numpy.zeros(
+            (DD.shape[0], DD.shape[1], DD.shape[2]), dtype=REAL
+        )
         trdata[:, :, :] = DD[:, :, :]
         self.TrDMOp = TransitionDipoleMoment(data=trdata)
 
@@ -204,7 +213,7 @@ class AnharmonicMode(HarmonicMode):
             self.nmax = nmax
 
         if xi is not None:
-            self.set_unharmonicity(xi)
+            self.set_anharmonicity(xi)
 
         N = self.nmax
 

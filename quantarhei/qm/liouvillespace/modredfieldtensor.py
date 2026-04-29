@@ -15,6 +15,9 @@ from .relaxationtensor import RelaxationTensor
 class ModRedfieldRelaxationTensor(RelaxationTensor):
     """Modified Redfield Theory"""
 
+    dim: int
+    data: numpy.ndarray
+
     def __init__(
         self,
         ham: Hamiltonian,
@@ -78,7 +81,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             # with eigenbasis_of(HH):
             if True:
                 if self._has_cutoff_time:
-                    cft = self.cut_off_time
+                    cft = self.cutoff_time
                 else:
                     cft = None
 

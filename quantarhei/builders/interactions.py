@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import scipy.constants as const
 
@@ -63,7 +65,7 @@ def dipole_dipole(
     dr2 = np.dot(dipole2, r12) / R
 
     Edip_dip_Ha = (d12 - 3 * dr1 * dr2) / (R**3)  # interaction energy in hartree
-    nma = 1.0
+    nma: Any = 1.0
     Edip_dip_cm1 = Edip_dip_Ha * nma.HaToInvcm
 
     if args:
@@ -246,9 +248,7 @@ def Oscilator3D(
     return res
 
 
-def GuessBonds(
-    rr: np.ndarray, bond_length: float = 4.0, **kwargs: object
-) -> np.ndarray:
+def GuessBonds(rr: np.ndarray, bond_length: float = 4.0, **kwargs: Any) -> np.ndarray:
     """Function guesses pairs of atoms between which bond might occure.
 
 

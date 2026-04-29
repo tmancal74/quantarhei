@@ -73,7 +73,7 @@ class TestSuperOperator(SuperOperator):
 
     def _def_A(self, dim: int) -> numpy.ndarray:
         """Defines the matrix A for constuction of a super operator"""
-        A = numpy.zeros((dim, dim), dtype=qr.COMPLEX)
+        A: numpy.ndarray = numpy.zeros((dim, dim), dtype=qr.COMPLEX)
 
         for k_i in range(dim):
             A[k_i, k_i] = k_i

@@ -4,9 +4,11 @@ import numpy
 
 from ...core.managers import Manager, energy_units
 from ..corfunctions.correlationfunctions import c2g
+from ..hilbertspace.hamiltonian import Hamiltonian
 from .foerstertensor import FoersterRelaxationTensor
 from .rates.foersterrates import _reference_implementation as foerster_rates
 from .redfieldtensor import RedfieldRelaxationTensor
+from .systembathinteraction import SystemBathInteraction
 
 
 class RedfieldFoersterRelaxationTensor(
@@ -38,8 +40,8 @@ class RedfieldFoersterRelaxationTensor(
 
     def __init__(
         self,
-        ham: object,
-        sbi: object,
+        ham: Hamiltonian,
+        sbi: SystemBathInteraction,
         initialize: bool = True,
         cutoff_time: float | None = None,
         coupling_cutoff: float | None = None,
@@ -64,8 +66,13 @@ class RedfieldFoersterRelaxationTensor(
         ham = self.Hamiltonian
         sbi = self.SystemBathInteraction
 
-        tt = sbi.TimeAxis.data
-        Nt = sbi.TimeAxis.length
+        ta = sbi.TimeAxis
+        assert ta is not None, "SystemBathInteraction must have a TimeAxis set"
+        cc = sbi.CC
+        assert cc is not None, "SystemBathInteraction must have CC set"
+
+        tt = ta.data
+        Nt = ta.length
         Na = ham.dim
 
         if ham._has_remainder_coupling:
@@ -103,7 +110,7 @@ class RedfieldFoersterRelaxationTensor(
             gvals = numpy.zeros((Na, Nt), dtype=numpy.complex128)
             Gt = numpy.zeros((Na, Nt), dtype=numpy.complex128)
             for ii in range(1, Na):
-                Gt[ii, :] = c2g(sbi.TimeAxis, sbi.CC.get_coft(ii - 1, ii - 1))
+                Gt[ii, :] = c2g(ta, cc.get_coft(ii - 1, ii - 1))
             for aa in range(Na):
                 for bb in range(Na):
                     # Here we assume no correlation between sites
@@ -115,7 +122,7 @@ class RedfieldFoersterRelaxationTensor(
             lamb = numpy.zeros(Na)
             lamb_sites = numpy.zeros(Na)
             for ii in range(1, Na):
-                lamb_sites[ii] = sbi.CC.get_reorganization_energy(ii - 1, ii - 1)
+                lamb_sites[ii] = cc.get_reorganization_energy(ii - 1, ii - 1)
             for aa in range(1, Na):
                 for bb in range(1, Na):
                     # Here we assume no correlation between sites

@@ -19,6 +19,10 @@ from typing import Any
 
 import quantarhei as qr
 
+# Module-level parser globals used across command functions
+parser_list: Any = None
+parser_fetch: Any = None
+
 
 def do_command_run(args: Any) -> None:
     """Runs a script"""

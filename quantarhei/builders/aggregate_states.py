@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, cast
+
 import numpy
 
 from ..core.managers import UnitsManaged, energy_units
 from ..utils.types import Integer
+
+if TYPE_CHECKING:
+    from .aggregate_base import AggregateBase
+    from .aggregates import Aggregate
 
 
 class ElectronicState(UnitsManaged):
@@ -40,7 +46,10 @@ class ElectronicState(UnitsManaged):
     nmono = Integer("nmono")
 
     def __init__(
-        self, aggregate: object, elsignature: tuple, index: int | None = None
+        self,
+        aggregate: Aggregate | AggregateBase,
+        elsignature: tuple,
+        index: int | None = None,
     ) -> None:
 
         Nsig = len(elsignature)
@@ -72,7 +81,7 @@ class ElectronicState(UnitsManaged):
         if index is not None:
             self.index = index
         else:
-            self.index = self.aggregate.elsigs.index(self.elsignature)
+            self.index = cast(list[Any], self.aggregate.elsigs).index(self.elsignature)
 
         #
         # Implementation of vibrational substate generation approximations
@@ -98,7 +107,7 @@ class ElectronicState(UnitsManaged):
             count += 1
         return sites
 
-    def get_shared_sites(self, state: object) -> list:
+    def get_shared_sites(self, state: ElectronicState) -> list:
         """Returns a touple of sites shared by the two states"""
         sig1 = self.elsignature
         sig2 = state.elsignature
@@ -115,20 +124,22 @@ class ElectronicState(UnitsManaged):
 
     def energy(self, vsig: tuple | None = None) -> float:
         """Returns energy of the state (electronic + vibrational)"""
-        en = 0.0
+        en: float = 0.0
 
         if vsig is not None:
             if not (len(vsig) == self.vsiglength):
                 raise Exception()
             k = 0
             for nn in self.vibmodes:
-                en += vsig[k] * self.convert_energy_2_current_u(nn.omega)
+                en += float(vsig[k] * self.convert_energy_2_current_u(nn.omega))
                 k += 1
 
         k = 0
         for nn in self.elsignature:
-            en += self.convert_energy_2_current_u(
-                self.aggregate.monomers[k].elenergies[nn]
+            en += float(
+                self.convert_energy_2_current_u(
+                    self.aggregate.monomers[k].elenergies[nn]
+                )
             )
             k += 1
 
@@ -219,7 +230,7 @@ class ElectronicState(UnitsManaged):
                     yield sig
 
         else:
-            return numpy.ndindex(shp)
+            yield from numpy.ndindex(shp)
 
     def _tpa_ndindex(self, tup: tuple, ecut: float | None = None) -> object:
         """Generates vibrational signature in Two Particle Approximation (TPA)"""
@@ -287,7 +298,7 @@ class ElectronicState(UnitsManaged):
         approx: str | None = None,
         N: int | None = None,
         vibenergy_cutoff: float | None = None,
-    ) -> object:
+    ) -> Any:
         """Generator of the vibrational signatures
 
         Parameters
@@ -362,17 +373,18 @@ class VibronicState(UnitsManaged):
 
     """
 
-    def __init__(self, elstate: object, vsig: tuple) -> None:
+    def __init__(self, elstate: ElectronicState, vsig: tuple) -> None:
         self.elstate = elstate
         self.vsig = vsig
+        self.band: int = 0
 
         try:
             agg = self.elstate.aggregate
-            self.index = agg.vibsigs.index((elstate.elsignature, vsig))
+            self.index = cast(list[Any], agg.vibsigs).index((elstate.elsignature, vsig))
         except (AttributeError, ValueError):
             self.index = None
 
-    def get_ElectronicState(self) -> object:
+    def get_ElectronicState(self) -> ElectronicState:
         """Returns corresponding electronic state"""
         return self.elstate
 
@@ -380,7 +392,7 @@ class VibronicState(UnitsManaged):
         """Returns corresponding vibrational signature"""
         return self.vsig
 
-    def get_shared_sites(self, state: object) -> list:
+    def get_shared_sites(self, state: VibronicState) -> list:
         """Returns a touple of sites shared by the two states"""
         sig1 = self.elstate.elsignature
         sig2 = state.elstate.elsignature
@@ -468,7 +480,7 @@ class Coherence:
 
     """
 
-    def __init__(self, state1: object, state2: object) -> None:
+    def __init__(self, state1: Any, state2: Any) -> None:
 
         self.state1 = state1
         self.state2 = state2

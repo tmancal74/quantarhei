@@ -7,16 +7,16 @@ spectraldensities module
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import numpy
 
 from ...core.dfunction import DFunction
+from ...core.frequency import FrequencyAxis
 from ...core.managers import UnitsManaged, energy_units
 from ...core.time import TimeAxis
 from ...core.units import convert, kB_int
-
-# from ...core.frequency import FrequencyAxis
 from .correlationfunctions import CorrelationFunction, FTCorrelationFunction
 
 # from .correlationfunctions import c2h
@@ -113,6 +113,8 @@ class SpectralDensity(DFunction, UnitsManaged):
     True
 
     """
+
+    axis: FrequencyAxis
 
     energy_params = (
         "reorg",
@@ -211,7 +213,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                     self._make_CP29_spectral_density(params, values)
 
                 elif ftype == "Value-defined":
-                    self._make_value_defined(prms, values=values)
+                    self._make_value_defined(values=values)
 
                 else:
                     raise Exception(
@@ -318,7 +320,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         with energy_units("int"):
             omega = self.axis.data
-            cfce = 0
+            cfce: Any = 0
 
             if not params["alternative_form"]:
                 try:
@@ -330,7 +332,7 @@ class SpectralDensity(DFunction, UnitsManaged):
 
                 for ii in range(2):
                     cfce = cfce + (
-                        ss[ii] / (numpy.math.factorial(7) * 2 * (freq[ii] ** 4))
+                        ss[ii] / (math.factorial(7) * 2 * (freq[ii] ** 4))
                     ) * (omega**3) * (numpy.exp(-(numpy.abs(omega / freq[ii]) ** 0.5)))
                 # Converts the form of the spectral density to the one used in Quantarhei
                 cfce = cfce * (omega**2)
@@ -451,8 +453,10 @@ class SpectralDensity(DFunction, UnitsManaged):
     # Aritmetic operations
     #
 
-    def __add__(self, other: SpectralDensity) -> SpectralDensity:
+    def __add__(self, other: DFunction) -> SpectralDensity:
         """Addition of two correlation functions"""
+        if not isinstance(other, SpectralDensity):
+            raise TypeError("Can only add SpectralDensity to SpectralDensity")
         t1 = self.axis
         t2 = other.axis
         if t1 == t2:
@@ -466,8 +470,10 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         return f
 
-    def __iadd__(self, other: SpectralDensity) -> SpectralDensity:
+    def __iadd__(self, other: DFunction) -> SpectralDensity:
         """Inplace addition of two correlation functions"""
+        if not isinstance(other, SpectralDensity):
+            raise TypeError("Can only add SpectralDensity to SpectralDensity")
         self.add_to_data2(other)
         return self
 
@@ -542,7 +548,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             return self.temperature
         raise Exception("SpectralDensity was not assigned temperature")
 
-    def get_reorganization_energy(self) -> float:
+    def get_reorganization_energy(self) -> float | numpy.ndarray:
         """Returns the reorganization energy of the cspectral density"""
         return self.convert_energy_2_current_u(self.lamb)
 

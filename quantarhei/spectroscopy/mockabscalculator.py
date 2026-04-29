@@ -13,13 +13,14 @@ from .abscalculator import AbsSpectrumCalculator
 
 
 class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
-    def bootstrap(
+    def bootstrap(  # type: ignore[override]
         self,
         rwa: float = 0.0,
         pathways: Any = None,
         lab: Any = None,
         shape: str = "Gaussian",
         verbose: bool = False,
+        **kwargs: Any,
     ) -> None:
         """Prepare for the spectrum calculation"""
         self.shape = shape

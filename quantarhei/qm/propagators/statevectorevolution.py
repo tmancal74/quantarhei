@@ -15,6 +15,8 @@ from .dmevolution import DensityMatrixEvolution
 
 class StateVectorEvolution(MatrixData, BasisManaged):
     data = BasisManagedComplexArray("data")
+    _data: numpy.ndarray
+    is_in_rwa: bool = False
 
     def __init__(self, timeaxis: Any, psii: Any) -> None:
 

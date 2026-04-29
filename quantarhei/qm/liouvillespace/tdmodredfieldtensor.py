@@ -19,6 +19,8 @@ from .relaxationtensor import RelaxationTensor
 class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
     """Time-dependent Modifield Redfield Tensor"""
 
+    dim: int
+
     def __init__(
         self,
         ham: Hamiltonian,
@@ -48,7 +50,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
 
         self.Hamiltonian = ham
         self.dim = ham.dim
-        self.SystemBathInteraction = sbi
+        self.SystemBathInteraction: SystemBathInteraction = sbi
         self.TimeAxis = sbi.TimeAxis
 
         if initialize:

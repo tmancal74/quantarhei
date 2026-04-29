@@ -7,9 +7,22 @@ Loads *.qrp, *.png, and other files and shows their content
 
 from __future__ import annotations
 
-from tkinter import BOTH, BOTTOM, RIGHT, SUNKEN, YES, Button, Frame, Label, Menu, X
+from tkinter import (
+    BOTH,
+    BOTTOM,
+    RIGHT,
+    SUNKEN,
+    YES,
+    Button,
+    Frame,
+    Label,
+    Menu,
+    Misc,
+    X,
+)
 from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import askyesno, showerror
+from typing import Any
 
 # matplotlib.use("TkAgg")
 # from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -19,11 +32,14 @@ import quantarhei as qr
 
 
 class Viewer(Frame):
-    def __init__(self, parent: object = None, numrow: int = 5, numcol: int = 5) -> None:
+    def __init__(
+        self, parent: Misc | None = None, numrow: int = 5, numcol: int = 5
+    ) -> None:
         Frame.__init__(self, parent)
         self.pack(expand=YES, fill=BOTH)
         self.makeWidgets()
-        self.master.title("Quantarhei File Viewer")
+        master: Any = self.master
+        master.title("Quantarhei File Viewer")
 
     def makeWidgets(self) -> None:
         self.makeMenuBar()
@@ -34,7 +50,8 @@ class Viewer(Frame):
 
     def makeMenuBar(self) -> None:
         self.menubar = Menu(self.master)
-        self.master.config(menu=self.menubar)
+        master: Any = self.master
+        master.config(menu=self.menubar)
         self.fileMenu()
 
     def makeToolBar(self) -> None:
@@ -61,8 +78,14 @@ class Viewer(Frame):
         obj = qr.load_parcel(file)
         self.figure(obj)
 
-    def figure(self, obj: object) -> None:
+    def figure(self, obj: Any) -> None:
+        from tkinter import TOP
+
         import matplotlib.pyplot as plt
+        from matplotlib.backends.backend_tkagg import (
+            FigureCanvasTkAgg,
+            NavigationToolbar2Tk,
+        )
 
         f = plt.figure(figsize=(5, 5), dpi=100)
         # a = f.add_subplot(111)

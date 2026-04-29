@@ -8,7 +8,7 @@ from .. import COMPLEX
 
 
 def R1g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -57,7 +57,7 @@ def R1g(
     F4 = system.get_F4d("abba")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -92,7 +92,7 @@ def R1g(
 
 
 def R2g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -141,7 +141,7 @@ def R2g(
     F4 = system.get_F4d("baba")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -178,7 +178,7 @@ def R2g(
 
 
 def R3g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -226,7 +226,7 @@ def R3g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -252,7 +252,7 @@ def R3g(
 
 
 def R4g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -300,7 +300,7 @@ def R4g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -324,7 +324,7 @@ def R4g(
 
 
 def R1f(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -377,7 +377,7 @@ def R1f(
     F4 = system.get_F4d("fbfaba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -425,7 +425,7 @@ def R1f(
 
 
 def R1f_wrong(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -478,7 +478,7 @@ def R1f_wrong(
     F4 = system.get_F4d("fbfaba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -526,7 +526,7 @@ def R1f_wrong(
 
 
 def R2f(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -579,7 +579,7 @@ def R2f(
     F4 = system.get_F4d("fafbba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
 
     for g in band0:
         for ff in band2:
@@ -638,7 +638,7 @@ def R2f(
 
 
 def R2f_wrong(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -691,7 +691,7 @@ def R2f_wrong(
     F4 = system.get_F4d("fafbba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
 
     for g in band0:
         for ff in band2:
@@ -750,7 +750,7 @@ def R2f_wrong(
 
 
 def R1g_scM0g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -799,7 +799,7 @@ def R1g_scM0g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,bai->ba", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -823,7 +823,7 @@ def R1g_scM0g(
 
 
 def R2g_scM0g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -872,7 +872,7 @@ def R2g_scM0g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,bai->ba", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -898,7 +898,7 @@ def R2g_scM0g(
 
 
 def R1f_scM0g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -951,7 +951,7 @@ def R1f_scM0g(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -988,7 +988,7 @@ def R1f_scM0g(
 
 
 def R2f_scM0g(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -1041,7 +1041,7 @@ def R2f_scM0g(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
 
     for g in band0:
         for ff in band2:
@@ -1089,7 +1089,7 @@ def R2f_scM0g(
 
 
 def R1f_scM0e(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -1142,7 +1142,7 @@ def R1f_scM0e(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -1179,7 +1179,7 @@ def R1f_scM0e(
 
 
 def R2f_scM0e(
-    t2: float,
+    t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
     lab: Any,
@@ -1232,7 +1232,7 @@ def R2f_scM0e(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
 
     lam = gg.get_reorganization_energies()
     # print("lam = ", convert(lam,"int","1/cm"))

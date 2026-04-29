@@ -55,7 +55,7 @@ fmo_ham = numpy.array([
 
 def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:
 
-    qutip_data = dict(depth=depth)
+    qutip_data: dict[str, Any] = dict(depth=depth)
 
     # number of states
     Ngr = 1
@@ -233,7 +233,12 @@ def run_simulation(
 
     #
     # CONSTRUCTING EVOLUTION SUPEROPERATOR
+    # (dead code below - variables declared to satisfy type checker)
     #
+    Ndim: Any = None
+    Nk: Any = None
+    Hsys: Any = None
+
     evosuperops = []
     for t in range(t_slices):
         evosuperops.append(np.zeros((Ndim, Ndim, Ndim, Ndim), dtype=complex))

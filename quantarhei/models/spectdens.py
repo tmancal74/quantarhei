@@ -19,7 +19,7 @@ class DatabaseEntry:
     def get_CorrelationFunction(self, temperature: Any) -> Any:
         pass
 
-    def get_SpectralDensity(self) -> Any:
+    def get_SpectralDensity(self, axis: Any = None) -> Any:
         pass
 
 
@@ -47,8 +47,9 @@ class CorrelationFunctionDatabaseEntry(DatabaseEntry):
     """
 
     direct_implementation = DatabaseEntry.CORRELATION_FUNCTION
+    temperature: Any
 
-    def get_SpectralDensity(self) -> Any:
+    def get_SpectralDensity(self, axis: Any = None) -> Any:
         """Returns SpectralDensity on CorrelationFunction based"""
         temperature = self.temperature
         return self.get_CorrelationFunction(temperature).get_SpectralDensity()

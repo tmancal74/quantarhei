@@ -264,7 +264,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         # keeps track of RWA
         self.is_in_rwa = False
 
-        self.dense_time = None
+        self.dense_time: TimeAxis = TimeAxis(0.0, 2, self.time.step)
         self.set_dense_dt(1)
 
         #
@@ -483,7 +483,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
         )
         rhonm0 = ReducedDensityMatrix(dim=dim)
-        Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        Ut1: numpy.ndarray = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
             for m in range(dim):
                 rhonm0.data[n, m] = 1.0
@@ -662,13 +662,13 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             return SuperOperator(data=self.data[ti, :, :, :, :])
         return SuperOperator(data=self.data)
 
-    def apply(self, time: Any, target: Any, copy: bool = True) -> Any:
+    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:
         """Applies the evolution superoperator at a given time
 
 
         Parameters
         ----------
-        time : float, array (list, tupple) of floats or TimeAxis
+        oper : float, array (list, tupple) of floats or TimeAxis
             Time(s) at which the evolution superoperator should be applied
 
         target : DensityMatrix, ReducedDensityMatrix
@@ -681,15 +681,16 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
 
         """
+        time = oper
         if isinstance(time, numbers.Real):
             #
             # Apply at a single point in time and return ReducedDensityMatrix
             #
             ti, dt = self.time.locate(time)
             if copy:
-                import copy
+                import copy as _copy
 
-                oper_ven = copy.copy(target)
+                oper_ven = _copy.copy(target)
                 oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
                 return oper_ven
             target.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
@@ -722,7 +723,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             return rhot
 
-        if isinstance(time, (list, numpy.array, tuple, TimeAxis)):
+        if isinstance(time, (list, numpy.ndarray, tuple, TimeAxis)):
             #
             # we apply at points specified by TimeAxis
             #

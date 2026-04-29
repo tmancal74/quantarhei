@@ -9,6 +9,7 @@ from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
 from ..core.managers import EnergyUnitsManaged
 from ..core.units import cm2int
+from ..core.valueaxis import ValueAxis
 
 
 class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
@@ -189,22 +190,22 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
     # save method is inherited from DFunction
 
-    def save_data(self, filename: str) -> None:
+    def save_data(
+        self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
+    ) -> None:
         """Saves the data of this absorption spectrum"""
-        super().save_data(filename, with_axis=self.axis)
+        super().save_data(name, with_axis=self.axis)
 
-    def load_data(self, filename: str) -> None:
+    def load_data(
+        self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
+    ) -> None:
         """Loads data from file into this absorption spectrum"""
         if self.axis is None:
             raise Exception("The property `axis` has to be defined")
-        super().load_data(filename, with_axis=self.axis)
+        super().load_data(name, with_axis=self.axis)
 
-    def plot(self, **kwargs: Any) -> Any:
+    def plot(self, **kwargs: Any) -> None:  # type: ignore[override]
         """Plotting absorption spectrum using the DFunction plot method"""
         if "ylabel" not in kwargs:
-            ylabel = r"$\alpha(\omega)$ [a.u.]"
-            kwargs["ylabel"] = ylabel
-
-        fig = super().plot(**kwargs)
-        if fig is not None:
-            return fig
+            kwargs["ylabel"] = r"$\alpha(\omega)$ [a.u.]"
+        super().plot(**kwargs)

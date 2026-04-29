@@ -249,6 +249,8 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
     """
 
+    dense_time: TimeAxis | None
+
     def __init__(
         self,
         time: Any = None,
@@ -366,7 +368,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         elif self.mode == "jit":
             # if we need to keep only the last state
-            if self.dim != self.data.shape[0]:
+            if self.dim != self.data.shape[0]:  # type: ignore[misc,index,attr-defined,assignment]
                 self.data_pop = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
 
                 self.data_coh = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
@@ -379,7 +381,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 for j in range(dim):
                     self.data_coh[i, j] = 1.0
 
-    def data(self, ti: int, i: int, j: int, k: int, l: int) -> Any:  # type: ignore[override]
+    def data(self, ti: int, i: int, j: int, k: int, l: int) -> Any:  # type: ignore[override,no-redef]
         if i == j and k == l:  # population
             return self.data_pop[ti, i, k]
         if i == k and j == l:
@@ -488,6 +490,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self, t0: float, dens_dt: float, Nt: int, show_progress: bool = False
     ) -> numpy.ndarray:
         """Single elemental step of propagation with the dense time step"""
+        assert self.dense_time is not None
         dim = self.ham.dim
         one_step_time = TimeAxis(t0, 2, self.dense_time.step)
         prop = ReducedDensityMatrixPropagator(
@@ -511,6 +514,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         assuming time dependent relaxation tensor
 
         """
+        assert self.dense_time is not None
         dim = self.dim
         one_step_time = TimeAxis(t0, self.dense_time.length, self.dense_time.step)
 
@@ -518,7 +522,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
         )
         rhonm0 = ReducedDensityMatrix(dim=dim)
-        Ut1 = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        Ut1: numpy.ndarray = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         for n in range(dim):
             for m in range(dim):
                 rhonm0.data[n, m] = 1.0
@@ -541,6 +545,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         This step is componsed of Ndense time steps
 
         """
+        assert self.dense_time is not None
         Ut1 = self._elemental_step_TimeIndep(
             t0, dens_dt, Nt, show_progress=show_progress
         )
@@ -556,14 +561,15 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         self, Nt: int, show_progress: bool = False
     ) -> None:
         """Calculate the rest of the superoperator with known first interval"""
-        Udt = self.data[1, :, :, :, :]
+        Udt = self.data[1, :, :, :, :]  # type: ignore[misc,index,attr-defined,assignment]
 
         for ti in range(2, Nt):
             if show_progress:
                 print("Self propagation: ", ti, "of", Nt)
 
-            self.data[ti, :, :, :, :] = numpy.tensordot(
-                Udt, self.data[ti - 1, :, :, :, :]
+            self.data[ti, :, :, :, :] = numpy.tensordot(  # type: ignore[misc,index,attr-defined,assignment]
+                Udt,
+                self.data[ti - 1, :, :, :, :],  # type: ignore[misc,index,attr-defined,assignment]
             )
 
     def calculate_next(self, save: bool = False) -> None:
@@ -592,11 +598,12 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             Ut1 = self._elemental_step_TimeDependent(t0)
 
             if save:
-                self.data[ti, :, :, :, :] = numpy.tensordot(
-                    Ut1, self.data[ti - 1, :, :, :, :]
+                self.data[ti, :, :, :, :] = numpy.tensordot(  # type: ignore[misc,index,attr-defined,assignment]
+                    Ut1,
+                    self.data[ti - 1, :, :, :, :],  # type: ignore[misc,index,attr-defined,assignment]
                 )
             else:
-                self.data[:, :, :, :] = numpy.tensordot(Ut1, self.data[:, :, :, :])
+                self.data[:, :, :, :] = numpy.tensordot(Ut1, self.data[:, :, :, :])  # type: ignore[misc,index,attr-defined,assignment]
 
             self.now += 1
 
@@ -612,6 +619,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
                 t0 = 0.0
 
+                assert self.dense_time is not None
                 self.Udt = self._one_step_with_dense_TimeIndep(
                     t0,
                     self.dense_time.length,
@@ -621,9 +629,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 )
 
                 if save:
-                    self.data[1, :, :, :, :] = self.Udt[:, :, :, :]
+                    self.data[1, :, :, :, :] = self.Udt[:, :, :, :]  # type: ignore[misc,index,attr-defined,assignment]
                 else:
-                    self.data[:, :, :, :] = self.Udt[:, :, :, :]
+                    self.data[:, :, :, :] = self.Udt[:, :, :, :]  # type: ignore[misc,index,attr-defined,assignment]
 
                 self.now += 1
 
@@ -634,12 +642,14 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 ti = self.now + 1
 
                 if save:
-                    self.data[ti, :, :, :, :] = numpy.tensordot(
-                        self.Udt, self.data[ti - 1, :, :, :, :]
+                    self.data[ti, :, :, :, :] = numpy.tensordot(  # type: ignore[misc,index,attr-defined,assignment]
+                        self.Udt,
+                        self.data[ti - 1, :, :, :, :],  # type: ignore[misc,index,attr-defined,assignment]
                     )
                 else:
-                    self.data[:, :, :, :] = numpy.tensordot(
-                        self.Udt, self.data[:, :, :, :]
+                    self.data[:, :, :, :] = numpy.tensordot(  # type: ignore[misc,index,attr-defined,assignment]
+                        self.Udt,
+                        self.data[:, :, :, :],  # type: ignore[misc,index,attr-defined,assignment]
                     )
 
                 self.now += 1
@@ -662,8 +672,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             return MockSuperOperator(
                 data_pop=self.data_pop[ti], data_coh=self.data_coh[ti]
             )
+        return None
 
-    def apply(self, time: Any, target: Any, copy: bool = True) -> Any:
+    def apply(self, time: Any, target: Any = None, copy: bool = True) -> Any:
         """Applies the evolution superoperator at a given time
 
 
@@ -688,12 +699,12 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             #
             ti, dt = self.time.locate(time)
             if copy:
-                import copy
+                import copy as _copy_module
 
-                oper_ven = copy.copy(target)
-                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
+                oper_ven = _copy_module.copy(target)
+                oper_ven.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)  # type: ignore[misc,index,attr-defined,assignment]
                 return oper_ven
-            target.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)
+            target.data = numpy.tensordot(self.data[ti, :, :, :, :], target.data)  # type: ignore[misc,index,attr-defined,assignment]
             return target
 
         # Probably evaluation at more than one time
@@ -717,13 +728,14 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             k_i = 0
             for tt in time.data:
                 rhot.data[k_i, :, :] = numpy.tensordot(
-                    self.data[k_i, :, :, :, :], target.data
+                    self.data[k_i, :, :, :, :],  # type: ignore[index]
+                    target.data,  # type: ignore[misc,index,attr-defined,assignment]
                 )
                 k_i += 1
 
             return rhot
 
-        if isinstance(time, (list, numpy.array, tuple, TimeAxis)):
+        if isinstance(time, (list, numpy.ndarray, tuple, TimeAxis)):
             #
             # we apply at points specified by TimeAxis
             #
@@ -740,7 +752,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             k_i = 0
             for tt in ntime.data:
                 Ut = self.at(tt)
-                rhot.data[k_i, :, :] = numpy.tensordot(Ut.data, target.data)
+                rhot.data[k_i, :, :] = numpy.tensordot(Ut.data, target.data)  # type: ignore[misc,index,attr-defined,assignment,call-overload]
                 k_i += 1
 
             return rhot
@@ -757,12 +769,13 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             A tuple of indices determing the element of the superoperator
 
         """
-        shape = self.data.shape
+        shape = self.data.shape  # type: ignore[misc,index,attr-defined,assignment]
         tl = self.time.length
         if (len(elem) == len(shape) - 1) and (len(elem) == 4):
             if tl == shape[0]:
                 plt.plot(
-                    self.time.data, self.data[:, elem[0], elem[1], elem[2], elem[3]]
+                    self.time.data,
+                    self.data[:, elem[0], elem[1], elem[2], elem[3]],  # type: ignore[misc,index,attr-defined,assignment]
                 )
                 if show:
                     plt.show()
