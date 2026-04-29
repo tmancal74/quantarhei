@@ -87,13 +87,13 @@ def efce_R4g_vec(t2, t1s, t3s, aa):
     )
 
 
-class TestResponses(unittest.TestCase):
+class TestPumpProbe(unittest.TestCase):
     """Tests for the response package"""
 
     def setUp(self, verbose=False):
         pass
 
-    def test_Responses(self):
+    def test_PumpProbe_1(self):
         """Testing basic functions of the TwoDSpectrumBase class"""
         #
         # Lineshape function
@@ -216,7 +216,7 @@ class TestResponses(unittest.TestCase):
 
         npt.assert_allclose(twod0.data, twod.data)
 
-    def test_LouvillePathway(self):
+    def test_PumpProbe_2(self):
         """Testing basic functions of the TwoDSpectrumCalculator class"""
         t1 = qr.TimeAxis(0.0, 1000, 1.0)
         t3 = qr.TimeAxis(0.0, 1000, 1.0)

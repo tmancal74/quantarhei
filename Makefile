@@ -24,6 +24,7 @@ lint-fix:
 	uv run ruff check quantarhei/ --fix
 	uv run ruff check examples/ --fix
 
+pre-commit: lint
 
 # 
 # Package tests
