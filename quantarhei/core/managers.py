@@ -926,6 +926,13 @@ class energy_units(units_context_manager):
         self.manager._in_eu_count += 1
 
     def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+        if exc_val is not None and self.units != self.units_backup:
+            warnings.warn(
+                f"An exception exited a 'with energy_units(\"{self.units}\")' block. "
+                f"Unit state has been restored to '{self.units_backup}', but any "
+                f"intermediate results computed inside the block may be in unexpected units.",
+                stacklevel=2,
+            )
         self.manager.set_current_units("energy", self.units_backup)
         self.manager._in_eu_count -= 1
         if self.manager._in_eu_count == 0:
@@ -959,6 +966,13 @@ class length_units(units_context_manager):
         self.manager.set_current_units(self.utype, self.units)
 
     def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+        if exc_val is not None and self.units != self.units_backup:
+            warnings.warn(
+                f"An exception exited a 'with length_units(\"{self.units}\")' block. "
+                f"Unit state has been restored to '{self.units_backup}', but any "
+                f"intermediate results computed inside the block may be in unexpected units.",
+                stacklevel=2,
+            )
         self.manager.set_current_units("length", self.units_backup)
 
 
@@ -1077,3 +1091,28 @@ def set_current_units(units: dict[str, str] | None = None) -> None:
                 manager.set_current_units(utype, manager.internal_units[utype])
             else:
                 raise Exception(f"Unknown units type {utype}")
+
+
+def units_state() -> dict[str, str]:
+    """Returns a snapshot of the current global unit settings.
+
+    Useful for inspecting Manager state in notebooks or debugging
+    unexpected unit conversions.
+
+    Returns
+    -------
+    dict
+        Mapping of unit type to current unit string, e.g.
+        ``{'energy': '1/cm', 'frequency': '1/fs', 'length': 'A',
+        'temperature': 'Kelvin', 'dipolemoment': 'Debye'}``.
+
+    Examples
+    --------
+    >>> import quantarhei as qr
+    >>> state = qr.units_state()
+    >>> state['energy']
+    '1/fs'
+
+    """
+    manager = Manager()
+    return dict(manager.current_units)
