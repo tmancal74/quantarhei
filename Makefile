@@ -1,7 +1,19 @@
 .PHONY: sync lint lint-fix test unit doctest behave all clean-coverage
 
+all: sync lint test
+
+
+#
+# Environment setup
+#
+
 sync:
 	uv sync --extra dev
+
+
+#
+# Lint tests and fixes
+#
 
 lint:
 	uv run ruff format --check .
@@ -10,6 +22,13 @@ lint:
 lint-fix:
 	uv run ruff format .
 	uv run ruff check quantarhei/ --fix
+	uv run ruff check examples/ --fix
+
+pre-commit: lint
+
+# 
+# Package tests
+#
 
 unit:
 	uv run pytest -v \
@@ -43,8 +62,16 @@ behave:
 
 test: unit doctest behave
 
-all: sync lint test
+
+#
+# After test clean-up
+#
 
 clean-coverage:
 	rm -f .coverage .coverage.* coverage*.xml
 	rm -rf htmlcov
+
+clean: clean-coverage
+	rm -f results-*.xml
+	rm -f test.log
+
