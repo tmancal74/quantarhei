@@ -14,6 +14,17 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Validate version tag matches pyproject.toml
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(grep '^version' pyproject.toml | head -1 | sed 's/.*= *"\(.*\)"/\1/')
+          if [ "$TAG" != "$PKG" ]; then
+            echo "ERROR: git tag v$TAG does not match pyproject.toml version $PKG"
+            echo "Update pyproject.toml to $TAG before tagging."
+            exit 1
+          fi
+          echo "Version check passed: $TAG == $PKG"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -54,3 +65,24 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release with generated notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag
