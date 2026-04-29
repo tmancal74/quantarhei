@@ -66,6 +66,7 @@ if TYPE_CHECKING:
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import json
+from importlib.metadata import PackageNotFoundError as _PackageNotFoundError
 from importlib.metadata import version as _pkg_version
 from importlib.resources import files
 
@@ -85,7 +86,10 @@ from .units import (
 class Manager(metaclass=Singleton):
     """Main package Manager"""
 
-    version = _pkg_version("quantarhei")
+    try:
+        version = _pkg_version("quantarhei")
+    except _PackageNotFoundError:
+        version = "unknown"
 
     # hard wired unit options
     allowed_utypes = [
