@@ -1,4 +1,4 @@
-.PHONY: sync lint test unit doctest behave all clean-coverage
+.PHONY: sync lint lint-fix test unit doctest behave all clean-coverage
 
 sync:
 	uv sync --extra dev
@@ -6,6 +6,10 @@ sync:
 lint:
 	uv run ruff format --check .
 	uv run pre-commit run --all-files
+
+lint-fix:
+	uv run ruff format .
+	uv run ruff check quantarhei/ --fix
 
 unit:
 	uv run pytest -v \
