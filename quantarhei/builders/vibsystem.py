@@ -301,14 +301,18 @@ class VibrationalSystem(UnitsManaged, Saveable, OpenSystem):
         mcount = 0
         skip_relaxation = False
         for mm, md in enumerate(self.modes):
+            sbi = None
             try:
                 sbi = md.get_SystemBathInteraction()
 
             except Exception:
                 skip_relaxation = True
 
+            if sbi is None:
+                skip_relaxation = True
+
             if not skip_relaxation:
-                nops = sbi.KK.shape[0]
+                nops = sbi.KK.shape[0]  # type: ignore[union-attr]
 
                 for ii in range(nops):
                     # print("Current operator is:", ii)
