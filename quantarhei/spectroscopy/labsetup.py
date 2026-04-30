@@ -1417,10 +1417,6 @@ class LabField:
         self.labsetup.phases[self.index] = val
         # FIXME: The pulse field has to be updated
 
-    def set_delay_phase(self, val: float) -> None:
-        """Returns the phase caused by the pulse delay"""
-        raise Exception("Setting delay phases independently is not allowed")
-
     def get_center(self) -> Any:
         """Returns the pulse center time"""
         return self.labsetup.pulse_centers[self.index]
