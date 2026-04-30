@@ -78,7 +78,8 @@ class StateVector(BasisManaged):
 
     def norm(self) -> Any:
         """Returns the norm of the StateVector"""
-        return numpy.sqrt(numpy.dot(numpy.conj(self.data), self.data)).real
+        # vdot conjugates its first argument: <data|data> = ||data||^2
+        return numpy.sqrt(numpy.vdot(self.data, self.data).real)
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
