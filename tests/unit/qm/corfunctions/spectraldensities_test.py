@@ -1,3 +1,5 @@
+import contextlib
+import io
 import unittest
 
 import numpy
@@ -105,3 +107,33 @@ class TestSpectralDensity(unittest.TestCase):
         cf2 = tot_sd2.get_CorrelationFunction(temperature=300)
 
         numpy.testing.assert_allclose(cf1.data, cf2.data, atol=1.0e-2)
+
+    def test_B777_renger_form_produces_no_stdout(self):
+        """SpectralDensity B777 Renger form must not print to stdout"""
+        params = dict(ftype="B777", reorg=102.0, T=300.0, alternative_form=False)
+        time = TimeAxis(0.0, 10000, 0.1)
+        captured = io.StringIO()
+        with energy_units("1/cm"):
+            with contextlib.redirect_stdout(captured):
+                SpectralDensity(time, params)
+        self.assertEqual(captured.getvalue(), "")
+
+    def test_B777_alternate_form_produces_no_stdout(self):
+        """SpectralDensity B777 alternate form must not print to stdout"""
+        params = dict(ftype="B777", reorg=102.0, T=300.0, alternative_form=True)
+        time = TimeAxis(0.0, 10000, 0.1)
+        captured = io.StringIO()
+        with energy_units("1/cm"):
+            with contextlib.redirect_stdout(captured):
+                SpectralDensity(time, params)
+        self.assertEqual(captured.getvalue(), "")
+
+    def test_CP29_spectral_density_produces_no_stdout(self):
+        """SpectralDensity CP29 construction must not print to stdout"""
+        params = dict(ftype="CP29", reorg=37.0, T=300.0, gamma=1.0 / 100.0)
+        time = TimeAxis(0.0, 10000, 0.1)
+        captured = io.StringIO()
+        with energy_units("1/cm"):
+            with contextlib.redirect_stdout(captured):
+                SpectralDensity(time, params)
+        self.assertEqual(captured.getvalue(), "")

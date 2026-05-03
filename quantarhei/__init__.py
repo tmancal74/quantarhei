@@ -627,11 +627,11 @@ def assert_version(check: str, vno: str) -> None:
             ext()
 
     elif check == ">":
-        if not (version.parse(Manager().version) == version.parse(vno)):
+        if not (version.parse(Manager().version) > version.parse(vno)):
             ext()
 
-    elif check == "<=":
-        if not (version.parse(Manager().version) >= version.parse(vno)):
+    elif check == "<":
+        if not (version.parse(Manager().version) < version.parse(vno)):
             ext()
 
     else:

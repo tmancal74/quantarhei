@@ -446,7 +446,6 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         # use the units in which params was defined
         lamb = self.manager.iu_energy(params["reorg"], units=self.energy_units)
-        print(f"correlation function lamb in int units {lamb:f}")
         time = self.axis  # .data
 
         if values is not None:
