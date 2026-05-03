@@ -4,5 +4,4 @@ matplotlib
 terminaltables
 dill
 pyyaml
-sympy
-
+# sympy is an optional dependency; install with: pip install quantarhei[symbolic]

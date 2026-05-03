@@ -442,30 +442,18 @@ from .spectroscopy.circular_dichroism import (
 from .spectroscopy.circular_dichroism import (
     CircDichSpectrumContainer as CircDichSpectrumContainer,
 )
-from .spectroscopy.dsfeynman import (
-    DSFeynmanDiagram as DSFeynmanDiagram,
-)
-from .spectroscopy.dsfeynman import (
-    R1f_Diagram as R1f_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R1g_Diagram as R1g_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R1g_R_Diagram as R1g_R_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R2f_Diagram as R2f_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R2g_Diagram as R2g_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R3g_Diagram as R3g_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R4g_Diagram as R4g_Diagram,
-)
+
+try:
+    from .spectroscopy.dsfeynman import DSFeynmanDiagram as DSFeynmanDiagram
+    from .spectroscopy.dsfeynman import R1f_Diagram as R1f_Diagram
+    from .spectroscopy.dsfeynman import R1g_Diagram as R1g_Diagram
+    from .spectroscopy.dsfeynman import R1g_R_Diagram as R1g_R_Diagram
+    from .spectroscopy.dsfeynman import R2f_Diagram as R2f_Diagram
+    from .spectroscopy.dsfeynman import R2g_Diagram as R2g_Diagram
+    from .spectroscopy.dsfeynman import R3g_Diagram as R3g_Diagram
+    from .spectroscopy.dsfeynman import R4g_Diagram as R4g_Diagram
+except ImportError:
+    pass
 
 #
 # Fluorescence
@@ -541,7 +529,11 @@ from .spectroscopy.twodcontainer import TwoDSpectrumContainer as TwoDSpectrumCon
 #
 from .spectroscopy.twodresponse import TwoDResponse as TwoDResponse
 from .spectroscopy.twodspect import TwoDSpectrum as TwoDSpectrum
-from .symbolic.cumulant import evaluate_cumulant as evaluate_cumulant
+
+try:
+    from .symbolic.cumulant import evaluate_cumulant as evaluate_cumulant
+except ImportError:
+    pass
 from .utils.logging import (
     init_logging as init_logging,
 )
