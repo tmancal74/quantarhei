@@ -926,10 +926,12 @@ class energy_units(units_context_manager):
         self.manager._in_eu_count += 1
 
     def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
-        self.manager.set_current_units("energy", self.units_backup)
-        self.manager._in_eu_count -= 1
-        if self.manager._in_eu_count == 0:
-            self.manager._in_energy_units_context = False
+        try:
+            self.manager.set_current_units("energy", self.units_backup)
+        finally:
+            self.manager._in_eu_count -= 1
+            if self.manager._in_eu_count == 0:
+                self.manager._in_energy_units_context = False
 
 
 class frequency_units(energy_units):
@@ -1011,43 +1013,44 @@ class eigenbasis_of(basis_context_manager):
         if self.manager.warn_about_basis_change:
             print("\nQr >>> Returning from basis context manager. Cleaning ...")
 
-        # This is the basis we are leaving
-        bb = self.manager.basis_stack.pop()
-        # this is the transformation we got here with
-        SS = self.manager.basis_transformations.pop()
-        # This is the new basis
-        bss = len(self.manager.basis_stack)
-        nb = self.manager.basis_stack[bss - 1]
+        try:
+            # This is the basis we are leaving
+            bb = self.manager.basis_stack.pop()
+            # this is the transformation we got here with
+            SS = self.manager.basis_transformations.pop()
+            # This is the new basis
+            bss = len(self.manager.basis_stack)
+            nb = self.manager.basis_stack[bss - 1]
 
-        # inverse of the transformation matrix
-        S1 = numpy.linalg.inv(SS)
+            # inverse of the transformation matrix
+            S1 = numpy.linalg.inv(SS)
 
-        # transform all registered objects
-        operators = self.manager.basis_registered[bb]
+            # transform all registered objects
+            operators = self.manager.basis_registered[bb]
 
-        if nb != 0:
-            # operators registered with the context above this one
-            ops_above = self.manager.basis_registered[nb]
-
-        for op in operators:
-            # the operator might have been set to protected mode
-            # inside the context
-            if not op.is_basis_protected:
-                op.transform(S1, inv=SS)
-            op.set_current_basis(nb)
-
-            # operators which appeared in this context and where not
-            # register in the one above are now registerd
             if nb != 0:
-                if op not in ops_above:
-                    self.manager.register_with_basis(nb, op)
+                # operators registered with the context above this one
+                ops_above = self.manager.basis_registered[nb]
 
-        self.manager.remove_current_basis_operator()
+            for op in operators:
+                # the operator might have been set to protected mode
+                # inside the context
+                if not op.is_basis_protected:
+                    op.transform(S1, inv=SS)
+                op.set_current_basis(nb)
 
-        del self.manager.basis_registered[bb]
+                # operators which appeared in this context and where not
+                # register in the one above are now registerd
+                if nb != 0:
+                    if op not in ops_above:
+                        self.manager.register_with_basis(nb, op)
 
-        if len(self.manager.basis_stack) == 1:
-            self.manager._in_eigenbasis_of_context = False
+            self.manager.remove_current_basis_operator()
+
+            del self.manager.basis_registered[bb]
+        finally:
+            if len(self.manager.basis_stack) == 1:
+                self.manager._in_eigenbasis_of_context = False
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")

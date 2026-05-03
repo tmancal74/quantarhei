@@ -94,6 +94,35 @@ class TestEnergyUnits(unittest.TestCase):
         self.assertEqual(self.u.get_value(), val2 * cm2int)
         self.assertEqual(w.get_value(), val1 * cm2int)
 
+    def test_energy_units_state_restored_after_exception(self):
+        """energy_units.__exit__ must restore Manager state even if body raises"""
+        manager = Manager()
+
+        try:
+            with energy_units("1/cm"):
+                raise RuntimeError("body error")
+        except RuntimeError:
+            pass
+
+        self.assertEqual(manager._in_eu_count, 0)
+        self.assertFalse(manager._in_energy_units_context)
+
+    def test_energy_units_nested_state_restored_after_exception(self):
+        """Nested energy_units: inner exception must not corrupt outer counter"""
+        manager = Manager()
+
+        with energy_units("1/cm"):
+            try:
+                with energy_units("eV"):
+                    raise RuntimeError("inner error")
+            except RuntimeError:
+                pass
+
+            self.assertEqual(manager._in_eu_count, 1)
+            self.assertTrue(manager._in_energy_units_context)
+
+        self.assertEqual(manager._in_eu_count, 0)
+        self.assertFalse(manager._in_energy_units_context)
     def test_cu_energy_roundtrip(self):
         """cu_energy() must convert input units -> current units correctly.
 
