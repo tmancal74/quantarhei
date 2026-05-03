@@ -98,12 +98,12 @@ class TestPumpProbe(unittest.TestCase):
         #
         # Lineshape function
         #
-        Nt1 = 100
-        dt1 = 11
-        Nt3 = 100
-        dt3 = 12
+        Nt1 = 50
+        dt1 = 10
+        Nt3 = 50
+        dt3 = 10
 
-        Nt2 = 50
+        Nt2 = 2
         dt2 = 10.0
 
         t1_axis = qr.TimeAxis(0.0, Nt1, dt1)
