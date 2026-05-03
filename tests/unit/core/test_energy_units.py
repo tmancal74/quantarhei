@@ -13,7 +13,8 @@ import unittest
 import warnings
 
 from quantarhei import energy_units, set_current_units, units_state
-from quantarhei.core.units import cm2int
+from quantarhei import Manager
+from quantarhei.core.units import cm2int, conversion_facs_energy
 
 # let us reuse a class from previous test
 from .test_UnitsManaged import UnitsManagedObject
@@ -143,3 +144,24 @@ class TestEnergyUnits(unittest.TestCase):
 
         unit_warns = [w for w in caught if issubclass(w.category, UserWarning)]
         self.assertEqual(len(unit_warns), 0)
+  
+    def test_cu_energy_roundtrip(self):
+        """cu_energy() must convert input units -> current units correctly.
+
+        100 1/cm expressed in eV, then cu_energy(..., units="eV") with
+        current_units="1/cm" must return 100.0.  Before the fix this
+        returned the original eV value unchanged (identity bug).
+        """
+        m = Manager()
+        cm_fac = conversion_facs_energy["1/cm"]
+        eV_fac = conversion_facs_energy["eV"]
+
+        # 100 1/cm in internal units, then expressed as eV
+        val_eV = (100.0 * cm_fac) / eV_fac
+
+        set_current_units({"energy": "1/cm"})
+        try:
+            result = m.cu_energy(val_eV, units="eV")
+            self.assertAlmostEqual(result, 100.0, places=8)
+        finally:
+            set_current_units()

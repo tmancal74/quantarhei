@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import tempfile
 from typing import IO, Any
 
 import dill as pickle
@@ -32,8 +34,15 @@ class Parcel:
 
         """
         if isinstance(filename, str):
-            with open(filename, "wb") as f:
-                pickle.dump(self, f)
+            dest_dir = os.path.dirname(os.path.abspath(filename))
+            tmp_fd, tmp_path = tempfile.mkstemp(dir=dest_dir)
+            try:
+                with os.fdopen(tmp_fd, "wb") as f:
+                    pickle.dump(self, f)
+                os.replace(tmp_path, filename)
+            except:
+                os.unlink(tmp_path)
+                raise
         else:
             pickle.dump(self, filename)
 
