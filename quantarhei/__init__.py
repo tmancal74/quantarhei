@@ -143,13 +143,12 @@ except _PackageNotFoundError:
 #
 # Fix used numerical types
 #
-# import numpy
+import numpy
+
 from .core.managers import Manager
 
-m = Manager()
-
-REAL: type = m.get_real_type()  # numpy.float64
-COMPLEX: type = m.get_complex_type()  # numpy.complex128
+REAL: type = numpy.float64
+COMPLEX: type = numpy.complex128
 
 LOG_URGENT = 1
 LOG_REPORT = 3
