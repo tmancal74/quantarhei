@@ -3,14 +3,41 @@ from __future__ import annotations
 from typing import Any
 
 import numpy
-import sympy as sp
-from sympy import Function, I, Mul, Pow, S, Wild, conjugate, sympify
-from sympy.physics.quantum import Dagger, Operator
-from sympy.physics.quantum.qexpr import QExpr
+
+try:
+    import sympy as sp
+    from sympy import Function, I, Mul, Pow, S, Wild, conjugate, sympify
+    from sympy.physics.quantum import Dagger, Operator
+    from sympy.physics.quantum.qexpr import QExpr
+
+    _SYMPY_AVAILABLE = True
+except ImportError:
+    sp = None  # type: ignore[assignment]
+    _SYMPY_AVAILABLE = False
+
+
+def _require_sympy() -> None:
+    if not _SYMPY_AVAILABLE:
+        raise ImportError(
+            "sympy is required for symbolic calculations. "
+            "Install it with: pip install quantarhei[symbolic]"
+        )
 
 
 class CumulantException(Exception):
     pass
+
+
+if not _SYMPY_AVAILABLE:
+    # Stub base classes so the module loads without sympy.
+    # Instantiating any of these will raise ImportError via _require_sympy().
+    class _SympyStub:  # type: ignore[no-redef]
+        def __init_subclass__(cls, **kwargs: Any) -> None:
+            pass
+
+    QExpr = _SympyStub  # type: ignore[assignment,misc]
+    Operator = _SympyStub  # type: ignore[assignment]
+    Function = _SympyStub  # type: ignore[assignment]
 
 
 """
@@ -354,6 +381,7 @@ def evaluate_cumulant(
     arrays: list[str] | None = None,
 ) -> Any:
     """ """
+    _require_sympy()
     if positive_times is None:
         positive_times = []
 
