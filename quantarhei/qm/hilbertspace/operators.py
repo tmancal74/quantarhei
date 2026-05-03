@@ -71,9 +71,8 @@ class Operator(MatrixData, BasisManaged, Saveable):
                 self.dim = dim
 
     def __add__(self, other: Operator) -> Operator:
-        """Addition of two operators. Returns self."""
-        self.data += other.data
-        return self
+        """Addition of two operators. Returns a new Operator."""
+        return Operator(data=self.data + other.data)
 
     def apply(self, obj: Any) -> Any:
         """Apply the operator to vector or operator on the right"""
