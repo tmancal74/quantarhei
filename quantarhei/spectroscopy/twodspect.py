@@ -230,7 +230,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         vx1 = point1[0]
         vy1 = point1[1]
         vx2 = point2[0]
-        vy2 = point2[0]
+        vy2 = point2[1]
 
         (x1, dist) = self.xaxis.locate(vx1)
         (y1, dist) = self.yaxis.locate(vy1)

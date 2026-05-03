@@ -356,6 +356,39 @@ class TestTwoDSpectrum(unittest.TestCase):
         npt.assert_allclose(twod01.data, twod1.data)
         npt.assert_allclose(twod02.data, twod2.data)
 
+    def test_get_cut_along_line_uses_correct_y_coordinate(self):
+        """get_cut_along_line must use point2[1] not point2[0] for vy2"""
+        import numpy
+
+        twod = qr.TwoDSpectrum()
+        n = 20
+        ax = qr.FrequencyAxis(10000.0, n, 10.0)
+        twod.set_axis_1(ax)
+        twod.set_axis_3(ax)
+
+        # data = 1 on the diagonal, 0 elsewhere
+        data = numpy.zeros((n, n), dtype=complex)
+        for i in range(n):
+            data[i, i] = 1.0
+        twod.set_data(data, dtype=qr.signal_TOTL)
+
+        # diagonal cut: point1 and point2 differ in both x and y
+        point1 = [ax.data[0], ax.data[0]]
+        point2 = [ax.data[-1], ax.data[-1]]
+        cut_diag = twod.get_cut_along_line(point1, point2)
+
+        # off-diagonal cut: same x range but y ends lower — must give different result
+        point2_off = [ax.data[-1], ax.data[n // 2]]
+        cut_off = twod.get_cut_along_line(point1, point2_off)
+
+        # the two cuts must differ; before the fix they were identical
+        # because vy2 was always set to point2[0] regardless of point2[1]
+        # Different end-points produce cuts of different length or different values
+        cuts_identical = len(cut_diag.data) == len(cut_off.data) and numpy.allclose(
+            cut_diag.data, cut_off.data
+        )
+        self.assertFalse(cuts_identical)
+
     def test_twod_2(self):
         """Testing basic functions of the TwoDSpectrumCalculator class"""
         t1 = qr.TimeAxis(0.0, 1000, 1.0)
