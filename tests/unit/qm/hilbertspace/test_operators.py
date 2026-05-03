@@ -13,7 +13,7 @@ import numpy
 """
 
 from quantarhei import REAL, Molecule
-from quantarhei.qm import ReducedDensityMatrix
+from quantarhei.qm import Operator, ReducedDensityMatrix
 
 
 class TestReducedDensityMatrix(unittest.TestCase):
@@ -95,3 +95,36 @@ class TestReducedDensityMatrix(unittest.TestCase):
             rdm2 = rdm2.load(fid)  # , test=True)
 
         self.assertTrue(numpy.allclose(rdm2.data, rdm.data))
+
+
+class TestOperatorAdd(unittest.TestCase):
+    """Tests that Operator.__add__ does not mutate the left operand."""
+
+    def test_add_returns_new_object(self):
+        """op1 + op2 must not modify op1."""
+        op1 = Operator(data=numpy.array([[1.0, 0.0], [0.0, 2.0]]))
+        op2 = Operator(data=numpy.array([[3.0, 0.0], [0.0, 4.0]]))
+        original = op1.data.copy()
+
+        result = op1 + op2
+
+        # op1 must be unchanged
+        self.assertTrue(numpy.allclose(op1.data, original))
+        # result must equal the sum
+        self.assertTrue(numpy.allclose(result.data, original + op2.data))
+        # result must be a distinct object
+        self.assertIsNot(result, op1)
+
+    def test_add_chained(self):
+        """op1 + op2 + op3 must leave op1 and op2 unchanged."""
+        op1 = Operator(data=numpy.eye(2))
+        op2 = Operator(data=2.0 * numpy.eye(2))
+        op3 = Operator(data=3.0 * numpy.eye(2))
+        d1 = op1.data.copy()
+        d2 = op2.data.copy()
+
+        result = op1 + op2 + op3
+
+        self.assertTrue(numpy.allclose(op1.data, d1))
+        self.assertTrue(numpy.allclose(op2.data, d2))
+        self.assertTrue(numpy.allclose(result.data, 6.0 * numpy.eye(2)))

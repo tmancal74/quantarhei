@@ -147,3 +147,48 @@ class TestRedfield(unittest.TestCase):
         numpy.testing.assert_allclose(
             rhot1_e.data, rhot2_e.data, rtol=1.0e-5, atol=1.0e-12
         )
+
+
+class TestRelaxationTensorAdd(unittest.TestCase):
+    """Tests that RelaxationTensor.__add__ does not mutate the left operand."""
+
+    def setUp(self):
+        time = TimeAxis(0.0, 1000, 1.0)
+        with energy_units("1/cm"):
+            params = {
+                "ftype": "OverdampedBrownian",
+                "reorg": 30.0,
+                "T": 300.0,
+                "cortime": 100.0,
+            }
+            cf = CorrelationFunction(time, params)
+
+        cm = CorrelationFunctionMatrix(time, 2, 1)
+        cm.set_correlation_function(cf, [(0, 0), (1, 1)])
+
+        K = Operator(data=numpy.array([[1.0, 0.0], [0.0, 0.0]], dtype=REAL))
+        sbi = SystemBathInteraction([K, K], cm)
+
+        with energy_units("1/cm"):
+            H = Hamiltonian(data=[[0.0, 100.0], [100.0, 0.0]])
+
+        self.RT1 = RedfieldRelaxationTensor(H, sbi)
+        self.RT2 = RedfieldRelaxationTensor(H, sbi)
+
+    def test_add_does_not_mutate_left_operand(self):
+        """RT1 + RT2 must not modify RT1._data."""
+        original = self.RT1._data.copy()
+
+        result = self.RT1 + self.RT2
+
+        numpy.testing.assert_array_equal(self.RT1._data, original)
+        numpy.testing.assert_allclose(result._data, original + self.RT2._data)
+        self.assertIsNot(result, self.RT1)
+
+    def test_iadd_mutates_in_place(self):
+        """RT1 += RT2 must mutate RT1 (correct in-place semantics)."""
+        original = self.RT1._data.copy()
+
+        self.RT1 += self.RT2
+
+        numpy.testing.assert_allclose(self.RT1._data, original + self.RT2._data)
