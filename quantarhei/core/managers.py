@@ -567,7 +567,7 @@ class Manager(metaclass=Singleton):
 
             cu = self.current_units["energy"]
             if cu != "1/fs":
-                y = conversion_facs_energy[units]
+                y = conversion_facs_energy[cu]
                 return i_val / y
 
             return i_val

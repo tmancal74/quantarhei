@@ -88,3 +88,14 @@ class TestStateVector(unittest.TestCase):
         psi = StateVector(data=vec)
 
         self.assertAlmostEqual(psi.norm(), numpy.sqrt(13.0))
+
+    def test_norm_complex(self):
+        """Test StateVector norm for complex state vectors"""
+        import numpy
+
+        # |psi> = (1+i)|0> + (1-i)|1>  =>  norm = sqrt(2 + 2) = 2
+        vec = numpy.array([1 + 1j, 1 - 1j])
+        psi = StateVector(data=vec)
+
+        self.assertAlmostEqual(psi.norm(), 2.0)
+        self.assertIsInstance(psi.norm(), float)
