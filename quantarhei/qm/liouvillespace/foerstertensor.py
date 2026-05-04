@@ -61,6 +61,8 @@ class FoersterRelaxationTensor(RelaxationTensor):
         else:
             self._data_initialized = False
 
+        self.basis_op = None
+
     def initialize(self) -> None:
 
         #
