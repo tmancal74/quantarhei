@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Quantarhei User Level Classes and Objects
 =========================================
 

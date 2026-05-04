@@ -96,7 +96,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         cutoff_time: float | None = None,
         as_operators: bool = False,
         name: str = "",
+        secular: bool = False,
     ) -> None:
+
+        from ...core.managers import assert_not_in_eigenbasis_context
+
+        assert_not_in_eigenbasis_context()
 
         self._initialize_basis()
 
@@ -114,6 +119,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 raise Exception(
                     "Second argument must be of the SystemBathInteraction type"
                 )
+
+        self._secular_on_init = secular
 
         self.Hamiltonian = ham
         self.SystemBathInteraction: SystemBathInteraction = sbi
@@ -144,6 +151,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             with energy_units("int"):
                 self._implementation(ham, sbi)
+
+            if self._secular_on_init:
+                self.secularize(legacy=False)
+
+            self.basis_op = ham
 
         self.Iterm = None
         self.has_Iterm = False
