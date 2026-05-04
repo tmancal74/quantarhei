@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "quantarhei"
 version = "0.0.69"
 description = "Quantarhei: Open Quantum System Theory for Molecular Systems"
-readme = "README.rst"
+readme = "README.md"
 license = { text = "MIT" }
 authors = [
   { name = "Tomas Mancal", email = "mancal@karlov.mff.cuni.cz" }
@@ -45,6 +45,11 @@ dependencies = [
 [project.optional-dependencies]
 symbolic = [
   "sympy>=1.12,<2",
+]
+docs = [
+  "sphinx>=7.0",
+  "pydata-sphinx-theme>=0.16",
+  "numpydoc>=1.6",
 ]
 dev = [
   "pytest>=7.0",

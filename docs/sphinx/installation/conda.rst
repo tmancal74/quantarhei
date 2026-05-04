@@ -1,106 +1,42 @@
 Installation with Anaconda
 ==========================
 
-The recommended way of using Quantarhei is with the scientific Python 
-distribution from Anaconda_. With Anaconda_ you get a well maintained
-multiplatform Python distribution, where the core Quantarhei dependencies,
-namely `scipy` and `numpy` packages are already installed. The `conda`
-command which comes with Ananconda distribution helps you to install
-Quantarhei smoothly on the main computer platforms.
+Quantarhei can be installed into an `Anaconda`_ or `Miniconda`_ environment.
+This is a good option if you already use conda for managing your scientific
+Python stack.
 
-
-1. Anaconda Scientific Python
------------------------------
-
-As a first step, install the Anaconda distribution of Python. Download and 
-installation instructions for all major platforms can be found on the
-Anaconda_ website.
-
-Make sure that you really run Python installed with Anaconda. On some systems,
-notably on some Linuxes, Python will already be installed when you first
-log in. It might however by Python 2. Try the following command on command
-line
-
-.. code:: bash
-
-    $ python --version
-    
-You should see something like this
-
-.. code:: bash
-
-    Python 3.6.4 :: Anaconda, Inc.
-    
-    
-**OpenSuSE note**: When installing, Anaconda asks whether it can prepend its
-$HOME/anaconda3/bin path to the $PATH variable in your `.bashrc` file. 
-Only in this case you propertly get Anaconda Python called when typing `python`
-on the command line. On (at least one version of) OpenSuSE, this leads to
-X-Windows not loading after you re-log in. In this case, it is recommended not
-to prepend the path to Anaconda Python in .bashrc, but only top do it by 
-hand when you first open the terminal:
-
-.. code:: bash
-
-    $ export PATH=$HOME/anaconda3/bin:$PATH 
-
-
-2. Installation using `conda` command
+1. Create or activate an environment
 -------------------------------------
 
-The second (and the last) step is to invoke the `conda` command and to install
-Quantarhei package for your platform
+Create a dedicated environment with Python 3.10 or later:
 
 .. code:: bash
 
-    $ conda install -c tmancal74 quantarhei 
-    
-The `-c` option specifies the chanell from which Quantarhei is installed. The
-value `tmancal74` is here to stay for a foreseable future.
-The `conda` command will install all the dependencies of Quantarhei.
+    $ conda create -n qrhei python=3.12
+    $ conda activate qrhei
 
+2. Install Quantarhei
+---------------------
+
+Install from PyPI using `pip` inside the active conda environment:
+
+.. code:: bash
+
+    $ pip install quantarhei
+
+.. note::
+
+    Quantarhei is not currently distributed via a conda channel.
+    Use `pip` inside your conda environment as shown above.
 
 3. Testing the Installation
 ---------------------------
 
-To test that Quantarhei is installed on your system, you can run the Python
-interpretter
-
 .. code:: bash
 
-    $ python
-    
-This starts the Python console
-
-.. code:: bash
-
-    Python 3.6.2 |Anaconda custom (64-bit)| (default, Sep 21 2017, 18:29:43) 
-    [GCC 4.2.1 Compatible Clang 4.0.1 (tags/RELEASE_401/final)] on darwin
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>>
-    
-Type the following line of code into Python console
-
-.. code:: python
-
-    >>> import quantarhei as qr
-    >>> qr.Manager().version
-    
-This will result in the console printing your version of Quantarhei, e.g.
-
-.. code:: python
-
-    '0.0.36'
-    
-Leave the Python console by typing
-
-.. code:: python
-
-    >>> quit()
-    
-    
-You have just installed Quantarhei package successfully.
-     
+    $ python -c "import quantarhei as qr; print(qr.Manager().version)"
+    0.0.69
 
 
- .. _Anaconda: http://www.anaconda.com
+.. _`Anaconda`: https://www.anaconda.com
+.. _`Miniconda`: https://docs.anaconda.com/miniconda/

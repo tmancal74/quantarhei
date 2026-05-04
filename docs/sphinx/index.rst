@@ -44,24 +44,16 @@ and when they agree that the error is real, go ahead to fix it (or get
 it fixed by the maintainers).
 
 
-Current status of |Qrhei| 
+Current status of |Qrhei|
 =========================
 
-|Qrhei|_'s source code is available from `Github`_, source and binary bundles
-for easy installation can be found on `Pypi`_ and `Anaconda Cloud`_. Latest
-builds are tested on `Github`_ and the test coverage is measured 
-by `coverage` package and displayed on `Codecov`_
-Documentation for |Qrhei|_ can be found on `Readthedocs`_. Also the documentaion
-is build from the source code.  
-|Qrhei|_ is an Open Source software published under the MIT license, which is
-short and very non-restrictive.
-At present we are in the alpha stage of the development. Our interim goal is 
-version 0.1.0, for which we are developing a definition (see our `Github Wiki
-page`_)
-We expect our package to run on the most current version of Python,
-but at the moment we do not explicitely test it.
-When installing from Anaconda Clound (recommended) the package supports
-all major platforms.
+|Qrhei|_'s source code is available on `Github`_. Binary packages are
+published on `PyPI`_ and installable with ``pip install quantarhei``.
+The test suite runs on Python 3.10, 3.11, and 3.12 via GitHub Actions,
+with coverage reported on `Codecov`_.
+Documentation is hosted on `Readthedocs`_ and built directly from the
+source code.
+|Qrhei|_ is Open Source software published under the MIT license.
 
 
 Detailed Documentation
@@ -72,23 +64,13 @@ Dive into |Qrhei|_ documentation below:
 .. toctree::
    :maxdepth: 2
 
-   getstarted
-   installation
-   examples
-   classes
-   advclasses
-   mngrclasses
-   internals
-   contribute
-
-
-Parts of Documentation Considered Complete
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-   
-   classes/fulldoc
+   Get started <getstarted>
+   Installation <installation>
+   Examples <examples>
+   API Reference <classes>
+   Advanced API <advclasses>
+   Internals <internals>
+   Contributing <contribute>
 
 
 Indices and tables
@@ -102,9 +84,7 @@ Indices and tables
 .. |Qrhei| replace:: **Quantarhei**
 .. _Qrhei: http://github.com/tmancal74/quantarhei
 
-.. _`Github`: http://github.com/tmancal74/quantarhei
-.. _`Readthedocs`: http://quantarhei.readthedocs.io/en/latest/
-.. _`Pypi`: https://pypi.org/project/quantarhei/
-.. _`Anaconda Cloud`: https://anaconda.org/tmancal74/quantarhei
+.. _`Github`: https://github.com/tmancal74/quantarhei
+.. _`PyPI`: https://pypi.org/project/quantarhei/
+.. _`Readthedocs`: https://quantarhei.readthedocs.io/en/latest/
 .. _`Codecov`: https://codecov.io/gh/tmancal74/quantarhei
-.. _`Github Wiki page`: https://github.com/tmancal74/quantarhei/wiki/Quantarhei-0.1
