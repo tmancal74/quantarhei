@@ -6,6 +6,7 @@ from behave import given, then, when
 
 import quantarhei as qr
 from quantarhei.spectroscopy import X
+from quantarhei.spectroscopy.circular_dichroism import CircDichSpectrumCalculator
 from quantarhei.spectroscopy.mocktwodcalculator import (
     MockTwoDResponseCalculator as TwoDResponseCalculator,
 )
@@ -466,4 +467,195 @@ def step_check_rephasing_nonrephasing(context):
     assert diff > 0.01 * scale, (
         f"Rephasing and non-rephasing spectra are nearly identical "
         f"(max diff {diff:.4e}, scale {scale:.4e})"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Scenario G: HEOM convergence
+# ---------------------------------------------------------------------------
+
+def _run_heom(e1_invcm, e2_invcm, J_invcm, cfce, ta, depth):
+    agg, m1, m2 = _build_heterodimer(e1_invcm, e2_invcm, J_invcm)
+    m1.set_transition_environment((0, 1), cfce)
+    m2.set_transition_environment((0, 1), cfce)
+    agg2 = qr.Aggregate(molecules=[m1, m2])
+    with qr.energy_units("1/cm"):
+        agg2.set_resonance_coupling(0, 1, J_invcm)
+    agg2.build()
+    H = agg2.get_Hamiltonian()
+    sbi = agg2.get_SystemBathInteraction()
+    hier = qr.qm.KTHierarchy(H, sbi, depth)
+    rho0 = qr.ReducedDensityMatrix(dim=H.dim)
+    rho0.data[2, 2] = 1.0
+    prop = qr.qm.KTHierarchyPropagator(ta, hier)
+    rhot = prop.propagate(rho0)
+    return rhot
+
+
+@when("I propagate with HEOM at depth {d1} and depth {d2} for {duration} fs with time step {dt} fs")
+def step_propagate_heom(context, d1, d2, duration, dt):
+    dt_val = float(dt)
+    Nt = int(float(duration) / dt_val) + 1
+    ta = qr.TimeAxis(0.0, Nt, dt_val)
+    cfce = context.cfce
+
+    context.rhot_heom_shallow = _run_heom(
+        context.e1_invcm, context.e2_invcm, context.J_invcm, cfce, ta, int(d1)
+    )
+    context.rhot_heom_mid = _run_heom(
+        context.e1_invcm, context.e2_invcm, context.J_invcm, cfce, ta, int(d2)
+    )
+    # one deeper for convergence check
+    context.rhot_heom_deep = _run_heom(
+        context.e1_invcm, context.e2_invcm, context.J_invcm, cfce, ta, int(d2) + 1
+    )
+    context.heom_ta = ta
+
+
+@then("the depth-2 and depth-4 populations differ by more than {tol_pct} percent")
+def step_heom_not_converged(context, tol_pct):
+    tol = float(tol_pct) / 100.0
+    last = -1
+    p_shallow = numpy.real(context.rhot_heom_shallow.data[last, 2, 2])
+    p_mid = numpy.real(context.rhot_heom_mid.data[last, 2, 2])
+    diff = abs(p_shallow - p_mid)
+    scale = max(abs(p_shallow), abs(p_mid), 1e-10)
+    assert diff > tol * scale, (
+        f"depth-2 and depth-4 populations are already converged: "
+        f"p_shallow={p_shallow:.5f}, p_mid={p_mid:.5f}, rel diff={diff/scale:.4f}"
+    )
+
+
+@then("the depth-4 and depth-5 populations agree within {tol_pct} percent")
+def step_heom_converged(context, tol_pct):
+    tol = float(tol_pct) / 100.0
+    last = -1
+    p_mid = numpy.real(context.rhot_heom_mid.data[last, 2, 2])
+    p_deep = numpy.real(context.rhot_heom_deep.data[last, 2, 2])
+    diff = abs(p_mid - p_deep)
+    scale = max(abs(p_mid), abs(p_deep), 1e-10)
+    assert diff < tol * scale, (
+        f"HEOM depth-4 vs depth-5 not converged: "
+        f"p_mid={p_mid:.5f}, p_deep={p_deep:.5f}, rel diff={diff/scale:.4f} > {tol_pct}%"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Scenario H: Circular dichroism – chiral vs achiral dimer
+# ---------------------------------------------------------------------------
+
+@given("a chiral heterodimer with site energies {e1} and {e2} invcm and coupling {J} invcm")
+def step_chiral_heterodimer(context, e1, e2, J):
+    context.e1_invcm = float(e1)
+    context.e2_invcm = float(e2)
+    context.J_invcm = float(J)
+    context.use_monomer = False
+
+
+@when("I calculate the circular dichroism spectrum")
+def step_calc_cd(context):
+    ta = context.bath_ta
+    cfce = context.cfce
+    e1, e2, J = context.e1_invcm, context.e2_invcm, context.J_invcm
+
+    # Chiral geometry: mu1=[1,0,0], mu2=[0,1,0], R12=[0,0,5]
+    # Rotational strength R = (mu1 x mu2) . R12 = [0,0,1].[0,0,5] = 5 ≠ 0
+    with qr.energy_units("1/cm"):
+        m1 = qr.Molecule([0.0, e1])
+        m2 = qr.Molecule([0.0, e2])
+        m1.set_transition_width((0, 1), 150.0)
+        m2.set_transition_width((0, 1), 150.0)
+    m1.set_dipole(0, 1, [1.0, 0.0, 0.0])
+    m2.set_dipole(0, 1, [0.0, 1.0, 0.0])
+    m1._position = numpy.array([0.0, 0.0, 0.0])
+    m2._position = numpy.array([0.0, 0.0, 5.0])
+
+    m1.set_transition_environment((0, 1), cfce)
+    m2.set_transition_environment((0, 1), cfce)
+
+    agg = qr.Aggregate(molecules=[m1, m2])
+    with qr.energy_units("1/cm"):
+        agg.set_resonance_coupling(0, 1, J)
+    agg.build()
+    H = agg.get_Hamiltonian()
+
+    (RR, _) = agg.get_RelaxationTensor(ta, relaxation_theory="standard_Redfield")
+    calc = CircDichSpectrumCalculator(ta, agg, relaxation_tensor=RR)
+    rwa = (e1 + e2) / 2.0
+    with qr.energy_units("1/cm"):
+        calc.bootstrap(rwa=rwa)
+
+    context.cd_spectrum = calc.calculate()
+
+
+@then("the CD spectrum has both positive and negative features")
+def step_check_cd_bisignate(context):
+    with qr.frequency_units("1/cm"):
+        data = context.cd_spectrum.data
+    assert numpy.any(data > 0), "CD spectrum has no positive feature"
+    assert numpy.any(data < 0), "CD spectrum has no negative feature"
+
+
+
+# ---------------------------------------------------------------------------
+# Scenario I: Boltzmann steady-state populations from Redfield rate matrix
+# ---------------------------------------------------------------------------
+
+@when("I calculate the Redfield rate matrix")
+def step_calc_redfield_rate_matrix(context):
+    ta = context.bath_ta
+    cfce = context.cfce
+    agg, m1, m2 = _build_heterodimer(
+        context.e1_invcm, context.e2_invcm, context.J_invcm
+    )
+    m1.set_transition_environment((0, 1), cfce)
+    m2.set_transition_environment((0, 1), cfce)
+    agg2 = qr.Aggregate(molecules=[m1, m2])
+    with qr.energy_units("1/cm"):
+        agg2.set_resonance_coupling(0, 1, context.J_invcm)
+    agg2.build()
+    H = agg2.get_Hamiltonian()
+    sbi = agg2.get_SystemBathInteraction()
+
+    H.protect_basis()
+    with qr.eigenbasis_of(H):
+        RRT = qr.qm.RedfieldRelaxationTensor(H, sbi)
+        RRT.secularize()
+    H.unprotect_basis()
+
+    context.RRT_boltzmann = RRT
+    context.H_boltzmann = H
+
+
+@then("the steady-state populations satisfy the Boltzmann ratio within {tol_pct} percent")
+def step_check_boltzmann_steady_state(context, tol_pct):
+    tol = float(tol_pct) / 100.0
+    RRT = context.RRT_boltzmann
+    H = context.H_boltzmann
+
+    kB_invcm = 0.695
+    T = 300.0
+
+    evals_invcm = _true_eigenvalues_invcm(H)
+    dE = abs(evals_invcm[2] - evals_invcm[1])
+    expected = numpy.exp(-dE / (kB_invcm * T))
+
+    # Steady-state from rate matrix: dp1/dt=0, dp2/dt=0 gives
+    # p1_ss = k_down / (k_down + k_up),  p2_ss = k_up / (k_down + k_up)
+    H.protect_basis()
+    with qr.eigenbasis_of(H):
+        k_down = numpy.real(RRT.data[1, 1, 2, 2])
+        k_up = numpy.real(RRT.data[2, 2, 1, 1])
+    H.unprotect_basis()
+
+    p1_ss = k_down / (k_down + k_up)
+    p2_ss = k_up / (k_down + k_up)
+
+    assert p1_ss > 0 and p2_ss > 0, (
+        f"Non-positive steady-state population: p1={p1_ss:.5f}, p2={p2_ss:.5f}"
+    )
+    ratio = p2_ss / p1_ss
+    assert abs(ratio - expected) / expected < tol, (
+        f"Steady-state Boltzmann: p2/p1={ratio:.4f}, exp(-dE/kT)={expected:.4f} "
+        f"(dE={dE:.1f} cm⁻¹, T={T} K, rel err={abs(ratio-expected)/expected:.3f})"
     )

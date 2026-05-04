@@ -63,3 +63,34 @@ Feature: Physics integration tests pinning numerical outcomes of core simulation
           And a Lindblad relaxation rate of 1 per 200 fs
          When I calculate the 2D electronic spectrum at population time 0 fs
          Then cross-peaks are present in the total 2D spectrum
+
+    # -----------------------------------------------------------------------
+    # G. HEOM convergence with hierarchy depth
+    # -----------------------------------------------------------------------
+
+    Scenario: HEOM population dynamics converge with increasing hierarchy depth
+        Given a heterodimer with site energies 12000 and 12300 invcm and coupling 100 invcm
+          And an overdamped Brownian bath with reorganisation energy 100 invcm and correlation time 20 fs at 300 K
+         When I propagate with HEOM at depth 2 and depth 4 for 200 fs with time step 2 fs
+         Then the depth-2 and depth-4 populations differ by more than 0.1 percent
+          And the depth-4 and depth-5 populations agree within 0.5 percent
+
+    # -----------------------------------------------------------------------
+    # H. Circular dichroism – chiral vs achiral dimer
+    # -----------------------------------------------------------------------
+
+    Scenario: Chiral dimer produces a bisignate CD spectrum
+        Given a chiral heterodimer with site energies 12000 and 12300 invcm and coupling 100 invcm
+          And an overdamped Brownian bath with reorganisation energy 20 invcm and correlation time 100 fs at 300 K
+         When I calculate the circular dichroism spectrum
+         Then the CD spectrum has both positive and negative features
+
+    # -----------------------------------------------------------------------
+    # I. Boltzmann steady-state populations from Redfield rate matrix
+    # -----------------------------------------------------------------------
+
+    Scenario: Redfield rate matrix gives Boltzmann steady-state populations
+        Given a heterodimer with site energies 12000 and 12300 invcm and coupling 100 invcm
+          And an overdamped Brownian bath with reorganisation energy 20 invcm and correlation time 100 fs at 300 K
+         When I calculate the Redfield rate matrix
+         Then the steady-state populations satisfy the Boltzmann ratio within 5 percent
