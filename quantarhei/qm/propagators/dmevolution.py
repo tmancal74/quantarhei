@@ -25,6 +25,12 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         name: str | None = None,
     ) -> None:
 
+        # Set the currently used basis (mirrors Operator.__init__)
+        cb = self.manager.get_current_basis()
+        self.set_current_basis(cb)
+        if cb != 0:
+            self.manager.register_with_basis(cb, self)
+
         if timeaxis is not None:
             if name is not None:
                 self.name = name
