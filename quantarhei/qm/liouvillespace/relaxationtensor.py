@@ -70,6 +70,8 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                                     ):
                                         self.data[:, ii, jj, kk, ll] = 0
 
+            self.is_secular = True
+
         else:
             super().secularize()
 

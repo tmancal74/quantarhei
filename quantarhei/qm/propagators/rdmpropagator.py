@@ -530,6 +530,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         else:
             HH = self.Hamiltonian.data
 
+        # Secular relaxation tensors zero off-diagonal Liouville elements so
+        # that population dynamics decouple from coherences.  The commutator
+        # step must therefore use only the diagonal part of H; off-diagonal
+        # couplings would otherwise drive persistent coherences that prevent
+        # convergence to the Boltzmann steady state.
+        if self.has_RTensor and getattr(self.RelaxationTensor, "is_secular", False):
+            HH = numpy.diag(numpy.diag(HH))
+
         if self.has_NonHerm:
             HH = HH + 1j * self.NonHerm
 
