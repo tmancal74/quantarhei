@@ -926,6 +926,39 @@ class BasisManaged(Managed):
         self.is_basis_protected = False
 
 
+class BasisError(Exception):
+    """Raised when an operator is accessed in the wrong basis."""
+
+
+class BasisContextError(BasisError):
+    """Raised when a calculation routine is called in the wrong basis context."""
+
+
+def assert_not_in_eigenbasis_context() -> None:
+    """Raise BasisContextError if currently inside an eigenbasis_of context.
+
+    Call this at the top of any tensor constructor that manages its own
+    eigenbasis context internally.
+    """
+    if Manager()._in_eigenbasis_of_context:
+        raise BasisContextError(
+            "Tensor constructors must not be called inside an eigenbasis_of "
+            "context. Remove the enclosing 'with eigenbasis_of(...)' block — "
+            "the constructor manages its own basis context internally."
+        )
+
+
+def assert_in_eigenbasis_of(op: Any) -> None:
+    """Raise BasisError if not currently inside eigenbasis_of(op)."""
+    mgr = Manager()
+    if not mgr._in_eigenbasis_of_context:
+        raise BasisError("This operation requires an active eigenbasis_of context.")
+    if mgr.current_basis_operator is not op:
+        raise BasisError(
+            "Active eigenbasis context does not match the expected operator."
+        )
+
+
 class units_context_manager:
     """General context manager to manage physical units of values"""
 
