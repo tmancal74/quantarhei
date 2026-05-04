@@ -98,15 +98,11 @@ def basis_managed_array_property(
         # get object's current basis
         ob = self.get_current_basis()
 
-        if cb != ob:
-            from ..core.managers import BasisError
-
-            raise BasisError(
-                f"Operator '{getattr(self, 'name', type(self).__name__)}' is in "
-                f"basis {ob} but the current Manager basis is {cb}. "
-                "Access .data only inside the correct eigenbasis_of context, "
-                "or outside all contexts (site basis)."
-            )
+        if cb == ob:
+            pass
+        else:
+            # change basis
+            self.manager.transform_to_current_basis(self)
 
         return getattr(self, storage_name)
 
@@ -118,15 +114,11 @@ def basis_managed_array_property(
         # get object's current basis
         ob = self.get_current_basis()
 
-        if cb != ob:
-            from ..core.managers import BasisError
-
-            raise BasisError(
-                f"Cannot set .data on operator '{getattr(self, 'name', type(self).__name__)}': "
-                f"it is in basis {ob} but the current Manager basis is {cb}. "
-                "Set .data only inside the correct eigenbasis_of context, "
-                "or outside all contexts (site basis)."
-            )
+        if cb == ob:
+            pass
+        else:
+            # change basis
+            self.manager.transform_to_current_basis(self)
 
         try:
             vl = check_numpy_array(value)
@@ -154,15 +146,11 @@ def managed_array_property(
         # get object's current basis
         ob = self.get_current_basis()
 
-        if cb != ob:
-            from ..core.managers import BasisError
-
-            raise BasisError(
-                f"Operator '{getattr(self, 'name', type(self).__name__)}' is in "
-                f"basis {ob} but the current Manager basis is {cb}. "
-                "Access .data only inside the correct eigenbasis_of context, "
-                "or outside all contexts (site basis)."
-            )
+        if cb == ob:
+            pass
+        else:
+            # change basis
+            self.manager.transform_to_current_basis(self)
 
         val = getattr(self, storage_name)
         return self.convert_2_current_u(val)
@@ -175,15 +163,11 @@ def managed_array_property(
         # get object's current basis
         ob = self.get_current_basis()
 
-        if cb != ob:
-            from ..core.managers import BasisError
-
-            raise BasisError(
-                f"Cannot set .data on operator '{getattr(self, 'name', type(self).__name__)}': "
-                f"it is in basis {ob} but the current Manager basis is {cb}. "
-                "Set .data only inside the correct eigenbasis_of context, "
-                "or outside all contexts (site basis)."
-            )
+        if cb == ob:
+            pass
+        else:
+            # change basis
+            self.manager.transform_to_current_basis(self)
 
         try:
             vl = check_numpy_array(value)

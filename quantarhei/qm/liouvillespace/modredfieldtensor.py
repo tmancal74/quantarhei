@@ -4,7 +4,6 @@ import numpy
 
 from ... import COMPLEX
 from ...core.managers import (
-    assert_not_in_eigenbasis_context,
     eigenbasis_of,
     energy_units,
 )
@@ -30,8 +29,6 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         cutoff_time: float | None = None,
         as_operators: bool = False,
     ) -> None:
-
-        assert_not_in_eigenbasis_context()
 
         if as_operators:
             import warnings

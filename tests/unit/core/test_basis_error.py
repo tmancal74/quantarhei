@@ -52,23 +52,28 @@ def test_data_access_in_correct_basis_does_not_raise():
     _ = H.data
 
 
-def test_data_access_in_wrong_basis_raises():
+def test_data_access_auto_transforms_in_different_basis():
+    H1 = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
+    H2 = qr.Hamiltonian(data=numpy.array([[0.0, 0.2], [0.2, 2.0]]))
+    h2_orig = H2.data.copy()
+    with qr.eigenbasis_of(H1):
+        # H2 auto-transforms to current basis on .data access
+        h2_in_eigbasis = H2.data
+        # Should be different from original (transformed)
+        assert not numpy.allclose(h2_in_eigbasis, h2_orig)
+    # Outside, H2 is back to original basis
+    assert numpy.allclose(H2.data, h2_orig)
+
+
+def test_data_set_auto_transforms_in_different_basis():
     H1 = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
     H2 = qr.Hamiltonian(data=numpy.array([[0.0, 0.2], [0.2, 2.0]]))
     with qr.eigenbasis_of(H1):
-        # H2 was created outside and not part of this context — accessing
-        # its .data here should raise because its basis ID doesn't match
-        # the current Manager basis.
-        with pytest.raises(BasisError):
-            _ = H2.data
-
-
-def test_data_set_in_wrong_basis_raises():
-    H1 = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
-    H2 = qr.Hamiltonian(data=numpy.array([[0.0, 0.2], [0.2, 2.0]]))
-    with qr.eigenbasis_of(H1):
-        with pytest.raises(BasisError):
-            H2.data = numpy.zeros((2, 2))
+        # Setting .data auto-transforms the operator to current basis first
+        new_data = numpy.eye(2)
+        H2.data = new_data
+        # Verify it was set
+        assert numpy.allclose(H2.data, new_data)
 
 
 def test_protect_basis_no_longer_exists():

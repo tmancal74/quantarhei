@@ -99,10 +99,6 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         secular: bool = False,
     ) -> None:
 
-        from ...core.managers import assert_not_in_eigenbasis_context
-
-        assert_not_in_eigenbasis_context()
-
         self._initialize_basis()
 
         #

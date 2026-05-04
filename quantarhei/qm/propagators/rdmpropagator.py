@@ -16,13 +16,11 @@ author: Tomas Mancal, Charles University
 
 """
 
-from contextlib import nullcontext
-
 import numpy
 import numpy.linalg
 
 from ... import COMPLEX, REAL
-from ...core.managers import Manager, eigenbasis_of, energy_units
+from ...core.managers import Manager, energy_units
 from ...core.matrixdata import MatrixData
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis, TimeDependent
@@ -326,219 +324,189 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         ):
             raise Exception("First argument has be of the ReducedDensityMatrix type")
 
-        # Resolve the basis operator for eigenbasis propagation
-        _basis_op = (
-            self._basis
-            if getattr(self, "_basis", None) is not None
-            else getattr(getattr(self, "RelaxationTensor", None), "basis_op", None)
-        )
-        _ctx = eigenbasis_of(_basis_op) if _basis_op is not None else nullcontext()
-
-        with _ctx:
-            # Transform objects into eigenbasis if a basis context is active
-            if _basis_op is not None:
-                _mgr = Manager()
-                _mgr.transform_to_current_basis(self.Hamiltonian)
-                _mgr.transform_to_current_basis(rhoi)
-                # The RelaxationTensor data is already in eigenbasis (computed
-                # internally). Just update its basis tracking so .data access
-                # passes the basis check.
-                if self.has_RTensor:
-                    _cb = _mgr.get_current_basis()
-                    self.RelaxationTensor.set_current_basis(_cb)
-                    _mgr.register_with_basis(_cb, self.RelaxationTensor)
-
-            ###################################################################
+        ###################################################################
+        #
+        #    PROPAGATIONS WITH RELAXATION AND/OR DEPHASING
+        #
+        #
+        ###################################################################
+        if self.has_relaxation:
+            ###############################################################
             #
-            #    PROPAGATIONS WITH RELAXATION AND/OR DEPHASING
+            # Time-dependent relaxation tensor
             #
-            #
-            ###################################################################
-            if self.has_relaxation:
-                ###############################################################
+            ###############################################################
+            if isinstance(self.RelaxationTensor, TimeDependent):
+                ###########################################################
                 #
-                # Time-dependent relaxation tensor
+                # Propagation with external field
                 #
-                ###############################################################
-                if isinstance(self.RelaxationTensor, TimeDependent):
-                    ###########################################################
-                    #
-                    # Propagation with external field
-                    #
-                    ###########################################################
-                    if self.has_Efield and self.has_Trdip:
-                        if method == "short-exp":
-                            return self.__propagate_short_exp_with_TD_relaxation_field(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-2":
-                            return self.__propagate_short_exp_with_TD_relaxation_field(
-                                rhoi, L=2
-                            )
-                        if method == "short-exp-4":
-                            return self.__propagate_short_exp_with_TD_relaxation_field(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-6":
-                            return self.__propagate_short_exp_with_TD_relaxation_field(
-                                rhoi, L=6
-                            )
-                        raise Exception("Unknown propagation method: " + method)
-
-                    elif self.has_EField and self.has_Trdip:
-                        if method == "short-exp":
-                            return self.__propagate_short_exp_with_TD_relaxation_EField(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-2":
-                            return self.__propagate_short_exp_with_TD_relaxation_EField(
-                                rhoi, L=2
-                            )
-                        if method == "short-exp-4":
-                            return self.__propagate_short_exp_with_TD_relaxation_EField(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-6":
-                            return self.__propagate_short_exp_with_TD_relaxation_EField(
-                                rhoi, L=6
-                            )
-                        raise Exception("Unknown propagation method: " + method)
-
-                    ###########################################################
-                    #
-                    # Progation without external field
-                    #
-                    ###########################################################
-                    else:
-                        if method == "short-exp":
-                            return self.__propagate_short_exp_with_TD_relaxation(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-2":
-                            return self.__propagate_short_exp_with_TD_relaxation(
-                                rhoi, L=2
-                            )
-                        if method == "short-exp-4":
-                            return self.__propagate_short_exp_with_TD_relaxation(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-6":
-                            return self.__propagate_short_exp_with_TD_relaxation(
-                                rhoi, L=6
-                            )
-                        raise Exception("Unknown propagation method: " + method)
-
-                ###############################################################
-                #
-                # Constant relaxation tensor
-                #
-                ###############################################################
-                else:
-                    ###########################################################
-                    #
-                    # Propagation with external field
-                    #
-                    ###########################################################
-                    if self.has_Efield and self.has_Trdip:
-                        if method == "short-exp":
-                            return self.__propagate_short_exp_with_relaxation_field(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-2":
-                            return self.__propagate_short_exp_with_relaxation_field(
-                                rhoi, L=2
-                            )
-                        if method == "short-exp-4":
-                            return self.__propagate_short_exp_with_relaxation_field(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-6":
-                            return self.__propagate_short_exp_with_relaxation_field(
-                                rhoi, L=6
-                            )
-                        raise Exception("Unknown propagation method: " + method)
-
-                    elif self.has_EField and self.has_Trdip:
-                        if method == "short-exp":
-                            return self.__propagate_short_exp_with_relaxation_EField(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-2":
-                            return self.__propagate_short_exp_with_relaxation_EField(
-                                rhoi, L=2
-                            )
-                        if method == "short-exp-4":
-                            return self.__propagate_short_exp_with_relaxation_EField(
-                                rhoi, L=4
-                            )
-                        if method == "short-exp-6":
-                            return self.__propagate_short_exp_with_relaxation_EField(
-                                rhoi, L=6
-                            )
-                        raise Exception("Unknown propagation method: " + method)
-
-                    ###########################################################
-                    #
-                    # Progation without external field
-                    #
-                    ###########################################################
-                    else:
-                        #
-                        #  Section used by Time-independent Redfield and similar
-                        #
-
-                        if method == "short-exp":
-                            return self.__propagate_short_exp_with_relaxation(rhoi, L=4)
-                        if method == "short-exp-2":
-                            return self.__propagate_short_exp_with_relaxation(rhoi, L=2)
-                        if method == "short-exp-4":
-                            return self.__propagate_short_exp_with_relaxation(rhoi, L=4)
-                        if method == "short-exp-6":
-                            return self.__propagate_short_exp_with_relaxation(rhoi, L=6)
-
-                        raise Exception("Unknown propagation method: " + method)
-
-            ###################################################################
-            #
-            #    PROPAGATIONS WITHOUT RELAXATION
-            #
-            #
-            ###################################################################
-            else:
+                ###########################################################
                 if self.has_Efield and self.has_Trdip:
                     if method == "short-exp":
-                        return self.__propagate_short_exp_efield(rhoi, L=4)
+                        return self.__propagate_short_exp_with_TD_relaxation_field(
+                            rhoi, L=4
+                        )
                     if method == "short-exp-2":
-                        return self.__propagate_short_exp_efield(rhoi, L=2)
+                        return self.__propagate_short_exp_with_TD_relaxation_field(
+                            rhoi, L=2
+                        )
                     if method == "short-exp-4":
-                        return self.__propagate_short_exp_efield(rhoi, L=4)
+                        return self.__propagate_short_exp_with_TD_relaxation_field(
+                            rhoi, L=4
+                        )
                     if method == "short-exp-6":
-                        return self.__propagate_short_exp_efield(rhoi, L=6)
-
+                        return self.__propagate_short_exp_with_TD_relaxation_field(
+                            rhoi, L=6
+                        )
                     raise Exception("Unknown propagation method: " + method)
 
                 elif self.has_EField and self.has_Trdip:
                     if method == "short-exp":
-                        return self.__propagate_short_exp_EField(rhoi, L=4)
+                        return self.__propagate_short_exp_with_TD_relaxation_EField(
+                            rhoi, L=4
+                        )
                     if method == "short-exp-2":
-                        return self.__propagate_short_exp_EField(rhoi, L=2)
+                        return self.__propagate_short_exp_with_TD_relaxation_EField(
+                            rhoi, L=2
+                        )
                     if method == "short-exp-4":
-                        return self.__propagate_short_exp_EField(rhoi, L=4)
+                        return self.__propagate_short_exp_with_TD_relaxation_EField(
+                            rhoi, L=4
+                        )
                     if method == "short-exp-6":
-                        return self.__propagate_short_exp_EField(rhoi, L=6)
-
+                        return self.__propagate_short_exp_with_TD_relaxation_EField(
+                            rhoi, L=6
+                        )
                     raise Exception("Unknown propagation method: " + method)
+
+                ###########################################################
+                #
+                # Progation without external field
+                #
+                ###########################################################
                 else:
                     if method == "short-exp":
-                        return self.__propagate_short_exp(rhoi, L=4)
+                        return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=4)
                     if method == "short-exp-2":
-                        return self.__propagate_short_exp(rhoi, L=2)
+                        return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=2)
                     if method == "short-exp-4":
-                        return self.__propagate_short_exp(rhoi, L=4)
+                        return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=4)
                     if method == "short-exp-6":
-                        return self.__propagate_short_exp(rhoi, L=6)
+                        return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=6)
+                    raise Exception("Unknown propagation method: " + method)
+
+            ###############################################################
+            #
+            # Constant relaxation tensor
+            #
+            ###############################################################
+            else:
+                ###########################################################
+                #
+                # Propagation with external field
+                #
+                ###########################################################
+                if self.has_Efield and self.has_Trdip:
+                    if method == "short-exp":
+                        return self.__propagate_short_exp_with_relaxation_field(
+                            rhoi, L=4
+                        )
+                    if method == "short-exp-2":
+                        return self.__propagate_short_exp_with_relaxation_field(
+                            rhoi, L=2
+                        )
+                    if method == "short-exp-4":
+                        return self.__propagate_short_exp_with_relaxation_field(
+                            rhoi, L=4
+                        )
+                    if method == "short-exp-6":
+                        return self.__propagate_short_exp_with_relaxation_field(
+                            rhoi, L=6
+                        )
+                    raise Exception("Unknown propagation method: " + method)
+
+                elif self.has_EField and self.has_Trdip:
+                    if method == "short-exp":
+                        return self.__propagate_short_exp_with_relaxation_EField(
+                            rhoi, L=4
+                        )
+                    if method == "short-exp-2":
+                        return self.__propagate_short_exp_with_relaxation_EField(
+                            rhoi, L=2
+                        )
+                    if method == "short-exp-4":
+                        return self.__propagate_short_exp_with_relaxation_EField(
+                            rhoi, L=4
+                        )
+                    if method == "short-exp-6":
+                        return self.__propagate_short_exp_with_relaxation_EField(
+                            rhoi, L=6
+                        )
+                    raise Exception("Unknown propagation method: " + method)
+
+                ###########################################################
+                #
+                # Progation without external field
+                #
+                ###########################################################
+                else:
+                    #
+                    #  Section used by Time-independent Redfield and similar
+                    #
+
+                    if method == "short-exp":
+                        return self.__propagate_short_exp_with_relaxation(rhoi, L=4)
+                    if method == "short-exp-2":
+                        return self.__propagate_short_exp_with_relaxation(rhoi, L=2)
+                    if method == "short-exp-4":
+                        return self.__propagate_short_exp_with_relaxation(rhoi, L=4)
+                    if method == "short-exp-6":
+                        return self.__propagate_short_exp_with_relaxation(rhoi, L=6)
 
                     raise Exception("Unknown propagation method: " + method)
+
+        ###################################################################
+        #
+        #    PROPAGATIONS WITHOUT RELAXATION
+        #
+        #
+        ###################################################################
+        else:
+            if self.has_Efield and self.has_Trdip:
+                if method == "short-exp":
+                    return self.__propagate_short_exp_efield(rhoi, L=4)
+                if method == "short-exp-2":
+                    return self.__propagate_short_exp_efield(rhoi, L=2)
+                if method == "short-exp-4":
+                    return self.__propagate_short_exp_efield(rhoi, L=4)
+                if method == "short-exp-6":
+                    return self.__propagate_short_exp_efield(rhoi, L=6)
+
+                raise Exception("Unknown propagation method: " + method)
+
+            elif self.has_EField and self.has_Trdip:
+                if method == "short-exp":
+                    return self.__propagate_short_exp_EField(rhoi, L=4)
+                if method == "short-exp-2":
+                    return self.__propagate_short_exp_EField(rhoi, L=2)
+                if method == "short-exp-4":
+                    return self.__propagate_short_exp_EField(rhoi, L=4)
+                if method == "short-exp-6":
+                    return self.__propagate_short_exp_EField(rhoi, L=6)
+
+                raise Exception("Unknown propagation method: " + method)
+            else:
+                if method == "short-exp":
+                    return self.__propagate_short_exp(rhoi, L=4)
+                if method == "short-exp-2":
+                    return self.__propagate_short_exp(rhoi, L=2)
+                if method == "short-exp-4":
+                    return self.__propagate_short_exp(rhoi, L=4)
+                if method == "short-exp-6":
+                    return self.__propagate_short_exp(rhoi, L=6)
+
+                raise Exception("Unknown propagation method: " + method)
 
     def __propagate_short_exp(
         self, rhoi: Any, L: int = 4

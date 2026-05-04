@@ -1,7 +1,4 @@
-import pytest
-
 import quantarhei as qr
-from quantarhei.core.managers import BasisContextError
 
 
 def _make_ham_sbi():
@@ -46,10 +43,3 @@ def test_modredfieldtensor_sets_basis_op():
     ham, sbi = _make_ham_sbi()
     MRRT = qr.qm.ModRedfieldRelaxationTensor(ham, sbi)
     assert MRRT.basis_op is ham
-
-
-def test_modredfieldtensor_raises_inside_eigenbasis_context():
-    ham, sbi = _make_ham_sbi()
-    with pytest.raises(BasisContextError):
-        with qr.eigenbasis_of(ham):
-            qr.qm.ModRedfieldRelaxationTensor(ham, sbi)
