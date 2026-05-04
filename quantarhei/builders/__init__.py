@@ -8,6 +8,9 @@ from .pdb import PDBFile as PDBFile
 from .sysmodes import AnharmonicMode as AnharmonicMode
 from .sysmodes import HarmonicMode as HarmonicMode
 
+#
+#  __all__ attribute to define a public API
+#
 __all__ = [
     "Aggregate",
     "AnharmonicMode",

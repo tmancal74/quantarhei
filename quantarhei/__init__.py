@@ -642,6 +642,9 @@ def assert_version(check: str, vno: str) -> None:
         raise Exception("Unknown comparison operator `" + check + "`")
 
 
+#
+#  __all__ attribute to define a public API
+#
 __all__ = [
     "COMPLEX",
     "DATA_PARTS",
