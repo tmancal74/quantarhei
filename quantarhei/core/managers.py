@@ -949,7 +949,14 @@ def assert_not_in_eigenbasis_context() -> None:
 
 
 def assert_in_eigenbasis_of(op: Any) -> None:
-    """Raise BasisError if not currently inside eigenbasis_of(op)."""
+    """Raise BasisError if not currently inside eigenbasis_of(op).
+
+    Raises BasisError if there is no active eigenbasis_of context at all,
+    or if the active context was entered for a different operator than *op*.
+
+    Note: only reliable at a single eigenbasis_of context depth; nested
+    contexts do not stack the operator reference.
+    """
     mgr = Manager()
     if not mgr._in_eigenbasis_of_context:
         raise BasisError("This operation requires an active eigenbasis_of context.")

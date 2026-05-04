@@ -5,6 +5,7 @@ import quantarhei as qr
 from quantarhei.core.managers import (
     BasisContextError,
     BasisError,
+    assert_in_eigenbasis_of,
     assert_not_in_eigenbasis_context,
 )
 
@@ -23,3 +24,23 @@ def test_assert_not_in_eigenbasis_context_raises_inside():
     with pytest.raises(BasisContextError):
         with qr.eigenbasis_of(H):
             assert_not_in_eigenbasis_context()
+
+
+def test_assert_in_eigenbasis_of_raises_outside_context():
+    H = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
+    with pytest.raises(BasisError):
+        assert_in_eigenbasis_of(H)
+
+
+def test_assert_in_eigenbasis_of_passes_inside_correct_context():
+    H = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
+    with qr.eigenbasis_of(H):
+        assert_in_eigenbasis_of(H)  # should not raise
+
+
+def test_assert_in_eigenbasis_of_raises_for_wrong_operator():
+    H1 = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
+    H2 = qr.Hamiltonian(data=numpy.array([[0.0, 0.2], [0.2, 2.0]]))
+    with qr.eigenbasis_of(H1):
+        with pytest.raises(BasisError):
+            assert_in_eigenbasis_of(H2)
