@@ -99,7 +99,7 @@ def basis_managed_array_property(
         ob = self.get_current_basis()
 
         if cb != ob:
-            from quantarhei.core.managers import BasisError
+            from ..core.managers import BasisError
 
             raise BasisError(
                 f"Operator '{getattr(self, 'name', type(self).__name__)}' is in "
@@ -119,11 +119,13 @@ def basis_managed_array_property(
         ob = self.get_current_basis()
 
         if cb != ob:
-            from quantarhei.core.managers import BasisError
+            from ..core.managers import BasisError
 
             raise BasisError(
                 f"Cannot set .data on operator '{getattr(self, 'name', type(self).__name__)}': "
-                f"it is in basis {ob} but the current Manager basis is {cb}."
+                f"it is in basis {ob} but the current Manager basis is {cb}. "
+                "Set .data only inside the correct eigenbasis_of context, "
+                "or outside all contexts (site basis)."
             )
 
         try:
@@ -153,7 +155,7 @@ def managed_array_property(
         ob = self.get_current_basis()
 
         if cb != ob:
-            from quantarhei.core.managers import BasisError
+            from ..core.managers import BasisError
 
             raise BasisError(
                 f"Operator '{getattr(self, 'name', type(self).__name__)}' is in "
@@ -174,11 +176,13 @@ def managed_array_property(
         ob = self.get_current_basis()
 
         if cb != ob:
-            from quantarhei.core.managers import BasisError
+            from ..core.managers import BasisError
 
             raise BasisError(
                 f"Cannot set .data on operator '{getattr(self, 'name', type(self).__name__)}': "
-                f"it is in basis {ob} but the current Manager basis is {cb}."
+                f"it is in basis {ob} but the current Manager basis is {cb}. "
+                "Set .data only inside the correct eigenbasis_of context, "
+                "or outside all contexts (site basis)."
             )
 
         try:

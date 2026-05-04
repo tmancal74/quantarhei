@@ -61,3 +61,11 @@ def test_data_access_in_wrong_basis_raises():
         # the current Manager basis.
         with pytest.raises(BasisError):
             _ = H2.data
+
+
+def test_data_set_in_wrong_basis_raises():
+    H1 = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
+    H2 = qr.Hamiltonian(data=numpy.array([[0.0, 0.2], [0.2, 2.0]]))
+    with qr.eigenbasis_of(H1):
+        with pytest.raises(BasisError):
+            H2.data = numpy.zeros((2, 2))
