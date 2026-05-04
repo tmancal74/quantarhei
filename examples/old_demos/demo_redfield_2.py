@@ -48,44 +48,38 @@ agg.build()
 sbi = agg.get_SystemBathInteraction()
 ham = agg.get_Hamiltonian()
 
-ham.protect_basis()
-with eigenbasis_of(ham):
+TRRT = qm.TDRedfieldRelaxationTensor(ham, sbi, name="Tensor 1",
+                                     cutoff_time=1300.0)
 
-    TRRT = qm.TDRedfieldRelaxationTensor(ham, sbi, name="Tensor 1",
-                                         cutoff_time=1300.0)
+RRT = qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
 
-    RRT = qm.RedfieldRelaxationTensor(ham, sbi, name="Tensor 1")
+print("\nRates from the full relaxation tensor")
+for i in range(1, ham.dim):
+    for j in range(1, ham.dim):
+        print(i, "<-", j, ":", 1.0/numpy.real(RRT.data[i,i,j,j]))
 
-    print("\nRates from the full relaxation tensor")
-    for i in range(1, ham.dim):
-        for j in range(1, ham.dim):
-            print(i, "<-", j, ":", 1.0/numpy.real(RRT.data[i,i,j,j]))
+print("\nCalculating relaxation rates")
 
-    print("\nCalculating relaxation rates")
+RRM = qm.RedfieldRateMatrix(ham, sbi)
+print("\nRates from the rate matrix")
+for i in range(1,ham.dim):
+    for j in range(1, ham.dim):
+        print(i, "<-", j, ":", 1.0/RRM.data[i,j])
 
-    RRM = qm.RedfieldRateMatrix(ham, sbi)
-    print("\nRates from the rate matrix")
-    for i in range(1,ham.dim):
-        for j in range(1, ham.dim):
-            print(i, "<-", j, ":", 1.0/RRM.data[i,j])
+#
+# Evolution of reduced density matrix
+#
+prop = ReducedDensityMatrixPropagator(time, ham, RRT)
+prop_t = ReducedDensityMatrixPropagator(time, ham, TRRT)
 
-ham.unprotect_basis()
-with eigenbasis_of(ham):
+#TRRT.secularize()
+#RRT.secularize()
 
-    #
-    # Evolution of reduced density matrix
-    #
-    prop = ReducedDensityMatrixPropagator(time, ham, RRT)
-    prop_t = ReducedDensityMatrixPropagator(time, ham, TRRT)
+rho_i = ReducedDensityMatrix(dim=4, name="Initial DM")
+rho_i.data[3,3] = 1.0
 
-    #TRRT.secularize()
-    #RRT.secularize()
+rho_t = prop.propagate(rho_i)
+rho_tt = prop_t.propagate(rho_i)
 
-    rho_i = ReducedDensityMatrix(dim=4, name="Initial DM")
-    rho_i.data[3,3] = 1.0
-
-    rho_t = prop.propagate(rho_i, name="Redfield evolution")
-    rho_tt = prop_t.propagate(rho_i, name="Redfield evolution")
-
-    rho_t.plot(coherences=False)
-    rho_tt.plot(coherences=False)
+rho_t.plot(coherences=False)
+rho_tt.plot(coherences=False)
