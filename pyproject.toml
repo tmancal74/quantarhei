@@ -50,6 +50,7 @@ docs = [
   "sphinx>=7.0",
   "pydata-sphinx-theme>=0.16",
   "numpydoc>=1.6",
+  "myst-parser>=3.0",
 ]
 dev = [
   "pytest>=7.0",
