@@ -143,7 +143,6 @@ from .propagators.statevectorevolution import (
 )
 from .propagators.svpropagator import StateVectorPropagator as StateVectorPropagator
 
-
 #
 #  __all__ attribute to define a public API
 #
