@@ -15,15 +15,24 @@ from .twodresponse import TwoDResponse
 
 
 class MockTwoDResponseCalculator(TwoDResponseCalculator):
-    """Calculator of the third order non-linear response
-
+    """Calculator of the third order non-linear response using effective lineshapes.
 
     This class is used to represent LiouvillePathway objects. Lineshape is
-    Gaussian.
+    Gaussian (default) or Lorentzian. The response is calculated with effective
+    lineshapes directly in the frequency domain rather than via time-domain
+    propagation.
 
-    The response is calculated with effective lineshapes directly in frequency
-    domain.
-
+    Parameters
+    ----------
+    t1axis : TimeAxis
+        Coherence-time axis for the first interaction period.
+    t2axis : TimeAxis
+        Waiting-time axis.
+    t3axis : TimeAxis
+        Detection-time axis for the third interaction period.
+    temp : float or None, optional
+        Temperature in Kelvin. Default is ``None`` (temperature-independent
+        lineshapes).
     """
 
     def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any, temp: Any = None) -> None:

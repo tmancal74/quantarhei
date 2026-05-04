@@ -572,6 +572,11 @@ class R1g_Diagram(DSFeynmanDiagram):
     --->|----------|
         | g      g |
 
+    Parameters
+    ----------
+    states : list of str or None, optional
+        Labels for the two excited states involved in the diagram. Default
+        is ``["a", "b"]``.
     """
 
     def __init__(self, states: list[str] | None = None) -> None:
@@ -589,6 +594,11 @@ class R1g_Diagram(DSFeynmanDiagram):
 class R1g_R_Diagram(DSFeynmanDiagram):
     """R1g-type double-sided Feynman diagram with a relaxation step.
 
+    Parameters
+    ----------
+    states : list of str or None, optional
+        Labels for the two excited states involved in the diagram. Default
+        is ``["a", "b"]``.
 
         | g      g |
     <---|----------|
@@ -631,6 +641,11 @@ class R2g_Diagram(DSFeynmanDiagram):
         |----------|<---
         | g      g |
 
+    Parameters
+    ----------
+    states : list of str or None, optional
+        Labels for the two excited states involved in the diagram. Default
+        is ``["a", "b"]``.
     """
 
     def __init__(self, states: list[str] | None = None) -> None:
@@ -659,6 +674,11 @@ class R3g_Diagram(DSFeynmanDiagram):
         |----------|<---
         | g      g |
 
+    Parameters
+    ----------
+    states : list of str or None, optional
+        Labels for the two excited states involved in the diagram. Default
+        is ``["a", "b"]``.
     """
 
     def __init__(self, states: list[str] | None = None) -> None:
@@ -687,6 +707,11 @@ class R4g_Diagram(DSFeynmanDiagram):
     --->|----------|
         | g      g |
 
+    Parameters
+    ----------
+    states : list of str or None, optional
+        Labels for the two excited states involved in the diagram. Default
+        is ``["a", "b"]``.
     """
 
     def __init__(self, states: list[str] | None = None) -> None:
@@ -715,6 +740,11 @@ class R1f_Diagram(DSFeynmanDiagram):
     --->|----------|
         | g      g |
 
+    Parameters
+    ----------
+    states : list of str or None, optional
+        Labels for the three states involved: two single-excited states and
+        one double-excited state. Default is ``["a", "b", "f"]``.
     """
 
     def __init__(self, states: list[str] | None = None) -> None:
@@ -742,6 +772,11 @@ class R2f_Diagram(DSFeynmanDiagram):
         |----------|<---
         | g      g |
 
+    Parameters
+    ----------
+    states : list of str or None, optional
+        Labels for the three states involved: two single-excited states and
+        one double-excited state. Default is ``["a", "b", "f"]``.
     """
 
     def __init__(self, states: list[str] | None = None) -> None:

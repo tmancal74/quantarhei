@@ -316,7 +316,13 @@ class LiouvillePathway:
 
 
 class ResponseFunction(LiouvillePathway):
-    """Non-linear response function (deprecated)."""
+    """Non-linear response function (deprecated).
+
+    Parameters
+    ----------
+    ptype : str
+        Type of the Liouville pathway (e.g. ``"R1g"``, ``"R2g"``).
+    """
 
     def calculate_matrix(
         self, lab: Any, sys: Any, t2: float, t1s: Any, t3s: Any, rwa: float

@@ -328,8 +328,22 @@ def block_distributed_list(dlist: list[Any], return_index: bool = False) -> list
 
 
 def block_distributed_array(array: numpy.ndarray, return_index: bool = False) -> Any:
-    """ """
+    """Distribute blocks of an array across parallel workers.
 
+    Parameters
+    ----------
+    array : numpy.ndarray
+        Array to distribute. Each worker receives a contiguous block of rows.
+    return_index : bool, optional
+        If ``True``, return a ``(block, start_index)`` tuple instead of just
+        the block. Default is ``False``.
+
+    Returns
+    -------
+    numpy.ndarray or tuple
+        The local block assigned to this worker, or ``(block, start_index)``
+        when ``return_index`` is ``True``.
+    """
     from .managers import Manager
 
     # we share the work only in parallel_level == 1

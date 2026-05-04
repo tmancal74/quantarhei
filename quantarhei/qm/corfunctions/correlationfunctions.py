@@ -713,33 +713,35 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
 
 class LineshapeFunction(DFunction, UnitsManaged):
-    """ """
+    """Lineshape function obtained by double integration of a correlation function.
+
+    Computes ``g(t) = int_0^t dt' int_0^{t'} dt'' C(t'')`` numerically,
+    where ``C`` is a :class:`CorrelationFunction` built from ``params``.
+
+    Parameters
+    ----------
+    axis : TimeAxis
+        Time grid on which the correlation function is defined.
+    params : dict
+        Parameter dictionary for the underlying :class:`CorrelationFunction`.
+        Must contain at least ``"ftype"``, ``"reorg"``, and ``"T"``.
+    values : numpy.ndarray, optional
+        Pre-computed correlation function values; passed through to
+        :class:`CorrelationFunction`. Default is ``None``.
+    lfactor : int, optional
+        Length multiplication factor applied to the time axis before
+        integration. Default is ``1``.
+
+    Raises
+    ------
+    Exception
+        If ``params`` is ``None``.
+    """
 
     @enforce_energy_units_context
     def __init__(
         self, axis: Any = None, params: Any = None, values: Any = None, lfactor: int = 1
     ) -> None:
-        """Initialize the lineshape function by integrating a correlation function.
-
-        Parameters
-        ----------
-        axis : TimeAxis
-            Time grid on which the correlation function is defined.
-        params : dict
-            Parameter dictionary for the underlying
-            :class:`CorrelationFunction`.
-        values : numpy.ndarray, optional
-            Pre-computed correlation function values; passed through to
-            :class:`CorrelationFunction`.
-        lfactor : int, optional
-            Length multiplication factor applied to the time axis before
-            integration. Default is ``1``.
-
-        Raises
-        ------
-        Exception
-            If ``params`` is ``None``.
-        """
         self.lfactor = lfactor
         self.axis = axis
         self.params = params

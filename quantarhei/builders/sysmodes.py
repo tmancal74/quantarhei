@@ -183,7 +183,24 @@ class HarmonicMode(SubMode, OpenSystem):
 
 
 class AnharmonicMode(HarmonicMode):
-    """ """
+    """Anharmonic (Morse-like) oscillator mode.
+
+    An extension of :class:`HarmonicMode` in which the energy levels are
+    corrected for anharmonicity. The ``omega`` parameter specifies the
+    fundamental frequency (energy gap between levels 0 and 1); the
+    underlying harmonic frequency ``om0`` is derived from ``omega`` and the
+    anharmonicity ``xi`` via ``om0 = omega / (1 - 2*xi)``.
+
+    Parameters
+    ----------
+    omega : float, optional
+        Fundamental oscillator frequency (level 1 minus level 0 energy) in
+        internal units. Default is ``1.0``.
+    shift : float, optional
+        Potential-energy-surface shift (currently unused). Default is ``0.0``.
+    nmax : int, optional
+        Maximum number of Fock states to include. Default is ``2``.
+    """
 
     def __init__(self, omega: float = 1.0, shift: float = 0.0, nmax: int = 2) -> None:
         """In this case, omega is the difference between levels 1 and 0"""

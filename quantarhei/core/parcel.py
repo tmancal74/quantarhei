@@ -10,6 +10,13 @@ from .managers import Manager
 
 
 class Parcel:
+    """Container that serialises a single Python object to a ``.qrp`` file.
+
+    Content is set via :meth:`set_content` and persisted via :meth:`save`.
+    Use the module-level :func:`~quantarhei.save_parcel` and
+    :func:`~quantarhei.load_parcel` helpers for the common save/load workflow.
+    """
+
     def set_content(self, obj: Any) -> None:
         """Set the content of the parcel"""
         self.content = obj

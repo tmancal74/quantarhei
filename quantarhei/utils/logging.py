@@ -38,22 +38,73 @@ def init_logging() -> None:
 
 
 def log_urgent(*args: Any, **kwargs: Any) -> None:
+    """Log a message at the ``LOG_URGENT`` (level 1) priority.
+
+    Parameters
+    ----------
+    *args
+        Objects to print, forwarded to :func:`printlog`.
+    **kwargs
+        Keyword arguments forwarded to :func:`printlog`.
+    """
     printlog(*args, loglevel=LOG_URGENT, **kwargs)
 
 
 def log_report(*args: Any, **kwargs: Any) -> None:
+    """Log a message at the ``LOG_REPORT`` (level 3) priority.
+
+    Parameters
+    ----------
+    *args
+        Objects to print, forwarded to :func:`printlog`.
+    **kwargs
+        Keyword arguments forwarded to :func:`printlog`.
+    """
     printlog(*args, loglevel=LOG_REPORT, **kwargs)
 
 
 def log_info(*args: Any, **kwargs: Any) -> None:
+    """Log a message at the ``LOG_INFO`` (level 5) priority.
+
+    Parameters
+    ----------
+    *args
+        Objects to print, forwarded to :func:`printlog`.
+    **kwargs
+        Keyword arguments forwarded to :func:`printlog`.
+    """
     printlog(*args, loglevel=LOG_INFO, **kwargs)
 
 
 def log_detail(*args: Any, **kwargs: Any) -> None:
+    """Log a message at the ``LOG_DETAIL`` (level 7) priority.
+
+    Parameters
+    ----------
+    *args
+        Objects to print, forwarded to :func:`printlog`.
+    **kwargs
+        Keyword arguments forwarded to :func:`printlog`.
+    """
     printlog(*args, loglevel=LOG_DETAIL, **kwargs)
 
 
 def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:
+    """Log a message at the ``LOG_QUICK`` (level 9) priority.
+
+    This is the most verbose level; the call is a no-op when
+    ``verbose=False``.
+
+    Parameters
+    ----------
+    *args
+        Objects to print, forwarded to :func:`printlog`.
+    verbose : bool, optional
+        If ``False``, the function returns immediately without logging.
+        Default is ``True``.
+    **kwargs
+        Keyword arguments forwarded to :func:`printlog`.
+    """
     if not verbose:
         return
     printlog(*args, loglevel=LOG_QUICK, **kwargs)

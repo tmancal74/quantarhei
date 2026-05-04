@@ -6,7 +6,14 @@ from ..core.saveable import Saveable
 
 
 class AbsSpectrumContainer(Saveable):
-    """Container for a set of absorption spectra sharing a common frequency axis."""
+    """Container for a set of absorption spectra sharing a common frequency axis.
+
+    Parameters
+    ----------
+    axis : FrequencyAxis, optional
+        Shared frequency axis for all stored spectra. Can be set later via
+        ``set_axis``.
+    """
 
     def __init__(self, axis: Any = None) -> None:
 

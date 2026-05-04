@@ -392,7 +392,15 @@ def _n_gaussians(x: Any, N: int, *params: float) -> Any:
 
 
 class FluorSpectrum(FluorSpectrumBase):
-    """Class representing a fluorescence spectrum."""
+    """Class representing a fluorescence spectrum.
+
+    Parameters
+    ----------
+    axis : FrequencyAxis
+        Frequency axis for the spectrum.
+    data : numpy.ndarray
+        Spectral data array.
+    """
 
     pass
 
@@ -448,7 +456,14 @@ class FluorSpectrum(FluorSpectrumBase):
 
 
 class FluorSpectrumContainer(Saveable):
-    """Container for a set of fluorescence spectra sharing a common frequency axis."""
+    """Container for a set of fluorescence spectra sharing a common frequency axis.
+
+    Parameters
+    ----------
+    axis : FrequencyAxis or None, optional
+        Shared frequency axis for all stored spectra. Default is ``None``;
+        the axis is set automatically when the first spectrum is added.
+    """
 
     def __init__(self, axis: Any = None) -> None:
 
