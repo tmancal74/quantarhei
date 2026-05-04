@@ -12,3 +12,14 @@ from .sysmodes import HarmonicMode as HarmonicMode
 #
 #  __all__ attribute to define a public API
 #
+__all__ = [
+    "Aggregate",
+    "AnharmonicMode",
+    "ElectronicState",
+    "HarmonicMode",
+    "Mode",
+    "Molecule",
+    "OpenSystem",
+    "PDBFile",
+    "VibronicState",
+]

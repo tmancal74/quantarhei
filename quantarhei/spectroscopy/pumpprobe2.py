@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-from quantarhei import convert
-
 from .. import COMPLEX
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
@@ -16,6 +14,7 @@ from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
 from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
+from ..core.units import convert
 from ..utils import derived_type
 from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
 from .twodcontainer import TwoDSpectrumContainer

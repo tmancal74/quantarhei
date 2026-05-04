@@ -34,6 +34,7 @@ from ..core.parcel import load_parcel
 from ..core.time import TimeAxis
 from ..core.units import cm2int, convert
 from ..core.wrappers import deprecated
+from .twodcontainer import TwoDSpectrumContainer
 
 
 class LiouvillePathwayAnalyzer(UnitsManaged):
@@ -667,8 +668,6 @@ def get_TwoDSpectrumContainer_from_saved_pathways(
     tag_type: Any = REAL,
 ) -> Any:
     """Returns a container with 2D spectra calculated from saved pathways"""
-    from .twodcontainer import TwoDSpectrumContainer
-
     t2s = look_for_pathways(name=name, ext=ext, directory=directory)
 
     # order t2s

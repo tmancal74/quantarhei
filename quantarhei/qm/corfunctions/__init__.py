@@ -4,3 +4,12 @@ from .correlationfunctions import LineshapeFunction as LineshapeFunction
 from .functionstorage import FastFunctionStorage as FastFunctionStorage
 from .functionstorage import FunctionStorage as FunctionStorage
 from .spectraldensities import SpectralDensity as SpectralDensity
+
+__all__ = [
+    "CorrelationFunction",
+    "CorrelationFunctionMatrix",
+    "FastFunctionStorage",
+    "FunctionStorage",
+    "LineshapeFunction",
+    "SpectralDensity",
+]

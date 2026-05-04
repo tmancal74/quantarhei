@@ -1,57 +1,101 @@
-.. _write-tests: 
+.. _write-tests:
 
 How to Write Tests for Quantarhei
 =================================
 
-Every contribution to Quantarhei has to come with appropriate tests. Because
-of Quantarhei's development history, less than a half of current code is
-subject to testing at every build. This will change in near future.
+Every contribution must include appropriate tests. Quantarhei uses three
+levels of testing: unit tests, doctests, and acceptance (BDD) tests.
 
 Running Tests
 -------------
 
-To run the tests on Quantarhei current installation, just invoke the `paver`
-command (`paver` package is listed as one of the testing dependencies):
+Run the unit test suite:
 
 .. code:: bash
 
-    $ paver
-    
-Equivalently, you can use the predefined task *test* the Makefile as:
+    $ pytest tests/unit
+
+Run with coverage:
 
 .. code:: bash
 
-    $ make test
-    
-To run the same tests, but with the output of the scipts printed on the screen
-(normally such output is camptured and only the information about tests is
-printed), you can run:
+    $ pytest tests/unit --cov=quantarhei --cov-report=term-missing
+
+Run all checks (lint + format + type check + tests) via pre-commit:
 
 .. code:: bash
 
-    $ paver verbose
-    
-This runs the same set of tests, except for the capturing option removed.
-    
-Sometimes you want to make sure that tests are run against your latest code
-(it is assumed here that tests run against the installed copy of Quantarhei).
-For this purpose we have a Makefile task *local_tests*, which rebuilds and
-reinstalls Quantarhei, before running tests:
+    $ pre-commit run --all-files
 
-.. code:: bash
-
-    $ make local_tests
-    
-Appart from these predefined tests, you can also run other versions of the
-tests or just partial tests, e.g. on the files that you develop. Consult the
-`pavement.py` file in the root directory of Quantarhei package.
-
-Writting Doc Tests
+Writing Unit Tests
 ------------------
 
-Writting Unit Tests
--------------------
+Unit tests live in ``tests/unit/``. Use `pytest`_ conventions — test
+files are named ``test_*.py`` and test functions start with ``test_``:
 
-Writting Acceptance Tests
--------------------------
+.. code:: python
 
+    def test_molecule_energy_levels():
+        import quantarhei as qr
+        m = qr.Molecule([0.0, 1.0])
+        assert m.Nel == 2
+
+Place your test file in the subdirectory that mirrors the module being
+tested, e.g. ``tests/unit/builders/test_molecules.py`` for code in
+``quantarhei/builders/molecules.py``.
+
+Writing Doctests
+----------------
+
+Doctests are examples embedded directly in docstrings. They are run as
+part of the Sphinx build and the pytest suite. Follow NumPy docstring
+conventions:
+
+.. code:: python
+
+    def get_energy(self, state):
+        """Return the energy of the given state.
+
+        Parameters
+        ----------
+        state : int
+            Index of the electronic state.
+
+        Returns
+        -------
+        float
+            Energy in internal units.
+
+        Examples
+        --------
+        >>> import quantarhei as qr
+        >>> m = qr.Molecule([0.0, 1.0])
+        >>> m.get_energy(1)
+        1.0
+
+        """
+
+Writing Acceptance Tests
+------------------------
+
+Acceptance tests use `Behave`_ (BDD) and live in
+``quantarhei/testing/resources/behave/``. Features are written in
+Gherkin syntax (``*.feature`` files) with corresponding step
+definitions in Python.
+
+.. code:: gherkin
+
+    Feature: Molecule creation
+      Scenario: Create a two-level molecule
+        Given I create a molecule with energies [0.0, 1.0]
+        Then the molecule has 2 electronic levels
+
+Run acceptance tests:
+
+.. code:: bash
+
+    $ behave quantarhei/testing/resources/behave/
+
+
+.. _`pytest`: https://pytest.org
+.. _`Behave`: https://behave.readthedocs.io

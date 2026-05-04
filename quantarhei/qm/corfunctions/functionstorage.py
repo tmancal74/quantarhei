@@ -405,9 +405,9 @@ class FunctionStorage:
                     if sta + 1 == end:
                         return self._data2d[i, sta]
                     if isinstance(j, int):
-                        tpl = [self._data2d.shape[0]] + self.reshapes[j]
+                        tpl = [self._data2d.shape[0]] + self.reshapes[j]  # type: ignore[misc]
                     else:
-                        tpl = [self._data2d.shape[0]] + self.reshapes_dic[j]
+                        tpl = [self._data2d.shape[0]] + self.reshapes_dic[j]  # type: ignore[misc]
 
                     return self._data2d[i, sta:end].reshape(tpl)
 

@@ -71,13 +71,19 @@ Spectroscopy
 
 .. toctree::
    :maxdepth: 2
-   
+
    classes/spectroscopy/abs
    classes/spectroscopy/twod
    classes/spectroscopy/labsetup
    classes/spectroscopy/pathwayan
-   
-   
-   
 
- 
+
+Utility Functions
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   functions/convenience
+   functions/logging
+   functions/numtypes

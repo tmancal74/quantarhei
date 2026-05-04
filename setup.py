@@ -26,7 +26,7 @@ here = path.abspath(path.dirname(__file__))
 #    long_description = f.read()
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.rst").read_text(encoding="utf-8")
+long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name='quantarhei',
@@ -39,7 +39,7 @@ setup(
     description='Quantarhei: Open Quantum System Theory for Molecular Systems',
     #long_description=long_description,
     long_description=long_description,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
 
     # The project's main homepage.
     url='https://github.com/tmancal74/quantarhei',

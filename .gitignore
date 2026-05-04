@@ -32,6 +32,9 @@ cover/
 env/
 .coverage
 coverage.xml
+covwrage*.xml
+results-unit.xml
+results-doctest.xml
 .coverage.*
 
 quantarhei_theory/

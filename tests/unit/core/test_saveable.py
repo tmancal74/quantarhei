@@ -465,3 +465,30 @@ class TestSaveable(unittest.TestCase):
             self.assertEqual(info["version"], Manager().version)
         else:
             self.assertEqual(info["qrversion"], Manager().version)
+
+    def test_parcel_save_is_atomic(self):
+        """Parcel.save() must write to a temp file then rename — no partial writes"""
+        import os
+        import tempfile
+
+        from quantarhei.core.parcel import Parcel, load_parcel
+
+        obj = TSaveable()
+        obj.set_a(42.0)
+        obj.set_str("atomic", "test")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fpath = os.path.join(tmpdir, "test.qrp")
+
+            p = Parcel()
+            p.set_content(obj)
+            p.save(fpath)
+
+            # file must exist and be readable after save
+            loaded = load_parcel(fpath)
+            self.assertAlmostEqual(loaded.a, 42.0)
+            self.assertEqual(loaded.text, "atomic")
+
+            # no temp files left in the directory
+            leftover = [f for f in os.listdir(tmpdir) if f != "test.qrp"]
+            self.assertEqual(leftover, [])

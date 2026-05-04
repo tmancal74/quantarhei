@@ -3,39 +3,52 @@
 Quantarhei's Dependencies
 =========================
 
-Quantarhei depends on a number of external tools. To install Quantarhei
-you need the following Python packages.
+All runtime dependencies are declared in `pyproject.toml`_ and installed
+automatically by `pip install quantarhei`.
 
-- `numpy`_  
-- `scipy`_
-- `matplotlib`_
-- `terminaltables`_
-- `dill`_
-- `pyyaml`_
-- `sympy`_
+Runtime Dependencies
+--------------------
 
-To develop Quantarhei, you need the following packages
+- `numpy`_ — numerical arrays and linear algebra
+- `scipy`_ — scientific algorithms
+- `matplotlib`_ — plotting
+- `terminaltables`_ — formatted console output
+- `dill`_ — extended pickling for serialization
+- `pyyaml`_ — YAML configuration file support
+- `packaging`_ — version parsing utilities
+- `gherkin-official`_ — Gherkin parser for acceptance tests
 
-- `paver`_
-- `nose`_
-- `aloe`_
-- `coverage`_
-- `codecov`_
+Optional Dependencies
+---------------------
+
+- `sympy`_ — symbolic mathematics (install with ``pip install quantarhei[symbolic]``)
+
+Development Dependencies
+------------------------
+
+Install with ``pip install -e ".[dev]"``:
+
+- `pytest`_ — unit test runner
+- `pytest-cov`_ — test coverage
+- `behave`_ — acceptance (BDD) tests
+- `pre-commit`_ — Git hook management
+- `ruff`_ — linter and formatter
+- `mypy`_ — static type checker
 
 
-.. _`git`: https://git-scm.com
-.. _`numpy`: http://www.numpy.org
-.. _`scipy`: https://www.scipy.org
+.. _`pyproject.toml`: https://github.com/tmancal74/quantarhei/blob/master/pyproject.toml
+.. _`numpy`: https://numpy.org
+.. _`scipy`: https://scipy.org
 .. _`matplotlib`: https://matplotlib.org
 .. _`terminaltables`: https://robpol86.github.io/terminaltables/
-.. _`dill`: https://
-.. _`pyyaml`: https://
-.. _`sympy`: https://
-
-.. _`paver`: https://github.com/paver/paver 
-.. _`nose`: https://nose.readthedocs.io
-.. _`aloe`: https://aloe.readthedocs.io
-.. _`coverage`: https://coverage.readthedocs.io
-.. _`codecov`: https://codecov.io
-
-
+.. _`dill`: https://dill.readthedocs.io
+.. _`pyyaml`: https://pyyaml.org
+.. _`packaging`: https://packaging.pypa.io
+.. _`gherkin-official`: https://pypi.org/project/gherkin-official/
+.. _`sympy`: https://www.sympy.org
+.. _`pytest`: https://pytest.org
+.. _`pytest-cov`: https://pytest-cov.readthedocs.io
+.. _`behave`: https://behave.readthedocs.io
+.. _`pre-commit`: https://pre-commit.com
+.. _`ruff`: https://docs.astral.sh/ruff/
+.. _`mypy`: https://mypy-lang.org

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from typing import Any
 
 import numpy
@@ -307,11 +308,13 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         return self.__mult__(scalar)
 
     def __add__(self, other: RelaxationTensor) -> RelaxationTensor:
-        self._data += other._data
-        return self
+        out = copy.copy(self)
+        out._data = self._data + other._data
+        return out
 
     def __iadd__(self, other: RelaxationTensor) -> RelaxationTensor:
-        return self.__add__(other)
+        self._data += other._data
+        return self
 
     def _rhs(self, rho: Any) -> Any:
         """Applies the tensor to a given matrix"""

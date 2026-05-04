@@ -17,8 +17,7 @@ from typing import IO, Any
 import matplotlib.pyplot as plt
 import numpy
 
-import quantarhei as qr
-
+from .. import COMPLEX
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..core.frequency import FrequencyAxis
@@ -1429,7 +1428,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         # print(shape, widthx, widthy)
 
         if pathway.pathway_type == "R":
-            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
+            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -1459,7 +1458,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             return reph2D
 
         if pathway.pathway_type == "NR":
-            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=qr.COMPLEX)
+            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]

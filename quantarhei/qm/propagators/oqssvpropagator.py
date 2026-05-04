@@ -4,8 +4,8 @@ from typing import Any
 
 import numpy
 
-import quantarhei as qr
-from quantarhei.qm import TDRedfieldRateMatrix
+from ... import REAL
+from ...qm import TDRedfieldRateMatrix
 
 # from numba import njit
 from .oqssvevolution import OQSStateVectorEvolution
@@ -75,7 +75,7 @@ class OQSStateVectorPropagator:
 
             ppi = psii.data * psii.data
 
-            ppt = numpy.zeros((self.Nt, ham.dim), dtype=qr.REAL)
+            ppt = numpy.zeros((self.Nt, ham.dim), dtype=REAL)
             ppt[0, :] = ppi
 
             # RR0 = numpy.zeros((ham.dim, ham.dim, self.Nt))

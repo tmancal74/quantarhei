@@ -109,7 +109,7 @@ class CorrelationFunctionMatrix(Saveable):
         # FIXME: reorganization energies should be defined through _A2 and _A4
         # reorganization energies
         self.lambdas = numpy.zeros(nof + 1, dtype=REAL)
-        self.where = [[]] * (nof + 1)
+        self.where = [[] for _ in range(nof + 1)]
 
         # Actual storage of functions
         # here we store correlation functions
@@ -325,7 +325,9 @@ class CorrelationFunctionMatrix(Saveable):
                 # FIXME: some consistent treatment of the cutoff time is needed
                 Nt = self._cofts.shape[1]
 
-                ret = numpy.zeros((nos, nos, nos, nos, Nt), dtype=COMPLEX)
+                ret: numpy.ndarray = numpy.zeros(
+                    (nos, nos, nos, nos, Nt), dtype=COMPLEX
+                )
                 # for k in range(self.nof):
                 for k in range(self.nob):
                     for it in range(Nt):
@@ -379,7 +381,9 @@ class CorrelationFunctionMatrix(Saveable):
                 # FIXME: some consistent treatment of the cutoff time is needed
                 Nt = self._cofts.shape[1]
 
-                ret = numpy.zeros((nos, nos, nos, nos, Nt), dtype=COMPLEX)
+                ret: numpy.ndarray = numpy.zeros(
+                    (nos, nos, nos, nos, Nt), dtype=COMPLEX
+                )
                 # for k in range(self.nof):
                 for k in range(self.nob):
                     for it in range(Nt):
@@ -433,7 +437,9 @@ class CorrelationFunctionMatrix(Saveable):
                 # FIXME: some consistent treatment of the cutoff time is needed
                 Nt = self._cofts.shape[1]
 
-                ret = numpy.zeros((nos, nos, nos, nos, Nt), dtype=COMPLEX)
+                ret: numpy.ndarray = numpy.zeros(
+                    (nos, nos, nos, nos, Nt), dtype=COMPLEX
+                )
                 # for k in range(self.nof):
                 for k in range(self.nob):
                     for it in range(Nt):

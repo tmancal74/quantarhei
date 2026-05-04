@@ -39,8 +39,7 @@ from typing import Any
 
 import numpy
 
-import quantarhei as qr
-
+from ..core.managers import energy_units
 from .aggregate_spectroscopy import AggregateSpectroscopy
 
 
@@ -243,7 +242,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         >>> print("{0:.4f}".format(agg.get_state_energy(2)))
         2.3231
 
-        >>> with qr.energy_units("1/cm"):
+        >>> with energy_units("1/cm"):
         ...     print("{0:.4f}".format(agg.get_state_energy(2)))
         12332.9320
 
@@ -335,7 +334,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                 stop_at = N01 + 1
 
             if (Nst >= start_at) and (Nst <= stop_at):
-                with qr.energy_units("1/cm"):
+                with energy_units("1/cm"):
                     tre = self.get_state_energy(Nst) - self.get_state_energy(0)
                 dip = self.get_transition_dipole(0, Nst)
 
@@ -352,7 +351,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
                     print(txt, file=file)
                     print(line, file=file)
                     print("", file=file)
-                    with qr.energy_units("1/cm"):
+                    with energy_units("1/cm"):
                         print(f"Transition energy        : {tre:.8f} 1/cm", file=file)
                         print(f"Transition dipole moment : {dip:.8f} D", file=file)
                     self.report_on_expansion(file=file, state=Nst, N=Nrep)

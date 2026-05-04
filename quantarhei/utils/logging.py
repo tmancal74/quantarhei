@@ -5,7 +5,13 @@ from __future__ import annotations
 import traceback
 from typing import Any
 
-import quantarhei as qr
+from quantarhei.core.managers import Manager
+
+LOG_URGENT = 1
+LOG_REPORT = 3
+LOG_INFO = 5
+LOG_DETAIL = 7
+LOG_QUICK = 9
 
 
 def init_logging() -> None:
@@ -14,7 +20,7 @@ def init_logging() -> None:
     We test if the logging is parallel or not
 
     """
-    manager = qr.Manager().log_conf
+    manager = Manager().log_conf
     try:
         from mpi4py import MPI
 
@@ -32,25 +38,25 @@ def init_logging() -> None:
 
 
 def log_urgent(*args: Any, **kwargs: Any) -> None:
-    printlog(*args, loglevel=qr.LOG_URGENT, **kwargs)
+    printlog(*args, loglevel=LOG_URGENT, **kwargs)
 
 
 def log_report(*args: Any, **kwargs: Any) -> None:
-    printlog(*args, loglevel=qr.LOG_REPORT, **kwargs)
+    printlog(*args, loglevel=LOG_REPORT, **kwargs)
 
 
 def log_info(*args: Any, **kwargs: Any) -> None:
-    printlog(*args, loglevel=qr.LOG_INFO, **kwargs)
+    printlog(*args, loglevel=LOG_INFO, **kwargs)
 
 
 def log_detail(*args: Any, **kwargs: Any) -> None:
-    printlog(*args, loglevel=qr.LOG_DETAIL, **kwargs)
+    printlog(*args, loglevel=LOG_DETAIL, **kwargs)
 
 
 def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:
     if not verbose:
         return
-    printlog(*args, loglevel=qr.LOG_QUICK, **kwargs)
+    printlog(*args, loglevel=LOG_QUICK, **kwargs)
 
 
 def printlog(
@@ -113,7 +119,7 @@ def printlog(
     if (loglevel > 10) or (loglevel < 0):
         raise Exception("Loglevel must be between 0 and 10")
 
-    manager = qr.Manager().log_conf
+    manager = Manager().log_conf
     if not manager.initialized:
         init_logging()
 
@@ -176,7 +182,7 @@ def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
     --------
     Standard usage:
 
-    >>> m = qr.Manager()
+    >>> m = Manager()
     >>> m.verbosity = 5
     >>> bools = loglevels2bool([0, 2, 5, 8, 10], verbose=True)
     >>> print(bools)
@@ -185,7 +191,7 @@ def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
     Do not forget to set verbose to True. It is False by default
     to avoid lengthy evaluation when not required
 
-    >>> m = qr.Manager()
+    >>> m = Manager()
     >>> m.verbosity = 5
     >>> bools = loglevels2bool([0, 2, 5, 8, 10])
     >>> print(bools)
@@ -195,7 +201,7 @@ def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
     verb = [False] * len(loglevs)
 
     if verbose:
-        m = qr.Manager().log_conf
+        m = Manager().log_conf
         k_v = 0
         for lev in loglevs:
             if m.verbosity > lev:
@@ -236,7 +242,7 @@ def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
 
 def log_to_file(filename: str = "qrhei.log") -> None:
     """Set logging to file"""
-    manager = qr.Manager().log_conf
+    manager = Manager().log_conf
     # manager.log_on_screen = False
     manager.log_to_file = True
     manager.log_file_name = filename

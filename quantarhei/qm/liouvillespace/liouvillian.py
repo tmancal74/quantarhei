@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..hilbertspace.operators import UnityOperator
+import numpy
+
 from .superoperator import SuperOperator
 
 
@@ -43,12 +44,6 @@ class Liouvillian(SuperOperator):
     def __init__(self, ham: Any) -> None:
         super().__init__(dim=ham.dim)
         dim = ham.dim
-        delta = UnityOperator(dim=dim)
-        for k_i in range(dim):
-            for k_j in range(dim):
-                for k_k in range(dim):
-                    for k_l in range(dim):
-                        self.data[k_i, k_j, k_k, k_l] = (
-                            ham.data[k_i, k_k] * delta.data[k_j, k_l]
-                            - delta.data[k_i, k_k] * ham.data[k_l, k_j]
-                        )
+        H = ham.data
+        I = numpy.eye(dim)
+        self.data = (numpy.kron(H, I) - numpy.kron(I, H.T)).reshape(dim, dim, dim, dim)

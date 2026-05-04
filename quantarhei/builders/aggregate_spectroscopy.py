@@ -13,9 +13,8 @@ from typing import Any
 
 import numpy
 
-import quantarhei as qr
-
 from ..core.managers import eigenbasis_of
+from ..qm.liouvillespace.supopunity import SOpUnity
 from ..spectroscopy import diagramatics as diag
 from .aggregate_base import AggregateBase
 
@@ -45,7 +44,7 @@ class AggregateSpectroscopy(AggregateBase):
             dtol=dtol,
             ptol=ptol,
             lab=lab,
-            eUt=qr.qm.SOpUnity(dim=ham.dim),
+            eUt=SOpUnity(dim=ham.dim),
             verbose=verbose,
         )
         #

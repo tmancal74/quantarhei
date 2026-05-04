@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 """
 *******************************************************************************
@@ -10,8 +11,8 @@ import unittest
 *******************************************************************************
 """
 
-from quantarhei import energy_units, set_current_units
-from quantarhei.core.units import cm2int
+from quantarhei import Manager, energy_units, set_current_units, units_state
+from quantarhei.core.units import cm2int, conversion_facs_energy
 
 # let us reuse a class from previous test
 from .test_UnitsManaged import UnitsManagedObject
@@ -21,6 +22,8 @@ class TestEnergyUnits(unittest.TestCase):
     def setUp(self):
         # reusining class from previous test
         self.u = UnitsManagedObject()
+        # ensure units start at defaults regardless of test ordering
+        set_current_units()
 
     def test_using_different_units(self):
         """Testing that 'energy_units' context manager works"""
@@ -93,3 +96,104 @@ class TestEnergyUnits(unittest.TestCase):
 
         self.assertEqual(self.u.get_value(), val2 * cm2int)
         self.assertEqual(w.get_value(), val1 * cm2int)
+
+    def test_cu_energy_roundtrip(self):
+        """cu_energy() must convert input units -> current units correctly.
+
+        100 1/cm expressed in eV, then cu_energy(..., units="eV") with
+        current_units="1/cm" must return 100.0.  Before the fix this
+        returned the original eV value unchanged (identity bug).
+        """
+        m = Manager()
+        cm_fac = conversion_facs_energy["1/cm"]
+        eV_fac = conversion_facs_energy["eV"]
+
+        # 100 1/cm in internal units, then expressed as eV
+        val_eV = (100.0 * cm_fac) / eV_fac
+
+        set_current_units({"energy": "1/cm"})
+        try:
+            result = m.cu_energy(val_eV, units="eV")
+            self.assertAlmostEqual(result, 100.0, places=8)
+        finally:
+            set_current_units()
+
+    def test_energy_units_state_restored_after_exception(self):
+        """energy_units.__exit__ must restore Manager state even if body raises"""
+        manager = Manager()
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                with energy_units("1/cm"):
+                    raise RuntimeError("body error")
+            except RuntimeError:
+                pass
+
+        self.assertEqual(manager._in_eu_count, 0)
+        self.assertFalse(manager._in_energy_units_context)
+
+    def test_energy_units_nested_state_restored_after_exception(self):
+        """Nested energy_units: inner exception must not corrupt outer counter"""
+        manager = Manager()
+
+        with energy_units("1/cm"):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                try:
+                    with energy_units("eV"):
+                        raise RuntimeError("inner error")
+                except RuntimeError:
+                    pass
+
+            self.assertEqual(manager._in_eu_count, 1)
+            self.assertTrue(manager._in_energy_units_context)
+
+        self.assertEqual(manager._in_eu_count, 0)
+        self.assertFalse(manager._in_energy_units_context)
+
+    def test_units_state_returns_current_units(self):
+        """units_state() returns the current global unit settings"""
+        state = units_state()
+        self.assertIsInstance(state, dict)
+        self.assertIn("energy", state)
+        self.assertIn("length", state)
+        self.assertIn("temperature", state)
+
+        with energy_units("1/cm"):
+            state_inside = units_state()
+            self.assertEqual(state_inside["energy"], "1/cm")
+
+        state_after = units_state()
+        self.assertEqual(state_after["energy"], "1/fs")
+
+    def test_units_state_is_a_copy(self):
+        """units_state() must return a copy, not a reference to Manager internals"""
+        state = units_state()
+        state["energy"] = "eV"
+        self.assertEqual(units_state()["energy"], "1/fs")
+
+    def test_energy_units_warns_on_exception_exit(self):
+        """energy_units.__exit__ emits a UserWarning when an exception exits the block"""
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            try:
+                with energy_units("1/cm"):
+                    raise RuntimeError("body error")
+            except RuntimeError:
+                pass
+
+        unit_warns = [w for w in caught if issubclass(w.category, UserWarning)]
+        self.assertEqual(len(unit_warns), 1)
+        self.assertIn("energy_units", str(unit_warns[0].message))
+        self.assertIn("1/cm", str(unit_warns[0].message))
+
+    def test_energy_units_no_warn_on_clean_exit(self):
+        """energy_units.__exit__ must NOT warn when exiting cleanly"""
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            with energy_units("1/cm"):
+                pass
+
+        unit_warns = [w for w in caught if issubclass(w.category, UserWarning)]
+        self.assertEqual(len(unit_warns), 0)

@@ -194,8 +194,6 @@ import matplotlib.pyplot as plt
 import numpy
 from scipy.linalg import expm
 
-import quantarhei as qr
-
 from ... import COMPLEX
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis, TimeDependent
@@ -278,11 +276,11 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         if (self.time is not None) and (self.mode == "all"):
             self.data_pop = numpy.zeros(
-                (self.time.length, self.dim, self.dim), dtype=qr.COMPLEX
+                (self.time.length, self.dim, self.dim), dtype=COMPLEX
             )
 
             self.data_coh = numpy.zeros(
-                (self.time.length, self.dim, self.dim), dtype=qr.COMPLEX
+                (self.time.length, self.dim, self.dim), dtype=COMPLEX
             )
 
             #
@@ -295,9 +293,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     self.data_coh[0, i, j] = 1.0
 
         else:
-            self.data_pop = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
+            self.data_pop = numpy.zeros((self.dim, self.dim), dtype=COMPLEX)
 
-            self.data_coh = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
+            self.data_coh = numpy.zeros((self.dim, self.dim), dtype=COMPLEX)
             #
             # zero time value (unity superoperator)
             #
@@ -353,9 +351,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if (self.mode == "all") or save:
             # if we are supposed to save all time steps
             Nt = self.time.length
-            self.data_pop = numpy.zeros((Nt, self.dim, self.dim), dtype=qr.COMPLEX)
+            self.data_pop = numpy.zeros((Nt, self.dim, self.dim), dtype=COMPLEX)
 
-            self.data_coh = numpy.zeros((Nt, self.dim, self.dim), dtype=qr.COMPLEX)
+            self.data_coh = numpy.zeros((Nt, self.dim, self.dim), dtype=COMPLEX)
 
             #
             # zero time value (unity superoperator)
@@ -369,9 +367,9 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         elif self.mode == "jit":
             # if we need to keep only the last state
             if self.dim != self.data.shape[0]:  # type: ignore[misc,index,attr-defined,assignment]
-                self.data_pop = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
+                self.data_pop = numpy.zeros((self.dim, self.dim), dtype=COMPLEX)
 
-                self.data_coh = numpy.zeros((self.dim, self.dim), dtype=qr.COMPLEX)
+                self.data_coh = numpy.zeros((self.dim, self.dim), dtype=COMPLEX)
             #
             # zero time value (unity superoperator)
             #

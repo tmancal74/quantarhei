@@ -1306,7 +1306,6 @@ dependencies = [
     { name = "pyyaml" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "sympy" },
     { name = "terminaltables" },
 ]
 
@@ -1320,6 +1319,9 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
     { name = "setuptools" },
+]
+symbolic = [
+    { name = "sympy" },
 ]
 
 [package.dev-dependencies]
@@ -1344,10 +1346,10 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.12" },
     { name = "scipy", specifier = ">=1.9,<2" },
     { name = "setuptools", marker = "extra == 'dev'", specifier = ">=69" },
-    { name = "sympy", specifier = ">=1.12,<2" },
+    { name = "sympy", marker = "extra == 'symbolic'", specifier = ">=1.12,<2" },
     { name = "terminaltables", specifier = ">=3.1,<4" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["symbolic", "dev"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.0.3" }]

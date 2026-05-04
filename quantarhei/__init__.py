@@ -151,12 +151,13 @@ m = Manager()
 REAL: type = m.get_real_type()  # numpy.float64
 COMPLEX: type = m.get_complex_type()  # numpy.complex128
 
-LOG_URGENT = 1
-LOG_REPORT = 3
-LOG_INFO = 5
-LOG_DETAIL = 7
-LOG_QUICK = 9
-
+from .utils.logging import (
+    LOG_DETAIL,
+    LOG_INFO,
+    LOG_QUICK,
+    LOG_REPORT,
+    LOG_URGENT,
+)
 
 #
 # Non-linear response signals
@@ -251,6 +252,9 @@ from .core.managers import (
 )
 from .core.managers import (
     set_current_units as set_current_units,
+)
+from .core.managers import (
+    units_state as units_state,
 )
 
 #
@@ -442,30 +446,18 @@ from .spectroscopy.circular_dichroism import (
 from .spectroscopy.circular_dichroism import (
     CircDichSpectrumContainer as CircDichSpectrumContainer,
 )
-from .spectroscopy.dsfeynman import (
-    DSFeynmanDiagram as DSFeynmanDiagram,
-)
-from .spectroscopy.dsfeynman import (
-    R1f_Diagram as R1f_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R1g_Diagram as R1g_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R1g_R_Diagram as R1g_R_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R2f_Diagram as R2f_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R2g_Diagram as R2g_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R3g_Diagram as R3g_Diagram,
-)
-from .spectroscopy.dsfeynman import (
-    R4g_Diagram as R4g_Diagram,
-)
+
+try:
+    from .spectroscopy.dsfeynman import DSFeynmanDiagram as DSFeynmanDiagram
+    from .spectroscopy.dsfeynman import R1f_Diagram as R1f_Diagram
+    from .spectroscopy.dsfeynman import R1g_Diagram as R1g_Diagram
+    from .spectroscopy.dsfeynman import R1g_R_Diagram as R1g_R_Diagram
+    from .spectroscopy.dsfeynman import R2f_Diagram as R2f_Diagram
+    from .spectroscopy.dsfeynman import R2g_Diagram as R2g_Diagram
+    from .spectroscopy.dsfeynman import R3g_Diagram as R3g_Diagram
+    from .spectroscopy.dsfeynman import R4g_Diagram as R4g_Diagram
+except ImportError:
+    pass
 
 #
 # Fluorescence
@@ -541,7 +533,11 @@ from .spectroscopy.twodcontainer import TwoDSpectrumContainer as TwoDSpectrumCon
 #
 from .spectroscopy.twodresponse import TwoDResponse as TwoDResponse
 from .spectroscopy.twodspect import TwoDSpectrum as TwoDSpectrum
-from .symbolic.cumulant import evaluate_cumulant as evaluate_cumulant
+
+try:
+    from .symbolic.cumulant import evaluate_cumulant as evaluate_cumulant
+except ImportError:
+    pass
 from .utils.logging import (
     init_logging as init_logging,
 )
@@ -635,11 +631,11 @@ def assert_version(check: str, vno: str) -> None:
             ext()
 
     elif check == ">":
-        if not (version.parse(Manager().version) == version.parse(vno)):
+        if not (version.parse(Manager().version) > version.parse(vno)):
             ext()
 
-    elif check == "<=":
-        if not (version.parse(Manager().version) >= version.parse(vno)):
+    elif check == "<":
+        if not (version.parse(Manager().version) < version.parse(vno)):
             ext()
 
     else:
@@ -649,3 +645,182 @@ def assert_version(check: str, vno: str) -> None:
 #
 #  __all__ attribute to define a public API
 #
+__all__ = [
+    "COMPLEX",
+    "DATA_PARTS",
+    "LIOUVILLE_PATHWAY_TYPES",
+    "LOG_DETAIL",
+    "LOG_INFO",
+    "LOG_QUICK",
+    "LOG_REPORT",
+    # Log levels
+    "LOG_URGENT",
+    "PATHWAY_TYPES",
+    "REAL",
+    "SIGNAL_PARTS",
+    "TWOD_SIGNALS",
+    # Spectroscopy — linear
+    "AbsSpectrum",
+    "AbsSpectrumCalculator",
+    "AbsSpectrumContainer",
+    # Builders
+    "Aggregate",
+    "AnharmonicMode",
+    # Quantum mechanics — operators
+    "BasisReferenceOperator",
+    "CircDichSpectrum",
+    "CircDichSpectrumCalculator",
+    "CircDichSpectrumContainer",
+    # Correlation functions / lineshape
+    "CorrelationFunction",
+    "CorrelationFunctionMatrix",
+    # Core
+    "DFunction",
+    # Spectroscopy — nonlinear
+    "DSFeynmanDiagram",
+    "DensityMatrix",
+    "DensityMatrixEvolution",
+    "Disorder",
+    # Evolution / propagation
+    "EvolutionSuperOperator",
+    "FastFunctionStorage",
+    "FluorSpectrum",
+    "FluorSpectrumCalculator",
+    "FluorSpectrumContainer",
+    "FrequencyAxis",
+    "FunctionStorage",
+    "Hamiltonian",
+    "HarmonicMode",
+    # Wizard
+    "Input",
+    "KTHierarchy",
+    "KTHierarchyPropagator",
+    "LabField",
+    "LabSetup",
+    "LinDichSpectrum",
+    "LinDichSpectrumCalculator",
+    "LinDichSpectrumContainer",
+    "LineshapeFunction",
+    "LiouvillePathway",
+    "LiouvillePathwayAnalyzer",
+    "Liouvillian",
+    # Managers and types
+    "Manager",
+    "MockAbsSpectrumCalculator",
+    # Pump-probe
+    "MockPumpProbeSpectrumCalculator",
+    "MockTwoDResponseCalculator",
+    "Mode",
+    "Molecule",
+    "NonLinearResponse",
+    "OQSStateVector",
+    "OQSStateVectorEvolution",
+    "OQSStateVectorPropagator",
+    "OpenSystem",
+    "PDBFile",
+    "Parcel",
+    "PopulationPropagator",
+    "ProjectionOperator",
+    "PumpProbeSpectrum",
+    "PumpProbeSpectrumCalculator",
+    "PumpProbeSpectrumContainer",
+    "QuTip_KTHierarchyPropagator",
+    "R1f_Diagram",
+    "R1g_Diagram",
+    "R1g_R_Diagram",
+    "R2f_Diagram",
+    "R2g_Diagram",
+    "R3g_Diagram",
+    "R4g_Diagram",
+    "ReducedDensityMatrix",
+    "ReducedDensityMatrixEvolution",
+    "ReducedDensityMatrixPropagator",
+    "ResponseFunction",
+    "Saveable",
+    "SpectralDensity",
+    "StateVector",
+    "StateVectorEvolution",
+    "StateVectorPropagator",
+    "SystemBathInteraction",
+    "TestAggregate",
+    "TestMolecule",
+    "TimeAxis",
+    "TransitionDipoleMoment",
+    "TwoDResponse",
+    "TwoDResponseCalculator",
+    "TwoDResponseContainer",
+    "TwoDSpectrum",
+    "TwoDSpectrumContainer",
+    "UnityOperator",
+    "ValueAxis",
+    "VibrationalSystem",
+    "assert_version",
+    # Parallelization
+    "asynchronous_range",
+    "block_distributed_array",
+    "block_distributed_list",
+    "block_distributed_range",
+    # Parcel I/O
+    "check_parcel",
+    "close_parallel_region",
+    "collect_block_distributed_data",
+    "convert",
+    "distributed_configuration",
+    # Timing
+    "done_in",
+    # Unit managers
+    "eigenbasis_of",
+    "energy_units",
+    # Symbolic
+    "evaluate_cumulant",
+    # Convenience functions
+    "exit",
+    "finished_in",
+    "frequency_units",
+    "in_current_units",
+    # Logging
+    "init_logging",
+    "length_units",
+    "load_parcel",
+    "log_detail",
+    "log_info",
+    "log_quick",
+    "log_report",
+    "log_to_file",
+    "log_urgent",
+    "loglevels2bool",
+    # Vectors
+    "norm",
+    "normalize2",
+    "oscillator_scalled_CorrelationFunction",
+    "parallel_function",
+    "part_ABS",
+    "part_COMPLEX",
+    "part_IMAGINARY",
+    "part_PHASE",
+    "part_REAL",
+    "printlog",
+    "ptype_R1f",
+    # Pathway types
+    "ptype_R1g",
+    "ptype_R2f",
+    "ptype_R2g",
+    "ptype_R3f",
+    "ptype_R3g",
+    "ptype_R4f",
+    "ptype_R4g",
+    "save_parcel",
+    "savefig",
+    "set_current_units",
+    "show_plot",
+    "signal_DC",
+    "signal_NONR",
+    # Signal constants
+    "signal_REPH",
+    "signal_TOTL",
+    "start_parallel_region",
+    "stop",
+    "timeit",
+    "tprint",
+    "untimeit",
+]

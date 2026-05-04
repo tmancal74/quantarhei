@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from quantarhei import SpectralDensity, energy_units
-from quantarhei.models.spectdens import SpectralDensityDatabaseEntry
+from ...core.managers import energy_units
+from ...qm.corfunctions.spectraldensities import SpectralDensity
+from ..spectdens import SpectralDensityDatabaseEntry
 
 
 class wendling_2000a(SpectralDensityDatabaseEntry):

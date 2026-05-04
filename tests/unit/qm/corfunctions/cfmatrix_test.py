@@ -130,3 +130,12 @@ class TestCFMatrix(unittest.TestCase):
 
         lam = cfm.get_reorganization_energy4(2, 2, 2, 2)
         self.assertTrue(qr.convert(lam, "int", "1/cm") != 80.0)
+
+    def test_where_sublists_are_independent(self):
+        """(CorrelationFunctionMatrix) Different sites must not share where sublists"""
+        cfm = cors.CorrelationFunctionMatrix(self.time, nob=3)
+        cfm.set_correlation_function(self.cf1, [(1, 1)])
+        cfm.set_correlation_function(self.cf2, [(2, 2)])
+        # cf1 is at index 1, cf2 is at index 2; their where lists must be disjoint
+        self.assertNotIn((2, 2), cfm.where[1])
+        self.assertNotIn((1, 1), cfm.where[2])

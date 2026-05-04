@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..symbolic.cumulant import Uop, UopEater, transform_to_einsum_expr
+
+def _require_symbolic() -> None:
+    try:
+        import sympy  # noqa: F401
+    except ImportError:
+        raise ImportError(
+            "sympy is required for Feynman diagram calculations. "
+            "Install it with: pip install quantarhei[symbolic]"
+        )
 
 
 class DSFeynmanDiagram:
@@ -156,6 +164,9 @@ class DSFeynmanDiagram:
             A list of Uop objects will be returned if operators is True.
 
         """
+        _require_symbolic()
+        from ..symbolic.cumulant import Uop
+
         self._check_finished()
 
         symbols = set()
@@ -245,6 +256,8 @@ class DSFeynmanDiagram:
 
     def coherence_GF(self) -> Any:
         """Returns coherence Green's function product for this diagram"""
+        from ..symbolic.cumulant import UopEater
+
         evs = self.evolution_operators(operators=True)
         eater = UopEater()
         out_list = eater.eat(evs)
@@ -343,6 +356,9 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
         self, function: bool = True, participation_matrix: bool = True
     ) -> str:
         """Return the code that evaluates the response function"""
+        _require_symbolic()
+        from ..symbolic.cumulant import transform_to_einsum_expr
+
         dims = self.dimensions
         phfac = self.get_phase_factor(dimensions=dims)
         # print("\n ... phase factor:", phfac)

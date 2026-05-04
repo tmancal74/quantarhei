@@ -1,3 +1,31 @@
+"""The class representing 2D spectrum. It is obtained by the chain:
+
+
+Option 1) --- Impulsive spectrum only ---
+
+TwoDSpectrumCalculator.calculate()
+-> TwoDSpectrumContainer
+
+TwoDSpectrumContainer.get_TwoDSpectrum()
+-> TwoDSpectrum
+
+Option 2) --- Allows convoluting with the fields
+
+TwoDResponseCalculator.calculate()
+-> TwoDResponseContainer
+
+TwoDResponseContainer.get_TwoDSpectrumContainer  # here the fields get convoluted
+-> TwoDSpectrumContainer
+
+TwoDSpectrumContainer.get_TwoDSpectrum
+-> TwoDSpectum
+
+
+
+TwoDResponseCalculator.
+
+"""
+
 from __future__ import annotations
 
 import warnings
@@ -202,7 +230,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         vx1 = point1[0]
         vy1 = point1[1]
         vx2 = point2[0]
-        vy2 = point2[0]
+        vy2 = point2[1]
 
         (x1, dist) = self.xaxis.locate(vx1)
         (y1, dist) = self.yaxis.locate(vy1)

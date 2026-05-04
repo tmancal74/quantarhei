@@ -162,7 +162,7 @@ def intfull(F: numpy.ndarray, dt: float, omega: float) -> Any:
 def intrun(F: numpy.ndarray, dt: float, omega: float) -> numpy.ndarray:
     """Running intergration of an oscillating function of one parameter"""
     Nt = F.shape[0]
-    I = numpy.zeros(Nt, dtype=COMPLEX)
+    I: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
     x = (1.0 - numpy.exp(-1j * omega * dt)) / (1j * omega * dt)
     y = (1.0 - x) / (1j * omega)
 
@@ -176,7 +176,7 @@ def intrun(F: numpy.ndarray, dt: float, omega: float) -> numpy.ndarray:
 
 def intruntrap(F: numpy.ndarray, dt: float) -> numpy.ndarray:
     Nt = F.shape[0]
-    I = numpy.zeros(Nt, dtype=COMPLEX)
+    I: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
     for ii in range(1, Nt):
         I[ii] = I[ii - 1] + F[ii] * dt / 2.0 + F[ii - 1] * dt / 2.0
 
@@ -274,15 +274,15 @@ def ssmodr(
 
     # Relaxation rate matrix (may be time-dependent)
     if tdep:
-        RR = numpy.zeros((Na + 1, Na + 1, Nt), dtype=REAL)
-        Iterm = numpy.zeros((Na + 1, Na + 1, Nt), dtype=COMPLEX)
+        RR: numpy.ndarray = numpy.zeros((Na + 1, Na + 1, Nt), dtype=REAL)
+        Iterm: numpy.ndarray = numpy.zeros((Na + 1, Na + 1, Nt), dtype=COMPLEX)
     else:
         RR = numpy.zeros((Na + 1, Na + 1), dtype=REAL)
         Iterm = numpy.zeros((Na + 1, Na + 1), dtype=REAL)
 
     # Various storage variables
-    cbaab = numpy.zeros(Nt, dtype=COMPLEX)
-    Nab = numpy.zeros(Nt, dtype=COMPLEX)
+    cbaab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    Nab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
 
     # time step
     dt = tt[1] - tt[0]
@@ -359,7 +359,7 @@ def ssmodr(
         # Modified Redfield theory (equilibrium version)
         #
         #
-        mm = numpy.zeros(Nt, dtype=COMPLEX)
+        mm: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
 
         for a in range(Na + 1):
             aa = -1j * ee[a] * tt
@@ -487,7 +487,7 @@ def ssmodr(
         #
         #
         mm = numpy.zeros(Nt, dtype=COMPLEX)
-        mr = numpy.zeros(Nt, dtype=COMPLEX)
+        mr: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
         fb = numpy.zeros(Nt, dtype=COMPLEX)
 
         for a in range(Na + 1):
