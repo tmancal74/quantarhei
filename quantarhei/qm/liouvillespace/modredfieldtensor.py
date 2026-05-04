@@ -3,7 +3,11 @@ from __future__ import annotations
 import numpy
 
 from ... import COMPLEX
-from ...core.managers import eigenbasis_of, energy_units
+from ...core.managers import (
+    assert_not_in_eigenbasis_context,
+    eigenbasis_of,
+    energy_units,
+)
 
 # import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
@@ -26,6 +30,8 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         cutoff_time: float | None = None,
         as_operators: bool = False,
     ) -> None:
+
+        assert_not_in_eigenbasis_context()
 
         if as_operators:
             import warnings
@@ -65,6 +71,8 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         else:
             self._data_initialized = False
 
+        self.basis_op = ham
+
     def initialize(self) -> None:
 
         #
@@ -99,7 +107,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
                 for aa in range(self.dim):
                     for bb in range(self.dim):
                         if aa != bb:
-                            self.data[aa, aa, bb, bb] = frm.data[aa, bb]
+                            self._data[aa, aa, bb, bb] = frm.data[aa, bb]
 
                 #
                 # calculate dephasing rates and depopulation rates
