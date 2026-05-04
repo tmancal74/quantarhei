@@ -155,7 +155,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             if self._secular_on_init:
                 self.secularize(legacy=False)
 
-            self.basis_op = ham
+        self.basis_op = ham
 
         self.Iterm = None
         self.has_Iterm = False
