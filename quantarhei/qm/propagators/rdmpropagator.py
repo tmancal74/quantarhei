@@ -19,14 +19,13 @@ author: Tomas Mancal, Charles University
 import numpy
 import numpy.linalg
 
-import quantarhei as qr
-
-from ... import COMPLEX
+from ... import COMPLEX, REAL
 from ...core.managers import Manager, energy_units
 from ...core.matrixdata import MatrixData
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis, TimeDependent
 from ...spectroscopy.labsetup import LabSetup
+from ...utils.logging import LOG_QUICK, log_detail, loglevels2bool, printlog
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..hilbertspace.operators import DensityMatrix, Operator, ReducedDensityMatrix
 from ..liouvillespace.redfieldtensor import RelaxationTensor
@@ -720,12 +719,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         #     HH = self.Hamiltonian.data
         HH = self._INIT_RWA()
 
-        qr.log_detail(
+        log_detail(
             "PROPAGATION (short exponential with relaxation in operator form): order ",
             L,
             verbose=self.verbose,
         )
-        qr.log_detail("Using complex numpy implementation")
+        log_detail("Using complex numpy implementation")
 
         Km = self.RelaxationTensor.Km  # real
         Lm = self.RelaxationTensor.Lm  # complex
@@ -737,8 +736,8 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         indx = 1
 
-        levs = [qr.LOG_QUICK]  # , 8]
-        verb = qr.loglevels2bool(levs)
+        levs = [LOG_QUICK]  # , 8]
+        verb = loglevels2bool(levs)
 
         # after each step we apply pure dephasing (if present)
         if self.has_PDeph:
@@ -752,7 +751,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             # loop over time
             for ii in range(1, self.Nt):
-                qr.printlog(
+                printlog(
                     " time step ", ii, "of", self.Nt, verbose=verb[0], loglevel=levs[0]
                 )
 
@@ -797,7 +796,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         else:
             # loop over time
             for ii in range(1, self.Nt):
-                qr.printlog(
+                printlog(
                     " time step ", ii, "of", self.Nt, verbose=verb[0], loglevel=levs[0]
                 )
 
@@ -828,7 +827,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 pr.data[indx, :, :] = rho2
                 indx += 1
 
-        qr.log_detail("...DONE")
+        log_detail("...DONE")
 
         # if self.Hamiltonian.has_rwa:
         #    pr.is_in_rwa = True
@@ -1487,7 +1486,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             # upper and lower triagle
             N = self.Hamiltonian.dim
-            Mu: numpy.ndarray = numpy.zeros((N, N), dtype=qr.REAL)
+            Mu: numpy.ndarray = numpy.zeros((N, N), dtype=REAL)
             for ii in range(N):
                 for jj in range(ii + 1, N):
                     Mu[ii, jj] = 1.0

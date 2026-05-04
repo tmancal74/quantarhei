@@ -279,7 +279,7 @@ def _kernel_at_t(
     """Two-time kernel to be integrated"""
     Nt = tt.shape[0]
     gtd_i = gtd[0 : ti + 1]
-    gtd_m = numpy.zeros(Nt, dtype=COMPLEX)
+    gtd_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
     gtd_m[0 : ti + 1] = numpy.flip(gtd_i)
 
     prod = (
@@ -309,8 +309,8 @@ def _nsc_kernel_at_t(
     # expressions for t-tau
     gtb_i = gt[bb, 0 : ti + 1]
     gta_i = gt[aa, 0 : ti + 1]
-    gtb_m = numpy.zeros(Nt, dtype=COMPLEX)
-    gta_m = numpy.zeros(Nt, dtype=COMPLEX)
+    gtb_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    gta_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
     gtb_m[0 : ti + 1] = numpy.flip(gtb_i)
     gta_m[0 : ti + 1] = numpy.flip(gta_i)
 
@@ -422,7 +422,7 @@ def _integrate_three_to_t(
     import numpy
 
     # convert the function of t-tau into a function of tau
-    fce_flip = numpy.zeros(fce_ttau.shape, dtype=COMPLEX)
+    fce_flip: numpy.ndarray = numpy.zeros(fce_ttau.shape, dtype=COMPLEX)
     fce_flip[0 : ti + 1] = numpy.flip(fce_ttau[0 : ti + 1])
 
     # construct the function to be integrated
@@ -470,7 +470,7 @@ def _ne_fintegral(
 
     """
     Nt = tt.shape[0]
-    hoft = numpy.zeros(Nt, dtype=COMPLEX)
+    hoft: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
 
     for ti in range(Nt):
         #
@@ -510,7 +510,7 @@ def _nsc_reference_implementation(
     RR: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
 
     # resonance coupling matrix
-    JJ = numpy.zeros(HH.shape, dtype=REAL)
+    JJ: numpy.ndarray = numpy.zeros(HH.shape, dtype=REAL)
     JJ[:, :] = HH[:, :]
     for ii in range(Na):
         JJ[ii, ii] = 0.0
@@ -636,7 +636,7 @@ def _nsc_fintegral(
 
     """
     Nt = tt.shape[0]
-    hoft = numpy.zeros(Nt, dtype=COMPLEX)
+    hoft: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
 
     for ti in range(Nt):
         #

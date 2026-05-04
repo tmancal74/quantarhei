@@ -165,7 +165,7 @@ class SelfAdjointOperator(Operator):
         # first use is of "data", the rest of "_data"
         dd, SS = numpy.linalg.eigh(self.data)
         self._data = numpy.zeros(self._data.shape)
-        for ii in range(self._data.shape[0]):
+        for ii in range(self._data.shape[0]):  # type: ignore[misc]
             self._data[ii, ii] = dd[ii]
         return SS
 

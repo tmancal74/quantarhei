@@ -14,8 +14,6 @@ from typing import Any
 import numpy
 import scipy
 
-import quantarhei as qr
-
 from ... import COMPLEX, REAL
 from ...core.managers import energy_units
 from ...core.parallel import (
@@ -24,6 +22,7 @@ from ...core.parallel import (
     distributed_configuration,
     start_parallel_region,
 )
+from ...utils.logging import log_detail, log_quick
 
 # from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
@@ -275,7 +274,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
 
         """
-        qr.log_detail("Reference time-independent Redfield tensor calculation")
+        log_detail("Reference time-independent Redfield tensor calculation")
         # print("Reference Redfield implementation ...")
         #
         # dimension of the Hamiltonian (includes excitons
@@ -405,7 +404,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         start_parallel_region()
         for ms in block_distributed_range(0, Nb):  # range(Nb):
-            qr.log_quick("Calculating bath component", ms, "of", Nb, end="\r")
+            log_quick("Calculating bath component", ms, "of", Nb, end="\r")
             # print(ms, "of", Nb)
             # for ns in range(Nb):
 
@@ -420,7 +419,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self._guts_Cmplx_Splines(ms, Lm, Km, Na, Om, length, rc1, tm)
 
         # perform reduction of Lm
-        qr.log_quick()
+        log_quick()
         distributed_configuration().allreduce(Lm, operation="sum")
         close_parallel_region()
 
@@ -455,7 +454,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         self._post_implementation(Km, Lm, Ld)
 
-        qr.log_detail("... Redfield done")
+        log_detail("... Redfield done")
 
     def _post_implementation(
         self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray

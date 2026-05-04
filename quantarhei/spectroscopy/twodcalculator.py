@@ -5,12 +5,11 @@ from typing import Any, Literal
 
 import numpy
 
-import quantarhei as qr
-
 from .. import REAL, signal_NONR, signal_REPH
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..builders.opensystem import OpenSystem
+from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..implementations.aceto.lab_settings import lab_settings
 from ..qm.propagators.poppropagator import PopulationPropagator
@@ -141,9 +140,9 @@ class TwoDResponseCalculator:
         self.pad = pad
         self.write_resp = write_resp
         self.keep_resp = keep_resp
-        self.rwa = qr.Manager().convert_energy_2_internal_u(rwa)
+        self.rwa = Manager().convert_energy_2_internal_u(rwa)
 
-        with qr.energy_units("int"):
+        with energy_units("int"):
             if self.write_resp:
                 try:
                     if isinstance(write_resp, str):
@@ -348,16 +347,16 @@ class TwoDResponseCalculator:
             self.resp_fcions = []
 
             # basic pathways
-            Nr1g = qr.NonLinearResponse(
+            Nr1g = NonLinearResponse(
                 self.lab, self.system, "R1g", self.t1axis, self.t2axis, self.t3axis
             )
-            Nr2g = qr.NonLinearResponse(
+            Nr2g = NonLinearResponse(
                 self.lab, self.system, "R2g", self.t1axis, self.t2axis, self.t3axis
             )
-            Nr3g = qr.NonLinearResponse(
+            Nr3g = NonLinearResponse(
                 self.lab, self.system, "R3g", self.t1axis, self.t2axis, self.t3axis
             )
-            Nr4g = qr.NonLinearResponse(
+            Nr4g = NonLinearResponse(
                 self.lab, self.system, "R4g", self.t1axis, self.t2axis, self.t3axis
             )
 
@@ -368,10 +367,10 @@ class TwoDResponseCalculator:
 
             if self.system.mult > 1:
                 # ESA (if mult > 1)
-                Nr1f = qr.NonLinearResponse(
+                Nr1f = NonLinearResponse(
                     self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis
                 )
-                Nr2f = qr.NonLinearResponse(
+                Nr2f = NonLinearResponse(
                     self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis
                 )
 
@@ -379,7 +378,7 @@ class TwoDResponseCalculator:
                 self.resp_fcions.append(Nr2f)
 
             # relaxation (if relax neq 0)
-            Nr1g_scM0g = qr.NonLinearResponse(
+            Nr1g_scM0g = NonLinearResponse(
                 self.lab,
                 self.system,
                 "R1g_scM0g",
@@ -387,7 +386,7 @@ class TwoDResponseCalculator:
                 self.t2axis,
                 self.t3axis,
             )
-            Nr2g_scM0g = qr.NonLinearResponse(
+            Nr2g_scM0g = NonLinearResponse(
                 self.lab,
                 self.system,
                 "R2g_scM0g",
@@ -406,7 +405,7 @@ class TwoDResponseCalculator:
                 self.resp_fcions.append(Nr2g_scM0g)
 
             if self.system.mult > 1:
-                Nr1f_scM0g = qr.NonLinearResponse(
+                Nr1f_scM0g = NonLinearResponse(
                     self.lab,
                     self.system,
                     "R1f_scM0g",
@@ -414,7 +413,7 @@ class TwoDResponseCalculator:
                     self.t2axis,
                     self.t3axis,
                 )
-                Nr2f_scM0g = qr.NonLinearResponse(
+                Nr2f_scM0g = NonLinearResponse(
                     self.lab,
                     self.system,
                     "R2f_scM0g",
@@ -422,7 +421,7 @@ class TwoDResponseCalculator:
                     self.t2axis,
                     self.t3axis,
                 )
-                Nr1f_scM0e = qr.NonLinearResponse(
+                Nr1f_scM0e = NonLinearResponse(
                     self.lab,
                     self.system,
                     "R1f_scM0e",
@@ -430,7 +429,7 @@ class TwoDResponseCalculator:
                     self.t2axis,
                     self.t3axis,
                 )
-                Nr2f_scM0e = qr.NonLinearResponse(
+                Nr2f_scM0e = NonLinearResponse(
                     self.lab,
                     self.system,
                     "R2f_scM0e",

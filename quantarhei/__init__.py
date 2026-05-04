@@ -151,12 +151,13 @@ m = Manager()
 REAL: type = m.get_real_type()  # numpy.float64
 COMPLEX: type = m.get_complex_type()  # numpy.complex128
 
-LOG_URGENT = 1
-LOG_REPORT = 3
-LOG_INFO = 5
-LOG_DETAIL = 7
-LOG_QUICK = 9
-
+from .utils.logging import (
+    LOG_DETAIL,
+    LOG_INFO,
+    LOG_QUICK,
+    LOG_REPORT,
+    LOG_URGENT,
+)
 
 #
 # Non-linear response signals
@@ -251,6 +252,9 @@ from .core.managers import (
 )
 from .core.managers import (
     set_current_units as set_current_units,
+)
+from .core.managers import (
+    units_state as units_state,
 )
 
 #
@@ -627,11 +631,11 @@ def assert_version(check: str, vno: str) -> None:
             ext()
 
     elif check == ">":
-        if not (version.parse(Manager().version) == version.parse(vno)):
+        if not (version.parse(Manager().version) > version.parse(vno)):
             ext()
 
-    elif check == "<=":
-        if not (version.parse(Manager().version) >= version.parse(vno)):
+    elif check == "<":
+        if not (version.parse(Manager().version) < version.parse(vno)):
             ext()
 
     else:

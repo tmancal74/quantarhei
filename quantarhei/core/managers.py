@@ -596,16 +596,16 @@ class Manager(metaclass=Singleton):
 
         # special handling for nano meters
         if units == "nm":
-            # zero is interpretted as zero energy
+            # zero is interpreted as zero energy; use tiny threshold to guard
+            # against subnormals that would overflow 1/val to inf
+            tiny = numpy.finfo(float).tiny
             try:
+                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
                 ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[val != 0.0] = 1.0 / val[val != 0]  # type: ignore[index]
+                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
                 return ret / cfact
-            except AttributeError:
-                return (1.0 / val) / cfact
-            # if val == 0.0:
-            #    return 0.0
-            # return (1.0/val)/cfact
+            except (AttributeError, TypeError):
+                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
         else:
             return val * cfact
 
@@ -625,13 +625,16 @@ class Manager(metaclass=Singleton):
 
         # special handling for nanometers
         if units == "nm":
-            # zero is interpretted as zero energy
+            # zero is interpreted as zero energy; use tiny threshold to guard
+            # against subnormals that would overflow 1/val to inf
+            tiny = numpy.finfo(float).tiny
             try:
+                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
                 ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[val != 0.0] = 1.0 / val[val != 0]  # type: ignore[index]
+                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
                 return ret / cfact
-            except AttributeError:
-                return (1.0 / val) / cfact
+            except (AttributeError, TypeError):
+                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
         else:
             return val / cfact
 
@@ -926,10 +929,19 @@ class energy_units(units_context_manager):
         self.manager._in_eu_count += 1
 
     def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
-        self.manager.set_current_units("energy", self.units_backup)
-        self.manager._in_eu_count -= 1
-        if self.manager._in_eu_count == 0:
-            self.manager._in_energy_units_context = False
+        if exc_val is not None and self.units != self.units_backup:
+            warnings.warn(
+                f"An exception exited a 'with energy_units(\"{self.units}\")' block. "
+                f"Unit state has been restored to '{self.units_backup}', but any "
+                f"intermediate results computed inside the block may be in unexpected units.",
+                stacklevel=2,
+            )
+        try:
+            self.manager.set_current_units("energy", self.units_backup)
+        finally:
+            self.manager._in_eu_count -= 1
+            if self.manager._in_eu_count == 0:
+                self.manager._in_energy_units_context = False
 
 
 class frequency_units(energy_units):
@@ -959,6 +971,13 @@ class length_units(units_context_manager):
         self.manager.set_current_units(self.utype, self.units)
 
     def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+        if exc_val is not None and self.units != self.units_backup:
+            warnings.warn(
+                f"An exception exited a 'with length_units(\"{self.units}\")' block. "
+                f"Unit state has been restored to '{self.units_backup}', but any "
+                f"intermediate results computed inside the block may be in unexpected units.",
+                stacklevel=2,
+            )
         self.manager.set_current_units("length", self.units_backup)
 
 
@@ -1011,43 +1030,44 @@ class eigenbasis_of(basis_context_manager):
         if self.manager.warn_about_basis_change:
             print("\nQr >>> Returning from basis context manager. Cleaning ...")
 
-        # This is the basis we are leaving
-        bb = self.manager.basis_stack.pop()
-        # this is the transformation we got here with
-        SS = self.manager.basis_transformations.pop()
-        # This is the new basis
-        bss = len(self.manager.basis_stack)
-        nb = self.manager.basis_stack[bss - 1]
+        try:
+            # This is the basis we are leaving
+            bb = self.manager.basis_stack.pop()
+            # this is the transformation we got here with
+            SS = self.manager.basis_transformations.pop()
+            # This is the new basis
+            bss = len(self.manager.basis_stack)
+            nb = self.manager.basis_stack[bss - 1]
 
-        # inverse of the transformation matrix
-        S1 = numpy.linalg.inv(SS)
+            # inverse of the transformation matrix
+            S1 = numpy.linalg.inv(SS)
 
-        # transform all registered objects
-        operators = self.manager.basis_registered[bb]
+            # transform all registered objects
+            operators = self.manager.basis_registered[bb]
 
-        if nb != 0:
-            # operators registered with the context above this one
-            ops_above = self.manager.basis_registered[nb]
-
-        for op in operators:
-            # the operator might have been set to protected mode
-            # inside the context
-            if not op.is_basis_protected:
-                op.transform(S1, inv=SS)
-            op.set_current_basis(nb)
-
-            # operators which appeared in this context and where not
-            # register in the one above are now registerd
             if nb != 0:
-                if op not in ops_above:
-                    self.manager.register_with_basis(nb, op)
+                # operators registered with the context above this one
+                ops_above = self.manager.basis_registered[nb]
 
-        self.manager.remove_current_basis_operator()
+            for op in operators:
+                # the operator might have been set to protected mode
+                # inside the context
+                if not op.is_basis_protected:
+                    op.transform(S1, inv=SS)
+                op.set_current_basis(nb)
 
-        del self.manager.basis_registered[bb]
+                # operators which appeared in this context and where not
+                # register in the one above are now registerd
+                if nb != 0:
+                    if op not in ops_above:
+                        self.manager.register_with_basis(nb, op)
 
-        if len(self.manager.basis_stack) == 1:
-            self.manager._in_eigenbasis_of_context = False
+            self.manager.remove_current_basis_operator()
+
+            del self.manager.basis_registered[bb]
+        finally:
+            if len(self.manager.basis_stack) == 1:
+                self.manager._in_eigenbasis_of_context = False
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")
@@ -1077,3 +1097,28 @@ def set_current_units(units: dict[str, str] | None = None) -> None:
                 manager.set_current_units(utype, manager.internal_units[utype])
             else:
                 raise Exception(f"Unknown units type {utype}")
+
+
+def units_state() -> dict[str, str]:
+    """Returns a snapshot of the current global unit settings.
+
+    Useful for inspecting Manager state in notebooks or debugging
+    unexpected unit conversions.
+
+    Returns
+    -------
+    dict
+        Mapping of unit type to current unit string, e.g.
+        ``{'energy': '1/cm', 'frequency': '1/fs', 'length': 'A',
+        'temperature': 'Kelvin', 'dipolemoment': 'Debye'}``.
+
+    Examples
+    --------
+    >>> import quantarhei as qr
+    >>> state = qr.units_state()
+    >>> state['energy']
+    '1/fs'
+
+    """
+    manager = Manager()
+    return dict(manager.current_units)

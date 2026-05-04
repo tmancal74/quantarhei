@@ -128,3 +128,76 @@ class TestOperatorAdd(unittest.TestCase):
         self.assertTrue(numpy.allclose(op1.data, d1))
         self.assertTrue(numpy.allclose(op2.data, d2))
         self.assertTrue(numpy.allclose(result.data, 6.0 * numpy.eye(2)))
+
+
+class TestMatrixDataEq(unittest.TestCase):
+    """Tests for __eq__ on MatrixData and its subclasses (Operator, etc.)."""
+
+    def test_equal_operators_compare_equal(self):
+        """Two Operators with identical data must compare equal."""
+        op1 = Operator(data=numpy.array([[1.0, 2.0], [3.0, 4.0]]))
+        op2 = Operator(data=numpy.array([[1.0, 2.0], [3.0, 4.0]]))
+        self.assertEqual(op1, op2)
+
+    def test_different_operators_compare_unequal(self):
+        """Two Operators with different data must compare unequal."""
+        op1 = Operator(data=numpy.array([[1.0, 0.0], [0.0, 1.0]]))
+        op2 = Operator(data=numpy.array([[2.0, 0.0], [0.0, 2.0]]))
+        self.assertNotEqual(op1, op2)
+
+    def test_numerically_close_operators_compare_equal(self):
+        """Operators that differ by floating-point noise must compare equal."""
+        data = numpy.array([[1.0, 2.0], [3.0, 4.0]])
+        op1 = Operator(data=data)
+        op2 = Operator(data=data + 1e-12)
+        self.assertEqual(op1, op2)
+
+    def test_different_shape_operators_compare_unequal(self):
+        """Operators with different shapes must compare unequal."""
+        op1 = Operator(data=numpy.eye(2))
+        op2 = Operator(data=numpy.eye(3))
+        self.assertNotEqual(op1, op2)
+
+    def test_eq_with_non_operator_returns_not_implemented(self):
+        """Comparing an Operator to a non-Operator must not raise."""
+        op = Operator(data=numpy.eye(2))
+        result = op.__eq__(42)
+        self.assertIs(result, NotImplemented)
+
+    def test_operator_is_unhashable(self):
+        """Operator must be unhashable (mutable objects with __eq__ should not be hashable)."""
+        op = Operator(data=numpy.eye(2))
+        with self.assertRaises(TypeError):
+            hash(op)
+
+    def test_allclose_with_default_tolerance(self):
+        """allclose() with defaults matches numpy.allclose defaults."""
+        data = numpy.array([[1.0, 2.0], [3.0, 4.0]])
+        op1 = Operator(data=data)
+        op2 = Operator(data=data + 1e-9)
+        self.assertTrue(op1.allclose(op2))
+
+    def test_allclose_with_tight_atol_rejects_small_difference(self):
+        """allclose(atol=0) rejects differences that == passes."""
+        data = numpy.array([[1.0, 2.0], [3.0, 4.0]])
+        op1 = Operator(data=data)
+        op2 = Operator(data=data + 1e-9)
+        self.assertFalse(op1.allclose(op2, atol=0.0, rtol=0.0))
+
+    def test_allclose_with_loose_atol_accepts_large_difference(self):
+        """allclose(atol=1.0) accepts differences that == rejects."""
+        op1 = Operator(data=numpy.array([[1.0, 0.0], [0.0, 1.0]]))
+        op2 = Operator(data=numpy.array([[1.5, 0.0], [0.0, 1.5]]))
+        self.assertFalse(op1 == op2)
+        self.assertTrue(op1.allclose(op2, atol=1.0))
+
+    def test_allclose_different_shapes_returns_false(self):
+        """allclose() returns False for operators with different shapes."""
+        op1 = Operator(data=numpy.eye(2))
+        op2 = Operator(data=numpy.eye(3))
+        self.assertFalse(op1.allclose(op2))
+
+    def test_allclose_with_non_operator_returns_not_implemented(self):
+        """allclose() with a non-Operator returns NotImplemented."""
+        op = Operator(data=numpy.eye(2))
+        self.assertIs(op.allclose(42), NotImplemented)

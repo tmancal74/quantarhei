@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy
 
+from ... import REAL
 from .superoperator import SuperOperator
 
 
@@ -75,9 +76,7 @@ class SOpUnity(SuperOperator):
 
         # initialize the data
         if dim is not None:
-            import quantarhei as qr
-
-            self.data = numpy.zeros((dim, dim, dim, dim), qr.REAL)
+            self.data = numpy.zeros((dim, dim, dim, dim), REAL)
             for i in range(self.dim):
                 for j in range(self.dim):
                     self.data[i, j, i, j] = 1.0

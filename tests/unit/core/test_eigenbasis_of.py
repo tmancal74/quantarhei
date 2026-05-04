@@ -250,6 +250,19 @@ class TestEigenbasisOf(unittest.TestCase):
             self.assertTrue(numpy.allclose(A.data, A0))
             self.assertTrue(numpy.allclose(B.data, B0))
 
+    def test_eigenbasis_of_state_restored_after_exception(self):
+        """eigenbasis_of.__exit__ must clear _in_eigenbasis_of_context even if body raises"""
+        manager = Manager()
+
+        try:
+            with eigenbasis_of(self.H):
+                raise RuntimeError("body error")
+        except RuntimeError:
+            pass
+
+        self.assertFalse(manager._in_eigenbasis_of_context)
+        self.assertEqual(len(manager.basis_stack), 1)
+
 
 def generate(only=-1):
     N = 16

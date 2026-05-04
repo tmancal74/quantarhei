@@ -555,7 +555,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #
         # propagation to the end of the first interval
         #
-        Udt = numpy.zeros(Ut1.shape, dtype=COMPLEX)
+        Udt: numpy.ndarray = numpy.zeros(Ut1.shape, dtype=COMPLEX)
         Udt[:, :, :, :] = Ut1[:, :, :, :]
         for ti in range(2, self.dense_time.length):
             Udt = numpy.tensordot(Ut1, Udt)

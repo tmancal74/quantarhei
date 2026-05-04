@@ -117,7 +117,7 @@ class RedfieldRateMatrix:
                 Om[a, b] = hD[a] - hD[b]
 
         # calculate values of the spectral density at frequencies
-        cc = numpy.zeros((Nk, Na, Na), dtype=REAL)
+        cc: numpy.ndarray = numpy.zeros((Nk, Na, Na), dtype=REAL)
 
         # loop over components
         for k in range(Nk):
@@ -145,7 +145,7 @@ class RedfieldRateMatrix:
                                 )
 
         # create storage for the rates
-        self.data = numpy.zeros((Na, Na), dtype=REAL)
+        self.data: numpy.ndarray = numpy.zeros((Na, Na), dtype=REAL)
 
         # calculate rate matrix
         #

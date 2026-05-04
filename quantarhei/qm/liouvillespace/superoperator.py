@@ -21,8 +21,7 @@ from typing import Any
 import numpy
 
 # quantarhei imports
-import quantarhei as qr
-
+from ... import COMPLEX, REAL
 from ...core.managers import BasisManaged
 from ...utils.types import BasisManagedComplexArray
 
@@ -83,7 +82,7 @@ class SuperOperator(BasisManaged):
 
     """
 
-    data = BasisManagedComplexArray("data")
+    data: numpy.ndarray = BasisManagedComplexArray("data")  # type: ignore[assignment]
     _data: numpy.ndarray
     name: str = ""
 
@@ -103,9 +102,9 @@ class SuperOperator(BasisManaged):
         self.dim = dim
         if dim is not None:
             if real:
-                self.data = numpy.zeros((dim, dim, dim, dim), dtype=qr.REAL)
+                self.data = numpy.zeros((dim, dim, dim, dim), dtype=REAL)
             else:
-                self.data = numpy.zeros((dim, dim, dim, dim), dtype=qr.COMPLEX)
+                self.data = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
         elif data is not None:
             self.data = data
             if len(data.shape) != 4:

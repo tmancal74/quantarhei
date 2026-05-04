@@ -201,15 +201,11 @@ Class Details
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy
 
+from .frequency import FrequencyAxis
 from .managers import energy_units
 from .valueaxis import ValueAxis
-
-if TYPE_CHECKING:
-    from .frequency import FrequencyAxis
 
 
 class TimeDependent:
@@ -272,8 +268,6 @@ class TimeAxis(ValueAxis):
 
     def get_FrequencyAxis(self) -> FrequencyAxis:
         """Returns corresponding FrequencyAxis object"""
-        from .frequency import FrequencyAxis
-
         if self.atype == "complete":
             frequencies = numpy.fft.fftshift(
                 (2.0 * numpy.pi) * numpy.fft.fftfreq(self.length, self.step)

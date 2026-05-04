@@ -338,7 +338,6 @@ class SpectralDensity(DFunction, UnitsManaged):
                 cfce = cfce * (omega**2)
                 # Brings the reorganisation energy to the lit value of 102
                 cfce = cfce * 3.204215
-                print("Renger form of spec dens used")
 
             else:
                 # This form is taken from Jang, Newton, Silbey, J Chem Phys. 2007.
@@ -367,7 +366,6 @@ class SpectralDensity(DFunction, UnitsManaged):
                         * numpy.exp(-numpy.abs(omega / omega3c))
                     )
                 cfce = cfce * 3.058187
-                print("Alternate form of spec dens used")
 
             # This brings the reorganisation energy up to the literature value of 102
             # cfce = cfce * 3.19
@@ -421,7 +419,6 @@ class SpectralDensity(DFunction, UnitsManaged):
 
         if values is not None:
             self._make_me(self.axis, values)
-            print("spectral density made from correlation function values")
 
         else:
             self._make_me(self.axis, cfce)

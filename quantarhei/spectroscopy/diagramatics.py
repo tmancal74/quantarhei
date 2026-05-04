@@ -6,9 +6,7 @@ from typing import Any
 
 import numpy
 
-import quantarhei as qr
-
-# from ..core.units import cm2int
+from .. import REAL
 from ..core.managers import UnitsManaged
 from ..utils.types import Integer
 
@@ -292,9 +290,9 @@ class liouville_pathway(UnitsManaged):
 
         if interval > 0:
             if self.widths is None:
-                self.widths = numpy.zeros(4, qr.REAL)
+                self.widths = numpy.zeros(4, REAL)
                 self.widths[:] = -1.0
-                self.dephs = numpy.zeros(4, qr.REAL)
+                self.dephs = numpy.zeros(4, REAL)
                 self.dephs[:] = -1.0
             # transition width
             self.widths[interval] = width
@@ -413,7 +411,7 @@ class liouville_pathway(UnitsManaged):
             self.F4n[1] = numpy.dot(d[3, :], d[1, :]) * numpy.dot(d[2, :], d[0, :])
             self.F4n[2] = numpy.dot(d[3, :], d[0, :]) * numpy.dot(d[2, :], d[1, :])
 
-            self.sign = numpy.prod(self.sides)
+            self.sign = float(numpy.prod(self.sides))
 
         elif self.order == 1:
             self.or_av_1 = (1.0 / 3.0) * numpy.dot(d[0, :], d[1, :])
