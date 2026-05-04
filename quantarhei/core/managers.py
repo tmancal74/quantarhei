@@ -783,9 +783,6 @@ class Manager(metaclass=Singleton):
 
 
         """
-        if operator.is_basis_protected:
-            return
-
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
 
