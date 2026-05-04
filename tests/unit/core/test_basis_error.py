@@ -69,3 +69,13 @@ def test_data_set_in_wrong_basis_raises():
     with qr.eigenbasis_of(H1):
         with pytest.raises(BasisError):
             H2.data = numpy.zeros((2, 2))
+
+
+def test_protect_basis_no_longer_exists():
+    H = qr.Hamiltonian(data=numpy.array([[0.0, 0.1], [0.1, 1.0]]))
+    assert not hasattr(H, "protect_basis"), (
+        "protect_basis should be removed from BasisManaged"
+    )
+    assert not hasattr(H, "unprotect_basis"), (
+        "unprotect_basis should be removed from BasisManaged"
+    )

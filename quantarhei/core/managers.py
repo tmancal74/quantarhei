@@ -911,19 +911,12 @@ class BasisManaged(Managed):
     """Base class for objects with managed basis"""
 
     _current_basis = Manager().get_current_basis()
-    is_basis_protected = False
 
     def get_current_basis(self) -> int:
         return self._current_basis
 
     def set_current_basis(self, bb: int) -> None:
         self._current_basis = bb
-
-    def protect_basis(self) -> None:
-        self.is_basis_protected = True
-
-    def unprotect_basis(self) -> None:
-        self.is_basis_protected = False
 
 
 class BasisError(Exception):
@@ -1161,10 +1154,7 @@ class eigenbasis_of(basis_context_manager):
                 ops_above = self.manager.basis_registered[nb]
 
             for op in operators:
-                # the operator might have been set to protected mode
-                # inside the context
-                if not op.is_basis_protected:
-                    op.transform(S1, inv=SS)
+                op.transform(S1, inv=SS)
                 op.set_current_basis(nb)
 
                 # operators which appeared in this context and where not
