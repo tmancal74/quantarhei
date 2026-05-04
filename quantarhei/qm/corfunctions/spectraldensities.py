@@ -23,46 +23,25 @@ from .correlationfunctions import CorrelationFunction, FTCorrelationFunction
 
 
 class SpectralDensity(DFunction, UnitsManaged):
-    """This class represents the so-called spectral density
+    """Spectral density of a system-bath coupling.
+
+    Stores the bath spectral density :math:`J(\\omega)` as a discrete
+    function on a frequency grid. Can be constructed from the same parameter
+    dictionaries as :class:`CorrelationFunction`.
 
     Parameters
     ----------
-    axis : TimeAxis, FrequencyAxis
-        ValueAxis object specifying the frequency range directly or through
-        Fourier transform frequencies corresponding to a TimeAxis
-
-    params : dictionary
-        Parameters of the spectral density
-
-
-    Methods
-    -------
-....is_analytical()
-        Returns `True` if the spectral density is calculated from an analytical
-        formula, `False` otherwise.
-
-    copy()
-        Makes a copy of the SpectralDensity object
-
-    get_temperature()
-        Returns temperature assigned to the spectral density or raises an
-        exception if it was not set
-
-    get_reorganization_energy()
-        Returns the reorganization energy parameters of
-        the spectral density
-
-    measure_reorganization_energy()
-        Calculates reorganization energy from the shape of the spectral
-        density
-
-    get_CorrelationFunction()
-        Returns numerically calculated correlation function, based on the
-        spectral density
-
-    get_FTCorrelationFunction()
-        Returns a numerically calculated Fourier transform of the correlation
-        function
+    axis : TimeAxis or FrequencyAxis
+        Frequency grid on which the spectral density is defined, either
+        directly as a :class:`FrequencyAxis` or derived from a
+        :class:`TimeAxis` via FFT.
+    params : dict or list of dict
+        Parameter dictionary (or list of dictionaries for composite spectral
+        densities). Each dictionary must contain at least ``'ftype'`` and
+        ``'reorg'``.
+    values : numpy.ndarray, optional
+        If provided, use these pre-computed values instead of evaluating the
+        analytical form.
 
 
     Examples

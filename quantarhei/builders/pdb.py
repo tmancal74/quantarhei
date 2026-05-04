@@ -15,7 +15,14 @@ _chainId_max = 22
 
 
 class PDBFile:
-    """Represents a PDB file with a protein-pigment complex structure"""
+    """Represents a PDB file containing a protein-pigment complex structure.
+
+    Parameters
+    ----------
+    fname : str or None, optional
+        Path to the PDB file to load. If ``None``, an empty object is created
+        and the file can be loaded later with :meth:`load_file`.
+    """
 
     def __init__(self, fname: str | None = None) -> None:
 
@@ -42,7 +49,18 @@ class PDBFile:
         self._unique_lines = dict()
 
     def load_file(self, fname: str) -> int:
-        """Loads a PDB file"""
+        """Load a PDB file and return the number of lines read.
+
+        Parameters
+        ----------
+        fname : str
+            Path to the PDB file.
+
+        Returns
+        -------
+        int
+            Number of lines read from the file.
+        """
         with open(fname) as file:
             k = 0
             for line in file:
@@ -51,7 +69,19 @@ class PDBFile:
         return k
 
     def get_Molecules(self, model: Any = None) -> list:
-        """Returns all molecules corresponding to a given model"""
+        """Return all molecules matching a given model definition.
+
+        Parameters
+        ----------
+        model : object or None, optional
+            Model object whose ``pdbname`` attribute identifies the residue
+            name to match. If ``None``, returns all stored molecules.
+
+        Returns
+        -------
+        list
+            List of :class:`~quantarhei.Molecule` objects.
+        """
         if model is None:
             return self.molecules
 

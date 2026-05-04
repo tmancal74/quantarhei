@@ -91,19 +91,19 @@ from .opensystem import OpenSystem
 
 
 class Molecule(UnitsManaged, Saveable, OpenSystem):
-    """Multi-level molecule (monomer)
+    """Multi-level molecule (monomer).
 
+    Represents a single chromophore with multiple electronic states, optional
+    vibrational modes, and system-bath coupling. It is the basic building
+    block for constructing molecular aggregates.
 
     Parameters
     ----------
-    name : str
-        Monomer descriptor; a string identifying the monomer
-
-    elenergies : list of real numbers
-        List of electronic energies, one per state. It includes ground state
-        energy. It wise to chose the ground state energy as zero.
-
-
+    elenergies : list of float, optional
+        Electronic state energies in the current energy units, starting
+        with the ground state (typically ``0.0``). Default is ``[0.0, 1.0]``.
+    name : str, optional
+        Human-readable label for the molecule. Default is ``''``.
     """
 
     # position of the monomer

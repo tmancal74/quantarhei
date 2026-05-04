@@ -134,22 +134,30 @@ if TYPE_CHECKING:
 
 
 class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
-    """Class representing frequency axis of calculations
+    """Frequency grid dual to a :class:`TimeAxis` via the FFT.
+
+    Stores frequency values whose units are managed by the global
+    :class:`Manager`. Typically obtained by calling
+    :meth:`TimeAxis.get_FrequencyAxis` rather than constructed directly.
 
     Parameters
     ----------
     start : float
-        start of the FrequencyAxis
-
+        First frequency value (internal units, i.e. rad/fs).
     length : int
-        number of steps
-
+        Number of frequency points.
     step : float
-        time step
+        Spacing between consecutive frequency values (rad/fs).
+    atype : str, optional
+        Axis type: ``'complete'`` (default) or ``'upper-half'``.
+    time_start : float, optional
+        Time-domain start value of the corresponding :class:`TimeAxis`.
+        Default is ``0.0``.
 
-    atype : string {"complete","upper-half"}
-        Axis type
-
+    Raises
+    ------
+    Exception
+        If ``atype`` is not ``'complete'`` or ``'upper-half'``.
     """
 
     data = UnitsManagedRealArray("data")

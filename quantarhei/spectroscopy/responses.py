@@ -23,7 +23,23 @@ from .response_implementations import get_implementation
 
 
 class NonLinearResponse:
-    """Non-linear response function"""
+    """Non-linear response function for a specific Feynman diagram type.
+
+    Parameters
+    ----------
+    lab : LabSetup
+        Laboratory setup holding pulse polarization information.
+    system : OpenSystem
+        The quantum system for which the response is calculated.
+    diagram : str
+        Feynman diagram type (e.g. ``"R1g"``, ``"R2g"``).
+    t1s : TimeAxis
+        Time axis for the first coherence period.
+    t2s : TimeAxis
+        Time axis for the waiting period.
+    t3s : TimeAxis
+        Time axis for the second coherence period.
+    """
 
     def __init__(
         self, lab: Any, system: Any, diagram: str, t1s: Any, t2s: Any, t3s: Any
@@ -56,16 +72,18 @@ class NonLinearResponse:
         self.set_rate_matrix(KK)
 
     def calculate_matrix(self, t2: float) -> Any:
-        """Calculates the matrix of response values in t1 and t3 times
-
+        """Calculate the matrix of response values over t1 and t3 times.
 
         Parameters
         ----------
         t2 : float
-            Waiting time for which the response is calculated
+            Waiting time for which the response is calculated.
 
-
-
+        Returns
+        -------
+        numpy.ndarray
+            2D complex array of response values with shape
+            ``(len(t1s), len(t3s))``.
         """
         # identify the index of the present t2 time
         out = self.t2s.locate(t2)
@@ -89,7 +107,20 @@ class NonLinearResponse:
         pass  # rwa is set through the system class, at least for now
 
     def set_rate_matrix(self, KK: numpy.ndarray) -> None:
-        """Sets the rate matrix and the corresponding evolution coefficients"""
+        """Set the rate matrix and pre-compute the evolution coefficients.
+
+        Parameters
+        ----------
+        KK : numpy.ndarray
+            Square rate matrix of shape ``(N, N)`` where ``N`` is the number
+            of single-excited states.
+
+        Raises
+        ------
+        Exception
+            If ``KK`` is not a square matrix or if any depopulation rate is
+            positive.
+        """
         if KK.shape[0] == KK.shape[1]:
             self.KK = KK
 
@@ -151,12 +182,12 @@ class NonLinearResponse:
 
 
 class LiouvillePathway:
-    """Parameters
+    """A single Liouville pathway (deprecated).
+
+    Parameters
     ----------
     ptype : str
-        Type of the Liouville pathway
-
-
+        Type of the Liouville pathway (e.g. ``"R1g"``, ``"R2g"``).
     """
 
     def __init__(self, ptype: str) -> None:
@@ -200,25 +231,18 @@ class LiouvillePathway:
         d3: numpy.ndarray | None = None,
         d4: numpy.ndarray | None = None,
     ) -> None:
-        """Sets the transition dipole moments of the response
+        """Set the transition dipole moments of the response.
 
-        Parameters:
-        -----------
-        d1 : vector
-            First transition dipole moment of the response.
-
-        d2 : vector or None
-            The second transition dipole moment of the response. If None,
-            it is set to the value of the first transition dipole moment.
-
-        d3 : vector or None
-            The third transition dipole moment of the response. If None,
-            it is set to the value of the first transition dipole moment.
-
-        d4 : vector or None
-            The fourth transition dipole moment of the response. If None,
-            it is set to the value of the first transition dipole moment.
-
+        Parameters
+        ----------
+        d1 : numpy.ndarray
+            First transition dipole moment (3-vector).
+        d2 : numpy.ndarray or None, optional
+            Second transition dipole moment. If ``None``, defaults to ``d1``.
+        d3 : numpy.ndarray or None, optional
+            Third transition dipole moment. If ``None``, defaults to ``d1``.
+        d4 : numpy.ndarray or None, optional
+            Fourth transition dipole moment. If ``None``, defaults to ``d1``.
         """
         d = numpy.zeros((4, 3), dtype=float)
 
@@ -292,7 +316,7 @@ class LiouvillePathway:
 
 
 class ResponseFunction(LiouvillePathway):
-    """Non-linear response function"""
+    """Non-linear response function (deprecated)."""
 
     def calculate_matrix(
         self, lab: Any, sys: Any, t2: float, t1s: Any, t3s: Any, rwa: float

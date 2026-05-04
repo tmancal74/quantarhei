@@ -14,7 +14,19 @@ def _require_symbolic() -> None:
 
 
 class DSFeynmanDiagram:
-    """Double-sided Feynman diagrams"""
+    """Double-sided Feynman diagram for non-linear spectroscopy.
+
+    Parameters
+    ----------
+    ptype : str, optional
+        Diagram type string, e.g. ``"R1g"``, ``"R2g"``. Default is
+        ``"non-defined"``.
+
+    Raises
+    ------
+    Exception
+        If ``ptype`` is not a recognised diagram type.
+    """
 
     def __init__(self, ptype: str = "non-defined") -> None:
 
@@ -547,20 +559,18 @@ def _format_code(N: int, code_string: str) -> str:
 
 
 class R1g_Diagram(DSFeynmanDiagram):
-    """R1g diagram
-
-    Diagram of R1g type
+    """R1g-type double-sided Feynman diagram (ground-state bleach, rephasing).
 
 
-          | g      g |
-      <---|----------|
-          | a      g |
-          |----------|--->
-          | a      b |
-          |----------|<---
-          | a      g |
-      --->|----------|
-          | g      g |
+        | g      g |
+    <---|----------|
+        | a      g |
+        |----------|--->
+        | a      b |
+        |----------|<---
+        | a      g |
+    --->|----------|
+        | g      g |
 
     """
 
@@ -577,22 +587,20 @@ class R1g_Diagram(DSFeynmanDiagram):
 
 
 class R1g_R_Diagram(DSFeynmanDiagram):
-    """R1g diagram
-
-    Diagram of R1g type
+    """R1g-type double-sided Feynman diagram with a relaxation step.
 
 
-          | g      g |
-      <---|----------|
-          | b      g |
-          |----------|--->
-          | b      b |
-          |..........|
-          | a      a |
-          |----------|<---
-          | a      g |
-      --->|----------|
-          | g      g |
+        | g      g |
+    <---|----------|
+        | b      g |
+        |----------|--->
+        | b      b |
+        |..........|
+        | a      a |
+        |----------|<---
+        | a      g |
+    --->|----------|
+        | g      g |
 
     """
 
@@ -610,20 +618,18 @@ class R1g_R_Diagram(DSFeynmanDiagram):
 
 
 class R2g_Diagram(DSFeynmanDiagram):
-    """R2g diagram
-
-    Diagram of R2g type
+    """R2g-type double-sided Feynman diagram (stimulated emission, rephasing).
 
 
-          | g      g |
-      <---|----------|
-          | b      g |
-          |----------|--->
-          | b      a |
-      --->|----------|
-          | g      a |
-          |----------|<---
-          | g      g |
+        | g      g |
+    <---|----------|
+        | b      g |
+        |----------|--->
+        | b      a |
+    --->|----------|
+        | g      a |
+        |----------|<---
+        | g      g |
 
     """
 
@@ -640,20 +646,18 @@ class R2g_Diagram(DSFeynmanDiagram):
 
 
 class R3g_Diagram(DSFeynmanDiagram):
-    """R3g diagram
-
-    Diagram of R3g type
+    """R3g-type double-sided Feynman diagram (stimulated emission, non-rephasing).
 
 
-          | g      g |
-      <---|----------|
-          | b      g |
-      --->|----------|
-          | g      g |
-          |----------|--->
-          | g      a |
-          |----------|<---
-          | g      g |
+        | g      g |
+    <---|----------|
+        | b      g |
+    --->|----------|
+        | g      g |
+        |----------|--->
+        | g      a |
+        |----------|<---
+        | g      g |
 
     """
 
@@ -670,20 +674,18 @@ class R3g_Diagram(DSFeynmanDiagram):
 
 
 class R4g_Diagram(DSFeynmanDiagram):
-    """R4g diagram
-
-    Diagram of R4g type
+    """R4g-type double-sided Feynman diagram (ground-state bleach, non-rephasing).
 
 
-          | g      g |
-      <---|----------|
-          | b      g |
-      --->|----------|
-          | g      g |
-      <---|----------|
-          | a      g |
-      --->|----------|
-          | g      g |
+        | g      g |
+    <---|----------|
+        | b      g |
+    --->|----------|
+        | g      g |
+    <---|----------|
+        | a      g |
+    --->|----------|
+        | g      g |
 
     """
 
@@ -700,20 +702,18 @@ class R4g_Diagram(DSFeynmanDiagram):
 
 
 class R1f_Diagram(DSFeynmanDiagram):
-    """R1f diagram
-
-    Diagram of R1f type
+    """R1f-type double-sided Feynman diagram (excited-state absorption, rephasing).
 
 
-          | b      b |
-      <---|----------|
-          | f      b |
-      --->|----------|
-          | a      b |
-          |----------|<---
-          | a      g |
-      --->|----------|
-          | g      g |
+        | b      b |
+    <---|----------|
+        | f      b |
+    --->|----------|
+        | a      b |
+        |----------|<---
+        | a      g |
+    --->|----------|
+        | g      g |
 
     """
 
@@ -730,19 +730,17 @@ class R1f_Diagram(DSFeynmanDiagram):
 
 
 class R2f_Diagram(DSFeynmanDiagram):
-    """R2f diagram
+    """R2f-type double-sided Feynman diagram (excited-state absorption, non-rephasing).
 
-    Diagram of R2f type
-
-          | a      a |
-      <---|----------|
-          | f      a |
-      --->|----------|
-          | b      a |
-      --->|----------|
-          | g      a |
-          |----------|<---
-          | g      g |
+        | a      a |
+    <---|----------|
+        | f      a |
+    --->|----------|
+        | b      a |
+    --->|----------|
+        | g      a |
+        |----------|<---
+        | g      g |
 
     """
 

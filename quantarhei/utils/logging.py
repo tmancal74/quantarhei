@@ -15,10 +15,10 @@ LOG_QUICK = 9
 
 
 def init_logging() -> None:
-    """Initialization of logging
+    """Initialize the logging subsystem.
 
-    We test if the logging is parallel or not
-
+    Detects whether the process is running in a serial or MPI-parallel
+    environment and configures the ``Manager.log_conf`` object accordingly.
     """
     manager = Manager().log_conf
     try:
@@ -212,12 +212,21 @@ def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
 
 
 def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
-    """Test the existence of the variable with the name `var`
+    """Print the value of a named variable from global scope.
 
+    If ``default`` is provided, missing variables are silently set to it.
 
-    If the default is specified, the non-existence of the variable
-    is not a problem, and the variable is set to the default
-
+    Parameters
+    ----------
+    var : str
+        Name of the variable to evaluate and print.
+    messg : str or None, optional
+        Optional message to print before the variable value. Default is
+        ``None``.
+    default : any, optional
+        Value to use when the variable does not exist in global scope.
+        If ``None`` and the variable is missing, a traceback is printed
+        and the process exits.
     """
     try:
         if messg is not None:
@@ -241,7 +250,13 @@ def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
 
 
 def log_to_file(filename: str = "qrhei.log") -> None:
-    """Set logging to file"""
+    """Redirect log output to a file.
+
+    Parameters
+    ----------
+    filename : str, optional
+        Path to the log file. Default is ``"qrhei.log"``.
+    """
     manager = Manager().log_conf
     # manager.log_on_screen = False
     manager.log_to_file = True

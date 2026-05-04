@@ -12,11 +12,20 @@ from .submodes import SubMode
 
 
 class HarmonicMode(SubMode, OpenSystem):
-    """Renaming the SubMode to be used as a standalone Harmonic oscillator mode
+    """Standalone harmonic oscillator mode.
 
+    A thin wrapper around ``SubMode`` that can be used independently as a
+    quantum harmonic oscillator. The potential-energy-surface shift is
+    currently always zero.
 
-    PES shift is always 0 (will be implemented later)
-
+    Parameters
+    ----------
+    omega : float, optional
+        Oscillator frequency in internal units. Default is ``1.0``.
+    shift : float, optional
+        PES shift (currently unused). Default is ``0.0``.
+    nmax : int, optional
+        Maximum number of Fock states to include. Default is ``2``.
     """
 
     def __init__(self, omega: float = 1.0, shift: float = 0.0, nmax: int = 2) -> None:

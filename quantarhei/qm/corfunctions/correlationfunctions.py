@@ -59,22 +59,24 @@ from ...core.wrappers import enforce_energy_units_context
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
-    """Provides typical Bath correlation function types.
+    """Bath (energy-gap) correlation function.
 
+    Provides several standard spectral-density models as analytical or
+    numerically evaluated correlation functions. The type is selected via
+    the ``'ftype'`` key of ``params``.
 
     Parameters
     ----------
     axis : TimeAxis
-        TimeAxis object specifying the time interval on which the
-        correlation function is defined.
-
-    params : dictionary
-        A dictionary of the correlation function parameters
-
-    values : optional
-        Correlation function can be set by specifying values at all times
-
-
+        Time grid on which the correlation function is evaluated.
+    params : dict or list of dict
+        Parameter dictionary (or list of dictionaries for a composite
+        correlation function). Must contain at least ``'ftype'``, ``'reorg'``,
+        and ``'T'`` (temperature in Kelvin).
+    values : numpy.ndarray, optional
+        Pre-computed complex values of the correlation function at the
+        time points of ``axis``. When supplied, the analytical evaluation
+        is skipped.
     """
 
     allowed_types = (
@@ -717,28 +719,26 @@ class LineshapeFunction(DFunction, UnitsManaged):
     def __init__(
         self, axis: Any = None, params: Any = None, values: Any = None, lfactor: int = 1
     ) -> None:
-        """Currently we do not use 'values'
+        """Initialize the lineshape function by integrating a correlation function.
 
         Parameters
         ----------
-        axis : TYPE, optional
-            DESCRIPTION. The default is None.
-        params : TYPE, optional
-            DESCRIPTION. The default is None.
-        values : TYPE, optional
-            DESCRIPTION. The default is None.
-        lfactor : TYPE, optional
-            DESCRIPTION. The default is 1.
+        axis : TimeAxis
+            Time grid on which the correlation function is defined.
+        params : dict
+            Parameter dictionary for the underlying
+            :class:`CorrelationFunction`.
+        values : numpy.ndarray, optional
+            Pre-computed correlation function values; passed through to
+            :class:`CorrelationFunction`.
+        lfactor : int, optional
+            Length multiplication factor applied to the time axis before
+            integration. Default is ``1``.
 
         Raises
         ------
         Exception
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
+            If ``params`` is ``None``.
         """
         self.lfactor = lfactor
         self.axis = axis

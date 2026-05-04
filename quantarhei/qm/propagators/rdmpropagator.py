@@ -41,11 +41,36 @@ def debug(msg: str) -> None:
 
 
 class ReducedDensityMatrixPropagator(MatrixData, Saveable):
-    """Reduced Density Matrix Propagator calculates the evolution of the
-    reduced density matrix based on the Hamiltonian and optionally
-    a relaxation tensor. Relaxation tensor may be constant or time
-    dependent.
+    """Propagator for the reduced density matrix.
 
+    Calculates the time evolution of a :class:`ReducedDensityMatrix` under
+    a given :class:`Hamiltonian` and an optional relaxation tensor (constant
+    or time-dependent).
+
+    Parameters
+    ----------
+    timeaxis : TimeAxis
+        Time grid on which the evolution is stored.
+    Ham : Hamiltonian
+        System Hamiltonian.
+    RTensor : RelaxationTensor, optional
+        Relaxation (Redfield/Lindblad) tensor. If ``None``, purely unitary
+        propagation is performed.
+    Iterm : array_like, optional
+        Inhomogeneous term; requires ``RTensor`` to be set.
+    Efield : numpy.ndarray or LabSetup, optional
+        External driving field.
+    Trdip : Operator, optional
+        Transition dipole moment operator; required when ``Efield`` is set.
+    PDeph : object, optional
+        Pure-dephasing operator; also enables relaxation mode.
+    NonHerm : object, optional
+        Non-Hermitian correction to the Hamiltonian.
+
+    Raises
+    ------
+    Exception
+        If ``timeaxis`` is not a :class:`TimeAxis` or ``Ham`` is missing.
     """
 
     Efield: Any
@@ -63,24 +88,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         PDeph: Any = None,
         NonHerm: Any = None,
     ) -> None:
-        """Creates a Reduced Density Matrix propagator which can propagate
-        a given initial density matrix with the given Hamiltonian and
-        relaxation tensor.Time axis of the propagation is specied by
-        the second argument.
-
-        RWA : tuple
-            A tuple of block starting indices. It is assumed that if RWA is
-            to be used, that there is at least a ground state and a single
-            block of excited state starting from the Nth energy level. In this
-            case the tuple reads (0, N). The tuple always starts with 0. In
-            case there are two excited blocks, it reads (0, N1, N2) where
-            N2 > N1 > 0.
-
+        """Initialize the propagator.
 
         Examples
         --------
-        The constructor accepts only numpy.ndarray object, so the
-        following code will fail, because it submits normal Python arrays.
+        The constructor requires a :class:`TimeAxis` object.  Passing plain
+        Python lists will raise an exception:
 
         >>> pr = ReducedDensityMatrixPropagator([[0.0, 0.0],
         ...                                     [0.0, 1.0]],[0,1,2,3,4,5])
@@ -88,7 +101,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             ...
         Exception: TimeAxis expected here.
 
-        The correct way to construct the propagator is the following:
+        The correct construction requires proper types:
 
         >>> h = numpy.array([[0.0, 0.0],[0.0,1.0]])
         >>> HH = Hamiltonian(data=h)
@@ -206,14 +219,20 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             )
 
     def setDtRefinement(self, Nref: int) -> None:
-        """The TimeAxis object specifies at what times the propagation
-        should be stored. We can tell the propagator to use finer
-        time step for the calculation by setting the refinement. The
-        refinement is an integer by which the TimeAxis time step should
-        be devided to get the finer time step. In the code below, we
-        have dt = 10 in the TimeAxis, but we want to calculate with
-        dt = 1
+        """Set a finer internal time step by subdividing the stored time step.
 
+        The :class:`TimeAxis` controls the times at which results are stored.
+        This method subdivides the stored time step by ``Nref`` for a more
+        accurate numerical integration.
+
+        Parameters
+        ----------
+        Nref : int
+            Number of internal sub-steps per :class:`TimeAxis` step.
+            A value of ``1`` means no refinement.
+
+        Examples
+        --------
         >>> HH = Hamiltonian(data=numpy.array([[0.0, 0.0],[0.0,1.0]]))
         >>> times = TimeAxis(0,1000,10.0)
         >>> pr = ReducedDensityMatrixPropagator(times, HH)
@@ -226,11 +245,40 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     def propagate(
         self, rhoi: Any, method: str = "short-exp", mdata: Any = None, Nref: int = 1
     ) -> Any:
-        """>>> T0   = 0
+        """Propagate the density matrix forward in time.
+
+        Parameters
+        ----------
+        rhoi : ReducedDensityMatrix or DensityMatrix
+            Initial density matrix at the start of the time axis.
+        method : str, optional
+            Propagation algorithm. Currently only ``'short-exp'`` (default)
+            and variants ``'short-exp-2'``, ``'short-exp-4'``,
+            ``'short-exp-6'`` are supported.
+        mdata : object, optional
+            Additional method-specific data (reserved for future use).
+        Nref : int, optional
+            Time-step refinement factor; equivalent to calling
+            :meth:`setDtRefinement` before propagating. Default is ``1``.
+
+        Returns
+        -------
+        ReducedDensityMatrixEvolution
+            Object containing the density matrix at each point of the
+            :class:`TimeAxis`.
+
+        Raises
+        ------
+        Exception
+            If ``rhoi`` is not a :class:`ReducedDensityMatrix` or
+            :class:`DensityMatrix`, or if an unknown method is requested.
+
+        Examples
+        --------
+        >>> T0   = 0
         >>> Tmax = 100
         >>> dt   = 1
         >>> Nref = 30
-
 
         >>> initial_dm = [[1.0, 0.0, 0.0],
         ...               [0.0, 0.0, 0.0],

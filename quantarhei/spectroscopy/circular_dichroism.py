@@ -29,7 +29,7 @@ from ..utils import derived_type
 
 
 class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
-    """Provides basic container for circular dichroism spectrum"""
+    """Provides basic container for circular dichroism spectrum."""
 
     def __init__(self, axis: Any = None, data: Any = None) -> None:
         super().__init__()
@@ -37,24 +37,22 @@ class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
         self.data = data
 
     def set_axis(self, axis: Any) -> None:
-        """Sets axis atribute
+        """Set the frequency axis of the spectrum.
 
         Parameters
         ----------
-        axis : FrequencyAxis object
-            Frequency axis object. This object has managed energy units
-
+        axis : FrequencyAxis
+            Frequency axis object with managed energy units.
         """
         self.axis = axis
 
     def set_data(self, data: Any) -> None:
-        """Sets data atribute
+        """Set the spectral data array.
 
         Parameters
         ----------
-        data : array like object (numpy array)
-            Sets the data of the circular dichroism spectrum
-
+        data : numpy.ndarray
+            Array of circular dichroism spectral values.
         """
         self.data = data
 
@@ -118,16 +116,18 @@ class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
         self.data -= val
 
     def add_to_data(self, spect: Any) -> None:
-        """Performs addition on the data.
-
-        Expects a compatible object holding circular dichroism spectrum
-        and adds its data to the present circular dichroism spectrum.
+        """Add data from a compatible spectrum to this spectrum.
 
         Parameters
         ----------
-        spect : spectrum containing object
-            This object should have a compatible axis and some data
+        spect : CircDichSpectrumBase
+            Spectrum whose data will be added. Must have a compatible
+            frequency axis.
 
+        Raises
+        ------
+        Exception
+            If the spectrum's axis is incompatible with this object's axis.
         """
         if self.axis is None:
             self.axis = spect.axis.copy()
@@ -150,15 +150,23 @@ class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
         replace: bool = False,
         **kwargs: Any,
     ) -> None:
-        """Load the spectrum from a file
+        """Load the spectrum from a file.
 
-        Uses the load method of the DFunction class to load the circular dichroism
-        spectrum from a file. It sets the axis type to 'frequency', otherwise
-        no changes to the inherited method are applied.
+        Delegates to ``DFunction.load_data`` with the axis type forced to
+        ``'frequency'``.
 
         Parameters
         ----------
-
+        name : str
+            Path to the file to load.
+        with_axis : optional
+            Ignored; provided for API compatibility.
+        ext : str or None, optional
+            File extension hint passed to the parent method.
+        replace : bool, optional
+            If ``True``, replace existing data. Default is ``False``.
+        **kwargs
+            Additional keyword arguments forwarded to the parent method.
         """
         super().load_data(name, ext=ext, axis="frequency", replace=replace)
 
@@ -381,7 +389,7 @@ def _n_gaussians(x: Any, N: int, *params: float) -> Any:
 
 
 class CircDichSpectrum(CircDichSpectrumBase):
-    """Class representing circular dichroism spectrum"""
+    """Class representing a circular dichroism spectrum."""
 
     pass
 
@@ -437,6 +445,8 @@ class CircDichSpectrum(CircDichSpectrumBase):
 
 
 class CircDichSpectrumContainer(Saveable):
+    """Container for a set of circular dichroism spectra sharing a common frequency axis."""
+
     def __init__(self, axis: Any = None) -> None:
 
         self.axis = axis
@@ -447,10 +457,22 @@ class CircDichSpectrumContainer(Saveable):
         self.axis = axis
 
     def set_spectrum(self, spect: Any, tag: Any = None) -> None:
-        """Stores circular dichroism spectrum
+        """Store a circular dichroism spectrum, checking axis compatibility.
 
-        Checks compatibility of its frequency axis
+        Parameters
+        ----------
+        spect : CircDichSpectrum
+            Spectrum to store. Its frequency axis must match the container's
+            axis (or becomes the axis if none is set yet).
+        tag : str or None, optional
+            Key under which to store the spectrum. If ``None``, the current
+            count value is used as the string key.
 
+        Raises
+        ------
+        Exception
+            If the spectrum's frequency axis is incompatible with the
+            container's existing axis.
         """
         frq = spect.axis
 
@@ -468,10 +490,23 @@ class CircDichSpectrumContainer(Saveable):
             raise Exception("Incompatible time axis (equal axis required)")
 
     def get_spectrum(self, tag: Any) -> Any:
-        """Returns spectrum corresponing to time t2
+        """Return the spectrum identified by tag.
 
-        Checks if the time t2 is present in the t2axis
+        Parameters
+        ----------
+        tag : str or int
+            Key identifying the stored spectrum. Integer tags are converted
+            to strings.
 
+        Returns
+        -------
+        CircDichSpectrum
+            The stored spectrum corresponding to ``tag``.
+
+        Raises
+        ------
+        Exception
+            If no spectrum is stored under ``tag``.
         """
         if not isinstance(tag, str):
             tag = str(tag)
@@ -481,7 +516,13 @@ class CircDichSpectrumContainer(Saveable):
         raise Exception("Unknown spectrum")
 
     def get_spectra(self) -> list[Any]:
-        """Returns a list or tuple of the calculated spectra"""
+        """Return all stored spectra sorted by their string tags.
+
+        Returns
+        -------
+        list
+            List of stored spectra in tag-sorted order.
+        """
         ven = [value for (key, value) in sorted(self.spectra.items())]
         return ven
 
