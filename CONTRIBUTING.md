@@ -118,6 +118,42 @@ uv run mypy quantarhei/
 
 Configuration lives in `[tool.mypy]` in `pyproject.toml`. The entire package is annotated and `mypy quantarhei/` should exit with `Success: no issues found`.
 
+## Docstring style
+
+All new and updated docstrings should follow **NumPy style**. This is the convention used by NumPy, SciPy, and the rest of the scientific Python ecosystem. It renders correctly with the `numpydoc` Sphinx extension already enabled in `docs/sphinx/conf.py`.
+
+```python
+def some_method(self, val, units="1/cm"):
+    """Convert a value to internal units.
+
+    Parameters
+    ----------
+    val : float or numpy.ndarray
+        Value to convert.
+    units : str, optional
+        Unit string. Default is ``"1/cm"``.
+
+    Returns
+    -------
+    float or numpy.ndarray
+        Value in internal units.
+
+    Raises
+    ------
+    UnitsError
+        If ``units`` is not a recognized unit string.
+    """
+```
+
+Key conventions:
+- One-line summary on the opening `"""` line
+- If a description follows, separate it from the summary with a blank line
+- Section names (`Parameters`, `Returns`, `Raises`, `Notes`, `Examples`) are underlined with dashes of the same length
+- Parameter types go after a colon; mark optional parameters with `, optional`
+- Use double backticks for inline code inside docstrings
+
+Full reference: [NumPy docstring guide](https://numpydoc.readthedocs.io/en/latest/format.html)
+
 ## Submitting changes
 
 1. Fork the repository and create a feature branch
