@@ -1,3 +1,3 @@
 (object-oriented-label)=
 
-# Object Oriented Freatures of Quantarhei
+# Object Oriented Features of Quantarhei

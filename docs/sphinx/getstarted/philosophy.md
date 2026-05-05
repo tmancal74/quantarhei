@@ -74,7 +74,7 @@ and Bacteriochlorophyll light-harvesting antennae of plants, algae and
 bacteria fit best the idea of an open quantum system as simulated by
 Quantarhei.
 
-### Physics and its represetation in Quantarhei
+### Physics and its representation in Quantarhei
 
 The molecules of these light-harvesting antennae interact strongly with each
 other and they are embedded in protein
