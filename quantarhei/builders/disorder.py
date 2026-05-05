@@ -6,6 +6,34 @@ import numpy
 
 
 class Disorder:
+    """Diagonal energetic disorder model for excitonic Hamiltonians.
+
+    Draws random site-energy offsets from a specified distribution and
+    applies them to the diagonal elements of a Hamiltonian on each
+    disorder realisation.
+
+    Parameters
+    ----------
+    data : numpy.ndarray
+        Reference Hamiltonian data array whose diagonal entries are used as
+        the unperturbed site energies.
+    distribution : str, optional
+        Statistical distribution for the disorder. Currently only
+        ``"Gaussian"`` is supported. Default is ``"Gaussian"``.
+    dtype : str, optional
+        Type of disorder. Currently only ``"diagonal"`` (site-energy
+        disorder) is supported. Default is ``"diagonal"``.
+    seed : int or None, optional
+        Seed for the NumPy random-number generator. Default is ``None``
+        (random seed).
+
+    Raises
+    ------
+    Exception
+        If ``data`` is ``None``, or if an unknown distribution or disorder
+        type is requested.
+    """
+
     def __init__(
         self,
         data: numpy.ndarray | None = None,

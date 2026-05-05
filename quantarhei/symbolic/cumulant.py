@@ -380,7 +380,27 @@ def evaluate_cumulant(
     lang: str | None = None,
     arrays: list[str] | None = None,
 ) -> Any:
-    """ """
+    """Evaluate a cumulant expression to a simplified form or code string.
+
+    Parameters
+    ----------
+    cuml : CumulantExpr
+        Symbolic cumulant expression to evaluate.
+    positive_times : list, optional
+        Time variables to be treated as positive during simplification.
+    leading_index : object, optional
+        Index used to extract the leading-order term from the expression.
+    lang : str, optional
+        Target language for code generation (``"python"`` or ``"fortran"``).
+        If ``None``, returns the symbolic expression.
+    arrays : list of str, optional
+        Array names to use in the generated code.
+
+    Returns
+    -------
+    object
+        Simplified symbolic expression, or a code string when ``lang`` is set.
+    """
     _require_sympy()
     if positive_times is None:
         positive_times = []

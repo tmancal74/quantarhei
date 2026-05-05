@@ -59,22 +59,24 @@ from ...core.wrappers import enforce_energy_units_context
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
-    """Provides typical Bath correlation function types.
+    """Bath (energy-gap) correlation function.
 
+    Provides several standard spectral-density models as analytical or
+    numerically evaluated correlation functions. The type is selected via
+    the ``'ftype'`` key of ``params``.
 
     Parameters
     ----------
     axis : TimeAxis
-        TimeAxis object specifying the time interval on which the
-        correlation function is defined.
-
-    params : dictionary
-        A dictionary of the correlation function parameters
-
-    values : optional
-        Correlation function can be set by specifying values at all times
-
-
+        Time grid on which the correlation function is evaluated.
+    params : dict or list of dict
+        Parameter dictionary (or list of dictionaries for a composite
+        correlation function). Must contain at least ``'ftype'``, ``'reorg'``,
+        and ``'T'`` (temperature in Kelvin).
+    values : numpy.ndarray, optional
+        Pre-computed complex values of the correlation function at the
+        time points of ``axis``. When supplied, the analytical evaluation
+        is skipped.
     """
 
     allowed_types = (
@@ -711,35 +713,35 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
 
 class LineshapeFunction(DFunction, UnitsManaged):
-    """ """
+    """Lineshape function obtained by double integration of a correlation function.
+
+    Computes ``g(t) = int_0^t dt' int_0^{t'} dt'' C(t'')`` numerically,
+    where ``C`` is a :class:`CorrelationFunction` built from ``params``.
+
+    Parameters
+    ----------
+    axis : TimeAxis
+        Time grid on which the correlation function is defined.
+    params : dict
+        Parameter dictionary for the underlying :class:`CorrelationFunction`.
+        Must contain at least ``"ftype"``, ``"reorg"``, and ``"T"``.
+    values : numpy.ndarray, optional
+        Pre-computed correlation function values; passed through to
+        :class:`CorrelationFunction`. Default is ``None``.
+    lfactor : int, optional
+        Length multiplication factor applied to the time axis before
+        integration. Default is ``1``.
+
+    Raises
+    ------
+    Exception
+        If ``params`` is ``None``.
+    """
 
     @enforce_energy_units_context
     def __init__(
         self, axis: Any = None, params: Any = None, values: Any = None, lfactor: int = 1
     ) -> None:
-        """Currently we do not use 'values'
-
-        Parameters
-        ----------
-        axis : TYPE, optional
-            DESCRIPTION. The default is None.
-        params : TYPE, optional
-            DESCRIPTION. The default is None.
-        values : TYPE, optional
-            DESCRIPTION. The default is None.
-        lfactor : TYPE, optional
-            DESCRIPTION. The default is 1.
-
-        Raises
-        ------
-        Exception
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
         self.lfactor = lfactor
         self.axis = axis
         self.params = params

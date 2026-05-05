@@ -578,7 +578,13 @@ from .wizard.input.input import Input as Input
 
 
 def exit(msg: str | None = None) -> None:
-    """Exit to the level above the script with SystemExit exception"""
+    """Exit to the level above the script by raising :exc:`SystemExit`.
+
+    Parameters
+    ----------
+    msg : str or None, optional
+        Optional message to log before exiting. Default is ``None``.
+    """
     import sys
 
     if msg is not None:
@@ -587,14 +593,27 @@ def exit(msg: str | None = None) -> None:
 
 
 def stop(msg: str | None = None) -> None:
-    """Stop execution and leave to level above"""
+    """Stop execution and exit to the level above.
+
+    Parameters
+    ----------
+    msg : str or None, optional
+        Ignored; present for API compatibility. Default is ``None``.
+    """
     exit("Execution stopped")
 
 
 def show_plot(block: bool = True) -> None:
-    """Shows current plot
+    """Show the current matplotlib plot.
 
-    This function is used to avoid explicit import of matplotlib
+    Convenience wrapper around ``matplotlib.pyplot.show`` that avoids an
+    explicit import of ``matplotlib``.
+
+    Parameters
+    ----------
+    block : bool, optional
+        If ``True``, block until the plot window is closed. Default is
+        ``True``.
     """
     import matplotlib.pyplot as plt
 
@@ -602,9 +621,15 @@ def show_plot(block: bool = True) -> None:
 
 
 def savefig(fname: str) -> None:
-    """Saves current plot to a file
+    """Save the current matplotlib plot to a file.
 
-    This function is used to avoid explicit import of matplotlib
+    Convenience wrapper around ``matplotlib.pyplot.savefig`` that avoids an
+    explicit import of ``matplotlib``.
+
+    Parameters
+    ----------
+    fname : str
+        Output file path (format inferred from the extension).
     """
     import matplotlib.pyplot as plt
 
@@ -612,7 +637,20 @@ def savefig(fname: str) -> None:
 
 
 def assert_version(check: str, vno: str) -> None:
-    """Throws an exception if the condition is not satisfied"""
+    """Assert that the installed Quantarhei version satisfies a version constraint.
+
+    Parameters
+    ----------
+    check : str
+        Comparison operator string: ``">="``, ``"=="``, or ``"<="``.
+    vno : str
+        Version string to compare against (e.g. ``"0.0.63"``).
+
+    Raises
+    ------
+    SystemExit
+        If the version constraint is not satisfied.
+    """
     from packaging import version
 
     def ext() -> None:

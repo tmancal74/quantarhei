@@ -437,8 +437,18 @@ class KTHierarchy:
 
 
 class KTHierarchyPropagator:
-    """Propagator of the Kubo-Tanimura hierarchy
+    """Propagator for the Kubo-Tanimura (HEOM) hierarchy.
 
+    Parameters
+    ----------
+    timeaxis : TimeAxis
+        Time axis defining the propagation grid.
+    hierarchy : KTHierarchy
+        Pre-built hierarchy object holding all bath parameters and ADO
+        indices.
+
+    Examples
+    --------
     >>> import numpy
     >>> import quantarhei as qr
     >>> with qr.energy_units("1/cm"):
@@ -657,7 +667,19 @@ class KTHierarchyPropagator:
 
 
 class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
-    """If QuTip is installed, this class provides the solution of the HEOM"""
+    """HEOM propagator backed by the QuTiP library.
+
+    Uses the QuTiP HEOM solver when it is available. Falls back to an error
+    if QuTiP is not installed.
+
+    Parameters
+    ----------
+    timeaxis : TimeAxis
+        Time axis defining the propagation grid.
+    hierarchy : KTHierarchy
+        Pre-built hierarchy object holding all bath parameters and ADO
+        indices.
+    """
 
     def __init__(self, timeaxis: Any, hierarchy: Any) -> None:
 

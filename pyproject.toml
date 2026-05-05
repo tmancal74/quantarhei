@@ -214,6 +214,7 @@ ignore = [
     # A statement like `x.attr` with no assignment or call — probably dead code
     # or a typo. Needs human review to confirm it is safe to delete.
     "B018",
+
 ]
 
 [tool.mypy]

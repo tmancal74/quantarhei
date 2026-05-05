@@ -197,11 +197,12 @@ class DistributedConfiguration:
 
 
 def start_parallel_region() -> None:
-    """Starts a parallel region
+    """Start a parallel region.
 
-    This is a clean solution without having to explicitely invoke Manager
-    and DistributedConfiguration class
-
+    Convenience wrapper around
+    :meth:`DistributedConfiguration.start_parallel_region` that avoids
+    explicit use of :class:`~quantarhei.core.managers.Manager` and
+    :class:`DistributedConfiguration`.
     """
     from .managers import Manager
 
@@ -213,11 +214,12 @@ def start_parallel_region() -> None:
 
 
 def close_parallel_region() -> None:
-    """Closes a parallel region
+    """Close a parallel region.
 
-    This is a clean solution without having to explicitely invoke Manager
-    and DistributedConfiguration class
-
+    Convenience wrapper around
+    :meth:`DistributedConfiguration.finish_parallel_region` that avoids
+    explicit use of :class:`~quantarhei.core.managers.Manager` and
+    :class:`DistributedConfiguration`.
     """
     from .managers import Manager
 
@@ -229,7 +231,14 @@ def close_parallel_region() -> None:
 
 
 def distributed_configuration() -> DistributedConfiguration:
-    """Returns the DistributedConfiguration object from the Manager"""
+    """Return the active :class:`DistributedConfiguration` from the Manager.
+
+    Returns
+    -------
+    DistributedConfiguration
+        The shared distributed configuration object managed by
+        :class:`~quantarhei.core.managers.Manager`.
+    """
     from .managers import Manager
 
     return Manager().get_DistributedConfiguration()
@@ -319,8 +328,22 @@ def block_distributed_list(dlist: list[Any], return_index: bool = False) -> list
 
 
 def block_distributed_array(array: numpy.ndarray, return_index: bool = False) -> Any:
-    """ """
+    """Distribute blocks of an array across parallel workers.
 
+    Parameters
+    ----------
+    array : numpy.ndarray
+        Array to distribute. Each worker receives a contiguous block of rows.
+    return_index : bool, optional
+        If ``True``, return a ``(block, start_index)`` tuple instead of just
+        the block. Default is ``False``.
+
+    Returns
+    -------
+    numpy.ndarray or tuple
+        The local block assigned to this worker, or ``(block, start_index)``
+        when ``return_index`` is ``True``.
+    """
     from .managers import Manager
 
     # we share the work only in parallel_level == 1
@@ -635,7 +658,29 @@ def _get_next_from_MPI(config: DistributedConfiguration, source: int) -> int | N
 
 
 def asynchronous_range(start: int, stop: int) -> Generator[int, None, None]:
-    """Range distributing numbers asynchronously among processes"""
+    """Yield integers from ``start`` to ``stop``, distributed across processes.
+
+    In a parallel MPI environment the integers are distributed asynchronously
+    so that each MPI process receives the next available value as soon as it
+    is ready. In serial mode this is equivalent to :func:`range`.
+
+    Parameters
+    ----------
+    start : int
+        First integer to yield.
+    stop : int
+        Upper bound (exclusive) of the range.
+
+    Yields
+    ------
+    int
+        The next available integer from the range.
+
+    Raises
+    ------
+    Exception
+        If called outside a declared parallel region.
+    """
     from .managers import Manager
 
     config = Manager().get_DistributedConfiguration()

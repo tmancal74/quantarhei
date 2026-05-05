@@ -218,24 +218,32 @@ class TimeDependent:
 
 
 class TimeAxis(ValueAxis):
-    """Class representing time in time dependent calculations.
+    """Linear time grid for time-dependent calculations.
 
+    Closely related to :class:`FrequencyAxis`: the FFT of a function defined
+    on a ``TimeAxis`` lives on the corresponding ``FrequencyAxis``. The
+    default type ``'upper-half'`` exploits conjugation symmetry of bath
+    correlation functions; ``'complete'`` gives a straightforward full-range
+    grid.
 
     Parameters
     ----------
     start : float
-        start of the TimeAxis
-
+        First value of the time axis (in internal units, i.e. fs).
     length : int
-        number of steps
-
+        Number of time points.
     step : float
-        time step
+        Spacing between consecutive time points (fs).
+    atype : str, optional
+        Axis type. Must be ``'upper-half'`` (default) or ``'complete'``.
+    frequency_start : float, optional
+        Offset applied to the first frequency of the corresponding
+        :class:`FrequencyAxis`. Default is ``0.0``.
 
-    atype : string {"complete","upper-half"}
-        Axis type
-
-
+    Raises
+    ------
+    Exception
+        If ``atype`` is not ``'upper-half'`` or ``'complete'``.
     """
 
     def __init__(

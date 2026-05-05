@@ -345,20 +345,29 @@ class DFunction(Saveable, DataSaveable):
             raise Exception("Incompatible axis")
 
     def at(self, x: Any, approx: str = "default") -> Any:
-        """Returns the function value at the argument `x`
+        """Return the function value at argument ``x``.
 
-        Returns the value of the function at a given value of argument `x`. The
-        default interpolation is linear, until the spline interpolation is
-        initialized by calling the method with approx = "spline". From then
-        on, the default is spline.
+        The default interpolation is ``'linear'`` until spline interpolation
+        is first requested via ``approx='spline'``, after which ``'spline'``
+        becomes the default.
 
         Parameters
         ----------
-        x : number
-            Function argument
+        x : float
+            Function argument.
+        approx : str, optional
+            Interpolation type: ``'default'``, ``'linear'``, or ``'spline'``.
+            Default is ``'default'``.
 
-        approx : string {"default","linear","spline"}
-            Type of interpolation
+        Returns
+        -------
+        float or complex
+            Interpolated function value at ``x``.
+
+        Raises
+        ------
+        Exception
+            If ``approx`` is not one of the allowed interpolation types.
 
 
         Examples
@@ -542,10 +551,28 @@ class DFunction(Saveable, DataSaveable):
     #
 
     def get_Fourier_transform(self, window: DFunction | None = None) -> DFunction:
-        """Returns Fourier transform of the DFunction
+        """Return the Fourier transform of the DFunction.
 
+        Parameters
+        ----------
+        window : DFunction, optional
+            Window function to multiply the data before transforming.
+            Must share the same axis. If ``None``, a rectangular window
+            of ones is used.
 
+        Returns
+        -------
+        DFunction
+            Fourier-transformed function defined on the dual
+            :class:`FrequencyAxis`.
 
+        Raises
+        ------
+        Exception
+            If the axis type is not ``'complete'`` or ``'upper-half'``.
+
+        Examples
+        --------
         >>> t = TimeAxis(0.0, 200, 1.0)
 
         The default type of TimeAxis is "upper-half"

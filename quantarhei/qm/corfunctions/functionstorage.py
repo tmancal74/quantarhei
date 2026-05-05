@@ -657,7 +657,27 @@ class FunctionStorage:
 
 
 class FastFunctionStorage(FunctionStorage):
-    """Function storage with no overhead retrieval"""
+    """Function storage with minimal-overhead array retrieval.
+
+    A subclass of :class:`FunctionStorage` optimised for fast random access
+    via direct array slicing.  Supports integer or full-slice ``:``) as the
+    first index.
+
+    Parameters
+    ----------
+    N : int, optional
+        Number of functions to store. Default is ``1``.
+    timeaxis : TimeAxis or list of TimeAxis
+        One or more time axes on which functions are discretised.
+    dtype : numpy.dtype, optional
+        Data type of the stored arrays. Default is ``numpy.complex64``.
+    show_config : bool, optional
+        If ``True``, print the storage configuration at construction time.
+        Default is ``False``.
+    config : dict or None, optional
+        Custom storage configuration dictionary. If ``None``, the default
+        three-time (t1, t2, t3) configuration is used.
+    """
 
     def __getitem__(self, index: Any) -> Any:
         i, j = index

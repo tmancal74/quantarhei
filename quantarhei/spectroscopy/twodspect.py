@@ -43,6 +43,13 @@ from ..core.valueaxis import ValueAxis
 
 
 class TwoDSpectrum(DataSaveable, Saveable):
+    """A single two-dimensional Fourier-transform spectrum.
+
+    Stores the 2D spectral data indexed by (omega_1, omega_3) at a fixed
+    waiting time ``t2``. The data may be rephasing, non-rephasing, or the
+    total sum of both.
+    """
+
     dtypes = TWOD_SIGNALS
 
     def __init__(self) -> None:
@@ -65,12 +72,18 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.yaxis = axis
 
     def set_data_type(self, dtype: str = signal_TOTL) -> None:  # "Tot"):
-        """Sets the data type for this 2D spectrum
+        """Set the data type for this 2D spectrum.
 
         Parameters
         ----------
-        dtype : string
-           Specifies the type of data stored in this TwoDSpectrum object
+        dtype : str, optional
+            Type of data stored in this object. Must be one of the values
+            in ``TwoDSpectrum.dtypes``. Default is ``qr.signal_TOTL``.
+
+        Raises
+        ------
+        Exception
+            If ``dtype`` is not a recognised data type.
         """
         if dtype in self.dtypes.values():
             self.dtype = dtype
@@ -84,23 +97,22 @@ class TwoDSpectrum(DataSaveable, Saveable):
     def set_data(
         self, data: numpy.ndarray, dtype: str = signal_TOTL
     ) -> None:  # "Tot"):
-        """Sets the data of the 2D spectrum
-
-        Sets the object data depending on the specified type and stores the
-        type
-
+        """Set the data of the 2D spectrum.
 
         Parameters
         ----------
-        data : 2D array
-            Data of the spectrum, float or complex
+        data : numpy.ndarray
+            2D array of spectral values (float or complex).
+        dtype : str, optional
+            Type of the data stored. Recognised values are ``qr.signal_REPH``
+            for rephasing spectra, ``qr.signal_NONR`` for non-rephasing
+            spectra, and ``qr.signal_TOTL`` for the total spectrum (sum of
+            both). Default is ``qr.signal_TOTL``.
 
-        dtype : string
-            Type of the data stored. Three values are allowed: if quantarhei
-            is import as `qr` that they are qr.signal_REPH
-            for rephasing spectra, qr.signal_NONR for non-rephasing spectra,
-            and qr.signal_TOTL for total spectrum, which is the sum of both
-
+        Raises
+        ------
+        Exception
+            If ``dtype`` is unknown or the axes have not been set yet.
         """
         self.set_data_type(dtype)
 

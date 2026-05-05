@@ -103,7 +103,23 @@ eps0_int = 1.0e19 / (4.0 * const.pi * J2int)
 def convert(
     val: float | numpy.ndarray, in_units: str, to: str | None = None
 ) -> float | numpy.ndarray:
-    """Converts value in certain units into other units"""
+    """Convert a value from one set of units to another.
+
+    Parameters
+    ----------
+    val : float or numpy.ndarray
+        Value(s) to convert.
+    in_units : str
+        Unit string describing the units of ``val``
+        (e.g. ``'1/cm'``, ``'eV'``).
+    to : str, optional
+        Target unit string. If ``None``, the current global units are used.
+
+    Returns
+    -------
+    float or numpy.ndarray
+        Converted value(s) in the target units.
+    """
     from .managers import Manager, energy_units
 
     m = Manager()
@@ -122,7 +138,21 @@ def convert(
 def in_current_units(
     val: float | numpy.ndarray, in_units: str
 ) -> float | numpy.ndarray:
-    """Converts value in certain units into the current units"""
+    """Convert a value from given units into the current global units.
+
+    Parameters
+    ----------
+    val : float or numpy.ndarray
+        Value(s) to convert.
+    in_units : str
+        Unit string describing the units of ``val``
+        (e.g. ``'1/cm'``, ``'eV'``).
+
+    Returns
+    -------
+    float or numpy.ndarray
+        Converted value(s) in the currently active energy units.
+    """
     from .managers import Manager, energy_units
 
     m = Manager()

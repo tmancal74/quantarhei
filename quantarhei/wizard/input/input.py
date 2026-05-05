@@ -57,7 +57,18 @@ def expr(code: str, context: dict[str, Any] | None = None) -> Any:
 
 
 class Input:
-    """A class representing a json or yaml input file"""
+    """Parsed representation of a JSON or YAML input file.
+
+    Parameters
+    ----------
+    file_or_dict : str or dict
+        Path to a JSON/YAML file, or a pre-parsed dictionary.
+    math_allowed_in : list, optional
+        Keys whose string values may contain mathematical expressions that
+        will be evaluated. Default is an empty list.
+    show_input : bool, optional
+        If ``True``, print the parsed input to stdout after loading.
+    """
 
     # YAML-injected attributes — set dynamically via setattr in __init__
     define_usecases: Any

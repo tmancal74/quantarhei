@@ -11,7 +11,24 @@ from .operators import Operator, SelfAdjointOperator
 
 
 class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
-    """Hamiltonian operator"""
+    """Hamiltonian operator of a quantum system.
+
+    Represents the system Hamiltonian as a real symmetric matrix whose
+    elements are stored in the currently active energy units and managed
+    by the global :class:`Manager`.
+
+    Parameters
+    ----------
+    dim : int, optional
+        Dimension of the Hilbert space. Required if ``data`` is not given.
+    data : array_like, optional
+        Square matrix of Hamiltonian elements. Must be real and symmetric.
+
+    Raises
+    ------
+    Exception
+        If ``data`` is not self-adjoint (symmetric for a real matrix).
+    """
 
     _has_remainder_coupling = False
     JR: numpy.ndarray
@@ -38,7 +55,22 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.Nblocks = 1
 
     def set_rwa(self, rwa_indices: Any, rwa_energy: float | None = None) -> None:
-        """sets indice of RWA blocks of the Hamiltonian
+        """Set the block indices for the Rotating Wave Approximation (RWA).
+
+        Parameters
+        ----------
+        rwa_indices : array_like of int
+            Sorted list of block-start indices. The first element must be
+            ``0``. For example ``[0, N]`` defines a ground-state block
+            ``[0, N)`` and an excited-state block ``[N, dim)``.
+        rwa_energy : float, optional
+            If provided, average block energies are set to multiples of
+            this value rather than computed from the diagonal of the data.
+
+        Raises
+        ------
+        Exception
+            If the first element of ``rwa_indices`` is not ``0``.
 
 
         Examples

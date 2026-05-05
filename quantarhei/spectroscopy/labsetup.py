@@ -1203,13 +1203,18 @@ def _get_example_lab() -> LabSetup:
 
 
 class LabField:
-    """Class representing electric field of a laser pulse defined in LabSetup
+    """Electric field of a single laser pulse defined within a ``LabSetup``.
 
+    Objects of this class are linked to their parent ``LabSetup``. Properties
+    can be changed locally (affecting only this field) or globally from the
+    ``LabSetup`` (affecting all linked ``LabField`` objects).
 
-    Objects of this class are linked to their "mother" object of the LabSetup
-    type. Their properties can be changed locally, with an effect on the
-    LabSetup, or globally from the LabSetup with an effect on the EField
-    objects.
+    Parameters
+    ----------
+    lab : LabSetup
+        Parent laboratory setup object.
+    index : int
+        Zero-based index of the pulse within the ``LabSetup``.
 
 
     Examples
