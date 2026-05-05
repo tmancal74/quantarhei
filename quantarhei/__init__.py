@@ -145,12 +145,13 @@ except _PackageNotFoundError:
 #
 # Fix used numerical types
 #
-import numpy
-
+# import numpy
 from .core.managers import Manager
 
-REAL: type = numpy.float64
-COMPLEX: type = numpy.complex128
+m = Manager()
+
+REAL: type = m.get_real_type()  # numpy.float64
+COMPLEX: type = m.get_complex_type()  # numpy.complex128
 
 from .utils.logging import (
     LOG_DETAIL,
@@ -681,9 +682,6 @@ def assert_version(check: str, vno: str) -> None:
         raise Exception("Unknown comparison operator `" + check + "`")
 
 
-#
-#  __all__ attribute to define a public API
-#
 __all__ = [
     "COMPLEX",
     "DATA_PARTS",
