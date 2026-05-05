@@ -63,6 +63,7 @@ Dive into [Qrhei] documentation below:
 :maxdepth: 2
 
 Get started <getstarted>
+Quickstart <getstarted/quickstart>
 Installation <installation>
 Examples <examples>
 API Reference <classes>

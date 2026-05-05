@@ -16,6 +16,7 @@ Let's start with the main ideas - philosophy - of this package.
 ```{toctree}
 :maxdepth: 2
 
+getstarted/quickstart
 getstarted/philosophy
 getstarted/oqs
 getstarted/repre
