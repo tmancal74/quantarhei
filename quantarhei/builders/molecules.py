@@ -2413,56 +2413,55 @@ def generate_1orderP_sec(
             print("Ground state: ", i1g, "of", len(ngs))
 
         # Only thermally allowed starting states are considered
-        if True:  # self.rho0[i1g,i1g] > pop_tol:
-            D2 = numpy.dot(self.dmoments[0, 1, :], self.dmoments[0, 1, :])
-            for i2e in nes:
-                if D2 > dip_tol:  # self.D2[i2e,i1g] > dip_tol:
-                    l += 1
+        D2 = numpy.dot(self.dmoments[0, 1, :], self.dmoments[0, 1, :])
+        for i2e in nes:
+            if D2 > dip_tol:  # self.D2[i2e,i1g] > dip_tol:
+                l += 1
 
-                    #      Diagram P1
-                    #
-                    #
+                #      Diagram P1
+                #
+                #
+                #      |g_i1> <g_i1|
+                # <----|-----------|
+                #      |e_i2> <g_i1|
+                # ---->|-----------|
+                #      |g_i1> <g_i1|
+
+                try:
+                    if verbose > 5:
+                        print(" * Generating P1", i1g, i2e)
+
+                    # FIXME: what should be here???
+                    lp = diag.liouville_pathway(
+                        "NR",
+                        i1g,
+                        aggregate=self,
+                        order=1,
+                        pname="P1",
+                        popt_band=1,
+                        relax_order=1,
+                    )
+
+                    # first transition lineshape
+                    width1 = self.get_transition_width((i2e, i1g))
+                    deph1 = self.get_transition_dephasing((i2e, i1g))
+
                     #      |g_i1> <g_i1|
-                    # <----|-----------|
+                    lp.add_transition(
+                        (i2e, i1g), +1, interval=1, width=width1, deph=deph1
+                    )
                     #      |e_i2> <g_i1|
-                    # ---->|-----------|
+                    lp.add_transition(
+                        (i1g, i2e), +1, interval=1, width=width1, deph=deph1
+                    )
                     #      |g_i1> <g_i1|
 
-                    try:
-                        if verbose > 5:
-                            print(" * Generating P1", i1g, i2e)
+                except Exception:
+                    break
 
-                        # FIXME: what should be here???
-                        lp = diag.liouville_pathway(
-                            "NR",
-                            i1g,
-                            aggregate=self,
-                            order=1,
-                            pname="P1",
-                            popt_band=1,
-                            relax_order=1,
-                        )
-
-                        # first transition lineshape
-                        width1 = self.get_transition_width((i2e, i1g))
-                        deph1 = self.get_transition_dephasing((i2e, i1g))
-
-                        #      |g_i1> <g_i1|
-                        lp.add_transition(
-                            (i2e, i1g), +1, interval=1, width=width1, deph=deph1
-                        )
-                        #      |e_i2> <g_i1|
-                        lp.add_transition(
-                            (i1g, i2e), +1, interval=1, width=width1, deph=deph1
-                        )
-                        #      |g_i1> <g_i1|
-
-                    except Exception:
-                        break
-
-                    lp.build()
-                    lst.append(lp)
-                    k += 1
+                lp.build()
+                lst.append(lp)
+                k += 1
 
 
 def PiMolecule(Molecule: Any) -> None:
