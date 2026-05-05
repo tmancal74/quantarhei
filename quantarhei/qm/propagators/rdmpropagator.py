@@ -87,7 +87,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         Trdip: Any = None,
         PDeph: Any = None,
         NonHerm: Any = None,
-        basis: Any = None,
     ) -> None:
         """Initialize the propagator.
 
@@ -214,8 +213,6 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
             self.verbose = Manager().log_conf.verbose
 
-            self._basis = basis
-
         else:
             raise Exception(
                 "TimeAxis and Hamiltonian are required to initialize the propagator."
@@ -324,24 +321,24 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         ):
             raise Exception("First argument has be of the ReducedDensityMatrix type")
 
-        ###################################################################
+        #######################################################################
         #
         #    PROPAGATIONS WITH RELAXATION AND/OR DEPHASING
         #
         #
-        ###################################################################
+        #######################################################################
         if self.has_relaxation:
-            ###############################################################
+            ###################################################################
             #
             # Time-dependent relaxation tensor
             #
-            ###############################################################
+            ###################################################################
             if isinstance(self.RelaxationTensor, TimeDependent):
-                ###########################################################
+                ###############################################################
                 #
                 # Propagation with external field
                 #
-                ###########################################################
+                ###############################################################
                 if self.has_Efield and self.has_Trdip:
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_TD_relaxation_field(
@@ -380,11 +377,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         )
                     raise Exception("Unknown propagation method: " + method)
 
-                ###########################################################
+                ###############################################################
                 #
                 # Progation without external field
                 #
-                ###########################################################
+                ###############################################################
                 else:
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=4)
@@ -396,17 +393,17 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=6)
                     raise Exception("Unknown propagation method: " + method)
 
-            ###############################################################
+            ###################################################################
             #
             # Constant relaxation tensor
             #
-            ###############################################################
+            ###################################################################
             else:
-                ###########################################################
+                ###############################################################
                 #
                 # Propagation with external field
                 #
-                ###########################################################
+                ###############################################################
                 if self.has_Efield and self.has_Trdip:
                     if method == "short-exp":
                         return self.__propagate_short_exp_with_relaxation_field(
@@ -445,11 +442,11 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         )
                     raise Exception("Unknown propagation method: " + method)
 
-                ###########################################################
+                ###############################################################
                 #
                 # Progation without external field
                 #
-                ###########################################################
+                ###############################################################
                 else:
                     #
                     #  Section used by Time-independent Redfield and similar
@@ -466,12 +463,12 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
                     raise Exception("Unknown propagation method: " + method)
 
-        ###################################################################
+        #######################################################################
         #
         #    PROPAGATIONS WITHOUT RELAXATION
         #
         #
-        ###################################################################
+        #######################################################################
         else:
             if self.has_Efield and self.has_Trdip:
                 if method == "short-exp":

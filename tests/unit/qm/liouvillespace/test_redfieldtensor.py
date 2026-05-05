@@ -39,12 +39,6 @@ def _make_ham_sbi():
     return ham, sbi
 
 
-def test_redfieldtensor_sets_basis_op():
-    ham, sbi = _make_ham_sbi()
-    RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi)
-    assert RRT.basis_op is ham
-
-
 def test_redfieldtensor_secular_flag():
     ham, sbi = _make_ham_sbi()
     RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, secular=True)

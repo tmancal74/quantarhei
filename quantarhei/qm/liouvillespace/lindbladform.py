@@ -30,7 +30,6 @@ class LindbladForm(RedfieldRelaxationTensor):
         super().__init__(
             ham, sbi, initialize=initialize, as_operators=as_operators, name=name
         )
-        self.basis_op = None
 
     def _implementation(self, ham: Any, sbi: Any) -> None:
         """Very simple implementation of Lindblad form"""

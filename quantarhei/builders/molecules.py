@@ -132,6 +132,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         OpenSystem.__init__(self, elenergies)
         # self.manager = Manager()
 
+        self._position = None
+
         # monomer name
         if name is None:
             # FIXME: generate unique name

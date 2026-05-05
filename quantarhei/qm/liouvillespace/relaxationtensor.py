@@ -16,7 +16,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
     """Basic class representing a relaxation tensor"""
 
     is_time_dependent = False
-    basis_op: Any
 
     def __init__(self) -> None:
 
@@ -154,9 +153,6 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         self, temperature: float = 0.0, secularize: bool = True
     ) -> None:
         """Enforces uphill rates to comply with the canonical detailed balace"""
-        from ...core.managers import assert_not_in_eigenbasis_context
-
-        assert_not_in_eigenbasis_context()
         with eigenbasis_of(self.Hamiltonian):
             if secularize:
                 self.secularize()

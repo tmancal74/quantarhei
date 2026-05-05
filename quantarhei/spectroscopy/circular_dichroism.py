@@ -886,11 +886,6 @@ class CircDichSpectrumCalculator(EnergyUnitsManaged):
         rot_dip = self._excitonic_rot_dip(SS, self.system, 0)
         data = rot_dip * numpy.real(self.one_transition_spectrum(tr))
 
-        #
-        # Calculates spectrum of a single transition
-        #
-        data = numpy.real(self.one_transition_spectrum(tr))
-
         for ii in range(2, HH.dim):
             if relaxation_tensor is not None:
                 tr["gg"] = gg[ii]

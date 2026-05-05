@@ -3,10 +3,7 @@ from __future__ import annotations
 import numpy
 
 from ... import COMPLEX
-from ...core.managers import (
-    eigenbasis_of,
-    energy_units,
-)
+from ...core.managers import eigenbasis_of, energy_units
 
 # import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
@@ -67,8 +64,6 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
 
         else:
             self._data_initialized = False
-
-        self.basis_op = ham
 
     def initialize(self) -> None:
 
