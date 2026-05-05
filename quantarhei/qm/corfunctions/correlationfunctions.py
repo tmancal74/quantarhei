@@ -290,18 +290,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
         kBT = kB_intK * temperature
         time = self.axis.data
 
-        # if values is not None:
-        #    cfce = values
+        cfce = (lamb / ctime) * (
+            1.0 / numpy.tan(1.0 / (2.0 * kBT * ctime))
+        ) * numpy.exp(-time / ctime) - 1.0j * (lamb / ctime) * numpy.exp(-time / ctime)
 
-        # else:
-        if True:
-            cfce = (lamb / ctime) * (
-                1.0 / numpy.tan(1.0 / (2.0 * kBT * ctime))
-            ) * numpy.exp(-time / ctime) - 1.0j * (lamb / ctime) * numpy.exp(
-                -time / ctime
-            )
-
-            cfce += (4.0 * lamb * kBT / ctime) * self._matsubara(kBT, ctime, nmatsu)
+        cfce += (4.0 * lamb * kBT / ctime) * self._matsubara(kBT, ctime, nmatsu)
 
         # this is a call to the function inherited from DFunction class
         self._add_me(self.axis, cfce)
@@ -323,14 +316,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
         kBT = kB_intK * temperature
         time = self.axis.data
 
-        # if values is not None:
-        #    cfce = values
-        #
-        # else:
-        if True:
-            cfce = (2.0 * lamb * kBT) * numpy.exp(-time / ctime) - 1.0j * (
-                lamb / ctime
-            ) * numpy.exp(-time / ctime)
+        cfce = (2.0 * lamb * kBT) * numpy.exp(-time / ctime) - 1.0j * (
+            lamb / ctime
+        ) * numpy.exp(-time / ctime)
 
         # this is a call to the function inherited from DFunction class
         self._add_me(self.axis, cfce)
@@ -357,20 +345,13 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # kBT = kB_intK*temperature
         time = self.axis  # .data
 
-        # if values is not None:
-        #    cfce = values
-        #
-        # else:
-        if True:
-            with energy_units("int"):
-                # Make it via SpectralDensity
-                fa = SpectralDensity(time, params)
+        with energy_units("int"):
+            # Make it via SpectralDensity
+            fa = SpectralDensity(time, params)
 
-                cf = fa.get_CorrelationFunction(temperature=temperature)
+            cf = fa.get_CorrelationFunction(temperature=temperature)
 
-                cfce = cf.data
-                # 2.0*lamb*kBT*(numpy.exp(-time/ctime)
-                #              - 1.0j*(lamb/ctime)*numpy.exp(-time/ctime))
+            cfce = cf.data
 
         # this is a call to the function inherited from DFunction class
         self._add_me(self.axis, cfce)

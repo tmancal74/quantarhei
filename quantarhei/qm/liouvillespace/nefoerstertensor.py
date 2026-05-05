@@ -319,36 +319,24 @@ def _nsc_kernel_at_t(
     ec = HH[cc, cc]
     ed = HH[dd, dd]
 
-    if False:  # (bb==cc) and (aa==dd):
-        # manually simplified expression for population rates
+    # general expression for all indices
 
-        prod = exp(
-            2.0 * 1j * numpy.imag(gt[bb, ti])
-            - 2.0 * 1j * numpy.imag(gtb_m)
-            - gt[bb, :]
-            - gt[aa, :]
-            + 1j * (ea - eb) * tt
-        )
+    dl: numpy.ndarray = numpy.eye(HH.shape[0], dtype=REAL)
 
-    else:
-        # general expression for all indices
-
-        dl: numpy.ndarray = numpy.eye(HH.shape[0], dtype=REAL)
-
-        tt_i = tt[ti]
-        prod = exp(
-            -conj(gt[aa, ti] + gt[cc, :])
-            - gt[bb, ti]
-            - gt[dd, :]
-            + dl[aa, bb] * (+conj(gt[aa, ti]) + gt[aa, ti])
-            + dl[aa, cc] * (-conj(gt[aa, :]) + gta_m - gt[aa, ti])
-            + dl[aa, dd] * (+conj(gt[aa, :]) + gt[aa, ti] - gta_m)
-            + dl[bb, cc] * (+conj(gt[bb, :]) + gt[bb, ti] - gtb_m)
-            + dl[bb, dd] * (-conj(gt[bb, :]) - gt[bb, ti] + gtb_m)
-            + dl[cc, dd] * (conj(gt[cc, :]) + gt[cc, :])
-            + 1j * ((ea - eb) * tt_i)
-            + 1j * (ec - ed) * tt
-        )
+    tt_i = tt[ti]
+    prod = exp(
+        -conj(gt[aa, ti] + gt[cc, :])
+        - gt[bb, ti]
+        - gt[dd, :]
+        + dl[aa, bb] * (+conj(gt[aa, ti]) + gt[aa, ti])
+        + dl[aa, cc] * (-conj(gt[aa, :]) + gta_m - gt[aa, ti])
+        + dl[aa, dd] * (+conj(gt[aa, :]) + gt[aa, ti] - gta_m)
+        + dl[bb, cc] * (+conj(gt[bb, :]) + gt[bb, ti] - gtb_m)
+        + dl[bb, dd] * (-conj(gt[bb, :]) - gt[bb, ti] + gtb_m)
+        + dl[cc, dd] * (conj(gt[cc, :]) + gt[cc, :])
+        + 1j * ((ea - eb) * tt_i)
+        + 1j * (ec - ed) * tt
+    )
 
     return prod
 

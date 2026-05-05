@@ -177,19 +177,12 @@ class TwoDResponseCalculator:
                 # Relaxation rates
                 #
                 if not self._has_rate_matrix:
-                    # try:
-                    if False:
-                        KK = sys.get_RedfieldRateMatrix()
-                    # except:
-                    else:
-                        # FIXME: This is a quick fix to make a zero rate matrix
-                        class hlp:
-                            def __init__(self, N: int) -> None:
-                                self.data: numpy.ndarray = numpy.zeros(
-                                    (N, N), dtype=REAL
-                                )
+                    # FIXME: This is a quick fix to make a zero rate matrix
+                    class hlp:
+                        def __init__(self, N: int) -> None:
+                            self.data: numpy.ndarray = numpy.zeros((N, N), dtype=REAL)
 
-                        KK = hlp(Ns[1])
+                    KK = hlp(Ns[1])
                 else:
                     KK = self._rate_matrix
 
