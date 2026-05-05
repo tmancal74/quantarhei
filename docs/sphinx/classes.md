@@ -32,6 +32,7 @@ classes/aggregates
 :maxdepth: 2
 
 classes/correlationfunction
+classes/spectraldensity
 ```
 
 ## Quantum Mechanics
@@ -70,6 +71,7 @@ classes/relaxtensors/foerstertensor
 
 classes/spectroscopy/abs
 classes/spectroscopy/twod
+classes/spectroscopy/pumpprobe
 classes/spectroscopy/labsetup
 classes/spectroscopy/pathwayan
 ```
