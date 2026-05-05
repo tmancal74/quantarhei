@@ -131,11 +131,7 @@ class ValueAxis(Saveable):
 
     def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0) -> None:
 
-        # if step > 0:
-        if True:
-            self.step = step
-        # else:
-        #    raise Exception("Parameter step has to be > 0")
+        self.step = step
         self.start = start
         self.length = length
 

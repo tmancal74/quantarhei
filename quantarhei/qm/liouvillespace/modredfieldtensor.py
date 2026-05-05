@@ -83,18 +83,17 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             HH = self.Hamiltonian
             sbi = self.SystemBathInteraction
 
-            if True:
-                if self._has_cutoff_time:
-                    cft = self.cutoff_time
-                else:
-                    cft = None
+            if self._has_cutoff_time:
+                cft = self.cutoff_time
+            else:
+                cft = None
 
-                frm = ModifiedRedfieldRateMatrix(
-                    HH,
-                    sbi,  # sbi.TimeAxis,
-                    initialize=True,
-                    cutoff_time=cft,
-                )
+            frm = ModifiedRedfieldRateMatrix(
+                HH,
+                sbi,
+                initialize=True,
+                cutoff_time=cft,
+            )
 
             with eigenbasis_of(HH):
                 #
