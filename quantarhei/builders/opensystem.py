@@ -703,8 +703,6 @@ class OpenSystem:
                 # ham=Hamiltonian(data=HH_new)
 
             if time_dependent:
-                # Time dependent standard Refield
-
                 relaxT = TDRedfieldRelaxationTensor(
                     ham,
                     sbi,
@@ -714,14 +712,18 @@ class OpenSystem:
                 )
 
             else:
-                # Time independent standard Refield
-
                 relaxT = RedfieldRelaxationTensor(
                     ham,
                     sbi,
                     as_operators=as_operators,
                     secular=secular_relaxation,
                 )
+
+            # The tensor is built in the eigenbasis of ham. Transform it
+            # back to site basis so it matches ham (which stays in site basis).
+            _, SS = numpy.linalg.eigh(ham._data)
+            S1 = numpy.linalg.inv(SS)
+            relaxT.transform(S1, inv=SS)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -732,26 +734,24 @@ class OpenSystem:
 
         if relaxation_theory in theories["modified_Redfield"]:
             if time_dependent:
-                # Time dependent standard Refield
-
                 relaxT = TDModRedfieldRelaxationTensor(
                     ham,
                     sbi,
                     cutoff_time=relaxation_cutoff_time,
                 )
-                # TODO: add secular= flag to TDModRedfieldRelaxationTensor
                 if secular_relaxation:
                     relaxT.secularize()
 
             else:
-                # Time independent standard Refield
-
                 relaxT = ModRedfieldRelaxationTensor(
                     ham, sbi, as_operators=as_operators
                 )
-                # TODO: add secular= flag to ModRedfieldRelaxationTensor
                 if secular_relaxation:
                     relaxT.secularize()
+
+            _, SS = numpy.linalg.eigh(ham._data)
+            S1 = numpy.linalg.inv(SS)
+            relaxT.transform(S1, inv=SS)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham

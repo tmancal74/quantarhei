@@ -330,12 +330,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
         if True:
-            # FIXME: here we need to access ham._data (we want to protect basis)
-            #
-            # THIS ASSUMES WE ARE IN SITE BASIS
-            # FIXME: devise a mechanism to ensure this!!!!
-            #
-            hD, SS = numpy.linalg.eigh(ham.data)
+            # Use _data directly: _implementation must always diagonalize in the
+            # site basis so that Km is the correct eigenbasis coupling operator.
+            hD, SS = numpy.linalg.eigh(ham._data)
 
         #
         #  Find all transition frequencies
