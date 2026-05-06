@@ -3,6 +3,7 @@
 [![Coverage](https://img.shields.io/codecov/c/github/tmancal74/quantarhei.svg)](https://codecov.io/gh/tmancal74/quantarhei)
 [![Version](https://img.shields.io/pypi/v/quantarhei.svg)](https://pypi.org/project/quantarhei/)
 [![Python](https://img.shields.io/pypi/pyversions/quantarhei.svg)](https://pypi.org/project/quantarhei/)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tmancal74/quantarhei/master?filepath=examples/notebooks)
 
 # QUANTArhei: Open Quantum System Theory for Molecular Systems
 
@@ -80,6 +81,20 @@ More examples are in the [`docs/examples/`](docs/examples/) directory and on [Re
 - **Bath modeling** — correlation functions, spectral densities, lineshape functions; pre-built models for photosynthetic pigments
 - **Laboratory frame** — realistic optical geometries and pulse field configurations via `LabSetup`
 - **Extensible** — pure Python reference implementation; performance-critical routines can be replaced with optimised C/Fortran extensions
+
+---
+
+## Interactive notebooks
+
+Try Quantarhei in your browser — no installation needed:
+
+| Notebook | Topic | Launch |
+|---|---|---|
+| Molecule & Hamiltonian | Creating molecules, energy levels, vibrational modes | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tmancal74/quantarhei/master?filepath=examples/notebooks/01_molecule_hamiltonian.ipynb) |
+| Correlation Functions | Bath correlation functions C(t) and spectral density J(ω) | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tmancal74/quantarhei/master?filepath=examples/notebooks/02_correlation_functions.ipynb) |
+| Absorption Spectrum | Full workflow: molecule → aggregate → bath → absorption | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tmancal74/quantarhei/master?filepath=examples/notebooks/03_absorption_spectrum.ipynb) |
+| Redfield Relaxation | Density matrix propagation and population dynamics | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tmancal74/quantarhei/master?filepath=examples/notebooks/04_redfield_relaxation.ipynb) |
+| HEOM Dynamics | Strong-coupling dynamics beyond Redfield | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tmancal74/quantarhei/master?filepath=examples/notebooks/05_heom.ipynb) |
 
 ---
 
