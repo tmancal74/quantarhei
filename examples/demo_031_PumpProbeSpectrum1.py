@@ -107,7 +107,7 @@ agg_2D.diagonalize()
 
 # laboratory settings
 lab = qr.LabSetup()
-lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
+lab.set_pulse_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 
 #
 # Given a molecular system (only Aggregate class so far), we calculate

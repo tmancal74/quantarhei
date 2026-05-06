@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  MPLBACKEND: Agg
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -270,6 +273,52 @@ jobs:
         files: ./coverage3.xml
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
+
+  examples:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    # MPLBACKEND=Agg is set globally above so no display is needed.
+    # demos that require external files, a parallel region, or have known
+    # internal library bugs are excluded until those issues are resolved:
+    #   demo_013.1-HEOM.py  — too slow (>60 s)
+    #   demo_030, 031, 040  — internal TwoDSpectrum/PumpProbe attribute errors
+    #   demo_035, 036       — slow (disorder loop)
+    #   demo_050            — needs PDB files at a specific cwd
+    #   demo_300            — requires a declared parallel_region
+    #   demo_850            — internal aggregate_excitonanalysis bug
+    #   demo_853*, 854*     — require external YAML config files
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v5
+      with:
+        python-version: "3.12"
+    - name: Install dependencies
+      run: uv sync --extra dev
+    - name: Run examples
+      working-directory: examples
+      run: |
+        uv run python demo_001_Molecule_Hamiltonian.py
+        uv run python demo_002_Molecule_Aggregate.py
+        uv run python demo_003_CorrFcnSpectDens.py
+        uv run python demo_004_SpectDensDatabase.py
+        uv run python demo_005_UnitsManagementHamiltonian.py
+        uv run python demo_006_Absorption_1.py
+        uv run python demo_010_RedfieldTheory_1.py
+        uv run python demo_011_LindbladForm_1.py
+        uv run python demo_012_Integrodiff.py
+        uv run python demo_013_HEOM.py
+        uv run python "demo_013.1-HEOM1.py"
+        uv run python demo_014_HEOM_rates.py
+        uv run python demo_015_RedfieldTheory_2.py
+        uv run python demo_016_FoersterTheory_1.py
+        uv run python demo_017_RedfieldTheory_MultiExcitons.py
+        uv run python demo_018_ModifiedRedfieldTheory_1.py
+        uv run python demo_020_EvolutionSuperOperator_1.py
+        uv run python demo_100_TimeAndFrequencyAxis.py
+        uv run python demo_101_OperatorFactory.py
+        uv run python demo_102_DFunction_fitting.py
+        uv run python demo_200_Secular.py
+        uv run python demo_800_DiagProblem.py
 
   dependency-review:
     runs-on: ubuntu-latest

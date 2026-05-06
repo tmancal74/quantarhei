@@ -43,7 +43,7 @@ agg.diagonalize()
 
 # laboratory settings
 lab = qr.LabSetup()
-lab.set_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
+lab.set_pulse_polarizations(pulse_polarizations=(X,X,X), detection_polarization=X)
 
 eUt = qr.EvolutionSuperOperator(t2_axis, H)
 eUt.set_dense_dt(10)
