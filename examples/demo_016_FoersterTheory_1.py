@@ -53,8 +53,7 @@ rho_i1.data[shp-1,shp-1] = 1.0
 #
 # Propagation of the density matrix
 #
-rho_t1 = prop_Foerster.propagate(rho_i1,
-                             name="Foerster evolution from aggregate")
+rho_t1 = prop_Foerster.propagate(rho_i1, name="Foerster evolution from aggregate")
 
 if _show_plots_:
     rho_t1.plot(coherences=True, axis=[0,Nt*dt,0,1.0], show=False)
