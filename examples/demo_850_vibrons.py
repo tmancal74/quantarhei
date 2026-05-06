@@ -55,8 +55,8 @@ H = agg.get_Hamiltonian()
 #    print(H)
 
 lab = qr.LabSetup()
-lab.set_polarizations(pulse_polarizations=[X,X,X],
-                      detection_polarization=X)
+lab.set_pulse_polarizations(pulse_polarizations=[X,X,X],
+                            detection_polarization=X)
 
 #print(qr.convert(agg.Wd,"int","1/cm"))
 
