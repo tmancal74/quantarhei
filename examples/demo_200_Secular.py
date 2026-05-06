@@ -130,12 +130,6 @@ agg.build()
 (Rfld, ham) = agg.get_RelaxationTensor(timeaxis,"standard_Redfield")
 ham = agg.get_Hamiltonian()
 sbi = agg.get_SystemBathInteraction()
-#
-#ham.protect_basis()
-#with qr.eigenbasis_of(ham):
-#    Rfld = qr.qm.RedfieldRelaxationTensor(ham, sbi, as_operators=False)
-#
-#ham.unprotect_basis()
 with qr.eigenbasis_of(ham):
     Rfld.secularize(legacy=False)
 print("Dephasing from Redfield tensor")

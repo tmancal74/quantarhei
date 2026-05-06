@@ -83,8 +83,6 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             HH = self.Hamiltonian
             sbi = self.SystemBathInteraction
 
-            # HH.protect_basis()
-            # with eigenbasis_of(HH):
             if True:
                 if self._has_cutoff_time:
                     cft = self.cutoff_time
@@ -111,5 +109,3 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
                 # calculate dephasing rates and depopulation rates
                 #
                 self.updateStructure()
-
-            # HH.unprotect_basis()

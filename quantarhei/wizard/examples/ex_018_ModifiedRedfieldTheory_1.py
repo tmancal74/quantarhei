@@ -56,16 +56,11 @@ print("""
 # m.warn_about_basis_change = False
 
 
-# ham.protect_basis()
-# with qr.eigenbasis_of(ham):
 if True:
     print("\nCalculating relaxation rates")
 
     RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi, time)
     RRT = qr.qm.ModRedfieldRelaxationTensor(ham, sbi)
-
-    # numpy.save('mod_red_rates_pentamer-1_env', RRM.rates)
-# ham.unprotect_basis()
 
 print("\nRelaxation times from the rate matrix")
 
