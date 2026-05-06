@@ -29,7 +29,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "numpydoc",
-    "myst_parser",
+    "myst_nb",
 ]
 
 myst_enable_extensions = [
@@ -38,8 +38,11 @@ myst_enable_extensions = [
     "substitution",
 ]
 
+nb_execution_mode = "off"
+nb_output_stderr = "remove"
+
 templates_path = ["_templates"]
-source_suffix = [".rst", ".md"]
+source_suffix = [".rst", ".md", ".ipynb"]
 master_doc = "index"
 language = "en"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
