@@ -1,6 +1,18 @@
 [run]
 parallel = True
 source = ./quantarhei
+omit =
+    quantarhei/wizard/examples/*
+    quantarhei/wizard/benchmarks/*
+    quantarhei/scripts/*
+    quantarhei/spectroscopy/pumpprobe2.py
+    quantarhei/spectroscopy/twod22.py
 
 [report]
 precision=2
+omit =
+    quantarhei/wizard/examples/*
+    quantarhei/wizard/benchmarks/*
+    quantarhei/scripts/*
+    quantarhei/spectroscopy/pumpprobe2.py
+    quantarhei/spectroscopy/twod22.py
