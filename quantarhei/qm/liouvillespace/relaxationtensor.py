@@ -46,29 +46,28 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                 self.convert_2_tensor()
                 # raise Exception("Cannot be secularized in the operator form")
 
-            if True:
-                if self.data.ndim == 4:
-                    N = self.data.shape[0]
-                    for ii in range(N):
-                        for jj in range(N):
-                            for kk in range(N):
-                                for ll in range(N):
-                                    if not (
-                                        ((ii == jj) and (kk == ll))
-                                        or ((ii == kk) and (jj == ll))
-                                    ):
-                                        self.data[ii, jj, kk, ll] = 0
-                else:
-                    N = self.data.shape[1]
-                    for ii in range(N):
-                        for jj in range(N):
-                            for kk in range(N):
-                                for ll in range(N):
-                                    if not (
-                                        ((ii == jj) and (kk == ll))
-                                        or ((ii == kk) and (jj == ll))
-                                    ):
-                                        self.data[:, ii, jj, kk, ll] = 0
+            if self.data.ndim == 4:
+                N = self.data.shape[0]
+                for ii in range(N):
+                    for jj in range(N):
+                        for kk in range(N):
+                            for ll in range(N):
+                                if not (
+                                    ((ii == jj) and (kk == ll))
+                                    or ((ii == kk) and (jj == ll))
+                                ):
+                                    self.data[ii, jj, kk, ll] = 0
+            else:
+                N = self.data.shape[1]
+                for ii in range(N):
+                    for jj in range(N):
+                        for kk in range(N):
+                            for ll in range(N):
+                                if not (
+                                    ((ii == jj) and (kk == ll))
+                                    or ((ii == kk) and (jj == ll))
+                                ):
+                                    self.data[:, ii, jj, kk, ll] = 0
 
         else:
             super().secularize()

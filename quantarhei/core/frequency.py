@@ -173,11 +173,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         time_start: float = 0.0,
     ) -> None:
 
-        # if step > 0:
-        if True:
-            self.step = step
-        # else:
-        #    raise Exception("Parameter step has to be > 0")
+        self.step = step
         self.start = start
         self.length = length
 

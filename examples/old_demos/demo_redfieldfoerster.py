@@ -89,9 +89,6 @@ with eigenbasis_of(H):
 #        print(aa, " sum ", numpy.real(rsum))
 
 
-#with eigenbasis_of(H):
-if True:
-    #rho_eq = agg.get_DensityMatrix(condition_type="")
-    Nshow = Nt*dt
-    rho_t1.plot(coherences=False, axis=[0,Nshow,0,1.0])
-    rho_t2.plot(coherences=False, axis=[0,Nshow,0,1.0])
+Nshow = Nt*dt
+rho_t1.plot(coherences=False, axis=[0,Nshow,0,1.0])
+rho_t2.plot(coherences=False, axis=[0,Nshow,0,1.0])

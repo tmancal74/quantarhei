@@ -821,11 +821,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             + str(dim)
             + ")"
         )
-        if True:
-            # if remtime <= self.remlast:
-            txt2 = " : remaining time " + str(remtime) + " sec"
-        # else:
-        #    txt2 = " : remaining time ... calculating"
+        txt2 = " : remaining time " + str(remtime) + " sec"
         tlen1 = len(txt1)
         tlen2 = len(txt2)
 
