@@ -276,6 +276,7 @@ jobs:
 
   examples:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     # MPLBACKEND=Agg is set globally above so no display is needed.
     # demos that require external files, a parallel region, or have known
     # internal library bugs are excluded until those issues are resolved:
