@@ -327,10 +327,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
-        if True:
-            # Use _data directly: _implementation must always diagonalize in the
-            # site basis so that Km is the correct eigenbasis coupling operator.
-            hD, SS = numpy.linalg.eigh(ham._data)
+        # Use _data directly: _implementation must always diagonalize in the
+        # site basis so that Km is the correct eigenbasis coupling operator.
+        hD, SS = numpy.linalg.eigh(ham._data)
 
         #
         #  Find all transition frequencies
@@ -476,9 +475,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             # save the relaxation tensor
             RR = self._convert_operators_2_tensor(Km, Lm, Ld)
 
-            if True:
-                self.data = RR
-                self._data_initialized = True
+            self.data = RR
+            self._data_initialized = True
 
         self._is_initialized = True
 
@@ -656,9 +654,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         """
         if self.as_operators:
             RR = self._convert_operators_2_tensor(self.Km, self.Lm, self.Ld)
-            if True:
-                self.data = RR
-                self._data_initialized = True
+            self.data = RR
+            self._data_initialized = True
 
             self.as_operators = False
 

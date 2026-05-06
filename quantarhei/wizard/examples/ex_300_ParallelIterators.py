@@ -77,6 +77,4 @@ for k, a in qr.block_distributed_list(lst, return_index=True):
 qr.collect_block_distributed_data(containers, setter, retriever, tags=tags)
 
 # printing the result
-# if config.rank == 0:
-if True:
-    print(config.rank, collected_cont)
+print(config.rank, collected_cont)

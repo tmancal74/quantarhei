@@ -930,152 +930,148 @@ class TwoDSpectrumCalculator:
         """Sets up the environment for 2D calculation"""
         self.verbose = verbose
 
-        if True:
-            # calculate 2D spectrum using aceto library
+        # calculate 2D spectrum using aceto library
 
-            ###############################################################################
-            #
-            # Create band_system from quantarhei classes
-            #
-            ###############################################################################
+        ###############################################################################
+        #
+        # Create band_system from quantarhei classes
+        #
+        ###############################################################################
 
-            if isinstance(self.system, Aggregate):
-                pass
-
-            else:
-                raise Exception("Molecule 2D not implememted")
-
-            agg = self.system
-
-            #
-            # hamiltonian and transition dipole moment operators
-            #
-            H = agg.get_Hamiltonian()
-            D = agg.get_TransitionDipoleMoment()
-
-            #
-            # Construct band_system object
-            #
-            Nb = 3
-            Ns = numpy.zeros(Nb, dtype=numpy.int_)
-            Ns[0] = 1
-            Ns[1] = agg.nmono
-            Ns[2] = Ns[1] * (Ns[1] - 1) / 2
-            self.sys = band_system(Nb, Ns)
-            self.Ns = Ns
-
-            #
-            # Set energies
-            #
-            en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
-            # if True:
-            with eigenbasis_of(H):
-                for i in range(self.sys.Ne):
-                    en[i] = H.data[i, i]
-                self.sys.set_energies(en)
-
-                #
-                # Set transition dipole moments
-                #
-                dge_wr = D.data[0 : Ns[0], Ns[0] : Ns[0] + Ns[1], :]
-                def_wr = D.data[
-                    Ns[0] : Ns[0] + Ns[1], (Ns[0] + Ns[1]) : (Ns[0] + Ns[1] + Ns[2]), :
-                ]
-
-                dge = numpy.zeros((3, Ns[0], Ns[1]), dtype=numpy.float64)
-                deff = numpy.zeros((3, Ns[1], Ns[2]), dtype=numpy.float64)
-
-                for i in range(3):
-                    dge[i, :, :] = dge_wr[:, :, i]
-                    deff[i, :, :] = def_wr[:, :, i]
-                self.sys.set_dipoles(0, 1, dge)
-                self.sys.set_dipoles(1, 2, deff)
-
-            #
-            # Relaxation rates
-            #
-            KK_any: Any = agg.get_RedfieldRateMatrix()
-
-            # relaxation rate in single exciton band
-            Kr = KK_any.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
-            # print(1.0/Kr)
-
-            self.sys.init_dephasing_rates()
-            self.sys.set_relaxation_rates(1, Kr)
-
-            #
-            # Lineshape functions
-            #
-            sbi = agg.get_SystemBathInteraction()
-            cfm = sbi.CC
-            cfm.create_double_integral()
-
-            #
-            # Transformation matrices
-            #
-            SS = H.diagonalize()
-            SS1 = SS[1 : Ns[1] + 1, 1 : Ns[1] + 1]
-            SS2 = SS[Ns[1] + 1 :, Ns[1] + 1 :]
-            H.undiagonalize()
-
-            self.sys.set_gofts(cfm._gofts)  # line shape functions
-            self.sys.set_sitep(cfm.cpointer)  # pointer to sites
-            self.sys.set_transcoef(1, SS1)  # matrix of transformation coefficients
-            self.sys.set_transcoef(2, SS2)  # matrix of transformation coefficients
-
-            #
-            # Finding population evolution matrix
-            #
-            prop = PopulationPropagator(self.t1axis, Kr)
-            #      Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
-            #                                            corrections=True)
-            self.Uee, cor = prop.get_PropagationMatrix(self.t2axis, corrections=3)
-
-            # FIXME: Order of transfer is set by hand here - needs to be moved
-            # to some reasonable place
-
-            # Ucor = Uee
-            self.Uc0 = cor[0]
-
-            # for ko in range(No+1):
-            #    print("Subtracting ", ko)
-            #    Ucor[:,:,tc] -= cor[ko]
-
-            #
-            # define lab settings
-            #
-            if lab is None:
-                self.lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
-                X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
-                self.lab.set_laser_polarizations(X, X, X, X)
-            else:
-                self.lab = lab
-
-            #
-            # Other parameters
-            #
-            # dt = self.t1axis.step
-            self.rmin = 0.0001
-            self.t1s = self.t1axis.data
-            self.t3s = self.t3axis.data
-            self.rwa = rwa
-
-            atype = self.t1axis.atype
-            self.t1axis.atype = "complete"
-            self.oa1 = self.t1axis.get_FrequencyAxis()
-            self.oa1.data += self.rwa
-            self.oa1.start += self.rwa
-            self.t1axis.atype = atype
-
-            atype = self.t3axis.atype
-            self.t3axis.atype = "complete"
-            self.oa3 = self.t3axis.get_FrequencyAxis()
-            self.oa3.data += self.rwa
-            self.oa3.start += self.rwa
-            self.t3axis.atype = atype
+        if isinstance(self.system, Aggregate):
+            pass
 
         else:
-            raise Exception("So far, no 2D outside aceto")
+            raise Exception("Molecule 2D not implememted")
+
+        agg = self.system
+
+        #
+        # hamiltonian and transition dipole moment operators
+        #
+        H = agg.get_Hamiltonian()
+        D = agg.get_TransitionDipoleMoment()
+
+        #
+        # Construct band_system object
+        #
+        Nb = 3
+        Ns = numpy.zeros(Nb, dtype=numpy.int_)
+        Ns[0] = 1
+        Ns[1] = agg.nmono
+        Ns[2] = Ns[1] * (Ns[1] - 1) / 2
+        self.sys = band_system(Nb, Ns)
+        self.Ns = Ns
+
+        #
+        # Set energies
+        #
+        en = numpy.zeros(self.sys.Ne, dtype=numpy.float64)
+        # if True:
+        with eigenbasis_of(H):
+            for i in range(self.sys.Ne):
+                en[i] = H.data[i, i]
+            self.sys.set_energies(en)
+
+            #
+            # Set transition dipole moments
+            #
+            dge_wr = D.data[0 : Ns[0], Ns[0] : Ns[0] + Ns[1], :]
+            def_wr = D.data[
+                Ns[0] : Ns[0] + Ns[1], (Ns[0] + Ns[1]) : (Ns[0] + Ns[1] + Ns[2]), :
+            ]
+
+            dge = numpy.zeros((3, Ns[0], Ns[1]), dtype=numpy.float64)
+            deff = numpy.zeros((3, Ns[1], Ns[2]), dtype=numpy.float64)
+
+            for i in range(3):
+                dge[i, :, :] = dge_wr[:, :, i]
+                deff[i, :, :] = def_wr[:, :, i]
+            self.sys.set_dipoles(0, 1, dge)
+            self.sys.set_dipoles(1, 2, deff)
+
+        #
+        # Relaxation rates
+        #
+        KK_any: Any = agg.get_RedfieldRateMatrix()
+
+        # relaxation rate in single exciton band
+        Kr = KK_any.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
+        # print(1.0/Kr)
+
+        self.sys.init_dephasing_rates()
+        self.sys.set_relaxation_rates(1, Kr)
+
+        #
+        # Lineshape functions
+        #
+        sbi = agg.get_SystemBathInteraction()
+        cfm = sbi.CC
+        cfm.create_double_integral()
+
+        #
+        # Transformation matrices
+        #
+        SS = H.diagonalize()
+        SS1 = SS[1 : Ns[1] + 1, 1 : Ns[1] + 1]
+        SS2 = SS[Ns[1] + 1 :, Ns[1] + 1 :]
+        H.undiagonalize()
+
+        self.sys.set_gofts(cfm._gofts)  # line shape functions
+        self.sys.set_sitep(cfm.cpointer)  # pointer to sites
+        self.sys.set_transcoef(1, SS1)  # matrix of transformation coefficients
+        self.sys.set_transcoef(2, SS2)  # matrix of transformation coefficients
+
+        #
+        # Finding population evolution matrix
+        #
+        prop = PopulationPropagator(self.t1axis, Kr)
+        #      Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
+        #                                            corrections=True)
+        self.Uee, cor = prop.get_PropagationMatrix(self.t2axis, corrections=3)
+
+        # FIXME: Order of transfer is set by hand here - needs to be moved
+        # to some reasonable place
+
+        # Ucor = Uee
+        self.Uc0 = cor[0]
+
+        # for ko in range(No+1):
+        #    print("Subtracting ", ko)
+        #    Ucor[:,:,tc] -= cor[ko]
+
+        #
+        # define lab settings
+        #
+        if lab is None:
+            self.lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
+            X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
+            self.lab.set_laser_polarizations(X, X, X, X)
+        else:
+            self.lab = lab
+
+        #
+        # Other parameters
+        #
+        # dt = self.t1axis.step
+        self.rmin = 0.0001
+        self.t1s = self.t1axis.data
+        self.t3s = self.t3axis.data
+        self.rwa = rwa
+
+        atype = self.t1axis.atype
+        self.t1axis.atype = "complete"
+        self.oa1 = self.t1axis.get_FrequencyAxis()
+        self.oa1.data += self.rwa
+        self.oa1.start += self.rwa
+        self.t1axis.atype = atype
+
+        atype = self.t3axis.atype
+        self.t3axis.atype = "complete"
+        self.oa3 = self.t3axis.get_FrequencyAxis()
+        self.oa3.data += self.rwa
+        self.oa3.start += self.rwa
+        self.t3axis.atype = atype
 
         self.tc = 0
 

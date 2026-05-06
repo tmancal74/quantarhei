@@ -107,14 +107,6 @@ eUt.set_dense_dt(10)
 
 eUt.calculate()
 
-# if _show_plots_:
-if False:
-    with qr.eigenbasis_of(H):
-        eUt.plot_element((2, 2, 2, 2), show=False)
-        eUt.plot_element((1, 1, 1, 1), show=False)
-        eUt.plot_element((1, 1, 2, 2))
-        eUt.plot_element((1, 2, 1, 2))
-
 
 ###############################################################################
 #

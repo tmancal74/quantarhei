@@ -346,118 +346,111 @@ def run_simulation(
     ylims = [0, 1]
     colors = ["r", "g", "b", "y", "c", "m", "k"]
 
-    if True:
-        rho_final = []
-        # Transformed
-        fig, axes = plt.subplots(1, 1, figsize=(12, 8))
-        fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
+    rho_final = []
+    # Transformed
+    fig, axes = plt.subplots(1, 1, figsize=(12, 8))
+    fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
 
-        rho0numpy = SmatrixInv @ to_tensor_rep(rho0) @ Smatrix
+    rho0numpy = SmatrixInv @ to_tensor_rep(rho0) @ Smatrix
 
-        for t in range(t_slices):
-            rho_f = np.zeros((Ndim, Ndim), dtype=complex)
-            for i in range(Ndim):
-                for j in range(Ndim):
-                    for k in range(Ndim):
-                        for l in range(Ndim):
-                            rho_f[i, j] += (
-                                evosuperops_transformed[t][k, l, i, j] * rho0numpy[k, l]
-                            )
-
-            rho_f_to_append = rho_f
-            rho_final.append(rho_f_to_append)
-
-        for n in range(Ndim):
-            for m in range(Ndim):
-                if POPSONLY == True and (n != m):
-                    continue
-
-                if COHERENCESONLY == True:
-                    if n == m:
-                        continue
-
-                    # only coherences with first site/exc)
-                    if n != 0:
-                        continue
-
-                if True:
-                    # sitebasis == True
-                    # excbasis == False
-
-                    """
-                    # qutip calculation
-                    Q = basis(7, n) * basis(7, m).dag()
-                    vals = []
-                    for t in range(t_slices):
-                        # transform rho back into site basis
-                        vals.append(expect(Qobj(rho_final[t]).transform(ekets, True), Q))
-                    """
-
-                    # numpy calculation
-                    Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
-                    vals = []
-                    for t in range(t_slices):
-                        # transform rho back into site basis
-                        vals.append(
-                            np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np)
+    for t in range(t_slices):
+        rho_f = np.zeros((Ndim, Ndim), dtype=complex)
+        for i in range(Ndim):
+            for j in range(Ndim):
+                for k in range(Ndim):
+                    for l in range(Ndim):
+                        rho_f[i, j] += (
+                            evosuperops_transformed[t][k, l, i, j] * rho0numpy[k, l]
                         )
 
-                    ls = "-"
-                    axes.plot(
-                        np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
-                        np.real(vals),
-                        label=f"{n + 1}{m + 1}",
-                        color=colors[m % len(colors)],
-                        linestyle=ls,
-                    )
-                    axes.set_xlabel(r"$t$ (fs)", fontsize=30)
-                    axes.set_ylabel(r"vals", fontsize=30)
-                    axes.locator_params(axis="y", nbins=6)
-                    axes.locator_params(axis="x", nbins=6)
-                    axes.set_xlim(xlims)
-                    axes.set_ylim(ylims)
+        rho_f_to_append = rho_f
+        rho_final.append(rho_f_to_append)
 
-                if True:
-                    # sitebasis == False
-                    # excbasis == True
+    for n in range(Ndim):
+        for m in range(Ndim):
+            if POPSONLY == True and (n != m):
+                continue
 
-                    """
-                    # qutip calculation
-                    Q = basis(7, n) * basis(7, m).dag()
-                    vals = []
-                    for t in range(t_slices):
-                        vals.append(expect(Qobj(rho_final[t]), Q))
-                    """
+            if COHERENCESONLY == True:
+                if n == m:
+                    continue
 
-                    # numpy calculation
-                    Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
-                    vals = []
-                    for t in range(t_slices):
-                        vals.append(np.trace(rho_final[t] @ Q_np))
+                # only coherences with first site/exc)
+                if n != 0:
+                    continue
 
-                    ls = "-"
-                    axes2.plot(
-                        np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
-                        np.real(vals),
-                        label=f"{n + 1}{m + 1}",
-                        color=colors[m % len(colors)],
-                        linestyle=ls,
-                    )
-                    axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
-                    axes2.set_ylabel(r"vals", fontsize=30)
-                    axes2.locator_params(axis="y", nbins=6)
-                    axes2.locator_params(axis="x", nbins=6)
-                    axes2.set_xlim(xlims)
-                    axes2.set_ylim(ylims)
+            # sitebasis == True
+            # excbasis == False
 
-        axes.legend(loc=1)
-        fig.savefig(
-            "fullevo_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
-        )
-        axes2.legend(loc=1)
-        fig2.savefig(
-            "fullevo_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
-        )
+            """
+            # qutip calculation
+            Q = basis(7, n) * basis(7, m).dag()
+            vals = []
+            for t in range(t_slices):
+                # transform rho back into site basis
+                vals.append(expect(Qobj(rho_final[t]).transform(ekets, True), Q))
+            """
+
+            # numpy calculation
+            Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
+            vals = []
+            for t in range(t_slices):
+                # transform rho back into site basis
+                vals.append(np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np))
+
+            ls = "-"
+            axes.plot(
+                np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
+                np.real(vals),
+                label=f"{n + 1}{m + 1}",
+                color=colors[m % len(colors)],
+                linestyle=ls,
+            )
+            axes.set_xlabel(r"$t$ (fs)", fontsize=30)
+            axes.set_ylabel(r"vals", fontsize=30)
+            axes.locator_params(axis="y", nbins=6)
+            axes.locator_params(axis="x", nbins=6)
+            axes.set_xlim(xlims)
+            axes.set_ylim(ylims)
+
+            # sitebasis == False
+            # excbasis == True
+
+            """
+            # qutip calculation
+            Q = basis(7, n) * basis(7, m).dag()
+            vals = []
+            for t in range(t_slices):
+                vals.append(expect(Qobj(rho_final[t]), Q))
+            """
+
+            # numpy calculation
+            Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
+            vals = []
+            for t in range(t_slices):
+                vals.append(np.trace(rho_final[t] @ Q_np))
+
+            ls = "-"
+            axes2.plot(
+                np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
+                np.real(vals),
+                label=f"{n + 1}{m + 1}",
+                color=colors[m % len(colors)],
+                linestyle=ls,
+            )
+            axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
+            axes2.set_ylabel(r"vals", fontsize=30)
+            axes2.locator_params(axis="y", nbins=6)
+            axes2.locator_params(axis="x", nbins=6)
+            axes2.set_xlim(xlims)
+            axes2.set_ylim(ylims)
+
+    axes.legend(loc=1)
+    fig.savefig("fullevo_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png")
+    axes2.legend(loc=1)
+    fig2.savefig(
+        "fullevo_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
+    )
 
     evosuperops_transformed_secular = []
     for t in range(t_slices):
@@ -483,195 +476,177 @@ def run_simulation(
                                     evosuperops_transformed[t][k, l, i, j]
                                 )
 
-    if True:
-        rho_final = []
-        # Transformed SECULAR
+    rho_final = []
+    # Transformed SECULAR
 
-        fig, axes = plt.subplots(1, 1, figsize=(12, 8))
-        fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
+    fig, axes = plt.subplots(1, 1, figsize=(12, 8))
+    fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
 
-        rho0numpy = SmatrixInv @ to_tensor_rep(rho0) @ Smatrix
+    rho0numpy = SmatrixInv @ to_tensor_rep(rho0) @ Smatrix
 
-        for t in range(t_slices):
-            rho_f = np.zeros((Ndim, Ndim), dtype=complex)
-            for i in range(Ndim):
-                for j in range(Ndim):
-                    for k in range(Ndim):
-                        for l in range(Ndim):
-                            rho_f[i, j] += (
-                                evosuperops_transformed_secular[t][k, l, i, j]
-                                * rho0numpy[k, l]
-                            )
-            rho_f_to_append = rho_f
-            rho_final.append(rho_f_to_append)
+    for t in range(t_slices):
+        rho_f = np.zeros((Ndim, Ndim), dtype=complex)
+        for i in range(Ndim):
+            for j in range(Ndim):
+                for k in range(Ndim):
+                    for l in range(Ndim):
+                        rho_f[i, j] += (
+                            evosuperops_transformed_secular[t][k, l, i, j]
+                            * rho0numpy[k, l]
+                        )
+        rho_f_to_append = rho_f
+        rho_final.append(rho_f_to_append)
 
-        for n in range(Ndim):
-            for m in range(Ndim):
-                if POPSONLY == True and (n != m):
+    for n in range(Ndim):
+        for m in range(Ndim):
+            if POPSONLY == True and (n != m):
+                continue
+
+            if COHERENCESONLY == True:
+                if n == m:
                     continue
 
-                if COHERENCESONLY == True:
-                    if n == m:
-                        continue
-
-                    # only coherences with first site/exc)
-                    if n != 0:
-                        continue
-
-                if True:
-                    # sitebasis == True
-                    # excbasis == False
-
-                    """
-                    # qutip calculation
-                    Q = basis(7, n) * basis(7, m).dag()
-                    vals = []
-                    for t in range(t_slices):
-                        # transform rho back into site basis
-                        vals.append(expect(Qobj(rho_final[t]).transform(ekets, True), Q))
-                    """
-
-                    # numpy calculation
-                    Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
-                    vals = []
-                    for t in range(t_slices):
-                        vals.append(
-                            np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np)
-                        )
-
-                    ls = "--"
-                    axes.plot(
-                        np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
-                        np.real(vals),
-                        label=f"{n + 1}{m + 1}",
-                        color=colors[m % len(colors)],
-                        linestyle=ls,
-                    )
-                    axes.set_xlabel(r"$t$ (fs)", fontsize=30)
-                    axes.set_ylabel(r"vals", fontsize=30)
-                    axes.locator_params(axis="y", nbins=6)
-                    axes.locator_params(axis="x", nbins=6)
-                    axes.set_xlim(xlims)
-                    axes.set_ylim(ylims)
-
-                if True:
-                    # sitebasis == False
-                    # excbasis == True
-
-                    """
-                    # qutip calculation
-                    Q = basis(7, n) * basis(7, m).dag()
-                    vals = []
-                    for t in range(t_slices):
-                        vals.append(expect(Qobj(rho_final[t]), Q))
-                    """
-
-                    # numpy calculation
-                    Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
-                    vals = []
-                    for t in range(t_slices):
-                        vals.append(np.trace(rho_final[t] @ Q_np))
-
-                    ls = "--"
-                    axes2.plot(
-                        np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
-                        np.real(vals),
-                        label=f"{n + 1}{m + 1}",
-                        color=colors[m % len(colors)],
-                        linestyle=ls,
-                    )
-                    axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
-                    axes2.set_ylabel(r"vals", fontsize=30)
-                    axes2.locator_params(axis="y", nbins=6)
-                    axes2.locator_params(axis="x", nbins=6)
-                    axes2.set_xlim(xlims)
-                    axes2.set_ylim(ylims)
-
-        axes.legend(loc=1)
-        fig.savefig(
-            "secexc_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
-        )
-        axes2.legend(loc=1)
-        fig2.savefig(
-            "secexc_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
-        )
-
-    if True:
-        # Normal HEOM
-        fig, axes = plt.subplots(1, 1, figsize=(12, 8))
-        fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
-        with timer("ODE solver time"):
-            outputFMO_HEOM = HEOMMats.run(rho0, tlist)
-
-        for n in range(Ndim):
-            for m in range(Ndim):
-                if POPSONLY == True and (n != m):
+                # only coherences with first site/exc)
+                if n != 0:
                     continue
 
-                if COHERENCESONLY == True:
-                    if n == m:
-                        continue
+            # sitebasis == True
+            # excbasis == False
 
-                    # only coherences with first site/exc)
-                    if n != 0:
-                        continue
+            """
+            # qutip calculation
+            Q = basis(7, n) * basis(7, m).dag()
+            vals = []
+            for t in range(t_slices):
+                # transform rho back into site basis
+                vals.append(expect(Qobj(rho_final[t]).transform(ekets, True), Q))
+            """
 
-                if True:
-                    # sitebasis == True
-                    # excbasis == False
+            # numpy calculation
+            Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
+            vals = []
+            for t in range(t_slices):
+                vals.append(np.trace(Smatrix @ rho_final[t] @ SmatrixInv @ Q_np))
 
-                    # qutip calculation
-                    Q = basis(Ndim, n) * basis(Ndim, m).dag()
-                    vals = []
-                    for t in range(t_slices):
-                        vals.append(expect(outputFMO_HEOM.states[t], Q))
+            ls = "--"
+            axes.plot(
+                np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
+                np.real(vals),
+                label=f"{n + 1}{m + 1}",
+                color=colors[m % len(colors)],
+                linestyle=ls,
+            )
+            axes.set_xlabel(r"$t$ (fs)", fontsize=30)
+            axes.set_ylabel(r"vals", fontsize=30)
+            axes.locator_params(axis="y", nbins=6)
+            axes.locator_params(axis="x", nbins=6)
+            axes.set_xlim(xlims)
+            axes.set_ylim(ylims)
 
-                    axes.plot(
-                        np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
-                        np.real(vals),
-                        label=f"{m + 1}{n + 1}",
-                        color=colors[n % len(colors)],
-                        linestyle=ls,
-                    )
-                    axes.set_xlabel(r"$t$ (fs)", fontsize=30)
-                    axes.set_ylabel(r"vals", fontsize=30)
-                    axes.locator_params(axis="y", nbins=6)
-                    axes.locator_params(axis="x", nbins=6)
-                    axes.set_xlim(xlims)
-                    axes.set_ylim(ylims)
+            # sitebasis == False
+            # excbasis == True
 
-                if True:
-                    # sitebasis == False
-                    # excbasis == True
+            """
+            # qutip calculation
+            Q = basis(7, n) * basis(7, m).dag()
+            vals = []
+            for t in range(t_slices):
+                vals.append(expect(Qobj(rho_final[t]), Q))
+            """
 
-                    # qutip calculation
-                    Q = basis(Ndim, n) * basis(Ndim, m).dag()
-                    vals = []
-                    for t in range(t_slices):
-                        # transform into exc basis
-                        vals.append(
-                            expect(outputFMO_HEOM.states[t].transform(ekets, False), Q)
-                        )
+            # numpy calculation
+            Q_np = to_tensor_rep(basis(Ndim, n) * basis(Ndim, m).dag())
+            vals = []
+            for t in range(t_slices):
+                vals.append(np.trace(rho_final[t] @ Q_np))
 
-                    axes2.plot(
-                        np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
-                        np.real(vals),
-                        label=f"{m + 1}{n + 1}",
-                        color=colors[n % len(colors)],
-                        linestyle=ls,
-                    )
-                    axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
-                    axes2.set_ylabel(r"vals", fontsize=30)
-                    axes2.locator_params(axis="y", nbins=6)
-                    axes2.locator_params(axis="x", nbins=6)
-                    axes2.set_xlim(xlims)
-                    axes2.set_ylim(ylims)
+            ls = "--"
+            axes2.plot(
+                np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
+                np.real(vals),
+                label=f"{n + 1}{m + 1}",
+                color=colors[m % len(colors)],
+                linestyle=ls,
+            )
+            axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
+            axes2.set_ylabel(r"vals", fontsize=30)
+            axes2.locator_params(axis="y", nbins=6)
+            axes2.locator_params(axis="x", nbins=6)
+            axes2.set_xlim(xlims)
+            axes2.set_ylim(ylims)
 
-        axes.legend(loc=1)
-        fig.savefig(
-            "heom_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
-        )
-        axes2.legend(loc=1)
-        fig2.savefig(
-            "heom_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png"
-        )
+    axes.legend(loc=1)
+    fig.savefig("secexc_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png")
+    axes2.legend(loc=1)
+    fig2.savefig("secexc_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png")
+
+    # Normal HEOM
+    fig, axes = plt.subplots(1, 1, figsize=(12, 8))
+    fig2, axes2 = plt.subplots(1, 1, figsize=(12, 8))
+    with timer("ODE solver time"):
+        outputFMO_HEOM = HEOMMats.run(rho0, tlist)
+
+    for n in range(Ndim):
+        for m in range(Ndim):
+            if POPSONLY == True and (n != m):
+                continue
+
+            if COHERENCESONLY == True:
+                if n == m:
+                    continue
+
+                # only coherences with first site/exc)
+                if n != 0:
+                    continue
+
+            # sitebasis == True
+            # excbasis == False
+
+            # qutip calculation
+            Q = basis(Ndim, n) * basis(Ndim, m).dag()
+            vals = []
+            for t in range(t_slices):
+                vals.append(expect(outputFMO_HEOM.states[t], Q))
+
+            axes.plot(
+                np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
+                np.real(vals),
+                label=f"{m + 1}{n + 1}",
+                color=colors[n % len(colors)],
+                linestyle=ls,
+            )
+            axes.set_xlabel(r"$t$ (fs)", fontsize=30)
+            axes.set_ylabel(r"vals", fontsize=30)
+            axes.locator_params(axis="y", nbins=6)
+            axes.locator_params(axis="x", nbins=6)
+            axes.set_xlim(xlims)
+            axes.set_ylim(ylims)
+
+            # sitebasis == False
+            # excbasis == True
+
+            # qutip calculation
+            Q = basis(Ndim, n) * basis(Ndim, m).dag()
+            vals = []
+            for t in range(t_slices):
+                # transform into exc basis
+                vals.append(expect(outputFMO_HEOM.states[t].transform(ekets, False), Q))
+
+            axes2.plot(
+                np.array(tlist) * 1e15 / 3e10 / 2 / np.pi,
+                np.real(vals),
+                label=f"{m + 1}{n + 1}",
+                color=colors[n % len(colors)],
+                linestyle=ls,
+            )
+            axes2.set_xlabel(r"$t$ (fs)", fontsize=30)
+            axes2.set_ylabel(r"vals", fontsize=30)
+            axes2.locator_params(axis="y", nbins=6)
+            axes2.locator_params(axis="x", nbins=6)
+            axes2.set_xlim(xlims)
+            axes2.set_ylim(ylims)
+
+    axes.legend(loc=1)
+    fig.savefig("heom_sitebasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png")
+    axes2.legend(loc=1)
+    fig2.savefig("heom_exctbasis_" + str(NC) + "_" + str(Nk) + "_" + str(id) + ".png")

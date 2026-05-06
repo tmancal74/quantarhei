@@ -52,28 +52,16 @@ print("""
 *******************************************************************************
 """)
 
-# m = qr.Manager()
-# m.warn_about_basis_change = False
+print("\nCalculating relaxation rates")
 
-
-if True:
-    print("\nCalculating relaxation rates")
-
-    RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi, time)
-    RRT = qr.qm.ModRedfieldRelaxationTensor(ham, sbi)
+RRM = qr.qm.ModifiedRedfieldRateMatrix(ham, sbi, time)
+RRT = qr.qm.ModRedfieldRelaxationTensor(ham, sbi)
 
 print("\nRelaxation times from the rate matrix")
 
-# with qr.eigenbasis_of(ham):
-if True:
-    for i in range(1, ham.dim - 1):
-        for j in range(1, ham.dim - 1):
-            # if numpy.abs(RRM.rates[i,j]) > 1.0e-10:
-            print(i, "<-", j, ":", 1.0 / numpy.real(RRM.data[i, j]))
-            # , 1.0/numpy.real(RRT.data[i,i,j,j]), numpy.real(RRT.data[i,j,j,j]))
-
-            # else:
-            #    print(i, "<-", j, ": inf")
+for i in range(1, ham.dim - 1):
+    for j in range(1, ham.dim - 1):
+        print(i, "<-", j, ":", 1.0 / numpy.real(RRM.data[i, j]))
 
 
 if _show_plots_:
