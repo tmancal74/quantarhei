@@ -1,8 +1,3 @@
-```{eval-rst}
-.. automodule:: quantarhei
-    :members:
-```
-
 # List of User Level Classes
 
 ## Classes Representing General Concepts
