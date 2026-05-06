@@ -16,14 +16,18 @@ from ..utils import array_property
 
 
 class OpenSystem:
-    """The class representing a general open quantum system
+    """General open quantum system.
 
-    It provides routines to store and extract the most interesting
-    characteristics of an open qwuantum system, such as the Hamiltonian,
-    SystemBathInteraction object, relaxation tensor and the reduced density
-    matrix evolution.
+    Provides routines to store and retrieve the key characteristics of an
+    open quantum system, such as the Hamiltonian, ``SystemBathInteraction``
+    object, relaxation tensor, and reduced density matrix evolution.
 
-
+    Parameters
+    ----------
+    elen : list
+        Nested list (or flat list) of electronic state energies. Each
+        sub-list defines one excitation band; a flat entry defines a
+        single-state band.
     """
 
     # energies of electronic states
@@ -189,19 +193,21 @@ class OpenSystem:
         raise Exception("Aggregate object not built")
 
     def set_transition_environment(self, transition: tuple, egcf: object) -> None:
-        """Sets a correlation function for a transition on this monomer
+        """Set a correlation function for a transition.
 
         Parameters
         ----------
         transition : tuple
-            A tuple describing a transition in the molecule, e.g. (0,1) is
-            a transition from the ground state to the first excited state.
-
+            Pair of state indices describing the transition, e.g. ``(0, 1)``
+            for the ground-to-first-excited-state transition.
         egcf : CorrelationFunction
-            CorrelationFunction object
+            Correlation function assigned to the transition.
 
-        (Should go to Open System)
-
+        Raises
+        ------
+        Exception
+            If the system is mapped onto a ``CorrelationFunctionMatrix`` or
+            if a correlation function is already set for this transition.
         """
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This system is mapped on a CorrelationFunctionMatrix")
@@ -216,18 +222,19 @@ class OpenSystem:
             raise Exception("Correlation function already speficied for this monomer")
 
     def unset_transition_environment(self, transition: tuple) -> None:
-        """Unsets correlation function from a transition on this monomer
+        """Remove the correlation function assigned to a transition.
 
-        This is needed if the environment is to be replaced
+        This is needed when the environment needs to be replaced.
 
         Parameters
         ----------
         transition : tuple
-            A tuple describing a transition in the molecule, e.g. (0,1) is
-            a transition from the ground state to the first excited state.
+            Pair of state indices describing the transition, e.g. ``(0, 1)``.
 
-        (Should go to OpenSystem)
-
+        Raises
+        ------
+        Exception
+            If the system is mapped onto a ``CorrelationFunctionMatrix``.
         """
         if self._is_mapped_on_egcf_matrix:
             raise Exception("This monomer is mapped on a CorrelationFunctionMatrix")
@@ -240,16 +247,22 @@ class OpenSystem:
         self._has_system_bath_coupling = False
 
     def get_transition_environment(self, transition: tuple) -> object:
-        """Returns energy gap correlation function of a monomer
+        """Return the correlation function assigned to a transition.
 
         Parameters
         ----------
         transition : tuple
-            A tuple describing a transition in the molecule, e.g. (0,1) is
-            a transition from the ground state to the first excited state.
+            Pair of state indices describing the transition, e.g. ``(0, 1)``.
 
-        (Should go to OpenSystem)
+        Returns
+        -------
+        CorrelationFunction
+            The correlation function for the specified transition.
 
+        Raises
+        ------
+        Exception
+            If no environment is set for the transition.
         """
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
             return self.egcf[self.triangle.locate(transition[0], transition[1])]
@@ -266,28 +279,23 @@ class OpenSystem:
     def set_egcf_mapping(
         self, transition: tuple, correlation_matrix: object, position: int
     ) -> None:
-        """Sets a correlation function mapping for a selected transition.
-
-        The monomer can either have a correlation function assigned to it,
-        or it can be a part of a correlation matrix. Here the mapping to the
-        correlation matrix is specified.
+        """Map a transition to a position in a ``CorrelationFunctionMatrix``.
 
         Parameters
         ----------
         transition : tuple
-            A tuple describing a transition in the molecule, e.g. (0,1) is
-            a transition from the ground state to the first excited state.
-
+            Pair of state indices describing the transition, e.g. ``(0, 1)``.
         correlation_matrix : CorrelationFunctionMatrix
-            An instance of CorrelationFunctionMatrix
-
+            Matrix of correlation functions to map onto.
         position : int
-            Position in the CorrelationFunctionMatrix corresponding
-            to the monomer.
+            Position (row/column index) in ``correlation_matrix`` that
+            corresponds to this system.
 
-
-        (Should go to OpenSystems)
-
+        Raises
+        ------
+        Exception
+            If a direct correlation function is already assigned to this
+            transition.
         """
         if not (self._has_egcf[self.triangle.locate(transition[0], transition[1])]):
             if not (self._is_mapped_on_egcf_matrix):
@@ -618,7 +626,6 @@ class OpenSystem:
 
 
         """
-        from ..core.managers import eigenbasis_of
         from ..qm import (
             FoersterRelaxationTensor,
             LindbladForm,
@@ -696,34 +703,27 @@ class OpenSystem:
                 # ham=Hamiltonian(data=HH_new)
 
             if time_dependent:
-                # Time dependent standard Refield
-
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = TDRedfieldRelaxationTensor(
-                        ham,
-                        sbi,
-                        cutoff_time=relaxation_cutoff_time,
-                        as_operators=as_operators,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-                ham.unprotect_basis()
+                relaxT = TDRedfieldRelaxationTensor(
+                    ham,
+                    sbi,
+                    cutoff_time=relaxation_cutoff_time,
+                    as_operators=as_operators,
+                    secular=secular_relaxation,
+                )
 
             else:
-                # Time independent standard Refield
+                relaxT = RedfieldRelaxationTensor(
+                    ham,
+                    sbi,
+                    as_operators=as_operators,
+                    secular=secular_relaxation,
+                )
 
-                ham.protect_basis()
-
-                with eigenbasis_of(ham):
-                    relaxT = RedfieldRelaxationTensor(
-                        ham, sbi, as_operators=as_operators
-                    )
-
-                    if secular_relaxation:
-                        relaxT.secularize()
-
-                ham.unprotect_basis()
+            # The tensor is built in the eigenbasis of ham. Transform it
+            # back to site basis so it matches ham (which stays in site basis).
+            _, SS = numpy.linalg.eigh(ham._data)
+            S1 = numpy.linalg.inv(SS)
+            relaxT.transform(S1, inv=SS)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -734,33 +734,24 @@ class OpenSystem:
 
         if relaxation_theory in theories["modified_Redfield"]:
             if time_dependent:
-                # Time dependent standard Refield
-
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = TDModRedfieldRelaxationTensor(
-                        ham,
-                        sbi,
-                        cutoff_time=relaxation_cutoff_time,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-                ham.unprotect_basis()
+                relaxT = TDModRedfieldRelaxationTensor(
+                    ham,
+                    sbi,
+                    cutoff_time=relaxation_cutoff_time,
+                )
+                if secular_relaxation:
+                    relaxT.secularize()
 
             else:
-                # Time independent standard Refield
+                relaxT = ModRedfieldRelaxationTensor(
+                    ham, sbi, as_operators=as_operators
+                )
+                if secular_relaxation:
+                    relaxT.secularize()
 
-                ham.protect_basis()
-
-                with eigenbasis_of(ham):
-                    relaxT = ModRedfieldRelaxationTensor(
-                        ham, sbi, as_operators=as_operators
-                    )
-
-                    if secular_relaxation:
-                        relaxT.secularize()
-
-                ham.unprotect_basis()
+            _, SS = numpy.linalg.eigh(ham._data)
+            S1 = numpy.linalg.inv(SS)
+            relaxT.transform(S1, inv=SS)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -857,37 +848,29 @@ class OpenSystem:
             if time_dependent:
                 # Time dependent combined tensor
                 # ham.subtract_cutoff_coupling(coupling_cutoff)
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = TDRedfieldFoersterRelaxationTensor(
-                        ham,
-                        sbi,
-                        coupling_cutoff=coupling_cutoff,
-                        cutoff_time=relaxation_cutoff_time,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-                ham.unprotect_basis()
+                relaxT = TDRedfieldFoersterRelaxationTensor(
+                    ham,
+                    sbi,
+                    coupling_cutoff=coupling_cutoff,
+                    cutoff_time=relaxation_cutoff_time,
+                )
+                # TODO: add secular= flag to TDRedfieldFoersterRelaxationTensor
+                if secular_relaxation:
+                    relaxT.secularize()
                 ham.recover_cutoff_coupling()
 
             else:
                 # Time independent combined tensor
                 # ham.subtract_cutoff_coupling(coupling_cutoff)
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = RedfieldFoersterRelaxationTensor(
-                        ham,
-                        sbi,
-                        coupling_cutoff=coupling_cutoff,
-                        cutoff_time=relaxation_cutoff_time,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-
-                    # print("Last line of the context",
-                    #      Manager().get_current_basis())
-                # print("Left context", Manager().get_current_basis())
-                ham.unprotect_basis()
+                relaxT = RedfieldFoersterRelaxationTensor(
+                    ham,
+                    sbi,
+                    coupling_cutoff=coupling_cutoff,
+                    cutoff_time=relaxation_cutoff_time,
+                )
+                # TODO: add secular= flag to RedfieldFoersterRelaxationTensor
+                if secular_relaxation:
+                    relaxT.secularize()
                 ham.recover_cutoff_coupling()
 
             #
@@ -915,13 +898,10 @@ class OpenSystem:
             else:
                 # Linblad form
 
-                # ham.protect_basis()
-                # with eigenbasis_of(ham):
                 relaxT = LindbladForm(ham, sbi)
                 if secular_relaxation:
                     relaxT.convert_2_tensor()
                     relaxT.secularize()
-                # ham.unprotect_basis()
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -1023,7 +1003,6 @@ class OpenSystem:
     # FIXME: There must be a general theory here
     def get_RedfieldRateMatrix(self, corr_mat: object = None) -> object:
         """Returns Redfield rate matrix"""
-        from ..core.managers import eigenbasis_of
         from ..qm import RedfieldRateMatrix
 
         if self._built:
@@ -1032,12 +1011,7 @@ class OpenSystem:
         else:
             raise Exception()
 
-        ham.protect_basis()
-        with eigenbasis_of(ham):
-            RR = RedfieldRateMatrix(ham, sbi, corr_mat=corr_mat)
-        ham.unprotect_basis()
-
-        return RR
+        return RedfieldRateMatrix(ham, sbi, corr_mat=corr_mat)
 
     def get_FoersterRateMatrix(self) -> object:
         """Returns Förster rate matrix for the open system"""

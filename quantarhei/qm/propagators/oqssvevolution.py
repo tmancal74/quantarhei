@@ -9,6 +9,22 @@ from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 
 
 class OQSStateVectorEvolution:
+    """Time evolution of a state vector under an open quantum system (OQS).
+
+    Stores the state vector at each time step produced by an
+    :class:`OQSStateVectorPropagator` and provides utilities to convert
+    the result to a reduced density matrix evolution.
+
+    Parameters
+    ----------
+    timeaxis : TimeAxis or None, optional
+        Time grid for the propagation. Default is ``None``.
+    psii : StateVector or None, optional
+        Initial state vector. If provided, its dimension is used to
+        allocate the storage array and it is set as the initial condition.
+        Default is ``None``.
+    """
+
     def __init__(self, timeaxis: Any = None, psii: Any = None) -> None:
 
         if timeaxis is not None:

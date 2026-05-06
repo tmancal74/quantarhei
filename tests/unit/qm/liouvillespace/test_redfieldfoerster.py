@@ -103,14 +103,9 @@ class TestRedfieldFoerster(unittest.TestCase):
             # Time independent combined tensor
             ham = self.H1
             ham.subtract_cutoff_coupling(cutoff)
-            ham.protect_basis()
-            with eigenbasis_of(ham):
-                RT = RedfieldFoersterRelaxationTensor(
-                    ham, self.sbi1, coupling_cutoff=cutoff
-                )
-                # if secular_relaxation:
-                #    relaxT.secularize()
-            ham.unprotect_basis()
+            RT = RedfieldFoersterRelaxationTensor(
+                ham, self.sbi1, coupling_cutoff=cutoff
+            )
             # ham.recover_cutoff_coupling()
 
             # print(self.H1)

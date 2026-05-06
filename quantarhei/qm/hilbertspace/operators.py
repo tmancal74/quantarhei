@@ -14,14 +14,24 @@ from .statevector import StateVector
 
 
 class Operator(MatrixData, BasisManaged, Saveable):
-    """Class representing quantum mechanical operators
+    """Quantum mechanical operator on a finite-dimensional Hilbert space.
 
+    Stores the matrix representation of the operator and participates in
+    basis management so that the stored data is automatically transformed
+    when the active basis changes via :class:`eigenbasis_of`.
 
-    The class Operator represents an operator on quantum mechanical Hilbert
-    space. Together with StateVector they provide the basic functionality
-    for quantum mechanical calculations in Hilbert space.
-
-
+    Parameters
+    ----------
+    dim : int, optional
+        Dimension of the Hilbert space. Must be supplied if ``data`` is
+        not given.
+    data : array_like, optional
+        Square matrix providing the operator elements.
+    real : bool, optional
+        If ``True`` and ``data`` is not provided, allocate a real-valued
+        matrix. Default is ``False`` (complex).
+    name : str, optional
+        Human-readable label for the operator. Default is ``''``.
     """
 
     _data: numpy.ndarray
@@ -135,13 +145,25 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
 
 class SelfAdjointOperator(Operator):
-    """Class representing a self adjoint operator
+    """Quantum mechanical operator that is required to be self-adjoint.
 
-    The class SelfAdjointOperator extends the Operator class by automatically
-    checking the data for the self adjoint property. Physically measurable
-    quantities are represented by self adjoint operators in quantum mechanics.
+    Extends :class:`Operator` by verifying on construction that the supplied
+    data satisfies ``A == A†``. Physically observable quantities in quantum
+    mechanics are represented by self-adjoint operators.
 
+    Parameters
+    ----------
+    dim : int, optional
+        Dimension of the Hilbert space.
+    data : array_like, optional
+        Self-adjoint square matrix of operator elements.
+    name : str, optional
+        Human-readable label. Default is ``''``.
 
+    Raises
+    ------
+    Exception
+        If ``data`` is not self-adjoint.
     """
 
     def __init__(
@@ -200,11 +222,21 @@ class BasisReferenceOperator(SelfAdjointOperator):
 
 
 class ProjectionOperator(Operator):
-    """Projection operator projecting from state m to state n.
-    Braket definition:
+    """Projection operator |n⟩⟨m| from state ``from_state`` to ``to_state``.
 
-    |n\rangle \\langle m|
+    Parameters
+    ----------
+    to_state : int, optional
+        Row index (ket index ``n``). Default is ``-1``.
+    from_state : int, optional
+        Column index (bra index ``m``). Default is ``-1``.
+    dim : int, optional
+        Dimension of the Hilbert space. Must be ``> 0``.
 
+    Raises
+    ------
+    Exception
+        If ``dim`` is not positive.
     """
 
     def __init__(self, to_state: int = -1, from_state: int = -1, dim: int = 0) -> None:
@@ -235,13 +267,19 @@ class ProjectionOperator(Operator):
 
 
 class DensityMatrix(SelfAdjointOperator, Saveable):
-    """Class representing a density matrix
+    """Density matrix of a quantum system.
 
+    Extends :class:`SelfAdjointOperator` with convenience methods for
+    population extraction, normalization, and delta-pulse excitation.
 
-    Density matrix is a good example of self adjoint operator. It extends
-    the class SelfAdjointOperator without adding much functionality.
-
-
+    Parameters
+    ----------
+    dim : int, optional
+        Dimension of the Hilbert space.
+    data : array_like, optional
+        Self-adjoint square matrix of density-matrix elements.
+    name : str, optional
+        Human-readable label. Default is ``''``.
     """
 
     def normalize2(self, norm: float = 1.0) -> None:
@@ -293,11 +331,20 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
 
 
 class ReducedDensityMatrix(DensityMatrix):
-    """Class representing a reduced density matrix
+    """Reduced density matrix of an open quantum system.
 
-    This class is basically just a nickname for the Density Matrix
+    A specialization of :class:`DensityMatrix` used throughout Quantarhei
+    to represent the state of a subsystem after tracing out environmental
+    degrees of freedom.
 
-
+    Parameters
+    ----------
+    dim : int, optional
+        Dimension of the system Hilbert space.
+    data : array_like, optional
+        Self-adjoint square matrix of reduced density-matrix elements.
+    name : str, optional
+        Human-readable label. Default is ``''``.
     """
 
     def __str__(self) -> str:

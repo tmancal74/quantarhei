@@ -104,21 +104,25 @@ from .saveable import Saveable
 
 
 class ValueAxis(Saveable):
-    """Linear array of values which are used as variables of numerical functions
-    and parameter dependent matrices
+    """Linear array of values used as the argument axis of numerical functions.
 
     Parameters
     ----------
     start : float
-        Beginning of the axis
-
-    lenght : int
-        Number of points in the DFunction
-
+        First value of the axis.
+    length : int
+        Number of points on the axis.
     step : float
-        Step size on the axis
+        Spacing between consecutive axis values.
 
-
+    Attributes
+    ----------
+    data : numpy.ndarray
+        Array of axis values, length ``length``.
+    min : float
+        Minimum (first) value on the axis.
+    max : float
+        Maximum (last) value on the axis.
     """
 
     step = Float("step")
@@ -127,11 +131,7 @@ class ValueAxis(Saveable):
 
     def __init__(self, start: float = 0.0, length: int = 1, step: float = 1.0) -> None:
 
-        # if step > 0:
-        if True:
-            self.step = step
-        # else:
-        #    raise Exception("Parameter step has to be > 0")
+        self.step = step
         self.start = start
         self.length = length
 
@@ -150,16 +150,24 @@ class ValueAxis(Saveable):
         return self.data[self.length - 1]
 
     def locate(self, val: float) -> tuple[int, float]:
-        """Returns the index of the lower neigbor of the ``val``
-
-        Returns the index of the lower neigbor of the value x and the
-        remaining distance to the value of ``val``
+        """Return the index of the lower neighbor of ``val`` and the distance.
 
         Parameters
         ----------
         val : float
-            A value within the min and max values of the axis
+            A value within the ``[min, max]`` range of the axis.
 
+        Returns
+        -------
+        int
+            Index of the largest axis point that is ``<= val``.
+        float
+            Distance from that axis point to ``val``.
+
+        Raises
+        ------
+        Exception
+            If ``val`` is outside the axis bounds.
         """
         # nearest smaller neighbor index
         nsni = int(numpy.floor((val - self.start) / self.step))
@@ -172,17 +180,26 @@ class ValueAxis(Saveable):
         raise Exception("Value out of bounds")
 
     def nearest(self, val: float) -> int:
-        """Returns the index of the nearest neighbor to ``val``
+        """Return the index of the nearest axis point to ``val``.
 
-        Returns the index of the nearest neighbor of ``val``. If ``val``
-        is out of the upper bounds within the ``self.step`` from the upper
-        limit, the lower neighbor index is returned.
+        If ``val`` is within one step above the upper bound, the index of
+        the last point is returned.
 
         Parameters
         ----------
         val : float
-            A value within the min and max values of the axis
+            A value within (or just above) the ``[min, max]`` range of the
+            axis.
 
+        Returns
+        -------
+        int
+            Index of the axis point closest to ``val``.
+
+        Raises
+        ------
+        Exception
+            If ``val`` is outside the axis bounds.
         """
         # nearest smaller neighbor index
         nsni = int(numpy.floor((val - self.start) / self.step))

@@ -38,10 +38,18 @@ from .aggregate_pdeph import AggregatePureDephasing
 
 
 class Aggregate(AggregatePureDephasing):
-    """This clas wraps up the definition of the Aggregate class. It is the end
-    of a long series of mutually inheriting classes starting with
-    AggregateBase.
+    """Tightly organized molecular aggregate such as a photosynthetic antenna.
 
+    Combines a collection of :class:`~quantarhei.builders.molecules.Molecule`
+    objects into a coupled system and provides a unified interface for
+    building Hamiltonians, computing spectra, and simulating dynamics.
+    This class is the final layer in a hierarchy of inheriting classes that
+    starts with ``AggregateBase``.
+
+    Notes
+    -----
+    Call :meth:`build` after adding all molecules and setting all parameters
+    before using any calculation methods.
     """
 
     pass

@@ -195,51 +195,26 @@ class KTHierarchy:
             Highest level of the hierarchy to be generated
 
         """
-        if False:
-            return self._generate_indices_2_0to4(N, level)
-
         lret = []
 
-        if False:
-            level_prev = []
-            inilist = [0] * N  # lowest level
-            level_prev.append(inilist)
+        level_prev = []
+        inilist = [0] * N
+        level_prev.append(inilist)
+        lret.append(level_prev)
+
+        for kk in range(level):
+            last_level = kk
+            new_level_prev = []
+            for old_level in level_prev:
+                for nn in range(N):
+                    nlist = old_level.copy()
+                    nlist[nn] += 1
+                    # check if it is already in
+                    if nlist not in new_level_prev:
+                        new_level_prev.append(nlist)
+
+            level_prev = new_level_prev
             lret.append(level_prev)
-
-            for kk in range(level):
-                last_level = kk
-                new_level_prev = []
-                for old_level in level_prev:
-                    doit = False
-                    for nn in range(N):
-                        if old_level[nn] == last_level:
-                            doit = True
-                        if doit:
-                            nlist = old_level.copy()
-                            nlist[nn] += 1
-                            new_level_prev.append(nlist)
-
-                level_prev = new_level_prev
-                lret.append(level_prev)
-        else:
-            level_prev = []
-            inilist = [0] * N
-            level_prev.append(inilist)
-            lret.append(level_prev)
-
-            for kk in range(level):
-                last_level = kk
-                new_level_prev = []
-                for old_level in level_prev:
-                    for nn in range(N):
-                        nlist = old_level.copy()
-                        nlist[nn] += 1
-                        # check if it is already in
-                        if nlist not in new_level_prev:
-                            new_level_prev.append(nlist)
-
-                level_prev = new_level_prev
-                lret.append(level_prev)
 
         return lret
 
@@ -437,8 +412,18 @@ class KTHierarchy:
 
 
 class KTHierarchyPropagator:
-    """Propagator of the Kubo-Tanimura hierarchy
+    """Propagator for the Kubo-Tanimura (HEOM) hierarchy.
 
+    Parameters
+    ----------
+    timeaxis : TimeAxis
+        Time axis defining the propagation grid.
+    hierarchy : KTHierarchy
+        Pre-built hierarchy object holding all bath parameters and ADO
+        indices.
+
+    Examples
+    --------
     >>> import numpy
     >>> import quantarhei as qr
     >>> with qr.energy_units("1/cm"):
@@ -657,7 +642,19 @@ class KTHierarchyPropagator:
 
 
 class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
-    """If QuTip is installed, this class provides the solution of the HEOM"""
+    """HEOM propagator backed by the QuTiP library.
+
+    Uses the QuTiP HEOM solver when it is available. Falls back to an error
+    if QuTiP is not installed.
+
+    Parameters
+    ----------
+    timeaxis : TimeAxis
+        Time axis defining the propagation grid.
+    hierarchy : KTHierarchy
+        Pre-built hierarchy object holding all bath parameters and ADO
+        indices.
+    """
 
     def __init__(self, timeaxis: Any, hierarchy: Any) -> None:
 

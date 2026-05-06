@@ -1260,18 +1260,20 @@ TwoDSpectrumBase = TwoDResponseBase  # temporary backwards-compatible alias
 
 
 class TwoDResponse(TwoDSpectrumBase, Saveable):
-    """This class represents a single 2D spectrum
+    """A single two-dimensional (2D) Fourier-transform spectrum.
 
-    Methods
-    -------
-    plot(fig=None, window=None, stype=_total, spart="real",
-         vmax=None, vmin_ratio=0.5,
-         colorbar=True, colorbar_loc="right",
-         cmap=None, Npos_contours=10,
-         show_states=None,
-         text_loc=[0.05,0.9], fontsize="20", label=None)
+    Stores the complex 2D spectral data indexed by (omega_1, omega_3) at a
+    fixed waiting time ``t2``. Data may be stored at various resolutions
+    (individual Liouville pathways down to the total spectrum only).
 
-
+    Parameters
+    ----------
+    keep_pathways : bool, optional
+        If ``True``, individual Liouville pathways are stored in addition to
+        the aggregated spectrum. Default is ``False``.
+    keep_stypes : bool, optional
+        If ``True``, rephasing and non-rephasing signal types are stored
+        separately. Default is ``True``.
     """
 
     def __init__(self, keep_pathways: bool = False, keep_stypes: bool = True) -> None:

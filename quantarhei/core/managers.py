@@ -84,7 +84,25 @@ from .units import (
 
 
 class Manager(metaclass=Singleton):
-    """Main package Manager"""
+    """Main package Manager.
+
+    Handles units management, basis conversion, and selection of optimized
+    implementations for the entire Quantarhei package. Only one instance
+    exists at any time (Singleton pattern).
+
+    Attributes
+    ----------
+    version : str
+        The installed package version number.
+    allowed_utypes : list of str
+        Unit types that can be managed (``'energy'``, ``'frequency'``, etc.).
+    units : dict
+        Available unit strings for each unit type.
+    units_repre : dict
+        Short string abbreviations for each unit string.
+    units_repre_latex : dict
+        LaTeX representations for each unit string.
+    """
 
     try:
         version = _pkg_version("quantarhei")
@@ -526,7 +544,22 @@ class Manager(metaclass=Singleton):
             raise Exception("Unknown unit type")
 
     def set_current_units(self, utype: str, units: str) -> None:
-        """Sets current units"""
+        """Set the current units for a given unit type.
+
+        Parameters
+        ----------
+        utype : str
+            Unit type (e.g. ``'energy'``, ``'length'``).
+        units : str
+            Unit string to set as current (must be a recognized value
+            for the given ``utype``).
+
+        Raises
+        ------
+        Exception
+            If ``utype`` is not in ``allowed_utypes`` or ``units`` is not
+            recognized for ``utype``.
+        """
         self._saved_units[utype] = self.get_current_units(utype)
 
         if utype in self.allowed_utypes:
@@ -750,9 +783,6 @@ class Manager(metaclass=Singleton):
 
 
         """
-        if operator.is_basis_protected:
-            return
-
         ob = operator.get_current_basis()
         cb = self.get_current_basis()
 
@@ -878,19 +908,12 @@ class BasisManaged(Managed):
     """Base class for objects with managed basis"""
 
     _current_basis = Manager().get_current_basis()
-    is_basis_protected = False
 
     def get_current_basis(self) -> int:
         return self._current_basis
 
     def set_current_basis(self, bb: int) -> None:
         self._current_basis = bb
-
-    def protect_basis(self) -> None:
-        self.is_basis_protected = True
-
-    def unprotect_basis(self) -> None:
-        self.is_basis_protected = False
 
 
 class units_context_manager:
@@ -911,7 +934,22 @@ class units_context_manager:
 
 
 class energy_units(units_context_manager):
-    """Context manager for units of energy"""
+    """Context manager for units of energy.
+
+    Sets the active energy units for the duration of the ``with`` block and
+    restores the previous units on exit.
+
+    Parameters
+    ----------
+    units : str
+        Energy unit string (e.g. ``'1/cm'``, ``'eV'``, ``'int'``).
+
+    Examples
+    --------
+    >>> import quantarhei as qr
+    >>> with qr.energy_units("1/cm"):
+    ...     H = qr.Hamiltonian(data=[[0.0, 100.0], [100.0, 12000.0]])
+    """
 
     def __init__(self, units: str) -> None:
         super().__init__(utype="energy")
@@ -945,17 +983,31 @@ class energy_units(units_context_manager):
 
 
 class frequency_units(energy_units):
-    """Context manager for units of frequency
+    """Context manager for units of frequency.
 
-    It behaves exactly the same as ``energy_units`` context manager.
+    Behaves identically to :class:`energy_units` since frequency and energy
+    share the same internal representation in Quantarhei.
 
+    Parameters
+    ----------
+    units : str
+        Frequency unit string (e.g. ``'1/cm'``, ``'THz'``, ``'int'``).
     """
 
     pass
 
 
 class length_units(units_context_manager):
-    """Context manager for length units"""
+    """Context manager for length units.
+
+    Sets the active length units for the duration of the ``with`` block and
+    restores the previous units on exit.
+
+    Parameters
+    ----------
+    units : str
+        Length unit string (e.g. ``'A'``, ``'nm'``, ``'Bohr'``).
+    """
 
     def __init__(self, units: str) -> None:
         super().__init__(utype="length")
@@ -995,7 +1047,16 @@ class basis_context_manager:
 
 
 class eigenbasis_of(basis_context_manager):
-    """Context manager for basis change"""
+    """Context manager for working in the eigenbasis of an operator.
+
+    Diagonalizes the given operator on entry, making subsequent calculations
+    in the eigenbasis, and transforms all registered objects back on exit.
+
+    Parameters
+    ----------
+    operator : SelfAdjointOperator
+        The operator whose eigenbasis is used inside the context block.
+    """
 
     def __init__(self, operator: Any) -> None:
         super().__init__()
@@ -1050,10 +1111,7 @@ class eigenbasis_of(basis_context_manager):
                 ops_above = self.manager.basis_registered[nb]
 
             for op in operators:
-                # the operator might have been set to protected mode
-                # inside the context
-                if not op.is_basis_protected:
-                    op.transform(S1, inv=SS)
+                op.transform(S1, inv=SS)
                 op.set_current_basis(nb)
 
                 # operators which appeared in this context and where not
@@ -1074,7 +1132,20 @@ class eigenbasis_of(basis_context_manager):
 
 
 def set_current_units(units: dict[str, str] | None = None) -> None:
-    """Sets units globaly without the need for a context manager"""
+    """Set units globally without a context manager.
+
+    Parameters
+    ----------
+    units : dict of str, optional
+        Mapping from unit type (e.g. ``'energy'``) to unit string
+        (e.g. ``'1/cm'``). If ``None``, all unit types are reset to
+        their internal defaults.
+
+    Raises
+    ------
+    Exception
+        If any key in ``units`` is not a recognized unit type.
+    """
     manager = Manager()
     if units is not None:
         # set units using a supplied dictionary

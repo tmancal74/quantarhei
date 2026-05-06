@@ -21,7 +21,12 @@ from .twodcontainer import TwoDSpectrumContainer
 
 
 class PumpProbeSpectrum(DFunction):
-    """Class representing pump-probe spectra"""
+    """Class representing a pump-probe spectrum.
+
+    A one-dimensional spectrum obtained at a fixed waiting time ``t2``
+    from a pump-probe experiment. Data and axis are set via ``set_data``
+    and ``set_axis`` after construction.
+    """
 
     # data = None
 
@@ -65,7 +70,13 @@ class PumpProbeSpectrum(DFunction):
 
 
 class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
-    """Container for a set of pump-probe spectra"""
+    """Container for a set of pump-probe spectra indexed by waiting time.
+
+    Parameters
+    ----------
+    t2axis : TimeAxis or None, optional
+        Waiting-time axis shared by all stored spectra. Default is ``None``.
+    """
 
     def __init__(self, t2axis: Any = None) -> None:
 
@@ -291,6 +302,29 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
 
 
 class PumpProbeSpectrumCalculator:
+    """Calculator for pump-probe spectra derived from 2D response pathways.
+
+    Parameters
+    ----------
+    t2axis : TimeAxis
+        Waiting-time axis over which spectra are calculated.
+    t3axis : TimeAxis
+        Detection-time axis used to build the frequency axis.
+    system : Molecule or Aggregate, optional
+        Quantum system for which spectra are calculated.
+    dynamics : str, optional
+        Dynamics type, e.g. ``"secular"``. Default is ``"secular"``.
+    relaxation_tensor : optional
+        Relaxation tensor to include population relaxation.
+    rate_matrix : optional
+        Rate matrix alternative to a full relaxation tensor.
+    effective_hamiltonian : optional
+        Effective Hamiltonian used in the relaxation basis.
+    separate_relax_pwy : bool, optional
+        If ``True``, pathways with relaxation steps are treated separately.
+        Default is ``True``.
+    """
+
     t2axis = derived_type("t2axis", TimeAxis)
     t3axis = derived_type("t3axis", TimeAxis)
 
@@ -1676,7 +1710,25 @@ def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
 
 
 class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
-    """Effective line shape pump-probe spectrum calculator"""
+    """Effective line-shape pump-probe spectrum calculator.
+
+    Uses Gaussian or Lorentzian lineshapes evaluated directly in the
+    frequency domain to produce pump-probe spectra without computing the
+    full time-domain response.
+
+    Parameters
+    ----------
+    t1axis : TimeAxis
+        Coherence-time axis (used by parent class; not directly needed for
+        pump-probe).
+    t2axis : TimeAxis
+        Waiting-time axis over which spectra are calculated.
+    t3axis : TimeAxis
+        Detection-time axis used to build the frequency axis.
+    temp : float or None, optional
+        Temperature in Kelvin. Default is ``None`` (temperature-independent
+        lineshapes).
+    """
 
     def calculate_all_system(
         self,
@@ -1689,7 +1741,32 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
         H: Any = None,
         **kwargs: Any,
     ) -> Any:
-        """Calculates all spectra corresponding to a specified t2axis"""
+        """Calculate all pump-probe spectra for all t2 times in the t2axis.
+
+        Parameters
+        ----------
+        sys : Aggregate
+            Molecular aggregate system.
+        eUt : evolution superoperator
+            Evolution superoperator evaluated at each t2 time.
+        lab : LabSetup
+            Laboratory setup with polarization information.
+        selection : optional
+            Pathway selection; not currently used.
+        show_progress : bool, optional
+            If ``True``, print progress messages. Default is ``False``.
+        dtol : float, optional
+            Tolerance for dipole moment contributions. Default is ``1e-12``.
+        H : optional
+            Hamiltonian; not currently used.
+        **kwargs
+            Additional keyword arguments.
+
+        Returns
+        -------
+        PumpProbeSpectrumContainer
+            Container with all calculated pump-probe spectra.
+        """
         temporary_fix = True
 
         if temporary_fix:
@@ -1709,7 +1786,34 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
         H: Any = None,
         **kwargs: Any,
     ) -> Any:
-        """Calculates one spectru corresponding to a specified t2 time"""
+        """Calculate a single pump-probe spectrum at the specified t2 time.
+
+        Parameters
+        ----------
+        t2 : float
+            Waiting time at which to calculate the spectrum.
+        sys : Aggregate
+            Molecular aggregate system.
+        eUt : evolution superoperator
+            Evolution superoperator.
+        lab : LabSetup
+            Laboratory setup with polarization information.
+        selection : optional
+            Pathway selection; not currently used.
+        pways : optional
+            Pathway storage; not currently used.
+        dtol : float, optional
+            Tolerance for dipole moment contributions. Default is ``1e-12``.
+        H : optional
+            Hamiltonian; not currently used.
+        **kwargs
+            Additional keyword arguments.
+
+        Returns
+        -------
+        PumpProbeSpectrum
+            Calculated pump-probe spectrum at t2.
+        """
         temporary_fix = True
 
         if temporary_fix:

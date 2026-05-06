@@ -10,7 +10,20 @@ Axy = (-1.0, 1.0, 0.0) / numpy.sqrt(2)
 
 
 def normalize2(vec: numpy.ndarray, norm: float = 1.0) -> numpy.ndarray:
-    """Normalizes a vector to a specified size"""
+    """Normalize a vector to a specified magnitude.
+
+    Parameters
+    ----------
+    vec : numpy.ndarray
+        Input vector to normalize.
+    norm : float, optional
+        Target magnitude. Default is ``1.0``.
+
+    Returns
+    -------
+    numpy.ndarray
+        Vector rescaled so that its Euclidean norm equals ``norm``.
+    """
     vec = check_numpy_array(vec)
     vel = numpy.sqrt(numpy.dot(vec, vec))
     out = (vec / vel) * norm
@@ -18,6 +31,18 @@ def normalize2(vec: numpy.ndarray, norm: float = 1.0) -> numpy.ndarray:
 
 
 def norm(vec: numpy.ndarray) -> float:
-    """Returns the vector norm (scalar product with itself)"""
+    """Return the Euclidean norm of a vector.
+
+    Parameters
+    ----------
+    vec : numpy.ndarray
+        Input vector.
+
+    Returns
+    -------
+    float
+        Euclidean norm (square root of the dot product of the vector with
+        itself).
+    """
     vel = numpy.sqrt(numpy.dot(vec, vec))
     return vel

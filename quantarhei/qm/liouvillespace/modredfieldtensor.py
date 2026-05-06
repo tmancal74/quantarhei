@@ -13,7 +13,13 @@ from .relaxationtensor import RelaxationTensor
 
 
 class ModRedfieldRelaxationTensor(RelaxationTensor):
-    """Modified Redfield Theory"""
+    """Modified Redfield Relaxation Tensor
+
+    Like the standard Redfield tensor, this is computed in the eigenbasis of
+    the Hamiltonian. See :class:`RedfieldRelaxationTensor` for details on
+    basis handling and the need for explicit back-transform when constructing
+    directly.
+    """
 
     dim: int
     data: numpy.ndarray
@@ -77,20 +83,17 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             HH = self.Hamiltonian
             sbi = self.SystemBathInteraction
 
-            # HH.protect_basis()
-            # with eigenbasis_of(HH):
-            if True:
-                if self._has_cutoff_time:
-                    cft = self.cutoff_time
-                else:
-                    cft = None
+            if self._has_cutoff_time:
+                cft = self.cutoff_time
+            else:
+                cft = None
 
-                frm = ModifiedRedfieldRateMatrix(
-                    HH,
-                    sbi,  # sbi.TimeAxis,
-                    initialize=True,
-                    cutoff_time=cft,
-                )
+            frm = ModifiedRedfieldRateMatrix(
+                HH,
+                sbi,
+                initialize=True,
+                cutoff_time=cft,
+            )
 
             with eigenbasis_of(HH):
                 #
@@ -99,11 +102,9 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
                 for aa in range(self.dim):
                     for bb in range(self.dim):
                         if aa != bb:
-                            self.data[aa, aa, bb, bb] = frm.data[aa, bb]
+                            self._data[aa, aa, bb, bb] = frm.data[aa, bb]
 
                 #
                 # calculate dephasing rates and depopulation rates
                 #
                 self.updateStructure()
-
-            # HH.unprotect_basis()

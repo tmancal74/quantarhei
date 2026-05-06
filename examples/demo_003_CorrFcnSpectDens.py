@@ -76,7 +76,7 @@ wa = cF.axis
 
 # Check the symmetry of the correlation function
 k = 1999
-vals = numpy.zeros(2000,dtype=numpy.complex)
+vals = numpy.zeros(2000,dtype=complex)
 l = 1
 while k > 0:
     vals[l] = cF.data[k]*numpy.exp(-wa.data[k]/(kB_int*temperature))

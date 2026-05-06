@@ -243,18 +243,10 @@ class SystemBathInteraction(Saveable):
         for ii in range(1, self.N):
             KK = sys_operators[ii]
 
-            if True:  # isinstance(KK,Operator):
-                if dim == KK.data.shape[0]:
-                    self.KK[ii, :, :] = numpy.real(KK.data)
-                else:
-                    raise Exception(
-                        "Operators in the list are not of the same dimension"
-                    )
+            if dim == KK.data.shape[0]:
+                self.KK[ii, :, :] = numpy.real(KK.data)
             else:
-                raise Exception(
-                    "sys_operators tuple (the first argument)"
-                    " has to contain cu.oqs.hilbertspace.Operator"
-                )
+                raise Exception("Operators in the list are not of the same dimension")
 
     def get_time_axis(self) -> Any:
         """Returns the time axis of the storred correlation functions"""

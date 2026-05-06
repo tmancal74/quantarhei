@@ -13,6 +13,21 @@ from .statevectorevolution import StateVectorEvolution
 
 
 class StateVectorPropagator:
+    """Propagator for pure state vectors under a Hamiltonian.
+
+    Integrates the time-dependent Schrodinger equation using a short
+    Taylor-expansion of the time-evolution operator. Supports static,
+    time-dependent, and non-linear Hamiltonians.
+
+    Parameters
+    ----------
+    timeaxis : TimeAxis
+        Time grid specifying the output time points.
+    ham : Hamiltonian
+        Hamiltonian operator driving the evolution. May include a
+        rotating-wave approximation (RWA) frame.
+    """
+
     def __init__(self, timeaxis: Any, ham: Any) -> None:
         self.timeaxis = timeaxis
         self.ham = ham

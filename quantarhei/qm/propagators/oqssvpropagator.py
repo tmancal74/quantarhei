@@ -12,6 +12,27 @@ from .oqssvevolution import OQSStateVectorEvolution
 
 
 class OQSStateVectorPropagator:
+    """Propagator for state vectors under an open quantum system rate matrix.
+
+    Uses a short-expansion method to integrate the equation of motion
+    for the state-vector amplitudes driven by a (possibly time-dependent)
+    rate matrix ``KK``.
+
+    Parameters
+    ----------
+    timeaxis : TimeAxis or None, optional
+        Time grid specifying the output time points. Default is ``None``.
+    current_matrix : numpy.ndarray or None, optional
+        Rate matrix (shape ``(Nt, N, N)`` for time-dependent, or ``(N, N)``
+        for static) driving the evolution. Default is ``None``.
+    agg : Aggregate or None, optional
+        Molecular aggregate used when computing secular dynamics via
+        ``get_secular_dynamics``. Default is ``None``.
+    theory_type : str, optional
+        Relaxation theory to use in secular-dynamics mode. Currently
+        ``"Redfield"`` is supported. Default is ``"Redfield"``.
+    """
+
     def __init__(
         self,
         timeaxis: Any = None,

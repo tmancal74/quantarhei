@@ -91,19 +91,19 @@ from .opensystem import OpenSystem
 
 
 class Molecule(UnitsManaged, Saveable, OpenSystem):
-    """Multi-level molecule (monomer)
+    """Multi-level molecule (monomer).
 
+    Represents a single chromophore with multiple electronic states, optional
+    vibrational modes, and system-bath coupling. It is the basic building
+    block for constructing molecular aggregates.
 
     Parameters
     ----------
-    name : str
-        Monomer descriptor; a string identifying the monomer
-
-    elenergies : list of real numbers
-        List of electronic energies, one per state. It includes ground state
-        energy. It wise to chose the ground state energy as zero.
-
-
+    elenergies : list of float, optional
+        Electronic state energies in the current energy units, starting
+        with the ground state (typically ``0.0``). Default is ``[0.0, 1.0]``.
+    name : str, optional
+        Human-readable label for the molecule. Default is ``''``.
     """
 
     # position of the monomer
@@ -2413,56 +2413,55 @@ def generate_1orderP_sec(
             print("Ground state: ", i1g, "of", len(ngs))
 
         # Only thermally allowed starting states are considered
-        if True:  # self.rho0[i1g,i1g] > pop_tol:
-            D2 = numpy.dot(self.dmoments[0, 1, :], self.dmoments[0, 1, :])
-            for i2e in nes:
-                if D2 > dip_tol:  # self.D2[i2e,i1g] > dip_tol:
-                    l += 1
+        D2 = numpy.dot(self.dmoments[0, 1, :], self.dmoments[0, 1, :])
+        for i2e in nes:
+            if D2 > dip_tol:  # self.D2[i2e,i1g] > dip_tol:
+                l += 1
 
-                    #      Diagram P1
-                    #
-                    #
+                #      Diagram P1
+                #
+                #
+                #      |g_i1> <g_i1|
+                # <----|-----------|
+                #      |e_i2> <g_i1|
+                # ---->|-----------|
+                #      |g_i1> <g_i1|
+
+                try:
+                    if verbose > 5:
+                        print(" * Generating P1", i1g, i2e)
+
+                    # FIXME: what should be here???
+                    lp = diag.liouville_pathway(
+                        "NR",
+                        i1g,
+                        aggregate=self,
+                        order=1,
+                        pname="P1",
+                        popt_band=1,
+                        relax_order=1,
+                    )
+
+                    # first transition lineshape
+                    width1 = self.get_transition_width((i2e, i1g))
+                    deph1 = self.get_transition_dephasing((i2e, i1g))
+
                     #      |g_i1> <g_i1|
-                    # <----|-----------|
+                    lp.add_transition(
+                        (i2e, i1g), +1, interval=1, width=width1, deph=deph1
+                    )
                     #      |e_i2> <g_i1|
-                    # ---->|-----------|
+                    lp.add_transition(
+                        (i1g, i2e), +1, interval=1, width=width1, deph=deph1
+                    )
                     #      |g_i1> <g_i1|
 
-                    try:
-                        if verbose > 5:
-                            print(" * Generating P1", i1g, i2e)
+                except Exception:
+                    break
 
-                        # FIXME: what should be here???
-                        lp = diag.liouville_pathway(
-                            "NR",
-                            i1g,
-                            aggregate=self,
-                            order=1,
-                            pname="P1",
-                            popt_band=1,
-                            relax_order=1,
-                        )
-
-                        # first transition lineshape
-                        width1 = self.get_transition_width((i2e, i1g))
-                        deph1 = self.get_transition_dephasing((i2e, i1g))
-
-                        #      |g_i1> <g_i1|
-                        lp.add_transition(
-                            (i2e, i1g), +1, interval=1, width=width1, deph=deph1
-                        )
-                        #      |e_i2> <g_i1|
-                        lp.add_transition(
-                            (i1g, i2e), +1, interval=1, width=width1, deph=deph1
-                        )
-                        #      |g_i1> <g_i1|
-
-                    except Exception:
-                        break
-
-                    lp.build()
-                    lst.append(lp)
-                    k += 1
+                lp.build()
+                lst.append(lp)
+                k += 1
 
 
 def PiMolecule(Molecule: Any) -> None:

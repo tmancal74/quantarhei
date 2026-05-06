@@ -21,31 +21,30 @@ from .parcel import Parcel, load_parcel
 
 
 class Saveable:
-    """Defines a class of objects that can save and load themselves"""
+    """Base class for objects that can save and load themselves to/from files.
+
+    Subclasses gain the ability to persist their state to a ``.qrp`` file
+    (a pickled :class:`Parcel`) and restore it later, supporting both named
+    files and file-like objects.
+    """
 
     hashes: dict = {}
 
     def save(
         self, filename: str | IO[bytes], comment: str | None = None, test: bool = False
     ) -> None:
-        """Saves the object with all its content into a file
-
+        """Save the object and all its content to a file.
 
         Parameters
         ----------
-        filename : str or File
-            Name of the file or a file object to which the content of
-            the object will be saved
-
-        comment : str
-            A comment which will be saved together with the content of
-            the object
-
-        test : bool
-            If test is True, and file descriptor is submitted, we save into
-            the file and move to its start for subsequent reading
-
-
+        filename : str or file-like
+            Path to the output file or an open binary file object.
+        comment : str, optional
+            A comment stored alongside the object content.
+        test : bool, optional
+            If ``True`` and a file object is given, seek back to the
+            start after writing so the file is ready for immediate reading.
+            Default is ``False``.
         """
         p = Parcel()
         p.set_content(self)
@@ -58,14 +57,21 @@ class Saveable:
                 filename.seek(0)
 
     def load(self, filename: str | IO[bytes], test: bool = False) -> Any:
-        """Loads an object from a file and returns it
+        """Load an object from a file and return it.
 
         Parameters
         ----------
-        filename : str or File
-            Filename of the file or file descriptor of the file from which
-            and object should be loaded.
+        filename : str or file-like
+            Path to the file or an open binary file object from which
+            the object should be loaded.
+        test : bool, optional
+            If ``True`` and a file object is given, seek to the start
+            before reading. Default is ``False``.
 
+        Returns
+        -------
+        object
+            The object stored in the file.
         """
         if test:
             if not isinstance(filename, str):

@@ -562,13 +562,9 @@ class TestEvSupOp(unittest.TestCase):
         sbi = agg.get_SystemBathInteraction()
         ham = agg.get_Hamiltonian()
 
-        # calculate relaxation tensor
-        ham.protect_basis()
-        with qr.eigenbasis_of(ham):
-            RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi)
-            RRT.secularize()
+        # calculate relaxation tensor (outside eigenbasis - it manages its own)
+        RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, secular=True)
 
-        ham.unprotect_basis()
         with qr.eigenbasis_of(ham):
             #
             # Evolution of reduced density matrix

@@ -517,31 +517,25 @@ class AggregateSpectroscopy(AggregateBase):
                                             #      |-----------|<----
                                             #      |g_i1> <g_i1|
 
-                                            if True:
-                                                # try:
-                                                lp = diag.liouville_pathway(
-                                                    "R_E",
-                                                    i1g,
-                                                    aggregate=self,
-                                                    order=3,
-                                                    relax_order=1,
-                                                    pname=ptp,
-                                                )
-                                                #      |g_i1> <g_i1|
-                                                lp.add_transition((i2e, i1g), -1)
-                                                #      |g_i1> <e_i2|
-                                                lp.add_transition((i3e, i1g), +1)
-                                                #      |e_i3> <e_i2|
-                                                lp.add_transfer((i4g, i5g), (i3e, i2e))
-                                                #      |g_i4> <g_i5|
-                                                lp.add_transition((i6e, i4g), +1)
-                                                #      |e_i6> <g_i5|
-                                                lp.add_transition((i5g, i6e), +1)
-                                                #      |g_i5> <g_i5|
-
-                                            # except:
-
-                                            #    break
+                                            lp = diag.liouville_pathway(
+                                                "R_E",
+                                                i1g,
+                                                aggregate=self,
+                                                order=3,
+                                                relax_order=1,
+                                                pname=ptp,
+                                            )
+                                            #      |g_i1> <g_i1|
+                                            lp.add_transition((i2e, i1g), -1)
+                                            #      |g_i1> <e_i2|
+                                            lp.add_transition((i3e, i1g), +1)
+                                            #      |e_i3> <e_i2|
+                                            lp.add_transfer((i4g, i5g), (i3e, i2e))
+                                            #      |g_i4> <g_i5|
+                                            lp.add_transition((i6e, i4g), +1)
+                                            #      |e_i6> <g_i5|
+                                            lp.add_transition((i5g, i6e), +1)
+                                            #      |g_i5> <g_i5|
 
                                             lp.build()
                                             lst.append(lp)
