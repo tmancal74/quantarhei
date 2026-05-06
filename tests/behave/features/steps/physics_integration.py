@@ -254,17 +254,14 @@ def step_propagate_redfield(context, duration, dt):
     H = agg.get_Hamiltonian()
     sbi = agg.get_SystemBathInteraction()
 
-    H.protect_basis()
-    with qr.eigenbasis_of(H):
-        RRT = qr.qm.RedfieldRelaxationTensor(H, sbi)
-        RRT.secularize()
+    RRT = qr.qm.RedfieldRelaxationTensor(H, sbi)
+    RRT.secularize()
 
-        rho0 = qr.ReducedDensityMatrix(dim=H.dim)
-        rho0.data[2, 2] = 1.0
+    rho0 = qr.ReducedDensityMatrix(dim=H.dim)
+    rho0.data[2, 2] = 1.0
 
-        prop = qr.ReducedDensityMatrixPropagator(time, H, RRT)
-        rhot = prop.propagate(rho0)
-    H.unprotect_basis()
+    prop = qr.ReducedDensityMatrixPropagator(time, H, RRT)
+    rhot = prop.propagate(rho0)
 
     context.rhot = rhot
     context.time = time
@@ -288,12 +285,9 @@ def step_check_detailed_balance(context, tol_pct):
     e1, e2 = evals_invcm[1], evals_invcm[2]
     dE = abs(e2 - e1)
 
-    # Secular Redfield tensor: R[i,i,j,j] is the rate i ← j
-    H.protect_basis()
-    with qr.eigenbasis_of(H):
-        k_down = numpy.real(RRT.data[1, 1, 2, 2])  # downhill (fast)
-        k_up = numpy.real(RRT.data[2, 2, 1, 1])    # uphill (slow)
-    H.unprotect_basis()
+    # Secular Redfield tensor data is already in eigenbasis
+    k_down = numpy.real(RRT.data[1, 1, 2, 2])  # downhill (fast)
+    k_up = numpy.real(RRT.data[2, 2, 1, 1])    # uphill (slow)
 
     assert k_down > 0 and k_up > 0, (
         f"Rates must be positive: k_down={k_down:.4e}, k_up={k_up:.4e}"
@@ -617,11 +611,8 @@ def step_calc_redfield_rate_matrix(context):
     H = agg2.get_Hamiltonian()
     sbi = agg2.get_SystemBathInteraction()
 
-    H.protect_basis()
-    with qr.eigenbasis_of(H):
-        RRT = qr.qm.RedfieldRelaxationTensor(H, sbi)
-        RRT.secularize()
-    H.unprotect_basis()
+    RRT = qr.qm.RedfieldRelaxationTensor(H, sbi)
+    RRT.secularize()
 
     context.RRT_boltzmann = RRT
     context.H_boltzmann = H
@@ -640,13 +631,9 @@ def step_check_boltzmann_steady_state(context, tol_pct):
     dE = abs(evals_invcm[2] - evals_invcm[1])
     expected = numpy.exp(-dE / (kB_invcm * T))
 
-    # Steady-state from rate matrix: dp1/dt=0, dp2/dt=0 gives
-    # p1_ss = k_down / (k_down + k_up),  p2_ss = k_up / (k_down + k_up)
-    H.protect_basis()
-    with qr.eigenbasis_of(H):
-        k_down = numpy.real(RRT.data[1, 1, 2, 2])
-        k_up = numpy.real(RRT.data[2, 2, 1, 1])
-    H.unprotect_basis()
+    # Redfield tensor data is already in eigenbasis
+    k_down = numpy.real(RRT.data[1, 1, 2, 2])
+    k_up = numpy.real(RRT.data[2, 2, 1, 1])
 
     p1_ss = k_down / (k_down + k_up)
     p2_ss = k_up / (k_down + k_up)
