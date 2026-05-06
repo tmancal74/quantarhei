@@ -65,6 +65,7 @@ Dive into [Qrhei] documentation below:
 Get started <getstarted>
 Quickstart <getstarted/quickstart>
 Installation <installation>
+Notebooks <notebooks>
 Examples <examples>
 API Reference <classes>
 Advanced API <advclasses>

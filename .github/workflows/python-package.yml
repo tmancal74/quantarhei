@@ -225,12 +225,15 @@ jobs:
             add "$BASE/evolsuperoperator_basis.feature" && \
             add "$BASE/evolsuperoperator_dephasing.feature" && \
             add "$BASE/evolsuperoperator_jit.feature" && \
-            add "$BASE/evolsuperoperator_prop.feature"
+            add "$BASE/evolsuperoperator_prop.feature" && \
+            add "$BASE/physics_integration.feature"
           [ "${{ needs.changes.outputs.spectroscopy }}" = "true" ] && \
             add "$BASE/twod.feature" && \
-            add "$BASE/twodcontainer.feature"
+            add "$BASE/twodcontainer.feature" && \
+            add "$BASE/physics_integration.feature"
           [ "${{ needs.changes.outputs.builders }}" = "true" ] && \
-            add "$BASE/aggregate_pdeph.feature"
+            add "$BASE/aggregate_pdeph.feature" && \
+            add "$BASE/physics_integration.feature"
           [ "${{ needs.changes.outputs.wizard }}" = "true" ] && \
             add "$BASE/qrhei.feature" && \
             add "$BASE/ghenerate.feature"
@@ -319,6 +322,23 @@ jobs:
         uv run python demo_102_DFunction_fitting.py
         uv run python demo_200_Secular.py
         uv run python demo_800_DiagProblem.py
+
+  notebooks:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v5
+      with:
+        python-version: "3.12"
+    - name: Install dependencies
+      run: uv sync --extra docs
+    - name: Execute notebooks with papermill
+      run: |
+        for nb in examples/notebooks/*.ipynb; do
+          echo "Running $nb"
+          uv run papermill "$nb" /dev/null --no-progress-bar
+        done
 
   dependency-review:
     runs-on: ubuntu-latest
