@@ -1,3 +1,0 @@
-quantarhei
-matplotlib
-ipykernel
