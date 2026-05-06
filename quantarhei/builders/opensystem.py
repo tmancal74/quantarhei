@@ -626,7 +626,6 @@ class OpenSystem:
 
 
         """
-        from ..core.managers import eigenbasis_of
         from ..qm import (
             FoersterRelaxationTensor,
             LindbladForm,
@@ -704,34 +703,27 @@ class OpenSystem:
                 # ham=Hamiltonian(data=HH_new)
 
             if time_dependent:
-                # Time dependent standard Refield
-
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = TDRedfieldRelaxationTensor(
-                        ham,
-                        sbi,
-                        cutoff_time=relaxation_cutoff_time,
-                        as_operators=as_operators,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-                ham.unprotect_basis()
+                relaxT = TDRedfieldRelaxationTensor(
+                    ham,
+                    sbi,
+                    cutoff_time=relaxation_cutoff_time,
+                    as_operators=as_operators,
+                    secular=secular_relaxation,
+                )
 
             else:
-                # Time independent standard Refield
+                relaxT = RedfieldRelaxationTensor(
+                    ham,
+                    sbi,
+                    as_operators=as_operators,
+                    secular=secular_relaxation,
+                )
 
-                ham.protect_basis()
-
-                with eigenbasis_of(ham):
-                    relaxT = RedfieldRelaxationTensor(
-                        ham, sbi, as_operators=as_operators
-                    )
-
-                    if secular_relaxation:
-                        relaxT.secularize()
-
-                ham.unprotect_basis()
+            # The tensor is built in the eigenbasis of ham. Transform it
+            # back to site basis so it matches ham (which stays in site basis).
+            _, SS = numpy.linalg.eigh(ham._data)
+            S1 = numpy.linalg.inv(SS)
+            relaxT.transform(S1, inv=SS)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -742,33 +734,24 @@ class OpenSystem:
 
         if relaxation_theory in theories["modified_Redfield"]:
             if time_dependent:
-                # Time dependent standard Refield
-
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = TDModRedfieldRelaxationTensor(
-                        ham,
-                        sbi,
-                        cutoff_time=relaxation_cutoff_time,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-                ham.unprotect_basis()
+                relaxT = TDModRedfieldRelaxationTensor(
+                    ham,
+                    sbi,
+                    cutoff_time=relaxation_cutoff_time,
+                )
+                if secular_relaxation:
+                    relaxT.secularize()
 
             else:
-                # Time independent standard Refield
+                relaxT = ModRedfieldRelaxationTensor(
+                    ham, sbi, as_operators=as_operators
+                )
+                if secular_relaxation:
+                    relaxT.secularize()
 
-                ham.protect_basis()
-
-                with eigenbasis_of(ham):
-                    relaxT = ModRedfieldRelaxationTensor(
-                        ham, sbi, as_operators=as_operators
-                    )
-
-                    if secular_relaxation:
-                        relaxT.secularize()
-
-                ham.unprotect_basis()
+            _, SS = numpy.linalg.eigh(ham._data)
+            S1 = numpy.linalg.inv(SS)
+            relaxT.transform(S1, inv=SS)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -865,37 +848,29 @@ class OpenSystem:
             if time_dependent:
                 # Time dependent combined tensor
                 # ham.subtract_cutoff_coupling(coupling_cutoff)
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = TDRedfieldFoersterRelaxationTensor(
-                        ham,
-                        sbi,
-                        coupling_cutoff=coupling_cutoff,
-                        cutoff_time=relaxation_cutoff_time,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-                ham.unprotect_basis()
+                relaxT = TDRedfieldFoersterRelaxationTensor(
+                    ham,
+                    sbi,
+                    coupling_cutoff=coupling_cutoff,
+                    cutoff_time=relaxation_cutoff_time,
+                )
+                # TODO: add secular= flag to TDRedfieldFoersterRelaxationTensor
+                if secular_relaxation:
+                    relaxT.secularize()
                 ham.recover_cutoff_coupling()
 
             else:
                 # Time independent combined tensor
                 # ham.subtract_cutoff_coupling(coupling_cutoff)
-                ham.protect_basis()
-                with eigenbasis_of(ham):
-                    relaxT = RedfieldFoersterRelaxationTensor(
-                        ham,
-                        sbi,
-                        coupling_cutoff=coupling_cutoff,
-                        cutoff_time=relaxation_cutoff_time,
-                    )
-                    if secular_relaxation:
-                        relaxT.secularize()
-
-                    # print("Last line of the context",
-                    #      Manager().get_current_basis())
-                # print("Left context", Manager().get_current_basis())
-                ham.unprotect_basis()
+                relaxT = RedfieldFoersterRelaxationTensor(
+                    ham,
+                    sbi,
+                    coupling_cutoff=coupling_cutoff,
+                    cutoff_time=relaxation_cutoff_time,
+                )
+                # TODO: add secular= flag to RedfieldFoersterRelaxationTensor
+                if secular_relaxation:
+                    relaxT.secularize()
                 ham.recover_cutoff_coupling()
 
             #
@@ -923,13 +898,10 @@ class OpenSystem:
             else:
                 # Linblad form
 
-                # ham.protect_basis()
-                # with eigenbasis_of(ham):
                 relaxT = LindbladForm(ham, sbi)
                 if secular_relaxation:
                     relaxT.convert_2_tensor()
                     relaxT.secularize()
-                # ham.unprotect_basis()
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -1031,7 +1003,6 @@ class OpenSystem:
     # FIXME: There must be a general theory here
     def get_RedfieldRateMatrix(self, corr_mat: object = None) -> object:
         """Returns Redfield rate matrix"""
-        from ..core.managers import eigenbasis_of
         from ..qm import RedfieldRateMatrix
 
         if self._built:
@@ -1040,12 +1011,7 @@ class OpenSystem:
         else:
             raise Exception()
 
-        ham.protect_basis()
-        with eigenbasis_of(ham):
-            RR = RedfieldRateMatrix(ham, sbi, corr_mat=corr_mat)
-        ham.unprotect_basis()
-
-        return RR
+        return RedfieldRateMatrix(ham, sbi, corr_mat=corr_mat)
 
     def get_FoersterRateMatrix(self) -> object:
         """Returns Förster rate matrix for the open system"""

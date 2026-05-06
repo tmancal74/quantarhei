@@ -13,7 +13,13 @@ from .relaxationtensor import RelaxationTensor
 
 
 class ModRedfieldRelaxationTensor(RelaxationTensor):
-    """Modified Redfield Theory"""
+    """Modified Redfield Relaxation Tensor
+
+    Like the standard Redfield tensor, this is computed in the eigenbasis of
+    the Hamiltonian. See :class:`RedfieldRelaxationTensor` for details on
+    basis handling and the need for explicit back-transform when constructing
+    directly.
+    """
 
     dim: int
     data: numpy.ndarray
@@ -99,7 +105,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
                 for aa in range(self.dim):
                     for bb in range(self.dim):
                         if aa != bb:
-                            self.data[aa, aa, bb, bb] = frm.data[aa, bb]
+                            self._data[aa, aa, bb, bb] = frm.data[aa, bb]
 
                 #
                 # calculate dephasing rates and depopulation rates

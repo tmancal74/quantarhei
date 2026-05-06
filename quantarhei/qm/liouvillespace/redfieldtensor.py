@@ -34,6 +34,21 @@ from .systembathinteraction import SystemBathInteraction
 class RedfieldRelaxationTensor(RelaxationTensor):
     """Redfield Relaxation Tensor
 
+    Unlike Foerster or Lindblad tensors (which operate entirely in the site
+    basis), the Redfield tensor is computed in the eigenbasis of the
+    Hamiltonian. The constructor diagonalizes the Hamiltonian internally and
+    stores the result in that eigenbasis.
+
+    If you obtain this tensor via ``OpenSystem.get_RelaxationTensor()``, it is
+    automatically back-transformed to the site basis before being returned —
+    no extra steps are needed.
+
+    If you construct it directly, you must back-transform explicitly::
+
+        RRT = RedfieldRelaxationTensor(ham, sbi, secular=True)
+        _, SS = numpy.linalg.eigh(ham._data)
+        S1 = numpy.linalg.inv(SS)
+        RRT.transform(S1, inv=SS)
 
     Parameters
     ----------
@@ -44,34 +59,19 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         Object specifying the system-bath interaction
 
     initialize : bool
-        If True, the tensor will be imediately calculated
+        If True, the tensor will be immediately calculated.
 
     cutoff_time : float
         Time in femtoseconds after which the integral kernel in the
-        definition of the relaxation tensor is assummed to be zero.
+        definition of the relaxation tensor is assumed to be zero.
 
     as_operators : bool
         If True the tensor will not be constructed. Instead a set of
         operators whose application is equal to the application of the
-        tensor will be defined and stored
+        tensor will be defined and stored.
 
-    Methods
-    -------
-    secularize()
-        Deletes non-secular terms in the relaxation tensor. If the tensor
-        is represented by operators (i.e. the as_operators atribute is
-        True), the methods raises an Exception. Use `convert_2_tensor`
-        first.
-
-    initialize()
-        Initializes the Redfield tensor if created with parameter
-        `initialize=False`
-
-    convert_2_tensor()
-        When created with `as_operators=True` the tensor is internally
-        represented by a set of operators. This method converts this
-        representation to a tensor
-
+    secular : bool
+        If True, the tensor is secularized after construction.
 
     """
 
@@ -96,6 +96,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         cutoff_time: float | None = None,
         as_operators: bool = False,
         name: str = "",
+        secular: bool = False,
     ) -> None:
 
         self._initialize_basis()
@@ -114,6 +115,8 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 raise Exception(
                     "Second argument must be of the SystemBathInteraction type"
                 )
+
+        self._secular_on_init = secular
 
         self.Hamiltonian = ham
         self.SystemBathInteraction: SystemBathInteraction = sbi
@@ -144,6 +147,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             with energy_units("int"):
                 self._implementation(ham, sbi)
+
+            if self._secular_on_init:
+                self.secularize(legacy=False)
 
         self.Iterm = None
         self.has_Iterm = False
@@ -322,12 +328,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
         if True:
-            # FIXME: here we need to access ham._data (we want to protect basis)
-            #
-            # THIS ASSUMES WE ARE IN SITE BASIS
-            # FIXME: devise a mechanism to ensure this!!!!
-            #
-            hD, SS = numpy.linalg.eigh(ham.data)
+            # Use _data directly: _implementation must always diagonalize in the
+            # site basis so that Km is the correct eigenbasis coupling operator.
+            hD, SS = numpy.linalg.eigh(ham._data)
 
         #
         #  Find all transition frequencies
