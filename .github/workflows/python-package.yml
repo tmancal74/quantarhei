@@ -320,6 +320,23 @@ jobs:
         uv run python demo_200_Secular.py
         uv run python demo_800_DiagProblem.py
 
+  notebooks:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v5
+      with:
+        python-version: "3.12"
+    - name: Install dependencies
+      run: uv sync --extra docs
+    - name: Execute notebooks with papermill
+      run: |
+        for nb in examples/notebooks/*.ipynb; do
+          echo "Running $nb"
+          uv run papermill "$nb" /dev/null --no-progress-bar
+        done
+
   dependency-review:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
