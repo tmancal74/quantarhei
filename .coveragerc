@@ -7,6 +7,7 @@ omit =
     quantarhei/scripts/*
     quantarhei/spectroscopy/pumpprobe2.py
     quantarhei/spectroscopy/twod22.py
+    quantarhei/implementations/*
 
 [report]
 precision=2
@@ -16,3 +17,4 @@ omit =
     quantarhei/scripts/*
     quantarhei/spectroscopy/pumpprobe2.py
     quantarhei/spectroscopy/twod22.py
+    quantarhei/implementations/*
