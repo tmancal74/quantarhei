@@ -8,4 +8,6 @@ Contents:
 :maxdepth: 2
 
 examples/molecule
+examples/aggregate
+examples/correlationfunction
 ```
