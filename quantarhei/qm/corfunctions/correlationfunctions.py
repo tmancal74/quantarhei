@@ -239,6 +239,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 # FIXME: set cut-off time and temperature
                 # self._set_temperature_and_cutoff_time(self.params[0])
 
+    def __repr__(self) -> str:
+        ftype = self.params[0]["ftype"] if self.params else "unknown"
+        temp = self.temperature if hasattr(self, "temperature") else None
+        return f"CorrelationFunction(ftype={ftype!r}, T={temp})"
+
     def _matsubara(self, kBT: float, ctime: float, nof: int) -> numpy.ndarray:
         """Matsubara frequency part of the Brownian correlation function"""
         msf: float | numpy.ndarray = 0.0

@@ -322,6 +322,14 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         tr = numpy.trace(self.data)
         self.data = self.data / tr
 
+    def __repr__(self) -> str:
+        dtype = (
+            self.data.dtype
+            if hasattr(self, "_data") and self.data is not None
+            else None
+        )
+        return f"DensityMatrix(dim={self.dim}, dtype={dtype})"
+
     def __str__(self) -> str:
         out = "\nquantarhei.DensityMatrix object"
         out += "\n==============================="

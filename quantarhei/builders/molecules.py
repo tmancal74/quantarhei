@@ -2271,6 +2271,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return ee, ss
 
+    def __repr__(self) -> str:
+        return f"Molecule(name={self.name!r}, nel={self.nel})"
+
     def __str__(self) -> str:
         """String representation of the Molecule object"""
         out = "\nquantarhei.Molecule object"

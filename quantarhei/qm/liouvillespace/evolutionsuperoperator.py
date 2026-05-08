@@ -887,6 +887,9 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             self.convert_from_RWA(ham, sgn=-1)
             self.is_in_rwa = True
 
+    def __repr__(self) -> str:
+        return f"EvolutionSuperOperator(dim={self.dim})"
+
     def __str__(self) -> str:
         out = "\nquantarhei.EvolutionSuperOperator object"
         out += "\n========================================"

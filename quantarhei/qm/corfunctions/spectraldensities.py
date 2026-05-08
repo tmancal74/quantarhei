@@ -201,6 +201,10 @@ class SpectralDensity(DFunction, UnitsManaged):
 
                 self.params.append(prms)
 
+    def __repr__(self) -> str:
+        ftype = self.params[0]["ftype"] if self.params else "unknown"
+        return f"SpectralDensity(ftype={ftype!r})"
+
     def _make_overdamped_brownian(self, params: dict, values: Any = None) -> None:
         """Sets the Overdamped Brownian oscillator spectral density"""
         try:
