@@ -3579,6 +3579,47 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return rho0
 
+    def _thermal_band_population(
+        self,
+        temperature: float,
+        relaxation_theory_limit: str,
+        relaxation_hamiltonian: Any,
+        start: int,
+        n_states: int,
+    ) -> numpy.ndarray:
+        if relaxation_theory_limit == "strong_coupling":
+            if not relaxation_hamiltonian:
+                HH = self.get_Hamiltonian()
+            else:
+                HH = relaxation_hamiltonian
+            Ndim = HH.dim
+            re = numpy.zeros(Ndim - start, dtype=numpy.float64)
+            if not relaxation_hamiltonian:
+                for i in range(n_states):
+                    re[i] = self.sbi.get_reorganization_energy(i)
+            ham = HH.data
+            return self._thermal_population(
+                temperature, subtract=re, relaxation_hamiltonian=ham, start=start
+            )
+
+        if relaxation_theory_limit == "weak_coupling":
+            if not relaxation_hamiltonian:
+                Ham = self.get_Hamiltonian()
+            else:
+                Ham = relaxation_hamiltonian
+            with eigenbasis_of(Ham):
+                H = Ham.data
+            subt = numpy.zeros(H.shape[0])
+            subtfil = numpy.amin(
+                numpy.array([H[ii, ii] for ii in range(start, H.shape[0])])
+            )
+            subt.fill(subtfil)
+            return self._thermal_population(
+                temperature, subtract=subt, relaxation_hamiltonian=H, start=start
+            )
+
+        raise Exception("Unknown relaxation_theory_limit")
+
     def _impulsive_population(
         self,
         relaxation_theory_limit: str = "weak_coupling",
@@ -3749,112 +3790,24 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return DensityMatrix(data=self.rho0)
 
         if condition_type == "thermal_excited_state":
-            if relaxation_theory_limit == "strong_coupling":
-                start = self.Nb[0]  # this is where excited state starts
-                n1ex = self.Nb[1]  # number of excited states in one-ex band
-
-                if not relaxation_hamiltonian:
-                    HH = self.get_Hamiltonian()
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # we need to subtract reorganization energies
-                    for i in range(n1ex):
-                        re[i] = self.sbi.get_reorganization_energy(i)
-                else:
-                    HH = relaxation_hamiltonian
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # here we assume that reorganizaton energies are already
-                    # removed
-
-                # we get this in SITE BASIS
-                ham = HH.data
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=re, relaxation_hamiltonian=ham, start=start
-                )
-
-            elif relaxation_theory_limit == "weak_coupling":
-                if not relaxation_hamiltonian:
-                    Ham = self.get_Hamiltonian()
-                else:
-                    Ham = relaxation_hamiltonian
-
-                # we get this in EXCITON BASIS
-                with eigenbasis_of(Ham):
-                    H = Ham.data
-
-                start = self.Nb[0]  # this is where excited state starts
-
-                # we subtract lowest energy to ease the calcultion,
-                # but we do not remove reorganization enegies
-                subt = numpy.zeros(H.shape[0])
-                subtfil = numpy.amin(
-                    numpy.array([H[ii, ii] for ii in range(start, H.shape[0])])
-                )
-                subt.fill(subtfil)
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=subt, relaxation_hamiltonian=H, start=start
-                )
-            else:
-                raise Exception("Unknown relaxation_theory_limit")
-
+            rho0 = self._thermal_band_population(
+                temperature,
+                relaxation_theory_limit,
+                relaxation_hamiltonian,
+                start=self.Nb[0],
+                n_states=self.Nb[1],
+            )
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
         if condition_type == "thermal_twoexciton":
-            if relaxation_theory_limit == "strong_coupling":
-                start = self.Nb[1] + self.Nb[0]  # this is where excited state starts
-                n1ex = self.Nb[2]  # number of excited states in one-ex band
-
-                if not relaxation_hamiltonian:
-                    HH = self.get_Hamiltonian()
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # we need to subtract reorganization energies
-                    for i in range(n1ex):
-                        re[i] = self.sbi.get_reorganization_energy(i)
-                else:
-                    HH = relaxation_hamiltonian
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # here we assume that reorganizaton energies are already
-                    # removed
-
-                # we get this in SITE BASIS
-                ham = HH.data
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=re, relaxation_hamiltonian=ham, start=start
-                )
-
-            elif relaxation_theory_limit == "weak_coupling":
-                if not relaxation_hamiltonian:
-                    Ham = self.get_Hamiltonian()
-                else:
-                    Ham = relaxation_hamiltonian
-
-                # we get this in EXCITON BASIS
-                with eigenbasis_of(Ham):
-                    H = Ham.data
-
-                start = self.Nb[1] + self.Nb[0]  # this is where excited state starts
-
-                # we subtract lowest energy to ease the calcultion,
-                # but we do not remove reorganization enegies
-                subt = numpy.zeros(H.shape[0])
-                subtfil = numpy.amin(
-                    numpy.array([H[ii, ii] for ii in range(start, H.shape[0])])
-                )
-                subt.fill(subtfil)
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=subt, relaxation_hamiltonian=H, start=start
-                )
-            else:
-                raise Exception("Unknown relaxation_theory_limit")
-
+            rho0 = self._thermal_band_population(
+                temperature,
+                relaxation_theory_limit,
+                relaxation_hamiltonian,
+                start=self.Nb[1] + self.Nb[0],
+                n_states=self.Nb[2],
+            )
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
