@@ -47,7 +47,7 @@ class Parcel:
                 with os.fdopen(tmp_fd, "wb") as f:
                     pickle.dump(self, f)
                 os.replace(tmp_path, filename)
-            except:
+            except Exception:
                 os.unlink(tmp_path)
                 raise
         else:
