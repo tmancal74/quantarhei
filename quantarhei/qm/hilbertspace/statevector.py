@@ -13,6 +13,7 @@ import numpy
 
 from ... import COMPLEX
 from ...core.managers import BasisManaged
+from ...exceptions import QuantarheiError
 from ...utils.types import BasisManagedComplexArray
 
 
@@ -56,11 +57,11 @@ class StateVector(BasisManaged):
             self.data = data
 
             if len(self.data.shape) != 1:
-                raise Exception("Data has to be a vector")
+                raise QuantarheiError("Data has to be a vector")
             else:
                 if dim is not None:
                     if self.data.shape[0] != dim:
-                        raise Exception("Incompatible dim and data paramters")
+                        raise QuantarheiError("Incompatible dim and data paramters")
                 else:
                     self.dim = self.data.shape[0]
                 self._initialized = True

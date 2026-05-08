@@ -6,6 +6,8 @@ from __future__ import annotations
 import numpy
 from scipy import special
 
+from ..exceptions import ImplementationError
+
 
 class Storage:
     def __init__(self, rel_tol: float = 1e-8) -> None:
@@ -193,7 +195,7 @@ def voigt2D(
         # print(indx, len(storage.params), storage.lookup_count)
 
     else:
-        raise Exception("Not implemented yet")
+        raise ImplementationError("Not implemented yet")
 
     return data
 
@@ -222,6 +224,6 @@ def lorentzian2D(
         data = numpy.outer(dat1, dat2)
 
     else:
-        raise Exception("Not implemented yet")
+        raise ImplementationError("Not implemented yet")
 
     return data

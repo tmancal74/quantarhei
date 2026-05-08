@@ -6,6 +6,7 @@ import numpy
 
 from ... import REAL
 from ...core.managers import BasisManaged
+from ...exceptions import QuantarheiError
 from .operators import SelfAdjointOperator
 
 # import scipy
@@ -29,7 +30,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
             self.dim = self._data.shape[0]
 
             if not self.check_selfadjoint():
-                raise Exception(
+                raise QuantarheiError(
                     "The data of this operator have"
                     " to be represented by 3 selfadjoint matrices"
                 )

@@ -82,6 +82,7 @@ from ... import REAL
 
 # from ...builders.molecules import Molecule
 from ...core.managers import eigenbasis_of
+from ...exceptions import BasisError, ImplementationError, QuantarheiError
 from ...qm.hilbertspace.operators import Operator
 from ..liouvillespace.superoperator import SuperOperator
 
@@ -95,7 +96,7 @@ def _eigenb() -> Any:
 
     @prop.setter  # type: ignore[misc]
     def prop(self: Any, value: Any) -> None:
-        raise Exception("The property 'eigenbasis' is protected and cannot be set.")
+        raise BasisError("The property 'eigenbasis' is protected and cannot be set.")
 
     return prop
 
@@ -115,7 +116,7 @@ class PureDephasing:  # (BasisManaged):
         from ...builders.aggregates import Aggregate  # lazy import breaks circular dep
 
         if drates is None:
-            raise Exception("Dephasing rates must be specified.")
+            raise QuantarheiError("Dephasing rates must be specified.")
 
         self.data: numpy.ndarray = numpy.array(drates, dtype=REAL)
 
@@ -134,11 +135,11 @@ class PureDephasing:  # (BasisManaged):
             #    self.system_is_molecule = True
 
             else:
-                raise Exception("Non-Aggregate systems not implemented yet.")
+                raise ImplementationError("Non-Aggregate systems not implemented yet.")
 
             HH: Any = self.system.get_Hamiltonian()
             if HH.dim != self.data.shape[0]:
-                raise Exception(
+                raise QuantarheiError(
                     "Incompatible dimension of the rate matrix:"
                     " system has dimension = " + str(HH.dim)
                 )
@@ -152,7 +153,7 @@ class PureDephasing:  # (BasisManaged):
             self.cutoff_time = cutoff_time
 
         else:
-            raise Exception("Unknown dephasing type")
+            raise QuantarheiError("Unknown dephasing type")
 
     def get_SuperOperator(self) -> SuperOperator:
         """Returns a superoperator representing the pure dephasing
@@ -194,7 +195,7 @@ class PureDephasing:  # (BasisManaged):
                 self.dtype = dtype
 
         else:
-            raise Exception("Unknown dephasing type")
+            raise QuantarheiError("Unknown dephasing type")
 
     def _eigenbasis(self) -> Any:
         """Returns the context for the eigenbasis in which pure dephasing

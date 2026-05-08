@@ -14,6 +14,7 @@ from .... import COMPLEX, REAL
 from ....core.implementations import implementation
 from ....core.time import TimeDependent
 from ....core.units import cm2int
+from ....exceptions import QuantarheiError
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
@@ -54,10 +55,10 @@ class TDRedfieldRateMatrix(TimeDependent):
     ) -> None:
 
         if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
+            raise QuantarheiError("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be a SystemBathInteraction")
+            raise QuantarheiError("Second argument must be a SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -88,7 +89,7 @@ class TDRedfieldRateMatrix(TimeDependent):
         Nt = time.length
 
         if Nk <= 0:
-            raise Exception("No system bath intraction components present")
+            raise QuantarheiError("No system bath intraction components present")
 
         # Eigen problem
         hD, SS = numpy.linalg.eigh(ham.data)

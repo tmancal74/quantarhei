@@ -15,6 +15,8 @@ from typing import TYPE_CHECKING, Any
 import numpy
 import scipy.io as io
 
+from ..exceptions import ImplementationError, QuantarheiError
+
 if TYPE_CHECKING:
     from .valueaxis import ValueAxis
 
@@ -56,7 +58,7 @@ class DataSaveable:
         filename, extension = os.path.splitext(name)
 
         if extension not in [".dat", ".txt", ".npy", ".npz", ".mat"]:
-            raise Exception("Unknown data format")
+            raise QuantarheiError("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
             self._exportDataToText(name, with_axis)
@@ -84,7 +86,7 @@ class DataSaveable:
         filename, extension = os.path.splitext(name)
 
         if extension not in [".dat", ".txt", ".npy", ".npz", ".mat"]:
-            raise Exception("Unknown data format")
+            raise QuantarheiError("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
             self._importDataFromText(name, with_axis)
@@ -123,7 +125,9 @@ class DataSaveable:
             data[:, 1] = self.data  # type: ignore[attr-defined]
             data[:, 0] = axis.data
         else:
-            raise Exception("Other shapes than (N,) and (N,M) not implemented")
+            raise ImplementationError(
+                "Other shapes than (N,) and (N,M) not implemented"
+            )
         return data
 
     def _extract_data_with_axis(
@@ -141,10 +145,12 @@ class DataSaveable:
             if data.shape[1] > 2:
                 axis.data = data[:, 0]
                 return data[:, 1:]
-            raise Exception()
+            raise QuantarheiError()
 
         else:
-            raise Exception("Other shapes than (N,) and (N,M) not implemented")
+            raise ImplementationError(
+                "Other shapes than (N,) and (N,M) not implemented"
+            )
 
     def _saveBinaryData(self, file: str, with_axis: ValueAxis | None = None) -> None:
         """Saves uncompressed binary data to an file"""

@@ -8,6 +8,8 @@ how to change the code to convert it into a demo.
 _show_plots_ = False
 _use_tempdir_ = True
 
+from ...exceptions import QuantarheiError
+
 if _use_tempdir_:
     import tempfile
 # </remove>
@@ -25,7 +27,7 @@ if _use_tempdir_:
         tfid = tempfile.TemporaryDirectory()
         wdir = tfid.name
     except OSError:
-        raise Exception("Creating temporary directory failed")
+        raise QuantarheiError("Creating temporary directory failed")
 else:
     # </remove>
     # <indent decr=4>

@@ -14,6 +14,7 @@ from ... import COMPLEX, REAL
 from ...core.managers import Manager
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis
+from ...exceptions import QuantarheiError
 from .correlationfunctions import c2g, c2h
 
 
@@ -196,14 +197,14 @@ class CorrelationFunctionMatrix(Saveable):
                 if temp < 0.0:
                     temp = T
                 if T != temp:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Temperature of CorrelationFunctionMatrix is not consistent"
                     )
             else:
                 none_count += 1
 
         if none_count > 1:
-            raise Exception()
+            raise QuantarheiError()
 
         return temp
 
@@ -256,7 +257,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 lm += self._A4[a, b, c, d, k]
             return lm
-        raise Exception("Correlation function matrix is not initialized.")
+        raise QuantarheiError("Correlation function matrix is not initialized.")
 
     def get_coft(self, n: int, m: int) -> numpy.ndarray:
         """Returns correlation function corresponding to two states n and m
@@ -299,7 +300,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[a, b, c, d, k] * self._cofts[k + 1, :]
             return ret
-        raise Exception()
+        raise QuantarheiError()
 
     def get_coft_matrix(self, t: float | None = None) -> numpy.ndarray:
         """Returns full matrix of correlation functions
@@ -344,7 +345,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[:, :, :, :, k] * self._cofts[k + 1, it]
             return ret
-        raise Exception()
+        raise QuantarheiError()
 
     def get_hoft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
         if self._is_transformed:
@@ -354,7 +355,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[a, b, c, d, k] * self._hofts[k + 1, :]
             return ret
-        raise Exception()
+        raise QuantarheiError()
 
     def get_hoft_matrix(self, t: float | None = None) -> numpy.ndarray:
         """Returns full matrix of once integrated correlation functions
@@ -399,7 +400,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[:, :, :, :, k] * self._hofts[k + 1, it]
             return ret
-        raise Exception()
+        raise QuantarheiError()
 
     def get_goft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
         """Returns the matrix of the goft functions"""
@@ -410,7 +411,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[a, b, c, d, k] * self._gofts[k + 1, :]
             return ret
-        raise Exception()
+        raise QuantarheiError()
 
     def get_goft_matrix(self, t: float | None = None) -> numpy.ndarray:
         """Returns full matrix of lineshape functions
@@ -455,7 +456,7 @@ class CorrelationFunctionMatrix(Saveable):
             for k in range(self.nof):
                 ret += self._A4[:, :, :, :, k] * self._gofts[k + 1, it]
             return ret
-        raise Exception()
+        raise QuantarheiError()
 
     def set_correlation_function(
         self, fce: Any, where: list, iof: int | None = None
@@ -491,12 +492,12 @@ class CorrelationFunctionMatrix(Saveable):
                 self._update_nof_storage()
 
             if iof == 0:
-                raise Exception(
+                raise QuantarheiError(
                     "Zeros correlation function is \
                                 reserved for an empty function."
                 )
             if iof >= self.nof + 1:
-                raise Exception("Index out of bounds")
+                raise QuantarheiError("Index out of bounds")
 
             try:
                 ic = fce.axis.nearest(fce.cutoff_time)
@@ -533,7 +534,7 @@ class CorrelationFunctionMatrix(Saveable):
         assert self._A2 is not None
         for loc in where:
             if loc in self.where[iof]:
-                raise Exception("Location in correlation matrix already taken")
+                raise QuantarheiError("Location in correlation matrix already taken")
             else:
                 self.where[iof].append(loc)
 

@@ -21,6 +21,7 @@ from .. import REAL, Manager
 from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
 from ..core.time import TimeAxis
+from ..exceptions import QuantarheiError
 from ..utils import Integer
 from ..utils.vectors import X
 
@@ -103,7 +104,7 @@ class LabSetup:
         if self.saved_params is not None:
             self.set_pulse_shapes(self.timeaxis, self.saved_params)
         # else:
-        #    raise Exception("Pulse shapes must be set first.")
+        #    raise QuantarheiError("Pulse shapes must be set first.")
 
     def set_pulse_shapes(self, axis: Any, params: Any) -> None:
         """Sets the pulse properties
@@ -316,7 +317,7 @@ class LabSetup:
                 self.timeaxis = axis
                 self.axis_type = "time"
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "TimeAxis has to be of 'complete' type"
                     " use atype='complete' as a parameter"
                     " of TimeAxis"
@@ -327,11 +328,11 @@ class LabSetup:
             self.axis_type = "frequency"
 
         else:
-            raise Exception("Wrong axis paramater")
+            raise QuantarheiError("Wrong axis paramater")
 
         if not self._centers_set:
             # print("Use 'set_pulse_arrival_times' function before this function.")
-            # raise Exception("Pulse arrival times have to specified before "+
+            # raise QuantarheiError("Pulse arrival times have to specified before "+
             #                "the pulse shape is set.")
             self.set_pulse_arrival_times([0.0 for ii in range(self.number_of_pulses)])
 
@@ -417,7 +418,7 @@ class LabSetup:
                         self.pulse_f[k_p] = DFunction(self.freqaxis, data)
 
                 else:
-                    raise Exception("Unknown pulse type")
+                    raise QuantarheiError("Unknown pulse type")
 
                 k_p += 1
 
@@ -432,7 +433,7 @@ class LabSetup:
             text = (
                 "set_pulses requires " + str(self.number_of_pulses) + " parameter sets"
             )
-            raise Exception(text)
+            raise QuantarheiError(text)
 
     def set_pulse_polarizations(
         self, pulse_polarizations: Any = (X, X, X), detection_polarization: Any = X
@@ -492,7 +493,7 @@ class LabSetup:
             text = (
                 "pulse_polarizations requires " + str(self.number_of_pulses) + " values"
             )
-            raise Exception(text)
+            raise QuantarheiError(text)
 
         self.detection_polarization = detection_polarization
 
@@ -652,7 +653,9 @@ class LabSetup:
             self.has_timedomain = True
 
         else:
-            raise Exception("Cannot convert to time domain: frequency domain not set")
+            raise QuantarheiError(
+                "Cannot convert to time domain: frequency domain not set"
+            )
 
     def convert_to_frequency(self) -> None:
         """Converts pulse information from time domain to frequency domain
@@ -726,7 +729,9 @@ class LabSetup:
             self.has_freqdomain = True
 
         else:
-            raise Exception("Cannot convert to frequency domain: time domain not set")
+            raise QuantarheiError(
+                "Cannot convert to frequency domain: time domain not set"
+            )
 
     def get_pulse_envelop(self, k: int, t: Any) -> Any:
         """Returns a numpy array with the pulse time-domain envelope
@@ -878,7 +883,7 @@ class LabSetup:
             self.omega = omega_val
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "Wrong number of frequencies: "
                 + str(self.number_of_pulses)
                 + " required"
@@ -932,7 +937,7 @@ class LabSetup:
             self.reset_pulse_shape()
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "Wrong number of arrival times: "
                 + str(self.number_of_pulses)
                 + " required"
@@ -998,7 +1003,7 @@ class LabSetup:
             self.phases = phases
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "Wrong number of phases: " + str(self.number_of_pulses) + " required"
             )
 
@@ -1081,7 +1086,7 @@ class LabSetup:
     def restore_rwa(self) -> None:
 
         if self.saved_omega is None:
-            raise Exception("RWA has to be set first")
+            raise QuantarheiError("RWA has to be set first")
 
         self.omega[:] = self.saved_omega[:]
 
@@ -1183,12 +1188,12 @@ def _fieldprop(name: str, flag: str, sign: int) -> Any:
             if cmplx_sign == 0:
                 fld = self.get_field()
                 return (fld + numpy.conj(fld)) / 2.0
-            raise Exception("Only signs of -1, 0 and 1 are allowed.")
+            raise QuantarheiError("Only signs of -1, 0 and 1 are allowed.")
         else:
-            raise Exception("The property '" + name + "' is not initialited.")
+            raise QuantarheiError("The property '" + name + "' is not initialited.")
 
     def prop_setter(self: Any, value: Any) -> None:
-        raise Exception(
+        raise QuantarheiError(
             "The property '" + name + "' is protected" + " and cannot be set."
         )
 
@@ -1530,7 +1535,7 @@ class LabField:
 
             return val
 
-        raise Exception()
+        raise QuantarheiError()
 
     def get_pulse_envelop_function(self) -> Any:
         """Return a function to be called later"""
@@ -1553,4 +1558,4 @@ class LabField:
 
             return env
 
-        raise Exception()
+        raise QuantarheiError()

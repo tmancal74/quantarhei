@@ -14,6 +14,7 @@ from typing import Any
 import numpy
 
 from ..core.managers import eigenbasis_of
+from ..exceptions import ImplementationError, QuantarheiError
 from ..qm.liouvillespace.supopunity import SOpUnity
 from ..spectroscopy import diagramatics as diag
 from .aggregate_base import AggregateBase
@@ -768,7 +769,7 @@ class AggregateSpectroscopy(AggregateBase):
                 generate_R2fE(self, lst, eUt2_dat, pop_tol, dip_tol, evf_tol, verbose)
 
             else:
-                raise Exception("Unknown pythway type: " + str(ptp))
+                raise QuantarheiError("Unknown pythway type: " + str(ptp))
 
         if lab is not None:
             for l in lst:
@@ -838,14 +839,14 @@ class AggregateSpectroscopy(AggregateBase):
             sec = True
 
         else:
-            raise Exception("Not implemented yet")
+            raise ImplementationError("Not implemented yet")
 
         lst: list[Any] = []
 
         if sec:
             generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose)
         else:
-            raise Exception("Not implemented yet")
+            raise ImplementationError("Not implemented yet")
 
         if lab is not None:
             for l in lst:
@@ -978,7 +979,7 @@ def _generate_R1g(
         #      |g_i4> <g_i4|
 
     except Exception:
-        raise Exception("Pathway generation failed")
+        raise QuantarheiError("Pathway generation failed")
 
     return lp
 
@@ -1116,7 +1117,7 @@ def generate_R1gE(
                                                     #      |g_i4> <g_i4|
 
                                                 except Exception:
-                                                    raise Exception()
+                                                    raise QuantarheiError()
                                                     break
 
                                                 lp.build()
@@ -1256,7 +1257,7 @@ def generate_R2g(
                                                     #      |g_i4> <g_i4|
 
                                                 except Exception:
-                                                    raise Exception()
+                                                    raise QuantarheiError()
                                                     break
 
                                                 lp.build()
@@ -1401,7 +1402,7 @@ def generate_R2gE(
                                                     #      |g_i4> <g_i4|
 
                                                 except Exception:
-                                                    raise Exception()
+                                                    raise QuantarheiError()
                                                     break
 
                                                 lp.build()
@@ -1516,7 +1517,9 @@ def generate_R3g(
                                         lp.set_evolution_factor(evf)
 
                                     except Exception:
-                                        raise Exception("Generation of pathway failed")
+                                        raise QuantarheiError(
+                                            "Generation of pathway failed"
+                                        )
 
                                     lp.build()
                                     lst.append(lp)
@@ -1657,7 +1660,9 @@ def generate_R1f(
     try:
         nfs = self.get_excitonic_band(band=2)
     except Exception:
-        raise Exception("Excited states not available for R1f* pathway generation")
+        raise QuantarheiError(
+            "Excited states not available for R1f* pathway generation"
+        )
 
     if verbose > 0:
         print("Liouville pathway R1f*")
@@ -1775,7 +1780,7 @@ def generate_R1f(
                                                     #      |d_i2> <d_i2|
 
                                                 except Exception:
-                                                    raise Exception(
+                                                    raise QuantarheiError(
                                                         "Construction"
                                                         "relaxation pathway failed"
                                                     )
@@ -1801,7 +1806,9 @@ def generate_R2f(
     try:
         nfs = self.get_excitonic_band(band=2)
     except Exception:
-        raise Exception("Excited states not available for R2f* pathway generation")
+        raise QuantarheiError(
+            "Excited states not available for R2f* pathway generation"
+        )
 
     if verbose > 0:
         print("Liouville pathway R2f*")
@@ -2057,7 +2064,7 @@ def generate_R1fE(
                                                     #      |g_i2> <g_i2|
 
                                                 except Exception:
-                                                    raise Exception(
+                                                    raise QuantarheiError(
                                                         "Construction"
                                                         "relaxation pathway failed"
                                                     )

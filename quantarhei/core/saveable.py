@@ -17,6 +17,7 @@ import uuid
 from tempfile import TemporaryDirectory
 from typing import IO, Any
 
+from ..exceptions import QuantarheiError
 from .parcel import Parcel, load_parcel
 
 
@@ -117,7 +118,7 @@ class Saveable:
             str40 = self._get_fname()
             fname = os.path.join(dirname, str40 + ".qrp")
             if os.path.isfile(fname):
-                raise Exception("File already exists")
+                raise QuantarheiError("File already exists")
 
         self.save(fname)
 

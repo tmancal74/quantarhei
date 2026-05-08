@@ -4,6 +4,8 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
+from ..exceptions import QuantarheiError
+
 # import os
 from .managers import Manager
 
@@ -22,7 +24,7 @@ def prevent_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:
     def wrapper(*arg: Any, **kwargs: Any) -> Any:
         m = Manager()
         if m._in_eigenbasis_of_context and m._enforce_contexts:
-            raise Exception(
+            raise QuantarheiError(
                 "This function MUST NOT be called"
                 " from within an 'eigenbasis_of' context."
             )
@@ -36,7 +38,7 @@ def enforce_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:
     def wrapper(*arg: Any, **kwargs: Any) -> Any:
         m = Manager()
         if (not m._in_eigenbasis_of_context) and m._enforce_contexts:
-            raise Exception(
+            raise QuantarheiError(
                 "This function MUST be called from within an 'eigenbasis_of' context."
             )
         return func(*arg, **kwargs)
@@ -49,7 +51,7 @@ def prevent_energy_units_context(func: Callable[..., Any]) -> Callable[..., Any]
     def wrapper(*arg: Any, **kwargs: Any) -> Any:
         m = Manager()
         if m._in_energy_units_context and m._enforce_contexts:
-            raise Exception(
+            raise QuantarheiError(
                 "This function MUST NOT be called"
                 " from within an 'energy_units' context."
             )
@@ -63,7 +65,7 @@ def enforce_energy_units_context(func: Callable[..., Any]) -> Callable[..., Any]
     def wrapper(*arg: Any, **kwargs: Any) -> Any:
         m = Manager()
         if not m._in_energy_units_context and m._enforce_contexts:
-            raise Exception(
+            raise QuantarheiError(
                 "This function MUST be called from within an 'energy_units' context."
             )
         return func(*arg, **kwargs)

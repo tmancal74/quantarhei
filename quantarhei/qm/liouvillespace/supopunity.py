@@ -13,6 +13,7 @@ from typing import Any
 import numpy
 
 from ... import REAL
+from ...exceptions import QuantarheiError
 from .superoperator import SuperOperator
 
 
@@ -82,4 +83,4 @@ class SOpUnity(SuperOperator):
                     self.data[i, j, i, j] = 1.0
 
         else:
-            raise Exception("Dimension of the superoperator has to be defined")
+            raise QuantarheiError("Dimension of the superoperator has to be defined")

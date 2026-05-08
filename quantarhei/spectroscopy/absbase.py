@@ -10,6 +10,7 @@ from ..core.frequency import FrequencyAxis
 from ..core.managers import EnergyUnitsManaged
 from ..core.units import cm2int
 from ..core.valueaxis import ValueAxis
+from ..exceptions import QuantarheiError
 
 
 class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
@@ -181,7 +182,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         if not numpy.allclose(spect.axis.data, self.axis.data):
             # numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
             # numpy.savetxt("self_data_wrong.dat", self.axis.data)
-            raise Exception("Incompatible axis")
+            raise QuantarheiError("Incompatible axis")
 
         if self.data is None:
             self.data = numpy.zeros(len(spect.data), dtype=spect.axis.data.dtype)
@@ -201,7 +202,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
     ) -> None:
         """Loads data from file into this absorption spectrum"""
         if self.axis is None:
-            raise Exception("The property `axis` has to be defined")
+            raise QuantarheiError("The property `axis` has to be defined")
         super().load_data(name, with_axis=self.axis)
 
     def plot(self, **kwargs: Any) -> None:  # type: ignore[override]

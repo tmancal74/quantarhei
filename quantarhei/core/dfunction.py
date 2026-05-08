@@ -117,6 +117,7 @@ import numpy
 import scipy.interpolate
 
 from .. import REAL
+from ..exceptions import QuantarheiError
 from .datasaveable import DataSaveable
 from .frequency import FrequencyAxis
 from .saveable import Saveable
@@ -208,12 +209,14 @@ class DFunction(Saveable, DataSaveable):
         if isinstance(x, ValueAxis):
             self.axis = x
         else:
-            raise Exception("First argument has to be of a ValueAxis type")
+            raise QuantarheiError("First argument has to be of a ValueAxis type")
 
         if isinstance(y, numpy.ndarray):
             if len(y.shape) == 1:
                 if y.shape[0] != self.axis.length:
-                    raise Exception("Wrong number of elements in 1D numpy.ndarray")
+                    raise QuantarheiError(
+                        "Wrong number of elements in 1D numpy.ndarray"
+                    )
 
                 # Set values of the function
                 self.data = y
@@ -224,12 +227,14 @@ class DFunction(Saveable, DataSaveable):
                     self._has_imag = True
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Second argument has to be one-dimensional numpy.ndarray"
                 )
 
         else:
-            raise Exception("Second argument has to be one-dimensional numpy.ndarray")
+            raise QuantarheiError(
+                "Second argument has to be one-dimensional numpy.ndarray"
+            )
 
     def _add_me(self, x: ValueAxis, y: numpy.ndarray) -> None:
         """Adds data to the DFunction"""
@@ -242,12 +247,14 @@ class DFunction(Saveable, DataSaveable):
             if isinstance(x, ValueAxis):
                 xaxis = x
             else:
-                raise Exception("First argument has to be of a ValueAxis type")
+                raise QuantarheiError("First argument has to be of a ValueAxis type")
 
             if isinstance(y, numpy.ndarray):
                 if len(y.shape) == 1:
                     if y.shape[0] != xaxis.length:
-                        raise Exception("Wrong number of elements in 1D numpy.ndarray")
+                        raise QuantarheiError(
+                            "Wrong number of elements in 1D numpy.ndarray"
+                        )
 
                     # Set values of the function
                     data = y
@@ -256,12 +263,12 @@ class DFunction(Saveable, DataSaveable):
                         self._has_imag = True
 
                 else:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Second argument has to be one-dimensional numpy.ndarray"
                     )
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Second argument has to be one-dimensional numpy.ndarray"
                 )
 
@@ -270,7 +277,7 @@ class DFunction(Saveable, DataSaveable):
                 # add data
                 self.data += data
             else:
-                raise Exception("On addition, axis objects have to be identical")
+                raise QuantarheiError("On addition, axis objects have to be identical")
 
     def change_axis(self, axis: ValueAxis) -> None:
         """Replaces the axis object with a compatible one, zero pads or trims the values
@@ -342,7 +349,7 @@ class DFunction(Saveable, DataSaveable):
             self._loc_init__(x=axis, y=ndata)
 
         else:
-            raise Exception("Incompatible axis")
+            raise QuantarheiError("Incompatible axis")
 
     def at(self, x: Any, approx: str = "default") -> Any:
         """Return the function value at argument ``x``.
@@ -395,7 +402,7 @@ class DFunction(Saveable, DataSaveable):
 
         """
         if approx not in self.allowed_interp_types:
-            raise Exception("Unknown interpolation type")
+            raise QuantarheiError("Unknown interpolation type")
 
         if approx == "default":
             if not self._splines_initialized:
@@ -517,7 +524,9 @@ class DFunction(Saveable, DataSaveable):
         if other.axis == self.axis:
             f.data += other.data
         else:
-            raise Exception("axis attribute of both functions has to be identical")
+            raise QuantarheiError(
+                "axis attribute of both functions has to be identical"
+            )
 
         return f
 
@@ -647,7 +656,9 @@ class DFunction(Saveable, DataSaveable):
                 Y = 2.0 * t.length * numpy.fft.fftshift(numpy.fft.ifft(yy)) * t.step
 
             else:
-                raise Exception("Unknown axis type (must be complete or upper-half)")
+                raise QuantarheiError(
+                    "Unknown axis type (must be complete or upper-half)"
+                )
 
             F = DFunction(w, Y)
 
@@ -670,10 +681,12 @@ class DFunction(Saveable, DataSaveable):
                 F = DFunction(t, Y)
 
             else:
-                raise Exception("Unknown axis type (must be complete or upper-half)")
+                raise QuantarheiError(
+                    "Unknown axis type (must be complete or upper-half)"
+                )
 
         else:
-            raise Exception("Function must have TimeAxis or FrequencyAxis.")
+            raise QuantarheiError("Function must have TimeAxis or FrequencyAxis.")
 
         return F
 
@@ -722,7 +735,9 @@ class DFunction(Saveable, DataSaveable):
                 Y = 2.0 * numpy.fft.fftshift(numpy.fft.fft(yy)) * t.step
 
             else:
-                raise Exception("Unknown axis type (must be complete or upper-half)")
+                raise QuantarheiError(
+                    "Unknown axis type (must be complete or upper-half)"
+                )
 
             F = DFunction(w, Y)
 
@@ -752,7 +767,9 @@ class DFunction(Saveable, DataSaveable):
                 F = DFunction(t, y)
 
             else:
-                raise Exception("Unknown axis type (must be complete or upper-half)")
+                raise QuantarheiError(
+                    "Unknown axis type (must be complete or upper-half)"
+                )
 
         else:
             pass
@@ -812,7 +829,7 @@ class DFunction(Saveable, DataSaveable):
         y = self.data
 
         if guess is None:
-            raise Exception("Guess is required at this time")
+            raise QuantarheiError("Guess is required at this time")
             # FIXME: create a reasonable guess
             # guess = [1.0, 11000.0, 300.0, 0.2,
             #          11800, 400, 0.2, 12500, 300]
@@ -1114,4 +1131,4 @@ def _n_gaussians(x: Any, *params: Any) -> Any:
         res += params[n - 1]  # last parameter is an offset
         return res
 
-    raise Exception("Inconsistend number of parameters")
+    raise QuantarheiError("Inconsistend number of parameters")

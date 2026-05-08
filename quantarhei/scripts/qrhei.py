@@ -19,6 +19,8 @@ from typing import Any
 
 import quantarhei as qr
 
+from ..exceptions import QuantarheiError
+
 # Module-level parser globals used across command functions
 parser_list: Any = None
 parser_fetch: Any = None
@@ -43,7 +45,7 @@ def do_command_run(args: Any) -> None:
             m.verbosity = int(vrbint[0])
             m.fverbosity = int(vrbint[1])
         except (TypeError, ValueError, IndexError):
-            raise Exception(
+            raise QuantarheiError(
                 "Integer or two comma separated integers required"
                 " for -y/--verbosity option"
             )

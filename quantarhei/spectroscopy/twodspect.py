@@ -40,6 +40,7 @@ from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
 from ..core.saveable import Saveable
 from ..core.valueaxis import ValueAxis
+from ..exceptions import QuantarheiError
 
 
 class TwoDSpectrum(DataSaveable, Saveable):
@@ -88,7 +89,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if dtype in self.dtypes.values():
             self.dtype = dtype
         else:
-            raise Exception("Unknown data type for TwoDSpectrum object")
+            raise QuantarheiError("Unknown data type for TwoDSpectrum object")
 
     def get_spectrum_type(self) -> Any:
 
@@ -117,7 +118,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.set_data_type(dtype)
 
         if (self.xaxis is None) or (self.yaxis is None):
-            raise Exception("Axes of the 2D spectrum are not set")
+            raise QuantarheiError("Axes of the 2D spectrum are not set")
 
         if (self.xaxis.length == data.shape[0]) and (
             self.yaxis.length == data.shape[1]
@@ -125,7 +126,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             self.data = data
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "Axes not compatible with data\n"
                 "xaxis.length = "
                 + str(self.xaxis.length)
@@ -140,7 +141,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
     def add_data(self, data: numpy.ndarray) -> None:
         """Sets the data of the 2D spectrum"""
         if self.data is None:
-            raise Exception("Data is not initialized: use set_data method.")
+            raise QuantarheiError("Data is not initialized: use set_data method.")
         self.data += data
 
     def overlay_pulses(self, lab: Any) -> None:
@@ -190,7 +191,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
     def get_value_at(self, x: float, y: float) -> Any:
         """Returns value of the spectrum at a given coordinate"""
         if self.dtype is None:
-            raise Exception("Data type not set")
+            raise QuantarheiError("Data type not set")
 
         assert self.xaxis is not None
         assert self.yaxis is not None
@@ -262,7 +263,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             elif wstep == "y":
                 dx = self.yaxis.step
             else:
-                raise Exception("Step along the cut line is not defined")
+                raise QuantarheiError("Step along the cut line is not defined")
 
         else:
             dx = step
@@ -311,7 +312,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             return numpy.amax(numpy.imag(self.data))
         if dpart == part_ABS:
             return numpy.amax(numpy.abs(self.data))
-        raise Exception("Unknown data part")
+        raise QuantarheiError("Unknown data part")
 
     def get_min_value(self, dpart: str = part_REAL) -> float:
         """Minimum value of the real part of the spectrum"""
@@ -322,7 +323,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             return numpy.min(numpy.imag(self.data))
         if dpart == part_ABS:
             return numpy.amin(numpy.abs(self.data))
-        raise Exception("Unknown data part")
+        raise QuantarheiError("Unknown data part")
 
     def get_area_integral(self, area: Any, dpart: str = part_REAL) -> Any:
         """Returns an integral of a given area in the 2D spectrum"""
@@ -360,7 +361,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if area_shape == "square":
             int_fce = integral_square
         else:
-            raise Exception("Unknown area type: " + area_shape)
+            raise QuantarheiError("Unknown area type: " + area_shape)
 
         data = self.data[nx1:nx2, ny1:ny2]
 
@@ -370,7 +371,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
         if dpart == part_ABS:
             return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
-        raise Exception("Unknown data part")
+        raise QuantarheiError("Unknown data part")
 
     def get_area_max(
         self, area: Any, dpart: str = part_REAL, loc: list | None = None
@@ -427,7 +428,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if area_shape == "square":
             int_fce = find_in_square
         else:
-            raise Exception("Unknown area type: " + area_shape)
+            raise QuantarheiError("Unknown area type: " + area_shape)
 
         data = self.data[ny1:ny2, nx1:nx2]
 
@@ -439,7 +440,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
         if dpart == part_ABS:
             return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
-        raise Exception("Unknown data part")
+        raise QuantarheiError("Unknown data part")
 
     def normalize2(
         self,
@@ -612,7 +613,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             ndata = numpy.fft.fftshift(ndata)
 
         else:
-            raise Exception("Unknown interpolation type")
+            raise QuantarheiError("Unknown interpolation type")
 
         self.data[:, :] = ndata[:, :]
 
@@ -691,7 +692,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         elif spart == part_ABS:
             spect2D = numpy.abs(spect2D)
         else:
-            raise Exception("Undefined part of the spectrum: " + spart)
+            raise QuantarheiError("Undefined part of the spectrum: " + spart)
 
         if window is not None:
             axis = window
@@ -784,13 +785,13 @@ class TwoDSpectrum(DataSaveable, Saveable):
                     ln_t = len(text_loc)
                     ln_l = len(label)
                 except TypeError:
-                    raise Exception(
+                    raise QuantarheiError(
                         "text_loc and label parameters must be"
                         " lists of the same lengths"
                     )
 
             if ln_t != ln_l:
-                raise Exception(
+                raise QuantarheiError(
                     "text_loc and label parameters have to have the"
                     " same number of members"
                 )

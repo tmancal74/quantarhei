@@ -125,6 +125,7 @@ from typing import TYPE_CHECKING
 
 import numpy
 
+from ..exceptions import QuantarheiError
 from ..utils.types import UnitsManagedReal, UnitsManagedRealArray
 from .managers import EnergyUnitsManaged, energy_units
 from .valueaxis import ValueAxis
@@ -191,7 +192,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         if atype in self.allowed_atypes:
             self.atype = atype
         else:
-            raise Exception("Unknown frequency axis type")
+            raise QuantarheiError("Unknown frequency axis type")
 
     def copy(self) -> FrequencyAxis:
         axis = FrequencyAxis(
@@ -221,7 +222,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
 
             elif self.atype == "upper-half":
                 if (self.length % 2) != 0:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Cannot create upper-half TimeAxis from an odd number of points"
                     )
 
@@ -236,7 +237,7 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
                 frequency_start = self.data[self.length // 2]
 
             else:
-                raise Exception("Unknown frequency axis type")
+                raise QuantarheiError("Unknown frequency axis type")
 
         return TimeAxis(
             start, nosteps, step, atype=self.atype, frequency_start=frequency_start

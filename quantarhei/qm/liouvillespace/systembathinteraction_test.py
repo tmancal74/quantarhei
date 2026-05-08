@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ...exceptions import QuantarheiError
 from .systembathinteraction import SystemBathInteraction
 
 
@@ -37,7 +38,7 @@ class TestSystemBathInteraction(SystemBathInteraction):
     def __init__(self, name: str | None = None) -> None:
 
         if name is None:
-            raise Exception("Name of the test must be specified")
+            raise QuantarheiError("Name of the test must be specified")
 
         from ...builders.aggregate_test import TestAggregate
         from ...qm.hilbertspace.operators import ProjectionOperator

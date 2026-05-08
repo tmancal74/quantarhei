@@ -8,6 +8,7 @@ import numpy
 from ...core.managers import BasisManaged
 from ...core.matrixdata import MatrixData
 from ...core.time import TimeAxis
+from ...exceptions import QuantarheiError
 from ...utils.types import BasisManagedComplexArray
 from ..hilbertspace.operators import DensityMatrix
 from .dmevolution import DensityMatrixEvolution
@@ -21,7 +22,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
     def __init__(self, timeaxis: Any, psii: Any) -> None:
 
         if not isinstance(timeaxis, TimeAxis):
-            raise Exception
+            raise QuantarheiError
 
         self.TimeAxis = timeaxis
         self.psi_i = psii

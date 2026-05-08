@@ -23,6 +23,7 @@ import numpy
 # quantarhei imports
 from ... import COMPLEX, REAL
 from ...core.managers import BasisManaged
+from ...exceptions import QuantarheiError
 from ...utils.types import BasisManagedComplexArray
 
 
@@ -108,10 +109,12 @@ class SuperOperator(BasisManaged):
         elif data is not None:
             self.data = data
             if len(data.shape) != 4:
-                raise Exception("The data do not represent a superoperator")
+                raise QuantarheiError("The data do not represent a superoperator")
             Nd = data.shape[0]
             if numpy.any(numpy.array(data.shape) - Nd):
-                raise Exception("`data` has to be `square` four-dimensional matrix")
+                raise QuantarheiError(
+                    "`data` has to be `square` four-dimensional matrix"
+                )
             self.dim = data.shape[0]
 
     def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:

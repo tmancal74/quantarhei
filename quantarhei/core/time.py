@@ -203,6 +203,7 @@ from __future__ import annotations
 
 import numpy
 
+from ..exceptions import QuantarheiError
 from .frequency import FrequencyAxis
 from .managers import energy_units
 from .valueaxis import ValueAxis
@@ -263,12 +264,12 @@ class TimeAxis(ValueAxis):
         if atype in self.allowed_atypes:
             self.atype = atype
         else:
-            raise Exception("Unknown time axis type")
+            raise QuantarheiError("Unknown time axis type")
 
     def shift_to_zero(self) -> None:
         """Shifts the values so that the first one is zero"""
         if self.start != self.data[0]:
-            raise Exception("Inconsistent data")
+            raise QuantarheiError("Inconsistent data")
 
         if self.start > 0.0:
             self.data[:] = self.data[:] - self.start
@@ -298,7 +299,7 @@ class TimeAxis(ValueAxis):
             time_start = self.min
 
         else:
-            raise Exception("Unknown time axis type")
+            raise QuantarheiError("Unknown time axis type")
 
         # this creation has to be protected from units management
         with energy_units("int"):

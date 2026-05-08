@@ -143,11 +143,20 @@ except _PackageNotFoundError:
 ###############################################################################
 
 #
+# Exception hierarchy
+#
+#
 # Fix used numerical types
 #
 import numpy
 
 from .core.managers import Manager
+from .exceptions import BasisError as BasisError
+from .exceptions import BuildError as BuildError
+from .exceptions import ConfigurationError as ConfigurationError
+from .exceptions import ImplementationError as ImplementationError
+from .exceptions import QuantarheiError as QuantarheiError
+from .exceptions import UnitsError as UnitsError
 
 REAL: type = numpy.float64
 COMPLEX: type = numpy.complex128
@@ -678,7 +687,7 @@ def assert_version(check: str, vno: str) -> None:
             ext()
 
     else:
-        raise Exception("Unknown comparison operator `" + check + "`")
+        raise QuantarheiError("Unknown comparison operator `" + check + "`")
 
 
 #
@@ -705,11 +714,15 @@ __all__ = [
     # Builders
     "Aggregate",
     "AnharmonicMode",
+    # Exceptions
+    "BasisError",
     # Quantum mechanics — operators
     "BasisReferenceOperator",
+    "BuildError",
     "CircDichSpectrum",
     "CircDichSpectrumCalculator",
     "CircDichSpectrumContainer",
+    "ConfigurationError",
     # Correlation functions / lineshape
     "CorrelationFunction",
     "CorrelationFunctionMatrix",
@@ -730,6 +743,7 @@ __all__ = [
     "FunctionStorage",
     "Hamiltonian",
     "HarmonicMode",
+    "ImplementationError",
     # Wizard
     "Input",
     "KTHierarchy",
@@ -764,6 +778,7 @@ __all__ = [
     "PumpProbeSpectrumCalculator",
     "PumpProbeSpectrumContainer",
     "QuTip_KTHierarchyPropagator",
+    "QuantarheiError",
     "R1f_Diagram",
     "R1g_Diagram",
     "R1g_R_Diagram",
@@ -790,6 +805,7 @@ __all__ = [
     "TwoDResponseContainer",
     "TwoDSpectrum",
     "TwoDSpectrumContainer",
+    "UnitsError",
     "UnityOperator",
     "ValueAxis",
     "VibrationalSystem",

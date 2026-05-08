@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..exceptions import QuantarheiError
 from .triangle import triangle
 
 
@@ -102,7 +103,7 @@ class unique_list:
         """Returns an element residing on a given position"""
         k = self._indices[i]
         if k == -1:
-            raise Exception("Element not set")
+            raise QuantarheiError("Element not set")
         else:
             return self._storage[k]
 
@@ -182,13 +183,13 @@ class unique_array:
     def get_element(self, i: int, j: int) -> Any:
         if ((i < self.N) and (j < self.M)) and ((i >= 0) and (j >= 0)):
             return self._storage.get_element((self.M - 1) * i + j)
-        raise Exception("Index out of range")
+        raise QuantarheiError("Index out of range")
 
     def set_element(self, i: int, j: int, obj: Any) -> None:
         if ((i < self.N) and (j < self.M)) and ((i >= 0) and (j >= 0)):
             self._storage.set_element((self.M - 1) * i + j, obj)
         else:
-            raise Exception("Index out of range")
+            raise QuantarheiError("Index out of range")
 
     def get_number_of_unique_elements(self) -> int:
         return len(self._storgage._storage)  # type: ignore[attr-defined]

@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-# import h5py
 import time
 from typing import IO, Any
 
@@ -25,6 +24,9 @@ from ..core.managers import eigenbasis_of
 from ..core.saveable import Saveable
 from ..core.time import TimeAxis
 from ..core.units import convert
+
+# import h5py
+from ..exceptions import QuantarheiError
 from ..qm.propagators.poppropagator import PopulationPropagator
 from ..utils import derived_type
 
@@ -40,7 +42,7 @@ except ImportError:
     # FIXME: There should be an optional warning and a fall back onto
     # quantarhei.implementations.aceto module
     #
-    # raise Exception("Aceto not available")
+    # raise QuantarheiError("Aceto not available")
     # from ..implementations.aceto import nr3td
     _have_aceto = False
 
@@ -112,7 +114,7 @@ class TwoDSpectrumBase(DFunction2):
             self.nonr2D = data
 
         else:
-            raise Exception("Unknow type of data: " + dtype)
+            raise QuantarheiError("Unknow type of data: " + dtype)
 
     def add_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:
         if dtype == "Tot":
@@ -131,7 +133,7 @@ class TwoDSpectrumBase(DFunction2):
             self.nonr2D += data
 
         else:
-            raise Exception("Unknow type of data: " + dtype)
+            raise QuantarheiError("Unknow type of data: " + dtype)
 
     def save(
         self, filename: str | IO[bytes], comment: str | None = None, test: bool = False
@@ -252,7 +254,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         elif stype == "non-rephasing":
             spect2D = self.nonr2D
         else:
-            raise Exception("Undefined spectrum type" + stype)
+            raise QuantarheiError("Undefined spectrum type" + stype)
 
         if spart == "real":
             spect2D = numpy.real(spect2D)
@@ -261,7 +263,7 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         elif spart == "abs":
             spect2D = numpy.abs(spect2D)
         else:
-            raise Exception("Undefined part of the spectrum: " + spart)
+            raise QuantarheiError("Undefined part of the spectrum: " + spart)
 
         if window is not None:
             axis = window
@@ -567,7 +569,7 @@ class TwoDSpectrumContainer(Saveable):
         self.keep_stypes = keep_stypes
 
         if self.keep_pathways:
-            raise Exception("Container keeping pathways not available yet")
+            raise QuantarheiError("Container keeping pathways not available yet")
 
         self.spectra: dict[Any, Any] = {}
 
@@ -581,7 +583,7 @@ class TwoDSpectrumContainer(Saveable):
         if t2 in self.t2axis.data:
             self.spectra[t2] = spect
         else:
-            raise Exception("Waiting time not compatible with the t2 axis")
+            raise QuantarheiError("Waiting time not compatible with the t2 axis")
 
     def get_spectrum(self, t2: float) -> TwoDSpectrum:
         """Returns spectrum corresponing to time t2
@@ -591,7 +593,7 @@ class TwoDSpectrumContainer(Saveable):
         """
         if t2 in self.t2axis.data:
             return self.spectra[t2]
-        raise Exception("Waiting time not compatible with the t2 axis")
+        raise QuantarheiError("Waiting time not compatible with the t2 axis")
 
     def length(self) -> int:
         return len(self.spectra.keys())
@@ -942,7 +944,7 @@ class TwoDSpectrumCalculator:
             pass
 
         else:
-            raise Exception("Molecule 2D not implememted")
+            raise QuantarheiError("Molecule 2D not implememted")
 
         agg = self.system
 
@@ -1257,10 +1259,10 @@ class TwoDSpectrumCalculator:
                     resp_r += Pf * respf_r_i[i, :, :]
 
             else:
-                raise Exception("Not enough parameters for F-2DES")
+                raise QuantarheiError("Not enough parameters for F-2DES")
 
         else:
-            raise Exception("Unknown type of 2DES")
+            raise QuantarheiError("Unknown type of 2DES")
 
         t2 = time.time()
         self._vprint("... calculated in " + str(t2 - t1) + " sec")
@@ -1381,7 +1383,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             elif pwy.pathway_type == "NR":
                 onetwod.add_data(data, dtype="Nonr")
             else:
-                raise Exception("Unknown pathway type")
+                raise QuantarheiError("Unknown pathway type")
 
         onetwod.set_t2(0.0)
 
@@ -1449,7 +1451,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     )
 
             else:
-                raise Exception("Unknown line shape: " + shape)
+                raise QuantarheiError("Unknown line shape: " + shape)
 
             return reph2D
 
@@ -1479,8 +1481,8 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
                     )
 
             else:
-                raise Exception("Unknown line shape: " + shape)
+                raise QuantarheiError("Unknown line shape: " + shape)
 
             return nonr2D
 
-        raise Exception("Unknown pathway type: " + pathway.pathway_type)
+        raise QuantarheiError("Unknown pathway type: " + pathway.pathway_type)
