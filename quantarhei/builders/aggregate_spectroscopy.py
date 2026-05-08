@@ -190,13 +190,6 @@ class AggregateSpectroscopy(AggregateBase):
                 ngs = self.get_electronic_groundstate()
                 nes = self.get_excitonic_band(band=1)
 
-                # nrg = len(ngs)
-                # nre = len(nes)
-
-                # print("Ground state : ", nrg)
-                # print("Excited state: ", nre)
-                # print("R1g: ",nrg*nre*nre*nrg)
-
                 k = 0
                 l = 0
                 for i1g in ngs:
@@ -260,13 +253,6 @@ class AggregateSpectroscopy(AggregateBase):
             if ptp == "R4g":
                 ngs = self.get_electronic_groundstate()
                 nes = self.get_excitonic_band(band=1)
-
-                # nrg = len(ngs)
-                # nre = len(nes)
-
-                # print("Ground state : ", nrg)
-                # print("Excited state: ", nre)
-                # print("R4g: ",nrg*nre*nrg*nrg*nre)
 
                 k = 0
                 l = 0
@@ -359,8 +345,6 @@ class AggregateSpectroscopy(AggregateBase):
                                     if (self.D2[i4f, i3e] < dip_tol) or (
                                         self.D2[i2e, i4f] < dip_tol
                                     ):
-                                        # print("Breaking")
-                                        # print(self.D2[i4f,i3e],self.D2[i2e,i4f])
                                         break
 
                                     l += 1
@@ -698,23 +682,6 @@ class AggregateSpectroscopy(AggregateBase):
         # data of the evolution superoperator in eigenstate basis
         #
 
-        #        try:
-        #            # either the eUt is a complete evolution superoperator
-        #            eUt2 = eUt.at(t2)
-        #            #eUt2_dat = numpy.zeros(eUt2.data.shape, dtype=eUt2.data.dtype)
-        #            #HH = eUt.get_Hamiltonian()
-        #            #with eigenbasis_of(HH):
-        #            #eUt2_dat[:,:,:,:] = eUt2.data
-        #        except:
-        #            # or it is only a super operator at a given time t2
-        #            # in this case 'ham' must be specified
-        #            eUt2 = eUt
-        ##            print(eUt.data.shape)
-        ##            print(eUt2.data.shape)
-        #            eUt2_dat = numpy.zeros(eUt2.data.shape, dtype=eUt2.data.dtype)
-        #            with eigenbasis_of(ham):
-        #                eUt2_dat[:,:,:,:] = eUt2.data
-
         try:
             # either the eUt is a complete evolution superoperator
             eUt2 = eUt.at(t2)
@@ -892,11 +859,6 @@ def generate_R1g(
                         if self.D2[i3e, i1g] > dip_tol:
                             for i2d in nes:
                                 for i3d in nes:
-                                    # evf = eUt2[i2d, i3d, i2e, i3e]
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i2d, i3d, i2e, i3e]
-                                    # else:
-                                    #    evf = eUt2.data(i2d, i3d, i2e, i3e)
                                     evf = eUt2[i2d, i3d, i2e, i3e]
 
                                     if abs(evf) > evf_tol:
@@ -1019,10 +981,6 @@ def generate_R1gE(
                         if self.D2[i3e, i1g] > dip_tol:
                             for i4g in ngs:
                                 for i5g in ngs:
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i4g, i5g, i2e, i3e]
-                                    # else:
-                                    #    evf = eUt2.data(i4g, i5g, i2e, i3e)
                                     evf = eUt2[i4g, i5g, i2e, i3e]
 
                                     if abs(evf) > evf_tol:
@@ -1122,7 +1080,6 @@ def generate_R1gE(
                                                 lp.build()
                                                 lst.append(lp)
                                                 k += 1
-    # print("R1g_ETICS included")
 
 
 def generate_R2g(
@@ -1161,16 +1118,9 @@ def generate_R2g(
                         if self.D2[i3e, i1g] > dip_tol:
                             for i3d in nes:
                                 for i2d in nes:
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i3d, i2d, i3e, i2e]
-                                    # else:
-                                    #    evf = eUt2.data(i3d, i2d, i3e, i2e)
                                     evf = eUt2[i3d, i2d, i3e, i2e]
                                     if abs(evf) > evf_tol:
                                         for i4g in ngs:
-                                            # if ((self.D2[i4g,i2d] > dip_tol)
-                                            # and (self.D2[i4g,i3d] > dip_tol)):
-
                                             if (self.D2[i4g, i2e] > dip_tol) and (
                                                 self.D2[i4g, i3e] > dip_tol
                                             ):
@@ -1300,10 +1250,6 @@ def generate_R2gE(
                         if self.D2[i3e, i1g] > dip_tol:
                             for i4g in ngs:
                                 for i5g in ngs:
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i4g, i5g, i3e, i2e]
-                                    # else:
-                                    #    evf = eUt2.data(i4g, i5g, i3e, i2e)
                                     evf = eUt2[i4g, i5g, i3e, i2e]
 
                                     if verbose > 4:
@@ -1407,7 +1353,6 @@ def generate_R2gE(
                                                 lp.build()
                                                 lst.append(lp)
                                                 k += 1
-    # print("R2g_ETICS included")
 
 
 def generate_R3g(
@@ -1426,7 +1371,6 @@ def generate_R3g(
         print("Liouville pathway R3g")
         print("Population tolerance: ", pop_tol)
         print("Dipole tolerance:     ", dip_tol)
-        # print("Evolution amplitude:  ", evf_tol)
 
     k = 0
     l = 0
@@ -1443,10 +1387,6 @@ def generate_R3g(
                 if self.D2[i2e, i1g] > dip_tol:
                     for i3g in ngs:
                         if self.D2[i3g, i2e] > dip_tol:
-                            # if isinstance(eUt2,SuperOperator):
-                            #    evf = eUt2.data[i1g, i3g, i1g, i3g]
-                            # else:
-                            #    evf = eUt2.data(i1g, i3g, i1g, i3g)
                             evf = eUt2[i1g, i3g, i1g, i3g]
 
                             for i4e in nes:
@@ -1552,18 +1492,9 @@ def generate_R4g(
                 if verbose > 1:
                     print("Excited state: ", i2e, "of", len(nes))
 
-                    # if i2e == 4:
-                    #    print("Changing verbosity to 10")
-                    #    verbose = 10
-
-                # print(self.D2[i2e,i1g], dip_tol, self.D2[i2e,i1g] > dip_tol)
                 if self.D2[i2e, i1g] > dip_tol:
                     for i3g in ngs:
                         if self.D2[i3g, i2e] > dip_tol:
-                            # if isinstance(eUt2,SuperOperator):
-                            #    evf = eUt2.data[i1g, i3g, i1g, i3g]
-                            # else:
-                            #    evf = eUt2.data(i1g, i3g, i1g, i3g)
                             evf = eUt2[i1g, i3g, i1g, i3g]
 
                             for i4e in nes:
@@ -1683,10 +1614,6 @@ def generate_R1f(
                                 )
                             for i3d in nes:
                                 for i2d in nes:
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i3d, i2d, i3e, i2e]
-                                    # else:
-                                    #    evf = eUt2.data(i3d, i2d, i3e, i2e)
                                     evf = eUt2[i3d, i2d, i3e, i2e]
 
                                     if abs(evf) > evf_tol:
@@ -1828,10 +1755,6 @@ def generate_R2f(
 
                             for i2d in nes:
                                 for i3d in nes:
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i2d, i3d, i2e, i3e]
-                                    # else:
-                                    #    evf = eUt2.data(i2d, i3d, i2e, i3e)
                                     evf = eUt2[i2d, i3d, i2e, i3e]
 
                                     if abs(evf) > evf_tol:
@@ -1965,10 +1888,6 @@ def generate_R1fE(
                                 )
                             for i3g in ngs:
                                 for i2g in ngs:
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i3g, i2g, i3e, i2e]
-                                    # else:
-                                    #    evf = eUt2.data(i3g, i2g, i3e, i2e)
                                     evf = eUt2[i3g, i2g, i3e, i2e]
 
                                     if abs(evf) > evf_tol:
@@ -2105,10 +2024,6 @@ def generate_R2fE(
 
                             for i2g in ngs:
                                 for i3g in ngs:
-                                    # if isinstance(eUt2,SuperOperator):
-                                    #    evf = eUt2.data[i2g, i3g, i2e, i3e]
-                                    # else:
-                                    #    evf = eUt2.data(i2g, i3g, i2e, i3e)
                                     evf = eUt2[i2g, i3g, i2e, i3e]
 
                                     if abs(evf) > evf_tol:

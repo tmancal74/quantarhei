@@ -2716,30 +2716,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             if n_indices == 2:
                 # convert to representation by ground-state oscillator
 
-                # # FIXME: This limitation might not be necessary
-                # # in the ground states of all monomers, there must be the same
-                # # or greater number of levels than in the excited state
-
-                # # over all monomers
-                # for k in range(self.nmono):
-                #     mono = self.monomers[k]
-                #     # over all modes
-                #     n_mod = mono.get_number_of_modes()
-                #     for i in range(n_mod):
-                #         mod = mono.get_Mode(i)
-                #         n_g = mod.get_nmax(0)
-                #         # over all excited states
-                #         # FIXME: this should be mono.Nel as in Aggregate
-                #         for j in range(mono.nel):
-                #             if (j > 0):
-                #                 n_e = mod.get_nmax(j)
-                #                 if n_e > n_g:
-                #                     raise Exception("Number of levels"+
-                #         " in the excited state of a molecule has to be \n"+
-                #         "the same or smaller than in the ground state")
-
-                # do the conversion
-
                 # loop over electronic states n, m
                 for n in range(self.Nel):
                     i_ng = -1
@@ -3298,7 +3274,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                             )
 
                 W_aux = numpy.diag(numpy.sqrt(Wd_a))
-                # W_aux = numpy.diag(numpy.sqrt(Wd_b))
                 self.Wd[N1b:N2b, N1b:N2b] = W_aux[N1b:N2b, N1b:N2b]
 
             #
@@ -3453,14 +3428,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 for diag_idx in range(N2b):
                     W_cc[diag_idx] = Wd_c[diag_idx, diag_idx]
                 W_aux = numpy.diag(numpy.sqrt(W_cc))
-                # W_aux = numpy.diag(numpy.sqrt(Wd_b))
 
                 #
                 #  Two-exciton band
                 #
                 self.Wd[N1b:N2b, N1b:N2b] = W_aux[N1b:N2b, N1b:N2b]
-
-                # raise Exception()
 
                 Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=REAL)
 
@@ -3859,8 +3831,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return DensityMatrix(data=self.rho0)
 
         raise Exception("Unknown condition type")
-        #
-        # TESTED
 
     def get_temperature(self) -> float:
         """Returns temperature associated with this aggregate
@@ -3877,8 +3847,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return 0.0
 
         return self.sbi.CC.get_temperature()
-        #
-        # TESTED
 
     def get_electronic_groundstate(self) -> tuple:
         """Indices of states in electronic ground state
