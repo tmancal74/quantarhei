@@ -33,7 +33,7 @@ class TestMolecule(Molecule):
     >>> mol = TestMolecule()
     Traceback (most recent call last):
         ...
-    Exception: TestMolecule name not specified
+    quantarhei.exceptions.QuantarheiError: TestMolecule name not specified
 
 
     Two-level molecule with one vibrational mode

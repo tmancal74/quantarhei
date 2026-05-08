@@ -110,7 +110,7 @@ class TestAggregate(Aggregate):
         >>> TestAggregate()
         Traceback (most recent call last):
             ...
-        Exception: Aggregate name not specified
+        quantarhei.exceptions.QuantarheiError: Aggregate name not specified
 
 
         """

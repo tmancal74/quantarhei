@@ -162,7 +162,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         >>> abs.add_to_data(yetanother)
         Traceback (most recent call last):
             ...
-        Exception: Incompatible axis
+        quantarhei.exceptions.QuantarheiError: Incompatible axis
 
         An empty AbsSpectrumBase can be filled by add_to_data() method
         Axis is taken from the class that we add

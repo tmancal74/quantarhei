@@ -36,7 +36,7 @@ class StateVector(BasisManaged):
     >>> psi = StateVector(data=vec)
     Traceback (most recent call last):
     ...
-    Exception: Data has to be a vector
+    quantarhei.exceptions.QuantarheiError: Data has to be a vector
 
 
 

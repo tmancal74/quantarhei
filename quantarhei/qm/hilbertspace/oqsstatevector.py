@@ -33,7 +33,7 @@ class OQSStateVector:
     >>> psi = OQSStateVector(data=vec)
     Traceback (most recent call last):
     ...
-    Exception: Data has to be a vector
+    quantarhei.exceptions.QuantarheiError: Data has to be a vector
 
 
     """

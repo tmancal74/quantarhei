@@ -73,13 +73,13 @@ class SuperOperator(BasisManaged):
     >>> So = SuperOperator(data=data)
     Traceback (most recent call last):
         ...
-    Exception: The data do not represent a superoperator
+    quantarhei.exceptions.QuantarheiError: The data do not represent a superoperator
 
     >>> data = numpy.zeros((3,1,3,2))
     >>> So = SuperOperator(data=data)
     Traceback (most recent call last):
         ...
-    Exception: `data` has to be `square` four-dimensional matrix
+    quantarhei.exceptions.QuantarheiError: `data` has to be `square` four-dimensional matrix
 
     """
 

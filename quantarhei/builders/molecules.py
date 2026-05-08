@@ -442,13 +442,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m1.set_egcf_mapping((0,1), cm, 2)
         Traceback (most recent call last):
             ...
-        Exception: Monomer has a correlation function already
+        quantarhei.exceptions.QuantarheiError: Monomer has a correlation function already
 
         >>> m1.set_egcf_mapping((0,2), cm, 2)
         >>> m1.set_egcf_mapping((0,2), cm, 2)
         Traceback (most recent call last):
             ...
-        Exception: Monomer has a correlation function already
+        quantarhei.exceptions.QuantarheiError: Monomer has a correlation function already
 
         """
         if not (self._has_egcf[self.triangle.locate(transition[0], transition[1])]):
@@ -499,7 +499,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m.set_transition_environment((0,1), cf)
         Traceback (most recent call last):
         ...
-        Exception: Correlation function already speficied for this monomer
+        quantarhei.exceptions.QuantarheiError: Correlation function already speficied for this monomer
 
 
         The environment cannot be set when the molecule is mapped on
@@ -514,7 +514,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m1.set_transition_environment((0,1), cf1)
         Traceback (most recent call last):
             ...
-        Exception: This monomer is mapped on a CorrelationFunctionMatrix
+        quantarhei.exceptions.QuantarheiError: This monomer is mapped on a CorrelationFunctionMatrix
 
 
         """
@@ -582,7 +582,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m1.unset_transition_environment((0,1))
         Traceback (most recent call last):
             ...
-        Exception: This monomer is mapped on a CorrelationFunctionMatrix
+        quantarhei.exceptions.QuantarheiError: This monomer is mapped on a CorrelationFunctionMatrix
 
 
         """
@@ -623,7 +623,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> cc = m.get_transition_environment((0,1))
         Traceback (most recent call last):
             ...
-        Exception: No environment set for the transition
+        quantarhei.exceptions.QuantarheiError: No environment set for the transition
 
 
         Environment is characterized by the bath correlation function
@@ -644,7 +644,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> cc = m.get_transition_environment((0,2))
         Traceback (most recent call last):
             ...
-        Exception: Index out of range
+        quantarhei.exceptions.QuantarheiError: Index out of range
 
 
         """
@@ -1173,7 +1173,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> print(m.get_temperature())
         Traceback (most recent call last):
         ...
-        Exception: Molecular environment has an inconsisten temperature
+        quantarhei.exceptions.QuantarheiError: Molecular environment has an inconsisten temperature
 
 
         """

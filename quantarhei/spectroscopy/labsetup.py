@@ -289,26 +289,26 @@ class LabSetup:
         >>> lab.set_pulse_shapes(time, params)
         Traceback (most recent call last):
             ...
-        Exception: Unknown pulse type
+        quantarhei.exceptions.QuantarheiError: Unknown pulse type
 
         >>> params = (pulse2, pulse2)
         >>> lab.set_pulse_shapes(time, params)
         Traceback (most recent call last):
             ...
-        Exception: set_pulses requires 3 parameter sets
+        quantarhei.exceptions.QuantarheiError: set_pulses requires 3 parameter sets
 
 
         >>> params = (pulse2, pulse2)
         >>> lab.set_pulse_shapes(time.data, params)
         Traceback (most recent call last):
             ...
-        Exception: Wrong axis paramater
+        quantarhei.exceptions.QuantarheiError: Wrong axis paramater
 
         >>> time = qr.TimeAxis(0.0, 1000, 1.0)
         >>> lab.set_pulse_shapes(time, params)
         Traceback (most recent call last):
             ...
-        Exception: TimeAxis has to be of 'complete' type use atype='complete' as a parameter of TimeAxis
+        quantarhei.exceptions.QuantarheiError: TimeAxis has to be of 'complete' type use atype='complete' as a parameter of TimeAxis
 
 
         """
@@ -471,7 +471,7 @@ class LabSetup:
         ...                                            qr.utils.vectors.Y))
         Traceback (most recent call last):
             ...
-        Exception: pulse_polarizations requires 3 values
+        quantarhei.exceptions.QuantarheiError: pulse_polarizations requires 3 values
 
         """
         if len(pulse_polarizations) == self.number_of_pulses:
@@ -630,7 +630,7 @@ class LabSetup:
         >>> lab.convert_to_time()
         Traceback (most recent call last):
             ...
-        Exception: Cannot convert to time domain: frequency domain not set
+        quantarhei.exceptions.QuantarheiError: Cannot convert to time domain: frequency domain not set
 
 
         """
@@ -706,7 +706,7 @@ class LabSetup:
         >>> lab.convert_to_frequency()
         Traceback (most recent call last):
             ...
-        Exception: Cannot convert to frequency domain: time domain not set
+        quantarhei.exceptions.QuantarheiError: Cannot convert to frequency domain: time domain not set
 
 
         """
@@ -872,7 +872,7 @@ class LabSetup:
         >>> lab.set_pulse_frequencies([1.0, 2.0, 1.0, 6.0])
         Traceback (most recent call last):
             ...
-        Exception: Wrong number of frequencies: 3 required
+        quantarhei.exceptions.QuantarheiError: Wrong number of frequencies: 3 required
 
         """
         # FIXME: energy unit control has to be in place
@@ -928,7 +928,7 @@ class LabSetup:
         >>> lab.set_pulse_arrival_times([1.0, 2.0, 1.0, 6.0])
         Traceback (most recent call last):
             ...
-        Exception: Wrong number of arrival times: 3 required
+        quantarhei.exceptions.QuantarheiError: Wrong number of arrival times: 3 required
 
         """
         if len(times) == self.number_of_pulses:
@@ -996,7 +996,7 @@ class LabSetup:
         >>> lab.set_pulse_phases([1.0, 2.0, 1.0, 6.0])
         Traceback (most recent call last):
             ...
-        Exception: Wrong number of phases: 3 required
+        quantarhei.exceptions.QuantarheiError: Wrong number of phases: 3 required
 
         """
         if len(phases) == self.number_of_pulses:
@@ -1252,14 +1252,14 @@ class LabField:
     >>> print(lf.field)
     Traceback (most recent call last):
         ...
-    Exception: The property 'field' is not initialited.
+    quantarhei.exceptions.QuantarheiError: The property 'field' is not initialited.
 
     Nor it can be set
 
     >>> lf.field = 10.0
     Traceback (most recent call last):
         ...
-    Exception: The property 'field' is protected and cannot be set.
+    quantarhei.exceptions.QuantarheiError: The property 'field' is protected and cannot be set.
 
     The LabField properties will be initialited through the LabSetup object.
     The only rule to follow is that arrival times of the pulses have to be
@@ -1381,7 +1381,7 @@ class LabField:
     >>> lf.field = 10.0
     Traceback (most recent call last):
         ...
-    Exception: The property 'field' is protected and cannot be set.
+    quantarhei.exceptions.QuantarheiError: The property 'field' is protected and cannot be set.
 
     """
 

@@ -97,7 +97,7 @@ Only "linear" and "spline" approximations are available
 >>> fval = fi.at(11.2, approx="quadratic")
 Traceback (most recent call last):
 ...
-Exception: Unknown interpolation type
+quantarhei.exceptions.QuantarheiError: Unknown interpolation type
 
 
 Class Details
@@ -150,7 +150,7 @@ class DFunction(Saveable, DataSaveable):
     >>> f = DFunction(x=x1, y=y1)
     Traceback (most recent call last):
         ...
-    Exception: First argument has to be of a ValueAxis type
+    quantarhei.exceptions.QuantarheiError: First argument has to be of a ValueAxis type
 
     Second argument must by a numpy array
 
@@ -159,7 +159,7 @@ class DFunction(Saveable, DataSaveable):
     >>> f = DFunction(x=x1, y=y1)
     Traceback (most recent call last):
         ...
-    Exception: Second argument has to be one-dimensional numpy.ndarray
+    quantarhei.exceptions.QuantarheiError: Second argument has to be one-dimensional numpy.ndarray
 
     The two arguments have to have the same size (number of elements)
 
@@ -168,14 +168,14 @@ class DFunction(Saveable, DataSaveable):
     >>> f = DFunction(x=x1, y=y1)
     Traceback (most recent call last):
         ...
-    Exception: Wrong number of elements in 1D numpy.ndarray
+    quantarhei.exceptions.QuantarheiError: Wrong number of elements in 1D numpy.ndarray
 
     >>> x1 = ValueAxis(0.0, 2, 1.0)
     >>> y1 = numpy.array([[0.0, 12.0, 24.0], [36.0, 48.0, 60.0]], dtype=REAL)
     >>> f = DFunction(x=x1, y=y1)
     Traceback (most recent call last):
         ...
-    Exception: Second argument has to be one-dimensional numpy.ndarray
+    quantarhei.exceptions.QuantarheiError: Second argument has to be one-dimensional numpy.ndarray
 
 
     """
@@ -301,7 +301,7 @@ class DFunction(Saveable, DataSaveable):
         >>> print("%.4f" % fce.at(914.0))
         Traceback (most recent call last):
             ...
-        Exception: Value out of bounds
+        quantarhei.exceptions.QuantarheiError: Value out of bounds
 
         >>> print("%.4f" % fce.at(814.0))
         -0.6937
@@ -320,7 +320,7 @@ class DFunction(Saveable, DataSaveable):
         >>> fce.change_axis(time4)
         Traceback (most recent call last):
             ...
-        Exception: Incompatible axis
+        quantarhei.exceptions.QuantarheiError: Incompatible axis
 
 
         """
@@ -516,7 +516,7 @@ class DFunction(Saveable, DataSaveable):
         >>> f = f1 + f2
         Traceback (most recent call last):
             ...
-        Exception: axis attribute of both functions has to be identical
+        quantarhei.exceptions.QuantarheiError: axis attribute of both functions has to be identical
 
         """
         f = DFunction(self.axis, self.data.copy())
@@ -621,7 +621,7 @@ class DFunction(Saveable, DataSaveable):
         >>> F = f.get_Fourier_transform()
         Traceback (most recent call last):
             ...
-        Exception: Unknown time axis type
+        quantarhei.exceptions.QuantarheiError: Unknown time axis type
 
 
         """

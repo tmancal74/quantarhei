@@ -38,7 +38,7 @@ class SOpUnity(SuperOperator):
     >>> empty = SOpUnity()
     Traceback (most recent call last):
         ...
-    Exception: Dimension of the superoperator has to be defined
+    quantarhei.exceptions.QuantarheiError: Dimension of the superoperator has to be defined
 
     Creating unity superoperator of defined dimensions
 

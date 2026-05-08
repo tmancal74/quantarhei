@@ -832,7 +832,7 @@ class TwoDResponseBase(DataSaveable):
         >>> spect1.set_resolution("signals")
         Traceback (most recent call last):
             ...
-        Exception: Cannot convert resolution for level 2 to level 1
+        quantarhei.exceptions.QuantarheiError: Cannot convert resolution for level 2 to level 1
 
         >>> spect2.set_resolution("signals")
         >>> spect2.storage_resolution
@@ -843,7 +843,7 @@ class TwoDResponseBase(DataSaveable):
         >>> spect1.set_resolution("types")
         Traceback (most recent call last):
             ...
-        Exception: Cannot convert from lower to higher resolution
+        quantarhei.exceptions.QuantarheiError: Cannot convert from lower to higher resolution
 
         From "signals" and "types" you can convert to no resolution, i.e.
         to total spectrum where storage resolution is 'off'

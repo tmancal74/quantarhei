@@ -33,7 +33,7 @@ Examples
 >>> pd = PureDephasing(drates=d_rates, system=agg)
 Traceback (most recent call last):
 ...
-Exception: Incompatible dimension of the rate matrix: system has dimension = 3
+quantarhei.exceptions.QuantarheiError: Incompatible dimension of the rate matrix: system has dimension = 3
 
 
 >>> d_rates = [[0.0, 0.0, 0.0],[0.0, 0.0, 1.0/100.0], [0.0, 0.0, 0.0]]
@@ -48,12 +48,12 @@ True
 >>> pd = PureDephasing(system=agg)
 Traceback (most recent call last):
 ...
-Exception: Dephasing rates must be specified.
+quantarhei.exceptions.QuantarheiError: Dephasing rates must be specified.
 
 >>> pd = PureDephasing(drates=d_rates, system=1.0)
 Traceback (most recent call last):
 ...
-Exception: Non-Aggregate systems not implemented yet.
+quantarhei.exceptions.ImplementationError: Non-Aggregate systems not implemented yet.
 
 >>> pd = PureDephasing(drates=d_rates, system=agg)
 >>> HH = agg.get_Hamiltonian()
@@ -65,7 +65,7 @@ True
 >>> pd.eigenbasis = None
 Traceback (most recent call last):
 ...
-Exception: The property 'eigenbasis' is protected and cannot be set.
+quantarhei.exceptions.BasisError: The property 'eigenbasis' is protected and cannot be set.
 
 """
 

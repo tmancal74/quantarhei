@@ -101,7 +101,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         ...                                     [0.0, 1.0]],[0,1,2,3,4,5])
         Traceback (most recent call last):
             ...
-        Exception: TimeAxis expected here.
+        quantarhei.exceptions.QuantarheiError: TimeAxis expected here.
 
         The correct construction requires proper types:
 
@@ -310,7 +310,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         >>> rhot = pr.propagate(initial_dm)
         Traceback (most recent call last):
             ...
-        Exception: First argument has be of the ReducedDensityMatrix type
+        quantarhei.exceptions.QuantarheiError: First argument has be of the ReducedDensityMatrix type
         """
         if Nref > 1:
             self.setDtRefinement(Nref)

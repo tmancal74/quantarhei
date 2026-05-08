@@ -45,7 +45,7 @@ class unique_list:
     >>> c = A.get_element(2)
     Traceback (most recent call last):
         ...
-    Exception: Element not set
+    quantarhei.exceptions.QuantarheiError: Element not set
 
 
     Setting an element in an empty list raises an Exception

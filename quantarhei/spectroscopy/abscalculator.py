@@ -60,7 +60,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
     >>> abs = absc.calculate()
     Traceback (most recent call last):
         ...
-    Exception: Calculator must be bootstrapped first: call bootstrap() method of this object.
+    quantarhei.exceptions.QuantarheiError: Calculator must be bootstrapped first: call bootstrap() method of this object.
 
 
     Molecule does not provide RWA information automatically
@@ -166,7 +166,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         >>> absc.bootstrap()
         Traceback (most recent call last):
             ...
-        Exception: RWA not set by system nor explicitely.
+        quantarhei.exceptions.QuantarheiError: RWA not set by system nor explicitely.
         """
         self.prop = prop
 

@@ -31,7 +31,7 @@ class TestSystemBathInteraction(SystemBathInteraction):
     >>> tsbi = TestSystemBathInteraction()
     Traceback (most recent call last):
         ...
-    Exception: Name of the test must be specified
+    quantarhei.exceptions.QuantarheiError: Name of the test must be specified
 
     """
 

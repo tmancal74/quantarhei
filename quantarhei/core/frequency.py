@@ -38,7 +38,7 @@ points is `2*N`, where `N` is an integer.
 >>> ta = wa.get_TimeAxis()
 Traceback (most recent call last):
 ...
-Exception: Cannot create upper-half TimeAxis from an odd number of points
+quantarhei.exceptions.QuantarheiError: Cannot create upper-half TimeAxis from an odd number of points
 
 
 Relation between TimeAxis and FrequencyAxis

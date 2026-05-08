@@ -88,7 +88,7 @@ The following with throw an Exception
 >>> ta = TimeAxis(0.0,100,1.0,atype="lower-half")
 Traceback (most recent call last):
 ...
-Exception: Unknown time axis type
+quantarhei.exceptions.QuantarheiError: Unknown time axis type
 
 
 Relation between TimeAxis and FrequencyAxis
