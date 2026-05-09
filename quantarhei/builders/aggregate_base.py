@@ -3583,7 +3583,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self,
         temperature: float,
         relaxation_theory_limit: str,
-        relaxation_hamiltonian: Any,
+        relaxation_hamiltonian: Hamiltonian | None,
         start: int,
         n_states: int,
     ) -> numpy.ndarray:
@@ -3697,9 +3697,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         condition_type: str | None = None,
         relaxation_theory_limit: str = "weak_coupling",
         temperature: float | None = None,
-        relaxation_hamiltonian: Any = None,
+        relaxation_hamiltonian: Hamiltonian | None = None,
         DD: numpy.ndarray | None = None,
-    ) -> Any:
+    ) -> DensityMatrix:
         """Returns density matrix according to specified condition
 
         Returs density matrix to be used e.g. as initial condition for
