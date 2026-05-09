@@ -266,6 +266,163 @@ class AggregateSpectroscopy(AggregateBase):
         return lst
 
 
+# ---------------------------------------------------------------------------
+# Data-driven pathway generation (incremental refactoring of #366)
+# ---------------------------------------------------------------------------
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class _Transition:
+    idx_fn: Any  # callable(locals_dict) -> (state_a, state_b)
+    side: int
+    interval: int | None = None
+    width_fn: Any | None = (
+        None  # callable(locals_dict) -> (state_a, state_b) for lineshape
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _GroundExcitedPathwayDesc:
+    rtype: str
+    pname: str
+    evf_fn: Any  # callable(i1g, i3g) -> tuple for eUt2 indexing
+    inner_dip_check: Any  # callable(self, i4e, locals) -> bool
+    width1_fn: Any  # callable(locals) -> (a, b)
+    width3_fn: Any  # callable(locals) -> (a, b)
+    transitions: tuple  # tuple of (idx_fn, side, interval_or_None)
+
+
+_R3G_DESC = _GroundExcitedPathwayDesc(
+    rtype="R",
+    pname="R3g",
+    evf_fn=lambda i1g, i3g: (i1g, i3g, i1g, i3g),
+    inner_dip_check=lambda self, i4e, i1g, i3g, dip_tol: (
+        self.D2[i4e, i1g] > dip_tol and self.D2[i3g, i4e] > dip_tol
+    ),
+    width1_fn=lambda i2e, i1g, **_: (i2e, i1g),
+    width3_fn=lambda i4e, i3g, **_: (i4e, i3g),
+    transitions=(
+        # (idx_fn returning (a,b), side, interval)
+        (lambda i2e, i1g, **_: (i2e, i1g), -1, 1),
+        (lambda i3g, i2e, **_: (i3g, i2e), -1, None),
+        (lambda i4e, i1g, **_: (i4e, i1g), +1, None),
+        (lambda i3g, i4e, **_: (i3g, i4e), +1, 3),
+    ),
+)
+
+_R4G_DESC = _GroundExcitedPathwayDesc(
+    rtype="NR",
+    pname="R4g",
+    evf_fn=lambda i1g, i3g: (i1g, i3g, i1g, i3g),
+    inner_dip_check=lambda self, i4e, i1g, i3g, dip_tol: (
+        self.D2[i4e, i3g] > dip_tol and self.D2[i1g, i4e] > dip_tol
+    ),
+    width1_fn=lambda i2e, i1g, **_: (i2e, i1g),
+    width3_fn=lambda i4e, i1g, **_: (i4e, i1g),
+    transitions=(
+        (lambda i2e, i1g, **_: (i2e, i1g), +1, 1),
+        (lambda i3g, i2e, **_: (i3g, i2e), +1, None),
+        (lambda i4e, i3g, **_: (i4e, i3g), +1, None),
+        (lambda i1g, i4e, **_: (i1g, i4e), +1, 3),
+    ),
+)
+
+
+def _generate_ground_excited_pathway(
+    self: Any,
+    desc: _GroundExcitedPathwayDesc,
+    lst: list,
+    eUt2: numpy.ndarray,
+    pop_tol: float,
+    dip_tol: float,
+    verbose: int = 0,
+) -> None:
+    ngs = self.get_electronic_groundstate()
+    nes = self.get_excitonic_band(band=1)
+
+    if verbose > 0:
+        print(f"Liouville pathway {desc.pname}")
+        print("Population tolerance: ", pop_tol)
+        print("Dipole tolerance:     ", dip_tol)
+
+    for i1g in ngs:
+        if verbose > 0:
+            print("Ground state: ", i1g, "of", len(ngs))
+
+        if self.rho0[i1g, i1g] > pop_tol:
+            for i2e in nes:
+                if verbose > 1:
+                    print("Excited state: ", i2e, "of", len(nes))
+
+                if self.D2[i2e, i1g] > dip_tol:
+                    for i3g in ngs:
+                        if self.D2[i3g, i2e] > dip_tol:
+                            evf_idx = desc.evf_fn(i1g, i3g)
+                            evf = eUt2[evf_idx]
+
+                            for i4e in nes:
+                                if desc.inner_dip_check(self, i4e, i1g, i3g, dip_tol):
+                                    try:
+                                        if verbose > 5:
+                                            print(
+                                                f" * Generating {desc.pname}",
+                                                i1g,
+                                                i2e,
+                                            )
+
+                                        lp = diag.liouville_pathway(
+                                            desc.rtype,
+                                            i1g,
+                                            aggregate=self,
+                                            order=3,
+                                            pname=desc.pname,
+                                        )
+
+                                        w1_pair = desc.width1_fn(
+                                            i2e=i2e, i1g=i1g, i3g=i3g, i4e=i4e
+                                        )
+                                        width1 = self.get_transition_width(w1_pair)
+                                        deph1 = self.get_transition_dephasing(w1_pair)
+
+                                        w3_pair = desc.width3_fn(
+                                            i2e=i2e, i1g=i1g, i3g=i3g, i4e=i4e
+                                        )
+                                        width3 = self.get_transition_width(w3_pair)
+                                        deph3 = self.get_transition_dephasing(w3_pair)
+
+                                        kw = dict(i1g=i1g, i2e=i2e, i3g=i3g, i4e=i4e)
+                                        for i, (idx_fn, side, interval) in enumerate(
+                                            desc.transitions
+                                        ):
+                                            pair = idx_fn(**kw)
+                                            kwargs: dict[str, Any] = {}
+                                            if interval == 1:
+                                                kwargs.update(
+                                                    interval=1,
+                                                    width=width1,
+                                                    deph=deph1,
+                                                )
+                                            elif interval == 3:
+                                                kwargs.update(
+                                                    interval=3,
+                                                    width=width3,
+                                                    deph=deph3,
+                                                )
+                                            lp.add_transition(pair, side, **kwargs)
+
+                                        lp.set_evolution_factor(evf)
+
+                                    except Exception:
+                                        raise Exception(
+                                            f"Generation of {desc.pname} pathway failed"
+                                        )
+
+                                    lp.build()
+                                    lst.append(lp)
+
+
 def generate_R1g(
     self: Any,
     lst: list,
@@ -808,106 +965,9 @@ def generate_R3g(
     dip_tol: float,
     verbose: int = 0,
 ) -> None:
-
-    ngs = self.get_electronic_groundstate()
-    nes = self.get_excitonic_band(band=1)
-
-    if verbose > 0:
-        print("Liouville pathway R3g")
-        print("Population tolerance: ", pop_tol)
-        print("Dipole tolerance:     ", dip_tol)
-
-    k = 0
-    l = 0
-    for i1g in ngs:
-        if verbose > 0:
-            print("Ground state: ", i1g, "of", len(ngs))
-
-        # Only thermally allowed starting states are considered
-        if self.rho0[i1g, i1g] > pop_tol:
-            for i2e in nes:
-                if verbose > 1:
-                    print("Excited state: ", i2e, "of", len(nes))
-
-                if self.D2[i2e, i1g] > dip_tol:
-                    for i3g in ngs:
-                        if self.D2[i3g, i2e] > dip_tol:
-                            evf = eUt2[i1g, i3g, i1g, i3g]
-
-                            for i4e in nes:
-                                if (self.D2[i4e, i1g] > dip_tol) and (
-                                    self.D2[i3g, i4e] > dip_tol
-                                ):
-                                    l += 1
-
-                                    #      Diagram R3g
-                                    #
-                                    #
-                                    #      |g_i3> <g_i3|
-                                    # <----|-----------|
-                                    #      |e_i4> <g_i3|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i3|
-                                    #      |-----------|---->
-                                    #      |g_i1> <e_i2|
-                                    #      |-----------|<----
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        if verbose > 5:
-                                            print(" * Generating R3g", i1g, i2e)
-
-                                        lp = diag.liouville_pathway(
-                                            "R",
-                                            i1g,
-                                            aggregate=self,
-                                            order=3,
-                                            pname="R3g",
-                                        )
-
-                                        # first transition lineshape
-                                        width1 = self.get_transition_width((i2e, i1g))
-                                        deph1 = self.get_transition_dephasing(
-                                            (i2e, i1g)
-                                        )
-                                        # third transition lineshape
-                                        width3 = self.get_transition_width((i4e, i3g))
-                                        deph3 = self.get_transition_dephasing(
-                                            (i4e, i3g)
-                                        )
-
-                                        # |g_i1> <g_i1|
-                                        lp.add_transition(
-                                            (i2e, i1g),
-                                            -1,
-                                            interval=1,
-                                            width=width1,
-                                            deph=deph1,
-                                        )
-                                        # |g_i1> <e_i2|
-                                        lp.add_transition((i3g, i2e), -1)
-                                        # |g_i1> <g_i3|
-                                        lp.add_transition((i4e, i1g), +1)
-                                        # |e_i5> <g_i3|
-                                        lp.add_transition(
-                                            (i3g, i4e),
-                                            +1,
-                                            interval=3,
-                                            width=width3,
-                                            deph=deph3,
-                                        )
-                                        # |g_i3> <g_i3|
-
-                                        lp.set_evolution_factor(evf)
-
-                                    except Exception:
-                                        raise QuantarheiError(
-                                            "Generation of pathway failed"
-                                        )
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
+    _generate_ground_excited_pathway(
+        self, _R3G_DESC, lst, eUt2, pop_tol, dip_tol, verbose
+    )
 
 
 def generate_R4g(
@@ -918,106 +978,9 @@ def generate_R4g(
     dip_tol: float,
     verbose: int = 0,
 ) -> None:
-
-    ngs = self.get_electronic_groundstate()
-    nes = self.get_excitonic_band(band=1)
-
-    if verbose > 0:
-        print("Liouville pathway R4g")
-        print("Population tolerance: ", pop_tol)
-        print("Dipole tolerance:     ", dip_tol)
-
-    k = 0
-    l = 0
-    for i1g in ngs:
-        if verbose > 0:
-            print("Ground state: ", i1g, "of", len(ngs))
-
-        # Only thermally allowed starting states are considered
-        if self.rho0[i1g, i1g] > pop_tol:
-            for i2e in nes:
-                if verbose > 1:
-                    print("Excited state: ", i2e, "of", len(nes))
-
-                if self.D2[i2e, i1g] > dip_tol:
-                    for i3g in ngs:
-                        if self.D2[i3g, i2e] > dip_tol:
-                            evf = eUt2[i1g, i3g, i1g, i3g]
-
-                            for i4e in nes:
-                                if (self.D2[i4e, i3g] > dip_tol) and (
-                                    self.D2[i1g, i4e] > dip_tol
-                                ):
-                                    l += 1
-
-                                    #      Diagram R4g
-                                    #
-                                    #
-                                    #      |g_i1> <g_i1|
-                                    # <----|-----------|
-                                    #      |e_i4> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i3> <g_i1|
-                                    # <----|-----------|
-                                    #      |e_i2> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        if verbose > 5:
-                                            print(" * Generating R4g", i1g, i2e)
-                                        lp = diag.liouville_pathway(
-                                            "NR",
-                                            i1g,
-                                            aggregate=self,
-                                            order=3,
-                                            pname="R4g",
-                                        )
-
-                                        # first transition lineshape
-                                        width1 = self.get_transition_width((i2e, i1g))
-                                        deph1 = self.get_transition_dephasing(
-                                            (i2e, i1g)
-                                        )
-                                        # third transition lineshape
-                                        width3 = self.get_transition_width((i4e, i1g))
-                                        deph3 = self.get_transition_dephasing(
-                                            (i4e, i1g)
-                                        )
-
-                                        #      |g_i1> <g_i1|
-                                        lp.add_transition(
-                                            (i2e, i1g),
-                                            +1,
-                                            interval=1,
-                                            width=width1,
-                                            deph=deph1,
-                                        )
-                                        #      |e_i2> <g_i1|
-                                        lp.add_transition((i3g, i2e), +1)
-                                        #      |g_i3> <g_i1|
-                                        lp.add_transition((i4e, i3g), +1)
-                                        #      |e_i4> <g_i1|
-                                        lp.add_transition(
-                                            (i1g, i4e),
-                                            +1,
-                                            interval=3,
-                                            width=width3,
-                                            deph=deph3,
-                                        )
-                                        #      |g_i1> <g_i1|
-
-                                        lp.set_evolution_factor(evf)
-
-                                    except Exception:
-                                        break
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-                # if verbose == 10:
-                #    print("////")
-                #    qr.stop()
+    _generate_ground_excited_pathway(
+        self, _R4G_DESC, lst, eUt2, pop_tol, dip_tol, verbose
+    )
 
 
 def generate_R1f(
