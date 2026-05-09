@@ -2628,12 +2628,37 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     ###########################################################################
 
     def _allocate_converted_operator(
-        self, operator: Any, dim: int, Nt: int | None = None, allow_tdm: bool = False
-    ) -> tuple:
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        dim: int,
+        Nt: int | None = None,
+        allow_tdm: bool = False,
+    ) -> tuple[
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution,
+        int,
+        bool,
+        bool,
+    ]:
         n_indices = 2
         evolution = False
         whole = False
-        nop: Any = None
+        nop: (
+            ReducedDensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+            | None
+        ) = None
 
         if isinstance(operator, (ReducedDensityMatrix, DensityMatrix)):
             nop = ReducedDensityMatrix(dim=dim)
@@ -2662,7 +2687,23 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return nop, n_indices, evolution, whole
 
-    def convert_to_ground_vibbasis(self, operator: Any, Nt: int | None = None) -> Any:
+    def convert_to_ground_vibbasis(
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        Nt: int | None = None,
+    ) -> (
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution
+    ):
         """Converts an operator to a ground state vibrational basis repre
 
         Default representation in Quantarhei is that with a specific shifted
@@ -2787,7 +2828,24 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             raise Exception("Incompatible operator")
 
-    def trace_converted(self, operator: Any, Nt: int | None = None) -> Any:
+        raise Exception("Incompatible operator dimension")
+
+    def trace_converted(
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        Nt: int | None = None,
+    ) -> (
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution
+    ):
 
         if operator.dim == self.Ntot:
             nop, n_indices, evolution, whole = self._allocate_converted_operator(
@@ -2809,7 +2867,24 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             raise Exception("Incompatible operator")
 
-    def trace_over_vibrations(self, operator: Any, Nt: int | None = None) -> Any:
+        raise Exception("Incompatible operator dimension")
+
+    def trace_over_vibrations(
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        Nt: int | None = None,
+    ) -> (
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution
+    ):
         """Average an operator over vibrational degrees of freedom
 
         Average MUST be done in site basis. Only in site basis
