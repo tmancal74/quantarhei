@@ -3034,7 +3034,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     def _accumulate_site_reorg(
         self,
         reorg_site: numpy.ndarray,
-        cfm: Any,
+        cfm: CorrelationFunctionMatrix,
         band: int,
         subtract_bath: bool,
     ) -> None:
