@@ -9,6 +9,7 @@ Class Details
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy
@@ -274,24 +275,14 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class _Transition:
-    idx_fn: Any  # callable(locals_dict) -> (state_a, state_b)
-    side: int
-    interval: int | None = None
-    width_fn: Any | None = (
-        None  # callable(locals_dict) -> (state_a, state_b) for lineshape
-    )
-
-
-@dataclass(frozen=True, slots=True)
 class _GroundExcitedPathwayDesc:
     rtype: str
     pname: str
-    evf_fn: Any  # callable(i1g, i3g) -> tuple for eUt2 indexing
-    inner_dip_check: Any  # callable(self, i4e, locals) -> bool
-    width1_fn: Any  # callable(locals) -> (a, b)
-    width3_fn: Any  # callable(locals) -> (a, b)
-    transitions: tuple  # tuple of (idx_fn, side, interval_or_None)
+    evf_fn: Callable[[int, int], tuple[int, int, int, int]]
+    inner_dip_check: Callable[..., bool]
+    width1_fn: Callable[..., tuple[int, int]]
+    width3_fn: Callable[..., tuple[int, int]]
+    transitions: tuple[tuple[Callable[..., tuple[int, int]], int, int | None], ...]
 
 
 _R3G_DESC = _GroundExcitedPathwayDesc(
@@ -331,7 +322,7 @@ _R4G_DESC = _GroundExcitedPathwayDesc(
 
 
 def _generate_ground_excited_pathway(
-    self: Any,
+    self: AggregateSpectroscopy,
     desc: _GroundExcitedPathwayDesc,
     lst: list,
     eUt2: numpy.ndarray,
@@ -958,7 +949,7 @@ def generate_R2gE(
 
 
 def generate_R3g(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -971,7 +962,7 @@ def generate_R3g(
 
 
 def generate_R4g(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
