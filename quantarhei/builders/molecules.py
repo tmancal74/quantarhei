@@ -2395,7 +2395,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         Returns
         -------
-        lst : list
+        pathways : list
             List of LiouvillePathway objects
 
 
@@ -2407,74 +2407,60 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             if verbose > 0:
                 print("..done")
 
-        pop_tol = ptol
-        dip_tol = numpy.sqrt(self.D2_max) * dtol
-        evf_tol = etol
+        population_tol = ptol
+        dipole_tol = numpy.sqrt(self.D2_max) * dtol
 
         if eUt is None:
-            # secular absorption spectrum calculation
-            eUt2_dat = None
             sec = True
-
         else:
             raise ImplementationError("Not implemented yet")
 
-        lst: list[Any] = []
+        pathways: list[Any] = []
 
         if sec:
-            generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose)
+            generate_1orderP_sec(self, pathways, population_tol, dipole_tol, verbose)
         else:
             raise ImplementationError("Not implemented yet")
 
         if lab is not None:
-            for l in lst:
-                l.orientational_averaging(lab)
+            for pw in pathways:
+                pw.orientational_averaging(lab)
 
-        return lst
+        return pathways
 
 
 def generate_1orderP_sec(
-    self: Any, lst: list, pop_tol: float, dip_tol: float, verbose: int
+    self: Any,
+    pathways: list,
+    population_tol: float,
+    dipole_tol: float,
+    verbose: int,
 ) -> None:
     from ..spectroscopy import diagramatics as diag
 
-    ngs: Any = [0]  # self.get_electronic_groundstate()
-    nes: Any = [1]  # self.get_excitonic_band(band=1)
+    ground_states: Any = [0]  # self.get_electronic_groundstate()
+    excited_states: Any = [1]  # self.get_excitonic_band(band=1)
 
     if verbose > 0:
         print("Liouville pathway of first order")
-        print("Population tolerance: ", pop_tol)
-        print("Dipole tolerance:     ", dip_tol)
+        print("Population tolerance: ", population_tol)
+        print("Dipole tolerance:     ", dipole_tol)
 
-    k = 0
-    l = 0
-    for i1g in ngs:
+    for ground in ground_states:
         if verbose > 0:
-            print("Ground state: ", i1g, "of", len(ngs))
+            print("Ground state: ", ground, "of", len(ground_states))
 
-        # Only thermally allowed starting states are considered
         D2 = numpy.dot(self.dmoments[0, 1, :], self.dmoments[0, 1, :])
-        for i2e in nes:
-            if D2 > dip_tol:  # self.D2[i2e,i1g] > dip_tol:
-                l += 1
-
-                #      Diagram P1
-                #
-                #
-                #      |g_i1> <g_i1|
-                # <----|-----------|
-                #      |e_i2> <g_i1|
-                # ---->|-----------|
-                #      |g_i1> <g_i1|
-
+        for exc_ket in excited_states:
+            if D2 > dipole_tol:
                 try:
                     if verbose > 5:
-                        print(" * Generating P1", i1g, i2e)
+                        print(" * Generating P1", ground, exc_ket)
 
                     # FIXME: what should be here???
-                    lp = diag.liouville_pathway(
+                    pathway = diag.liouville_pathway(
                         "NR",
-                        i1g,
+                        ground,
                         aggregate=self,
                         order=1,
                         pname="P1",
@@ -2482,26 +2468,21 @@ def generate_1orderP_sec(
                         relax_order=1,
                     )
 
-                    # first transition lineshape
-                    width1 = self.get_transition_width((i2e, i1g))
-                    deph1 = self.get_transition_dephasing((i2e, i1g))
+                    width1 = self.get_transition_width((exc_ket, ground))
+                    deph1 = self.get_transition_dephasing((exc_ket, ground))
 
-                    #      |g_i1> <g_i1|
-                    lp.add_transition(
-                        (i2e, i1g), +1, interval=1, width=width1, deph=deph1
+                    pathway.add_transition(
+                        (exc_ket, ground), +1, interval=1, width=width1, deph=deph1
                     )
-                    #      |e_i2> <g_i1|
-                    lp.add_transition(
-                        (i1g, i2e), +1, interval=1, width=width1, deph=deph1
+                    pathway.add_transition(
+                        (ground, exc_ket), +1, interval=1, width=width1, deph=deph1
                     )
-                    #      |g_i1> <g_i1|
 
                 except Exception:
                     break
 
-                lp.build()
-                lst.append(lp)
-                k += 1
+                pathway.build()
+                pathways.append(pathway)
 
 
 def PiMolecule(Molecule: Any) -> None:
