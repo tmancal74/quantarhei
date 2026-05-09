@@ -2693,6 +2693,35 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return nop, n_indices, evolution, whole
 
+    def _fc_basis_transform(self, nop: Any, operator: Any, n_components: int) -> None:
+        for a in range(n_components):
+            for n in range(self.Nel):
+                i_ng = -1
+                for i_n in self.vibindices[n]:
+                    i_ng += 1
+                    for m in range(self.Nel):
+                        i_mg = -1
+                        for i_m in self.vibindices[m]:
+                            i_mg += 1
+                            if n_components > 1:
+                                nop._data[i_n, i_m, a] = 0.0
+                                for j_n in self.vibindices[n]:
+                                    for j_m in self.vibindices[m]:
+                                        nop._data[i_n, i_m, a] += (
+                                            self.FCf[i_ng, j_n]
+                                            * operator._data[j_n, j_m, a]
+                                            * self.FCf[j_m, i_mg]
+                                        )
+                            else:
+                                nop._data[i_n, i_m] = 0.0
+                                for j_n in self.vibindices[n]:
+                                    for j_m in self.vibindices[m]:
+                                        nop._data[i_n, i_m] += (
+                                            self.FCf[i_ng, j_n]
+                                            * operator._data[j_n, j_m]
+                                            * self.FCf[j_m, i_mg]
+                                        )
+
     def convert_to_ground_vibbasis(
         self,
         operator: (
@@ -2760,52 +2789,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 stg = self.get_VibronicState(vs_g[0], vs_g[1])
                 stgs.append(stg)
 
-            if n_indices == 2:
-                # convert to representation by ground-state oscillator
-
-                # loop over electronic states n, m
-                for n in range(self.Nel):
-                    i_ng = -1
-                    for i_n in self.vibindices[n]:
-                        i_ng += 1
-                        for m in range(self.Nel):
-                            i_mg = -1
-                            for i_m in self.vibindices[m]:
-                                i_mg += 1
-                                nop._data[i_n, i_m] = 0.0
-                                for j_n in self.vibindices[n]:
-                                    for j_m in self.vibindices[m]:
-                                        nop._data[i_n, i_m] += (
-                                            self.FCf[i_ng, j_n]
-                                            * operator._data[j_n, j_m]
-                                            * self.FCf[j_m, i_mg]
-                                        )
-
-                return nop  # , nop1
-
-            if n_indices == 3:
-                # do the conversion
-
-                # loop over 3D
-                for a in range(3):
-                    # loop over electronic states n, m
-                    for n in range(self.Nel):
-                        i_ng = -1
-                        for i_n in self.vibindices[n]:
-                            i_ng += 1
-                            for m in range(self.Nel):
-                                i_mg = -1
-                                for i_m in self.vibindices[m]:
-                                    i_mg += 1
-                                    nop._data[i_n, i_m, a] = 0.0
-                                    for j_n in self.vibindices[n]:
-                                        for j_m in self.vibindices[m]:
-                                            nop._data[i_n, i_m, a] += (
-                                                self.FCf[i_ng, j_n]
-                                                * operator._data[j_n, j_m, a]
-                                                * self.FCf[j_m, i_mg]
-                                            )
-
+            if n_indices in (2, 3):
+                n_components = 3 if n_indices == 3 else 1
+                self._fc_basis_transform(nop, operator, n_components)
                 return nop
 
             raise QuantarheiError("Incompatible operator")
