@@ -2627,7 +2627,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     ###########################################################################
 
-    def _dispatch_operator(
+    def _allocate_converted_operator(
         self, operator: Any, dim: int, Nt: int | None = None, allow_tdm: bool = False
     ) -> tuple:
         n_indices = 2
@@ -2676,7 +2676,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         """
         if operator.dim == self.Ntot:
-            nop, n_indices, evolution, whole = self._dispatch_operator(
+            nop, n_indices, evolution, whole = self._allocate_converted_operator(
                 operator, dim=self.Ntot, Nt=Nt, allow_tdm=True
             )
 
@@ -2790,7 +2790,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     def trace_converted(self, operator: Any, Nt: int | None = None) -> Any:
 
         if operator.dim == self.Ntot:
-            nop, n_indices, evolution, whole = self._dispatch_operator(
+            nop, n_indices, evolution, whole = self._allocate_converted_operator(
                 operator, dim=self.Nel, Nt=Nt
             )
 
@@ -2817,7 +2817,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         """
         if operator.dim == self.Ntot:
-            nop, n_indices, evolution, whole = self._dispatch_operator(
+            nop, n_indices, evolution, whole = self._allocate_converted_operator(
                 operator, dim=self.Nel, Nt=Nt
             )
 
