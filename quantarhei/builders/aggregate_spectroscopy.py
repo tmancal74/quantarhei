@@ -1117,7 +1117,6 @@ def generate_R1gE(
 
                                                 except Exception:
                                                     raise Exception()
-                                                    break
 
                                                 lp.build()
                                                 lst.append(lp)
@@ -1257,7 +1256,6 @@ def generate_R2g(
 
                                                 except Exception:
                                                     raise Exception()
-                                                    break
 
                                                 lp.build()
                                                 lst.append(lp)
@@ -1402,7 +1400,6 @@ def generate_R2gE(
 
                                                 except Exception:
                                                     raise Exception()
-                                                    break
 
                                                 lp.build()
                                                 lst.append(lp)

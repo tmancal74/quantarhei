@@ -284,8 +284,6 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         else:
             raise Exception("Unknown block type")
 
-            self.ham.rwa_indices
-
         if (self.time is not None) and (self.mode == "all"):
             self.data = numpy.zeros((Nt, N1, N2, N1, N2), dtype=COMPLEX)
             #

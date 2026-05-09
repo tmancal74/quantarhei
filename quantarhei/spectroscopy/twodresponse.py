@@ -500,12 +500,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
                     piece = storage[self.current_dtype]
 
                 if self.current_tag in piece.keys():
-                    # if the tag exists raise Exception
                     raise Exception("Tag " + self.current_tag + " already exists")
-
-                    if value.shape != (self.xaxis.length, self.yaxis.length):
-                        # if the data shape is not consistent, raise Exception
-                        raise Exception("Data not consistent with spectrum axes")
 
                 piece[self.current_tag] = value
 
