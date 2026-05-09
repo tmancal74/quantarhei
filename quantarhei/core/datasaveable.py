@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 class DataSaveable:
     """This class defines saving and loading procedure for the data property"""
 
-    def save_data(
+    def save_data(  # type: ignore[explicit-any]
         self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
     ) -> None:
         """Saves the data into a format determined by the file name extension
@@ -72,7 +72,7 @@ class DataSaveable:
         elif extension == ".mat":
             self._saveMatlab(name, with_axis)
 
-    def load_data(
+    def load_data(  # type: ignore[explicit-any]
         self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
     ) -> None:
         """Loads the data in a format determined by the file name extension
@@ -108,7 +108,7 @@ class DataSaveable:
         """Implement this method to put protections on data property"""
         pass
 
-    def _data_with_axis(self, axis: ValueAxis) -> numpy.ndarray:
+    def _data_with_axis(self, axis: ValueAxis) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Constructs data array which contains also data from the axis"""
         shpl = list(self.data.shape)  # type: ignore[attr-defined]
 
@@ -130,7 +130,7 @@ class DataSaveable:
             )
         return data
 
-    def _extract_data_with_axis(
+    def _extract_data_with_axis(  # type: ignore[explicit-any]
         self, data: numpy.ndarray, axis: ValueAxis | None
     ) -> numpy.ndarray:
         """Extracts data part and the axis data from the `data` array"""

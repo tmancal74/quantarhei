@@ -10,30 +10,30 @@ from ...exceptions import QuantarheiError
 class band_system:
     """Python implementation of acetosys band_system class"""
 
-    def __init__(self, Nb: int, Ns: Any) -> None:
+    def __init__(self, Nb: int, Ns: Any) -> None:  # type: ignore[explicit-any]
         self.Nb = Nb
         # the type of Ns should be default fortran integer
         self.Ns = numpy.array(Ns, dtype=numpy.int32)
         self.Ne = numpy.sum(Ns)
 
-        self.en: numpy.ndarray | None = None
-        self.om01: numpy.ndarray | None = None
-        self.om12: numpy.ndarray | None = None
-        self.nn01: numpy.ndarray | None = None
-        self.nn12: numpy.ndarray | None = None
-        self.dd01: numpy.ndarray | None = None
-        self.dd12: numpy.ndarray | None = None
-        self.Kr11: numpy.ndarray | None = None
-        self.Kr22: numpy.ndarray | None = None
-        self.Kd01: numpy.ndarray | None = None
-        self.Kd11: numpy.ndarray | None = None
-        self.Kd12: numpy.ndarray | None = None
-        self.gofts: numpy.ndarray | None = None
-        self.ptn: numpy.ndarray | None = None
-        self.SS1: numpy.ndarray | None = None
-        self.SS2: numpy.ndarray | None = None
+        self.en: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.om01: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.om12: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.nn01: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.nn12: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.dd01: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.dd12: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.Kr11: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.Kr22: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.Kd01: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.Kd11: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.Kd12: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.gofts: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.ptn: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.SS1: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.SS2: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
-    def set_energies(self, en: Any) -> None:
+    def set_energies(self, en: Any) -> None:  # type: ignore[explicit-any]
         self.en = numpy.asfortranarray(en)
         self.om01 = numpy.zeros(
             (self.Ns[0], self.Ns[1]), dtype=numpy.float64, order="F"
@@ -50,7 +50,7 @@ class band_system:
                     self.en[self.Ns[0] + i] - self.en[self.Ns[0] + self.Ns[1] + j]
                 )
 
-    def set_dipoles(self, Nbi: int, Nbf: int, dab: Any) -> None:
+    def set_dipoles(self, Nbi: int, Nbf: int, dab: Any) -> None:  # type: ignore[explicit-any]
 
         # FIXME: some of the arrays need to be turned in 'F'order
         if not (dab.shape == (3, self.Ns[Nbi], self.Ns[Nbf])):
@@ -121,14 +121,14 @@ class band_system:
         print("Trasfer from |4> to |(1,3)> = 0")
         print(self.dd12[3, 1], self.nn12[:, 3, 1])
 
-    def set_gofts(self, gofts: Any) -> None:
+    def set_gofts(self, gofts: Any) -> None:  # type: ignore[explicit-any]
         self.gofts = numpy.asfortranarray(gofts)
 
-    def set_sitep(self, ptn: Any) -> None:
+    def set_sitep(self, ptn: Any) -> None:  # type: ignore[explicit-any]
         self.ptn = ptn
         self.fptn = numpy.asfortranarray(self.ptn + 1)
 
-    def set_transcoef(self, Nb: int, SS: Any) -> None:
+    def set_transcoef(self, Nb: int, SS: Any) -> None:  # type: ignore[explicit-any]
         if Nb == 1:
             self.SS1 = numpy.asfortranarray(SS)
         elif Nb == 2:
@@ -136,7 +136,7 @@ class band_system:
         else:
             raise QuantarheiError("Attempt to assign unsupported block")
 
-    def set_relaxation_rates(self, Nb: int, RR: Any) -> None:
+    def set_relaxation_rates(self, Nb: int, RR: Any) -> None:  # type: ignore[explicit-any]
         if Nb == 1:
             self.Kr11 = numpy.asfortranarray(RR)
         elif Nb == 2:
@@ -181,6 +181,6 @@ class band_system:
             (self.Ns[1], self.Ns[2]), dtype=numpy.float64, order="F"
         )
 
-    def set_population_propagation_matrix(self, Ueet2: Any) -> None:
+    def set_population_propagation_matrix(self, Ueet2: Any) -> None:  # type: ignore[explicit-any]
         """Set the population evolution matrix of certain t2 time"""
         self.Ueet2 = numpy.asfortranarray(Ueet2)

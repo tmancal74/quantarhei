@@ -12,7 +12,7 @@ from ..exceptions import ImplementationError
 class Storage:
     def __init__(self, rel_tol: float = 1e-8) -> None:
         self.params: list[tuple[float, ...]] = []
-        self.results: list[numpy.ndarray] = []
+        self.results: list[numpy.ndarray] = []  # type: ignore[explicit-any]
         self.positions: list[tuple[float, float]] = []
         self.rel_tol = rel_tol  # relative tolerance for parameter comparison
         self.lookup_count = 0
@@ -36,7 +36,7 @@ class Storage:
                 return idx
         return -1
 
-    def store(
+    def store(  # type: ignore[explicit-any]
         self,
         param_tuple: tuple[float, ...],
         pos: tuple[float, float],
@@ -59,7 +59,7 @@ storage = Storage()
 ###############################################################################
 
 
-def gaussian(omega: numpy.ndarray, cent: float, delta: float) -> numpy.ndarray:
+def gaussian(omega: numpy.ndarray, cent: float, delta: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Normalized Gaussian line shape"""
     return (
         numpy.sqrt(numpy.log(2.0) / numpy.pi)
@@ -68,17 +68,17 @@ def gaussian(omega: numpy.ndarray, cent: float, delta: float) -> numpy.ndarray:
     )
 
 
-def lorentzian(omega: numpy.ndarray, cent: float, gamma: float) -> numpy.ndarray:
+def lorentzian(omega: numpy.ndarray, cent: float, gamma: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Normalized Lorenzian line shape"""
     return (gamma / numpy.pi) / ((omega - cent) ** 2 + gamma**2)
 
 
-def lorentzian_im(omega: numpy.ndarray, cent: float, gamma: float) -> numpy.ndarray:
+def lorentzian_im(omega: numpy.ndarray, cent: float, gamma: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Imaginary part of a normalized Lorenzian line shape"""
     return 1j * ((omega - cent) / numpy.pi) / ((omega - cent) ** 2 + gamma**2)
 
 
-def voigt(
+def voigt(  # type: ignore[explicit-any]
     omega: numpy.ndarray, cent: float, delta: float, gamma: float = 0.0
 ) -> numpy.ndarray:
     """Normalized Voigt line shape for absorption"""
@@ -91,7 +91,7 @@ def voigt(
     )
 
 
-def cvoigt(
+def cvoigt(  # type: ignore[explicit-any]
     omega: numpy.ndarray, cent: float, delta: float, gamma: float = 0.0
 ) -> numpy.ndarray:
     """Complex normalized Voigt line shape"""
@@ -108,7 +108,7 @@ def cvoigt(
 ###############################################################################
 
 
-def gaussian2D(
+def gaussian2D(  # type: ignore[explicit-any]
     omega1: numpy.ndarray,
     cent1: float,
     delta1: float,
@@ -125,7 +125,7 @@ def gaussian2D(
     )
 
 
-def voigt2D(
+def voigt2D(  # type: ignore[explicit-any]
     omega1: numpy.ndarray,
     cent1: float,
     delta1: float,
@@ -200,7 +200,7 @@ def voigt2D(
     return data
 
 
-def lorentzian2D(
+def lorentzian2D(  # type: ignore[explicit-any]
     omega1: numpy.ndarray,
     cent1: float,
     gamma1: float,

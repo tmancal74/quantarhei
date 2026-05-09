@@ -27,7 +27,7 @@ from ..utils import derived_type
 from .twodresponse import TwoDResponse
 
 
-def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:
+def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Apply the endpoint half-weight used before Fourier transformation."""
     ret = data.copy()
     ret[:, 0] *= 0.5
@@ -35,7 +35,7 @@ def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:
     return ret
 
 
-def _fourier_transform_response(data: numpy.ndarray, signal: str) -> numpy.ndarray:
+def _fourier_transform_response(data: numpy.ndarray, signal: str) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Transform a time-domain response contribution to a 2D spectrum."""
     data = _apply_response_window(data)
 
@@ -50,7 +50,7 @@ def _fourier_transform_response(data: numpy.ndarray, signal: str) -> numpy.ndarr
     return numpy.fft.fftshift(ftresp)
 
 
-def _pad_response_data(
+def _pad_response_data(  # type: ignore[explicit-any]
     data: numpy.ndarray, pad: int, window: numpy.ndarray | None = None
 ) -> numpy.ndarray:
     """Pad a response contribution in the same way as the total response."""
@@ -108,7 +108,7 @@ class TwoDResponseCalculator:
     _has_responses = False
     _has_system = False
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         t1axis: Any,
         t2axis: Any,
@@ -218,7 +218,7 @@ class TwoDResponseCalculator:
         self.population_dynamics_mode = population_dynamics_mode
         self.include_nonsecular_remainder = include_nonsecular_remainder
         self.dipole_normalization_tol = dipole_normalization_tol
-        self.response_diagnostics: list[dict[str, Any]] = []
+        self.response_diagnostics: list[dict[str, Any]] = []  # type: ignore[explicit-any]
 
         # FIXME: check the compatibility of the axes
 
@@ -238,13 +238,13 @@ class TwoDResponseCalculator:
         self.dynamics = dynamics
 
         # unprotected properties
-        self.data: numpy.ndarray | None = None
+        self.data: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
-        self.responses: list[Any] = []
+        self.responses: list[Any] = []  # type: ignore[explicit-any]
 
         self._relaxation_tensor = None
         self._rate_matrix = None
-        self._response_rate_matrix: Any = None
+        self._response_rate_matrix: Any = None  # type: ignore[explicit-any]
         self._relaxation_hamiltonian = None
         self._population_time_axis = population_time_axis
         self._has_relaxation_tensor = False
@@ -267,20 +267,20 @@ class TwoDResponseCalculator:
         #
         # after bootstrap information
         #
-        self.sys: Any = None
-        self.lab: Any = None
-        self.t1s: Any = None
-        self.t3s: Any = None
-        self.rmin: Any = None
-        self.rwa: Any = None
-        self.oa1: Any = None
-        self.oa3: Any = None
-        self.Uee: Any = None
-        self.Uc0: Any = None
+        self.sys: Any = None  # type: ignore[explicit-any]
+        self.lab: Any = None  # type: ignore[explicit-any]
+        self.t1s: Any = None  # type: ignore[explicit-any]
+        self.t3s: Any = None  # type: ignore[explicit-any]
+        self.rmin: Any = None  # type: ignore[explicit-any]
+        self.rwa: Any = None  # type: ignore[explicit-any]
+        self.oa1: Any = None  # type: ignore[explicit-any]
+        self.oa3: Any = None  # type: ignore[explicit-any]
+        self.Uee: Any = None  # type: ignore[explicit-any]
+        self.Uc0: Any = None  # type: ignore[explicit-any]
 
         self.tc = 0
 
-    def _detection_weight(self, resp: Any) -> float:
+    def _detection_weight(self, resp: Any) -> float:  # type: ignore[explicit-any]
         """Returns the detection weight for a response contribution."""
         if self.twodtype == "2DES":
             return 1.0
@@ -299,12 +299,12 @@ class TwoDResponseCalculator:
 
         raise Exception("Unknown type of 2D spectrum: " + self.twodtype)
 
-    def _vprint(self, *args: Any, **kwargs: Any) -> None:
+    def _vprint(self, *args: Any, **kwargs: Any) -> None:  # type: ignore[explicit-any]
         """Prints a string if the self.verbose attribute is True"""
         if self.verbose:
             print(*args, **kwargs)
 
-    def bootstrap(
+    def bootstrap(  # type: ignore[explicit-any]
         self,
         rwa: float = 0.0,
         pad: int = 0,
@@ -473,13 +473,13 @@ class TwoDResponseCalculator:
         """Resets the population time of the calculations"""
         self.tc = 0
 
-    def calculate_next(self) -> Any:
+    def calculate_next(self) -> Any:  # type: ignore[explicit-any]
         """Calculate next population time of a 2D spectrum"""
         sone = self.calculate_one(self.tc)
         self.tc += 1
         return sone
 
-    def calculate_one(self, tc: int) -> Any:
+    def calculate_one(self, tc: int) -> Any:  # type: ignore[explicit-any]
         """Calculate one population time"""
         try:
             tt2 = self.t2axis.data[tc]
@@ -532,14 +532,14 @@ class TwoDResponseCalculator:
         resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
-        response_pieces: list[tuple[Any, numpy.ndarray]] = []
+        response_pieces: list[tuple[Any, numpy.ndarray]] = []  # type: ignore[explicit-any]
 
         if self._has_system and not self._has_responses:
             #
             # Calculating all responses from the system
             #
             self.resp_fcions = []
-            response_kwargs: dict[str, Any] = dict(
+            response_kwargs: dict[str, Any] = dict(  # type: ignore[explicit-any]
                 rate_matrix=self._response_rate_matrix,
                 population_propagator=self.population_propagator,
                 density_matrix_propagator=self.density_matrix_propagator,
@@ -808,7 +808,7 @@ class TwoDResponseCalculator:
                         raise QuantarheiError("Unknown response type")
 
                 elif isinstance(resp, LiouvillePathway):
-                    resp_any: Any = resp
+                    resp_any: Any = resp  # type: ignore[explicit-any]
                     if resp.rtype == "R":
                         data = resp_any.calculate_matrix(
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
@@ -949,7 +949,7 @@ class TwoDResponseCalculator:
 
         return onetwod
 
-    def calculate(self) -> Any:
+    def calculate(self) -> Any:  # type: ignore[explicit-any]
         """Returns 2D spectrum
 
         Calculates and returns TwoDResponseContainer containing 2D spectrum
@@ -998,7 +998,7 @@ class TwoDResponseCalculator:
 
         raise ImplementationError("2D calculation in this mode not implemented.")
 
-    def reset_evaluation_functions(self, fcions: list[Any]) -> None:
+    def reset_evaluation_functions(self, fcions: list[Any]) -> None:  # type: ignore[explicit-any]
         """Resets the evaluation functions used by the reseponse functions"""
         if self._has_responses:
             for rsp, fce in zip(self.resp_fcions, fcions):

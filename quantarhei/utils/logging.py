@@ -23,7 +23,7 @@ def init_logging() -> None:
     manager.initialized = True
 
 
-def log_urgent(*args: Any, **kwargs: Any) -> None:
+def log_urgent(*args: Any, **kwargs: Any) -> None:  # type: ignore[explicit-any]
     """Log a message at the ``LOG_URGENT`` (level 1) priority.
 
     Parameters
@@ -36,7 +36,7 @@ def log_urgent(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=LOG_URGENT, **kwargs)
 
 
-def log_report(*args: Any, **kwargs: Any) -> None:
+def log_report(*args: Any, **kwargs: Any) -> None:  # type: ignore[explicit-any]
     """Log a message at the ``LOG_REPORT`` (level 3) priority.
 
     Parameters
@@ -49,7 +49,7 @@ def log_report(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=LOG_REPORT, **kwargs)
 
 
-def log_info(*args: Any, **kwargs: Any) -> None:
+def log_info(*args: Any, **kwargs: Any) -> None:  # type: ignore[explicit-any]
     """Log a message at the ``LOG_INFO`` (level 5) priority.
 
     Parameters
@@ -62,7 +62,7 @@ def log_info(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=LOG_INFO, **kwargs)
 
 
-def log_detail(*args: Any, **kwargs: Any) -> None:
+def log_detail(*args: Any, **kwargs: Any) -> None:  # type: ignore[explicit-any]
     """Log a message at the ``LOG_DETAIL`` (level 7) priority.
 
     Parameters
@@ -75,7 +75,7 @@ def log_detail(*args: Any, **kwargs: Any) -> None:
     printlog(*args, loglevel=LOG_DETAIL, **kwargs)
 
 
-def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:
+def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:  # type: ignore[explicit-any]
     """Log a message at the ``LOG_QUICK`` (level 9) priority.
 
     This is the most verbose level; the call is a no-op when
@@ -96,7 +96,7 @@ def log_quick(*args: Any, verbose: bool = True, **kwargs: Any) -> None:
     printlog(*args, loglevel=LOG_QUICK, **kwargs)
 
 
-def printlog(
+def printlog(  # type: ignore[explicit-any]
     *args: Any,
     verbose: bool = True,
     loglevel: int = 5,
@@ -248,7 +248,7 @@ def loglevels2bool(loglevs: list[int], verbose: bool = False) -> list[bool]:
     return verb
 
 
-def tprint(var: str, messg: str | None = None, default: Any = None) -> None:
+def tprint(var: str, messg: str | None = None, default: Any = None) -> None:  # type: ignore[explicit-any]
     """Print the value of a named variable from global scope.
 
     If ``default`` is provided, missing variables are silently set to it.

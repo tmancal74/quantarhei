@@ -24,7 +24,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         ham: Any,
         sbi: Any,
@@ -107,7 +107,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
                 self.updateStructure()
                 self.add_dephasing()
 
-    def td_reference_implementation(
+    def td_reference_implementation(  # type: ignore[explicit-any]
         self,
         Na: int,
         Nt: int,
@@ -156,7 +156,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         #
         return _td_reference_implementation(Na, Nt, HH, tt, gt, ll, _ne_fintegral)
 
-    def _initial_term_pre(
+    def _initial_term_pre(  # type: ignore[explicit-any]
         self,
         Na: int,
         Nt: int,
@@ -169,7 +169,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         condition
 
         """
-        II: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
 
         JJ = HH.data
 
@@ -188,7 +188,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         self.II = II
         self.has_Iterm = True
 
-    def initial_term(self, rhoi: Any) -> None:
+    def initial_term(self, rhoi: Any) -> None:  # type: ignore[explicit-any]
         """Inhomogeneous (initial condition) term
         of the non-equilibrium Foerster theory
 
@@ -197,7 +197,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
             self.initial_term_nsc(rhoi)
             return
 
-        II: numpy.ndarray = numpy.zeros(self.II.shape, dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros(self.II.shape, dtype=COMPLEX)  # type: ignore[explicit-any]
         Na = self.II.shape[1]
 
         for aa in range(Na):
@@ -207,7 +207,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         self.Iterm = II
         self.has_Iterm = True
 
-    def _initial_term_pre_nsc(
+    def _initial_term_pre_nsc(  # type: ignore[explicit-any]
         self,
         Na: int,
         Nt: int,
@@ -220,7 +220,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         with known initial condition
 
         """
-        II: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
         JJ = HH.data
         EE = numpy.eye(Na, Na)
 
@@ -246,14 +246,14 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         self.II = II
         self.has_Iterm = True
 
-    def initial_term_nsc(self, rhoi: Any) -> None:
+    def initial_term_nsc(self, rhoi: Any) -> None:  # type: ignore[explicit-any]
         """Inhomogeneous (initial condition) term
         of the effective non-secular non-equilibrium Foerster theory
 
         """
         Na = self.II.shape[1]
         Nt = self.II.shape[0]
-        II: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+        II: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
 
         for aa in range(Na):
             for bb in range(Na):
@@ -267,7 +267,7 @@ class NEFoersterRelaxationTensor(TDFoersterRelaxationTensor):
         self.has_Iterm = True
 
 
-def _kernel_at_t(
+def _kernel_at_t(  # type: ignore[explicit-any]
     ti: int,
     tt: numpy.ndarray,
     gtd: numpy.ndarray,
@@ -279,7 +279,7 @@ def _kernel_at_t(
     """Two-time kernel to be integrated"""
     Nt = tt.shape[0]
     gtd_i = gtd[0 : ti + 1]
-    gtd_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    gtd_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
     gtd_m[0 : ti + 1] = numpy.flip(gtd_i)
 
     prod = (
@@ -291,7 +291,7 @@ def _kernel_at_t(
     return prod
 
 
-def _nsc_kernel_at_t(
+def _nsc_kernel_at_t(  # type: ignore[explicit-any]
     ti: int,
     tt: numpy.ndarray,
     aa: int,
@@ -309,8 +309,8 @@ def _nsc_kernel_at_t(
     # expressions for t-tau
     gtb_i = gt[bb, 0 : ti + 1]
     gta_i = gt[aa, 0 : ti + 1]
-    gtb_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
-    gta_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    gtb_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
+    gta_m: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
     gtb_m[0 : ti + 1] = numpy.flip(gtb_i)
     gta_m[0 : ti + 1] = numpy.flip(gta_i)
 
@@ -321,7 +321,7 @@ def _nsc_kernel_at_t(
 
     # general expression for all indices
 
-    dl: numpy.ndarray = numpy.eye(HH.shape[0], dtype=REAL)
+    dl: numpy.ndarray = numpy.eye(HH.shape[0], dtype=REAL)  # type: ignore[explicit-any]
 
     tt_i = tt[ti]
     prod = exp(
@@ -341,7 +341,7 @@ def _nsc_kernel_at_t(
     return prod
 
 
-def _integrate_kernel(tt: numpy.ndarray, fce: numpy.ndarray) -> numpy.ndarray:
+def _integrate_kernel(tt: numpy.ndarray, fce: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Spline integration of a complex function"""
     preal = numpy.real(fce)
     pimag = numpy.imag(fce)
@@ -351,7 +351,7 @@ def _integrate_kernel(tt: numpy.ndarray, fce: numpy.ndarray) -> numpy.ndarray:
     return inte
 
 
-def _integrate_kernel_to_t(
+def _integrate_kernel_to_t(  # type: ignore[explicit-any]
     ti: int, tt: numpy.ndarray, fce: numpy.ndarray, margin: int = 10
 ) -> Any:
     """Spline partial integration of a complex function
@@ -377,7 +377,7 @@ def _integrate_kernel_to_t(
     return numpy.sum(fce_ti) * (tt_ti[1] - tt_ti[0])
 
 
-def _integrate_three_to_t(
+def _integrate_three_to_t(  # type: ignore[explicit-any]
     ti: int,
     tt: numpy.ndarray,
     fce_t: numpy.ndarray,
@@ -401,7 +401,7 @@ def _integrate_three_to_t(
     import numpy
 
     # convert the function of t-tau into a function of tau
-    fce_flip: numpy.ndarray = numpy.zeros(fce_ttau.shape, dtype=COMPLEX)
+    fce_flip: numpy.ndarray = numpy.zeros(fce_ttau.shape, dtype=COMPLEX)  # type: ignore[explicit-any]
     fce_flip[0 : ti + 1] = numpy.flip(fce_ttau[0 : ti + 1])
 
     # construct the function to be integrated
@@ -411,7 +411,7 @@ def _integrate_three_to_t(
     return _integrate_kernel_to_t(ti, tt, fce)[ti]
 
 
-def _ne_fintegral(
+def _ne_fintegral(  # type: ignore[explicit-any]
     tt: numpy.ndarray,
     gtd: numpy.ndarray,
     gta: numpy.ndarray,
@@ -449,7 +449,7 @@ def _ne_fintegral(
 
     """
     Nt = tt.shape[0]
-    hoft: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    hoft: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
 
     for ti in range(Nt):
         #
@@ -471,7 +471,7 @@ def _ne_fintegral(
     return ret
 
 
-def _nsc_reference_implementation(
+def _nsc_reference_implementation(  # type: ignore[explicit-any]
     Na: int,
     Nt: int,
     HH: numpy.ndarray,
@@ -484,12 +484,12 @@ def _nsc_reference_implementation(
     #
     # Rates between states a and b
     #
-    KK: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
-    fKK: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)
-    RR: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)
+    KK: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
+    fKK: numpy.ndarray = numpy.zeros((Nt, Na, Na, Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
+    RR: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
 
     # resonance coupling matrix
-    JJ: numpy.ndarray = numpy.zeros(HH.shape, dtype=REAL)
+    JJ: numpy.ndarray = numpy.zeros(HH.shape, dtype=REAL)  # type: ignore[explicit-any]
     JJ[:, :] = HH[:, :]
     for ii in range(Na):
         JJ[ii, ii] = 0.0
@@ -538,7 +538,7 @@ def _nsc_reference_implementation(
     # return numpy.zeros((Nt,Na,Na,Na,Na), dtype=COMPLEX)
 
 
-def _nsc_kernel_implementation(
+def _nsc_kernel_implementation(  # type: ignore[explicit-any]
     Na: int,
     Nt: int,
     HH: numpy.ndarray,
@@ -556,9 +556,9 @@ def _nsc_kernel_implementation(
 
     """
 
-    def fkernel(ti: int) -> numpy.ndarray:
+    def fkernel(ti: int) -> numpy.ndarray:  # type: ignore[explicit-any]
 
-        def fce2(
+        def fce2(  # type: ignore[explicit-any]
             tt: numpy.ndarray,
             aa: int,
             bb: int,
@@ -576,7 +576,7 @@ def _nsc_kernel_implementation(
     return fkernel
 
 
-def _nsc_fintegral(
+def _nsc_fintegral(  # type: ignore[explicit-any]
     tt: numpy.ndarray,
     a: int,
     b: int,
@@ -615,7 +615,7 @@ def _nsc_fintegral(
 
     """
     Nt = tt.shape[0]
-    hoft: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    hoft: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
 
     for ti in range(Nt):
         #

@@ -83,11 +83,11 @@ class SuperOperator(BasisManaged):
 
     """
 
-    data: numpy.ndarray = BasisManagedComplexArray("data")  # type: ignore[assignment]
-    _data: numpy.ndarray
+    data: numpy.ndarray = BasisManagedComplexArray("data")  # type: ignore[assignment, explicit-any]
+    _data: numpy.ndarray  # type: ignore[explicit-any]
     name: str = ""
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, dim: int | None = None, data: Any = None, real: bool = False
     ) -> None:
 
@@ -117,7 +117,7 @@ class SuperOperator(BasisManaged):
                 )
             self.dim = data.shape[0]
 
-    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:
+    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:  # type: ignore[explicit-any]
         """Applies superoperator to an operator
 
 
@@ -196,7 +196,7 @@ class SuperOperator(BasisManaged):
         oper.data = numpy.tensordot(self.data, oper.data)
         return oper
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transforms the superoperator to a new basis
 
 

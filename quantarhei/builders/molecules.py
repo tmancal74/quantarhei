@@ -124,7 +124,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     # number of vibrational modes
     nmod = Integer("nmod")
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, elenergies: list | numpy.ndarray | None = None, name: str | None = None
     ) -> None:
         if elenergies is None:
@@ -170,11 +170,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # FIXME: check the order of energies (increasing order has
         # to be enforced) no vibrational modes is a default
         self.nmod = 0
-        self.modes: list[Any] = []
+        self.modes: list[Any] = []  # type: ignore[explicit-any]
 
         # allowed transitions are now only between the ground state and
         # the rest of the excited states are dark
-        self.allowed_transitions: list[Any] = []
+        self.allowed_transitions: list[Any] = []  # type: ignore[explicit-any]
 
         # transition dipole moments
         self.dmoments = numpy.zeros((self.nel, self.nel, 3))
@@ -186,10 +186,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.mmoments = numpy.zeros((self.nel, self.nel, 3), dtype=numpy.complex128)
 
         # matrix of the transition widths
-        self.widths: Any = None
+        self.widths: Any = None  # type: ignore[explicit-any]
 
         # matrix of dephasing rates
-        self.dephs: Any = None
+        self.dephs: Any = None  # type: ignore[explicit-any]
 
         # FIXME: some properties using triangle should be initialized
         # only when used. triangle should stay here, other things
@@ -218,8 +218,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self._has_system_bath_coupling = False
 
         # data attribute can hold PDB coordinates or something else
-        self.model: Any = None
-        self.data: Any = None
+        self.model: Any = None  # type: ignore[explicit-any]
+        self.data: Any = None  # type: ignore[explicit-any]
         self._data_type = None
 
         # how many optical bands the molecule has
@@ -230,10 +230,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.mult = 1
 
         # here we will store the Hamiltonian, once it is constructed
-        self.HH: Any = None
-        self.D2_max: Any = 0.0
+        self.HH: Any = None  # type: ignore[explicit-any]
+        self.D2_max: Any = 0.0  # type: ignore[explicit-any]
 
-        self.el_rwa_indices: Any = None
+        self.el_rwa_indices: Any = None  # type: ignore[explicit-any]
         self.has_rwa = False
 
         # self.build()
@@ -621,7 +621,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     def set_egcf(self, transition: tuple, egcf: object) -> None:
         self.set_transition_environment(transition, egcf)
 
-    def get_transition_environment(self, transition: Any) -> Any:
+    def get_transition_environment(self, transition: Any) -> Any:  # type: ignore[explicit-any]
         """Returns energy gap correlation function of a monomer
 
         Parameters
@@ -762,13 +762,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """
         return len(self.modes)
 
-    def get_dipole(self, N: int, M: int) -> numpy.ndarray:
+    def get_dipole(self, N: int, M: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         try:
             return self.dmoments[N, M, :]
         except (IndexError, TypeError):
             raise QuantarheiError()
 
-    def get_velocity_dipole(self, N: int, M: int) -> numpy.ndarray:
+    def get_velocity_dipole(self, N: int, M: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         try:
             if self._has_transition_velocity:
                 return self.dvmoments[N, M, :]
@@ -776,13 +776,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         except (IndexError, TypeError, AttributeError):
             raise QuantarheiError()
 
-    def get_magnetic_dipole(self, N: int, M: int) -> numpy.ndarray:
+    def get_magnetic_dipole(self, N: int, M: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         try:
             return self.mmoments[N, M, :]
         except (IndexError, TypeError):
             raise QuantarheiError()
 
-    def set_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
+    def set_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:  # type: ignore[explicit-any]
         if vec is None:
             n = N[0]
             m = N[1]
@@ -799,7 +799,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         except (IndexError, ValueError):
             raise QuantarheiError()
 
-    def set_velocity_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
+    def set_velocity_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:  # type: ignore[explicit-any]
 
         if vec is None:
             n = N[0]
@@ -833,7 +833,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     # except:
     # raise QuantarheiError()
 
-    def set_magnetic_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
+    def set_magnetic_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:  # type: ignore[explicit-any]
         # vec is probably in atomic units and our units are [Angstrom*1/fs*Debye]
         #        print(vec)
 
@@ -862,7 +862,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         except (IndexError, ValueError):
             raise QuantarheiError()
 
-    def set_magnetic_dipoleR(self, N: Any, M: Any, vec: Any, RR: Any = None) -> None:
+    def set_magnetic_dipoleR(self, N: Any, M: Any, vec: Any, RR: Any = None) -> None:  # type: ignore[explicit-any]
 
         if RR is None:
             n = N[0]
@@ -1058,7 +1058,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return self.dephs[transition[0], transition[1]]
 
-    def get_energy(self, N: int) -> float | numpy.ndarray:
+    def get_energy(self, N: int) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Returns energy of the Nth state of the molecule
 
 
@@ -1229,7 +1229,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         if not self._diabatic_initialized:
             Ne = self.nel
 
-            self.diabatic_matrix: list[Any] = []
+            self.diabatic_matrix: list[Any] = []  # type: ignore[explicit-any]
             for ii in range(Ne):
                 self.diabatic_matrix.append([])
                 for jj in range(Ne):
@@ -1240,7 +1240,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.diabatic_matrix[element[0]][element[1]].append(factor)
         self.diabatic_matrix[element[1]][element[0]].append(factor)
 
-    def _fill_hmatrix(
+    def _fill_hmatrix(  # type: ignore[explicit-any]
         self, HH: numpy.ndarray, en0: numpy.ndarray, coorval: numpy.ndarray
     ) -> None:
         """Creates Hamiltonian matrix for given values of the coordinates"""
@@ -1282,7 +1282,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                                         if val[1][lm] == 1:
                                             HH[ii, jj] += val[0] * qq
 
-    def get_potential_1D(
+    def get_potential_1D(  # type: ignore[explicit-any]
         self, mode: int, points: numpy.ndarray, other_modes: list | None = None
     ) -> tuple:
         """Returns the one dimensional diabatic potentials"""
@@ -1360,7 +1360,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return (pot, pot0)
 
-    def plot_potential_1D(
+    def plot_potential_1D(  # type: ignore[explicit-any]
         self,
         mode: int,
         points: numpy.ndarray,
@@ -1439,7 +1439,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         if show:
             plt.show()
 
-    def plot_dressed_sticks(
+    def plot_dressed_sticks(  # type: ignore[explicit-any]
         self,
         dfce: Any = None,
         xlims: list | None = None,
@@ -1460,7 +1460,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         dx = (xlims[1] - xlims[0]) / nsteps
         xe = numpy.array([xlims[0] + i * dx for i in range(nsteps)])
-        sp1: numpy.ndarray = numpy.zeros(len(xe), dtype=REAL)
+        sp1: numpy.ndarray = numpy.zeros(len(xe), dtype=REAL)  # type: ignore[explicit-any]
 
         with eigenbasis_of(HH):
             y1 = (
@@ -1478,7 +1478,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 dip.data[0, :, 0] ** 2 + dip.data[0, :, 1] ** 2 + dip.data[0, :, 2] ** 2
             ) / 3.0
             x0 = numpy.diag(HH.data)
-            sp0: numpy.ndarray = numpy.zeros(len(xe), dtype=REAL)
+            sp0: numpy.ndarray = numpy.zeros(len(xe), dtype=REAL)  # type: ignore[explicit-any]
 
             for kk in range(HH.dim):
                 sp0 += y0[kk] * dfce(xe, x0[kk])
@@ -1512,7 +1512,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         """Sets adiabatic coupling between two states"""
         if not self._adiabatic_initialized:
             self._has_adiabatic = self.triangle.get_list(init=False)
-            self.adiabatic_coupling: Any = self.triangle.get_empty_list()
+            self.adiabatic_coupling: Any = self.triangle.get_empty_list()  # type: ignore[explicit-any]
             self._adiabatic_initialized = True
 
         cp = self.convert_energy_2_internal_u(coupl)
@@ -1550,7 +1550,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             return 1.0
         return 0.0
 
-    def get_Hamiltonian(self, multi: bool = True, recalculate: bool = False) -> Any:
+    def get_Hamiltonian(self, multi: bool = True, recalculate: bool = False) -> Any:  # type: ignore[explicit-any]
         """Returns the Hamiltonian of the Molecule object
 
 
@@ -1613,7 +1613,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             self.vibsignatures = vsignatures
 
             # list o signatures of all states
-            self.all_states: list[tuple[Any, ...]] = []
+            self.all_states: list[tuple[Any, ...]] = []  # type: ignore[explicit-any]
             ks = 0
             ke = 0
             for vsig_it in vsignatures:
@@ -1629,7 +1629,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             #
             # building the Hamiltonian
             #
-            ham: numpy.ndarray = numpy.zeros((ks, ks), dtype=REAL)
+            ham: numpy.ndarray = numpy.zeros((ks, ks), dtype=REAL)  # type: ignore[explicit-any]
 
             # FIXME: creation of the coordinate operators will go to
             # the place where SystemBathInteraction is created
@@ -1638,10 +1638,10 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             #
             coor_ops = []
             for kk in range(self.nel):
-                in_state: list[Any] = []
+                in_state: list[Any] = []  # type: ignore[explicit-any]
                 coor_ops.append(in_state)
                 for ii in range(self.nmod):
-                    coor: numpy.ndarray = numpy.zeros((ks, ks), dtype=REAL)
+                    coor: numpy.ndarray = numpy.zeros((ks, ks), dtype=REAL)  # type: ignore[explicit-any]
                     in_state.append(coor)
                     # print("State:", kk," - mode:", ii, coor.shape)
 
@@ -1652,8 +1652,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             qq_components = []
             # loop over electronic states
             for i in range(self.nel):
-                el_state: list[Any] = []
-                qq_state: list[Any] = []
+                el_state: list[Any] = []  # type: ignore[explicit-any]
+                qq_state: list[Any] = []  # type: ignore[explicit-any]
                 hh_components.append(el_state)
                 qq_components.append(qq_state)
                 if self.nmod > 0:
@@ -1959,7 +1959,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         """
         # list of Hamiltonian dimensions
-        ldim: Any = [None] * self.nel
+        ldim: Any = [None] * self.nel  # type: ignore[explicit-any]
 
         # loop over electronic states
         for i in range(self.nel):
@@ -1977,11 +1977,11 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             ldim[i] = Nvib
 
         # dimension of the complete Hamiltonian
-        totdim: Any = numpy.sum(ldim)
+        totdim: Any = numpy.sum(ldim)  # type: ignore[explicit-any]
 
         return totdim, ldim
 
-    def get_TransitionDipoleMoment(self, multi: bool = True) -> Any:
+    def get_TransitionDipoleMoment(self, multi: bool = True) -> Any:  # type: ignore[explicit-any]
         """Returns the transition dipole moment operator"""
         if multi:
             try:
@@ -1991,7 +1991,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 totdim = HH.dim
 
             # This will be the operator data
-            dip: numpy.ndarray = numpy.zeros((totdim, totdim, 3), dtype=REAL)
+            dip: numpy.ndarray = numpy.zeros((totdim, totdim, 3), dtype=REAL)  # type: ignore[explicit-any]
 
             ks1 = 0
             for st1 in self.all_states:
@@ -2064,8 +2064,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         #
         # Look for pure dephasing environmental interactions on transitions
         #
-        d: dict[Any, Any] = {}
-        where: dict[Any, Any] = {}
+        d: dict[Any, Any] = {}  # type: ignore[explicit-any]
+        where: dict[Any, Any] = {}  # type: ignore[explicit-any]
         for i in range(self.nel):
             if i > 0:
                 break  # transitions not from ground state are not counted
@@ -2184,7 +2184,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return sbi
 
-    def get_RelaxationTensor(self, *args: Any, **kwargs: Any) -> Any:
+    def get_RelaxationTensor(self, *args: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
         """Returns relaxation tensor, building the molecule if necessary."""
         if not self._built:
             self.build()
@@ -2266,7 +2266,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     #        ss = numpy.diag(numpy.ones_like(ee))
     #        return ee, ss
 
-    def _get_exciton_prop(self, adiabatic: Any = None, HH_in: Any = None) -> tuple:
+    def _get_exciton_prop(self, adiabatic: Any = None, HH_in: Any = None) -> tuple:  # type: ignore[explicit-any]
 
         is_adiabatic = False
         adiabatic_noBath = False
@@ -2419,7 +2419,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         else:
             raise ImplementationError("Not implemented yet")
 
-        lst: list[Any] = []
+        lst: list[Any] = []  # type: ignore[explicit-any]
 
         if sec:
             generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose)
@@ -2433,13 +2433,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         return lst
 
 
-def generate_1orderP_sec(
+def generate_1orderP_sec(  # type: ignore[explicit-any]
     self: Any, lst: list, pop_tol: float, dip_tol: float, verbose: int
 ) -> None:
     from ..spectroscopy import diagramatics as diag
 
-    ngs: Any = [0]  # self.get_electronic_groundstate()
-    nes: Any = [1]  # self.get_excitonic_band(band=1)
+    ngs: Any = [0]  # type: ignore[explicit-any]  # self.get_electronic_groundstate()
+    nes: Any = [1]  # type: ignore[explicit-any]  # self.get_excitonic_band(band=1)
 
     if verbose > 0:
         print("Liouville pathway of first order")
@@ -2504,9 +2504,9 @@ def generate_1orderP_sec(
                 k += 1
 
 
-def PiMolecule(Molecule: Any) -> None:
+def PiMolecule(Molecule: Any) -> None:  # type: ignore[explicit-any]
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self: Any,
         name: str | None = None,
         elenergies: list | None = None,

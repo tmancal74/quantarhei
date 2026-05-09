@@ -21,11 +21,11 @@ import quantarhei as qr
 from ..exceptions import QuantarheiError
 
 # Module-level parser globals used across command functions
-parser_list: Any = None
-parser_fetch: Any = None
+parser_list: Any = None  # type: ignore[explicit-any]
+parser_fetch: Any = None  # type: ignore[explicit-any]
 
 
-def do_command_run(args: Any) -> None:
+def do_command_run(args: Any) -> None:  # type: ignore[explicit-any]
     """Runs a script"""
     m = qr.Manager().log_conf
 
@@ -178,7 +178,7 @@ def do_command_run(args: Any) -> None:
         )
 
 
-def do_command_test(args: Any) -> None:
+def do_command_test(args: Any) -> None:  # type: ignore[explicit-any]
     """Runs Quantarhei tests"""
     qr.printlog("--- Running tests ---", loglevel=qr.LOG_URGENT)
     qr.printlog("No built-in qrhei tests are currently defined.")
@@ -197,7 +197,7 @@ def _match_filenames(
     return fnmatch.filter(filenames, pattern)
 
 
-def do_command_list(args: Any) -> None:
+def do_command_list(args: Any) -> None:  # type: ignore[explicit-any]
     """Lists files for Quantarhei"""
     global parser_list
 
@@ -221,7 +221,7 @@ def do_command_list(args: Any) -> None:
         parser_list.print_help()
 
 
-def do_command_fetch(args: Any) -> None:
+def do_command_fetch(args: Any) -> None:  # type: ignore[explicit-any]
     """Fetches files for Quantarhei"""
     global parser_fetch
 
@@ -289,17 +289,17 @@ def do_command_fetch(args: Any) -> None:
         parser_fetch.print_help()
 
 
-def do_command_config(args: Any) -> None:
+def do_command_config(args: Any) -> None:  # type: ignore[explicit-any]
     """Configures Quantarhei"""
     qr.printlog("Setting configuration", loglevel=1)
 
 
-def do_command_report(args: Any) -> None:
+def do_command_report(args: Any) -> None:  # type: ignore[explicit-any]
     """Reports on Quantarhei and the system"""
     qr.printlog("Probing system configuration", loglevel=1)
 
 
-def do_command_file(args: Any) -> None:
+def do_command_file(args: Any) -> None:  # type: ignore[explicit-any]
     """Report on the content of a file"""
     qr.printlog("Checking file info", loglevel=1)
 
@@ -330,7 +330,7 @@ def do_command_file(args: Any) -> None:
         # print(traceback.format_exc())
 
 
-def do_command_script(args: Any) -> None:
+def do_command_script(args: Any) -> None:  # type: ignore[explicit-any]
     """Provides script management functionality
 
 

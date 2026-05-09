@@ -62,26 +62,26 @@ class CorrelationFunctionMatrix(Saveable):
         self.cpointer[:, :] = 0
 
         # empty list for functions
-        self.cfuncs: list[Any] | None = None
+        self.cfuncs: list[Any] | None = None  # type: ignore[explicit-any]
 
         # FIXME: reorganization energies should be defined through _A2 and _A4
         # reorganization energies
-        self.lambdas: numpy.ndarray | None = None
-        self.where: list[Any] | None = None
+        self.lambdas: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.where: list[Any] | None = None  # type: ignore[explicit-any]
 
         # Actual storage of functions
         # here we store correlation functions
-        self._cofts: numpy.ndarray | None = None
+        self._cofts: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
         # here we store their first integrals
-        self._hofts: numpy.ndarray | None = None
+        self._hofts: numpy.ndarray | None = None  # type: ignore[explicit-any]
         self._has_hofts = False
 
         # here we store their second integrals
-        self._gofts: numpy.ndarray | None = None
+        self._gofts: numpy.ndarray | None = None  # type: ignore[explicit-any]
         self._has_gofts = False
 
-        self.data: numpy.ndarray | None = None
+        self.data: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
         # TimeAxis on which the functions are defined
         self.timeAxis = timeaxis
@@ -96,8 +96,8 @@ class CorrelationFunctionMatrix(Saveable):
 
         # FIXME: implement transformation of the matrix
         self._is_transformed = False
-        self._A2: numpy.ndarray | None = None
-        self._A4: numpy.ndarray | None = None
+        self._A2: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self._A4: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
         self._initiate_storage()
 
@@ -223,7 +223,7 @@ class CorrelationFunctionMatrix(Saveable):
         temp = self._check_temperature_consistency()
         return temp
 
-    def get_correlation_function(self, n: int, m: int) -> Any:
+    def get_correlation_function(self, n: int, m: int) -> Any:  # type: ignore[explicit-any]
         """Returns correlation function associated with sites n and m
 
         Parameters
@@ -234,7 +234,7 @@ class CorrelationFunctionMatrix(Saveable):
         # return self.data[self.cpointer[n,m],:]
         return self.cfuncs[self.cpointer[n, m]]
 
-    def get_reorganization_energy(self, n: int, m: int) -> float | numpy.ndarray:
+    def get_reorganization_energy(self, n: int, m: int) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Returns reorganization energie in the site basis"""
         # FIXME: should this use _A2  ????
         assert self.lambdas is not None
@@ -261,7 +261,7 @@ class CorrelationFunctionMatrix(Saveable):
             return lm
         raise QuantarheiError("Correlation function matrix is not initialized.")
 
-    def get_coft(self, n: int, m: int) -> numpy.ndarray:
+    def get_coft(self, n: int, m: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns correlation function corresponding to two states n and m
 
         Parameters
@@ -272,7 +272,7 @@ class CorrelationFunctionMatrix(Saveable):
         assert self._cofts is not None
         return self._cofts[self.cpointer[n, m], :]
 
-    def get_hoft(self, n: int, m: int) -> numpy.ndarray:
+    def get_hoft(self, n: int, m: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns first integral of the correlation function from the matrix
 
         Parameters
@@ -283,7 +283,7 @@ class CorrelationFunctionMatrix(Saveable):
         assert self._hofts is not None
         return self._hofts[self.cpointer[n, m], :]
 
-    def get_goft(self, n: int, m: int) -> numpy.ndarray:
+    def get_goft(self, n: int, m: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the lineshape function from the matrix
 
         Parameters
@@ -294,7 +294,7 @@ class CorrelationFunctionMatrix(Saveable):
         assert self._gofts is not None
         return self._gofts[self.cpointer[n, m], :]
 
-    def get_coft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
+    def get_coft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         if self._is_transformed:
             assert self._A4 is not None
             assert self._cofts is not None
@@ -304,7 +304,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         raise QuantarheiError()
 
-    def get_coft_matrix(self, t: float | None = None) -> numpy.ndarray:
+    def get_coft_matrix(self, t: float | None = None) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns full matrix of correlation functions
 
         It is expected that the matrix is transformed into new basis after
@@ -328,7 +328,7 @@ class CorrelationFunctionMatrix(Saveable):
                 # FIXME: some consistent treatment of the cutoff time is needed
                 Nt = self._cofts.shape[1]
 
-                ret: numpy.ndarray = numpy.zeros(
+                ret: numpy.ndarray = numpy.zeros(  # type: ignore[explicit-any]
                     (nos, nos, nos, nos, Nt), dtype=COMPLEX
                 )
                 # for k in range(self.nof):
@@ -349,7 +349,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         raise QuantarheiError()
 
-    def get_hoft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
+    def get_hoft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         if self._is_transformed:
             assert self._A4 is not None
             assert self._hofts is not None
@@ -359,7 +359,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         raise QuantarheiError()
 
-    def get_hoft_matrix(self, t: float | None = None) -> numpy.ndarray:
+    def get_hoft_matrix(self, t: float | None = None) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns full matrix of once integrated correlation functions
 
         It is expected that the matrix is transformed into new basis after
@@ -384,7 +384,7 @@ class CorrelationFunctionMatrix(Saveable):
                 # FIXME: some consistent treatment of the cutoff time is needed
                 Nt = self._cofts.shape[1]
 
-                ret: numpy.ndarray = numpy.zeros(
+                ret: numpy.ndarray = numpy.zeros(  # type: ignore[explicit-any]
                     (nos, nos, nos, nos, Nt), dtype=COMPLEX
                 )
                 # for k in range(self.nof):
@@ -404,7 +404,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         raise QuantarheiError()
 
-    def get_goft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:
+    def get_goft4(self, a: int, b: int, c: int, d: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the matrix of the goft functions"""
         if self._is_transformed:
             assert self._A4 is not None
@@ -415,7 +415,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         raise QuantarheiError()
 
-    def get_goft_matrix(self, t: float | None = None) -> numpy.ndarray:
+    def get_goft_matrix(self, t: float | None = None) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns full matrix of lineshape functions
 
         It is expected that the matrix is transformed into new basis after
@@ -440,7 +440,7 @@ class CorrelationFunctionMatrix(Saveable):
                 # FIXME: some consistent treatment of the cutoff time is needed
                 Nt = self._cofts.shape[1]
 
-                ret: numpy.ndarray = numpy.zeros(
+                ret: numpy.ndarray = numpy.zeros(  # type: ignore[explicit-any]
                     (nos, nos, nos, nos, Nt), dtype=COMPLEX
                 )
                 # for k in range(self.nof):
@@ -460,7 +460,7 @@ class CorrelationFunctionMatrix(Saveable):
             return ret
         raise QuantarheiError()
 
-    def set_correlation_function(
+    def set_correlation_function(  # type: ignore[explicit-any]
         self, fce: Any, where: list, iof: int | None = None
     ) -> int:
         """Sets a correlation function to the matrix
@@ -530,7 +530,7 @@ class CorrelationFunctionMatrix(Saveable):
 
         return ret
 
-    def _update_where(self, iof: int, fce: Any, where: list) -> None:
+    def _update_where(self, iof: int, fce: Any, where: list) -> None:  # type: ignore[explicit-any]
         """Updates the location information for a correlation function"""
         assert self.where is not None
         assert self._A2 is not None
@@ -579,7 +579,7 @@ class CorrelationFunctionMatrix(Saveable):
     def init_site_mapping(self) -> None:
         """Initializes the internals to allow four-index correlation functions"""
         nos = self.nob + 1
-        one: numpy.ndarray = numpy.eye(nos, dtype=REAL)
+        one: numpy.ndarray = numpy.eye(nos, dtype=REAL)  # type: ignore[explicit-any]
 
         self.transform(one)
 
@@ -588,7 +588,7 @@ class CorrelationFunctionMatrix(Saveable):
     #   TO BE TRANSPLANTED TO OPEN SYSTEMS
     #
     #
-    def transform(self, SS: numpy.ndarray) -> None:
+    def transform(self, SS: numpy.ndarray) -> None:  # type: ignore[explicit-any]
         """Transform the system-bath interaction characteristics"""
         # FIXME: This must go somewhere alse. It is system dependent
 
@@ -597,7 +597,7 @@ class CorrelationFunctionMatrix(Saveable):
         nof = self.nof
 
         self._A4 = numpy.zeros((nos, nos, nos, nos, nof), dtype=REAL)
-        self._C4: numpy.ndarray = numpy.zeros((nos, nos, nos, nos, nos), dtype=REAL)
+        self._C4: numpy.ndarray = numpy.zeros((nos, nos, nos, nos, nos), dtype=REAL)  # type: ignore[explicit-any]
 
         assert self._A2 is not None
         for a in range(nos):

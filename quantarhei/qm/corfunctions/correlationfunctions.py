@@ -106,12 +106,12 @@ class CorrelationFunction(DFunction, UnitsManaged):
     )
 
     energy_units: str
-    lamb: float | numpy.ndarray
-    temperature: float | numpy.ndarray
+    lamb: float | numpy.ndarray  # type: ignore[explicit-any]
+    temperature: float | numpy.ndarray  # type: ignore[explicit-any]
     axis: TimeAxis
 
     @enforce_energy_units_context
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, axis: Any = None, params: Any = None, values: Any = None
     ) -> None:
         super().__init__()
@@ -245,9 +245,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
         temp = self.temperature if hasattr(self, "temperature") else None
         return f"CorrelationFunction(ftype={ftype!r}, T={temp})"
 
-    def _matsubara(self, kBT: float, ctime: float, nof: int) -> numpy.ndarray:
+    def _matsubara(self, kBT: float, ctime: float, nof: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Matsubara frequency part of the Brownian correlation function"""
-        msf: float | numpy.ndarray = 0.0
+        msf: float | numpy.ndarray = 0.0  # type: ignore[explicit-any]
         nut = 2.0 * numpy.pi * kBT
         time = self.axis.data
         for i in range(0, nof):
@@ -368,7 +368,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0 / ctime)
 
-    def _make_underdamped(self, params: dict, values: Any = None) -> None:
+    def _make_underdamped(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
@@ -397,7 +397,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0 * ctime)
 
-    def _make_B777(self, params: dict, values: Any = None) -> None:
+    def _make_B777(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
@@ -426,7 +426,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0 * ctime)
 
-    def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:
+    def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
@@ -456,7 +456,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0 * ctime)
 
-    def _make_value_defined(self, params: dict, values: Any) -> None:
+    def _make_value_defined(self, params: dict, values: Any) -> None:  # type: ignore[explicit-any]
 
         lamb = params["reorg"]
         temperature = params["T"]
@@ -598,23 +598,23 @@ class CorrelationFunction(DFunction, UnitsManaged):
         by analytical formula. Returns `False` if the object was constructed
         by numerical transformation from spectral density.
         """
-        return bool(cast(dict[str, Any], self.params)["ftype"] in self.analytical_types)
+        return bool(cast(dict[str, Any], self.params)["ftype"] in self.analytical_types)  # type: ignore[explicit-any]
 
-    def get_temperature(self) -> float | numpy.ndarray:
+    def get_temperature(self) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the temperature of the correlation function"""
         return self.temperature
 
-    def get_reorganization_energy(self) -> float | numpy.ndarray:
+    def get_reorganization_energy(self) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the reorganization energy of the correlation function"""
         return self.convert_energy_2_current_u(self.lamb)
 
-    def get_correlation_time(self) -> float | numpy.ndarray:
+    def get_correlation_time(self) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Returns correlation time associated with the first component
         of the bath correlation function
         """
         return self.params[0]["cortime"]
 
-    def measure_reorganization_energy(self) -> float | numpy.ndarray:
+    def measure_reorganization_energy(self) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Calculates the reorganization energy of the correlation function
 
         Calculates the reorganization energy of the correlation function by
@@ -632,7 +632,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             cfce = CorrelationFunction(self.axis, self.params)
         return cfce
 
-    def get_SpectralDensity(self, fa: FrequencyAxis | None = None) -> Any:
+    def get_SpectralDensity(self, fa: FrequencyAxis | None = None) -> Any:  # type: ignore[explicit-any]
         """Returns a SpectralDensity corresponding to this CorrelationFunction.
         If a FrequencyAxis object is included, the SpectralDensity
         object will be returned with that FrequencyAxis instance as its
@@ -726,7 +726,7 @@ class LineshapeFunction(DFunction, UnitsManaged):
     """
 
     @enforce_energy_units_context
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, axis: Any = None, params: Any = None, values: Any = None, lfactor: int = 1
     ) -> None:
         self.lfactor = lfactor
@@ -783,7 +783,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
 
     energy_params = ("reorg", "omega", "freq")
 
-    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:
+    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:  # type: ignore[explicit-any]
         super().__init__()
 
         if not isinstance(axis, FrequencyAxis):
@@ -793,7 +793,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
             self.axis = axis
 
         # handle params
-        self.params: (
+        self.params: (  # type: ignore[explicit-any]
             list[Any] | dict[Any, Any]
         ) = []  # this will always be a list of components
         p2calc = []
@@ -870,7 +870,7 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:
+    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:  # type: ignore[explicit-any]
         super().__init__()
 
         if not isinstance(axis, FrequencyAxis):
@@ -946,7 +946,7 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
     """
 
-    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:
+    def __init__(self, axis: Any, params: Any, values: Any = None) -> None:  # type: ignore[explicit-any]
         super().__init__()
 
         if not isinstance(axis, FrequencyAxis):
@@ -997,7 +997,7 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
 
 
 # FIXME: these functions can go to DFunction
-def c2g(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
+def c2g(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation
@@ -1025,7 +1025,7 @@ def c2g(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
     return goft
 
 
-def c2h(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
+def c2h(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Integrates correlation function in time with an open upper limit
 
     Explicit numerical integration of the correlation
@@ -1050,7 +1050,7 @@ def c2h(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
     return hoft
 
 
-def h2g(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:
+def h2g(timeaxis: TimeAxis, coft: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Integrates and integrated correlation function
 
     Explicit numerical integration of the correlation

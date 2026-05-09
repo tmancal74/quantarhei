@@ -13,9 +13,9 @@ from .redfieldtensor import RedfieldRelaxationTensor
 
 class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
     # Shadow parent descriptors with plain ndarray attrs (time-dependent case stores full trajectories)
-    Lm: numpy.ndarray | None = None
-    Ld: numpy.ndarray | None = None
-    Km: numpy.ndarray | None = None
+    Lm: numpy.ndarray | None = None  # type: ignore[explicit-any]
+    Ld: numpy.ndarray | None = None  # type: ignore[explicit-any]
+    Km: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
     def _implementation(self, ham: Hamiltonian, sbi: SystemBathInteraction) -> None:
         r"""Reference implementation, completely in Python
@@ -125,7 +125,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
             Nb2 = sbi.N
 
             # projectors to two-exciton states
-            K2: numpy.ndarray = numpy.zeros((Nb2, Na, Na), dtype=REAL)
+            K2: numpy.ndarray = numpy.zeros((Nb2, Na, Na), dtype=REAL)  # type: ignore[explicit-any]
             assert ham.rwa_indices is not None, (
                 "Hamiltonian must have rwa_indices set for multi-exciton"
             )
@@ -216,7 +216,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         self._is_initialized = True
         self.is_time_dependent = True
 
-    def _convert_operators_2_tensor(
+    def _convert_operators_2_tensor(  # type: ignore[explicit-any]
         self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray
     ) -> numpy.ndarray:
         r"""Converts operator representation to the tensor one
@@ -289,7 +289,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
 
         return RR
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transformation of the tensor by a given matrix
 
 
@@ -360,7 +360,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                                 self.data[:, ii, jj, kk, ll] = 0
 
 
-def _integrate(f: numpy.ndarray, dt: float) -> numpy.ndarray:
+def _integrate(f: numpy.ndarray, dt: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Cummulative simpson rule for integration (even number of points also handled)"""
     N = len(f)
     if N < 2:
@@ -382,7 +382,7 @@ def _integrate(f: numpy.ndarray, dt: float) -> numpy.ndarray:
     return F
 
 
-def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:
+def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
 
     Parameters:

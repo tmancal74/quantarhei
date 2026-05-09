@@ -32,11 +32,11 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
     """
 
     _has_remainder_coupling = False
-    JR: numpy.ndarray
+    JR: numpy.ndarray  # type: ignore[explicit-any]
 
     data = ManagedRealArray("data")
 
-    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:  # type: ignore[explicit-any]
         # self.data = data
         # FIXME: how to avoid the Operator breaking the EnergyUnits management ????
         if not ((dim is None) and (data is None)):
@@ -47,15 +47,15 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                     "to be represented by a selfadjoint matrix"
                 )
 
-        self.rwa_indices: numpy.ndarray | None = None
-        self.rwa_energies: Any = None
+        self.rwa_indices: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.rwa_energies: Any = None  # type: ignore[explicit-any]
         self.has_rwa = False
         # In future, the Hamiltonian should have a block structure
         # reflected in the data storage, for now we are fine just with
         # knowing that the blocks are there
         self.Nblocks = 1
 
-    def set_rwa(self, rwa_indices: Any, rwa_energy: float | None = None) -> None:
+    def set_rwa(self, rwa_indices: Any, rwa_energy: float | None = None) -> None:  # type: ignore[explicit-any]
         """Set the block indices for the Rotating Wave Approximation (RWA).
 
         Parameters
@@ -112,7 +112,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         # average energies in every block
         with energy_units("int"):
-            en_block: numpy.ndarray = numpy.zeros(self.Nblocks, dtype=REAL)
+            en_block: numpy.ndarray = numpy.zeros(self.Nblocks, dtype=REAL)  # type: ignore[explicit-any]
             for block in range(self.Nblocks):
                 if block < self.Nblocks - 1:
                     upper = self.rwa_indices[block + 1]
@@ -141,7 +141,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         # we have information on RWA
         self.has_rwa = True
 
-    def get_RWA_skeleton(self) -> numpy.ndarray:
+    def get_RWA_skeleton(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the Hamiltonian matrix with RWA energies"""
         HH = self.data
         shape = HH.shape[0]
@@ -150,11 +150,11 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             HOmega[ii] = self.convert_2_current_u(self.rwa_energies[ii])
         return HOmega
 
-    def get_RWA_data(self) -> numpy.ndarray:
+    def get_RWA_data(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns Hamiltonian matrix with RWA energies subtracted"""
         return self.data - numpy.diag(self.get_RWA_skeleton())
 
-    def diagonalize(self, coupling_cutoff: float | None = None) -> Any:
+    def diagonalize(self, coupling_cutoff: float | None = None) -> Any:  # type: ignore[explicit-any]
         """Diagonalizes the Hamiltonian matrix
 
         Parameters
@@ -226,7 +226,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if coupling_cutoff < 0.0:
             raise QuantarheiError("Coupling cutoff value must be positive")
 
-        JR: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)
+        JR: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)  # type: ignore[explicit-any]
         # go through all couplings and remove small ones
         for ii in range(self.dim):
             for jj in range(ii + 1, self.dim):
@@ -238,7 +238,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.JR = JR
         self._has_remainder_coupling = True
 
-    def subtract_cutoff_coupling(self, coupling_cutoff: Any) -> None:
+    def subtract_cutoff_coupling(self, coupling_cutoff: Any) -> None:  # type: ignore[explicit-any]
         """Subtracts the cut-off coupling from all coupling elements
 
         We supress the couplings by a given amount. If the coupling is
@@ -268,7 +268,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
             coupcut = self.convert_2_internal_u(coupling_cutoff)
 
-            JR: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)
+            JR: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)  # type: ignore[explicit-any]
             # go through all couplings and remove small ones
             for ii in range(self.dim):
                 for jj in range(ii + 1, self.dim):
@@ -304,7 +304,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             self.JR[:, :] = 0.0
             self._has_remainder_coupling = False
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transformation of the Hamiltonian and the remainder coupling
 
 
@@ -363,7 +363,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         return out
 
 
-def _find_band(x: int, starts: Any) -> int:
+def _find_band(x: int, starts: Any) -> int:  # type: ignore[explicit-any]
     """Given an integer x and a sorted list of interval starts (starting with 0),
     returns the index of the interval x belongs to.
 

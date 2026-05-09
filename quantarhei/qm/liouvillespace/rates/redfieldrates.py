@@ -46,9 +46,9 @@ class RedfieldRateMatrix:
 
     """
 
-    _data: numpy.ndarray
+    _data: numpy.ndarray  # type: ignore[explicit-any]
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         ham: Hamiltonian,
         sbi: SystemBathInteraction,
@@ -118,7 +118,7 @@ class RedfieldRateMatrix:
                 Om[a, b] = hD[a] - hD[b]
 
         # calculate values of the spectral density at frequencies
-        cc: numpy.ndarray = numpy.zeros((Nk, Na, Na), dtype=REAL)
+        cc: numpy.ndarray = numpy.zeros((Nk, Na, Na), dtype=REAL)  # type: ignore[explicit-any]
 
         # loop over components
         for k in range(Nk):
@@ -146,7 +146,7 @@ class RedfieldRateMatrix:
                                 )
 
         # create storage for the rates
-        self.data: numpy.ndarray = numpy.zeros((Na, Na), dtype=REAL)
+        self.data: numpy.ndarray = numpy.zeros((Na, Na), dtype=REAL)  # type: ignore[explicit-any]
 
         # calculate rate matrix
         #
@@ -178,7 +178,7 @@ class RedfieldRateMatrix:
     fallback_local=False,
     always_local=False,
 )
-def ssRedfieldRateMatrix(
+def ssRedfieldRateMatrix(  # type: ignore[explicit-any]
     Na: int,
     Nk: int,
     KI: numpy.ndarray,

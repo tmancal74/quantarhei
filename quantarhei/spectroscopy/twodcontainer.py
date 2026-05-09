@@ -57,7 +57,7 @@ class TwoDResponseContainer(Saveable):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, t2axis: Any = None, keep_pathways: bool = False, keep_stypes: bool = True
     ) -> None:
 
@@ -69,18 +69,18 @@ class TwoDResponseContainer(Saveable):
 
         self.itype: str | None = None
         self.index = 0
-        self.tags: list[Any] = []
+        self.tags: list[Any] = []  # type: ignore[explicit-any]
 
         if self.keep_pathways:
             raise QuantarheiError("Container keeping pathways not available yet")
 
-        self.spectra: dict[Any, Any] = {}
+        self.spectra: dict[Any, Any] = {}  # type: ignore[explicit-any]
         self._which: float | None = None
 
         if t2axis is not None:
             self.use_indexing_type(itype=t2axis)
 
-    def use_indexing_type(self, itype: Any) -> None:
+    def use_indexing_type(self, itype: Any) -> None:  # type: ignore[explicit-any]
         """Sets the type of indices used to identify spectra
 
         Parameters
@@ -116,7 +116,7 @@ class TwoDResponseContainer(Saveable):
         else:
             raise QuantarheiError("Unknown indexing type")
 
-    def set_spectrum(self, spect: Any, tag: Any = None) -> Any:
+    def set_spectrum(self, spect: Any, tag: Any = None) -> Any:  # type: ignore[explicit-any]
         """Stores spectrum with a tag (time, index, etc.)
 
         Stores the spectrum according to present indexing scheme
@@ -192,7 +192,7 @@ class TwoDResponseContainer(Saveable):
         self._which = None
         return False
 
-    def get_spectrum_by_index(self, indx: int) -> Any:
+    def get_spectrum_by_index(self, indx: int) -> Any:  # type: ignore[explicit-any]
         """Returns spectrum by integet index
 
         The integer index is assigned to all spectra in the order they were
@@ -209,11 +209,11 @@ class TwoDResponseContainer(Saveable):
 
         return self.spectra[self.tags[indx]]
 
-    def get_response(self, tag: Any) -> Any:
+    def get_response(self, tag: Any) -> Any:  # type: ignore[explicit-any]
         """Same as get_spectrum, but the name more sense for a response container"""
         return self.get_spectrum(tag)
 
-    def get_spectrum(self, tag: Any) -> Any:
+    def get_spectrum(self, tag: Any) -> Any:  # type: ignore[explicit-any]
         """Returns spectrum corresponing to time t2
 
         Checks if the time t2 is present in the t2axis
@@ -248,13 +248,13 @@ class TwoDResponseContainer(Saveable):
         else:
             raise QuantarheiError("Unknown type of indexing")
 
-    def set_data_flag(self, flag: Any) -> None:
+    def set_data_flag(self, flag: Any) -> None:  # type: ignore[explicit-any]
         """Sets data flag for all spectra in the container"""
         for tag in self.spectra:
             sp = self.spectra[tag]
             sp.set_data_flag(flag)
 
-    def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:
+    def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:  # type: ignore[explicit-any]
         """Returns a container with specific spectra"""
         if self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
             axis = self.axis.deepcopy()
@@ -270,14 +270,14 @@ class TwoDResponseContainer(Saveable):
 
         raise QuantarheiError("")
 
-    def get_nearest(self, val: float) -> Any:
+    def get_nearest(self, val: float) -> Any:  # type: ignore[explicit-any]
 
         if self.itype == "FrequencyAxis":
             # print(Manager().current_units["frequency"])
             # print(Manager().current_units["energy"])
             nval = Manager().convert_energy_2_internal_u(val)
             # get tags and convert them to numbers
-            ntags: numpy.ndarray = numpy.zeros(len(self.tags), dtype=REAL)
+            ntags: numpy.ndarray = numpy.zeros(len(self.tags), dtype=REAL)  # type: ignore[explicit-any]
             k = 0
             for stag in self.tags:
                 # print(stag)
@@ -294,7 +294,7 @@ class TwoDResponseContainer(Saveable):
         """Returns the length of the container"""
         return len(self.spectra.keys())
 
-    def get_spectra(self, start: Any = None, end: Any = None) -> list[Any]:
+    def get_spectra(self, start: Any = None, end: Any = None) -> list[Any]:  # type: ignore[explicit-any]
         """Returns a list of the calculated spectra
 
         Returns all spectra or an interval of spectra when `start` and `end`
@@ -320,7 +320,7 @@ class TwoDResponseContainer(Saveable):
                 ven2.append(self.spectra[k])
         return ven2
 
-    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
+    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:  # type: ignore[explicit-any]
         """Converts this response container into PumpProbeSpectrumContainer.
 
         Each stored :class:`TwoDResponse` already contains enough spectral
@@ -367,7 +367,7 @@ class TwoDResponseContainer(Saveable):
 
         return ppcont
 
-    def get_integrated_area_evolution(
+    def get_integrated_area_evolution(  # type: ignore[explicit-any]
         self, times: Any, area: Any, dpart: Any = part_REAL
     ) -> Any:
         """Returns the integrated area of the 2D spectra as a function of their index"""
@@ -385,7 +385,7 @@ class TwoDResponseContainer(Saveable):
 
         return DFunction(times, vals)
 
-    def get_point_evolution(self, x: float, y: float, times: Any) -> Any:
+    def get_point_evolution(self, x: float, y: float, times: Any) -> Any:  # type: ignore[explicit-any]
         """Tracks an evolution of a single point on the 2D spectrum
 
 
@@ -415,7 +415,7 @@ class TwoDResponseContainer(Saveable):
 
         return DFunction(times, vals)
 
-    def global_fit_exponential(self, guess: Any = None) -> Any:
+    def global_fit_exponential(self, guess: Any = None) -> Any:  # type: ignore[explicit-any]
         """Global fit of the data with exponentials"""
         from functools import partial
 
@@ -431,7 +431,7 @@ class TwoDResponseContainer(Saveable):
 
         return params
 
-    def fft(
+    def fft(  # type: ignore[explicit-any]
         self,
         ffttype: str = "complex-positive",
         window: Any = None,
@@ -554,7 +554,7 @@ class TwoDResponseContainer(Saveable):
         #
 
         # window function
-        ftdata: numpy.ndarray = numpy.zeros(data.shape, dtype=data.dtype)
+        ftdata: numpy.ndarray = numpy.zeros(data.shape, dtype=data.dtype)  # type: ignore[explicit-any]
         Nwin = len(winfce.data)
         Ndat = data.shape[2]
         for i_n in range(data.shape[0]):
@@ -582,23 +582,23 @@ class TwoDResponseContainer(Saveable):
 
         return new_container
 
-    def _create_root_group(self, start: Any, name: str) -> Any:
+    def _create_root_group(self, start: Any, name: str) -> Any:  # type: ignore[explicit-any]
         return start.create_group(name)
 
-    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
+    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:  # type: ignore[explicit-any]
         axdir = rt.create_group(name)
         axdir.attrs.create("start", ax.start)
         axdir.attrs.create("length", ax.length)
         axdir.attrs.create("step", ax.step)
 
-    def _load_axis(self, rt: Any, name: str) -> Any:
+    def _load_axis(self, rt: Any, name: str) -> Any:  # type: ignore[explicit-any]
         axdir = rt[name]
         start = axdir.attrs["start"]
         length = axdir.attrs["length"]
         step = axdir.attrs["step"]
         return TimeAxis(start, length, step)
 
-    def trimall_to(self, window: Any = None) -> None:
+    def trimall_to(self, window: Any = None) -> None:  # type: ignore[explicit-any]
         """Trims all spectra in the container
 
         Parameters
@@ -614,7 +614,7 @@ class TwoDResponseContainer(Saveable):
                 s.trim_to(window=axes)
 
     # FIXME: this is still legacy version
-    def amax(self, spart: Any = part_REAL) -> Any:
+    def amax(self, spart: Any = part_REAL) -> Any:  # type: ignore[explicit-any]
         """Returns maximum amplitude of the spectra in the container"""
         mxs = []
         for s in self.get_spectra():
@@ -666,7 +666,7 @@ class TwoDResponseContainer(Saveable):
         if iteration == total:
             print()
 
-    def make_movie(
+    def make_movie(  # type: ignore[explicit-any]
         self,
         filename: str,
         window: Any = None,
@@ -785,7 +785,7 @@ class TwoDResponseContainer(Saveable):
 #                    return
 
 
-def _exp_2D_data0(params: Any, times: Any = None, cont: Any = None) -> numpy.ndarray:
+def _exp_2D_data0(params: Any, times: Any = None, cont: Any = None) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Returns a residue between time dependent matrix data and a matrix
     multipled by a sum of exponentials
 
@@ -827,7 +827,7 @@ def _exp_2D_data0(params: Any, times: Any = None, cont: Any = None) -> numpy.nda
 
 
 class TwoDSpectrumContainer(TwoDResponseContainer):
-    def __init__(self, t2axis: Any = None, dtype: Any = signal_TOTL) -> None:
+    def __init__(self, t2axis: Any = None, dtype: Any = signal_TOTL) -> None:  # type: ignore[explicit-any]
 
         self.t2axis = t2axis
 
@@ -835,28 +835,28 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         self.itype: str | None = None
         self.index = 0
-        self.tags: list[Any] = []
+        self.tags: list[Any] = []  # type: ignore[explicit-any]
         self.dtype = dtype
 
-        self.spectra: dict[Any, Any] = {}
+        self.spectra: dict[Any, Any] = {}  # type: ignore[explicit-any]
         self._which: float | None = None
 
         if t2axis is not None:
             self.use_indexing_type(itype=t2axis)
 
-    def set_data_flag(self, flag: Any) -> None:
+    def set_data_flag(self, flag: Any) -> None:  # type: ignore[explicit-any]
         """Sets data flag for all spectra in the container"""
         if flag != self.dtype:
             raise QuantarheiError("Cannot change spectra type")
 
-    def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:
+    def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:  # type: ignore[explicit-any]
         """Returns a container with specific spectra"""
         if stype == self.dtype:
             return self
         raise QuantarheiError("Cannot change spectra type in this container")
 
     # FIXME: This needs to be reimplemented
-    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
+    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:  # type: ignore[explicit-any]
         """Converts this container into PumpProbeSpectrumContainer"""
         if self.dtype == signal_TOTL:
             from .pumpprobe import PumpProbeSpectrumContainer
@@ -902,7 +902,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             "Cannot calculate Pump-probe from 2D spectra of type" + self.dtype
         )
 
-    def normalize2(
+    def normalize2(  # type: ignore[explicit-any]
         self, norm: float = 1.0, each: bool = False, dpart: Any = part_REAL
     ) -> Any:
         """Normalize the whole container of spectra
@@ -928,7 +928,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         """
         nsp = len(self.spectra)
-        mxs: numpy.ndarray = numpy.zeros(nsp, dtype=REAL)
+        mxs: numpy.ndarray = numpy.zeros(nsp, dtype=REAL)  # type: ignore[explicit-any]
         ii = 0
         for tag in self.spectra.keys():
             sp = self.get_spectrum(tag)
@@ -946,7 +946,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         return nmax
 
-    def fft(
+    def fft(  # type: ignore[explicit-any]
         self,
         ffttype: str = "complex-positive",
         window: Any = None,
@@ -1071,7 +1071,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         #
 
         # window function
-        ftdata: numpy.ndarray = numpy.zeros(data.shape, dtype=data.dtype)
+        ftdata: numpy.ndarray = numpy.zeros(data.shape, dtype=data.dtype)  # type: ignore[explicit-any]
         Nwin = len(winfce.data)
         Ndat = data.shape[2]
         for i_n in range(data.shape[0]):
@@ -1099,7 +1099,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
         return new_container
 
-    def unitedir(self, dname: str) -> Any:
+    def unitedir(self, dname: str) -> Any:  # type: ignore[explicit-any]
 
         clist = self.loaddir(dname)
 

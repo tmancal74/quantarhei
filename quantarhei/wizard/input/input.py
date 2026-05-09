@@ -25,7 +25,7 @@ def ahoj(a: float) -> None:
 a = 5.0
 
 
-def expr(code: str, context: dict[str, Any] | None = None) -> Any:
+def expr(code: str, context: dict[str, Any] | None = None) -> Any:  # type: ignore[explicit-any]
     """Eval a math expression and return the result
 
     To be honest, I have no idea how this works
@@ -73,12 +73,12 @@ class Input:
     """
 
     # YAML-injected attributes — set dynamically via setattr in __init__
-    define_usecases: Any
-    tasks: Any
-    script: Any
-    path: Any
+    define_usecases: Any  # type: ignore[explicit-any]
+    tasks: Any  # type: ignore[explicit-any]
+    script: Any  # type: ignore[explicit-any]
+    path: Any  # type: ignore[explicit-any]
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         file_or_dict: str | dict[str, Any],
         math_allowed_in: list[Any] | None = None,
@@ -172,7 +172,7 @@ class Input:
             print("\nInput file summary:\n")
             print(self.data)
 
-    def strings_2_floats_dictionary(
+    def strings_2_floats_dictionary(  # type: ignore[explicit-any]
         self, dictionary: dict[str, Any], keys: list[str]
     ) -> dict[str, Any]:
         """Converts selected keys of a dictionary from string expression to float"""
@@ -186,7 +186,7 @@ class Input:
             ndict[key] = val
         return ndict
 
-    def strings_2_floats_lists(self, inlist: list[Any]) -> None:
+    def strings_2_floats_lists(self, inlist: list[Any]) -> None:  # type: ignore[explicit-any]
         """Converts every string in a list into float"""
         N = len(inlist)
 
@@ -195,7 +195,7 @@ class Input:
             val = self.string_2_float_prop(val)
             inlist[k] = val
 
-    def string_2_float_prop(self, prop: Any) -> Any:
+    def string_2_float_prop(self, prop: Any) -> Any:  # type: ignore[explicit-any]
         """If the submitted object is a string it is converted to float"""
         if isinstance(prop, str):
             val = expr(prop)

@@ -100,7 +100,7 @@ eps0_int = 1.0e19 / (4.0 * const.pi * J2int)
 #
 
 
-def convert(
+def convert(  # type: ignore[explicit-any]
     val: float | numpy.ndarray, in_units: str, to: str | None = None
 ) -> float | numpy.ndarray:
     """Convert a value from one set of units to another.
@@ -135,7 +135,7 @@ def convert(
     return ne
 
 
-def in_current_units(
+def in_current_units(  # type: ignore[explicit-any]
     val: float | numpy.ndarray, in_units: str
 ) -> float | numpy.ndarray:
     """Convert a value from given units into the current global units.

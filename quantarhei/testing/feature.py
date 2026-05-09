@@ -25,11 +25,11 @@ class FeatureFileGenerator:
         self._examples: str | None = None
         self._has_examples = False
 
-        self._givens: list[Any] = []
+        self._givens: list[Any] = []  # type: ignore[explicit-any]
         self._has_givens = False
-        self._whens: list[Any] = []
+        self._whens: list[Any] = []  # type: ignore[explicit-any]
         self._has_whens = False
-        self._thens: list[Any] = []
+        self._thens: list[Any] = []  # type: ignore[explicit-any]
         self._has_thens = False
 
     def _process_feature(self) -> str:
@@ -66,7 +66,7 @@ class FeatureFileGenerator:
                 if self._save:
                     self._out += line + "\n"
 
-    def add_Given(self, func: Callable[..., Any]) -> None:
+    def add_Given(self, func: Callable[..., Any]) -> None:  # type: ignore[explicit-any]
         if not self._has_feature:
             raise QuantarheiError()
         string = func.__doc__
@@ -78,7 +78,7 @@ class FeatureFileGenerator:
         self._givens.append(func.__doc__)
         self._has_givens = True
 
-    def add_When(self, func: Callable[..., Any]) -> None:
+    def add_When(self, func: Callable[..., Any]) -> None:  # type: ignore[explicit-any]
         if not self._has_givens:
             raise QuantarheiError()
         string = func.__doc__
@@ -90,7 +90,7 @@ class FeatureFileGenerator:
         self._whens.append(func.__doc__)
         self._has_whens = True
 
-    def add_Then(self, func: Callable[..., Any]) -> None:
+    def add_Then(self, func: Callable[..., Any]) -> None:  # type: ignore[explicit-any]
         if not self._has_whens:
             raise QuantarheiError()
         string = func.__doc__

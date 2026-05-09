@@ -96,10 +96,10 @@ class Secular:
     secular_reversible = False
 
     # operator whose eigenstates for the basis in which this object is secular
-    secular_basis_op: Any = None
+    secular_basis_op: Any = None  # type: ignore[explicit-any]
 
     # These attributes are expected to be defined by concrete subclasses
-    data: Any
+    data: Any  # type: ignore[explicit-any]
     as_operators: bool
     _has_rates: bool
 
@@ -108,10 +108,10 @@ class Secular:
     #
 
     # coherence decay rates
-    secular_GG: ndarray | None = None
+    secular_GG: ndarray | None = None  # type: ignore[explicit-any]
 
     # population tranfer rates
-    secular_KK: Any = None
+    secular_KK: Any = None  # type: ignore[explicit-any]
 
     ###########################################################################
     #
@@ -177,7 +177,7 @@ class Secular:
                     " secularization was performed irreversibly"
                 )
 
-    def get_secular_basis_operator(self) -> Any:
+    def get_secular_basis_operator(self) -> Any:  # type: ignore[explicit-any]
         """Returns the operator to ensure the correct basis context"""
         return self.secular_basis_op
 
@@ -248,7 +248,7 @@ class Secular:
                             ):
                                 self.data[:, ii, jj, kk, ll] = 0
 
-    def apply(self, rho: Any) -> Any:
+    def apply(self, rho: Any) -> Any:  # type: ignore[explicit-any]
         """Application of the secular tensor on the statistical operator"""
         #        rhoret = -self.secular_GG*rho.data
         #        if self._has_rates:
@@ -258,7 +258,7 @@ class Secular:
         # FIXME: time this to find out how bad is to call additional function
         return self._apply(rho.data)
 
-    def _apply(self, rho: Any) -> Any:
+    def _apply(self, rho: Any) -> Any:  # type: ignore[explicit-any]
         """Application of the tensor directly to an array"""
         rhoret = -self.secular_GG * rho
         if self._has_rates:
@@ -270,6 +270,6 @@ class Secular:
     #
     ###########################################################################
 
-    def _get_current_basis_op(self) -> Any:
+    def _get_current_basis_op(self) -> Any:  # type: ignore[explicit-any]
         """Returns the operator which defines the currently used basis"""
         return Manager().current_basis_operator

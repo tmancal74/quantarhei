@@ -54,7 +54,7 @@ class ModifiedRedfieldRateMatrix:
     """
 
     dim: int
-    _data: numpy.ndarray
+    _data: numpy.ndarray  # type: ignore[explicit-any]
 
     def __init__(
         self,
@@ -229,7 +229,7 @@ class ModifiedRedfieldRateMatrix:
         #
         # HIDE THIS INTO: get_reorganization_energy_matrix()
         #
-        lam4: numpy.ndarray = numpy.zeros((Na, Na, Na, Na), dtype=REAL)
+        lam4: numpy.ndarray = numpy.zeros((Na, Na, Na, Na), dtype=REAL)  # type: ignore[explicit-any]
         for a in range(Na):
             for b in range(Na):
                 for c in range(Na):
@@ -270,7 +270,7 @@ class ModifiedRedfieldRateMatrix:
         self.data = rates
 
 
-def ssModifiedRedfieldRateMatrix(
+def ssModifiedRedfieldRateMatrix(  # type: ignore[explicit-any]
     Na: int,
     Nc: int,
     Nt: int,
@@ -337,13 +337,13 @@ def ssModifiedRedfieldRateMatrix(
     warnings and errors
 
     """
-    E_0k: numpy.ndarray = numpy.zeros(Na, dtype=REAL)
-    F_k_t: numpy.ndarray = numpy.zeros((Na, Nt), dtype=COMPLEX)
-    A_k_t: numpy.ndarray = numpy.zeros((Na, Nt), dtype=COMPLEX)
-    N_kl_t: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
-    f: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
-    RR: numpy.ndarray = numpy.zeros((Na, Na), dtype=COMPLEX)
-    RR1: numpy.ndarray = numpy.zeros((Na, Na), dtype=COMPLEX)
+    E_0k: numpy.ndarray = numpy.zeros(Na, dtype=REAL)  # type: ignore[explicit-any]
+    F_k_t: numpy.ndarray = numpy.zeros((Na, Nt), dtype=COMPLEX)  # type: ignore[explicit-any]
+    A_k_t: numpy.ndarray = numpy.zeros((Na, Nt), dtype=COMPLEX)  # type: ignore[explicit-any]
+    N_kl_t: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)  # type: ignore[explicit-any]
+    f: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)  # type: ignore[explicit-any]
+    RR: numpy.ndarray = numpy.zeros((Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
+    RR1: numpy.ndarray = numpy.zeros((Na, Na), dtype=COMPLEX)  # type: ignore[explicit-any]
 
     # lam1 = (convert(numpy.imag(-h4[2,1,1,2,Nt-1]),"int","1/cm"))
     # lam2 = convert(lam4[2,1,1,2],"int","1/cm")
@@ -396,7 +396,7 @@ def ssModifiedRedfieldRateMatrix(
 
         """
 
-    f1: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
+    f1: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)  # type: ignore[explicit-any]
     for a in range(Na):
         for b in range(Na):
             f1[a, b, :] = numpy.conjugate(F_k_t[b, :]) * A_k_t[a, :] * N_kl_t[a, b, :]
@@ -415,7 +415,7 @@ def ssModifiedRedfieldRateMatrix(
     # qr.stop()
 
 
-def _c2g(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
+def _c2g(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Converts correlation function to lineshape function
 
     Explicit numerical double integration of the correlation
@@ -443,7 +443,7 @@ def _c2g(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
     return gt
 
 
-def _c2h(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
+def _c2h(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Converts correlation function to derivative of lineshape function
 
     Explicit numerical single integration of the correlation
@@ -469,7 +469,7 @@ def _c2h(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
     return ht
 
 
-def ssModifiedRRM(
+def ssModifiedRRM(  # type: ignore[explicit-any]
     Na: int,
     Nt: int,
     en: numpy.ndarray,
@@ -504,11 +504,11 @@ def ssModifiedRRM(
 
 
     """
-    RR: numpy.ndarray = numpy.zeros((Na, Na), dtype=REAL)
-    f: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)
-    Ab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
-    Fl: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
-    Nn: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    RR: numpy.ndarray = numpy.zeros((Na, Na), dtype=REAL)  # type: ignore[explicit-any]
+    f: numpy.ndarray = numpy.zeros((Na, Na, Nt), dtype=COMPLEX)  # type: ignore[explicit-any]
+    Ab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
+    Fl: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
+    Nn: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
 
     if method == "ModifiedRedfield":
         for a in range(Na):

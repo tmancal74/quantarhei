@@ -8,7 +8,7 @@ import numpy as np
 
 
 # correlation functions
-def cor(lam: float, g: float, a: float, b: float, t: Any) -> Any:
+def cor(lam: float, g: float, a: float, b: float, t: Any) -> Any:  # type: ignore[explicit-any]
     # return lam*(a-1j*b)*np.exp(-g*np.abs(t))
     # om = a
     # T = b
@@ -23,7 +23,7 @@ def cor(lam: float, g: float, a: float, b: float, t: Any) -> Any:
     return re + 1j * im
 
 
-def run() -> tuple[Any, Any, Any]:
+def run() -> tuple[Any, Any, Any]:  # type: ignore[explicit-any]
     g11 = 1.0 / 200
     l11 = 0.2
     l12 = 0.2

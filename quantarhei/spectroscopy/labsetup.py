@@ -64,10 +64,10 @@ class LabSetup:
         )
 
         # auxiliary matrix for orientational averaging
-        self.F4eM4: Any = None
+        self.F4eM4: Any = None  # type: ignore[explicit-any]
 
         # pulse polarizations
-        self.e: numpy.ndarray = numpy.zeros((nopulses, 3), dtype=REAL)
+        self.e: numpy.ndarray = numpy.zeros((nopulses, 3), dtype=REAL)  # type: ignore[explicit-any]
 
         self.timeaxis: TimeAxis | None = None
         self.freqaxis: FrequencyAxis | None = None
@@ -80,22 +80,22 @@ class LabSetup:
         self.axis_type: str | None = None
 
         # pulses in time- and frequency domain
-        self.pulse_t: list[Any] = [None] * nopulses
-        self.pulse_f: list[Any] = [None] * nopulses
+        self.pulse_t: list[Any] = [None] * nopulses  # type: ignore[explicit-any]
+        self.pulse_f: list[Any] = [None] * nopulses  # type: ignore[explicit-any]
 
         self._field_set = False
 
-        self.dscaling: Any = None
+        self.dscaling: Any = None  # type: ignore[explicit-any]
 
         #
         # Pulse characteristics
         #
-        self.omega: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
-        self.saved_omega: numpy.ndarray | None = None
-        self.pulse_centers: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
+        self.omega: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)  # type: ignore[explicit-any]
+        self.saved_omega: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.pulse_centers: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)  # type: ignore[explicit-any]
         self._centers_set = False
-        self.phases: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
-        self.delay_phases: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)
+        self.phases: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)  # type: ignore[explicit-any]
+        self.delay_phases: numpy.ndarray = numpy.zeros(nopulses, dtype=REAL)  # type: ignore[explicit-any]
 
         self.saved_params = None
 
@@ -106,7 +106,7 @@ class LabSetup:
         # else:
         #    raise QuantarheiError("Pulse shapes must be set first.")
 
-    def set_pulse_shapes(self, axis: Any, params: Any) -> None:
+    def set_pulse_shapes(self, axis: Any, params: Any) -> None:  # type: ignore[explicit-any]
         """Sets the pulse properties
 
 
@@ -435,7 +435,7 @@ class LabSetup:
             )
             raise QuantarheiError(text)
 
-    def set_pulse_polarizations(
+    def set_pulse_polarizations(  # type: ignore[explicit-any]
         self, pulse_polarizations: Any = (X, X, X), detection_polarization: Any = X
     ) -> None:
         """Sets polarizations of the experimental pulses
@@ -497,7 +497,7 @@ class LabSetup:
 
         self.detection_polarization = detection_polarization
 
-    def get_pulse_polarizations(self) -> list[Any]:
+    def get_pulse_polarizations(self) -> list[Any]:  # type: ignore[explicit-any]
         """Returns polarizations of the laser pulses
 
 
@@ -519,7 +519,7 @@ class LabSetup:
 
         return pols
 
-    def get_detection_polarization(self) -> Any:
+    def get_detection_polarization(self) -> Any:  # type: ignore[explicit-any]
         """Returns detection polarizations
 
 
@@ -733,7 +733,7 @@ class LabSetup:
                 "Cannot convert to frequency domain: time domain not set"
             )
 
-    def get_pulse_envelop(self, k: int, t: Any) -> Any:
+    def get_pulse_envelop(self, k: int, t: Any) -> Any:  # type: ignore[explicit-any]
         """Returns a numpy array with the pulse time-domain envelope
 
 
@@ -791,7 +791,7 @@ class LabSetup:
         """
         return self.pulse_t[k].at(t)
 
-    def get_pulse_spectrum(self, k: int, omega: Any) -> Any:
+    def get_pulse_spectrum(self, k: int, omega: Any) -> Any:  # type: ignore[explicit-any]
         """Returns a numpy array with the pulse frequency-domain spectrum
 
         Parameters
@@ -850,7 +850,7 @@ class LabSetup:
         """
         return self.pulse_f[k].at(omega)
 
-    def set_pulse_frequencies(self, omegas: Any) -> None:
+    def set_pulse_frequencies(self, omegas: Any) -> None:  # type: ignore[explicit-any]
         """Sets pulse frequencies
 
 
@@ -877,7 +877,7 @@ class LabSetup:
         """
         # FIXME: energy unit control has to be in place
         if len(omegas) == self.number_of_pulses:
-            omega_val: Any = Manager().convert_energy_2_internal_u(
+            omega_val: Any = Manager().convert_energy_2_internal_u(  # type: ignore[explicit-any]
                 numpy.array(omegas, dtype=REAL)
             )
             self.omega = omega_val
@@ -889,7 +889,7 @@ class LabSetup:
                 + " required"
             )
 
-    def get_pulse_frequency(self, k: int) -> Any:
+    def get_pulse_frequency(self, k: int) -> Any:  # type: ignore[explicit-any]
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -907,7 +907,7 @@ class LabSetup:
         """
         return self.omega[k]
 
-    def set_pulse_arrival_times(self, times: Any) -> None:
+    def set_pulse_arrival_times(self, times: Any) -> None:  # type: ignore[explicit-any]
         """Sets the arrival time (i.e. centers) of the pulses
 
         Parameters
@@ -943,7 +943,7 @@ class LabSetup:
                 + " required"
             )
 
-    def get_pulse_arrival_times(self) -> Any:
+    def get_pulse_arrival_times(self) -> Any:  # type: ignore[explicit-any]
         """Returns frequency of the pulse with index k
 
 
@@ -957,7 +957,7 @@ class LabSetup:
         """
         return self.pulse_centers
 
-    def get_pulse_arrival_time(self, k: int) -> Any:
+    def get_pulse_arrival_time(self, k: int) -> Any:  # type: ignore[explicit-any]
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -975,7 +975,7 @@ class LabSetup:
         """
         return self.pulse_centers[k]
 
-    def set_pulse_phases(self, phases: Any) -> None:
+    def set_pulse_phases(self, phases: Any) -> None:  # type: ignore[explicit-any]
         """Sets the phases of the individual pulses
 
         Parameters
@@ -1007,7 +1007,7 @@ class LabSetup:
                 "Wrong number of phases: " + str(self.number_of_pulses) + " required"
             )
 
-    def get_pulse_phases(self) -> Any:
+    def get_pulse_phases(self) -> Any:  # type: ignore[explicit-any]
         """Returns frequency of the pulse with index k
 
 
@@ -1021,7 +1021,7 @@ class LabSetup:
         """
         return self.phases
 
-    def get_pulse_phase(self, k: int) -> Any:
+    def get_pulse_phase(self, k: int) -> Any:  # type: ignore[explicit-any]
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -1066,9 +1066,9 @@ class LabSetup:
     def get_labfield(self, k: int) -> LabField:
         return LabField(self, k)
 
-    def get_labfields(self) -> list[Any]:
+    def get_labfields(self) -> list[Any]:  # type: ignore[explicit-any]
         """Retruns a list of EField objects for the lab's pulses"""
-        fields: list[Any] = [None] * self.number_of_pulses
+        fields: list[Any] = [None] * self.number_of_pulses  # type: ignore[explicit-any]
 
         for kk in range(self.number_of_pulses):
             ff = self.get_labfield(kk)
@@ -1090,7 +1090,7 @@ class LabSetup:
 
         self.omega[:] = self.saved_omega[:]
 
-    def get_field(self, kk: Any = None, rwa_frequency: Any = None) -> Any:
+    def get_field(self, kk: Any = None, rwa_frequency: Any = None) -> Any:  # type: ignore[explicit-any]
         """Returns the total field of the lab or a single field"""
         if kk is None:
             flds = self.get_labfields()
@@ -1115,7 +1115,7 @@ class LabSetup:
 
         return fld
 
-    def get_field_derivative(self) -> Any:
+    def get_field_derivative(self) -> Any:  # type: ignore[explicit-any]
         """Returns the time derivative of the total field"""
         flds = self.get_labfields()
 
@@ -1142,16 +1142,16 @@ class labsetup(LabSetup):
     pass
 
 
-def _labattr(name: str, target: str, flag: Any = None) -> Any:
+def _labattr(name: str, target: str, flag: Any = None) -> Any:  # type: ignore[explicit-any]
     """Pointer to a field attribute of the LabSep object"""
     storage_name = target
     access_flag = flag
 
-    def prop_getter(self: Any) -> Any:
+    def prop_getter(self: Any) -> Any:  # type: ignore[explicit-any]
         at = getattr(self.labsetup, storage_name)
         return at[self.index]
 
-    def prop_setter(self: Any, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         at = getattr(self.labsetup, storage_name)
         if access_flag is not None:
             setattr(self, access_flag, True)
@@ -1160,26 +1160,26 @@ def _labattr(name: str, target: str, flag: Any = None) -> Any:
     return property(prop_getter, prop_setter)
 
 
-def _labarray(name: str, target: str) -> Any:
+def _labarray(name: str, target: str) -> Any:  # type: ignore[explicit-any]
     """Pointer to a field array attribute of the LabSep object"""
     storage_name = target
 
-    def prop_getter(self: Any) -> Any:
+    def prop_getter(self: Any) -> Any:  # type: ignore[explicit-any]
         at = getattr(self.labsetup, storage_name)
         return at[self.index, :]
 
-    def prop_setter(self: Any, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         at = getattr(self.labsetup, storage_name)
         at[self.index, :] = value
 
     return property(prop_getter, prop_setter)
 
 
-def _fieldprop(name: str, flag: str, sign: int) -> Any:
+def _fieldprop(name: str, flag: str, sign: int) -> Any:  # type: ignore[explicit-any]
     """Property returning field values over time"""
     cmplx_sign = sign
 
-    def prop_getter(self: Any) -> Any:
+    def prop_getter(self: Any) -> Any:  # type: ignore[explicit-any]
         if getattr(self.labsetup, flag):
             if cmplx_sign == 1:
                 return self.get_field()
@@ -1192,7 +1192,7 @@ def _fieldprop(name: str, flag: str, sign: int) -> Any:
         else:
             raise QuantarheiError("The property '" + name + "' is not initialited.")
 
-    def prop_setter(self: Any, value: Any) -> None:
+    def prop_setter(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         raise QuantarheiError(
             "The property '" + name + "' is protected" + " and cannot be set."
         )
@@ -1394,7 +1394,7 @@ class LabField:
     field_m = _fieldprop("field_p", "_field_set", -1)
     field = _fieldprop("field", "_field_set", 0)
 
-    def __init__(self, labsetup: Any, k: int) -> None:
+    def __init__(self, labsetup: Any, k: int) -> None:  # type: ignore[explicit-any]
 
         self.labsetup = labsetup
         self.index = k
@@ -1403,15 +1403,15 @@ class LabField:
         # delay phase
         self.set_delay_phase(self.tc)
 
-    def get_phase(self) -> Any:
+    def get_phase(self) -> Any:  # type: ignore[explicit-any]
         """Returns the phase of the pulse"""
         return self.labsetup.phases[self.index]
 
-    def get_delay_phase(self) -> Any:
+    def get_delay_phase(self) -> Any:  # type: ignore[explicit-any]
         """Returns the phase caused by the pulse delay"""
         return self.labsetup.delay_phases[self.index]
 
-    def get_total_phase(self) -> Any:
+    def get_total_phase(self) -> Any:  # type: ignore[explicit-any]
 
         return self.labsetup.delay_phases[self.index] + self.labsetup.phases[self.index]
 
@@ -1427,7 +1427,7 @@ class LabField:
         self.labsetup.phases[self.index] = val
         # FIXME: The pulse field has to be updated
 
-    def get_center(self) -> Any:
+    def get_center(self) -> Any:  # type: ignore[explicit-any]
         """Returns the pulse center time"""
         return self.labsetup.pulse_centers[self.index]
 
@@ -1459,22 +1459,22 @@ class LabField:
         # print("Setting delay phase of", phi, "val=",val, "om=", om)
         self.labsetup.delay_phases[self.index] = phi
 
-    def get_frequency(self) -> Any:
+    def get_frequency(self) -> Any:  # type: ignore[explicit-any]
         return self.labsetup.omega[self.index]
 
     def set_frequency(self, val: float) -> None:
         self.labsetup.omega[self.index] = val
 
-    def get_polarization(self) -> Any:
+    def get_polarization(self) -> Any:  # type: ignore[explicit-any]
         return self.labsetup.e[self.index, :]
 
-    def set_polarization(self, pol: Any) -> None:
+    def set_polarization(self, pol: Any) -> None:  # type: ignore[explicit-any]
         self.labsetup.e[self.index, :] = pol
 
-    def get_fwhm(self) -> Any:
+    def get_fwhm(self) -> Any:  # type: ignore[explicit-any]
         return self.labsetup.saved_params[self.index]["FWHM"]
 
-    def get_field(self, time: Any = None, sign: int = 1) -> Any:
+    def get_field(self, time: Any = None, sign: int = 1) -> Any:  # type: ignore[explicit-any]
         """Returns the electric field of the pulses"""
         if self._center_changed:
             # recalculate pulses
@@ -1498,7 +1498,7 @@ class LabField:
 
         return self.labsetup.pulse_t[self.index].at(time)
 
-    def get_time_axis(self) -> Any:
+    def get_time_axis(self) -> Any:  # type: ignore[explicit-any]
         return self.labsetup.timeaxis
 
     def set_rwa(self, om: float) -> None:
@@ -1509,12 +1509,12 @@ class LabField:
 
         self.labsetup.restore_rwa()
 
-    def as_spline_function(self) -> Any:
+    def as_spline_function(self) -> Any:  # type: ignore[explicit-any]
         """Returns the spline represention of this field"""
         df = DFunction(self.labsetup.timeaxis, self.get_field())
         return df.as_spline_function()
 
-    def get_pulse_envelop(self, tt: Any) -> Any:
+    def get_pulse_envelop(self, tt: Any) -> Any:  # type: ignore[explicit-any]
         """Returns the envelop values"""
         # tma = self.timeaxis
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
@@ -1537,7 +1537,7 @@ class LabField:
 
         raise QuantarheiError()
 
-    def get_pulse_envelop_function(self) -> Any:
+    def get_pulse_envelop_function(self) -> Any:  # type: ignore[explicit-any]
         """Return a function to be called later"""
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
             fwhm = self.labsetup.saved_params[self.index]["FWHM"]
@@ -1545,7 +1545,7 @@ class LabField:
             lfc = 4.0 * numpy.log(2.0)
             pi = numpy.pi
 
-            def env(tt: Any) -> Any:
+            def env(tt: Any) -> Any:  # type: ignore[explicit-any]
 
                 val = (
                     (2.0 / fwhm)

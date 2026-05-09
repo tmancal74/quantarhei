@@ -24,7 +24,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
     """
 
     dim: int
-    data: numpy.ndarray
+    data: numpy.ndarray  # type: ignore[explicit-any]
 
     @prevent_basis_context
     def __init__(

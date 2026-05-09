@@ -37,11 +37,11 @@ class PumpProbeSpectrum(DFunction):
         self.data = None
         self._has_imag = False
 
-    def set_axis(self, axis: Any) -> None:
+    def set_axis(self, axis: Any) -> None:  # type: ignore[explicit-any]
         self.xaxis = axis
         self.axis = self.xaxis
 
-    def set_data(self, data: Any) -> None:
+    def set_data(self, data: Any) -> None:  # type: ignore[explicit-any]
         self.data = data
 
     def get_PumpProbeSpectrum(self) -> PumpProbeSpectrum:
@@ -60,7 +60,7 @@ class PumpProbeSpectrum(DFunction):
         """Returns the t2 (waiting time) of the spectrum"""
         return self.t2
 
-    def _add_data(self, data: Any) -> None:
+    def _add_data(self, data: Any) -> None:  # type: ignore[explicit-any]
         if self.data is None:
             self.set_data(data)
         else:
@@ -74,20 +74,20 @@ class PumpProbeSpectrum(DFunction):
 class _RWAOverrideSystem:
     """Delegates to a system while overriding the response-backend RWA."""
 
-    def __init__(self, system: Any, rwa: Any, lineshape_timeaxis: Any = None) -> None:
+    def __init__(self, system: Any, rwa: Any, lineshape_timeaxis: Any = None) -> None:  # type: ignore[explicit-any]
         self._system = system
         self._rwa = rwa
         self._lineshape_timeaxis = lineshape_timeaxis
 
-    def get_RWA_suggestion(self) -> Any:
+    def get_RWA_suggestion(self) -> Any:  # type: ignore[explicit-any]
         return self._rwa
 
-    def get_lineshape_functions(self, config: dict | int | None = None) -> Any:
+    def get_lineshape_functions(self, config: dict | int | None = None) -> Any:  # type: ignore[explicit-any]
         return self._system.get_lineshape_functions(
             config=config, timeaxis=self._lineshape_timeaxis
         )
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> Any:  # type: ignore[explicit-any]
         return getattr(self._system, name)
 
 
@@ -100,10 +100,10 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         Waiting-time axis shared by all stored spectra. Default is ``None``.
     """
 
-    def __init__(self, t2axis: Any = None) -> None:
+    def __init__(self, t2axis: Any = None) -> None:  # type: ignore[explicit-any]
 
         self.t2axis = t2axis
-        self.spectra: dict[Any, Any] = {}
+        self.spectra: dict[Any, Any] = {}  # type: ignore[explicit-any]
 
     def plot(self) -> None:
 
@@ -112,10 +112,10 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
         for sp in spctr:
             plt.plot(sp.xaxis.data, sp.data)
 
-    def set_spectrum(self, spec: Any, tag: Any = None) -> None:
+    def set_spectrum(self, spec: Any, tag: Any = None) -> None:  # type: ignore[explicit-any]
         self.spectra[tag] = spec
 
-    def amax(self, spart: Any = None) -> Any:
+    def amax(self, spart: Any = None) -> Any:  # type: ignore[explicit-any]
         mxs = []
         for s in self.get_spectra():
             spect = numpy.real(s.data)
@@ -123,7 +123,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             mxs.append(mx)
         return numpy.amax(numpy.array(mxs))
 
-    def amin(self) -> Any:
+    def amin(self) -> Any:  # type: ignore[explicit-any]
         mxs = []
         for s in self.get_spectra():
             spect = numpy.real(s.data)
@@ -131,7 +131,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             mxs.append(mx)
         return numpy.amin(numpy.array(mxs))
 
-    def plot2D(
+    def plot2D(  # type: ignore[explicit-any]
         self,
         axis: Any = None,
         units: str = "nm",
@@ -195,7 +195,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             plt.colorbar(p, ax=ax)
             fig.savefig("PP_2D_spectra.png", format="png", dpi=1200)
 
-    def plot_slices(
+    def plot_slices(  # type: ignore[explicit-any]
         self, freqs: Any, expRes: Any = None, units: str = "nm"
     ) -> numpy.ndarray:
 
@@ -232,7 +232,7 @@ class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
             fig.savefig("PP_slices_spectra.png", format="png", dpi=1200)
         return spectra_freq
 
-    def make_movie(
+    def make_movie(  # type: ignore[explicit-any]
         self,
         filename: str,
         window: Any = None,
@@ -352,7 +352,7 @@ class PumpProbeSpectrumCalculator:
 
     system = derived_type("system", [Molecule, Aggregate])
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         t2axis: Any,
         t3axis: Any,
@@ -414,18 +414,18 @@ class PumpProbeSpectrumCalculator:
         if rate_matrix is not None:
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
-        self.goft_matrix: Any = None
-        self.reorg_matrix: Any = None
+        self.goft_matrix: Any = None  # type: ignore[explicit-any]
+        self.reorg_matrix: Any = None  # type: ignore[explicit-any]
 
         # after bootstrap information
-        self.lab: Any = None
-        self.t3s: Any = None
-        self.pathways: Any = None
-        self.rwa: Any = None
-        self.density_matrix_trajectory: Any = density_matrix_trajectory
-        self.population_propagator: Any = population_propagator
-        self.density_matrix_propagator: Any = density_matrix_propagator
-        self.population_time_axis: Any = population_time_axis
+        self.lab: Any = None  # type: ignore[explicit-any]
+        self.t3s: Any = None  # type: ignore[explicit-any]
+        self.pathways: Any = None  # type: ignore[explicit-any]
+        self.rwa: Any = None  # type: ignore[explicit-any]
+        self.density_matrix_trajectory: Any = density_matrix_trajectory  # type: ignore[explicit-any]
+        self.population_propagator: Any = population_propagator  # type: ignore[explicit-any]
+        self.density_matrix_propagator: Any = density_matrix_propagator  # type: ignore[explicit-any]
+        self.population_time_axis: Any = population_time_axis  # type: ignore[explicit-any]
         self.include_nonsecular_remainder = include_nonsecular_remainder
         self.include_remainder = include_remainder
         self.dipole_normalization_tol = dipole_normalization_tol
@@ -434,7 +434,7 @@ class PumpProbeSpectrumCalculator:
 
         self.tc = 0
 
-    def bootstrap(
+    def bootstrap(  # type: ignore[explicit-any]
         self,
         rwa: float = 0.0,
         pathways: Any = None,
@@ -484,10 +484,10 @@ class PumpProbeSpectrumCalculator:
         self.tc = 0
         self.lab = lab
 
-    def set_pathways(self, pathways: Any) -> None:
+    def set_pathways(self, pathways: Any) -> None:  # type: ignore[explicit-any]
         self.pathways = pathways
 
-    def set_density_matrix_trajectory(
+    def set_density_matrix_trajectory(  # type: ignore[explicit-any]
         self, density_matrix_trajectory: Any, timeaxis: Any = None
     ) -> None:
         """Set an externally calculated density-matrix trajectory."""
@@ -496,7 +496,7 @@ class PumpProbeSpectrumCalculator:
         self.density_matrix_propagator = None
         self.population_time_axis = timeaxis
 
-    def set_population_propagator(
+    def set_population_propagator(  # type: ignore[explicit-any]
         self, population_propagator: Any, timeaxis: Any = None
     ) -> None:
         """Set an externally calculated one-exciton population propagator."""
@@ -505,7 +505,7 @@ class PumpProbeSpectrumCalculator:
         self.density_matrix_propagator = None
         self.population_time_axis = timeaxis
 
-    def set_density_matrix_propagator(
+    def set_density_matrix_propagator(  # type: ignore[explicit-any]
         self, density_matrix_propagator: Any, timeaxis: Any = None
     ) -> None:
         """Set an externally calculated one-exciton density-matrix propagator."""
@@ -514,7 +514,7 @@ class PumpProbeSpectrumCalculator:
         self.population_propagator = None
         self.population_time_axis = timeaxis
 
-    def set_dynamics(
+    def set_dynamics(  # type: ignore[explicit-any]
         self,
         density_matrix_trajectory: Any = None,
         population_propagator: Any = None,
@@ -542,7 +542,7 @@ class PumpProbeSpectrumCalculator:
         else:
             self.set_density_matrix_propagator(density_matrix_propagator, timeaxis)
 
-    def bath_reorg(self, cfm: Any, indx: Any) -> float:
+    def bath_reorg(self, cfm: Any, indx: Any) -> float:  # type: ignore[explicit-any]
         coft = cfm.cfuncs[cfm.get_index_by_where((indx, indx))]
         reorg_bath = 0.0
         for parm in coft.params:
@@ -550,7 +550,7 @@ class PumpProbeSpectrumCalculator:
                 reorg_bath += parm["reorg"]
         return reorg_bath
 
-    def _excitonic_reorg_diag(
+    def _excitonic_reorg_diag(  # type: ignore[explicit-any]
         self, SS: numpy.ndarray, subtract_bath: bool = True
     ) -> numpy.ndarray:
         """Returns the reorganisation energy of an exciton state"""
@@ -593,7 +593,7 @@ class PumpProbeSpectrumCalculator:
 
         return reorg_exct
 
-    def _site_reorg_diag(self, subtract_bath: bool = True) -> numpy.ndarray:
+    def _site_reorg_diag(self, subtract_bath: bool = True) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the reorganisation energy of an exciton state"""
         # SystemBathInteraction
         sbi = self.system.get_SystemBathInteraction()
@@ -629,7 +629,7 @@ class PumpProbeSpectrumCalculator:
 
         return reorg_site
 
-    def calculate_all_system_approx(
+    def calculate_all_system_approx(  # type: ignore[explicit-any]
         self,
         sys: Any,
         rdmt: Any,
@@ -735,7 +735,7 @@ class PumpProbeSpectrumCalculator:
 
         return tcont
 
-    def _response_backend_trace(self, diagrams: list[str], tau: float, lab: Any) -> Any:
+    def _response_backend_trace(self, diagrams: list[str], tau: float, lab: Any) -> Any:  # type: ignore[explicit-any]
         """Calculate selected response-backend diagrams as a t3 trace at t1 = 0."""
         t1axis = TimeAxis(0.0, 1, self.t3axis.step)
         backend_system = _RWAOverrideSystem(
@@ -756,7 +756,7 @@ class PumpProbeSpectrumCalculator:
 
         return response
 
-    def _full_dipole_rdm_weight(
+    def _full_dipole_rdm_weight(  # type: ignore[explicit-any]
         self, rdm: Any, ii: int, jj: int, tol: float = 1.0e-12
     ) -> Any:
         """Return RDM element normalized by the two preparation dipole lengths."""
@@ -770,7 +770,7 @@ class PumpProbeSpectrumCalculator:
             )
         return rdm[ii, jj] / norm
 
-    def _four_dipole_prefactors(self, lab: Any) -> dict[str, Any]:
+    def _four_dipole_prefactors(self, lab: Any) -> dict[str, Any]:  # type: ignore[explicit-any]
         """Return full orientational prefactors used by response functions."""
         prefactors = {}
         for key in ("abba", "baba"):
@@ -784,7 +784,7 @@ class PumpProbeSpectrumCalculator:
                 )
         return prefactors
 
-    def _response_backend_to_pump_probe(
+    def _response_backend_to_pump_probe(  # type: ignore[explicit-any]
         self, response: numpy.ndarray, tau: float
     ) -> Any:
         """Fourier transform a t1=0 response trace into a pump-probe spectrum."""
@@ -804,7 +804,7 @@ class PumpProbeSpectrumCalculator:
         onepp.set_t2(tau)
         return onepp
 
-    def calculate_all_system_approx_response_backend(
+    def calculate_all_system_approx_response_backend(  # type: ignore[explicit-any]
         self,
         sys: Any,
         rdmt: Any = None,
@@ -864,7 +864,7 @@ class PumpProbeSpectrumCalculator:
 
         if population_time_axis is None:
             population_time_axis = self.t2axis
-        response_kwargs: dict[str, Any] = dict(
+        response_kwargs: dict[str, Any] = dict(  # type: ignore[explicit-any]
             population_time_axis=population_time_axis
         )
         if rdmt is not None:
@@ -926,7 +926,7 @@ class PumpProbeSpectrumCalculator:
 
         return tcont
 
-    def calculate(
+    def calculate(  # type: ignore[explicit-any]
         self,
         system: Any = None,
         lab: Any = None,
@@ -1023,7 +1023,7 @@ class PumpProbeSpectrumCalculator:
 
         raise ValueError("method has to be 'response' or 'legacy'")
 
-    def calculate_all_system(
+    def calculate_all_system(  # type: ignore[explicit-any]
         self, sys: Any, eUt: Any, lab: Any, show_progress: bool = False
     ) -> Any:
         """Calculates all 2D spectra for a system and evolution superoperator"""
@@ -1048,7 +1048,7 @@ class PumpProbeSpectrumCalculator:
 
         return tcont
 
-    def calculate_one_system(
+    def calculate_one_system(  # type: ignore[explicit-any]
         self, t2: float, sys: Any, eUt: Any, lab: Any, pways: Any = None
     ) -> Any:
         """Returns pump-probe spectrum at t2 for a system and evolution
@@ -1112,14 +1112,14 @@ class PumpProbeSpectrumCalculator:
 
         return pprobe1
 
-    def calculate_next(self, t2: float) -> Any:
+    def calculate_next(self, t2: float) -> Any:  # type: ignore[explicit-any]
 
         sone = self.calculate_one(self.tc, t2)
         # print(self.tc, sone)
         self.tc += 1
         return sone
 
-    def calculate_one(self, tc: int, t2: float) -> Any:
+    def calculate_one(self, tc: int, t2: float) -> Any:  # type: ignore[explicit-any]
         """Calculate the 2D spectrum for all pathways"""
         # import time
 
@@ -1136,7 +1136,7 @@ class PumpProbeSpectrumCalculator:
 
         return onepp
 
-    def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
+    def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Converts correlation function to lineshape function
 
         Explicit numerical double integration of the correlation
@@ -1171,7 +1171,7 @@ class PumpProbeSpectrumCalculator:
         gt = sr + 1j * si
         return gt
 
-    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
+    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns energy gap correlation function data of an exciton state n"""
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
@@ -1199,7 +1199,7 @@ class PumpProbeSpectrumCalculator:
         #        print(numpy.isclose(ct,ct3).all())
         return ct
 
-    def _SE_excitonic_cofts(
+    def _SE_excitonic_cofts(  # type: ignore[explicit-any]
         self, SS: numpy.ndarray, AG: Any, tau: float = 0
     ) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns energy gap correlation function data of an exciton state n"""
@@ -1305,7 +1305,7 @@ class PumpProbeSpectrumCalculator:
 
         return ct3, ct3tau
 
-    def _SE_excitonic_cofts_test(
+    def _SE_excitonic_cofts_test(  # type: ignore[explicit-any]
         self, SS: numpy.ndarray, AG: Any, tau: float = 0
     ) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns energy gap correlation function data of an exciton state n"""
@@ -1420,7 +1420,7 @@ class PumpProbeSpectrumCalculator:
 
         return gt3, gt3tau
 
-    def _SE_excitonic_gofts(
+    def _SE_excitonic_gofts(  # type: ignore[explicit-any]
         self,
         SS: numpy.ndarray,
         AG: Any,
@@ -1535,7 +1535,7 @@ class PumpProbeSpectrumCalculator:
 
         return gt3tau
 
-    def _excitonic_reorg_energy(
+    def _excitonic_reorg_energy(  # type: ignore[explicit-any]
         self, SS: numpy.ndarray, AG: Any
     ) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns the reorganisation energy of an exciton state"""
@@ -1570,12 +1570,12 @@ class PumpProbeSpectrumCalculator:
 
         return reorg_exct, reorg_exct_sd
 
-    def calculate_pathways(self, pathways: Any, tau: float) -> numpy.ndarray:
+    def calculate_pathways(self, pathways: Any, tau: float) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Calculate the shape of a Liouville pathway"""
         # we can calculate empty pathway
         if pathways is None:
             N3 = self.oa3.length
-            ppspec: numpy.ndarray = numpy.zeros(N3, dtype=COMPLEX)
+            ppspec: numpy.ndarray = numpy.zeros(N3, dtype=COMPLEX)  # type: ignore[explicit-any]
             return ppspec
 
         N3 = self.oa3.length
@@ -1769,7 +1769,7 @@ class PumpProbeSpectrumCalculator:
 
         return data
 
-    def calculate_pathways_rdm(
+    def calculate_pathways_rdm(  # type: ignore[explicit-any]
         self,
         rdm0: Any,
         rdm: Any,
@@ -1973,7 +1973,7 @@ class PumpProbeSpectrumCalculator:
 
         return onepp
 
-    def calculate_pathways_rdm_novoderezhkin(
+    def calculate_pathways_rdm_novoderezhkin(  # type: ignore[explicit-any]
         self,
         rdm0: Any,
         rdm: Any,
@@ -2149,7 +2149,7 @@ class PumpProbeSpectrumCalculator:
         return onepp
 
 
-def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
+def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:  # type: ignore[explicit-any]
     """Calculates pump-probe spectrum from 2D spectrum
 
     Calculates pump-probe spectrum from 2D spectrum
@@ -2209,7 +2209,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
         lineshapes).
     """
 
-    def calculate_all_system(
+    def calculate_all_system(  # type: ignore[explicit-any]
         self,
         sys: Any,
         eUt: Any,
@@ -2253,7 +2253,7 @@ class MockPumpProbeSpectrumCalculator(MockTwoDSpectrumCalculator):
             tcont = super().calculate_all_system(sys, eUt, lab)
             return tcont.get_PumpProbeSpectrumContainer()
 
-    def calculate_one_system(
+    def calculate_one_system(  # type: ignore[explicit-any]
         self,
         t2: float,
         sys: Any,

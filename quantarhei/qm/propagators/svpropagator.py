@@ -28,7 +28,7 @@ class StateVectorPropagator:
         rotating-wave approximation (RWA) frame.
     """
 
-    def __init__(self, timeaxis: Any, ham: Any) -> None:
+    def __init__(self, timeaxis: Any, ham: Any) -> None:  # type: ignore[explicit-any]
         self.timeaxis = timeaxis
         self.ham = ham
 
@@ -61,7 +61,7 @@ class StateVectorPropagator:
         self.Nref = Nref
         self.dt = self.Odt / self.Nref
 
-    def propagate(
+    def propagate(  # type: ignore[explicit-any]
         self, psii: Any, L: int = 4, hfce: Any = None, nonlinear: bool = False
     ) -> Any:
         """Propagates the state vector
@@ -96,13 +96,13 @@ class StateVectorPropagator:
         # standard propagation with time independent Hamiltonian
         return self._propagate_short_exp(psii, L=L)
 
-    def get_evolution_operator(self) -> Any:
+    def get_evolution_operator(self) -> Any:  # type: ignore[explicit-any]
         """Returns the evolution operator corresponding to the propagator"""
         # FIXME: not yet implemented
         eop = 0.0
         return EvolutionOperator(self.timeaxis, data=eop)
 
-    def _propagate_short_exp(self, psii: Any, L: int = 4) -> StateVectorEvolution:
+    def _propagate_short_exp(self, psii: Any, L: int = 4) -> StateVectorEvolution:  # type: ignore[explicit-any]
         """Short exp integration"""
         pr = StateVectorEvolution(self.timeaxis, psii)
 
@@ -135,7 +135,7 @@ class StateVectorPropagator:
 
         return pr
 
-    def _propagate_short_exp_nonlin(
+    def _propagate_short_exp_nonlin(  # type: ignore[explicit-any]
         self, psii: Any, hfce: Any, L: int = 4
     ) -> StateVectorEvolution:
         """Short exp integration with non-linear Hamiltonian"""
@@ -182,7 +182,7 @@ class StateVectorPropagator:
 
         return pr
 
-    def _propagate_short_exp_tdep(
+    def _propagate_short_exp_tdep(  # type: ignore[explicit-any]
         self, psii: Any, hfce: Any, L: int = 4
     ) -> StateVectorEvolution:
         """Short exp integration with time-dependent Hamiltonian"""

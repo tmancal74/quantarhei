@@ -23,7 +23,7 @@ class MolecularModel(EnergyUnitsManaged):
             (self.nstate, self.nstate), dtype=numpy.float64
         )
 
-    def set_default_energies(self, elenergies: Any) -> None:
+    def set_default_energies(self, elenergies: Any) -> None:  # type: ignore[explicit-any]
         k = 0
         for en in elenergies:
             self.default_energies[k] = self.convert_2_internal_u(en)

@@ -11,7 +11,7 @@ from ....exceptions import QuantarheiError
 class RateMatrix(MatrixData):
     """Represents a population transfer rate matrix"""
 
-    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:  # type: ignore[explicit-any]
 
         self.N = 0
 
@@ -38,7 +38,7 @@ class RateMatrix(MatrixData):
             else:
                 self.data = numpy.zeros((self.N, self.N), dtype=numpy.float64)
 
-    def set_rate(self, pos: Any, value: float) -> None:
+    def set_rate(self, pos: Any, value: float) -> None:  # type: ignore[explicit-any]
         """Sets a value of a rate between two states
 
         Diagonal depopulation rates are automatically updated

@@ -57,7 +57,7 @@ class Saveable:
             if not isinstance(filename, str):
                 filename.seek(0)
 
-    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:
+    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:  # type: ignore[explicit-any]
         """Load an object from a file and return it.
 
         Parameters
@@ -87,7 +87,7 @@ class Saveable:
         str40 = str(uuid.uuid4())
         return str40
 
-    def savedir(
+    def savedir(  # type: ignore[explicit-any]
         self,
         dirname: str,
         tag: Any = None,
@@ -129,9 +129,9 @@ class Saveable:
         p.set_comment("Hashes")
         p.save(hfile)
 
-    def loaddir(self, dirname: str) -> dict[Any, Any]:
+    def loaddir(self, dirname: str) -> dict[Any, Any]:  # type: ignore[explicit-any]
         """Returns a directory of objects saved into a directory"""
-        out: dict[Any, Any] = {}
+        out: dict[Any, Any] = {}  # type: ignore[explicit-any]
         hfile = os.path.join(dirname, "_hashes_.qrp")
         hashes = load_parcel(hfile)
 
@@ -143,7 +143,7 @@ class Saveable:
 
         return out
 
-    def scopy(self) -> Any:
+    def scopy(self) -> Any:  # type: ignore[explicit-any]
         """Creates a copy of the object by saving and loading it"""
         with TemporaryDirectory() as td:
             fname = os.path.join(td, "ssave.qrp")
@@ -153,10 +153,10 @@ class Saveable:
 
         return no
 
-    def deepcopy(self) -> Any:
+    def deepcopy(self) -> Any:  # type: ignore[explicit-any]
         """Returns a deep copy of the self"""
         return copy.deepcopy(self)
 
-    def copy(self) -> Any:
+    def copy(self) -> Any:  # type: ignore[explicit-any]
         """Returns a shallow copy of the self"""
         return copy.copy(self)

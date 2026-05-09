@@ -14,7 +14,7 @@ from .abscalculator import AbsSpectrumCalculator
 
 
 class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
-    def bootstrap(  # type: ignore[override]
+    def bootstrap(  # type: ignore[explicit-any, override]
         self,
         rwa: float = 0.0,
         pathways: Any = None,
@@ -66,11 +66,11 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
         """Set dephasing rate as 1/(dephasing time)"""
         self.dephx = val
 
-    def set_pathways(self, pathways: Any) -> None:
+    def set_pathways(self, pathways: Any) -> None:  # type: ignore[explicit-any]
         """Set Liouville pathways to be used for spectral calculation"""
         self.pathways = pathways
 
-    def calculate(self, raw: bool = False) -> Any:
+    def calculate(self, raw: bool = False) -> Any:  # type: ignore[explicit-any]
         """Calculate the absorption spectrum for all pathways"""
         one = AbsSpectrum()
         one.set_axis(self.oa1)
@@ -84,7 +84,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
 
         return one
 
-    def calculate_pathway(
+    def calculate_pathway(  # type: ignore[explicit-any]
         self, pathway: Any, shape: str = "Gaussian", raw: bool = False
     ) -> numpy.ndarray:
         """Calculate the shape of a Liouville pathway

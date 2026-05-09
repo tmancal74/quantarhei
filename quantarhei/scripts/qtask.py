@@ -7,16 +7,16 @@ from typing import Any
 import quantarhei as qr
 
 
-def code_hamiltonian(INP: Any, status: Any) -> str:
+def code_hamiltonian(INP: Any, status: Any) -> str:  # type: ignore[explicit-any]
 
     code = "# Ahoj"
 
     return code
 
 
-def tasks(tlist: Any, INP: Any) -> str:
+def tasks(tlist: Any, INP: Any) -> str:  # type: ignore[explicit-any]
     """Go through the list of tasks"""
-    status: list[Any] = []
+    status: list[Any] = []  # type: ignore[explicit-any]
     code = ""
 
     if isinstance(tlist, str):
@@ -31,7 +31,7 @@ def tasks(tlist: Any, INP: Any) -> str:
     return code
 
 
-def do_process(args: Any) -> None:
+def do_process(args: Any) -> None:  # type: ignore[explicit-any]
     """Process arguments of the script"""
     if args.filename:
         fname = args.filename[0]

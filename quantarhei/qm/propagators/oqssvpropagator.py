@@ -33,7 +33,7 @@ class OQSStateVectorPropagator:
         ``"Redfield"`` is supported. Default is ``"Redfield"``.
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         timeaxis: Any = None,
         current_matrix: Any = None,
@@ -70,7 +70,7 @@ class OQSStateVectorPropagator:
         self.Nref = Nref
         self.dt = self.Odt / self.Nref
 
-    def propagate(self, psii: Any, L: int = 4) -> Any:
+    def propagate(self, psii: Any, L: int = 4) -> Any:  # type: ignore[explicit-any]
         """Short expansion of an exponention to integrate equations of motion
 
 
@@ -84,7 +84,7 @@ class OQSStateVectorPropagator:
 
         return pr
 
-    def get_secular_dynamics(self, psii: Any, L: int = 4) -> Any:
+    def get_secular_dynamics(self, psii: Any, L: int = 4) -> Any:  # type: ignore[explicit-any]
         """Here we obtain the secular dynamics for self-consistent methodology"""
         pr = OQSStateVectorEvolution(self.TimeAxis, psii)
 
@@ -112,13 +112,13 @@ class OQSStateVectorPropagator:
 
             return pr
 
-    def get_c0(self, psii: Any, L: int = 4) -> Any:
+    def get_c0(self, psii: Any, L: int = 4) -> Any:  # type: ignore[explicit-any]
         """Returns the zero's order solution to the iterative problem"""
         return self.get_secular_dynamics(psii, L)
 
 
 # @njit(cache=True)
-def _CALC(
+def _CALC(  # type: ignore[explicit-any]
     KK: numpy.ndarray,
     psii: numpy.ndarray,
     Nt: int,

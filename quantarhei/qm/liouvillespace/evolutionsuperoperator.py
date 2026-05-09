@@ -239,7 +239,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         time: Any = None,
         ham: Any = None,
@@ -309,7 +309,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         self.now = 0
 
-    def get_Hamiltonian(self) -> Any:
+    def get_Hamiltonian(self) -> Any:  # type: ignore[explicit-any]
         """Returns the Hamiltonian associated with thise evolution"""
         return self.ham
 
@@ -334,7 +334,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             self.dense_time.start, self.dense_time.length, self.dense_time.step
         )
 
-    def set_PureDephasing(self, pdeph: Any) -> None:
+    def set_PureDephasing(self, pdeph: Any) -> None:  # type: ignore[explicit-any]
         """Sets the PureDephasing object for the dynamic calculation"""
         self.pdeph = pdeph
 
@@ -449,7 +449,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             # evolution was calculated in RWA
             self.is_in_rwa = True
 
-    def _elemental_step_TimeIndep(
+    def _elemental_step_TimeIndep(  # type: ignore[explicit-any]
         self, t0: float, dens_dt: float, Nt: int
     ) -> numpy.ndarray:
         """Single elemental step of propagation with the dense time step"""
@@ -469,7 +469,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         return Ut1
 
-    def _elemental_step_TimeDependent(self, t0: float) -> numpy.ndarray:
+    def _elemental_step_TimeDependent(self, t0: float) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Single step of propagation with the dense time step
 
         assuming time dependent relaxation tensor
@@ -482,7 +482,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
         )
         rhonm0 = ReducedDensityMatrix(dim=dim)
-        Ut1: numpy.ndarray = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        Ut1: numpy.ndarray = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)  # type: ignore[explicit-any]
         for n in range(dim):
             for m in range(dim):
                 rhonm0.data[n, m] = 1.0
@@ -542,7 +542,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 #    self.data[:,:,:,m,n] = numpy.conj()
                 rhonm0.data[n, m] = 0.0
 
-    def _one_step_with_dense_TimeIndep(
+    def _one_step_with_dense_TimeIndep(  # type: ignore[explicit-any]
         self, t0: float, Ndense: int, dens_dt: float, Nt: int
     ) -> numpy.ndarray:
         """One step of propagation over the standard time step
@@ -554,7 +554,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #
         # propagation to the end of the first interval
         #
-        Udt: numpy.ndarray = numpy.zeros(Ut1.shape, dtype=COMPLEX)
+        Udt: numpy.ndarray = numpy.zeros(Ut1.shape, dtype=COMPLEX)  # type: ignore[explicit-any]
         Udt[:, :, :, :] = Ut1[:, :, :, :]
         for ti in range(2, self.dense_time.length):
             Udt = numpy.tensordot(Ut1, Udt)
@@ -661,7 +661,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             return SuperOperator(data=self.data[ti, :, :, :, :])
         return SuperOperator(data=self.data)
 
-    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:
+    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:  # type: ignore[explicit-any]
         """Applies the evolution superoperator at a given time
 
 
@@ -746,7 +746,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         raise QuantarheiError("Invalid argument: time")
 
-    def plot_element(self, elem: Any, part: str = "REAL", show: bool = True) -> None:
+    def plot_element(self, elem: Any, part: str = "REAL", show: bool = True) -> None:  # type: ignore[explicit-any]
         """Plots a selected element of the evolution superoperator
 
 
@@ -782,7 +782,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         else:
             print("Nothing to plot")
 
-    def get_element_fft(self, elem: Any, window: Any = None) -> Any:
+    def get_element_fft(self, elem: Any, window: Any = None) -> Any:  # type: ignore[explicit-any]
         """Returns a DFunction with the FFT of the element evolution"""
         if window is None:
             winfce = DFunction(self.time, numpy.ones(self.time.length, dtype=REAL))
@@ -802,7 +802,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         return ffce
 
     # FIXME: In principle, we can define Greens function and return it
-    def get_fft(self, window: Any = None, subtract_last: bool = True) -> tuple:
+    def get_fft(self, window: Any = None, subtract_last: bool = True) -> tuple:  # type: ignore[explicit-any]
         """Returns Fourier transform of the whole evolution superoperator
 
 
@@ -834,7 +834,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         return fdat, freq
 
-    def convert_from_RWA(self, ham: Any = None, sgn: int = 1) -> None:
+    def convert_from_RWA(self, ham: Any = None, sgn: int = 1) -> None:  # type: ignore[explicit-any]
         """Converts evolution superoperator from RWA to standard repre
 
 
@@ -872,7 +872,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if sgn == 1:
             self.is_in_rwa = False
 
-    def convert_to_RWA(self, ham: Any) -> None:
+    def convert_to_RWA(self, ham: Any) -> None:  # type: ignore[explicit-any]
         """Converts evolution superoperator from standard repre to RWA
 
 

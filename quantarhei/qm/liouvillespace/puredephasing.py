@@ -87,15 +87,15 @@ from ...qm.hilbertspace.operators import Operator
 from ..liouvillespace.superoperator import SuperOperator
 
 
-def _eigenb() -> Any:
+def _eigenb() -> Any:  # type: ignore[explicit-any]
     """Pointer to eigenbasis property"""
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
         return self._eigenbasis()
 
     @prop.setter  # type: ignore[misc]
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         raise BasisError("The property 'eigenbasis' is protected and cannot be set.")
 
     return prop
@@ -106,7 +106,7 @@ class PureDephasing:  # (BasisManaged):
 
     eigenbasis = _eigenb()
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         drates: Any = None,
         dtype: str = "Lorentzian",
@@ -118,7 +118,7 @@ class PureDephasing:  # (BasisManaged):
         if drates is None:
             raise QuantarheiError("Dephasing rates must be specified.")
 
-        self.data: numpy.ndarray = numpy.array(drates, dtype=REAL)
+        self.data: numpy.ndarray = numpy.array(drates, dtype=REAL)  # type: ignore[explicit-any]
 
         if system is not None:
             self.system = system
@@ -137,7 +137,7 @@ class PureDephasing:  # (BasisManaged):
             else:
                 raise ImplementationError("Non-Aggregate systems not implemented yet.")
 
-            HH: Any = self.system.get_Hamiltonian()
+            HH: Any = self.system.get_Hamiltonian()  # type: ignore[explicit-any]
             if HH.dim != self.data.shape[0]:
                 raise QuantarheiError(
                     "Incompatible dimension of the rate matrix:"
@@ -197,7 +197,7 @@ class PureDephasing:  # (BasisManaged):
         else:
             raise QuantarheiError("Unknown dephasing type")
 
-    def _eigenbasis(self) -> Any:
+    def _eigenbasis(self) -> Any:  # type: ignore[explicit-any]
         """Returns the context for the eigenbasis in which pure dephasing
         is defined
 
@@ -220,7 +220,7 @@ class PureDephasing:  # (BasisManaged):
 class ElectronicPureDephasing(PureDephasing):
     """Electronic pure dephasing for one-exciton states"""
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         system: Any,
         drates: Any = None,

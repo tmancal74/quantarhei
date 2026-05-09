@@ -31,7 +31,7 @@ class Parcel:
     :func:`~quantarhei.load_parcel` helpers for the common save/load workflow.
     """
 
-    def set_content(self, obj: Any) -> None:
+    def set_content(self, obj: Any) -> None:  # type: ignore[explicit-any]
         """Set the content of the parcel"""
         self.content = obj
         self.class_name = f"{obj.__class__.__module__}.{obj.__class__.__name__}"
@@ -68,7 +68,7 @@ class Parcel:
             pickle.dump(self, filename)
 
 
-def save_parcel(
+def save_parcel(  # type: ignore[explicit-any]
     obj: Any, filename: str | IO[bytes], comment: str | None = None
 ) -> None:
     """Saves a given object as a parcel
@@ -91,7 +91,7 @@ def save_parcel(
     p.save(filename)
 
 
-def load_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> Any:
+def load_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> Any:  # type: ignore[explicit-any]
     """Loads the object saved as parcel
 
     Parameters
@@ -121,7 +121,7 @@ def load_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> Any:
     raise QuantarheiError("Only Quantarhei Parcels can be loaded")
 
 
-def check_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> dict[str, Any]:
+def check_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> dict[str, Any]:  # type: ignore[explicit-any]
     """Checks the content of a Quantarhei parcel
 
     Parameters

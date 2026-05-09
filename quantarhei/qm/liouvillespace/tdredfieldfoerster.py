@@ -183,7 +183,7 @@ class TDRedfieldFoersterRelaxationTensor(
             # Add the rates to the Redfield
             #
             for b in range(Na):
-                gg: numpy.ndarray = numpy.zeros(Nt, dtype=numpy.float64)
+                gg: numpy.ndarray = numpy.zeros(Nt, dtype=numpy.float64)  # type: ignore[explicit-any]
                 for a in range(Na):
                     self.data[:, a, a, b, b] += KF[:, a, b]
                     gg += KF[:, a, b]

@@ -8,7 +8,7 @@ import scipy.constants as const
 from ..core.units import eps0_int
 
 
-def dipole_dipole_interaction(
+def dipole_dipole_interaction(  # type: ignore[explicit-any]
     r1: np.ndarray, r2: np.ndarray, d1: np.ndarray, d2: np.ndarray, epsr: float
 ) -> float:
     """Calculates interaction between two dipoles
@@ -43,7 +43,7 @@ def dipole_dipole_interaction(
     return prf * cc / epsr
 
 
-def dipole_dipole(
+def dipole_dipole(  # type: ignore[explicit-any]
     center1: np.ndarray,
     dipole1: np.ndarray,
     center2: np.ndarray,
@@ -65,7 +65,7 @@ def dipole_dipole(
     dr2 = np.dot(dipole2, r12) / R
 
     Edip_dip_Ha = (d12 - 3 * dr1 * dr2) / (R**3)  # interaction energy in hartree
-    nma: Any = 1.0
+    nma: Any = 1.0  # type: ignore[explicit-any]
     Edip_dip_cm1 = Edip_dip_Ha * nma.HaToInvcm
 
     if args:
@@ -78,7 +78,7 @@ def dipole_dipole(
     return Edip_dip_cm1
 
 
-def Oscilator3D(
+def Oscilator3D(  # type: ignore[explicit-any]
     rr1: np.ndarray,
     bond1: np.ndarray,
     AtType1: list,
@@ -137,7 +137,7 @@ def Oscilator3D(
     #        rr2=pos.prepare_alkene(len(rr2),Position=center,vec_x=VecX,vec_y=VecY)
     #
 
-    def molecule_osc_3D(
+    def molecule_osc_3D(  # type: ignore[explicit-any]
         rr: np.ndarray,
         bond: np.ndarray,
         factor: np.ndarray,
@@ -248,7 +248,7 @@ def Oscilator3D(
     return res
 
 
-def GuessBonds(rr: np.ndarray, bond_length: float = 4.0, **kwargs: Any) -> np.ndarray:
+def GuessBonds(rr: np.ndarray, bond_length: float = 4.0, **kwargs: Any) -> np.ndarray:  # type: ignore[explicit-any]
     """Function guesses pairs of atoms between which bond might occure.
 
 

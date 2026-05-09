@@ -35,12 +35,12 @@ from ..utils import derived_type
 class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
     """Provides basic container for fluorescence spectrum."""
 
-    def __init__(self, axis: Any = None, data: Any = None) -> None:
+    def __init__(self, axis: Any = None, data: Any = None) -> None:  # type: ignore[explicit-any]
         super().__init__()
         self.axis = axis
         self.data = data
 
-    def set_axis(self, axis: Any) -> None:
+    def set_axis(self, axis: Any) -> None:  # type: ignore[explicit-any]
         """Set the frequency axis of the spectrum.
 
         Parameters
@@ -50,7 +50,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         """
         self.axis = axis
 
-    def set_data(self, data: Any) -> None:
+    def set_data(self, data: Any) -> None:  # type: ignore[explicit-any]
         """Set the spectral data array.
 
         Parameters
@@ -60,11 +60,11 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         """
         self.data = data
 
-    def set_by_interpolation(self, x: Any, y: Any, xaxis: str = "frequency") -> None:
+    def set_by_interpolation(self, x: Any, y: Any, xaxis: str = "frequency") -> None:  # type: ignore[explicit-any]
 
         from scipy import interpolate
 
-        om: numpy.ndarray
+        om: numpy.ndarray  # type: ignore[explicit-any]
         if xaxis == "frequency":
             om = numpy.asarray(self.convert_2_internal_u(x))
 
@@ -119,7 +119,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         """Subtracts a value from the spectrum to shift its base line"""
         self.data -= val
 
-    def add_to_data(self, spect: Any) -> None:
+    def add_to_data(self, spect: Any) -> None:  # type: ignore[explicit-any]
         """Add data from a compatible spectrum to this spectrum.
 
         Parameters
@@ -146,7 +146,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
 
         self.data += spect.data
 
-    def load_data(
+    def load_data(  # type: ignore[explicit-any]
         self,
         name: str,
         with_axis: Any = None,
@@ -176,7 +176,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
 
     # save method is inherited from DFunction
 
-    def plot(
+    def plot(  # type: ignore[explicit-any]
         self,
         fig: Any = None,
         title: str | None = None,
@@ -222,7 +222,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
             **kwargs,
         )
 
-    def gaussian_fit(
+    def gaussian_fit(  # type: ignore[explicit-any]
         self, N: int = 1, guess: Any = None, plot: bool = False, Nsvf: int = 251
     ) -> Any:
         """Performs a Gaussian fit of the spectrum based on an initial guess
@@ -241,7 +241,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
         if guess is None:
             raise QuantarheiError("Guess is required at this time")
 
-        def funcf(x: Any, *p: Any) -> Any:
+        def funcf(x: Any, *p: Any) -> Any:  # type: ignore[explicit-any]
             return _n_gaussians(x, N, *p)
 
         # minimize, leastsq,
@@ -295,7 +295,7 @@ class FluorSpectrumBase(DFunction, EnergyUnitsManaged):
 #
 
 
-def _gaussian(
+def _gaussian(  # type: ignore[explicit-any]
     x: Any, height: float, center: float, fwhm: float, offset: float = 0.0
 ) -> numpy.ndarray:
     """Gaussian function with a possible offset
@@ -326,7 +326,7 @@ def _gaussian(
     )
 
 
-def _n_gaussians(x: Any, N: int, *params: float) -> Any:
+def _n_gaussians(x: Any, N: int, *params: float) -> Any:  # type: ignore[explicit-any]
     """Sum of N Gaussian functions plus an offset from zero
 
     Parameters
@@ -346,7 +346,7 @@ def _n_gaussians(x: Any, N: int, *params: float) -> Any:
     k = n // 3
 
     if (k * 3 == n) and (k == N):
-        res: float | numpy.ndarray = 0.0
+        res: float | numpy.ndarray = 0.0  # type: ignore[explicit-any]
         pp = numpy.zeros(3)
         for i in range(k):
             pp[0:3] = params[3 * i : 3 * i + 3]
@@ -433,16 +433,16 @@ class FluorSpectrumContainer(Saveable):
         the axis is set automatically when the first spectrum is added.
     """
 
-    def __init__(self, axis: Any = None) -> None:
+    def __init__(self, axis: Any = None) -> None:  # type: ignore[explicit-any]
 
         self.axis = axis
         self.count = 0
-        self.spectra: dict[str, Any] = {}
+        self.spectra: dict[str, Any] = {}  # type: ignore[explicit-any]
 
-    def set_axis(self, axis: Any) -> None:
+    def set_axis(self, axis: Any) -> None:  # type: ignore[explicit-any]
         self.axis = axis
 
-    def set_spectrum(self, spect: Any, tag: Any = None) -> None:
+    def set_spectrum(self, spect: Any, tag: Any = None) -> None:  # type: ignore[explicit-any]
         """Store a fluorescence spectrum, checking axis compatibility.
 
         Parameters
@@ -475,7 +475,7 @@ class FluorSpectrumContainer(Saveable):
         else:
             raise QuantarheiError("Incompatible time axis (equal axis required)")
 
-    def get_spectrum(self, tag: Any) -> Any:
+    def get_spectrum(self, tag: Any) -> Any:  # type: ignore[explicit-any]
         """Return the spectrum identified by tag.
 
         Parameters
@@ -501,7 +501,7 @@ class FluorSpectrumContainer(Saveable):
             return self.spectra[tag]
         raise QuantarheiError("Unknown spectrum")
 
-    def get_spectra(self) -> list[Any]:
+    def get_spectra(self) -> list[Any]:  # type: ignore[explicit-any]
         """Return all stored spectra sorted by their string tags.
 
         Returns
@@ -596,7 +596,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
     TimeAxis = derived_type("TimeAxis", TimeAxis)
     system = derived_type("system", [Molecule, Aggregate])
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         timeaxis: Any,
         system: Any = None,
@@ -630,7 +630,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
             self._rate_matrix = rate_matrix
             self._has_rate_matrix = True
         self.temperature = temperature
-        self.rwa: float | numpy.ndarray = 0.0
+        self.rwa: float | numpy.ndarray = 0.0  # type: ignore[explicit-any]
 
     def bootstrap(self, rwa: float = 0.0) -> None:
         """ """
@@ -640,7 +640,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
             self.frequencyAxis = self.TimeAxis.get_FrequencyAxis()
             self.frequencyAxis.data += self.rwa
 
-    def calculate(self) -> Any:
+    def calculate(self) -> Any:  # type: ignore[explicit-any]
         """Calculates the fluorescence spectrum"""
         with energy_units("int"):
             if self.system is not None:
@@ -667,7 +667,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
 
             stick_width = 1.0 / 0.1
 
-    def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
+    def _c2g(self, timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Converts correlation function to lineshape function
 
         Explicit numerical double integration of the correlation
@@ -702,7 +702,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         gt = sr + 1j * si
         return gt
 
-    def one_transition_spectrum(self, tr: dict[str, Any]) -> numpy.ndarray:
+    def one_transition_spectrum(self, tr: dict[str, Any]) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Calculates spectrum of one transition"""
         ta = tr["ta"]  # TimeAxis
         dd = tr["dd"]  # transition dipole moment
@@ -740,7 +740,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
         Nt = ta.length  # len(ta.data)
         return ft[Nt // 2 : Nt + Nt // 2]
 
-    def _equilibrium_populations(
+    def _equilibrium_populations(  # type: ignore[explicit-any]
         self, AG: Any, temperature: float = 4.0, relaxation_hamiltonian: Any = None
     ) -> Any:
         if relaxation_hamiltonian:
@@ -756,7 +756,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
             )
         return rho0
 
-    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:
+    def _excitonic_coft(self, SS: numpy.ndarray, AG: Any, n: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns energy gap correlation function data of an exciton state"""
         # FIXME: works only for 2 level molecules
 
@@ -783,7 +783,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
 
         return ct
 
-    def _excitonic_reorg_energy(self, SS: numpy.ndarray, AG: Any, n: int) -> float:
+    def _excitonic_reorg_energy(self, SS: numpy.ndarray, AG: Any, n: int) -> float:  # type: ignore[explicit-any]
         """Returns the reorganisation energy of an exciton state"""
         # SystemBathInteraction
         sbi = AG.get_SystemBathInteraction()
@@ -806,7 +806,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
                 rg += (SS[kk, n] ** 2) * (SS[kk, n] ** 2) * reorg
         return rg
 
-    def _calculate_monomer(self) -> Any:
+    def _calculate_monomer(self) -> Any:  # type: ignore[explicit-any]
         """Calculates the fluorescence spectrum of a monomer"""
         ta = self.TimeAxis
 
@@ -853,7 +853,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
 
         return spect
 
-    def _calculate_aggregate(
+    def _calculate_aggregate(  # type: ignore[explicit-any]
         self,
         relaxation_tensor: Any = None,
         relaxation_hamiltonian: Any = None,
@@ -883,7 +883,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
             RR.transform(SS)
             gg = []
             if isinstance(RR, TimeDependent):
-                RR_any: Any = RR
+                RR_any: Any = RR  # type: ignore[explicit-any]
                 for ii in range(HH.dim):
                     gg.append(RR_any.data[:, ii, ii, ii, ii])
             else:
@@ -894,7 +894,7 @@ class FluorSpectrumCalculator(EnergyUnitsManaged):
             RR = rate_matrix  # rate matrix is in excitonic basis
             gg = []
             if isinstance(RR, TimeDependent):
-                RR_any2: Any = RR
+                RR_any2: Any = RR  # type: ignore[explicit-any]
                 for ii in range(HH.dim):
                     gg.append(RR_any2.data[:, ii, ii])
             else:

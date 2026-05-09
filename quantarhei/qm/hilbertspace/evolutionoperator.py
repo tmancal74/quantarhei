@@ -4,7 +4,7 @@ from typing import Any
 
 
 class EvolutionOperator:
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         timeaxis: Any,
         dim: int | None = None,
@@ -17,7 +17,7 @@ class EvolutionOperator:
 
         pass
 
-    def apply(opvec: Any) -> Any:
+    def apply(opvec: Any) -> Any:  # type: ignore[explicit-any]
         """Apply the evolution operator to an operator or state vector
 
         Returns
@@ -27,7 +27,7 @@ class EvolutionOperator:
         """
         pass
 
-    def apply_left(opvec: Any) -> Any:
+    def apply_left(opvec: Any) -> Any:  # type: ignore[explicit-any]
         """Apply the evolution operator to an operator or vector on the left
 
         Returns

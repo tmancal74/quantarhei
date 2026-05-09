@@ -7,16 +7,16 @@ from typing import Any
 import numpy
 
 
-def array_property(name: str, shape: tuple[int, ...] | None = None) -> Any:
+def array_property(name: str, shape: tuple[int, ...] | None = None) -> Any:  # type: ignore[explicit-any]
     """Controls the access to an array property of package classes"""
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> numpy.ndarray:
+    def prop(self: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         return getattr(self, storage_name)
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         try:
             vl = check_numpy_array(value)
             if not (shape == None):
@@ -29,7 +29,7 @@ def array_property(name: str, shape: tuple[int, ...] | None = None) -> Any:
     return prop
 
 
-def units_managed_property(name: str, dtype: type) -> Any:
+def units_managed_property(name: str, dtype: type) -> Any:  # type: ignore[explicit-any]
     """Scalar property with units managed
 
     Warning: The type of the property depends on the object; The object
@@ -38,13 +38,13 @@ def units_managed_property(name: str, dtype: type) -> Any:
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
         val = getattr(self, storage_name)
         return self.convert_2_current_u(val)  # This is a method defined in
         # the class which handles units
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         if isinstance(value, dtype):
             setattr(self, storage_name, self.convert_2_internal_u(value))
         else:
@@ -53,7 +53,7 @@ def units_managed_property(name: str, dtype: type) -> Any:
     return prop
 
 
-def units_managed_array_property(
+def units_managed_array_property(  # type: ignore[explicit-any]
     name: str, dtype: type, shape: tuple[int, ...] | None = None
 ) -> Any:
     """Array property with units managed
@@ -64,13 +64,13 @@ def units_managed_array_property(
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
         val = getattr(self, storage_name)
         return self.convert_2_current_u(val)  # This is a method defined in
         # the class which handles units
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
 
         try:
             vl = check_numpy_array(value)
@@ -84,14 +84,14 @@ def units_managed_array_property(
     return prop
 
 
-def basis_managed_array_property(
+def basis_managed_array_property(  # type: ignore[explicit-any]
     name: str, dtype: type, shape: tuple[int, ...] | None = None
 ) -> Any:
 
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
 
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
@@ -107,7 +107,7 @@ def basis_managed_array_property(
         return getattr(self, storage_name)
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
 
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
@@ -132,14 +132,14 @@ def basis_managed_array_property(
     return prop
 
 
-def managed_array_property(
+def managed_array_property(  # type: ignore[explicit-any]
     name: str, dtype: type, shape: tuple[int, ...] | None = None
 ) -> Any:
     """Property with the units and basis management"""
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
 
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
@@ -156,7 +156,7 @@ def managed_array_property(
         return self.convert_2_current_u(val)
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
 
         # check if basis id corresponds to the one known by Manager
         cb = self.manager.get_current_basis()
@@ -181,7 +181,7 @@ def managed_array_property(
     return prop
 
 
-def check_numpy_array(val: Any) -> numpy.ndarray:
+def check_numpy_array(val: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Checks if argument is a numpy array.
 
     If the argument is a list, it converts it into numpy array. Otherwise,
@@ -199,15 +199,15 @@ def check_numpy_array(val: Any) -> numpy.ndarray:
     raise TypeError("List or numpy.ndarray required")
 
 
-def typed_property(name: str, dtype: type) -> Any:
+def typed_property(name: str, dtype: type) -> Any:  # type: ignore[explicit-any]
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
         return getattr(self, storage_name)
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         if isinstance(value, dtype):
             setattr(self, storage_name, value)
         else:
@@ -216,15 +216,15 @@ def typed_property(name: str, dtype: type) -> Any:
     return prop
 
 
-def list_of_typed_property(name: str, dtype: type) -> Any:
+def list_of_typed_property(name: str, dtype: type) -> Any:  # type: ignore[explicit-any]
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
         return getattr(self, storage_name)
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         if isinstance(value, list):
             for el in value:
                 if not isinstance(el, dtype):
@@ -237,15 +237,15 @@ def list_of_typed_property(name: str, dtype: type) -> Any:
     return prop
 
 
-def alt_type_property(name: str, dtype: Any) -> Any:
+def alt_type_property(name: str, dtype: Any) -> Any:  # type: ignore[explicit-any]
     storage_name = "_" + name
 
     @property  # type: ignore[misc]
-    def prop(self: Any) -> Any:
+    def prop(self: Any) -> Any:  # type: ignore[explicit-any]
         return getattr(self, storage_name)
 
     @prop.setter
-    def prop(self: Any, value: Any) -> None:
+    def prop(self: Any, value: Any) -> None:  # type: ignore[explicit-any]
         if isinstance(dtype, list):
             isset = False
             for tps in dtype:
@@ -263,7 +263,7 @@ def alt_type_property(name: str, dtype: Any) -> Any:
     return prop
 
 
-def derived_type(name: str, dtype_in: Any) -> Any:
+def derived_type(name: str, dtype_in: Any) -> Any:  # type: ignore[explicit-any]
     if isinstance(dtype_in, list):
         tp = partial(alt_type_property, dtype=dtype_in)
     else:

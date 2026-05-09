@@ -68,7 +68,7 @@ class SOpUnity(SuperOperator):
 
     """
 
-    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:  # type: ignore[explicit-any]
 
         if data is not None:
             dim = data.shape[0]

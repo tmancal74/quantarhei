@@ -57,7 +57,7 @@ class DFunction2:
     discrete function
     """
 
-    def __init__(self, x: Any = None, y: Any = None, z: Any = None) -> None:
+    def __init__(self, x: Any = None, y: Any = None, z: Any = None) -> None:  # type: ignore[explicit-any]
         pass
 
     def save(
@@ -65,10 +65,10 @@ class DFunction2:
     ) -> None:
         pass
 
-    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:
+    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:  # type: ignore[explicit-any]
         pass
 
-    def plot(self, **kwargs: Any) -> None:
+    def plot(self, **kwargs: Any) -> None:  # type: ignore[explicit-any]
         pass
 
 
@@ -90,22 +90,22 @@ class TwoDSpectrumBase(DFunction2):
     def __init__(self) -> None:
         super().__init__()
 
-        self.data: numpy.ndarray | None = None
-        self.xaxis: Any = None
-        self.yaxis: Any = None
+        self.data: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.xaxis: Any = None  # type: ignore[explicit-any]
+        self.yaxis: Any = None  # type: ignore[explicit-any]
 
-        self.reph2D: numpy.ndarray | None = None
-        self.nonr2D: numpy.ndarray | None = None
+        self.reph2D: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.nonr2D: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
-    def set_axis_1(self, axis: Any) -> None:
+    def set_axis_1(self, axis: Any) -> None:  # type: ignore[explicit-any]
         """Sets the x-axis of te spectrum (omega_1 axis)"""
         self.xaxis = axis
 
-    def set_axis_3(self, axis: Any) -> None:
+    def set_axis_3(self, axis: Any) -> None:  # type: ignore[explicit-any]
         """Sets the y-axis of te spectrum (omega_3 axis)"""
         self.yaxis = axis
 
-    def set_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:
+    def set_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:  # type: ignore[explicit-any]
         if dtype == "Tot":
             self.data = data
 
@@ -118,7 +118,7 @@ class TwoDSpectrumBase(DFunction2):
         else:
             raise QuantarheiError("Unknow type of data: " + dtype)
 
-    def add_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:
+    def add_data(self, data: numpy.ndarray, dtype: str = "Tot") -> None:  # type: ignore[explicit-any]
         if dtype == "Tot":
             if self.data is None:
                 self.data = numpy.zeros(data.shape, dtype=data.dtype)
@@ -142,7 +142,7 @@ class TwoDSpectrumBase(DFunction2):
     ) -> None:
         super().save(filename)
 
-    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:
+    def load(self, filename: str | IO[bytes], test: bool = False) -> Any:  # type: ignore[explicit-any]
         super().load(filename)
 
 
@@ -198,13 +198,13 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
         self.reph2D = self.reph2D / val
         self.nonr2D = self.nonr2D / val
 
-    def get_PumpProbeSpectrum(self) -> Any:
+    def get_PumpProbeSpectrum(self) -> Any:  # type: ignore[explicit-any]
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum"""
         from .pumpprobe import calculate_from_2D
 
         return calculate_from_2D(self)
 
-    def plot(
+    def plot(  # type: ignore[explicit-any]
         self,
         fig: Any = None,
         window: list | None = None,
@@ -460,10 +460,10 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
         plt.savefig(filename, dpi=dpi)
 
-    def _create_root_group(self, start: Any, name: str) -> Any:
+    def _create_root_group(self, start: Any, name: str) -> Any:  # type: ignore[explicit-any]
         return start.create_group(name)
 
-    def _save_attributes(self, rt: Any) -> None:
+    def _save_attributes(self, rt: Any) -> None:  # type: ignore[explicit-any]
         rt.attrs.create("t2", self.t2)
         keeps = []
         if self.keep_pathways:
@@ -477,34 +477,34 @@ class TwoDSpectrum(TwoDSpectrumBase, Saveable):
 
         rt.attrs.create("keeps", keeps)
 
-    def _load_attributes(self, rt: Any) -> None:
+    def _load_attributes(self, rt: Any) -> None:  # type: ignore[explicit-any]
         self.t2 = rt.attrs["t2"]
         keeps = rt.attrs["keeps"]
         self.keep_pathways = keeps[0] == 1
         self.keep_stypes = keeps[1] == 1
 
-    def _save_data(self, rt: Any) -> None:
+    def _save_data(self, rt: Any) -> None:  # type: ignore[explicit-any]
         if self.keep_stypes:
             rt.create_dataset("reph2D", data=self.reph2D)
             rt.create_dataset("nonr2D", data=self.nonr2D)
         else:
             rt.create_dataset("data", data=self.data)
 
-    def _load_data(self, rt: Any) -> None:
+    def _load_data(self, rt: Any) -> None:  # type: ignore[explicit-any]
         if self.keep_stypes:
             self.reph2D = numpy.array(rt["reph2D"])
             self.nonr2D = numpy.array(rt["nonr2D"])
         else:
             self.data = numpy.array(rt["data"])
 
-    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
+    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:  # type: ignore[explicit-any]
         axdir = rt.create_group(name)
         axdir.attrs.create("start", ax.start)
         axdir.attrs.create("length", ax.length)
         axdir.attrs.create("step", ax.step)
         # FIXME: atype and time_start
 
-    def _load_axis(self, rt: Any, name: str) -> FrequencyAxis:
+    def _load_axis(self, rt: Any, name: str) -> FrequencyAxis:  # type: ignore[explicit-any]
         axdir = rt[name]
         start = axdir.attrs["start"]
         length = axdir.attrs["length"]
@@ -562,7 +562,7 @@ class TwoDSpectrumContainer(Saveable):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, t2axis: Any = None, keep_pathways: bool = False, keep_stypes: bool = True
     ) -> None:
 
@@ -573,7 +573,7 @@ class TwoDSpectrumContainer(Saveable):
         if self.keep_pathways:
             raise QuantarheiError("Container keeping pathways not available yet")
 
-        self.spectra: dict[Any, Any] = {}
+        self.spectra: dict[Any, Any] = {}  # type: ignore[explicit-any]
 
     def set_spectrum(self, spect: TwoDSpectrum) -> None:
         """Stores spectrum for time t2
@@ -613,7 +613,7 @@ class TwoDSpectrumContainer(Saveable):
                 ven2.append(self.spectra[k])
         return ven2
 
-    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
+    def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:  # type: ignore[explicit-any]
         """Converts this container into PumpProbeSpectrumContainer"""
         from .pumpprobe import PumpProbeSpectrumContainer
 
@@ -639,7 +639,7 @@ class TwoDSpectrumContainer(Saveable):
 
         return ppcont
 
-    def get_point_evolution(self, x: float, y: float, times: Any) -> numpy.ndarray:
+    def get_point_evolution(self, x: float, y: float, times: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Tracks an evolution of a single point on the 2D spectrum"""
         vals = numpy.zeros(times.length)
         k = 0
@@ -650,16 +650,16 @@ class TwoDSpectrumContainer(Saveable):
 
         return vals
 
-    def _create_root_group(self, start: Any, name: str) -> Any:
+    def _create_root_group(self, start: Any, name: str) -> Any:  # type: ignore[explicit-any]
         return start.create_group(name)
 
-    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:
+    def _save_axis(self, rt: Any, name: str, ax: Any) -> None:  # type: ignore[explicit-any]
         axdir = rt.create_group(name)
         axdir.attrs.create("start", ax.start)
         axdir.attrs.create("length", ax.length)
         axdir.attrs.create("step", ax.step)
 
-    def _load_axis(self, rt: Any, name: str) -> TimeAxis:
+    def _load_axis(self, rt: Any, name: str) -> TimeAxis:  # type: ignore[explicit-any]
         axdir = rt[name]
         start = axdir.attrs["start"]
         length = axdir.attrs["length"]
@@ -759,7 +759,7 @@ class TwoDSpectrumContainer(Saveable):
         if iteration == total:
             print()
 
-    def make_movie(
+    def make_movie(  # type: ignore[explicit-any]
         self,
         filename: str,
         window: list | None = None,
@@ -855,7 +855,7 @@ class TwoDSpectrumCalculator:
 
     system = derived_type("system", [Molecule, Aggregate])
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         t1axis: Any,
         t2axis: Any,
@@ -928,16 +928,16 @@ class TwoDSpectrumCalculator:
         # self._have_aceto = False
 
         # after bootstrap information
-        self.sys: Any = None
-        self.lab: Any = None
-        self.t1s: Any = None
-        self.t3s: Any = None
-        self.rmin: Any = None
-        self.rwa: Any = None
-        self.oa1: Any = None
-        self.oa3: Any = None
-        self.Uee: Any = None
-        self.Uc0: Any = None
+        self.sys: Any = None  # type: ignore[explicit-any]
+        self.lab: Any = None  # type: ignore[explicit-any]
+        self.t1s: Any = None  # type: ignore[explicit-any]
+        self.t3s: Any = None  # type: ignore[explicit-any]
+        self.rmin: Any = None  # type: ignore[explicit-any]
+        self.rwa: Any = None  # type: ignore[explicit-any]
+        self.oa1: Any = None  # type: ignore[explicit-any]
+        self.oa3: Any = None  # type: ignore[explicit-any]
+        self.Uee: Any = None  # type: ignore[explicit-any]
+        self.Uc0: Any = None  # type: ignore[explicit-any]
 
         self.tc = 0
 
@@ -946,7 +946,7 @@ class TwoDSpectrumCalculator:
         if self.verbose:
             print(string)
 
-    def bootstrap(
+    def bootstrap(  # type: ignore[explicit-any]
         self, rwa: float = 0.0, lab: Any = None, verbose: bool = False
     ) -> None:
         """Sets up the environment for 2D calculation"""
@@ -1354,7 +1354,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
 
     """
 
-    def __init__(self, t1axis: Any, t3axis: Any) -> None:
+    def __init__(self, t1axis: Any, t3axis: Any) -> None:  # type: ignore[explicit-any]
         t2axis = TimeAxis()
         super().__init__(t1axis, t2axis, t3axis)
         self.widthx = convert(300, "1/cm", "int")
@@ -1362,7 +1362,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         self.dephx = convert(300, "1/cm", "int")
         self.dephy = convert(300, "1/cm", "int")
 
-    def bootstrap(
+    def bootstrap(  # type: ignore[explicit-any]
         self,
         rwa: float = 0.0,
         pathways: Any = None,
@@ -1420,7 +1420,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
 
         return onetwod
 
-    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian") -> numpy.ndarray:
+    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian") -> numpy.ndarray:  # type: ignore[explicit-any]
         """Calculate the shape of a Liouville pathway"""
         noe = 1 + pathway.order + pathway.relax_order
 
@@ -1457,7 +1457,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
         # print(shape, widthx, widthy)
 
         if pathway.pathway_type == "R":
-            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
+            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)  # type: ignore[explicit-any]
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]
@@ -1487,7 +1487,7 @@ class MockTwoDSpectrumCalculator(TwoDSpectrumCalculator):
             return reph2D
 
         if pathway.pathway_type == "NR":
-            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
+            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)  # type: ignore[explicit-any]
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]

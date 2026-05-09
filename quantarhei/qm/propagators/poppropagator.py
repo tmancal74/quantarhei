@@ -29,7 +29,7 @@ class PopulationPropagator:
 
     """
 
-    def __init__(self, timeaxis: Any, rate_matrix: Any = None) -> None:
+    def __init__(self, timeaxis: Any, rate_matrix: Any = None) -> None:  # type: ignore[explicit-any]
 
         self.timeAxis = timeaxis
         self.Nref = 1
@@ -46,14 +46,14 @@ class PopulationPropagator:
                 self.KK = rate_matrix
             self.KK = numpy.asarray(self.KK)
 
-    def propagate(self, pini: Any) -> numpy.ndarray:
+    def propagate(self, pini: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Propagates a given initional population vector"""
         if not isinstance(pini, numpy.ndarray):
             pini = numpy.array(pini)
 
         return self._propagate_short_exp(pini)
 
-    def _propagate_short_exp(self, pini: numpy.ndarray, L: int = 4) -> numpy.ndarray:
+    def _propagate_short_exp(self, pini: numpy.ndarray, L: int = 4) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Propagation of the initial pop vector by short time expansion
 
         Propagates initial population vector by a give rate matrix with
@@ -94,7 +94,7 @@ class PopulationPropagator:
         KKT = self.KK + numpy.diag(KKD)
         return KKD, KKT
 
-    def _integrateK0(
+    def _integrateK0(  # type: ignore[explicit-any]
         self, timeaxis: Any, Kab: float, Ka: float, Kb: float
     ) -> numpy.ndarray:
         """Returns an integral of transfer matrix element"""
@@ -104,7 +104,7 @@ class PopulationPropagator:
             integ[i] = numpy.sum(expK[0:i])
         return Kab * integ * timeaxis.step
 
-    def _integrateKn(
+    def _integrateKn(  # type: ignore[explicit-any]
         self, timeaxis: Any, Kab: float, Ka: float, Kb: float, Kbc: numpy.ndarray
     ) -> numpy.ndarray:
         """Returns an integral of transfer matrix element multiplied by
@@ -118,7 +118,7 @@ class PopulationPropagator:
             integ[i] = numpy.sum(expK[0:i] * Kbc[0:i])
         return Kab * integ * timeaxis.step
 
-    def _time_indices(self, timeaxis: Any) -> numpy.ndarray:
+    def _time_indices(self, timeaxis: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns indices of ``timeaxis`` points on the internal time axis"""
         if not timeaxis.is_subset_of(self.timeAxis):
             raise Exception(
@@ -136,7 +136,7 @@ class PopulationPropagator:
 
         return indices
 
-    def _rate_matrix_time_series(self) -> numpy.ndarray:
+    def _rate_matrix_time_series(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns rate matrices as an array with shape ``(Nt, N, N)``"""
         KK = numpy.asarray(self.KK)
 
@@ -161,11 +161,11 @@ class PopulationPropagator:
 
         raise Exception("Rate matrix has to be an array of rank 2 or 3")
 
-    def _to_matrix_time_order(self, matrix_time: numpy.ndarray) -> numpy.ndarray:
+    def _to_matrix_time_order(self, matrix_time: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Converts ``(Nt, N, N)`` arrays to the historical ``(N, N, Nt)`` order"""
         return numpy.transpose(matrix_time, (1, 2, 0))
 
-    def _integrate_matrix_time_series(
+    def _integrate_matrix_time_series(  # type: ignore[explicit-any]
         self, matrix_time: numpy.ndarray
     ) -> numpy.ndarray:
         """Integrates a matrix-valued time series by the trapezoidal rule"""
@@ -180,7 +180,7 @@ class PopulationPropagator:
 
         return integral
 
-    def _no_jump_propagator(self, rates: numpy.ndarray) -> numpy.ndarray:
+    def _no_jump_propagator(self, rates: numpy.ndarray) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Calculates the diagonal no-jump propagator U0(t)"""
         Nt = self.timeAxis.length
         N = rates.shape[1]
@@ -198,7 +198,7 @@ class PopulationPropagator:
 
         return U0
 
-    def _interaction_picture_rates(
+    def _interaction_picture_rates(  # type: ignore[explicit-any]
         self, rates: numpy.ndarray
     ) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns U0(t) and interaction-picture transfer rates"""
@@ -222,7 +222,7 @@ class PopulationPropagator:
 
         return U0, KI
 
-    def _propagation_matrix_time_dependent(self, timeaxis: Any) -> numpy.ndarray:
+    def _propagation_matrix_time_dependent(self, timeaxis: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns propagation matrix for time-dependent rates by RK4."""
         indices = self._time_indices(timeaxis)
         rates = self._rate_matrix_time_series()
@@ -247,7 +247,7 @@ class PopulationPropagator:
 
         return self._to_matrix_time_order(U[indices])
 
-    def get_JumpExpansion(self, timeaxis: Any = None, max_order: int = 3) -> tuple:
+    def get_JumpExpansion(self, timeaxis: Any = None, max_order: int = 3) -> tuple:  # type: ignore[explicit-any]
         """Returns jump-expansion terms of the population propagator.
 
         The returned tuple contains matrices ``(U0, U1, ..., Un)`` in the
@@ -289,13 +289,13 @@ class PopulationPropagator:
 
         return tuple(propagators)
 
-    def get_KineticDecomposition(
+    def get_KineticDecomposition(  # type: ignore[explicit-any]
         self, timeaxis: Any = None, max_order: int = 3
     ) -> tuple:
         """Alias for :meth:`get_JumpExpansion`."""
         return self.get_JumpExpansion(timeaxis=timeaxis, max_order=max_order)
 
-    def get_PropagationMatrix(
+    def get_PropagationMatrix(  # type: ignore[explicit-any]
         self, timeaxis: Any, corrections: int = -1, exact: bool = False
     ) -> Any:
         """Returns propagation matrix corresponding to the present propagator

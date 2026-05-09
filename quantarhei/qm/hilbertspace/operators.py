@@ -35,11 +35,11 @@ class Operator(MatrixData, BasisManaged, Saveable):
         Human-readable label for the operator. Default is ``''``.
     """
 
-    _data: numpy.ndarray
+    _data: numpy.ndarray  # type: ignore[explicit-any]
     dim: int
     data = BasisManagedComplexArray("data")
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         dim: int | None = None,
         data: Any = None,
@@ -85,7 +85,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
         """Addition of two operators. Returns a new Operator."""
         return Operator(data=self.data + other.data)
 
-    def apply(self, obj: Any) -> Any:
+    def apply(self, obj: Any) -> Any:  # type: ignore[explicit-any]
         """Apply the operator to vector or operator on the right"""
         if isinstance(obj, Operator):
             return Operator(data=numpy.dot(self.data, obj.data))
@@ -95,7 +95,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
         raise QuantarheiError("Cannot apply operator to the object")
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transformation of the operator by a given matrix
 
 
@@ -122,7 +122,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
         # S1 = scipy.linalg.inv(SS)
         self._data = numpy.dot(S1, numpy.dot(self._data, SS))
 
-    def assert_square_matrix(A: Any) -> bool:
+    def assert_square_matrix(A: Any) -> bool:  # type: ignore[explicit-any]
         if isinstance(A, numpy.ndarray):
             if A.ndim == 2:
                 if A.shape[0] == A.shape[1]:
@@ -167,7 +167,7 @@ class SelfAdjointOperator(Operator):
         If ``data`` is not self-adjoint.
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, dim: int | None = None, data: Any = None, name: str = ""
     ) -> None:
 
@@ -184,7 +184,7 @@ class SelfAdjointOperator(Operator):
             (numpy.isclose(numpy.transpose(numpy.conj(self.data)), self.data)).all()
         )
 
-    def diagonalize(self) -> numpy.ndarray:
+    def diagonalize(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         # first use is of "data", the rest of "_data"
         dd, SS = numpy.linalg.eigh(self.data)
         self._data = numpy.zeros(self._data.shape)
@@ -192,7 +192,7 @@ class SelfAdjointOperator(Operator):
             self._data[ii, ii] = dd[ii]
         return SS
 
-    def get_diagonalization_matrix(self) -> numpy.ndarray:
+    def get_diagonalization_matrix(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         dd, SS = numpy.linalg.eigh(self._data)
         return SS
 
@@ -208,7 +208,7 @@ class UnityOperator(SelfAdjointOperator):
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise QuantarheiError("Dimension parameters 'dim' has to be specified")
-        series: numpy.ndarray = numpy.array([1 for i in range(dim)], dtype=COMPLEX)
+        series: numpy.ndarray = numpy.array([1 for i in range(dim)], dtype=COMPLEX)  # type: ignore[explicit-any]
         data = numpy.diag(series)
         super().__init__(dim=dim, data=data, name=name)
 
@@ -217,7 +217,7 @@ class BasisReferenceOperator(SelfAdjointOperator):
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
             raise QuantarheiError("Dimension parameters 'dim' has to be specified")
-        series: numpy.ndarray = numpy.array([i for i in range(dim)], dtype=REAL)
+        series: numpy.ndarray = numpy.array([i for i in range(dim)], dtype=REAL)  # type: ignore[explicit-any]
         data = numpy.diag(series)
         super().__init__(dim=dim, data=data, name=name)
 
@@ -254,7 +254,7 @@ class ProjectionOperator(Operator):
         else:
             raise QuantarheiError("Wrong operator dimension")
 
-    def __mult__(self, other: Any) -> numpy.ndarray:
+    def __mult__(self, other: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Multiplication of operator by scalar"""
         if isinstance(other, numbers.Number):
             self._data = self._data * other
@@ -262,7 +262,7 @@ class ProjectionOperator(Operator):
             raise QuantarheiError("Only multiplication by scalar is allowed")
         return self._data
 
-    def __rmult__(self, other: Any) -> numpy.ndarray:
+    def __rmult__(self, other: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Multiplication from right"""
         return self.__mult__(other)
 
@@ -289,7 +289,7 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         # using data because any transformation needed was already done
         self._data = self._data * (norm / tr)
 
-    def get_populations(self) -> numpy.ndarray:
+    def get_populations(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns a vector of diagonal elements of the density matrix"""
         # using self.data to allow transformation of the basis
         pvec = numpy.zeros(self.data.shape[0], dtype=REAL)
@@ -301,7 +301,7 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
 
         return pvec
 
-    def excite_delta(
+    def excite_delta(  # type: ignore[explicit-any]
         self, dmoment: Any, epolarization: Any = None
     ) -> ReducedDensityMatrix:
         """Returns a density matrix obtained by delta-pulse excitation"""

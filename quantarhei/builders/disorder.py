@@ -36,7 +36,7 @@ class Disorder:
         type is requested.
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         data: numpy.ndarray | None = None,
         distribution: str = "Gaussian",
@@ -49,14 +49,14 @@ class Disorder:
 
         self.dtype = dtype
         self.distribution = distribution
-        self.seed_pool: list[Any] = []
+        self.seed_pool: list[Any] = []  # type: ignore[explicit-any]
         self.data = data.copy()
         self.shape = self.data.shape
 
         if seed is not None:
             numpy.random.seed(seed)
 
-    def disorder_update(self, i_dis: int, H: Any, ignore_first: bool = False) -> None:
+    def disorder_update(self, i_dis: int, H: Any, ignore_first: bool = False) -> None:  # type: ignore[explicit-any]
         """Adds disorder to an excitonic Hamiltonian"""
         if (i_dis == 0) and ignore_first:
             return

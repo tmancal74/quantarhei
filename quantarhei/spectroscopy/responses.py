@@ -173,7 +173,7 @@ RESPONSE_DIAGRAMS = {
 }
 
 
-def get_response_diagram_info(diagram: str) -> dict[str, Any]:
+def get_response_diagram_info(diagram: str) -> dict[str, Any]:  # type: ignore[explicit-any]
     """Returns explicit metadata for a nonlinear response diagram."""
     try:
         return RESPONSE_DIAGRAMS[diagram].copy()
@@ -181,14 +181,14 @@ def get_response_diagram_info(diagram: str) -> dict[str, Any]:
         raise Exception("Unknown response diagram: " + diagram)
 
 
-def _rate_matrix_data(rate_matrix: Any) -> numpy.ndarray:
+def _rate_matrix_data(rate_matrix: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Returns numerical data from a rate matrix object or array."""
     if hasattr(rate_matrix, "data"):
         return numpy.asarray(rate_matrix.data)
     return numpy.asarray(rate_matrix)
 
 
-def get_single_exciton_rate_matrix(system: Any, rate_matrix: Any) -> numpy.ndarray:
+def get_single_exciton_rate_matrix(system: Any, rate_matrix: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Returns the single-exciton block of a rate matrix.
 
     ``OpenSystem.get_RateMatrix`` returns rates indexed by the full Hamiltonian
@@ -211,7 +211,7 @@ def get_single_exciton_rate_matrix(system: Any, rate_matrix: Any) -> numpy.ndarr
     raise Exception("Rate matrix has to be an array of rank 2 or 3")
 
 
-def get_common_time_axis(*axes: Any) -> Any:
+def get_common_time_axis(*axes: Any) -> Any:  # type: ignore[explicit-any]
     """Returns a common zero-start TimeAxis covering all submitted axes."""
     dt = min(axis.step for axis in axes)
     tmax = max(axis.max for axis in axes)
@@ -219,7 +219,7 @@ def get_common_time_axis(*axes: Any) -> Any:
     return TimeAxis(0.0, length, dt)
 
 
-def validate_2d_time_axes(t1s: Any, t2s: Any, t3s: Any) -> None:
+def validate_2d_time_axes(t1s: Any, t2s: Any, t3s: Any) -> None:  # type: ignore[explicit-any]
     """Validates 2D time axes for relaxation-enabled calculations."""
     if not numpy.isclose(t1s.step, t3s.step):
         raise Exception("t1 and t3 axes must have the same time step")
@@ -229,7 +229,7 @@ def validate_2d_time_axes(t1s: Any, t2s: Any, t3s: Any) -> None:
         raise Exception("t2 time step must be a multiple of t1/t3 time step")
 
 
-def _axis_indices(axis: Any, base_axis: Any) -> numpy.ndarray:
+def _axis_indices(axis: Any, base_axis: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Returns integer indices of ``axis`` values on ``base_axis``."""
     if not axis.is_subset_of(base_axis):
         raise Exception("TimeAxis is not a subset of the population time axis")
@@ -263,7 +263,7 @@ class NonLinearResponse:
         Time axis for the second coherence period.
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         lab: Any,
         system: Any,
@@ -326,20 +326,20 @@ class NonLinearResponse:
         self.jump_time_graining = jump_time_graining
         self.jump_kernel_cutoff = jump_kernel_cutoff
         self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
-        self.KK: numpy.ndarray
-        self.U0_t1: numpy.ndarray
-        self.U0_t2: numpy.ndarray
-        self.U0_t3: numpy.ndarray
-        self.U0_population: numpy.ndarray
-        self.U0fe_t3: numpy.ndarray | None = None
-        self.Uee: numpy.ndarray
-        self.U1_t2: numpy.ndarray
-        self.Usingle_t2: numpy.ndarray
-        self.Ujump_t2: tuple[numpy.ndarray, ...]
-        self.Uremainder_t2: numpy.ndarray
-        self.Utransfer_t2: numpy.ndarray
-        self.diagnostics: dict[str, Any] = {}
-        self._previous_response_matrix: numpy.ndarray | None = None
+        self.KK: numpy.ndarray  # type: ignore[explicit-any]
+        self.U0_t1: numpy.ndarray  # type: ignore[explicit-any]
+        self.U0_t2: numpy.ndarray  # type: ignore[explicit-any]
+        self.U0_t3: numpy.ndarray  # type: ignore[explicit-any]
+        self.U0_population: numpy.ndarray  # type: ignore[explicit-any]
+        self.U0fe_t3: numpy.ndarray | None = None  # type: ignore[explicit-any]
+        self.Uee: numpy.ndarray  # type: ignore[explicit-any]
+        self.U1_t2: numpy.ndarray  # type: ignore[explicit-any]
+        self.Usingle_t2: numpy.ndarray  # type: ignore[explicit-any]
+        self.Ujump_t2: tuple[numpy.ndarray, ...]  # type: ignore[explicit-any]
+        self.Uremainder_t2: numpy.ndarray  # type: ignore[explicit-any]
+        self.Utransfer_t2: numpy.ndarray  # type: ignore[explicit-any]
+        self.diagnostics: dict[str, Any] = {}  # type: ignore[explicit-any]
+        self._previous_response_matrix: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
         external_count = sum(
             item is not None
@@ -407,7 +407,7 @@ class NonLinearResponse:
         else:
             self.set_rate_matrix(KK, population_time_axis=population_time_axis)
 
-    def calculate_matrix(self, t2: float) -> Any:
+    def calculate_matrix(self, t2: float) -> Any:  # type: ignore[explicit-any]
         """Calculate the matrix of response values over t1 and t3 times.
 
         Parameters
@@ -436,7 +436,7 @@ class NonLinearResponse:
         # population decay factors at t2
         U0t2 = self.U0_t2[:, t2i]
 
-        metadata: dict[str, Any] = {
+        metadata: dict[str, Any] = {  # type: ignore[explicit-any]
             "jump_time_axis": self.population_time_axis,
             "jump_time_zero_index": pzeroi,
             "jump_time_t2_index": pt2i,
@@ -469,7 +469,7 @@ class NonLinearResponse:
         self._update_diagnostics(t2, data, metadata)
         return data
 
-    def _update_diagnostics(
+    def _update_diagnostics(  # type: ignore[explicit-any]
         self, t2: float, data: numpy.ndarray, metadata: dict[str, Any]
     ) -> None:
         """Update response diagnostics after a t2 calculation."""
@@ -538,7 +538,7 @@ class NonLinearResponse:
             return 0
         return 1 if self._uses_single_jump_storage() else 0
 
-    def _get_transfer_matrix(self, t2i: int) -> numpy.ndarray:
+    def _get_transfer_matrix(self, t2i: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns transfer propagator for the current response channel."""
         if self.transfer_channel is not None and self.transfer_channel.startswith(
             "scM1"
@@ -546,7 +546,7 @@ class NonLinearResponse:
             return self.Usingle_t2[:, :, t2i]
         return self.Uremainder_t2[:, :, t2i]
 
-    def _get_remainder_propagator(
+    def _get_remainder_propagator(  # type: ignore[explicit-any]
         self, jumps: tuple[numpy.ndarray, ...]
     ) -> numpy.ndarray:
         """Returns propagation not covered by explicit jump contributions."""
@@ -555,7 +555,7 @@ class NonLinearResponse:
             jump_sum += jump
         return self.Uee - jump_sum
 
-    def _population_propagator_data(self, population_propagator: Any) -> numpy.ndarray:
+    def _population_propagator_data(self, population_propagator: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns population propagator data in ``(N, N, Nt)`` order."""
         data = numpy.asarray(
             population_propagator.data
@@ -576,7 +576,7 @@ class NonLinearResponse:
             "or (Nt, N, N), where N is the number of single-exciton states"
         )
 
-    def _density_matrix_propagator_data(
+    def _density_matrix_propagator_data(  # type: ignore[explicit-any]
         self, density_matrix_propagator: Any
     ) -> numpy.ndarray:
         """Returns density-matrix propagator data in ``(N, N, N, N, Nt)`` order."""
@@ -599,7 +599,7 @@ class NonLinearResponse:
             "or (Nt, N, N, N, N), where N is the number of single-exciton states"
         )
 
-    def _density_matrix_trajectory_data(
+    def _density_matrix_trajectory_data(  # type: ignore[explicit-any]
         self, density_matrix_trajectory: Any
     ) -> numpy.ndarray:
         """Returns density-matrix trajectory data in ``(N, N, Nt)`` order."""
@@ -629,7 +629,7 @@ class NonLinearResponse:
             "(Nt, N, N), or the corresponding full-system shape"
         )
 
-    def _ground_exciton_dipole_lengths(self) -> numpy.ndarray:
+    def _ground_exciton_dipole_lengths(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns lengths of ground-to-one-exciton transition dipoles."""
         self.sys.diagonalize()
         band0 = self.sys.get_band(0)
@@ -644,7 +644,7 @@ class NonLinearResponse:
             lengths[aa] = numpy.linalg.norm(self.sys.DD[state, ground, :])
         return lengths
 
-    def set_density_matrix_trajectory(
+    def set_density_matrix_trajectory(  # type: ignore[explicit-any]
         self,
         density_matrix_trajectory: Any,
         population_time_axis: Any = None,
@@ -714,7 +714,7 @@ class NonLinearResponse:
         self.Uremainder_t2 = numpy.zeros_like(self.Uee)
         self.Utransfer_t2 = self.Uremainder_t2
 
-    def set_density_matrix_propagator(
+    def set_density_matrix_propagator(  # type: ignore[explicit-any]
         self,
         density_matrix_propagator: Any,
         population_time_axis: Any = None,
@@ -785,7 +785,7 @@ class NonLinearResponse:
         self.Uremainder_t2 = Uremainder[:, :, it2]
         self.Utransfer_t2 = self.Uremainder_t2
 
-    def set_population_propagator(
+    def set_population_propagator(  # type: ignore[explicit-any]
         self,
         population_propagator: Any,
         population_time_axis: Any = None,
@@ -849,7 +849,7 @@ class NonLinearResponse:
         self.Uremainder_t2 = self.Uee - self.U1_t2
         self.Utransfer_t2 = self.Uremainder_t2
 
-    def set_rate_matrix(
+    def set_rate_matrix(  # type: ignore[explicit-any]
         self, KK: numpy.ndarray, population_time_axis: Any = None
     ) -> None:
         """Set the rate matrix and pre-compute the evolution coefficients.
@@ -965,7 +965,7 @@ class NonLinearResponse:
             # time dependent rate matrix
             for aa in range(dim):
                 if numpy.all(KK[:, aa, aa] <= 0.0):
-                    cumulative: numpy.ndarray = numpy.zeros(
+                    cumulative: numpy.ndarray = numpy.zeros(  # type: ignore[explicit-any]
                         population_time_axis.length, dtype=REAL
                     )
                     for ii in range(population_time_axis.length - 1):
@@ -1048,7 +1048,7 @@ class LiouvillePathway:
 
         self.F4n = numpy.zeros(3)
 
-    def set_dipoles(
+    def set_dipoles(  # type: ignore[explicit-any]
         self,
         d1: numpy.ndarray,
         d2: numpy.ndarray | None = None,
@@ -1099,7 +1099,7 @@ class LiouvillePathway:
 
         self._frequencies_set = True
 
-    def get_frequencies(self) -> tuple[float | numpy.ndarray, float | numpy.ndarray]:
+    def get_frequencies(self) -> tuple[float | numpy.ndarray, float | numpy.ndarray]:  # type: ignore[explicit-any]
         """Returns the two main frequencies of the response"""
         if self._frequencies_set:
             fr = (
@@ -1134,7 +1134,7 @@ class LiouvillePathway:
             self._rwa = 0.0
             self._rwa_set = False
 
-    def get_rwa(self) -> float | numpy.ndarray:
+    def get_rwa(self) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the RWA frequency"""
         return Manager().convert_energy_2_internal_u(self._rwa)
 
@@ -1148,7 +1148,7 @@ class ResponseFunction(LiouvillePathway):
         Type of the Liouville pathway (e.g. ``"R1g"``, ``"R2g"``).
     """
 
-    def calculate_matrix(
+    def calculate_matrix(  # type: ignore[explicit-any]
         self, lab: Any, sys: Any, t2: float, t1s: Any, t3s: Any, rwa: float
     ) -> Any:
         """Calculates the matrix of response values in t1 and t3 times
@@ -1194,11 +1194,11 @@ class ResponseFunction(LiouvillePathway):
 
         return dip * val * et13
 
-    def set_evaluation_function(self, func: Any) -> None:
+    def set_evaluation_function(self, func: Any) -> None:  # type: ignore[explicit-any]
         """Sets the function to be evaluated to get the response matrix"""
         self.func = func
 
-    def set_auxliary_arguments(self, args: tuple[Any, ...]) -> None:
+    def set_auxliary_arguments(self, args: tuple[Any, ...]) -> None:  # type: ignore[explicit-any]
         """Sets additional arguments and their values for evaluation calls
 
 

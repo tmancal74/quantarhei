@@ -136,7 +136,7 @@ class ValueAxis(Saveable):
         self.start = start
         self.length = length
 
-        self.data: numpy.ndarray = numpy.linspace(
+        self.data: numpy.ndarray = numpy.linspace(  # type: ignore[explicit-any]
             start, start + (length - 1) * step, length, dtype=REAL
         )
 

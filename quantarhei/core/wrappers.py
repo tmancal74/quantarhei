@@ -11,18 +11,18 @@ from ..exceptions import QuantarheiError
 from .managers import Manager
 
 
-def deprecated(
+def deprecated(  # type: ignore[explicit-any]
     func: Callable[..., Any] | None = None,
     *,
     alternative: str | None = None,
 ) -> Callable[..., Any]:
-    def decorator(wrapped_func: Callable[..., Any]) -> Callable[..., Any]:
+    def decorator(wrapped_func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
         message = f"{wrapped_func.__qualname__} is deprecated"
         if alternative is not None:
             message = f"{message}; use {alternative} instead"
 
         @wraps(wrapped_func)
-        def wrapper(*arg: Any, **kwargs: Any) -> Any:
+        def wrapper(*arg: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
             warnings.warn(
                 message,
                 DeprecationWarning,
@@ -38,9 +38,9 @@ def deprecated(
     return decorator(func)
 
 
-def prevent_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:
+def prevent_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
     @wraps(func)
-    def wrapper(*arg: Any, **kwargs: Any) -> Any:
+    def wrapper(*arg: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
         m = Manager()
         if m._in_eigenbasis_of_context and m._enforce_contexts:
             raise QuantarheiError(
@@ -52,9 +52,9 @@ def prevent_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def enforce_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:
+def enforce_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
     @wraps(func)
-    def wrapper(*arg: Any, **kwargs: Any) -> Any:
+    def wrapper(*arg: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
         m = Manager()
         if (not m._in_eigenbasis_of_context) and m._enforce_contexts:
             raise QuantarheiError(
@@ -65,9 +65,9 @@ def enforce_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def prevent_energy_units_context(func: Callable[..., Any]) -> Callable[..., Any]:
+def prevent_energy_units_context(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
     @wraps(func)
-    def wrapper(*arg: Any, **kwargs: Any) -> Any:
+    def wrapper(*arg: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
         m = Manager()
         if m._in_energy_units_context and m._enforce_contexts:
             raise QuantarheiError(
@@ -79,9 +79,9 @@ def prevent_energy_units_context(func: Callable[..., Any]) -> Callable[..., Any]
     return wrapper
 
 
-def enforce_energy_units_context(func: Callable[..., Any]) -> Callable[..., Any]:
+def enforce_energy_units_context(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
     @wraps(func)
-    def wrapper(*arg: Any, **kwargs: Any) -> Any:
+    def wrapper(*arg: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
         m = Manager()
         if not m._in_energy_units_context and m._enforce_contexts:
             raise QuantarheiError(

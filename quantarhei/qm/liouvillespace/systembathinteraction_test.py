@@ -67,7 +67,7 @@ class TestSystemBathInteraction(SystemBathInteraction):
             agg = TestAggregate(name="dimer-2")
             agg.build()
 
-            _ham: Any = agg.get_Hamiltonian()
+            _ham: Any = agg.get_Hamiltonian()  # type: ignore[explicit-any]
             N = _ham.dim
 
             P1 = ProjectionOperator(1, 2, dim=N)
@@ -115,6 +115,6 @@ class TestSystemBathInteraction(SystemBathInteraction):
 
             sys_ops = [P1, P2]
             rates = [1.0 / 100.0, 1.0 / 200]
-            ctimes: list[Any] = []
+            ctimes: list[Any] = []  # type: ignore[explicit-any]
 
             super().__init__(sys_operators=sys_ops, rates=rates)

@@ -15,7 +15,7 @@ from typing import Any
 from ..exceptions import QuantarheiError
 
 
-def quantarhei_installed(context: Any, version: str | None = None) -> None:
+def quantarhei_installed(context: Any, version: str | None = None) -> None:  # type: ignore[explicit-any]
     """Tests if quantarhei is installed and sets version to context if it is
 
 
@@ -37,7 +37,7 @@ def quantarhei_installed(context: Any, version: str | None = None) -> None:
         assert context.version == version
 
 
-def shell_command(context: Any, cmd: str, err_msg: str = "Shell command error") -> None:
+def shell_command(context: Any, cmd: str, err_msg: str = "Shell command error") -> None:  # type: ignore[explicit-any]
     """Runs a shell command in current directory
 
 
@@ -62,7 +62,7 @@ def shell_command(context: Any, cmd: str, err_msg: str = "Shell command error") 
         raise QuantarheiError(err_msg)
 
 
-def check_output_contains(context: Any, text: str, err_msg: str) -> None:
+def check_output_contains(context: Any, text: str, err_msg: str) -> None:  # type: ignore[explicit-any]
     """Checks that message contains certain text
 
 
@@ -84,13 +84,13 @@ def check_output_contains(context: Any, text: str, err_msg: str) -> None:
         raise QuantarheiError(err_msg)
 
 
-def secure_temp_dir(context: Any) -> None:
+def secure_temp_dir(context: Any) -> None:  # type: ignore[explicit-any]
     """Creates temporary directory and stores its info into context"""
     tmpd = tempfile.TemporaryDirectory()
     context.tempdir = tmpd
 
 
-def cleanup_temp_dir(context: Any) -> None:
+def cleanup_temp_dir(context: Any) -> None:  # type: ignore[explicit-any]
     """Cleans up temporary directory"""
     try:
         os.chdir(context.cwd)
@@ -103,7 +103,7 @@ def cleanup_temp_dir(context: Any) -> None:
         print("Temporary directory cannot be cleaned up - does it exist?")
 
 
-def fetch_test_feature_file(context: Any, filename: str) -> None:
+def fetch_test_feature_file(context: Any, filename: str) -> None:  # type: ignore[explicit-any]
     """Fetches the file with a given name from the storage of test files"""
     resource_package = "quantarhei"
     resource_path = "/".join(("testing", "resources", "behave", filename))
@@ -125,7 +125,7 @@ class testdir:
 
     """
 
-    def __init__(self, context: Any) -> None:
+    def __init__(self, context: Any) -> None:  # type: ignore[explicit-any]
 
         self.context = context
         try:
@@ -139,7 +139,7 @@ class testdir:
         self.context.cwd = os.getcwd()
         os.chdir(self.context.tempdir.name)
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:  # type: ignore[explicit-any]
         os.chdir(self.context.cwd)
         if exc_type is not None:
             cleanup_temp_dir(self.context)

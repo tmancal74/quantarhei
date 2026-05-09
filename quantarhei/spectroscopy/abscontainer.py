@@ -16,16 +16,16 @@ class AbsSpectrumContainer(Saveable):
         ``set_axis``.
     """
 
-    def __init__(self, axis: Any = None) -> None:
+    def __init__(self, axis: Any = None) -> None:  # type: ignore[explicit-any]
 
         self.axis = axis
         self.count = 0
-        self.spectra: dict[str, Any] = {}
+        self.spectra: dict[str, Any] = {}  # type: ignore[explicit-any]
 
-    def set_axis(self, axis: Any) -> None:
+    def set_axis(self, axis: Any) -> None:  # type: ignore[explicit-any]
         self.axis = axis
 
-    def set_spectrum(self, spect: Any, tag: Any = None) -> None:
+    def set_spectrum(self, spect: Any, tag: Any = None) -> None:  # type: ignore[explicit-any]
         """Store an absorption spectrum, checking axis compatibility.
 
         Parameters
@@ -58,7 +58,7 @@ class AbsSpectrumContainer(Saveable):
         else:
             raise QuantarheiError("Incompatible time axis (equal axis required)")
 
-    def get_spectrum(self, tag: Any) -> Any:
+    def get_spectrum(self, tag: Any) -> Any:  # type: ignore[explicit-any]
         """Return the spectrum identified by tag.
 
         Parameters
@@ -84,7 +84,7 @@ class AbsSpectrumContainer(Saveable):
             return self.spectra[tag]
         raise QuantarheiError("Unknown spectrum")
 
-    def get_spectra(self) -> list[Any]:
+    def get_spectra(self) -> list[Any]:  # type: ignore[explicit-any]
         """Return all stored spectra sorted by their string tags.
 
         Returns

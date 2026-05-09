@@ -9,7 +9,7 @@ from ..exceptions import ImplementationError
 from .managers import Manager
 
 
-def implementation(
+def implementation(  # type: ignore[explicit-any]
     package: str = "",
     taskname: str = "",
     at_runtime: bool = False,
@@ -19,7 +19,7 @@ def implementation(
     """Decorator to select numerical implememtation"""
     m = Manager()
 
-    def decorate_at_runtime(func: Callable[..., Any]) -> Callable[..., Any]:
+    def decorate_at_runtime(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
         """Decoration at run time
 
         The wrapper decides which function to return at runtime.
@@ -27,7 +27,7 @@ def implementation(
         """
 
         @wraps(func)
-        def wrapper(*arg: Any, **kwargs: Any) -> Any:
+        def wrapper(*arg: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
             fc = get_function(
                 func,
                 package,
@@ -39,7 +39,7 @@ def implementation(
 
         return wrapper
 
-    def decorate_at_loadtime(func: Callable[..., Any]) -> Callable[..., Any]:
+    def decorate_at_loadtime(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
         """Decoration at load time
 
         The wrapper decides which function to return when the Manager module
@@ -55,7 +55,7 @@ def implementation(
         )
 
         @wraps(func)
-        def wrapper(*arg: Any, **kwargs: Any) -> Any:
+        def wrapper(*arg: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
             return fc(*arg, **kwargs)
 
         return wrapper
@@ -71,7 +71,7 @@ def implementation(
 #
 
 
-def load_function(lib: str, fce: str) -> Callable[..., Any]:
+def load_function(lib: str, fce: str) -> Callable[..., Any]:  # type: ignore[explicit-any]
     """Load the module and get the desired function"""
     try:
         a = import_module(lib)
@@ -86,7 +86,7 @@ def load_function(lib: str, fce: str) -> Callable[..., Any]:
     return fc
 
 
-def get_function(
+def get_function(  # type: ignore[explicit-any]
     func: Callable[..., Any],
     package: str,
     taskname: str,

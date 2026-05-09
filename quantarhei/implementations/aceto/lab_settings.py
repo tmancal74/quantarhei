@@ -8,9 +8,9 @@ class lab_settings:
 
     def __init__(self, exptype: int) -> None:
         self.exptype = exptype
-        self.orient_aver: numpy.ndarray | None = None
+        self.orient_aver: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
-    def set_laser_polarizations(
+    def set_laser_polarizations(  # type: ignore[explicit-any]
         self, e1: numpy.ndarray, e2: numpy.ndarray, e3: numpy.ndarray, e4: numpy.ndarray
     ) -> None:
         self.p1 = e1
@@ -29,7 +29,7 @@ class lab_settings:
         F4[2] = numpy.dot(e4, e1) * numpy.dot(e3, e2)
         self.orient_aver = numpy.dot(numpy.transpose(M4), F4)
 
-    def oafactor(
+    def oafactor(  # type: ignore[explicit-any]
         self, d1: numpy.ndarray, d2: numpy.ndarray, d3: numpy.ndarray, d4: numpy.ndarray
     ) -> numpy.ndarray:
         F4 = numpy.zeros(3, dtype=numpy.float64)

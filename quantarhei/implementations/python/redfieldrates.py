@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy
 
 
-def ssRedfieldRateMatrix(
+def ssRedfieldRateMatrix(  # type: ignore[explicit-any]
     Na: int,
     Nk: int,
     KI: numpy.ndarray,

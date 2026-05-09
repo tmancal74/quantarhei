@@ -15,10 +15,10 @@ class triangle(Saveable):
     def get_empty_list(self) -> list[None]:
         return self.get_list(init=None)
 
-    def get_list(self, init: Any = None) -> list[Any]:
+    def get_list(self, init: Any = None) -> list[Any]:  # type: ignore[explicit-any]
         return [init] * (((self.N**2) - self.N) // 2 + self.N)
 
-    def locate(
+    def locate(  # type: ignore[explicit-any]
         self, i: int, j: int, transpose: bool = True, report_transpose: bool = False
     ) -> Any:
 

@@ -109,7 +109,7 @@ class SpectralDensity(DFunction, UnitsManaged):
     )
     analytical_types = "OverdampedBrownian"
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, axis: Any = None, params: Any = None, values: Any = None
     ) -> None:
         super().__init__()
@@ -206,7 +206,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         ftype = self.params[0]["ftype"] if self.params else "unknown"
         return f"SpectralDensity(ftype={ftype!r})"
 
-    def _make_overdamped_brownian(self, params: dict, values: Any = None) -> None:
+    def _make_overdamped_brownian(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
         """Sets the Overdamped Brownian oscillator spectral density"""
         try:
             ctime = params["cortime"]
@@ -234,7 +234,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         for i in range(2):
             self.lim_omega[i] += lim_omega[i]
 
-    def _make_underdamped_brownian(self, params: dict, values: Any = None) -> None:
+    def _make_underdamped_brownian(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
 
         # temperature = params["T"]
         ctime = params["gamma"]
@@ -269,7 +269,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             self.lim_omega[i] += lim_omega[i]
 
     # See Valkunas, Abramavicius, Mančal, 2013, Wiley-VCH
-    def _make_underdamped(self, params: dict, values: Any = None) -> None:
+    def _make_underdamped(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
         SPEED_OF_LIGHT = 2.99 * (10**8)
 
         # use the units in which params was defined
@@ -300,11 +300,11 @@ class SpectralDensity(DFunction, UnitsManaged):
     # See Renger, Journal of Chemical Physics 2002
     # See Jang, Newton, Silbey, J Chem Phys. 2007 for alternate form
     # (See Kell et al, 2013, J. Phys. Chem. B.)
-    def _make_B777(self, params: dict, values: Any = None) -> None:
+    def _make_B777(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
 
         with energy_units("int"):
             omega = self.axis.data
-            cfce: Any = 0
+            cfce: Any = 0  # type: ignore[explicit-any]
 
             if not params["alternative_form"]:
                 try:
@@ -364,7 +364,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 0.0
 
-    def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:
+    def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:  # type: ignore[explicit-any]
         # This pectral density is based on the one calculated from FLN by
         # Rätsep et al. J. Phys. Chem. B 2008, 112, 110-118. It consist of a
         # Gaussian on the low-frequency side and a Lagrangian on the high-frequency
@@ -416,7 +416,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         self.lim_omega[0] = 0.0
         self.lim_omega[1] = 0.0
 
-    def _make_value_defined(self, values: Any = None) -> None:
+    def _make_value_defined(self, values: Any = None) -> None:  # type: ignore[explicit-any]
         """Value defined spectral density"""
         if values is None:
             raise QuantarheiError()
@@ -529,7 +529,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             return self.temperature
         raise QuantarheiError("SpectralDensity was not assigned temperature")
 
-    def get_reorganization_energy(self) -> float | numpy.ndarray:
+    def get_reorganization_energy(self) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the reorganization energy of the cspectral density"""
         return self.convert_energy_2_current_u(self.lamb)
 
@@ -557,7 +557,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         """Creates a copy of the current correlation function"""
         return SpectralDensity(self.axis, self.params)
 
-    def get_CorrelationFunction(
+    def get_CorrelationFunction(  # type: ignore[explicit-any]
         self, temperature: float | None = None, ta: Any = None
     ) -> CorrelationFunction:
         """Returns correlation function corresponding to the spectral density.

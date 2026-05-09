@@ -9,7 +9,7 @@ from ...core.time import TimeAxis
 from ...exceptions import QuantarheiError
 
 
-def _normalize_integrals(integrals: Any) -> list[str]:
+def _normalize_integrals(integrals: Any) -> list[str]:  # type: ignore[explicit-any]
     """Return a stable list of integral-time labels from config metadata."""
     if integrals is None:
         return []
@@ -55,7 +55,7 @@ def _parse_time_label(label: str) -> list[tuple[int, str]]:
     return terms
 
 
-def _generate_time_argument_labels(response_times: dict[str, Any]) -> list[str]:
+def _generate_time_argument_labels(response_times: dict[str, Any]) -> list[str]:  # type: ignore[explicit-any]
     """Generate all supported line-shape-function time arguments.
 
     The ordinary arguments are all non-empty ordered combinations of response
@@ -102,7 +102,7 @@ def _generate_time_argument_labels(response_times: dict[str, Any]) -> list[str]:
     return unique_labels
 
 
-def _default_storage_config(one_jump: bool = False) -> dict[str, Any]:
+def _default_storage_config(one_jump: bool = False) -> dict[str, Any]:  # type: ignore[explicit-any]
     """Return the standard third-order response storage configuration."""
     t2_integral = {"s2"} if one_jump else None
     return {
@@ -129,7 +129,7 @@ class FunctionStorage:
 
     import numpy
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         N: int = 1,
         timeaxis: Any = None,
@@ -143,7 +143,7 @@ class FunctionStorage:
         #
         # This dictionary describes what g(t) values will be stored and how
         #
-        self.config: dict[str, Any]
+        self.config: dict[str, Any]  # type: ignore[explicit-any]
         if config is None or config == 0:
             self.config = _default_storage_config(one_jump=False)
         elif config == 1:
@@ -281,7 +281,7 @@ class FunctionStorage:
         # Storage dimensions; they correspond to the submitted time axes
         if isinstance(timeaxis, TimeAxis):
             self.Ndim = 1
-            dim_arr: numpy.ndarray = numpy.zeros(self.Ndim, dtype=numpy.int32)
+            dim_arr: numpy.ndarray = numpy.zeros(self.Ndim, dtype=numpy.int32)  # type: ignore[explicit-any]
             dim_arr[0] = timeaxis.length
         else:
             self.Ndim = len(timeaxis)
@@ -308,7 +308,7 @@ class FunctionStorage:
         # self.time_index = {"t2":-1,"t1":0,"t1+t2":0, "t3":1,"t2+t3":1,"t1+t3":(0,1),"t1+t2+t3":(0,1)}
         self.time_index = time_index
 
-        reshapes: dict[str, list[Any]] = dict()
+        reshapes: dict[str, list[Any]] = dict()  # type: ignore[explicit-any]
         for dms in self.time_index:
             val = self.time_index[dms]
             if isinstance(val, int):
@@ -389,13 +389,13 @@ class FunctionStorage:
 
         # 2D view of the data for fast access
         self._data2d = self.data.reshape((self.N, self.data_stride))
-        self._last_reset_values: dict[str, Any] | None = None
+        self._last_reset_values: dict[str, Any] | None = None  # type: ignore[explicit-any]
         self._data_initialized = False
 
         #
         # Here the g(t) functions are stored
         #
-        self.funcs: dict[Any, Any] = {}
+        self.funcs: dict[Any, Any] = {}  # type: ignore[explicit-any]
 
         # The number of stored functions
         self.Nf = 0
@@ -452,7 +452,7 @@ class FunctionStorage:
             + self.size_units
         )
 
-    def __setitem__(self, index: Any, value: Any) -> None:
+    def __setitem__(self, index: Any, value: Any) -> None:  # type: ignore[explicit-any]
         """Set the value(s) of the storage"""
         if isinstance(index, tuple):
             if len(index) == 2:
@@ -475,7 +475,7 @@ class FunctionStorage:
         else:
             raise QuantarheiError()
 
-    def __getitem__(self, index: Any) -> Any:
+    def __getitem__(self, index: Any) -> Any:  # type: ignore[explicit-any]
         """Returns the stored function"""
         if isinstance(index, tuple):
             if len(index) == 2:
@@ -529,7 +529,7 @@ class FunctionStorage:
         else:
             raise QuantarheiError()
 
-    def set_goft(self, N: Any, func: Any = None) -> None:
+    def set_goft(self, N: Any, func: Any = None) -> None:  # type: ignore[explicit-any]
         """Sets the values for a given stored function."""
         #
         # The argument N must be an integer or a list of indices by which the function should
@@ -543,7 +543,7 @@ class FunctionStorage:
         #
         # Check the consistency of the submitted time axes
         #
-        self.ta: list[Any] = []  # This is a synonym for the self.timeaxis
+        self.ta: list[Any] = []  # type: ignore[explicit-any]  # This is a synonym for the self.timeaxis
         if isinstance(self.timeaxis, (tuple, list)):
             self.ta = list(self.timeaxis)
             # self.t1a = self.timeaxis[0]
@@ -624,7 +624,7 @@ class FunctionStorage:
             # make larger variables the object properties
             self.mapping = mapping
 
-    def _fce_already_stored(self, func: Any) -> int:
+    def _fce_already_stored(self, func: Any) -> int:  # type: ignore[explicit-any]
         """If the function was already stored in the object, the function returns its position,
         otherwise it returns -1.
 
@@ -695,7 +695,7 @@ class FunctionStorage:
                 elif len(tt_dim) == 1:
                     tt += sign * self.ta[axis].data
                 else:
-                    index_list: list[slice | None] = [None] * len(tt_dim)
+                    index_list: list[slice | None] = [None] * len(tt_dim)  # type: ignore[explicit-any]
                     index_list[axes.index(axis)] = _colon_
                     tt += sign * self.ta[axis].data.__getitem__(tuple(index_list))
 
@@ -747,7 +747,7 @@ class FunctionStorage:
         """Returns the number of assigned sites"""
         return (self.mapping >= 0).sum()
 
-    def get_mapping_matrix(self) -> numpy.ndarray:
+    def get_mapping_matrix(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns a matrix that maps site index on the function index
 
 
@@ -776,7 +776,7 @@ class FunctionStorage:
 
         return mtrx
 
-    def get_reorganization_energies(self) -> numpy.ndarray:
+    def get_reorganization_energies(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns the estimate of the reoganization energies of the stored functions"""
         label = "t1"
         axis = self.ta[0]
@@ -821,7 +821,7 @@ class FastFunctionStorage(FunctionStorage):
         three-time (t1, t2, t3) configuration is used.
     """
 
-    def __getitem__(self, index: Any) -> Any:
+    def __getitem__(self, index: Any) -> Any:  # type: ignore[explicit-any]
         i, j = index
 
         # if the index is integer
@@ -847,7 +847,7 @@ class FastFunctionStorage(FunctionStorage):
 class SingleGoft(FunctionStorage):
     """Storage of a single lineshape function"""
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         timeaxis: Any = None,
         dtype: Any = numpy.complex64,
@@ -858,7 +858,7 @@ class SingleGoft(FunctionStorage):
             N=1, timeaxis=timeaxis, dtype=dtype, show_config=show_config, config=config
         )
 
-    def __getitem__(self, index: Any) -> Any:
+    def __getitem__(self, index: Any) -> Any:  # type: ignore[explicit-any]
         """Returns the stored function"""
         j = index
         start = 0

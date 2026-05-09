@@ -72,9 +72,9 @@ class TestSuperOperator(SuperOperator):
         else:
             raise QuantarheiError("Unknown test name")
 
-    def _def_A(self, dim: int) -> numpy.ndarray:
+    def _def_A(self, dim: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Defines the matrix A for constuction of a super operator"""
-        A: numpy.ndarray = numpy.zeros((dim, dim), dtype=qr.COMPLEX)
+        A: numpy.ndarray = numpy.zeros((dim, dim), dtype=qr.COMPLEX)  # type: ignore[explicit-any]
 
         for k_i in range(dim):
             A[k_i, k_i] = k_i

@@ -85,7 +85,7 @@ class FoersterRateMatrix:
         self.data = _reference_implementation(Na, HH, tt, gt, ll)
 
 
-def _reference_implementation(
+def _reference_implementation(  # type: ignore[explicit-any]
     Na: int, HH: numpy.ndarray, tt: numpy.ndarray, gt: numpy.ndarray, ll: numpy.ndarray
 ) -> numpy.ndarray:
     """Reference implementation of Foerster rates
@@ -144,7 +144,7 @@ def _reference_implementation(
     return KK
 
 
-def _fintegral(
+def _fintegral(  # type: ignore[explicit-any]
     tt: numpy.ndarray,
     gtd: numpy.ndarray,
     gta: numpy.ndarray,

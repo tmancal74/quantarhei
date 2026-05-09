@@ -22,7 +22,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
         self.default_dipole_lengths[0, 1] = 5.8
         self.default_dipole_lengths[1, 0] = 5.8
 
-    def set_default_energies(self, elenergies: Any) -> None:
+    def set_default_energies(self, elenergies: Any) -> None:  # type: ignore[explicit-any]
         k = 0
         for en in elenergies:
             self.default_energies[k] = self.convert_2_internal_u(en)
@@ -34,7 +34,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
         self.default_dipole_lengths[transition[0], transition[1]] = val
         self.default_dipole_lengths[transition[1], transition[0]] = val
 
-    def transition_dipole(
+    def transition_dipole(  # type: ignore[explicit-any]
         self,
         transition: tuple[int, int] = (0, 1),
         data_type: str | None = None,
@@ -67,7 +67,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
 
         return d
 
-    def position_of_center(
+    def position_of_center(  # type: ignore[explicit-any]
         self, data_type: str | None = None, data: Any = None
     ) -> numpy.ndarray:
         """Returns the position of the molecular center"""
@@ -101,7 +101,7 @@ class BacterioChlorophyll(MolecularModel, EnergyUnitsManaged):
 
         return pos
 
-    def pi_conjugated_system(
+    def pi_conjugated_system(  # type: ignore[explicit-any]
         self, data_type: str | None = None, data: Any = None
     ) -> None:
         """Returns the atoms and atom types in the pi-conjugated system

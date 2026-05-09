@@ -43,9 +43,9 @@ class StateVector(BasisManaged):
     """
 
     data = BasisManagedComplexArray("data")
-    _data: numpy.ndarray
+    _data: numpy.ndarray  # type: ignore[explicit-any]
 
-    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:  # type: ignore[explicit-any]
 
         self._initialized = False
 
@@ -73,16 +73,16 @@ class StateVector(BasisManaged):
                 self.data = numpy.zeros(dim, dtype=COMPLEX)
                 self._initialized = True
 
-    def dot(self, vec: StateVector) -> Any:
+    def dot(self, vec: StateVector) -> Any:  # type: ignore[explicit-any]
         """Scalar product of two StateVectors"""
         return numpy.dot(self.data, vec.data)
 
-    def norm(self) -> Any:
+    def norm(self) -> Any:  # type: ignore[explicit-any]
         """Returns the norm of the StateVector"""
         # vdot conjugates its first argument: <data|data> = ||data||^2
         return numpy.sqrt(numpy.vdot(self.data, self.data).real)
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transformation of the operator by a given matrix
 
 
@@ -105,7 +105,7 @@ class StateVector(BasisManaged):
 
         self._data = numpy.dot(S1, self._data)
 
-    def get_DensityMatrix(self) -> Any:
+    def get_DensityMatrix(self) -> Any:  # type: ignore[explicit-any]
         """Constructs DensityMatrix from the present StateVector"""
         from .operators import DensityMatrix
 

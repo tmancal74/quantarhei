@@ -79,9 +79,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
     cutoff_time: float | None
     _is_initialized: bool
     dim: int
-    _Km: numpy.ndarray
-    _Lm: numpy.ndarray
-    _Ld: numpy.ndarray
+    _Km: numpy.ndarray  # type: ignore[explicit-any]
+    _Lm: numpy.ndarray  # type: ignore[explicit-any]
+    _Ld: numpy.ndarray  # type: ignore[explicit-any]
 
     def __init__(
         self,
@@ -149,7 +149,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         self.Iterm = None
         self.has_Iterm = False
 
-    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:
+    def apply(self, oper: Any, target: Any = None, copy: bool = True) -> Any:  # type: ignore[explicit-any]
         """Applies the relaxation tensor on a superoperator"""
         if self.as_operators:
             print("Applying Relaxation tensor")
@@ -186,7 +186,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         return super().apply(oper, copy=copy)
 
-    def get_population_rate(self, N: int, M: int) -> Any:
+    def get_population_rate(self, N: int, M: int) -> Any:  # type: ignore[explicit-any]
         """Returns the relaxation rate between states N -> M"""
         if self.as_operators:
             rt = 0.0
@@ -197,7 +197,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         return super().get_population_rate(N, M)
 
-    def get_dephasing_rate(self, N: int, M: int) -> Any:
+    def get_dephasing_rate(self, N: int, M: int) -> Any:  # type: ignore[explicit-any]
         """Returns the dephasing rate of a coherence between states N and M"""
         if self.as_operators:
             rt = 0.0
@@ -212,7 +212,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         return super().get_dephasing_rate(N, M)
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transformation of the tensor by a given matrix
 
 
@@ -240,9 +240,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             else:
                 S1 = inv
 
-            _Lm: numpy.ndarray = numpy.zeros_like(self._Lm, dtype=COMPLEX)
-            _Ld: numpy.ndarray = numpy.zeros_like(self._Ld, dtype=COMPLEX)
-            _Km: numpy.ndarray = numpy.zeros_like(self._Km, dtype=COMPLEX)
+            _Lm: numpy.ndarray = numpy.zeros_like(self._Lm, dtype=COMPLEX)  # type: ignore[explicit-any]
+            _Ld: numpy.ndarray = numpy.zeros_like(self._Ld, dtype=COMPLEX)  # type: ignore[explicit-any]
+            _Km: numpy.ndarray = numpy.zeros_like(self._Km, dtype=COMPLEX)  # type: ignore[explicit-any]
             for m in range(self._Km.shape[0]):
                 _Lm[:, :, m] = numpy.dot(S1, numpy.dot(self._Lm[:, :, m], SS))
                 _Ld[:, :, m] = numpy.dot(S1, numpy.dot(self._Ld[:, :, m], SS))
@@ -352,7 +352,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             Km[ns, :, :] = numpy.dot(S1, numpy.dot(sbi.KK[ns, :, :], SS))
 
         if multi_ex:
-            system_any: Any = sbi.system
+            system_any: Any = sbi.system  # type: ignore[explicit-any]
             try:
                 ii = system_any.twoex_state[0, 0]
                 # print(ii)
@@ -366,7 +366,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             Nb2 = sbi.N
 
             # projectors to two-exciton states
-            K2: numpy.ndarray = numpy.zeros((Nb2, Na, Na), dtype=REAL)
+            K2: numpy.ndarray = numpy.zeros((Nb2, Na, Na), dtype=REAL)  # type: ignore[explicit-any]
             i_start = ham.rwa_indices[2]  # here the two-exciton bands starts
             ii = 0
             for ms in range(i_start, ham.dim):
@@ -441,7 +441,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         log_detail("... Redfield done")
 
-    def _post_implementation(
+    def _post_implementation(  # type: ignore[explicit-any]
         self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray
     ) -> None:
         """When components of the tensor are calculated, should they be
@@ -463,7 +463,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         self._is_initialized = True
 
-    def _guts_Cmplx_Splines(
+    def _guts_Cmplx_Splines(  # type: ignore[explicit-any]
         self,
         ms: int,
         Lm: numpy.ndarray,
@@ -497,7 +497,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 # \Lambda_m operators
                 Lm[a, b, ms] += cc_mnab * Km[ms, a, b]
 
-    def _guts_Cmplx_Sum(
+    def _guts_Cmplx_Sum(  # type: ignore[explicit-any]
         self,
         ms: int,
         Lm: numpy.ndarray,
@@ -525,7 +525,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 # \Lambda_m operators
                 Lm[a, b, ms] += cc_mnab * Km[ms, a, b]
 
-    def _guts_Cmplx_FFT(
+    def _guts_Cmplx_FFT(  # type: ignore[explicit-any]
         self,
         ms: int,
         Lm: numpy.ndarray,
@@ -559,7 +559,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 # \Lambda_m operators
                 Lm[a, b, ms] += cc_mnab * Km[ms, a, b]
 
-    def _convert_operators_2_tensor(
+    def _convert_operators_2_tensor(  # type: ignore[explicit-any]
         self, Km: numpy.ndarray, Lm: numpy.ndarray, Ld: numpy.ndarray
     ) -> numpy.ndarray:
         r"""Converts operator representation to the tensor one
@@ -631,7 +631,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             self.as_operators = False
 
 
-def _loopit(
+def _loopit(  # type: ignore[explicit-any]
     Km: numpy.ndarray,
     Kd: numpy.ndarray,
     Lm: numpy.ndarray,
@@ -654,7 +654,7 @@ def _loopit(
                         RR[a, b, c, d] -= LdKm[d, b]
 
 
-def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:
+def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Cumulative Simpson integration over the last axis of a 2D or higher NumPy array.
 
     Parameters:

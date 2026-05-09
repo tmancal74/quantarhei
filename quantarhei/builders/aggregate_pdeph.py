@@ -33,7 +33,7 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
         self.diagonalize()
 
         Na = self.Ntot
-        xiai: numpy.ndarray = numpy.zeros((Na, self.Nel), dtype=REAL)
+        xiai: numpy.ndarray = numpy.zeros((Na, self.Nel), dtype=REAL)  # type: ignore[explicit-any]
         for aa in range(Na):
             st = 0
             for ii in range(self.Nel):

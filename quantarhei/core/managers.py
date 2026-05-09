@@ -203,7 +203,7 @@ class Manager(metaclass=Singleton):
             os.mkdir(self.conf_path)
 
             # write default configuration
-            self.main_conf: dict[str, Any] = {
+            self.main_conf: dict[str, Any] = {  # type: ignore[explicit-any]
                 "units": "units.json",
                 "implementations": "implementations.json",
             }
@@ -220,7 +220,7 @@ class Manager(metaclass=Singleton):
             with open(self.cfile) as f:
                 self.main_conf = json.load(f)
 
-        self.current_basis_operator: Any = None
+        self.current_basis_operator: Any = None  # type: ignore[explicit-any]
 
         #
         # Flags for all contexts which are enforced or prevented by functions
@@ -317,16 +317,16 @@ class Manager(metaclass=Singleton):
 
         self.basis_stack: list[int] = []
         self.basis_stack.append(0)
-        self.basis_transformations: list[Any] = []
+        self.basis_transformations: list[Any] = []  # type: ignore[explicit-any]
         self.basis_transformations.append(1)
-        self.basis_registered: dict[int, list[Any]] = {}
+        self.basis_registered: dict[int, list[Any]] = {}  # type: ignore[explicit-any]
 
         self.warn_about_basis_change = False
         self.warn_about_basis_changing_objects = False
 
         self._saved_units: dict[str, str] = {}
 
-        self.save_dict: dict[str, Any] = {}
+        self.save_dict: dict[str, Any] = {}  # type: ignore[explicit-any]
 
         #
         # Configuration controlable from qrhei (conf file and qrhei script)
@@ -498,7 +498,7 @@ class Manager(metaclass=Singleton):
 
         return numpy.complex128
 
-    def store_current_basis_operator(self, op: Any) -> None:
+    def store_current_basis_operator(self, op: Any) -> None:  # type: ignore[explicit-any]
         self.current_basis_operator = op
 
     def remove_current_basis_operator(self) -> None:
@@ -577,7 +577,7 @@ class Manager(metaclass=Singleton):
         raise UnitsError("Unknown type of units")
 
     #    @deprecated
-    def cu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:
+    def cu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:  # type: ignore[explicit-any]
         """Converst to current energy units"""
         if units in self.units["energy"]:
             x = conversion_facs_energy[units]
@@ -591,14 +591,14 @@ class Manager(metaclass=Singleton):
             return i_val
 
     #    @deprecated
-    def iu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:
+    def iu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:  # type: ignore[explicit-any]
         """Converst to internal energy units"""
         if units in self.units["energy"]:
             x = conversion_facs_energy[units]
             i_val = x * val
             return i_val
 
-    def convert_energy_2_internal_u(
+    def convert_energy_2_internal_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         """Convert energy from currently used units to internal units
@@ -627,7 +627,7 @@ class Manager(metaclass=Singleton):
         else:
             return val * cfact
 
-    def convert_energy_2_current_u(
+    def convert_energy_2_current_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         """Converts energy from internal units to currently used units
@@ -656,7 +656,7 @@ class Manager(metaclass=Singleton):
         else:
             return val / cfact
 
-    def convert_frequency_2_internal_u(
+    def convert_frequency_2_internal_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         """Converts frequency from currently used units to internal units
@@ -669,7 +669,7 @@ class Manager(metaclass=Singleton):
         """
         return val * conversion_facs_frequency[self.current_units["frequency"]]
 
-    def convert_frequency_2_current_u(
+    def convert_frequency_2_current_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         """Converts frequency from internal units to currently used units
@@ -682,7 +682,7 @@ class Manager(metaclass=Singleton):
         """
         return val / conversion_facs_frequency[self.current_units["frequency"]]
 
-    def convert_length_2_internal_u(
+    def convert_length_2_internal_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         """Converts length from currently used units to internal units
@@ -695,7 +695,7 @@ class Manager(metaclass=Singleton):
         """
         return val * conversion_facs_length[self.current_units["length"]]
 
-    def convert_length_2_current_u(
+    def convert_length_2_current_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         """Converts frequency from internal units to currently used units
@@ -736,12 +736,12 @@ class Manager(metaclass=Singleton):
         imp_id = self.implementation_points[imp]
         self.current_implementations[imp_id] = choice
 
-    def register_implementation(
+    def register_implementation(  # type: ignore[explicit-any]
         self, imp_point: str, prefix: str, asint: Any = None
     ) -> None:
         pass
 
-    def commit_implementation(
+    def commit_implementation(  # type: ignore[explicit-any]
         self, imp_point: str, prefix: str, asint: Any = None
     ) -> None:
         pass
@@ -751,14 +751,14 @@ class Manager(metaclass=Singleton):
         l = len(self.basis_stack)
         return self.basis_stack[l - 1]
 
-    def set_new_basis(self, SS: Any) -> int:
+    def set_new_basis(self, SS: Any) -> int:  # type: ignore[explicit-any]
         nb = self.get_current_basis() + 1
         self.basis_stack.append(nb)
         self.basis_transformations.append(SS)
         self.basis_registered[nb] = []
         return nb
 
-    def transform_to_current_basis(self, operator: Any) -> None:
+    def transform_to_current_basis(self, operator: Any) -> None:  # type: ignore[explicit-any]
         """Transforms an operator to the currently used basis
 
         Parameters
@@ -805,7 +805,7 @@ class Manager(metaclass=Singleton):
             operator.set_current_basis(cb)
             self.register_with_basis(cb, operator)
 
-    def register_with_basis(self, nb: int, operator: Any) -> None:
+    def register_with_basis(self, nb: int, operator: Any) -> None:  # type: ignore[explicit-any]
         self.basis_registered[nb].append(operator)
 
 
@@ -818,22 +818,22 @@ class Managed:
 class UnitsManaged(Managed):
     """Base class for objects with management of units"""
 
-    def convert_energy_2_internal_u(
+    def convert_energy_2_internal_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         return self.manager.convert_energy_2_internal_u(val)
 
-    def convert_energy_2_current_u(
+    def convert_energy_2_current_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         return self.manager.convert_energy_2_current_u(val)
 
-    def convert_length_2_internal_u(
+    def convert_length_2_internal_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         return self.manager.convert_length_2_internal_u(val)
 
-    def convert_length_2_current_u(
+    def convert_length_2_current_u(  # type: ignore[explicit-any]
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
         return self.manager.convert_length_2_current_u(val)
@@ -849,10 +849,10 @@ class EnergyUnitsManaged(Managed):
     utype = "energy"
     units = "1/fs"
 
-    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         return self.manager.convert_energy_2_internal_u(val)
 
-    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         return self.manager.convert_energy_2_current_u(val)
 
     def unit_repr(self) -> str:
@@ -868,10 +868,10 @@ class LengthUnitsManaged(Managed):
     utype = "length"
     units = "A"
 
-    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         return self.manager.convert_length_2_internal_u(val)
 
-    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         return self.manager.convert_length_2_current_u(val)
 
     def unit_repr(self) -> str:
@@ -906,7 +906,7 @@ class units_context_manager:
     def __enter__(self) -> None:
         pass
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:  # type: ignore[explicit-any]
         pass
 
 
@@ -943,7 +943,7 @@ class energy_units(units_context_manager):
         self.manager._in_energy_units_context = True
         self.manager._in_eu_count += 1
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:  # type: ignore[explicit-any]
         if exc_val is not None and self.units != self.units_backup:
             warnings.warn(
                 f"An exception exited a 'with energy_units(\"{self.units}\")' block. "
@@ -999,7 +999,7 @@ class length_units(units_context_manager):
         self.units_backup = self.manager.get_current_units("length")
         self.manager.set_current_units(self.utype, self.units)
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:  # type: ignore[explicit-any]
         if exc_val is not None and self.units != self.units_backup:
             warnings.warn(
                 f"An exception exited a 'with length_units(\"{self.units}\")' block. "
@@ -1019,7 +1019,7 @@ class basis_context_manager:
     def __enter__(self) -> None:
         pass
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:  # type: ignore[explicit-any]
         pass
 
 
@@ -1035,7 +1035,7 @@ class eigenbasis_of(basis_context_manager):
         The operator whose eigenbasis is used inside the context block.
     """
 
-    def __init__(self, operator: Any) -> None:
+    def __init__(self, operator: Any) -> None:  # type: ignore[explicit-any]
         super().__init__()
         self.op = operator
         self.manager.store_current_basis_operator(self.op)
@@ -1063,7 +1063,7 @@ class eigenbasis_of(basis_context_manager):
         if self.manager.warn_about_basis_change:
             print("\nQr >>>  ... setting context done")
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:  # type: ignore[explicit-any]
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> Returning from basis context manager. Cleaning ...")

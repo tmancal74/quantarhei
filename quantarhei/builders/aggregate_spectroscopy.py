@@ -49,7 +49,7 @@ class AggregateSpectroscopy(AggregateBase):
             verbose=verbose,
         )
 
-    def liouville_pathways_3T(
+    def liouville_pathways_3T(  # type: ignore[explicit-any]
         self,
         ptype: str | tuple | list = "R3g",
         eUt: Any = None,
@@ -113,12 +113,12 @@ class AggregateSpectroscopy(AggregateBase):
         evf_tol = etol
 
         # Check if the ptype is a tuple
-        ptype_tuple: Any
+        ptype_tuple: Any  # type: ignore[explicit-any]
         if not isinstance(ptype, (tuple, list)):
             ptype_tuple = (ptype,)
         else:
             ptype_tuple = ptype
-        lst: list[Any] = []
+        lst: list[Any] = []  # type: ignore[explicit-any]
 
         if verbose > 0:
             print("Pathways", ptype_tuple)
@@ -252,7 +252,7 @@ class AggregateSpectroscopy(AggregateBase):
         else:
             raise ImplementationError("Not implemented yet")
 
-        lst: list[Any] = []
+        lst: list[Any] = []  # type: ignore[explicit-any]
 
         if sec:
             generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose)
@@ -266,7 +266,7 @@ class AggregateSpectroscopy(AggregateBase):
         return lst
 
 
-def generate_R1g(
+def generate_R1g(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -331,7 +331,7 @@ def generate_R1g(
                                                 k += 1
 
 
-def _generate_R1g(
+def _generate_R1g(  # type: ignore[explicit-any]
     self: Any,
     i1g: int,
     i2e: int,
@@ -390,7 +390,7 @@ def _generate_R1g(
     return lp
 
 
-def generate_R1gE(
+def generate_R1gE(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -527,7 +527,7 @@ def generate_R1gE(
                                                 k += 1
 
 
-def generate_R2g(
+def generate_R2g(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -659,7 +659,7 @@ def generate_R2g(
                                                 k += 1
 
 
-def generate_R2gE(
+def generate_R2gE(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -800,7 +800,7 @@ def generate_R2gE(
                                                 k += 1
 
 
-def generate_R3g(
+def generate_R3g(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -910,7 +910,7 @@ def generate_R3g(
                                     k += 1
 
 
-def generate_R4g(
+def generate_R4g(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -1020,7 +1020,7 @@ def generate_R4g(
                 #    qr.stop()
 
 
-def generate_R1f(
+def generate_R1f(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -1161,7 +1161,7 @@ def generate_R1f(
                                                 k += 1
 
 
-def generate_R2f(
+def generate_R2f(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -1302,7 +1302,7 @@ def generate_R2f(
                                                 k += 1
 
 
-def generate_R1fE(
+def generate_R1fE(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -1437,7 +1437,7 @@ def generate_R1fE(
                                                 k += 1
 
 
-def generate_R2fE(
+def generate_R2fE(  # type: ignore[explicit-any]
     self: Any,
     lst: list,
     eUt2: numpy.ndarray,
@@ -1571,7 +1571,7 @@ def generate_R2fE(
                                                 k += 1
 
 
-def generate_1orderP_sec(
+def generate_1orderP_sec(  # type: ignore[explicit-any]
     self: Any, lst: list, pop_tol: float, dip_tol: float, verbose: int = 0
 ) -> None:
 

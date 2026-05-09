@@ -30,7 +30,7 @@ class ChlorophyllA(MolecularModel):
 
         self.set_default_dipole_length((0, 1), dp_length)
 
-    def transition_dipole(
+    def transition_dipole(  # type: ignore[explicit-any]
         self,
         transition: tuple[int, int] = (0, 1),
         data_type: str | None = None,
@@ -63,7 +63,7 @@ class ChlorophyllA(MolecularModel):
 
         return d
 
-    def position_of_center(
+    def position_of_center(  # type: ignore[explicit-any]
         self, data_type: str | None = None, data: Any = None
     ) -> numpy.ndarray:
         """Returns the position of the molecular center"""
@@ -97,7 +97,7 @@ class ChlorophyllA(MolecularModel):
 
         return pos
 
-    def pi_conjugated_system(
+    def pi_conjugated_system(  # type: ignore[explicit-any]
         self, data_type: str | None = None, data: Any = None
     ) -> None:
         """Returns the atoms and atom types in the pi-conjugated system
@@ -144,7 +144,7 @@ class ChlorophyllB(MolecularModel):
 
         self.set_default_dipole_length((0, 1), dp_length)
 
-    def transition_dipole(
+    def transition_dipole(  # type: ignore[explicit-any]
         self,
         transition: tuple[int, int] = (0, 1),
         data_type: str | None = None,
@@ -177,7 +177,7 @@ class ChlorophyllB(MolecularModel):
 
         return d
 
-    def position_of_center(
+    def position_of_center(  # type: ignore[explicit-any]
         self, data_type: str | None = None, data: Any = None
     ) -> numpy.ndarray:
         """Returns the position of the molecular center"""
@@ -211,7 +211,7 @@ class ChlorophyllB(MolecularModel):
 
         return pos
 
-    def pi_conjugated_system(
+    def pi_conjugated_system(  # type: ignore[explicit-any]
         self, data_type: str | None = None, data: Any = None
     ) -> None:
         """Returns the atoms and atom types in the pi-conjugated system

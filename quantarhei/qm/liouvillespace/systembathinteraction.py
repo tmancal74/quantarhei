@@ -79,7 +79,7 @@ class SystemBathInteraction(Saveable):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         sys_operators: Any = None,
         bath_correlation_matrix: Any = None,
@@ -96,15 +96,15 @@ class SystemBathInteraction(Saveable):
         self.aggregate: Aggregate | None = None
         self.molecule: Molecule | None = None
         self.system: Aggregate | Molecule | OpenSystem | None = None
-        self.rates: Any = None
-        self.KK: numpy.ndarray | None = None
+        self.rates: Any = None  # type: ignore[explicit-any]
+        self.KK: numpy.ndarray | None = None  # type: ignore[explicit-any]
         self.CC: CorrelationFunctionMatrix | None = None  # correlation function matrix
         self.GG: FunctionStorage | None = None  # lineshape function storage
         self.TimeAxis: TimeAxis | None = None
-        self.drates: Any = None
+        self.drates: Any = None  # type: ignore[explicit-any]
         self.N = 0
-        self.osites: Any = None
-        self.orates: Any = None
+        self.osites: Any = None  # type: ignore[explicit-any]
+        self.orates: Any = None  # type: ignore[explicit-any]
         self.sbitype = "Linear_Coupling"
 
         self._has_gg_storage = False
@@ -207,7 +207,7 @@ class SystemBathInteraction(Saveable):
             self.orates = orates
             self.osites = osites
 
-    def set_system(self, system: Any) -> None:
+    def set_system(self, system: Any) -> None:  # type: ignore[explicit-any]
         """Sets the system attribute"""
         from ...builders.aggregates import Aggregate
         from ...builders.molecules import Molecule
@@ -232,7 +232,7 @@ class SystemBathInteraction(Saveable):
             else:
                 raise QuantarheiError("Unknown system type")
 
-    def _set_operators(self, sys_operators: Any) -> None:
+    def _set_operators(self, sys_operators: Any) -> None:  # type: ignore[explicit-any]
         """Sets the system part of the interaction"""
         # First of the operators
         KK = sys_operators[0]
@@ -254,15 +254,15 @@ class SystemBathInteraction(Saveable):
                     "Operators in the list are not of the same dimension"
                 )
 
-    def get_time_axis(self) -> Any:
+    def get_time_axis(self) -> Any:  # type: ignore[explicit-any]
         """Returns the time axis of the storred correlation functions"""
         return self.TimeAxis
 
-    def get_correlation_function(self, where: Any) -> Any:
+    def get_correlation_function(self, where: Any) -> Any:  # type: ignore[explicit-any]
         """Returns the bath correlation function object defined by a pair of sites (tuple)"""
         return self.CC.get_correlation_function(where[0], where[1])
 
-    def get_coft(self, n: int, m: int) -> Any:
+    def get_coft(self, n: int, m: int) -> Any:  # type: ignore[explicit-any]
         """Returns bath correlation function corresponding to sites n and m"""
         if self.sbitype != "Linear_Coupling":
             raise QuantarheiError(
@@ -303,7 +303,7 @@ class SystemBathInteraction(Saveable):
         assert self.CC is not None
         return self.CC._cofts[0, :]
 
-    def get_coft_elsig(self, n_sig: Any, m_sig: Any) -> Any:
+    def get_coft_elsig(self, n_sig: Any, m_sig: Any) -> Any:  # type: ignore[explicit-any]
         """Returns bath correlation based on electronic signatures"""
         if self.sbitype != "Linear_Coupling":
             raise QuantarheiError(
@@ -335,7 +335,7 @@ class SystemBathInteraction(Saveable):
         assert self.CC is not None
         return self.CC._cofts[0, :]
 
-    def get_goft_storage(
+    def get_goft_storage(  # type: ignore[explicit-any]
         self, config: dict | int | None = None, timeaxis: Any = None
     ) -> Any:
         """Returns a lineshape function storage based on correlation functions
@@ -421,7 +421,7 @@ class SystemBathInteraction(Saveable):
         """Returns temperature associated with the bath"""
         return self.CC.get_temperature()
 
-    def get_reorganization_energy(self, i: int, j: int | None = None) -> Any:
+    def get_reorganization_energy(self, i: int, j: int | None = None) -> Any:  # type: ignore[explicit-any]
         """Returns reorganization energy associated with a given site
 
         If one index `i` is specified, the function returns reorganization
@@ -439,7 +439,7 @@ class SystemBathInteraction(Saveable):
             j = i
         return self.CC.get_reorganization_energy(i, j)
 
-    def get_correlation_time(self, i: int, j: int | None = None) -> Any:
+    def get_correlation_time(self, i: int, j: int | None = None) -> Any:  # type: ignore[explicit-any]
 
         if (
             self.sbitype == "Lindblad_Form"

@@ -30,12 +30,12 @@ class PDBFile:
         self.lines: list[str] = []
         self.linecount = 0
 
-        self.molecules: list[Any] = []
+        self.molecules: list[Any] = []  # type: ignore[explicit-any]
 
-        self._resSeqs: list[Any] = []
-        self._uniqueIds: list[Any] = []
-        self._res_lines: dict[Any, Any] = dict()
-        self._unique_lines: dict[Any, Any] = dict()
+        self._resSeqs: list[Any] = []  # type: ignore[explicit-any]
+        self._uniqueIds: list[Any] = []  # type: ignore[explicit-any]
+        self._res_lines: dict[Any, Any] = dict()  # type: ignore[explicit-any]
+        self._unique_lines: dict[Any, Any] = dict()  # type: ignore[explicit-any]
 
         if fname is not None:
             # load file
@@ -69,7 +69,7 @@ class PDBFile:
                 k += 1
         return k
 
-    def get_Molecules(self, model: Any = None) -> list:
+    def get_Molecules(self, model: Any = None) -> list:  # type: ignore[explicit-any]
         """Return all molecules matching a given model definition.
 
         Parameters
@@ -152,7 +152,7 @@ class PDBFile:
 
         return molecules
 
-    def get_chainId(self, molecule: Any) -> str | None:
+    def get_chainId(self, molecule: Any) -> str | None:  # type: ignore[explicit-any]
         lines = molecule.data
         save = None
         for l in lines:
@@ -201,7 +201,7 @@ def line_chainId(line: str) -> str:
     return line[_chainId_min:_chainId_max]
 
 
-def line_xyz(line: str) -> numpy.ndarray:
+def line_xyz(line: str) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Returns coordinates of the line"""
     x = float(line[30:38])
     y = float(line[38:46])

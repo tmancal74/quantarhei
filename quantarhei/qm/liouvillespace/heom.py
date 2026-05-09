@@ -98,7 +98,7 @@ class KTHierarchy:
 
     """
 
-    def __init__(self, ham: Any, sbi: Any, depth: int = 2) -> None:
+    def __init__(self, ham: Any, sbi: Any, depth: int = 2) -> None:  # type: ignore[explicit-any]
 
         self.ham = ham
         self.sbi = sbi
@@ -160,7 +160,7 @@ class KTHierarchy:
         #                                                 dtype=COMPLEX))
 
         # This needs to be basis controlled
-        self.ado: numpy.ndarray | None = None
+        self.ado: numpy.ndarray | None = None  # type: ignore[explicit-any]
         self.reset_ados()
 
         #
@@ -178,7 +178,7 @@ class KTHierarchy:
         self.np1 = numpy.zeros((self.hsize, self.nbath), dtype=int)
         self._make_nmp1()
 
-        self.Gamma: numpy.ndarray = numpy.zeros(self.hsize, dtype=REAL)
+        self.Gamma: numpy.ndarray = numpy.zeros(self.hsize, dtype=REAL)  # type: ignore[explicit-any]
         self._make_Gamma()
 
         self.hpop = None
@@ -265,7 +265,7 @@ class KTHierarchy:
         lret.append(level4)
         return lret
 
-    def _convert_2_matrix(self, indxs: list) -> numpy.ndarray:
+    def _convert_2_matrix(self, indxs: list) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Convert the list of levels of the hierarchy into an numpy array"""
         hsize = 0
         lvl = 0
@@ -326,7 +326,7 @@ class KTHierarchy:
         """Creates memory of ADOs and sets them to zero"""
         self.ado = numpy.zeros((self.hsize, self.dim, self.dim), dtype=COMPLEX)
 
-    def get_kernel(self, timeaxis: Any) -> numpy.ndarray:
+    def get_kernel(self, timeaxis: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns integration kernel for the time-non-local equation"""
         N = self.dim
         Nt = timeaxis.length
@@ -354,7 +354,7 @@ class KTHierarchy:
 
         return kernel
 
-    def _QHPsop(self) -> numpy.ndarray:
+    def _QHPsop(self) -> numpy.ndarray:  # type: ignore[explicit-any]
 
         N = self.dim
         delta = UnityOperator(dim=N).data
@@ -400,7 +400,7 @@ class KTHierarchy:
 
         return qhp
 
-    def _PHQsop(self) -> numpy.ndarray:
+    def _PHQsop(self) -> numpy.ndarray:  # type: ignore[explicit-any]
 
         N = self.dim
         delta = UnityOperator(dim=N).data
@@ -471,7 +471,7 @@ class KTHierarchyPropagator:
 
     """
 
-    def __init__(self, timeaxis: Any, hierarchy: Any) -> None:
+    def __init__(self, timeaxis: Any, hierarchy: Any) -> None:  # type: ignore[explicit-any]
 
         self.timeaxis = timeaxis
         self.Nt = timeaxis.length
@@ -496,7 +496,7 @@ class KTHierarchyPropagator:
         else:
             raise QuantarheiError("Hamiltonian does not have RWA.")
 
-    def propagate(
+    def propagate(  # type: ignore[explicit-any]
         self,
         rhoi: Any,
         L: int = 4,
@@ -563,7 +563,7 @@ class KTHierarchyPropagator:
 
         return rhot
 
-    def _ado_self_rhs(
+    def _ado_self_rhs(  # type: ignore[explicit-any]
         self, ado1: numpy.ndarray, dt: float, slevel: int = 0
     ) -> numpy.ndarray:
         """Self contribution of the equation for the hierarchy ADOs"""
@@ -583,7 +583,7 @@ class KTHierarchyPropagator:
 
         return ado3
 
-    def _ado_cros_rhs(
+    def _ado_cros_rhs(  # type: ignore[explicit-any]
         self, ado1: numpy.ndarray, dt: float, slevel: int = 0
     ) -> numpy.ndarray:
         """All cross-terms of the Hierarchy"""
@@ -659,12 +659,12 @@ class QuTip_KTHierarchyPropagator(KTHierarchyPropagator):
         indices.
     """
 
-    def __init__(self, timeaxis: Any, hierarchy: Any) -> None:
+    def __init__(self, timeaxis: Any, hierarchy: Any) -> None:  # type: ignore[explicit-any]
 
         super().__init__(timeaxis, hierarchy)
         self._is_prepared = False
 
-    def propagate(
+    def propagate(  # type: ignore[explicit-any]
         self,
         rhoi: Any,
         L: int = 4,

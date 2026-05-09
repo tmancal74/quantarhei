@@ -26,7 +26,7 @@ class OQSStateVectorEvolution:
         Default is ``None``.
     """
 
-    def __init__(self, timeaxis: Any = None, psii: Any = None) -> None:
+    def __init__(self, timeaxis: Any = None, psii: Any = None) -> None:  # type: ignore[explicit-any]
 
         if timeaxis is not None:
             self.TimeAxis = timeaxis
@@ -38,13 +38,13 @@ class OQSStateVectorEvolution:
             else:
                 self.dim = 0
 
-    def set_initial_condition(self, psii: Any) -> None:
+    def set_initial_condition(self, psii: Any) -> None:  # type: ignore[explicit-any]
         """ """
         self.dim = psii.data.shape[0]
         self.data = numpy.zeros((self.TimeAxis.length, self.dim), dtype=numpy.float64)
         self.data[0, :] = psii.data
 
-    def get_norm(self) -> numpy.ndarray:
+    def get_norm(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Time dependent norm of the state vector"""
         return numpy.sum(self.data * self.data, axis=1)
 

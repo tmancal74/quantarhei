@@ -77,7 +77,7 @@ class TDFoersterRateMatrix(TimeDependent):
         self._is_initialized = True
 
 
-def _td_reference_implementation(
+def _td_reference_implementation(  # type: ignore[explicit-any]
     Na: int,
     Nt: int,
     HH: numpy.ndarray,
@@ -103,7 +103,7 @@ def _td_reference_implementation(
     return KK
 
 
-def _td_fintegral(
+def _td_fintegral(  # type: ignore[explicit-any]
     tt: numpy.ndarray,
     gtd: numpy.ndarray,
     gta: numpy.ndarray,

@@ -11,14 +11,14 @@ class ExcitonDynamics(Simulation):
     """Excitonic Dynamics Simulation"""
 
     # Attributes set dynamically from configuration input
-    molecules: Any
-    exciton_multiplicity: Any
-    relaxation_theory: Any
-    sys_operators: Any
-    rates: Any
-    timeaxis: Any
-    tasks: Any
-    rho0: Any
+    molecules: Any  # type: ignore[explicit-any]
+    exciton_multiplicity: Any  # type: ignore[explicit-any]
+    relaxation_theory: Any  # type: ignore[explicit-any]
+    sys_operators: Any  # type: ignore[explicit-any]
+    rates: Any  # type: ignore[explicit-any]
+    timeaxis: Any  # type: ignore[explicit-any]
+    tasks: Any  # type: ignore[explicit-any]
+    rho0: Any  # type: ignore[explicit-any]
 
     def _build(self) -> None:
         """Here we prepare objects for the simulation"""

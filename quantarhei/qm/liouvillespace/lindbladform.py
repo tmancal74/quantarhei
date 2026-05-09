@@ -20,7 +20,7 @@ class LindbladForm(RedfieldRelaxationTensor):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         ham: Any,
         sbi: Any,
@@ -32,7 +32,7 @@ class LindbladForm(RedfieldRelaxationTensor):
             ham, sbi, initialize=initialize, as_operators=as_operators, name=name
         )
 
-    def _implementation(self, ham: Any, sbi: Any) -> None:
+    def _implementation(self, ham: Any, sbi: Any) -> None:  # type: ignore[explicit-any]
         """Very simple implementation of Lindblad form"""
         # dimension of the operators
         Na = ham.dim
@@ -91,7 +91,7 @@ class ElectronicLindbladForm(LindbladForm):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         ham: Any,
         sbi: Any,
@@ -171,7 +171,7 @@ class ElectronicLindbladForm(LindbladForm):
                 " attribute set to an Aggregate"
             )
 
-    def cast_to_vibronic(agg: Any, KK: Any) -> numpy.ndarray:
+    def cast_to_vibronic(agg: Any, KK: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         newkk = numpy.zeros((agg.Ntot, agg.Ntot), dtype=numpy.float64)
 
         # populate the operator
@@ -227,7 +227,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         ham: Any,
         sbi: Any,
@@ -247,7 +247,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
             ops = []
             rts = []
 
-            zero: numpy.ndarray = numpy.zeros((Ntot, Ntot), dtype=REAL)
+            zero: numpy.ndarray = numpy.zeros((Ntot, Ntot), dtype=REAL)  # type: ignore[explicit-any]
             zrs = 0
 
             # we loop over sites in which we want to introduce relaxation
@@ -314,7 +314,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
             ham, newsbi, initialize=initialize, as_operators=as_operators, name=name
         )
 
-    def _same_regardless_of_one(self, a: Any, b: Any, k: int) -> bool | None:
+    def _same_regardless_of_one(self, a: Any, b: Any, k: int) -> bool | None:  # type: ignore[explicit-any]
 
         if (a[:k] == b[:k]) and (a[k + 1 :] == b[k + 1 :]):
             return True

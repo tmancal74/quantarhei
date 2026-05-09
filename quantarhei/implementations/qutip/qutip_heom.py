@@ -53,9 +53,9 @@ fmo_ham = numpy.array([
 """
 
 
-def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:
+def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:  # type: ignore[explicit-any]
 
-    qutip_data: dict[str, Any] = dict(depth=depth)
+    qutip_data: dict[str, Any] = dict(depth=depth)  # type: ignore[explicit-any]
 
     # number of states
     Ngr = 1
@@ -111,7 +111,7 @@ def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:
     return qutip_data
 
 
-def run_simulation(
+def run_simulation(  # type: ignore[explicit-any]
     kthprop: Any, rhoi: Any, options: dict[str, Any] | None = None
 ) -> Any:
 

@@ -171,7 +171,7 @@ class TDRedfieldRateMatrix(TimeDependent):
     fallback_local=True,
     always_local=True,
 )
-def ssTDRedfieldRateMatrix(
+def ssTDRedfieldRateMatrix(  # type: ignore[explicit-any]
     Na: int,
     Nk: int,
     Nt: int,
@@ -183,7 +183,7 @@ def ssTDRedfieldRateMatrix(
 ) -> numpy.ndarray:
 
     # output relaxatio rate matrix
-    RR: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=REAL)
+    RR: numpy.ndarray = numpy.zeros((Nt, Na, Na), dtype=REAL)  # type: ignore[explicit-any]
 
     # real part of FT correlation function = 2Re of the half FT of
     # the correlation function - no factor of 2 here!

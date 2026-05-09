@@ -25,7 +25,7 @@ ONE_JUMP_LINE_SHAPE_ARGUMENTS = (
 )
 
 
-def _require_line_shape_arguments(gg: Any, response_name: str) -> None:
+def _require_line_shape_arguments(gg: Any, response_name: str) -> None:  # type: ignore[explicit-any]
     """Checks that line-shape storage has all one-jump response arguments."""
     if not hasattr(gg, "time_mapping"):
         raise Exception(
@@ -44,14 +44,14 @@ def _require_line_shape_arguments(gg: Any, response_name: str) -> None:
         )
 
 
-def _jump_time_metadata(evol: Any) -> dict[str, Any]:
+def _jump_time_metadata(evol: Any) -> dict[str, Any]:  # type: ignore[explicit-any]
     """Returns one-jump integration metadata from response evolution data."""
     if isinstance(evol, tuple) and len(evol) > 4 and isinstance(evol[4], dict):
         return evol[4]
     return {}
 
 
-def _endpoint_t2_weight(evol: Any, left: int, right: int, default: Any) -> Any:
+def _endpoint_t2_weight(evol: Any, left: int, right: int, default: Any) -> Any:  # type: ignore[explicit-any]
     """Returns an externally supplied t2 endpoint weight if available."""
     metadata = _jump_time_metadata(evol)
     endpoint = metadata.get("density_matrix_endpoint_t2", None)
@@ -60,7 +60,7 @@ def _endpoint_t2_weight(evol: Any, left: int, right: int, default: Any) -> Any:
     return endpoint[left, right]
 
 
-def _single_jump_times(t2: Any, evol: Any) -> numpy.ndarray:
+def _single_jump_times(t2: Any, evol: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Returns jump times from the population time axis and graining."""
     t2_value = float(t2)
     if t2_value == 0.0:
@@ -88,7 +88,7 @@ def _single_jump_times(t2: Any, evol: Any) -> numpy.ndarray:
     )
 
 
-def _single_jump_transfer_matrix(t2: Any, s2: Any, evol: Any, KK: Any) -> Any:
+def _single_jump_transfer_matrix(t2: Any, s2: Any, evol: Any, KK: Any) -> Any:  # type: ignore[explicit-any]
     """Returns the one-jump transfer matrix density for a fixed jump time."""
     metadata = _jump_time_metadata(evol)
     axis = metadata.get("jump_time_axis", None)
@@ -123,7 +123,7 @@ def _single_jump_transfer_matrix(t2: Any, s2: Any, evol: Any, KK: Any) -> Any:
     return transfer
 
 
-def _truncate_single_jump_times(
+def _truncate_single_jump_times(  # type: ignore[explicit-any]
     t2: Any, s2s: numpy.ndarray, transfers: list[Any], evol: Any
 ) -> tuple[numpy.ndarray, list[Any]]:
     """Drop s2 points whose one-jump kernel is negligible."""
@@ -155,7 +155,7 @@ def _truncate_single_jump_times(
     return s2s[first : last + 1], transfers[first : last + 1]
 
 
-def _single_jump_kernel_diagnostics(
+def _single_jump_kernel_diagnostics(  # type: ignore[explicit-any]
     s2s: numpy.ndarray, transfers: list[Any], used_points: int, skipped: bool
 ) -> dict[str, Any]:
     """Return diagnostic information about the one-jump kernel."""
@@ -182,7 +182,7 @@ def _single_jump_kernel_diagnostics(
     }
 
 
-def _set_single_jump_diagnostics(
+def _set_single_jump_diagnostics(  # type: ignore[explicit-any]
     evol: Any, response_name: str, diagnostics: dict[str, Any]
 ) -> None:
     """Store one-jump diagnostics in response evolution metadata."""
@@ -192,7 +192,7 @@ def _set_single_jump_diagnostics(
     metadata["jump_diagnostics"] = all_diagnostics
 
 
-def _replace_transfer_matrix(evol: Any, transfer_matrix: Any) -> Any:
+def _replace_transfer_matrix(evol: Any, transfer_matrix: Any) -> Any:  # type: ignore[explicit-any]
     """Return response evolution data with a fixed transfer matrix."""
     if isinstance(evol, tuple) and len(evol) > 4:
         return evol[:3] + (transfer_matrix,) + evol[4:]
@@ -201,7 +201,7 @@ def _replace_transfer_matrix(evol: Any, transfer_matrix: Any) -> Any:
     return evol
 
 
-def _evaluate_single_jump_response(
+def _evaluate_single_jump_response(  # type: ignore[explicit-any]
     response_func: Any,
     t2: Any,
     s2: Any,
@@ -233,7 +233,7 @@ def _evaluate_single_jump_response(
             gg._reset_defaults = old_defaults
 
 
-def _integrate_single_jump_response(
+def _integrate_single_jump_response(  # type: ignore[explicit-any]
     response_func: Any,
     response_name: str,
     t2: Any,
@@ -304,7 +304,7 @@ def _integrate_single_jump_response(
     return ret
 
 
-def R1g(
+def R1g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -354,7 +354,7 @@ def R1g(
     F4 = system.get_F4d("abba")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -389,7 +389,7 @@ def R1g(
     return np.transpose(ret)
 
 
-def R2g(
+def R2g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -439,7 +439,7 @@ def R2g(
     F4 = system.get_F4d("baba")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -476,7 +476,7 @@ def R2g(
     return np.transpose(ret)
 
 
-def R3g(
+def R3g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -525,7 +525,7 @@ def R3g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -563,7 +563,7 @@ def R3g(
     return np.transpose(ret)
 
 
-def R4g(
+def R4g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -612,7 +612,7 @@ def R4g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,abi->ab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -640,7 +640,7 @@ def R4g(
     return np.transpose(ret)
 
 
-def R1f(
+def R1f(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -694,7 +694,7 @@ def R1f(
     F4 = system.get_F4d("fbfaba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -742,7 +742,7 @@ def R1f(
     return np.transpose(ret)
 
 
-def R1f_wrong(
+def R1f_wrong(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -796,7 +796,7 @@ def R1f_wrong(
     F4 = system.get_F4d("fbfaba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -844,7 +844,7 @@ def R1f_wrong(
     return np.transpose(ret)
 
 
-def R2f(
+def R2f(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -898,7 +898,7 @@ def R2f(
     F4 = system.get_F4d("fafbba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
 
     for g in band0:
         for ff in band2:
@@ -957,7 +957,7 @@ def R2f(
     return np.transpose(ret)
 
 
-def R2f_wrong(
+def R2f_wrong(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1011,7 +1011,7 @@ def R2f_wrong(
     F4 = system.get_F4d("fafbba")
     dfac = np.einsum("i,fabi->fab", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
 
     for g in band0:
         for ff in band2:
@@ -1070,7 +1070,7 @@ def R2f_wrong(
     return np.transpose(ret)
 
 
-def R1g_scM0g(
+def R1g_scM0g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1120,7 +1120,7 @@ def R1g_scM0g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,bai->ba", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -1145,7 +1145,7 @@ def R1g_scM0g(
     return np.transpose(ret)
 
 
-def R2g_scM0g(
+def R2g_scM0g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1195,7 +1195,7 @@ def R2g_scM0g(
     F4 = system.get_F4d("bbaa")
     dfac = np.einsum("i,bai->ba", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for aa in band1:
             a = aa - 1
@@ -1222,7 +1222,7 @@ def R2g_scM0g(
     return np.transpose(ret)
 
 
-def R1f_scM0g(
+def R1f_scM0g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1276,7 +1276,7 @@ def R1f_scM0g(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -1314,7 +1314,7 @@ def R1f_scM0g(
     return np.transpose(ret)
 
 
-def R2f_scM0g(
+def R2f_scM0g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1368,7 +1368,7 @@ def R2f_scM0g(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
 
     for g in band0:
         for ff in band2:
@@ -1417,7 +1417,7 @@ def R2f_scM0g(
     return np.transpose(ret)
 
 
-def R1f_scM0e(
+def R1f_scM0e(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1471,7 +1471,7 @@ def R1f_scM0e(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
     for g in band0:
         for ff in band2:
             f = ff - N1 - N0
@@ -1509,7 +1509,7 @@ def R1f_scM0e(
     return np.transpose(ret)
 
 
-def R2f_scM0e(
+def R2f_scM0e(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1563,7 +1563,7 @@ def R2f_scM0e(
     F4 = system.get_F4d("fbfbaa")
     dfac = np.einsum("i,fbai->fba", lab.F4eM4, F4)
 
-    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)
+    ret: numpy.ndarray = np.zeros((len(t1), len(t3)), dtype=COMPLEX)  # type: ignore[explicit-any]
 
     lam = gg.get_reorganization_energies()
     # print("lam = ", convert(lam,"int","1/cm"))
@@ -1615,7 +1615,7 @@ def R2f_scM0e(
     return np.transpose(ret)
 
 
-def R1g_scM1g(
+def R1g_scM1g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1635,7 +1635,7 @@ def R1g_scM1g(
     )
 
 
-def R2g_scM1g(
+def R2g_scM1g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1650,7 +1650,7 @@ def R2g_scM1g(
     )
 
 
-def R1f_scM1g(
+def R1f_scM1g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1665,7 +1665,7 @@ def R1f_scM1g(
     )
 
 
-def R2f_scM1g(
+def R2f_scM1g(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1680,7 +1680,7 @@ def R2f_scM1g(
     )
 
 
-def R1f_scM1e(
+def R1f_scM1e(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1695,7 +1695,7 @@ def R1f_scM1e(
     )
 
 
-def R2f_scM1e(
+def R2f_scM1e(  # type: ignore[explicit-any]
     t2: Any,
     t1: numpy.ndarray,
     t3: numpy.ndarray,
@@ -1736,6 +1736,6 @@ dc["R1f_scM1e"] = R1f_scM1e
 dc["R2f_scM1e"] = R2f_scM1e
 
 
-def get_implementation(name: str) -> Any:
+def get_implementation(name: str) -> Any:  # type: ignore[explicit-any]
     """Returns a dictionary of functions"""
     return dc[name]

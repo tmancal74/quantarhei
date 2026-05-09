@@ -24,12 +24,12 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
     """
 
-    def __init__(self, axis: Any = None, data: Any = None) -> None:
+    def __init__(self, axis: Any = None, data: Any = None) -> None:  # type: ignore[explicit-any]
         super().__init__()
         self.axis = axis
         self.data = data
 
-    def set_axis(self, axis: Any) -> None:
+    def set_axis(self, axis: Any) -> None:  # type: ignore[explicit-any]
         """Sets axis atribute
 
         Parameters
@@ -40,7 +40,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         """
         self.axis = axis
 
-    def set_data(self, data: Any) -> None:
+    def set_data(self, data: Any) -> None:  # type: ignore[explicit-any]
         """Sets data atribute
 
         Parameters
@@ -54,7 +54,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
     # def add_data(self, data):
     #    self.data += data
 
-    def set_by_interpolation(self, x: Any, y: Any, xaxis: str = "frequency") -> None:
+    def set_by_interpolation(self, x: Any, y: Any, xaxis: str = "frequency") -> None:  # type: ignore[explicit-any]
         """Sets the data by interpolation with splines
 
         When the spectrum is defined in wavelength, it is converted to
@@ -125,11 +125,11 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
         """Normalization to one"""
         self.normalize2(norm=1.0)
 
-    def subtract(self, val: Any) -> None:
+    def subtract(self, val: Any) -> None:  # type: ignore[explicit-any]
         """Subtracts a value from the spectrum to shift its base line"""
         self.data -= val
 
-    def add_to_data(self, spect: Any) -> None:
+    def add_to_data(self, spect: Any) -> None:  # type: ignore[explicit-any]
         """Performs addition on the data.
 
         Expects a compatible object holding absorption spectrum
@@ -191,13 +191,13 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
 
     # save method is inherited from DFunction
 
-    def save_data(
+    def save_data(  # type: ignore[explicit-any]
         self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
     ) -> None:
         """Saves the data of this absorption spectrum"""
         super().save_data(name, with_axis=self.axis)
 
-    def load_data(
+    def load_data(  # type: ignore[explicit-any]
         self, name: str, with_axis: ValueAxis | None = None, **kwargs: Any
     ) -> None:
         """Loads data from file into this absorption spectrum"""
@@ -205,7 +205,7 @@ class AbsSpectrumBase(DFunction, EnergyUnitsManaged, DataSaveable):
             raise QuantarheiError("The property `axis` has to be defined")
         super().load_data(name, with_axis=self.axis)
 
-    def plot(self, **kwargs: Any) -> None:  # type: ignore[override]
+    def plot(self, **kwargs: Any) -> None:  # type: ignore[explicit-any, override]
         """Plotting absorption spectrum using the DFunction plot method"""
         if "ylabel" not in kwargs:
             kwargs["ylabel"] = r"$\alpha(\omega)$ [a.u.]"

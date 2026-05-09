@@ -27,7 +27,7 @@ import quantarhei as qr
 from ..exceptions import QuantarheiError
 
 
-def parsing() -> dict[str, Any] | int:
+def parsing() -> dict[str, Any] | int:  # type: ignore[explicit-any]
     """This function handles parsing command line arguments"""
     descr = "Ghenerate, the Gherkin Python Step Generator from Quantarhei"
     parser = argparse.ArgumentParser(description=descr + " ...")
@@ -157,7 +157,7 @@ def parsing() -> dict[str, Any] | int:
     )
 
 
-def analyze_children(children: list[Any]) -> None:
+def analyze_children(children: list[Any]) -> None:  # type: ignore[explicit-any]
     """Analyzes children of the feature and prints info"""
     test_strings = []
     for scenario in children:
@@ -204,7 +204,7 @@ def check_outputfile_exists(ddir: str, filename: str) -> str | int:
     return ofile
 
 
-def write_func_def(
+def write_func_def(  # type: ignore[explicit-any]
     myfile: IO[str],
     step: dict[str, Any],
     textrep: str,

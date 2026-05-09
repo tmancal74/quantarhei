@@ -41,7 +41,7 @@ class Liouvillian(SuperOperator):
 
     """
 
-    def __init__(self, ham: Any) -> None:
+    def __init__(self, ham: Any) -> None:  # type: ignore[explicit-any]
         super().__init__(dim=ham.dim)
         dim = ham.dim
         H = ham.data

@@ -18,7 +18,7 @@ from ..hilbertspace.operators import DensityMatrix, ReducedDensityMatrix
 class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
     data = BasisManagedComplexArray("data")
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         timeaxis: Any = None,
         rhoi: Any = None,
@@ -43,7 +43,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         self.is_in_rwa = is_in_rwa
 
-    def set_initial_condition(self, rhoi: Any) -> None:
+    def set_initial_condition(self, rhoi: Any) -> None:  # type: ignore[explicit-any]
         """ """
         self.dim = rhoi.data.shape[1]
         self._data = numpy.zeros(
@@ -66,7 +66,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         return DensityMatrix(data=self.data[ti, :, :])
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transformation of the operator by a given matrix
 
 
@@ -99,11 +99,11 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         tr = numpy.trace(self.data[0, :, :])
         self.data = self.data / tr
 
-    def get_TimeAxis(self) -> Any:
+    def get_TimeAxis(self) -> Any:  # type: ignore[explicit-any]
         """Returns the TimeAxis of the present evolution"""
         return self.TimeAxis
 
-    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:
+    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:  # type: ignore[explicit-any]
         """Converts density matrix evolution from RWA to standard repre
 
 
@@ -130,7 +130,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         if sgn == 1:
             self.is_in_rwa = False
 
-    def convert_to_RWA(self, ham: Any) -> None:
+    def convert_to_RWA(self, ham: Any) -> None:  # type: ignore[explicit-any]
         """Converts density matrix evolution from standard repre to RWA
 
 
@@ -144,7 +144,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
             self.convert_from_RWA(ham, sgn=-1)
             self.is_in_rwa = True
 
-    def plot(
+    def plot(  # type: ignore[explicit-any]
         self,
         populations: bool = True,
         popselection: str = "All",
@@ -164,7 +164,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         population_sum = False
         # populations=False
 
-        howi: Any = ["-k", "-r", "-b", "-g", "-m", "-y", "-c"]
+        howi: Any = ["-k", "-r", "-b", "-g", "-m", "-y", "-c"]  # type: ignore[explicit-any]
         if how == "-":
             howi = ["-k", "-r", "-b", "-g", "-m", "-y", "-c"]
         if how == "--":
@@ -238,7 +238,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         if show:
             plt.show()
 
-    def _exportDataToText(self, file: Any) -> None:
+    def _exportDataToText(self, file: Any) -> None:  # type: ignore[explicit-any]
         """Saves textual data to a file"""
         Nt = self.data.shape[0]
         N = self.data.shape[1]

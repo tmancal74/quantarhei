@@ -14,7 +14,7 @@ class Simulation(Saveable):
     WARNING = 5
     ERROR = 1
 
-    _file: Any
+    _file: Any  # type: ignore[explicit-any]
 
     def __init__(self, loglevel: int = 0) -> None:
         self._loglevel = loglevel
@@ -101,7 +101,7 @@ class Simulation(Saveable):
 
         self._printlog(grstring, loglevel=0)
 
-    def _printlog(self, *args: Any, loglevel: int = 0) -> None:
+    def _printlog(self, *args: Any, loglevel: int = 0) -> None:  # type: ignore[explicit-any]
         """Logs output on screen and into a file"""
         # define loglevel
         if loglevel < self.verbosity:

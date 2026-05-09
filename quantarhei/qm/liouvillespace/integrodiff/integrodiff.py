@@ -56,7 +56,7 @@ class IntegrodiffPropagator:
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         timeaxis: Any,
         ham: Any,
@@ -74,7 +74,7 @@ class IntegrodiffPropagator:
         self.timeaxis = timeaxis
         self.ham = ham
         self.kernel = kernel
-        self.last_int: numpy.ndarray
+        self.last_int: numpy.ndarray  # type: ignore[explicit-any]
         self.last_tn: int = -1
 
         self.kernel_is_tdependent = False
@@ -107,7 +107,7 @@ class IntegrodiffPropagator:
             self.fft = fft
 
         if self.fft:
-            self.resolv: numpy.ndarray | None = None
+            self.resolv: numpy.ndarray | None = None  # type: ignore[explicit-any]
 
             # FFT on timeaxis twice as long as defines (we add negative times)
             tlen = timefac * self.timeaxis.length
@@ -122,7 +122,7 @@ class IntegrodiffPropagator:
             # FFT of the kernel
             N1 = self.ham.dim
 
-            self.om: numpy.ndarray = numpy.zeros(len(tt), REAL)
+            self.om: numpy.ndarray = numpy.zeros(len(tt), REAL)  # type: ignore[explicit-any]
             # calculate frequencies
             self.om[:] = (2.0 * numpy.pi) * numpy.fft.fftfreq(tlen, self.timeaxis.step)
             om = self.om
@@ -140,7 +140,7 @@ class IntegrodiffPropagator:
 
             if with_kernel:
                 # if kernel is present, we use it for calculation
-                MM: numpy.ndarray = numpy.zeros((tlen, N1, N1, N1, N1), dtype=COMPLEX)
+                MM: numpy.ndarray = numpy.zeros((tlen, N1, N1, N1, N1), dtype=COMPLEX)  # type: ignore[explicit-any]
                 MM[: self.timeaxis.length, :, :, :, :] = self._kernel
 
                 # we renormalize the kernel by a e^{-gam*t} decay
@@ -176,7 +176,7 @@ class IntegrodiffPropagator:
             # prepare propagation in time domain
             pass
 
-    def propagate(self, rhoi: Any) -> Any:
+    def propagate(self, rhoi: Any) -> Any:  # type: ignore[explicit-any]
         """Propagates initial condition of an integro-differential eq."""
         N1 = rhoi.data.shape[0]
         rhot = ReducedDensityMatrixEvolution(self.timeaxis, rhoi)
@@ -188,7 +188,7 @@ class IntegrodiffPropagator:
 
             Nt = len(self.om)
 
-            rhOm: numpy.ndarray = numpy.zeros((Nt, N1, N1), dtype=COMPLEX)
+            rhOm: numpy.ndarray = numpy.zeros((Nt, N1, N1), dtype=COMPLEX)  # type: ignore[explicit-any]
 
             rho0 = rhoi.data  # .reshape(N1**2)
 
@@ -260,7 +260,7 @@ class IntegrodiffPropagator:
 
         return rhot
 
-    def _convolution_with_kernel(
+    def _convolution_with_kernel(  # type: ignore[explicit-any]
         self, tn: int, rho_in: numpy.ndarray, rhot: Any
     ) -> numpy.ndarray:
         """Convolution of the density matrix with integration kernel"""
@@ -293,7 +293,7 @@ class IntegrodiffPropagator:
 
         return rho
 
-    def _right_hand_side(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:
+    def _right_hand_side(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Right-hand side of the master equation"""
         ham = self.ham.data
         drho = -1j * (numpy.dot(ham, rho) - numpy.dot(rho, ham))
@@ -301,7 +301,7 @@ class IntegrodiffPropagator:
 
         return drho
 
-    def _no_kernel_rhs(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:
+    def _no_kernel_rhs(self, tn: int, rho: numpy.ndarray, rhot: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Right-hand side of the master equation without the kernel"""
         # M0 = self.kernel
 
@@ -311,13 +311,13 @@ class IntegrodiffPropagator:
 
         return drho
 
-    def check_solution(self, rhot: Any) -> numpy.ndarray:
+    def check_solution(self, rhot: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Masures the difference between the right- and left-hand-side
         of the equation
 
         """
         N1 = self.ham.dim
-        diff: numpy.ndarray = numpy.zeros((self.timeaxis.length, N1, N1), dtype=COMPLEX)
+        diff: numpy.ndarray = numpy.zeros((self.timeaxis.length, N1, N1), dtype=COMPLEX)  # type: ignore[explicit-any]
         for tn in range(self.timeaxis.length):
             # time derivative
             if tn == 0:

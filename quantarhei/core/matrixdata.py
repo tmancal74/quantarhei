@@ -27,7 +27,7 @@ class MatrixData:
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, dims: Any = (0), name: str | None = None, data: Any = None
     ) -> None:
 
@@ -94,7 +94,7 @@ class MatrixData:
         """Returns the matrix rank, i.e. the number of its indices"""
         return self.data.ndim
 
-    def set_data(self, data: numpy.ndarray) -> None:
+    def set_data(self, data: numpy.ndarray) -> None:  # type: ignore[explicit-any]
         """Sets the data of the object
 
         Parameters

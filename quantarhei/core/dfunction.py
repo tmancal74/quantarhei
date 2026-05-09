@@ -182,13 +182,13 @@ class DFunction(Saveable, DataSaveable):
 
     allowed_interp_types = ("linear", "spline", "default")
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, x: ValueAxis | None = None, y: numpy.ndarray | None = None
     ) -> None:
 
         self._loc_init__(x, y)
 
-    def _loc_init__(
+    def _loc_init__(  # type: ignore[explicit-any]
         self, x: ValueAxis | None = None, y: numpy.ndarray | None = None
     ) -> None:
 
@@ -202,7 +202,7 @@ class DFunction(Saveable, DataSaveable):
 
         self._splines_initialized = False
 
-    def _make_me(self, x: ValueAxis, y: numpy.ndarray) -> None:
+    def _make_me(self, x: ValueAxis, y: numpy.ndarray) -> None:  # type: ignore[explicit-any]
         """Creates the DFunction internals"""
         self._has_imag = False
 
@@ -236,7 +236,7 @@ class DFunction(Saveable, DataSaveable):
                 "Second argument has to be one-dimensional numpy.ndarray"
             )
 
-    def _add_me(self, x: ValueAxis, y: numpy.ndarray) -> None:
+    def _add_me(self, x: ValueAxis, y: numpy.ndarray) -> None:  # type: ignore[explicit-any]
         """Adds data to the DFunction"""
         # if the DFunction is not initialized, call _make_me
         if self._has_imag is None:
@@ -351,7 +351,7 @@ class DFunction(Saveable, DataSaveable):
         else:
             raise QuantarheiError("Incompatible axis")
 
-    def at(self, x: Any, approx: str = "default") -> Any:
+    def at(self, x: Any, approx: str = "default") -> Any:  # type: ignore[explicit-any]
         """Return the function value at argument ``x``.
 
         The default interpolation is ``'linear'`` until spline interpolation
@@ -415,12 +415,12 @@ class DFunction(Saveable, DataSaveable):
         if approx == "spline":
             return self._get_spline_approx(x)
 
-    def as_spline_function(self) -> Callable[[Any], Any]:
+    def as_spline_function(self) -> Callable[[Any], Any]:  # type: ignore[explicit-any]
         """Returns this function as a normal function of one argument"""
         if not self._splines_initialized:
             self._set_splines()
 
-        def func(t: Any) -> Any:
+        def func(t: Any) -> Any:  # type: ignore[explicit-any]
             return self.at(t)
 
         return func
@@ -431,7 +431,7 @@ class DFunction(Saveable, DataSaveable):
     #
     #
 
-    def _get_linear_approx(self, x_in: Any) -> Any:
+    def _get_linear_approx(self, x_in: Any) -> Any:  # type: ignore[explicit-any]
         """Returns linear interpolation of the function"""
         # FIXME: we need qr.FLOAT or more flexible, here
         try:
@@ -457,7 +457,7 @@ class DFunction(Saveable, DataSaveable):
 
         return val
 
-    def _approx_point(self, x: float) -> Any:
+    def _approx_point(self, x: float) -> Any:  # type: ignore[explicit-any]
 
         n, dval = self.axis.locate(x)
         if n + 1 >= self.axis.length:
@@ -470,7 +470,7 @@ class DFunction(Saveable, DataSaveable):
             )
         return val
 
-    def _get_spline_approx(self, x: Any) -> Any:
+    def _get_spline_approx(self, x: Any) -> Any:  # type: ignore[explicit-any]
         """Returns spline interpolation of the function"""
         if not self._splines_initialized:
             self._set_splines()
@@ -489,7 +489,7 @@ class DFunction(Saveable, DataSaveable):
         self._splines_initialized = True
         # print("Calculating splines")
 
-    def _spline_value(self, x: Any) -> Any:
+    def _spline_value(self, x: Any) -> Any:  # type: ignore[explicit-any]
         """Returns the splie interpolated value of the function"""
         if self._has_imag:
             ret = self._spline_r(x) + 1j * self._spline_i(x)
@@ -530,7 +530,7 @@ class DFunction(Saveable, DataSaveable):
 
         return f
 
-    def apply_to_data(self, func: Callable[[numpy.ndarray], numpy.ndarray]) -> None:
+    def apply_to_data(self, func: Callable[[numpy.ndarray], numpy.ndarray]) -> None:  # type: ignore[explicit-any]
         """Applies a submitted function to the data
 
 
@@ -776,7 +776,7 @@ class DFunction(Saveable, DataSaveable):
 
         return F
 
-    def fit_exponential(self, guess: list[float] | None = None) -> numpy.ndarray:
+    def fit_exponential(self, guess: list[float] | None = None) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Exponential fit of the function
 
 
@@ -799,7 +799,7 @@ class DFunction(Saveable, DataSaveable):
 
         return popt
 
-    def fit_gaussian(
+    def fit_gaussian(  # type: ignore[explicit-any]
         self, N: int = 1, guess: list[float] | None = None, Nsvf: int = 251
     ) -> numpy.ndarray:
         # from scipy.signal import savgol_filter
@@ -861,7 +861,7 @@ class DFunction(Saveable, DataSaveable):
             # plt.plot(x, y2sm)
             # plt.show()
 
-        def funcf(x: Any, *p: Any) -> Any:
+        def funcf(x: Any, *p: Any) -> Any:  # type: ignore[explicit-any]
             return _n_gaussians(x, *p)
 
         # minimize, leastsq,
@@ -886,7 +886,7 @@ class DFunction(Saveable, DataSaveable):
 
         return popt  # , pcov
 
-    def plot(
+    def plot(  # type: ignore[explicit-any]
         self,
         fig: Any = None,
         title: str | None = None,
@@ -1056,7 +1056,7 @@ class DFunction(Saveable, DataSaveable):
         return fname, ext
 
 
-def _exp_fcion(t: Any, *params: Any) -> Any:
+def _exp_fcion(t: Any, *params: Any) -> Any:  # type: ignore[explicit-any]
 
     np = len(params)
     ret = 0.0
@@ -1073,7 +1073,7 @@ def _exp_fcion(t: Any, *params: Any) -> Any:
     return ret
 
 
-def _gaussian(
+def _gaussian(  # type: ignore[explicit-any]
     x: Any, height: float, center: float, fwhm: float, offset: float = 0.0
 ) -> Any:
     """Gaussian function with a possible offset
@@ -1104,7 +1104,7 @@ def _gaussian(
     )
 
 
-def _n_gaussians(x: Any, *params: Any) -> Any:
+def _n_gaussians(x: Any, *params: Any) -> Any:  # type: ignore[explicit-any]
     """Sum of N Gaussian functions plus an offset from zero
 
     Parameters

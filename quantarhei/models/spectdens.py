@@ -18,10 +18,10 @@ class DatabaseEntry:
     def __init__(self) -> None:
         pass
 
-    def get_CorrelationFunction(self, temperature: Any) -> Any:
+    def get_CorrelationFunction(self, temperature: Any) -> Any:  # type: ignore[explicit-any]
         pass
 
-    def get_SpectralDensity(self, axis: Any = None) -> Any:
+    def get_SpectralDensity(self, axis: Any = None) -> Any:  # type: ignore[explicit-any]
         pass
 
 
@@ -35,7 +35,7 @@ class SpectralDensityDatabaseEntry(DatabaseEntry):
 
     direct_implementation = DatabaseEntry.SPECTRAL_DENSITY
 
-    def get_CorrelationFunction(self, temperature: Any) -> Any:
+    def get_CorrelationFunction(self, temperature: Any) -> Any:  # type: ignore[explicit-any]
         """Returns CorrelationFunction based on SpectralDensity"""
         return self.get_SpectralDensity().get_CorrelationFunction(temperature)
 
@@ -49,9 +49,9 @@ class CorrelationFunctionDatabaseEntry(DatabaseEntry):
     """
 
     direct_implementation = DatabaseEntry.CORRELATION_FUNCTION
-    temperature: Any
+    temperature: Any  # type: ignore[explicit-any]
 
-    def get_SpectralDensity(self, axis: Any = None) -> Any:
+    def get_SpectralDensity(self, axis: Any = None) -> Any:  # type: ignore[explicit-any]
         """Returns SpectralDensity on CorrelationFunction based"""
         temperature = self.temperature
         return self.get_CorrelationFunction(temperature).get_SpectralDensity()
@@ -100,7 +100,7 @@ class DataDefinedEntry(DatabaseEntry):
         else:
             raise QuantarheiError("Data not defined in any expected way")
 
-    def get_data(self) -> Any:
+    def get_data(self) -> Any:  # type: ignore[explicit-any]
         """Returns spectral density data
 
         Should return a numpy array with two columns of data to construct the
@@ -140,7 +140,7 @@ class SpectralDensityDB:
         if verbose:
             print("Initializing Spectral Density Database")
 
-        self.entries: dict[str, Any] = {}
+        self.entries: dict[str, Any] = {}  # type: ignore[explicit-any]
         self.loaded: dict[str, bool] = {}
         self.entry_count = 0
 
@@ -222,7 +222,7 @@ class SpectralDensityDB:
 
         return out
 
-    def get_SpectralDensity(self, axis: Any, ident: str | None = None) -> Any:
+    def get_SpectralDensity(self, axis: Any, ident: str | None = None) -> Any:  # type: ignore[explicit-any]
         """Returns spectral density based on an identificator"""
         import importlib
 

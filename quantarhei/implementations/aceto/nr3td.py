@@ -21,7 +21,7 @@ from typing import Any
 #
 
 
-def nr3_r1g(
+def nr3_r1g(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R2g response function"""
@@ -31,7 +31,7 @@ def nr3_r1g(
     pass
 
 
-def nr3_r2g(
+def nr3_r2g(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R2g response function
@@ -89,7 +89,7 @@ def nr3_r2g(
     pass
 
 
-def nr3_r2gt10(
+def nr3_r2gt10(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R2g response function
@@ -130,7 +130,7 @@ def nr3_r2gt10(
     pass
 
 
-def nr3_r3g(
+def nr3_r3g(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R3g response function"""
@@ -161,7 +161,7 @@ def nr3_r3g(
     pass
 
 
-def nr3_r4g(
+def nr3_r4g(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R4g response function"""
@@ -171,7 +171,7 @@ def nr3_r4g(
     pass
 
 
-def nr3_r1fs(
+def nr3_r1fs(  # type: ignore[explicit-any]
     lab: Any,
     sys: Any,
     it2: int,
@@ -198,7 +198,7 @@ def nr3_r1fs(
     pass
 
 
-def nr3_r2fs(
+def nr3_r2fs(  # type: ignore[explicit-any]
     lab: Any,
     sys: Any,
     it2: int,
@@ -230,7 +230,7 @@ def nr3_r2fs(
 #  Energy transfer pathways
 #
 #
-def nr3_r2g_trans(
+def nr3_r2g_trans(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R2g response function
@@ -274,7 +274,7 @@ def nr3_r2g_trans(
     pass
 
 
-def nr3_r2g_trN(
+def nr3_r2g_trN(  # type: ignore[explicit-any]
     lab: Any,
     sys: Any,
     No: int,
@@ -332,7 +332,7 @@ def nr3_r2g_trN(
     pass
 
 
-def nr3_r1g_trans(
+def nr3_r1g_trans(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R2g response function
@@ -376,7 +376,7 @@ def nr3_r1g_trans(
     pass
 
 
-def nr3_r1fs_trans(
+def nr3_r1fs_trans(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R1f* transfer response function"""
@@ -388,7 +388,7 @@ def nr3_r1fs_trans(
     pass
 
 
-def nr3_r2fs_trans(
+def nr3_r2fs_trans(  # type: ignore[explicit-any]
     lab: Any, sys: Any, it2: int, t1s: Any, t3s: Any, rwa: float, rmin: float, resp: Any
 ) -> None:
     """Calculates R1f* transfer response function"""

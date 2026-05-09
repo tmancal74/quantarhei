@@ -16,7 +16,7 @@ class liouville_pathway(UnitsManaged):
     order = Integer("order")
     nint = Integer("nint")
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         ptype: str,
         sinit: int,
@@ -65,7 +65,7 @@ class liouville_pathway(UnitsManaged):
         self.relax_order = relax_order
 
         # list events associated with relaxations and light interations
-        self.event: list[Any] = [None] * (1 + order + relax_order)
+        self.event: list[Any] = [None] * (1 + order + relax_order)  # type: ignore[explicit-any]
 
         # type of the pathway (rephasing, non-rephasing, double-coherence)
         self.pathway_type = ptype
@@ -94,7 +94,7 @@ class liouville_pathway(UnitsManaged):
         self.transitions = numpy.zeros((order + 1, 2), dtype=int)
 
         # relaxation induced transitions
-        self.relaxations: list[Any] = [None] * relax_order
+        self.relaxations: list[Any] = [None] * relax_order  # type: ignore[explicit-any]
 
         # sides from which the transitions occurred
         self.sides = numpy.zeros(order + 1, dtype=int)
@@ -118,10 +118,10 @@ class liouville_pathway(UnitsManaged):
         self.evolfac: float | complex = 1.0
 
         # transition widths
-        self.widths: Any = None
+        self.widths: Any = None  # type: ignore[explicit-any]
 
         # transition dephasings
-        self.dephs: Any = None
+        self.dephs: Any = None  # type: ignore[explicit-any]
 
         # band through which the pathway travels at population time
         self.popt_band = popt_band
@@ -132,7 +132,7 @@ class liouville_pathway(UnitsManaged):
         # was the pathway already built?
         self.built = False
 
-    def _chars(self, lx: Any, rx: Any, char: str = " ") -> str:
+    def _chars(self, lx: Any, rx: Any, char: str = " ") -> str:  # type: ignore[explicit-any]
         nsp = 10
         if isinstance(lx, str):
             ln = 0
@@ -420,15 +420,15 @@ class liouville_pathway(UnitsManaged):
 
         self.built = True
 
-    def get_current_state(self) -> numpy.ndarray:
+    def get_current_state(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """ """
         return self.current
 
-    def get_transition(self, n: int) -> Any:
+    def get_transition(self, n: int) -> Any:  # type: ignore[explicit-any]
         """Returns info on the transition occuring on the n-th interaction"""
         return self.sides[n], self.transitions[n]
 
-    def orientational_averaging(self, lab: Any) -> None:
+    def orientational_averaging(self, lab: Any) -> None:  # type: ignore[explicit-any]
         """Orientational averaging
 
         Orientational averaging and temperature dependence of the
@@ -458,7 +458,7 @@ class liouville_pathway(UnitsManaged):
         """Returns frequency corresponding to a given response interval"""
         return self.frequency[n]
 
-    def get_dmoment(self, n: int) -> numpy.ndarray:
+    def get_dmoment(self, n: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Transition dipole moment of a given interaction with light"""
         return self.dmoments[n]
 
@@ -466,7 +466,7 @@ class liouville_pathway(UnitsManaged):
         """Dipole and temperature dependent prefactor"""
         return self.pref
 
-    def get_states(self) -> tuple[Any, ...]:
+    def get_states(self) -> tuple[Any, ...]:  # type: ignore[explicit-any]
         """Returns a tuple of states through which the pathway passes"""
         states = []
         self.current[0] = self.sinit[0]

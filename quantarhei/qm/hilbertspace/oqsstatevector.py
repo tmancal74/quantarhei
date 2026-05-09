@@ -38,7 +38,7 @@ class OQSStateVector:
 
     """
 
-    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:  # type: ignore[explicit-any]
 
         self._initialized = False
 
@@ -61,11 +61,11 @@ class OQSStateVector:
             self.data = numpy.zeros(self.dim, dtype=REAL)
             self._initialized = True
 
-    def norm(self) -> Any:
+    def norm(self) -> Any:  # type: ignore[explicit-any]
         """Norm of the state vector"""
         return numpy.sqrt(numpy.dot(self.data, self.data))
 
-    def puredot(self, psi: OQSStateVector) -> Any:
+    def puredot(self, psi: OQSStateVector) -> Any:  # type: ignore[explicit-any]
         """Dot product concerning only the system part"""
         return numpy.dot(self.data, psi.data)
 
@@ -85,7 +85,7 @@ class OQSStateVector:
         Effectively it is in interaction picture.
 
         """
-        data: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)
+        data: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)  # type: ignore[explicit-any]
         rho = ReducedDensityMatrix(data=data)
         for ii in range(self.dim):
             for jj in range(self.dim):

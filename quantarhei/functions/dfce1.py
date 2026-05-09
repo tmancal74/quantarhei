@@ -36,7 +36,7 @@ class Cos(DFunction):
 
     """
 
-    def __init__(self, x: Any, omega: float, phi: float = 0.0) -> None:
+    def __init__(self, x: Any, omega: float, phi: float = 0.0) -> None:  # type: ignore[explicit-any]
         super().__init__()
         self._make_me(x, numpy.cos(omega * x.data + phi))
 
@@ -75,7 +75,7 @@ class Tukey(DFunction):
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, x: Any, r: float, sym: bool = True, x_offset: float = 0.0
     ) -> None:
         super().__init__()

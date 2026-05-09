@@ -16,10 +16,10 @@ from .dmevolution import DensityMatrixEvolution
 
 class StateVectorEvolution(MatrixData, BasisManaged):
     data = BasisManagedComplexArray("data")
-    _data: numpy.ndarray
+    _data: numpy.ndarray  # type: ignore[explicit-any]
     is_in_rwa: bool = False
 
-    def __init__(self, timeaxis: Any, psii: Any) -> None:
+    def __init__(self, timeaxis: Any, psii: Any) -> None:  # type: ignore[explicit-any]
 
         if not isinstance(timeaxis, TimeAxis):
             raise QuantarheiError
@@ -32,7 +32,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         self.dim = psii.data.shape[0]
         self.data[0, :] = psii.data
 
-    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:
+    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:  # type: ignore[explicit-any]
         """Converts density matrix evolution from RWA to standard repre
 
 
@@ -59,7 +59,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         if sgn == 1:
             self.is_in_rwa = False
 
-    def convert_to_RWA(self, ham: Any) -> None:
+    def convert_to_RWA(self, ham: Any) -> None:  # type: ignore[explicit-any]
         """Converts density matrix evolution from standard repre to RWA
 
 
@@ -91,7 +91,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         if show:
             plt.show()
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """Transformation of the operator by a given matrix
 
 

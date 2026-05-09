@@ -110,7 +110,7 @@ class TDFoersterRelaxationTensor(FoersterRelaxationTensor, TimeDependent):
                 if aa != bb:
                     self.data[:, aa, bb, aa, bb] -= ht[aa, :] + ht[bb, :]
 
-    def td_reference_implementation(
+    def td_reference_implementation(  # type: ignore[explicit-any]
         self,
         Na: int,
         Nt: int,

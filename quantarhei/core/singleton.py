@@ -20,7 +20,7 @@ class Singleton(type):
     _instances: dict[type, Singleton] = {}
     _lock: threading.Lock = threading.Lock()
 
-    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:  # type: ignore[explicit-any]
         with cls._lock:
             if cls not in cls._instances:
                 cls._instances[cls] = super().__call__(*args, **kwargs)

@@ -35,7 +35,7 @@ class HarmonicMode(SubMode, OpenSystem):
         self._built = False
         self.gamma = 0.0
         self.RT: LindbladForm | None = None
-        self.HH: numpy.ndarray | None = None
+        self.HH: numpy.ndarray | None = None  # type: ignore[explicit-any]
         self.sbi: SystemBathInteraction | None = None
 
     def build(
@@ -95,7 +95,7 @@ class HarmonicMode(SubMode, OpenSystem):
 
         self._diagonalized = True
 
-    def _setup_dipole_moment(
+    def _setup_dipole_moment(  # type: ignore[explicit-any]
         self,
         N: int,
         ad: numpy.ndarray,
@@ -104,7 +104,7 @@ class HarmonicMode(SubMode, OpenSystem):
         pfac: float = 1.0,
     ) -> None:
 
-        DD: numpy.ndarray = numpy.zeros((N, N, 3), dtype=REAL)
+        DD: numpy.ndarray = numpy.zeros((N, N, 3), dtype=REAL)  # type: ignore[explicit-any]
 
         # FIXME: In what units we define transition dipole moment?
         dip = pfac * (ad + aa) / numpy.sqrt(2.0)
@@ -118,7 +118,7 @@ class HarmonicMode(SubMode, OpenSystem):
         self.DD = DD
 
         # FIXME: make this on-demand (if poissible)
-        trdata: numpy.ndarray = numpy.zeros(
+        trdata: numpy.ndarray = numpy.zeros(  # type: ignore[explicit-any]
             (DD.shape[0], DD.shape[1], DD.shape[2]), dtype=REAL
         )
         trdata[:, :, :] = DD[:, :, :]

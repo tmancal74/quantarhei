@@ -209,14 +209,14 @@ from .superoperator import SuperOperator
 
 
 class MockSuperOperator:
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, data_pop: Any = None, data_coh: Any = None, ham: Any = None
     ) -> None:
         self.data_pop = data_pop
         self.data_coh = data_coh
         self.ham = ham
 
-    def data(self, i: int, j: int, k: int, l: int) -> Any:
+    def data(self, i: int, j: int, k: int, l: int) -> Any:  # type: ignore[explicit-any]
         if i == j and k == l:  # population
             return self.data_pop[i, k]
         if i == k and j == l:
@@ -250,7 +250,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
     dense_time: TimeAxis | None
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self,
         time: Any = None,
         ham: Any = None,
@@ -308,7 +308,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         self.now = 0
 
-    def get_Hamiltonian(self) -> Any:
+    def get_Hamiltonian(self) -> Any:  # type: ignore[explicit-any]
         """Returns the Hamiltonian associated with thise evolution"""
         return self.ham
 
@@ -333,7 +333,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             self.dense_time.start, self.dense_time.length, self.dense_time.step
         )
 
-    def set_PureDephasing(self, pdeph: Any) -> None:
+    def set_PureDephasing(self, pdeph: Any) -> None:  # type: ignore[explicit-any]
         """Sets the PureDephasing object for the dynamic calculation"""
         self.pdeph = pdeph
 
@@ -380,7 +380,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 for j in range(dim):
                     self.data_coh[i, j] = 1.0
 
-    def data(self, ti: int, i: int, j: int, k: int, l: int) -> Any:  # type: ignore[override,no-redef]
+    def data(self, ti: int, i: int, j: int, k: int, l: int) -> Any:  # type: ignore[explicit-any, override,no-redef]
         if i == j and k == l:  # population
             return self.data_pop[ti, i, k]
         if i == k and j == l:
@@ -485,7 +485,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         if show_progress:
             print("...done")
 
-    def _elemental_step_TimeIndep(
+    def _elemental_step_TimeIndep(  # type: ignore[explicit-any]
         self, t0: float, dens_dt: float, Nt: int, show_progress: bool = False
     ) -> numpy.ndarray:
         """Single elemental step of propagation with the dense time step"""
@@ -507,7 +507,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 rhonm0.data[n, m] = 0.0
         return Ut1
 
-    def _elemental_step_TimeDependent(self, t0: float) -> numpy.ndarray:
+    def _elemental_step_TimeDependent(self, t0: float) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Single step of propagation with the dense time step
 
         assuming time dependent relaxation tensor
@@ -521,7 +521,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             one_step_time, self.ham, RTensor=self.relt, PDeph=self.pdeph
         )
         rhonm0 = ReducedDensityMatrix(dim=dim)
-        Ut1: numpy.ndarray = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)
+        Ut1: numpy.ndarray = numpy.zeros((dim, dim, dim, dim), dtype=COMPLEX)  # type: ignore[explicit-any]
         for n in range(dim):
             for m in range(dim):
                 rhonm0.data[n, m] = 1.0
@@ -531,7 +531,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                 # self.now += 1
         return Ut1
 
-    def _one_step_with_dense_TimeIndep(
+    def _one_step_with_dense_TimeIndep(  # type: ignore[explicit-any]
         self,
         t0: float,
         Ndense: int,
@@ -673,7 +673,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             )
         return None
 
-    def apply(self, time: Any, target: Any = None, copy: bool = True) -> Any:
+    def apply(self, time: Any, target: Any = None, copy: bool = True) -> Any:  # type: ignore[explicit-any]
         """Applies the evolution superoperator at a given time
 
 
@@ -758,7 +758,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         raise QuantarheiError("Invalid argument: time")
 
-    def plot_element(self, elem: Any, show: bool = True) -> None:
+    def plot_element(self, elem: Any, show: bool = True) -> None:  # type: ignore[explicit-any]
         """Plots a selected element of the evolution superoperator
 
 

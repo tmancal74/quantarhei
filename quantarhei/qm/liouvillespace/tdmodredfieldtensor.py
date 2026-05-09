@@ -162,7 +162,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
                         self.data[:, mm, nn, mm, nn] = self.data[:, nn, mm, nn, mm]
 
 
-def intfull(F: numpy.ndarray, dt: float, omega: float) -> Any:
+def intfull(F: numpy.ndarray, dt: float, omega: float) -> Any:  # type: ignore[explicit-any]
     """Discrete integration of an oscillating function"""
     Nt = F.shape[0]
     x = (1.0 - numpy.exp(-1j * omega * dt)) / (1j * omega * dt)
@@ -172,10 +172,10 @@ def intfull(F: numpy.ndarray, dt: float, omega: float) -> Any:
     return I
 
 
-def intrun(F: numpy.ndarray, dt: float, omega: float) -> numpy.ndarray:
+def intrun(F: numpy.ndarray, dt: float, omega: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     """Running intergration of an oscillating function of one parameter"""
     Nt = F.shape[0]
-    I: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    I: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
     x = (1.0 - numpy.exp(-1j * omega * dt)) / (1j * omega * dt)
     y = (1.0 - x) / (1j * omega)
 
@@ -187,16 +187,16 @@ def intrun(F: numpy.ndarray, dt: float, omega: float) -> numpy.ndarray:
     return I
 
 
-def intruntrap(F: numpy.ndarray, dt: float) -> numpy.ndarray:
+def intruntrap(F: numpy.ndarray, dt: float) -> numpy.ndarray:  # type: ignore[explicit-any]
     Nt = F.shape[0]
-    I: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    I: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
     for ii in range(1, Nt):
         I[ii] = I[ii - 1] + F[ii] * dt / 2.0 + F[ii - 1] * dt / 2.0
 
     return I
 
 
-def intfullsec(F: numpy.ndarray, dt: float, omega: float, Nt: int) -> Any:
+def intfullsec(F: numpy.ndarray, dt: float, omega: float, Nt: int) -> Any:  # type: ignore[explicit-any]
     """Integrate only a section of a give function F
 
     This is used when the function depends explicitely on time (the upper limit)
@@ -215,7 +215,7 @@ def intfullsec(F: numpy.ndarray, dt: float, omega: float, Nt: int) -> Any:
     return I
 
 
-def ssmodr(
+def ssmodr(  # type: ignore[explicit-any]
     Na: int,
     ee: numpy.ndarray,
     ll: numpy.ndarray,
@@ -287,15 +287,15 @@ def ssmodr(
 
     # Relaxation rate matrix (may be time-dependent)
     if tdep:
-        RR: numpy.ndarray = numpy.zeros((Na + 1, Na + 1, Nt), dtype=REAL)
-        Iterm: numpy.ndarray = numpy.zeros((Na + 1, Na + 1, Nt), dtype=COMPLEX)
+        RR: numpy.ndarray = numpy.zeros((Na + 1, Na + 1, Nt), dtype=REAL)  # type: ignore[explicit-any]
+        Iterm: numpy.ndarray = numpy.zeros((Na + 1, Na + 1, Nt), dtype=COMPLEX)  # type: ignore[explicit-any]
     else:
         RR = numpy.zeros((Na + 1, Na + 1), dtype=REAL)
         Iterm = numpy.zeros((Na + 1, Na + 1), dtype=REAL)
 
     # Various storage variables
-    cbaab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
-    Nab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+    cbaab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
+    Nab: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
 
     # time step
     dt = tt[1] - tt[0]
@@ -372,7 +372,7 @@ def ssmodr(
         # Modified Redfield theory (equilibrium version)
         #
         #
-        mm: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+        mm: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
 
         for a in range(Na + 1):
             aa = -1j * ee[a] * tt
@@ -500,7 +500,7 @@ def ssmodr(
         #
         #
         mm = numpy.zeros(Nt, dtype=COMPLEX)
-        mr: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)
+        mr: numpy.ndarray = numpy.zeros(Nt, dtype=COMPLEX)  # type: ignore[explicit-any]
         fb = numpy.zeros(Nt, dtype=COMPLEX)
 
         for a in range(Na + 1):

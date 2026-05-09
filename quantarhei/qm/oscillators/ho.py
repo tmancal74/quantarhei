@@ -30,7 +30,7 @@ class fcstorage(Saveable):
     def __init__(self) -> None:
         """Constructor"""
         self._shifts: list[float] = []
-        self._fcs: list[numpy.ndarray] = []
+        self._fcs: list[numpy.ndarray] = []  # type: ignore[explicit-any]
 
     def lookup(self, shift: float) -> bool:
         """Returns true if the FC factors for a given shift are available"""
@@ -42,12 +42,12 @@ class fcstorage(Saveable):
         """Returns an index of the FC factors with a given shift"""
         return self._shifts.index(shift)
 
-    def add(self, shift: float, fcmatrix: numpy.ndarray) -> None:
+    def add(self, shift: float, fcmatrix: numpy.ndarray) -> None:  # type: ignore[explicit-any]
         """Adds the matrix of FC factors to the storage"""
         self._shifts.append(shift)
         self._fcs.append(fcmatrix)
 
-    def get(self, ii: int) -> numpy.ndarray:
+    def get(self, ii: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns a stored FC matrix"""
         return self._fcs[ii]
 
@@ -65,9 +65,9 @@ class operator_factory(Saveable):
         # to represent all operators
         self.N = N
 
-    def anihilation_operator(self) -> numpy.ndarray:
+    def anihilation_operator(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         N = self.N
-        aa: numpy.ndarray = numpy.zeros(
+        aa: numpy.ndarray = numpy.zeros(  # type: ignore[explicit-any]
             (N, N), dtype=REAL
         )  # matrix N x N full of zeros
 
@@ -78,9 +78,9 @@ class operator_factory(Saveable):
 
         return aa
 
-    def creation_operator(self) -> numpy.ndarray:
+    def creation_operator(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         N = self.N
-        ad: numpy.ndarray = numpy.zeros((N, N), dtype=REAL)
+        ad: numpy.ndarray = numpy.zeros((N, N), dtype=REAL)  # type: ignore[explicit-any]
 
         for ng in range(N):
             for mg in range(N):
@@ -89,7 +89,7 @@ class operator_factory(Saveable):
 
         return ad
 
-    def shift_operator(self, dd_: Any) -> numpy.ndarray:
+    def shift_operator(self, dd_: Any) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Calculates the Shift Operator based on the size N_ of the basis
         of states and the shift dd_.
 
@@ -181,7 +181,7 @@ class operator_factory(Saveable):
         ad = self.creation_operator()
 
         # construct the Shift Operator
-        Dd_large: numpy.ndarray = numpy.zeros((N_, N_), dtype=COMPLEX)
+        Dd_large: numpy.ndarray = numpy.zeros((N_, N_), dtype=COMPLEX)  # type: ignore[explicit-any]
         Dd_large = (dd_ * ad - numpy.conj(dd_) * aa) / numpy.sqrt(2.0)
 
         # Diagonalize and obtain transformation matrix
@@ -194,9 +194,9 @@ class operator_factory(Saveable):
         # Transform back and reduce to the lower number of states
         return numpy.dot(S, numpy.dot(Dd_large, S1))
 
-    def unity_operator(self) -> numpy.ndarray:
+    def unity_operator(self) -> numpy.ndarray:  # type: ignore[explicit-any]
 
-        ones: numpy.ndarray = numpy.ones(self.N, dtype=REAL)
+        ones: numpy.ndarray = numpy.ones(self.N, dtype=REAL)  # type: ignore[explicit-any]
         ret = numpy.diag(ones)
         return ret
 
@@ -204,7 +204,7 @@ class operator_factory(Saveable):
 class qrepresentation:
     """Coordinate representation of the HO wavefunctions"""
 
-    def __init__(self, qaxis: Any) -> None:
+    def __init__(self, qaxis: Any) -> None:  # type: ignore[explicit-any]
 
         self.qaxis = qaxis
         self.ho_eigenfce_generated = False
@@ -227,7 +227,7 @@ class qrepresentation:
 
         return psi0
 
-    def get_coherent_state(self, alpha: Any) -> DFunction:
+    def get_coherent_state(self, alpha: Any) -> DFunction:  # type: ignore[explicit-any]
         """Returns q-representation of a coherent state with a given alpha"""
         ar = numpy.real(alpha)
         ai = numpy.imag(alpha)
@@ -243,6 +243,6 @@ class qrepresentation:
 
         return psi_alpha
 
-    def get_probability_distribution(self, wfce: Any) -> DFunction:
+    def get_probability_distribution(self, wfce: Any) -> DFunction:  # type: ignore[explicit-any]
         """Returns probability distribution for a given wavefunction"""
         return DFunction(x=wfce.axis, y=numpy.abs(wfce.data) ** 2)

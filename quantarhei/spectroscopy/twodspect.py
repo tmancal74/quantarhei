@@ -57,18 +57,18 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         self.xaxis: ValueAxis | None = None
         self.yaxis: ValueAxis | None = None
-        self.data: numpy.ndarray | None = None
+        self.data: numpy.ndarray | None = None  # type: ignore[explicit-any]
         self.dtype: str | None = None
 
         self.t2 = -1.0
 
-        self.params: Any = None
+        self.params: Any = None  # type: ignore[explicit-any]
 
-    def set_axis_1(self, axis: Any) -> None:
+    def set_axis_1(self, axis: Any) -> None:  # type: ignore[explicit-any]
         """Sets the x-axis of te spectrum (omega_1 axis)"""
         self.xaxis = axis
 
-    def set_axis_3(self, axis: Any) -> None:
+    def set_axis_3(self, axis: Any) -> None:  # type: ignore[explicit-any]
         """Sets the y-axis of te spectrum (omega_3 axis)"""
         self.yaxis = axis
 
@@ -91,11 +91,11 @@ class TwoDSpectrum(DataSaveable, Saveable):
         else:
             raise QuantarheiError("Unknown data type for TwoDSpectrum object")
 
-    def get_spectrum_type(self) -> Any:
+    def get_spectrum_type(self) -> Any:  # type: ignore[explicit-any]
 
         return self.dtype
 
-    def set_data(
+    def set_data(  # type: ignore[explicit-any]
         self, data: numpy.ndarray, dtype: str = signal_TOTL
     ) -> None:  # "Tot"):
         """Set the data of the 2D spectrum.
@@ -138,13 +138,13 @@ class TwoDSpectrum(DataSaveable, Saveable):
                 + str(data.shape)
             )
 
-    def add_data(self, data: numpy.ndarray) -> None:
+    def add_data(self, data: numpy.ndarray) -> None:  # type: ignore[explicit-any]
         """Sets the data of the 2D spectrum"""
         if self.data is None:
             raise QuantarheiError("Data is not initialized: use set_data method.")
         self.data += data
 
-    def overlay_pulses(self, lab: Any) -> None:
+    def overlay_pulses(self, lab: Any) -> None:  # type: ignore[explicit-any]
         """Use labsetup class to overlay pulse spectra over this 2D spectrum"""
         assert self.xaxis is not None
         assert self.yaxis is not None
@@ -175,7 +175,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """Returns the t2 (waiting time) of the spectrum"""
         return self.t2
 
-    def log_params(self, params: Any = None) -> None:
+    def log_params(self, params: Any = None) -> None:  # type: ignore[explicit-any]
         """Store custom information about the spectrum
 
 
@@ -185,10 +185,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """
         self.params = params
 
-    def get_log_params(self) -> Any:
+    def get_log_params(self) -> Any:  # type: ignore[explicit-any]
         return self.params
 
-    def get_value_at(self, x: float, y: float) -> Any:
+    def get_value_at(self, x: float, y: float) -> Any:  # type: ignore[explicit-any]
         """Returns value of the spectrum at a given coordinate"""
         if self.dtype is None:
             raise QuantarheiError("Data type not set")
@@ -299,7 +299,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         return fce
 
-    def get_anti_diagonal_cut(self, point: Any) -> None:
+    def get_anti_diagonal_cut(self, point: Any) -> None:  # type: ignore[explicit-any]
 
         pass
 
@@ -325,13 +325,13 @@ class TwoDSpectrum(DataSaveable, Saveable):
             return numpy.amin(numpy.abs(self.data))
         raise QuantarheiError("Unknown data part")
 
-    def get_area_integral(self, area: Any, dpart: str = part_REAL) -> Any:
+    def get_area_integral(self, area: Any, dpart: str = part_REAL) -> Any:  # type: ignore[explicit-any]
         """Returns an integral of a given area in the 2D spectrum"""
         assert self.xaxis is not None
         assert self.yaxis is not None
         assert self.data is not None
 
-        def integral_square(
+        def integral_square(  # type: ignore[explicit-any]
             x1: float,
             x2: float,
             y1: float,
@@ -373,7 +373,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
         raise QuantarheiError("Unknown data part")
 
-    def get_area_max(
+    def get_area_max(  # type: ignore[explicit-any]
         self, area: Any, dpart: str = part_REAL, loc: list | None = None
     ) -> Any:
         """Returns a max value in a given area in the 2D spectrum"""
@@ -381,7 +381,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         assert self.yaxis is not None
         assert self.data is not None
 
-        def find_in_square(
+        def find_in_square(  # type: ignore[explicit-any]
             x1: float,
             x2: float,
             y1: float,
@@ -392,7 +392,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         ) -> float:
             return numpy.amax(data)
 
-        def loc_in_square(
+        def loc_in_square(  # type: ignore[explicit-any]
             x1: float,
             x2: float,
             y1: float,
@@ -618,7 +618,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.data[:, :] = ndata[:, :]
 
     # FIXME: implement this
-    def get_PumpProbeSpectrum(self) -> Any:
+    def get_PumpProbeSpectrum(self) -> Any:  # type: ignore[explicit-any]
         """Returns a PumpProbeSpectrum corresponding to the 2D spectrum"""
         # from .pumpprobe import PumpProbeSpectrumCalculator
         from . import pumpprobe as pp
@@ -629,7 +629,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
         # return ppc.calculate_from_2D(self)
         return pp.calculate_from_2D(self)
 
-    def plot(
+    def plot(  # type: ignore[explicit-any]
         self,
         fig: Any = None,
         window: list | None = None,
@@ -980,8 +980,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if window is not None:
             assert self.xaxis is not None
             assert self.yaxis is not None
-            xaxis_fa: Any = self.xaxis
-            yaxis_fa: Any = self.yaxis
+            xaxis_fa: Any = self.xaxis  # type: ignore[explicit-any]
+            yaxis_fa: Any = self.yaxis  # type: ignore[explicit-any]
             axis = window
             w1_min = axis[0]
             w1_max = axis[1]

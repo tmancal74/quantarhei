@@ -11,7 +11,7 @@ class example_data_defined_array(DataDefinedEntry):
     identificator = "Example 1"
     units = "1/cm"
 
-    def get_data(self) -> numpy.ndarray:
+    def get_data(self) -> numpy.ndarray:  # type: ignore[explicit-any]
 
         data = numpy.array(
             [

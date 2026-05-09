@@ -49,7 +49,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def configure(manager: Any) -> None:
+def configure(manager: Any) -> None:  # type: ignore[explicit-any]
     """Configuration of quantarhei computation and logging"""
     ###########################################################################
     # configuration of numerics

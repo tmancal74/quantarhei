@@ -38,7 +38,7 @@ class Viewer(Frame):
         Frame.__init__(self, parent)
         self.pack(expand=YES, fill=BOTH)
         self.makeWidgets()
-        master: Any = self.master
+        master: Any = self.master  # type: ignore[explicit-any]
         master.title("Quantarhei File Viewer")
 
     def makeWidgets(self) -> None:
@@ -50,7 +50,7 @@ class Viewer(Frame):
 
     def makeMenuBar(self) -> None:
         self.menubar = Menu(self.master)
-        master: Any = self.master
+        master: Any = self.master  # type: ignore[explicit-any]
         master.config(menu=self.menubar)
         self.fileMenu()
 
@@ -78,7 +78,7 @@ class Viewer(Frame):
         obj = qr.load_parcel(file)
         self.figure(obj)
 
-    def figure(self, obj: Any) -> None:
+    def figure(self, obj: Any) -> None:  # type: ignore[explicit-any]
         from tkinter import TOP
 
         import matplotlib.pyplot as plt

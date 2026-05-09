@@ -77,7 +77,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         indx = [i for i in range(self.HH.shape[0])]
         return indx, coefs, sqrs
 
-    def report_on_expansion(self, file: Any = None, state: int = 0, N: int = 5) -> None:
+    def report_on_expansion(self, file: Any = None, state: int = 0, N: int = 5) -> None:  # type: ignore[explicit-any]
         """Prints a short report on the composition of an exciton state
 
         Parameters
@@ -117,7 +117,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         indx, coefs, sqrs = self.get_expansion_squares(state)
 
-        table_data: list[list[Any]] = []
+        table_data: list[list[Any]] = []  # type: ignore[explicit-any]
         table_data.append(["index", "squares", "coefficients", "state signatures"])
         for i in range(N):
             imax, sqr = _strip_max_coef(indx, sqrs)
@@ -220,7 +220,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         raise BasisError("Aggregate has to be diagonalized")
 
-    def get_state_energy(self, state: int = 0) -> float | numpy.ndarray:
+    def get_state_energy(self, state: int = 0) -> float | numpy.ndarray:  # type: ignore[explicit-any]
         """Return the energy of a state with a given index
 
 
@@ -253,7 +253,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
             return self.convert_energy_2_current_u(self.HD[state])
         raise BasisError("Aggregate has to be diagonalized")
 
-    def exciton_report(
+    def exciton_report(  # type: ignore[explicit-any]
         self,
         file: Any = None,
         start: int = 1,
@@ -393,7 +393,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         return self.vibsigs[N]
 
 
-def _strip_max_coef(indx: list, sqrs: numpy.ndarray) -> tuple:
+def _strip_max_coef(indx: list, sqrs: numpy.ndarray) -> tuple:  # type: ignore[explicit-any]
     """Returns the index of the maximum coefficient and the coefficient
     and sets the maximum value to zero.
 

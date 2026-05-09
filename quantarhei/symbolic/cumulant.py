@@ -34,7 +34,7 @@ if not _SYMPY_AVAILABLE:
     # Stub base classes so the module loads without sympy.
     # Instantiating any of these will raise ImportError via _require_sympy().
     class _SympyStub:  # type: ignore[no-redef]
-        def __init_subclass__(cls, **kwargs: Any) -> None:
+        def __init_subclass__(cls, **kwargs: Any) -> None:  # type: ignore[explicit-any]
             pass
 
     QExpr = _SympyStub  # type: ignore[assignment,misc]
@@ -51,13 +51,13 @@ if not _SYMPY_AVAILABLE:
 
 
 class CumulantExpr(QExpr):
-    def _eval_simplify(
+    def _eval_simplify(  # type: ignore[explicit-any]
         self, ratio: Any, measure: Any, rational: Any, inverse: Any, doit: Any
     ) -> Any:
         return self._evaluate_second_order_rules()
         # return A._getExpr()
 
-    def getOrder(self, n: int) -> Any:
+    def getOrder(self, n: int) -> Any:  # type: ignore[explicit-any]
         if n == self._calculate_order(self):
             return self
         add = self.args[0]
@@ -68,7 +68,7 @@ class CumulantExpr(QExpr):
 
         return CumulantExpr(A)
 
-    def evaluate(self, large: bool = False) -> Any:
+    def evaluate(self, large: bool = False) -> Any:  # type: ignore[explicit-any]
         expr = self.expand()
         expr = expr.getOrder(2)
         # print(expr)
@@ -86,7 +86,7 @@ class CumulantExpr(QExpr):
     ***************************************************************************
     """
 
-    def _evaluate_second_order_rules(self) -> Any:
+    def _evaluate_second_order_rules(self) -> Any:  # type: ignore[explicit-any]
         """Evaluates second order terms in terms of the line shape function"""
         a = Wild("a")
         b = Wild("b")
@@ -169,7 +169,7 @@ class CumulantExpr(QExpr):
 
         return A
 
-    def _make_positive(self, arg: Any) -> Any:
+    def _make_positive(self, arg: Any) -> Any:  # type: ignore[explicit-any]
         a = Wild("a")
         b = Wild("b")
         w = Wild("w")
@@ -182,7 +182,7 @@ class CumulantExpr(QExpr):
         A = A.replace(w * g2(a, b, -arg), w * conjugate(g2(b, a, arg)))
         return A
 
-    def _expand_in_large(self, arg: Any) -> Any:
+    def _expand_in_large(self, arg: Any) -> Any:  # type: ignore[explicit-any]
         a = Wild("a")
         b = Wild("b")
         w = Wild("w")
@@ -195,7 +195,7 @@ class CumulantExpr(QExpr):
         A = A.replace(w * g2(a, b, arg + t1), 0)
         return A
 
-    def _leading_index(self, arg: Any) -> Any:
+    def _leading_index(self, arg: Any) -> Any:  # type: ignore[explicit-any]
         a = Wild("a")
         w = Wild("w")
         t1 = Wild("t1")
@@ -206,13 +206,13 @@ class CumulantExpr(QExpr):
         A = A.replace(w * lam(a, arg), w * lam(arg, a))
         return A
 
-    def _eliminate_off_diagonal(self) -> Any:
+    def _eliminate_off_diagonal(self) -> Any:  # type: ignore[explicit-any]
         return self
 
-    def _getExpr(self) -> Any:
+    def _getExpr(self) -> Any:  # type: ignore[explicit-any]
         return self.args[0]
 
-    def _calculate_order(self, expr: Any) -> int:
+    def _calculate_order(self, expr: Any) -> int:  # type: ignore[explicit-any]
         """Calculates a perturbation order of the expression expr"""
         content = expr
         order = 0
@@ -243,35 +243,35 @@ class CumulantExpr(QExpr):
 class Ugde(Operator):
     nargs = 2
 
-    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:  # type: ignore[explicit-any]
         return 1 - I * hh_plus(a, t) - gg_plus(a, a, t)
 
 
 class Uedg(Operator):
     nargs = 2
 
-    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:  # type: ignore[explicit-any]
         return 1 + I * hh_plus(a, t) - Dagger(gg_plus(a, a, t))
 
 
 class Uged(Operator):
     nargs = 2
 
-    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:  # type: ignore[explicit-any]
         return 1 + I * hh_minus(a, t) - gg_minus(a, a, t)
 
 
 class Uegd(Operator):
     nargs = 2
 
-    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:
+    def _eval_rewrite_as_gg(self, a: Any, t: Any) -> Any:  # type: ignore[explicit-any]
         return 1 - I * hh_minus(a, t) - Dagger(gg_minus(a, a, t))
 
 
 class ExpdV(Operator):
     nargs = 3
 
-    def _eval_rewrite_as_gg(self, a: Any, t: Any, x: Any) -> Any:
+    def _eval_rewrite_as_gg(self, a: Any, t: Any, x: Any) -> Any:  # type: ignore[explicit-any]
         return 1 + x * dV(a, t) + x**2 * dV(a, t) * dV(a, t)
 
 
@@ -311,7 +311,7 @@ class gg(Function):
     nargs = (1, 2, 3)
 
     @classmethod
-    def eval(cls, a: Any, b: Any, x: Any) -> Any:
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:  # type: ignore[explicit-any]
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -326,7 +326,7 @@ class g21(Function):
     nargs = (1, 2, 3)
 
     @classmethod
-    def eval(cls, a: Any, b: Any, x: Any) -> Any:
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:  # type: ignore[explicit-any]
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -339,7 +339,7 @@ class g1(Function):
     nargs = (1, 2, 3)
 
     @classmethod
-    def eval(cls, a: Any, b: Any, x: Any) -> Any:
+    def eval(cls, a: Any, b: Any, x: Any) -> Any:  # type: ignore[explicit-any]
         if x.is_Number:
             if x is S.Zero:
                 return S.Zero
@@ -375,7 +375,7 @@ class lam(Function):
 """High level cumulant evaluation function """
 
 
-def evaluate_cumulant(
+def evaluate_cumulant(  # type: ignore[explicit-any]
     cuml: Any,
     positive_times: list[Any] | None = None,
     leading_index: Any | None = None,
@@ -433,7 +433,7 @@ def evaluate_cumulant(
     return ss
 
 
-def transform_to_Python_vec(
+def transform_to_Python_vec(  # type: ignore[explicit-any]
     expr: Any, target_name: str = "gf.gg", conj_func: str = "numpy.conj"
 ) -> Any:
     """Transforms the sympy cumulant evaluation into a matrix Python code
@@ -508,7 +508,7 @@ def transform_to_Python_vec(
     )
 
 
-def transform_to_einsum_expr(
+def transform_to_einsum_expr(  # type: ignore[explicit-any]
     expr: Any,
     participation_matrix: Any | None = None,
     index: int = 0,
@@ -542,10 +542,10 @@ def transform_to_einsum_expr(
     use_exciton = participation_matrix is not None
     MM = participation_matrix if use_exciton else None
 
-    def get_time_str(t_expr: Any) -> str:
+    def get_time_str(t_expr: Any) -> str:  # type: ignore[explicit-any]
         return str(sp.simplify(t_expr)).replace(" ", "")
 
-    def parse_axes(t_expr: Any) -> set[int]:
+    def parse_axes(t_expr: Any) -> set[int]:  # type: ignore[explicit-any]
         """Return a set of active axes for a time expression."""
         if dimensions is None:
             return set()
@@ -591,7 +591,7 @@ def transform_to_einsum_expr(
         rhs_indices = "i" + index_labels[:num_dims]  # e.g., ijk
         return f'"i,{rhs_indices}"'
 
-    def convert_gg(a: Any, b: Any, t: Any) -> Any:
+    def convert_gg(a: Any, b: Any, t: Any) -> Any:  # type: ignore[explicit-any]
         t_str = get_time_str(t)
         axes = parse_axes(t)
         reshape = build_reshape_string(axes)
@@ -647,7 +647,7 @@ class GFInitiator:
 
     """
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, t1s: numpy.ndarray, t3s: numpy.ndarray, gdict: dict[str, Any]
     ) -> None:
 
@@ -666,7 +666,7 @@ class GFInitiator:
 
         self.set_lineshape_functions(gdict)
 
-    def set_lineshape_functions(self, gdict: dict[str, Any]) -> None:
+    def set_lineshape_functions(self, gdict: dict[str, Any]) -> None:  # type: ignore[explicit-any]
         """Sets the lineshape functions.
 
         Parameters:
@@ -713,7 +713,7 @@ class GFInitiator:
                     key, self.t1s, t2, self.t3s
                 )
 
-    def eval_gg_t2_tn(
+    def eval_gg_t2_tn(  # type: ignore[explicit-any]
         self, key: str, t2: float, t1: numpy.ndarray, t3: numpy.ndarray, zero: int = 0
     ) -> numpy.ndarray:
         """Lineshape function g(t1 + t2) or g(t2 + t3)
@@ -751,7 +751,7 @@ class GFInitiator:
 
         return ret
 
-    def eval_gg_t1_t2_t3(
+    def eval_gg_t1_t2_t3(  # type: ignore[explicit-any]
         self, key: str, t1: numpy.ndarray, t2: float, t3: numpy.ndarray
     ) -> numpy.ndarray:
         """Lineshape function g(t1 + t2 + t3)"""

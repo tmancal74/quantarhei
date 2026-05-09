@@ -36,15 +36,15 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         lineshapes).
     """
 
-    def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any, temp: Any = None) -> None:
+    def __init__(self, t1axis: Any, t2axis: Any, t3axis: Any, temp: Any = None) -> None:  # type: ignore[explicit-any]
         super().__init__(t1axis, t2axis, t3axis)
-        self.widthx: Any = convert(300, "1/cm", "int")
-        self.widthy: Any = convert(300, "1/cm", "int")
-        self.dephx: Any = convert(300, "1/cm", "int")
-        self.dephy: Any = convert(300, "1/cm", "int")
+        self.widthx: Any = convert(300, "1/cm", "int")  # type: ignore[explicit-any]
+        self.widthy: Any = convert(300, "1/cm", "int")  # type: ignore[explicit-any]
+        self.dephx: Any = convert(300, "1/cm", "int")  # type: ignore[explicit-any]
+        self.dephy: Any = convert(300, "1/cm", "int")  # type: ignore[explicit-any]
         self.temp = temp  # Temperature
 
-    def bootstrap(
+    def bootstrap(  # type: ignore[explicit-any]
         self,
         rwa: float = 0.0,
         pad: int = 0,
@@ -80,7 +80,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         self.tc = 0
 
-    def get_storage(self) -> Any:
+    def get_storage(self) -> Any:  # type: ignore[explicit-any]
         return storage
 
     def set_width(self, val: float) -> None:
@@ -93,10 +93,10 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         self.dephx = m.convert_energy_2_internal_u(val)
         self.dephy = m.convert_energy_2_internal_u(val)
 
-    def set_pathways(self, pathways: Any) -> None:
+    def set_pathways(self, pathways: Any) -> None:  # type: ignore[explicit-any]
         self.pathways = pathways
 
-    def calculate_next(self) -> Any:
+    def calculate_next(self) -> Any:  # type: ignore[explicit-any]
         """Calculate next spectrum and increment t2 time"""
         sone = self.calculate_one(self.tc)
         self.tc += 1
@@ -106,7 +106,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
         """Set next current t2 time"""
         self.tc = tc
 
-    def calculate_one(self, tc: int) -> Any:
+    def calculate_one(self, tc: int) -> Any:  # type: ignore[explicit-any]
         """Calculate the 2D spectrum for all pathways"""
         onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
@@ -134,7 +134,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return onetwod
 
-    def calculate(self) -> Any:
+    def calculate(self) -> Any:  # type: ignore[explicit-any]
         """Calculate the 2D spectrum for all pathways"""
         onetwod = TwoDResponse()
         onetwod.set_axis_1(self.oa1)
@@ -163,7 +163,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return onetwod
 
-    def calculate_all_system(
+    def calculate_all_system(  # type: ignore[explicit-any]
         self,
         sys: Any,
         eUt: Any,
@@ -188,7 +188,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             if show_progress:
                 print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
 
-            pways: dict[Any, Any] = dict()
+            pways: dict[Any, Any] = dict()  # type: ignore[explicit-any]
             twod1 = self.calculate_one_system(
                 T2, sys, eUt, lab, selection=selection, pways=pways, dtol=dtol
             )
@@ -208,7 +208,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return tcont
 
-    def calculate_one_system(
+    def calculate_one_system(  # type: ignore[explicit-any]
         self,
         t2: float,
         sys: Any,
@@ -317,13 +317,13 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
 
         return twod1
 
-    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian") -> numpy.ndarray:
+    def calculate_pathway(self, pathway: Any, shape: str = "Gaussian") -> numpy.ndarray:  # type: ignore[explicit-any]
         """Calculate the shape of a Liouville pathway"""
         # we can calculate empty pathway
         if pathway is None:
             N1 = self.oa1.length
             N3 = self.oa3.length
-            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
+            reph2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)  # type: ignore[explicit-any]
             return reph2D
 
         # FIXME: remove the old version sometime soon
@@ -416,7 +416,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             return reph2D
 
         if pathway.pathway_type == "NR":
-            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)
+            nonr2D: numpy.ndarray = numpy.zeros((N1, N3), dtype=COMPLEX)  # type: ignore[explicit-any]
 
             if shape == "Gaussian":
                 oo3 = self.oa3.data[:]

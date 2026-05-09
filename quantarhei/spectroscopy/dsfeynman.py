@@ -40,7 +40,7 @@ class DSFeynmanDiagram:
         self._pic_rep = "\n"
         self.finished = False
 
-        self.light_transitions: dict[int, Any] = {}
+        self.light_transitions: dict[int, Any] = {}  # type: ignore[explicit-any]
         self.ltcount = 0
 
         if ptype in ptype_simple + ptype_relax:
@@ -166,7 +166,7 @@ class DSFeynmanDiagram:
 
         return fact
 
-    def evolution_operators(self, operators: bool = False) -> Any:
+    def evolution_operators(self, operators: bool = False) -> Any:  # type: ignore[explicit-any]
         """Returns evolution operators corresponding to the diagram
 
         It can return a string representation or a list of operator objects.
@@ -223,7 +223,7 @@ class DSFeynmanDiagram:
 
         kk = 0
         rUop = ""
-        rUops_list: list[Any] = []
+        rUops_list: list[Any] = []  # type: ignore[explicit-any]
 
         for key in self.states:
             if kk > 0 and kk < self.count + 1:
@@ -268,7 +268,7 @@ class DSFeynmanDiagram:
 
         return Uops
 
-    def coherence_GF(self) -> Any:
+    def coherence_GF(self) -> Any:  # type: ignore[explicit-any]
         """Returns coherence Green's function product for this diagram"""
         from ..symbolic.cumulant import UopEater
 
@@ -277,7 +277,7 @@ class DSFeynmanDiagram:
         out_list = eater.eat(evs)
         return eater.spit_coherence_GF()
 
-    def get_cumulant_expression(self, verbose: bool = False) -> Any:
+    def get_cumulant_expression(self, verbose: bool = False) -> Any:  # type: ignore[explicit-any]
         """Returns the cumulant evaluation of the diagram"""
         codes = []
 
@@ -311,7 +311,7 @@ from quantarhei.symbolic.cumulant import evaluate_cumulant
 
         codes.append(code2)
 
-        local_vars: dict[str, Any] = {}
+        local_vars: dict[str, Any] = {}  # type: ignore[explicit-any]
         for cod in codes:
             if verbose:
                 print(cod)

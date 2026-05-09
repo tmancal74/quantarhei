@@ -82,7 +82,7 @@ class ElectronicState(UnitsManaged):
         if index is not None:
             self.index = index
         else:
-            self.index = cast(list[Any], self.aggregate.elsigs).index(self.elsignature)
+            self.index = cast(list[Any], self.aggregate.elsigs).index(self.elsignature)  # type: ignore[explicit-any]
 
         #
         # Implementation of vibrational substate generation approximations
@@ -294,7 +294,7 @@ class ElectronicState(UnitsManaged):
             for sig in numpy.ndindex(shp):
                 yield sig
 
-    def vsignatures(
+    def vsignatures(  # type: ignore[explicit-any]
         self,
         approx: str | None = None,
         N: int | None = None,
@@ -381,7 +381,7 @@ class VibronicState(UnitsManaged):
 
         try:
             agg = self.elstate.aggregate
-            self.index = cast(list[Any], agg.vibsigs).index((elstate.elsignature, vsig))
+            self.index = cast(list[Any], agg.vibsigs).index((elstate.elsignature, vsig))  # type: ignore[explicit-any]
         except (AttributeError, ValueError):
             self.index = None
 
@@ -481,7 +481,7 @@ class Coherence:
 
     """
 
-    def __init__(self, state1: Any, state2: Any) -> None:
+    def __init__(self, state1: Any, state2: Any) -> None:  # type: ignore[explicit-any]
 
         self.state1 = state1
         self.state2 = state2

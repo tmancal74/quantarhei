@@ -13,7 +13,7 @@ from .operators import SelfAdjointOperator
 
 
 class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
-    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+    def __init__(self, dim: int | None = None, data: Any = None) -> None:  # type: ignore[explicit-any]
 
         if not ((dim is None) and (data is None)):
             # Set the currently used basis
@@ -47,7 +47,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
         )
         return (a and b) and c
 
-    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
+    def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:  # type: ignore[explicit-any]
         """This function transforms the Operator into a different basis, using
         a given transformation matrix.
         """
@@ -59,7 +59,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
         for i in range(3):
             self._data[:, :, i] = numpy.dot(S1, numpy.dot(self._data[:, :, i], SS))
 
-    def dipole_strength(
+    def dipole_strength(  # type: ignore[explicit-any]
         self,
         from_state: int | None = None,
         to_state: int | None = None,
@@ -88,7 +88,7 @@ class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
             d[i] = self.data[fstate, tstate, i]
         return numpy.dot(d, d)
 
-    def get_compoment_data(self, n: int) -> numpy.ndarray:
+    def get_compoment_data(self, n: int) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns a component data of the transition dipole moment operator"""
         return self.data[:, :, n]
 
