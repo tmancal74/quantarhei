@@ -69,6 +69,7 @@ Notebooks <notebooks>
 Examples <examples>
 API Reference <classes>
 Advanced API <advclasses>
+Architecture <class_map>
 Internals <internals>
 Contributing <contribute>
 ```
