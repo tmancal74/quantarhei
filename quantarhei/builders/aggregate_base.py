@@ -2851,6 +2851,23 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         raise Exception("Incompatible operator dimension")
 
+    def _accumulate_fc_trace(
+        self,
+        nop: Any,
+        op_slice: numpy.ndarray,
+        FcProd: numpy.ndarray,
+        whole: bool,
+    ) -> None:
+        for n in range(self.Nel):
+            for i_n in self.vibindices[n]:
+                for m in range(self.Nel):
+                    for i_m in self.vibindices[m]:
+                        fc = FcProd[i_n, i_m]
+                        if whole:
+                            nop._data[:, n, m] += op_slice[:, i_n, i_m] * fc
+                        else:
+                            nop._data[n, m] += op_slice[0, i_n, i_m] * fc
+
     def trace_over_vibrations(
         self,
         operator: (
@@ -2919,38 +2936,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 Ng = self.Nb[0]
                 FcProd = numpy.einsum("gi,jg->ij", self.FCf[:Ng, :], self.FCf[:, :Ng])
 
-                if evolution:
-                    if whole:
-                        # loop over electronic states n, m
-                        for n in range(self.Nel):
-                            for i_n in self.vibindices[n]:
-                                for m in range(self.Nel):
-                                    for i_m in self.vibindices[m]:
-                                        nop._data[:, n, m] += (
-                                            operator._data[:, i_n, i_m]
-                                            * FcProd[i_n, i_m]
-                                        )
-
-                    else:
-                        # loop over electronic states n, m
-                        for n in range(self.Nel):
-                            for i_n in self.vibindices[n]:
-                                for m in range(self.Nel):
-                                    for i_m in self.vibindices[m]:
-                                        nop._data[n, m] += (
-                                            operator._data[Nt, i_n, i_m]
-                                            * FcProd[i_n, i_m]
-                                        )
-
+                if evolution and whole:
+                    op_slice = operator._data
+                elif evolution:
+                    op_slice = operator._data[Nt, :, :][numpy.newaxis, :, :]
                 else:
-                    # loop over electronic states n, m
-                    for n in range(self.Nel):
-                        for i_n in self.vibindices[n]:
-                            for m in range(self.Nel):
-                                for i_m in self.vibindices[m]:
-                                    nop._data[n, m] += (
-                                        operator._data[i_n, i_m] * FcProd[i_n, i_m]
-                                    )
+                    op_slice = operator._data[numpy.newaxis, :, :]
+
+                self._accumulate_fc_trace(nop, op_slice, FcProd, evolution and whole)
 
             else:
                 raise QuantarheiError(
