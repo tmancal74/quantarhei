@@ -2777,7 +2777,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                     nop._data[i_n, i_m, a] = 0.0
                                     for j_n in self.vibindices[n]:
                                         for j_m in self.vibindices[m]:
-                                            nop._data[i_n, i_m] += (
+                                            nop._data[i_n, i_m, a] += (
                                                 self.FCf[i_ng, j_n]
                                                 * operator._data[j_n, j_m, a]
                                                 * self.FCf[j_m, i_mg]

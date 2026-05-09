@@ -9,7 +9,7 @@ from quantarhei import (
     energy_units,
 )
 from quantarhei.builders.aggregate_test import TestAggregate
-from quantarhei.qm import ReducedDensityMatrix
+from quantarhei.qm import ReducedDensityMatrix, TransitionDipoleMoment
 
 
 def _dimer(with_modes: bool = False, hr: tuple = (0.1, 0.3)) -> Aggregate:
@@ -200,6 +200,31 @@ class TestConvertToGroundVibBasis(unittest.TestCase):
         H = self.vagg.get_Hamiltonian()
         rho = ReducedDensityMatrix(dim=H.dim)
         converted = self.vagg.convert_to_ground_vibbasis(rho)
+        numpy.testing.assert_array_almost_equal(
+            converted._data, numpy.zeros_like(converted._data)
+        )
+
+
+class TestConvertTDMToGroundVibBasis(unittest.TestCase):
+    def setUp(self) -> None:
+        self.vagg = _dimer(with_modes=True)
+
+    def test_convert_tdm_preserves_spatial_components(self) -> None:
+        tdm = self.vagg.get_TransitionDipoleMoment()
+        converted = self.vagg.convert_to_ground_vibbasis(tdm)
+        assert isinstance(converted, TransitionDipoleMoment)
+        for a in range(3):
+            other_components = [b for b in range(3) if b != a]
+            if numpy.any(converted._data[:, :, a] != 0.0):
+                for b in other_components:
+                    assert not numpy.allclose(
+                        converted._data[:, :, a], converted._data[:, :, b]
+                    ), f"Component {a} should differ from {b}"
+
+    def test_convert_tdm_zero_stays_zero(self) -> None:
+        dim = self.vagg.Ntot
+        tdm = TransitionDipoleMoment(dim=dim)
+        converted = self.vagg.convert_to_ground_vibbasis(tdm)
         numpy.testing.assert_array_almost_equal(
             converted._data, numpy.zeros_like(converted._data)
         )
