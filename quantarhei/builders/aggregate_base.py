@@ -906,7 +906,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def _band_transition_lineshape(
         self,
-        transition: tuple,
+        transition: tuple[int, int],
         matrix: numpy.ndarray,
         default: float = 0.0,
         square_interband: bool = True,
