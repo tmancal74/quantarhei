@@ -3017,10 +3017,11 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.12" },
     { name = "scipy", specifier = ">=1.9,<2" },
     { name = "setuptools", marker = "extra == 'dev'", specifier = ">=69" },
-    { name = "sympy", specifier = ">=1.12,<2" },
+    { name = "sphinx", marker = "extra == 'docs'", specifier = ">=7.0" },
+    { name = "sympy", marker = "extra == 'symbolic'", specifier = ">=1.12,<2" },
     { name = "terminaltables", specifier = ">=3.1,<4" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["symbolic", "docs", "dev"]
 
 [package.metadata.requires-dev]
 dev = [
