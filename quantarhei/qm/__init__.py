@@ -76,6 +76,9 @@ from .liouvillespace.rates.ratematrix import RateMatrix as RateMatrix
 #
 # Rate matrices
 from .liouvillespace.rates.redfieldrates import RedfieldRateMatrix as RedfieldRateMatrix
+from .liouvillespace.rates.tdfoersterrates import (
+    TDFoersterRateMatrix as TDFoersterRateMatrix,
+)
 from .liouvillespace.rates.tdredfieldrates import (
     TDRedfieldRateMatrix as TDRedfieldRateMatrix,
 )
@@ -196,6 +199,7 @@ __all__ = [
     # System-bath interaction
     "SystemBathInteraction",
     # Time-dependent tensors
+    "TDFoersterRateMatrix",
     "TDFoersterRelaxationTensor",
     "TDModRedfieldRelaxationTensor",
     "TDRedfieldFoersterRelaxationTensor",
