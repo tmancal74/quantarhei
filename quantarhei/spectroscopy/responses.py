@@ -92,13 +92,16 @@ class NonLinearResponse:
         # population decay factors at t2
         U0t2 = self.U0_t2[:, t2i]
 
+        # here we specify evolution matrices
+        evol = (self.U0_t1, self.U0_t3, U0t2, self.Uee[:, :, t2i])
+
         return self.func(
             t2,
             self.t1s.data,
             self.t3s.data,
             self.lab,
             self.sys,
-            (self.U0_t1, self.U0_t3, U0t2, self.Uee[:, :, t2i]),
+            evol,
             self.KK,
         )
 

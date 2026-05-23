@@ -520,6 +520,13 @@ class TwoDResponseCalculator:
             onetwod.set_axis_1(self.oa1)
             onetwod.set_axis_3(self.oa3)
 
+        # FIXME: Make a decision, if this is to be kept
+        # Right now the code does not distinguish different response types, except rephasing and non-rephasing
+        # If we decide to remove the detained storage, we can remove a lot of functionality from TwoDResponse.
+        # This would discart a let of information useful for inspection.
+        #
+        # Likely the best solution, is the allow storage of details, only if the user asks
+        #
         if self.keep_resp:
             resp = {
                 "time": self.t1axis.data,

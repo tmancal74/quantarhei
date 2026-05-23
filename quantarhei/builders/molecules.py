@@ -235,9 +235,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.el_rwa_indices: Any = None
         self.has_rwa = False
 
-        self.build()
+        # self.build()
 
-    def build(self) -> None:
+    def build(self, mult: int = 1) -> None:
         """Building routine for the molecule
 
 
@@ -245,7 +245,26 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         before we start using the Molecule
 
         """
+        if self._built:
+            return
+
         self.Nel = self.nel
+        Ntot = self.Nel
+
+        print("Building the molecule...")
+
+        self.mult = mult
+
+        # Hamiltonian matrix
+        HH = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
+        # Transition dipole moment matrix
+        DD = numpy.zeros((Ntot, Ntot, 3), dtype=numpy.float64)
+
+        self.HH = self.get_Hamiltonian().data
+
+        # Number of states in individual bands
+        self.Nb = numpy.zeros(self.mult + 1, dtype=int)
+
         self._built = True
 
     #
