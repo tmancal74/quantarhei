@@ -644,7 +644,7 @@ class OpenSystem:
             # ham = deepcopy(self.get_Hamiltonian())
             sbi = self.get_SystemBathInteraction()
         else:
-            raise Exception()
+            raise Exception("System not built yet")
 
         relaxT: Any = None
 

@@ -251,8 +251,6 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.Nel = self.nel
         Ntot = self.Nel
 
-        print("Building the molecule...")
-
         self.mult = mult
 
         # Hamiltonian matrix
@@ -260,7 +258,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         # Transition dipole moment matrix
         DD = numpy.zeros((Ntot, Ntot, 3), dtype=numpy.float64)
 
-        self.HH = self.get_Hamiltonian().data
+        self.HamOp = self.get_Hamiltonian()
+        self.HH = self.HamOp.data
+        self.Ntot = self.HamOp.dim
 
         # Number of states in individual bands
         self.Nb = numpy.zeros(self.mult + 1, dtype=int)
@@ -340,9 +340,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         else:
             self.has_rwa = False
 
-        if self.HH is not None:
+        if self.HamOp is not None:
             vib_rwa_indices = self._calculate_rwa_indices(rwa_indices)
-            self.HH.set_rwa(vib_rwa_indices)
+            self.HamOp.set_rwa(vib_rwa_indices)
 
     def _calculate_rwa_indices(self, el_rwa_indices: list) -> list:
         """Extends the rwa_indices by vibrational states if necessary"""
@@ -1588,8 +1588,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         True
 
         """
-        if (self.HH is not None) and (not recalculate):
-            return self.HH
+        if (self.HamOp is not None) and (not recalculate):
+            return self.HamOp
 
         if multi:
             # create vibrational signatures for each electronic state
@@ -1770,7 +1770,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             #
             self.coor_operators = coor_ops
 
-            if (self.HH is None) or recalculate:
+            if (self.HamOp is None) or recalculate:
                 with energy_units("int"):
                     HH = Hamiltonian(data=ham)
 
@@ -1788,11 +1788,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
                         HH.set_rwa(vib_rwa_indices)
 
-                self.HH = HH
+                self.HamOp = HH
+                self.HH = HH.data
+                self.Ntot = HH.dim
 
                 # set information about Rotating Wave Approximation
 
-            return self.HH
+            return self.HamOp
 
         raise NotImplementedError("get_Hamiltonian with multi=False is not implemented")
 
@@ -2175,6 +2177,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return sbi
 
+    def get_RelaxationTensor(self, *args: Any, **kwargs: Any) -> Any:
+        """Returns relaxation tensor, building the molecule if necessary."""
+        if not self._built:
+            self.build()
+
+        return super().get_RelaxationTensor(*args, **kwargs)
+
     def set_mode_environment(
         self, mode: int = 0, elstate: int | str = 0, corfunc: object = None
     ) -> None:
@@ -2259,6 +2268,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             HH = self.HH.copy()
         else:
             HH = HH_in.copy()
+            if not isinstance(HH, numpy.ndarray):
+                HH = HH.data.copy()
 
         if self._diagonalized:
             raise OSError(
@@ -2280,13 +2291,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             for kk in range(self.Ntot):
                 HH[kk, kk] -= reorg_site[kk]
 
-            ee, ss = numpy.linalg.eigh(HH.data)
+            ee, ss = numpy.linalg.eigh(HH)
 
             reorg_excit = self._excitonic_reorg_diag(ss, subtract_bath=adiabatic_noBath)
 
             ee += reorg_excit
         else:
-            ee, ss = numpy.linalg.eigh(HH.data)
+            ee, ss = numpy.linalg.eigh(HH)
 
         return ee, ss
 
