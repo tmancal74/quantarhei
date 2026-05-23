@@ -92,13 +92,16 @@ class NonLinearResponse:
         # population decay factors at t2
         U0t2 = self.U0_t2[:, t2i]
 
+        # here we specify evolution matrices
+        evol = (self.U0_t1, self.U0_t3, U0t2, self.Uee[:, :, t2i])
+
         return self.func(
             t2,
             self.t1s.data,
             self.t3s.data,
             self.lab,
             self.sys,
-            (self.U0_t1, self.U0_t3, U0t2, self.Uee[:, :, t2i]),
+            evol,
             self.KK,
         )
 
@@ -112,8 +115,9 @@ class NonLinearResponse:
         Parameters
         ----------
         KK : numpy.ndarray
-            Square rate matrix of shape ``(N, N)`` where ``N`` is the number
-            of single-excited states.
+            Rate matrix of shape ``(N, N)`` or time-dependent rate matrix of
+            shape ``(Nt, N, N)``, where ``N`` is the number of single-excited
+            states.
 
         Raises
         ------
@@ -121,25 +125,37 @@ class NonLinearResponse:
             If ``KK`` is not a square matrix or if any depopulation rate is
             positive.
         """
-        if KK.shape[0] == KK.shape[1]:
-            self.KK = KK
+        KK = numpy.asarray(KK)
 
-            self.U0_t2 = numpy.zeros((KK.shape[0], self.t2s.length), dtype=REAL)
-            self.U0_t1 = numpy.zeros((KK.shape[0], self.t1s.length), dtype=REAL)
-            self.U0_t3 = numpy.zeros((KK.shape[0], self.t3s.length), dtype=REAL)
-
-            if KK.shape[0] != self.sys.Ntot:
-                if self.sys.mult == 2:
-                    self.U0fe_t3 = numpy.zeros(
-                        (self.sys.Nb[2], KK.shape[0], self.t3s.length), dtype=REAL
-                    )
-                else:
-                    raise Exception(
-                        "Relaxation matrix has a wrong size: " + str(KK.shape[0])
-                    )
-
+        if len(KK.shape) == 2:
+            dim = KK.shape[0]
+            if KK.shape[0] != KK.shape[1]:
+                raise Exception("Square matrix must be submitted")
+        elif len(KK.shape) == 3:
+            dim = KK.shape[1]
+            if KK.shape[1] != KK.shape[2]:
+                raise Exception("Square matrix must be submitted")
+            if KK.shape[0] != self.t2s.length:
+                raise Exception(
+                    "Time-dependent rate matrix has to have the same length "
+                    "as the t2 TimeAxis"
+                )
         else:
-            raise Exception("Square matrix must be submitted")
+            raise Exception("Rate matrix has to be an array of rank 2 or 3")
+
+        self.KK = KK
+
+        self.U0_t2 = numpy.zeros((dim, self.t2s.length), dtype=REAL)
+        self.U0_t1 = numpy.zeros((dim, self.t1s.length), dtype=REAL)
+        self.U0_t3 = numpy.zeros((dim, self.t3s.length), dtype=REAL)
+
+        if dim != self.sys.Ntot:
+            if self.sys.mult == 2:
+                self.U0fe_t3 = numpy.zeros(
+                    (self.sys.Nb[2], dim, self.t3s.length), dtype=REAL
+                )
+            else:
+                raise Exception("Relaxation matrix has a wrong size: " + str(dim))
 
         # time independent rate matrix
         if len(KK.shape) == 2:
@@ -165,13 +181,33 @@ class NonLinearResponse:
             # FIXME: Make sure it works with all t2s
             prop = PopulationPropagator(self.t2s, self.KK)
 
-            self.Uee, cor = prop.get_PropagationMatrix(self.t2s, corrections=0)
+            self.Uee = prop.get_PropagationMatrix(self.t2s)
+            jumps = prop.get_JumpExpansion(self.t2s, max_order=0)
 
-            self.U1_t2 = cor[0]
+            self.U1_t2 = jumps[0]
 
         if len(KK.shape) == 3:
             # time dependent rate matrix
-            pass
+            for aa in range(dim):
+                if numpy.all(KK[:, aa, aa] <= 0.0):
+                    cumulative = numpy.zeros(self.t2s.length, dtype=REAL)
+                    for ii in range(self.t2s.length - 1):
+                        dt = self.t2s.data[ii + 1] - self.t2s.data[ii]
+                        cumulative[ii + 1] = (
+                            cumulative[ii]
+                            + 0.25 * (KK[ii, aa, aa] + KK[ii + 1, aa, aa]) * dt
+                        )
+                    self.U0_t2[aa, :] = numpy.exp(cumulative)
+                    self.U0_t1[aa, :] = 1.0
+                    self.U0_t3[aa, :] = 1.0
+                else:
+                    raise Exception("Depopulation rate must be negative.")
+
+            prop = PopulationPropagator(self.t2s, self.KK)
+            self.Uee = prop.get_PropagationMatrix(self.t2s)
+            jumps = prop.get_JumpExpansion(self.t2s, max_order=0)
+
+            self.U1_t2 = jumps[0]
 
 
 ###############################################################################

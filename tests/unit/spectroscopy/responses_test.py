@@ -1,9 +1,11 @@
 import unittest
 from pathlib import Path
 
+import numpy
 import numpy.testing as npt
 
 import quantarhei as qr
+from quantarhei.spectroscopy.responses import NonLinearResponse
 from quantarhei.symbolic.cumulant import GFInitiator
 from quantarhei.utils.vectors import X
 
@@ -224,3 +226,29 @@ class TestResponses(unittest.TestCase):
         t2 = qr.TimeAxis(30, 10, 10.0)
 
         twod_calc = qr.TwoDResponseCalculator(t1, t2, t3)
+
+    def test_time_dependent_rate_matrix_setup(self):
+        """Testing response setup with time-dependent population rates"""
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 11, 1.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        response = NonLinearResponse(None, System(), "R1g", t1, t2, t3)
+
+        KK = numpy.zeros((t2.length, 2, 2), dtype=numpy.float64)
+        KK[:, 0, 1] = 0.001
+        KK[:, 1, 0] = 0.002
+        KK[:, 0, 0] = -KK[:, 1, 0]
+        KK[:, 1, 1] = -KK[:, 0, 1]
+
+        response.set_rate_matrix(KK)
+
+        self.assertEqual(response.Uee.shape, (2, 2, t2.length))
+        self.assertEqual(response.U1_t2.shape, (2, 2, t2.length))
+        npt.assert_allclose(response.U1_t2[:, :, 0], numpy.eye(2))
