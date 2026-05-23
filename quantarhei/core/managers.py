@@ -182,13 +182,6 @@ class Manager(metaclass=Singleton):
 
     def __init__(self) -> None:
 
-        try:
-            # this is numpy 1.14
-            numpy.set_printoptions(precision=8, sign=" ", legacy="1.13")
-        except TypeError:
-            # before there was no `sign` parameters
-            numpy.set_printoptions(precision=8)
-
         self.current_units: dict[str, str] = {}
 
         # main configuration file
