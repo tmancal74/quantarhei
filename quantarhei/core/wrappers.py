@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
@@ -8,13 +9,31 @@ from typing import Any
 from .managers import Manager
 
 
-def deprecated(func: Callable[..., Any]) -> Callable[..., Any]:
-    @wraps(func)
-    def wrapper(*arg: Any, **kwargs: Any) -> Any:
-        print("function ", func, " is deprecated")
-        return func(*arg, **kwargs)
+def deprecated(
+    func: Callable[..., Any] | None = None,
+    *,
+    alternative: str | None = None,
+) -> Callable[..., Any]:
+    def decorator(wrapped_func: Callable[..., Any]) -> Callable[..., Any]:
+        message = f"{wrapped_func.__qualname__} is deprecated"
+        if alternative is not None:
+            message = f"{message}; use {alternative} instead"
 
-    return wrapper
+        @wraps(wrapped_func)
+        def wrapper(*arg: Any, **kwargs: Any) -> Any:
+            warnings.warn(
+                message,
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return wrapped_func(*arg, **kwargs)
+
+        return wrapper
+
+    if func is None:
+        return decorator
+
+    return decorator(func)
 
 
 def prevent_basis_context(func: Callable[..., Any]) -> Callable[..., Any]:

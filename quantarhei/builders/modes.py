@@ -182,10 +182,10 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         >>> mol = qr.TestMolecule("two-levels-1-mode")
         >>> mod = mol.get_Mode(0)
 
-        This function is deprecated and it throws a warning text when it is run
+        This function is deprecated and it raises a deprecation warning when
+        it is run
 
-        >>> mod.set_frequency(1, 1.3) # doctest: +ELLIPSIS
-        function  <function Mode.set_frequency at ...>  is deprecated
+        >>> mod.set_frequency(1, 1.3)
 
         >>> mod.get_energy(1)
         1.3
@@ -349,10 +349,10 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
         >>> mod = mol.get_Mode(0)
         >>> mod.set_energy(1, 1.3)
 
-        This function is deprecated and it throws a warning text when it is run
+        This function is deprecated and it raises a deprecation warning when
+        it is run
 
-        >>> mod.get_frequency(1) # doctest: +ELLIPSIS
-        function  <function Mode.get_frequency at ...>  is deprecated
+        >>> mod.get_frequency(1)
         1.3
 
         """

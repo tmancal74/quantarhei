@@ -9,6 +9,7 @@ from ..core.dfunction import DFunction
 from ..core.managers import Manager, eigenbasis_of, energy_units
 from ..core.triangle import triangle
 from ..core.units import c_int, eps0_int, kB_intK
+from ..core.wrappers import deprecated
 from ..qm import ReducedDensityMatrix, SelfAdjointOperator
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.liouvillespace.heom import KTHierarchy, KTHierarchyPropagator
@@ -1065,13 +1066,17 @@ class OpenSystem:
 
         raise Exception("Rate matrix theory not implemented")
 
+    @deprecated(alternative="get_RateMatrix(relaxation_theory='Redfield')")
     def get_RedfieldRateMatrix(
         self,
         corr_mat: object = None,
         time_dependent: bool = False,
         relaxation_cutoff_time: float | None = None,
     ) -> object:
-        """Returns Redfield rate matrix"""
+        """Returns Redfield rate matrix.
+
+        Deprecated; use ``get_RateMatrix(relaxation_theory="Redfield")``.
+        """
         return self.get_RateMatrix(
             relaxation_theory="standard_Redfield",
             time_dependent=time_dependent,
@@ -1079,12 +1084,16 @@ class OpenSystem:
             corr_mat=corr_mat,
         )
 
+    @deprecated(alternative="get_RateMatrix(relaxation_theory='Foerster')")
     def get_FoersterRateMatrix(
         self,
         time_dependent: bool = False,
         relaxation_cutoff_time: float | None = None,
     ) -> object:
-        """Returns Förster rate matrix for the open system"""
+        """Returns Förster rate matrix for the open system.
+
+        Deprecated; use ``get_RateMatrix(relaxation_theory="Foerster")``.
+        """
         return self.get_RateMatrix(
             relaxation_theory="standard_Foerster",
             time_dependent=time_dependent,
