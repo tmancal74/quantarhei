@@ -4,6 +4,7 @@ import numpy
 
 from ... import COMPLEX
 from ...core.managers import eigenbasis_of, energy_units
+from ...core.wrappers import prevent_basis_context
 
 # import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
@@ -24,6 +25,7 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
     dim: int
     data: numpy.ndarray
 
+    @prevent_basis_context
     def __init__(
         self,
         ham: Hamiltonian,
@@ -71,13 +73,13 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         else:
             self._data_initialized = False
 
+    @prevent_basis_context
     def initialize(self) -> None:
 
         #
         # Tensor data
         #
         Na = self.dim
-        self.data = numpy.zeros((Na, Na, Na, Na), dtype=COMPLEX)
 
         with energy_units("int"):
             HH = self.Hamiltonian
@@ -96,6 +98,11 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
             )
 
             with eigenbasis_of(HH):
+                cb = self.manager.get_current_basis()
+                self.set_current_basis(cb)
+                self.manager.register_with_basis(cb, self)
+                self.data = numpy.zeros((Na, Na, Na, Na), dtype=COMPLEX)
+
                 #
                 # Transfer rates
                 #

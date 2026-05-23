@@ -6,11 +6,11 @@ import numpy
 
 from ... import COMPLEX, REAL
 from ...core.managers import eigenbasis_of, energy_units
-
-# from .rates.foersterrates import FoersterRateMatrix
 from ...core.time import TimeDependent
+from ...core.wrappers import prevent_basis_context
 
 # import scipy.interpolate as interp
+# from .rates.foersterrates import FoersterRateMatrix
 from ..hilbertspace.hamiltonian import Hamiltonian
 from ..liouvillespace.systembathinteraction import SystemBathInteraction
 from .relaxationtensor import RelaxationTensor
@@ -21,6 +21,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
 
     dim: int
 
+    @prevent_basis_context
     def __init__(
         self,
         ham: Hamiltonian,
@@ -65,6 +66,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
 
         self.is_time_dependent = True
 
+    @prevent_basis_context
     def initialize(self) -> None:
 
         tdep = True
@@ -93,8 +95,10 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
             self.data = numpy.zeros(
                 (timea.length, Na + 1, Na + 1, Na + 1, Na + 1), dtype=COMPLEX
             )
+            self.Iterm = numpy.zeros((timea.length, Na + 1, Na + 1), dtype=COMPLEX)
         else:
             self.data = numpy.zeros((Na + 1, Na + 1, Na + 1, Na + 1), dtype=COMPLEX)
+            self.Iterm = numpy.zeros((Na + 1, Na + 1), dtype=COMPLEX)
 
         with energy_units("int"):
             for ii in range(Na):
@@ -123,6 +127,10 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
             # Transfer rates
             #
             with eigenbasis_of(HH):
+                cb = self.manager.get_current_basis()
+                self.set_current_basis(cb)
+                self.manager.register_with_basis(cb, self)
+
                 for aa in range(self.dim):
                     for bb in range(self.dim):
                         self.Iterm[:, aa, bb] = Iterm[aa, bb, :]
