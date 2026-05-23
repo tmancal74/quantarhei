@@ -16,7 +16,11 @@ from ..qm.propagators.poppropagator import PopulationPropagator
 
 # deprecated class
 # This is how we calculate it now
-from ..spectroscopy.responses import LiouvillePathway, NonLinearResponse
+from ..spectroscopy.responses import (
+    LiouvillePathway,
+    NonLinearResponse,
+    get_single_exciton_rate_matrix,
+)
 from ..utils import derived_type
 from .twodresponse import TwoDResponse
 
@@ -54,6 +58,10 @@ class TwoDResponseCalculator:
         dynamics: str = "secular",
         relaxation_tensor: Any = None,
         rate_matrix: Any = None,
+        relaxation_theory: str | None = None,
+        rate_matrix_time_dependent: bool = False,
+        relaxation_cutoff_time: float | None = None,
+        rate_matrix_options: dict[str, Any] | None = None,
         effective_hamiltonian: Any = None,
     ) -> None:
 
@@ -85,9 +93,16 @@ class TwoDResponseCalculator:
 
         self._relaxation_tensor = None
         self._rate_matrix = None
+        self._response_rate_matrix = None
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
         self._has_rate_matrix = False
+        self.relaxation_theory = relaxation_theory
+        self.rate_matrix_time_dependent = rate_matrix_time_dependent
+        self.relaxation_cutoff_time = relaxation_cutoff_time
+        self.rate_matrix_options = (
+            {} if rate_matrix_options is None else rate_matrix_options
+        )
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -176,18 +191,22 @@ class TwoDResponseCalculator:
                 #
                 # Relaxation rates
                 #
-                if not self._has_rate_matrix:
-                    # FIXME: This is a quick fix to make a zero rate matrix
-                    class hlp:
-                        def __init__(self, N: int) -> None:
-                            self.data: numpy.ndarray = numpy.zeros((N, N), dtype=REAL)
-
-                    KK = hlp(Ns[1])
-                else:
+                if self._has_rate_matrix:
                     KK = self._rate_matrix
+                elif self.relaxation_theory is not None:
+                    KK = sys.get_RateMatrix(
+                        relaxation_theory=self.relaxation_theory,
+                        time_dependent=self.rate_matrix_time_dependent,
+                        relaxation_cutoff_time=self.relaxation_cutoff_time,
+                        **self.rate_matrix_options,
+                    )
+                else:
+                    # FIXME: This is a quick fix to make a zero rate matrix
+                    KK = numpy.zeros((Ns[1], Ns[1]), dtype=REAL)
 
                 # relaxation rate in single exciton band
-                Kr = KK.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
+                Kr = get_single_exciton_rate_matrix(sys, KK)  # *10.0
+                self._response_rate_matrix = Kr
                 # print(1.0/KK.data)
 
                 # FIXME: we need also 2 exciton rates
@@ -337,19 +356,44 @@ class TwoDResponseCalculator:
             # Calculating all responses from the system
             #
             self.resp_fcions = []
+            response_kwargs = dict(rate_matrix=self._response_rate_matrix)
 
             # basic pathways
             Nr1g = NonLinearResponse(
-                self.lab, self.system, "R1g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R1g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
             Nr2g = NonLinearResponse(
-                self.lab, self.system, "R2g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R2g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
             Nr3g = NonLinearResponse(
-                self.lab, self.system, "R3g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R3g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
             Nr4g = NonLinearResponse(
-                self.lab, self.system, "R4g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R4g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
 
             self.resp_fcions.append(Nr1g)
@@ -360,10 +404,22 @@ class TwoDResponseCalculator:
             if self.system.mult > 1:
                 # ESA (if mult > 1)
                 Nr1f = NonLinearResponse(
-                    self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis
+                    self.lab,
+                    self.system,
+                    "R1f",
+                    self.t1axis,
+                    self.t2axis,
+                    self.t3axis,
+                    **response_kwargs,
                 )
                 Nr2f = NonLinearResponse(
-                    self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis
+                    self.lab,
+                    self.system,
+                    "R2f",
+                    self.t1axis,
+                    self.t2axis,
+                    self.t3axis,
+                    **response_kwargs,
                 )
 
                 self.resp_fcions.append(Nr1f)
@@ -377,6 +433,7 @@ class TwoDResponseCalculator:
                 self.t1axis,
                 self.t2axis,
                 self.t3axis,
+                **response_kwargs,
             )
             Nr2g_scM0g = NonLinearResponse(
                 self.lab,
@@ -385,6 +442,7 @@ class TwoDResponseCalculator:
                 self.t1axis,
                 self.t2axis,
                 self.t3axis,
+                **response_kwargs,
             )
 
             KK = Nr1g_scM0g.KK
@@ -404,6 +462,7 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
                 Nr2f_scM0g = NonLinearResponse(
                     self.lab,
@@ -412,6 +471,7 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
                 Nr1f_scM0e = NonLinearResponse(
                     self.lab,
@@ -420,6 +480,7 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
                 Nr2f_scM0e = NonLinearResponse(
                     self.lab,
@@ -428,6 +489,7 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
 
                 self.resp_fcions.append(Nr1f_scM0g)

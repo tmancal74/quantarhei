@@ -227,4 +227,7 @@ class TestTwod(unittest.TestCase):
 
         t2 = qr.TimeAxis(30, 10, 10.0)
 
-        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3)
+        twod_calc = qr.TwoDResponseCalculator(
+            t1, t2, t3, relaxation_theory="standard_Foerster"
+        )
+        self.assertEqual(twod_calc.relaxation_theory, "standard_Foerster")

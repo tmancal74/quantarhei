@@ -26,6 +26,7 @@ from ..core.saveable import Saveable
 from ..core.time import TimeAxis
 from ..core.units import convert
 from ..qm.propagators.poppropagator import PopulationPropagator
+from ..spectroscopy.responses import get_single_exciton_rate_matrix
 from ..utils import derived_type
 
 try:
@@ -860,6 +861,10 @@ class TwoDSpectrumCalculator:
         dynamics: str = "secular",
         relaxation_tensor: Any = None,
         rate_matrix: Any = None,
+        relaxation_theory: str | None = None,
+        rate_matrix_time_dependent: bool = False,
+        relaxation_cutoff_time: float | None = None,
+        rate_matrix_options: dict[str, Any] | None = None,
         effective_hamiltonian: Any = None,
         twodtype: str = "2DES",
         gamma_factor: float | None = None,
@@ -894,6 +899,13 @@ class TwoDSpectrumCalculator:
         self._rate_matrix = None
         self._relaxation_hamiltonian = None
         self._has_relaxation_tensor = False
+        self._has_rate_matrix = False
+        self.relaxation_theory = relaxation_theory
+        self.rate_matrix_time_dependent = rate_matrix_time_dependent
+        self.relaxation_cutoff_time = relaxation_cutoff_time
+        self.rate_matrix_options = (
+            {} if rate_matrix_options is None else rate_matrix_options
+        )
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -993,10 +1005,22 @@ class TwoDSpectrumCalculator:
         #
         # Relaxation rates
         #
-        KK_any: Any = agg.get_RedfieldRateMatrix()
+        if self._has_rate_matrix:
+            KK_any = self._rate_matrix
+        else:
+            relaxation_theory = self.relaxation_theory
+            if relaxation_theory is None:
+                relaxation_theory = "standard_Redfield"
+
+            KK_any = agg.get_RateMatrix(
+                relaxation_theory=relaxation_theory,
+                time_dependent=self.rate_matrix_time_dependent,
+                relaxation_cutoff_time=self.relaxation_cutoff_time,
+                **self.rate_matrix_options,
+            )
 
         # relaxation rate in single exciton band
-        Kr = KK_any.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
+        Kr = get_single_exciton_rate_matrix(agg, KK_any)  # *10.0
         # print(1.0/Kr)
 
         self.sys.init_dephasing_rates()

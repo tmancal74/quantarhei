@@ -252,3 +252,59 @@ class TestResponses(unittest.TestCase):
         self.assertEqual(response.Uee.shape, (2, 2, t2.length))
         self.assertEqual(response.U1_t2.shape, (2, 2, t2.length))
         npt.assert_allclose(response.U1_t2[:, :, 0], numpy.eye(2))
+
+    def test_response_rate_matrix_relaxation_theory(self):
+        """Testing response setup from OpenSystem rate matrix theory names"""
+
+        class RateMatrix:
+            data = numpy.array(
+                [
+                    [0.0, 0.0, 0.0],
+                    [0.0, -0.002, 0.001],
+                    [0.0, 0.002, -0.001],
+                ],
+                dtype=numpy.float64,
+            )
+
+        class System:
+            Nb = [1, 2, 0]
+            Ntot = 3
+            mult = 1
+            requested_theory = None
+
+            def get_band(self, band):
+                if band == 1:
+                    return (1, 2)
+                return (0,)
+
+            def get_RateMatrix(
+                self,
+                relaxation_theory=None,
+                time_dependent=False,
+                relaxation_cutoff_time=None,
+            ):
+                self.requested_theory = relaxation_theory
+                self.requested_time_dependent = time_dependent
+                self.requested_cutoff_time = relaxation_cutoff_time
+                return RateMatrix()
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 11, 1.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+        system = System()
+
+        response = NonLinearResponse(
+            None,
+            system,
+            "R1g",
+            t1,
+            t2,
+            t3,
+            relaxation_theory="standard_Foerster",
+            relaxation_cutoff_time=100.0,
+        )
+
+        self.assertEqual(system.requested_theory, "standard_Foerster")
+        self.assertFalse(system.requested_time_dependent)
+        self.assertEqual(system.requested_cutoff_time, 100.0)
+        npt.assert_allclose(response.KK, RateMatrix.data[1:3, 1:3])

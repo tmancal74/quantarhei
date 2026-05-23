@@ -22,6 +22,36 @@ from .response_implementations import get_implementation
 """
 
 
+def _rate_matrix_data(rate_matrix: Any) -> numpy.ndarray:
+    """Returns numerical data from a rate matrix object or array."""
+    if hasattr(rate_matrix, "data"):
+        return numpy.asarray(rate_matrix.data)
+    return numpy.asarray(rate_matrix)
+
+
+def get_single_exciton_rate_matrix(system: Any, rate_matrix: Any) -> numpy.ndarray:
+    """Returns the single-exciton block of a rate matrix.
+
+    ``OpenSystem.get_RateMatrix`` returns rates indexed by the full Hamiltonian
+    basis. Response implementations, however, use single-exciton indices
+    shifted to start at zero. If a user already supplies a single-exciton rate
+    matrix, it is returned unchanged.
+    """
+    data = _rate_matrix_data(rate_matrix)
+
+    dim = system.Nb[1]
+    if data.shape[-2:] == (dim, dim):
+        return data
+
+    band1 = system.get_band(1)
+    if len(data.shape) == 2:
+        return data[numpy.ix_(band1, band1)]
+    if len(data.shape) == 3:
+        return data[:, band1, :][:, :, band1]
+
+    raise Exception("Rate matrix has to be an array of rank 2 or 3")
+
+
 class NonLinearResponse:
     """Non-linear response function for a specific Feynman diagram type.
 
@@ -42,7 +72,18 @@ class NonLinearResponse:
     """
 
     def __init__(
-        self, lab: Any, system: Any, diagram: str, t1s: Any, t2s: Any, t3s: Any
+        self,
+        lab: Any,
+        system: Any,
+        diagram: str,
+        t1s: Any,
+        t2s: Any,
+        t3s: Any,
+        rate_matrix: Any = None,
+        relaxation_theory: str | None = None,
+        rate_matrix_time_dependent: bool = False,
+        relaxation_cutoff_time: float | None = None,
+        rate_matrix_options: dict[str, Any] | None = None,
     ) -> None:
 
         # info about pulse polarizations
@@ -65,10 +106,20 @@ class NonLinearResponse:
         self.t2s = t2s
         self.t3s = t3s
 
-        # setting zero rates for the case they are not set from outside
-        KK = numpy.zeros(
-            (system.Nb[1] + system.Nb[0], system.Nb[1] + system.Nb[0]), dtype=REAL
-        )
+        if rate_matrix is not None:
+            KK = get_single_exciton_rate_matrix(system, rate_matrix)
+        elif relaxation_theory is not None:
+            options = {} if rate_matrix_options is None else rate_matrix_options
+            KK = system.get_RateMatrix(
+                relaxation_theory=relaxation_theory,
+                time_dependent=rate_matrix_time_dependent,
+                relaxation_cutoff_time=relaxation_cutoff_time,
+                **options,
+            )
+            KK = get_single_exciton_rate_matrix(system, KK)
+        else:
+            KK = numpy.zeros((system.Nb[1], system.Nb[1]), dtype=REAL)
+
         self.set_rate_matrix(KK)
 
     def calculate_matrix(self, t2: float) -> Any:
@@ -150,7 +201,12 @@ class NonLinearResponse:
         self.U0_t3 = numpy.zeros((dim, self.t3s.length), dtype=REAL)
 
         if dim != self.sys.Ntot:
-            if self.sys.mult == 2:
+            if dim == self.sys.Nb[1]:
+                if self.sys.mult == 2:
+                    self.U0fe_t3 = numpy.zeros(
+                        (self.sys.Nb[2], dim, self.t3s.length), dtype=REAL
+                    )
+            elif self.sys.mult == 2:
                 self.U0fe_t3 = numpy.zeros(
                     (self.sys.Nb[2], dim, self.t3s.length), dtype=REAL
                 )
