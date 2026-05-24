@@ -67,6 +67,8 @@ def R1g(
                 # ret += Ut1[a,:][:,None]*Ut3[a,:][None,:]*\
                 ret += (
                     dfac[b, a]
+                    * Ut1[a, :][:, None]
+                    * Ut3[a, :][None, :]
                     * Ut2[a]
                     * Ut2[b]
                     * np.exp(
@@ -151,6 +153,8 @@ def R2g(
                 # ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                 ret += (
                     dfac[b, a]
+                    * Ut1[a, :][:, None]
+                    * Ut3[b, :][None, :]
                     * Ut2[a]
                     * Ut2[b]
                     * np.exp(
@@ -234,18 +238,31 @@ def R3g(
                 b = bb - 1
 
                 # ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
-                ret += dfac[b, a] * np.exp(
-                    -(np.einsum("i,ij", MM[b, b, :], gg[:, "t3"]))[None, :]
-                    + np.conj((np.einsum("i,i", MM[b, a, :], gg[:, "t2"]))[None, None])
-                    - np.conj((np.einsum("i,ij", MM[a, a, :], gg[:, "t1"]))[:, None])
-                    - np.conj((np.einsum("i,ij", MM[a, b, :], gg[:, "t1+t2"]))[:, None])
-                    - np.conj((np.einsum("i,ij", MM[b, a, :], gg[:, "t2+t3"]))[None, :])
-                    + np.conj(
-                        (np.einsum("i,ijk", MM[a, b, :], gg[:, "t1+t2+t3"]))[:, :]
+                ret += (
+                    dfac[b, a]
+                    * Ut1[a, :][:, None]
+                    * Ut3[b, :][None, :]
+                    * np.exp(
+                        -(np.einsum("i,ij", MM[b, b, :], gg[:, "t3"]))[None, :]
+                        + np.conj(
+                            (np.einsum("i,i", MM[b, a, :], gg[:, "t2"]))[None, None]
+                        )
+                        - np.conj(
+                            (np.einsum("i,ij", MM[a, a, :], gg[:, "t1"]))[:, None]
+                        )
+                        - np.conj(
+                            (np.einsum("i,ij", MM[a, b, :], gg[:, "t1+t2"]))[:, None]
+                        )
+                        - np.conj(
+                            (np.einsum("i,ij", MM[b, a, :], gg[:, "t2+t3"]))[None, :]
+                        )
+                        + np.conj(
+                            (np.einsum("i,ijk", MM[a, b, :], gg[:, "t1+t2+t3"]))[:, :]
+                        )
+                        - 1j * (En[g] - En[aa] + rwa) * t1[:, None]
+                        - 1j * (En[g] - En[g]) * t2
+                        - 1j * (En[bb] - En[g] - rwa) * t3[None, :]
                     )
-                    - 1j * (En[g] - En[aa] + rwa) * t1[:, None]
-                    - 1j * (En[g] - En[g]) * t2
-                    - 1j * (En[bb] - En[g] - rwa) * t3[None, :]
                 )
 
     return np.transpose(ret)
@@ -308,16 +325,21 @@ def R4g(
                 b = bb - 1
 
                 # ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
-                ret += dfac[b, a] * np.exp(
-                    -(np.einsum("i,i", MM[b, a, :], gg[:, "t2"]))[None, None]
-                    - (np.einsum("i,ij", MM[a, a, :], gg[:, "t1"]))[:, None]
-                    + (np.einsum("i,ij", MM[b, a, :], gg[:, "t1+t2"]))[:, None]
-                    + (np.einsum("i,ij", MM[b, a, :], gg[:, "t2+t3"]))[None, :]
-                    - (np.einsum("i,ij", MM[b, b, :], gg[:, "t3"]))[None, :]
-                    - (np.einsum("i,ijk", MM[b, a, :], gg[:, "t1+t2+t3"]))[:, :]
-                    - 1j * (En[aa] - En[g] - rwa) * t1[:, None]
-                    - 1j * (En[g] - En[g]) * t2[None, None]
-                    - 1j * (En[bb] - En[g] - rwa) * t3[None, :]
+                ret += (
+                    dfac[b, a]
+                    * Ut1[a, :][:, None]
+                    * Ut3[b, :][None, :]
+                    * np.exp(
+                        -(np.einsum("i,i", MM[b, a, :], gg[:, "t2"]))[None, None]
+                        - (np.einsum("i,ij", MM[a, a, :], gg[:, "t1"]))[:, None]
+                        + (np.einsum("i,ij", MM[b, a, :], gg[:, "t1+t2"]))[:, None]
+                        + (np.einsum("i,ij", MM[b, a, :], gg[:, "t2+t3"]))[None, :]
+                        - (np.einsum("i,ij", MM[b, b, :], gg[:, "t3"]))[None, :]
+                        - (np.einsum("i,ijk", MM[b, a, :], gg[:, "t1+t2+t3"]))[:, :]
+                        - 1j * (En[aa] - En[g] - rwa) * t1[:, None]
+                        - 1j * (En[g] - En[g]) * t2[None, None]
+                        - 1j * (En[bb] - En[g] - rwa) * t3[None, :]
+                    )
                 )
 
     return np.transpose(ret)
@@ -391,6 +413,8 @@ def R1f(
                     ret += (
                         -1.0
                         * dfac[f, b, a]
+                        * Ut1[a, :][:, None]
+                        * Ut3[b, :][None, :]
                         * Ut2[a]
                         * Ut2[b]
                         * np.exp(
@@ -492,6 +516,8 @@ def R1f_wrong(
                     ret += (
                         -1.0
                         * dfac[f, b, a]
+                        * Ut1[a, :][:, None]
+                        * Ut3[b, :][None, :]
                         * Ut2[a]
                         * Ut2[b]
                         * np.exp(
@@ -594,6 +620,8 @@ def R2f(
                     ret += (
                         -1.0
                         * dfac[f, b, a]
+                        * Ut1[a, :][:, None]
+                        * Ut3[a, :][None, :]
                         * Ut2[a]
                         * Ut2[b]
                         * np.exp(
@@ -706,6 +734,8 @@ def R2f_wrong(
                     ret += (
                         -1.0
                         * dfac[f, b, a]
+                        * Ut1[a, :][:, None]
+                        * Ut3[a, :][None, :]
                         * Ut2[a]
                         * Ut2[b]
                         * np.exp(
@@ -810,6 +840,8 @@ def R1g_scM0g(
                     # ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                     ret += (
                         dfac[b, a]
+                        * Ut1[a, :][:, None]
+                        * Ut3[b, :][None, :]
                         * Ut2[b, a]
                         * np.exp(
                             -(np.einsum("i,ij", MM[a, a, :], gg[:, "t1"]))[:, None]
@@ -883,6 +915,8 @@ def R2g_scM0g(
                     # ret += Ut1[a,:][:,None]*Ut3[b,:][None,:]*\
                     ret += (
                         dfac[b, a]
+                        * Ut1[a, :][:, None]
+                        * Ut3[b, :][None, :]
                         * Ut2[b, a]
                         * np.exp(
                             -np.conj(
@@ -966,6 +1000,8 @@ def R1f_scM0g(
                         ret += (
                             (-1.0)
                             * dfac[f, a, b]
+                            * Ut1[a, :][:, None]
+                            * Ut3[b, :][None, :]
                             * Ut2[b, a]
                             * np.exp(
                                 -(np.einsum("i,ij", MM[a, a, :], gg[:, "t1"]))[:, None]
@@ -1057,6 +1093,8 @@ def R2f_scM0g(
                         ret += (
                             (-1.0)
                             * dfac[f, a, b]
+                            * Ut1[a, :][:, None]
+                            * Ut3[b, :][None, :]
                             * Ut2[b, a]
                             * np.exp(
                                 -np.conj(
@@ -1157,6 +1195,8 @@ def R1f_scM0e(
                         ret += (
                             (-1.0)
                             * dfac[f, a, b]
+                            * Ut1[a, :][:, None]
+                            * Ut3[b, :][None, :]
                             * Ut2[b, a]
                             * np.exp(
                                 -(np.einsum("i,ij", MM[a, a, :], gg[:, "t1"]))[:, None]
@@ -1251,6 +1291,8 @@ def R2f_scM0e(
                         ret += (
                             (-1.0)
                             * dfac[f, a, b]
+                            * Ut1[a, :][:, None]
+                            * Ut3[b, :][None, :]
                             * Ut2[b, a]
                             * np.exp(
                                 -np.conj(

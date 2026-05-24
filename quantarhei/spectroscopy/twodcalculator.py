@@ -5,42 +5,25 @@ from typing import Any, Literal
 
 import numpy
 
-from .. import REAL, signal_NONR, signal_REPH
+from .. import signal_NONR, signal_REPH
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..builders.opensystem import OpenSystem
 from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..implementations.aceto.lab_settings import lab_settings
-from ..qm.propagators.poppropagator import PopulationPropagator
 
 # deprecated class
 # This is how we calculate it now
 from ..spectroscopy.responses import (
     LiouvillePathway,
     NonLinearResponse,
+    get_common_time_axis,
     get_single_exciton_rate_matrix,
+    validate_2d_time_axes,
 )
 from ..utils import derived_type
 from .twodresponse import TwoDResponse
-
-
-def _ensure_time_independent_rates(
-    rate_matrix: Any = None, rate_matrix_time_dependent: bool = False
-) -> None:
-    if rate_matrix_time_dependent:
-        raise NotImplementedError(
-            "Time-dependent rate matrices are not implemented in 2D spectrum "
-            "calculations yet."
-        )
-
-    if rate_matrix is not None:
-        data = rate_matrix.data if hasattr(rate_matrix, "data") else rate_matrix
-        if len(numpy.asarray(data).shape) == 3:
-            raise NotImplementedError(
-                "Time-dependent rate matrices are not implemented in 2D spectrum "
-                "calculations yet."
-            )
 
 
 def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:
@@ -144,7 +127,6 @@ class TwoDResponseCalculator:
         population_factors: Any = None,
     ) -> None:
 
-        _ensure_time_independent_rates(rate_matrix, rate_matrix_time_dependent)
         twodtype = _normalize_twodtype(twodtype)
         if twodtype == "F-2DES":
             if gamma_factor is None and population_factors is None:
@@ -188,6 +170,7 @@ class TwoDResponseCalculator:
         self._rate_matrix = None
         self._response_rate_matrix = None
         self._relaxation_hamiltonian = None
+        self._population_time_axis = None
         self._has_relaxation_tensor = False
         self._has_rate_matrix = False
         self.relaxation_theory = relaxation_theory
@@ -303,6 +286,15 @@ class TwoDResponseCalculator:
                 #
                 # Relaxation rates
                 #
+                relaxation_requested = (
+                    self._has_rate_matrix or self.relaxation_theory is not None
+                )
+                if relaxation_requested:
+                    validate_2d_time_axes(self.t1axis, self.t2axis, self.t3axis)
+                    self._population_time_axis = get_common_time_axis(
+                        self.t1axis, self.t2axis, self.t3axis
+                    )
+
                 if self._has_rate_matrix:
                     KK = self._rate_matrix
                 elif self.relaxation_theory is not None:
@@ -313,12 +305,15 @@ class TwoDResponseCalculator:
                         **self.rate_matrix_options,
                     )
                 else:
-                    # FIXME: This is a quick fix to make a zero rate matrix
-                    KK = numpy.zeros((Ns[1], Ns[1]), dtype=REAL)
+                    KK = None
 
                 # relaxation rate in single exciton band
-                Kr = get_single_exciton_rate_matrix(sys, KK)  # *10.0
-                self._response_rate_matrix = Kr
+                if KK is None:
+                    Kr = None
+                    self._response_rate_matrix = None
+                else:
+                    Kr = get_single_exciton_rate_matrix(sys, KK)  # *10.0
+                    self._response_rate_matrix = Kr
                 # print(1.0/KK.data)
 
                 # FIXME: we need also 2 exciton rates
@@ -334,19 +329,6 @@ class TwoDResponseCalculator:
                 #
                 #  This section will also be removed - It goes to the new Response class
                 #
-
-                #
-                # Finding population evolution matrix
-                #
-                prop = PopulationPropagator(self.t2axis, Kr)
-                self.Uee = prop.get_PropagationMatrix(self.t2axis)
-                jumps = prop.get_JumpExpansion(self.t2axis, max_order=3)
-
-                # FIXME: Order of transfer is set by hand here
-                # - needs to be moved to some reasonable place
-
-                # Ucor = Uee
-                self.Uc0 = jumps[0]
 
             ###############################################################################
 
@@ -469,7 +451,10 @@ class TwoDResponseCalculator:
             # Calculating all responses from the system
             #
             self.resp_fcions = []
-            response_kwargs = dict(rate_matrix=self._response_rate_matrix)
+            response_kwargs = dict(
+                rate_matrix=self._response_rate_matrix,
+                population_time_axis=self._population_time_axis,
+            )
 
             # basic pathways
             Nr1g = NonLinearResponse(

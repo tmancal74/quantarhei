@@ -6,6 +6,7 @@ import numpy
 
 from .. import REAL, signal_NONR, signal_REPH
 from ..core.managers import Manager
+from ..core.time import TimeAxis
 from ..qm.propagators.poppropagator import PopulationPropagator
 from .response_implementations import get_implementation
 
@@ -161,6 +162,39 @@ def get_single_exciton_rate_matrix(system: Any, rate_matrix: Any) -> numpy.ndarr
     raise Exception("Rate matrix has to be an array of rank 2 or 3")
 
 
+def get_common_time_axis(*axes: Any) -> Any:
+    """Returns a common zero-start TimeAxis covering all submitted axes."""
+    dt = min(axis.step for axis in axes)
+    tmax = max(axis.max for axis in axes)
+    length = int(numpy.rint(tmax / dt)) + 1
+    return TimeAxis(0.0, length, dt)
+
+
+def validate_2d_time_axes(t1s: Any, t2s: Any, t3s: Any) -> None:
+    """Validates 2D time axes for relaxation-enabled calculations."""
+    if not numpy.isclose(t1s.step, t3s.step):
+        raise Exception("t1 and t3 axes must have the same time step")
+
+    nstep = numpy.rint(t2s.step / t1s.step)
+    if not numpy.isclose(nstep * t1s.step, t2s.step):
+        raise Exception("t2 time step must be a multiple of t1/t3 time step")
+
+
+def _axis_indices(axis: Any, base_axis: Any) -> numpy.ndarray:
+    """Returns integer indices of ``axis`` values on ``base_axis``."""
+    if not axis.is_subset_of(base_axis):
+        raise Exception("TimeAxis is not a subset of the population time axis")
+
+    indices = numpy.rint((axis.data - base_axis.start) / base_axis.step).astype(
+        numpy.int64
+    )
+    times = base_axis.start + indices * base_axis.step
+    if not numpy.allclose(times, axis.data):
+        raise Exception("TimeAxis is not a subset of the population time axis")
+
+    return indices
+
+
 class NonLinearResponse:
     """Non-linear response function for a specific Feynman diagram type.
 
@@ -193,6 +227,7 @@ class NonLinearResponse:
         rate_matrix_time_dependent: bool = False,
         relaxation_cutoff_time: float | None = None,
         rate_matrix_options: dict[str, Any] | None = None,
+        population_time_axis: Any = None,
     ) -> None:
 
         # info about pulse polarizations
@@ -216,6 +251,7 @@ class NonLinearResponse:
         self.t1s = t1s
         self.t2s = t2s
         self.t3s = t3s
+        self.population_time_axis = population_time_axis
 
         if rate_matrix is not None:
             KK = get_single_exciton_rate_matrix(system, rate_matrix)
@@ -229,9 +265,12 @@ class NonLinearResponse:
             )
             KK = get_single_exciton_rate_matrix(system, KK)
         else:
-            KK = numpy.zeros((system.Nb[1], system.Nb[1]), dtype=REAL)
+            KK = None
 
-        self.set_rate_matrix(KK)
+        if KK is None:
+            self._set_identity_dynamics(system.Nb[1])
+        else:
+            self.set_rate_matrix(KK, population_time_axis=population_time_axis)
 
     def calculate_matrix(self, t2: float) -> Any:
         """Calculate the matrix of response values over t1 and t3 times.
@@ -255,7 +294,7 @@ class NonLinearResponse:
         U0t2 = self.U0_t2[:, t2i]
 
         # here we specify evolution matrices
-        evol = (self.U0_t1, self.U0_t3, U0t2, self.Uee[:, :, t2i])
+        evol = (self.U0_t1, self.U0_t3, U0t2, self.Uremainder_t2[:, :, t2i])
 
         return self.func(
             t2,
@@ -271,7 +310,31 @@ class NonLinearResponse:
         """Sets rotating wave approximation frequency"""
         pass  # rwa is set through the system class, at least for now
 
-    def set_rate_matrix(self, KK: numpy.ndarray) -> None:
+    def _set_identity_dynamics(self, dim: int) -> None:
+        """Sets relaxation-free population and coherence dynamics."""
+        self.KK = numpy.zeros((dim, dim), dtype=REAL)
+        self.U0_t1 = numpy.ones((dim, self.t1s.length), dtype=REAL)
+        self.U0_t2 = numpy.ones((dim, self.t2s.length), dtype=REAL)
+        self.U0_t3 = numpy.ones((dim, self.t3s.length), dtype=REAL)
+
+        self.Uee = numpy.zeros((dim, dim, self.t2s.length), dtype=REAL)
+        for ii in range(self.t2s.length):
+            self.Uee[:, :, ii] = numpy.eye(dim, dtype=REAL)
+        self.U1_t2 = self.Uee.copy()
+        self.Ujump_t2 = (self.U1_t2,)
+        self.Uremainder_t2 = self._get_remainder_propagator(self.Ujump_t2)
+        self.Utransfer_t2 = self.Uremainder_t2
+
+    def _get_remainder_propagator(self, jumps: tuple) -> numpy.ndarray:
+        """Returns propagation not covered by explicit jump contributions."""
+        jump_sum = numpy.zeros_like(self.Uee)
+        for jump in jumps:
+            jump_sum += jump
+        return self.Uee - jump_sum
+
+    def set_rate_matrix(
+        self, KK: numpy.ndarray, population_time_axis: Any = None
+    ) -> None:
         """Set the rate matrix and pre-compute the evolution coefficients.
 
         Parameters
@@ -288,6 +351,18 @@ class NonLinearResponse:
             positive.
         """
         KK = numpy.asarray(KK)
+        if population_time_axis is None:
+            population_time_axis = self.population_time_axis
+        if population_time_axis is None:
+            population_time_axis = get_common_time_axis(self.t1s, self.t2s, self.t3s)
+        self.population_time_axis = population_time_axis
+
+        if not self.t1s.is_subset_of(population_time_axis):
+            raise Exception("t1 TimeAxis is not compatible with population dynamics")
+        if not self.t2s.is_subset_of(population_time_axis):
+            raise Exception("t2 TimeAxis is not compatible with population dynamics")
+        if not self.t3s.is_subset_of(population_time_axis):
+            raise Exception("t3 TimeAxis is not compatible with population dynamics")
 
         if len(KK.shape) == 2:
             dim = KK.shape[0]
@@ -297,10 +372,10 @@ class NonLinearResponse:
             dim = KK.shape[1]
             if KK.shape[1] != KK.shape[2]:
                 raise Exception("Square matrix must be submitted")
-            if KK.shape[0] != self.t2s.length:
+            if KK.shape[0] != population_time_axis.length:
                 raise Exception(
                     "Time-dependent rate matrix has to have the same length "
-                    "as the t2 TimeAxis"
+                    "as the population TimeAxis"
                 )
         else:
             raise Exception("Rate matrix has to be an array of rank 2 or 3")
@@ -310,6 +385,10 @@ class NonLinearResponse:
         self.U0_t2 = numpy.zeros((dim, self.t2s.length), dtype=REAL)
         self.U0_t1 = numpy.zeros((dim, self.t1s.length), dtype=REAL)
         self.U0_t3 = numpy.zeros((dim, self.t3s.length), dtype=REAL)
+
+        it1 = _axis_indices(self.t1s, population_time_axis)
+        it2 = _axis_indices(self.t2s, population_time_axis)
+        it3 = _axis_indices(self.t3s, population_time_axis)
 
         if dim != self.sys.Ntot:
             if dim == self.sys.Nb[1]:
@@ -331,9 +410,10 @@ class NonLinearResponse:
             #
             for aa in range(KK.shape[0]):
                 if KK[aa, aa] <= 0.0:
-                    self.U0_t2[aa, :] = numpy.exp(0.5 * KK[aa, aa] * self.t2s.data)
-                    self.U0_t1[aa, :] = 1.0  # numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
-                    self.U0_t3[aa, :] = 1.0  # numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
+                    amplitude = numpy.exp(0.5 * KK[aa, aa] * population_time_axis.data)
+                    self.U0_t1[aa, :] = amplitude[it1]
+                    self.U0_t2[aa, :] = amplitude[it2]
+                    self.U0_t3[aa, :] = amplitude[it3]
                 else:
                     raise Exception("Depopulation rate must be negative.")
 
@@ -346,35 +426,45 @@ class NonLinearResponse:
             #
 
             # FIXME: Make sure it works with all t2s
-            prop = PopulationPropagator(self.t2s, self.KK)
+            prop = PopulationPropagator(population_time_axis, self.KK)
 
             self.Uee = prop.get_PropagationMatrix(self.t2s)
             jumps = prop.get_JumpExpansion(self.t2s, max_order=0)
 
             self.U1_t2 = jumps[0]
+            self.Ujump_t2 = jumps
+            self.Uremainder_t2 = self._get_remainder_propagator(jumps)
+            self.Utransfer_t2 = self.Uremainder_t2
 
         if len(KK.shape) == 3:
             # time dependent rate matrix
             for aa in range(dim):
                 if numpy.all(KK[:, aa, aa] <= 0.0):
-                    cumulative = numpy.zeros(self.t2s.length, dtype=REAL)
-                    for ii in range(self.t2s.length - 1):
-                        dt = self.t2s.data[ii + 1] - self.t2s.data[ii]
+                    cumulative = numpy.zeros(population_time_axis.length, dtype=REAL)
+                    for ii in range(population_time_axis.length - 1):
+                        dt = (
+                            population_time_axis.data[ii + 1]
+                            - population_time_axis.data[ii]
+                        )
                         cumulative[ii + 1] = (
                             cumulative[ii]
                             + 0.25 * (KK[ii, aa, aa] + KK[ii + 1, aa, aa]) * dt
                         )
-                    self.U0_t2[aa, :] = numpy.exp(cumulative)
-                    self.U0_t1[aa, :] = 1.0
-                    self.U0_t3[aa, :] = 1.0
+                    amplitude = numpy.exp(cumulative)
+                    self.U0_t1[aa, :] = amplitude[it1]
+                    self.U0_t2[aa, :] = amplitude[it2]
+                    self.U0_t3[aa, :] = amplitude[it3]
                 else:
                     raise Exception("Depopulation rate must be negative.")
 
-            prop = PopulationPropagator(self.t2s, self.KK)
+            prop = PopulationPropagator(population_time_axis, self.KK)
             self.Uee = prop.get_PropagationMatrix(self.t2s)
             jumps = prop.get_JumpExpansion(self.t2s, max_order=0)
 
             self.U1_t2 = jumps[0]
+            self.Ujump_t2 = jumps
+            self.Uremainder_t2 = self._get_remainder_propagator(jumps)
+            self.Utransfer_t2 = self.Uremainder_t2
 
 
 ###############################################################################

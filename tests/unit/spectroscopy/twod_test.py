@@ -232,22 +232,21 @@ class TestTwod(unittest.TestCase):
         )
         self.assertEqual(twod_calc.relaxation_theory, "standard_Foerster")
 
-    def test_TwoDResponseCalculator_rejects_time_dependent_rates(self):
-        """Testing that 2D spectra reject time-dependent rate matrices"""
+    def test_TwoDResponseCalculator_accepts_time_dependent_rates(self):
+        """Testing that 2D spectra accept time-dependent rate matrices"""
         t1 = qr.TimeAxis(0.0, 1000, 1.0)
         t3 = qr.TimeAxis(0.0, 1000, 1.0)
         t2 = qr.TimeAxis(30, 10, 10.0)
 
-        with self.assertRaises(NotImplementedError) as context:
-            qr.TwoDResponseCalculator(
-                t1,
-                t2,
-                t3,
-                relaxation_theory="standard_Redfield",
-                rate_matrix_time_dependent=True,
-            )
+        twod_calc = qr.TwoDResponseCalculator(
+            t1,
+            t2,
+            t3,
+            relaxation_theory="standard_Redfield",
+            rate_matrix_time_dependent=True,
+        )
 
-        self.assertIn("Time-dependent rate matrices", str(context.exception))
+        self.assertTrue(twod_calc.rate_matrix_time_dependent)
 
     def test_TwoDResponseCalculator_F2DES_options(self):
         """Testing F-2DES option validation"""
@@ -274,7 +273,6 @@ class TestTwod(unittest.TestCase):
         self.assertIn("state-resolved ESA", str(context.exception))
 
         rate_matrix = numpy.zeros((t2.length, 2, 2), dtype=numpy.float64)
-        with self.assertRaises(NotImplementedError) as context:
-            qr.TwoDResponseCalculator(t1, t2, t3, rate_matrix=rate_matrix)
+        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3, rate_matrix=rate_matrix)
 
-        self.assertIn("Time-dependent rate matrices", str(context.exception))
+        self.assertEqual(twod_calc._rate_matrix.shape, rate_matrix.shape)

@@ -230,8 +230,8 @@ class ValueAxis(Saveable):
     def is_equal_to(self, axis: ValueAxis) -> bool:
         """Returns True if the axis is equal to this ValueAxis"""
         return (
-            (self.start == axis.start)
-            and (self.step == axis.step)
+            numpy.isclose(self.start, axis.start)
+            and numpy.isclose(self.step, axis.step)
             and (self.length == axis.length)
         )
 
@@ -241,29 +241,23 @@ class ValueAxis(Saveable):
     def is_extension_of(self, axis: ValueAxis) -> bool:
         """Returns True if the axis is contained in this ValueAxis"""
         ret = True
-        ret = ret and (self.start <= axis.start)
-        ret = ret and (self.step == axis.step)
-        ret = ret and (self.max >= axis.max)
+        ret = ret and (
+            self.start <= axis.start or numpy.isclose(self.start, axis.start)
+        )
+        ret = ret and numpy.isclose(self.step, axis.step)
+        ret = ret and (self.max >= axis.max or numpy.isclose(self.max, axis.max))
 
-        found_one_point = False
-        N = self.length
-        k = 0
-        while (not found_one_point) and (k < N):
-            point = self.data[k]
-            if point in axis.data:
-                found_one_point = True
-            k += 1
-
-        ret = ret and found_one_point
+        offsets = (axis.data - self.start) / self.step
+        ret = ret and numpy.any(numpy.isclose(offsets, numpy.rint(offsets)))
 
         return ret
 
     def is_subsection_of(self, axis: ValueAxis) -> bool:
         """Returns True if the axis contains this ValueAxis"""
         ret = True
-        ret = ret and (self.start in axis.data)
-        ret = ret and (self.step == axis.step)
-        ret = ret and (self.max in axis.data)
+        ret = ret and numpy.isclose(self.step, axis.step)
+        ret = ret and _axis_value_is_in_axis(self.start, axis)
+        ret = ret and _axis_value_is_in_axis(self.max, axis)
 
         return ret
 
@@ -309,9 +303,10 @@ class ValueAxis(Saveable):
         ret = True
 
         Nst = round(self.step / axis.step)
-        ret = ret and (Nst * axis.step == self.step)
-        ret = ret and ((self.start in axis.data) and (self.start < axis.max))
-        ret = ret and (self.max in axis.data)
+        ret = ret and numpy.isclose(Nst * axis.step, self.step)
+        ret = ret and _axis_value_is_in_axis(self.start, axis)
+        ret = ret and (self.start < axis.max or numpy.isclose(self.start, axis.max))
+        ret = ret and _axis_value_is_in_axis(self.max, axis)
 
         return ret
 
@@ -357,9 +352,10 @@ class ValueAxis(Saveable):
         ret = True
 
         Nst = round(axis.step / self.step)
-        ret = ret and (Nst * self.step == axis.step)
-        ret = ret and ((axis.start in self.data) and (axis.start < self.max))
-        ret = ret and (axis.max in self.data)
+        ret = ret and numpy.isclose(Nst * self.step, axis.step)
+        ret = ret and _axis_value_is_in_axis(axis.start, self)
+        ret = ret and (axis.start < self.max or numpy.isclose(axis.start, self.max))
+        ret = ret and _axis_value_is_in_axis(axis.max, self)
 
         return ret
 
@@ -372,3 +368,14 @@ class ValueAxis(Saveable):
         out += "\nstep = " + str(self.step)
 
         return out
+
+
+def _axis_value_is_in_axis(value: float, axis: ValueAxis) -> bool:
+    """Returns True when ``value`` lies on an axis grid point."""
+    if value < axis.min and not numpy.isclose(value, axis.min):
+        return False
+    if value > axis.max and not numpy.isclose(value, axis.max):
+        return False
+
+    nstep = round((value - axis.start) / axis.step)
+    return numpy.isclose(axis.start + nstep * axis.step, value)

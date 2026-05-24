@@ -274,6 +274,35 @@ class TestResponses(unittest.TestCase):
         self.assertEqual(response.Uee.shape, (2, 2, t2.length))
         self.assertEqual(response.U1_t2.shape, (2, 2, t2.length))
         npt.assert_allclose(response.U1_t2[:, :, 0], numpy.eye(2))
+        npt.assert_allclose(response.Uremainder_t2, response.Uee - response.U1_t2)
+        npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
+
+    def test_zero_jump_dephasing_factors(self):
+        """Testing half-rate damping factors on all response time axes"""
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        response = NonLinearResponse(None, System(), "R1g", t1, t2, t3)
+
+        KK = numpy.zeros((2, 2), dtype=numpy.float64)
+        KK[0, 0] = -0.002
+        KK[1, 1] = -0.004
+
+        response.set_rate_matrix(KK)
+
+        npt.assert_allclose(response.U0_t1[0], numpy.exp(0.5 * KK[0, 0] * t1.data))
+        npt.assert_allclose(response.U0_t2[1], numpy.exp(0.5 * KK[1, 1] * t2.data))
+        npt.assert_allclose(response.U0_t3[0], numpy.exp(0.5 * KK[0, 0] * t3.data))
+        npt.assert_allclose(response.U1_t2[0, 0], numpy.exp(KK[0, 0] * t2.data))
+        npt.assert_allclose(response.Uremainder_t2, response.Uee - response.U1_t2)
+        npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
 
     def test_response_rate_matrix_relaxation_theory(self):
         """Testing response setup from OpenSystem rate matrix theory names"""
