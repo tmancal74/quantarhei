@@ -125,6 +125,7 @@ class TwoDResponseCalculator:
         twodtype: str = "2DES",
         gamma_factor: float | None = None,
         population_factors: Any = None,
+        jump_order: int = 0,
     ) -> None:
 
         twodtype = _normalize_twodtype(twodtype)
@@ -137,12 +138,16 @@ class TwoDResponseCalculator:
                     "ESA responses and is not implemented yet."
                 )
 
+        if jump_order not in (0, 1):
+            raise ValueError("2D response jump_order has to be 0 or 1")
+
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
         self.twodtype = twodtype
         self.gamma_factor = gamma_factor
         self.population_factors = population_factors
+        self.jump_order = jump_order
 
         # FIXME: check the compatibility of the axes
 
@@ -325,6 +330,7 @@ class TwoDResponseCalculator:
                 sbi = sys.get_SystemBathInteraction()
                 cfm = sbi.CC
                 cfm.create_double_integral()
+                sys.get_lineshape_functions(self.jump_order)
 
                 #
                 #  This section will also be removed - It goes to the new Response class
@@ -551,6 +557,29 @@ class TwoDResponseCalculator:
                 # print("Including relaxation")
                 self.resp_fcions.append(Nr1g_scM0g)
                 self.resp_fcions.append(Nr2g_scM0g)
+                if Nr1g_scM0g._uses_single_jump_storage():
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R1g_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R2g_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
 
             if self.system.mult > 1:
                 Nr1f_scM0g = NonLinearResponse(
@@ -594,6 +623,51 @@ class TwoDResponseCalculator:
                 self.resp_fcions.append(Nr2f_scM0g)
                 self.resp_fcions.append(Nr1f_scM0e)
                 self.resp_fcions.append(Nr2f_scM0e)
+                if Nr1f_scM0g._uses_single_jump_storage():
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R1f_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R2f_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R1f_scM1e",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R2f_scM1e",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
 
             self._has_responses = True
 

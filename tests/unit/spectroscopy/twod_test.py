@@ -276,3 +276,15 @@ class TestTwod(unittest.TestCase):
         twod_calc = qr.TwoDResponseCalculator(t1, t2, t3, rate_matrix=rate_matrix)
 
         self.assertEqual(twod_calc._rate_matrix.shape, rate_matrix.shape)
+
+    def test_TwoDResponseCalculator_jump_order_option(self):
+        """Testing 2D response jump-order option validation"""
+        t1 = qr.TimeAxis(0.0, 1000, 1.0)
+        t3 = qr.TimeAxis(0.0, 1000, 1.0)
+        t2 = qr.TimeAxis(30, 10, 10.0)
+
+        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3, jump_order=1)
+        self.assertEqual(twod_calc.jump_order, 1)
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_order=2)

@@ -86,7 +86,6 @@ def _generate_time_argument_labels(response_times: dict[str, Any]) -> list[str]:
                 replacement_groups.append(variants)
 
             generated: list[list[tuple[int, str]]] = [[]]
-            # generated = [[]]
             for variants in replacement_groups:
                 generated = [
                     base + variant for base in generated for variant in variants
@@ -100,6 +99,18 @@ def _generate_time_argument_labels(response_times: dict[str, Any]) -> list[str]:
         if label not in unique_labels:
             unique_labels.append(label)
     return unique_labels
+
+
+def _default_storage_config(one_jump: bool = False) -> dict[str, Any]:
+    """Return the standard third-order response storage configuration."""
+    t2_integral = {"s2"} if one_jump else None
+    return {
+        "response_times": {
+            "t1": {"reset": False, "integral": None, "axis": 0},
+            "t2": {"reset": True, "integral": t2_integral},
+            "t3": {"reset": False, "integral": None, "axis": 1},
+        }
+    }
 
 
 class FunctionStorage:
@@ -123,7 +134,7 @@ class FunctionStorage:
         timeaxis: Any = None,
         dtype: Any = numpy.complex64,
         show_config: bool = False,
-        config: dict | None = None,
+        config: dict | int | None = None,
     ) -> None:
 
         #
@@ -131,18 +142,15 @@ class FunctionStorage:
         #
         # This dictionary describes what g(t) values will be stored and how
         #
-        if config is None:
-            self.config: dict[str, Any] = {
-                "response_times": {
-                    "t1": {"reset": False, "integral": {"s1"}, "axis": 0},
-                    "t2": {"reset": True, "integral": None},
-                    "t3": {"reset": False, "integral": {"s3"}, "axis": 1},
-                }
-            }  # ,
-            # "t4":{"reset":False,"integral":None,"axis":2}}}
-
-        else:
+        self.config: dict[str, Any]
+        if config is None or config == 0:
+            self.config = _default_storage_config(one_jump=False)
+        elif config == 1:
+            self.config = _default_storage_config(one_jump=True)
+        elif isinstance(config, dict):
             self.config = config
+        else:
+            raise ValueError("FunctionStorage config has to be None, 0, 1, or a dict")
 
         #######################################################################
         #
@@ -175,6 +183,7 @@ class FunctionStorage:
 
         # find all reset times
         reset_times = []
+        self.integral_parent = {}
         for rst_key in self.config["response_times"]:
             if self.config["response_times"][rst_key]["reset"]:
                 reset_times.append(rst_key)
@@ -183,6 +192,7 @@ class FunctionStorage:
                     self.config["response_times"][rst_key].get("integral", None)
                 ):
                     variable_index[integral] = -1
+                    self.integral_parent[integral] = rst_key
 
         # find all 1D times
         oned_times = []
@@ -621,6 +631,12 @@ class FunctionStorage:
         """We create data for all submitted functions"""
         if reset is None:
             reset = {"t2": 0.0}
+        reset = dict(reset)
+        for integral, parent in self.integral_parent.items():
+            if integral not in reset:
+                if parent not in reset:
+                    raise Exception("Parent reset time not specified: " + parent)
+                reset[integral] = reset[parent] / 2.0
         tt_matrix = []
 
         _colon_ = slice(None, None, None)

@@ -6,6 +6,43 @@ import numpy
 
 from .. import COMPLEX
 
+ONE_JUMP_LINE_SHAPE_ARGUMENTS = (
+    "t1",
+    "t2",
+    "s2",
+    "t2-s2",
+    "t3",
+    "t1+t2",
+    "t1+s2",
+    "t1+t2-s2",
+    "t1+t3",
+    "t2+t3",
+    "s2+t3",
+    "t2-s2+t3",
+    "t1+t2+t3",
+    "t1+s2+t3",
+    "t1+t2-s2+t3",
+)
+
+
+def _require_line_shape_arguments(gg: Any, response_name: str) -> None:
+    """Checks that line-shape storage has all one-jump response arguments."""
+    if not hasattr(gg, "time_mapping"):
+        raise Exception(
+            response_name
+            + " requires FunctionStorage with one-jump line-shape arguments."
+        )
+
+    missing = [
+        label for label in ONE_JUMP_LINE_SHAPE_ARGUMENTS if label not in gg.time_mapping
+    ]
+    if missing:
+        raise Exception(
+            response_name
+            + " requires FunctionStorage(config=1); missing labels: "
+            + ", ".join(missing)
+        )
+
 
 def R1g(
     t2: Any,
@@ -1324,6 +1361,95 @@ def R2f_scM0e(
     return np.transpose(ret)
 
 
+def R1g_scM1g(
+    t2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Single-jump transfer version of ``R1g_scM0g``.
+
+    This currently uses the same formula as the remainder pathway.  The
+    separate implementation exists so it can be replaced by the explicit
+    one-jump response formula without changing calculator bookkeeping.
+    """
+    _require_line_shape_arguments(system.get_lineshape_functions(), "R1g_scM1g")
+    return R1g_scM0g(t2, t1, t3, lab, system, evol, KK)
+
+
+def R2g_scM1g(
+    t2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Single-jump transfer version of ``R2g_scM0g``."""
+    _require_line_shape_arguments(system.get_lineshape_functions(), "R2g_scM1g")
+    return R2g_scM0g(t2, t1, t3, lab, system, evol, KK)
+
+
+def R1f_scM1g(
+    t2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Single-jump transfer version of ``R1f_scM0g``."""
+    _require_line_shape_arguments(system.get_lineshape_functions(), "R1f_scM1g")
+    return R1f_scM0g(t2, t1, t3, lab, system, evol, KK)
+
+
+def R2f_scM1g(
+    t2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Single-jump transfer version of ``R2f_scM0g``."""
+    _require_line_shape_arguments(system.get_lineshape_functions(), "R2f_scM1g")
+    return R2f_scM0g(t2, t1, t3, lab, system, evol, KK)
+
+
+def R1f_scM1e(
+    t2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Single-jump transfer version of ``R1f_scM0e``."""
+    _require_line_shape_arguments(system.get_lineshape_functions(), "R1f_scM1e")
+    return R1f_scM0e(t2, t1, t3, lab, system, evol, KK)
+
+
+def R2f_scM1e(
+    t2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Single-jump transfer version of ``R2f_scM0e``."""
+    _require_line_shape_arguments(system.get_lineshape_functions(), "R2f_scM1e")
+    return R2f_scM0e(t2, t1, t3, lab, system, evol, KK)
+
+
 #
 # REGISTRATION CODE
 #
@@ -1342,6 +1468,12 @@ dc["R1f_scM0g"] = R1f_scM0g
 dc["R2f_scM0g"] = R2f_scM0g
 dc["R1f_scM0e"] = R1f_scM0e
 dc["R2f_scM0e"] = R2f_scM0e
+dc["R1g_scM1g"] = R1g_scM1g
+dc["R2g_scM1g"] = R2g_scM1g
+dc["R1f_scM1g"] = R1f_scM1g
+dc["R2f_scM1g"] = R2f_scM1g
+dc["R1f_scM1e"] = R1f_scM1e
+dc["R2f_scM1e"] = R2f_scM1e
 
 
 def get_implementation(name: str) -> Any:

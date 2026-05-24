@@ -121,6 +121,54 @@ RESPONSE_DIAGRAMS = {
         "transfer": True,
         "transfer_channel": "scM0e",
     },
+    "R1g_scM1g": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "SE",
+        "storage_type": "R1g_scM1g",
+        "transfer": True,
+        "transfer_channel": "scM1g",
+    },
+    "R2g_scM1g": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "SE",
+        "storage_type": "R2g_scM1g",
+        "transfer": True,
+        "transfer_channel": "scM1g",
+    },
+    "R1f_scM1g": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "ESA",
+        "storage_type": "R1f_scM1g",
+        "transfer": True,
+        "transfer_channel": "scM1g",
+    },
+    "R2f_scM1g": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "ESA",
+        "storage_type": "R2f_scM1g",
+        "transfer": True,
+        "transfer_channel": "scM1g",
+    },
+    "R1f_scM1e": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "ESA",
+        "storage_type": "R1f_scM1e",
+        "transfer": True,
+        "transfer_channel": "scM1e",
+    },
+    "R2f_scM1e": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "ESA",
+        "storage_type": "R2f_scM1e",
+        "transfer": True,
+        "transfer_channel": "scM1e",
+    },
 }
 
 
@@ -244,6 +292,7 @@ class NonLinearResponse:
         self.process = self.diagram_info["process"]
         self.storage_type = self.diagram_info["storage_type"]
         self.is_transfer = self.diagram_info["transfer"]
+        self.transfer_channel = self.diagram_info.get("transfer_channel", None)
 
         self.func = get_implementation(self.diag)
 
@@ -294,7 +343,7 @@ class NonLinearResponse:
         U0t2 = self.U0_t2[:, t2i]
 
         # here we specify evolution matrices
-        evol = (self.U0_t1, self.U0_t3, U0t2, self.Uremainder_t2[:, :, t2i])
+        evol = (self.U0_t1, self.U0_t3, U0t2, self._get_transfer_matrix(t2i))
 
         return self.func(
             t2,
@@ -321,9 +370,32 @@ class NonLinearResponse:
         for ii in range(self.t2s.length):
             self.Uee[:, :, ii] = numpy.eye(dim, dtype=REAL)
         self.U1_t2 = self.Uee.copy()
+        self.Usingle_t2 = numpy.zeros_like(self.Uee)
         self.Ujump_t2 = (self.U1_t2,)
         self.Uremainder_t2 = self._get_remainder_propagator(self.Ujump_t2)
         self.Utransfer_t2 = self.Uremainder_t2
+
+    def _uses_single_jump_storage(self) -> bool:
+        """Returns ``True`` when line-shape storage is one-jump-ready."""
+        if not hasattr(self.sys, "get_lineshape_functions"):
+            return False
+        try:
+            gg = self.sys.get_lineshape_functions()
+        except Exception:
+            return False
+        return hasattr(gg, "time_mapping") and "s2" in gg.time_mapping
+
+    def _get_jump_expansion_order(self) -> int:
+        """Returns the highest explicit jump order to calculate."""
+        return 1 if self._uses_single_jump_storage() else 0
+
+    def _get_transfer_matrix(self, t2i: int) -> numpy.ndarray:
+        """Returns transfer propagator for the current response channel."""
+        if self.transfer_channel is not None and self.transfer_channel.startswith(
+            "scM1"
+        ):
+            return self.Usingle_t2[:, :, t2i]
+        return self.Uremainder_t2[:, :, t2i]
 
     def _get_remainder_propagator(self, jumps: tuple) -> numpy.ndarray:
         """Returns propagation not covered by explicit jump contributions."""
@@ -429,9 +501,12 @@ class NonLinearResponse:
             prop = PopulationPropagator(population_time_axis, self.KK)
 
             self.Uee = prop.get_PropagationMatrix(self.t2s)
-            jumps = prop.get_JumpExpansion(self.t2s, max_order=0)
+            jumps = prop.get_JumpExpansion(
+                self.t2s, max_order=self._get_jump_expansion_order()
+            )
 
             self.U1_t2 = jumps[0]
+            self.Usingle_t2 = jumps[1] if len(jumps) > 1 else numpy.zeros_like(self.Uee)
             self.Ujump_t2 = jumps
             self.Uremainder_t2 = self._get_remainder_propagator(jumps)
             self.Utransfer_t2 = self.Uremainder_t2
@@ -459,9 +534,12 @@ class NonLinearResponse:
 
             prop = PopulationPropagator(population_time_axis, self.KK)
             self.Uee = prop.get_PropagationMatrix(self.t2s)
-            jumps = prop.get_JumpExpansion(self.t2s, max_order=0)
+            jumps = prop.get_JumpExpansion(
+                self.t2s, max_order=self._get_jump_expansion_order()
+            )
 
             self.U1_t2 = jumps[0]
+            self.Usingle_t2 = jumps[1] if len(jumps) > 1 else numpy.zeros_like(self.Uee)
             self.Ujump_t2 = jumps
             self.Uremainder_t2 = self._get_remainder_propagator(jumps)
             self.Utransfer_t2 = self.Uremainder_t2

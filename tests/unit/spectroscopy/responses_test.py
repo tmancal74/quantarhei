@@ -5,6 +5,7 @@ import numpy
 import numpy.testing as npt
 
 import quantarhei as qr
+from quantarhei.spectroscopy.response_implementations import get_implementation
 from quantarhei.spectroscopy.responses import RESPONSE_DIAGRAMS, NonLinearResponse
 from quantarhei.symbolic.cumulant import GFInitiator
 from quantarhei.utils.vectors import X
@@ -116,6 +117,10 @@ class TestResponses(unittest.TestCase):
         self.assertEqual(RESPONSE_DIAGRAMS["R1g_scM0g"]["process"], "SE")
         self.assertTrue(RESPONSE_DIAGRAMS["R2f_scM0e"]["transfer"])
         self.assertEqual(RESPONSE_DIAGRAMS["R2f_scM0e"]["process"], "ESA")
+        self.assertTrue(RESPONSE_DIAGRAMS["R1g_scM1g"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g_scM1g"]["process"], "SE")
+        self.assertTrue(RESPONSE_DIAGRAMS["R2f_scM1e"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f_scM1e"]["process"], "ESA")
 
     def test_Responses(self):
         """Testing basic functions of the TwoDSpectrumBase class"""
@@ -303,6 +308,57 @@ class TestResponses(unittest.TestCase):
         npt.assert_allclose(response.U1_t2[0, 0], numpy.exp(KK[0, 0] * t2.data))
         npt.assert_allclose(response.Uremainder_t2, response.Uee - response.U1_t2)
         npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
+
+    def test_single_jump_transfer_channel(self):
+        """Testing one-jump transfer channel and remainder bookkeeping"""
+
+        class LineshapeStorage:
+            time_mapping = {"t1": 0, "t2": 1, "s2": 2}
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+            def get_lineshape_functions(self):
+                return LineshapeStorage()
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        response0 = NonLinearResponse(None, System(), "R1g_scM0g", t1, t2, t3)
+        response1 = NonLinearResponse(None, System(), "R1g_scM1g", t1, t2, t3)
+
+        KK = numpy.array([[-0.002, 0.003], [0.002, -0.003]], dtype=numpy.float64)
+        response0.set_rate_matrix(KK)
+        response1.set_rate_matrix(KK)
+
+        self.assertEqual(len(response0.Ujump_t2), 2)
+        npt.assert_allclose(
+            response0.Uremainder_t2,
+            response0.Uee - response0.U1_t2 - response0.Usingle_t2,
+        )
+        npt.assert_allclose(
+            response0._get_transfer_matrix(1), response0.Uremainder_t2[:, :, 1]
+        )
+        npt.assert_allclose(
+            response1._get_transfer_matrix(1), response1.Usingle_t2[:, :, 1]
+        )
+
+    def test_single_jump_response_requires_storage_labels(self):
+        """Testing storage validation for single-jump response functions"""
+
+        class LineshapeStorage:
+            time_mapping = {"t1": 0, "t2": 1, "t3": 2}
+
+        class System:
+            def get_lineshape_functions(self):
+                return LineshapeStorage()
+
+        response = get_implementation("R1g_scM1g")
+        with self.assertRaisesRegex(Exception, "FunctionStorage\\(config=1\\)"):
+            response(0.0, numpy.zeros(1), numpy.zeros(1), None, System(), None, None)
 
     def test_response_rate_matrix_relaxation_theory(self):
         """Testing response setup from OpenSystem rate matrix theory names"""

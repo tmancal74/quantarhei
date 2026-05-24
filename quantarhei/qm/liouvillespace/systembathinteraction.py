@@ -107,6 +107,7 @@ class SystemBathInteraction(Saveable):
         self.sbitype = "Linear_Coupling"
 
         self._has_gg_storage = False
+        self._gg_storage_config: dict | int | None = None
 
         #
         # version with bath correlation functions
@@ -329,7 +330,7 @@ class SystemBathInteraction(Saveable):
         assert self.CC is not None
         return self.CC._cofts[0, :]
 
-    def get_goft_storage(self, config: dict | None = None) -> Any:
+    def get_goft_storage(self, config: dict | int | None = None) -> Any:
         """Returns a lineshape function storage based on correlation functions
 
         The function calculates g(t) fuctions based on the correlation
@@ -343,7 +344,9 @@ class SystemBathInteraction(Saveable):
             it wil produced g(t) for a standard 3rd order response calculation.
 
         """
-        if self._has_gg_storage:
+        if self._has_gg_storage and (
+            config is None or config == self._gg_storage_config
+        ):
             return self.GG
 
         # number of functions
@@ -380,6 +383,7 @@ class SystemBathInteraction(Saveable):
 
         self.GG = gg
         self._has_gg_storage = True
+        self._gg_storage_config = config
 
         return gg
 

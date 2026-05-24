@@ -44,6 +44,12 @@ _ptypes = [
     "R2f_scM0g",
     "R1f_scM0e",
     "R2f_scM0e",
+    "R1g_scM1g",
+    "R2g_scM1g",
+    "R1f_scM1g",
+    "R2f_scM1g",
+    "R1f_scM1e",
+    "R2f_scM1e",
     # Older storage names kept readable for backwards compatibility.
     "R1fs",
     "R2fs",
@@ -56,7 +62,7 @@ _ptypes = [
 #
 _processes = dict(
     GSB=["R3g", "R4g"],
-    SE=["R1g", "R2g", "R1g_scM0g", "R2g_scM0g"],
+    SE=["R1g", "R2g", "R1g_scM0g", "R2g_scM0g", "R1g_scM1g", "R2g_scM1g"],
     ESA=[
         "R1f",
         "R2f",
@@ -64,6 +70,10 @@ _processes = dict(
         "R2f_scM0g",
         "R1f_scM0e",
         "R2f_scM0e",
+        "R1f_scM1g",
+        "R2f_scM1g",
+        "R1f_scM1e",
+        "R2f_scM1e",
         "R1fs",
         "R2fs",
     ],
@@ -82,6 +92,9 @@ _signals = {
         "R2g_scM0g",
         "R2f_scM0g",
         "R2f_scM0e",
+        "R2g_scM1g",
+        "R2f_scM1g",
+        "R2f_scM1e",
         "R1fs",
     ],
     signal_NONR: [
@@ -91,6 +104,9 @@ _signals = {
         "R1g_scM0g",
         "R1f_scM0g",
         "R1f_scM0e",
+        "R1g_scM1g",
+        "R1f_scM1g",
+        "R1f_scM1e",
         "R2fs",
     ],
     signal_DC: ["R3fs", "R4fs"],
