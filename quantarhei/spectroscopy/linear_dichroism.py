@@ -633,8 +633,10 @@ class LinDichSpectrumCalculator(EnergyUnitsManaged):
         relaxation_tensor: Any = None,
         rate_matrix: Any = None,
         effective_hamiltonian: Any = None,
-        vector_perp_to_membrane: numpy.ndarray = numpy.array([-1, -4, 1]),
+        vector_perp_to_membrane: numpy.ndarray | None = None,
     ) -> None:
+        if vector_perp_to_membrane is None:
+            vector_perp_to_membrane = numpy.array([-1, -4, 1])
 
         # protected properties
         self.TimeAxis = timeaxis
