@@ -42,8 +42,10 @@ class CorrelationFunctionMatrix(Saveable):
     """
 
     def __init__(
-        self, timeaxis: TimeAxis = TimeAxis(0.0, 1, 1.0), nob: int = 0, nof: int = 0
+        self, timeaxis: TimeAxis | None = None, nob: int = 0, nof: int = 0
     ) -> None:
+        if timeaxis is None:
+            timeaxis = TimeAxis(0.0, 1, 1.0)
         # Number of baths
         self.nob = nob
 
