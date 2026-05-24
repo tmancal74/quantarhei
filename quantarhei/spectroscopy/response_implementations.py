@@ -44,6 +44,80 @@ def _require_line_shape_arguments(gg: Any, response_name: str) -> None:
         )
 
 
+def _jump_integration_steps(evol: Any) -> int:
+    """Returns requested number of explicit s2 integration points."""
+    if isinstance(evol, tuple) and len(evol) > 4 and isinstance(evol[4], dict):
+        return int(evol[4].get("jump_integration_steps", 1))
+    return 1
+
+
+def _evaluate_single_jump_response(
+    response_func: Any,
+    t2: Any,
+    s2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Evaluates a placeholder one-jump response with a fixed jump time."""
+    gg = system.get_lineshape_functions()
+    old_defaults = getattr(gg, "_reset_defaults", None)
+    reset_defaults = dict(old_defaults) if isinstance(old_defaults, dict) else {}
+    reset_defaults["s2"] = s2
+    gg._reset_defaults = reset_defaults
+
+    try:
+        return response_func(t2, t1, t3, lab, system, evol, KK)
+    finally:
+        if old_defaults is None:
+            del gg._reset_defaults
+        else:
+            gg._reset_defaults = old_defaults
+
+
+def _integrate_single_jump_response(
+    response_func: Any,
+    response_name: str,
+    t2: Any,
+    t1: numpy.ndarray,
+    t3: numpy.ndarray,
+    lab: Any,
+    system: Any,
+    evol: Any,
+    KK: Any,
+) -> numpy.ndarray:
+    """Integrates a placeholder one-jump response over the jump time ``s2``."""
+    gg = system.get_lineshape_functions()
+    _require_line_shape_arguments(gg, response_name)
+
+    steps = _jump_integration_steps(evol)
+    if steps <= 1 or t2 == 0.0:
+        return _evaluate_single_jump_response(
+            response_func, t2, 0.5 * t2, t1, t3, lab, system, evol, KK
+        )
+
+    s2s = numpy.linspace(0.0, t2, steps)
+    weights = numpy.ones(steps, dtype=numpy.float64)
+    weights[0] = 0.5
+    weights[-1] = 0.5
+
+    ret = None
+    for weight, s2 in zip(weights, s2s):
+        value = _evaluate_single_jump_response(
+            response_func, t2, s2, t1, t3, lab, system, evol, KK
+        )
+        if ret is None:
+            ret = weight * value
+        else:
+            ret += weight * value
+
+    assert ret is not None
+    return ret / (steps - 1)
+
+
 def R1g(
     t2: Any,
     t1: numpy.ndarray,
@@ -1376,8 +1450,9 @@ def R1g_scM1g(
     separate implementation exists so it can be replaced by the explicit
     one-jump response formula without changing calculator bookkeeping.
     """
-    _require_line_shape_arguments(system.get_lineshape_functions(), "R1g_scM1g")
-    return R1g_scM0g(t2, t1, t3, lab, system, evol, KK)
+    return _integrate_single_jump_response(
+        R1g_scM0g, "R1g_scM1g", t2, t1, t3, lab, system, evol, KK
+    )
 
 
 def R2g_scM1g(
@@ -1390,8 +1465,9 @@ def R2g_scM1g(
     KK: Any,
 ) -> numpy.ndarray:
     """Single-jump transfer version of ``R2g_scM0g``."""
-    _require_line_shape_arguments(system.get_lineshape_functions(), "R2g_scM1g")
-    return R2g_scM0g(t2, t1, t3, lab, system, evol, KK)
+    return _integrate_single_jump_response(
+        R2g_scM0g, "R2g_scM1g", t2, t1, t3, lab, system, evol, KK
+    )
 
 
 def R1f_scM1g(
@@ -1404,8 +1480,9 @@ def R1f_scM1g(
     KK: Any,
 ) -> numpy.ndarray:
     """Single-jump transfer version of ``R1f_scM0g``."""
-    _require_line_shape_arguments(system.get_lineshape_functions(), "R1f_scM1g")
-    return R1f_scM0g(t2, t1, t3, lab, system, evol, KK)
+    return _integrate_single_jump_response(
+        R1f_scM0g, "R1f_scM1g", t2, t1, t3, lab, system, evol, KK
+    )
 
 
 def R2f_scM1g(
@@ -1418,8 +1495,9 @@ def R2f_scM1g(
     KK: Any,
 ) -> numpy.ndarray:
     """Single-jump transfer version of ``R2f_scM0g``."""
-    _require_line_shape_arguments(system.get_lineshape_functions(), "R2f_scM1g")
-    return R2f_scM0g(t2, t1, t3, lab, system, evol, KK)
+    return _integrate_single_jump_response(
+        R2f_scM0g, "R2f_scM1g", t2, t1, t3, lab, system, evol, KK
+    )
 
 
 def R1f_scM1e(
@@ -1432,8 +1510,9 @@ def R1f_scM1e(
     KK: Any,
 ) -> numpy.ndarray:
     """Single-jump transfer version of ``R1f_scM0e``."""
-    _require_line_shape_arguments(system.get_lineshape_functions(), "R1f_scM1e")
-    return R1f_scM0e(t2, t1, t3, lab, system, evol, KK)
+    return _integrate_single_jump_response(
+        R1f_scM0e, "R1f_scM1e", t2, t1, t3, lab, system, evol, KK
+    )
 
 
 def R2f_scM1e(
@@ -1446,8 +1525,9 @@ def R2f_scM1e(
     KK: Any,
 ) -> numpy.ndarray:
     """Single-jump transfer version of ``R2f_scM0e``."""
-    _require_line_shape_arguments(system.get_lineshape_functions(), "R2f_scM1e")
-    return R2f_scM0e(t2, t1, t3, lab, system, evol, KK)
+    return _integrate_single_jump_response(
+        R2f_scM0e, "R2f_scM1e", t2, t1, t3, lab, system, evol, KK
+    )
 
 
 #

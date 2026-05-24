@@ -126,6 +126,7 @@ class TwoDResponseCalculator:
         gamma_factor: float | None = None,
         population_factors: Any = None,
         jump_order: int = 0,
+        jump_integration_steps: int = 1,
     ) -> None:
 
         twodtype = _normalize_twodtype(twodtype)
@@ -140,6 +141,8 @@ class TwoDResponseCalculator:
 
         if jump_order not in (0, 1):
             raise ValueError("2D response jump_order has to be 0 or 1")
+        if jump_integration_steps < 1:
+            raise ValueError("jump_integration_steps has to be a positive integer")
 
         self.t1axis = t1axis
         self.t2axis = t2axis
@@ -148,6 +151,7 @@ class TwoDResponseCalculator:
         self.gamma_factor = gamma_factor
         self.population_factors = population_factors
         self.jump_order = jump_order
+        self.jump_integration_steps = jump_integration_steps
 
         # FIXME: check the compatibility of the axes
 
@@ -167,13 +171,13 @@ class TwoDResponseCalculator:
         self.dynamics = dynamics
 
         # unprotected properties
-        self.data = None
+        self.data: numpy.ndarray | None = None
 
         self.responses: list[Any] = []
 
         self._relaxation_tensor = None
         self._rate_matrix = None
-        self._response_rate_matrix = None
+        self._response_rate_matrix: Any = None
         self._relaxation_hamiltonian = None
         self._population_time_axis = None
         self._has_relaxation_tensor = False
@@ -457,9 +461,10 @@ class TwoDResponseCalculator:
             # Calculating all responses from the system
             #
             self.resp_fcions = []
-            response_kwargs = dict(
+            response_kwargs: dict[str, Any] = dict(
                 rate_matrix=self._response_rate_matrix,
                 population_time_axis=self._population_time_axis,
+                jump_integration_steps=self.jump_integration_steps,
             )
 
             # basic pathways

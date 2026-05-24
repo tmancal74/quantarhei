@@ -305,3 +305,33 @@ class TestFunctionStorage(unittest.TestCase):
             gg1[0, "t1+t2+t3"],
             goft(t1.data[:, None] + 8.0 + t3.data[None, :]),
         )
+
+    def test_function_storage_partial_reset_update(self):
+        """Testing FunctionStorage only updates labels affected by reset changes"""
+        t1 = TimeAxis(0.0, 4, 1.0)
+        t3 = TimeAxis(0.0, 5, 2.0)
+        calls = []
+
+        def goft(t):
+            calls.append(1)
+            return t + 1.0j * t
+
+        gg = FunctionStorage(1, (t1, t3), show_config=False, config=1)
+        gg.set_goft(0, func=goft)
+
+        gg.create_data(reset=dict(t2=8.0, s2=2.0))
+        self.assertEqual(len(calls), len(gg.time_mapping))
+
+        calls.clear()
+        gg.create_data(reset=dict(t2=8.0, s2=3.0))
+        s2_labels = [
+            label for label in gg.time_mapping if "s2" in gg.time_dependencies[label]
+        ]
+        self.assertEqual(len(calls), len(s2_labels))
+
+        npt.assert_allclose(gg[0, "t1+t2"], goft(t1.data + 8.0))
+        npt.assert_allclose(gg[0, "t1+s2"], goft(t1.data + 3.0))
+
+        calls.clear()
+        gg.create_data(reset=dict(t2=8.0, s2=3.0))
+        self.assertEqual(len(calls), 0)

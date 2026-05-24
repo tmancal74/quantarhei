@@ -71,7 +71,9 @@ def _build_system(nt: int, nt2: int, dt: float) -> Any:
     return agg
 
 
-def _run_single(jump_order: int, nt: int, nt2: int, dt: float) -> dict[str, Any]:
+def _run_single(
+    jump_order: int, nt: int, nt2: int, dt: float, jump_integration_steps: int
+) -> dict[str, Any]:
     t1_axis = qr.TimeAxis(0.0, nt, dt)
     t2_axis = qr.TimeAxis(0.0, nt2, dt)
     t3_axis = qr.TimeAxis(0.0, nt, dt)
@@ -85,7 +87,12 @@ def _run_single(jump_order: int, nt: int, nt2: int, dt: float) -> dict[str, Any]
     start = time.perf_counter()
 
     calc = qr.TwoDResponseCalculator(
-        t1_axis, t2_axis, t3_axis, system=system, jump_order=jump_order
+        t1_axis,
+        t2_axis,
+        t3_axis,
+        system=system,
+        jump_order=jump_order,
+        jump_integration_steps=jump_integration_steps,
     )
     with qr.energy_units("1/cm"):
         calc.bootstrap(rwa=12100.0, pad=0, lab=lab)
@@ -106,6 +113,7 @@ def _run_single(jump_order: int, nt: int, nt2: int, dt: float) -> dict[str, Any]
 
     return {
         "jump_order": jump_order,
+        "jump_integration_steps": jump_integration_steps,
         "nt": nt,
         "nt2": nt2,
         "dt": dt,
@@ -122,11 +130,12 @@ def _run_single(jump_order: int, nt: int, nt2: int, dt: float) -> dict[str, Any]
 
 def _print_table(results: list[dict[str, Any]]) -> None:
     print(
-        "jump  args  stride  storage_MB  elapsed_s  trace_peak_MB  max_RSS_MB  checksum"
+        "jump  s2pts  args  stride  storage_MB  elapsed_s  trace_peak_MB  max_RSS_MB  checksum"
     )
     for result in results:
         print(
             f"{result['jump_order']:>4}  "
+            f"{result['jump_integration_steps']:>5}  "
             f"{result['storage_arguments']:>4}  "
             f"{result['storage_stride']:>6}  "
             f"{result['storage_data_size_mb']:>10.3f}  "
@@ -142,11 +151,22 @@ def main() -> None:
     parser.add_argument("--nt", type=int, default=24)
     parser.add_argument("--nt2", type=int, default=8)
     parser.add_argument("--dt", type=float, default=10.0)
+    parser.add_argument("--jump-integration-steps", type=int, default=1)
     parser.add_argument("--single-jump-order", type=int, choices=(0, 1))
     args = parser.parse_args()
 
     if args.single_jump_order is not None:
-        print(json.dumps(_run_single(args.single_jump_order, args.nt, args.nt2, args.dt)))
+        print(
+            json.dumps(
+                _run_single(
+                    args.single_jump_order,
+                    args.nt,
+                    args.nt2,
+                    args.dt,
+                    args.jump_integration_steps,
+                )
+            )
+        )
         return
 
     results = []
@@ -162,6 +182,8 @@ def main() -> None:
             str(args.nt2),
             "--dt",
             str(args.dt),
+            "--jump-integration-steps",
+            str(args.jump_integration_steps),
         ]
         completed = subprocess.run(
             command,

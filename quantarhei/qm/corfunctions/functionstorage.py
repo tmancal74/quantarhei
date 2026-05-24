@@ -218,19 +218,23 @@ class FunctionStorage:
 
         self.variable_index = variable_index
         self.time_expressions = {}
+        self.time_dependencies: dict[str, set[str]] = {}
 
         # find all time arguments and calculate their dimension
         for tstr in self.time_combination_strings:
             terms = _parse_time_label(tstr)
             axes = []
+            dependencies: set[str] = set()
             for _, tm in terms:
                 if tm not in variable_index:
                     raise Exception("Unknown time variable in storage config: " + tm)
+                dependencies.add(tm)
                 axis = variable_index[tm]
                 if axis >= 0 and axis not in axes:
                     axes.append(axis)
 
             self.time_expressions[tstr] = terms
+            self.time_dependencies[tstr] = dependencies
             if len(axes) == 0:
                 time_index[tstr] = -1
             elif len(axes) == 1:
@@ -384,6 +388,8 @@ class FunctionStorage:
 
         # 2D view of the data for fast access
         self._data2d = self.data.reshape((self.N, self.data_stride))
+        self._last_reset_values: dict[str, Any] | None = None
+        self._data_initialized = False
 
         #
         # Here the g(t) functions are stored
@@ -594,6 +600,8 @@ class FunctionStorage:
             if added:
                 self.Nf += 1
 
+        self._data_initialized = False
+
     def _check_and_make_space(self, nn: int) -> None:
         """Check if the required position is outside the allocated mapping
         and if so, make more space.
@@ -627,21 +635,40 @@ class FunctionStorage:
 
         return ret
 
-    def create_data(self, reset: dict | None = None) -> None:
+    def create_data(self, reset: dict | None = None, force: bool = False) -> None:
         """We create data for all submitted functions"""
         if reset is None:
             reset = {"t2": 0.0}
         reset = dict(reset)
+        reset_defaults = getattr(self, "_reset_defaults", {})
         for integral, parent in self.integral_parent.items():
             if integral not in reset:
-                if parent not in reset:
+                if integral in reset_defaults:
+                    reset[integral] = reset_defaults[integral]
+                elif parent not in reset:
                     raise Exception("Parent reset time not specified: " + parent)
-                reset[integral] = reset[parent] / 2.0
+                else:
+                    reset[integral] = reset[parent] / 2.0
+
+        changed_variables = self._changed_reset_variables(reset)
+        if force or not self._data_initialized or self._last_reset_values is None:
+            labels_to_update = list(self.time_index)
+        else:
+            labels_to_update = [
+                label
+                for label in self.time_index
+                if self.time_dependencies[label].intersection(changed_variables)
+            ]
+
+        if not labels_to_update:
+            self._last_reset_values = dict(reset)
+            return
+
         tt_matrix = []
 
         _colon_ = slice(None, None, None)
 
-        for tm in self.time_index:
+        for tm in labels_to_update:
             dms = self.time_index[tm]
             if isinstance(dms, int):
                 axes = [] if dms == -1 else [dms]
@@ -676,8 +703,32 @@ class FunctionStorage:
             func = self.funcs[key]
             # start = key*self.data_stride
 
-            for kk, tm in zip(range(self.Nt), self.time_index):
-                self.__setitem__((key, tm), func(tt_matrix[kk]).reshape(self._N[kk]))
+            for kk, tm in enumerate(labels_to_update):
+                tm_index = self.time_mapping[tm]
+                self.__setitem__(
+                    (key, tm), func(tt_matrix[kk]).reshape(self._N[tm_index])
+                )
+
+        self._last_reset_values = dict(reset)
+        self._data_initialized = True
+
+    def _changed_reset_variables(self, reset: dict) -> set[str]:
+        """Return reset variables whose values differ from the previous call."""
+        if self._last_reset_values is None:
+            return set(reset)
+
+        changed: set[str] = set()
+        for name, value in reset.items():
+            if name not in self._last_reset_values:
+                changed.add(name)
+            elif not numpy.array_equal(value, self._last_reset_values[name]):
+                changed.add(name)
+
+        for name in self._last_reset_values:
+            if name not in reset:
+                changed.add(name)
+
+        return changed
 
     def effective_size(self) -> int:
         """Effective size of the storage. Some stored functions have the same functional form"""

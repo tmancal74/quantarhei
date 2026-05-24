@@ -276,6 +276,7 @@ class NonLinearResponse:
         relaxation_cutoff_time: float | None = None,
         rate_matrix_options: dict[str, Any] | None = None,
         population_time_axis: Any = None,
+        jump_integration_steps: int = 1,
     ) -> None:
 
         # info about pulse polarizations
@@ -301,6 +302,18 @@ class NonLinearResponse:
         self.t2s = t2s
         self.t3s = t3s
         self.population_time_axis = population_time_axis
+        self.jump_integration_steps = jump_integration_steps
+        self.KK: numpy.ndarray
+        self.U0_t1: numpy.ndarray
+        self.U0_t2: numpy.ndarray
+        self.U0_t3: numpy.ndarray
+        self.U0fe_t3: numpy.ndarray | None = None
+        self.Uee: numpy.ndarray
+        self.U1_t2: numpy.ndarray
+        self.Usingle_t2: numpy.ndarray
+        self.Ujump_t2: tuple[numpy.ndarray, ...]
+        self.Uremainder_t2: numpy.ndarray
+        self.Utransfer_t2: numpy.ndarray
 
         if rate_matrix is not None:
             KK = get_single_exciton_rate_matrix(system, rate_matrix)
@@ -343,7 +356,13 @@ class NonLinearResponse:
         U0t2 = self.U0_t2[:, t2i]
 
         # here we specify evolution matrices
-        evol = (self.U0_t1, self.U0_t3, U0t2, self._get_transfer_matrix(t2i))
+        evol = (
+            self.U0_t1,
+            self.U0_t3,
+            U0t2,
+            self._get_transfer_matrix(t2i),
+            {"jump_integration_steps": self.jump_integration_steps},
+        )
 
         return self.func(
             t2,
@@ -397,7 +416,9 @@ class NonLinearResponse:
             return self.Usingle_t2[:, :, t2i]
         return self.Uremainder_t2[:, :, t2i]
 
-    def _get_remainder_propagator(self, jumps: tuple) -> numpy.ndarray:
+    def _get_remainder_propagator(
+        self, jumps: tuple[numpy.ndarray, ...]
+    ) -> numpy.ndarray:
         """Returns propagation not covered by explicit jump contributions."""
         jump_sum = numpy.zeros_like(self.Uee)
         for jump in jumps:
@@ -515,7 +536,9 @@ class NonLinearResponse:
             # time dependent rate matrix
             for aa in range(dim):
                 if numpy.all(KK[:, aa, aa] <= 0.0):
-                    cumulative = numpy.zeros(population_time_axis.length, dtype=REAL)
+                    cumulative: numpy.ndarray = numpy.zeros(
+                        population_time_axis.length, dtype=REAL
+                    )
                     for ii in range(population_time_axis.length - 1):
                         dt = (
                             population_time_axis.data[ii + 1]

@@ -283,8 +283,13 @@ class TestTwod(unittest.TestCase):
         t3 = qr.TimeAxis(0.0, 1000, 1.0)
         t2 = qr.TimeAxis(30, 10, 10.0)
 
-        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3, jump_order=1)
+        twod_calc = qr.TwoDResponseCalculator(
+            t1, t2, t3, jump_order=1, jump_integration_steps=3
+        )
         self.assertEqual(twod_calc.jump_order, 1)
+        self.assertEqual(twod_calc.jump_integration_steps, 3)
 
         with assert_raises(ValueError):
             qr.TwoDResponseCalculator(t1, t2, t3, jump_order=2)
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_integration_steps=0)
