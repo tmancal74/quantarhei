@@ -28,21 +28,46 @@ from ..core.valueaxis import ValueAxis
 from ..utils.types import check_numpy_array
 from .twodspect import TwoDSpectrum
 
-# FIXME: Check these names
-
 #
 #  Pathway types
 #
-_ptypes = ["R1g", "R2g", "R3g", "R4g", "R1fs", "R2fs", "R3fs", "R4fs"]
+_ptypes = [
+    "R1g",
+    "R2g",
+    "R3g",
+    "R4g",
+    "R1f",
+    "R2f",
+    "R1g_scM0g",
+    "R2g_scM0g",
+    "R1f_scM0g",
+    "R2f_scM0g",
+    "R1f_scM0e",
+    "R2f_scM0e",
+    # Older storage names kept readable for backwards compatibility.
+    "R1fs",
+    "R2fs",
+    "R3fs",
+    "R4fs",
+]
 
 #
 # Processes --- GSB, SE, ESA and DC
 #
 _processes = dict(
-    GSB=[_ptypes[0], _ptypes[1]],
-    SE=[_ptypes[2], _ptypes[3]],
-    ESA=[_ptypes[4], _ptypes[5]],
-    DC=[_ptypes[6], _ptypes[7]],
+    GSB=["R3g", "R4g"],
+    SE=["R1g", "R2g", "R1g_scM0g", "R2g_scM0g"],
+    ESA=[
+        "R1f",
+        "R2f",
+        "R1f_scM0g",
+        "R2f_scM0g",
+        "R1f_scM0e",
+        "R2f_scM0e",
+        "R1fs",
+        "R2fs",
+    ],
+    DC=["R3fs", "R4fs"],
 )
 
 #
@@ -50,9 +75,25 @@ _processes = dict(
 #                      and double coherence (DC)
 #
 _signals = {
-    signal_REPH: [_ptypes[1], _ptypes[2], _ptypes[4]],
-    signal_NONR: [_ptypes[0], _ptypes[3], _ptypes[5]],
-    signal_DC: [_ptypes[6], _ptypes[7]],
+    signal_REPH: [
+        "R2g",
+        "R3g",
+        "R2f",
+        "R2g_scM0g",
+        "R2f_scM0g",
+        "R2f_scM0e",
+        "R1fs",
+    ],
+    signal_NONR: [
+        "R1g",
+        "R4g",
+        "R1f",
+        "R1g_scM0g",
+        "R1f_scM0g",
+        "R1f_scM0e",
+        "R2fs",
+    ],
+    signal_DC: ["R3fs", "R4fs"],
 }
 
 _total = signal_TOTL

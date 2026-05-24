@@ -12,6 +12,7 @@ from __future__ import annotations
 
 # import h5py
 import time
+import warnings
 from typing import IO, Any
 
 import matplotlib.pyplot as plt
@@ -28,6 +29,25 @@ from ..core.units import convert
 from ..qm.propagators.poppropagator import PopulationPropagator
 from ..spectroscopy.responses import get_single_exciton_rate_matrix
 from ..utils import derived_type
+
+
+def _ensure_time_independent_rates(
+    rate_matrix: Any = None, rate_matrix_time_dependent: bool = False
+) -> None:
+    if rate_matrix_time_dependent:
+        raise NotImplementedError(
+            "Time-dependent rate matrices are not implemented in 2D spectrum "
+            "calculations yet."
+        )
+
+    if rate_matrix is not None:
+        data = rate_matrix.data if hasattr(rate_matrix, "data") else rate_matrix
+        if len(numpy.asarray(data).shape) == 3:
+            raise NotImplementedError(
+                "Time-dependent rate matrices are not implemented in 2D spectrum "
+                "calculations yet."
+            )
+
 
 try:
     import aceto.nr3td as nr3td
@@ -873,6 +893,15 @@ class TwoDSpectrumCalculator:
         f_states: Any = None,
         no_transfer: bool = False,
     ) -> None:
+
+        warnings.warn(
+            "TwoDSpectrumCalculator from twod22.py is deprecated; use "
+            "TwoDResponseCalculator from twodcalculator.py instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        _ensure_time_independent_rates(rate_matrix, rate_matrix_time_dependent)
 
         self.t1axis = t1axis
         self.t2axis = t2axis

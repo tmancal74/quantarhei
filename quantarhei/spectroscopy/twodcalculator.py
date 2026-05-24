@@ -25,6 +25,70 @@ from ..utils import derived_type
 from .twodresponse import TwoDResponse
 
 
+def _ensure_time_independent_rates(
+    rate_matrix: Any = None, rate_matrix_time_dependent: bool = False
+) -> None:
+    if rate_matrix_time_dependent:
+        raise NotImplementedError(
+            "Time-dependent rate matrices are not implemented in 2D spectrum "
+            "calculations yet."
+        )
+
+    if rate_matrix is not None:
+        data = rate_matrix.data if hasattr(rate_matrix, "data") else rate_matrix
+        if len(numpy.asarray(data).shape) == 3:
+            raise NotImplementedError(
+                "Time-dependent rate matrices are not implemented in 2D spectrum "
+                "calculations yet."
+            )
+
+
+def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:
+    """Apply the endpoint half-weight used before Fourier transformation."""
+    ret = data.copy()
+    ret[:, 0] *= 0.5
+    ret[0, :] *= 0.5
+    return ret
+
+
+def _fourier_transform_response(data: numpy.ndarray, signal: str) -> numpy.ndarray:
+    """Transform a time-domain response contribution to a 2D spectrum."""
+    data = _apply_response_window(data)
+
+    if signal == signal_REPH:
+        ftresp = numpy.fft.fft(data, axis=1)
+    elif signal == signal_NONR:
+        ftresp = numpy.fft.ifft(data, axis=1) * data.shape[1]
+    else:
+        raise Exception("Unknown 2D signal type: " + signal)
+
+    ftresp = numpy.fft.ifft(ftresp, axis=0)
+    return numpy.fft.fftshift(ftresp)
+
+
+def _pad_response_data(
+    data: numpy.ndarray, pad: int, window: numpy.ndarray | None = None
+) -> numpy.ndarray:
+    """Pad a response contribution in the same way as the total response."""
+    if window is not None:
+        size = int(len(window) / 2)
+        data = data.copy()
+        data[len(data) - size :, :] *= window[size:, None]
+        data[:, len(data) - size :] *= window[None, size:]
+
+    if pad > 0:
+        data = numpy.hstack((data, numpy.zeros((data.shape[0], pad))))
+        data = numpy.vstack((data, numpy.zeros((pad, data.shape[1]))))
+
+    return data
+
+
+def _normalize_twodtype(twodtype: str) -> str:
+    if twodtype in ["2DES", "F-2DES"]:
+        return twodtype
+    raise Exception("Unknown type of 2D spectrum: " + twodtype)
+
+
 class TwoDResponseCalculator:
     """Calculator of the 2D spectrum
 
@@ -35,6 +99,18 @@ class TwoDResponseCalculator:
 
     Parameters
     ----------
+    twodtype : {"2DES", "F-2DES"}
+        Type of 2D spectrum to calculate. ``"F-2DES"`` currently supports
+        the ``gamma_factor`` fluorescence-detected approximation.
+
+    gamma_factor : float
+        Fluorescence-detected 2D weighting factor. ESA contributions are
+        weighted by ``gamma_factor - 1``.
+
+    population_factors : tuple
+        Reserved for state-resolved fluorescence-detected 2D spectra. This
+        mode is not implemented yet because it requires state-resolved ESA
+        responses.
 
 
     """
@@ -63,11 +139,28 @@ class TwoDResponseCalculator:
         relaxation_cutoff_time: float | None = None,
         rate_matrix_options: dict[str, Any] | None = None,
         effective_hamiltonian: Any = None,
+        twodtype: str = "2DES",
+        gamma_factor: float | None = None,
+        population_factors: Any = None,
     ) -> None:
+
+        _ensure_time_independent_rates(rate_matrix, rate_matrix_time_dependent)
+        twodtype = _normalize_twodtype(twodtype)
+        if twodtype == "F-2DES":
+            if gamma_factor is None and population_factors is None:
+                raise Exception("Not enough parameters for F-2DES")
+            if population_factors is not None:
+                raise NotImplementedError(
+                    "F-2DES with population_factors requires state-resolved "
+                    "ESA responses and is not implemented yet."
+                )
 
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
+        self.twodtype = twodtype
+        self.gamma_factor = gamma_factor
+        self.population_factors = population_factors
 
         # FIXME: check the compatibility of the axes
 
@@ -127,6 +220,25 @@ class TwoDResponseCalculator:
         self.Uc0: Any = None
 
         self.tc = 0
+
+    def _detection_weight(self, resp: Any) -> float:
+        """Returns the detection weight for a response contribution."""
+        if self.twodtype == "2DES":
+            return 1.0
+
+        if self.twodtype == "F-2DES":
+            if not isinstance(resp, NonLinearResponse):
+                raise NotImplementedError(
+                    "F-2DES requires NonLinearResponse metadata; predefined "
+                    "LiouvillePathway responses are not supported."
+                )
+
+            if self.gamma_factor is not None:
+                if resp.process == "ESA":
+                    return self.gamma_factor - 1.0
+                return 1.0
+
+        raise Exception("Unknown type of 2D spectrum: " + self.twodtype)
 
     def _vprint(self, *args: Any, **kwargs: Any) -> None:
         """Prints a string if the self.verbose attribute is True"""
@@ -350,6 +462,7 @@ class TwoDResponseCalculator:
         resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        response_pieces: list[tuple[Any, numpy.ndarray]] = []
 
         if self._has_system and not self._has_responses:
             #
@@ -506,11 +619,39 @@ class TwoDResponseCalculator:
 
             for resp in self.resp_fcions:
                 if isinstance(resp, NonLinearResponse):
+                    data = resp.calculate_matrix(tt2)
+                    response_pieces.append((resp, data))
                     if resp.rtype == "R":
-                        resp_Rgsb += resp.calculate_matrix(tt2)
+                        if resp.process == "GSB":
+                            resp_Rgsb += data
+                        elif resp.process == "SE":
+                            if resp.is_transfer:
+                                resp_Rsewt += data
+                            else:
+                                resp_Rse += data
+                        elif resp.process == "ESA":
+                            if resp.is_transfer:
+                                resp_Resawt += data
+                            else:
+                                resp_Resa += data
+                        else:
+                            raise Exception("Unknown response process")
 
                     elif resp.rtype == "NR":
-                        resp_Ngsb += resp.calculate_matrix(tt2)
+                        if resp.process == "GSB":
+                            resp_Ngsb += data
+                        elif resp.process == "SE":
+                            if resp.is_transfer:
+                                resp_Nsewt += data
+                            else:
+                                resp_Nse += data
+                        elif resp.process == "ESA":
+                            if resp.is_transfer:
+                                resp_Nesawt += data
+                            else:
+                                resp_Nesa += data
+                        else:
+                            raise Exception("Unknown response process")
 
                     else:
                         raise Exception("Unknown response type")
@@ -518,14 +659,18 @@ class TwoDResponseCalculator:
                 elif isinstance(resp, LiouvillePathway):
                     resp_any: Any = resp
                     if resp.rtype == "R":
-                        resp_Rgsb += resp_any.calculate_matrix(
+                        data = resp_any.calculate_matrix(
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
                         )
+                        response_pieces.append((resp, data))
+                        resp_Rgsb += data
 
                     elif resp.rtype == "NR":
-                        resp_Ngsb += resp_any.calculate_matrix(
+                        data = resp_any.calculate_matrix(
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
                         )
+                        response_pieces.append((resp, data))
+                        resp_Ngsb += data
                     else:
                         raise Exception("Unknown response type")
 
@@ -536,8 +681,8 @@ class TwoDResponseCalculator:
         #
         # FIXME: discontinue Aceto and remove the sum (and the code above)
         #
-        resp_r = resp_Rgsb  # + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
-        resp_n = resp_Ngsb  # + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
+        resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
+        resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
 
         #
         # Calculate corresponding 2D spectrum
@@ -549,6 +694,7 @@ class TwoDResponseCalculator:
         t13Pad = TimeAxis(
             self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step
         )
+        response_window = None
         if self.pad > 0:
             self._vprint("padding by - " + str(self.pad))
 
@@ -565,17 +711,20 @@ class TwoDResponseCalculator:
             from scipy.signal import windows as sig
 
             window = 20
-            tuc = sig.tukey(window * 2, 1, sym=False)
-            for k in range(len(resp_r)):
-                resp_r[len(resp_r) - window :, k] *= tuc[window:]
-                resp_r[k, len(resp_r) - window :] *= tuc[window:]
-                resp_n[len(resp_n) - window :, k] *= tuc[window:]
-                resp_n[k, len(resp_n) - window :] *= tuc[window:]
+            response_window = sig.tukey(window * 2, 1, sym=False)
 
-            resp_r = numpy.hstack((resp_r, numpy.zeros((resp_r.shape[0], self.pad))))
-            resp_r = numpy.vstack((resp_r, numpy.zeros((self.pad, resp_r.shape[1]))))
-            resp_n = numpy.hstack((resp_n, numpy.zeros((resp_n.shape[0], self.pad))))
-            resp_n = numpy.vstack((resp_n, numpy.zeros((self.pad, resp_n.shape[1]))))
+            resp_r = _pad_response_data(resp_r, self.pad, response_window)
+            resp_n = _pad_response_data(resp_n, self.pad, response_window)
+            resp_Rgsb = _pad_response_data(resp_Rgsb, self.pad, response_window)
+            resp_Ngsb = _pad_response_data(resp_Ngsb, self.pad, response_window)
+            resp_Rse = _pad_response_data(resp_Rse, self.pad, response_window)
+            resp_Nse = _pad_response_data(resp_Nse, self.pad, response_window)
+            resp_Resa = _pad_response_data(resp_Resa, self.pad, response_window)
+            resp_Nesa = _pad_response_data(resp_Nesa, self.pad, response_window)
+            resp_Rsewt = _pad_response_data(resp_Rsewt, self.pad, response_window)
+            resp_Nsewt = _pad_response_data(resp_Nsewt, self.pad, response_window)
+            resp_Resawt = _pad_response_data(resp_Resawt, self.pad, response_window)
+            resp_Nesawt = _pad_response_data(resp_Nesawt, self.pad, response_window)
 
         else:
             onetwod.set_axis_1(self.oa1)
@@ -626,23 +775,23 @@ class TwoDResponseCalculator:
                 nESAWT=resp_Nesawt,
             )
 
-        # FIXME: This only applies when
-        resp_r[:, 0] = resp_r[:, 0] * 0.5
-        resp_n[:, 0] = resp_n[:, 0] * 0.5
-        resp_r[0, :] = resp_r[0, :] * 0.5
-        resp_n[0, :] = resp_n[0, :] * 0.5
+        for resp, data in response_pieces:
+            data = _pad_response_data(data, self.pad, response_window)
 
-        ftresp = numpy.fft.fft(resp_r, axis=1)  # \omega_1
-        ftresp = numpy.fft.ifft(ftresp, axis=0)  # \omega_3
-        reph2D = numpy.fft.fftshift(ftresp)
+            if isinstance(resp, NonLinearResponse):
+                signal = resp.signal
+                dtype = resp.storage_type
+                resolution = "types"
+            elif isinstance(resp, LiouvillePathway):
+                signal = signal_REPH if resp.rtype == "R" else signal_NONR
+                dtype = signal
+                resolution = "signals"
+            else:
+                raise Exception("Unknown response object")
 
-        ftresp = numpy.fft.ifft(resp_n, axis=1) * ftresp.shape[1]  # \omega_1
-        ftresp = numpy.fft.ifft(ftresp, axis=0)  # \omega_3
-        nonr2D = numpy.fft.fftshift(ftresp)
-
-        onetwod.set_resolution("signals")
-        onetwod._add_data(reph2D, dtype=signal_REPH)
-        onetwod._add_data(nonr2D, dtype=signal_NONR)
+            spect_data = _fourier_transform_response(data, signal)
+            spect_data *= self._detection_weight(resp)
+            onetwod._add_data(spect_data, resolution=resolution, dtype=dtype)
 
         onetwod.set_t2(self.t2axis.data[tc])
 

@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy
 
-from .. import REAL
+from .. import REAL, signal_NONR, signal_REPH
 from ..core.managers import Manager
 from ..qm.propagators.poppropagator import PopulationPropagator
 from .response_implementations import get_implementation
@@ -20,6 +20,115 @@ from .response_implementations import get_implementation
 
 
 """
+
+
+RESPONSE_DIAGRAMS = {
+    # Ground-state bleach
+    # Corresponds to the GSB calls in the old Aceto/twod22 workflow.
+    "R3g": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "GSB",
+        "storage_type": "R3g",
+        "transfer": False,
+    },
+    "R4g": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "GSB",
+        "storage_type": "R4g",
+        "transfer": False,
+    },
+    # Stimulated emission
+    "R1g": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "SE",
+        "storage_type": "R1g",
+        "transfer": False,
+    },
+    "R2g": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "SE",
+        "storage_type": "R2g",
+        "transfer": False,
+    },
+    # Excited-state absorption.  The modern implementation names these
+    # diagrams R1f/R2f; older storage comments sometimes use R1fs/R2fs.
+    "R1f": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "ESA",
+        "storage_type": "R1f",
+        "transfer": False,
+    },
+    "R2f": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "ESA",
+        "storage_type": "R2f",
+        "transfer": False,
+    },
+    # Relaxation/transfer corrections to SE-like response terms.
+    "R1g_scM0g": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "SE",
+        "storage_type": "R1g_scM0g",
+        "transfer": True,
+        "transfer_channel": "scM0g",
+    },
+    "R2g_scM0g": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "SE",
+        "storage_type": "R2g_scM0g",
+        "transfer": True,
+        "transfer_channel": "scM0g",
+    },
+    # Relaxation/transfer corrections to ESA-like response terms.
+    "R1f_scM0g": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "ESA",
+        "storage_type": "R1f_scM0g",
+        "transfer": True,
+        "transfer_channel": "scM0g",
+    },
+    "R2f_scM0g": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "ESA",
+        "storage_type": "R2f_scM0g",
+        "transfer": True,
+        "transfer_channel": "scM0g",
+    },
+    "R1f_scM0e": {
+        "rtype": "NR",
+        "signal": signal_NONR,
+        "process": "ESA",
+        "storage_type": "R1f_scM0e",
+        "transfer": True,
+        "transfer_channel": "scM0e",
+    },
+    "R2f_scM0e": {
+        "rtype": "R",
+        "signal": signal_REPH,
+        "process": "ESA",
+        "storage_type": "R2f_scM0e",
+        "transfer": True,
+        "transfer_channel": "scM0e",
+    },
+}
+
+
+def get_response_diagram_info(diagram: str) -> dict[str, Any]:
+    """Returns explicit metadata for a nonlinear response diagram."""
+    try:
+        return RESPONSE_DIAGRAMS[diagram].copy()
+    except KeyError:
+        raise Exception("Unknown response diagram: " + diagram)
 
 
 def _rate_matrix_data(rate_matrix: Any) -> numpy.ndarray:
@@ -94,10 +203,12 @@ class NonLinearResponse:
 
         # which response to calculate; the function to calculate the respose
         self.diag = diagram
-        if self.diag in ["R1g", "R4g", "R1f", "R1g_scM0g", "R1f_scM0g", "R1f_scM0e"]:
-            self.rtype = "NR"
-        elif self.diag in ["R2g", "R3g", "R2f", "R2g_scM0g", "R2f_scM0g", "R2f_scM0e"]:
-            self.rtype = "R"
+        self.diagram_info = get_response_diagram_info(self.diag)
+        self.rtype = self.diagram_info["rtype"]
+        self.signal = self.diagram_info["signal"]
+        self.process = self.diagram_info["process"]
+        self.storage_type = self.diagram_info["storage_type"]
+        self.is_transfer = self.diagram_info["transfer"]
 
         self.func = get_implementation(self.diag)
 

@@ -5,7 +5,7 @@ import numpy
 import numpy.testing as npt
 
 import quantarhei as qr
-from quantarhei.spectroscopy.responses import NonLinearResponse
+from quantarhei.spectroscopy.responses import RESPONSE_DIAGRAMS, NonLinearResponse
 from quantarhei.symbolic.cumulant import GFInitiator
 from quantarhei.utils.vectors import X
 
@@ -94,6 +94,28 @@ class TestResponses(unittest.TestCase):
 
     def setUp(self, verbose=False):
         pass
+
+    def test_response_diagram_mapping(self):
+        """Testing explicit response diagram metadata"""
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g"]["process"], "SE")
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g"]["signal"], qr.signal_NONR)
+        self.assertEqual(RESPONSE_DIAGRAMS["R2g"]["process"], "SE")
+        self.assertEqual(RESPONSE_DIAGRAMS["R2g"]["signal"], qr.signal_REPH)
+
+        self.assertEqual(RESPONSE_DIAGRAMS["R3g"]["process"], "GSB")
+        self.assertEqual(RESPONSE_DIAGRAMS["R3g"]["signal"], qr.signal_REPH)
+        self.assertEqual(RESPONSE_DIAGRAMS["R4g"]["process"], "GSB")
+        self.assertEqual(RESPONSE_DIAGRAMS["R4g"]["signal"], qr.signal_NONR)
+
+        self.assertEqual(RESPONSE_DIAGRAMS["R1f"]["process"], "ESA")
+        self.assertEqual(RESPONSE_DIAGRAMS["R1f"]["signal"], qr.signal_NONR)
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f"]["process"], "ESA")
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f"]["signal"], qr.signal_REPH)
+
+        self.assertTrue(RESPONSE_DIAGRAMS["R1g_scM0g"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g_scM0g"]["process"], "SE")
+        self.assertTrue(RESPONSE_DIAGRAMS["R2f_scM0e"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f_scM0e"]["process"], "ESA")
 
     def test_Responses(self):
         """Testing basic functions of the TwoDSpectrumBase class"""
