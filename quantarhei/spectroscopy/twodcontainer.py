@@ -320,7 +320,12 @@ class TwoDResponseContainer(Saveable):
         return ven2
 
     def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
-        """Converts this container into PumpProbeSpectrumContainer"""
+        """Converts this response container into PumpProbeSpectrumContainer.
+
+        Each stored :class:`TwoDResponse` already contains enough spectral
+        information to be projected onto the pump-probe axis.  This method
+        performs that projection for every stored waiting time.
+        """
         from .pumpprobe import PumpProbeSpectrumContainer
 
         k = 0
@@ -339,8 +344,15 @@ class TwoDResponseContainer(Saveable):
             ii += 1
 
         length = len(ppc)
+        if length == 0:
+            raise Exception("No spectra available for pump-probe conversion")
         start = ppc[0].get_t2()
-        step = ppc[1].get_t2() - start
+        if length > 1:
+            step = ppc[1].get_t2() - start
+        elif self.axis is not None:
+            step = self.axis.step
+        else:
+            step = 1.0
 
         naxis = TimeAxis(start, length, step)
         ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
@@ -862,8 +874,15 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
                 ii += 1
 
             length = len(ppc)
+            if length == 0:
+                raise Exception("No spectra available for pump-probe conversion")
             start = ppc[0].get_t2()
-            step = ppc[1].get_t2() - start
+            if length > 1:
+                step = ppc[1].get_t2() - start
+            elif self.axis is not None:
+                step = self.axis.step
+            else:
+                step = 1.0
 
             naxis = TimeAxis(start, length, step)
             ppcont = PumpProbeSpectrumContainer(t2axis=naxis)

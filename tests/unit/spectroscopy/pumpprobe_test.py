@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy
 import numpy.testing as npt
@@ -23,6 +24,20 @@ from quantarhei.utils.vectors import X
 """
 
 TEST_DIR = Path(__file__).parent
+
+
+class _MagicAngleLab:
+    """Minimal magic-angle lab setup for pump-probe backend tests."""
+
+    F4eM4 = numpy.array([1.0 / 15.0, 0.0, 0.0])
+
+
+def _ground_exciton_dipole_lengths(system):
+    """Return ground-to-one-exciton transition-dipole lengths."""
+    ground = system.get_band(0)[0]
+    return numpy.array(
+        [numpy.linalg.norm(system.DD[state, ground, :]) for state in system.get_band(1)]
+    )
 
 
 def efce_R1g_vec(t2, t1s, t3s, aa):
@@ -89,9 +104,9 @@ def efce_R4g_vec(t2, t1s, t3s, aa):
     )
 
 
-def _reference_pump_probe_aggregate():
+def _reference_pump_probe_aggregate(env_length=400):
     """Small dimer with enough bath data for the pump-probe reference test."""
-    env_axis = qr.TimeAxis(0.0, 400, 5.0)
+    env_axis = qr.TimeAxis(0.0, env_length, 5.0)
     params = {
         "ftype": "OverdampedBrownian",
         "reorg": 40.0,
@@ -396,3 +411,305 @@ class TestPumpProbe(unittest.TestCase):
         npt.assert_allclose(current.axis.data, reference.axis.data)
         npt.assert_allclose(current.data, reference.data, rtol=1.0e-12, atol=1.0e-12)
         self.assertEqual(current.get_t2(), reference.get_t2())
+
+    def test_pump_probe_response_backend_accepts_rdm_trajectory(self):
+        """Pump-probe can be calculated through the nonlinear response backend."""
+        t2_axis = qr.TimeAxis(0.0, 3, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        rdmt = SimpleNamespace()
+        rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        for kk in range(t2_axis.length):
+            rdmt.data[kk, 1, 1] = 0.65 - 0.05 * kk
+            rdmt.data[kk, 2, 2] = 0.30 - 0.03 * kk
+            rdmt.data[kk, 1, 2] = 0.05
+            rdmt.data[kk, 2, 1] = 0.05
+
+        container = calc.calculate_all_system_approx_response_backend(
+            agg, rdmt, lab, spec=["SE", "ESA"]
+        )
+
+        self.assertEqual(set(container.spectra), set(t2_axis.data))
+        for tau in t2_axis.data:
+            spectrum = container.spectra[tau]
+            npt.assert_allclose(spectrum.axis.data, calc.oa3.data)
+            self.assertEqual(spectrum.get_t2(), tau)
+            self.assertTrue(numpy.all(numpy.isfinite(spectrum.data)))
+
+    def test_pump_probe_response_gsb_mode_uses_r3g_r4g(self):
+        """The alternative GSB mode uses unweighted R3g/R4g pathways."""
+        t2_axis = qr.TimeAxis(0.0, 3, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        tau = 20.0
+        rdm0 = numpy.zeros((calc.system.Ntot, calc.system.Ntot))
+        rdm0[1, 1] = 0.65
+        rdm0[2, 2] = 0.35
+        rdm0_other = 2.0 * rdm0
+        rdm = numpy.zeros_like(rdm0)
+
+        direct = calc.calculate_pathways_rdm(
+            rdm0, rdm, tau, lab, spec=["GSB"], gsb_mode="response"
+        )
+        direct_other = calc.calculate_pathways_rdm(
+            rdm0_other, rdm, tau, lab, spec=["GSB"], gsb_mode="response"
+        )
+        backend = calc._response_backend_to_pump_probe(
+            calc._response_backend_trace(["R3g", "R4g"], tau, lab), tau
+        )
+
+        npt.assert_allclose(direct.data, backend.data)
+        npt.assert_allclose(direct_other.data, direct.data)
+
+    def test_pump_probe_four_dipole_averaging_matches_response_backend(self):
+        """Old RDM pump-probe can use the same dipole averaging as responses."""
+        t2_axis = qr.TimeAxis(0.0, 2, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        rdmt = SimpleNamespace()
+        rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        for kk in range(t2_axis.length):
+            rdmt.data[kk, 1, 1] = 0.65 - 0.05 * kk
+            rdmt.data[kk, 2, 2] = 0.30 - 0.03 * kk
+            rdmt.data[kk, 1, 2] = 0.05
+            rdmt.data[kk, 2, 1] = 0.05
+
+        old = calc.calculate_all_system_approx(
+            agg,
+            rdmt,
+            lab,
+            gsb_mode="response",
+            orientational_averaging="four_dipole",
+        )
+        calc.set_density_matrix_trajectory(rdmt)
+        new = calc.calculate(method="response")
+
+        for tau in t2_axis.data:
+            npt.assert_allclose(
+                old.spectra[tau].data, new.spectra[tau].data, rtol=1.0e-7, atol=1.0e-6
+            )
+
+    def test_pump_probe_backend_population_propagator_matches_equivalent_udm(self):
+        """Population propagator route matches equivalent Ueeee endpoint weights."""
+        t2_axis = qr.TimeAxis(0.0, 2, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        Uee = numpy.zeros((agg.Nb[1], agg.Nb[1], t2_axis.length))
+        Uee[0, 0, :] = [0.80, 0.72]
+        Uee[1, 1, :] = [0.70, 0.63]
+
+        Ueeee = numpy.zeros(
+            (agg.Nb[1], agg.Nb[1], agg.Nb[1], agg.Nb[1], t2_axis.length)
+        )
+        for kk in range(t2_axis.length):
+            for aa in range(agg.Nb[1]):
+                for bb in range(agg.Nb[1]):
+                    Ueeee[aa, bb, aa, bb, kk] = numpy.sqrt(
+                        Uee[aa, aa, kk] * Uee[bb, bb, kk]
+                    )
+
+        calc.set_population_propagator(Uee)
+        uee_backend = calc.calculate(method="response")
+        ueeee_backend = calc.calculate_all_system_approx_response_backend(
+            agg, lab=lab, density_matrix_propagator=Ueeee
+        )
+
+        for tau in t2_axis.data:
+            npt.assert_allclose(
+                ueeee_backend.spectra[tau].data,
+                uee_backend.spectra[tau].data,
+                rtol=1.0e-7,
+                atol=1.0e-6,
+            )
+
+    def test_pump_probe_backend_density_matrix_propagator_matches_rdm(self):
+        """Density-matrix propagator route matches RDM endpoint weights."""
+        t2_axis = qr.TimeAxis(0.0, 2, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        rdmt = SimpleNamespace()
+        rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        rdmt.data[:, 1, 1] = [0.65, 0.60]
+        rdmt.data[:, 2, 2] = [0.30, 0.27]
+        rdmt.data[:, 1, 2] = [0.05, 0.04]
+        rdmt.data[:, 2, 1] = [0.05, 0.04]
+
+        lengths = _ground_exciton_dipole_lengths(calc.system)
+        Ueeee = numpy.zeros(
+            (agg.Nb[1], agg.Nb[1], agg.Nb[1], agg.Nb[1], t2_axis.length)
+        )
+        for kk in range(t2_axis.length):
+            for aa in range(agg.Nb[1]):
+                for bb in range(agg.Nb[1]):
+                    Ueeee[aa, bb, aa, bb, kk] = rdmt.data[kk, aa + 1, bb + 1] / (
+                        lengths[aa] * lengths[bb]
+                    )
+
+        rdm_backend = calc.calculate_all_system_approx_response_backend(agg, rdmt, lab)
+        calc.set_density_matrix_propagator(Ueeee)
+        ueeee_backend = calc.calculate(method="response")
+
+        for tau in t2_axis.data:
+            npt.assert_allclose(
+                rdm_backend.spectra[tau].data,
+                ueeee_backend.spectra[tau].data,
+                rtol=1.0e-7,
+                atol=1.0e-6,
+            )
+
+    def test_pump_probe_backend_external_dynamics_are_mutually_exclusive(self):
+        """Modern pump-probe backend accepts exactly one dynamics source."""
+        t2_axis = qr.TimeAxis(0.0, 2, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        rho = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        Uee = numpy.zeros((agg.Nb[1], agg.Nb[1], t2_axis.length))
+
+        with self.assertRaises(ValueError):
+            calc.calculate_all_system_approx_response_backend(agg, lab=lab)
+        with self.assertRaises(ValueError):
+            calc.calculate_all_system_approx_response_backend(
+                agg, rho, lab, population_propagator=Uee
+            )
+
+    def test_pump_probe_calculate_legacy_method(self):
+        """The public calculate method can dispatch to legacy RDM PP."""
+        t2_axis = qr.TimeAxis(0.0, 2, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        rdmt = SimpleNamespace()
+        rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        rdmt.data[:, 1, 1] = [0.65, 0.60]
+        rdmt.data[:, 2, 2] = [0.30, 0.27]
+
+        direct = calc.calculate_all_system_approx(agg, rdmt, lab)
+        calc.set_density_matrix_trajectory(rdmt)
+        via_api = calc.calculate(method="legacy")
+
+        for tau in t2_axis.data:
+            npt.assert_allclose(direct.spectra[tau].data, via_api.spectra[tau].data)
+
+    def test_pump_probe_constructor_dynamics_are_used_by_calculate(self):
+        """Pump-probe dynamics can be supplied in the calculator constructor."""
+        t2_axis = qr.TimeAxis(0.0, 2, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate()
+
+        rdmt = SimpleNamespace()
+        rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        rdmt.data[:, 1, 1] = [0.65, 0.60]
+        rdmt.data[:, 2, 2] = [0.30, 0.27]
+
+        calc = qr.PumpProbeSpectrumCalculator(
+            t2_axis, t3_axis, system=agg, density_matrix_trajectory=rdmt
+        )
+        lab = _MagicAngleLab()
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        direct = calc.calculate_all_system_approx_response_backend(agg, rdmt, lab)
+        via_api = calc.calculate()
+
+        for tau in t2_axis.data:
+            npt.assert_allclose(direct.spectra[tau].data, via_api.spectra[tau].data)
+
+        with self.assertRaises(ValueError):
+            qr.PumpProbeSpectrumCalculator(
+                t2_axis,
+                t3_axis,
+                system=agg,
+                density_matrix_trajectory=rdmt,
+                population_propagator=numpy.zeros(
+                    (agg.Nb[1], agg.Nb[1], t2_axis.length)
+                ),
+            )
+
+    @unittest.expectedFailure
+    def test_pump_probe_direct_matches_projected_twod_response(self):
+        """Direct pump-probe should match projection of the full 2D response.
+
+        This is intentionally a finite-t1 2D calculation.  The pump-probe
+        spectrum is then obtained from the TwoDResponseContainer through the
+        projection theorem and compared only at the final 1D spectrum level.
+        """
+        t1_axis = qr.TimeAxis(0.0, 64, 5.0)
+        t2_axis = qr.TimeAxis(0.0, 1, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 64, 5.0)
+        agg = _reference_pump_probe_aggregate(env_length=t1_axis.length)
+        lab = _MagicAngleLab()
+
+        pp_calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        twod_calc = qr.TwoDResponseCalculator(t1_axis, t2_axis, t3_axis, system=agg)
+        with qr.energy_units("1/cm"):
+            pp_calc.bootstrap(rwa=12100.0, lab=lab)
+            twod_calc.bootstrap(rwa=12100.0, pad=0, lab=lab)
+
+        lengths = _ground_exciton_dipole_lengths(pp_calc.system)
+        rdmt = SimpleNamespace()
+        rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        for aa in range(agg.Nb[1]):
+            for bb in range(agg.Nb[1]):
+                rdmt.data[:, aa + 1, bb + 1] = lengths[aa] * lengths[bb]
+
+        direct = pp_calc.calculate_all_system_approx(
+            agg,
+            rdmt,
+            lab,
+            gsb_mode="response",
+            orientational_averaging="four_dipole",
+        )
+        projected = twod_calc.calculate().get_PumpProbeSpectrumContainer()
+
+        for tau in t2_axis.data:
+            npt.assert_allclose(
+                direct.spectra[tau].axis.data,
+                projected.spectra[tau].axis.data,
+            )
+            npt.assert_allclose(
+                direct.spectra[tau].data,
+                projected.spectra[tau].data,
+                rtol=1.0e-7,
+                atol=1.0e-6,
+            )

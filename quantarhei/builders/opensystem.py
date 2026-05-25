@@ -441,10 +441,12 @@ class OpenSystem:
 
         return WPM
 
-    def get_lineshape_functions(self, config: dict | int | None = None) -> Any:
+    def get_lineshape_functions(
+        self, config: dict | int | None = None, timeaxis: Any = None
+    ) -> Any:
         """Returns lineshape functions defined for this system"""
         sbi = self.get_SystemBathInteraction()
-        return sbi.get_goft_storage(config=config)
+        return sbi.get_goft_storage(config=config, timeaxis=timeaxis)
 
     def map_lineshape_to_states(self, mpx: numpy.ndarray) -> numpy.ndarray:
         """Maps the participation matrix on g(t) functions storage

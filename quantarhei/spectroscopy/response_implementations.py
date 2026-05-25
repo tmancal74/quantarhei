@@ -632,7 +632,7 @@ def R4g(
                         - (np.einsum("i,ij", MM[b, b, :], gg[:, "t3"]))[None, :]
                         - (np.einsum("i,ijk", MM[b, a, :], gg[:, "t1+t2+t3"]))[:, :]
                         - 1j * (En[aa] - En[g] - rwa) * t1[:, None]
-                        - 1j * (En[g] - En[g]) * t2[None, None]
+                        - 1j * (En[g] - En[g]) * t2
                         - 1j * (En[bb] - En[g] - rwa) * t3[None, :]
                     )
                 )
@@ -734,7 +734,7 @@ def R1f(
                                 ]
                             )
                             - 1j * (En[aa] - En[g] - rwa) * t1[:, None]
-                            - 1j * (En[aa] - En[bb]) * t2[None, None]
+                            - 1j * (En[aa] - En[bb]) * t2
                             - 1j * (En[ff] - En[bb] - rwa) * t3[None, :]
                         )
                     )
@@ -836,7 +836,7 @@ def R1f_wrong(
                                 ]
                             )
                             - 1j * (En[aa] - En[g] - rwa) * t1[:, None]
-                            - 1j * (En[aa] - En[bb]) * t2[None, None]
+                            - 1j * (En[aa] - En[bb]) * t2
                             - 1j * (En[ff] - En[bb] - rwa) * t3[None, :]
                         )
                     )
@@ -949,7 +949,7 @@ def R2f(
                                 ]
                             )
                             - 1j * (En[g] - En[aa] + rwa) * t1[:, None]
-                            - 1j * (En[bb] - En[aa]) * t2[None, None]
+                            - 1j * (En[bb] - En[aa]) * t2
                             - 1j * (En[ff] - En[aa] - rwa) * t3[None, :]
                         )
                     )
@@ -1062,7 +1062,7 @@ def R2f_wrong(
                                 ]
                             )
                             - 1j * (En[g] - En[aa] + rwa) * t1[:, None]
-                            - 1j * (En[bb] - En[aa]) * t2[None, None]
+                            - 1j * (En[bb] - En[aa]) * t2
                             - 1j * (En[ff] - En[aa] - rwa) * t3[None, :]
                         )
                     )

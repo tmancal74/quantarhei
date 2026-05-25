@@ -330,7 +330,9 @@ class SystemBathInteraction(Saveable):
         assert self.CC is not None
         return self.CC._cofts[0, :]
 
-    def get_goft_storage(self, config: dict | int | None = None) -> Any:
+    def get_goft_storage(
+        self, config: dict | int | None = None, timeaxis: Any = None
+    ) -> Any:
         """Returns a lineshape function storage based on correlation functions
 
         The function calculates g(t) fuctions based on the correlation
@@ -344,8 +346,11 @@ class SystemBathInteraction(Saveable):
             it wil produced g(t) for a standard 3rd order response calculation.
 
         """
-        if self._has_gg_storage and (
-            config is None or config == self._gg_storage_config
+        using_default_timeaxis = timeaxis is None
+        if (
+            using_default_timeaxis
+            and self._has_gg_storage
+            and (config is None or config == self._gg_storage_config)
         ):
             return self.GG
 
@@ -357,7 +362,9 @@ class SystemBathInteraction(Saveable):
 
         # we define storage for lineshape functions with prescribed config
         # FIXME: orinally I had Nb here, but that is wrong. Nf also does not work
-        gg = FunctionStorage(Nf, timeaxis=[self.TimeAxis, self.TimeAxis], config=config)
+        if using_default_timeaxis:
+            timeaxis = [self.TimeAxis, self.TimeAxis]
+        gg = FunctionStorage(Nf, timeaxis=timeaxis, config=config)
 
         # create functions to update storage
         fcions = {}
@@ -381,9 +388,10 @@ class SystemBathInteraction(Saveable):
         if Nf != gg.get_number_of_functions():
             raise Exception("Number of functions did not conserve in g(t) calculation")
 
-        self.GG = gg
-        self._has_gg_storage = True
-        self._gg_storage_config = config
+        if using_default_timeaxis:
+            self.GG = gg
+            self._has_gg_storage = True
+            self._gg_storage_config = config
 
         return gg
 

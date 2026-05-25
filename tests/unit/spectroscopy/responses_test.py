@@ -244,8 +244,15 @@ class TestResponses(unittest.TestCase):
         else:
             print("Calculating", Nt2, "spectra")
             tcont = calc.calculate()
-            tcont = tcont.get_TwoDSpectrumContainer()
-            twod = tcont.get_spectrum(T2)
+            pp_from_response = tcont.get_PumpProbeSpectrumContainer()
+            scont = tcont.get_TwoDSpectrumContainer()
+            pp_from_spectrum = scont.get_PumpProbeSpectrumContainer()
+            for t2 in t2_axis.data:
+                npt.assert_allclose(
+                    pp_from_response.spectra[t2].data,
+                    pp_from_spectrum.spectra[t2].data,
+                )
+            twod = scont.get_spectrum(T2)
 
         file_path_1 = TEST_DIR / "responses_test_twod_0.dat"
         save_data = False

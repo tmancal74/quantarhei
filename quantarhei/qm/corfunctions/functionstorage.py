@@ -492,12 +492,13 @@ class FunctionStorage:
                         sta = start + self.start_dic[j]
                         end = start + self.end_dic[j]
 
-                    if sta + 1 == end:
-                        return self.data[sta]
                     if isinstance(j, int):
                         tpl = self.reshapes[j]
                     else:
                         tpl = self.reshapes_dic[j]
+
+                    if sta + 1 == end and len(tpl) == 0:
+                        return self.data[sta]
 
                     return self.data[sta:end].reshape(tpl)
 
@@ -511,12 +512,13 @@ class FunctionStorage:
                         sta = self.start_dic[j]
                         end = self.end_dic[j]
 
-                    if sta + 1 == end:
-                        return self._data2d[i, sta]
                     if isinstance(j, int):
                         tpl = [self._data2d.shape[0]] + self.reshapes[j]  # type: ignore[misc]
                     else:
                         tpl = [self._data2d.shape[0]] + self.reshapes_dic[j]  # type: ignore[misc]
+
+                    if sta + 1 == end and len(tpl) == 1:
+                        return self._data2d[i, sta]
 
                     return self._data2d[i, sta:end].reshape(tpl)
 
@@ -773,11 +775,22 @@ class FunctionStorage:
 
     def get_reorganization_energies(self) -> numpy.ndarray:
         """Returns the estimate of the reoganization energies of the stored functions"""
-        index = (slice(None, None, None), "t1")
+        label = "t1"
+        axis = self.ta[0]
+        for candidate in self.oned_times:
+            axis_index = self.variable_index[candidate]
+            candidate_axis = self.ta[axis_index]
+            if not numpy.isclose(candidate_axis.data[-1], 0.0):
+                label = candidate
+                axis = candidate_axis
+                break
+
+        index = (slice(None, None, None), label)
         igg = -numpy.imag(self.__getitem__(index))
-        tal = self.ta[0].length - 1
-        # print("t1_max = ", self.ta[0].data[tal])
-        lam = igg[:, tal] / self.ta[0].data[tal]
+        tal = axis.length - 1
+        if numpy.isclose(axis.data[tal], 0.0):
+            return numpy.zeros(igg.shape[0], dtype=igg.dtype)
+        lam = igg[:, tal] / axis.data[tal]
 
         return lam
 
