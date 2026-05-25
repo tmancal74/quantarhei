@@ -127,6 +127,8 @@ class TwoDResponseCalculator:
         population_factors: Any = None,
         jump_order: int = 0,
         jump_time_graining: int = 1,
+        jump_kernel_cutoff: float = 0.0,
+        jump_kernel_zero_cutoff: float = 0.0,
     ) -> None:
 
         twodtype = _normalize_twodtype(twodtype)
@@ -143,6 +145,10 @@ class TwoDResponseCalculator:
             raise ValueError("2D response jump_order has to be 0 or 1")
         if jump_time_graining < 1:
             raise ValueError("jump_time_graining has to be a positive integer")
+        if jump_kernel_cutoff < 0.0:
+            raise ValueError("jump_kernel_cutoff has to be non-negative")
+        if jump_kernel_zero_cutoff < 0.0:
+            raise ValueError("jump_kernel_zero_cutoff has to be non-negative")
 
         self.t1axis = t1axis
         self.t2axis = t2axis
@@ -152,6 +158,9 @@ class TwoDResponseCalculator:
         self.population_factors = population_factors
         self.jump_order = jump_order
         self.jump_time_graining = jump_time_graining
+        self.jump_kernel_cutoff = jump_kernel_cutoff
+        self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
+        self.response_diagnostics: list[dict[str, Any]] = []
 
         # FIXME: check the compatibility of the axes
 
@@ -465,6 +474,8 @@ class TwoDResponseCalculator:
                 rate_matrix=self._response_rate_matrix,
                 population_time_axis=self._population_time_axis,
                 jump_time_graining=self.jump_time_graining,
+                jump_kernel_cutoff=self.jump_kernel_cutoff,
+                jump_kernel_zero_cutoff=self.jump_kernel_zero_cutoff,
             )
 
             # basic pathways
@@ -684,6 +695,7 @@ class TwoDResponseCalculator:
             for resp in self.resp_fcions:
                 if isinstance(resp, NonLinearResponse):
                     data = resp.calculate_matrix(tt2)
+                    self.response_diagnostics.append(dict(resp.diagnostics))
                     response_pieces.append((resp, data))
                     if resp.rtype == "R":
                         if resp.process == "GSB":
@@ -871,6 +883,8 @@ class TwoDResponseCalculator:
         """
         # FIXME: we will later use only one branch below
         from .twodcontainer import TwoDResponseContainer
+
+        self.response_diagnostics = []
 
         # if _have_aceto and self._has_system:
 

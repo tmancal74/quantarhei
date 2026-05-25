@@ -277,6 +277,8 @@ class NonLinearResponse:
         rate_matrix_options: dict[str, Any] | None = None,
         population_time_axis: Any = None,
         jump_time_graining: int = 1,
+        jump_kernel_cutoff: float = 0.0,
+        jump_kernel_zero_cutoff: float = 0.0,
     ) -> None:
 
         # info about pulse polarizations
@@ -303,10 +305,13 @@ class NonLinearResponse:
         self.t3s = t3s
         self.population_time_axis = population_time_axis
         self.jump_time_graining = jump_time_graining
+        self.jump_kernel_cutoff = jump_kernel_cutoff
+        self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
         self.KK: numpy.ndarray
         self.U0_t1: numpy.ndarray
         self.U0_t2: numpy.ndarray
         self.U0_t3: numpy.ndarray
+        self.U0_population: numpy.ndarray
         self.U0fe_t3: numpy.ndarray | None = None
         self.Uee: numpy.ndarray
         self.U1_t2: numpy.ndarray
@@ -314,6 +319,8 @@ class NonLinearResponse:
         self.Ujump_t2: tuple[numpy.ndarray, ...]
         self.Uremainder_t2: numpy.ndarray
         self.Utransfer_t2: numpy.ndarray
+        self.diagnostics: dict[str, Any] = {}
+        self._previous_response_matrix: numpy.ndarray | None = None
 
         if rate_matrix is not None:
             KK = get_single_exciton_rate_matrix(system, rate_matrix)
@@ -352,11 +359,26 @@ class NonLinearResponse:
         out = self.t2s.locate(t2)
         t2i = out[0]
         pt2i = t2i
+        pzeroi = 0
         if self.population_time_axis is not None:
+            try:
+                pzeroi = self.population_time_axis.locate(0.0)[0]
+            except Exception:
+                pzeroi = 0
             pt2i = self.population_time_axis.locate(t2)[0]
 
         # population decay factors at t2
         U0t2 = self.U0_t2[:, t2i]
+
+        metadata: dict[str, Any] = {
+            "jump_time_axis": self.population_time_axis,
+            "jump_time_zero_index": pzeroi,
+            "jump_time_t2_index": pt2i,
+            "jump_time_graining": self.jump_time_graining,
+            "jump_zero_propagator": self.U0_population,
+            "jump_kernel_cutoff": self.jump_kernel_cutoff,
+            "jump_kernel_zero_cutoff": self.jump_kernel_zero_cutoff,
+        }
 
         # here we specify evolution matrices
         evol = (
@@ -364,14 +386,10 @@ class NonLinearResponse:
             self.U0_t3,
             U0t2,
             self._get_transfer_matrix(t2i),
-            {
-                "jump_time_axis": self.population_time_axis,
-                "jump_time_t2_index": pt2i,
-                "jump_time_graining": self.jump_time_graining,
-            },
+            metadata,
         )
 
-        return self.func(
+        data = self.func(
             t2,
             self.t1s.data,
             self.t3s.data,
@@ -380,6 +398,40 @@ class NonLinearResponse:
             evol,
             self.KK,
         )
+        self._update_diagnostics(t2, data, metadata)
+        return data
+
+    def _update_diagnostics(
+        self, t2: float, data: numpy.ndarray, metadata: dict[str, Any]
+    ) -> None:
+        """Update response diagnostics after a t2 calculation."""
+        norm = float(numpy.linalg.norm(data))
+        previous_norm = 0.0
+        relative_change = None
+        if self._previous_response_matrix is not None:
+            previous_norm = float(numpy.linalg.norm(self._previous_response_matrix))
+            denom = max(norm, previous_norm, 1.0e-300)
+            relative_change = float(
+                numpy.linalg.norm(data - self._previous_response_matrix) / denom
+            )
+
+        self.diagnostics = {
+            "diagram": self.diag,
+            "t2": float(t2),
+            "response_norm": norm,
+            "previous_response_norm": previous_norm,
+            "relative_change": relative_change,
+            "is_transfer": self.is_transfer,
+            "transfer_channel": self.transfer_channel,
+        }
+        if self.transfer_channel is not None and self.transfer_channel.startswith(
+            "scM0"
+        ):
+            self.diagnostics["remainder_relative_change"] = relative_change
+        if "jump_diagnostics" in metadata:
+            self.diagnostics["jump"] = metadata["jump_diagnostics"].get(self.diag, {})
+
+        self._previous_response_matrix = data.copy()
 
     def set_rwa(self, rwa: float) -> None:
         """Sets rotating wave approximation frequency"""
@@ -391,6 +443,7 @@ class NonLinearResponse:
         self.U0_t1 = numpy.ones((dim, self.t1s.length), dtype=REAL)
         self.U0_t2 = numpy.ones((dim, self.t2s.length), dtype=REAL)
         self.U0_t3 = numpy.ones((dim, self.t3s.length), dtype=REAL)
+        self.U0_population = numpy.ones((dim, self.t2s.length), dtype=REAL)
 
         self.Uee = numpy.zeros((dim, dim, self.t2s.length), dtype=REAL)
         for ii in range(self.t2s.length):
@@ -485,6 +538,7 @@ class NonLinearResponse:
         self.U0_t2 = numpy.zeros((dim, self.t2s.length), dtype=REAL)
         self.U0_t1 = numpy.zeros((dim, self.t1s.length), dtype=REAL)
         self.U0_t3 = numpy.zeros((dim, self.t3s.length), dtype=REAL)
+        self.U0_population = numpy.zeros((dim, population_time_axis.length), dtype=REAL)
 
         it1 = _axis_indices(self.t1s, population_time_axis)
         it2 = _axis_indices(self.t2s, population_time_axis)
@@ -510,10 +564,13 @@ class NonLinearResponse:
             #
             for aa in range(KK.shape[0]):
                 if KK[aa, aa] <= 0.0:
-                    amplitude = numpy.exp(0.5 * KK[aa, aa] * population_time_axis.data)
-                    self.U0_t1[aa, :] = amplitude[it1]
-                    self.U0_t2[aa, :] = amplitude[it2]
-                    self.U0_t3[aa, :] = amplitude[it3]
+                    self.U0_population[aa, :] = numpy.exp(
+                        KK[aa, aa] * population_time_axis.data
+                    )
+                    coherence_amplitude = numpy.sqrt(self.U0_population[aa, :])
+                    self.U0_t1[aa, :] = coherence_amplitude[it1]
+                    self.U0_t2[aa, :] = coherence_amplitude[it2]
+                    self.U0_t3[aa, :] = coherence_amplitude[it3]
                 else:
                     raise Exception("Depopulation rate must be negative.")
 
@@ -553,12 +610,13 @@ class NonLinearResponse:
                         )
                         cumulative[ii + 1] = (
                             cumulative[ii]
-                            + 0.25 * (KK[ii, aa, aa] + KK[ii + 1, aa, aa]) * dt
+                            + 0.5 * (KK[ii, aa, aa] + KK[ii + 1, aa, aa]) * dt
                         )
-                    amplitude = numpy.exp(cumulative)
-                    self.U0_t1[aa, :] = amplitude[it1]
-                    self.U0_t2[aa, :] = amplitude[it2]
-                    self.U0_t3[aa, :] = amplitude[it3]
+                    self.U0_population[aa, :] = numpy.exp(cumulative)
+                    coherence_amplitude = numpy.sqrt(self.U0_population[aa, :])
+                    self.U0_t1[aa, :] = coherence_amplitude[it1]
+                    self.U0_t2[aa, :] = coherence_amplitude[it2]
+                    self.U0_t3[aa, :] = coherence_amplitude[it3]
                 else:
                     raise Exception("Depopulation rate must be negative.")
 

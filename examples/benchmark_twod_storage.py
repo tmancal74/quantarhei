@@ -83,7 +83,13 @@ def _s2_point_count(t2_axis: Any, jump_time_graining: int) -> int:
 
 
 def _run_single(
-    jump_order: int, nt: int, nt2: int, dt: float, jump_time_graining: int
+    jump_order: int,
+    nt: int,
+    nt2: int,
+    dt: float,
+    jump_time_graining: int,
+    jump_kernel_cutoff: float,
+    jump_kernel_zero_cutoff: float,
 ) -> dict[str, Any]:
     t1_axis = qr.TimeAxis(0.0, nt, dt)
     t2_axis = qr.TimeAxis(0.0, nt2, dt)
@@ -104,6 +110,8 @@ def _run_single(
         system=system,
         jump_order=jump_order,
         jump_time_graining=jump_time_graining,
+        jump_kernel_cutoff=jump_kernel_cutoff,
+        jump_kernel_zero_cutoff=jump_kernel_zero_cutoff,
     )
     with qr.energy_units("1/cm"):
         calc.bootstrap(rwa=12100.0, pad=0, lab=lab)
@@ -117,6 +125,19 @@ def _run_single(
     container = response.get_TwoDSpectrumContainer()
     spectrum = container.get_spectrum(t2_axis.data[0])
     checksum = float(abs(spectrum.data).sum())
+    jump_diagnostics = [
+        diag.get("jump", {})
+        for diag in calc.response_diagnostics
+        if str(diag.get("transfer_channel", "")).startswith("scM1")
+    ]
+    skipped_jumps = sum(1 for diag in jump_diagnostics if diag.get("skipped", False))
+    used_s2_points = sum(int(diag.get("used_points", 0)) for diag in jump_diagnostics)
+    remainder_changes = [
+        diag["remainder_relative_change"]
+        for diag in calc.response_diagnostics
+        if diag.get("remainder_relative_change") is not None
+    ]
+    max_remainder_change = max(remainder_changes, default=0.0)
 
     elapsed = time.perf_counter() - start
     current, peak = tracemalloc.get_traced_memory()
@@ -125,7 +146,12 @@ def _run_single(
     return {
         "jump_order": jump_order,
         "jump_time_graining": jump_time_graining,
+        "jump_kernel_cutoff": jump_kernel_cutoff,
+        "jump_kernel_zero_cutoff": jump_kernel_zero_cutoff,
         "s2_point_count": _s2_point_count(t2_axis, jump_time_graining),
+        "used_s2_points": used_s2_points,
+        "skipped_jumps": skipped_jumps,
+        "max_remainder_change": max_remainder_change,
         "nt": nt,
         "nt2": nt2,
         "dt": dt,
@@ -142,13 +168,18 @@ def _run_single(
 
 def _print_table(results: list[dict[str, Any]]) -> None:
     print(
-        "jump  grain  s2pts  args  stride  storage_MB  elapsed_s  trace_peak_MB  max_RSS_MB  checksum"
+        "jump  grain  cutoff  zero  s2pts  used  skip  rem_dR  args  stride  storage_MB  elapsed_s  trace_peak_MB  max_RSS_MB  checksum"
     )
     for result in results:
         print(
             f"{result['jump_order']:>4}  "
             f"{result['jump_time_graining']:>5}  "
+            f"{result['jump_kernel_cutoff']:>6.1e}  "
+            f"{result['jump_kernel_zero_cutoff']:>4.1e}  "
             f"{result['s2_point_count']:>5}  "
+            f"{result['used_s2_points']:>4}  "
+            f"{result['skipped_jumps']:>4}  "
+            f"{result['max_remainder_change']:>6.1e}  "
             f"{result['storage_arguments']:>4}  "
             f"{result['storage_stride']:>6}  "
             f"{result['storage_data_size_mb']:>10.3f}  "
@@ -165,6 +196,8 @@ def main() -> None:
     parser.add_argument("--nt2", type=int, default=8)
     parser.add_argument("--dt", type=float, default=10.0)
     parser.add_argument("--jump-time-graining", type=int, default=1)
+    parser.add_argument("--jump-kernel-cutoff", type=float, default=0.0)
+    parser.add_argument("--jump-kernel-zero-cutoff", type=float, default=0.0)
     parser.add_argument("--single-jump-order", type=int, choices=(0, 1))
     args = parser.parse_args()
 
@@ -177,6 +210,8 @@ def main() -> None:
                     args.nt2,
                     args.dt,
                     args.jump_time_graining,
+                    args.jump_kernel_cutoff,
+                    args.jump_kernel_zero_cutoff,
                 )
             )
         )
@@ -197,6 +232,10 @@ def main() -> None:
             str(args.dt),
             "--jump-time-graining",
             str(args.jump_time_graining),
+            "--jump-kernel-cutoff",
+            str(args.jump_kernel_cutoff),
+            "--jump-kernel-zero-cutoff",
+            str(args.jump_kernel_zero_cutoff),
         ]
         completed = subprocess.run(
             command,

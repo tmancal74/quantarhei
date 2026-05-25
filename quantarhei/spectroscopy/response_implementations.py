@@ -79,6 +79,119 @@ def _single_jump_times(t2: Any, evol: Any) -> numpy.ndarray:
     )
 
 
+def _single_jump_transfer_matrix(t2: Any, s2: Any, evol: Any, KK: Any) -> Any:
+    """Returns the one-jump transfer matrix density for a fixed jump time."""
+    metadata = _jump_time_metadata(evol)
+    axis = metadata.get("jump_time_axis", None)
+    U0 = metadata.get("jump_zero_propagator", None)
+    if axis is None or U0 is None or KK is None:
+        return evol[3]
+
+    zero_index = int(metadata.get("jump_time_zero_index", 0))
+    t2_index = int(metadata.get("jump_time_t2_index", axis.locate(float(t2))[0]))
+    s2_index = axis.locate(axis.data[zero_index] + float(s2))[0]
+
+    rates = numpy.asarray(KK)
+    if len(rates.shape) == 2:
+        K_at_s2 = rates
+    elif len(rates.shape) == 3:
+        K_at_s2 = rates[min(s2_index, rates.shape[0] - 1)]
+    else:
+        return evol[3]
+
+    transfer = numpy.zeros_like(K_at_s2)
+    for final in range(K_at_s2.shape[0]):
+        if U0[final, s2_index] == 0.0:
+            final_survival = 0.0
+        else:
+            final_survival = U0[final, t2_index] / U0[final, s2_index]
+        for initial in range(K_at_s2.shape[1]):
+            if final != initial:
+                transfer[final, initial] = (
+                    K_at_s2[final, initial] * final_survival * U0[initial, s2_index]
+                )
+
+    return transfer
+
+
+def _truncate_single_jump_times(
+    t2: Any, s2s: numpy.ndarray, transfers: list[Any], evol: Any
+) -> tuple[numpy.ndarray, list[Any]]:
+    """Drop s2 points whose one-jump kernel is negligible."""
+    metadata = _jump_time_metadata(evol)
+    cutoff = float(metadata.get("jump_kernel_cutoff", 0.0))
+    if cutoff <= 0.0 or len(s2s) <= 2:
+        return s2s, transfers
+
+    norms = numpy.asarray(
+        [numpy.max(numpy.abs(transfer)) for transfer in transfers],
+        dtype=numpy.float64,
+    )
+    max_norm = float(numpy.max(norms))
+    if max_norm == 0.0:
+        return numpy.array([0.0, float(t2)], dtype=numpy.float64), [
+            transfers[0],
+            transfers[-1],
+        ]
+
+    active = numpy.where(norms >= cutoff * max_norm)[0]
+    if len(active) == 0:
+        return numpy.array([0.0, float(t2)], dtype=numpy.float64), [
+            transfers[0],
+            transfers[-1],
+        ]
+
+    first = max(0, int(active[0]) - 1)
+    last = min(len(s2s) - 1, int(active[-1]) + 1)
+    return s2s[first : last + 1], transfers[first : last + 1]
+
+
+def _single_jump_kernel_diagnostics(
+    s2s: numpy.ndarray, transfers: list[Any], used_points: int, skipped: bool
+) -> dict[str, Any]:
+    """Return diagnostic information about the one-jump kernel."""
+    if len(transfers) == 0:
+        max_norm = 0.0
+        integral_norm = 0.0
+    else:
+        norms = numpy.asarray(
+            [numpy.max(numpy.abs(transfer)) for transfer in transfers],
+            dtype=numpy.float64,
+        )
+        max_norm = float(numpy.max(norms))
+        if len(norms) > 1:
+            integral_norm = float(numpy.trapz(norms, s2s))
+        else:
+            integral_norm = 0.0
+
+    return {
+        "candidate_points": len(s2s),
+        "used_points": int(used_points),
+        "max_kernel_norm": max_norm,
+        "integrated_kernel_norm": integral_norm,
+        "skipped": skipped,
+    }
+
+
+def _set_single_jump_diagnostics(
+    evol: Any, response_name: str, diagnostics: dict[str, Any]
+) -> None:
+    """Store one-jump diagnostics in response evolution metadata."""
+    metadata = _jump_time_metadata(evol)
+    all_diagnostics = metadata.get("jump_diagnostics", {})
+    all_diagnostics[response_name] = diagnostics
+    metadata["jump_diagnostics"] = all_diagnostics
+
+
+def _replace_transfer_matrix(evol: Any, transfer_matrix: Any) -> Any:
+    """Return response evolution data with a fixed transfer matrix."""
+    if isinstance(evol, tuple) and len(evol) > 4:
+        return evol[:3] + (transfer_matrix,) + evol[4:]
+    if isinstance(evol, tuple) and len(evol) == 4:
+        return evol[:3] + (transfer_matrix,)
+    return evol
+
+
 def _evaluate_single_jump_response(
     response_func: Any,
     t2: Any,
@@ -89,16 +202,21 @@ def _evaluate_single_jump_response(
     system: Any,
     evol: Any,
     KK: Any,
+    transfer_matrix: Any = None,
 ) -> numpy.ndarray:
     """Evaluates a placeholder one-jump response with a fixed jump time."""
     gg = system.get_lineshape_functions()
+    if transfer_matrix is None:
+        transfer_matrix = _single_jump_transfer_matrix(t2, s2, evol, KK)
+    evol_at_s2 = _replace_transfer_matrix(evol, transfer_matrix)
+
     old_defaults = getattr(gg, "_reset_defaults", None)
     reset_defaults = dict(old_defaults) if isinstance(old_defaults, dict) else {}
     reset_defaults["s2"] = s2
     gg._reset_defaults = reset_defaults
 
     try:
-        return response_func(t2, t1, t3, lab, system, evol, KK)
+        return response_func(t2, t1, t3, lab, system, evol_at_s2, KK)
     finally:
         if old_defaults is None:
             del gg._reset_defaults
@@ -122,25 +240,59 @@ def _integrate_single_jump_response(
     _require_line_shape_arguments(gg, response_name)
 
     s2s = _single_jump_times(t2, evol)
-    if len(s2s) == 1 or t2 == 0.0:
+    if t2 == 0.0:
+        _set_single_jump_diagnostics(
+            evol,
+            response_name,
+            _single_jump_kernel_diagnostics(s2s, [], 0, skipped=True),
+        )
+        return numpy.zeros((len(t3), len(t1)), dtype=COMPLEX)
+    transfers = [_single_jump_transfer_matrix(t2, s2, evol, KK) for s2 in s2s]
+    zero_cutoff = float(_jump_time_metadata(evol).get("jump_kernel_zero_cutoff", 0.0))
+    original_s2s = s2s
+    original_transfers = transfers
+    if zero_cutoff > 0.0:
+        max_norm = max(
+            (float(numpy.max(numpy.abs(transfer))) for transfer in transfers),
+            default=0.0,
+        )
+        if max_norm <= zero_cutoff:
+            _set_single_jump_diagnostics(
+                evol,
+                response_name,
+                _single_jump_kernel_diagnostics(
+                    original_s2s, original_transfers, 0, skipped=True
+                ),
+            )
+            return numpy.zeros((len(t3), len(t1)), dtype=COMPLEX)
+
+    s2s, transfers = _truncate_single_jump_times(t2, s2s, transfers, evol)
+    _set_single_jump_diagnostics(
+        evol,
+        response_name,
+        _single_jump_kernel_diagnostics(
+            original_s2s, original_transfers, len(s2s), skipped=False
+        ),
+    )
+    if len(s2s) == 1:
         return _evaluate_single_jump_response(
-            response_func, t2, s2s[0], t1, t3, lab, system, evol, KK
+            response_func, t2, s2s[0], t1, t3, lab, system, evol, KK, transfers[0]
         )
 
     previous_s2 = s2s[0]
     previous_value = _evaluate_single_jump_response(
-        response_func, t2, previous_s2, t1, t3, lab, system, evol, KK
+        response_func, t2, previous_s2, t1, t3, lab, system, evol, KK, transfers[0]
     )
     ret = numpy.zeros_like(previous_value)
-    for s2 in s2s[1:]:
+    for s2, transfer in zip(s2s[1:], transfers[1:]):
         value = _evaluate_single_jump_response(
-            response_func, t2, s2, t1, t3, lab, system, evol, KK
+            response_func, t2, s2, t1, t3, lab, system, evol, KK, transfer
         )
         ret += 0.5 * (previous_value + value) * (s2 - previous_s2)
         previous_s2 = s2
         previous_value = value
 
-    return ret / float(t2)
+    return ret
 
 
 def R1g(

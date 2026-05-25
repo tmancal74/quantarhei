@@ -288,8 +288,14 @@ class TestTwod(unittest.TestCase):
         )
         self.assertEqual(twod_calc.jump_order, 1)
         self.assertEqual(twod_calc.jump_time_graining, 3)
+        self.assertEqual(twod_calc.jump_kernel_cutoff, 0.0)
+        self.assertEqual(twod_calc.jump_kernel_zero_cutoff, 0.0)
 
         with assert_raises(ValueError):
             qr.TwoDResponseCalculator(t1, t2, t3, jump_order=2)
         with assert_raises(ValueError):
             qr.TwoDResponseCalculator(t1, t2, t3, jump_time_graining=0)
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_kernel_cutoff=-1.0)
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_kernel_zero_cutoff=-1.0)

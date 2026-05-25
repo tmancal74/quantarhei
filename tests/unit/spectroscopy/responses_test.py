@@ -5,7 +5,10 @@ import numpy
 import numpy.testing as npt
 
 import quantarhei as qr
-from quantarhei.spectroscopy.response_implementations import get_implementation
+from quantarhei.spectroscopy.response_implementations import (
+    _truncate_single_jump_times,
+    get_implementation,
+)
 from quantarhei.spectroscopy.responses import RESPONSE_DIAGRAMS, NonLinearResponse
 from quantarhei.symbolic.cumulant import GFInitiator
 from quantarhei.utils.vectors import X
@@ -121,6 +124,20 @@ class TestResponses(unittest.TestCase):
         self.assertEqual(RESPONSE_DIAGRAMS["R1g_scM1g"]["process"], "SE")
         self.assertTrue(RESPONSE_DIAGRAMS["R2f_scM1e"]["transfer"])
         self.assertEqual(RESPONSE_DIAGRAMS["R2f_scM1e"]["process"], "ESA")
+
+    def test_single_jump_kernel_truncation(self):
+        """Testing s2 integration truncation by one-jump kernel norm"""
+        s2s = numpy.arange(0.0, 10.0)
+        norms = [0.0, 0.001, 0.2, 1.0, 0.3, 0.01, 0.0001, 0.0, 0.0, 0.0]
+        transfers = [numpy.array([[norm]]) for norm in norms]
+        evol = (None, None, None, None, {"jump_kernel_cutoff": 1.0e-2})
+
+        truncated_s2s, truncated_transfers = _truncate_single_jump_times(
+            9.0, s2s, transfers, evol
+        )
+
+        npt.assert_allclose(truncated_s2s, numpy.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]))
+        self.assertEqual(len(truncated_transfers), 6)
 
     def test_Responses(self):
         """Testing basic functions of the TwoDSpectrumBase class"""
