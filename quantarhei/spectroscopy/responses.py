@@ -276,7 +276,7 @@ class NonLinearResponse:
         relaxation_cutoff_time: float | None = None,
         rate_matrix_options: dict[str, Any] | None = None,
         population_time_axis: Any = None,
-        jump_integration_steps: int = 1,
+        jump_time_graining: int = 1,
     ) -> None:
 
         # info about pulse polarizations
@@ -302,7 +302,7 @@ class NonLinearResponse:
         self.t2s = t2s
         self.t3s = t3s
         self.population_time_axis = population_time_axis
-        self.jump_integration_steps = jump_integration_steps
+        self.jump_time_graining = jump_time_graining
         self.KK: numpy.ndarray
         self.U0_t1: numpy.ndarray
         self.U0_t2: numpy.ndarray
@@ -351,6 +351,9 @@ class NonLinearResponse:
         # identify the index of the present t2 time
         out = self.t2s.locate(t2)
         t2i = out[0]
+        pt2i = t2i
+        if self.population_time_axis is not None:
+            pt2i = self.population_time_axis.locate(t2)[0]
 
         # population decay factors at t2
         U0t2 = self.U0_t2[:, t2i]
@@ -361,7 +364,11 @@ class NonLinearResponse:
             self.U0_t3,
             U0t2,
             self._get_transfer_matrix(t2i),
-            {"jump_integration_steps": self.jump_integration_steps},
+            {
+                "jump_time_axis": self.population_time_axis,
+                "jump_time_t2_index": pt2i,
+                "jump_time_graining": self.jump_time_graining,
+            },
         )
 
         return self.func(

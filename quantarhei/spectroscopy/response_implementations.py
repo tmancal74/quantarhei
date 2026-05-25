@@ -44,11 +44,39 @@ def _require_line_shape_arguments(gg: Any, response_name: str) -> None:
         )
 
 
-def _jump_integration_steps(evol: Any) -> int:
-    """Returns requested number of explicit s2 integration points."""
+def _jump_time_metadata(evol: Any) -> dict[str, Any]:
+    """Returns one-jump integration metadata from response evolution data."""
     if isinstance(evol, tuple) and len(evol) > 4 and isinstance(evol[4], dict):
-        return int(evol[4].get("jump_integration_steps", 1))
-    return 1
+        return evol[4]
+    return {}
+
+
+def _single_jump_times(t2: Any, evol: Any) -> numpy.ndarray:
+    """Returns jump times from the population time axis and graining."""
+    t2_value = float(t2)
+    if t2_value == 0.0:
+        return numpy.array([0.0], dtype=numpy.float64)
+
+    metadata = _jump_time_metadata(evol)
+    graining = int(metadata.get("jump_time_graining", 1))
+    axis = metadata.get("jump_time_axis", None)
+
+    if axis is None:
+        return numpy.array([0.5 * t2_value], dtype=numpy.float64)
+
+    try:
+        zero_index = axis.locate(0.0)[0]
+    except Exception:
+        zero_index = 0
+    t2_index = int(metadata.get("jump_time_t2_index", axis.locate(t2_value)[0]))
+
+    indices = list(range(zero_index, t2_index + 1, graining))
+    if not indices or indices[-1] != t2_index:
+        indices.append(t2_index)
+
+    return numpy.asarray(
+        axis.data[indices] - axis.data[zero_index], dtype=numpy.float64
+    )
 
 
 def _evaluate_single_jump_response(
@@ -93,29 +121,26 @@ def _integrate_single_jump_response(
     gg = system.get_lineshape_functions()
     _require_line_shape_arguments(gg, response_name)
 
-    steps = _jump_integration_steps(evol)
-    if steps <= 1 or t2 == 0.0:
+    s2s = _single_jump_times(t2, evol)
+    if len(s2s) == 1 or t2 == 0.0:
         return _evaluate_single_jump_response(
-            response_func, t2, 0.5 * t2, t1, t3, lab, system, evol, KK
+            response_func, t2, s2s[0], t1, t3, lab, system, evol, KK
         )
 
-    s2s = numpy.linspace(0.0, t2, steps)
-    weights = numpy.ones(steps, dtype=numpy.float64)
-    weights[0] = 0.5
-    weights[-1] = 0.5
-
-    ret = None
-    for weight, s2 in zip(weights, s2s):
+    previous_s2 = s2s[0]
+    previous_value = _evaluate_single_jump_response(
+        response_func, t2, previous_s2, t1, t3, lab, system, evol, KK
+    )
+    ret = numpy.zeros_like(previous_value)
+    for s2 in s2s[1:]:
         value = _evaluate_single_jump_response(
             response_func, t2, s2, t1, t3, lab, system, evol, KK
         )
-        if ret is None:
-            ret = weight * value
-        else:
-            ret += weight * value
+        ret += 0.5 * (previous_value + value) * (s2 - previous_s2)
+        previous_s2 = s2
+        previous_value = value
 
-    assert ret is not None
-    return ret / (steps - 1)
+    return ret / float(t2)
 
 
 def R1g(

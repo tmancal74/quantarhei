@@ -71,8 +71,19 @@ def _build_system(nt: int, nt2: int, dt: float) -> Any:
     return agg
 
 
+def _s2_point_count(t2_axis: Any, jump_time_graining: int) -> int:
+    """Return the number of s2 grid points used for the largest t2."""
+    if t2_axis.length == 0:
+        return 0
+    t2_index = t2_axis.length - 1
+    indices = list(range(0, t2_index + 1, jump_time_graining))
+    if not indices or indices[-1] != t2_index:
+        indices.append(t2_index)
+    return len(indices)
+
+
 def _run_single(
-    jump_order: int, nt: int, nt2: int, dt: float, jump_integration_steps: int
+    jump_order: int, nt: int, nt2: int, dt: float, jump_time_graining: int
 ) -> dict[str, Any]:
     t1_axis = qr.TimeAxis(0.0, nt, dt)
     t2_axis = qr.TimeAxis(0.0, nt2, dt)
@@ -92,7 +103,7 @@ def _run_single(
         t3_axis,
         system=system,
         jump_order=jump_order,
-        jump_integration_steps=jump_integration_steps,
+        jump_time_graining=jump_time_graining,
     )
     with qr.energy_units("1/cm"):
         calc.bootstrap(rwa=12100.0, pad=0, lab=lab)
@@ -113,7 +124,8 @@ def _run_single(
 
     return {
         "jump_order": jump_order,
-        "jump_integration_steps": jump_integration_steps,
+        "jump_time_graining": jump_time_graining,
+        "s2_point_count": _s2_point_count(t2_axis, jump_time_graining),
         "nt": nt,
         "nt2": nt2,
         "dt": dt,
@@ -130,12 +142,13 @@ def _run_single(
 
 def _print_table(results: list[dict[str, Any]]) -> None:
     print(
-        "jump  s2pts  args  stride  storage_MB  elapsed_s  trace_peak_MB  max_RSS_MB  checksum"
+        "jump  grain  s2pts  args  stride  storage_MB  elapsed_s  trace_peak_MB  max_RSS_MB  checksum"
     )
     for result in results:
         print(
             f"{result['jump_order']:>4}  "
-            f"{result['jump_integration_steps']:>5}  "
+            f"{result['jump_time_graining']:>5}  "
+            f"{result['s2_point_count']:>5}  "
             f"{result['storage_arguments']:>4}  "
             f"{result['storage_stride']:>6}  "
             f"{result['storage_data_size_mb']:>10.3f}  "
@@ -151,7 +164,7 @@ def main() -> None:
     parser.add_argument("--nt", type=int, default=24)
     parser.add_argument("--nt2", type=int, default=8)
     parser.add_argument("--dt", type=float, default=10.0)
-    parser.add_argument("--jump-integration-steps", type=int, default=1)
+    parser.add_argument("--jump-time-graining", type=int, default=1)
     parser.add_argument("--single-jump-order", type=int, choices=(0, 1))
     args = parser.parse_args()
 
@@ -163,7 +176,7 @@ def main() -> None:
                     args.nt,
                     args.nt2,
                     args.dt,
-                    args.jump_integration_steps,
+                    args.jump_time_graining,
                 )
             )
         )
@@ -182,8 +195,8 @@ def main() -> None:
             str(args.nt2),
             "--dt",
             str(args.dt),
-            "--jump-integration-steps",
-            str(args.jump_integration_steps),
+            "--jump-time-graining",
+            str(args.jump_time_graining),
         ]
         completed = subprocess.run(
             command,
