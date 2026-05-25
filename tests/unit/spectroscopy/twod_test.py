@@ -299,3 +299,32 @@ class TestTwod(unittest.TestCase):
             qr.TwoDResponseCalculator(t1, t2, t3, jump_kernel_cutoff=-1.0)
         with assert_raises(ValueError):
             qr.TwoDResponseCalculator(t1, t2, t3, jump_kernel_zero_cutoff=-1.0)
+
+    def test_TwoDResponseCalculator_external_population_propagator_option(self):
+        """Testing external population propagator option validation"""
+        t1 = qr.TimeAxis(0.0, 1000, 1.0)
+        t3 = qr.TimeAxis(0.0, 1000, 1.0)
+        t2 = qr.TimeAxis(30, 10, 10.0)
+        Uee = numpy.zeros((2, 2, t2.length), dtype=numpy.float64)
+
+        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3, population_propagator=Uee)
+        self.assertEqual(twod_calc.population_dynamics_mode, "full_conditional")
+        self.assertIs(twod_calc.population_propagator, Uee)
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                population_propagator=Uee,
+                population_dynamics_mode="unknown",
+            )
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                rate_matrix=numpy.zeros((2, 2), dtype=numpy.float64),
+                population_propagator=Uee,
+            )

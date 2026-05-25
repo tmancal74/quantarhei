@@ -276,6 +276,8 @@ class NonLinearResponse:
         relaxation_cutoff_time: float | None = None,
         rate_matrix_options: dict[str, Any] | None = None,
         population_time_axis: Any = None,
+        population_propagator: Any = None,
+        population_dynamics_mode: str | None = None,
         jump_time_graining: int = 1,
         jump_kernel_cutoff: float = 0.0,
         jump_kernel_zero_cutoff: float = 0.0,
@@ -303,7 +305,15 @@ class NonLinearResponse:
         self.t1s = t1s
         self.t2s = t2s
         self.t3s = t3s
+        if population_dynamics_mode is None:
+            population_dynamics_mode = (
+                "full_conditional"
+                if population_propagator is not None
+                else "jump_decomposition"
+            )
+
         self.population_time_axis = population_time_axis
+        self.population_dynamics_mode = population_dynamics_mode
         self.jump_time_graining = jump_time_graining
         self.jump_kernel_cutoff = jump_kernel_cutoff
         self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
@@ -321,6 +331,22 @@ class NonLinearResponse:
         self.Utransfer_t2: numpy.ndarray
         self.diagnostics: dict[str, Any] = {}
         self._previous_response_matrix: numpy.ndarray | None = None
+
+        if population_propagator is not None and (
+            rate_matrix is not None or relaxation_theory is not None
+        ):
+            raise ValueError(
+                "population_propagator cannot be combined with rate_matrix "
+                "or relaxation_theory"
+            )
+
+        if population_propagator is not None:
+            self.set_population_propagator(
+                population_propagator,
+                population_time_axis=population_time_axis,
+                mode=population_dynamics_mode,
+            )
+            return
 
         if rate_matrix is not None:
             KK = get_single_exciton_rate_matrix(system, rate_matrix)
@@ -466,6 +492,8 @@ class NonLinearResponse:
 
     def _get_jump_expansion_order(self) -> int:
         """Returns the highest explicit jump order to calculate."""
+        if self.population_dynamics_mode != "jump_decomposition":
+            return 0
         return 1 if self._uses_single_jump_storage() else 0
 
     def _get_transfer_matrix(self, t2i: int) -> numpy.ndarray:
@@ -484,6 +512,91 @@ class NonLinearResponse:
         for jump in jumps:
             jump_sum += jump
         return self.Uee - jump_sum
+
+    def _population_propagator_data(self, population_propagator: Any) -> numpy.ndarray:
+        """Returns population propagator data in ``(N, N, Nt)`` order."""
+        data = numpy.asarray(
+            population_propagator.data
+            if hasattr(population_propagator, "data")
+            else population_propagator
+        )
+        if len(data.shape) != 3:
+            raise Exception("Population propagator has to be an array of rank 3")
+
+        dim = self.sys.Nb[1]
+        if data.shape[0] == dim and data.shape[1] == dim:
+            return data.astype(REAL, copy=False)
+        if data.shape[1] == dim and data.shape[2] == dim:
+            return numpy.transpose(data, (1, 2, 0)).astype(REAL, copy=False)
+
+        raise Exception(
+            "Population propagator has to have shape (N, N, Nt) "
+            "or (Nt, N, N), where N is the number of single-exciton states"
+        )
+
+    def set_population_propagator(
+        self,
+        population_propagator: Any,
+        population_time_axis: Any = None,
+        mode: str = "full_conditional",
+    ) -> None:
+        """Set an externally calculated one-exciton population propagator.
+
+        The ``full_conditional`` mode classifies the supplied conditional
+        propagator by endpoints: diagonal elements weight the ordinary
+        no-transfer response expressions, and off-diagonal elements weight the
+        transfer/remainder response expressions.  No jump-order information is
+        inferred from this propagator.
+        """
+        if mode != "full_conditional":
+            raise ValueError(
+                "External population propagators currently support only "
+                "population_dynamics_mode='full_conditional'"
+            )
+
+        if population_time_axis is None:
+            population_time_axis = self.population_time_axis
+        if population_time_axis is None:
+            population_time_axis = self.t2s
+        self.population_time_axis = population_time_axis
+        self.population_dynamics_mode = mode
+
+        if not self.t2s.is_subset_of(population_time_axis):
+            raise Exception("t2 TimeAxis is not compatible with population dynamics")
+
+        Ufull = self._population_propagator_data(population_propagator)
+        dim = Ufull.shape[0]
+        if Ufull.shape[2] != population_time_axis.length:
+            raise Exception(
+                "Population propagator time dimension has to match the "
+                "population TimeAxis length"
+            )
+
+        it2 = _axis_indices(self.t2s, population_time_axis)
+
+        self.KK = numpy.zeros((dim, dim), dtype=REAL)
+        self.U0_t1 = numpy.ones((dim, self.t1s.length), dtype=REAL)
+        self.U0_t3 = numpy.ones((dim, self.t3s.length), dtype=REAL)
+        self.U0_t2 = numpy.ones((dim, self.t2s.length), dtype=REAL)
+        self.U0_population = numpy.ones((dim, population_time_axis.length), dtype=REAL)
+
+        Udiag_full = numpy.zeros_like(Ufull)
+        for ii in range(population_time_axis.length):
+            diag = numpy.diag(Ufull[:, :, ii])
+            if numpy.any(diag < -1.0e-12):
+                raise Exception("Population propagator diagonal cannot be negative")
+            Udiag_full[:, :, ii] = numpy.diag(diag)
+
+        self.Uee = Ufull[:, :, it2]
+        self.U1_t2 = Udiag_full[:, :, it2]
+        for ii in range(self.t2s.length):
+            diag = numpy.maximum(numpy.diag(self.U1_t2[:, :, ii]), 0.0)
+            self.U0_t2[:, ii] = numpy.sqrt(diag)
+
+        self.Usingle_t2 = numpy.zeros_like(self.Uee)
+        self.Ujump_t2 = (self.U1_t2,)
+        self.Uremainder_t2 = self.Uee - self.U1_t2
+        self.Utransfer_t2 = self.Uremainder_t2
 
     def set_rate_matrix(
         self, KK: numpy.ndarray, population_time_axis: Any = None

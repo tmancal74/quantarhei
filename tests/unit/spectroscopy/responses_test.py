@@ -326,6 +326,59 @@ class TestResponses(unittest.TestCase):
         npt.assert_allclose(response.Uremainder_t2, response.Uee - response.U1_t2)
         npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
 
+    def test_external_population_propagator_full_conditional(self):
+        """Testing endpoint classification of an external population propagator"""
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        Uee = numpy.zeros((2, 2, t2.length), dtype=numpy.float64)
+        for ii, time in enumerate(t2.data):
+            transfer = 0.1 * (1.0 - numpy.exp(-0.01 * time))
+            Uee[:, :, ii] = numpy.array(
+                [[1.0 - transfer, 0.5 * transfer], [transfer, 1.0 - 0.5 * transfer]]
+            )
+
+        response = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            population_propagator=Uee,
+            population_dynamics_mode="full_conditional",
+        )
+
+        expected_diag = numpy.zeros_like(Uee)
+        for ii in range(t2.length):
+            expected_diag[:, :, ii] = numpy.diag(numpy.diag(Uee[:, :, ii]))
+
+        npt.assert_allclose(response.Uee, Uee)
+        npt.assert_allclose(response.U1_t2, expected_diag)
+        npt.assert_allclose(response.Uremainder_t2, Uee - expected_diag)
+        npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
+        npt.assert_allclose(response.U0_t1, numpy.ones_like(response.U0_t1))
+        npt.assert_allclose(response.U0_t3, numpy.ones_like(response.U0_t3))
+        npt.assert_allclose(response.U0_t2**2, numpy.diagonal(Uee).T)
+
+        response_time_first = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            population_propagator=numpy.transpose(Uee, (2, 0, 1)),
+        )
+        npt.assert_allclose(response_time_first.Uee, Uee)
+
     def test_single_jump_transfer_channel(self):
         """Testing one-jump transfer channel and remainder bookkeeping"""
 

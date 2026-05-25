@@ -121,6 +121,9 @@ class TwoDResponseCalculator:
         rate_matrix_time_dependent: bool = False,
         relaxation_cutoff_time: float | None = None,
         rate_matrix_options: dict[str, Any] | None = None,
+        population_propagator: Any = None,
+        population_time_axis: Any = None,
+        population_dynamics_mode: str | None = None,
         effective_hamiltonian: Any = None,
         twodtype: str = "2DES",
         gamma_factor: float | None = None,
@@ -149,6 +152,24 @@ class TwoDResponseCalculator:
             raise ValueError("jump_kernel_cutoff has to be non-negative")
         if jump_kernel_zero_cutoff < 0.0:
             raise ValueError("jump_kernel_zero_cutoff has to be non-negative")
+        if population_dynamics_mode is None:
+            population_dynamics_mode = (
+                "full_conditional"
+                if population_propagator is not None
+                else "jump_decomposition"
+            )
+        if population_dynamics_mode not in ("jump_decomposition", "full_conditional"):
+            raise ValueError(
+                "population_dynamics_mode has to be 'jump_decomposition' "
+                "or 'full_conditional'"
+            )
+        if population_propagator is not None and (
+            rate_matrix is not None or relaxation_theory is not None
+        ):
+            raise ValueError(
+                "population_propagator cannot be combined with rate_matrix "
+                "or relaxation_theory"
+            )
 
         self.t1axis = t1axis
         self.t2axis = t2axis
@@ -160,6 +181,8 @@ class TwoDResponseCalculator:
         self.jump_time_graining = jump_time_graining
         self.jump_kernel_cutoff = jump_kernel_cutoff
         self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
+        self.population_propagator = population_propagator
+        self.population_dynamics_mode = population_dynamics_mode
         self.response_diagnostics: list[dict[str, Any]] = []
 
         # FIXME: check the compatibility of the axes
@@ -188,7 +211,7 @@ class TwoDResponseCalculator:
         self._rate_matrix = None
         self._response_rate_matrix: Any = None
         self._relaxation_hamiltonian = None
-        self._population_time_axis = None
+        self._population_time_axis = population_time_axis
         self._has_relaxation_tensor = False
         self._has_rate_matrix = False
         self.relaxation_theory = relaxation_theory
@@ -305,13 +328,18 @@ class TwoDResponseCalculator:
                 # Relaxation rates
                 #
                 relaxation_requested = (
-                    self._has_rate_matrix or self.relaxation_theory is not None
+                    self._has_rate_matrix
+                    or self.relaxation_theory is not None
+                    or self.population_propagator is not None
                 )
                 if relaxation_requested:
-                    validate_2d_time_axes(self.t1axis, self.t2axis, self.t3axis)
-                    self._population_time_axis = get_common_time_axis(
-                        self.t1axis, self.t2axis, self.t3axis
-                    )
+                    if self.population_propagator is None:
+                        validate_2d_time_axes(self.t1axis, self.t2axis, self.t3axis)
+                        self._population_time_axis = get_common_time_axis(
+                            self.t1axis, self.t2axis, self.t3axis
+                        )
+                    elif self._population_time_axis is None:
+                        self._population_time_axis = self.t2axis
 
                 if self._has_rate_matrix:
                     KK = self._rate_matrix
@@ -472,6 +500,8 @@ class TwoDResponseCalculator:
             self.resp_fcions = []
             response_kwargs: dict[str, Any] = dict(
                 rate_matrix=self._response_rate_matrix,
+                population_propagator=self.population_propagator,
+                population_dynamics_mode=self.population_dynamics_mode,
                 population_time_axis=self._population_time_axis,
                 jump_time_graining=self.jump_time_graining,
                 jump_kernel_cutoff=self.jump_kernel_cutoff,
