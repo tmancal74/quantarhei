@@ -122,8 +122,12 @@ class TwoDResponseCalculator:
         relaxation_cutoff_time: float | None = None,
         rate_matrix_options: dict[str, Any] | None = None,
         population_propagator: Any = None,
+        density_matrix_propagator: Any = None,
+        density_matrix_trajectory: Any = None,
         population_time_axis: Any = None,
         population_dynamics_mode: str | None = None,
+        include_nonsecular_remainder: bool = True,
+        dipole_normalization_tol: float = 1.0e-12,
         effective_hamiltonian: Any = None,
         twodtype: str = "2DES",
         gamma_factor: float | None = None,
@@ -156,6 +160,8 @@ class TwoDResponseCalculator:
             population_dynamics_mode = (
                 "full_conditional"
                 if population_propagator is not None
+                or density_matrix_propagator is not None
+                or density_matrix_trajectory is not None
                 else "jump_decomposition"
             )
         if population_dynamics_mode not in ("jump_decomposition", "full_conditional"):
@@ -163,12 +169,36 @@ class TwoDResponseCalculator:
                 "population_dynamics_mode has to be 'jump_decomposition' "
                 "or 'full_conditional'"
             )
-        if population_propagator is not None and (
+        external_count = sum(
+            item is not None
+            for item in (
+                population_propagator,
+                density_matrix_propagator,
+                density_matrix_trajectory,
+            )
+        )
+        if external_count > 1:
+            raise ValueError(
+                "population_propagator, density_matrix_propagator, and "
+                "density_matrix_trajectory are mutually exclusive"
+            )
+        if external_count > 0 and (
             rate_matrix is not None or relaxation_theory is not None
         ):
             raise ValueError(
-                "population_propagator cannot be combined with rate_matrix "
+                "External propagators cannot be combined with rate_matrix "
                 "or relaxation_theory"
+            )
+        if external_count > 0 and jump_order > 0:
+            raise ValueError(
+                "External propagators cannot be combined with jump_order > 0"
+            )
+        if density_matrix_trajectory is not None and (
+            t1axis.length != 1 or not numpy.isclose(t1axis.data[0], 0.0)
+        ):
+            raise ValueError(
+                "density_matrix_trajectory is only allowed for pump-probe-like "
+                "calculations with t1 = 0"
             )
 
         self.t1axis = t1axis
@@ -182,7 +212,11 @@ class TwoDResponseCalculator:
         self.jump_kernel_cutoff = jump_kernel_cutoff
         self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
         self.population_propagator = population_propagator
+        self.density_matrix_propagator = density_matrix_propagator
+        self.density_matrix_trajectory = density_matrix_trajectory
         self.population_dynamics_mode = population_dynamics_mode
+        self.include_nonsecular_remainder = include_nonsecular_remainder
+        self.dipole_normalization_tol = dipole_normalization_tol
         self.response_diagnostics: list[dict[str, Any]] = []
 
         # FIXME: check the compatibility of the axes
@@ -331,9 +365,15 @@ class TwoDResponseCalculator:
                     self._has_rate_matrix
                     or self.relaxation_theory is not None
                     or self.population_propagator is not None
+                    or self.density_matrix_propagator is not None
+                    or self.density_matrix_trajectory is not None
                 )
                 if relaxation_requested:
-                    if self.population_propagator is None:
+                    if (
+                        self.population_propagator is None
+                        and self.density_matrix_propagator is None
+                        and self.density_matrix_trajectory is None
+                    ):
                         validate_2d_time_axes(self.t1axis, self.t2axis, self.t3axis)
                         self._population_time_axis = get_common_time_axis(
                             self.t1axis, self.t2axis, self.t3axis
@@ -501,7 +541,11 @@ class TwoDResponseCalculator:
             response_kwargs: dict[str, Any] = dict(
                 rate_matrix=self._response_rate_matrix,
                 population_propagator=self.population_propagator,
+                density_matrix_propagator=self.density_matrix_propagator,
+                density_matrix_trajectory=self.density_matrix_trajectory,
                 population_dynamics_mode=self.population_dynamics_mode,
+                include_nonsecular_remainder=self.include_nonsecular_remainder,
+                dipole_normalization_tol=self.dipole_normalization_tol,
                 population_time_axis=self._population_time_axis,
                 jump_time_graining=self.jump_time_graining,
                 jump_kernel_cutoff=self.jump_kernel_cutoff,

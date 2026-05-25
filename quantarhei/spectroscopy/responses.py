@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy
 
-from .. import REAL, signal_NONR, signal_REPH
+from .. import COMPLEX, REAL, signal_NONR, signal_REPH
 from ..core.managers import Manager
 from ..core.time import TimeAxis
 from ..qm.propagators.poppropagator import PopulationPropagator
@@ -277,7 +277,11 @@ class NonLinearResponse:
         rate_matrix_options: dict[str, Any] | None = None,
         population_time_axis: Any = None,
         population_propagator: Any = None,
+        density_matrix_propagator: Any = None,
+        density_matrix_trajectory: Any = None,
         population_dynamics_mode: str | None = None,
+        include_nonsecular_remainder: bool = True,
+        dipole_normalization_tol: float = 1.0e-12,
         jump_time_graining: int = 1,
         jump_kernel_cutoff: float = 0.0,
         jump_kernel_zero_cutoff: float = 0.0,
@@ -309,11 +313,15 @@ class NonLinearResponse:
             population_dynamics_mode = (
                 "full_conditional"
                 if population_propagator is not None
+                or density_matrix_propagator is not None
+                or density_matrix_trajectory is not None
                 else "jump_decomposition"
             )
 
         self.population_time_axis = population_time_axis
         self.population_dynamics_mode = population_dynamics_mode
+        self.include_nonsecular_remainder = include_nonsecular_remainder
+        self.dipole_normalization_tol = dipole_normalization_tol
         self.jump_time_graining = jump_time_graining
         self.jump_kernel_cutoff = jump_kernel_cutoff
         self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
@@ -332,13 +340,44 @@ class NonLinearResponse:
         self.diagnostics: dict[str, Any] = {}
         self._previous_response_matrix: numpy.ndarray | None = None
 
-        if population_propagator is not None and (
+        external_count = sum(
+            item is not None
+            for item in (
+                population_propagator,
+                density_matrix_propagator,
+                density_matrix_trajectory,
+            )
+        )
+        if external_count > 1:
+            raise ValueError(
+                "population_propagator, density_matrix_propagator, and "
+                "density_matrix_trajectory are mutually exclusive"
+            )
+        if external_count > 0 and (
             rate_matrix is not None or relaxation_theory is not None
         ):
             raise ValueError(
-                "population_propagator cannot be combined with rate_matrix "
+                "External propagators cannot be combined with rate_matrix "
                 "or relaxation_theory"
             )
+
+        if density_matrix_propagator is not None:
+            self.set_density_matrix_propagator(
+                density_matrix_propagator,
+                population_time_axis=population_time_axis,
+                mode=population_dynamics_mode,
+                include_nonsecular_remainder=include_nonsecular_remainder,
+            )
+            return
+
+        if density_matrix_trajectory is not None:
+            self.set_density_matrix_trajectory(
+                density_matrix_trajectory,
+                population_time_axis=population_time_axis,
+                mode=population_dynamics_mode,
+                dipole_normalization_tol=dipole_normalization_tol,
+            )
+            return
 
         if population_propagator is not None:
             self.set_population_propagator(
@@ -405,6 +444,8 @@ class NonLinearResponse:
             "jump_kernel_cutoff": self.jump_kernel_cutoff,
             "jump_kernel_zero_cutoff": self.jump_kernel_zero_cutoff,
         }
+        if hasattr(self, "Udm_zero_t2"):
+            metadata["density_matrix_endpoint_t2"] = self.Udm_zero_t2[:, :, t2i]
 
         # here we specify evolution matrices
         evol = (
@@ -533,6 +574,215 @@ class NonLinearResponse:
             "Population propagator has to have shape (N, N, Nt) "
             "or (Nt, N, N), where N is the number of single-exciton states"
         )
+
+    def _density_matrix_propagator_data(
+        self, density_matrix_propagator: Any
+    ) -> numpy.ndarray:
+        """Returns density-matrix propagator data in ``(N, N, N, N, Nt)`` order."""
+        data = numpy.asarray(
+            density_matrix_propagator.data
+            if hasattr(density_matrix_propagator, "data")
+            else density_matrix_propagator
+        )
+        if len(data.shape) != 5:
+            raise Exception("Density-matrix propagator has to be an array of rank 5")
+
+        dim = self.sys.Nb[1]
+        if data.shape[:4] == (dim, dim, dim, dim):
+            return data.astype(COMPLEX, copy=False)
+        if data.shape[1:] == (dim, dim, dim, dim):
+            return numpy.transpose(data, (1, 2, 3, 4, 0)).astype(COMPLEX, copy=False)
+
+        raise Exception(
+            "Density-matrix propagator has to have shape (N, N, N, N, Nt) "
+            "or (Nt, N, N, N, N), where N is the number of single-exciton states"
+        )
+
+    def _density_matrix_trajectory_data(
+        self, density_matrix_trajectory: Any
+    ) -> numpy.ndarray:
+        """Returns density-matrix trajectory data in ``(N, N, Nt)`` order."""
+        data = numpy.asarray(
+            density_matrix_trajectory.data
+            if hasattr(density_matrix_trajectory, "data")
+            else density_matrix_trajectory
+        )
+        if len(data.shape) != 3:
+            raise Exception("Density-matrix trajectory has to be an array of rank 3")
+
+        dim = self.sys.Nb[1]
+        if data.shape[0] == dim and data.shape[1] == dim:
+            return data.astype(COMPLEX, copy=False)
+        if data.shape[1] == dim and data.shape[2] == dim:
+            return numpy.transpose(data, (1, 2, 0)).astype(COMPLEX, copy=False)
+
+        band1 = self.sys.get_band(1)
+        if data.shape[0] == self.sys.Ntot and data.shape[1] == self.sys.Ntot:
+            return data[numpy.ix_(band1, band1)].astype(COMPLEX, copy=False)
+        if data.shape[1] == self.sys.Ntot and data.shape[2] == self.sys.Ntot:
+            subset = data[:, band1, :][:, :, band1]
+            return numpy.transpose(subset, (1, 2, 0)).astype(COMPLEX, copy=False)
+
+        raise Exception(
+            "Density-matrix trajectory has to have shape (N, N, Nt), "
+            "(Nt, N, N), or the corresponding full-system shape"
+        )
+
+    def _ground_exciton_dipole_lengths(self) -> numpy.ndarray:
+        """Returns lengths of ground-to-one-exciton transition dipoles."""
+        self.sys.diagonalize()
+        band0 = self.sys.get_band(0)
+        if len(band0) != 1:
+            raise Exception(
+                "Density-matrix trajectory normalization requires one ground state"
+            )
+        ground = band0[0]
+        band1 = self.sys.get_band(1)
+        lengths = numpy.zeros(self.sys.Nb[1], dtype=REAL)
+        for aa, state in enumerate(band1):
+            lengths[aa] = numpy.linalg.norm(self.sys.DD[state, ground, :])
+        return lengths
+
+    def set_density_matrix_trajectory(
+        self,
+        density_matrix_trajectory: Any,
+        population_time_axis: Any = None,
+        mode: str = "full_conditional",
+        dipole_normalization_tol: float = 1.0e-12,
+    ) -> None:
+        """Set an externally propagated RDM trajectory as endpoint weights.
+
+        The trajectory is intended for pump-probe-like calculations with
+        ``t1 = 0``.  It is divided by the lengths of the two transition dipoles
+        that prepared the initial excited-state density matrix.
+        """
+        if mode != "full_conditional":
+            raise ValueError(
+                "Density-matrix trajectories currently support only "
+                "population_dynamics_mode='full_conditional'"
+            )
+        if self.t1s.length != 1 or not numpy.isclose(self.t1s.data[0], 0.0):
+            raise ValueError(
+                "Density-matrix trajectory weighting is only allowed for "
+                "pump-probe-like calculations with t1 = 0"
+            )
+
+        if population_time_axis is None:
+            population_time_axis = self.population_time_axis
+        if population_time_axis is None:
+            population_time_axis = self.t2s
+        self.population_time_axis = population_time_axis
+        self.population_dynamics_mode = mode
+        self.dipole_normalization_tol = dipole_normalization_tol
+
+        if not self.t2s.is_subset_of(population_time_axis):
+            raise Exception("t2 TimeAxis is not compatible with population dynamics")
+
+        rho = self._density_matrix_trajectory_data(density_matrix_trajectory)
+        dim = rho.shape[0]
+        if rho.shape[2] != population_time_axis.length:
+            raise Exception(
+                "Density-matrix trajectory time dimension has to match the "
+                "population TimeAxis length"
+            )
+
+        dipoles = self._ground_exciton_dipole_lengths()
+        norm = dipoles[:, None] * dipoles[None, :]
+        if numpy.any(numpy.abs(norm) <= dipole_normalization_tol):
+            raise ValueError(
+                "Cannot normalize density matrix trajectory by zero transition "
+                "dipole length"
+            )
+
+        weights = rho / norm[:, :, None]
+        it2 = _axis_indices(self.t2s, population_time_axis)
+
+        self.KK = numpy.zeros((dim, dim), dtype=REAL)
+        self.U0_t1 = numpy.ones((dim, self.t1s.length), dtype=REAL)
+        self.U0_t3 = numpy.ones((dim, self.t3s.length), dtype=REAL)
+        self.U0_t2 = numpy.ones((dim, self.t2s.length), dtype=REAL)
+        self.U0_population = numpy.ones((dim, population_time_axis.length), dtype=REAL)
+
+        self.Udm_zero_t2 = weights[:, :, it2]
+        self.Uee = numpy.zeros((dim, dim, self.t2s.length), dtype=COMPLEX)
+        self.U1_t2 = numpy.zeros_like(self.Uee)
+        for ii in range(self.t2s.length):
+            self.U1_t2[:, :, ii] = numpy.diag(numpy.diag(self.Udm_zero_t2[:, :, ii]))
+        self.Usingle_t2 = numpy.zeros_like(self.Uee)
+        self.Ujump_t2 = (self.U1_t2,)
+        self.Uremainder_t2 = numpy.zeros_like(self.Uee)
+        self.Utransfer_t2 = self.Uremainder_t2
+
+    def set_density_matrix_propagator(
+        self,
+        density_matrix_propagator: Any,
+        population_time_axis: Any = None,
+        mode: str = "full_conditional",
+        include_nonsecular_remainder: bool = True,
+    ) -> None:
+        """Set an externally calculated one-exciton RDM superoperator.
+
+        The endpoint-preserving elements ``U[a,b,a,b,t]`` weight ordinary
+        response expressions.  Endpoint-changing elements are collapsed into
+        an endpoint remainder when ``include_nonsecular_remainder`` is true.
+        """
+        if mode != "full_conditional":
+            raise ValueError(
+                "External density-matrix propagators currently support only "
+                "population_dynamics_mode='full_conditional'"
+            )
+
+        if population_time_axis is None:
+            population_time_axis = self.population_time_axis
+        if population_time_axis is None:
+            population_time_axis = self.t2s
+        self.population_time_axis = population_time_axis
+        self.population_dynamics_mode = mode
+        self.include_nonsecular_remainder = include_nonsecular_remainder
+
+        if not self.t2s.is_subset_of(population_time_axis):
+            raise Exception("t2 TimeAxis is not compatible with population dynamics")
+
+        Ufull = self._density_matrix_propagator_data(density_matrix_propagator)
+        dim = Ufull.shape[0]
+        if Ufull.shape[4] != population_time_axis.length:
+            raise Exception(
+                "Density-matrix propagator time dimension has to match the "
+                "population TimeAxis length"
+            )
+
+        it2 = _axis_indices(self.t2s, population_time_axis)
+
+        self.KK = numpy.zeros((dim, dim), dtype=REAL)
+        self.U0_t1 = numpy.ones((dim, self.t1s.length), dtype=REAL)
+        self.U0_t3 = numpy.ones((dim, self.t3s.length), dtype=REAL)
+        self.U0_t2 = numpy.ones((dim, self.t2s.length), dtype=REAL)
+        self.U0_population = numpy.ones((dim, population_time_axis.length), dtype=REAL)
+
+        Uzero = numpy.zeros((dim, dim, population_time_axis.length), dtype=COMPLEX)
+        Uremainder = numpy.zeros_like(Uzero)
+        for aa in range(dim):
+            for bb in range(dim):
+                Uzero[aa, bb, :] = Ufull[aa, bb, aa, bb, :]
+                if include_nonsecular_remainder:
+                    Uremainder[aa, bb, :] = numpy.sum(
+                        Ufull[aa, bb, :, :, :], axis=(0, 1)
+                    )
+                    Uremainder[aa, bb, :] -= Uzero[aa, bb, :]
+
+        self.Udm_zero_t2 = Uzero[:, :, it2]
+        self.Uee = numpy.zeros((dim, dim, self.t2s.length), dtype=COMPLEX)
+        for ii, tindex in enumerate(it2):
+            self.Uee[:, :, ii] = Ufull[:, :, :, :, tindex].trace(axis1=0, axis2=2)
+        self.U1_t2 = numpy.zeros_like(self.Uee)
+        for ii in range(self.t2s.length):
+            self.U1_t2[:, :, ii] = numpy.diag(numpy.diag(self.Udm_zero_t2[:, :, ii]))
+
+        self.U0_t2[:, :] = 1.0
+        self.Usingle_t2 = numpy.zeros_like(self.Uee)
+        self.Ujump_t2 = (self.U1_t2,)
+        self.Uremainder_t2 = Uremainder[:, :, it2]
+        self.Utransfer_t2 = self.Uremainder_t2
 
     def set_population_propagator(
         self,

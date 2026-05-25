@@ -51,6 +51,15 @@ def _jump_time_metadata(evol: Any) -> dict[str, Any]:
     return {}
 
 
+def _endpoint_t2_weight(evol: Any, left: int, right: int, default: Any) -> Any:
+    """Returns an externally supplied t2 endpoint weight if available."""
+    metadata = _jump_time_metadata(evol)
+    endpoint = metadata.get("density_matrix_endpoint_t2", None)
+    if endpoint is None:
+        return default
+    return endpoint[left, right]
+
+
 def _single_jump_times(t2: Any, evol: Any) -> numpy.ndarray:
     """Returns jump times from the population time axis and graining."""
     t2_value = float(t2)
@@ -357,8 +366,7 @@ def R1g(
                     dfac[b, a]
                     * Ut1[a, :][:, None]
                     * Ut3[a, :][None, :]
-                    * Ut2[a]
-                    * Ut2[b]
+                    * _endpoint_t2_weight(evol, a, b, Ut2[a] * Ut2[b])
                     * np.exp(
                         -(np.einsum("i,ij", MM[b, a, :], gg[:, "t1"]))[:, None]
                         + (np.einsum("i,ij", MM[b, a, :], gg[:, "t1+t2"]))[:, None]
@@ -443,8 +451,7 @@ def R2g(
                     dfac[b, a]
                     * Ut1[a, :][:, None]
                     * Ut3[b, :][None, :]
-                    * Ut2[a]
-                    * Ut2[b]
+                    * _endpoint_t2_weight(evol, a, b, Ut2[a] * Ut2[b])
                     * np.exp(
                         (np.einsum("i,i", MM[a, b, :], gg[:, "t2"]))[None, None]
                         - (np.einsum("i,ij", MM[b, b, :], gg[:, "t2+t3"]))[None, :]
@@ -703,8 +710,7 @@ def R1f(
                         * dfac[f, b, a]
                         * Ut1[a, :][:, None]
                         * Ut3[b, :][None, :]
-                        * Ut2[a]
-                        * Ut2[b]
+                        * _endpoint_t2_weight(evol, a, b, Ut2[a] * Ut2[b])
                         * np.exp(
                             -(np.einsum("i,ij", MM[a, a, :], gg[:, "t1+t2"]))[:, None]
                             - (np.einsum("i,ij", MM[b, a, :], gg[:, "t1"]))[:, None]
@@ -806,8 +812,7 @@ def R1f_wrong(
                         * dfac[f, b, a]
                         * Ut1[a, :][:, None]
                         * Ut3[b, :][None, :]
-                        * Ut2[a]
-                        * Ut2[b]
+                        * _endpoint_t2_weight(evol, a, b, Ut2[a] * Ut2[b])
                         * np.exp(
                             +(np.einsum("i,ij", MM[a, a, :], gg[:, "t1+t2"]))[:, None]
                             - (np.einsum("i,ij", MM[b, a, :], gg[:, "t1"]))[:, None]
@@ -910,8 +915,7 @@ def R2f(
                         * dfac[f, b, a]
                         * Ut1[a, :][:, None]
                         * Ut3[a, :][None, :]
-                        * Ut2[a]
-                        * Ut2[b]
+                        * _endpoint_t2_weight(evol, a, b, Ut2[a] * Ut2[b])
                         * np.exp(
                             -(np.einsum("i,i", MM[b, b, :], gg[:, "t2"]))[None, None]
                             + (np.einsum("i,i", MM[p, b, :], gg[:, "t2"]))[None, None]
@@ -1024,8 +1028,7 @@ def R2f_wrong(
                         * dfac[f, b, a]
                         * Ut1[a, :][:, None]
                         * Ut3[a, :][None, :]
-                        * Ut2[a]
-                        * Ut2[b]
+                        * _endpoint_t2_weight(evol, a, b, Ut2[a] * Ut2[b])
                         * np.exp(
                             +(np.einsum("i,i", MM[b, b, :], gg[:, "t2"]))[None, None]
                             - (np.einsum("i,i", MM[p, b, :], gg[:, "t2"]))[None, None]

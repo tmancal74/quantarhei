@@ -379,6 +379,140 @@ class TestResponses(unittest.TestCase):
         )
         npt.assert_allclose(response_time_first.Uee, Uee)
 
+    def test_external_density_matrix_propagator_full_conditional(self):
+        """Testing endpoint classification of an external RDM superoperator"""
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        Ueeee = numpy.zeros((2, 2, 2, 2, t2.length), dtype=numpy.complex128)
+        for ii, time in enumerate(t2.data):
+            Ueeee[0, 0, 0, 0, ii] = 1.0 - 0.01 * time
+            Ueeee[1, 1, 1, 1, ii] = 1.0 - 0.02 * time
+            Ueeee[0, 1, 0, 1, ii] = numpy.exp(-0.01 * time)
+            Ueeee[1, 0, 1, 0, ii] = numpy.exp(-0.015 * time)
+            Ueeee[1, 0, 0, 1, ii] = 0.2j * (1.0 - numpy.exp(-0.01 * time))
+
+        response = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=Ueeee,
+        )
+
+        npt.assert_allclose(response.Udm_zero_t2[0, 1], Ueeee[0, 1, 0, 1])
+        npt.assert_allclose(response.Uremainder_t2[1, 0], Ueeee[1, 0, 0, 1])
+        npt.assert_allclose(response.Uremainder_t2[0, 1], numpy.zeros(t2.length))
+
+        response_no_nonsec = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=Ueeee,
+            include_nonsecular_remainder=False,
+        )
+        npt.assert_allclose(
+            response_no_nonsec.Uremainder_t2,
+            numpy.zeros_like(response_no_nonsec.Uremainder_t2),
+        )
+
+        response_time_first = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=numpy.transpose(Ueeee, (4, 0, 1, 2, 3)),
+        )
+        npt.assert_allclose(response_time_first.Udm_zero_t2, response.Udm_zero_t2)
+
+    def test_density_matrix_trajectory_endpoint_weights(self):
+        """Testing RDM trajectory normalization by transition dipole lengths"""
+
+        class System:
+            Nb = [1, 2, 0]
+            Ntot = 3
+            mult = 1
+            DD = numpy.zeros((3, 3, 3), dtype=numpy.float64)
+
+            def __init__(self):
+                self.DD[1, 0, 0] = 2.0
+                self.DD[2, 0, 1] = 4.0
+
+            def diagonalize(self):
+                pass
+
+            def get_band(self, band):
+                if band == 0:
+                    return (0,)
+                if band == 1:
+                    return (1, 2)
+                return ()
+
+        t1 = qr.TimeAxis(0.0, 1, 1.0)
+        t2 = qr.TimeAxis(0.0, 4, 2.0)
+        t3 = qr.TimeAxis(0.0, 5, 1.0)
+
+        rho = numpy.zeros((2, 2, t2.length), dtype=numpy.complex128)
+        rho[0, 0, :] = 4.0
+        rho[1, 1, :] = 16.0
+        rho[0, 1, :] = 8.0j
+
+        response = NonLinearResponse(
+            None,
+            System(),
+            "R1g",
+            t1,
+            t2,
+            t3,
+            density_matrix_trajectory=rho,
+        )
+
+        npt.assert_allclose(response.Udm_zero_t2[0, 0], numpy.ones(t2.length))
+        npt.assert_allclose(response.Udm_zero_t2[1, 1], numpy.ones(t2.length))
+        npt.assert_allclose(response.Udm_zero_t2[0, 1], 1.0j * numpy.ones(t2.length))
+        npt.assert_allclose(response.Uremainder_t2, numpy.zeros_like(response.Uee))
+
+        with self.assertRaisesRegex(ValueError, "t1 = 0"):
+            NonLinearResponse(
+                None,
+                System(),
+                "R1g",
+                qr.TimeAxis(0.0, 2, 1.0),
+                t2,
+                t3,
+                density_matrix_trajectory=rho,
+            )
+
+        class ZeroDipoleSystem(System):
+            def __init__(self):
+                super().__init__()
+                self.DD[2, 0, :] = 0.0
+
+        with self.assertRaisesRegex(ValueError, "zero transition dipole"):
+            NonLinearResponse(
+                None,
+                ZeroDipoleSystem(),
+                "R1g",
+                t1,
+                t2,
+                t3,
+                density_matrix_trajectory=rho,
+            )
+
     def test_single_jump_transfer_channel(self):
         """Testing one-jump transfer channel and remainder bookkeeping"""
 

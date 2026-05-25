@@ -328,3 +328,43 @@ class TestTwod(unittest.TestCase):
                 rate_matrix=numpy.zeros((2, 2), dtype=numpy.float64),
                 population_propagator=Uee,
             )
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                population_propagator=Uee,
+                jump_order=1,
+            )
+
+        Ueeee = numpy.zeros((2, 2, 2, 2, t2.length), dtype=numpy.complex128)
+        twod_calc = qr.TwoDResponseCalculator(
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=Ueeee,
+            include_nonsecular_remainder=False,
+        )
+        self.assertEqual(twod_calc.population_dynamics_mode, "full_conditional")
+        self.assertIs(twod_calc.density_matrix_propagator, Ueeee)
+        self.assertFalse(twod_calc.include_nonsecular_remainder)
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                population_propagator=Uee,
+                density_matrix_propagator=Ueeee,
+            )
+
+        t1_zero = qr.TimeAxis(0.0, 1, 1.0)
+        rho = numpy.zeros((2, 2, t2.length), dtype=numpy.complex128)
+        twod_calc = qr.TwoDResponseCalculator(
+            t1_zero, t2, t3, density_matrix_trajectory=rho
+        )
+        self.assertIs(twod_calc.density_matrix_trajectory, rho)
+        self.assertEqual(twod_calc.population_dynamics_mode, "full_conditional")
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, density_matrix_trajectory=rho)
