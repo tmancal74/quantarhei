@@ -940,6 +940,7 @@ class TwoDResponseCalculator:
                 raise Exception("Unknown response object")
 
             spect_data = _fourier_transform_response(data, signal)
+            spect_data *= data.shape[0] * self.t1axis.step * self.t3axis.step
             spect_data *= self._detection_weight(resp)
             onetwod._add_data(spect_data, resolution=resolution, dtype=dtype)
 

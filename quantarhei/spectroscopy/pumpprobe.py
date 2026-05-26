@@ -2175,7 +2175,7 @@ def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     t2 = twod.get_t2()
     pp.set_t2(t2)
 
-    # time step for integration
+    # frequency step for integration
     xaxis = twod.xaxis
     dw = xaxis.step
 
@@ -2186,8 +2186,8 @@ def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     else:
         tddata = numpy.real(twod.data)
 
-    # integration over omega_1 axis
-    ppdata = -numpy.sum(tddata, axis=1) * dw
+    # integration over omega_1 axis with the detection-frequency prefactor
+    ppdata = -twod.yaxis.data * numpy.sum(tddata, axis=1) * dw / (2.0 * numpy.pi)
 
     # setting pump-probe data
     pp.set_data(ppdata)
