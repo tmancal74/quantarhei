@@ -378,8 +378,12 @@ class TestTwoDSpectrum(unittest.TestCase):
         #
         #    plt.show()
 
-        npt.assert_allclose(twod01.data, twod1.data)
-        npt.assert_allclose(twod02.data, twod2.data)
+        # The stored references were generated before 2D FFTs carried explicit
+        # integral factors.  Keep this compatibility scaling until the
+        # reference data are regenerated; then remove this factor.
+        fft_integral_scale = Nt1 * dt1 * dt3
+        npt.assert_allclose(twod01.data * fft_integral_scale, twod1.data)
+        npt.assert_allclose(twod02.data * fft_integral_scale, twod2.data)
 
     def test_get_cut_along_line_uses_correct_y_coordinate(self):
         """get_cut_along_line must use point2[1] not point2[0] for vy2"""
