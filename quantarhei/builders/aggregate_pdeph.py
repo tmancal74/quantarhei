@@ -17,7 +17,6 @@ from __future__ import annotations
 import numpy
 
 from .. import REAL
-from ..exceptions import QuantarheiError
 from .aggregate_excitonanalysis import AggregateExcitonAnalysis
 
 
@@ -28,36 +27,15 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
         """Returns pure dephasing object of this aggregate"""
         from ..qm.liouvillespace.puredephasing import ElectronicPureDephasing
 
-        # collect site basis dephasing rates
-
-        pdrates: numpy.ndarray = numpy.zeros(self.nmono, dtype=REAL)
-        k = 0
-        if dtype == "Lorentzian":
-            for mono in self.monomers:
-                if mono.dephs is not None:
-                    # electronic optical dephasing rates from monomers
-                    pdrates[k] = mono.dephs[0, 1]
-                else:
-                    pdrates[k] = 0.0
-
-        elif dtype == "Gaussian":
-            for mono in self.monomers:
-                if mono.dephs is not None:
-                    # electronic optical dephasing rates from monomers
-                    pdrates[k] = mono.widths[0, 1]
-                else:
-                    pdrates[k] = 0.0
-        else:
-            raise QuantarheiError("Unknown dephasing type")
+        if dtype not in ("Lorentzian", "Gaussian"):
+            raise Exception("Unknown dephasing type")
 
         self.diagonalize()
 
-        # Na is the number of states (vibronic origin)
         Na = self.Ntot
-        # self.Nel number of electronic states
         xiai: numpy.ndarray = numpy.zeros((Na, self.Nel), dtype=REAL)
         for aa in range(Na):
-            st = 0  # st counts all states in the site basis
+            st = 0
             for ii in range(self.Nel):
                 xiai[aa, ii] = 0.0
                 for alph_i in self.vibindices[ii]:
@@ -65,5 +43,4 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
                     st += 1
         self.xi = xiai
 
-        # return PureDephasing object
         return ElectronicPureDephasing(self, dtype=dtype)
