@@ -1937,6 +1937,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             yield a, es1
             a += 1
 
+    def __repr__(self) -> str:
+        return f"Aggregate(name={self.name!r}, nmono={self.nmono})"
+
     def __str__(self) -> str:
         out = "\nquantarhei.Aggregate object"
         out += "\n==========================="

@@ -265,6 +265,9 @@ class TimeAxis(ValueAxis):
         else:
             raise Exception("Unknown time axis type")
 
+    def __repr__(self) -> str:
+        return f"TimeAxis(start={self.start}, length={self.length}, step={self.step})"
+
     def shift_to_zero(self) -> None:
         """Shifts the values so that the first one is zero"""
         if self.start != self.data[0]:
