@@ -640,7 +640,12 @@ class TwoDSpectrum(DataSaveable, Saveable):
         colorbar: bool = True,
         colorbar_loc: str = "right",
         cmap: Any = None,
+        plot_type: str = "both",
         Npos_contours: int = 10,
+        positive_contour_color: Any = "k",
+        negative_contour_color: Any = "k",
+        zero_contour_color: Any = "b",
+        zero_contour: bool = True,
         show_states: Any = None,
         text_loc: list | None = None,
         fontsize: str = "20",
@@ -669,6 +674,22 @@ class TwoDSpectrum(DataSaveable, Saveable):
             part of the spectrum to be plotted, constants such as part_REAL are
             defined at the highest import level of quantarhei.
 
+        plot_type : {'both', 'image', 'contour'}
+            Whether to plot the image with contour overlay ('both'), only the
+            image ('image'), or only the contour lines ('contour').
+
+        positive_contour_color : color
+            Color used for positive contour levels.
+
+        negative_contour_color : color
+            Color used for negative contour levels.
+
+        zero_contour_color : color
+            Color used for the zero contour.
+
+        zero_contour : bool
+            If True, draw the zero contour line.
+
         vmax : float
             max of the plotting range in the z-direction. If vmax is None,
             maximum of the real part of the spectrum is used to determine
@@ -680,6 +701,13 @@ class TwoDSpectrum(DataSaveable, Saveable):
         """
         if text_loc is None:
             text_loc = [0.05, 0.9]
+
+        if plot_type not in ("both", "image", "contour"):
+            raise ValueError("plot_type must be 'both', 'image', or 'contour'")
+
+        show_image = plot_type in ("both", "image")
+        show_contours = plot_type in ("both", "contour")
+
         spect2D = self.data
 
         #
@@ -718,6 +746,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         #
 
         realout = spect2D[i3_min:i3_max, i1_min:i1_max]
+        xdata = self.xaxis.data[i1_min:i1_max]
+        ydata = self.yaxis.data[i3_min:i3_max]
 
         #
         #  How to treat the figures
@@ -726,8 +756,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
             fig, ax = plt.subplots(1, 1)
         else:
             fig.clear()
-            fig.add_subplot(1, 1, 1)
-            ax = fig.axes[0]
+            ax = fig.add_subplot(1, 1, 1)
 
         #
         # Color map
@@ -747,29 +776,26 @@ class TwoDSpectrum(DataSaveable, Saveable):
         else:
             vmin = -vmax * vmin_ratio
 
-        Npos = Npos_contours
+        Npos = max(1, Npos_contours)
         poslevels = [i * vmax / Npos for i in range(1, Npos)]
         neglevels = [-i * vmax / Npos for i in range(Npos, 1, -1)]
 
-        levo = self.xaxis.data[i1_min]
-        prvo = self.xaxis.data[i1_max - 1]
-        dole = self.yaxis.data[i3_min]
-        hore = self.yaxis.data[i3_max - 1]
+        levo = float(xdata[0])
+        prvo = float(xdata[-1])
+        dole = float(ydata[0])
+        hore = float(ydata[-1])
 
-        cm = plt.imshow(
-            realout,
-            extent=(
-                float(self.xaxis.data[i1_min]),
-                float(self.xaxis.data[i1_max - 1]),
-                float(self.yaxis.data[i3_min]),
-                float(self.yaxis.data[i3_max - 1]),
-            ),
-            origin="lower",
-            vmax=vmax,
-            vmin=vmin,
-            interpolation="bilinear",
-            cmap=cmap,
-        )
+        cm = None
+        if show_image:
+            cm = ax.imshow(
+                realout,
+                extent=(levo, prvo, dole, hore),
+                origin="lower",
+                vmax=vmax,
+                vmin=vmin,
+                interpolation="bilinear",
+                cmap=cmap,
+            )
 
         #
         # Label
@@ -796,9 +822,7 @@ class TwoDSpectrum(DataSaveable, Saveable):
                     " same number of members"
                 )
 
-            kk = 0
-            for pos in text_loc:
-                lbl = label[kk]
+            for pos, lbl in zip(text_loc, label):
                 if lbl is not None:
                     ax.text(
                         (prvo - levo) * pos[0] + levo,
@@ -806,66 +830,63 @@ class TwoDSpectrum(DataSaveable, Saveable):
                         lbl,
                         fontsize=str(fontsize),
                     )
-                kk += 1
 
         #
         # Contours
         #
+        if show_contours:
+            warnings.filterwarnings("error")
 
-        # positive contours are always plotted
-        warnings.filterwarnings("error")
-
-        try:
-            plt.contour(
-                self.xaxis.data[i1_min:i1_max],
-                self.yaxis.data[i3_min:i3_max],
-                realout,
-                levels=poslevels,
-                colors="k",
-            )
-            # linewidth=1)
-        except (UserWarning, ValueError):
-            pass
-            # print("No positive contours found; not plotted")
-
-        # other contours only if we do not plot absolute values
-        if spart != "abs":
-            # zero contour
             try:
-                plt.contour(
-                    self.xaxis.data[i1_min:i1_max],
-                    self.yaxis.data[i3_min:i3_max],
+                ax.contour(
+                    xdata,
+                    ydata,
                     realout,
-                    levels=[0],
-                    colors="b",
+                    levels=poslevels,
+                    colors=positive_contour_color,
                 )
-                # linewidth=1)
             except (UserWarning, ValueError):
                 pass
-                # print("Zero contour not found; not plotting")
 
-            # negative contours
-            try:
-                plt.contour(
-                    self.xaxis.data[i1_min:i1_max],
-                    self.yaxis.data[i3_min:i3_max],
-                    realout,
-                    levels=neglevels,
-                    colors="k",
-                )
-                # linewidth=1)
-            except (UserWarning, ValueError):
-                pass
-                # print("Negative contour not found; not plotting")
+            if spart != part_ABS:
+                if zero_contour:
+                    try:
+                        ax.contour(
+                            xdata,
+                            ydata,
+                            realout,
+                            levels=[0],
+                            colors=zero_contour_color,
+                        )
+                    except (UserWarning, ValueError):
+                        pass
 
-        warnings.resetwarnings()
+                try:
+                    ax.contour(
+                        xdata,
+                        ydata,
+                        realout,
+                        levels=neglevels,
+                        colors=negative_contour_color,
+                    )
+                except (UserWarning, ValueError):
+                    pass
+
+            warnings.resetwarnings()
 
         #
         # Color bar presence
         #
-        if colorbar:
-            plt.clim(vmin=vmin, vmax=vmax)
-            fig.colorbar(cm)
+        if colorbar and show_image and cm is not None:
+            try:
+                fig.colorbar(cm, ax=ax, location=colorbar_loc)
+            except TypeError:
+                fig.colorbar(cm, ax=ax)
+        elif colorbar and not show_image:
+            warnings.warn(
+                "colorbar is ignored for contour-only plots",
+                UserWarning,
+            )
 
         #
         # Plot lines denoting positions of selected transitions
@@ -880,15 +901,15 @@ class TwoDSpectrum(DataSaveable, Saveable):
                     co1 = "--k"
 
                 if en1 >= levo and en1 <= prvo:
-                    plt.plot([en1, en1], [dole, hore], co1, linewidth=1.0)
+                    ax.plot([en1, en1], [dole, hore], co1, linewidth=1.0)
                 if en1 >= dole and en1 <= hore:
-                    plt.plot([levo, prvo], [en1, en1], co1, linewidth=1.0)
+                    ax.plot([levo, prvo], [en1, en1], co1, linewidth=1.0)
 
         #
         # show diagonal line
         #
         if show_diagonal is not None:
-            plt.plot([levo, prvo], [dole, hore], "-k", linewidth=1.0)
+            ax.plot([levo, prvo], [dole, hore], "-k", linewidth=1.0)
 
         #
         # axis labels
@@ -919,10 +940,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if ylabel is not None:
             yl = ylabel
 
-        if xl is not None:
-            plt.xlabel(xl, **font)
-        if xl is not None:
-            plt.ylabel(yl, **font)
+        ax.set_xlabel(xl, **font)
+        ax.set_ylabel(yl, **font)
 
         #
         # Should the spectra be showed now?

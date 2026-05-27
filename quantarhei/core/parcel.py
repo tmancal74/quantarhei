@@ -2,12 +2,25 @@ from __future__ import annotations
 
 import os
 import tempfile
+import warnings
 from typing import IO, Any
 
 import dill as pickle
 
 from ..exceptions import QuantarheiError
 from .managers import Manager
+
+
+class DeserializationWarning(UserWarning):
+    """Warning emitted when loading a .qrp file without trusted=True."""
+
+
+_DESERIALIZATION_WARNING = (
+    "Loading a .qrp file deserializes Python objects using dill, which can "
+    "execute arbitrary code. Only load files from trusted sources. "
+    "Pass trusted=True to suppress this warning. "
+    "See https://github.com/tmancal74/quantarhei/issues/208 for details."
+)
 
 
 class Parcel:
@@ -48,7 +61,7 @@ class Parcel:
                 with os.fdopen(tmp_fd, "wb") as f:
                     pickle.dump(self, f)
                 os.replace(tmp_path, filename)
-            except:
+            except Exception:
                 os.unlink(tmp_path)
                 raise
         else:
@@ -78,7 +91,7 @@ def save_parcel(
     p.save(filename)
 
 
-def load_parcel(filename: str | IO[bytes]) -> Any:
+def load_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> Any:
     """Loads the object saved as parcel
 
     Parameters
@@ -87,7 +100,16 @@ def load_parcel(filename: str | IO[bytes]) -> Any:
         Filename of the file or file descriptor of the file from which
         and object should be loaded.
 
+    trusted : bool
+        When *False* (default), a :class:`DeserializationWarning` is emitted to
+        inform the caller that deserialization may execute arbitrary code.
+        Set to *True* only when you are certain the file comes from a
+        trusted source.
+
     """
+    if not trusted:
+        warnings.warn(_DESERIALIZATION_WARNING, DeserializationWarning, stacklevel=2)
+
     if isinstance(filename, str):
         with open(filename, "rb") as f:
             obj = pickle.load(f)
@@ -99,7 +121,7 @@ def load_parcel(filename: str | IO[bytes]) -> Any:
     raise QuantarheiError("Only Quantarhei Parcels can be loaded")
 
 
-def check_parcel(filename: str | IO[bytes]) -> dict[str, Any]:
+def check_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> dict[str, Any]:
     """Checks the content of a Quantarhei parcel
 
     Parameters
@@ -108,7 +130,16 @@ def check_parcel(filename: str | IO[bytes]) -> dict[str, Any]:
         Filename of the file or file descriptor of the file from which
         and object should be loaded.
 
+    trusted : bool
+        When *False* (default), a :class:`DeserializationWarning` is emitted to
+        inform the caller that deserialization may execute arbitrary code.
+        Set to *True* only when you are certain the file comes from a
+        trusted source.
+
     """
+    if not trusted:
+        warnings.warn(_DESERIALIZATION_WARNING, DeserializationWarning, stacklevel=2)
+
     if isinstance(filename, str):
         with open(filename, "rb") as f:
             obj = pickle.load(f)

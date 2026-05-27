@@ -303,6 +303,7 @@ from .core.parallel import (
 ###############################################################################
 # from .core.saveable import load
 # from .core.saveable import read_info
+from .core.parcel import DeserializationWarning as DeserializationWarning
 from .core.parcel import Parcel as Parcel
 from .core.parcel import check_parcel as check_parcel
 from .core.parcel import load_parcel as load_parcel
@@ -732,6 +733,7 @@ __all__ = [
     "DSFeynmanDiagram",
     "DensityMatrix",
     "DensityMatrixEvolution",
+    "DeserializationWarning",
     "Disorder",
     # Evolution / propagation
     "EvolutionSuperOperator",

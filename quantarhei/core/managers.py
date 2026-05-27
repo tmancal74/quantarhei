@@ -61,6 +61,11 @@ from ..exceptions import BasisError, ConfigurationError, QuantarheiError, UnitsE
 if TYPE_CHECKING:
     from .parallel import DistributedConfiguration
 
+
+class SecurityWarning(UserWarning):
+    """Warning about security-sensitive operations."""
+
+
 #
 # This stops future warnings, notably those in h5py library
 # FIXME: remove this in "future"
@@ -183,13 +188,6 @@ class Manager(metaclass=Singleton):
     }
 
     def __init__(self) -> None:
-
-        try:
-            # this is numpy 1.14
-            numpy.set_printoptions(precision=8, sign=" ", legacy="1.13")
-        except TypeError:
-            # before there was no `sign` parameters
-            numpy.set_printoptions(precision=8)
 
         self.current_units: dict[str, str] = {}
 
@@ -441,17 +439,37 @@ class Manager(metaclass=Singleton):
 
     def _load_uconf(self, fpath: str) -> None:
         """ """
-        # print("Conf path: ", os.path.abspath(fpath))
+        import platform
+        import stat
+
+        warnings.warn(
+            f"Loading configuration from {fpath} — this file is executed as "
+            "Python code. Ensure it comes from a trusted source.",
+            SecurityWarning,
+            stacklevel=2,
+        )
+
+        if platform.system() != "Windows":
+            try:
+                file_mode = os.stat(fpath).st_mode
+                if file_mode & (stat.S_IWGRP | stat.S_IWOTH):
+                    warnings.warn(
+                        f"Configuration file {fpath} is group- or "
+                        "world-writable. Consider running: "
+                        f"chmod 600 {fpath}",
+                        SecurityWarning,
+                        stacklevel=2,
+                    )
+            except OSError:
+                pass
+
         try:
             import importlib.util
 
             spec = importlib.util.spec_from_file_location("qrconf", fpath)
             foo = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(foo)
-            # print("Configuring Manager:")
-            # print(self)
             foo.configure(self)
-            # print("..done")
         except Exception:
             raise QuantarheiError()
 

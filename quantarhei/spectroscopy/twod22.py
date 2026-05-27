@@ -1028,15 +1028,14 @@ class TwoDSpectrumCalculator:
         # Finding population evolution matrix
         #
         prop = PopulationPropagator(self.t1axis, Kr)
-        #      Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
-        #                                            corrections=True)
-        self.Uee, cor = prop.get_PropagationMatrix(self.t2axis, corrections=3)
+        self.Uee = prop.get_PropagationMatrix(self.t2axis)
+        jumps = prop.get_JumpExpansion(self.t2axis, max_order=3)
 
         # FIXME: Order of transfer is set by hand here - needs to be moved
         # to some reasonable place
 
         # Ucor = Uee
-        self.Uc0 = cor[0]
+        self.Uc0 = jumps[0]
 
         # for ko in range(No+1):
         #    print("Subtracting ", ko)

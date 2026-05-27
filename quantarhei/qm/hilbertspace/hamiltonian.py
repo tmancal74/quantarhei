@@ -333,6 +333,14 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if self._has_remainder_coupling:
             self.JR = numpy.dot(S1, numpy.dot(self.JR, SS))
 
+    def __repr__(self) -> str:
+        dtype = (
+            self.data.dtype
+            if hasattr(self, "_data") and self.data is not None
+            else None
+        )
+        return f"Hamiltonian(dim={self.dim}, dtype={dtype})"
+
     def __str__(self) -> str:
         out = "\nquantarhei.Hamiltonian object"
         out += "\n============================="
