@@ -6,6 +6,7 @@ import numpy
 
 from .. import REAL
 from ..builders.aggregates import Aggregate
+from ..exceptions import QuantarheiError
 from ..spectroscopy.labsetup import LabSetup
 from . import lineshapes
 from .abs2 import AbsSpectrum
@@ -147,7 +148,7 @@ class MockAbsSpectrumCalculator(AbsSpectrumCalculator):
             # /(numpy.sqrt(numpy.pi)*widthx)
 
         else:
-            raise Exception("Unknown line shape: " + shape)
+            raise QuantarheiError("Unknown line shape: " + shape)
 
         if not raw:
             data = o1 * data

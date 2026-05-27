@@ -7,6 +7,8 @@ from typing import Any
 
 from quantarhei.core.managers import Manager
 
+from ..exceptions import QuantarheiError
+
 LOG_URGENT = 1
 LOG_REPORT = 3
 LOG_INFO = 5
@@ -168,7 +170,7 @@ def printlog(
         return
 
     if (loglevel > 10) or (loglevel < 0):
-        raise Exception("Loglevel must be between 0 and 10")
+        raise QuantarheiError("Loglevel must be between 0 and 10")
 
     manager = Manager().log_conf
     if not manager.initialized:

@@ -10,6 +10,7 @@ Class Details
 
 from __future__ import annotations
 
+from ..exceptions import QuantarheiError
 from .modes import Mode
 from .molecules import Molecule
 
@@ -32,7 +33,7 @@ class TestMolecule(Molecule):
     >>> mol = TestMolecule()
     Traceback (most recent call last):
         ...
-    Exception: TestMolecule name not specified
+    quantarhei.exceptions.QuantarheiError: TestMolecule name not specified
 
 
     Two-level molecule with one vibrational mode
@@ -46,7 +47,7 @@ class TestMolecule(Molecule):
     def __init__(self, name: str | None = None) -> None:
 
         if name is None:
-            raise Exception("TestMolecule name not specified")
+            raise QuantarheiError("TestMolecule name not specified")
 
         if name == "two-levels-1-mode":
             super().__init__([0.0, 1.0], name=name)
@@ -55,4 +56,4 @@ class TestMolecule(Molecule):
             self.add_Mode(mod)
 
         else:
-            raise Exception("Unknown TestMolecule")
+            raise QuantarheiError("Unknown TestMolecule")

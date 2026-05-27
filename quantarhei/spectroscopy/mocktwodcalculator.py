@@ -7,6 +7,7 @@ import numpy
 from .. import COMPLEX, signal_NONR, signal_REPH
 from ..core.managers import Manager, energy_units
 from ..core.units import convert
+from ..exceptions import QuantarheiError
 from .lineshapes import gaussian2D, lorentzian2D, storage
 from .pathwayanalyzer import LiouvillePathwayAnalyzer
 from .twodcalculator import TwoDResponseCalculator
@@ -127,7 +128,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                 elif pwy.pathway_type == "NR":
                     onetwod._add_data(data, dtype=signal_NONR)
                 else:
-                    raise Exception("Unknown pathway type")
+                    raise QuantarheiError("Unknown pathway type")
 
         onetwod.set_t2(self.t2axis.data[tc])
 
@@ -149,7 +150,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
             elif pwy.pathway_type == "NR":
                 onetwod._add_data(data, dtype=signal_NONR)
             else:
-                raise Exception("Unknown pathway type")
+                raise QuantarheiError("Unknown pathway type")
 
             k += 1
 
@@ -410,7 +411,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     reph2D = pref * lorentzian2D(oo1, cen1, dephx, oo3, cen3, dephy)
 
             else:
-                raise Exception("Unknown line shape: " + shape)
+                raise QuantarheiError("Unknown line shape: " + shape)
 
             return reph2D
 
@@ -455,8 +456,8 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
                     nonr2D = pref * lorentzian2D(oo1, cen1, dephx, oo3, cen3, dephy)
 
             else:
-                raise Exception("Unknown line shape: " + shape)
+                raise QuantarheiError("Unknown line shape: " + shape)
 
             return nonr2D
 
-        raise Exception("Unknown pathway type: " + pathway.pathway_type)
+        raise QuantarheiError("Unknown pathway type: " + pathway.pathway_type)

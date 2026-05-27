@@ -56,6 +56,7 @@ from ...core.managers import UnitsManaged, energy_units
 from ...core.time import TimeAxis
 from ...core.units import kB_intK
 from ...core.wrappers import enforce_energy_units_context
+from ...exceptions import QuantarheiError
 
 
 class CorrelationFunction(DFunction, UnitsManaged):
@@ -151,7 +152,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                     ftype = params["ftype"]
 
                     if ftype not in CorrelationFunction.allowed_types:
-                        raise Exception("Unknown CorrelationFunction type")
+                        raise QuantarheiError("Unknown CorrelationFunction type")
 
                     # we mutate the parameters into internal units
                     prms = {}
@@ -162,7 +163,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                             prms[key] = params[key]
 
                 except KeyError:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Dictionary of parameters does not contain  `ftype` key"
                     )
 
@@ -177,7 +178,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                     #                        ftype = params["ftype"]
                     #
                     #                        if ftype not in CorrelationFunction.allowed_types:
-                    #                            raise Exception("Unknown CorrelationFunction type")
+                    #                            raise QuantarheiError("Unknown CorrelationFunction type")
                     #
                     #                        # we mutate the parameters into internal units
                     #                        prms = {}
@@ -188,7 +189,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                     #                                prms[key] = params[key]
                     #
                     #                    except:
-                    #                        raise Exception("Dictionary of parameters does not contain "
+                    #                        raise QuantarheiError("Dictionary of parameters does not contain "
                     #                                        +" `ftype` key")
 
                     ftype = prms["ftype"]
@@ -215,7 +216,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                         self._make_value_defined(prms, values)
 
                     else:
-                        raise Exception(
+                        raise QuantarheiError(
                             "Unknown correlation function type or"
                             "type domain combination."
                         )
@@ -230,7 +231,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 for prms in self.params:
                     self.lamb += prms["reorg"]
                     if self.temperature != prms["T"]:
-                        raise Exception(
+                        raise QuantarheiError(
                             "Inconsistent temperature! "
                             "Temperatures of all "
                             "components have to be the same"
@@ -238,6 +239,11 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
                 # FIXME: set cut-off time and temperature
                 # self._set_temperature_and_cutoff_time(self.params[0])
+
+    def __repr__(self) -> str:
+        ftype = self.params[0]["ftype"] if self.params else "unknown"
+        temp = self.temperature if hasattr(self, "temperature") else None
+        return f"CorrelationFunction(ftype={ftype!r}, T={temp})"
 
     def _matsubara(self, kBT: float, ctime: float, nof: int) -> numpy.ndarray:
         """Matsubara frequency part of the Brownian correlation function"""
@@ -263,7 +269,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         if self.temperature == -1.0:
             self.temperature = temperature
         elif self.temperature != temperature:
-            raise Exception(
+            raise QuantarheiError(
                 "Inconsistent temperature! Temperatures of all "
                 "components have to be the same"
             )
@@ -464,9 +470,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
             if len(values) == self.axis.length:
                 cfce = values
             else:
-                raise Exception("Incompatible values")
+                raise QuantarheiError("Incompatible values")
         else:
-            raise Exception("Valued-defined correlation function without values")
+            raise QuantarheiError("Valued-defined correlation function without values")
 
         # this is a call to the function inherited from DFunction class
         self._add_me(self.axis, cfce)
@@ -500,7 +506,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         #            f.add_to_data(other)
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "In addition, functions have to share the same TimeAxis object"
             )
 
@@ -524,7 +530,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 self.cutoff_time = other.cutoff_time
 
             if self.temperature != other.temperature:
-                raise Exception(
+                raise QuantarheiError(
                     "Cannot add two correlation functions on different temperatures"
                 )
 
@@ -535,7 +541,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self._is_empty = False
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "In addition, functions have to share the same TimeAxis object"
             )
 
@@ -558,7 +564,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 self.cutoff_time = ocor.cutoff_time
 
             if self.temperature != ocor.temperature:
-                raise Exception(
+                raise QuantarheiError(
                     "Cannot add two correlation functions on different temperatures"
                 )
 
@@ -569,7 +575,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
             self._is_empty = False
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "In addition, functions have to share the same TimeAxis object"
             )
 
@@ -646,7 +652,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
                     # pass
                     frequencies = fa
                 else:
-                    raise Exception(
+                    raise QuantarheiError(
                         "The provided FrequencyAxis does not "
                         "have the same data as the Fourier "
                         "transformed axis"
@@ -729,7 +735,7 @@ class LineshapeFunction(DFunction, UnitsManaged):
         self.values = values
 
         if params is None:
-            raise Exception("Argument 'params' must not be None")
+            raise QuantarheiError("Argument 'params' must not be None")
 
         # FIXME: This DOES NOT WORK!!!, we need something else to distinguish
         try:
@@ -808,7 +814,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
                 ftype = params["ftype"]
 
                 if ftype not in CorrelationFunction.allowed_types:
-                    raise Exception("Unknown CorrelationFunction type")
+                    raise QuantarheiError("Unknown CorrelationFunction type")
 
                 # we mutate the parameters into internal units
                 prms = {}
@@ -819,7 +825,7 @@ class FTCorrelationFunction(DFunction, UnitsManaged):
                         prms[key] = params[key]
 
             except KeyError:
-                raise Exception(
+                raise QuantarheiError(
                     "Dictionary of parameters does not contain  `ftype` key"
                 )
         self.params = prms
@@ -891,14 +897,14 @@ class OddFTCorrelationFunction(DFunction, UnitsManaged):
         for params in p2calc:
             ftype = params["ftype"]
             if ftype not in CorrelationFunction.allowed_types:
-                raise Exception("Unknown Correlation Function Type")
+                raise QuantarheiError("Unknown Correlation Function Type")
 
             self.params.append(params)
 
             # We create CorrelationFunction and FTT it
             if params["ftype"] == "Value-defined":
                 if values is None:
-                    raise Exception()
+                    raise QuantarheiError()
                 else:
                     cfce = CorrelationFunction(axis, params, values=values)
             else:
@@ -967,14 +973,14 @@ class EvenFTCorrelationFunction(DFunction, UnitsManaged):
         for params in p2calc:
             ftype = params["ftype"]
             if ftype not in CorrelationFunction.allowed_types:
-                raise Exception("Unknown Correlation Function Type: " + ftype)
+                raise QuantarheiError("Unknown Correlation Function Type: " + ftype)
 
             self.params.append(params)
 
             # We create CorrelationFunction and FTT it
             if params["ftype"] == "Value-defined":
                 if values is None:
-                    raise Exception()
+                    raise QuantarheiError()
                 else:
                     cfce = CorrelationFunction(axis, params, values=values)
             else:

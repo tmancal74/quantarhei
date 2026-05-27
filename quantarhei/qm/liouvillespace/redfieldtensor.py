@@ -22,6 +22,7 @@ from ...core.parallel import (
     distributed_configuration,
     start_parallel_region,
 )
+from ...exceptions import QuantarheiError
 from ...utils.logging import log_detail, log_quick
 
 # from ...core.managers import BasisManaged
@@ -107,12 +108,12 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         # Hamiltonian
         if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
+            raise QuantarheiError("First argument must be a Hamiltonian")
 
         # SystemBathInteraction
         if not isinstance(sbi, SystemBathInteraction):
             if sbi is not None:
-                raise Exception(
+                raise QuantarheiError(
                     "Second argument must be of the SystemBathInteraction type"
                 )
 
@@ -363,9 +364,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
                 # print(ii)
                 # if ii >= 0:
                 #    print("Something is wrong")
-                #    raise Exception("twoex_state property ill-defined.")
+                #    raise QuantarheiError("twoex_state property ill-defined.")
             except AttributeError:
-                raise Exception("System requires the twoex_state property.")
+                raise QuantarheiError("System requires the twoex_state property.")
 
             # There are also two-exciton bath which can also be converted into one per monomer
             Nb2 = sbi.N

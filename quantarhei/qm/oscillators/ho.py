@@ -17,6 +17,7 @@ import numpy
 from ... import COMPLEX, REAL
 from ...core.dfunction import DFunction
 from ...core.saveable import Saveable
+from ...exceptions import BasisError
 
 
 class fcstorage(Saveable):
@@ -217,7 +218,7 @@ class qrepresentation:
         if self.ho_eigenfce_generated:
             pass
         else:
-            raise Exception("HO Eigenfunctions must be generated first")
+            raise BasisError("HO Eigenfunctions must be generated first")
 
     def get_ho_ground_state(self) -> DFunction:
         """Returns the ground state wavefunction of the Harmonic oscillator"""

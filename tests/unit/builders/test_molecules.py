@@ -54,6 +54,8 @@ class TestMolecule(unittest.TestCase):
         h[2, 2] = 2.0
 
         self.assertTrue(numpy.allclose(H.data, h))
+        self.assertIs(H, self.m.HamOp)
+        self.assertTrue(numpy.allclose(self.m.HH, H.data))
 
     def test_saving_of_molecule(self):
         """(Molecule) Testing the saving capability of the Molecule class"""
@@ -341,6 +343,9 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         m1.set_transition_environment((0, 1), cfce)
         m1.set_transition_environment((0, 2), cfce)
 
+        m1.build()
+        m2.build()
+
         self.m2 = m2
         self.m1 = m1
 
@@ -356,6 +361,8 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
             mod3.set_HR(1, 0.1)
 
         self.N3 = N3_g + N3_e
+
+        m3.build()
         self.m3 = m3
 
         # a very simple molecule to test two mode relaxation
@@ -375,6 +382,8 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
             mod4.set_HR(1, 0.1)
 
         self.N4 = N3_g**2 + N3_e**2
+
+        m4.build()
         self.m4 = m4
 
         # a tree state molecule to test two mode relaxation
@@ -399,6 +408,7 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
             mod4.set_HR(2, 0.1)
 
         self.N5 = N3_g**2 + N3_e**2 + N3_f**2
+        m5.build()
         self.m5 = m5
 
         # a tree state molecule to test two mode relaxation
@@ -430,6 +440,7 @@ class TestMoleculeMultiVibrations(unittest.TestCase):
         m6.set_transition_environment((0, 1), cfce)
         m6.set_transition_environment((0, 2), cfce)
 
+        m6.build()
         self.m6 = m6
 
     def test_Hamiltonian_etc(self):

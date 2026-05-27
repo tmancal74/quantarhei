@@ -4,6 +4,8 @@ from typing import Any
 
 import numpy
 
+from ..exceptions import QuantarheiError
+
 
 class Disorder:
     """Diagonal energetic disorder model for excitonic Hamiltonians.
@@ -43,7 +45,7 @@ class Disorder:
     ) -> None:
 
         if data is None:
-            raise Exception("Data not specified")
+            raise QuantarheiError("Data not specified")
 
         self.dtype = dtype
         self.distribution = distribution
@@ -68,14 +70,14 @@ class Disorder:
                 de = numpy.random.normal(0.0, sigma, N)
 
             else:
-                raise Exception("Unknown distribution")
+                raise QuantarheiError("Unknown distribution")
 
             # Update the Hamiltonian energies
             for i in range(N):
                 H._data[1 + i, 1 + i] = self.data[1 + i, 1 + i] + de[i]
 
         else:
-            raise Exception("Unknown disorder type")
+            raise QuantarheiError("Unknown disorder type")
 
     def set_distribution(self, distribution: str, params: dict) -> None:
 
@@ -83,4 +85,4 @@ class Disorder:
             self.width = params["width"]
 
         else:
-            raise Exception("Unknown distribution")
+            raise QuantarheiError("Unknown distribution")

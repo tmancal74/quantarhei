@@ -143,11 +143,20 @@ except _PackageNotFoundError:
 ###############################################################################
 
 #
+# Exception hierarchy
+#
+#
 # Fix used numerical types
 #
 import numpy
 
 from .core.managers import Manager
+from .exceptions import BasisError as BasisError
+from .exceptions import BuildError as BuildError
+from .exceptions import ConfigurationError as ConfigurationError
+from .exceptions import ImplementationError as ImplementationError
+from .exceptions import QuantarheiError as QuantarheiError
+from .exceptions import UnitsError as UnitsError
 
 REAL: type = numpy.float64
 COMPLEX: type = numpy.complex128
@@ -294,6 +303,7 @@ from .core.parallel import (
 ###############################################################################
 # from .core.saveable import load
 # from .core.saveable import read_info
+from .core.parcel import DeserializationWarning as DeserializationWarning
 from .core.parcel import Parcel as Parcel
 from .core.parcel import check_parcel as check_parcel
 from .core.parcel import load_parcel as load_parcel
@@ -678,7 +688,7 @@ def assert_version(check: str, vno: str) -> None:
             ext()
 
     else:
-        raise Exception("Unknown comparison operator `" + check + "`")
+        raise QuantarheiError("Unknown comparison operator `" + check + "`")
 
 
 #
@@ -705,11 +715,15 @@ __all__ = [
     # Builders
     "Aggregate",
     "AnharmonicMode",
+    # Exceptions
+    "BasisError",
     # Quantum mechanics — operators
     "BasisReferenceOperator",
+    "BuildError",
     "CircDichSpectrum",
     "CircDichSpectrumCalculator",
     "CircDichSpectrumContainer",
+    "ConfigurationError",
     # Correlation functions / lineshape
     "CorrelationFunction",
     "CorrelationFunctionMatrix",
@@ -719,6 +733,7 @@ __all__ = [
     "DSFeynmanDiagram",
     "DensityMatrix",
     "DensityMatrixEvolution",
+    "DeserializationWarning",
     "Disorder",
     # Evolution / propagation
     "EvolutionSuperOperator",
@@ -730,6 +745,7 @@ __all__ = [
     "FunctionStorage",
     "Hamiltonian",
     "HarmonicMode",
+    "ImplementationError",
     # Wizard
     "Input",
     "KTHierarchy",
@@ -764,6 +780,7 @@ __all__ = [
     "PumpProbeSpectrumCalculator",
     "PumpProbeSpectrumContainer",
     "QuTip_KTHierarchyPropagator",
+    "QuantarheiError",
     "R1f_Diagram",
     "R1g_Diagram",
     "R1g_R_Diagram",
@@ -790,6 +807,7 @@ __all__ = [
     "TwoDResponseContainer",
     "TwoDSpectrum",
     "TwoDSpectrumContainer",
+    "UnitsError",
     "UnityOperator",
     "ValueAxis",
     "VibrationalSystem",

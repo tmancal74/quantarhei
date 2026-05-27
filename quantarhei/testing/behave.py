@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-# standard imports
 import os
 import re
 import tempfile
@@ -11,6 +10,9 @@ import tempfile
 from importlib.resources import files
 from subprocess import check_output
 from typing import Any
+
+# standard imports
+from ..exceptions import QuantarheiError
 
 
 def quantarhei_installed(context: Any, version: str | None = None) -> None:
@@ -57,7 +59,7 @@ def shell_command(context: Any, cmd: str, err_msg: str = "Shell command error") 
         context.output = output
 
     except Exception:
-        raise Exception(err_msg)
+        raise QuantarheiError(err_msg)
 
 
 def check_output_contains(context: Any, text: str, err_msg: str) -> None:
@@ -79,7 +81,7 @@ def check_output_contains(context: Any, text: str, err_msg: str) -> None:
     res = re.search(text, context.output.decode("utf-8"))
     if res is None:
         print(context.output.decode("utf-8"))
-        raise Exception(err_msg)
+        raise QuantarheiError(err_msg)
 
 
 def secure_temp_dir(context: Any) -> None:
@@ -129,9 +131,9 @@ class testdir:
         try:
             tempdir = context.tempdir
             if tempdir is None:
-                raise Exception()
+                raise QuantarheiError()
         except Exception:
-            raise Exception("Context does not contain info about tempdir")
+            raise QuantarheiError("Context does not contain info about tempdir")
 
     def __enter__(self) -> None:
         self.context.cwd = os.getcwd()
