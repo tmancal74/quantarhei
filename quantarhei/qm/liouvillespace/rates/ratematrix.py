@@ -5,6 +5,7 @@ from typing import Any
 import numpy
 
 from ....core.matrixdata import MatrixData
+from ....exceptions import QuantarheiError
 
 
 class RateMatrix(MatrixData):
@@ -20,7 +21,7 @@ class RateMatrix(MatrixData):
         if data is not None:
             # check if data are rectangular
             if data.shape[0] != data.shape[1]:
-                raise Exception("Expecting rectangular matrix")
+                raise QuantarheiError("Expecting rectangular matrix")
 
             if self.N == 0:
                 self.N = data.shape[0]
@@ -28,11 +29,11 @@ class RateMatrix(MatrixData):
             elif self.N == data.shape[0]:
                 self.data = data
             else:
-                raise Exception("Inconsistent data dimensions")
+                raise QuantarheiError("Inconsistent data dimensions")
 
         else:
             if self.N == 0:
-                raise Exception("One of the arguments has to be specified")
+                raise QuantarheiError("One of the arguments has to be specified")
 
             else:
                 self.data = numpy.zeros((self.N, self.N), dtype=numpy.float64)
@@ -48,7 +49,7 @@ class RateMatrix(MatrixData):
         M = pos[1]
 
         if N == M:
-            raise Exception("Diagonal (depopulation) rates cannot be set")
+            raise QuantarheiError("Diagonal (depopulation) rates cannot be set")
 
         orig_val = self.data[N, M]
         self.data[N, M] = value

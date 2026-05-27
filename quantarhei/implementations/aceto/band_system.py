@@ -4,6 +4,8 @@ from typing import Any
 
 import numpy
 
+from ...exceptions import QuantarheiError
+
 
 class band_system:
     """Python implementation of acetosys band_system class"""
@@ -52,7 +54,7 @@ class band_system:
 
         # FIXME: some of the arrays need to be turned in 'F'order
         if not (dab.shape == (3, self.Ns[Nbi], self.Ns[Nbf])):
-            raise Exception("Wrong shape of dipole matrix")
+            raise QuantarheiError("Wrong shape of dipole matrix")
         if (Nbi == 0) and (Nbf == 1):
             self.nn01 = numpy.asfortranarray(dab.copy())
             self.dd01 = numpy.zeros(
@@ -80,7 +82,7 @@ class band_system:
                     if dd != 0.0:
                         self.nn12[:, i, j] = self.nn12[:, i, j] / dd
         else:
-            raise Exception("Attempt to assing unsupported dipole block")
+            raise QuantarheiError("Attempt to assing unsupported dipole block")
 
     def _check_twoex_dipoles(self) -> None:
         """This method assumes that the exciton basis is identical with site basis"""
@@ -132,7 +134,7 @@ class band_system:
         elif Nb == 2:
             self.SS2 = numpy.asfortranarray(SS)
         else:
-            raise Exception("Attempt to assign unsupported block")
+            raise QuantarheiError("Attempt to assign unsupported block")
 
     def set_relaxation_rates(self, Nb: int, RR: Any) -> None:
         if Nb == 1:
@@ -140,7 +142,7 @@ class band_system:
         elif Nb == 2:
             self.Kr22 = numpy.asfortranarray(RR)
         else:
-            raise Exception("Attempt to set usupported rate block")
+            raise QuantarheiError("Attempt to set usupported rate block")
         self.update_dephasing_rates(Nb)
 
     def update_dephasing_rates(self, Nb: int) -> None:
@@ -166,7 +168,7 @@ class band_system:
                 for j in range(self.Ns[2]):
                     self.Kd12[i, j] -= self.Kr22[j, j] / 2.0
         else:
-            raise Exception("Attempt to update unsupported dephasing rate block")
+            raise QuantarheiError("Attempt to update unsupported dephasing rate block")
 
     def init_dephasing_rates(self) -> None:
         self.Kd01 = numpy.zeros(

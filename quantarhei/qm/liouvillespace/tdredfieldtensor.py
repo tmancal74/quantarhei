@@ -5,6 +5,7 @@ import scipy
 
 from ... import REAL
 from ...core.time import TimeDependent
+from ...exceptions import QuantarheiError
 from ...qm.hilbertspace.hamiltonian import Hamiltonian
 from ...qm.liouvillespace.systembathinteraction import SystemBathInteraction
 from .redfieldtensor import RedfieldRelaxationTensor
@@ -116,9 +117,9 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                 # print(ii)
                 # if ii >= 0:
                 #    print("Something is wrong")
-                #    raise Exception("twoex_state property ill-defined.")
+                #    raise QuantarheiError("twoex_state property ill-defined.")
             except AttributeError:
-                raise Exception("System requires the twoex_state property.")
+                raise QuantarheiError("System requires the twoex_state property.")
 
             # There are also two-exciton bath which can also be converted into one per monomer
             Nb2 = sbi.N
@@ -344,7 +345,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
     def secularize(self) -> None:  # type: ignore[override]
         """Secularizes the relaxation tensor"""
         if self.as_operators:
-            raise Exception("Cannot be secularized in an opeator form")
+            raise QuantarheiError("Cannot be secularized in an opeator form")
 
         else:
             N = self.data.shape[1]

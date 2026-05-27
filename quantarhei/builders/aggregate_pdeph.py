@@ -17,6 +17,7 @@ from __future__ import annotations
 import numpy
 
 from .. import REAL
+from ..exceptions import QuantarheiError
 from .aggregate_excitonanalysis import AggregateExcitonAnalysis
 
 
@@ -47,7 +48,7 @@ class AggregatePureDephasing(AggregateExcitonAnalysis):
                 else:
                     pdrates[k] = 0.0
         else:
-            raise Exception("Unknown dephasing type")
+            raise QuantarheiError("Unknown dephasing type")
 
         self.diagonalize()
 

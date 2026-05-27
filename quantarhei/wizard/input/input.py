@@ -8,6 +8,8 @@ from typing import Any
 
 import yaml  # type: ignore[import-untyped]
 
+from ...exceptions import QuantarheiError
+
 
 #
 # The code below is here to test against arbitrary code execution during
@@ -119,7 +121,7 @@ class Input:
             self._from_file = False
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "Input file name (string) or a dictionary hs to be specified"
             )
 
@@ -154,7 +156,7 @@ class Input:
                             pass
 
                 else:
-                    raise Exception("... must be a dictionary")
+                    raise QuantarheiError("... must be a dictionary")
 
             else:
                 val = getattr(self, cnv)

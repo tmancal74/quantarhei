@@ -56,6 +56,8 @@ import os
 import warnings
 from typing import TYPE_CHECKING, Any
 
+from ..exceptions import BasisError, ConfigurationError, QuantarheiError, UnitsError
+
 if TYPE_CHECKING:
     from .parallel import DistributedConfiguration
 
@@ -214,7 +216,7 @@ class Manager(metaclass=Singleton):
                 json.dump(self.main_conf, f)
 
         elif exists and (not isdir):
-            raise Exception("Cannot create configuration directory.")
+            raise ConfigurationError("Cannot create configuration directory.")
 
         else:
             # load the main configuration file
@@ -411,7 +413,7 @@ class Manager(metaclass=Singleton):
 
         else:
             if cfile.exists():
-                raise Exception(
+                raise QuantarheiError(
                     "Configuration file "
                     + fpath
                     + " seems to exist"
@@ -469,7 +471,7 @@ class Manager(metaclass=Singleton):
             spec.loader.exec_module(foo)
             foo.configure(self)
         except Exception:
-            raise Exception()
+            raise QuantarheiError()
 
     def save_settings(self) -> None:
 
@@ -544,10 +546,10 @@ class Manager(metaclass=Singleton):
                 return self.units_repre[self.current_units[utype]]
             if mode == "internal":
                 return self.units_repre[self.internal_units[utype]]
-            raise Exception("Unknown representation mode")
+            raise UnitsError("Unknown representation mode")
 
         else:
-            raise Exception("Unknown unit type")
+            raise UnitsError("Unknown unit type")
 
     def unit_repr_latex(self, utype: str = "energy", mode: str = "current") -> str:
         """Returns a string representing the currently used units"""
@@ -556,10 +558,10 @@ class Manager(metaclass=Singleton):
                 return self.units_repre_latex[self.current_units[utype]]
             if mode == "internal":
                 return self.units_repre_latex[self.internal_units[utype]]
-            raise Exception("Unknown representation mode")
+            raise UnitsError("Unknown representation mode")
 
         else:
-            raise Exception("Unknown unit type")
+            raise UnitsError("Unknown unit type")
 
     def set_current_units(self, utype: str, units: str) -> None:
         """Set the current units for a given unit type.
@@ -584,30 +586,30 @@ class Manager(metaclass=Singleton):
             if units in self.units[utype]:
                 self.current_units[utype] = units
             else:
-                raise Exception(f"Unknown units of {utype}")
+                raise UnitsError(f"Unknown units of {utype}")
         else:
-            raise Exception("Unknown type of units")
+            raise UnitsError("Unknown type of units")
 
     def unset_current_units(self, utype: str) -> None:
         """Restores previously saved units of a given type"""
         try:
             cunits = self._saved_units[utype]
         except KeyError:
-            raise Exception("Units to restore not found")
+            raise UnitsError("Units to restore not found")
 
         if utype in self.allowed_utypes:
             if cunits in self.units[utype]:
                 self.current_units[utype] = cunits
             else:
-                raise Exception(f"Unknown units of {utype}")
+                raise UnitsError(f"Unknown units of {utype}")
         else:
-            raise Exception("Unknown type of units")
+            raise UnitsError("Unknown type of units")
 
     def get_current_units(self, utype: str) -> str:
         """ """
         if utype in self.allowed_utypes:
             return self.current_units[utype]
-        raise Exception("Unknown type of units")
+        raise UnitsError("Unknown type of units")
 
     #    @deprecated
     def cu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:
@@ -832,7 +834,7 @@ class Manager(metaclass=Singleton):
                     if self.basis_stack[sl - k - 1] == ob:
                         break
             else:
-                raise Exception("Basis of the object is not on stack.")
+                raise BasisError("Basis of the object is not on stack.")
 
             operator.transform(SS)
             operator.set_current_basis(cb)
@@ -942,7 +944,7 @@ class units_context_manager:
         if utype in self.manager.allowed_utypes:
             self.utype = utype
         else:
-            raise Exception("Unknown units type")
+            raise UnitsError("Unknown units type")
 
     def __enter__(self) -> None:
         pass
@@ -975,7 +977,7 @@ class energy_units(units_context_manager):
         if units in self.manager.units["energy"]:
             self.units = units
         else:
-            raise Exception("Unknown energy units")
+            raise UnitsError("Unknown energy units")
 
     def __enter__(self) -> None:
         # save current energy units
@@ -1033,7 +1035,7 @@ class length_units(units_context_manager):
         if units in self.manager.units["length"]:
             self.units = units
         else:
-            raise Exception("Unknown length units")
+            raise UnitsError("Unknown length units")
 
     def __enter__(self) -> None:
         # save current energy units
@@ -1177,7 +1179,7 @@ def set_current_units(units: dict[str, str] | None = None) -> None:
 
                 manager.set_current_units(utype, un)
             else:
-                raise Exception(f"Unknown units type {utype}")
+                raise UnitsError(f"Unknown units type {utype}")
 
     else:
         # reset units to the default
@@ -1185,7 +1187,7 @@ def set_current_units(units: dict[str, str] | None = None) -> None:
             if utype in manager.allowed_utypes:
                 manager.set_current_units(utype, manager.internal_units[utype])
             else:
-                raise Exception(f"Unknown units type {utype}")
+                raise UnitsError(f"Unknown units type {utype}")
 
 
 def units_state() -> dict[str, str]:

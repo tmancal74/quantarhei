@@ -196,6 +196,7 @@ from ... import COMPLEX, REAL
 from ...core.dfunction import DFunction
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis, TimeDependent
+from ...exceptions import QuantarheiError
 from ..hilbertspace.operators import ReducedDensityMatrix
 from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 
@@ -282,7 +283,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
             N2 = self.dim
 
         else:
-            raise Exception("Unknown block type")
+            raise QuantarheiError("Unknown block type")
 
             self.ham.rwa_indices
 
@@ -397,11 +398,11 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #  FIXME: This functionality should be achieved by a decorator
         #
         # if Manager()._in_eigenbasis_of_context:
-        #    raise Exception("This function MUST be called outside"+
+        #    raise QuantarheiError("This function MUST be called outside"+
         #                    " a basis context")
 
         if self.mode != "all":
-            raise Exception(
+            raise QuantarheiError(
                 "This method (calculate()) can be used only with mode='all'"
             )
         Nt = self.time.length
@@ -502,7 +503,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         systime = self.relt.SystemBathInteraction.TimeAxis
 
         if not time.is_subset_of(systime):
-            raise Exception(
+            raise QuantarheiError(
                 "Incompatible time axes (RelaxationTensor vs. EvolutionSuperOperator)"
             )
 
@@ -521,7 +522,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
         #     print("Propagation timestep is:", time.step, "fs")
         #     print("ERROR:", Nref_req,"steps of", systime.step,"fs do not fit"+
         #           " neatly into a step of", time.step,"fs")
-        #     raise Exception("Incompatible number of refinement steps")
+        #     raise QuantarheiError("Incompatible number of refinement steps")
 
         # print("A stride over system time:", stride)
 
@@ -573,7 +574,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     def calculate_next(self, save: bool = False) -> None:
         """Calculates one point of data of the superopetor"""
         if self.mode != "jit":
-            raise Exception(
+            raise QuantarheiError(
                 "This method (calculate_next()) can be used only with mode='jit'"
             )
 
@@ -709,7 +710,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             if isinstance(time, str):
                 if time != "all":
-                    raise Exception(
+                    raise QuantarheiError(
                         "When argument time is a string, it must be equal to 'all'"
                     )
 
@@ -745,7 +746,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             return rhot
 
-        raise Exception("Invalid argument: time")
+        raise QuantarheiError("Invalid argument: time")
 
     def plot_element(self, elem: Any, part: str = "REAL", show: bool = True) -> None:
         """Plots a selected element of the evolution superoperator
@@ -771,7 +772,7 @@ class EvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
                     dat1 = numpy.real(self.data[:, elem[0], elem[1], elem[2], elem[3]])
                     dat2 = numpy.imag(self.data[:, elem[0], elem[1], elem[2], elem[3]])
                 else:
-                    raise Exception("Unknown data part: " + part)
+                    raise QuantarheiError("Unknown data part: " + part)
 
                 plt.plot(self.time.data, dat1)
                 if dat2 is not None:

@@ -20,6 +20,7 @@ from ..core.managers import EnergyUnitsManaged, eigenbasis_of, energy_units
 from ..core.time import TimeAxis, TimeDependent
 from ..core.units import kB_intK
 from ..core.wrappers import prevent_basis_context
+from ..exceptions import ImplementationError, QuantarheiError
 from ..qm.hilbertspace.operators import ReducedDensityMatrix
 from ..utils import derived_type
 from .abs2 import AbsSpectrum
@@ -59,7 +60,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
     >>> abs = absc.calculate()
     Traceback (most recent call last):
         ...
-    Exception: Calculator must be bootstrapped first: call bootstrap() method of this object.
+    quantarhei.exceptions.QuantarheiError: Calculator must be bootstrapped first: call bootstrap() method of this object.
 
 
     Molecule does not provide RWA information automatically
@@ -115,7 +116,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         if dynamics in ["secular", "non-secular"]:
             self.dynamics = dynamics
         else:
-            raise Exception("Unknown type of dynamics: " + str(dynamics))
+            raise QuantarheiError("Unknown type of dynamics: " + str(dynamics))
 
         # unprotected properties
         self._relaxation_tensor = None
@@ -165,7 +166,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         >>> absc.bootstrap()
         Traceback (most recent call last):
             ...
-        Exception: RWA not set by system nor explicitely.
+        quantarhei.exceptions.QuantarheiError: RWA not set by system nor explicitely.
         """
         self.prop = prop
 
@@ -181,7 +182,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             if rwa > 0.0:
                 self.rwa = self.convert_2_internal_u(rwa)
             else:
-                raise Exception("RWA not set by system nor explicitely.")
+                raise QuantarheiError("RWA not set by system nor explicitely.")
 
         # self.rwa = self.convert_2_internal_u(rwa)
 
@@ -242,7 +243,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
     ) -> Any:
         """Calculates the absorption spectrum"""
         if not self.bootstrapped:
-            raise Exception(
+            raise QuantarheiError(
                 "Calculator must be bootstrapped first: "
                 "call bootstrap() method of this object."
             )
@@ -266,14 +267,14 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                     spect = self._calculate_monomer(raw=raw)
 
             else:
-                raise Exception("System to calculate spectrum for not defined")
+                raise QuantarheiError("System to calculate spectrum for not defined")
 
         return spect
 
     def _calculateMolecule(self, rwa: float) -> None:
 
         if self.system._has_system_bath_coupling:
-            raise Exception("Not yet implemented")
+            raise ImplementationError("Not yet implemented")
         else:
             # calculating stick spectra
 
@@ -860,7 +861,9 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         system = self.system
         HH = system.get_Hamiltonian()
         if not HH.has_rwa:
-            raise Exception("Hamiltonian has to define Rotating Wave Approximation")
+            raise QuantarheiError(
+                "Hamiltonian has to define Rotating Wave Approximation"
+            )
 
         # with energy_units("1/cm"):
         #    print("Skeleton")
@@ -1185,7 +1188,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
     ) -> Any:
 
         if not self.bootstrapped:
-            raise Exception(
+            raise QuantarheiError(
                 "Calculator must be bootstrapped first: "
                 "call bootstrap() method of this object."
             )
@@ -1208,7 +1211,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
                         raw=raw,
                     )["abs"]
             else:
-                raise Exception("System to calculate spectrum for not defined")
+                raise QuantarheiError("System to calculate spectrum for not defined")
 
         return spect
 

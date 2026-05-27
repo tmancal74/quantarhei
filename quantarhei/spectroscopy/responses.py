@@ -6,6 +6,7 @@ import numpy
 
 from .. import REAL
 from ..core.managers import Manager
+from ..exceptions import QuantarheiError
 from ..qm.propagators.poppropagator import PopulationPropagator
 from .response_implementations import get_implementation
 
@@ -125,7 +126,22 @@ class NonLinearResponse:
             If ``KK`` is not a square matrix or if any depopulation rate is
             positive.
         """
-        KK = numpy.asarray(KK)
+        if KK.shape[0] == KK.shape[1]:
+            self.KK = KK
+
+            self.U0_t2 = numpy.zeros((KK.shape[0], self.t2s.length), dtype=REAL)
+            self.U0_t1 = numpy.zeros((KK.shape[0], self.t1s.length), dtype=REAL)
+            self.U0_t3 = numpy.zeros((KK.shape[0], self.t3s.length), dtype=REAL)
+
+            if KK.shape[0] != self.sys.Ntot:
+                if self.sys.mult == 2:
+                    self.U0fe_t3 = numpy.zeros(
+                        (self.sys.Nb[2], KK.shape[0], self.t3s.length), dtype=REAL
+                    )
+                else:
+                    raise QuantarheiError(
+                        "Relaxation matrix has a wrong size: " + str(KK.shape[0])
+                    )
 
         if len(KK.shape) == 2:
             dim = KK.shape[0]
@@ -141,21 +157,7 @@ class NonLinearResponse:
                     "as the t2 TimeAxis"
                 )
         else:
-            raise Exception("Rate matrix has to be an array of rank 2 or 3")
-
-        self.KK = KK
-
-        self.U0_t2 = numpy.zeros((dim, self.t2s.length), dtype=REAL)
-        self.U0_t1 = numpy.zeros((dim, self.t1s.length), dtype=REAL)
-        self.U0_t3 = numpy.zeros((dim, self.t3s.length), dtype=REAL)
-
-        if dim != self.sys.Ntot:
-            if self.sys.mult == 2:
-                self.U0fe_t3 = numpy.zeros(
-                    (self.sys.Nb[2], dim, self.t3s.length), dtype=REAL
-                )
-            else:
-                raise Exception("Relaxation matrix has a wrong size: " + str(dim))
+            raise QuantarheiError("Square matrix must be submitted")
 
         # time independent rate matrix
         if len(KK.shape) == 2:
@@ -168,7 +170,7 @@ class NonLinearResponse:
                     self.U0_t1[aa, :] = 1.0  # numpy.exp(0.5*KK[aa,aa]*self.t1s.data)
                     self.U0_t3[aa, :] = 1.0  # numpy.exp(0.5*KK[aa,aa]*self.t3s.data)
                 else:
-                    raise Exception("Depopulation rate must be negative.")
+                    raise QuantarheiError("Depopulation rate must be negative.")
 
             #
             # Relaxation caused dephasing for double-excitons
@@ -304,7 +306,7 @@ class LiouvillePathway:
     def set_frequencies(self, omega1: float, omega3: float) -> None:
         """Sets the frequencies of the response"""
         if self._frequencies_set:
-            raise Exception("Frequencies of are already set.")
+            raise QuantarheiError("Frequencies of are already set.")
 
         self._omega1 = Manager().convert_energy_2_internal_u(omega1)
         self._omega3 = Manager().convert_energy_2_internal_u(omega3)
@@ -320,12 +322,12 @@ class LiouvillePathway:
             )
 
             return fr
-        raise Exception("Frequencies not set.")
+        raise QuantarheiError("Frequencies not set.")
 
     def set_rwa(self, rwa: float) -> None:
         """Sets the RWA frequency"""
         if not self._frequencies_set:
-            raise Exception("Frequencies must be set before setting RWA.")
+            raise QuantarheiError("Frequencies must be set before setting RWA.")
 
         if not self._rwa_set:
             self._rwa = Manager().convert_energy_2_internal_u(rwa)
@@ -333,7 +335,7 @@ class LiouvillePathway:
             self._omega3 = self._omega3 - self._rwa
 
         else:
-            raise Exception("RWA cannot be set twice. Reset first.")
+            raise QuantarheiError("RWA cannot be set twice. Reset first.")
 
         self._rwa_set = True
 

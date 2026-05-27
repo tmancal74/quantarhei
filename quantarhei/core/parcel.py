@@ -7,6 +7,7 @@ from typing import IO, Any
 
 import dill as pickle
 
+from ..exceptions import QuantarheiError
 from .managers import Manager
 
 
@@ -117,7 +118,7 @@ def load_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> Any:
 
     if isinstance(obj, Parcel):
         return obj.content
-    raise Exception("Only Quantarhei Parcels can be loaded")
+    raise QuantarheiError("Only Quantarhei Parcels can be loaded")
 
 
 def check_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> dict[str, Any]:
@@ -149,4 +150,4 @@ def check_parcel(filename: str | IO[bytes], *, trusted: bool = False) -> dict[st
         return dict(
             class_name=obj.class_name, qrversion=obj.qrversion, comment=obj.comment
         )
-    raise Exception("The file does not represent a Quantarhei parcel")
+    raise QuantarheiError("The file does not represent a Quantarhei parcel")

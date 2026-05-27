@@ -14,6 +14,7 @@ import numpy
 from .... import REAL
 from ....core.implementations import implementation
 from ....core.units import cm2int, kB_intK
+from ....exceptions import QuantarheiError
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
 
@@ -57,10 +58,10 @@ class RedfieldRateMatrix:
     ) -> None:
 
         if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
+            raise QuantarheiError("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be a SystemBathInteraction")
+            raise QuantarheiError("Second argument must be a SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -88,7 +89,7 @@ class RedfieldRateMatrix:
         Nk = self.sbi.N
 
         if Nk <= 0:
-            raise Exception("No system bath intraction components present")
+            raise QuantarheiError("No system bath intraction components present")
 
         # Eigen problem
         hD, SS = numpy.linalg.eigh(self.ham._data)

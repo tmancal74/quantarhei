@@ -15,6 +15,7 @@ import numpy
 from numpy import ndarray
 
 from ...core.managers import Manager
+from ...exceptions import QuantarheiError
 
 
 class Secular:
@@ -131,13 +132,13 @@ class Secular:
 
         """
         if reversible and use_data:
-            raise Exception("data cannot be secularized reversibly")
+            raise QuantarheiError("data cannot be secularized reversibly")
 
         self.secular_reversible = reversible
 
         if use_data:
             if self.data is None:
-                raise Exception("Cannot use data when data is None")
+                raise QuantarheiError("Cannot use data when data is None")
             self.secular_data = True
 
         if not self.is_secular:
@@ -171,7 +172,7 @@ class Secular:
                 self.secular_KK = None
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Cannot recover non-secular data:"
                     " secularization was performed irreversibly"
                 )
@@ -188,28 +189,28 @@ class Secular:
     ###########################################################################
 
     def _set_population_rates_from_operators(self) -> None:
-        raise Exception(
+        raise QuantarheiError(
             "Method _set_population_rates_from_operators()"
             " needs to be implemented in a class inheriting"
             " from Secular"
         )
 
     def _set_population_rates_from_tensor(self) -> None:
-        raise Exception(
+        raise QuantarheiError(
             "Method _set_population_rates_from_tensor()"
             " needs to be implemented in a class inheriting"
             " from Secular"
         )
 
     def _set_dephasing_rates_from_operators(self) -> None:
-        raise Exception(
+        raise QuantarheiError(
             "Method _set_dephasing_rates_from_operators()"
             " needs to be implemented in a class inheriting"
             " from Secular"
         )
 
     def _set_dephasing_rates_from_tensor(self) -> None:
-        raise Exception(
+        raise QuantarheiError(
             "Method _set_dephasing_rates_from_tensor()"
             " needs to be implemented in a class inheriting"
             " from Secular"
