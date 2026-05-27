@@ -4,6 +4,7 @@ from typing import Any
 
 import numpy
 
+from ...exceptions import QuantarheiError
 from ..liouvillespace.rates.ratematrix import RateMatrix
 
 
@@ -507,6 +508,6 @@ class PopulationPropagator:
                 return U
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "TimeAxis is not a subset of the internal TimeAxis of this propagator."
             )

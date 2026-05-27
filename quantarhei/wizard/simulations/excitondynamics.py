@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ...builders.aggregates import Aggregate
+from ...exceptions import QuantarheiError
 from .simulation import Simulation
 
 
@@ -26,7 +27,7 @@ class ExcitonDynamics(Simulation):
         try:
             self.aggregate = Aggregate(molecules=self.molecules)
         except Exception:
-            raise Exception("Aggregate construction failed")
+            raise QuantarheiError("Aggregate construction failed")
 
         # try:
         #    if self.coupling_matrix
@@ -34,7 +35,9 @@ class ExcitonDynamics(Simulation):
         try:
             self.aggregate.build(mult=self.exciton_multiplicity)
         except AttributeError:
-            raise Exception("Aggregate build failed: exciton_multiplicity not defined")
+            raise QuantarheiError(
+                "Aggregate build failed: exciton_multiplicity not defined"
+            )
 
         self._incr_indent_level()
         self._printlog(
@@ -57,13 +60,15 @@ class ExcitonDynamics(Simulation):
             try:
                 sysops = self.sys_operators
             except AttributeError:
-                raise Exception(
+                raise QuantarheiError(
                     "``sys_operators`` have to be speficied for Lindblad form"
                 )
             try:
                 rates = self.rates
             except AttributeError:
-                raise Exception("``rates`` have to be speficied for Lindblad form")
+                raise QuantarheiError(
+                    "``rates`` have to be speficied for Lindblad form"
+                )
 
             self._printlog("Relaxation theory in Lindblad form", loglevel=0)
             sbi = SystemBathInteraction(sys_operators=sysops, rates=rates)

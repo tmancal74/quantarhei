@@ -22,6 +22,8 @@ from quantarhei import printlog as print
 from quantarhei.core.units import kB_int
 from quantarhei.utils.vectors import X
 
+from ...exceptions import QuantarheiError
+
 print("\n***** Rc Simulation Script *****")
 
 input_file = "ex_853_RC.yaml"
@@ -258,7 +260,7 @@ def run(
         elif vib_loc == "both":
             set_vib = [True, True]
         else:
-            raise Exception("Unknown location of the vibrations")
+            raise QuantarheiError("Unknown location of the vibrations")
 
         if set_vib[0]:
             print("Vibrations set for SP_high molecule")
@@ -923,7 +925,7 @@ for model in models:
                     random_state = qr.load_parcel(INP.random_state["file"])
                     numpy.random.set_state(random_state)
                 except (OSError, ValueError):
-                    raise Exception("Loading random state failed")
+                    raise QuantarheiError("Loading random state failed")
             if INP.random_state["save"]:
                 random_state = numpy.random.get_state()
                 qr.save_parcel(random_state, INP.random_state["file"])

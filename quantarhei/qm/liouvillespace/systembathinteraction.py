@@ -14,6 +14,7 @@ from ... import REAL
 from ...core.dfunction import DFunction
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis
+from ...exceptions import QuantarheiError
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
 from ...qm.corfunctions.correlationfunctions import c2g
 from ...qm.corfunctions.functionstorage import FunctionStorage
@@ -119,11 +120,11 @@ class SystemBathInteraction(Saveable):
             if isinstance(sys_operators, list):
                 self.N = len(sys_operators)
             else:
-                raise Exception("sys_operators argument has to a list")
+                raise QuantarheiError("sys_operators argument has to a list")
 
             # Second argument has to be a CorrelationFunctionMatrix
             if not isinstance(bath_correlation_matrix, CorrelationFunctionMatrix):
-                raise Exception(
+                raise QuantarheiError(
                     "ba_correlation_function argument has to a"
                     " CorrelationFunctionMatrix"
                 )
@@ -131,7 +132,7 @@ class SystemBathInteraction(Saveable):
             # Check that sys_operators and bath_correlation matrix has
             # a compatible number of components
             if bath_correlation_matrix.nob != self.N:
-                raise Exception(
+                raise QuantarheiError(
                     f"Incompatile number of bath compoments: "
                     f"Correlation function matrix - {bath_correlation_matrix.nob:d} vs. operators {self.N:d}"
                 )
@@ -145,7 +146,7 @@ class SystemBathInteraction(Saveable):
 
             if rates is not None:
                 if len(rates) != self.N:
-                    raise Exception("Wrong number of rates specified")
+                    raise QuantarheiError("Wrong number of rates specified")
                 self.rates = rates
 
         #
@@ -158,7 +159,7 @@ class SystemBathInteraction(Saveable):
             if isinstance(sys_operators, list):
                 self.N = len(sys_operators)
             else:
-                raise Exception("First argument has to a list")
+                raise QuantarheiError("First argument has to a list")
 
             self.set_system(system)
 
@@ -167,7 +168,7 @@ class SystemBathInteraction(Saveable):
                 self.CC = None  # bath_correlation_matrix
 
                 if len(rates) != self.N:
-                    raise Exception("Wrong number of rates specified")
+                    raise QuantarheiError("Wrong number of rates specified")
                 self.rates = rates
 
         #
@@ -177,10 +178,12 @@ class SystemBathInteraction(Saveable):
             self.sbitype = "Pure_Dephasing"
 
             if len(drates.shape) != 2:
-                raise Exception("Pure dephasing rates must be defined by a matrix")
+                raise QuantarheiError(
+                    "Pure dephasing rates must be defined by a matrix"
+                )
 
             if drates.shape[0] != drates.shape[1]:
-                raise Exception(
+                raise QuantarheiError(
                     "Pure dephasing rates must be defined by a square matrix"
                 )
 
@@ -195,7 +198,7 @@ class SystemBathInteraction(Saveable):
             self.sbitype = "Vibrational_Lindblad_Form"
 
             if len(orates) != len(osites):
-                raise Exception(
+                raise QuantarheiError(
                     "`orates` and `osites` arguments must have the same lengths"
                 )
 
@@ -227,7 +230,7 @@ class SystemBathInteraction(Saveable):
                 self.system = system
 
             else:
-                raise Exception("Unknown system type")
+                raise QuantarheiError("Unknown system type")
 
     def _set_operators(self, sys_operators: Any) -> None:
         """Sets the system part of the interaction"""
@@ -247,7 +250,9 @@ class SystemBathInteraction(Saveable):
             if dim == KK.data.shape[0]:
                 self.KK[ii, :, :] = numpy.real(KK.data)
             else:
-                raise Exception("Operators in the list are not of the same dimension")
+                raise QuantarheiError(
+                    "Operators in the list are not of the same dimension"
+                )
 
     def get_time_axis(self) -> Any:
         """Returns the time axis of the storred correlation functions"""
@@ -260,7 +265,7 @@ class SystemBathInteraction(Saveable):
     def get_coft(self, n: int, m: int) -> Any:
         """Returns bath correlation function corresponding to sites n and m"""
         if self.sbitype != "Linear_Coupling":
-            raise Exception(
+            raise QuantarheiError(
                 "Correlation functions only defined for "
                 "linear microscopic system-bath coupling"
             )
@@ -301,7 +306,7 @@ class SystemBathInteraction(Saveable):
     def get_coft_elsig(self, n_sig: Any, m_sig: Any) -> Any:
         """Returns bath correlation based on electronic signatures"""
         if self.sbitype != "Linear_Coupling":
-            raise Exception(
+            raise QuantarheiError(
                 "Correlation functions only defined for "
                 "linear microscopic system-bath coupling"
             )
@@ -386,7 +391,9 @@ class SystemBathInteraction(Saveable):
 
         # make checks
         if Nf != gg.get_number_of_functions():
-            raise Exception("Number of functions did not conserve in g(t) calculation")
+            raise QuantarheiError(
+                "Number of functions did not conserve in g(t) calculation"
+            )
 
         if using_default_timeaxis:
             self.GG = gg

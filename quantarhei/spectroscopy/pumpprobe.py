@@ -15,6 +15,7 @@ from ..core.frequency import FrequencyAxis
 from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..core.units import convert
+from ..exceptions import QuantarheiError
 from ..utils import derived_type
 from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
 from .responses import NonLinearResponse
@@ -448,7 +449,7 @@ class PumpProbeSpectrumCalculator:
             pass
 
         else:
-            raise Exception("Molecule pump-probe not implememted")
+            raise QuantarheiError("Molecule pump-probe not implememted")
 
         self.verbose = verbose
         self.rwa = Manager().convert_energy_2_internal_u(rwa)

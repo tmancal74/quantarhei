@@ -8,6 +8,7 @@ import numpy
 from ...core.managers import eigenbasis_of
 from ...core.saveable import Saveable
 from ...core.units import kB_int
+from ...exceptions import ImplementationError, QuantarheiError
 from .secular import Secular
 from .superoperator import SuperOperator
 
@@ -44,7 +45,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         if legacy:
             if self.as_operators:
                 self.convert_2_tensor()
-                # raise Exception("Cannot be secularized in the operator form")
+                # raise QuantarheiError("Cannot be secularized in the operator form")
 
             if self.data.ndim == 4:
                 N = self.data.shape[0]
@@ -73,7 +74,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             super().secularize()
 
     def _set_population_rates_from_operators(self) -> None:
-        raise Exception(
+        raise QuantarheiError(
             "Method _set_population_rates_from_operators()"
             " needs to be implemented in a class inheriting"
             " from Secular"
@@ -87,7 +88,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
             self.secular_KK = numpy.einsum("hiijj->hij", self.data)
 
     def _set_dephasing_rates_from_operators(self) -> None:
-        raise Exception(
+        raise QuantarheiError(
             "Method _set_dephasing_rates_from_operators()"
             " needs to be implemented in a class inheriting"
             " from Secular"
@@ -144,7 +145,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         if act_deph_rate >= exp_deph_rate:
             delta_rate = act_deph_rate - exp_deph_rate
         else:
-            raise Exception("Relaxation rate does not respect the 1/2 rule.")
+            raise QuantarheiError("Relaxation rate does not respect the 1/2 rule.")
 
         return delta_rate
 
@@ -295,10 +296,10 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         import numbers
 
         if not isinstance(scalar, numbers.Number):
-            raise Exception("Only multiplication by numbers is implemented")
+            raise QuantarheiError("Only multiplication by numbers is implemented")
 
         if self.as_operators:
-            raise Exception("Multiplication in operator form not implemented")
+            raise ImplementationError("Multiplication in operator form not implemented")
 
         self._data = self._data * scalar
         return self

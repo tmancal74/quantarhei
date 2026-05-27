@@ -11,6 +11,7 @@ from ..builders.molecules import Molecule
 from ..builders.opensystem import OpenSystem
 from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
+from ..exceptions import ImplementationError, QuantarheiError
 from ..implementations.aceto.lab_settings import lab_settings
 
 # deprecated class
@@ -344,7 +345,7 @@ class TwoDResponseCalculator:
                     pass
 
                 else:
-                    raise Exception("Molecule 2D not implememted")
+                    raise QuantarheiError("Molecule 2D not implememted")
 
                 sys = self.system
                 sys.diagonalize()
@@ -804,7 +805,7 @@ class TwoDResponseCalculator:
                             raise Exception("Unknown response process")
 
                     else:
-                        raise Exception("Unknown response type")
+                        raise QuantarheiError("Unknown response type")
 
                 elif isinstance(resp, LiouvillePathway):
                     resp_any: Any = resp
@@ -822,10 +823,10 @@ class TwoDResponseCalculator:
                         response_pieces.append((resp, data))
                         resp_Ngsb += data
                     else:
-                        raise Exception("Unknown response type")
+                        raise QuantarheiError("Unknown response type")
 
         else:
-            raise Exception("Calculation method not implemented")
+            raise ImplementationError("Calculation method not implemented")
 
         # only for Aceto we need the sum
         #
@@ -995,7 +996,7 @@ class TwoDResponseCalculator:
 
             return twods
 
-        raise Exception("2D calculation in this mode not implemented.")
+        raise ImplementationError("2D calculation in this mode not implemented.")
 
     def reset_evaluation_functions(self, fcions: list[Any]) -> None:
         """Resets the evaluation functions used by the reseponse functions"""
@@ -1005,4 +1006,4 @@ class TwoDResponseCalculator:
                 print(rsp)
 
         else:
-            raise Exception("Calculatore has no responses defined.")
+            raise QuantarheiError("Calculatore has no responses defined.")

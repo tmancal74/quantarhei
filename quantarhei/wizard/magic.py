@@ -26,6 +26,8 @@ from __future__ import annotations
 
 from importlib.resources import files
 
+from ..exceptions import QuantarheiError
+
 try:
     # if IPython is not present,
     # we fail here and continue in the except section
@@ -128,7 +130,7 @@ def fetch_template(tname: str) -> None:
     try:
         tfile = templates[tname]
     except KeyError:
-        raise Exception("Template error: " + tname + " no such template")
+        raise QuantarheiError("Template error: " + tname + " no such template")
 
     resource_path = "/".join(("wizard", "templates", tfile))
 

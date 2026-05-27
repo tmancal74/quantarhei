@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..exceptions import QuantarheiError
+
 
 class DatabaseEntry:
     """Database entry in the database of spectral densities and correlation functions"""
@@ -91,12 +93,12 @@ class DataDefinedEntry(DatabaseEntry):
             elif self.direct_implementation == DatabaseEntry.CORRELATION_FUNCTION:
                 pass
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Don't know if this is spectral density or correlation function"
                 )
 
         else:
-            raise Exception("Data not defined in any expected way")
+            raise QuantarheiError("Data not defined in any expected way")
 
     def get_data(self) -> Any:
         """Returns spectral density data
@@ -196,10 +198,10 @@ class SpectralDensityDB:
                                 self.loaded[inst.identificator] = False
 
                         else:
-                            raise Exception("This cannot be!")
+                            raise QuantarheiError("This cannot be!")
 
         if count != len(self.entries):
-            raise Exception()
+            raise QuantarheiError()
         self.entry_count = count
 
         if verbose:
@@ -237,12 +239,12 @@ class SpectralDensityDB:
             else:
                 inst = self.entries[ident]
         else:
-            raise Exception("Identificator: " + ident + " not found")
+            raise QuantarheiError("Identificator: " + ident + " not found")
 
         try:
             sd = inst.get_SpectralDensity(axis)
         except Exception:
-            raise Exception(
+            raise QuantarheiError(
                 "Could not obtain spectral density from definition class for : " + ident
             )
 

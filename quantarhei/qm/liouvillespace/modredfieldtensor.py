@@ -5,6 +5,7 @@ import numpy
 from ... import COMPLEX
 from ...core.managers import eigenbasis_of, energy_units
 from ...core.wrappers import prevent_basis_context
+from ...exceptions import QuantarheiError
 
 # import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
@@ -47,10 +48,12 @@ class ModRedfieldRelaxationTensor(RelaxationTensor):
         self._initialize_basis()
 
         if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
+            raise QuantarheiError("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of type SystemBathInteraction")
+            raise QuantarheiError(
+                "Second argument must be of type SystemBathInteraction"
+            )
 
         self._is_initialized = False
         self._has_cutoff_time = False

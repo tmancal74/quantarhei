@@ -31,6 +31,7 @@ from ..core.managers import Manager, energy_units
 from ..core.saveable import Saveable
 from ..core.time import TimeAxis
 from ..core.valueaxis import ValueAxis
+from ..exceptions import QuantarheiError
 
 # from .twod2 import TwoDResponse
 from .twodspect import TwoDSpectrum
@@ -71,7 +72,7 @@ class TwoDResponseContainer(Saveable):
         self.tags: list[Any] = []
 
         if self.keep_pathways:
-            raise Exception("Container keeping pathways not available yet")
+            raise QuantarheiError("Container keeping pathways not available yet")
 
         self.spectra: dict[Any, Any] = {}
         self._which: float | None = None
@@ -98,7 +99,7 @@ class TwoDResponseContainer(Saveable):
             elif itype == "string":
                 self.itype = "string"
             else:
-                raise Exception("Unknown indexing type")
+                raise QuantarheiError("Unknown indexing type")
         elif isinstance(itype, ValueAxis):
             if isinstance(itype, TimeAxis):
                 self.itype = "TimeAxis"
@@ -113,7 +114,7 @@ class TwoDResponseContainer(Saveable):
                 self.itype = "ValueAxis"
                 self.axis = itype
         else:
-            raise Exception("Unknown indexing type")
+            raise QuantarheiError("Unknown indexing type")
 
     def set_spectrum(self, spect: Any, tag: Any = None) -> Any:
         """Stores spectrum with a tag (time, index, etc.)
@@ -139,7 +140,7 @@ class TwoDResponseContainer(Saveable):
             if isinstance(tag, numbers.Integral):
                 self.spectra[tag] = spect
             else:
-                raise Exception("The spectrum has to be tagged by an integer")
+                raise QuantarheiError("The spectrum has to be tagged by an integer")
             return tag
 
         if self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
@@ -154,9 +155,9 @@ class TwoDResponseContainer(Saveable):
                     self.tags.append(tag)
                     self.index += 1
                 else:
-                    raise Exception("Tag not compatible with the ValueAxis")
+                    raise QuantarheiError("Tag not compatible with the ValueAxis")
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "No tag specified, and spectrum"
                     " does not have t2 time set"
                     " - cannot store spectrum"
@@ -170,10 +171,10 @@ class TwoDResponseContainer(Saveable):
                 self.tags.append(stag)
                 self.index += 1
             else:
-                raise Exception("No tag specified - cannot store spectrum")
+                raise QuantarheiError("No tag specified - cannot store spectrum")
             return self.index
 
-        raise Exception("Unknown type of indexing")
+        raise QuantarheiError("Unknown type of indexing")
 
     def _lousy_equal(self, x1: float, x2: float, dx: float, frac: float = 0.25) -> bool:
         """Equals up to fraction of dx
@@ -240,12 +241,12 @@ class TwoDResponseContainer(Saveable):
                         return self.spectra[self._which]
                     except KeyError:
                         print(self.spectra)
-                        raise Exception()
+                        raise QuantarheiError()
                 else:
-                    raise Exception("Tag not compatible with the ValueAxis")
+                    raise QuantarheiError("Tag not compatible with the ValueAxis")
 
         else:
-            raise Exception("Unknown type of indexing")
+            raise QuantarheiError("Unknown type of indexing")
 
     def set_data_flag(self, flag: Any) -> None:
         """Sets data flag for all spectra in the container"""
@@ -267,7 +268,7 @@ class TwoDResponseContainer(Saveable):
 
             return cont
 
-        raise Exception("")
+        raise QuantarheiError("")
 
     def get_nearest(self, val: float) -> Any:
 
@@ -458,10 +459,10 @@ class TwoDResponseContainer(Saveable):
 
         """
         if dtype is None:
-            raise Exception("Type of the data for FFT has to be specified")
+            raise QuantarheiError("Type of the data for FFT has to be specified")
 
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
-            raise Exception("FFT cannot be performed for this type of indexing")
+            raise QuantarheiError("FFT cannot be performed for this type of indexing")
 
         # even when no window function is supplied, we create one with
         # all elements equal to one
@@ -484,14 +485,14 @@ class TwoDResponseContainer(Saveable):
                 # effective time axis for fft
                 eff_axis = TimeAxis(t0, Nt, dt, atype="complete")
             else:
-                raise Exception("Offset too large")
+                raise QuantarheiError("Offset too large")
         else:
             assert self.axis is not None
             eff_axis = self.axis
 
         # put all data into one array
 
-        # raise Exception()
+        # raise QuantarheiError()
         self.set_data_flag(dtype)
 
         tags = eff_axis.data  # self.axis.data
@@ -519,7 +520,9 @@ class TwoDResponseContainer(Saveable):
                     data[:, :, k_n] = numpy.abs(spect.d__data)
 
         else:
-            raise Exception("Number of spectra not consistent with ValueAxis object")
+            raise QuantarheiError(
+                "Number of spectra not consistent with ValueAxis object"
+            )
 
         #
         # FFT of the axis
@@ -623,7 +626,7 @@ class TwoDResponseContainer(Saveable):
             elif spart == part_ABS:
                 spect2D = numpy.abs(s.data)
             else:
-                raise Exception("Unknow part of the spectrum:", spart)
+                raise QuantarheiError("Unknow part of the spectrum:", spart)
             mx = numpy.amax(spect2D)
             mxs.append(mx)
         return numpy.amax(numpy.array(mxs))
@@ -788,9 +791,9 @@ def _exp_2D_data0(params: Any, times: Any = None, cont: Any = None) -> numpy.nda
 
     """
     if times is None:
-        raise Exception("Times have to be supplied")
+        raise QuantarheiError("Times have to be supplied")
     if cont is None:
-        raise Exception("Spectra container has to be supplied")
+        raise QuantarheiError("Spectra container has to be supplied")
 
     np = len(params)
 
@@ -844,13 +847,13 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
     def set_data_flag(self, flag: Any) -> None:
         """Sets data flag for all spectra in the container"""
         if flag != self.dtype:
-            raise Exception("Cannot change spectra type")
+            raise QuantarheiError("Cannot change spectra type")
 
     def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:
         """Returns a container with specific spectra"""
         if stype == self.dtype:
             return self
-        raise Exception("Cannot change spectra type in this container")
+        raise QuantarheiError("Cannot change spectra type in this container")
 
     # FIXME: This needs to be reimplemented
     def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
@@ -895,7 +898,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
 
             return ppcont
 
-        raise Exception(
+        raise QuantarheiError(
             "Cannot calculate Pump-probe from 2D spectra of type" + self.dtype
         )
 
@@ -972,10 +975,12 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
         """
         if dtype is not None:
             if dtype != self.dtype:
-                raise Exception("Cannot change spectra type in TwoDSpectrumContainer")
+                raise QuantarheiError(
+                    "Cannot change spectra type in TwoDSpectrumContainer"
+                )
 
         if self.itype not in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
-            raise Exception("FFT cannot be performed for this type of indexing")
+            raise QuantarheiError("FFT cannot be performed for this type of indexing")
 
         # even when no window function is supplied, we create one with
         # all elements equal to one
@@ -998,14 +1003,14 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
                 # effective time axis for fft
                 eff_axis = TimeAxis(t0, Nt, dt, atype="complete")
             else:
-                raise Exception("Offset too large")
+                raise QuantarheiError("Offset too large")
         else:
             assert self.axis is not None
             eff_axis = self.axis
 
         # put all data into one array
 
-        # raise Exception()
+        # raise QuantarheiError()
 
         tags = eff_axis.data  # self.axis.data
         Nos = self.length()
@@ -1032,7 +1037,9 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
                     data[:, :, k_n] = numpy.abs(spect.data)
 
         else:
-            raise Exception("Number of spectra not consistent with ValueAxis object")
+            raise QuantarheiError(
+                "Number of spectra not consistent with ValueAxis object"
+            )
 
         #
         # FFT of the axis

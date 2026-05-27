@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from ...exceptions import ImplementationError, QuantarheiError
+
 """*******************************************************************************
 
     REDUCED DENSITY MATRIX PROPAGATOR
@@ -99,7 +101,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         ...                                     [0.0, 1.0]],[0,1,2,3,4,5])
         Traceback (most recent call last):
             ...
-        Exception: TimeAxis expected here.
+        quantarhei.exceptions.QuantarheiError: TimeAxis expected here.
 
         The correct construction requires proper types:
 
@@ -126,14 +128,14 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             if isinstance(timeaxis, TimeAxis):
                 self.TimeAxis = timeaxis
             else:
-                raise Exception("TimeAxis expected here.")
+                raise QuantarheiError("TimeAxis expected here.")
 
             if isinstance(Ham, Hamiltonian):
                 self.Hamiltonian = Ham
             elif Ham is None:
-                raise Exception("Hamiltonian is required.")
+                raise QuantarheiError("Hamiltonian is required.")
             else:
-                raise Exception("Hamiltonian represented by a wrong type.")
+                raise QuantarheiError("Hamiltonian represented by a wrong type.")
 
             #
             # RelaxationTensor is not requited
@@ -146,7 +148,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 self.has_RTensor = False
                 self.has_relaxation = False
             else:
-                raise Exception("RelaxationTensor or None expected here.")
+                raise QuantarheiError("RelaxationTensor or None expected here.")
 
             #
             # TransitionDipoleMoment is not required
@@ -156,7 +158,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     self.Trdip = Trdip
                     self.has_Trdip = True
                 else:
-                    raise Exception("Operator or None expected here.")
+                    raise QuantarheiError("Operator or None expected here.")
 
             #
             # Driving field is not required
@@ -195,7 +197,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     self.Iterm = Iterm
                     self.has_Iterm = True
                 else:
-                    raise Exception("RelaxationTensor has to be set first.")
+                    raise QuantarheiError("RelaxationTensor has to be set first.")
 
             if NonHerm is not None:
                 self.has_NonHerm = True
@@ -214,7 +216,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             self.verbose = Manager().log_conf.verbose
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "TimeAxis and Hamiltonian are required to initialize the propagator."
             )
 
@@ -308,7 +310,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         >>> rhot = pr.propagate(initial_dm)
         Traceback (most recent call last):
             ...
-        Exception: First argument has be of the ReducedDensityMatrix type
+        quantarhei.exceptions.QuantarheiError: First argument has be of the ReducedDensityMatrix type
         """
         if Nref > 1:
             self.setDtRefinement(Nref)
@@ -319,7 +321,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         if not (
             isinstance(rhoi, ReducedDensityMatrix) or isinstance(rhoi, DensityMatrix)
         ):
-            raise Exception("First argument has be of the ReducedDensityMatrix type")
+            raise QuantarheiError(
+                "First argument has be of the ReducedDensityMatrix type"
+            )
 
         #######################################################################
         #
@@ -356,7 +360,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return self.__propagate_short_exp_with_TD_relaxation_field(
                             rhoi, L=6
                         )
-                    raise Exception("Unknown propagation method: " + method)
+                    raise QuantarheiError("Unknown propagation method: " + method)
 
                 elif self.has_EField and self.has_Trdip:
                     if method == "short-exp":
@@ -375,7 +379,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return self.__propagate_short_exp_with_TD_relaxation_EField(
                             rhoi, L=6
                         )
-                    raise Exception("Unknown propagation method: " + method)
+                    raise QuantarheiError("Unknown propagation method: " + method)
 
                 ###############################################################
                 #
@@ -391,7 +395,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=4)
                     if method == "short-exp-6":
                         return self.__propagate_short_exp_with_TD_relaxation(rhoi, L=6)
-                    raise Exception("Unknown propagation method: " + method)
+                    raise QuantarheiError("Unknown propagation method: " + method)
 
             ###################################################################
             #
@@ -421,7 +425,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return self.__propagate_short_exp_with_relaxation_field(
                             rhoi, L=6
                         )
-                    raise Exception("Unknown propagation method: " + method)
+                    raise QuantarheiError("Unknown propagation method: " + method)
 
                 elif self.has_EField and self.has_Trdip:
                     if method == "short-exp":
@@ -440,7 +444,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                         return self.__propagate_short_exp_with_relaxation_EField(
                             rhoi, L=6
                         )
-                    raise Exception("Unknown propagation method: " + method)
+                    raise QuantarheiError("Unknown propagation method: " + method)
 
                 ###############################################################
                 #
@@ -461,7 +465,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                     if method == "short-exp-6":
                         return self.__propagate_short_exp_with_relaxation(rhoi, L=6)
 
-                    raise Exception("Unknown propagation method: " + method)
+                    raise QuantarheiError("Unknown propagation method: " + method)
 
         #######################################################################
         #
@@ -480,7 +484,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 if method == "short-exp-6":
                     return self.__propagate_short_exp_efield(rhoi, L=6)
 
-                raise Exception("Unknown propagation method: " + method)
+                raise QuantarheiError("Unknown propagation method: " + method)
 
             elif self.has_EField and self.has_Trdip:
                 if method == "short-exp":
@@ -492,7 +496,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 if method == "short-exp-6":
                     return self.__propagate_short_exp_EField(rhoi, L=6)
 
-                raise Exception("Unknown propagation method: " + method)
+                raise QuantarheiError("Unknown propagation method: " + method)
             else:
                 if method == "short-exp":
                     return self.__propagate_short_exp(rhoi, L=4)
@@ -503,7 +507,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 if method == "short-exp-6":
                     return self.__propagate_short_exp(rhoi, L=6)
 
-                raise Exception("Unknown propagation method: " + method)
+                raise QuantarheiError("Unknown propagation method: " + method)
 
     def __propagate_short_exp(
         self, rhoi: Any, L: int = 4
@@ -605,13 +609,13 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         self, rhoi: Any, L: int = 4
     ) -> ReducedDensityMatrixEvolution:
 
-        raise Exception("NOT IMPLEMENTED")
+        raise ImplementationError("NOT IMPLEMENTED")
 
     def __propagate_short_exp_EField(
         self, rhoi: Any, L: int = 4
     ) -> ReducedDensityMatrixEvolution:
 
-        raise Exception("NOT IMPLEMENTED")
+        raise ImplementationError("NOT IMPLEMENTED")
 
     def __propagate_short_exp_with_relaxation(
         self, rhoi: Any, L: int = 4
@@ -959,7 +963,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 time.step,
                 "fs",
             )
-            raise Exception("Incompatible number of refinement steps")
+            raise QuantarheiError("Incompatible number of refinement steps")
 
         IR = 0.0
         dt = sysstep * stride
@@ -1148,7 +1152,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 time.step,
                 "fs",
             )
-            raise Exception("Incompatible number of refinement steps")
+            raise QuantarheiError("Incompatible number of refinement steps")
 
         IR = 0.0
         dt = sysstep * stride
@@ -1269,7 +1273,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
                 time.step,
                 "fs",
             )
-            raise Exception("Incompatible number of refinement steps")
+            raise QuantarheiError("Incompatible number of refinement steps")
 
         IR = 0.0
         dt = sysstep * stride
@@ -1359,7 +1363,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         # we forbid the refinement of the time step
         if self.Nref != 1:
-            raise Exception(
+            raise QuantarheiError(
                 "This version of the propagator cannot propagate with refined time-step."
             )
 
@@ -1488,7 +1492,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
         debug("(11)")
         # we forbid the refinement of the time step
         if self.Nref != 1:
-            raise Exception("Cannot propagation with refined time-step.")
+            raise QuantarheiError("Cannot propagation with refined time-step.")
 
         pr = ReducedDensityMatrixEvolution(self.TimeAxis, rhoi)
 

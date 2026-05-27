@@ -7,6 +7,7 @@ import numpy
 from .. import COMPLEX, REAL, signal_NONR, signal_REPH
 from ..core.managers import Manager
 from ..core.time import TimeAxis
+from ..exceptions import QuantarheiError
 from ..qm.propagators.poppropagator import PopulationPropagator
 from .response_implementations import get_implementation
 
@@ -867,6 +868,7 @@ class NonLinearResponse:
             positive.
         """
         KK = numpy.asarray(KK)
+
         if population_time_axis is None:
             population_time_axis = self.population_time_axis
         if population_time_axis is None:
@@ -935,7 +937,7 @@ class NonLinearResponse:
                     self.U0_t2[aa, :] = coherence_amplitude[it2]
                     self.U0_t3[aa, :] = coherence_amplitude[it3]
                 else:
-                    raise Exception("Depopulation rate must be negative.")
+                    raise QuantarheiError("Depopulation rate must be negative.")
 
             #
             # Relaxation caused dephasing for double-excitons
@@ -1090,7 +1092,7 @@ class LiouvillePathway:
     def set_frequencies(self, omega1: float, omega3: float) -> None:
         """Sets the frequencies of the response"""
         if self._frequencies_set:
-            raise Exception("Frequencies of are already set.")
+            raise QuantarheiError("Frequencies of are already set.")
 
         self._omega1 = Manager().convert_energy_2_internal_u(omega1)
         self._omega3 = Manager().convert_energy_2_internal_u(omega3)
@@ -1106,12 +1108,12 @@ class LiouvillePathway:
             )
 
             return fr
-        raise Exception("Frequencies not set.")
+        raise QuantarheiError("Frequencies not set.")
 
     def set_rwa(self, rwa: float) -> None:
         """Sets the RWA frequency"""
         if not self._frequencies_set:
-            raise Exception("Frequencies must be set before setting RWA.")
+            raise QuantarheiError("Frequencies must be set before setting RWA.")
 
         if not self._rwa_set:
             self._rwa = Manager().convert_energy_2_internal_u(rwa)
@@ -1119,7 +1121,7 @@ class LiouvillePathway:
             self._omega3 = self._omega3 - self._rwa
 
         else:
-            raise Exception("RWA cannot be set twice. Reset first.")
+            raise QuantarheiError("RWA cannot be set twice. Reset first.")
 
         self._rwa_set = True
 
