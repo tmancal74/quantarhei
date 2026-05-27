@@ -2633,7 +2633,83 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     ###########################################################################
 
-    def convert_to_ground_vibbasis(self, operator: Any, Nt: int | None = None) -> Any:
+    def _allocate_converted_operator(
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        dim: int,
+        Nt: int | None = None,
+        allow_tdm: bool = False,
+    ) -> tuple[
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution,
+        int,
+        bool,
+        bool,
+    ]:
+        n_indices = 2
+        evolution = False
+        whole = False
+        nop: (
+            ReducedDensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+            | None
+        ) = None
+
+        if isinstance(operator, (ReducedDensityMatrix, DensityMatrix)):
+            nop = ReducedDensityMatrix(dim=dim)
+        elif isinstance(operator, Hamiltonian):
+            nop = Hamiltonian(dim=dim)
+        elif allow_tdm and isinstance(operator, TransitionDipoleMoment):
+            nop = TransitionDipoleMoment(dim=dim)
+            n_indices = 3
+        elif isinstance(
+            operator, (ReducedDensityMatrixEvolution, DensityMatrixEvolution)
+        ):
+            if Nt is not None:
+                nop = ReducedDensityMatrix(dim=dim)
+                evolution = True
+            else:
+                nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
+                rhoi = ReducedDensityMatrix(dim=dim)
+                nop.set_initial_condition(rhoi)
+                evolution = True
+                whole = True
+        else:
+            raise Exception(
+                "Operation not implemented for this type: "
+                + operator.__class__.__name__
+            )
+
+        return nop, n_indices, evolution, whole
+
+    def convert_to_ground_vibbasis(
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        Nt: int | None = None,
+    ) -> (
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution
+    ):
         """Converts an operator to a ground state vibrational basis repre
 
         Default representation in Quantarhei is that with a specific shifted
@@ -2646,45 +2722,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         we can distinguish the vibrational states properly
 
         """
-        n_indices = 2
-        evolution = False
-        whole = False
-        nop: Any = None
         if operator.dim == self.Ntot:
-            if isinstance(operator, ReducedDensityMatrix) or isinstance(
-                operator, DensityMatrix
-            ):
-                nop = ReducedDensityMatrix(dim=self.Ntot)
-
-            elif isinstance(operator, Hamiltonian):
-                nop = Hamiltonian(dim=self.Ntot)
-                nop1 = Hamiltonian(dim=self.Nel)
-
-            elif isinstance(operator, TransitionDipoleMoment):
-                nop = TransitionDipoleMoment(dim=self.Ntot)
-                n_indices = 3
-
-            elif isinstance(operator, ReducedDensityMatrixEvolution) or isinstance(
-                operator, DensityMatrixEvolution
-            ):
-                if Nt is not None:
-                    nop = ReducedDensityMatrix(dim=self.Ntot)
-                    evolution = True
-                    whole = False
-                else:
-                    nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
-                    rhoi = ReducedDensityMatrix(dim=self.Ntot)
-                    # we set zero initial condition, because this initialized
-                    # the data storage
-                    nop.set_initial_condition(rhoi)
-                    evolution = True
-                    whole = True
-
-            else:
-                raise QuantarheiError(
-                    "Operation not implemented for this type: "
-                    + operator.__class__.__name__
-                )
+            nop, n_indices, evolution, whole = self._allocate_converted_operator(
+                operator, dim=self.Ntot, Nt=Nt, allow_tdm=True
+            )
 
             # FIXME: This limitation might not be necessary
             # in the ground states of all monomers, there must be the same
@@ -2769,43 +2810,29 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             raise QuantarheiError("Incompatible operator")
 
-    def trace_converted(self, operator: Any, Nt: int | None = None) -> Any:
+        raise Exception("Incompatible operator dimension")
 
-        n_indices = 2
-        evolution = False
-        whole = False
-        nop: Any = None
+    def trace_converted(
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        Nt: int | None = None,
+    ) -> (
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution
+    ):
 
         if operator.dim == self.Ntot:
-            if isinstance(operator, ReducedDensityMatrix) or isinstance(
-                operator, DensityMatrix
-            ):
-                nop = ReducedDensityMatrix(dim=self.Nel)
-
-            elif isinstance(operator, Hamiltonian):
-                nop = Hamiltonian(dim=self.Nel)
-
-            elif isinstance(operator, ReducedDensityMatrixEvolution) or isinstance(
-                operator, DensityMatrixEvolution
-            ):
-                if Nt is not None:
-                    nop = ReducedDensityMatrix(dim=self.Nel)
-                    evolution = True
-                    whole = False
-                else:
-                    nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
-                    rhoi = ReducedDensityMatrix(dim=self.Nel)
-                    # we set zero initial condition, because this initialized
-                    # the data storage
-                    nop.set_initial_condition(rhoi)
-                    evolution = True
-                    whole = True
-
-            else:
-                raise QuantarheiError(
-                    "Operation not implemented for this type: "
-                    + operator.__class__.__name__
-                )
+            nop, n_indices, evolution, whole = self._allocate_converted_operator(
+                operator, dim=self.Nel, Nt=Nt
+            )
 
             if n_indices == 2:
                 for n in range(self.Nel):
@@ -2822,48 +2849,34 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             raise QuantarheiError("Incompatible operator")
 
-    def trace_over_vibrations(self, operator: Any, Nt: int | None = None) -> Any:
+        raise Exception("Incompatible operator dimension")
+
+    def trace_over_vibrations(
+        self,
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        Nt: int | None = None,
+    ) -> (
+        ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution
+    ):
         """Average an operator over vibrational degrees of freedom
 
         Average MUST be done in site basis. Only in site basis
         we can distinguish the vibrational states properly
 
         """
-        n_indices = 2
-        evolution = False
-        whole = False
-        nop: Any = None
-
         if operator.dim == self.Ntot:
-            if isinstance(operator, ReducedDensityMatrix) or isinstance(
-                operator, DensityMatrix
-            ):
-                nop = ReducedDensityMatrix(dim=self.Nel)
-
-            elif isinstance(operator, Hamiltonian):
-                nop = Hamiltonian(dim=self.Nel)
-
-            elif isinstance(operator, ReducedDensityMatrixEvolution) or isinstance(
-                operator, DensityMatrixEvolution
-            ):
-                if Nt is not None:
-                    nop = ReducedDensityMatrix(dim=self.Nel)
-                    evolution = True
-                    whole = False
-                else:
-                    nop = ReducedDensityMatrixEvolution(operator.TimeAxis)
-                    rhoi = ReducedDensityMatrix(dim=self.Nel)
-                    # we set zero initial condition, because this initialized
-                    # the data storage
-                    nop.set_initial_condition(rhoi)
-                    evolution = True
-                    whole = True
-
-            else:
-                raise QuantarheiError(
-                    "Operation not implemented for this type: "
-                    + operator.__class__.__name__
-                )
+            nop, n_indices, evolution, whole = self._allocate_converted_operator(
+                operator, dim=self.Nel, Nt=Nt
+            )
 
             if n_indices == 2:
                 # convert to representation by ground-state oscillator
