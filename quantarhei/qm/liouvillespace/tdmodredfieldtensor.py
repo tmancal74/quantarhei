@@ -9,6 +9,7 @@ from ...core.managers import eigenbasis_of, energy_units
 
 # from .rates.foersterrates import FoersterRateMatrix
 from ...core.time import TimeDependent
+from ...exceptions import ImplementationError, QuantarheiError
 
 # import scipy.interpolate as interp
 from ..hilbertspace.hamiltonian import Hamiltonian
@@ -33,10 +34,12 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
         self._initialize_basis()
 
         if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
+            raise QuantarheiError("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be of type SystemBathInteraction")
+            raise QuantarheiError(
+                "Second argument must be of type SystemBathInteraction"
+            )
 
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -78,7 +81,9 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
         if HH.Nblocks == 2:
             Na = HH._data.shape[0] - 1
         else:
-            raise Exception("Theory is not implemented beyond single exciton block")
+            raise ImplementationError(
+                "Theory is not implemented beyond single exciton block"
+            )
 
         ll = numpy.zeros(Na + 1, dtype=REAL)
         cfce = sbi.CC
@@ -556,7 +561,7 @@ def ssmodr(
                             RR[a, b] = 2.0 * numpy.real(intfullsec(kab, dt, om, tm))
 
     else:
-        raise Exception("Theory type not implemented")
+        raise ImplementationError("Theory type not implemented")
 
     #
     # diagonal elements

@@ -320,7 +320,7 @@ class Mode(UnitsManaged, Saveable, OpenSystem):
 
         """
         # if N==0:
-        #    raise Exception("Makes no sense to set HR in the ground state")
+        #    raise QuantarheiError("Makes no sense to set HR in the ground state")
 
         sh = numpy.sqrt(2.0 * hr)
         self.set_shift(N, sh)

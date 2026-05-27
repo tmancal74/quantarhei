@@ -6,6 +6,7 @@ import numpy
 
 from ... import REAL
 from ...core.managers import BasisManaged, EnergyUnitsManaged, energy_units
+from ...exceptions import ImplementationError, QuantarheiError
 from ...utils.types import ManagedRealArray
 from .operators import Operator, SelfAdjointOperator
 
@@ -41,7 +42,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if not ((dim is None) and (data is None)):
             Operator.__init__(self, dim=dim, data=data)
             if not self.check_selfadjoint():
-                raise Exception(
+                raise QuantarheiError(
                     "The data of this operator have"
                     "to be represented by a selfadjoint matrix"
                 )
@@ -97,7 +98,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         """
         if rwa_indices[0] != 0:
-            raise Exception("First element in 'rwa_indices' has to be zero")
+            raise QuantarheiError("First element in 'rwa_indices' has to be zero")
         self.rwa_indices = numpy.array(rwa_indices, dtype=int)
 
         Null_blocks = numpy.sum(self.dim == self.rwa_indices)
@@ -223,7 +224,7 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         if coupling_cutoff is None:
             coupling_cutoff = 0.0
         if coupling_cutoff < 0.0:
-            raise Exception("Coupling cutoff value must be positive")
+            raise QuantarheiError("Coupling cutoff value must be positive")
 
         JR: numpy.ndarray = numpy.zeros((self.dim, self.dim), dtype=REAL)
         # go through all couplings and remove small ones
@@ -259,11 +260,11 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
             coupling_cutoff = 0.0
 
         if type(coupling_cutoff) in (list, tuple, numpy.ndarray):
-            raise Exception("Variable coupling cutoff not implemented yet")
+            raise ImplementationError("Variable coupling cutoff not implemented yet")
 
         else:
             if coupling_cutoff < 0.0:
-                raise Exception("Coupling cutoff value must be positive")
+                raise QuantarheiError("Coupling cutoff value must be positive")
 
             coupcut = self.convert_2_internal_u(coupling_cutoff)
 
@@ -331,6 +332,14 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
         if self._has_remainder_coupling:
             self.JR = numpy.dot(S1, numpy.dot(self.JR, SS))
+
+    def __repr__(self) -> str:
+        dtype = (
+            self.data.dtype
+            if hasattr(self, "_data") and self.data is not None
+            else None
+        )
+        return f"Hamiltonian(dim={self.dim}, dtype={dtype})"
 
     def __str__(self) -> str:
         out = "\nquantarhei.Hamiltonian object"

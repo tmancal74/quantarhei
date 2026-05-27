@@ -12,6 +12,8 @@ import numpy
 
 import quantarhei as qr
 
+from ...exceptions import QuantarheiError
+
 INP = qr.Input("ex_854_2DSpectrum_DimerDisorder.yaml")
 # math_allowed_in=["E1", "E2", "width_dis"])
 
@@ -113,14 +115,14 @@ dE_min = es2[0] - es1[int((N1_2 - 1) / 2)]
 if (dE_max > des.max) or (dE_min < des.min):
     print("dE max required:", dE_max, " --- dE max available:", des.max)
     print("dE min required:", dE_min, " --- dE min available:", des.min)
-    raise Exception(
+    raise QuantarheiError(
         "Precalculated spectra are not sufficient to integrated the disorder"
     )
 
 print("dE max:", dE_max)
 print("dE min:", dE_min)
 
-# raise Exception()
+# raise QuantarheiError()
 
 #
 # Auxiliary data for storage

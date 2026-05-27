@@ -17,6 +17,7 @@ from ...core.frequency import FrequencyAxis
 from ...core.managers import UnitsManaged, energy_units
 from ...core.time import TimeAxis
 from ...core.units import convert, kB_int
+from ...exceptions import QuantarheiError
 from .correlationfunctions import CorrelationFunction, FTCorrelationFunction
 
 # from .correlationfunctions import c2h
@@ -160,7 +161,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                 try:
                     ftype = params["ftype"]
                     if ftype not in CorrelationFunction.allowed_types:
-                        raise Exception("Unknown Correlation Function Type")
+                        raise QuantarheiError("Unknown Correlation Function Type")
 
                     # we mutate the parameters into internal units
                     prms = {}
@@ -171,7 +172,7 @@ class SpectralDensity(DFunction, UnitsManaged):
                             prms[key] = params[key]
 
                 except KeyError:
-                    raise Exception
+                    raise QuantarheiError
 
                 if "T" in params.keys():
                     self.temperature = params["T"]
@@ -195,11 +196,15 @@ class SpectralDensity(DFunction, UnitsManaged):
                     self._make_value_defined(values=values)
 
                 else:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Unknown correlation function type or type domain combination."
                     )
 
                 self.params.append(prms)
+
+    def __repr__(self) -> str:
+        ftype = self.params[0]["ftype"] if self.params else "unknown"
+        return f"SpectralDensity(ftype={ftype!r})"
 
     def _make_overdamped_brownian(self, params: dict, values: Any = None) -> None:
         """Sets the Overdamped Brownian oscillator spectral density"""
@@ -414,7 +419,7 @@ class SpectralDensity(DFunction, UnitsManaged):
     def _make_value_defined(self, values: Any = None) -> None:
         """Value defined spectral density"""
         if values is None:
-            raise Exception()
+            raise QuantarheiError()
 
         self._add_me(self.axis, values)
         self.lamb += self.params["reorg"]
@@ -440,7 +445,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             f.add_to_data(other)
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "In addition, functions have to share the same FrequencyAxis object"
             )
 
@@ -473,7 +478,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             self._is_empty = False
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "In the operation of addition, functions "
                 "have to share the same FrequencyAxis object"
             )
@@ -494,7 +499,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             #    self.cutoff_time = ocor.cutoff_time
 
             # if self.temperature != ocor.temperature:
-            #    raise Exception("Cannot add two correlation functions "
+            #    raise QuantarheiError("Cannot add two correlation functions "
             #                   +"on different temperatures")
 
             for p in ocor.params:
@@ -504,7 +509,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             self._is_empty = False
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "In the operation of addition, functions "
                 "have to share the same FrequencyAxis object"
             )
@@ -522,7 +527,7 @@ class SpectralDensity(DFunction, UnitsManaged):
         """Returns the temperature of the correlation function"""
         if self.temperature > 0.0:
             return self.temperature
-        raise Exception("SpectralDensity was not assigned temperature")
+        raise QuantarheiError("SpectralDensity was not assigned temperature")
 
     def get_reorganization_energy(self) -> float | numpy.ndarray:
         """Returns the reorganization energy of the cspectral density"""
@@ -574,7 +579,7 @@ class SpectralDensity(DFunction, UnitsManaged):
             if numpy.all(numpy.isclose(ta.data, time.data, 1e-5)):
                 time = ta
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "The provided TimeAxis does not have the same\
                                 data as the Fourier transformed axis"
                 )
@@ -617,7 +622,9 @@ class SpectralDensity(DFunction, UnitsManaged):
             if k == 0:
                 temp = prms["T"]
             elif temp != prms["T"]:
-                raise Exception("Temperature of all components has to be the same")
+                raise QuantarheiError(
+                    "Temperature of all components has to be the same"
+                )
             k += 1
 
             newpars.append(prms)

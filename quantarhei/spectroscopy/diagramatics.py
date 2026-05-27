@@ -8,6 +8,7 @@ import numpy
 
 from .. import REAL
 from ..core.managers import UnitsManaged
+from ..exceptions import QuantarheiError
 from ..utils.types import Integer
 
 
@@ -50,7 +51,7 @@ class liouville_pathway(UnitsManaged):
 
         """
         if not aggregate:
-            raise Exception("aggregate has to be specified")
+            raise QuantarheiError("aggregate has to be specified")
 
         # initial state of the pathway
         self.sinit = numpy.zeros(2, dtype=int)
@@ -225,7 +226,7 @@ class liouville_pathway(UnitsManaged):
                 rr += 1
 
             else:
-                raise Exception("Unknown event type")
+                raise QuantarheiError("Unknown event type")
 
             k -= 1
 
@@ -278,7 +279,7 @@ class liouville_pathway(UnitsManaged):
         # check if the transition start is consistent with current state
         # in the diagram
         if self.current[sd] != ni:
-            raise Exception(
+            raise QuantarheiError(
                 f"Transition on the {text[sd]} hand"
                 f"side of the diagram has to start from state {self.current[sd]}"
             )
@@ -353,7 +354,7 @@ class liouville_pathway(UnitsManaged):
             self.frequency[self.ne] = el - ep
         elif self.nint > self.order:
             etext = "Number of interactions larger than the order of the pathway."
-            raise Exception(etext)
+            raise QuantarheiError(etext)
 
         self.nint += 1
 
@@ -372,12 +373,12 @@ class liouville_pathway(UnitsManaged):
         # check if the transition start is consistent with current state
         # in the diagram
         if (self.current[0] != nil) or (self.current[1] != nir):
-            raise Exception("Relaxation does not startfrom the current state")
+            raise QuantarheiError("Relaxation does not startfrom the current state")
 
         if self.nrel < self.relax_order:
             self.relaxations[self.nrel] = (fin, sta)
         else:
-            raise Exception("Expected number of relaxation events exceeded")
+            raise QuantarheiError("Expected number of relaxation events exceeded")
 
         self.current[0] = nfl
         self.current[1] = nfr

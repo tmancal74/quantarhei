@@ -8,6 +8,7 @@ from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..core.managers import energy_units
 from ..core.time import TimeAxis
+from ..exceptions import QuantarheiError
 from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 
 
@@ -103,7 +104,7 @@ class ModelGenerator:
                 agg.set_coupling_by_dipole_dipole()
 
         else:
-            raise Exception(f"Unknown model name {name}")
+            raise QuantarheiError(f"Unknown model name {name}")
 
         return agg
 
@@ -168,6 +169,6 @@ class ModelGenerator:
                 m.set_transition_environment((0, 1), cf)
 
         else:
-            raise Exception(f"Unknown model name {name}")
+            raise QuantarheiError(f"Unknown model name {name}")
 
         return agg

@@ -28,6 +28,7 @@ import numpy
 from .. import COMPLEX, REAL
 from ..core.managers import Manager, UnitsManaged, eigenbasis_of
 from ..core.saveable import Saveable
+from ..exceptions import BuildError, QuantarheiError
 from ..qm.corfunctions import CorrelationFunctionMatrix
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
@@ -540,7 +541,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     ) -> float | numpy.ndarray:
         """Calculates dipole-dipole coupling"""
         if kk == ll:
-            raise Exception(
+            raise QuantarheiError(
                 "Only coupling between different molecules \
             can be calculated"
             )
@@ -552,7 +553,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         r2 = self.monomers[ll].position
 
         if numpy.sqrt(numpy.dot(r1 - r2, r1 - r2)) < delta:
-            raise Exception()
+            raise QuantarheiError()
 
         val = dipole_dipole_interaction(r1, r2, d1, d2, epsr)
         return self.convert_energy_2_current_u(val)
@@ -592,7 +593,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             dipole-dipole interaction energy in current energy units
         """
         if mon1 == mon2:
-            raise Exception(
+            raise QuantarheiError(
                 "Only coupling between different molecules \
             can be calculated"
             )
@@ -629,7 +630,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             epsr = params["epsr"]
             self.set_coupling_by_dipole_dipole(epsr=epsr)
         else:
-            raise Exception("Unknown method for calculation of resonance coupling")
+            raise QuantarheiError(
+                "Unknown method for calculation of resonance coupling"
+            )
         #
         # TESTED
 
@@ -649,7 +652,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     def get_lindich_axes(self) -> numpy.ndarray:
         if self._has_lindich_axes:
             return self.q
-        raise Exception("No linear dichroism coordinate system supplied")
+        raise QuantarheiError("No linear dichroism coordinate system supplied")
 
     # FIXME: This should be delegated SystemBathInteraction
     def set_egcf_matrix(self, cm: object) -> None:
@@ -679,14 +682,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             im = self.mnames[name]
             return self.monomers[im]
         except (KeyError, IndexError):
-            raise Exception()
+            raise QuantarheiError()
 
     def get_Molecule_index(self, name: str) -> int:
         try:
             im = self.mnames[name]
             return im
         except KeyError:
-            raise Exception()
+            raise QuantarheiError()
 
     def remove_Molecule(self, mono: object) -> None:
         self.monomers.remove(mono)
@@ -751,7 +754,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def set_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
         """Sets the dipole moment of a given transition"""
-        raise Exception(
+        raise QuantarheiError(
             "Transition dipole moments cannot be set directly. Use aggregate components."
         )
 
@@ -770,7 +773,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         sta2 = state2.elstate.vibmodes
 
         if not (len(sta1) == len(sta2)):
-            raise Exception("Incompatible states")
+            raise QuantarheiError("Incompatible states")
 
         res = 1.0
         for kk in range(len(sta1)):
@@ -894,7 +897,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             """
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "Participation matrix not implemented for"
                 "multiplicity higher than mult=2."
             )
@@ -1195,7 +1198,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 exindxs.append(sig_idx)
 
         if len(exstates) == 0:
-            raise Exception()
+            raise QuantarheiError()
 
         return exindxs[0], exindxs[1]
 
@@ -1241,7 +1244,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 exindx = sig_idx
 
         if exstate is None:
-            raise Exception()
+            raise QuantarheiError()
 
         return exindx
 
@@ -1684,7 +1687,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         """
         if mode not in ["LQ", "EQ"]:
-            raise Exception("Unknown mode")
+            raise QuantarheiError("Unknown mode")
 
         n_sites = len(self.monomers)
 
@@ -1695,7 +1698,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             omax = emax
 
         if mult < 0:
-            raise Exception("mult must be larger than or equal to zero")
+            raise QuantarheiError("mult must be larger than or equal to zero")
 
         # define internal multiplicity which is dependent on the monomers
         for band_n in range(mult + 1):
@@ -1756,7 +1759,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         for inlist in inlists:
             n_pos = len(inlist)
             if len(omax) != n_pos:
-                raise Exception(
+                raise QuantarheiError(
                     "arg omax has to be a list of the same \
                 length as arg inlist"
                 )
@@ -1936,6 +1939,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             es1 = self.get_ElectronicState(ess1, a)
             yield a, es1
             a += 1
+
+    def __repr__(self) -> str:
+        return f"Aggregate(name={self.name!r}, nmono={self.nmono})"
 
     def __str__(self) -> str:
         out = "\nquantarhei.Aggregate object"
@@ -2349,7 +2355,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             # Check the consistency of the energy gap correlation matrix
             if self.egcf_matrix.nob != nmonst:
-                raise Exception(
+                raise QuantarheiError(
                     "Correlation matrix has a size different"
                     " from the number of monomeric states"
                 )
@@ -2362,7 +2368,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     and self.monomers[i].egcf_matrix is not self.egcf_matrix
                 ):
                     # TODO: Ask about this - it would mean that every monomer has the same energy gap correlation function
-                    raise Exception(
+                    raise QuantarheiError(
                         "Correlation matrix in the monomer"
                         " has to be the same as the one of"
                         " the aggregate."
@@ -2436,7 +2442,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         mapi = self.egcf_matrix.set_correlation_function(cfce, [(j, j)])
                         # FIXME: what is returned?
                         if mapi <= 0:
-                            raise Exception("Something's wrong")
+                            raise QuantarheiError("Something's wrong")
 
                     # in two-exciton band
                     elif (self.which_band[i] == 2) and sbi_for_higher_ex and nnzr != 1:
@@ -2528,7 +2534,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                 #     mapi = self.egcf_matrix.set_correlation_function(cfce,[(egcf_idx,egcf_idx2)])
 
                         if mapi <= 0:
-                            raise Exception("Something's wrong")
+                            raise QuantarheiError("Something's wrong")
 
                     # some effective theory here
                     # FIXME: make sure we know what the ``sbi_for_higher_ex``
@@ -2739,7 +2745,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         if j > 0:
                             n_e = mod.get_nmax(j)
                             if n_e > n_g:
-                                raise Exception(
+                                raise QuantarheiError(
                                     "Number of levels"
                                     " in the excited state of a molecule has to be \n"
                                     "the same or smaller than in the ground state"
@@ -2756,30 +2762,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             if n_indices == 2:
                 # convert to representation by ground-state oscillator
-
-                # # FIXME: This limitation might not be necessary
-                # # in the ground states of all monomers, there must be the same
-                # # or greater number of levels than in the excited state
-
-                # # over all monomers
-                # for k in range(self.nmono):
-                #     mono = self.monomers[k]
-                #     # over all modes
-                #     n_mod = mono.get_number_of_modes()
-                #     for i in range(n_mod):
-                #         mod = mono.get_Mode(i)
-                #         n_g = mod.get_nmax(0)
-                #         # over all excited states
-                #         # FIXME: this should be mono.Nel as in Aggregate
-                #         for j in range(mono.nel):
-                #             if (j > 0):
-                #                 n_e = mod.get_nmax(j)
-                #                 if n_e > n_g:
-                #                     raise Exception("Number of levels"+
-                #         " in the excited state of a molecule has to be \n"+
-                #         "the same or smaller than in the ground state")
-
-                # do the conversion
 
                 # loop over electronic states n, m
                 for n in range(self.Nel):
@@ -2826,7 +2808,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                 return nop
 
-            raise Exception("Incompatible operator")
+            raise QuantarheiError("Incompatible operator")
 
         raise Exception("Incompatible operator dimension")
 
@@ -2865,7 +2847,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                     nop._data[n, m] += operator._data[i_n, i_m]
                 return nop
 
-            raise Exception("Incompatible operator")
+            raise QuantarheiError("Incompatible operator")
 
         raise Exception("Incompatible operator dimension")
 
@@ -2917,7 +2899,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                             if j > 0:
                                 n_e = mod.get_nmax(j)
                                 if n_e > n_g:
-                                    raise Exception(
+                                    raise QuantarheiError(
                                         "Number of levels"
                                         " in the excited state of a molecule has to be \n"
                                         "the same or smaller than in the ground state"
@@ -2971,13 +2953,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                     )
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Cannot trace over this object: wrong number of indices"
                 )
 
             return nop
 
-        raise Exception("Incompatible operator")
+        raise QuantarheiError("Incompatible operator")
 
     def cast_to_vibronic(self, KK: numpy.ndarray) -> numpy.ndarray:
         """Casts an electronic operator to a vibronic basis"""
@@ -3311,7 +3293,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                             )
 
                 W_aux = numpy.diag(numpy.sqrt(Wd_a))
-                # W_aux = numpy.diag(numpy.sqrt(Wd_b))
                 self.Wd[N1b:N2b, N1b:N2b] = W_aux[N1b:N2b, N1b:N2b]
 
             #
@@ -3466,14 +3447,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 for diag_idx in range(N2b):
                     W_cc[diag_idx] = Wd_c[diag_idx, diag_idx]
                 W_aux = numpy.diag(numpy.sqrt(W_cc))
-                # W_aux = numpy.diag(numpy.sqrt(Wd_b))
 
                 #
                 #  Two-exciton band
                 #
                 self.Wd[N1b:N2b, N1b:N2b] = W_aux[N1b:N2b, N1b:N2b]
-
-                # raise Exception()
 
                 Wd_c = numpy.zeros((self.Ntot, self.Ntot), dtype=REAL)
 
@@ -3592,6 +3570,47 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return rho0
 
+    def _thermal_band_population(
+        self,
+        temperature: float,
+        relaxation_theory_limit: str,
+        relaxation_hamiltonian: Hamiltonian | None,
+        start: int,
+        n_states: int,
+    ) -> numpy.ndarray:
+        if relaxation_theory_limit == "strong_coupling":
+            if not relaxation_hamiltonian:
+                HH = self.get_Hamiltonian()
+            else:
+                HH = relaxation_hamiltonian
+            Ndim = HH.dim
+            re = numpy.zeros(Ndim - start, dtype=numpy.float64)
+            if not relaxation_hamiltonian:
+                for i in range(n_states):
+                    re[i] = self.sbi.get_reorganization_energy(i)
+            ham = HH.data
+            return self._thermal_population(
+                temperature, subtract=re, relaxation_hamiltonian=ham, start=start
+            )
+
+        if relaxation_theory_limit == "weak_coupling":
+            if not relaxation_hamiltonian:
+                Ham = self.get_Hamiltonian()
+            else:
+                Ham = relaxation_hamiltonian
+            with eigenbasis_of(Ham):
+                H = Ham.data
+            subt = numpy.zeros(H.shape[0])
+            subtfil = numpy.amin(
+                numpy.array([H[ii, ii] for ii in range(start, H.shape[0])])
+            )
+            subt.fill(subtfil)
+            return self._thermal_population(
+                temperature, subtract=subt, relaxation_hamiltonian=H, start=start
+            )
+
+        raise Exception("Unknown relaxation_theory_limit")
+
     def _impulsive_population(
         self,
         relaxation_theory_limit: str = "weak_coupling",
@@ -3637,7 +3656,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         # aggregate must be built before we call this method
         if not self._built:
-            raise Exception(
+            raise QuantarheiError(
                 "Aggregate must be built before get_StateVector can be invoked."
             )
 
@@ -3662,16 +3681,16 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             return StateVector(data=self.sv0)
 
-        raise Exception("Unknown condition type")
+        raise QuantarheiError("Unknown condition type")
 
     def get_DensityMatrix(
         self,
         condition_type: str | None = None,
         relaxation_theory_limit: str = "weak_coupling",
         temperature: float | None = None,
-        relaxation_hamiltonian: Any = None,
+        relaxation_hamiltonian: Hamiltonian | None = None,
         DD: numpy.ndarray | None = None,
-    ) -> Any:
+    ) -> DensityMatrix:
         """Returns density matrix according to specified condition
 
         Returs density matrix to be used e.g. as initial condition for
@@ -3717,7 +3736,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         # aggregate must be built before we call this method
         if not self._built:
-            raise Exception(
+            raise QuantarheiError(
                 "Aggregate must be built before get_DensityMatrix can be invoked."
             )
 
@@ -3762,116 +3781,28 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return DensityMatrix(data=self.rho0)
 
         if condition_type == "thermal_excited_state":
-            if relaxation_theory_limit == "strong_coupling":
-                start = self.Nb[0]  # this is where excited state starts
-                n1ex = self.Nb[1]  # number of excited states in one-ex band
-
-                if not relaxation_hamiltonian:
-                    HH = self.get_Hamiltonian()
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # we need to subtract reorganization energies
-                    for i in range(n1ex):
-                        re[i] = self.sbi.get_reorganization_energy(i)
-                else:
-                    HH = relaxation_hamiltonian
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # here we assume that reorganizaton energies are already
-                    # removed
-
-                # we get this in SITE BASIS
-                ham = HH.data
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=re, relaxation_hamiltonian=ham, start=start
-                )
-
-            elif relaxation_theory_limit == "weak_coupling":
-                if not relaxation_hamiltonian:
-                    Ham = self.get_Hamiltonian()
-                else:
-                    Ham = relaxation_hamiltonian
-
-                # we get this in EXCITON BASIS
-                with eigenbasis_of(Ham):
-                    H = Ham.data
-
-                start = self.Nb[0]  # this is where excited state starts
-
-                # we subtract lowest energy to ease the calcultion,
-                # but we do not remove reorganization enegies
-                subt = numpy.zeros(H.shape[0])
-                subtfil = numpy.amin(
-                    numpy.array([H[ii, ii] for ii in range(start, H.shape[0])])
-                )
-                subt.fill(subtfil)
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=subt, relaxation_hamiltonian=H, start=start
-                )
-            else:
-                raise Exception("Unknown relaxation_theory_limit")
-
+            rho0 = self._thermal_band_population(
+                temperature,
+                relaxation_theory_limit,
+                relaxation_hamiltonian,
+                start=self.Nb[0],
+                n_states=self.Nb[1],
+            )
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
         if condition_type == "thermal_twoexciton":
-            if relaxation_theory_limit == "strong_coupling":
-                start = self.Nb[1] + self.Nb[0]  # this is where excited state starts
-                n1ex = self.Nb[2]  # number of excited states in one-ex band
-
-                if not relaxation_hamiltonian:
-                    HH = self.get_Hamiltonian()
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # we need to subtract reorganization energies
-                    for i in range(n1ex):
-                        re[i] = self.sbi.get_reorganization_energy(i)
-                else:
-                    HH = relaxation_hamiltonian
-                    Ndim = HH.dim
-                    re = numpy.zeros(Ndim - start, dtype=numpy.float64)
-                    # here we assume that reorganizaton energies are already
-                    # removed
-
-                # we get this in SITE BASIS
-                ham = HH.data
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=re, relaxation_hamiltonian=ham, start=start
-                )
-
-            elif relaxation_theory_limit == "weak_coupling":
-                if not relaxation_hamiltonian:
-                    Ham = self.get_Hamiltonian()
-                else:
-                    Ham = relaxation_hamiltonian
-
-                # we get this in EXCITON BASIS
-                with eigenbasis_of(Ham):
-                    H = Ham.data
-
-                start = self.Nb[1] + self.Nb[0]  # this is where excited state starts
-
-                # we subtract lowest energy to ease the calcultion,
-                # but we do not remove reorganization enegies
-                subt = numpy.zeros(H.shape[0])
-                subtfil = numpy.amin(
-                    numpy.array([H[ii, ii] for ii in range(start, H.shape[0])])
-                )
-                subt.fill(subtfil)
-
-                rho0 = self._thermal_population(
-                    temperature, subtract=subt, relaxation_hamiltonian=H, start=start
-                )
-            else:
-                raise Exception("Unknown relaxation_theory_limit")
-
+            rho0 = self._thermal_band_population(
+                temperature,
+                relaxation_theory_limit,
+                relaxation_hamiltonian,
+                start=self.Nb[1] + self.Nb[0],
+                n_states=self.Nb[2],
+            )
             self.rho0 = rho0
             return DensityMatrix(data=self.rho0)
 
-        raise Exception("Unknown condition type")
+        raise QuantarheiError("Unknown condition type")
         #
         # TESTED
 
@@ -3884,14 +3815,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         # aggregate must be built before we call this method
         if not self._built:
-            raise Exception()
+            raise QuantarheiError()
 
         if self.sbi is None:
             return 0.0
 
         return self.sbi.CC.get_temperature()
-        #
-        # TESTED
 
     def get_electronic_groundstate(self) -> tuple:
         """Indices of states in electronic ground state
@@ -3935,7 +3864,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 iNf = Nf.index
                 iNi = Ni.index
             else:
-                raise Exception("The Hamiltonian is not pure electronic")
+                raise QuantarheiError("The Hamiltonian is not pure electronic")
 
         elif isinstance(Nf, VibronicState) and isinstance(Ni, VibronicState):
             vsig = Nf.get_vibsignature()
@@ -3962,7 +3891,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Returns True if the Aggregate is embedded in a defined environment"""
         # aggregate must be built before we call this method
         if not self._built:
-            raise Exception("Aggregate must be built before this call.")
+            raise QuantarheiError("Aggregate must be built before this call.")
 
         if (self.sbi is not None) and self._has_system_bath_interaction:
             return True
@@ -3973,7 +3902,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Returns the aggregate SystemBathInteraction object"""
         if self._built:
             return self.sbi
-        raise Exception("Aggregate object not built.")
+        raise BuildError("Aggregate object not built.")
 
     def set_SystemBathInteraction(self, sbi: Any) -> None:
         """Sets the SystemBathInteraction operator for this aggregate"""
@@ -3985,7 +3914,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Returns the aggregate Hamiltonian"""
         if self._built:
             return self.HamOp  # Hamiltonian(data=self.HH)
-        raise Exception("Aggregate object not built")
+        raise BuildError("Aggregate object not built")
 
     def get_electronic_Hamiltonian(self, full: bool = False) -> Any:
         """Returns the aggregate electronic Hamiltonian
@@ -4008,10 +3937,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """Returns the aggregate transition dipole moment operator"""
         if self._built:
             return self.TrDMOp  # TransitionDipoleMoment(data=self.DD)
-        raise Exception("Aggregate object not built")
+        raise BuildError("Aggregate object not built")
 
     def get_TransitionMagneticDipoleMoment(self) -> Any:
         """Returns the aggregate transition dipole moment operator"""
         if self._built:
             return TransitionDipoleMoment(data=self.MM)
-        raise Exception("Aggregate object not built")
+        raise BuildError("Aggregate object not built")

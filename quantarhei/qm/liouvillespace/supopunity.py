@@ -13,6 +13,7 @@ from typing import Any
 import numpy
 
 from ... import REAL
+from ...exceptions import QuantarheiError
 from .superoperator import SuperOperator
 
 
@@ -37,7 +38,7 @@ class SOpUnity(SuperOperator):
     >>> empty = SOpUnity()
     Traceback (most recent call last):
         ...
-    Exception: Dimension of the superoperator has to be defined
+    quantarhei.exceptions.QuantarheiError: Dimension of the superoperator has to be defined
 
     Creating unity superoperator of defined dimensions
 
@@ -82,4 +83,4 @@ class SOpUnity(SuperOperator):
                     self.data[i, j, i, j] = 1.0
 
         else:
-            raise Exception("Dimension of the superoperator has to be defined")
+            raise QuantarheiError("Dimension of the superoperator has to be defined")

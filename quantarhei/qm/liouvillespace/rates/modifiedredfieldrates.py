@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from ....exceptions import QuantarheiError
+
 """*******************************************************************************
 
       MODIFIED REDFIELD RATE MATRIX
@@ -63,10 +65,10 @@ class ModifiedRedfieldRateMatrix:
     ) -> None:
 
         if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
+            raise QuantarheiError("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception
+            raise QuantarheiError
 
         self._is_initialized = False
         self._has_cutoff_time = False
@@ -209,7 +211,7 @@ class ModifiedRedfieldRateMatrix:
         # The size of the Hamiltonian must be by 1 larger than
         # the number of sites - this is the excitonic situation
         if Na != Nc + 1:
-            raise Exception(
+            raise QuantarheiError(
                 "Modified Redfield is implemented for single exciton systems only"
             )
 

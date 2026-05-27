@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from ..exceptions import QuantarheiError
+
 match_number = r"(\d+(?:\.\d+)?)"
 match_word = r'([^"]*)'
 
@@ -66,11 +68,11 @@ class FeatureFileGenerator:
 
     def add_Given(self, func: Callable[..., Any]) -> None:
         if not self._has_feature:
-            raise Exception()
+            raise QuantarheiError()
         string = func.__doc__
         self._save_string(string)
         if self._save == True:
-            raise Exception(
+            raise QuantarheiError(
                 "Feature file content did not finish before end of the string"
             )
         self._givens.append(func.__doc__)
@@ -78,11 +80,11 @@ class FeatureFileGenerator:
 
     def add_When(self, func: Callable[..., Any]) -> None:
         if not self._has_givens:
-            raise Exception()
+            raise QuantarheiError()
         string = func.__doc__
         self._save_string(string)
         if self._save == True:
-            raise Exception(
+            raise QuantarheiError(
                 "Feature file content did not finish before end of the string"
             )
         self._whens.append(func.__doc__)
@@ -90,11 +92,11 @@ class FeatureFileGenerator:
 
     def add_Then(self, func: Callable[..., Any]) -> None:
         if not self._has_whens:
-            raise Exception()
+            raise QuantarheiError()
         string = func.__doc__
         self._save_string(string)
         if self._save == True:
-            raise Exception(
+            raise QuantarheiError(
                 "Feature file content did not finish before end of the string"
             )
         self._thens.append(func.__doc__)

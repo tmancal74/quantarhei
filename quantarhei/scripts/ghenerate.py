@@ -8,7 +8,6 @@ email: mancal@karlov.mff.cuni.cz
 
 from __future__ import annotations
 
-# standard imports
 import argparse
 import datetime
 import os
@@ -23,6 +22,9 @@ from gherkin.token_scanner import TokenScanner
 
 # quantarhei
 import quantarhei as qr
+
+# standard imports
+from ..exceptions import QuantarheiError
 
 
 def parsing() -> dict[str, Any] | int:
@@ -131,20 +133,20 @@ def parsing() -> dict[str, Any] | int:
         with open(filename) as myfile:
             data = myfile.read()
     except OSError:
-        raise Exception("Problems reading file: " + filename)
+        raise QuantarheiError("Problems reading file: " + filename)
 
     parser = Parser()
     try:
         feature_file = parser.parse(TokenScanner(data))
     except Exception:
-        raise Exception(
+        raise QuantarheiError(
             "Problem parsing file: " + filename + " - is it a feature file?"
         )
 
     try:
         children = feature_file["feature"]["children"]
     except (KeyError, TypeError):
-        raise Exception("No scenarii or scenario outlines")
+        raise QuantarheiError("No scenarii or scenario outlines")
 
     return dict(
         children=children,
@@ -182,7 +184,7 @@ def check_outputfile_exists(ddir: str, filename: str) -> str | int:
     (filen, ext) = os.path.splitext(os.path.basename(filename))
 
     if ext != ".feature":
-        raise Exception("Feature file has to have the .feature extension")
+        raise QuantarheiError("Feature file has to have the .feature extension")
 
     if not os.path.exists(ddir):
         os.makedirs(ddir)
@@ -234,7 +236,7 @@ def write_func_def(
         current = "then"
     elif step["keyword"].strip() == "And":
         if current == "":
-            raise Exception(
+            raise QuantarheiError(
                 "`And` has to be preceeded by a line with `Given`, `When` or`Then`"
             )
         myfile.write("\n\n#\n# And ...\n#\n")
@@ -244,7 +246,7 @@ def write_func_def(
         myfile.write('    """\n')
     elif step["keyword"].strip() == "But":
         if current == "":
-            raise Exception(
+            raise QuantarheiError(
                 "`But` has to be preceeded by a line with `Given`, `When` or`Then`"
             )
         myfile.write("\n\n#\n# But ...\n#\n")
@@ -253,7 +255,7 @@ def write_func_def(
         myfile.write('    """\n\n        But ' + textrep + "\n\n")
         myfile.write('    """\n')
     else:
-        raise Exception("unknown keyword: " + step["keyword"])
+        raise QuantarheiError("unknown keyword: " + step["keyword"])
 
     return current
 
@@ -357,20 +359,20 @@ def main() -> int:
                         current = "then"
                     elif step["keyword"].strip() == "And":
                         if current == "":
-                            raise Exception(
+                            raise QuantarheiError(
                                 "`And` has to be preceeded by a "
                                 "line with `Given`, `When` or"
                                 "`Then`"
                             )
                     elif step["keyword"].strip() == "But":
                         if current == "":
-                            raise Exception(
+                            raise QuantarheiError(
                                 "`But` has to be preceeded by a "
                                 "line with `Given`, `When` or"
                                 "`Then`"
                             )
                     else:
-                        raise Exception("unknown keyword: " + step["keyword"])
+                        raise QuantarheiError("unknown keyword: " + step["keyword"])
 
         print("... done")
         print("")
