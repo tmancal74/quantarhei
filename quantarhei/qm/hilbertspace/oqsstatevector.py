@@ -7,6 +7,7 @@ from typing import Any
 import numpy
 
 from ... import REAL
+from ...exceptions import QuantarheiError
 from .operators import ReducedDensityMatrix
 
 
@@ -32,7 +33,7 @@ class OQSStateVector:
     >>> psi = OQSStateVector(data=vec)
     Traceback (most recent call last):
     ...
-    Exception: Data has to be a vector
+    quantarhei.exceptions.QuantarheiError: Data has to be a vector
 
 
     """
@@ -45,7 +46,7 @@ class OQSStateVector:
             ddat = numpy.array(data)
 
             if len(ddat.shape) > 1:
-                raise Exception("Data has to be a vector")
+                raise QuantarheiError("Data has to be a vector")
 
             if dim is not None:
                 if dim != ddat.shape[0]:

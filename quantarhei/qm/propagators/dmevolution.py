@@ -8,6 +8,7 @@ import numpy
 from ...core.managers import BasisManaged
 from ...core.matrixdata import MatrixData
 from ...core.saveable import Saveable
+from ...exceptions import QuantarheiError
 
 # from ...core.time import TimeAxis
 from ...utils.types import BasisManagedComplexArray
@@ -276,7 +277,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         Nt = self.TimeAxis.length
         if Nt != out.shape[0]:
-            raise Exception("Incompatibel number of time steps")
+            raise QuantarheiError("Incompatibel number of time steps")
 
         din = numpy.zeros((N, N), dtype=numpy.float64)
         for i in range(N):

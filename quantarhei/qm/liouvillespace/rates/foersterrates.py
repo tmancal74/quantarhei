@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy
 import scipy.interpolate as interp
 
+from ....exceptions import QuantarheiError
 from ...corfunctions.correlationfunctions import c2g
 from ...hilbertspace.hamiltonian import Hamiltonian
 from ...liouvillespace.systembathinteraction import SystemBathInteraction
@@ -42,10 +43,10 @@ class FoersterRateMatrix:
     ) -> None:
 
         if not isinstance(ham, Hamiltonian):
-            raise Exception("First argument must be a Hamiltonian")
+            raise QuantarheiError("First argument must be a Hamiltonian")
 
         if not isinstance(sbi, SystemBathInteraction):
-            raise Exception("Second argument must be a SystemBathInteraction")
+            raise QuantarheiError("Second argument must be a SystemBathInteraction")
 
         self._is_initialized = False
         self._has_cutoff_time = False

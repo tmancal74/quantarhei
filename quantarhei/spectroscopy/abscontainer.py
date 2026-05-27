@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..core.saveable import Saveable
+from ..exceptions import QuantarheiError
 
 
 class AbsSpectrumContainer(Saveable):
@@ -55,7 +56,7 @@ class AbsSpectrumContainer(Saveable):
             self.spectra[tag1] = spect
             self.count += 1
         else:
-            raise Exception("Incompatible time axis (equal axis required)")
+            raise QuantarheiError("Incompatible time axis (equal axis required)")
 
     def get_spectrum(self, tag: Any) -> Any:
         """Return the spectrum identified by tag.
@@ -81,7 +82,7 @@ class AbsSpectrumContainer(Saveable):
 
         if tag in self.spectra.keys():
             return self.spectra[tag]
-        raise Exception("Unknown spectrum")
+        raise QuantarheiError("Unknown spectrum")
 
     def get_spectra(self) -> list[Any]:
         """Return all stored spectra sorted by their string tags.

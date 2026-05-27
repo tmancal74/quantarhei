@@ -34,6 +34,7 @@ from ..core.parcel import load_parcel
 from ..core.time import TimeAxis
 from ..core.units import cm2int, convert
 from ..core.wrappers import deprecated
+from ..exceptions import QuantarheiError
 from .twodcontainer import TwoDSpectrumContainer
 
 
@@ -581,7 +582,7 @@ def get_evolution_from_saved_pathways(
     ii = 0
     for tt in t2s:
         if tt != taxis.data[ii]:
-            raise Exception(
+            raise QuantarheiError(
                 "The set of available times"
                 " does not correspond to a continuous time axis"
             )
@@ -615,7 +616,7 @@ def get_prefactors_from_saved_pathways(
     ii = 0
     for tt in t2s:
         if tt != taxis.data[ii]:
-            raise Exception(
+            raise QuantarheiError(
                 "The set of available times"
                 " does not correspond to a continuous time axis"
             )

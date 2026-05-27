@@ -17,6 +17,7 @@ from __future__ import annotations
 import numpy
 
 from .. import REAL
+from ..exceptions import QuantarheiError
 from .aggregate_excitonanalysis import AggregateExcitonAnalysis
 
 

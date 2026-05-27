@@ -24,6 +24,8 @@ import quantarhei.functions as func
 from quantarhei.core.units import kB_int
 from quantarhei.utils.vectors import X
 
+from ...exceptions import QuantarheiError
+
 print("\n***** Calculation of material for disorder integration (dimer version) *****")
 
 input_file = "ex_853_RC.yaml"
@@ -89,7 +91,7 @@ def run(
         data_ext = sys_char + ".png"
         obj_ext = sys_char + ".qrp"
 
-    # raise Exception()
+    # raise QuantarheiError()
 
     # parameters of the SP
     if use_trimer:
@@ -160,7 +162,7 @@ def run(
         elif vib_loc == "both":
             set_vib = [True, True]
         else:
-            raise Exception("Unknown location of the vibrations")
+            raise QuantarheiError("Unknown location of the vibrations")
 
         if set_vib[0]:
             mol1.add_Mode(mod1)

@@ -5,6 +5,7 @@ from functools import wraps
 from importlib import import_module
 from typing import Any
 
+from ..exceptions import ImplementationError
 from .managers import Manager
 
 
@@ -80,7 +81,7 @@ def load_function(lib: str, fce: str) -> Callable[..., Any]:
     if hasattr(a, fce):
         fc = getattr(a, fce)
     else:
-        raise Exception(f"Cannot reach implementation of {fce} ")
+        raise ImplementationError(f"Cannot reach implementation of {fce} ")
 
     return fc
 

@@ -40,6 +40,7 @@ from typing import Any
 import numpy
 
 from ..core.managers import energy_units
+from ..exceptions import BasisError, QuantarheiError
 from .aggregate_spectroscopy import AggregateSpectroscopy
 
 
@@ -112,7 +113,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         try:
             from terminaltables import AsciiTable
         except ImportError:
-            raise Exception("Get terminaltables package for this functionality")
+            raise QuantarheiError("Get terminaltables package for this functionality")
 
         indx, coefs, sqrs = self.get_expansion_squares(state)
 
@@ -217,7 +218,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         if self._diagonalized:
             return self.D2[state1, state2]
 
-        raise Exception("Aggregate has to be diagonalized")
+        raise BasisError("Aggregate has to be diagonalized")
 
     def get_state_energy(self, state: int = 0) -> float | numpy.ndarray:
         """Return the energy of a state with a given index
@@ -250,7 +251,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         """
         if self._diagonalized:
             return self.convert_energy_2_current_u(self.HD[state])
-        raise Exception("Aggregate has to be diagonalized")
+        raise BasisError("Aggregate has to be diagonalized")
 
     def exciton_report(
         self,

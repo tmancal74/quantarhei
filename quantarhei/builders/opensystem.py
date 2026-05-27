@@ -9,6 +9,7 @@ from ..core.dfunction import DFunction
 from ..core.managers import Manager, eigenbasis_of, energy_units
 from ..core.triangle import triangle
 from ..core.units import c_int, eps0_int, kB_intK
+from ..exceptions import BuildError, ImplementationError, QuantarheiError
 from ..qm import ReducedDensityMatrix, SelfAdjointOperator
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
 from ..qm.liouvillespace.heom import KTHierarchy, KTHierarchyPropagator
@@ -184,13 +185,13 @@ class OpenSystem:
         if self._built:
             return self.HamOp
 
-        raise Exception("System has to be built first")
+        raise BuildError("System has to be built first")
 
     def get_TransitionDipoleMoment(self) -> Any:
         """Returns the asystem's transition dipole moment operator"""
         if self._built:
             return self.TrDMOp  # TransitionDipoleMoment(data=self.DD)
-        raise Exception("Aggregate object not built")
+        raise BuildError("Aggregate object not built")
 
     def set_transition_environment(self, transition: tuple, egcf: object) -> None:
         """Set a correlation function for a transition.
@@ -210,7 +211,9 @@ class OpenSystem:
             if a correlation function is already set for this transition.
         """
         if self._is_mapped_on_egcf_matrix:
-            raise Exception("This system is mapped on a CorrelationFunctionMatrix")
+            raise QuantarheiError(
+                "This system is mapped on a CorrelationFunctionMatrix"
+            )
 
         if not (self._has_egcf[self.triangle.locate(transition[0], transition[1])]):
             self.egcf[self.triangle.locate(transition[0], transition[1])] = egcf
@@ -219,7 +222,9 @@ class OpenSystem:
             self._has_system_bath_coupling = True
 
         else:
-            raise Exception("Correlation function already speficied for this monomer")
+            raise QuantarheiError(
+                "Correlation function already speficied for this monomer"
+            )
 
     def unset_transition_environment(self, transition: tuple) -> None:
         """Remove the correlation function assigned to a transition.
@@ -237,7 +242,9 @@ class OpenSystem:
             If the system is mapped onto a ``CorrelationFunctionMatrix``.
         """
         if self._is_mapped_on_egcf_matrix:
-            raise Exception("This monomer is mapped on a CorrelationFunctionMatrix")
+            raise QuantarheiError(
+                "This monomer is mapped on a CorrelationFunctionMatrix"
+            )
 
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
             self.egcf[self.triangle.locate(transition[0], transition[1])] = None
@@ -274,7 +281,7 @@ class OpenSystem:
             if iof >= 0:
                 return self.egcf_matrix.cfunc[iof]
 
-        raise Exception("No environment set for the transition")
+        raise QuantarheiError("No environment set for the transition")
 
     def set_egcf_mapping(
         self, transition: tuple, correlation_matrix: object, position: int
@@ -311,7 +318,7 @@ class OpenSystem:
             self._has_system_bath_coupling = True
 
         else:
-            raise Exception("Monomer has a correlation function already")
+            raise QuantarheiError("Monomer has a correlation function already")
 
     def get_RWA_suggestion(self) -> float | numpy.ndarray:
         """Returns a suggestion of the RWA frequency"""
@@ -375,12 +382,12 @@ class OpenSystem:
             vc = vec
 
         if n == m:
-            raise Exception("M must not be equal to N")
+            raise QuantarheiError("M must not be equal to N")
         try:
             self.dmoments[n, m, :] = vc
             self.dmoments[m, n, :] = numpy.conj(vc)
         except (IndexError, AttributeError):
-            raise Exception()
+            raise QuantarheiError()
 
     def get_dipole(self, *args: Any, **kwargs: Any) -> numpy.ndarray:
         """Returns the dipole vector for a given electronic transition
@@ -423,7 +430,7 @@ class OpenSystem:
         try:
             return self.dmoments[n, m, :]
         except (IndexError, AttributeError):
-            raise Exception()
+            raise QuantarheiError()
 
     # FIXME: There are two functions with similar results
     def map_egcf_to_states(self, mpx: numpy.ndarray) -> numpy.ndarray:
@@ -458,7 +465,7 @@ class OpenSystem:
         Ne1 = self.Nb[1] + Ng
 
         if self.mult > 1:
-            raise Exception(
+            raise QuantarheiError(
                 "Participation matrix not implemented for"
                 "multiplicity higher than mult=1."
             )
@@ -581,7 +588,7 @@ class OpenSystem:
         """Returns the aggregate SystemBathInteraction object"""
         if self._built:
             return self.sbi
-        raise Exception("The object not built.")
+        raise BuildError("The object not built.")
 
     def get_RelaxationTensor(
         self,
@@ -644,7 +651,7 @@ class OpenSystem:
             # ham = deepcopy(self.get_Hamiltonian())
             sbi = self.get_SystemBathInteraction()
         else:
-            raise Exception()
+            raise QuantarheiError()
 
         relaxT: Any = None
 
@@ -893,7 +900,7 @@ class OpenSystem:
         elif relaxation_theory in theories["Lindblad_form"]:
             if time_dependent:
                 # Time dependent standard Refield
-                raise Exception("Time dependent Lindblad not implemented yet")
+                raise ImplementationError("Time dependent Lindblad not implemented yet")
 
             else:
                 # Linblad form
@@ -913,7 +920,7 @@ class OpenSystem:
         elif relaxation_theory in theories["electronic_Lindblad"]:
             if time_dependent:
                 # Time dependent standard Refield
-                raise Exception("Time dependent Lindblad not implemented yet")
+                raise ImplementationError("Time dependent Lindblad not implemented yet")
 
             else:
                 # For purely electronic system, calculate normal Lindblad form
@@ -941,7 +948,7 @@ class OpenSystem:
 
                         sbi.KK = vKK
                     else:
-                        raise Exception(
+                        raise QuantarheiError(
                             "SystemBathInteraction object has to purely electronic"
                         )
 
@@ -959,7 +966,7 @@ class OpenSystem:
             return relaxT, ham
 
         else:
-            raise Exception("Theory not implemented")
+            raise ImplementationError("Theory not implemented")
 
     def get_ReducedDensityMatrixPropagator(
         self,
@@ -992,7 +999,7 @@ class OpenSystem:
         if time_nonlocal:
             # here we create time non-local propagator
             prop = None
-            raise Exception()
+            raise QuantarheiError()
         else:
             # FIXME: is the eigenbases needed???
             with eigenbasis_of(ham):
@@ -1009,7 +1016,7 @@ class OpenSystem:
             ham = self.get_Hamiltonian()
             sbi = self.get_SystemBathInteraction()
         else:
-            raise Exception()
+            raise QuantarheiError()
 
         return RedfieldRateMatrix(ham, sbi, corr_mat=corr_mat)
 
@@ -1021,7 +1028,7 @@ class OpenSystem:
             ham = self.get_Hamiltonian()
             sbi = self.get_SystemBathInteraction()
         else:
-            raise Exception()
+            raise QuantarheiError()
 
         return FoersterRateMatrix(ham, sbi)
 
@@ -1093,11 +1100,13 @@ class OpenSystem:
 
                 return rhoi
 
-            raise Exception("Spectrum must be specified through a DFunction object")
+            raise QuantarheiError(
+                "Spectrum must be specified through a DFunction object"
+            )
 
         else:
             print("Excitation condition:", condition)
-            raise Exception("Excition condition not implemented.")
+            raise ImplementationError("Excition condition not implemented.")
 
     def get_thermal_ReducedDensityMatrix(self) -> Any:
         """Returns equilibrium density matrix for a give temparature"""
@@ -1240,7 +1249,7 @@ class OpenSystem:
                 rate += dip2 * (ome**3) / (3.0 * numpy.pi * eps * (c_int**3))
 
         except (IndexError, AttributeError, ValueError, ZeroDivisionError):
-            raise Exception("Calculation of rate failed")
+            raise QuantarheiError("Calculation of rate failed")
 
         if rate > 0.0:
             lftm = 1.0 / rate
@@ -1251,7 +1260,7 @@ class OpenSystem:
             self._saved_epsilon_r = epsilon_r
 
         else:
-            # raise Exception("Cannot calculate natural lifetime")
+            # raise QuantarheiError("Cannot calculate natural lifetime")
             self._has_nat_lifetime[N] = True
             self._nat_lifetime[N] = numpy.inf
 

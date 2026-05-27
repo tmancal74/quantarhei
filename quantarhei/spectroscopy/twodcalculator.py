@@ -11,6 +11,7 @@ from ..builders.molecules import Molecule
 from ..builders.opensystem import OpenSystem
 from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
+from ..exceptions import ImplementationError, QuantarheiError
 from ..implementations.aceto.lab_settings import lab_settings
 from ..qm.propagators.poppropagator import PopulationPropagator
 
@@ -159,7 +160,7 @@ class TwoDResponseCalculator:
                     pass
 
                 else:
-                    raise Exception("Molecule 2D not implememted")
+                    raise QuantarheiError("Molecule 2D not implememted")
 
                 sys = self.system
                 sys.diagonalize()
@@ -208,15 +209,14 @@ class TwoDResponseCalculator:
                 # Finding population evolution matrix
                 #
                 prop = PopulationPropagator(self.t2axis, Kr)
-                # Uee, Uc0 = prop.get_PropagationMatrix(self.t2axis,
-                #                                     corrections=True)
-                self.Uee, cor = prop.get_PropagationMatrix(self.t2axis, corrections=3)
+                self.Uee = prop.get_PropagationMatrix(self.t2axis)
+                jumps = prop.get_JumpExpansion(self.t2axis, max_order=3)
 
                 # FIXME: Order of transfer is set by hand here
                 # - needs to be moved to some reasonable place
 
                 # Ucor = Uee
-                self.Uc0 = cor[0]
+                self.Uc0 = jumps[0]
 
             ###############################################################################
 
@@ -452,7 +452,7 @@ class TwoDResponseCalculator:
                         resp_Ngsb += resp.calculate_matrix(tt2)
 
                     else:
-                        raise Exception("Unknown response type")
+                        raise QuantarheiError("Unknown response type")
 
                 elif isinstance(resp, LiouvillePathway):
                     resp_any: Any = resp
@@ -466,10 +466,10 @@ class TwoDResponseCalculator:
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
                         )
                     else:
-                        raise Exception("Unknown response type")
+                        raise QuantarheiError("Unknown response type")
 
         else:
-            raise Exception("Calculation method not implemented")
+            raise ImplementationError("Calculation method not implemented")
 
         # only for Aceto we need the sum
         #
@@ -520,6 +520,13 @@ class TwoDResponseCalculator:
             onetwod.set_axis_1(self.oa1)
             onetwod.set_axis_3(self.oa3)
 
+        # FIXME: Make a decision, if this is to be kept
+        # Right now the code does not distinguish different response types, except rephasing and non-rephasing
+        # If we decide to remove the detained storage, we can remove a lot of functionality from TwoDResponse.
+        # This would discart a let of information useful for inspection.
+        #
+        # Likely the best solution, is the allow storage of details, only if the user asks
+        #
         if self.keep_resp:
             resp = {
                 "time": self.t1axis.data,
@@ -625,7 +632,7 @@ class TwoDResponseCalculator:
 
             return twods
 
-        raise Exception("2D calculation in this mode not implemented.")
+        raise ImplementationError("2D calculation in this mode not implemented.")
 
     def reset_evaluation_functions(self, fcions: list[Any]) -> None:
         """Resets the evaluation functions used by the reseponse functions"""
@@ -635,4 +642,4 @@ class TwoDResponseCalculator:
                 print(rsp)
 
         else:
-            raise Exception("Calculatore has no responses defined.")
+            raise QuantarheiError("Calculatore has no responses defined.")

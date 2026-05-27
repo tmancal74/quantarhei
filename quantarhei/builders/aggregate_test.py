@@ -47,6 +47,7 @@ import numpy
 from ..core.managers import energy_units
 from ..core.time import TimeAxis
 from ..core.units import convert
+from ..exceptions import QuantarheiError
 from ..qm.corfunctions.correlationfunctions import CorrelationFunction
 from .aggregates import Aggregate
 from .modes import Mode
@@ -109,12 +110,12 @@ class TestAggregate(Aggregate):
         >>> TestAggregate()
         Traceback (most recent call last):
             ...
-        Exception: Aggregate name not specified
+        quantarhei.exceptions.QuantarheiError: Aggregate name not specified
 
 
         """
         if name is None:
-            raise Exception("Aggregate name not specified")
+            raise QuantarheiError("Aggregate name not specified")
 
         #
         # Test dimer
@@ -213,7 +214,7 @@ class TestAggregate(Aggregate):
 
             # check inputs
             if nstates != 2:
-                raise Exception()
+                raise QuantarheiError()
 
             # set parameters
             gap1 = convert(12000, "1/cm", to="int")
@@ -254,7 +255,7 @@ class TestAggregate(Aggregate):
 
             # check inputs
             if nstates != 2:
-                raise Exception()
+                raise QuantarheiError()
 
             # set parameters
             gap1 = convert(12000, "1/cm", to="int")

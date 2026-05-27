@@ -6,6 +6,7 @@ from typing import Any
 import numpy
 
 from ...core.time import TimeAxis
+from ...exceptions import QuantarheiError
 
 
 class FunctionStorage:
@@ -112,7 +113,7 @@ class FunctionStorage:
         if len(oned_times) != tlen:
             print("Storage configuration:")
             print(self.config)
-            raise Exception(
+            raise QuantarheiError(
                 "The number of time axes has to be consistent with storage conguration."
             )
 
@@ -133,7 +134,7 @@ class FunctionStorage:
                 elif len(dim) > 1:
                     time_index[tstr] = tuple(dim)
                 else:
-                    raise Exception("Inconsistent configuration")
+                    raise QuantarheiError("Inconsistent configuration")
 
         # order time_index
         # Sorting criteria:
@@ -167,7 +168,7 @@ class FunctionStorage:
 
         # One or more time axes on which the functions should be represented
         if timeaxis is None:
-            raise Exception("At least one time axis has to be specified")
+            raise QuantarheiError("At least one time axis has to be specified")
         self.timeaxis = timeaxis
 
         # Storage dimensions; they correspond to the submitted time axes
@@ -180,7 +181,7 @@ class FunctionStorage:
             dim_arr = numpy.zeros(self.Ndim, dtype=numpy.int32)
             for ii, ta in enumerate(timeaxis):
                 if not isinstance(ta, TimeAxis):
-                    raise Exception(
+                    raise QuantarheiError(
                         "'timeaxis' argument must be a list/tuple of Quantarhei TimeAxis objects."
                     )
                 dim_arr[ii] = ta.length
@@ -360,10 +361,10 @@ class FunctionStorage:
                 self.data[sta:end] = numpy.array(value, dtype=self.dtype)
 
             else:
-                raise Exception()
+                raise QuantarheiError()
 
         else:
-            raise Exception()
+            raise QuantarheiError()
 
     def __getitem__(self, index: Any) -> Any:
         """Returns the stored function"""
@@ -412,10 +413,10 @@ class FunctionStorage:
                     return self._data2d[i, sta:end].reshape(tpl)
 
             else:
-                raise Exception()
+                raise QuantarheiError()
 
         else:
-            raise Exception()
+            raise QuantarheiError()
 
     def set_goft(self, N: Any, func: Any = None) -> None:
         """Sets the values for a given stored function."""
@@ -424,7 +425,7 @@ class FunctionStorage:
         # represented for the outside world
         #
         if not isinstance(N, (int, list, tuple, numpy.ndarray)):
-            raise Exception(
+            raise QuantarheiError(
                 "Argument N has to be an integer or an array (list, tuple) of integers"
             )
 
@@ -447,10 +448,12 @@ class FunctionStorage:
 
             # FIXME: mapping has to be merged with the previous mappings
             if self.mapping[N] > 0:
-                raise Exception("Function already set for " + str(N))
+                raise QuantarheiError("Function already set for " + str(N))
             # set the function to the first available position
             if self.Nf > self.N:
-                raise Exception("The storage full. Unable to add additional functions")
+                raise QuantarheiError(
+                    "The storage full. Unable to add additional functions"
+                )
 
             if func is not None:
                 pos = self._fce_already_stored(func)
@@ -462,7 +465,7 @@ class FunctionStorage:
                     self.mapping[N] = pos
 
             else:
-                raise Exception("Function not submitted")
+                raise QuantarheiError("Function not submitted")
 
         else:
             # In this case N is a list of mappings to the submitted function
@@ -485,7 +488,7 @@ class FunctionStorage:
                         self.mapping[nn] = pos
 
                 else:
-                    raise Exception("Function already set for " + str(nn))
+                    raise QuantarheiError("Function already set for " + str(nn))
 
             # we added just one function
             if added:
@@ -633,7 +636,7 @@ class FunctionStorage:
         Nsites = self.get_number_of_sites()
 
         if Nsites != len(self.mapping):
-            raise Exception(
+            raise QuantarheiError(
                 "Mapping has to be complete."
                 " All of its elements have to be set without gaps."
             )
@@ -699,7 +702,7 @@ class FastFunctionStorage(FunctionStorage):
                 return self._data2d[i, sta]
             return self._data2d[i, sta:end]
 
-        raise Exception("Integer or slice : required as a first index")
+        raise QuantarheiError("Integer or slice : required as a first index")
 
 
 class SingleGoft(FunctionStorage):

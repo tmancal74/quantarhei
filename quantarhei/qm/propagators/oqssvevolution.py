@@ -5,6 +5,7 @@ from typing import Any
 import numpy
 
 from ... import REAL
+from ...exceptions import ImplementationError
 from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 
 
@@ -57,7 +58,7 @@ class OQSStateVectorEvolution:
 
         """
         if decoherence:
-            raise Exception("Decoherence not yet implemented.")
+            raise ImplementationError("Decoherence not yet implemented.")
 
         rhoi = numpy.zeros((self.dim, self.dim), dtype=REAL)
         rhot = ReducedDensityMatrixEvolution(timeaxis=self.TimeAxis, rhoi=rhoi)
